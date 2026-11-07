@@ -33,8 +33,8 @@ Base 的菜单契约门禁（`check-menu-contract.mjs`）按命名约定发现�
 ```powershell
 # 1. 从 GitHub 查询最新稳定的正式 Base release，下载四个资产，校验 SHA256、
 # manifest 和不可变 tag，全部成功后才更新 Ops 锁文件。
-# 不指定版本时获取 GitHub 最新稳定版；本次明确锁定 v0.18.4：
-npm run fetch:base-release -- --release pantheon-base-v0.18.4
+# 不指定版本时获取 GitHub 最新稳定版；本次明确锁定 v0.18.5：
+npm run fetch:base-release -- --release pantheon-base-v0.18.5
 
 # 2. 从该正式锁定版本重建暂存树，不覆盖当前 Ops。
 npm run rebuild:from-base -- --target .tmp/clean-base-overlay
@@ -77,7 +77,7 @@ npm run check:shared-drift -- --root .tmp/clean-base-overlay
 > 以下英文 marker 供 `../pantheon-base/scripts/harness/check-inheritance-contract.mjs` 机械校验，请勿翻译或删除；版本变化时必须与 `foundation-release.lock.json` 同步更新。
 
 - Base repository: `../pantheon-base`
-- Base version: `pantheon-base-v0.18.4` (`0a8229c67ab482c2e163622fc4e5b87301c53399`)
+- Base version: `pantheon-base-v0.18.5` (`1da0834bdce636fd2fc1063290e3f32339e2d27a`)
 - If a foundation rule must change, update `pantheon-base` first
 
 ## 8. 业务数据迁移

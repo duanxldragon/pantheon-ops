@@ -1,0 +1,9 @@
+{
+  "command": "node scripts/run-smoke-suite.mjs --host 127.0.0.1 --port 24574 --proxy-target http://127.0.0.1:24481 --cleanup-fixtures all --config playwright.config.ts -- tests/smoke/business/generated/ module-governance-real.spec.ts --workers=1",
+  "log": "../../resume9-smoke-generated-direct.log",
+  "startedAt": "2026-11-07T02:45:55.3078082Z",
+  "suite": "generated",
+  "finishedAt": "2026-11-07T02:47:27.1930910Z",
+  "sha256": "40d2afb0a2e344c7ea9ced9b40d7e8d4ec29619d052b408d76d01d244a049745",
+  "exitCode": 1
+}

@@ -6,7 +6,7 @@ status: Active
 linked_contracts:
   - docs/contracts/PLATFORM_CONTRACT.md
   - docs/contracts/DOCUMENT_GOVERNANCE_CONTRACT.md
-updated_at: 2026-06-23
+updated_at: 2026-11-04
 ---
 
 # Pantheon Base 多 Agent 交付流程
@@ -193,14 +193,17 @@ CodeQL 在 `Security Gates` 中承担主安全信号；质量和设计风险则�
 
 ## 6. 自动调度时的停点
 
-Dispatcher 必须在以下情况停下来请求 Human Owner 决策：
+维护者按 workspace `AGENTS.md` 的三触点介入：①开工时的需求/范围澄清；②质量门禁策略、豁免或规则变更；③最终视觉/功能验收。
 
-- 修改数据库 schema、seed、权限模型、菜单模型、认证链路。
-- 删除大量文件、批量迁移或影响上游/下游继承。
-- 引入新外部服务、依赖、secrets 或发布流程。
-- Planner 和 Explorer 对任务范围结论冲突。
-- Review 暴露 P0/P1，但修复会扩大原 task 范围。
-- CI gate 需要从 required 改成 advisory，或反过来。
+已授权范围内的安全可逆整改默认自主推进，用门禁与 evidence 收口。不能仅因涉及 schema、seed、权限、菜单、auth、audit 或 CI 就重复中途请求批准。触碰敏感域仍升到适当档位，补足回归与下游风险证据。
+
+只有以下尚未获得授权的动作需要维护者决策：
+
+- 破坏性/不可逆操作、外部生产或需要凭证的操作、正式发布。
+- 新增外部服务/依赖，或 review 指出修复将实质扩大已确认范围。
+- required/advisory、阈值或豁免策略变更。
+
+Planner/Explorer 的范围差异由 Reviewer 对照 In/Out 纠正；没有实质范围变化时持续执行。已授权事项不重新索取同一批准。
 
 ## 7. 最小交付件
 

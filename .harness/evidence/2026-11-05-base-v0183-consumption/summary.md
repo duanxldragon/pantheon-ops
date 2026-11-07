@@ -1,3 +1,13 @@
+# Current official v0.18.5 consumption — 2026-11-07
+
+Official release at immutable `1da0834b` is acquired and verified from four GitHub assets; standard reconstruction declares 847 files. Drift: 826 compared /816 identical /10 allowed. Complete readonly CGO MySQL/Redis race: **2170 pass /0 fail /1 real S3 skip /64 packages**, without a source overlay. Modules and test fixture were unchanged by the race. Frontend lint/type-check/build and218 unit tests;59 script tests; fresh migration32clean; generated, auto-recycle, master-detail and many-to-many standard smoke all pass.
+
+[Validation](resume10-consumer-validation.json), [smoke](resume10-consumer-smoke.json), [independent source approvals](resume10-consumer-approval.json), [official provenance](resume9-official-provenance.json), [exact raw archives](resume10-raw-archives.json). All1031 protected source files match the tested candidate. Current hosted CI and formal merge remain required. Original scope is preserved; status stays in-progress until those gates complete.
+
+Explicit runtime gaps: QA-002 deploy attempt table and extra host-import smoke table are absent in the isolated versioned-migration runtime. The earlier unprepared directory smoke failed3 tests/ passed2 and is preserved. Precise standard tests with original QA setup pass; no source fix or security relaxation was applied. S3/no waiver and unsigned freeze remain separate. No new UI source behavior; no visual polish claim.
+
+## Historical evidence
+
 # Current module graph correction2026-11-07
 
 Officialv0.18.4 consumer reconstruction previously required scratch -mod=mod changes. Rebuilder now loads complete packages/tests before reporting, includes normalized module hashes, and aborts failed loads.59 regressions pass;official rebuild829, readonly package/test graph and all-backend build pass without module changes. Drift reports826 examined/816 identical/10 allowed.
@@ -39,7 +49,6 @@ The initial declaration under backend/pkg/database failed the real rebuild prefl
 Architecture blocker reproduced and repaired; 37 overlay tests pass, and real MySQL race covers missing table, missing column and actual down/reapply/CAS. Final source fingerprints cover 21 files. Final CODE/ARCH re-review is running. Main Ops remains unchanged; official v0183 consumption and full final validation are pending.
 
 Final preparation review: independent CODE APPROVE / ARCH CLEAR;21 source hashes match. Official release and complete consumer verification remain pending.
-
 
 ## 最新续办：明确 v0.18.4 与授权
 

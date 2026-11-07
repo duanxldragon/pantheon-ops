@@ -25,7 +25,9 @@
     "User already authorized official release consumption. Keep main Ops tree and preexisting untracked logs until staged rebuild validates.",
     "Original task ID is retained for continuity; current final target is v0.18.4. v0.18.3 preparation approvals do not cover new consumer changes.",
     "Network EACCES blocks official acquisition, final staged CGO race/smoke/CI and independent review; main Ops remains unchanged.",
-    "2026-11-07 scoped module graph correction approved by both independent lanes; full official v0.18.5 consumption remains required, original acceptance unchanged."
+    "2026-11-07 scoped module graph correction approved by both independent lanes; full official v0.18.5 consumption remains required, original acceptance unchanged.",
+    "2026-11-07: corrective official v0.18.5, immutable1da0834b, four GitHub assets acquired and verified. Exact official snapshot rebuilt; readonly CGO race and required consumer validation underway. Previous test-source overlay is historical and is not used. Original scope and acceptance criteria unchanged.",
+    "2026-11-07: official readonly CGO race2170/0/1, FE218, scripts59, migration32clean and four standard generator smoke suites passed; exact source approved independently. Hosted CI/merge still required; QA-002 and extra host-import runtime table gap remain explicit, no waiver."
   ],
   "verificationPlan": {
     "commands": [
@@ -50,8 +52,8 @@
       ".harness/tasks/2026-11-05-base-v0183-consumption/plan.md"
     ]
   },
-  "targetRelease": "pantheon-base-v0.18.4",
-  "implementationStatus": "github-consumer-scripts-verified-final-release-not-consumed",
-  "reviewStatus": "new-source-awaits-independent-review-network-unavailable",
+  "targetRelease": "pantheon-base-v0.18.5",
+  "implementationStatus": "official-v0185-full-local-verification-passed-ci-pending",
+  "reviewStatus": "bounded-source-code-approved-architecture-clear",
   "moduleGraphReview": "approved-bounded-only"
 }

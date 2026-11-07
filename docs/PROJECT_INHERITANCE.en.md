@@ -33,8 +33,8 @@ Run these commands from the Ops repository root:
 ```powershell
 # Query GitHub for the latest stable official Base release, download four assets,
 # verify SHA256, manifest and immutable tag, then update the Ops lock.
-# With no version argument this selects latest; this handoff pins v0.18.4.
-npm run fetch:base-release -- --release pantheon-base-v0.18.4
+# With no version argument this selects latest; this handoff pins v0.18.5.
+npm run fetch:base-release -- --release pantheon-base-v0.18.5
 
 # Rebuild and verify a temporary consumer from the pinned official release.
 npm run rebuild:from-base -- --target .tmp/clean-base-overlay

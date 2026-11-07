@@ -1,0 +1,70 @@
+{
+  "recordedAt": "2026-11-07T02:55:56.465Z",
+  "releaseVersion": "pantheon-base-v0.18.5",
+  "baseCommit": "1da0834bdce636fd2fc1063290e3f32339e2d27a",
+  "sourceOverlay": false,
+  "race": {
+    "counts": {
+      "pass": 2170,
+      "fail": 0,
+      "skip": 1,
+      "packages": 64
+    },
+    "failures": [],
+    "skips": [
+      {
+        "Time": "2026-11-07T10:40:11.610879+08:00",
+        "Action": "skip",
+        "Package": "github.com/duanxldragon/pantheon-base/backend/pkg/upload",
+        "Test": "TestServiceStoreUsesRealS3WhenConfigured",
+        "Elapsed": 0
+      }
+    ]
+  },
+  "sourceUnchanged": true,
+  "sourceFiles": 1031,
+  "frontend": "lint/type-check/build/218 unit tests passed on same tree",
+  "scriptTests": {
+    "pass": 59,
+    "fail": 0,
+    "skip": 0
+  },
+  "migration": {
+    "version": 32,
+    "dirty": false
+  },
+  "smoke": [
+    {
+      "suite": "generated",
+      "exitCode": 0,
+      "log": "resume10-smoke-generated.log.gz",
+      "rawSha256": "b1137748e96008839dd1bde5bf056628190e06fba18e1cbb0debcd58cee58909"
+    },
+    {
+      "suite": "auto-recycle",
+      "exitCode": 0,
+      "log": "resume10-smoke-auto-recycle.log.gz",
+      "rawSha256": "d8c203f30323fc6fb7b720cf79cbe50ef18906b139b6f3d9d4abe7f630788b6c"
+    },
+    {
+      "suite": "master-detail",
+      "exitCode": 0,
+      "log": "resume10-smoke-master-detail.log.gz",
+      "rawSha256": "4978fb90b690a0c2b378996c9250edf58073cbbe54c4c189198db378180a6af2"
+    },
+    {
+      "suite": "many-to-many",
+      "exitCode": 0,
+      "log": "resume10-smoke-many-to-many.log.gz",
+      "rawSha256": "9f21df19b8bd0ade41a783386a545e281aa67bafc0881fe1516ee6317c27f44f"
+    }
+  ],
+  "ci": "pending-current-PR",
+  "residuals": [
+    "QA-002: fresh business/deploy runtime missing biz_deploy_task_attempt table, not repaired or waived",
+    "Extra host database-import smoke selected by prior directory command fails because isolated versioned-migration database lacks biz_cmdb_host; standard four requested suites all pass after precise selection and original setup",
+    "S3 real skip, no credentials and no waiver",
+    "Optional 69 historical task packets /568 errors identical baseline and candidate; not a required Quality job",
+    "No freeze signature, network-policy waiver, production operation or nonrequired Vercel acceptance"
+  ]
+}

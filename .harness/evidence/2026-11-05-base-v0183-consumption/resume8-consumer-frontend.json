@@ -1,0 +1,50 @@
+{
+  "recordedAt": "2026-11-07T02:24:27.562Z",
+  "sourceCommit": "6bb197e9b65998426767107f344c5245293f9e6f",
+  "source": "D:/workspace/go/pantheon-platform/audit-artifacts/task-closeout-2026-11-06/ops-v185-source",
+  "target": "D:/workspace/go/pantheon-platform/audit-artifacts/task-closeout-2026-11-06/ops-v185-rebuilt",
+  "mode": "frontend",
+  "commands": [
+    {
+      "name": "frontend-lint",
+      "command": "C:\\WINDOWS\\system32\\cmd.exe /d /s /c npm.cmd run lint",
+      "executable": "C:\\WINDOWS\\system32\\cmd.exe",
+      "args": [
+        "/d",
+        "/s",
+        "/c",
+        "npm.cmd run lint"
+      ],
+      "cwd": "D:/workspace/go/pantheon-platform/audit-artifacts/task-closeout-2026-11-06/ops-v185-rebuilt/frontend",
+      "startedAt": "2026-11-07T02:24:27.590Z",
+      "finishedAt": "2026-11-07T02:24:52.537Z",
+      "exitCode": 0,
+      "error": null,
+      "log": "resume8-consumer-frontend-lint.log",
+      "sha256": "5818a930434cb0d8d2d2a02064c773ab6a83550e85cc5b74a35fec5534551fa9"
+    },
+    {
+      "name": "frontend-type-check",
+      "command": "C:\\WINDOWS\\system32\\cmd.exe /d /s /c npm.cmd run type-check",
+      "executable": "C:\\WINDOWS\\system32\\cmd.exe",
+      "args": [
+        "/d",
+        "/s",
+        "/c",
+        "npm.cmd run type-check"
+      ],
+      "cwd": "D:/workspace/go/pantheon-platform/audit-artifacts/task-closeout-2026-11-06/ops-v185-rebuilt/frontend",
+      "startedAt": "2026-11-07T02:24:52.538Z",
+      "finishedAt": "2026-11-07T02:25:05.116Z",
+      "exitCode": 1,
+      "error": null,
+      "log": "resume8-consumer-frontend-type-check.log",
+      "sha256": "5a8578dfc481eabcb6e3fd5933844ea0eeb90ad547a492064dea45b55cddb3a8"
+    }
+  ],
+  "sourceOverlay": false,
+  "dependencies": {
+    "method": "existing node_modules junction with exact package-lock equality",
+    "source": "D:/workspace/go/pantheon-platform/pantheon-ops/frontend"
+  }
+}

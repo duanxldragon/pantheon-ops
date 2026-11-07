@@ -1,0 +1,23 @@
+{
+  "recordedAt": "2026-11-07T02:34:54.193Z",
+  "scope": "Optional whole-history task-packet audit, not wired in Ops Quality workflow; required repo-verify docs/template/gorm/overlay checks passed. No gate config or historical packets changed.",
+  "baseCommit": "6bb197e9b65998426767107f344c5245293f9e6f",
+  "findingsUnchanged": true,
+  "failedPackets": 69,
+  "errorLines": 568,
+  "commands": [
+    {
+      "command": "node scripts/harness/check-task-packet.mjs --root .",
+      "exitCode": 1,
+      "log": "resume9-ops-baseline-task-packet.log",
+      "sha256": "cd96499153e60e26a33092f693db391d8a3e7d17c9f5ab8f0a564c94b88d2dee"
+    },
+    {
+      "command": "node scripts/harness/check-task-packet.mjs --root .",
+      "exitCode": 1,
+      "log": "resume9-ops-check-task-packet.log",
+      "sha256": "9761976d1b9a8e6dc3ec2a78266486f038af7856b60678f403415403b1a3fb5a"
+    }
+  ],
+  "waivers": []
+}

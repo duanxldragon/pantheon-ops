@@ -1,0 +1,28 @@
+{
+  "recordedAt": "2026-11-07T02:23:04.344Z",
+  "sourceCommit": "6bb197e9b65998426767107f344c5245293f9e6f",
+  "source": "D:/workspace/go/pantheon-platform/audit-artifacts/task-closeout-2026-11-06/ops-v185-source",
+  "target": "D:/workspace/go/pantheon-platform/audit-artifacts/task-closeout-2026-11-06/ops-v185-rebuilt",
+  "mode": "migration",
+  "commands": [
+    {
+      "name": "fresh-migration",
+      "command": "go run -buildvcs=false -mod=readonly D:/workspace/go/pantheon-platform/audit-artifacts/task-closeout-2026-11-06/resume8-migration-probe.go",
+      "executable": "go",
+      "args": [
+        "run",
+        "-buildvcs=false",
+        "-mod=readonly",
+        "D:/workspace/go/pantheon-platform/audit-artifacts/task-closeout-2026-11-06/resume8-migration-probe.go"
+      ],
+      "cwd": "D:/workspace/go/pantheon-platform/audit-artifacts/task-closeout-2026-11-06/ops-v185-rebuilt/backend",
+      "startedAt": "2026-11-07T02:23:04.371Z",
+      "finishedAt": "2026-11-07T02:23:12.117Z",
+      "exitCode": 0,
+      "error": null,
+      "log": "resume8-consumer-fresh-migration.log",
+      "sha256": "10719522bda4a530a8c0d628572a84293cc4d810e96ee8dd803452c3f46ab4c3"
+    }
+  ],
+  "sourceOverlay": false
+}

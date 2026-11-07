@@ -263,7 +263,7 @@ A task may be marked complete only when all of the following are true:
 8. if UI was touched, the visual quality gate has been run and screenshots, browser evidence, or a recorded reason for not running have been saved
 9. unverified items and residual risk have been listed
 10. the review gate has no unresolved P0/P1 findings
-11. if document governance is enabled in the repository, the frontmatter / README / contract linkage checks defined by `DOCUMENT_FRONTMATTER_SPEC.md` must also pass
+11. if document governance is enabled in the repository, the frontmatter / README / contract linkage checks defined by `docs/contracts/DOCUMENT_FRONTMATTER_SCHEMA.md` (single source of truth; the former `docs/harness/DOCUMENT_FRONTMATTER_SPEC.md` is archived as a pointer) must also pass
 
 ## 8. Trivial Task Exceptions
 
@@ -285,4 +285,3 @@ Harness maturity progresses in three stages:
 1. protocol layer: establish `docs/harness/*` and `.agents/*` so the workflow is tool-agnostic
 2. evidence layer: establish task packet, evidence schema, and evidence directory conventions
 3. gate layer: push architecture boundaries, permission, i18n, audit, drift, and document frontmatter governance down into scripts and CI
-
