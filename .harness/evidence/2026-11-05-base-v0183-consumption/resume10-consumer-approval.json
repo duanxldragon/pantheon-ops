@@ -1,0 +1,24 @@
+{
+  "scope": "bounded-official-v0185-consumer-source",
+  "snapshotSha256": "66cb995f359e1502b5277c74171629fce55ed68b57f07735621ce63325fb857c",
+  "approvals": [
+    {
+      "file": "resume9-consumer-code-reviewer.md",
+      "sha256": "840eeb872386c37f110748e93281c85177c6ae66df70a42370bf1f7e0ccbdd07",
+      "verdict": "APPROVE",
+      "architecturalStatus": "No bounded source ownership violation found; independent architect verdict remains required.",
+      "acceptsPostReviewEvidenceUpdates": true,
+      "originalRawSha256": "8916b11d8fc4f6047f0999e8f970d4a907192b8132a94bc2753c8ea24956038a",
+      "originalRawArchive": "resume10-original-resume9-consumer-code-reviewer.md.gz"
+    },
+    {
+      "file": "resume9-consumer-architect.md",
+      "sha256": "4cd7ada0b60a8a2e11c1e16519e0cb8963206b7f9d48b40dbf50b67047bd946a",
+      "verdict": "APPROVE",
+      "architecturalStatus": "CLEAR",
+      "acceptsPostReviewEvidenceUpdates": true,
+      "originalRawSha256": "954598fba9c741d93b4d83d76515bd0e9e6d08cddbfeb49406e80f3ea7226e12",
+      "originalRawArchive": "resume10-original-resume9-consumer-architect.md.gz"
+    }
+  ]
+}

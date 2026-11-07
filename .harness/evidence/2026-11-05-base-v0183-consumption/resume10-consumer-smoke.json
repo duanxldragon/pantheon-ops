@@ -1,0 +1,38 @@
+[
+  {
+    "suite": "generated",
+    "startedAt": "2026-11-07T02:52:56.9636546Z",
+    "exitCode": 0,
+    "log": "resume10-smoke-generated.log",
+    "command": "node scripts/run-smoke-suite.mjs --host 127.0.0.1 --port 24574 --proxy-target http://127.0.0.1:24481 --cleanup-fixtures all --config playwright.config.ts -- tests/smoke/business/generated/module-governance-real.spec.ts --workers=1",
+    "sha256": "b1137748e96008839dd1bde5bf056628190e06fba18e1cbb0debcd58cee58909",
+    "finishedAt": "2026-11-07T02:53:11.6131555Z"
+  },
+  {
+    "suite": "auto-recycle",
+    "startedAt": "2026-11-07T02:53:11.6503471Z",
+    "exitCode": 0,
+    "log": "resume10-smoke-auto-recycle.log",
+    "command": "node scripts/run-smoke-suite.mjs --host 127.0.0.1 --port 24574 --proxy-target http://127.0.0.1:24481 --cleanup-fixtures all --config playwright.auto-recycle.config.ts -- tests/smoke/business/generated/module-auto-recycle-real.spec.ts --workers=1",
+    "sha256": "d8c203f30323fc6fb7b720cf79cbe50ef18906b139b6f3d9d4abe7f630788b6c",
+    "finishedAt": "2026-11-07T02:53:25.3092873Z"
+  },
+  {
+    "suite": "master-detail",
+    "startedAt": "2026-11-07T02:53:25.3151537Z",
+    "exitCode": 0,
+    "log": "resume10-smoke-master-detail.log",
+    "command": "node scripts/run-smoke-suite.mjs --host 127.0.0.1 --port 24574 --proxy-target http://127.0.0.1:24481 --cleanup-fixtures all --config playwright.master-detail.config.ts --setup scripts/master-detail-qa-setup.mjs -- tests/smoke/business/generated/module-master-detail-real.spec.ts --workers=1",
+    "sha256": "4978fb90b690a0c2b378996c9250edf58073cbbe54c4c189198db378180a6af2",
+    "finishedAt": "2026-11-07T02:53:41.2343843Z"
+  },
+  {
+    "suite": "many-to-many",
+    "startedAt": "2026-11-07T02:53:41.2410876Z",
+    "exitCode": 0,
+    "log": "resume10-smoke-many-to-many.log",
+    "command": "node scripts/run-smoke-suite.mjs --host 127.0.0.1 --port 24574 --proxy-target http://127.0.0.1:24481 --cleanup-fixtures all --config playwright.many-to-many.config.ts --setup scripts/many-to-many-qa-setup.mjs -- tests/smoke/business/generated/module-many-to-many-real.spec.ts --workers=1",
+    "sha256": "9f21df19b8bd0ade41a783386a545e281aa67bafc0881fe1516ee6317c27f44f",
+    "finishedAt": "2026-11-07T02:53:58.1538125Z"
+  }
+]

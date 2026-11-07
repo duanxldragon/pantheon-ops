@@ -1,0 +1,35 @@
+{
+  "recordedAt": "2026-11-07T02:30:40.468Z",
+  "source": "D:/workspace/go/pantheon-platform/audit-artifacts/task-closeout-2026-11-06/ops-v185-final",
+  "target": "D:/workspace/go/pantheon-platform/audit-artifacts/task-closeout-2026-11-06/ops-v185-consumption",
+  "baseline": "6bb197e9b65998426767107f344c5245293f9e6f",
+  "authority": "Official185 assets via standard consumer/rebuilder; isolated PR worktree only. Original dirty Ops tree preserved.",
+  "files": 2394,
+  "copied": [
+    ".business-overlay-report.json",
+    ".harness/tasks/2026-11-05-base-v0183-consumption/manifest.json",
+    "backend/go.mod",
+    "backend/go.sum",
+    "backend/modules/lowcode/dynamicmodule/dynamic_module_service_test.go",
+    "docs/harness/DOCUMENT_FRONTMATTER_SPEC.md",
+    "docs/harness/HARNESS_ENGINEERING_CONTRACT.en.md",
+    "docs/harness/HARNESS_ENGINEERING_CONTRACT.md",
+    "docs/harness/PANTHEON_BASE_DELIVERY_WORKFLOW.en.md",
+    "docs/harness/PANTHEON_BASE_DELIVERY_WORKFLOW.md",
+    "docs/harness/VERIFICATION_EVIDENCE_SPEC.en.md",
+    "docs/harness/VERIFICATION_EVIDENCE_SPEC.md",
+    "docs/PROJECT_INHERITANCE.en.md",
+    "docs/PROJECT_INHERITANCE.md",
+    "docs/release-notes/RELEASE_NOTES_v0.18.5.md",
+    "foundation-release.lock.json",
+    "frontend/src/modules/generated/system.ts",
+    "VERSION"
+  ],
+  "removed": [
+    ".foundation/allowed-drift.json",
+    ".foundation/foundation-release.lock.json"
+  ],
+  "reportSha256": "12f04040fc77e4aa180e60f919cba9351c6af30a0bd15d67d670ecd5d4b5c2dc",
+  "completionStatus": "prepared; required race/runtime/independent review pending",
+  "productEquivalence": "resume9-consumer-source-equivalence.json"
+}

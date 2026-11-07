@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "baseCommit": "a44ae4e012fff20430b1b7f91cb7a9296f3ea843",
+  "baseCommit": "1da0834bdce636fd2fc1063290e3f32339e2d27a",
   "ownedFiles": [
     {
       "path": ".agents/README.md",
@@ -88,7 +88,7 @@
     },
     {
       "path": ".foundation/foundation-release.lock.json",
-      "sha256": "8ffea96b88831390c0d7e621f24a3298afd7f0eda2be1dc8e1f7c7fee5d6113a"
+      "sha256": "79a455b098a9e98f5348c8a34c22cc1d04c438d3f913dee178e05547ab7856b8"
     },
     {
       "path": ".githooks/commit-msg",
@@ -120,7 +120,7 @@
     },
     {
       "path": ".github/workflows/inheritance-drift-detection.yml",
-      "sha256": "c53b12091d2a821866ed8301df8599921eb53bb06894ff17138c2e9273745f63"
+      "sha256": "fbc2a2ca1a1dc4a2825436c05dac53da2b61d0be0dc79bdcae6d358e00e9e082"
     },
     {
       "path": ".github/workflows/pr-automation.yml",
@@ -659,6 +659,182 @@
       "sha256": "c1542fa0ef0c59c0c5c2efbd1cd384ba5a898e65bf1f632df1987ec2f4d05ecb"
     },
     {
+      "path": ".harness/evidence/2026-10-31-foundation-upgrade-base-v0-18-2/commands.json",
+      "sha256": "065a5fd054ec6f31ff0d7109adf70f6b0911ae7b00ad1a24e5a090bc1710e778"
+    },
+    {
+      "path": ".harness/evidence/2026-10-31-foundation-upgrade-base-v0-18-2/pr-body-sonar-followup.md",
+      "sha256": "669e31bc437baae8beebe81e52d77cee6688e278b796a1a524842df3aa386540"
+    },
+    {
+      "path": ".harness/evidence/2026-10-31-foundation-upgrade-base-v0-18-2/pr-body.md",
+      "sha256": "e3543fbd209dbd10ef8e2a83d74ce9d56f9d0c1f583155e7d872e1540a5ba12b"
+    },
+    {
+      "path": ".harness/evidence/2026-10-31-foundation-upgrade-base-v0-18-2/review.md",
+      "sha256": "bb4a2b1b756fd5e41dbfac6c6f8b3d3bf9b8d5879dffce615fd9c81eb26ee5fc"
+    },
+    {
+      "path": ".harness/evidence/2026-10-31-foundation-upgrade-base-v0-18-2/summary.md",
+      "sha256": "ba87cdc5ed15a465c15731fa3ac5c541c43f91030c16e3b2989628889a9fd01f"
+    },
+    {
+      "path": ".harness/evidence/2026-10-31-frontend-follow-redirects-audit/commands.json",
+      "sha256": "083e46a691ef7e7ee17bcd3c6977d7f784f4c36f1c82ebd08bb4327ff04deb5a"
+    },
+    {
+      "path": ".harness/evidence/2026-10-31-frontend-follow-redirects-audit/pr-body.md",
+      "sha256": "73e7a66c7b20c13d426b105ca25a82e434d2c5e4496e43c997a6b84edb527f90"
+    },
+    {
+      "path": ".harness/evidence/2026-10-31-frontend-follow-redirects-audit/review.md",
+      "sha256": "ab86e22e47d6936144ec9da85483e9291b0eaf2a98073943407c561603d4dbe7"
+    },
+    {
+      "path": ".harness/evidence/2026-10-31-frontend-follow-redirects-audit/summary.md",
+      "sha256": "c8e013f0fc8b293a37cb1eb25f6ca71490ed365cec7857d33024f882f22445d1"
+    },
+    {
+      "path": ".harness/evidence/2026-11-05-base-v0183-consumption/architect-round1.md",
+      "sha256": "2a9ca9f0bbcd779b844a7f3ae61e38abf48122eb5dbcc2d1aeaf887cc5923f69"
+    },
+    {
+      "path": ".harness/evidence/2026-11-05-base-v0183-consumption/architect-round2.md",
+      "sha256": "28f1415b609190f532fed71dc25a89512cb5684d9adf21b4afc68f947dabbbed"
+    },
+    {
+      "path": ".harness/evidence/2026-11-05-base-v0183-consumption/code-reviewer-round1.md",
+      "sha256": "7caabd37862236ee520a3f1d4d9bd1a21d08c4e6d84e44166fec968b28ceb254"
+    },
+    {
+      "path": ".harness/evidence/2026-11-05-base-v0183-consumption/code-reviewer-round2.md",
+      "sha256": "2afc0c7233c3edd4d72b66e6bff597f46e249c0a92945d24b3bf7a8f4b802da5"
+    },
+    {
+      "path": ".harness/evidence/2026-11-05-base-v0183-consumption/code-reviewer-round3.md",
+      "sha256": "da3b6b35bfde5d3679f45e4f7f9334a23ca8ea18c2d49b220f1adafcab68ddb7"
+    },
+    {
+      "path": ".harness/evidence/2026-11-05-base-v0183-consumption/commands.json",
+      "sha256": "35e1fee6b9f5a9ea71d954b432f26530c0af8d9a1c7ac4c69d79d5fb00d35e65"
+    },
+    {
+      "path": ".harness/evidence/2026-11-05-base-v0183-consumption/drift-repair-diagnostics.json",
+      "sha256": "cf3dbd4cbc788ec81267a8db412d8001b5a203046236b64eff5b5edb38e9918c"
+    },
+    {
+      "path": ".harness/evidence/2026-11-05-base-v0183-consumption/drift-repair.md",
+      "sha256": "3ed071a9519b331dcd505812f5b68a0287bd848c09f0e195a1856180f1b1a3ab"
+    },
+    {
+      "path": ".harness/evidence/2026-11-05-base-v0183-consumption/github-consumer-local-validation.json",
+      "sha256": "e3fa0aca0426f57ca4250753f5d2d68c360f2f9f4b48bdaac6384a68580d9925"
+    },
+    {
+      "path": ".harness/evidence/2026-11-05-base-v0183-consumption/github-consumer-source-manifest.json",
+      "sha256": "935d464c3d27bd0110eddff505c781f0a386d6ecd017f14dc103ed49cd87ec43"
+    },
+    {
+      "path": ".harness/evidence/2026-11-05-base-v0183-consumption/ops-v0184-staging-validation.json",
+      "sha256": "2d03ffaa44e76c7933a67bc9ad292812d29468a604fbc0abf349ce21b9025171"
+    },
+    {
+      "path": ".harness/evidence/2026-11-05-base-v0183-consumption/pr-body-module-graph.md",
+      "sha256": "14ad9afd95856650884f98466c00b2200c3d3277369c641cfdeb5893ba23ae14"
+    },
+    {
+      "path": ".harness/evidence/2026-11-05-base-v0183-consumption/pr-body.md",
+      "sha256": "6a8af09b544f84c36adbaebaf28841a1f19b3c63ef1415b7fd09903f4a1069a7"
+    },
+    {
+      "path": ".harness/evidence/2026-11-05-base-v0183-consumption/resume7-after-module-build.log.gz",
+      "sha256": "46b50c321b39e89a491b6727a01628c34245605a30beb3e7414c5e01cff90e6e"
+    },
+    {
+      "path": ".harness/evidence/2026-11-05-base-v0183-consumption/resume7-after-module-readonly.log.gz",
+      "sha256": "d2d27249acade6480c6e1aadf733f2e1bfeb5d256d3029cbbc708c2cce944966"
+    },
+    {
+      "path": ".harness/evidence/2026-11-05-base-v0183-consumption/resume7-before-module-readonly.log.gz",
+      "sha256": "ffc484e8fa6c3fad042e122920c77448a5bb250b7d50ea750eeecf4ee1d2cb68"
+    },
+    {
+      "path": ".harness/evidence/2026-11-05-base-v0183-consumption/resume7-business-overlay-tests-final.log.gz",
+      "sha256": "b7578953c2cd55eec6a3e99fc0897cd56aad02e0937b118dd40911edda20958b"
+    },
+    {
+      "path": ".harness/evidence/2026-11-05-base-v0183-consumption/resume7-emitted-go.mod-reconciliation.diff",
+      "sha256": "1643220311a210e1898296359dfc4868751902b3641642242d42818897b87358"
+    },
+    {
+      "path": ".harness/evidence/2026-11-05-base-v0183-consumption/resume7-emitted-go.sum-reconciliation.diff",
+      "sha256": "62f0a5f11c38f6268d84d200ff89de82f38dad15068d27fbc4b7420d8a15906f"
+    },
+    {
+      "path": ".harness/evidence/2026-11-05-base-v0183-consumption/resume7-graph-test-before.log.gz",
+      "sha256": "f4258863c70541773ad1e3c6018170eba1130d223fdce80a39f3dc62f84f83b5"
+    },
+    {
+      "path": ".harness/evidence/2026-11-05-base-v0183-consumption/resume7-log-archives.json",
+      "sha256": "d0e3f3df8c3ef4e611414ac2067c16eafdf79b9ba8ce6dfd0e31d5d5ace82703"
+    },
+    {
+      "path": ".harness/evidence/2026-11-05-base-v0183-consumption/resume7-module-approval.json",
+      "sha256": "0ad1191cf6ff795395e7acb7f959e3785b2270fb3885a8165386819938b60e5a"
+    },
+    {
+      "path": ".harness/evidence/2026-11-05-base-v0183-consumption/resume7-module-architect.md",
+      "sha256": "45f3a511c5549240d77573e35c3f78bc3874c6a1eeb994708b8ee571501ba2ca"
+    },
+    {
+      "path": ".harness/evidence/2026-11-05-base-v0183-consumption/resume7-module-code-reviewer.md",
+      "sha256": "916c27e443bde16c9ca9c5d9bc1ab78dad99ae8228cdfed9b818bca04d807505"
+    },
+    {
+      "path": ".harness/evidence/2026-11-05-base-v0183-consumption/resume7-module-repair-evidence.json",
+      "sha256": "da3e8cd52a3f49469e325aa80be9d6a8324d893a58d1277a8768f36fa49500ac"
+    },
+    {
+      "path": ".harness/evidence/2026-11-05-base-v0183-consumption/resume7-module-review-snapshot.json",
+      "sha256": "74c831cfbb5d27cb097aa785fae74a1b94451d679e144616588d3ae75ef10b80"
+    },
+    {
+      "path": ".harness/evidence/2026-11-05-base-v0183-consumption/resume7-official-rebuild-corrected.log.gz",
+      "sha256": "9059fe8c5a142299cf626b0991e5fb315a456c20f39972d554c7c7eefbe378b8"
+    },
+    {
+      "path": ".harness/evidence/2026-11-05-base-v0183-consumption/resume7-official-rebuild.log.gz",
+      "sha256": "67dc7954f3ca8b0cc5a54d80b05205e8eef68955ce2621a47676ff397f9970ad"
+    },
+    {
+      "path": ".harness/evidence/2026-11-05-base-v0183-consumption/resume7-overlay-check.log.gz",
+      "sha256": "95dbe9730d300a16f5d1de631f5ef113a2751c48af2a464df069ce3260a653b8"
+    },
+    {
+      "path": ".harness/evidence/2026-11-05-base-v0183-consumption/resume7-shared-drift.log.gz",
+      "sha256": "eb10e706c44673bff349bad16e55b83d5991b2cef2a3e9e770d2e5159170a32b"
+    },
+    {
+      "path": ".harness/evidence/2026-11-05-base-v0183-consumption/review-preparation-historical.md",
+      "sha256": "77548eb029c923df3fcf438fb68a1a6cdd8c8ead63d63e2d42be01ed3eaf6acf"
+    },
+    {
+      "path": ".harness/evidence/2026-11-05-base-v0183-consumption/review.md",
+      "sha256": "58eb07e3b92d93747b7b10eb20b77ee06fee796271b633d63d3695230c82c980"
+    },
+    {
+      "path": ".harness/evidence/2026-11-05-base-v0183-consumption/source-manifest.json",
+      "sha256": "6d70163cab5e3c714430d608ad334189ce5a18ab6182723f5125c821828a0810"
+    },
+    {
+      "path": ".harness/evidence/2026-11-05-base-v0183-consumption/summary.md",
+      "sha256": "33d5f4316c6397b1e9be5f41355d271e5aa7f56f1e0e92c67aa95958940ad6cb"
+    },
+    {
+      "path": ".harness/evidence/2026-11-05-base-v0183-consumption/v0184-explicit-consumption-status.json",
+      "sha256": "2af3454446bb5d8ddff908c5a9898673c394898021706b17847b5ff768d218d4"
+    },
+    {
       "path": ".harness/evidence/cmdb-host-import-export/commands.json",
       "sha256": "36457bf7f79ba6608fb5753a94ec3e368093aabfec5959803fa29a735b037c87"
     },
@@ -993,6 +1169,22 @@
     {
       "path": ".harness/tasks/2026-10-30-sonar-findings-remediation/manifest.json",
       "sha256": "34769d720dd0e761078bf7bf54332d0d88a5778a8680b73712bf9cdfdd40a7c6"
+    },
+    {
+      "path": ".harness/tasks/2026-10-31-foundation-upgrade-base-v0-18-2/manifest.json",
+      "sha256": "888c5998df016a986d9608ae5455dd3d2bd730c77fe1584c3cd547e02f5ff1c3"
+    },
+    {
+      "path": ".harness/tasks/2026-10-31-frontend-follow-redirects-audit/manifest.json",
+      "sha256": "8741ecd28e74ac15dba3c7aeba087f68b7a9049fb71a5af3df357f6c55c0a72c"
+    },
+    {
+      "path": ".harness/tasks/2026-11-05-base-v0183-consumption/manifest.json",
+      "sha256": "31cd80f3c7e7defb92bdae1b035dcafef8b145cb4433e055fa7a94613702557b"
+    },
+    {
+      "path": ".harness/tasks/2026-11-05-base-v0183-consumption/plan.md",
+      "sha256": "b7fc932a44d6450751387e9f7f85483e7aaa2c4b49dd985a4deb2b4249e82458"
     },
     {
       "path": ".harness/tasks/cmdb-host-import-export/STATUS.md",
@@ -1380,11 +1572,11 @@
     },
     {
       "path": "backend/go.mod",
-      "sha256": "d025bbf53f98b69c85bc0bb3260ef4ac1175480141e66f1a6a43dc76efc425f0"
+      "sha256": "0a768a28d27080b25cc7a2a7d1499aa05a19395d93507c281bb5f12a00cbb824"
     },
     {
       "path": "backend/go.sum",
-      "sha256": "cca959a4050045690061502b37782d6dd0571070577e3273375594d2d5dcbec8"
+      "sha256": "9c2da89859365c93ec438192ebd2db009ef727e4dae8176a341b46ed03340914"
     },
     {
       "path": "backend/modules/business/bizscope/bizscope_dto.go",
@@ -1412,7 +1604,7 @@
     },
     {
       "path": "backend/modules/business/bizscope/bizscope_service_test.go",
-      "sha256": "b58f9441dfed648bca85fece1d42a03dc61443b42b66acf496c39dc6cbee4ee3"
+      "sha256": "183191ad67d1447afd3e2849c1df8a5183a8ed557abfc032e80e36adb41e51a0"
     },
     {
       "path": "backend/modules/business/bizscope/module.go",
@@ -1536,7 +1728,7 @@
     },
     {
       "path": "backend/modules/business/cmdb/host/host_import_export.go",
-      "sha256": "95cbb710fb999dd5ca789127c002834f005456d2c876f0462b43efedccd28564"
+      "sha256": "c5c228e98d89173a1159aab1faaa24636b3967f5c8a319a9c3b1010c7c8f86f3"
     },
     {
       "path": "backend/modules/business/cmdb/host/host_import_export_test.go",
@@ -1548,11 +1740,11 @@
     },
     {
       "path": "backend/modules/business/cmdb/host/host_model.go",
-      "sha256": "44973c41896db21e8a58911a54a1a7e8dc80c0d0d8e27058fac0b894beb40e43"
+      "sha256": "1df3ead9daa3d49e8a307ab4410fe7402562e1d6c8495173bdeb5f8df1c5318f"
     },
     {
       "path": "backend/modules/business/cmdb/host/host_service.go",
-      "sha256": "b6efe3b5b6a96ffd3a949c38dffec26e623799f7457f4ef16153d56d50689c6a"
+      "sha256": "7275e93b35723dd884136e6fc5d6346c22ff4ade540cd70d7add10c216a26200"
     },
     {
       "path": "backend/modules/business/cmdb/host/host_service_security_test.go",
@@ -1560,11 +1752,23 @@
     },
     {
       "path": "backend/modules/business/cmdb/host/host_service_test.go",
-      "sha256": "ea976d34c14c99f950fe0222535b792e5443a76c018f5ea71499aa077e2e8550"
+      "sha256": "111b346659f0ec56283824eb31090cfa0a7c50fcd3e0cc8b8e06dcb11d49df18"
     },
     {
       "path": "backend/modules/business/cmdb/host/host_state.go",
       "sha256": "b1ef92790d01b939609cd24b0de9b3713d4b8b8a7052f8a476bd2f5169388456"
+    },
+    {
+      "path": "backend/modules/business/cmdb/host/host_state_version_migration_test.go",
+      "sha256": "a30b339155e36204d1c97a69be497e9d6f131623bc7f12664ea5b3e45fcb7775"
+    },
+    {
+      "path": "backend/modules/business/cmdb/host/migrations/000032_backfill_cmdb_host_state_version.down.sql",
+      "sha256": "5b4c8186b8382e5d68e328e6119129e8d9db5f67cadb89ae52e5429ced87f7e1"
+    },
+    {
+      "path": "backend/modules/business/cmdb/host/migrations/000032_backfill_cmdb_host_state_version.up.sql",
+      "sha256": "5b53ae1d11d5c8e6680e2ac9d726ede9636ff722207cdb452014abfd2c26ad81"
     },
     {
       "path": "backend/modules/business/cmdb/label/label_dto.go",
@@ -1648,7 +1852,7 @@
     },
     {
       "path": "backend/modules/business/deploy/deploy_reliability_test.go",
-      "sha256": "aeffd3c33d54fa0bdfc9c2869bd485b03d0b168bd1a87e496485d90d2613a66d"
+      "sha256": "2d03fb11c7adc74c2794af3ba7f0c75e669f8b2619d703836cf146318fb47648"
     },
     {
       "path": "backend/modules/business/deploy/deploy_rollback.go",
@@ -1668,7 +1872,7 @@
     },
     {
       "path": "backend/modules/business/deploy/deploy_service_test.go",
-      "sha256": "27b5047c9fff2b53e409c4f2c57635223c4c2c667f907e0ea1060d6699f0bac4"
+      "sha256": "895167023be894efef26351bd7a7ce239c0f8cd0af081b2cdde5ff453db2a8c8"
     },
     {
       "path": "backend/modules/business/deploy/deploy_template_service.go",
@@ -1812,11 +2016,11 @@
     },
     {
       "path": "backend/modules/business/k8s/k8s.go",
-      "sha256": "964fbf0f9e74e733fbc438ba92f22033a2ebc14d53772ced044f25c3eca1ee85"
+      "sha256": "d0e91ce05c364533040ba7f1b8206ffb2b62f0a77d69b5a6aa311e98d9c096fd"
     },
     {
       "path": "backend/modules/business/k8s/k8s_seed.go",
-      "sha256": "2ca13bf08fdcc2c71aa05f3d0ea6268328ada739cefa00714a44597eacbb5bac"
+      "sha256": "c2938b3ae56a5f42235b5b81d933fc7673145d3506585d8c925b4d61683b2cb2"
     },
     {
       "path": "backend/modules/business/k8s/namespace/namespace_dto.go",
@@ -1940,7 +2144,7 @@
     },
     {
       "path": "backend/modules/business/observability/datasource_service_test.go",
-      "sha256": "c708e1fe4906a6aa87acf5a8ad6238f1f6854a3b795b2264b0b9b7490e852ac3"
+      "sha256": "ed4cb9fd0497b39c449da37c3db32284dc3f74e4bbe881d15d6952747b34c166"
     },
     {
       "path": "backend/modules/business/observability/notification_model.go",
@@ -2047,8 +2251,16 @@
       "sha256": "56acb971152741e8df554f432ab5f77accf6db74b810f582e656c1f47ed49e8d"
     },
     {
+      "path": "backend/pkg/database/migrations/000032_backfill_cmdb_host_state_version.down.sql",
+      "sha256": "5b4c8186b8382e5d68e328e6119129e8d9db5f67cadb89ae52e5429ced87f7e1"
+    },
+    {
+      "path": "backend/pkg/database/migrations/000032_backfill_cmdb_host_state_version.up.sql",
+      "sha256": "5b53ae1d11d5c8e6680e2ac9d726ede9636ff722207cdb452014abfd2c26ad81"
+    },
+    {
       "path": "business-overlay.json",
-      "sha256": "9d142423ea93a9d5926f7d0d642dbad90fa4eb9f64fdeecfd78ebf39d87a0dfb"
+      "sha256": "ed2a5b32cbd2318f5269ce9fd3d9bfec9c435cb4f4e99209d4a8257e2c473b5f"
     },
     {
       "path": "docker-compose.yml",
@@ -2056,11 +2268,11 @@
     },
     {
       "path": "docs/PROJECT_INHERITANCE.en.md",
-      "sha256": "0defd6e43768ca816de1b9ca996f4c30c3f16dbbbfcc08e987f1f212c467ac17"
+      "sha256": "01423ae8f2f8651af5a47a7e3d44e98ac4fec1d6f1632c03201760627f657d99"
     },
     {
       "path": "docs/PROJECT_INHERITANCE.md",
-      "sha256": "08956645abca2eda904e0e59c7d82ba1de7402966a40b51b829cc41a96883907"
+      "sha256": "c6eeeb6b407288d467995b7553fa29083048f1603a9153f6ce14cc0c65d17a5a"
     },
     {
       "path": "docs/README.en.md",
@@ -2511,6 +2723,14 @@
       "sha256": "76e03440956452d30b946bf78cfc0da63336a0b1007d012af969d9ddad854456"
     },
     {
+      "path": "docs/harness/tasks/2026-10-31-foundation-upgrade-base-v0-18-2.task.md",
+      "sha256": "892f04d09be24e9ca5a6e7607791d9f6f4666d2b77dfaf9bb65bdc458c63a5a4"
+    },
+    {
+      "path": "docs/harness/tasks/2026-10-31-frontend-follow-redirects-audit.task.md",
+      "sha256": "03029e3d00de9e8db4c52e7021ef3f56bebf21718d66ee64717703f88ba756e5"
+    },
+    {
       "path": "docs/harness/tasks/README.md",
       "sha256": "c01be381abbcfed488417906af13c1f0c33c63fc19cefe32ceff69ca401b3a89"
     },
@@ -2644,7 +2864,7 @@
     },
     {
       "path": "foundation-release.lock.json",
-      "sha256": "2981509f00865c5b594a3751eefdefeb7b69545b0dbe6ec1f39edec3a4fe8ce5"
+      "sha256": "de2f6e6de3e446a8322dd8f4568aae1da2ec00dbfbddd97e80ab0b44c245bbe0"
     },
     {
       "path": "frontend/README.en.md",
@@ -2652,7 +2872,7 @@
     },
     {
       "path": "frontend/package.json",
-      "sha256": "04409ac44d0be932285a75af6d8a980593a9a23883b8c19424ae19f108342679"
+      "sha256": "8eeb69c8bfc170f33c4155b1685a1ea55a6ff799abd10b3aac9712dce824ed22"
     },
     {
       "path": "frontend/scripts/cleanup-generated-modules.mjs",
@@ -2692,11 +2912,11 @@
     },
     {
       "path": "frontend/src/i18n/resources/en-US.ts",
-      "sha256": "df88f3eadb6e66a6c112d70e96007a6b6831c9152bb2b68d942554ec361f43b5"
+      "sha256": "970afc6bf45c5242f3308de1c037e4c3241952dd3a526beb757b9c969e294e04"
     },
     {
       "path": "frontend/src/i18n/resources/zh-CN.ts",
-      "sha256": "be46ac0be5db28bdb67985439c9af46d17d668a301eea7e0ddb9115b3c96b947"
+      "sha256": "7fc342b2659ce46d4987839a19128aff52cb354e7444f290f7659eda1e6e300c"
     },
     {
       "path": "frontend/src/modules/business/bizscope/BizScopeDetail.tsx",
@@ -2888,7 +3108,7 @@
     },
     {
       "path": "frontend/src/modules/business/k8s/index.ts",
-      "sha256": "558ef993dd2d85191495793c7bd6f9a70f40559da8768dcd880ac212ceb642b8"
+      "sha256": "cd38737ed91c8ba657b29ba801a47dbbc00bd9544f54b47ba28bdf8399046017"
     },
     {
       "path": "frontend/src/modules/business/k8s/ingress/IngressList.tsx",
@@ -3032,7 +3252,7 @@
     },
     {
       "path": "package.json",
-      "sha256": "223cb37b297d67289911fd3eeffa7a582823a71a7e096da24dc5d1aad2f4d47b"
+      "sha256": "cb54488c8fbbd63f5cc266aa1b3d2685bc8f6bb121e2001b275b6471a63e17ad"
     },
     {
       "path": "scripts/address-github-feedback.mjs",
@@ -3044,19 +3264,23 @@
     },
     {
       "path": "scripts/business-overlay/check-business-overlay.mjs",
-      "sha256": "f36c2d49aff1d9f9fe906a813d4c18c59fd5859b0b9fffef5660fa9172a6642d"
+      "sha256": "89149cdf554b6f10b3b4d79cf734938127ca3438c543eb83c8184cb8d1c66730"
     },
     {
       "path": "scripts/business-overlay/check-shared-drift.mjs",
-      "sha256": "e11d30c4fa69e1be32960cee1e15c152417735381b9e86246a2ed1a2430da39b"
+      "sha256": "b60ceb39cb309761d928252da22442e4c05ee507f85f199cc7a17b92b469c085"
     },
     {
       "path": "scripts/business-overlay/extract-v12-locales.cjs",
       "sha256": "5e25b32b815ea693e86d609e34b716d71e8383a6915ac2e2fcb7617404a6ba76"
     },
     {
+      "path": "scripts/business-overlay/foundation-release.mjs",
+      "sha256": "e6a9de8d5afcbcfbfb949f8cdb6da78395cb33b0e88ea158443062608b99175b"
+    },
+    {
       "path": "scripts/business-overlay/rebuild-from-base.mjs",
-      "sha256": "1b7a8300558973f0e3d308605c6ba2e441c9061a794146ea0fe737809534a4b4"
+      "sha256": "f9609bf0a0ae9a41d1071bdaaced61d619a8d47d04325bed74d2e783acd2b776"
     },
     {
       "path": "scripts/check-business-module-boundaries.mjs",
@@ -3132,11 +3356,19 @@
     },
     {
       "path": "tests/scripts/business-overlay/check-shared-drift.test.mjs",
-      "sha256": "f9d8d045921a35397ae9105de504cc8936ffa3b958ff00531ba8e1b9ee36059f"
+      "sha256": "026c1c5836b3be38dec7825c8690541c2084bb28ad1210f4902f60c94eae8070"
+    },
+    {
+      "path": "tests/scripts/business-overlay/foundation-release.test.mjs",
+      "sha256": "3a9fc2a6fe00fcaa6bc3e141eddd111de97afddbe26ca9551a5c0876dce07796"
+    },
+    {
+      "path": "tests/scripts/business-overlay/normalize-go-dependencies.test.mjs",
+      "sha256": "b40a160fbb56b6b9ec4165e17c8c6be2b1eccfa7939153da1add1bd375797aab"
     },
     {
       "path": "tests/scripts/business-overlay/rebuild-from-base.test.mjs",
-      "sha256": "877feef0583be4c6e445b6cb25aaf686f74eec6b9060221f3538e029df45f5c1"
+      "sha256": "4d95d698e2ed5b84f7b36f5efaf91efb98151ad921b4f45d6d290adda1d9f448"
     },
     {
       "path": "tests/scripts/check-business-module-boundaries.test.mjs",
@@ -3156,17 +3388,21 @@
     },
     {
       "path": "tests/scripts/workflow-baseline.test.mjs",
-      "sha256": "9e9ef6fce811b23b7f9e4a90d82ace44cf215c5453b310e76500aa5145b4d225"
+      "sha256": "0f9ed2bcd6fb754f282b6e909841fb6e1259df0e62c6b1a7ee2b94faa847c7d8"
     }
   ],
   "rewrittenGoImports": [],
   "generatedFiles": [
     "backend/go.mod",
+    "backend/go.mod",
+    "backend/go.sum",
     "backend/go.sum",
     "backend/modules/business/business.go",
     "backend/modules/business/business_overlay_registry.go",
     "backend/modules/system/iam/menu/business_overlay_component_registry.go",
     "backend/modules/system/iam/menu/component_registry.go",
+    "backend/pkg/database/migrations/000032_backfill_cmdb_host_state_version.down.sql",
+    "backend/pkg/database/migrations/000032_backfill_cmdb_host_state_version.up.sql",
     "frontend/package.json",
     "frontend/scripts/cleanup-generated-modules.mjs",
     "frontend/src/core/router/businessOverlayComponentRegistry.ts",

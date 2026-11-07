@@ -1,10 +1,44 @@
+# Current v0.18.5 bounded source review
+
+Both independent reports approve the same snapshot and permit actual post-review validation/evidence updates. Full consumer race/frontend/scripts/migration/four standard smoke passed. Current CI remains pending; this does not approve five Base task transitions or provider/freeze waivers.
+
+## Machine Readable
+
+```json
+{
+  "taskId": "2026-11-05-base-v0183-consumption",
+  "verdict": "approved",
+  "reviewer": "Independent installed CODE/ARCH configured-default ephemeral CLI sessions",
+  "findings": [],
+  "approvalScope": "bounded-official-v0185-consumer-source",
+  "linkage": {
+    "taskManifest": ".harness/tasks/2026-11-05-base-v0183-consumption/manifest.json",
+    "evidence": ".harness/evidence/2026-11-05-base-v0183-consumption/commands.json",
+    "reviewFile": ".harness/evidence/2026-11-05-base-v0183-consumption/review.md",
+    "changeRef": "none",
+    "planRefs": [".harness/tasks/2026-11-05-base-v0183-consumption/plan.md"]
+  },
+  "structuralReview": {
+    "affectedSubgraph": [
+      "official release -> business overlay -> normalized Go dependency graph -> final report"
+    ],
+    "checks": ["cycle", "hub", "call-depth", "sensitive-flow"],
+    "findings": [],
+    "notes": "No shared production source changes; fail-closed standard Go dependency loading and accurate drift counts."
+  },
+  "approvals": "resume10-consumer-approval.json"
+}
+```
+
+## Historical review
+
 # Current bounded module review
 
 CODE APPROVE/ARCH CLEAR for seven-path graph patch only. [Approval](resume7-module-approval.json). Full consumption/freeze remain separate.
 
 ## Machine Readable
 
-```json
+```historical-json
 {
   "taskId": "2026-11-05-base-v0183-consumption",
   "verdict": "approved",

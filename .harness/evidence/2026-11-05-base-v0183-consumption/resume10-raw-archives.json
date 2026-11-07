@@ -1,0 +1,167 @@
+{
+  "recordedAt": "2026-11-07T02:55:56.469Z",
+  "files": [
+    {
+      "file": "resume10-before-summary.md.gz",
+      "originalFile": "resume10-before-summary.md",
+      "rawSha256": "72cef2ff46e92b319d03383096e6dc44c0b3e0312aa3b1809649fdd5c93d5a7e",
+      "rawBytes": 7964
+    },
+    {
+      "file": "resume10-before-review.md.gz",
+      "originalFile": "resume10-before-review.md",
+      "rawSha256": "4d0db2599f6bc6d08164d018ed857f820b42996ffd61f29bf06eb037f5585ef6",
+      "rawBytes": 2168
+    },
+    {
+      "file": "resume10-before-commands.json.gz",
+      "originalFile": "resume10-before-commands.json",
+      "rawSha256": "033113ec686f262e1c4a43259d44d1e01c1d99ecca2935dd5952492d1a8e899e",
+      "rawBytes": 8323
+    },
+    {
+      "file": "resume8-consumer-readonly-full-race.log.gz",
+      "originalFile": "resume8-consumer-readonly-full-race.log",
+      "rawSha256": "ccc710f6b6215165c36c415c46c6ce1070fc655c5201a6ace8f38c9fc7606103",
+      "rawBytes": 8077711
+    },
+    {
+      "file": "resume10-smoke-generated.log.gz",
+      "originalFile": "resume10-smoke-generated.log",
+      "rawSha256": "b1137748e96008839dd1bde5bf056628190e06fba18e1cbb0debcd58cee58909",
+      "rawBytes": 3824
+    },
+    {
+      "file": "resume10-smoke-auto-recycle.log.gz",
+      "originalFile": "resume10-smoke-auto-recycle.log",
+      "rawSha256": "d8c203f30323fc6fb7b720cf79cbe50ef18906b139b6f3d9d4abe7f630788b6c",
+      "rawBytes": 3586
+    },
+    {
+      "file": "resume10-smoke-master-detail.log.gz",
+      "originalFile": "resume10-smoke-master-detail.log",
+      "rawSha256": "4978fb90b690a0c2b378996c9250edf58073cbbe54c4c189198db378180a6af2",
+      "rawBytes": 1407
+    },
+    {
+      "file": "resume10-smoke-many-to-many.log.gz",
+      "originalFile": "resume10-smoke-many-to-many.log",
+      "rawSha256": "9f21df19b8bd0ade41a783386a545e281aa67bafc0881fe1516ee6317c27f44f",
+      "rawBytes": 3677
+    },
+    {
+      "file": "resume9-smoke-generated-direct.log.gz",
+      "originalFile": "resume9-smoke-generated-direct.log",
+      "rawSha256": "40d2afb0a2e344c7ea9ced9b40d7e8d4ec29619d052b408d76d01d244a049745",
+      "rawBytes": 12490
+    },
+    {
+      "file": "resume9-consumer-acquire-direct.log.gz",
+      "originalFile": "resume9-consumer-acquire-direct.log",
+      "rawSha256": "2d126758054e9e92f0ac15921eb1b32ddd9d6acaff65300063a635dc60ed1f57",
+      "rawBytes": 110
+    },
+    {
+      "file": "resume9-consumer-rebuild-direct.log.gz",
+      "originalFile": "resume9-consumer-rebuild-direct.log",
+      "rawSha256": "071c52b3a299c98e21c08b1406f6e542ef569ce61df1d93ba352c593922779b0",
+      "rawBytes": 212
+    },
+    {
+      "file": "resume9-consumer-final-rebuild.log.gz",
+      "originalFile": "resume9-consumer-final-rebuild.log",
+      "rawSha256": "5eceae16eaf782802c84e08b1bd06eb05981f22f681dde4ed70072a80e07d856",
+      "rawBytes": 210
+    },
+    {
+      "file": "resume9-consumer-drift.log.gz",
+      "originalFile": "resume9-consumer-drift.log",
+      "rawSha256": "3ed5e51f4a026216a39c18190c8316403e87e4460dc61e9a45bb20504785dc92",
+      "rawBytes": 1809
+    },
+    {
+      "file": "resume9-consumer-overlay.log.gz",
+      "originalFile": "resume9-consumer-overlay.log",
+      "rawSha256": "c800d62c17f357c521ba30733390a57b541b27f7f7515e835ffb39343ef5a6e4",
+      "rawBytes": 64
+    },
+    {
+      "file": "resume9-consumer-script-tests-direct.log.gz",
+      "originalFile": "resume9-consumer-script-tests-direct.log",
+      "rawSha256": "e7f8010915074a155eee7f9de156584c6eee37ce108933fbfeef90f2810b0f94",
+      "rawBytes": 4557
+    },
+    {
+      "file": "resume9-consumer-runtime-build-direct.log.gz",
+      "originalFile": "resume9-consumer-runtime-build-direct.log",
+      "rawSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "rawBytes": 0
+    },
+    {
+      "file": "resume9-consumer-frontend-type-check-direct.log.gz",
+      "originalFile": "resume9-consumer-frontend-type-check-direct.log",
+      "rawSha256": "94d7e0ba308969aef5be19127663f1eb2c0b1e8d9e4f8781561cc44a964b7281",
+      "rawBytes": 66
+    },
+    {
+      "file": "resume9-consumer-frontend-build-direct.log.gz",
+      "originalFile": "resume9-consumer-frontend-build-direct.log",
+      "rawSha256": "ed46c83080912f4ac687f8a2f9f2bb2b822007bc2a54d565ac4fa68c417e1809",
+      "rawBytes": 15164
+    },
+    {
+      "file": "resume9-consumer-frontend-test-unit-direct.log.gz",
+      "originalFile": "resume9-consumer-frontend-test-unit-direct.log",
+      "rawSha256": "10c603027592474e63c75c30a899be495c4f7e51a014d90671ee0887fe30e696",
+      "rawBytes": 1062
+    },
+    {
+      "file": "resume9-ops-check-business-overlay.log.gz",
+      "originalFile": "resume9-ops-check-business-overlay.log",
+      "rawSha256": "73cc354e351e80fa6f894ef711fe3f1e271f6f02b767e69cb7e6fd34f21cb7b8",
+      "rawBytes": 154
+    },
+    {
+      "file": "resume9-ops-check-gorm-sql-literal.log.gz",
+      "originalFile": "resume9-ops-check-gorm-sql-literal.log",
+      "rawSha256": "384e5ac59918fd783594f6cd416fa687e19114be5d35fbed940a6f1aeb770a78",
+      "rawBytes": 900
+    },
+    {
+      "file": "resume9-ops-check-docs-frontmatter.log.gz",
+      "originalFile": "resume9-ops-check-docs-frontmatter.log",
+      "rawSha256": "a2be6208e655246b0fbb0ad660ad6b3628f2ab66428764392fa0a4d3cdf27783",
+      "rawBytes": 135
+    },
+    {
+      "file": "resume9-ops-check-task-packet-template.log.gz",
+      "originalFile": "resume9-ops-check-task-packet-template.log",
+      "rawSha256": "dd584e62f1a6477061cf063dd4b4182c4f1efded117d58380f9c2d0e6d4d6c6c",
+      "rawBytes": 141
+    },
+    {
+      "file": "resume8-consumer-frontend-lint.log.gz",
+      "rawSha256": "5818a930434cb0d8d2d2a02064c773ab6a83550e85cc5b74a35fec5534551fa9",
+      "originalFile": "resume8-consumer-frontend-lint.log",
+      "rawBytes": 58
+    },
+    {
+      "file": "resume8-consumer-frontend-type-check.log.gz",
+      "rawSha256": "5a8578dfc481eabcb6e3fd5933844ea0eeb90ad547a492064dea45b55cddb3a8",
+      "originalFile": "resume8-consumer-frontend-type-check.log",
+      "rawBytes": 798
+    },
+    {
+      "file": "resume10-original-resume9-consumer-code-reviewer.md.gz",
+      "rawSha256": "8916b11d8fc4f6047f0999e8f970d4a907192b8132a94bc2753c8ea24956038a",
+      "originalReportSha256": "8916b11d8fc4f6047f0999e8f970d4a907192b8132a94bc2753c8ea24956038a",
+      "rawBytes": 2542
+    },
+    {
+      "file": "resume10-original-resume9-consumer-architect.md.gz",
+      "rawSha256": "954598fba9c741d93b4d83d76515bd0e9e6d08cddbfeb49406e80f3ea7226e12",
+      "originalReportSha256": "954598fba9c741d93b4d83d76515bd0e9e6d08cddbfeb49406e80f3ea7226e12",
+      "rawBytes": 6313
+    }
+  ]
+}

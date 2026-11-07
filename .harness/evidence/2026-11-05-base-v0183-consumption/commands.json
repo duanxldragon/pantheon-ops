@@ -5,7 +5,7 @@
     "tool": "codex",
     "adapter": "Scoped Generator plus independent code/architect reviewers"
   },
-  "recordedAt": "2026-11-05T10:33:52.924977+00:00",
+  "recordedAt": "2026-11-07T02:55:56.469Z",
   "commands": [
     {
       "command": "npm run test:business-overlay",
@@ -177,6 +177,147 @@
       "status": "failed",
       "exitCode": 1,
       "notes": "403 permission.denied in tenant-admin dict provisioning on fresh DB; CI deterministic seed is authoritative; ops-v0184-staging-tenant-smoke.log"
+    },
+    {
+      "name": "readonly-full-race",
+      "command": "go test -timeout=30m -buildvcs=false -mod=readonly -race -json -p 2 -count=1 ./...",
+      "executable": "go",
+      "args": [
+        "test",
+        "-timeout=30m",
+        "-buildvcs=false",
+        "-mod=readonly",
+        "-race",
+        "-json",
+        "-p",
+        "2",
+        "-count=1",
+        "./..."
+      ],
+      "cwd": "D:/workspace/go/pantheon-platform/audit-artifacts/task-closeout-2026-11-06/ops-v185-rebuilt/backend",
+      "startedAt": "2026-11-07T02:22:39.864Z",
+      "finishedAt": "2026-11-07T02:41:49.331Z",
+      "exitCode": 0,
+      "error": null,
+      "log": "resume8-consumer-readonly-full-race.log",
+      "sha256": "ccc710f6b6215165c36c415c46c6ce1070fc655c5201a6ace8f38c9fc7606103"
+    },
+    {
+      "name": "fresh-migration",
+      "command": "go run -buildvcs=false -mod=readonly D:/workspace/go/pantheon-platform/audit-artifacts/task-closeout-2026-11-06/resume8-migration-probe.go",
+      "executable": "go",
+      "args": [
+        "run",
+        "-buildvcs=false",
+        "-mod=readonly",
+        "D:/workspace/go/pantheon-platform/audit-artifacts/task-closeout-2026-11-06/resume8-migration-probe.go"
+      ],
+      "cwd": "D:/workspace/go/pantheon-platform/audit-artifacts/task-closeout-2026-11-06/ops-v185-rebuilt/backend",
+      "startedAt": "2026-11-07T02:23:04.371Z",
+      "finishedAt": "2026-11-07T02:23:12.117Z",
+      "exitCode": 0,
+      "error": null,
+      "log": "resume8-consumer-fresh-migration.log",
+      "sha256": "10719522bda4a530a8c0d628572a84293cc4d810e96ee8dd803452c3f46ab4c3"
+    },
+    {
+      "log": "../resume9-consumer-frontend-type-check-direct.log",
+      "exitCode": 0,
+      "startedAt": "2026-11-07T02:26:02.3034440Z",
+      "command": "npm run type-check",
+      "sha256": "94d7e0ba308969aef5be19127663f1eb2c0b1e8d9e4f8781561cc44a964b7281",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\audit-artifacts\\task-closeout-2026-11-06\\ops-v185-rebuilt\\frontend",
+      "finishedAt": "2026-11-07T02:26:18.2078978Z"
+    },
+    {
+      "log": "../resume9-consumer-frontend-build-direct.log",
+      "exitCode": 0,
+      "startedAt": "2026-11-07T02:26:18.2785917Z",
+      "command": "npm run build",
+      "sha256": "ed46c83080912f4ac687f8a2f9f2bb2b822007bc2a54d565ac4fa68c417e1809",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\audit-artifacts\\task-closeout-2026-11-06\\ops-v185-rebuilt\\frontend",
+      "finishedAt": "2026-11-07T02:26:44.1825091Z"
+    },
+    {
+      "log": "../resume9-consumer-frontend-test-unit-direct.log",
+      "exitCode": 0,
+      "startedAt": "2026-11-07T02:26:44.1862661Z",
+      "command": "npm run test:unit",
+      "sha256": "10c603027592474e63c75c30a899be495c4f7e51a014d90671ee0887fe30e696",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\audit-artifacts\\task-closeout-2026-11-06\\ops-v185-rebuilt\\frontend",
+      "finishedAt": "2026-11-07T02:27:10.5031879Z"
+    },
+    {
+      "suite": "generated",
+      "startedAt": "2026-11-07T02:52:56.9636546Z",
+      "exitCode": 0,
+      "log": "resume10-smoke-generated.log",
+      "command": "node scripts/run-smoke-suite.mjs --host 127.0.0.1 --port 24574 --proxy-target http://127.0.0.1:24481 --cleanup-fixtures all --config playwright.config.ts -- tests/smoke/business/generated/module-governance-real.spec.ts --workers=1",
+      "sha256": "b1137748e96008839dd1bde5bf056628190e06fba18e1cbb0debcd58cee58909",
+      "finishedAt": "2026-11-07T02:53:11.6131555Z"
+    },
+    {
+      "suite": "auto-recycle",
+      "startedAt": "2026-11-07T02:53:11.6503471Z",
+      "exitCode": 0,
+      "log": "resume10-smoke-auto-recycle.log",
+      "command": "node scripts/run-smoke-suite.mjs --host 127.0.0.1 --port 24574 --proxy-target http://127.0.0.1:24481 --cleanup-fixtures all --config playwright.auto-recycle.config.ts -- tests/smoke/business/generated/module-auto-recycle-real.spec.ts --workers=1",
+      "sha256": "d8c203f30323fc6fb7b720cf79cbe50ef18906b139b6f3d9d4abe7f630788b6c",
+      "finishedAt": "2026-11-07T02:53:25.3092873Z"
+    },
+    {
+      "suite": "master-detail",
+      "startedAt": "2026-11-07T02:53:25.3151537Z",
+      "exitCode": 0,
+      "log": "resume10-smoke-master-detail.log",
+      "command": "node scripts/run-smoke-suite.mjs --host 127.0.0.1 --port 24574 --proxy-target http://127.0.0.1:24481 --cleanup-fixtures all --config playwright.master-detail.config.ts --setup scripts/master-detail-qa-setup.mjs -- tests/smoke/business/generated/module-master-detail-real.spec.ts --workers=1",
+      "sha256": "4978fb90b690a0c2b378996c9250edf58073cbbe54c4c189198db378180a6af2",
+      "finishedAt": "2026-11-07T02:53:41.2343843Z"
+    },
+    {
+      "suite": "many-to-many",
+      "startedAt": "2026-11-07T02:53:41.2410876Z",
+      "exitCode": 0,
+      "log": "resume10-smoke-many-to-many.log",
+      "command": "node scripts/run-smoke-suite.mjs --host 127.0.0.1 --port 24574 --proxy-target http://127.0.0.1:24481 --cleanup-fixtures all --config playwright.many-to-many.config.ts --setup scripts/many-to-many-qa-setup.mjs -- tests/smoke/business/generated/module-many-to-many-real.spec.ts --workers=1",
+      "sha256": "9f21df19b8bd0ade41a783386a545e281aa67bafc0881fe1516ee6317c27f44f",
+      "finishedAt": "2026-11-07T02:53:58.1538125Z"
+    },
+    {
+      "name": "frontend-lint",
+      "command": "C:\\WINDOWS\\system32\\cmd.exe /d /s /c npm.cmd run lint",
+      "executable": "C:\\WINDOWS\\system32\\cmd.exe",
+      "args": [
+        "/d",
+        "/s",
+        "/c",
+        "npm.cmd run lint"
+      ],
+      "cwd": "D:/workspace/go/pantheon-platform/audit-artifacts/task-closeout-2026-11-06/ops-v185-rebuilt/frontend",
+      "startedAt": "2026-11-07T02:24:27.590Z",
+      "finishedAt": "2026-11-07T02:24:52.537Z",
+      "exitCode": 0,
+      "error": null,
+      "log": "resume8-consumer-frontend-lint.log",
+      "sha256": "5818a930434cb0d8d2d2a02064c773ab6a83550e85cc5b74a35fec5534551fa9"
+    },
+    {
+      "name": "frontend-type-check",
+      "command": "C:\\WINDOWS\\system32\\cmd.exe /d /s /c npm.cmd run type-check",
+      "executable": "C:\\WINDOWS\\system32\\cmd.exe",
+      "args": [
+        "/d",
+        "/s",
+        "/c",
+        "npm.cmd run type-check"
+      ],
+      "cwd": "D:/workspace/go/pantheon-platform/audit-artifacts/task-closeout-2026-11-06/ops-v185-rebuilt/frontend",
+      "startedAt": "2026-11-07T02:24:52.538Z",
+      "finishedAt": "2026-11-07T02:25:05.116Z",
+      "exitCode": 1,
+      "error": null,
+      "log": "resume8-consumer-frontend-type-check.log",
+      "sha256": "5a8578dfc481eabcb6e3fd5933844ea0eeb90ad547a492064dea45b55cddb3a8"
     }
   ],
   "runtimeSensitive": true,
@@ -202,5 +343,6 @@
     "independentApproval": ".harness/evidence/2026-11-05-base-v0183-consumption/resume7-module-approval.json",
     "validation": ".harness/evidence/2026-11-05-base-v0183-consumption/resume7-module-repair-evidence.json",
     "fullConsumptionApproved": false
-  }
+  },
+  "currentValidation": "resume10-consumer-validation.json"
 }

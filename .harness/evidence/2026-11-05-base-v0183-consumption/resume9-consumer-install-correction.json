@@ -1,0 +1,16 @@
+{
+  "recordedAt": "2026-11-07T02:31:56.091Z",
+  "prior": "resume9-consumer-install.json",
+  "correction": "Directory-level cache exclusion initially omitted two tracked historical .foundation metadata files. Restored them byte-for-byte from the official assembled final tree; original Ops worktree unaffected.",
+  "restored": [
+    {
+      "path": ".foundation/allowed-drift.json",
+      "sha256": "c165b37783be77622fba0479ab1e346d3c0bea3713ebafbfe7e72ebb3fd41d8e"
+    },
+    {
+      "path": ".foundation/foundation-release.lock.json",
+      "sha256": "79a455b098a9e98f5348c8a34c22cc1d04c438d3f913dee178e05547ab7856b8"
+    }
+  ],
+  "removed": []
+}

@@ -1,0 +1,47 @@
+[
+  {
+    "exitCode": 0,
+    "sha256": "73cc354e351e80fa6f894ef711fe3f1e271f6f02b767e69cb7e6fd34f21cb7b8",
+    "command": "npm run check:business-overlay",
+    "finishedAt": "2026-11-07T02:33:00.4238238Z",
+    "startedAt": "2026-11-07T02:32:59.9646473Z",
+    "cwd": "D:\\workspace\\go\\pantheon-platform\\audit-artifacts\\task-closeout-2026-11-06\\ops-v185-consumption",
+    "log": "../resume9-ops-check-business-overlay.log"
+  },
+  {
+    "exitCode": 0,
+    "sha256": "384e5ac59918fd783594f6cd416fa687e19114be5d35fbed940a6f1aeb770a78",
+    "command": "npm run check:gorm-sql-literal",
+    "finishedAt": "2026-11-07T02:33:01.8155276Z",
+    "startedAt": "2026-11-07T02:33:00.4620300Z",
+    "cwd": "D:\\workspace\\go\\pantheon-platform\\audit-artifacts\\task-closeout-2026-11-06\\ops-v185-consumption",
+    "log": "../resume9-ops-check-gorm-sql-literal.log"
+  },
+  {
+    "exitCode": 0,
+    "sha256": "a2be6208e655246b0fbb0ad660ad6b3628f2ab66428764392fa0a4d3cdf27783",
+    "command": "npm run check:docs-frontmatter",
+    "finishedAt": "2026-11-07T02:33:02.4657341Z",
+    "startedAt": "2026-11-07T02:33:01.8205750Z",
+    "cwd": "D:\\workspace\\go\\pantheon-platform\\audit-artifacts\\task-closeout-2026-11-06\\ops-v185-consumption",
+    "log": "../resume9-ops-check-docs-frontmatter.log"
+  },
+  {
+    "exitCode": 0,
+    "sha256": "dd584e62f1a6477061cf063dd4b4182c4f1efded117d58380f9c2d0e6d4d6c6c",
+    "command": "npm run check:task-packet-template",
+    "finishedAt": "2026-11-07T02:33:02.9739109Z",
+    "startedAt": "2026-11-07T02:33:02.4691281Z",
+    "cwd": "D:\\workspace\\go\\pantheon-platform\\audit-artifacts\\task-closeout-2026-11-06\\ops-v185-consumption",
+    "log": "../resume9-ops-check-task-packet-template.log"
+  },
+  {
+    "exitCode": 1,
+    "sha256": "9761976d1b9a8e6dc3ec2a78266486f038af7856b60678f403415403b1a3fb5a",
+    "command": "npm run check:task-packet",
+    "finishedAt": "2026-11-07T02:33:03.4516637Z",
+    "startedAt": "2026-11-07T02:33:02.9752278Z",
+    "cwd": "D:\\workspace\\go\\pantheon-platform\\audit-artifacts\\task-closeout-2026-11-06\\ops-v185-consumption",
+    "log": "../resume9-ops-check-task-packet.log"
+  }
+]

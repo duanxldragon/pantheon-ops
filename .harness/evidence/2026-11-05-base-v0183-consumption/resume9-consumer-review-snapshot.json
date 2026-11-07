@@ -1,0 +1,79 @@
+{
+  "recordedAt": "2026-11-07T02:40:33.938Z",
+  "root": "D:/workspace/go/pantheon-platform/audit-artifacts/task-closeout-2026-11-06/ops-v185-consumption",
+  "baseline": "6bb197e9b65998426767107f344c5245293f9e6f",
+  "baseCommit": "1da0834bdce636fd2fc1063290e3f32339e2d27a",
+  "files": [
+    {
+      "path": ".business-overlay-report.json",
+      "sha256": "12f04040fc77e4aa180e60f919cba9351c6af30a0bd15d67d670ecd5d4b5c2dc"
+    },
+    {
+      "path": ".harness/tasks/2026-11-05-base-v0183-consumption/manifest.json",
+      "sha256": "fd924c469245f75207c876cd9ccf8124f6bf6d2a45ae24ff68870ec7870a0f4f"
+    },
+    {
+      "path": "VERSION",
+      "sha256": "e3c122270d6e92cef71ca9884b7f0483dc584de61b4155d040a97a97d7a6cdc3"
+    },
+    {
+      "path": "backend/go.mod",
+      "sha256": "0a768a28d27080b25cc7a2a7d1499aa05a19395d93507c281bb5f12a00cbb824"
+    },
+    {
+      "path": "backend/go.sum",
+      "sha256": "9c2da89859365c93ec438192ebd2db009ef727e4dae8176a341b46ed03340914"
+    },
+    {
+      "path": "backend/modules/lowcode/dynamicmodule/dynamic_module_service_test.go",
+      "sha256": "2be503c9646ac9aaff0c2f106622ecea21eb4bafd2d49db8f4d85ba383783a1c"
+    },
+    {
+      "path": "docs/PROJECT_INHERITANCE.en.md",
+      "sha256": "01423ae8f2f8651af5a47a7e3d44e98ac4fec1d6f1632c03201760627f657d99"
+    },
+    {
+      "path": "docs/PROJECT_INHERITANCE.md",
+      "sha256": "c6eeeb6b407288d467995b7553fa29083048f1603a9153f6ce14cc0c65d17a5a"
+    },
+    {
+      "path": "docs/harness/DOCUMENT_FRONTMATTER_SPEC.md",
+      "sha256": "6c33ccc059263b2bc1621860c04cd1810f9d413e80c10bd772cb7a45c319cbcc"
+    },
+    {
+      "path": "docs/harness/HARNESS_ENGINEERING_CONTRACT.en.md",
+      "sha256": "b21b210a31d9973ca922d3aa9df88f1080e963cbe5d34ae698472100b46e4062"
+    },
+    {
+      "path": "docs/harness/HARNESS_ENGINEERING_CONTRACT.md",
+      "sha256": "5374e8995db4395ed2ea6272cdb5c8bda63efe4ddaedc7c76b83fe2d72604029"
+    },
+    {
+      "path": "docs/harness/PANTHEON_BASE_DELIVERY_WORKFLOW.en.md",
+      "sha256": "7ca7bc730db1ef99465c3c8826224b142ed705c8d3d4b8f3ee4d35bd528a57f7"
+    },
+    {
+      "path": "docs/harness/PANTHEON_BASE_DELIVERY_WORKFLOW.md",
+      "sha256": "1e209520a87e5f0b70425a2deb77423dd170f2c355b7affe84cfe4a9566f15bf"
+    },
+    {
+      "path": "docs/harness/VERIFICATION_EVIDENCE_SPEC.en.md",
+      "sha256": "da3f5c8b40a2e8243db196711e17656dcbc17cf7c3074e1fff6bfe01c15a7689"
+    },
+    {
+      "path": "docs/harness/VERIFICATION_EVIDENCE_SPEC.md",
+      "sha256": "d25900f367874a2f07d4ff20ece212d622594c0ea57653a6af4b0dbe5580ab84"
+    },
+    {
+      "path": "foundation-release.lock.json",
+      "sha256": "de2f6e6de3e446a8322dd8f4568aae1da2ec00dbfbddd97e80ab0b44c245bbe0"
+    },
+    {
+      "path": "frontend/src/modules/generated/system.ts",
+      "sha256": "2d31fac8e42eb4110eef483089993ba8759cc0a0b6a62560a2ec63f0c366f089"
+    }
+  ],
+  "sourceProof": "D:/workspace/go/pantheon-platform/pantheon-base/.harness/evidence/2026-11-05-base-freeze-release/resume9-consumer-source-equivalence.json",
+  "officialProof": "D:/workspace/go/pantheon-platform/pantheon-base/.harness/evidence/2026-11-05-base-freeze-release/resume9-official-provenance.json",
+  "postReview": "Only actual validation/review evidence, factual status notes, PR body, and corresponding metadata hashes in assembly report may be updated. All backend/frontend/module/lock source hashes must stay unchanged. This bounded source approval cannot close original Base five tasks, sign freeze, waive S3 or bypass any required CI."
+}

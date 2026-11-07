@@ -1,0 +1,29 @@
+[
+  {
+    "log": "../resume9-consumer-frontend-type-check-direct.log",
+    "exitCode": 0,
+    "startedAt": "2026-11-07T02:26:02.3034440Z",
+    "command": "npm run type-check",
+    "sha256": "94d7e0ba308969aef5be19127663f1eb2c0b1e8d9e4f8781561cc44a964b7281",
+    "cwd": "D:\\workspace\\go\\pantheon-platform\\audit-artifacts\\task-closeout-2026-11-06\\ops-v185-rebuilt\\frontend",
+    "finishedAt": "2026-11-07T02:26:18.2078978Z"
+  },
+  {
+    "log": "../resume9-consumer-frontend-build-direct.log",
+    "exitCode": 0,
+    "startedAt": "2026-11-07T02:26:18.2785917Z",
+    "command": "npm run build",
+    "sha256": "ed46c83080912f4ac687f8a2f9f2bb2b822007bc2a54d565ac4fa68c417e1809",
+    "cwd": "D:\\workspace\\go\\pantheon-platform\\audit-artifacts\\task-closeout-2026-11-06\\ops-v185-rebuilt\\frontend",
+    "finishedAt": "2026-11-07T02:26:44.1825091Z"
+  },
+  {
+    "log": "../resume9-consumer-frontend-test-unit-direct.log",
+    "exitCode": 0,
+    "startedAt": "2026-11-07T02:26:44.1862661Z",
+    "command": "npm run test:unit",
+    "sha256": "10c603027592474e63c75c30a899be495c4f7e51a014d90671ee0887fe30e696",
+    "cwd": "D:\\workspace\\go\\pantheon-platform\\audit-artifacts\\task-closeout-2026-11-06\\ops-v185-rebuilt\\frontend",
+    "finishedAt": "2026-11-07T02:27:10.5031879Z"
+  }
+]

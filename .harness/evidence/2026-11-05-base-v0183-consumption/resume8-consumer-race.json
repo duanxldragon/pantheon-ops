@@ -1,0 +1,89 @@
+{
+  "recordedAt": "2026-11-07T02:22:39.822Z",
+  "sourceCommit": "6bb197e9b65998426767107f344c5245293f9e6f",
+  "source": "D:/workspace/go/pantheon-platform/audit-artifacts/task-closeout-2026-11-06/ops-v185-source",
+  "target": "D:/workspace/go/pantheon-platform/audit-artifacts/task-closeout-2026-11-06/ops-v185-rebuilt",
+  "mode": "race",
+  "commands": [
+    {
+      "name": "readonly-full-race",
+      "command": "go test -timeout=30m -buildvcs=false -mod=readonly -race -json -p 2 -count=1 ./...",
+      "executable": "go",
+      "args": [
+        "test",
+        "-timeout=30m",
+        "-buildvcs=false",
+        "-mod=readonly",
+        "-race",
+        "-json",
+        "-p",
+        "2",
+        "-count=1",
+        "./..."
+      ],
+      "cwd": "D:/workspace/go/pantheon-platform/audit-artifacts/task-closeout-2026-11-06/ops-v185-rebuilt/backend",
+      "startedAt": "2026-11-07T02:22:39.864Z",
+      "finishedAt": "2026-11-07T02:41:49.331Z",
+      "exitCode": 0,
+      "error": null,
+      "log": "resume8-consumer-readonly-full-race.log",
+      "sha256": "ccc710f6b6215165c36c415c46c6ce1070fc655c5201a6ace8f38c9fc7606103"
+    }
+  ],
+  "sourceOverlay": false,
+  "filesBefore": [
+    {
+      "path": "backend/go.mod",
+      "sha256": "0a768a28d27080b25cc7a2a7d1499aa05a19395d93507c281bb5f12a00cbb824"
+    },
+    {
+      "path": "backend/go.sum",
+      "sha256": "9c2da89859365c93ec438192ebd2db009ef727e4dae8176a341b46ed03340914"
+    },
+    {
+      "path": ".business-overlay-report.json",
+      "sha256": "ed0612ef7acf2f9cd96eeddf53505f74f24aaf609ee5f376c6a3948a54022e9c"
+    },
+    {
+      "path": "backend/modules/lowcode/dynamicmodule/dynamic_module_service_test.go",
+      "sha256": "2be503c9646ac9aaff0c2f106622ecea21eb4bafd2d49db8f4d85ba383783a1c"
+    }
+  ],
+  "race": {
+    "counts": {
+      "pass": 2170,
+      "fail": 0,
+      "skip": 1,
+      "packages": 64
+    },
+    "failures": [],
+    "skips": [
+      {
+        "Time": "2026-11-07T10:40:11.610879+08:00",
+        "Action": "skip",
+        "Package": "github.com/duanxldragon/pantheon-base/backend/pkg/upload",
+        "Test": "TestServiceStoreUsesRealS3WhenConfigured",
+        "Elapsed": 0
+      }
+    ]
+  },
+  "filesAfter": [
+    {
+      "path": "backend/go.mod",
+      "sha256": "0a768a28d27080b25cc7a2a7d1499aa05a19395d93507c281bb5f12a00cbb824"
+    },
+    {
+      "path": "backend/go.sum",
+      "sha256": "9c2da89859365c93ec438192ebd2db009ef727e4dae8176a341b46ed03340914"
+    },
+    {
+      "path": ".business-overlay-report.json",
+      "sha256": "ed0612ef7acf2f9cd96eeddf53505f74f24aaf609ee5f376c6a3948a54022e9c"
+    },
+    {
+      "path": "backend/modules/lowcode/dynamicmodule/dynamic_module_service_test.go",
+      "sha256": "2be503c9646ac9aaff0c2f106622ecea21eb4bafd2d49db8f4d85ba383783a1c"
+    }
+  ],
+  "sourceUnchanged": true
+}
