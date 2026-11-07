@@ -1,0 +1,11 @@
+{
+  "recordedAt": "2026-11-07T06:53:59.161Z",
+  "root": "D:\\workspace\\go\\pantheon-platform\\audit-artifacts\\github-main-release-2026-11-07/ops-v186-rebuilt",
+  "branch": "main",
+  "commitsCreated": 0,
+  "purpose": "Existing generated cleanup requires Git tracked-file index; initialize isolated staging only, force-track all1337 tested source inputs if ignored. Official acquisition remains four-asset lock/tag/manifest verified; no staging GitHEAD used as release provenance.",
+  "protectedSourceInputs": 1337,
+  "forcedInputs": [],
+  "priorFailure": "ops186-smoke-generated.json",
+  "sourceFilesModified": []
+}
