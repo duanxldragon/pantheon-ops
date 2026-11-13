@@ -1,5 +1,7 @@
 # Pantheon Base v0.18.7
 
+This document is the Ops consumer record for Base v0.18.7. The producer-side release facts live in the official release assets (including `docs/release-notes/RELEASE_NOTES_v0.18.7.md` inside the immutable snapshot); this copy preserves those facts and rewrites only the Validation status paragraph with Ops-side evidence, so the paths are intentionally not byte-identical.
+
 This patch releases the formal-queue foundation contract closeout merged through Base PR #504 under task 2026-11-07-ops-formal-queue-foundation-gaps: provider-owned permission routes (`backend/pkg/permissionroutes`) registered by providers before the fail-closed startup `Seal()`, the permission-cache revocation repair (authoritative owning-tenant query only; the stale platform-only Redis permission-array path and `dropStalePlatformOnlyPerms` are removed, verified red->green), the shared ConditionBuilder/ExecutionStepRail contracts, bounded Dashboard extension points and consumer artifact governance. VERSION is 0.18.7; the separate frontend UI package version is unchanged. Two release-blocking remediations shipped with the preparation (Base PR #505: audit-route log values through `logging.SanitizeLogValue`; smoke empty-state stall repair), and the remaining Release Gate blockers were cleared by code-only SonarCloud remediation on main (Base PRs #506/#507: 63->0 then residual 4->0, no waivers, exclusions or gate changes).
 
 ## Upgrade notes

@@ -86,6 +86,7 @@ business/*
 - Officially assembled inherited release/version documentation
 - Base-owned shared paths updated by the v0.18.6→v0.18.7 delta (backend middleware/permissionroutes/database/authtoken and shared frontend smoke helper)
 - scripts/frontmatter-check.mjs aligned to the immutable v0.18.7 snapshot copy (required because the v0.18.7 prettier-formatted contract docs plus the already-synced checker test expect the blank-line-tolerant parser)
+- frontend/src/modules/generated/system.ts restored to snapshot bytes (the materialization pass had dropped the generated DO-NOT-EDIT header; surfaced by round-1 CODE/ARCH review)
 
 ### Do Not Touch
 
