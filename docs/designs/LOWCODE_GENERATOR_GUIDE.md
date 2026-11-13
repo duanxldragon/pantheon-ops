@@ -5,12 +5,20 @@ layer: system/config
 status: Active
 linked_contracts:
   - docs/contracts/SYSTEM_CONFIG_CONTRACT.md
-updated_at: 2026-07-12
+updated_at: 2026-11-09
 ---
 
 # 低代码模块代码生成平台 - 集成与使用指南
 
 English version: [LOWCODE_GENERATOR_GUIDE.en.md](./LOWCODE_GENERATOR_GUIDE.en.md)
+
+## V2.0-O4 平面业务租户生成（实施中）
+
+本次增量以 [租户合同 §2.7](../contracts/TENANT_CONTRACT_V1.md) 和 [O4 计划](../../.harness/tasks/2026-11-07-ops-formal-queue-foundation-gaps/o4-tenant-implementation-plan.md) 为准，完整实现、渲染和正式消费仍待验收。只有业务模块的 `templateVersion: "v2"` 可采用 `dataScopeMode: "tenant"`；旧 V1 和既有范围保留。tenant 与 `enableDataScope` 独立，关闭 DataScope 也必须保留租户谓词。调用方声明的 TenantID/tenant_id 字段、系统域租户模板及尚未支持的关系形状必须拒绝。
+
+V2 产出服务器注入的归属、租户前导索引、各 CRUD/options 的租户谓词和 required bootstrap。默认关闭 AutoMigrate 时必须执行生成的 BootstrapFunc；开发模式执行 MigrateFunc。所有 required 阶段成功后才注册路由，失败阻止进程就绪。旧模块不会通过重新生成自动转换为租户模块，需另行评审版本化迁移。
+
+验收入口为 `scripts/testing/verify-tenant-generated-runtime.mjs`，使用 `tenantv2-flat.json` 和 `legacyv1-flat.json` 导出实际模块，在真实 MySQL 下验证默认/开发模式、A/B CRUD/options、相同业务键、缺失上下文和启动失败。源码字符串断言及生成成功不能替代实际运行证据。
 
 > **定位：P2+ 业务模块代码生成平台（不是骨架，不是运行时低代码）**
 >
@@ -162,12 +170,12 @@ business.cmdb.host.dashboard.quickAction
 
 以 CMDB 为例：
 
-| 业务对象 | 推荐模块名 | 表角色 | 是否生成菜单 | 说明 |
-| :--- | :--- | :--- | :--- | :--- |
-| 主机 | `cmdb/host` | `main` | 是 | 主资产台账，生成 `/business/cmdb/host` |
-| 厂商 | `cmdb/vendor` | `dictionary` | 是 | 业务字典或主数据，生成独立维护页 |
-| 主机分组 | `cmdb/group` | `main` | 是 | 可作为独立业务页维护 |
-| 主机和分组关系 | `cmdb/host_group` | `relation` | 否 | 中间表不生成导航，后续应在主机或分组详情中维护 |
+| 业务对象       | 推荐模块名        | 表角色       | 是否生成菜单 | 说明                                           |
+| :------------- | :---------------- | :----------- | :----------- | :--------------------------------------------- |
+| 主机           | `cmdb/host`       | `main`       | 是           | 主资产台账，生成 `/business/cmdb/host`         |
+| 厂商           | `cmdb/vendor`     | `dictionary` | 是           | 业务字典或主数据，生成独立维护页               |
+| 主机分组       | `cmdb/group`      | `main`       | 是           | 可作为独立业务页维护                           |
+| 主机和分组关系 | `cmdb/host_group` | `relation`   | 否           | 中间表不生成导航，后续应在主机或分组详情中维护 |
 
 生成时建议填写：
 
@@ -405,47 +413,71 @@ npm install --save-dev @types/jszip
 ### 示例2: 使用代码生成器API
 
 ```typescript
-import { 
-  ModuleExporter, 
-  generateDefaultMenus, 
-  generateDefaultPermissions 
-} from '@/modules/generator';
+import {
+  ModuleExporter,
+  generateDefaultMenus,
+  generateDefaultPermissions,
+} from "@/modules/generator";
 
 const schema = {
-  name: 'product',
-  displayName: '产品管理',
-  scope: 'business' as const,
-  templateLevel: 'enterprise' as const,
+  name: "product",
+  displayName: "产品管理",
+  scope: "business" as const,
+  templateLevel: "enterprise" as const,
   model: {
-    tableName: 'biz_product',
+    tableName: "biz_product",
     fields: [
-      { name: 'name', type: 'string' as const, label: '产品名称', required: true, searchable: true },
-      { name: 'price', type: 'float' as const, label: '价格', required: true },
-      { name: 'stock', type: 'int' as const, label: '库存', required: true, sortable: true },
-      { name: 'description', type: 'text' as const, label: '描述' },
+      {
+        name: "name",
+        type: "string" as const,
+        label: "产品名称",
+        required: true,
+        searchable: true,
+      },
+      { name: "price", type: "float" as const, label: "价格", required: true },
+      {
+        name: "stock",
+        type: "int" as const,
+        label: "库存",
+        required: true,
+        sortable: true,
+      },
+      { name: "description", type: "text" as const, label: "描述" },
     ],
   },
   menus: generateDefaultMenus({
-    name: 'product',
-    displayName: '产品管理',
-    scope: 'business',
-    templateLevel: 'enterprise',
-    model: { tableName: 'biz_product', fields: [] },
+    name: "product",
+    displayName: "产品管理",
+    scope: "business",
+    templateLevel: "enterprise",
+    model: { tableName: "biz_product", fields: [] },
     menus: [],
     permissions: [],
-    i18n: { namespace: '', translations: { zh: {}, en: {} } },
+    i18n: { namespace: "", translations: { zh: {}, en: {} } },
   }),
   permissions: generateDefaultPermissions({
-    name: 'product',
-    scope: 'business',
+    name: "product",
+    scope: "business",
     enableExport: true,
     enableImport: true,
   } as any),
   i18n: {
-    namespace: 'business.product',
+    namespace: "business.product",
     translations: {
-      zh: { title: '产品管理', menu: '产品管理', name: '产品名称', price: '价格', stock: '库存' },
-      en: { title: 'Product Management', menu: 'Products', name: 'Product Name', price: 'Price', stock: 'Stock' },
+      zh: {
+        title: "产品管理",
+        menu: "产品管理",
+        name: "产品名称",
+        price: "价格",
+        stock: "库存",
+      },
+      en: {
+        title: "Product Management",
+        menu: "Products",
+        name: "Product Name",
+        price: "Price",
+        stock: "Stock",
+      },
     },
   },
   enableExport: true,
@@ -456,22 +488,23 @@ const exporter = new ModuleExporter(schema);
 const files = exporter.generateAll();
 
 console.log(`生成了 ${files.length} 个文件`);
-files.forEach(file => {
+files.forEach((file) => {
   console.log(`- ${file.path}`);
 });
 
 // 下载ZIP
 const blob = await exporter.exportAsZip();
 const url = URL.createObjectURL(blob);
-const a = document.createElement('a');
+const a = document.createElement("a");
 a.href = url;
-a.download = 'product-module.zip';
+a.download = "product-module.zip";
 a.click();
 ```
 
 ### 示例3: 动态注册模块
 
 访问 `/system/modules` 查看已注册的模块列表,支持:
+
 - 查看模块状态
 - 卸载模块(支持待激活/已接入的业务模块)
 - 跳转到生成器注册新模块
@@ -561,7 +594,7 @@ npm run dev
 5. **权限控制**:
    - 生成的权限需要在Casbin策略中配置
    - 或使用种子数据自动导入
-   
+
 6. **业务域限制**:
    - 一键生成只面向 `business/*`
    - `system/*` 必须先明确子域边界，不允许作为“大一统 system 模块”被自动接入
@@ -590,6 +623,7 @@ npm run dev
 ## 📚 相关文件
 
 ### 核心实现
+
 - `frontend/src/modules/lowcode/generator/schema.ts` - 模块描述Schema
 - `frontend/src/modules/lowcode/generator/typeMapping.ts` - 类型映射
 - `frontend/src/modules/lowcode/generator/backendGenerator.ts` - 后端生成器
@@ -600,6 +634,7 @@ npm run dev
 - `frontend/src/modules/lowcode/components/CodePreview.tsx` - 代码预览
 
 ### 动态模块管理
+
 - `backend/modules/lowcode/dynamicmodule/dynamic_module_service.go` - 服务层
 - `backend/modules/lowcode/dynamicmodule/dynamic_module_handler.go` - Handler层
 - `backend/modules/lowcode/dynamicmodule/module.go` - 模块注册

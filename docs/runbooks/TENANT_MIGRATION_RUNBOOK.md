@@ -2,7 +2,18 @@
 
 本 runbook 是 `2026-09-10-tenant-migration-runbook` 任务的冻结交付物，为 [租户合同 V1](../contracts/TENANT_CONTRACT_V1.md) 定义的共享 schema MVP 提供可演练、可回滚的迁移程序。
 
-> **生产执行禁令**：本 runbook 已在副本完成三类演练（成功 / 冲突 / 失败回滚，见 [演练日志](../../.harness/archive/2026-09/evidence/2026-09-10-tenant-migration-runbook/rehearsal-log.md)），
+### V2.0-O4 业务迁移增量（2026-11-09，实施中）
+
+以下步骤仅规定本次已授权测试环境的验收目标，不重放下文历史系统迁移。具体表形状和索引以 [资源矩阵 §4](../designs/TENANT_RESOURCE_SCOPE_MATRIX.md) 为准，执行和证据由 [O4 实施计划](../../.harness/tasks/2026-11-07-ops-formal-queue-foundation-gaps/o4-tenant-implementation-plan.md) 跟踪；实际命令和恢复实现审查通过前不能声称可部署。
+
+1. 保留既有数据库、失败证据和数据源密文摘要；使用独立测试库演练空库链和保留式版本36升级。历史来源归属0，不按部门、用户名或创建人推断私人租户。
+2. 从校验封存身份的 Base candidate 和 Ops overlay 装配业务迁移37，通过正式 golang-migrate 执行；AutoMigrate、手改生成 SQL 和伪造版本记录不能替代迁移。
+3. 实际中断迁移后确认 dirty 状态阻止启动；在独占迁移锁下验证已知表、列、索引和保留数据形状，再由审查过的恢复入口恢复正式迁移。未知形状必须拒绝，不能仅 force 清除 dirty 标记。
+4. 同时验证能力记录和真实 schema；保留式 down 不删除私人记录或恢复旧全局唯一索引。重新 up 后验证密文、ID 和既有行保留。
+5. 停止旧写进程后，通过支持的启动包装器核验封存产物、可执行文件摘要和真实数据库形状。旧二进制直接启动不受新进程的 readiness 保护；降版本戳或开启 AutoMigrate 不能绕过兼容性拒绝。
+6. 运行双租户多用户、撤权、恢复不执行、provider 和存储隐私验收；candidate 验收通过后仍需正式 Base release 和配对消费。测试授权不构成生产迁移审批。
+
+> **生产执行禁令**：本 runbook 已在副本完成三类演练（成功 / 冲突 / 失败回滚，见 [演练日志](https://github.com/duanxldragon/pantheon-base/blob/135730fd6f63ad73cf40f6e4b321fdd9f69ea932/.harness/archive/2026-09/evidence/2026-09-10-tenant-migration-runbook/rehearsal-log.md)），
 > 但 **任何生产 DDL、回填、NOT NULL/唯一索引变更都必须等待 human gate 放行**
 > （备份 RPO/RTO 确认 + 生产维护窗口审批，见本文 §8）。在此之前只允许副本/预发执行。
 
@@ -39,59 +50,59 @@
 
 ### 2.1 全部表与数据规模（副本基线）
 
-| 表 | 副本行数 | 数据性质 | 租户归属（Phase-1 决策） |
-|----|---------|----------|------------------------|
-| `system_user` | 1 | 用户主数据 | **加 tenant_id**（经 membership 归属） |
-| `system_user_profile_ext` | 0 | 用户扩展 | **加 tenant_id**（跟随 user） |
-| `system_user_role` | 1 | 用户-角色绑定 | **加 tenant_id** |
-| `system_user_password_history` | 0 | 安全历史 | 加 tenant_id |
-| `system_user_session` | 0 | 会话 | **加 tenant_id** |
-| `system_role` | 1 | 角色 | **加 tenant_id**（租户内角色） |
-| `system_role_menu` | 28 | 角色-菜单 | 加 tenant_id |
-| `system_role_permission` | 79 | 角色-权限 | 加 tenant_id |
-| `system_role_data_scope` | 0 | 数据 scope 策略 | 加 tenant_id |
-| `system_dept` | 1 | 部门树 | **加 tenant_id**（org 结构天然租户私有） |
-| `system_post` | 0 | 岗位 | 加 tenant_id |
-| `system_menu` | 94 | 菜单 | **保持全局**（菜单=平台产品结构） |
-| `system_setting` | 42 | 平台设置 | **保持全局**（平台配置） |
-| `system_setting_audit_log` | 0 | 设置审计 | 保持全局 |
-| `system_dict_type` | 2 | 字典类型 | 加 tenant_id（租户私有字典）+ 全局行共存（`tenant_id=0` 平台字典） |
-| `system_dict_item` | 4 | 字典项 | 加 tenant_id（跟随 dict_type） |
-| `system_i18n` | 363 | i18n 资源 | **保持全局**（平台文案） |
-| `system_login_throttle` | 0 | 登录限流 | **保持全局**（按 source_key 维度限流，跨租户防撞库） |
-| `system_log_login` | 0 | 登录日志 | 加 tenant_id |
-| `system_log_oper` | 0 | 操作审计 | 加 tenant_id（审计查询按租户过滤；平台管理员可跨租户） |
-| `system_auth_security_event` | 0 | 安全事件 | 加 tenant_id |
-| `system_auth_factor` | 0 | MFA 因子 | 加 tenant_id（跟随 user） |
-| `system_auth_mfa_challenge` | 0 | MFA 挑战 | 加 tenant_id |
-| `system_refresh_version` | 0 | 刷新版本 | 保持全局（平台发布标记） |
-| `system_generator_datasource` | 0 | 代码生成数据源 | 加 tenant_id |
-| `system_module_registration` | 0 | 动态模块注册 | 加 tenant_id（租户私有模块） |
-| `module_registration` | 0 | 兼容影子表 | 保持全局（000008 兼容层，勿动） |
-| `permission_workbench_remediation_event` | 0 | 权限工单事件 | 加 tenant_id |
-| `casbin_rule` | 5 | Casbin policy | **不加列**：用 domain 字段表达（`tenant:0` 前缀），见 §3.5 |
-| `schema_migrations` | 1 | golang-migrate 版本表 | 保持全局（迁移基础设施） |
+| 表                                       | 副本行数 | 数据性质              | 租户归属（Phase-1 决策）                                           |
+| ---------------------------------------- | -------- | --------------------- | ------------------------------------------------------------------ |
+| `system_user`                            | 1        | 用户主数据            | **加 tenant_id**（经 membership 归属）                             |
+| `system_user_profile_ext`                | 0        | 用户扩展              | **加 tenant_id**（跟随 user）                                      |
+| `system_user_role`                       | 1        | 用户-角色绑定         | **加 tenant_id**                                                   |
+| `system_user_password_history`           | 0        | 安全历史              | 加 tenant_id                                                       |
+| `system_user_session`                    | 0        | 会话                  | **加 tenant_id**                                                   |
+| `system_role`                            | 1        | 角色                  | **加 tenant_id**（租户内角色）                                     |
+| `system_role_menu`                       | 28       | 角色-菜单             | 加 tenant_id                                                       |
+| `system_role_permission`                 | 79       | 角色-权限             | 加 tenant_id                                                       |
+| `system_role_data_scope`                 | 0        | 数据 scope 策略       | 加 tenant_id                                                       |
+| `system_dept`                            | 1        | 部门树                | **加 tenant_id**（org 结构天然租户私有）                           |
+| `system_post`                            | 0        | 岗位                  | 加 tenant_id                                                       |
+| `system_menu`                            | 94       | 菜单                  | **保持全局**（菜单=平台产品结构）                                  |
+| `system_setting`                         | 42       | 平台设置              | **保持全局**（平台配置）                                           |
+| `system_setting_audit_log`               | 0        | 设置审计              | 保持全局                                                           |
+| `system_dict_type`                       | 2        | 字典类型              | 加 tenant_id（租户私有字典）+ 全局行共存（`tenant_id=0` 平台字典） |
+| `system_dict_item`                       | 4        | 字典项                | 加 tenant_id（跟随 dict_type）                                     |
+| `system_i18n`                            | 363      | i18n 资源             | **保持全局**（平台文案）                                           |
+| `system_login_throttle`                  | 0        | 登录限流              | **保持全局**（按 source_key 维度限流，跨租户防撞库）               |
+| `system_log_login`                       | 0        | 登录日志              | 加 tenant_id                                                       |
+| `system_log_oper`                        | 0        | 操作审计              | 加 tenant_id（审计查询按租户过滤；平台管理员可跨租户）             |
+| `system_auth_security_event`             | 0        | 安全事件              | 加 tenant_id                                                       |
+| `system_auth_factor`                     | 0        | MFA 因子              | 加 tenant_id（跟随 user）                                          |
+| `system_auth_mfa_challenge`              | 0        | MFA 挑战              | 加 tenant_id                                                       |
+| `system_refresh_version`                 | 0        | 刷新版本              | 保持全局（平台发布标记）                                           |
+| `system_generator_datasource`            | 0        | 代码生成数据源        | 加 tenant_id                                                       |
+| `system_module_registration`             | 0        | 动态模块注册          | 加 tenant_id（租户私有模块）                                       |
+| `module_registration`                    | 0        | 兼容影子表            | 保持全局（000008 兼容层，勿动）                                    |
+| `permission_workbench_remediation_event` | 0        | 权限工单事件          | 加 tenant_id                                                       |
+| `casbin_rule`                            | 5        | Casbin policy         | **不加列**：用 domain 字段表达（`tenant:0` 前缀），见 §3.5         |
+| `schema_migrations`                      | 1        | golang-migrate 版本表 | 保持全局（迁移基础设施）                                           |
 
 ### 2.2 全局唯一键清单（唯一索引 → 租户维度转换决策）
 
-| 键 | 所在表/列 | 现状 | Phase-1 决策 |
-|----|----------|------|-------------|
-| `idx_system_user_username` | system_user.username | 全局唯一 | **改** `(tenant_id, username)`（admin 在每个租户都可存在）|
-| `idx_system_role_role_key` | system_role.role_key | 全局唯一 | **改** `(tenant_id, role_key)` |
-| `idx_system_dept_dept_code` | system_dept.dept_code | 全局唯一 | **改** `(tenant_id, dept_code)` |
-| `idx_system_post_post_code` | system_post.post_code | 全局唯一 | **改** `(tenant_id, post_code)` |
-| `idx_system_dict_type_dict_code` | system_dict_type.dict_code | 全局唯一 | **改** `(tenant_id, dict_code)` |
-| `idx_system_setting_setting_key` | system_setting.setting_key | 全局唯一 | **保持全局**（setting 表不加租户维度）|
-| `idx_system_i18n_locale_key` | system_i18n(locale, key) | 全局唯一 | **保持全局** |
-| `idx_system_login_throttle_source_key` | system_login_throttle.source_key | 全局唯一 | **保持全局**（限流维度）|
-| `idx_system_auth_factor_user_id` | system_auth_factor.user_id | 全局唯一 | 保持不变（user_id 已含租户语义）|
-| `idx_system_auth_mfa_challenge_challenge_id` | challenge_id | 全局唯一 | 保持不变（全局随机 ID）|
-| `idx_role_permission_unique` | (role_id, permission_key) | 全局唯一 | 保持不变（role_id 已含租户语义）|
-| `idx_casbin_rule` | (ptype,v0..v5) | 全局唯一 | 保持不变（domain 进 v 字段）|
-| `idx_system_role_data_scope_role_key` | role_key | 全局唯一 | **改** `(tenant_id, role_key)` |
-| `idx_system_module_registration_name` / `idx_system_module_registration_name` | name | 全局唯一 | **改** `(tenant_id, name)` |
-| `idx_system_user_oidc_subject` | system_user.oidc_subject（add_oidc_fields.sql）| 全局唯一 | **改** `(tenant_id, oidc_subject)` |
-| `uidx_system_i18n_locale_key` | system_i18n（000010 条件创建）| 全局唯一 | 保持全局 |
+| 键                                                                            | 所在表/列                                       | 现状     | Phase-1 决策                                               |
+| ----------------------------------------------------------------------------- | ----------------------------------------------- | -------- | ---------------------------------------------------------- |
+| `idx_system_user_username`                                                    | system_user.username                            | 全局唯一 | **改** `(tenant_id, username)`（admin 在每个租户都可存在） |
+| `idx_system_role_role_key`                                                    | system_role.role_key                            | 全局唯一 | **改** `(tenant_id, role_key)`                             |
+| `idx_system_dept_dept_code`                                                   | system_dept.dept_code                           | 全局唯一 | **改** `(tenant_id, dept_code)`                            |
+| `idx_system_post_post_code`                                                   | system_post.post_code                           | 全局唯一 | **改** `(tenant_id, post_code)`                            |
+| `idx_system_dict_type_dict_code`                                              | system_dict_type.dict_code                      | 全局唯一 | **改** `(tenant_id, dict_code)`                            |
+| `idx_system_setting_setting_key`                                              | system_setting.setting_key                      | 全局唯一 | **保持全局**（setting 表不加租户维度）                     |
+| `idx_system_i18n_locale_key`                                                  | system_i18n(locale, key)                        | 全局唯一 | **保持全局**                                               |
+| `idx_system_login_throttle_source_key`                                        | system_login_throttle.source_key                | 全局唯一 | **保持全局**（限流维度）                                   |
+| `idx_system_auth_factor_user_id`                                              | system_auth_factor.user_id                      | 全局唯一 | 保持不变（user_id 已含租户语义）                           |
+| `idx_system_auth_mfa_challenge_challenge_id`                                  | challenge_id                                    | 全局唯一 | 保持不变（全局随机 ID）                                    |
+| `idx_role_permission_unique`                                                  | (role_id, permission_key)                       | 全局唯一 | 保持不变（role_id 已含租户语义）                           |
+| `idx_casbin_rule`                                                             | (ptype,v0..v5)                                  | 全局唯一 | 保持不变（domain 进 v 字段）                               |
+| `idx_system_role_data_scope_role_key`                                         | role_key                                        | 全局唯一 | **改** `(tenant_id, role_key)`                             |
+| `idx_system_module_registration_name` / `idx_system_module_registration_name` | name                                            | 全局唯一 | **改** `(tenant_id, name)`                                 |
+| `idx_system_user_oidc_subject`                                                | system_user.oidc_subject（add_oidc_fields.sql） | 全局唯一 | **改** `(tenant_id, oidc_subject)`                         |
+| `uidx_system_i18n_locale_key`                                                 | system_i18n（000010 条件创建）                  | 全局唯一 | 保持全局                                                   |
 
 > 代码侧 `gorm uniqueIndex` 标签（user_model.go:12、role_model.go:13、dict_model.go:11、setting_model.go:7、post_model.go:12、mfa_model.go:7/22、permission_data_scope_model.go:5、role_permission_model.go:5-6）必须与上表同步修改，避免 AutoMigrate/模型声明与 SQL 迁移漂移。**模型标签与迁移 SQL 的不一致是历史已确认的风险源**（见 `DEV_DB_INIT_GUIDE.md`），本 runbook 要求两边同一 PR 变更。
 
@@ -106,11 +117,11 @@
 
 ### 2.4 Redis / cache key 清单
 
-| 用途 | key 模式 | 租户化决策 |
-|------|---------|-----------|
-| Casbin 缓存/watcher | casbin watcher pub/sub（casbin_watcher.go）| 随 policy 迁移自动生效，无需 key 变更 |
-| 登录限流 | `system_login_throttle` 表为主 | 无 Redis key 依赖，保持全局 |
-| 会话 | DB 表 `system_user_session` | 会话行带 tenant_id（JWT claims 同步），无独立 Redis key |
+| 用途                | key 模式                                    | 租户化决策                                              |
+| ------------------- | ------------------------------------------- | ------------------------------------------------------- |
+| Casbin 缓存/watcher | casbin watcher pub/sub（casbin_watcher.go） | 随 policy 迁移自动生效，无需 key 变更                   |
+| 登录限流            | `system_login_throttle` 表为主              | 无 Redis key 依赖，保持全局                             |
+| 会话                | DB 表 `system_user_session`                 | 会话行带 tenant_id（JWT claims 同步），无独立 Redis key |
 
 **Phase-1 结论**：当前 Redis 使用面窄（watcher/可选缓存），租户化主要风险在 **迁移窗口内的 watcher 消息乱序** —— §5 回滚包含全量 casbin 缓存失效步骤。新增 key 必须带租户前缀 `t{tenant_id}:`（写入租户代码规约，不在本 runbook 展开）。
 
@@ -122,11 +133,11 @@
 
 ### 2.6 audit / export / async 路径
 
-| 路径 | 位置 | 租户化注意 |
-|------|------|-----------|
+| 路径           | 位置                                                      | 租户化注意                                               |
+| -------------- | --------------------------------------------------------- | -------------------------------------------------------- |
 | 操作日志中间件 | `backend/internal/middleware/operation_log_middleware.go` | 异步落库时必须携带请求租户上下文，禁止落库时回读全局状态 |
-| 登录/安全事件 | `system_log_login` / `system_auth_security_event` | 行级带 tenant_id |
-| 导出/报表 | 经 platform 层专用通道（合同 §3.3）| 迁移窗口内禁止执行跨租户导出任务 |
+| 登录/安全事件  | `system_log_login` / `system_auth_security_event`         | 行级带 tenant_id                                         |
+| 导出/报表      | 经 platform 层专用通道（合同 §3.3）                       | 迁移窗口内禁止执行跨租户导出任务                         |
 
 ---
 
@@ -192,12 +203,12 @@ CREATE TABLE tenant_memberships ( ... ); -- 合同 §2.2, UK(tenant_id,user_id)
 
 ### 4.1 锁行为
 
-| 操作 | MySQL 8.0 行为 | 风险 |
-|------|---------------|------|
-| ADD COLUMN（nullable）| INSTANT（元数据级）| 低 |
-| MODIFY COLUMN NOT NULL DEFAULT | INPLACE（若允许）或 COPY | **中高**：COPY 期间共享锁 |
-| ADD/DROP UNIQUE INDEX | INPLACE | 中：索引构建期间 DML 允许，但资源占用高 |
-| 分批 UPDATE | 行锁 | 低（必须分批）|
+| 操作                           | MySQL 8.0 行为           | 风险                                    |
+| ------------------------------ | ------------------------ | --------------------------------------- |
+| ADD COLUMN（nullable）         | INSTANT（元数据级）      | 低                                      |
+| MODIFY COLUMN NOT NULL DEFAULT | INPLACE（若允许）或 COPY | **中高**：COPY 期间共享锁               |
+| ADD/DROP UNIQUE INDEX          | INPLACE                  | 中：索引构建期间 DML 允许，但资源占用高 |
+| 分批 UPDATE                    | 行锁                     | 低（必须分批）                          |
 
 ### 4.2 窗口估算（副本实测 → 生产换算公式）
 
@@ -244,7 +255,7 @@ CREATE TABLE tenant_memberships ( ... ); -- 合同 §2.2, UK(tenant_id,user_id)
 ### 6.3 演练证据
 
 三类演练（成功 / 冲突 / 失败回滚）已完成于副本 `tenant_rehearsal`，
-完整日志与恢复验证见 [rehearsal-log.md](../../.harness/archive/2026-09/evidence/2026-09-10-tenant-migration-runbook/rehearsal-log.md)。
+完整日志与恢复验证见 [rehearsal-log.md](https://github.com/duanxldragon/pantheon-base/blob/135730fd6f63ad73cf40f6e4b321fdd9f69ea932/.harness/archive/2026-09/evidence/2026-09-10-tenant-migration-runbook/rehearsal-log.md)。
 
 ---
 
@@ -259,23 +270,23 @@ CREATE TABLE tenant_memberships ( ... ); -- 合同 §2.2, UK(tenant_id,user_id)
 
 ## 8. Human Gates（生产执行前必须全部放行）
 
-| Gate | 内容 | 放行人 |
-|------|------|--------|
-| G1 | 本 runbook 批准（含 C2 冲突处理规则认可）| 维护者 |
-| G2 | 备份 RPO/RTO 确认 + 恢复演练证据（生产备份可恢复）| 维护者 + DBA |
-| G3 | 生产维护窗口批准（按 §4.2 预估 ×2 预留）| 维护者 |
-| G4 | 合同 V1 冻结状态确认（无未闭合 contract-change）| 维护者 |
+| Gate | 内容                                               | 放行人       |
+| ---- | -------------------------------------------------- | ------------ |
+| G1   | 本 runbook 批准（含 C2 冲突处理规则认可）          | 维护者       |
+| G2   | 备份 RPO/RTO 确认 + 恢复演练证据（生产备份可恢复） | 维护者 + DBA |
+| G3   | 生产维护窗口批准（按 §4.2 预估 ×2 预留）           | 维护者       |
+| G4   | 合同 V1 冻结状态确认（无未闭合 contract-change）   | 维护者       |
 
 **G1-G4 未全绿前，禁止对任何生产库执行本文任何 DDL/数据变更。**
 
 ### 8.1 Gate 决策记录（2026-09-15，agent session 评审）
 
-| Gate | 决定 | 依据 |
-|------|------|------|
-| G1 | **GRANTED**（2026-09-15，维护者授权 agent 评审后放行） | Runbook 完整；副本三类演练 `rehearse-20260911_065959` 通过（成功/冲突探针 ER_DUP_ENTRY/注入失败回滚），回滚闭环四项验证全过（行数守恒、唯一键恢复、compat 登录 smoke、审计留痕） |
-| G2 | **OPEN**（无法诚实放行） | 仓库内不存在生产备份 RPO/RTO 确认或生产备份恢复演练证据；`tenant_rehearsal` 是一次性本地副本，不构成 G2 要求的"生产备份可恢复"证明。**放行路径**：按 [G2 恢复演练规程](PRODUCTION_BACKUP_RESTORE_DRILL_G2.md) 执行并记录，实测 RPO/RTO 达标后由 DBA+维护者签署 |
-| G3 | **OPEN**（无法诚实放行） | §4.2 公式存在但演练表仅 1 行，无生产表量级数据；窗口估算不可计算，且 >1000 万行的表需预发用生产量级单独演练。**放行路径**：对生产库执行只读快照 `tenantsizing snapshot`（`backend/cmd/tenantsizing`，G2 恢复演练的还原库亦可作首次盘点源），再以 `tenantsizing plan` 生成窗口工作表；无 OVER-10M 表时该估算可支撑 G3 评审，有则需先完成生产量级预发演练 |
-| G4 | **GRANTED**（2026-09-15） | 合同 V1 `status: Approved` 且冻结；无 TBD/未闭合项；无 contract-change 记录；database-per-tenant 为 Phase 3 未来选项，不构成未闭合变更 |
+| Gate | 决定                                                   | 依据                                                                                                                                                                                                                                                                                                                                                    |
+| ---- | ------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| G1   | **GRANTED**（2026-09-15，维护者授权 agent 评审后放行） | Runbook 完整；副本三类演练 `rehearse-20260911_065959` 通过（成功/冲突探针 ER_DUP_ENTRY/注入失败回滚），回滚闭环四项验证全过（行数守恒、唯一键恢复、compat 登录 smoke、审计留痕）                                                                                                                                                                        |
+| G2   | **OPEN**（无法诚实放行）                               | 仓库内不存在生产备份 RPO/RTO 确认或生产备份恢复演练证据；`tenant_rehearsal` 是一次性本地副本，不构成 G2 要求的"生产备份可恢复"证明。**放行路径**：按 [G2 恢复演练规程](PRODUCTION_BACKUP_RESTORE_DRILL_G2.md) 执行并记录，实测 RPO/RTO 达标后由 DBA+维护者签署                                                                                          |
+| G3   | **OPEN**（无法诚实放行）                               | §4.2 公式存在但演练表仅 1 行，无生产表量级数据；窗口估算不可计算，且 >1000 万行的表需预发用生产量级单独演练。**放行路径**：对生产库执行只读快照 `tenantsizing snapshot`（`backend/cmd/tenantsizing`，G2 恢复演练的还原库亦可作首次盘点源），再以 `tenantsizing plan` 生成窗口工作表；无 OVER-10M 表时该估算可支撑 G3 评审，有则需先完成生产量级预发演练 |
+| G4   | **GRANTED**（2026-09-15）                              | 合同 V1 `status: Approved` 且冻结；无 TBD/未闭合项；无 contract-change 记录；database-per-tenant 为 Phase 3 未来选项，不构成未闭合变更                                                                                                                                                                                                                  |
 
 **当前状态：G1 ✓ G2 ✗ G3 ✗ G4 ✓ —— 仍不满足全绿条件，生产 DDL/数据变更禁令继续生效。**
 

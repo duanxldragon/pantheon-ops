@@ -19,6 +19,7 @@ import {
   generateDefaultMenus,
   generateDefaultPermissions,
   validateGeneratorCompleteness,
+  validateGeneratorContract,
   type ModuleField,
   type ModuleSchema,
 } from '../../src/modules/lowcode/generator/schema';
@@ -846,4 +847,81 @@ func TestRequiredBooleanCreate(t *testing.T) {
     cwd: tempDir, encoding: 'utf8', timeout: 120_000,
   });
   assert.equal(result.status, 0, `${result.error?.message ?? ''}\n${result.stdout}\n${result.stderr}`);
+});
+
+test('tenant v2 admission agrees across completeness and direct export', () => {
+  const flat = createSchema({ templateVersion: 'v2', dataScopeMode: 'tenant', relations: [], dependencies: [],
+    model: { tableName: 'biz_cmdb_asset', modelName: 'CmdbAsset', fields: createFields() } });
+  for (const enableDataScope of [false, true]) {
+    assert.equal(validateGeneratorContract({ ...flat, enableDataScope }).length, 0);
+    assert.doesNotThrow(() => new ModuleExporter({ ...flat, enableDataScope }));
+  }
+  const invalid: ModuleSchema[] = [
+    { ...flat, templateVersion: undefined }, { ...flat, templateVersion: 'v1' }, { ...flat, scope: 'system' },
+    ...['tenantId', 'TenantID', 'tenant_id'].map((name) => ({ ...flat, model: { ...flat.model,
+      fields: [...flat.model.fields, { name, type: 'int' as const, label: name, visibleInForm: false }] } })),
+    ...['lookup', 'oneToMany', 'manyToMany'].map((type) => ({ ...flat, relations: [{
+      name: 'related', type: type as 'lookup', targetModule: 'cmdb/vendor', localField: 'id', targetField: 'id',
+    }] })),
+    { ...flat, model: { ...flat.model, fields: createRelationFields() } },
+    { ...flat, metadata: { ...flat.metadata, tableRole: 'detail' } },
+  ];
+  for (const schema of invalid) {
+    assert.ok(validateGeneratorCompleteness(schema).some((issue) => issue.level === 'error'));
+    assert.throws(() => new ModuleExporter(schema), /module.generate.invalid_/);
+  }
+});
+
+test('tenant v2 emits strict bootstrap, tenant-owned clones and tenant-leading unique keys', () => {
+  const schema = createSchema({ templateVersion: 'v2', dataScopeMode: 'tenant', relations: [], dependencies: [],
+    model: { tableName: 'biz_cmdb_asset', modelName: 'CmdbAsset', fields: [...createFields(), {
+      name: 'readOnly', type: 'string', label: '只读', visibleInForm: false, visibleInList: true,
+    }] } });
+  const files = generatedFiles(schema);
+  const model = files.get('backend/modules/business/cmdb/asset/asset_model.go')!;
+  const dto = files.get('backend/modules/business/cmdb/asset/asset_dto.go')!;
+  const service = files.get('backend/modules/business/cmdb/asset/asset_service.go')!;
+  const handler = files.get('backend/modules/business/cmdb/asset/asset_handler.go')!;
+  const module = files.get('backend/modules/business/cmdb/asset/module.go')!;
+  assert.match(model, /TenantID\s+uint64.*not null;default:0/);
+  assert.match(model, /ReadOnly\s+string/);
+  assert.match(model, /uniqueIndex:uidx_biz_cmdb_asset_tenant_asset_code,priority:1/);
+  assert.match(model, /uniqueIndex:uidx_biz_cmdb_asset_tenant_asset_code,priority:2/);
+  assert.doesNotMatch(dto, /TenantID|tenantId|tenant_id/);
+  assert.match(service, /owned := \*ctx/);
+  assert.equal((service.match(/if err := s.requireTenant\(\)/g) || []).length, 6);
+  assert.match(service, /item.TenantID = s.TenantOwnerID\(\)/);
+  assert.doesNotMatch(service, /s.db.Save/);
+  assert.equal((handler.match(/WithTenantContext\(tenant.FromGin\(c\)\)/g) || []).length, 6);
+  assert.match(handler, /WithContext\(c.Request.Context\(\)\)/);
+  assert.match(module, /if err := contracts.RegisterRequiredBackendModules/);
+  assert.match(module, /contracts.TenantScopedBusinessGroup/);
+  assert.match(module, /BootstrapFunc:\s+bootstrap/);
+  assert.match(module, /MigrateFunc:\s+bootstrap/);
+  assert.match(module, /panic\(err\)/);
+});
+
+test('actual server export rejects unsupported tenant input and exports v1/v2 fixtures', () => {
+  const root = [resolve(process.cwd()), resolve(process.cwd(), 'frontend')]
+    .find((dir) => existsSync(join(dir, 'scripts/export-generated-module.mjs')))!;
+  for (const name of ['tenantv2-flat', 'legacyv1-flat']) {
+    const result = spawnSync(process.execPath, ['scripts/export-generated-module.mjs', `tests/generator/fixtures/${name}.json`],
+      { cwd: root, encoding: 'utf8', timeout: 120_000 });
+    assert.equal(result.status, 0, result.stderr);
+    const files = JSON.parse(result.stdout) as Array<{path: string; content: string}>;
+    assert.equal(files.length, 10);
+    const module = files.find((file) => file.path.endsWith('/module.go'))!.content;
+    assert.equal(module.includes('RegisterRequiredBackendModules'), name === 'tenantv2-flat');
+  }
+  const temp = mkdtempSync(join(root, '.generator-invalid-tenant-'));
+  try {
+    const fixture = JSON.parse(readFileSync(join(root, 'tests/generator/fixtures/tenantv2-flat.json'), 'utf8'));
+    fixture.templateVersion = 'v1';
+    const file = join(temp, 'invalid.json');
+    writeFileSync(file, JSON.stringify(fixture));
+    const result = spawnSync(process.execPath, ['scripts/export-generated-module.mjs', file], {cwd:root,encoding:'utf8',timeout:120_000});
+    assert.notEqual(result.status, 0);
+    assert.match(result.stderr, /module.generate.invalid_data_scope/);
+    assert.equal(result.stdout, '');
+  } finally { rmSync(temp, {recursive:true,force:true}); }
 });

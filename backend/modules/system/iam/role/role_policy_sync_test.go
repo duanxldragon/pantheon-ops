@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/duanxldragon/pantheon-base/backend/pkg/database"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/permissionroutes"
 
 	"gorm.io/gorm"
 )
@@ -145,5 +146,32 @@ func TestRoleTenantScope_RolePolicySyncUsesTenantSubject(t *testing.T) {
 	}
 	if hasPolicy(t, db, "tenant_synced", "/api/v1/system/user/list", "GET") {
 		t.Fatalf("tenant role save leaked a platform-global policy")
+	}
+}
+
+func TestRoleService_ProviderRoutesGrantAndRevoke(t *testing.T) {
+	key := "business:providerprobe:read"
+	path := "/api/v1/business/providerprobe/items/:id"
+	if err := permissionroutes.Register("business:providerprobe", []permissionroutes.Binding{{Permission: key, Routes: []permissionroutes.Route{{Method: "GET", Path: path}}}}); err != nil {
+		t.Fatal(err)
+	}
+	db := setupRoleTestDB(t)
+	seedManagedPermissionMenu(t, db, 10, key)
+	svc := NewRoleService(db)
+	created, err := svc.CreateRole(&RoleCreateReq{RoleName: "Provider", RoleKey: "provider_role", Status: 1, PermissionKeys: []string{key}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !hasPolicy(t, db, "provider_role", path, "GET") {
+		t.Fatal("provider permission did not grant API")
+	}
+	if hasPolicy(t, db, "provider_role", path, "POST") {
+		t.Fatal("provider grant widened HTTP method")
+	}
+	if _, err := svc.UpdateRole(created.ID, &RoleUpdateReq{RoleName: "Provider", RoleKey: "provider_role", Status: 1}); err != nil {
+		t.Fatal(err)
+	}
+	if hasPolicy(t, db, "provider_role", path, "GET") {
+		t.Fatal("revoked provider key left API policy")
 	}
 }

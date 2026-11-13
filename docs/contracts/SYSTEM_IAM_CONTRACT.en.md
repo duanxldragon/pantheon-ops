@@ -3,7 +3,7 @@ title: system/iam Contract
 doc_type: Contract
 layer: system/iam
 status: Active
-updated_at: 2026-11-04
+updated_at: 2026-11-12
 ---
 
 # system/iam Contract
@@ -148,6 +148,7 @@ This contract depends on:
 - the workbench first screen must serve remediation rather than acting as a generic full-body health table
 - the first screen must support browsing complete authorization results by role; it must not hide clean roles by default filtering
 - role governance status is fixed to `pending | remediated | clean`
+- the only authoritative source of business API permission bindings is the provider-owned startup registry in `backend/pkg/permissionroutes` (there is no HTTP write entry point); after the startup seal point every registration fails closed, see [PERMISSION_WORKBENCH_GOVERNANCE_DESIGN.md](../designs/PERMISSION_WORKBENCH_GOVERNANCE_DESIGN.md) section 7
 - the overview must provide at least:
   - `pendingRemediationRoleCount`
   - `remediatedRoleCount`

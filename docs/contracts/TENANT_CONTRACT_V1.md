@@ -13,7 +13,7 @@ linked_contracts:
   - docs/contracts/SYSTEM_IAM_CONTRACT.md
   - docs/contracts/SYSTEM_ORG_CONTRACT.md
   - docs/contracts/SYSTEM_CONFIG_CONTRACT.md
-updated_at: 2026-10-31
+updated_at: 2026-11-09
 ---
 
 # 租户合同 V1（共享 schema MVP）
@@ -25,6 +25,7 @@ English version: [TENANT_CONTRACT_V1.en.md](./TENANT_CONTRACT_V1.en.md)
 冻结 = 冻结 V1 的 **模型、所有权边界、不变量**；具体表结构演进由 runbook（`2026-09-10-tenant-migration-runbook`）约束。
 
 关联设计：
+
 - `docs/designs/TENANT_READY_SINGLE_TENANT_DESIGN.md`
 - `docs/designs/TENANT_RESOURCE_SCOPE_MATRIX.md`
 - `docs/designs/P2_SCALE_ROADMAP.md`
@@ -71,6 +72,7 @@ tenants
 ```
 
 不变量：
+
 - `code` 创建后不可变；匹配 `^[a-z][a-z0-9-]{1,62}$`
 - `status` 流转仅允许：`active ↔ suspended`，`active|suspended → archived`；`archived` 终态不可逆
 - `archived` 租户禁止登录、禁止发放新 token、禁止产生新业务写入
@@ -83,6 +85,9 @@ tenants
   **非归档**租户，归档后成员关系不再构成删除的阻碍（V1.3 澄清）。
 - 删除标记是 `status = 'deleted'`，**不是** `deleted_at`：该列在表结构中预留，当前实现不写入，
   查询也不以它过滤。两套标记并存会让「是否已删除」出现两个可能不一致的答案。
+- 更新与删除在同一租户行的 `FOR UPDATE` 事务锁下读取并校验当前状态，随后提交全部字段写入；
+  延迟的更新不得覆盖期间完成的 archive/delete 或以过期状态执行非法转换。无操作更新仍成功，字段失败
+  整体回滚，会话吊销仍在状态提交之后按现有 best-effort 语义执行（2026-11-11 并发守卫补齐）。
 
 ### 2.2 TenantMembership
 
@@ -98,6 +103,7 @@ tenant_memberships
 ```
 
 不变量：
+
 - 一个 user 可属于多个 tenant；同一 `(tenant_id, user_id)` 唯一
 - 每个非 archived 租户至少一个 `owner`；**owner 转移没有单一端点**（V1.8 澄清），落地路径是
   两步显式 API 动作：先把新 owner 加入（`POST /system/tenant/:id/members`，`role=owner`，已有行
@@ -106,14 +112,15 @@ tenant_memberships
 - membership 的**下架方式按路径区分**（V1.5 澄清，逐条对齐实现；原条款「一律软禁用、不物理删除」
   与实现不符）：
 
-  | 路径 | 实际行为 | 代码 |
-  |---|---|---|
-  | 删除租户 | 软禁用：同一事务内把该租户剩余 `active` 成员关系置 `status = disabled`，与 `status = 'deleted'`、释放 `code` 一起提交（§2.1） | `tenant_service.go:608-615` |
-  | 删除用户 | 软禁用：`status = disabled`；租户作用域只动本租户的行，平台作用域清理该用户全部成员关系（§2.3.1 第 2 条） | `user/user_membership.go:78-88`，回归 `user_membership_test.go:152-200` |
-  | 显式移除成员 | **物理删除**（当前实现的唯一例外）：先 `ensureNotLastOwner`，按 `(tenant_id, user_id)` 删除（不限 `status`，模型无 `deleted_at` 列，`tenant_model.go:25-33`），`RowsAffected == 0` → `ErrMembershipNotFound`，随后尽力撤销该成员会话 | `tenant_service.go:914-940` |
-  | 重新加入 / 重新创建用户 | **复活旧行**：命中 `(tenant_id, user_id)` 已有行则更新为请求角色 + `active`，不插第二行 | `tenant_service.go:869-888`、`user_membership.go:45-51` |
+  | 路径                    | 实际行为                                                                                                                                                                                                                             | 代码                                                                    |
+  | ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------- |
+  | 删除租户                | 软禁用：同一事务内把该租户剩余 `active` 成员关系置 `status = disabled`，与 `status = 'deleted'`、释放 `code` 一起提交（§2.1）                                                                                                        | `tenant_service.go:608-615`                                             |
+  | 删除用户                | 软禁用：`status = disabled`；租户作用域只动本租户的行，平台作用域清理该用户全部成员关系（§2.3.1 第 2 条）                                                                                                                            | `user/user_membership.go:78-88`，回归 `user_membership_test.go:152-200` |
+  | 显式移除成员            | **物理删除**（当前实现的唯一例外）：先 `ensureNotLastOwner`，按 `(tenant_id, user_id)` 删除（不限 `status`，模型无 `deleted_at` 列，`tenant_model.go:25-33`），`RowsAffected == 0` → `ErrMembershipNotFound`，随后尽力撤销该成员会话 | `tenant_service.go:914-940`                                             |
+  | 重新加入 / 重新创建用户 | **复活旧行**：命中 `(tenant_id, user_id)` 已有行则更新为请求角色 + `active`，不插第二行                                                                                                                                              | `tenant_service.go:869-888`、`user_membership.go:45-51`                 |
 
   默认方向是软禁用，物理删除是需要收敛的例外，理由保留在下一条。
+
 - 保留行的意义：成员关系是「此人曾属于该租户」的审计记录，且登录门禁已把非 `active` 视为拒绝
   （`pkg/tenant.GateSessionIssuance`），所以禁用足以阻断访问。物理删除路径的审计事实则由
   全局操作日志承担（`operation_log_middleware.go:224-276` 记录全部非 GET 请求；平台侧成员增删另加
@@ -161,10 +168,10 @@ tenant_memberships
 
 **唯一的两个放行面**（对应 §3.3 的 cross-tenant 两条路径）：
 
-| 作用域 | 可以读写 | 不因此获得 |
-|---|---|---|
-| 平台作用域（`ctx.tenant_id = 0`，需 §3.4 声明 + 平台能力） | `tenant_id = 0` 的全局行 | 按裸键操作**租户私有行**的权力 |
-| 租户作用域（`ctx.tenant_id > 0`） | 自己那一份 | 任何其他租户的行，包括「同名」行 |
+| 作用域                                                     | 可以读写                 | 不因此获得                       |
+| ---------------------------------------------------------- | ------------------------ | -------------------------------- |
+| 平台作用域（`ctx.tenant_id = 0`，需 §3.4 声明 + 平台能力） | `tenant_id = 0` 的全局行 | 按裸键操作**租户私有行**的权力   |
+| 租户作用域（`ctx.tenant_id > 0`）                          | 自己那一份               | 任何其他租户的行，包括「同名」行 |
 
 上下文缺失且非 compat → 按 §3.2 拒绝，**不得退化为「读全部」**；策略/配置读不到时的默认行为是 fail-closed，
 而不是回到最宽松的一档。
@@ -255,12 +262,12 @@ DDL 与种子：编号迁移 `000030_tenant_plan_definitions`；AutoMigrate 部�
 
 ### 2.5 平台侧租户运营读路径（V1.4 新增，2026-10-25）
 
-| 路由 | 权限 key | 性质 |
-|---|---|---|
-| `GET /api/v1/system/tenant-ops/overview` | `system:tenant:overview` | 跨租户聚合读 |
-| `GET /api/v1/system/tenant-ops/member` | `system:tenant:member-list` | 跨租户成员读 |
-| `GET /api/v1/system/tenant-ops/plan/list` | `system:tenant:plan:list` | 平台全局读 |
-| `POST /api/v1/system/tenant-ops/plan` | `system:tenant:plan:create` | 平台全局写，落审计 |
+| 路由                                       | 权限 key                    | 性质               |
+| ------------------------------------------ | --------------------------- | ------------------ |
+| `GET /api/v1/system/tenant-ops/overview`   | `system:tenant:overview`    | 跨租户聚合读       |
+| `GET /api/v1/system/tenant-ops/member`     | `system:tenant:member-list` | 跨租户成员读       |
+| `GET /api/v1/system/tenant-ops/plan/list`  | `system:tenant:plan:list`   | 平台全局读         |
+| `POST /api/v1/system/tenant-ops/plan`      | `system:tenant:plan:create` | 平台全局写，落审计 |
 | `PUT /api/v1/system/tenant-ops/plan/:code` | `system:tenant:plan:update` | 平台全局写，落审计 |
 
 规则（每条可被 reviewer 单独引用）：
@@ -324,6 +331,20 @@ DDL 与种子：编号迁移 `000030_tenant_plan_definitions`；AutoMigrate 部�
 
 ---
 
+### 2.7 V2.0-O4 业务租户增量合同（实施中，2026-11-09）
+
+维护者已明确批准“扩展 Base 业务租户合同，同批实现并验收租户隔离”。独立 CODE/ARCH 已批准实施方案；本条定义同批交付目标，**尚未表示实现验收或正式发行完成**。当前已发行 V1.10 与旧助手继续按 §2.6 工作；只有四项前置条件和正式配对消费均通过后，采用模块才可声明 V2 隔离。唯一实施与证据入口是 [O4 计划](../../.harness/tasks/2026-11-07-ops-formal-queue-foundation-gaps/o4-tenant-implementation-plan.md)及其父任务。
+
+- Base 提供显式 `TenantScopedBusinessGroup` 和只读的当前身份/权限端口；旧 `ProtectedGroup`、`ProtectedGroupWithRedis`、`DataScopedGroup` 的默认链和既有系统域语义保持。缺失/异常/未知租户模式、DB/Redis/授权依赖和上下文拒绝，不降级为 compat。
+- 当前主体、会话、用户、角色、成员关系、租户生命周期与解析来源在入口、实际访问 provider 前和结果释放前重新验证；租户和用户不能由请求 body 或任意 header 指定。平台 header 覆盖仍按 §3 的平台能力规则；`tenant_id=0` 只能访问全局行，管理员也不绕过私人记录的 actor 隔离。
+- 首批仅采用 Ops `obs_prometheus_datasource`、`obs_query_history`、`obs_saved_view`、`obs_query_owner_budget` 和 `obs_schema_capability`，详见资源矩阵。其余业务模块、告警/通知和目标仍是旧单租户语义；告警只可引用 tenant0 数据源，不隐式获得私有数据源权限。
+- 历史和保存视图始终以 `(tenant_id, actor_id)` 归属；来源、租户和用户更新不可变。只保存服务端审核的目录 ID/枚举配方及有界安全元数据，不保存原查询、自由名称、标签原值、结果、provider 警告/错误或令牌。原始查询只能形成不可恢复表达式的元数据历史；恢复必须重新授权且不执行，运行仍需独立权限与用户操作。
+- 采用查询切换 POST，同批更新产品调用；旧含表达式 GET 别名返回升级提示而不执行，不能继续用于产品链接。审计在 body/CSRF/权限拒绝之前按精确 method/template 采用元数据策略，采用路由的关联 ID 仅由服务器生成。默认路由审计不变。
+- 真实生成器 V2 仅支持已验收的平面 tenant CRUD，产出归属、谓词、租户前导索引及 required bootstrap；初始化失败阻止服务就绪，旧 V1 输出保留其入口。业务 SQL 迁移37、dirty 拒绝/独占形状验证恢复、保留式 down 与旧进程停止/受支持启动包装器必须真机验证，不用 AutoMigrate 或版本戳绕过。
+- 保留旧助手及 V1 生成产物，不设未经批准的移除日期。旧采用模块迁移须逐个登记、独立验证并完成正式 foundation release 配对消费；移除旧入口需要另一次合同变更。专用 candidate 封存/装配只用于发行前隔离验证，不替代正式不可变发行、锁文件或消费验收。
+
+验收集合包括同部门/同名的双租户多用户与窄权限角色、来源/会话/成员撤销、alias/外来 ID/游标、审计和存储哨兵、真实生成器/迁移、真实 Prometheus/VM/Loki/Tempo、恢复不运行及 desktop/mobile light/dark。证据不足时维持实施中，不能将局部测试通过计为四项前置条件完成。
+
 ## 3. 租户上下文（冻结）
 
 ### 3.1 解析优先级（从高到低）
@@ -375,18 +396,18 @@ DDL 与种子：编号迁移 `000030_tenant_plan_definitions`；AutoMigrate 部�
 
 ## 5. 错误码（冻结）
 
-| 场景 | HTTP | code |
-|------|------|------|
-| header 指定租户但主体无平台权限 | 403 | `TENANT_FORBIDDEN` |
-| 主体无该租户 membership 或 membership disabled | 403 | `TENANT_FORBIDDEN` |
-| 租户 suspended / archived 时登录或写入 | 403 | `TENANT_SUSPENDED` / `TENANT_ARCHIVED` |
-| 上下文缺失（非 compat） | 500 | `TENANT_CONTEXT_MISSING`（配置错误，告警） |
-| 资源不属于当前租户（查询返回空，不泄露存在性） | 200/404 | 不引入新码：返回空集或 404，不区分"不存在"与"他租户" |
-| 删除未归档租户（成员数是否为 0 不影响判定，V1.6） | 400 | `tenant.not_archived` |
-| 添加成员时目标租户不存在或已删除（墓碑，先于用户检查，W2） | 404 | `tenant.not_found` |
-| 添加成员时 `user_id` 不指向存活的 `system_user` 行（W2，V1.8 登记） | 404 | `user.not_found` |
-| 添加成员时用户已是 `owner` 而请求非 owner 角色（非 owner 行重加幂等，W2，V1.8 登记） | 400 | `tenant.member_exists` |
-| 添加成员时用户 owning tenant 与目标租户不一致（V1.7） | 400 | `tenant.member.user_not_in_tenant` |
+| 场景                                                                                 | HTTP    | code                                                 |
+| ------------------------------------------------------------------------------------ | ------- | ---------------------------------------------------- |
+| header 指定租户但主体无平台权限                                                      | 403     | `TENANT_FORBIDDEN`                                   |
+| 主体无该租户 membership 或 membership disabled                                       | 403     | `TENANT_FORBIDDEN`                                   |
+| 租户 suspended / archived 时登录或写入                                               | 403     | `TENANT_SUSPENDED` / `TENANT_ARCHIVED`               |
+| 上下文缺失（非 compat）                                                              | 500     | `TENANT_CONTEXT_MISSING`（配置错误，告警）           |
+| 资源不属于当前租户（查询返回空，不泄露存在性）                                       | 200/404 | 不引入新码：返回空集或 404，不区分"不存在"与"他租户" |
+| 删除未归档租户（成员数是否为 0 不影响判定，V1.6）                                    | 400     | `tenant.not_archived`                                |
+| 添加成员时目标租户不存在或已删除（墓碑，先于用户检查，W2）                           | 404     | `tenant.not_found`                                   |
+| 添加成员时 `user_id` 不指向存活的 `system_user` 行（W2，V1.8 登记）                  | 404     | `user.not_found`                                     |
+| 添加成员时用户已是 `owner` 而请求非 owner 角色（非 owner 行重加幂等，W2，V1.8 登记） | 400     | `tenant.member_exists`                               |
+| 添加成员时用户 owning tenant 与目标租户不一致（V1.7）                                | 400     | `tenant.member.user_not_in_tenant`                   |
 
 ---
 
@@ -405,15 +426,15 @@ DDL 与种子：编号迁移 `000030_tenant_plan_definitions`；AutoMigrate 部�
 
 ## 7. 所有权边界（冻结）
 
-| 关注点 | 归属域 | 禁止 |
-|--------|--------|------|
-| tenants 主数据 CRUD、生命周期 | `system/org`（租户即组织实体） | auth/iam/business 直接写 tenants 表 |
-| membership 管理 | `system/org` 提供能力，`system/iam` 消费（登录时读取） | iam 维护 memberships 表 |
-| 登录时租户解析与 claims 签发 | `system/auth` | auth 直查 tenants 表（经 org 的读接口/gRPC/进程内接口） |
-| Casbin domain 规则 | `system/iam` | auth 或业务模块自建 domain 规则 |
-| feature flag `tenant.mode` | `system/config` | 各模块自造开关 |
-| tenant_id scope helper | `platform` | 各域复制粘贴私有实现 |
-| 业务资源租户归属 | `business/*`（V1 内不适用：业务域不参与租户隔离，见 §2.6） | business 定义自己的隔离机制，或宣称已经隔离 |
+| 关注点                        | 归属域                                                     | 禁止                                                    |
+| ----------------------------- | ---------------------------------------------------------- | ------------------------------------------------------- |
+| tenants 主数据 CRUD、生命周期 | `system/org`（租户即组织实体）                             | auth/iam/business 直接写 tenants 表                     |
+| membership 管理               | `system/org` 提供能力，`system/iam` 消费（登录时读取）     | iam 维护 memberships 表                                 |
+| 登录时租户解析与 claims 签发  | `system/auth`                                              | auth 直查 tenants 表（经 org 的读接口/gRPC/进程内接口） |
+| Casbin domain 规则            | `system/iam`                                               | auth 或业务模块自建 domain 规则                         |
+| feature flag `tenant.mode`    | `system/config`                                            | 各模块自造开关                                          |
+| tenant_id scope helper        | `platform`                                                 | 各域复制粘贴私有实现                                    |
+| 业务资源租户归属              | `business/*`（V1 内不适用：业务域不参与租户隔离，见 §2.6） | business 定义自己的隔离机制，或宣称已经隔离             |
 
 ---
 
@@ -427,18 +448,19 @@ DDL 与种子：编号迁移 `000030_tenant_plan_definitions`；AutoMigrate 部�
 
 ## 9. 变更记录
 
-| 版本 | 日期 | 变更 | 性质 |
-|------|------|------|------|
-| V1.1 | 2026-10-13 | §3.1 新增第 3 条「平台作用域兜底」（原第 3 条顺延为第 4 条，语义不变）；新增 §3.4「平台作用域声明」；§3.2 补注拒绝规则的适用范围；§6 补注「multi 是 compat 的超集」 | 澄清（Clarification） |
-| V1.2 | 2026-10-19 | 新增 §2.3.1「读写义务」：读必须带租户谓词、写必须由上下文赋值且冲突键含租户、按裸键的归属校验同样算读；给出唯一两个放行面与 fail-closed 默认 | 澄清（Clarification） |
-| V1.3 | 2026-10-23 | §2.1 补入第四态：`deleted` 是墓碑而非生命周期状态、不可作为输入、按 id/code 寻址视为不存在；明确删除标记是 `status` 而非预留的 `deleted_at`；明确删除归档租户时其成员关系同事务停用（§2.2 的 owner 要求只约束非归档租户） | 澄清（Clarification） |
-| V1.4 | 2026-10-25 | 新增 §2.4「套餐定义与配额语义」（`tenant_plans` 模型、平台全局、`-1` 无上限 / `0` 非法、未知 code 回落编译内置表、退役而非删除、幂等 seed、5 秒读穿透缓存）与 §2.4.1「配额是度量不是闸门」（写路径不因超限拒绝；`QuotaEnforcer`/`MetricsCollector` 未接线）；新增 §2.5「平台侧租户运营读路径」（`/system/tenant-ops/*` 五条路由的声明平台作用域、`system:tenant:` 前缀、统一口径、有界分页、未知套餐如实呈现、指标集合冻结、权限↔路由 probe 门禁）；§1 In/Out 改写套餐与配额的归属边界；§2.1 `plan` 列注释由「V1 不消费」改为「解析为 §2.4 阈值」 | 扩展（Extension） |
-| V1.5 | 2026-10-26 | §2.2 的「membership 删除 = `status=disabled`，不物理删除」改写为**按路径区分的四行表**（删除租户 / 删除用户 = 软禁用，显式移除成员 = 物理删除，重新加入 = 复活旧行），并把「审计链完整」的承担者从「行保留」更正为「全局操作日志」；§2.4 新增不变量 8，把 V1.4 登记为残余 gap 的**套餐指派面**移进 In 并接通前端（后端 `AssignableCodes` 删除）；同步在 EN 文本补译 §2.3.1（V1.2 遗留缺口）。写侧强制行为未改动，「把移除成员也改成软禁用」显式登记为未来的契约变更候选及其前置条件 | 澄清（§2.2）+ 扩展（§2.4 不变量 8） |
-| V1.6 | 2026-10-27 | §5 登记删除守卫错误码 `tenant.not_archived`（400）。实现此前按「成员数 > 0 且未归档」拒绝删除，与 §2.1「删除仅允许对 `archived` 执行」不符：删光用户即可把活跃租户的活跃成员数降为 0，绕过归档直接删除。现按 §2.1 原文执行（守卫是 `status` 而非成员数），平台与 legacy 两个 handler 均注册该码，控制台对非归档行禁用删除入口；§2.1 与 §2.2 条文不变 | 澄清（Clarification）+ 扩展（§5 错误码） |
-| V1.7 | 2026-10-27 | §2.2 新增不变量「跨租户 membership 不授予授权、也不在登录时提供」（W3 决策 A / TC-01）：登录发现、候选列表、可切换列表共用单一角色存在性谓词，`SwitchSessionTenant` 拒绝空角色集目标，`AddMember` 收窄到 owning tenant 用户并登记 §5 错误码 `tenant.member.user_not_in_tenant`（400）；登录选择器与 TenantSwitcher 控件移除、端点保留为过滤后的兼容面；存量跨租户 membership 行保留不清理，`/auth/current` 仍如实上报。数据层「一个 user 可属于多个 tenant」不变量不变 | 澄清（Clarification）+ 扩展（§5 错误码） |
-| V1.8 | 2026-10-27 | 纯追加修订（W5 对齐，不改变任何不变量）：① §2.2 owner 转移表述对齐实现——**无单一转移端点**，落地路径为两步显式动作（加入新 owner → 移除旧 owner，`ensureNotLastOwner` 兜底，中间双 owner 是合法中间态），原文「转移 owner 是显式 API 动作」未对应任何端点；② §5 补登记 W2 成员完整性守卫（已实现于 PR #434）的两个错误码：`user.not_found`（404——`tenant_memberships` 对 `system_user` 无外键，无此守卫会写入指名不存在用户的幽灵行）与 `tenant.member_exists`（400——owner 降级拒绝，非 owner 行重加幂等），并注明墓碑检查先于用户存在性检查。In/Out 边界、生命周期与授权不变量均不变 | 澄清（Clarification） |
-| V1.9 | 2026-10-28 | §2.4 新增「前端能力矩阵边界」段（澄清，Clarification）：前端能力矩阵只覆盖内建四档、`normalizeTenantPlan` 对未知 code fail-closed 归 `free`、自定义 code = 配额桶 + `free` 能力档、门控 UX-only（隐藏不授予也不撤销权限）；`outsideLadder` 警告文案五语言同步补「lowcode 门控面不可见」后果句。服务端 entitlements（自定义 code 完整参与能力门控）登记为 V2 商业化工作流，不在 V1；决策与选项裁剪见 [套餐能力阶梯语义决策](../reviews/TENANT_PLAN_LADDER_DECISION_2026-10-28.md)（W7 决策 A，maintainer-delegated）。不变量、错误码与写侧行为均不变 | 澄清（Clarification） |
-| V1.10 | 2026-10-31 | 新增 §2.6「业务域租户语义」（方案 C，维护者 2026-10-31 拍板）：业务域在 V1 内不参与租户隔离，四条事实与 V2 四项前置条件入文；§1 Out 登记该边界；§7「业务资源租户归属」由「按矩阵登记」改为「V1 内不适用」，并说明 `TENANT_RESOURCE_SCOPE_MATRIX` §3 的 `biz_*` 行是 V2 预留入口而非现状登记；同批改写 `backend/pkg/contracts/route_groups.go` 三个导出的助手注释，新增 `backend/pkg/contracts/route_groups_test.go` 结构断言（已负向验证）；`docs/designs/MODULE_CONTRACT.md` §10 与 `README.md:31` 口径对齐 | 澄清（Clarification） |
+| 版本              | 日期       | 变更                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  | 性质                                     |
+| ----------------- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------- |
+| V1.1              | 2026-10-13 | §3.1 新增第 3 条「平台作用域兜底」（原第 3 条顺延为第 4 条，语义不变）；新增 §3.4「平台作用域声明」；§3.2 补注拒绝规则的适用范围；§6 补注「multi 是 compat 的超集」                                                                                                                                                                                                                                                                                                                                                                                                                   | 澄清（Clarification）                    |
+| V1.2              | 2026-10-19 | 新增 §2.3.1「读写义务」：读必须带租户谓词、写必须由上下文赋值且冲突键含租户、按裸键的归属校验同样算读；给出唯一两个放行面与 fail-closed 默认                                                                                                                                                                                                                                                                                                                                                                                                                                          | 澄清（Clarification）                    |
+| V1.3              | 2026-10-23 | §2.1 补入第四态：`deleted` 是墓碑而非生命周期状态、不可作为输入、按 id/code 寻址视为不存在；明确删除标记是 `status` 而非预留的 `deleted_at`；明确删除归档租户时其成员关系同事务停用（§2.2 的 owner 要求只约束非归档租户）                                                                                                                                                                                                                                                                                                                                                             | 澄清（Clarification）                    |
+| V1.4              | 2026-10-25 | 新增 §2.4「套餐定义与配额语义」（`tenant_plans` 模型、平台全局、`-1` 无上限 / `0` 非法、未知 code 回落编译内置表、退役而非删除、幂等 seed、5 秒读穿透缓存）与 §2.4.1「配额是度量不是闸门」（写路径不因超限拒绝；`QuotaEnforcer`/`MetricsCollector` 未接线）；新增 §2.5「平台侧租户运营读路径」（`/system/tenant-ops/*` 五条路由的声明平台作用域、`system:tenant:` 前缀、统一口径、有界分页、未知套餐如实呈现、指标集合冻结、权限↔路由 probe 门禁）；§1 In/Out 改写套餐与配额的归属边界；§2.1 `plan` 列注释由「V1 不消费」改为「解析为 §2.4 阈值」                                     | 扩展（Extension）                        |
+| V1.5              | 2026-10-26 | §2.2 的「membership 删除 = `status=disabled`，不物理删除」改写为**按路径区分的四行表**（删除租户 / 删除用户 = 软禁用，显式移除成员 = 物理删除，重新加入 = 复活旧行），并把「审计链完整」的承担者从「行保留」更正为「全局操作日志」；§2.4 新增不变量 8，把 V1.4 登记为残余 gap 的**套餐指派面**移进 In 并接通前端（后端 `AssignableCodes` 删除）；同步在 EN 文本补译 §2.3.1（V1.2 遗留缺口）。写侧强制行为未改动，「把移除成员也改成软禁用」显式登记为未来的契约变更候选及其前置条件                                                                                                   | 澄清（§2.2）+ 扩展（§2.4 不变量 8）      |
+| V1.6              | 2026-10-27 | §5 登记删除守卫错误码 `tenant.not_archived`（400）。实现此前按「成员数 > 0 且未归档」拒绝删除，与 §2.1「删除仅允许对 `archived` 执行」不符：删光用户即可把活跃租户的活跃成员数降为 0，绕过归档直接删除。现按 §2.1 原文执行（守卫是 `status` 而非成员数），平台与 legacy 两个 handler 均注册该码，控制台对非归档行禁用删除入口；§2.1 与 §2.2 条文不变                                                                                                                                                                                                                                  | 澄清（Clarification）+ 扩展（§5 错误码） |
+| V1.7              | 2026-10-27 | §2.2 新增不变量「跨租户 membership 不授予授权、也不在登录时提供」（W3 决策 A / TC-01）：登录发现、候选列表、可切换列表共用单一角色存在性谓词，`SwitchSessionTenant` 拒绝空角色集目标，`AddMember` 收窄到 owning tenant 用户并登记 §5 错误码 `tenant.member.user_not_in_tenant`（400）；登录选择器与 TenantSwitcher 控件移除、端点保留为过滤后的兼容面；存量跨租户 membership 行保留不清理，`/auth/current` 仍如实上报。数据层「一个 user 可属于多个 tenant」不变量不变                                                                                                                | 澄清（Clarification）+ 扩展（§5 错误码） |
+| V1.8              | 2026-10-27 | 纯追加修订（W5 对齐，不改变任何不变量）：① §2.2 owner 转移表述对齐实现——**无单一转移端点**，落地路径为两步显式动作（加入新 owner → 移除旧 owner，`ensureNotLastOwner` 兜底，中间双 owner 是合法中间态），原文「转移 owner 是显式 API 动作」未对应任何端点；② §5 补登记 W2 成员完整性守卫（已实现于 PR #434）的两个错误码：`user.not_found`（404——`tenant_memberships` 对 `system_user` 无外键，无此守卫会写入指名不存在用户的幽灵行）与 `tenant.member_exists`（400——owner 降级拒绝，非 owner 行重加幂等），并注明墓碑检查先于用户存在性检查。In/Out 边界、生命周期与授权不变量均不变 | 澄清（Clarification）                    |
+| V1.9              | 2026-10-28 | §2.4 新增「前端能力矩阵边界」段（澄清，Clarification）：前端能力矩阵只覆盖内建四档、`normalizeTenantPlan` 对未知 code fail-closed 归 `free`、自定义 code = 配额桶 + `free` 能力档、门控 UX-only（隐藏不授予也不撤销权限）；`outsideLadder` 警告文案五语言同步补「lowcode 门控面不可见」后果句。服务端 entitlements（自定义 code 完整参与能力门控）登记为 V2 商业化工作流，不在 V1；决策与选项裁剪见 [套餐能力阶梯语义决策](../reviews/TENANT_PLAN_LADDER_DECISION_2026-10-28.md)（W7 决策 A，maintainer-delegated）。不变量、错误码与写侧行为均不变                                   | 澄清（Clarification）                    |
+| V1.10             | 2026-10-31 | 新增 §2.6「业务域租户语义」（方案 C，维护者 2026-10-31 拍板）：业务域在 V1 内不参与租户隔离，四条事实与 V2 四项前置条件入文；§1 Out 登记该边界；§7「业务资源租户归属」由「按矩阵登记」改为「V1 内不适用」，并说明 `TENANT_RESOURCE_SCOPE_MATRIX` §3 的 `biz_*` 行是 V2 预留入口而非现状登记；同批改写 `backend/pkg/contracts/route_groups.go` 三个导出的助手注释，新增 `backend/pkg/contracts/route_groups_test.go` 结构断言（已负向验证）；`docs/designs/MODULE_CONTRACT.md` §10 与 `README.md:31` 口径对齐                                                                          | 澄清（Clarification）                    |
+| V2.0-O4（实施中） | 2026-11-09 | §2.7 显式业务租户增量、当前授权/审计、私人历史视图、真实生成器/迁移与四项配对发行前置条件；旧 V1 保留，正式消费与验收尚开放                                                                                                                                                                                                                                                                                                                                                                                                                                                           | 同批合同演进目标                         |
 
 **V1.5 的触发与范围**
 

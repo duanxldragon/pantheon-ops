@@ -2,11 +2,13 @@ package database
 
 import (
 	"database/sql"
+	"errors"
 	"os"
 	"strings"
 	"testing"
 
 	mysqlDriver "github.com/go-sql-driver/mysql"
+	"github.com/golang-migrate/migrate/v4"
 	"gorm.io/gorm"
 
 	"github.com/duanxldragon/pantheon-base/backend/pkg/testmysql"
@@ -447,7 +449,7 @@ CREATE TABLE tenants (
 	}
 }
 
-func TestRunMigrationsRepairsDirtyCurrentSchemaVersion(t *testing.T) {
+func TestRunMigrationsRejectsDirtyCurrentSchemaVersion(t *testing.T) {
 	db := testmysql.Open(t)
 	dsn := migrationTestDSN(t, db)
 
@@ -459,11 +461,15 @@ func TestRunMigrationsRepairsDirtyCurrentSchemaVersion(t *testing.T) {
 		t.Fatalf("seed dirty schema_migrations: %v", err)
 	}
 
-	if err := RunMigrations(dsn); err != nil {
-		t.Fatalf("run migrations on dirty current schema: %v", err)
+	err := RunMigrations(dsn)
+	var dirtyErr migrate.ErrDirty
+	if !errors.As(err, &dirtyErr) || dirtyErr.Version != 2 {
+		t.Fatalf("run migrations on dirty current schema = %v, want dirty version 2", err)
 	}
 
-	assertLatestMigrationVersion(t, db)
+	if got := bootstrapStateSnapshot(t, db); got != "2:1:32:31" {
+		t.Fatalf("dirty migration state changed: %s", got)
+	}
 }
 
 func assertLatestMigrationVersion(t *testing.T, db *gorm.DB) {

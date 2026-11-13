@@ -5,12 +5,20 @@ layer: system/config
 status: Active
 linked_contracts:
   - docs/contracts/SYSTEM_CONFIG_CONTRACT.md
-updated_at: 2026-07-12
+updated_at: 2026-11-09
 ---
 
 # Low-Code Module Code Generation Platform - Integration and Usage Guide
 
 Chinese version: [LOWCODE_GENERATOR_GUIDE.md](./LOWCODE_GENERATOR_GUIDE.md)
+
+## V2.0-O4 Flat Business Tenant Generation (in progress)
+
+The [tenant contract section 2.7](../contracts/TENANT_CONTRACT_V1.en.md) and [O4 plan](../../.harness/tasks/2026-11-07-ops-formal-queue-foundation-gaps/o4-tenant-implementation-plan.md) govern this increment. Complete implementation, rendered and official consumption acceptance remain open. Only business `templateVersion: "v2"` accepts `dataScopeMode: "tenant"`; V1 and existing scopes remain. Tenancy is independent of `enableDataScope` and always retains the tenant predicate. Reject caller-defined TenantID/tenant_id fields, system-domain tenant templates and unsupported relation shapes.
+
+V2 emits server-assigned ownership, tenant-leading indices, predicates for CRUD/options and required bootstrap. Default mode runs BootstrapFunc with AutoMigrate disabled; development mode runs MigrateFunc. Register routes only after all required stages succeed; failure prevents process readiness. Regeneration does not migrate legacy modules into tenant modules; adoption needs a reviewed versioned migration.
+
+Use `scripts/testing/verify-tenant-generated-runtime.mjs` with `tenantv2-flat.json` and `legacyv1-flat.json` to export actual modules and test default/development mode, A/B CRUD/options, duplicate business keys, missing context and startup failures on real MySQL. Generated-source assertions and export success do not replace runtime evidence.
 
 > **Positioning: P2+ business module code generation platform (not a skeleton, not a runtime low-code).**
 >
@@ -259,6 +267,7 @@ Key files:
 - `frontendGenerator.ts`'s `generateDetailPage` (~1810 lines) needs further extraction into separate template segments
 
 ### Other Core Files
+
 - `frontend/src/modules/lowcode/generator/pages/ModuleWizard.tsx` — Configuration wizard
 - `frontend/src/modules/lowcode/generator/pages/components/FieldEditor.tsx` — Field editor
 - `frontend/src/modules/lowcode/generator/pages/components/CodePreview.tsx` — Code preview

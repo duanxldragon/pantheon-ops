@@ -23,6 +23,7 @@ const { ModuleExporter } = await import(
   pathToFileURL(join(tempDir, 'src', 'modules', 'lowcode', 'generator', 'exporter.js'))
 );
 
-const schema = JSON.parse(readFileSync(schemaPath, 'utf8'));
+// ModuleExporter performs the same admission check used by the wizard/scaffold.
+const schema = JSON.parse(readFileSync(schemaPath, 'utf8').replace(/^\uFEFF/, ''));
 const exporter = new ModuleExporter(schema);
 process.stdout.write(JSON.stringify(exporter.generateAll()));

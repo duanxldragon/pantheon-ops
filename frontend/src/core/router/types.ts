@@ -70,6 +70,25 @@ export interface DashboardSummarySnapshot {
   loginFailureCount?: number;
 }
 
+/** Safe, bounded provider DTO; credentials and raw query/config data stay in the provider. */
+export interface DashboardOperationalItem {
+  id: string;
+  label: string;
+  value?: string | number;
+  detail?: string;
+  query?: Record<string, string>;
+}
+export interface DashboardOperationalSnapshot {
+  updatedAt: string;
+  timeRangeLabel?: string;
+  partial?: boolean;
+  items: DashboardOperationalItem[];
+}
+export interface DashboardOperationalDataSource {
+  timeoutMs: number;
+  load: (request: { signal: AbortSignal; maxItems: number }) => Promise<DashboardOperationalSnapshot>;
+}
+
 interface DashboardWidgetBase {
   key: string;
   slot: DashboardWidgetSlot;
@@ -97,18 +116,22 @@ export interface DashboardDomainOverviewWidget extends DashboardWidgetBase {
 }
 
 export interface DashboardStatusSummaryWidget extends DashboardWidgetBase {
+  dataSource?: DashboardOperationalDataSource;
   slot: 'status-summary';
 }
 
 export interface DashboardAttentionQueueWidget extends DashboardWidgetBase {
+  dataSource?: DashboardOperationalDataSource;
   slot: 'attention-queue';
 }
 
 export interface DashboardTrendSnapshotWidget extends DashboardWidgetBase {
+  dataSource?: DashboardOperationalDataSource;
   slot: 'trend-snapshot';
 }
 
 export interface DashboardRecentActivityWidget extends DashboardWidgetBase {
+  dataSource?: DashboardOperationalDataSource;
   slot: 'recent-activity';
 }
 

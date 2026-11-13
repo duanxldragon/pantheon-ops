@@ -19,15 +19,15 @@ The goal is that the human states goals and key decisions, while the active disp
 
 ## Roles
 
-| Role             | Default Tool                   | Responsibility                                                          | Must Not Do                           |
-| ---------------- | ------------------------------ | ----------------------------------------------------------------------- | ------------------------------------- |
-| Human Owner      | Human                          | goals, priority, risk acceptance, human gates                           | manually shuttle Claude/Codex context |
-| Dispatcher       | active coordinating agent      | call planner, executor, reviewer; preserve task/evidence/review linkage | treat chat as the source of truth     |
-| Planner          | Claude                         | scope, task packet, task manifest linkage, acceptance, stop points      | edit business code                    |
-| Explorer         | Codex                          | code structure, impact, CodeGraph, tests and docs                       | expand scope                          |
-| Executor         | Codex                          | implementation, tests, evidence, finding fixes                          | skip task packets or evidence         |
-| Reviewer         | Claude                         | findings-first review                                                   | fix code directly                     |
-| Mechanical Gates | GitHub Actions / local scripts | repeatable validation                                                   | replace high-risk human decisions     |
+| Role | Default Tool | Responsibility | Must Not Do |
+|---|---|---|---|
+| Human Owner | Human | goals, priority, risk acceptance, human gates | manually shuttle Claude/Codex context |
+| Dispatcher | active coordinating agent | call planner, executor, reviewer; preserve task/evidence/review linkage | treat chat as the source of truth |
+| Planner | Claude | scope, task packet, task manifest linkage, acceptance, stop points | edit business code |
+| Explorer | Codex | code structure, impact, CodeGraph, tests and docs | expand scope |
+| Executor | Codex | implementation, tests, evidence, finding fixes | skip task packets or evidence |
+| Reviewer | Claude | findings-first review | fix code directly |
+| Mechanical Gates | GitHub Actions / local scripts | repeatable validation | replace high-risk human decisions |
 
 ## Default Flow
 

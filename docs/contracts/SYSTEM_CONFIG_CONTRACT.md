@@ -23,6 +23,7 @@ updated_at: 2026-05-12
 English version: [SYSTEM_CONFIG_CONTRACT.en.md](./SYSTEM_CONFIG_CONTRACT.en.md)
 
 关联设计：
+
 - `DICT_AND_SETTING_DESIGN.md`
 - `SYSTEM_CONFIG_EXTENDED_DESIGN.md`
 - `I18N_MODULE_DESIGN.md`
@@ -32,6 +33,7 @@ English version: [SYSTEM_CONFIG_CONTRACT.en.md](./SYSTEM_CONFIG_CONTRACT.en.md)
 - `BUSINESS_DICT_INTEGRATION_GUIDE.md`
 
 关联验收：
+
 - `ACCEPTANCE_CHECKLIST.md`
 - `SYSTEM_CONFIG_GOVERNANCE_ACCEPTANCE.md`
 - `PLATFORM_ACCEPTANCE_MATRIX_20260430_UI_MIGRATION.md`
@@ -54,7 +56,7 @@ Pantheon 当前的 `system/config` 已经不再只是“字典 + 设置页”。
 2. `setting`
 3. `i18n`
 4. `upload`
-如果没有 `system/config` 合同，后续最容易继续发生：
+   如果没有 `system/config` 合同，后续最容易继续发生：
 
 - 普通配置能力继续被混成一个大页、大表单、大杂烩
 - `i18n / upload` 继续被误当成设置页附属功能
@@ -146,6 +148,9 @@ Pantheon 当前的 `system/config` 已经不再只是“字典 + 设置页”。
 - `platform.lowcode`：负责 `/system/lowcode`、`/system/modules`、`/system/generator` 的导航聚合与工作域编排
 - `system/dynamicmodule`：负责模块接入治理、注册状态与 generated registry 对齐
 - `system/generator`：负责业务模块骨架生成、schema 校验、生成链路与受控注册入口
+
+本次 V2.0-O4 平面业务租户生成增量以 [租户合同 §2.7](./TENANT_CONTRACT_V1.md) 为唯一隔离裁决，实施和正式消费尚待验收。生成器必须在 wizard、服务端 scaffold 和直接导出三条入口校验同一 V2/tenant/关系边界，required 初始化失败阻止就绪；旧 V1 的合同保留。具体使用与实际导出运行验收见 [生成器指南](../designs/LOWCODE_GENERATOR_GUIDE.md)，不可将生成成功等同于已实现租户隔离。
+
 - 上述三者与 `system/config` 相邻，但不再归 `config` 直管
 
 ### 5.3 不覆盖对象
@@ -316,4 +321,3 @@ Pantheon 当前的 `system/config` 已经不再只是“字典 + 设置页”。
 - 子合同不能改写本总合同边界
 - 子合同只做更细的完成定义与验收补充
 - 在没有专题子合同前，仍以本总合同为主依据
-

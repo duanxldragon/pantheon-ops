@@ -762,15 +762,19 @@ export async function expectPageBodyReady(page: Page) {
   await expect(page.locator(readySelector).filter({ visible: true }).first()).toBeVisible();
 
   // When an empty state is on screen, its message must be a known per-page
-  // empty text. Sample visibility and text inside toPass so an empty that
-  // resolves into a table between sampling and reading text cannot stall the
-  // locator on a detached element.
+  // empty text. Read the text through evaluate() with a short timeout:
+  // innerText() waits for element stability, and Arco's transient loading
+  // empty state animates indefinitely, so the raw action would burn the
+  // whole 30s test budget instead of letting toPass retry after the table
+  // mounts and the empty detaches.
   await expect(async () => {
     const emptyNode = page.locator('.arco-empty').first();
     if (!(await emptyNode.isVisible())) {
       return;
     }
-    const emptyText = await emptyNode.innerText();
+    const emptyText = await emptyNode.evaluate((element) => element.textContent ?? '', {
+      timeout: 2000,
+    });
     expect(pageEmptyTexts.some((text) => emptyText.includes(text))).toBeTruthy();
   }).toPass();
 }

@@ -5,6 +5,7 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/duanxldragon/pantheon-base/backend/pkg/auditpolicy"
 	"github.com/duanxldragon/pantheon-base/backend/pkg/logging"
 
 	"github.com/gin-gonic/gin"
@@ -26,9 +27,12 @@ const (
 	CodeNotFound     = 404
 )
 
+const requestFailedMessageKey = "request.failed"
+
 var i18nKeyPattern = regexp.MustCompile(`^[a-z0-9_]+(?:\.[a-z0-9_]+)+$`)
 
 func Success(c *gin.Context, data interface{}) {
+	auditpolicy.SetOutcome(c, auditpolicy.OutcomeSuccess)
 	c.JSON(http.StatusOK, Response{
 		Code:    CodeSuccess,
 		Data:    data,
@@ -37,6 +41,7 @@ func Success(c *gin.Context, data interface{}) {
 }
 
 func SuccessWithStatus(c *gin.Context, httpStatus int, data interface{}) {
+	auditpolicy.SetOutcome(c, auditpolicy.OutcomeSuccess)
 	c.JSON(httpStatus, Response{
 		Code:    CodeSuccess,
 		Data:    data,
@@ -51,6 +56,7 @@ func Fail(c *gin.Context, code int, message string) {
 // FailWithData writes a business-failure response carrying an optional data
 // payload.
 func FailWithData(c *gin.Context, code int, message string, data interface{}) {
+	auditpolicy.SetOutcome(c, auditpolicy.OutcomeDenied)
 	c.JSON(http.StatusOK, Response{
 		Code:    code,
 		Data:    data,
@@ -83,7 +89,7 @@ func resolveErrorMessageKey(err error, fallback string) string {
 		if strings.TrimSpace(fallback) != "" {
 			return fallback
 		}
-		return "request.failed"
+		return requestFailedMessageKey
 	}
 	message := lastMessageSegment(err.Error())
 	if isI18nMessageKey(message) {
@@ -92,10 +98,15 @@ func resolveErrorMessageKey(err error, fallback string) string {
 	if strings.TrimSpace(fallback) != "" {
 		return fallback
 	}
-	return "request.failed"
+	return requestFailedMessageKey
 }
 
 func FailWithError(c *gin.Context, code int, err error, fallback string) {
+	if _, protected := auditpolicy.Match(c); protected {
+		logging.Error("business request failed", zap.String("outcome", "denied"), zap.String("requestId", GetRequestID(c)))
+		Fail(c, code, requestFailedMessageKey)
+		return
+	}
 	// When err carries no i18n message key, resolveErrorMessageKey replaces it
 	// with the generic fallback ("request.failed"), discarding the underlying
 	// cause (e.g. a raw GORM/driver error). Log the original here so the detail
@@ -111,6 +122,7 @@ func FailWithError(c *gin.Context, code int, err error, fallback string) {
 }
 
 func FailWithCode(c *gin.Context, code int, message string) {
+	auditpolicy.SetOutcome(c, auditpolicy.OutcomeDenied)
 	c.JSON(code, Response{
 		Code:    code,
 		Data:    nil,

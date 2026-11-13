@@ -1,0 +1,195 @@
+{
+  "name": "legacyfixture/item",
+  "templateVersion": "v1",
+  "displayName": "隔离条目",
+  "displayNameEn": "Fixture items",
+  "description": "Generated runtime fixture",
+  "scope": "business",
+  "templateLevel": "enterprise",
+  "pageActionTemplate": "standard",
+  "pageActions": [
+    "view",
+    "create",
+    "update",
+    "delete"
+  ],
+  "dependencies": [],
+  "relations": [],
+  "dataScopeMode": "none",
+  "metadata": {
+    "businessContext": "legacyfixture",
+    "tableRole": "main",
+    "boundedContext": "item",
+    "owner": "generator-runtime"
+  },
+  "model": {
+    "tableName": "biz_legacyfixture_item",
+    "modelName": "LegacyItem",
+    "fields": [
+      {
+        "name": "code",
+        "type": "string",
+        "label": "编码",
+        "labelEn": "Code",
+        "required": true,
+        "searchable": true,
+        "sortable": true,
+        "visibleInList": true,
+        "visibleInForm": true,
+        "validation": {
+          "unique": true
+        }
+      },
+      {
+        "name": "name",
+        "type": "string",
+        "label": "名称",
+        "labelEn": "Name",
+        "required": true,
+        "searchable": true,
+        "sortable": true,
+        "visibleInList": true,
+        "visibleInForm": true
+      },
+      {
+        "name": "deptId",
+        "type": "int",
+        "label": "部门",
+        "labelEn": "Department",
+        "required": false,
+        "searchable": false,
+        "sortable": true,
+        "visibleInList": true,
+        "visibleInForm": true
+      }
+    ]
+  },
+  "menus": [
+    {
+      "key": "legacyfixture",
+      "parentKey": "business",
+      "titleKey": "business.legacyfixture.title",
+      "path": "/business/legacyfixture",
+      "type": "M",
+      "icon": "apps",
+      "routeName": "business-legacyfixture",
+      "module": "business.legacyfixture",
+      "sort": 10
+    },
+    {
+      "key": "legacyfixture-item",
+      "parentKey": "legacyfixture",
+      "titleKey": "business.legacyfixture.item.title",
+      "path": "/business/legacyfixture/item",
+      "component": "business/legacyfixture/item/LegacyItemList",
+      "pagePermission": "business:legacyfixture:item:list",
+      "type": "C",
+      "icon": "apps",
+      "routeName": "business-legacyfixture-item",
+      "module": "business.legacyfixture.item",
+      "sort": 10
+    },
+    {
+      "key": "legacyfixture-item-view",
+      "parentKey": "legacyfixture-item",
+      "titleKey": "business.legacyfixture.item.permission.view",
+      "perms": "business:legacyfixture:item:view",
+      "type": "F",
+      "sort": 1
+    },
+    {
+      "key": "legacyfixture-item-create",
+      "parentKey": "legacyfixture-item",
+      "titleKey": "business.legacyfixture.item.permission.create",
+      "perms": "business:legacyfixture:item:create",
+      "type": "F",
+      "sort": 2
+    },
+    {
+      "key": "legacyfixture-item-update",
+      "parentKey": "legacyfixture-item",
+      "titleKey": "business.legacyfixture.item.permission.update",
+      "perms": "business:legacyfixture:item:update",
+      "type": "F",
+      "sort": 3
+    },
+    {
+      "key": "legacyfixture-item-delete",
+      "parentKey": "legacyfixture-item",
+      "titleKey": "business.legacyfixture.item.permission.delete",
+      "perms": "business:legacyfixture:item:delete",
+      "type": "F",
+      "sort": 4
+    }
+  ],
+  "permissions": [
+    {
+      "key": "business:legacyfixture:item:list",
+      "name": "business.legacyfixture.item.permission.view",
+      "type": "menu",
+      "module": "business.legacyfixture.item"
+    },
+    {
+      "key": "business:legacyfixture:item:view",
+      "name": "business.legacyfixture.item.permission.view",
+      "type": "button",
+      "module": "business.legacyfixture.item"
+    },
+    {
+      "key": "business:legacyfixture:item:create",
+      "name": "business.legacyfixture.item.permission.create",
+      "type": "button",
+      "module": "business.legacyfixture.item"
+    },
+    {
+      "key": "business:legacyfixture:item:update",
+      "name": "business.legacyfixture.item.permission.update",
+      "type": "button",
+      "module": "business.legacyfixture.item"
+    },
+    {
+      "key": "business:legacyfixture:item:delete",
+      "name": "business.legacyfixture.item.permission.delete",
+      "type": "button",
+      "module": "business.legacyfixture.item"
+    }
+  ],
+  "i18n": {
+    "namespace": "business.legacyfixture.item",
+    "translations": {
+      "zh": {
+        "business.legacyfixture.item.title": "title",
+        "business.legacyfixture.title": "title",
+        "business.legacyfixture.item.permission.view": "view",
+        "business.legacyfixture.item.permission.create": "create",
+        "business.legacyfixture.item.permission.update": "update",
+        "business.legacyfixture.item.permission.delete": "delete",
+        "business.legacyfixture.item.field.code.label": "label",
+        "business.legacyfixture.item.field.name.label": "label",
+        "business.legacyfixture.item.field.deptId.label": "label",
+        "business.legacyfixture.item.audit.create": "create",
+        "business.legacyfixture.item.audit.update": "update",
+        "business.legacyfixture.item.audit.delete": "delete"
+      },
+      "en": {
+        "business.legacyfixture.item.title": "title",
+        "business.legacyfixture.title": "title",
+        "business.legacyfixture.item.permission.view": "view",
+        "business.legacyfixture.item.permission.create": "create",
+        "business.legacyfixture.item.permission.update": "update",
+        "business.legacyfixture.item.permission.delete": "delete",
+        "business.legacyfixture.item.field.code.label": "label",
+        "business.legacyfixture.item.field.name.label": "label",
+        "business.legacyfixture.item.field.deptId.label": "label",
+        "business.legacyfixture.item.audit.create": "create",
+        "business.legacyfixture.item.audit.update": "update",
+        "business.legacyfixture.item.audit.delete": "delete"
+      }
+    }
+  },
+  "enableExport": false,
+  "enableImport": false,
+  "enableAudit": true,
+  "enableDataScope": false,
+  "includeDashboardWidget": false
+}

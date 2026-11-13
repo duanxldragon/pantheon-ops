@@ -634,21 +634,11 @@ func (s *Runtime) GetUserPerms(userID uint64) ([]string, error) {
 		return nil, common.ErrDatabaseNotInitialized
 	}
 
-	// Try cache first (5-minute TTL)
-	cacheKey := fmt.Sprintf("user_perms:%d", userID)
-	if database.RDB != nil {
-		cached, err := database.RDB.Get(context.Background(), cacheKey).Result()
-		if err == nil && cached != "" {
-			var perms []string
-			if json.Unmarshal([]byte(cached), &perms) == nil {
-				return s.dropStalePlatformOnlyPerms(userID, cacheKey, perms), nil
-			}
-		}
-	}
-
-	// Cache miss or Redis unavailable: query DB. The cache key stays user-only:
-	// a user has exactly one owning tenant, so the derived permission set is
-	// deterministic per user and cannot differ between tenants.
+	// Current permissions are read from the authoritative database on every call.
+	// A cached permission array is never consulted: role and tenant updates do
+	// not invalidate it, so a stale entry would keep authorizing a revoked key
+	// for up to its TTL. The owning-tenant lookup keeps the derived set
+	// deterministic per user.
 	tenantID, err := s.userOwningTenantID(userID)
 	if err != nil {
 		return nil, err
@@ -665,43 +655,7 @@ func (s *Runtime) GetUserPerms(userID uint64) ([]string, error) {
 	if tenantID != tenant.PlatformGlobalTenantID {
 		perms = tenant.FilterPlatformOnlyPermissionKeys(perms)
 	}
-
-	// Cache for 5 minutes
-	if database.RDB != nil && len(perms) > 0 && err == nil {
-		if data, marshalErr := json.Marshal(perms); marshalErr == nil {
-			database.RDB.Set(context.Background(), cacheKey, data, 5*time.Minute)
-		}
-	}
-
 	return perms, err
-}
-
-// dropStalePlatformOnlyPerms keeps a permission cache entry from outliving the
-// tenant platform-grant repair. Only entries that actually contain a
-// platform-only key pay the ownership lookup, so the common cache hit stays a
-// single Redis read, and platform users keep their platform-only keys.
-func (s *Runtime) dropStalePlatformOnlyPerms(userID uint64, cacheKey string, perms []string) []string {
-	hasPlatformOnly := false
-	for _, key := range perms {
-		if tenant.IsPlatformOnlyPermissionKey(key) {
-			hasPlatformOnly = true
-			break
-		}
-	}
-	if !hasPlatformOnly {
-		return perms
-	}
-	tenantID, err := s.userOwningTenantID(userID)
-	if err != nil || tenantID == tenant.PlatformGlobalTenantID {
-		return perms
-	}
-	filtered := tenant.FilterPlatformOnlyPermissionKeys(perms)
-	if database.RDB != nil && len(filtered) > 0 {
-		if data, marshalErr := json.Marshal(filtered); marshalErr == nil {
-			database.RDB.Set(context.Background(), cacheKey, data, 5*time.Minute)
-		}
-	}
-	return filtered
 }
 
 func (s *Runtime) GetCurrentUserInfo(userID uint64) (*UserInfoResp, error) {
@@ -1222,8 +1176,10 @@ func normalizeRetentionDays(rawValue string, fallback []int) []int {
 	return normalized
 }
 
-// InvalidateUserPermCache invalidates the cached permissions for a user.
-// This should be called after role assignments, permission changes, or role updates.
+// InvalidateUserPermCache removes a legacy cached permission array for a user.
+// GetUserPerms no longer reads or writes that cache, so this compatibility
+// surface only clears leftovers written by older builds; it never grants or
+// restores authority.
 func (s *Runtime) InvalidateUserPermCache(userID uint64) error {
 	if database.RDB == nil {
 		return nil // No cache to invalidate
