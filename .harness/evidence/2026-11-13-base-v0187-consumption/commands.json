@@ -104,6 +104,15 @@
       "log": ".harness\\evidence\\2026-11-13-base-v0187-consumption\\ops187-codearch-panel.log.gz",
       "sha256": "03939d8a638ff7e40770330e848d7ba41afccdd88ae49121dd64839745afde94",
       "rawSha256": "34c29f56a42ef703e3f34502930de1cdf15470a73e85c8cfeb32bf55270df677"
+    },
+    {
+      "command": "Hosted publication facts re-pulled for the consumer record: gh release view pantheon-base-v0.18.7 (assets incl. tgz digest sha256:1daa3e7f...) and gh api tag ref (annotated object e05161179439cd12fa6527e118d29962d4272dd3 -> commit 3203624e...); consumer lock echo persisted",
+      "cwd": "D:workspacegopantheon-platform.wt-ops-v0187",
+      "exitCode": 0,
+      "status": "passed",
+      "log": ".harnessevidence6-11-13-base-v0187-consumptionofficial187-release-metadata.json",
+      "sha256": "c8b9f923e97531e28a6e805b7fe714dc1a0c6fa4c088e1826639145d43dca1b5",
+      "rawSha256": "c8b9f923e97531e28a6e805b7fe714dc1a0c6fa4c088e1826639145d43dca1b5"
     }
   ],
   "knownGaps": [
