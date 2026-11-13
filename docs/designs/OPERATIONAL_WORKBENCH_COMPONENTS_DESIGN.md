@@ -53,15 +53,15 @@ Pantheon Base 已经具备克制、统一的后台视觉基线，但共享能力
 
 ### 2.3 吸收与拒绝决策
 
-| BK 原则 | Pantheon 采纳方式 | 门禁信号 |
-| --- | --- | --- |
-| 高效 | 优先默认值、选择和短流程，减少重复输入 | 重复操作有默认/复用路径；主流程不被低频操作阻塞 |
-| 清晰 | 精确文案、状态可见、反馈明确、区域内单一主任务 | loading/error/forbidden 不混同；每个操作区只有一个主操作 |
-| 一致 | 继续复用 Arco、Pantheon token、共享组件和统一术语 | shell/UI/i18n checker 与共享组件使用检查通过 |
-| 可恢复 | 错误、stale、partial failure 保留有效上下文并给出恢复动作 | 状态矩阵、交互断言和恢复路径证据齐全 |
-| 表格可扫读 | 默认约 `7 ± 2` 个可见列，低频列可配置，宽度与横向滚动有意设计 | 长中英文、移动端、固定列和横向滚动无覆盖 |
-| 表单可控 | 复杂流程可拆分，即时校验，失败不丢有效输入 | error/submitting/conflict 与恢复断言 |
-| 运行态可定位 | 测试步骤、日志、筛选、时区和 Diff 都保留上下文 | stale 失效、步骤跳转、日志定位和差异导航断言 |
+| BK 原则      | Pantheon 采纳方式                                             | 门禁信号                                                 |
+| ------------ | ------------------------------------------------------------- | -------------------------------------------------------- |
+| 高效         | 优先默认值、选择和短流程，减少重复输入                        | 重复操作有默认/复用路径；主流程不被低频操作阻塞          |
+| 清晰         | 精确文案、状态可见、反馈明确、区域内单一主任务                | loading/error/forbidden 不混同；每个操作区只有一个主操作 |
+| 一致         | 继续复用 Arco、Pantheon token、共享组件和统一术语             | shell/UI/i18n checker 与共享组件使用检查通过             |
+| 可恢复       | 错误、stale、partial failure 保留有效上下文并给出恢复动作     | 状态矩阵、交互断言和恢复路径证据齐全                     |
+| 表格可扫读   | 默认约 `7 ± 2` 个可见列，低频列可配置，宽度与横向滚动有意设计 | 长中英文、移动端、固定列和横向滚动无覆盖                 |
+| 表单可控     | 复杂流程可拆分，即时校验，失败不丢有效输入                    | error/submitting/conflict 与恢复断言                     |
+| 运行态可定位 | 测试步骤、日志、筛选、时区和 Diff 都保留上下文                | stale 失效、步骤跳转、日志定位和差异导航断言             |
 
 不采纳过时或与本项目边界冲突的条目：IE9 兼容、固定 `460px` 弹窗尺寸、BK Design 运行时依赖和视觉皮肤复制。现代浏览器兼容意图保留为 Chrome/Firefox/Safari 与响应式验证要求。
 
@@ -77,16 +77,16 @@ Pantheon Base 已经具备克制、统一的后台视觉基线，但共享能力
 
 ## 4. 所有权边界
 
-| 能力 | Base 所有权 | Ops 所有权 |
-| --- | --- | --- |
-| 表格列偏好、密度、视图存储合同 | 共享组件与偏好 key 规范 | 业务列、业务筛选和默认视图 |
-| sticky 表单动作 | 布局、状态和可访问性 | 业务按钮、权限和提交逻辑 |
-| 日志查看器 | 流式展示、搜索、暂停、下载适配口 | 日志源、脱敏、DataScope、重试语义 |
-| Diff | 通用行级/结构化渲染与折叠 | 业务对象比较与风险解释 |
-| 条件构建器 | AST、校验、键盘交互 | 字段目录、操作符白名单和查询映射 |
-| 上下文选择器 | 插槽、选择摘要、排除集合合同 | BizScope、拓扑、主机、集群数据源 |
-| 执行步骤轨 | 步骤状态、跳转、错误锚点 | 发布/任务状态机与动作权限 |
-| Dashboard | widget 注册语义与资源预算 | 业务 widget 内容、权限和清理策略 |
+| 能力                           | Base 所有权                      | Ops 所有权                        |
+| ------------------------------ | -------------------------------- | --------------------------------- |
+| 表格列偏好、密度、视图存储合同 | 共享组件与偏好 key 规范          | 业务列、业务筛选和默认视图        |
+| sticky 表单动作                | 布局、状态和可访问性             | 业务按钮、权限和提交逻辑          |
+| 日志查看器                     | 流式展示、搜索、暂停、下载适配口 | 日志源、脱敏、DataScope、重试语义 |
+| Diff                           | 通用行级/结构化渲染与折叠        | 业务对象比较与风险解释            |
+| 条件构建器                     | AST、校验、键盘交互              | 字段目录、操作符白名单和查询映射  |
+| 上下文选择器                   | 插槽、选择摘要、排除集合合同     | BizScope、拓扑、主机、集群数据源  |
+| 执行步骤轨                     | 步骤状态、跳转、错误锚点         | 发布/任务状态机与动作权限         |
+| Dashboard                      | widget 注册语义与资源预算        | 业务 widget 内容、权限和清理策略  |
 
 共享合同必须先在 Base 实现并通过 foundation release 交付；Ops 不得复制 Base 源文件或维护第二套共享规范。
 
@@ -168,14 +168,14 @@ Pantheon Base 已经具备克制、统一的后台视觉基线，但共享能力
 
 所有共享组件至少覆盖：
 
-| 维度 | 必须验证 |
-| --- | --- |
+| 维度     | 必须验证                                                                 |
+| -------- | ------------------------------------------------------------------------ |
 | 数据状态 | loading、empty-initial、empty-filtered、error、forbidden、partial、stale |
-| 操作状态 | idle、submitting、success、conflict、retryable、non-retryable |
-| 视口 | 1440x900、390x844；固定工具条和长文案不得遮挡内容 |
-| 输入 | 键盘全流程、可见焦点、读屏名称、合理 tab 顺序 |
-| 视觉 | 明/暗主题、200% 缩放、长中英文、非颜色状态提示 |
-| 动效 | 遵循 reduced motion；实时更新不得造成布局跳动 |
+| 操作状态 | idle、submitting、success、conflict、retryable、non-retryable            |
+| 视口     | 1440x900、390x844；固定工具条和长文案不得遮挡内容                        |
+| 输入     | 键盘全流程、可见焦点、读屏名称、合理 tab 顺序                            |
+| 视觉     | 明/暗主题、200% 缩放、长中英文、非颜色状态提示                           |
+| 动效     | 遵循 reduced motion；实时更新不得造成布局跳动                            |
 
 ## 9. 视觉回归基线
 
@@ -218,3 +218,14 @@ Base 实现完成的必要条件：
 ## 12. 本设计的证据边界
 
 B1-B5 已在 Base 完成实现、单元/类型/构建门禁和确定性 Playwright fixture 验证。现有 Dashboard 与用户列表基线使用固定 API fixture，避免可变数据库数据造成漂移。本文不替代维护者对首个真实 consumer 页面的最终视觉/功能验收，也不替代 foundation release 与 Ops consumer 同步。
+
+## 13. Ops consumer extension source changes (2026-11-07, unreleased)
+
+The task `.harness/tasks/2026-11-07-ops-formal-queue-foundation-gaps/manifest.json` owns these backward-compatible source extensions. They are not part of the consumed v0.18.6 release until a new foundation release passes verification and consumer staging.
+
+- `ExecutionStepRail.statusLabels` optionally maps provider status values to localized display labels. Existing status values and callbacks are preserved. Native step buttons use shared theme tokens and a visible keyboard focus treatment.
+- `ConditionBuilder` remains read-only by default. Editing requires `onChange`, complete `editorLabels`, and `state=ready`. Each action emits a new AST; the consumer owns current state and persistence. `onValidationChange` reports invalid field/operator rule IDs for the accepted value on mount and external prop changes; rejected edits do not report a proposed value. Equivalent invalid-ID lists retain their reference to prevent repeated parent updates from inline field options. The section references its rendered heading for its accessible name. Unsupported default input values display an empty string without changing the AST until edited; read-only ReactNode fallback labels are preserved. `renderValueEditor(rule, onValueChange)` lets providers preserve typed values and perform their own domain validation.
+- The editor supports field/operator/value selection, AND/OR, rule/group add and non-root removal. It never compiles or executes a provider query. Permission, DataScope, sensitive-value policies, query budgets, history and cancellation belong to the consumer.
+- UUID node identities are client-side editing identities. Providers must validate the AST again before any action; a valid UI AST is not authorization evidence.
+
+Runtime screenshots and tests are recorded under `.harness/evidence/2026-11-07-ops-formal-queue-foundation-gaps/`. Final visual acceptance and official release/consumer synchronization remain separate gates.

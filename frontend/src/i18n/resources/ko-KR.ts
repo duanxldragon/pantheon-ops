@@ -3,6 +3,9 @@ import koKRRuntimeFixes from './runtime-fixes.ko-KR';
 
 const koKRFallback = {
   ...enUSFallback,
+  'dashboard.operational.stale': '오래된 데이터',
+  'dashboard.operational.partial': '일부 결과',
+  'dashboard.operational.refreshing': '데이터 새로 고침 중…',
   'app.slogan': '기업 디지털 전환을 지원합니다',
   'app.footer': 'Pantheon Platform · 엔터프라이즈 관리 기반',
   'app.workspace': '플랫폼 워크스페이스',
@@ -1955,6 +1958,7 @@ const koKRFallback = {
   'generator.wizard.p2plus.title': 'P2+ 거버넌스 계약',
   'generator.wizard.templateVersion': '템플릿 버전',
   'generator.wizard.templateVersion.v1': 'v1 안정 스캐폴드',
+  'generator.wizard.templateVersion.v2': 'v2 · 테넌트 단일 테이블 CRUD',
   'generator.wizard.enableDataScope': '데이터 권한 훅',
   'generator.wizard.enableDataScope.help':
     '활성화하면 생성된 목록 조회에 common.GetDataScope 및 database.WithDataScope 를 주입합니다.',
@@ -1975,6 +1979,7 @@ const koKRFallback = {
   'generator.wizard.dataScopeMode.dept': '부서',
   'generator.wizard.dataScopeMode.owner': '본인',
   'generator.wizard.dataScopeMode.custom': '사용자 지정',
+  'generator.wizard.dataScopeMode.tenant': '테넌트',
   'generator.wizard.dataScope.enabledTag': '데이터 권한 활성화',
   'generator.wizard.dataScope.disabledTag': '데이터 권한 비활성화',
   'generator.wizard.dashboardWidget.enabledTag': '워크벤치 진입점 활성화',
@@ -2734,6 +2739,12 @@ const koKRFallback = {
   'system.setting.remark.login.sso_enabled':
     '향후 SSO / OIDC 연동을 위한 기능 플래그입니다. 꺼져 있으면 로컬 계정 로그인만 허용합니다.',
   ...koKRRuntimeFixes,
+  "operational.fixture.editor.field": "필드",
+  "operational.fixture.editor.operator": "연산자",
+  "operational.fixture.editor.value": "값",
+  "operational.fixture.editor.addGroup": "그룹 추가",
+  "operational.fixture.editor.remove": "조건 제거",
+  "operational.fixture.editor.combinator": "결합 방식",
 };
 
 export default koKRFallback;

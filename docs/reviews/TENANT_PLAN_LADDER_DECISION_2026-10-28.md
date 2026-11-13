@@ -2,7 +2,7 @@
 
 **决策日期**：2026-10-28
 **决策对象**：TC-07（P3）——`tenants.plan` 已数据驱动（`tenant_plans` 表 + 控制台套餐编辑器），但前端能力矩阵把 code 联合收拢到四个内建档、其余 code 一律按 `free` 解析并隐藏 lowcode 门控面
-**任务包**：`.harness/tasks/2026-10-27-tenant-plan-ladder-decision/manifest.json`（W7，父程序 [`2026-10-27-tenant-completeness-remediation`](../harness/tasks/2026-10-27-tenant-completeness-remediation.task.md)）
+**任务包**：`.harness/tasks/2026-10-27-tenant-plan-ladder-decision/manifest.json`（W7，父程序 [`2026-10-27-tenant-completeness-remediation`](https://github.com/duanxldragon/pantheon-base/blob/135730fd6f63ad73cf40f6e4b321fdd9f69ea932/docs/harness/tasks/2026-10-27-tenant-completeness-remediation.task.md)）
 **判据**：[租户合同 V1](../contracts/TENANT_CONTRACT_V1.md) §2.4（plan 归 `tenant_plans` 表管）；[租户功能完整性审查](TENANT_FUNCTIONAL_COMPLETENESS_REVIEW_2026-10-27.md) TC-07 条目
 **性质**：决策文档。本文件不改任何源码、不改合同文本；按 W3 先例，实现随小包另行落地。
 
@@ -22,16 +22,16 @@
 
 配额与能力门控分属两处，只有配额是数据驱动的：
 
-| 读/写点 | 位置 | 行为 |
-|---|---|---|
-| 配额权威 | `backend/modules/system/iam/tenant/tenant_plan_model.go:11,70,93` | `tenant_plans` 行携带 quota 阈值，`AsQuota()` 投影给全部消费方；`UnlimitedQuota=-1` 哨兵 |
-| 写路径校验 | `PlanStore.ValidateAssignment`（同一 store） | 按表内 `IsEnabled` 判定可分配；表不可读时 fail-open 回退内建四档（与前端同构） |
-| 能力矩阵 | `frontend/src/core/entitlements/plans.ts:16-23` | 联合类型收拢为 `'free' \| 'basic' \| 'professional' \| 'enterprise'` |
-| rank 表 | `plans.ts:58-63` | `free=0 … enterprise=3`，`isPlanAtLeast` 按 rank 比较 |
-| 归一化 | `plans.ts:70-75` `normalizeTenantPlan` | 未知/缺失 code **fail-closed 归 `free`**——「陈旧后端或失败的 lookup 不得静默发放付费面」 |
-| 编辑器警告 | `frontend/src/modules/system/iam/tenant/TenantList.tsx:272-273,890-893` | `planOutsideLadder` 触发 `system.tenant.plan.outsideLadder` 文案（五语言各一份） |
-| 代码自述 | `planOptions.ts:4-20`、`TenantList.tsx:265-267`、`plans.ts:1-15` | 三处注释明说「operator-defined code resolves to free / 门控是 UX-only / 隐藏不等于授权」 |
-| 门控消费方 | `usePlanEntitlements.ts` → `AppLayout.tsx`、`lowcode/generator/pages/ModuleWizard.tsx`、`platform/Dashboard.tsx` | 租户会话按 plan 隐藏 lowcode 路由/向导/挂件；平台视角与 compat 直通 |
+| 读/写点    | 位置                                                                                                             | 行为                                                                                     |
+| ---------- | ---------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
+| 配额权威   | `backend/modules/system/iam/tenant/tenant_plan_model.go:11,70,93`                                                | `tenant_plans` 行携带 quota 阈值，`AsQuota()` 投影给全部消费方；`UnlimitedQuota=-1` 哨兵 |
+| 写路径校验 | `PlanStore.ValidateAssignment`（同一 store）                                                                     | 按表内 `IsEnabled` 判定可分配；表不可读时 fail-open 回退内建四档（与前端同构）           |
+| 能力矩阵   | `frontend/src/core/entitlements/plans.ts:16-23`                                                                  | 联合类型收拢为 `'free' \| 'basic' \| 'professional' \| 'enterprise'`                     |
+| rank 表    | `plans.ts:58-63`                                                                                                 | `free=0 … enterprise=3`，`isPlanAtLeast` 按 rank 比较                                    |
+| 归一化     | `plans.ts:70-75` `normalizeTenantPlan`                                                                           | 未知/缺失 code **fail-closed 归 `free`**——「陈旧后端或失败的 lookup 不得静默发放付费面」 |
+| 编辑器警告 | `frontend/src/modules/system/iam/tenant/TenantList.tsx:272-273,890-893`                                          | `planOutsideLadder` 触发 `system.tenant.plan.outsideLadder` 文案（五语言各一份）         |
+| 代码自述   | `planOptions.ts:4-20`、`TenantList.tsx:265-267`、`plans.ts:1-15`                                                 | 三处注释明说「operator-defined code resolves to free / 门控是 UX-only / 隐藏不等于授权」 |
+| 门控消费方 | `usePlanEntitlements.ts` → `AppLayout.tsx`、`lowcode/generator/pages/ModuleWizard.tsx`、`platform/Dashboard.tsx` | 租户会话按 plan 隐藏 lowcode 路由/向导/挂件；平台视角与 compat 直通                      |
 
 **复核的真正贡献**（依包实现注记，不得把现状描述成本轮新发现的缺陷）：后果链没有被告知操作者——一个 `trial` code 的租户登录后，其配额按 `tenant_plans` 行生效，但生成器页面**不可见**，且警告文案不说明这一点；能力矩阵（`TenantPlanMatrix`）也不展示自定义 code 落在哪一档。这是**已文档化的限制**（三处代码自述），缺的是对操作者可见的后果表述与契约表述。
 
@@ -50,6 +50,7 @@
 **修掉的失败案例**：TC-07 的操作者可感知部分——警告说了代价，文档说了边界，矩阵与真实门控一致。
 
 **可能新引入的失败案例**：
+
 - 操作者看到警告后可能误以为配额也回退 `free`（实际不回退）——文案必须把「配额照常 / 能力按 free」两句分开说；
 - 「一个自定义 code 想要 professional 能力」的诉求在 V1 内无法满足（须走 B）。
 
@@ -64,6 +65,7 @@
 **修掉的失败案例**：自定义 code 完整参与能力门控；「trial 看不到生成器」类问题按配置解决。
 
 **可能新引入的失败案例**：
+
 - 特性矩阵成为可配置数据后，「隐藏页面」与「授权页面」的边界更容易被配错——需要新的契约条款与测试矩阵；
 - 五档语义被打破后，`TenantPlanMatrix`、过滤器、总览统计的既有展示全部要跟随数据化重构；
 - 复核基线（230 vitest，**无 entitlements 覆盖**）目前接不住这个改动面。
@@ -82,14 +84,14 @@
 
 ## 3. 对比
 
-| 维度 | A 阶梯=能力矩阵 ✅ | B 服务端 entitlements | C 移除门控 |
-|---|---|---|---|
-| schema/迁移 | 无 | 需要 | 无 |
-| 自定义 code 能力面 | free（写明后果） | 操作者可配 | 全量放开 |
-| 配额能力 | 照常（表权威） | 照常 | 照常 |
-| 修复 TC-07 | 后果告知 + 契约表述 | 完整修复 | 按构造消失 |
-| 新增风险 | 文案歧义（可控） | 配错面扩大 + 测试缺口 | 产品能力回退 |
-| 成本 | 一个 L1 小 PR | 多 wave，V2 | 删代码但损失分层 |
+| 维度               | A 阶梯=能力矩阵 ✅  | B 服务端 entitlements | C 移除门控       |
+| ------------------ | ------------------- | --------------------- | ---------------- |
+| schema/迁移        | 无                  | 需要                  | 无               |
+| 自定义 code 能力面 | free（写明后果）    | 操作者可配            | 全量放开         |
+| 配额能力           | 照常（表权威）      | 照常                  | 照常             |
+| 修复 TC-07         | 后果告知 + 契约表述 | 完整修复              | 按构造消失       |
+| 新增风险           | 文案歧义（可控）    | 配错面扩大 + 测试缺口 | 产品能力回退     |
+| 成本               | 一个 L1 小 PR       | 多 wave，V2           | 删代码但损失分层 |
 
 **推荐**：A for V1，B as V2 commercialization workstream（立项时新建包，范围以 §2 选项 B 的前置与风险清单为起点）。
 

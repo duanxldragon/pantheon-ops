@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"errors"
+	"slices"
 	"strconv"
 	"time"
 
@@ -161,20 +162,65 @@ func DeleteSession(ctx context.Context, rdb *redis.Client, tok string) error {
 	return rdb.Del(ctx, SessionKey(tok)).Err()
 }
 
-// RefreshSessionActivity rewrites the session payload while preserving its TTL.
+// The raw-value comparison closes the race between identity validation and the
+// update. KEEPTTL preserves the exact expiration, including milliseconds.
+var refreshSessionActivityScript = redis.NewScript(`
+local current = redis.call('GET', KEYS[1])
+if not current then return -1 end
+local ttl = redis.call('PTTL', KEYS[1])
+if ttl == -2 then return -1 end
+if ttl <= 0 then return -2 end
+if current ~= ARGV[1] then return -2 end
+redis.call('SET', KEYS[1], ARGV[2], 'XX', 'KEEPTTL')
+return 1
+`)
+
+// RefreshSessionActivity updates only an existing, expiring session with the
+// same identity. Activity refresh must never issue or extend an access token.
 func RefreshSessionActivity(ctx context.Context, rdb *redis.Client, tok string, d *SessionData) error {
 	if rdb == nil {
 		return ErrStoreNotInitialized
+	}
+	if ctx == nil || d == nil {
+		return ErrInvalid
+	}
+	if err := ctx.Err(); err != nil {
+		return err
+	}
+	currentRaw, err := rdb.Get(ctx, SessionKey(tok)).Bytes()
+	if err == redis.Nil {
+		return ErrNotFound
+	}
+	if err != nil {
+		return err
+	}
+	var current *SessionData
+	if err := json.Unmarshal(currentRaw, &current); err != nil || current == nil {
+		return ErrInvalid
+	}
+	// Compare uint64 claims in Go: Redis Lua numbers cannot distinguish all
+	// uint64 identities. Role order matters because the first role is primary.
+	if current.UserID != d.UserID || current.Username != d.Username ||
+		current.SessionID != d.SessionID || current.TenantID != d.TenantID ||
+		!slices.Equal(current.RoleKeys, d.RoleKeys) {
+		return ErrInvalid
 	}
 	b, err := json.Marshal(d)
 	if err != nil {
 		return err
 	}
-	ttl, err := rdb.TTL(ctx, SessionKey(tok)).Result()
-	if err != nil || ttl <= 0 {
-		ttl = AccessTokenTTL
+	result, err := refreshSessionActivityScript.Run(ctx, rdb, []string{SessionKey(tok)}, currentRaw, b).Int64()
+	if err != nil {
+		return err
 	}
-	return rdb.Set(ctx, SessionKey(tok), b, ttl).Err()
+	switch result {
+	case 1:
+		return nil
+	case -1:
+		return ErrNotFound
+	default:
+		return ErrInvalid
+	}
 }
 
 // StoreRefresh writes a refresh token mapping to Redis, plus a sessionID→token

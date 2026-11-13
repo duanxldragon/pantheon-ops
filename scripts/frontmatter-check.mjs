@@ -13,6 +13,7 @@ const DOC_TYPES_REQUIRING_CONTRACTS = new Set([
   'Assessment',
   'Remediation',
   'Acceptance',
+  'Plan',
 ]);
 const ALLOWED_DOC_TYPES = new Set([
   'Contract',
@@ -20,6 +21,7 @@ const ALLOWED_DOC_TYPES = new Set([
   'Assessment',
   'Remediation',
   'Acceptance',
+  'Plan',
 ]);
 const ALLOWED_STATUSES = new Set([
   'Draft',
@@ -98,30 +100,7 @@ export function parseFrontmatter(source) {
 
   for (const line of frontmatterLines) {
     if (!line.trim()) continue;
-
-    const arrayItemMatch = line.match(/^\s*-\s+(.*)$/);
-    if (arrayItemMatch) {
-      if (!currentArrayKey) {
-        throw new Error(`Array item found before array key: ${line}`);
-      }
-      data[currentArrayKey].push(arrayItemMatch[1].trim());
-      continue;
-    }
-
-    const keyMatch = line.match(/^([A-Za-z0-9_]+):\s*(.*)$/);
-    if (!keyMatch) {
-      throw new Error(`Unsupported frontmatter line: ${line}`);
-    }
-
-    const [, key, rawValue] = keyMatch;
-    if (rawValue === '') {
-      data[key] = [];
-      currentArrayKey = key;
-      continue;
-    }
-
-    data[key] = rawValue.trim();
-    currentArrayKey = null;
+    currentArrayKey = parseFrontmatterLine(data, currentArrayKey, line);
   }
 
   return {
@@ -129,6 +108,89 @@ export function parseFrontmatter(source) {
     body: lines.slice(closingIndex + 1).join('\n'),
     hasFrontmatter: true,
   };
+}
+
+function parseFrontmatterLine(data, currentArrayKey, line) {
+  const trimmedLine = line.trimStart();
+  if (trimmedLine.startsWith('- ')) {
+    if (!currentArrayKey) {
+      throw new Error(`Array item found before array key: ${line}`);
+    }
+    data[currentArrayKey].push(trimmedLine.slice(2).trim());
+    return currentArrayKey;
+  }
+
+  const colonIndex = line.indexOf(':');
+  const key = colonIndex > 0 ? line.slice(0, colonIndex) : '';
+  if (colonIndex <= 0 || !isFrontmatterKey(key)) {
+    throw new Error(`Unsupported frontmatter line: ${line}`);
+  }
+
+  const rawValue = line.slice(colonIndex + 1).trimStart();
+  if (rawValue === '') {
+    data[key] = [];
+    return key;
+  }
+
+  data[key] = rawValue.trim();
+  return null;
+}
+
+function isFrontmatterKey(value) {
+  if (!value) {
+    return false;
+  }
+  for (const char of value) {
+    const isLower = char >= 'a' && char <= 'z';
+    const isUpper = char >= 'A' && char <= 'Z';
+    const isDigit = char >= '0' && char <= '9';
+    if (!(isLower || isUpper || isDigit || char === '_')) {
+      return false;
+    }
+  }
+  return true;
+}
+
+// Enforcement boundary (AUD-010, option b): only docs under these directory
+// prefixes are required to carry YAML frontmatter; missing frontmatter anywhere
+// else is informational only. Expanding enforcement must update BOTH this list
+// and docs/contracts/DOCUMENT_FRONTMATTER_SCHEMA.md §11 in the same change
+// (no permanent whitelist allowed).
+export const ENFORCED_DIR_PREFIXES = [
+  'docs/superpowers/specs/',
+  'docs/archive/examples/',
+  'docs/archive/baselines/',
+  'docs/archive/upgrade/',
+];
+
+export function isEnforcedDoc(relativePath) {
+  const normalized = relativePath.replace(/\\/g, '/');
+  return ENFORCED_DIR_PREFIXES.some((prefix) => normalized.startsWith(prefix));
+}
+
+export function summarizeCoverage(scannedFiles, frontmatterFiles) {
+  const scanned = scannedFiles.length;
+  const withFrontmatter = frontmatterFiles.length;
+  return {
+    scanned,
+    withFrontmatter,
+    withoutFrontmatter: scanned - withFrontmatter,
+  };
+}
+
+// AUD-025: `Active` asserts the doc is in force right now, so the assertion
+// expires. Past the review window a doc is overdue for re-check — reported,
+// never enforced: at 144+ overdue docs, making it an error would leave
+// bulk-editing updated_at as the only way to pass, destroying exactly what the
+// rule protects. See docs/contracts/DOCUMENT_METADATA_AND_STATUS.md §6.5.
+export const ACTIVE_REVIEW_WINDOW_DAYS = 90;
+
+export function activeReviewOverdueDays(data, now = new Date()) {
+  if (data?.status !== 'Active') return null;
+  const updated = new Date(String(data.updated_at ?? ''));
+  if (Number.isNaN(updated.getTime())) return null;
+  const days = Math.floor((now.getTime() - updated.getTime()) / 86_400_000);
+  return days > ACTIVE_REVIEW_WINDOW_DAYS ? days : null;
 }
 
 function expectedIndexGroup(filePath) {
@@ -159,6 +221,29 @@ function isNonEmptyArray(value) {
 
 function normalizeSlash(p) {
   return p.replace(/\\/g, '/');
+}
+
+function resolvePantheonHarnessLink(repoRoot, href) {
+  const normalized = href.replace(/#.*$/u, '').replaceAll('\\', '/');
+  const match = normalized.match(/(?:^|\/)pantheon-harness\/(.+)$/u);
+  if (!match) return null;
+
+  const relativeTarget = match[1];
+  return [
+    path.resolve(repoRoot, '..', 'pantheon-harness', relativeTarget),
+    path.resolve(repoRoot, 'pantheon-harness', relativeTarget),
+  ];
+}
+
+function docLinkExists(repoRoot, baseDir, href, docsIndex) {
+  const resolvedAbsolute = path.resolve(baseDir, href);
+  const resolved = normalizeSlash(path.relative(repoRoot, resolvedAbsolute));
+  if (docsIndex.byPath.has(resolved) || fs.existsSync(resolvedAbsolute)) {
+    return true;
+  }
+
+  const pantheonHarnessTargets = resolvePantheonHarnessLink(repoRoot, href);
+  return pantheonHarnessTargets !== null && pantheonHarnessTargets.some((target) => fs.existsSync(target));
 }
 
 function buildDocsIndex(repoRoot) {
@@ -211,9 +296,16 @@ export function parseContractBodyReferences(source) {
   for (let i = 0; i < lines.length; i += 1) {
     const relation = CONTRACT_RELATION_FIELDS.find(({ heading }) => heading === lines[i].trim());
     if (!relation) continue;
+    let sawBlank = false;
     for (let j = i + 1; j < lines.length; j += 1) {
       const line = lines[j].trim();
-      if (!line) break;
+      if (!line) {
+        // Prettier inserts a blank line between a heading and its list;
+        // tolerate it only before the first item.
+        if (sawBlank || byField[relation.field].length > 0) break;
+        sawBlank = true;
+        continue;
+      }
       const match = line.match(/^-\s+`([^`]+)`$/);
       if (!match) break;
       refs.push(match[1]);
@@ -226,10 +318,22 @@ export function parseContractBodyReferences(source) {
 
 export function extractReadmeDocLinks(source) {
   const links = [];
-  const regex = /\[[^\]]+\]\(([^)]+)\)/g;
-  let match;
-  while ((match = regex.exec(source)) !== null) {
-    const href = match[1].trim();
+  let cursor = 0;
+  while (cursor < source.length) {
+    const labelStart = source.indexOf('[', cursor);
+    if (labelStart === -1) {
+      break;
+    }
+    const hrefStart = source.indexOf('](', labelStart + 1);
+    if (hrefStart === -1) {
+      break;
+    }
+    const hrefEnd = source.indexOf(')', hrefStart + 2);
+    if (hrefEnd === -1) {
+      break;
+    }
+    const href = source.slice(hrefStart + 2, hrefEnd).trim();
+    cursor = hrefEnd + 1;
     if (href.startsWith('http://') || href.startsWith('https://') || href.startsWith('#')) continue;
     links.push(href);
   }
@@ -371,14 +475,29 @@ export function runCheck(repoRoot = DEFAULT_REPO_ROOT, options = {}) {
   const errors = [];
   const legacyFiles = [];
   let frontmatterFiles = 0;
+  const frontmatterPaths = [];
+  let enforcedFiles = 0;
+  const activeReviewOverdue = [];
 
   for (const filePath of files) {
     const result = checkFile(filePath, repoRoot);
     const relativePath = normalizeSlash(path.relative(repoRoot, filePath));
     const source = docsIndex.byPath.get(relativePath)?.source ?? fs.readFileSync(filePath, 'utf8');
     const parsed = docsIndex.byPath.get(relativePath)?.parsed ?? parseFrontmatter(source);
+    if (isEnforcedDoc(relativePath)) {
+      enforcedFiles += 1;
+    }
     if (parsed.hasFrontmatter) {
       frontmatterFiles += 1;
+      frontmatterPaths.push(relativePath);
+      const overdueDays = activeReviewOverdueDays(parsed.data);
+      if (overdueDays !== null) {
+        activeReviewOverdue.push({
+          path: relativePath,
+          updatedAt: String(parsed.data?.updated_at ?? ''),
+          days: overdueDays,
+        });
+      }
     }
     if (!result.ok) {
       errors.push(...result.errors);
@@ -432,8 +551,7 @@ export function runCheck(repoRoot = DEFAULT_REPO_ROOT, options = {}) {
   if (readmeEntry) {
     for (const href of extractReadmeDocLinks(readmeEntry.source)) {
       const baseDir = path.resolve(repoRoot, 'docs');
-      const resolved = normalizeSlash(path.relative(repoRoot, path.resolve(baseDir, href)));
-      if (!docsIndex.byPath.has(resolved) && !fs.existsSync(path.resolve(repoRoot, resolved))) {
+      if (!docLinkExists(repoRoot, baseDir, href, docsIndex)) {
         errors.push(`docs/README.md: link target does not exist: ${href}`);
       }
     }
@@ -454,6 +572,10 @@ export function runCheck(repoRoot = DEFAULT_REPO_ROOT, options = {}) {
     ok: errors.length === 0,
     checkedFiles: files.length,
     frontmatterFiles,
+    enforcedFiles,
+    enforcedDirectories: ENFORCED_DIR_PREFIXES.length,
+    coverage: summarizeCoverage(files, frontmatterPaths),
+    activeReviewOverdue,
     legacyFiles,
     errors,
   };
@@ -465,9 +587,14 @@ const isDirectRun =
 
 if (isDirectRun) {
   const showLegacy = process.argv.includes('--report-legacy');
+  const reportOverdue = process.argv.includes('--report-overdue');
   const result = runCheck();
+  const { scanned, withFrontmatter, withoutFrontmatter } = result.coverage;
+  const coverageLine = `Checked ${scanned} docs, ${withFrontmatter} with frontmatter, ${withoutFrontmatter} without (informational, not enforced).`;
+  const enforcementLine = `Enforced directories: ${ENFORCED_DIR_PREFIXES.join(', ')} — ${result.enforcedFiles} doc(s) must carry frontmatter.`;
   if (!result.ok) {
-    console.error(`Frontmatter check failed. Checked ${result.checkedFiles} docs, ${result.frontmatterFiles} with frontmatter.`);
+    console.error(`Frontmatter check failed. ${coverageLine}`);
+    console.error(enforcementLine);
     for (const error of result.errors) {
       console.error(`- ${error}`);
     }
@@ -480,7 +607,17 @@ if (isDirectRun) {
     process.exit(1);
   }
 
-  console.log(`Frontmatter check passed. Checked ${result.checkedFiles} docs, ${result.frontmatterFiles} with frontmatter.`);
+  console.log(`Frontmatter check passed. ${coverageLine}`);
+  console.log(enforcementLine);
+  if (result.activeReviewOverdue.length > 0) {
+    console.log(`Active docs past the 90-day review window: ${result.activeReviewOverdue.length} (informational, not enforced — see DOCUMENT_METADATA_AND_STATUS §6.5).`);
+  }
+  if (reportOverdue) {
+    const overdue = [...result.activeReviewOverdue].sort((a, b) => b.days - a.days);
+    for (const doc of overdue) {
+      console.log(`- ${doc.path} (updated_at ${doc.updatedAt}, ${doc.days}d)`);
+    }
+  }
   if (showLegacy) {
     console.log(`Legacy metadata docs not yet migrated: ${result.legacyFiles.length}`);
     for (const file of result.legacyFiles) {

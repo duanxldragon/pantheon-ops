@@ -3,6 +3,9 @@ import jaJPRuntimeFixes from './runtime-fixes.ja-JP';
 
 const jaJPFallback = {
   ...enUSFallback,
+  'dashboard.operational.stale': 'データが古くなっています',
+  'dashboard.operational.partial': '一部の結果',
+  'dashboard.operational.refreshing': 'データを更新中…',
   'app.name': 'Pantheon Base',
   'app.slogan': '企業のデジタル化を支援',
   'app.footer': 'Pantheon Platform · エンタープライズ管理基盤',
@@ -2026,6 +2029,7 @@ const jaJPFallback = {
   'generator.wizard.p2plus.title': 'P2+ ガバナンス契約',
   'generator.wizard.templateVersion': 'テンプレートバージョン',
   'generator.wizard.templateVersion.v1': 'v1 安定スキャフォールド',
+  'generator.wizard.templateVersion.v2': 'v2 · テナント向けフラット CRUD',
   'generator.wizard.enableDataScope': 'データ権限フック',
   'generator.wizard.enableDataScope.help':
     '有効にすると生成された一覧クエリに common.GetDataScope と database.WithDataScope を注入します。',
@@ -2047,6 +2051,7 @@ const jaJPFallback = {
   'generator.wizard.dataScopeMode.dept': '部門',
   'generator.wizard.dataScopeMode.owner': '本人',
   'generator.wizard.dataScopeMode.custom': 'カスタム',
+  'generator.wizard.dataScopeMode.tenant': 'テナント',
   'generator.wizard.dataScope.enabledTag': 'データ権限有効',
   'generator.wizard.dataScope.disabledTag': 'データ権限無効',
   'generator.wizard.dashboardWidget.enabledTag': '作業台入口有効',
@@ -2769,6 +2774,12 @@ const jaJPFallback = {
   'system.setting.remark.login.sso_enabled':
     '将来の SSO / OIDC 連携向けの機能フラグです。オフ時はローカルアカウントのみを使用します。',
   ...jaJPRuntimeFixes,
+  "operational.fixture.editor.field": "フィールド",
+  "operational.fixture.editor.operator": "演算子",
+  "operational.fixture.editor.value": "値",
+  "operational.fixture.editor.addGroup": "グループを追加",
+  "operational.fixture.editor.remove": "条件を削除",
+  "operational.fixture.editor.combinator": "結合方法",
 };
 
 export default jaJPFallback;

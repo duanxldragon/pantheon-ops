@@ -8,6 +8,7 @@ import (
 	"github.com/casbin/casbin/v2/util"
 	"github.com/duanxldragon/pantheon-base/backend/pkg/common"
 	"github.com/duanxldragon/pantheon-base/backend/pkg/database"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/permissionroutes"
 	tenantctx "github.com/duanxldragon/pantheon-base/backend/pkg/tenant"
 
 	"gorm.io/gorm/clause"
@@ -663,18 +664,26 @@ func RequiredAPIRoutesByPermission() map[string][]RequiredAPIRouteEntry {
 		}
 		out[key] = entries
 	}
+	for key, routes := range permissionroutes.Snapshot() {
+		entries := make([]RequiredAPIRouteEntry, 0, len(routes))
+		for _, route := range routes {
+			entries = append(entries, RequiredAPIRouteEntry{Method: route.Method, Path: route.Path})
+		}
+		out[key] = entries
+	}
 	return out
 }
 
 func requiredAPIPoliciesByPermissionKey(permissionKey string) []permissionRequiredAPIPolicy {
-	routes, ok := requiredAPIRoutesByPermission[strings.TrimSpace(permissionKey)]
-	if !ok {
-		return nil
-	}
+	key := strings.TrimSpace(permissionKey)
+	routes := requiredAPIRoutesByPermission[key]
 	policies := make([]permissionRequiredAPIPolicy, 0, len(routes))
 	for _, route := range routes {
 		method, path, _ := strings.Cut(route, " ")
 		policies = append(policies, permissionRequiredAPIPolicy{Path: path, Method: method})
+	}
+	for _, route := range permissionroutes.Lookup(key) {
+		policies = append(policies, permissionRequiredAPIPolicy{Path: route.Path, Method: route.Method})
 	}
 	return policies
 }

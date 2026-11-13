@@ -377,6 +377,9 @@ func initOrgModules(deps *systemModuleDependencies) []contracts.BackendModule {
 }
 
 func initConfigModules(deps *systemModuleDependencies) []contracts.BackendModule {
+	if err := contracts.RegisterBusinessTenantModeReader(tenant.NewStrictSettingModeReader(deps.settingSvc)); err != nil {
+		panic(err)
+	}
 	return []contracts.BackendModule{
 		contracts.FuncModule{
 			ModuleName:    "dict",

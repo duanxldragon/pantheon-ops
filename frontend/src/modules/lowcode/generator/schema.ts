@@ -20,16 +20,46 @@ export type PageActionTemplate = 'standard' | 'masterData' | 'lookup';
 
 export type BusinessTableRole = 'main' | 'detail' | 'relation' | 'dictionary';
 
-export type GeneratorTemplateVersion = 'v1';
+export type GeneratorTemplateVersion = 'v1' | 'v2';
 
 /**
  * 生成器数据权限模式。
  *
  * 与后端 scaffold 契约（backend/internal/scaffold/contract.go）保持同源：
- * `tenant` 已下线 —— 运行时没有租户隔离实现，生成器不得再暴露该伪能力。
- * 见 .harness/tasks/TENANT_EVOLUTION_MASTER_PLAN_20260910.md（任务 0）。
+ * tenant 仅用于显式选择 v2 的业务平面 CRUD；enableDataScope 独立控制数据权限。
  */
-export type DataScopeMode = 'none' | 'owner' | 'dept' | 'custom';
+export type DataScopeMode = 'none' | 'owner' | 'dept' | 'custom' | 'tenant';
+
+export function isTenantTemplate(schema: ModuleSchema): boolean {
+  return schema.templateVersion?.trim() === 'v2' && schema.dataScopeMode?.trim() === 'tenant';
+}
+
+// Shared by UI admission and both direct/server export paths. Never downgrade
+// invalid tenant input to legacy output.
+export function validateGeneratorContract(schema: ModuleSchema): GeneratorCompletenessIssue[] {
+  const issue = (code: string, messageKey: string): GeneratorCompletenessIssue[] => [
+    { code, level: 'error', messageKey, detail: schema.name },
+  ];
+  const version = schema.templateVersion?.trim();
+  if (version && version !== 'v1' && version !== 'v2') {
+    return issue('template_version_invalid', 'module.generate.invalid_template_version');
+  }
+  const mode = schema.dataScopeMode?.trim();
+  if (mode && !['none', 'owner', 'dept', 'custom', 'tenant'].includes(mode)) {
+    return issue('data_scope_invalid', 'module.generate.invalid_data_scope');
+  }
+  if (mode !== 'tenant') return [];
+  if (version !== 'v2' || schema.scope !== 'business' ||
+      schema.model.fields.some((field) => field.name.replaceAll('_', '').toLowerCase() === 'tenantid')) {
+    return issue('tenant_contract_invalid', 'module.generate.invalid_data_scope');
+  }
+  if (schema.relations?.length || schema.model.fields.some((field) => field.type === 'relation') ||
+      ['detail', 'relation'].includes(schema.metadata?.tableRole ?? '') ||
+      schema.metadata?.primaryTable || schema.metadata?.relationFromField || schema.metadata?.relationToField) {
+    return issue('tenant_relation_unsupported', 'module.generate.invalid_relation');
+  }
+  return [];
+}
 
 export type ModuleRelationType = 'oneToMany' | 'manyToMany' | 'lookup';
 
@@ -975,6 +1005,7 @@ function validateTranslations(schema: ModuleSchema): GeneratorCompletenessIssue[
 
 export function validateGeneratorCompleteness(schema: ModuleSchema): GeneratorCompletenessIssue[] {
   return [
+    ...validateGeneratorContract(schema),
     ...validateBusinessContext(schema),
     ...validateRelationTableMenu(schema),
     ...validateRelationMetadataFields(schema),

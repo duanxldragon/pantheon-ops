@@ -90,6 +90,10 @@ function assertOperationalMetadata(
   if (!widget.permission) {
     throw new Error(`Operational dashboard widget "${widget.key}" must declare a permission.`);
   }
+  if ('dataSource' in widget && widget.dataSource && (typeof widget.dataSource.load !== 'function' ||
+      !Number.isFinite(widget.dataSource.timeoutMs) || widget.dataSource.timeoutMs < 1000 || widget.dataSource.timeoutMs > 10000)) {
+    throw new Error(`Operational dashboard widget "${widget.key}" must use a bounded data source.`);
+  }
   const metadata = widget.metadata;
   if (!metadata) {
     throw new Error(`Operational dashboard widget "${widget.key}" must declare metadata.`);
@@ -115,6 +119,10 @@ function assertOperationalMetadata(
     throw new Error(
       `Operational dashboard widget "${widget.key}" cleanup policy must match metadata.`,
     );
+  }
+  if (metadata.freshness.maxAgeMs !== undefined &&
+      (!Number.isFinite(metadata.freshness.maxAgeMs) || metadata.freshness.maxAgeMs <= 0)) {
+    throw new Error(`Operational dashboard widget "${widget.key}" must declare a positive freshness age.`);
   }
   if (metadata.freshness.refreshIntervalMs !== undefined) {
     if (

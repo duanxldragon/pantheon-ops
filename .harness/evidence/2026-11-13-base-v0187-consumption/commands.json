@@ -1,0 +1,116 @@
+{
+  "taskId": "2026-11-13-base-v0187-consumption",
+  "repo": "pantheon-ops",
+  "agent": {
+    "tool": "codex",
+    "adapter": "Dispatcher; local independent CODE/ARCH panel"
+  },
+  "commands": [
+    {
+      "command": "npm run fetch:base-release -- --release pantheon-base-v0.18.7 (four official assets; sidecar and hosted digest verified; lock updated)",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\.wt-ops-v0187",
+      "exitCode": 0,
+      "status": "passed",
+      "log": ".harness/evidence/2026-11-13-base-v0187-consumption\\ops187-official-acquire.log.gz",
+      "sha256": "c85ecf21e6bacd0a68d820f62a83bbd03fd7613f4aae5a1e15c40e89d812c1de",
+      "rawSha256": "a870878ec6817a0dc93b7fc71d26e3376f2648b87564cfed7066b75b9cf1d201"
+    },
+    {
+      "command": "npm run rebuild:from-base -- --target .tmp/clean-base-overlay; staging overlay/drift checks; materialized-tree overlay/drift checks",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\.wt-ops-v0187",
+      "exitCode": 0,
+      "status": "passed",
+      "log": ".harness/evidence/2026-11-13-base-v0187-consumption\\ops187-staging-and-tree-gates.log.gz",
+      "sha256": "09228a1ed67538a9152fec2f1ffa39d36ab8132b6bf2213fdbea30cdb8d8d80d",
+      "rawSha256": "43bedc3c3328a0ce3be38eae85e323f511245e7bd8379791eed43f8a5b287a97"
+    },
+    {
+      "command": "npm run check:business-foundation (boundaries + overlay + tests 59 + drift)",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\.wt-ops-v0187",
+      "exitCode": 0,
+      "status": "passed",
+      "log": ".harness/evidence/2026-11-13-base-v0187-consumption\\ops187-business-foundation.log.gz",
+      "sha256": "385e3bab00593bae892ddb5e9d490c65f790dfb03ea05aefc31bf8ff27a71564",
+      "rawSha256": "00109ee135d74b5a253043f1bc91aabbb5137a13e26b97b83daf49e8f3c29c68"
+    },
+    {
+      "command": "go test -timeout=45m -buildvcs=false -mod=readonly -race -p 2 -count=1 ./... (67 packages ok, 0 failures, 0 data races)",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\.wt-ops-v0187",
+      "exitCode": 0,
+      "status": "passed",
+      "log": ".harness/evidence/2026-11-13-base-v0187-consumption\\ops187-backend-full-race.log.gz",
+      "sha256": "9a653415fcd9cda6c5605bd27d62894716b333564321919cfb8d5b14f87a1722",
+      "rawSha256": "2098499ae2630d90ac669f9b103b2e4415f37e4574ef3a606234746e7d0bcc73"
+    },
+    {
+      "command": "frontend lint + type-check + build + test:unit (240 unit tests passed) on exact staged tree",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\.wt-ops-v0187",
+      "exitCode": 0,
+      "status": "passed",
+      "log": ".harness/evidence/2026-11-13-base-v0187-consumption\\ops187-frontend-suite.log.gz",
+      "sha256": "176f3ba97b3488a2c7e5007ecff967371c4bee43e6e1d90f170736e668e65f19",
+      "rawSha256": "286647418f56d9e86e931befde7433b0e9005847fa42d59f9152515833c0e616"
+    },
+    {
+      "command": "four standard generator smoke suites (governance, auto-recycle, master-detail, many-to-many) against task-owned fresh runtime",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\.wt-ops-v0187",
+      "exitCode": 0,
+      "status": "passed",
+      "log": ".harness/evidence/2026-11-13-base-v0187-consumption\\ops187-standard-smoke-suites.log.gz",
+      "sha256": "d50338267943b35649be3ce0ae75274ff0ea024cc9d25b5130bc4366b01ef8d4",
+      "rawSha256": "1a49a1cc864fc91991b512a1824bb5ee714e2ed57d5536aecf08a1f72b5d0b0a"
+    },
+    {
+      "command": "task-owned backend runtime (fresh pantheon_ops187 DB, Redis 26317, PANTHEON_WORKSPACE_ROOT staged tree)",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\.wt-ops-v0187",
+      "exitCode": 0,
+      "status": "passed",
+      "log": ".harness/evidence/2026-11-13-base-v0187-consumption\\ops187-runtime-backend-log.log.gz",
+      "sha256": "ab2360908f1e60495b17a298ad2a19c657ac6ea12f3456fb3706adb7993e9134",
+      "rawSha256": "10b42b91bd49805dfac984d5ce999a78483c6ac3a00156e1087ff73a07f0cc72"
+    },
+    {
+      "command": "SELECT version, dirty FROM pantheon_ops187.schema_migrations (32/0 clean after fresh startup migrations)",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\.wt-ops-v0187",
+      "exitCode": 0,
+      "status": "passed",
+      "log": ".harness/evidence/2026-11-13-base-v0187-consumption\\ops187-fresh-migration-state.log.gz",
+      "sha256": "6f1e3d4c0e2fb0e05834671a5fe1c8956e4aa127da8680382bd23f6b4e7fc0ec",
+      "rawSha256": "c48e2ae94011823446e50bac1390d921f4c54af20b21f71ce1e7a0699a446b83"
+    },
+    {
+      "command": "Local governance gate sweep (33 checks) on the assembled tree: every consumption-scope check passes; the nine exit-1 gates (task-packet, harness-docs, graph-review, runtime-evidence, checker-wiring, security-patterns, generated, harness-evidence, harness-review) contain only pre-existing legacy findings unchanged from origin/main and are listed in knownGaps",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\.wt-ops-v0187",
+      "exitCode": 0,
+      "status": "passed",
+      "log": ".harness/evidence/2026-11-13-base-v0187-consumption\\ops187-docgates-final.log.gz",
+      "sha256": "07f083d47d86ec702cc5040cbcaf4a4a51503ba1a9e44b76bda6dd94f428af7a",
+      "rawSha256": "5a3e12774ae79892e640d94850461bbbdee8f8ecd328970d1a3ea9f8c03cf8c6"
+    },
+    {
+      "command": "Sync scripts/frontmatter-check.mjs to the immutable v0.18.7 snapshot copy; node --test tests/docs/frontmatter-check.test.mjs (0 fail) and check:docs-frontmatter pass on the prettier-formatted inherited docs",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\.wt-ops-v0187",
+      "exitCode": 0,
+      "status": "passed",
+      "log": ".harness/evidence/2026-11-13-base-v0187-consumption\\ops187-checker-sync.log.gz",
+      "sha256": "e61c10bd9cae658012871d59a2bd7e3c94913b16833c0bf0069649836377dced",
+      "rawSha256": "e9ab5551d4c0fb21ceaf2dd38b489cff37bfa2e34c685f81fcfa3c50114592a6"
+    }
+  ],
+  "knownGaps": [
+    "Hosted required checks, independent CODE/ARCH closure, merge and main-only consolidation pending on the consumer PR.",
+    "Real S3 provider skip unwaived; maintenance freeze unsigned; FR028 deferred; separate Ops product-acceptance followups remain.",
+    "Runtime signal for this consumer task is the task-owned backend startup/runtime log; no hosted runtime metrics or traces are recorded here and none are claimed.",
+    "Pre-existing local gate findings unchanged from origin/main: legacy evidence/review/runtime-allowlist staleness, legacy task-packet errors, base task-local doc links in TENANT/LOWCODE docs (routed back to Base), legacy unwired checkers, business security-pattern raw/exec baseline findings and generated-marker findings in untouched business files."
+  ],
+  "linkage": {
+    "taskManifest": ".harness/tasks/2026-11-13-base-v0187-consumption/manifest.json",
+    "evidenceDir": ".harness/evidence/2026-11-13-base-v0187-consumption/",
+    "reviewFile": ".harness/evidence/2026-11-13-base-v0187-consumption/review.md",
+    "summaryFile": ".harness/evidence/2026-11-13-base-v0187-consumption/summary.md",
+    "changeRef": "none",
+    "planRefs": [
+      ".harness/tasks/2026-11-13-base-v0187-consumption/plan.md"
+    ]
+  }
+}

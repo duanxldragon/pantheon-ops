@@ -41,9 +41,9 @@ Whether `.harness/evidence/` is committed can be chosen by project policy. CI ar
 
 ## Commands
 
-| Command         | CWD                     | Result | Notes |
-| --------------- | ----------------------- | ------ | ----- |
-| `go test ./...` | `pantheon-base/backend` | passed |       |
+| Command | CWD | Result | Notes |
+|---|---|---|---|
+| `go test ./...` | `pantheon-base/backend` | passed |  |
 
 ## Graph Checks
 
@@ -93,7 +93,9 @@ complete | blocked | partial
   ],
   "graphChecks": {
     "usedCodeGraph": true,
-    "affectedSubgraph": ["route -> handler -> service -> repo"],
+    "affectedSubgraph": [
+      "route -> handler -> service -> repo"
+    ],
     "checks": ["cycle", "hub", "call-depth", "sensitive-flow"],
     "findings": [],
     "notes": ""
@@ -245,8 +247,8 @@ If verification was not run, the reason must be recorded:
 ```md
 ## Not Run
 
-| Command         | Reason                     | Risk                                     |
-| --------------- | -------------------------- | ---------------------------------------- |
+| Command | Reason | Risk |
+|---|---|---|
 | `npm run build` | dependencies not installed | frontend build regressions not ruled out |
 ```
 

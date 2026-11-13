@@ -73,21 +73,21 @@ P0×1（B1）、P1×5（B2/B3/B4/B5/B6-latent）全部修复并有回归测试�
 
 ## 7. 验收标准逐项判定（任务书 §13.1）
 
-| 条件 | 判定 | 依据 |
-|---|---|---|
-| 1 单租户核心链路完整 | ✅ | §2 + 真库全绿 |
-| 2 多租户闭环 | ✅（CI 复验为形式条件） | §3 |
-| 3 租户隔离在关键读写路径真实生效 | ✅ | FIX-1/2 + 对抗单测 |
-| 4 功能/数据/组织/平台权限边界明确、已实现部分无已知严重绕过 | ✅ | 矩阵 §2、B 组闭合 |
-| 5 无未解决 P0 | ✅ | B1 已修 |
-| 6 无未解决 P1 | ✅ | B2-B6、C1/C2、E1 已修 |
-| 7 关键回归通过、构建失败可解释 | ✅ 本地层 / ⏳ CI 层 | 测试报告 §2/§4 |
-| 8 迁移/初始化/历史数据兼容经验证 | ✅ schema 层 / ⏳ 备份库回放（显式 gap） | §5 |
-| 9 无未处理严重安全风险 | ⚠️ D2 待凭证轮换（移交） | §4 |
-| 10 主要页面无阻塞性 UI 缺陷 | ✅ 代码/构建层；视觉终验移交 | §5 |
-| 11 文档与功能一致 | ✅（修正后） | §6 |
-| 12 质量平台可核验 | ✅ Sonar 实测；F3 触发方式记录 | §6 |
-| 13 未完成项全部登记 | ✅ | 问题清单 §2/§4 |
+| 条件                                                        | 判定                                     | 依据                  |
+| ----------------------------------------------------------- | ---------------------------------------- | --------------------- |
+| 1 单租户核心链路完整                                        | ✅                                       | §2 + 真库全绿         |
+| 2 多租户闭环                                                | ✅（CI 复验为形式条件）                  | §3                    |
+| 3 租户隔离在关键读写路径真实生效                            | ✅                                       | FIX-1/2 + 对抗单测    |
+| 4 功能/数据/组织/平台权限边界明确、已实现部分无已知严重绕过 | ✅                                       | 矩阵 §2、B 组闭合     |
+| 5 无未解决 P0                                               | ✅                                       | B1 已修               |
+| 6 无未解决 P1                                               | ✅                                       | B2-B6、C1/C2、E1 已修 |
+| 7 关键回归通过、构建失败可解释                              | ✅ 本地层 / ⏳ CI 层                     | 测试报告 §2/§4        |
+| 8 迁移/初始化/历史数据兼容经验证                            | ✅ schema 层 / ⏳ 备份库回放（显式 gap） | §5                    |
+| 9 无未处理严重安全风险                                      | ⚠️ D2 待凭证轮换（移交）                 | §4                    |
+| 10 主要页面无阻塞性 UI 缺陷                                 | ✅ 代码/构建层；视觉终验移交             | §5                    |
+| 11 文档与功能一致                                           | ✅（修正后）                             | §6                    |
+| 12 质量平台可核验                                           | ✅ Sonar 实测；F3 触发方式记录           | §6                    |
+| 13 未完成项全部登记                                         | ✅                                       | 问题清单 §2/§4        |
 
 ## 8. 冻结决定与建议
 
@@ -108,17 +108,17 @@ P0×1（B1）、P1×5（B2/B3/B4/B5/B6-latent）全部修复并有回归测试�
 
 三项原移交动作与两项治理遗留已关闭：
 
-| 项 | 状态 | 实测证据 |
-|---|---|---|
-| F5 tag/release | ✅ 已发布 | tag `pantheon-base-v0.17.0` → `728feb2b`；release 四资产；`Foundation Release Verify` run `39698850076` success |
-| F2 main 保护 | ✅ 已生效 | ruleset `17011510` active，required checks 含 Quality/Security/Unit/CI Summary/Sonar，无 bypass |
-| B10 Tenant Smoke | ✅ 已转阻塞 | `smoke-tenant` 移除 `continue-on-error`；main 连续 5 次 smoke-core 全绿；push-only 语义已注明 |
-| G2 skip 掩盖 | ✅ 已加固 | `PANTHEON_TEST_DSN_REQUIRED` + 单测 + CI 环境；required 无 DSN 实测 FAIL，未设置 SKIP |
-| D2 凭据 | ✅ 轮换完成（工件残留） | 旧口令拒绝、新口令可用；HEAD 跟踪文件 0 命中；v0.17.0 `repo.tar` 内仍含已失效旧值 |
-| 浏览器终验 | ✅ 本轮完成 | 本机全栈 18 路由 + 8 组交互，0 console error / 0 failed API（截图见证据目录） |
+| 项               | 状态                    | 实测证据                                                                                                        |
+| ---------------- | ----------------------- | --------------------------------------------------------------------------------------------------------------- |
+| F5 tag/release   | ✅ 已发布               | tag `pantheon-base-v0.17.0` → `728feb2b`；release 四资产；`Foundation Release Verify` run `39698850076` success |
+| F2 main 保护     | ✅ 已生效               | ruleset `17011510` active，required checks 含 Quality/Security/Unit/CI Summary/Sonar，无 bypass                 |
+| B10 Tenant Smoke | ✅ 已转阻塞             | `smoke-tenant` 移除 `continue-on-error`；main 连续 5 次 smoke-core 全绿；push-only 语义已注明                   |
+| G2 skip 掩盖     | ✅ 已加固               | `PANTHEON_TEST_DSN_REQUIRED` + 单测 + CI 环境；required 无 DSN 实测 FAIL，未设置 SKIP                           |
+| D2 凭据          | ✅ 轮换完成（工件残留） | 旧口令拒绝、新口令可用；HEAD 跟踪文件 0 命中；v0.17.0 `repo.tar` 内仍含已失效旧值                               |
+| 浏览器终验       | ✅ 本轮完成             | 本机全栈 18 路由 + 8 组交互，0 console error / 0 failed API（截图见证据目录）                                   |
 
 验证基线：真实 MySQL + Redis、`PANTHEON_TEST_DSN_REQUIRED=true`、`PANTHEON_TEST_REDIS_REQUIRED=true` 下 `go test ./...` **exit 0，0 FAIL，0 SKIP**。
 
-证据：[`.harness/evidence/2026-10-22-release-and-residual-closeout/summary.md`](../../.harness/evidence/2026-10-22-release-and-residual-closeout/summary.md)。
+证据：[`.harness/evidence/2026-10-22-release-and-residual-closeout/summary.md`](https://github.com/duanxldragon/pantheon-base/blob/135730fd6f63ad73cf40f6e4b321fdd9f69ea932/.harness/archive/2026-10/evidence/2026-10-22-release-and-residual-closeout/summary.md)。
 
 **追加后的冻结判定：维持「阶段性验收通过，进入维护冻结」。** 唯一新增的显式残留是 v0.17.0 发布工件中的失效旧凭据（建议 v0.17.1 或经授权替换资产），不构成代码或运行时风险；其余 gap（生产备份恢复演练、G3 sizing、B7 并发初始化、跨租户 HTTP 攻击矩阵）保持原登记。

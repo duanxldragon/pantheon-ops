@@ -161,4 +161,3 @@ From this round forward:
 2. new core design docs must carry type / layer / status
 3. docs linked from main README indexes should gradually be upgraded with metadata
 4. new review drafts without explicit type / status / linked contract should not enter primary indexes
-

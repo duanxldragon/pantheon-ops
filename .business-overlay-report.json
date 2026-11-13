@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "baseCommit": "5553bc0e8ddc006cb7a6b99a46968bf8cf907a49",
+  "baseCommit": "3203624e55438866edb951bd74e671eab38d2f16",
   "ownedFiles": [
     {
       "path": ".agents/README.md",
@@ -1204,7 +1204,7 @@
     },
     {
       "path": ".harness/evidence/2026-11-07-base-v0186-consumption/owned-services-stopped.json",
-      "sha256": "42a2a6d487a4a53e02d36436d6df66b2fba4ddcebc641392f98adec1a8a7e881"
+      "sha256": "b3965cd371e4059e2f2976d742e69313ea2bfe4130b717e0a9e9c781fe499f44"
     },
     {
       "path": ".harness/evidence/2026-11-07-base-v0186-consumption/pr-body.md",
@@ -1996,7 +1996,7 @@
     },
     {
       "path": "backend/go.mod",
-      "sha256": "0a768a28d27080b25cc7a2a7d1499aa05a19395d93507c281bb5f12a00cbb824"
+      "sha256": "9b02fd4b68567e8cb46538be8f1cfb02b25491a03894018c53c448b34fb39c15"
     },
     {
       "path": "backend/go.sum",
@@ -2036,7 +2036,7 @@
     },
     {
       "path": "backend/modules/business/business.go",
-      "sha256": "b5c87c8ffc802174de9fe4b7a4f8fe83a422a7a3a448c9f12f824f0d6a1bbe8c"
+      "sha256": "6128527e64f2dec454c40f99f8e76b8e21e203e25ea41dc85ec434d5ff5a3bde"
     },
     {
       "path": "backend/modules/business/business_overlay_registry.go",
@@ -3292,7 +3292,7 @@
     },
     {
       "path": "foundation-release.lock.json",
-      "sha256": "95de1a87270e15c0d4c672418a5df906818a88652f8a3e6c480f1484ee9fa70c"
+      "sha256": "f8401bae94b9855cfd2f96651298026e700a2df5b5d0e936d03750b008b230a2"
     },
     {
       "path": "frontend/README.en.md",
@@ -3340,11 +3340,11 @@
     },
     {
       "path": "frontend/src/i18n/resources/en-US.ts",
-      "sha256": "970afc6bf45c5242f3308de1c037e4c3241952dd3a526beb757b9c969e294e04"
+      "sha256": "1d16b30779fee909b271c038948fff25fd5acfed00de4ca08a96790fa1743266"
     },
     {
       "path": "frontend/src/i18n/resources/zh-CN.ts",
-      "sha256": "7fc342b2659ce46d4987839a19128aff52cb354e7444f290f7659eda1e6e300c"
+      "sha256": "2f103599cc2113d4a8a78803f7a4e8c5314391a81b43dd856eb15a9c3fbb3c7a"
     },
     {
       "path": "frontend/src/modules/business/bizscope/BizScopeDetail.tsx",

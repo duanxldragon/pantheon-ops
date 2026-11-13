@@ -3,6 +3,9 @@ import frFRRuntimeFixes from './runtime-fixes.fr-FR';
 
 const frFRFallback = {
   ...enUSFallback,
+  'dashboard.operational.stale': 'Données périmées',
+  'dashboard.operational.partial': 'Résultats partiels',
+  'dashboard.operational.refreshing': 'Actualisation des données…',
   'app.slogan': "Au service de la transformation numérique de l'entreprise",
   'app.footer': 'Pantheon Platform · Socle d’administration entreprise',
   'app.workspace': 'Espace de travail plateforme',
@@ -2101,6 +2104,7 @@ const frFRFallback = {
   'generator.wizard.p2plus.title': 'Contrat de gouvernance P2+',
   'generator.wizard.templateVersion': 'Version du modèle',
   'generator.wizard.templateVersion.v1': 'Squelette stable v1',
+  'generator.wizard.templateVersion.v2': 'v2 · CRUD à plat par locataire',
   'generator.wizard.enableDataScope': 'Crochet de périmètre de données',
   'generator.wizard.enableDataScope.help':
     'Si activé, les requêtes de liste générées injectent common.GetDataScope et database.WithDataScope.',
@@ -2122,6 +2126,7 @@ const frFRFallback = {
   'generator.wizard.dataScopeMode.dept': 'Département',
   'generator.wizard.dataScopeMode.owner': 'Propriétaire',
   'generator.wizard.dataScopeMode.custom': 'Personnalisé',
+  'generator.wizard.dataScopeMode.tenant': 'Locataire',
   'generator.wizard.dataScope.enabledTag': 'Périmètre de données activé',
   'generator.wizard.dataScope.disabledTag': 'Périmètre de données désactivé',
   'generator.wizard.dashboardWidget.enabledTag': 'Entrée workbench activée',
@@ -2928,6 +2933,12 @@ const frFRFallback = {
   'system.setting.remark.login.sso_enabled':
     'Indicateur réservé à une future intégration SSO / OIDC. Lorsqu’il est désactivé, seule la connexion locale est disponible.',
   ...frFRRuntimeFixes,
+  "operational.fixture.editor.field": "Champ",
+  "operational.fixture.editor.operator": "Opérateur",
+  "operational.fixture.editor.value": "Valeur",
+  "operational.fixture.editor.addGroup": "Ajouter un groupe",
+  "operational.fixture.editor.remove": "Supprimer la condition",
+  "operational.fixture.editor.combinator": "Combinaison",
 };
 
 export default frFRFallback;

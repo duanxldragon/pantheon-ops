@@ -182,4 +182,3 @@ Recommended rollout:
 The first-round goal is simple:
 
 > form a stable primary chain of `Contract -> Design / Assessment / Remediation / Acceptance`.
-

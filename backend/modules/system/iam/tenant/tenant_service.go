@@ -15,6 +15,7 @@ import (
 
 	"go.uber.org/zap"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 // Shared predicates for the tenant table. They are declared once so the
@@ -458,66 +459,69 @@ func summarizeTenants(base *gorm.DB) (*Summary, error) {
 
 // UpdateTenant updates tenant fields
 func (s *Service) UpdateTenant(id uint64, dto UpdateTenantDTO) error {
-	row, err := s.GetTenantByID(id)
+	if id == platformGlobalTenantID {
+		return ErrTenantNotFound
+	}
+	// Plan lookup uses the existing shared cache/connection pool. Resolve it
+	// before holding a transaction connection; retain status-error precedence.
+	var planErr error
+	if dto.Plan != nil && *dto.Plan != "" {
+		planErr = s.plans.ValidateAssignment(*dto.Plan)
+	}
+	var previousStatus string
+	// Validate the current row while holding the same lock used by deletion.
+	// A delayed update must never overwrite an archive or deletion tombstone.
+	err := s.db.Transaction(func(tx *gorm.DB) error {
+		reader := *s
+		reader.db = tx.Clauses(clause.Locking{Strength: "UPDATE"})
+		row, err := reader.GetTenantByID(id)
+		if err != nil {
+			return err
+		}
+		previousStatus = row.Status
+		// Archived is terminal; reject every invalid transition before writes.
+		if dto.Status != nil && !tenantStatusTransitionAllowed(previousStatus, *dto.Status) {
+			return common.NewConflict("tenant.status.terminal")
+		}
+		if planErr != nil {
+			return planErr
+		}
+		return updateTenantFields(tx, row, dto)
+	})
 	if err != nil {
 		return err
 	}
-	previousStatus := row.Status
-
-	// Contract §2.1 declares archived terminal: an archived tenant cannot come
-	// back. Validating before the first write keeps a rejected transition from
-	// leaving the name/plan half-updated.
-	if dto.Status != nil && !tenantStatusTransitionAllowed(previousStatus, *dto.Status) {
-		return common.NewConflict("tenant.status.terminal")
-	}
-	if dto.Plan != nil && *dto.Plan != "" {
-		if err := s.plans.ValidateAssignment(*dto.Plan); err != nil {
-			return err
-		}
-	}
-
-	// Update fields individually to satisfy SonarCloud taint analysis
-	// This avoids map/struct updates that trigger false positive SQL injection warnings
-	hasUpdates := false
-
-	if dto.Name != nil && *dto.Name != "" {
-		if err := s.db.Model(row).Update("name", *dto.Name).Error; err != nil {
-			return fmt.Errorf("update tenant name: %w", err)
-		}
-		hasUpdates = true
-	}
-	if dto.Status != nil && *dto.Status != "" {
-		if err := s.db.Model(row).Update("status", *dto.Status).Error; err != nil {
-			return fmt.Errorf("update tenant status: %w", err)
-		}
-		hasUpdates = true
-	}
-	if dto.Plan != nil && *dto.Plan != "" {
-		if err := s.db.Model(row).Update("plan", normalizePlanCode(*dto.Plan)).Error; err != nil {
-			return fmt.Errorf("update tenant plan: %w", err)
-		}
-		hasUpdates = true
-	}
-	if dto.Metadata != nil {
-		if err := s.db.Model(row).Update("metadata", *dto.Metadata).Error; err != nil {
-			return fmt.Errorf("update tenant metadata: %w", err)
-		}
-		hasUpdates = true
-	}
-
-	if !hasUpdates {
-		return nil // No updates
-	}
-
-	// A tenant leaving `active` must not leave its members' sessions running:
-	// suspension is only real once the live tokens die. Revocation failures
-	// are logged, never rolled back — the status change is already committed
-	// and GateSessionRefresh still denies the next refresh as backstop
-	// (pkg/tenant authz.go: "Membership changes invalidate affected sessions").
+	// Revocation stays after commit: storage/Redis failures do not roll back a
+	// lifecycle transition, and the refresh gate remains the backstop.
 	if dto.Status != nil && statusChangeRequiresSessionRevocation(previousStatus, *dto.Status) {
 		s.revokeTenantMemberSessions(id)
 	}
+	return nil
+}
 
+func updateTenantFields(tx *gorm.DB, row *Tenant, dto UpdateTenantDTO) error {
+	// Update fields individually to satisfy SonarCloud taint analysis
+	// This avoids map/struct updates that trigger false positive SQL injection warnings
+	if dto.Name != nil && *dto.Name != "" {
+		if err := tx.Model(row).Update("name", *dto.Name).Error; err != nil {
+			return fmt.Errorf("update tenant name: %w", err)
+		}
+	}
+	if dto.Status != nil && *dto.Status != "" {
+		if err := tx.Model(row).Update("status", *dto.Status).Error; err != nil {
+			return fmt.Errorf("update tenant status: %w", err)
+		}
+	}
+	if dto.Plan != nil && *dto.Plan != "" {
+		if err := tx.Model(row).Update("plan", normalizePlanCode(*dto.Plan)).Error; err != nil {
+			return fmt.Errorf("update tenant plan: %w", err)
+		}
+	}
+	if dto.Metadata != nil {
+		if err := tx.Model(row).Update("metadata", *dto.Metadata).Error; err != nil {
+			return fmt.Errorf("update tenant metadata: %w", err)
+		}
+	}
 	return nil
 }
 
@@ -604,36 +608,37 @@ func (s *Service) DeleteTenant(id uint64) error {
 		return ErrTenantNotFound
 	}
 
-	var row Tenant
-	if err := s.db.Select("id", "code", "status").Where(condIDEquals, id).Take(&row).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return ErrTenantNotFound
-		}
-		return fmt.Errorf("load tenant for delete: %w", err)
-	}
-
-	// Check if tenant has active members
-	var memberCount int64
-	if err := s.db.Model(&Membership{}).
-		Where(activeTenantMemberPredicate, id, "active").
-		Count(&memberCount).Error; err != nil {
-		return fmt.Errorf("check tenant members: %w", err)
-	}
-
-	// Contract §2.1: deletion is reserved for an archived tenant. The live
-	// status is rejected here even when the tenant has no active members -
-	// that combination is reachable by deleting every user (DeleteUser
-	// disables their memberships), and allowing it would tombstone a tenant
-	// that never passed through the archive state the contract requires.
-	if row.Status != tenant.TenantStatusArchived {
-		return ErrTenantNotArchived
-	}
-
-	// Mark tenant as deleted, releasing its code first. Every write shares one
-	// transaction: a code archived without the status change (or the reverse),
-	// or memberships disabled for a tenant that stayed live, would leave the
-	// table in a state neither the console nor the repair routine expects.
+	// The status check and all deletion writes share the row lock with update.
 	return s.db.Transaction(func(tx *gorm.DB) error {
+		var row Tenant
+		if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).Select("id", "code", "status").Where(condIDEquals, id).Take(&row).Error; err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				return ErrTenantNotFound
+			}
+			return fmt.Errorf("load tenant for delete: %w", err)
+		}
+
+		// Check if tenant has active members
+		var memberCount int64
+		if err := tx.Model(&Membership{}).
+			Where(activeTenantMemberPredicate, id, "active").
+			Count(&memberCount).Error; err != nil {
+			return fmt.Errorf("check tenant members: %w", err)
+		}
+
+		// Contract §2.1: deletion is reserved for an archived tenant. The live
+		// status is rejected here even when the tenant has no active members -
+		// that combination is reachable by deleting every user (DeleteUser
+		// disables their memberships), and allowing it would tombstone a tenant
+		// that never passed through the archive state the contract requires.
+		if row.Status != tenant.TenantStatusArchived {
+			return ErrTenantNotArchived
+		}
+
+		// Mark tenant as deleted, releasing its code first. Every write shares one
+		// transaction: a code archived without the status change (or the reverse),
+		// or memberships disabled for a tenant that stayed live, would leave the
+		// table in a state neither the console nor the repair routine expects.
 		if memberCount > 0 {
 			if err := tx.Model(&Membership{}).
 				Where("tenant_id = ? AND status = ?", row.ID, tenant.MembershipActive).

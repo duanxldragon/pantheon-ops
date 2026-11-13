@@ -5,7 +5,7 @@
  */
 
 import type { ModuleSchema } from './schema';
-import { getLeafModuleName, inferModelName } from './schema';
+import { getLeafModuleName, inferModelName, validateGeneratorContract } from './schema';
 import { BackendGenerator } from './backendGenerator';
 import { FrontendGenerator } from './frontendGenerator';
 
@@ -55,6 +55,8 @@ export class ModuleExporter {
   private readonly frontendGen: FrontendGenerator;
 
   constructor(schema: ModuleSchema) {
+    const issues = validateGeneratorContract(schema);
+    if (issues.length) throw new Error(issues.map((issue) => issue.messageKey).join(', '));
     this.schema = schema;
     this.backendGen = new BackendGenerator(schema);
     this.frontendGen = new FrontendGenerator(schema);

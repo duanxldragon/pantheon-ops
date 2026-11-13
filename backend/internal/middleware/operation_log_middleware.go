@@ -15,6 +15,7 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/duanxldragon/pantheon-base/backend/pkg/auditpolicy"
 	"github.com/duanxldragon/pantheon-base/backend/pkg/common"
 	"github.com/duanxldragon/pantheon-base/backend/pkg/metrics"
 	"github.com/duanxldragon/pantheon-base/backend/pkg/tenant"
@@ -223,56 +224,96 @@ func ShutdownOperationLog(ctx context.Context) {
 // OperationLogMiddleware 异步记录操作日志。
 func OperationLogMiddleware(db *gorm.DB) gin.HandlerFunc {
 	store := newOperationLogAsyncStore(db)
+	metadataRecovery := MetadataAwareRecovery()
 	opLogStore = store
 	return func(c *gin.Context) {
-		if db == nil || c.Request.Method == http.MethodGet {
-			c.Next()
+		if route, protected := auditpolicy.Match(c); protected {
+			start := time.Now()
+			// Never read the body or install a response buffer on opted routes,
+			// including failures before identity/binding/security middleware.
+			metadataRecovery(c)
+			store.enqueue(buildMetadataOperationLog(c, route, auditpolicy.Metadata(c), start))
 			return
 		}
-
-		start := time.Now()
-		requestBody := ""
-		if !shouldAllowlistMultipartParam(c) {
-			requestBody = readAndRestoreBody(c)
-		}
-		responseBody := newOperationLogBuffer()
-		c.Writer = operationLogWriter{ResponseWriter: c.Writer, body: responseBody}
-
-		c.Next()
-
-		username := ""
-		if value, ok := c.Get("username"); ok {
-			username, _ = value.(string)
-		}
-
-		status, errorMessage := resolveOperationOutcome(c, responseBody.String())
-
-		log := SystemLogOper{
-			// Stamp the tenant of the acted-on context (queue-5 audit slice):
-			// built AFTER c.Next() so TenantContextMiddleware has already resolved
-			// and stored the context. Routes without tenant middleware (or compat)
-			// stamp 0 = platform population. Ownership never comes from the request.
-			TenantID:        tenantIDForOperationLog(c),
-			RequestID:       strings.TrimSpace(common.GetRequestID(c)),
-			Title:           readOperationLogTitle(c),
-			BusinessType:    readOperationLogBusinessType(c),
-			Method:          c.Request.Method,
-			OperName:        username,
-			OperURL:         c.Request.URL.Path,
-			OperIP:          c.ClientIP(),
-			SourceDomain:    DetectOperationLogSourceDomain(c.Request.URL.Path),
-			SourcePage:      DetectOperationLogSourcePage(c.Request.URL.Path),
-			OperParam:       readOperationLogParam(c, buildAuditParamFallback(c, requestBody)),
-			JsonResult:      readOperationLogResult(c, responseBody.String()),
-			Status:          status,
-			FailureCategory: DetectOperationLogFailureCategory(status, errorMessage, readOperationLogResult(c, responseBody.String())),
-			ErrorMsg:        errorMessage,
-			OperTime:        start,
-			CostTime:        time.Since(start).Milliseconds(),
-		}
-
-		store.enqueue(log)
+		captureLegacyOperationLog(c, db, store)
 	}
+}
+
+func buildMetadataOperationLog(c *gin.Context, route auditpolicy.Route, metadata auditpolicy.SafeMetadata, start time.Time) SystemLogOper {
+	status := common.OperationStatusFailure
+	if metadata.Outcome == auditpolicy.OutcomeSuccess {
+		status = common.OperationStatusSuccess
+	}
+	encoded := auditpolicy.Encode(metadata)
+	category := auditpolicy.OutcomeName(metadata.Outcome)
+	if c.Writer.Status() >= 500 {
+		category = "http_5xx"
+	} else if c.Writer.Status() >= 400 {
+		category = "http_4xx"
+	}
+	common.SetAuditParam(c, encoded)
+	common.SetAuditResult(c, encoded)
+	common.SetAuditErrorMsg(c, auditpolicy.OutcomeName(metadata.Outcome))
+	return SystemLogOper{
+		TenantID: metadata.TenantID, RequestID: common.GetRequestID(c),
+		Title: "business metadata", Method: route.Method, OperURL: route.Template,
+		SourceDomain: DetectOperationLogSourceDomain(route.Template),
+		SourcePage:   DetectOperationLogSourcePage(route.Template),
+		OperParam:    encoded, JsonResult: encoded, Status: status,
+		FailureCategory: category,
+		ErrorMsg:        auditpolicy.OutcomeName(metadata.Outcome), OperTime: start,
+		CostTime: time.Since(start).Milliseconds(),
+	}
+}
+
+func captureLegacyOperationLog(c *gin.Context, db *gorm.DB, store *operationLogAsyncStore) {
+	if db == nil || c.Request.Method == http.MethodGet {
+		c.Next()
+		return
+	}
+
+	start := time.Now()
+	requestBody := ""
+	if !shouldAllowlistMultipartParam(c) {
+		requestBody = readAndRestoreBody(c)
+	}
+	responseBody := newOperationLogBuffer()
+	c.Writer = operationLogWriter{ResponseWriter: c.Writer, body: responseBody}
+
+	c.Next()
+
+	username := ""
+	if value, ok := c.Get("username"); ok {
+		username, _ = value.(string)
+	}
+
+	status, errorMessage := resolveOperationOutcome(c, responseBody.String())
+
+	log := SystemLogOper{
+		// Stamp the tenant of the acted-on context (queue-5 audit slice):
+		// built AFTER c.Next() so TenantContextMiddleware has already resolved
+		// and stored the context. Routes without tenant middleware (or compat)
+		// stamp 0 = platform population. Ownership never comes from the request.
+		TenantID:        tenantIDForOperationLog(c),
+		RequestID:       strings.TrimSpace(common.GetRequestID(c)),
+		Title:           readOperationLogTitle(c),
+		BusinessType:    readOperationLogBusinessType(c),
+		Method:          c.Request.Method,
+		OperName:        username,
+		OperURL:         c.Request.URL.Path,
+		OperIP:          c.ClientIP(),
+		SourceDomain:    DetectOperationLogSourceDomain(c.Request.URL.Path),
+		SourcePage:      DetectOperationLogSourcePage(c.Request.URL.Path),
+		OperParam:       readOperationLogParam(c, buildAuditParamFallback(c, requestBody)),
+		JsonResult:      readOperationLogResult(c, responseBody.String()),
+		Status:          status,
+		FailureCategory: DetectOperationLogFailureCategory(status, errorMessage, readOperationLogResult(c, responseBody.String())),
+		ErrorMsg:        errorMessage,
+		OperTime:        start,
+		CostTime:        time.Since(start).Milliseconds(),
+	}
+
+	store.enqueue(log)
 }
 
 // resolveOperationOutcome derives the audit status and failure message for a
