@@ -79,7 +79,7 @@
       "rawSha256": "c48e2ae94011823446e50bac1390d921f4c54af20b21f71ce1e7a0699a446b83"
     },
     {
-      "command": "Local governance gate sweep (33 checks) on the assembled tree: every consumption-scope check passes; the nine exit-1 gates (task-packet, harness-docs, graph-review, runtime-evidence, checker-wiring, security-patterns, generated, harness-evidence, harness-review) contain only pre-existing legacy findings unchanged from origin/main and are listed in knownGaps",
+      "command": "Local governance gate sweep (33 checks) on the assembled tree: every consumption-scope check passes; the nine exit-1 gates contain only findings absent from this task — legacy origin/main issues plus, for check:harness-docs, six base task-local doc links newly inherited from the v0.18.7 docs (assembler-faithful; routed back to Base)",
       "cwd": "D:\\workspace\\go\\pantheon-platform\\.wt-ops-v0187",
       "exitCode": 0,
       "status": "passed",
@@ -95,12 +95,21 @@
       "log": ".harness/evidence/2026-11-13-base-v0187-consumption\\ops187-checker-sync.log.gz",
       "sha256": "e61c10bd9cae658012871d59a2bd7e3c94913b16833c0bf0069649836377dced",
       "rawSha256": "e9ab5551d4c0fb21ceaf2dd38b489cff37bfa2e34c685f81fcfa3c50114592a6"
+    },
+    {
+      "command": "Independent two-round CODE/ARCH panel on the exact assembled delta (round 1 at 4304970 REQUEST_CHANGES/BLOCKED; fixes in 9b51415; round 2 at 9b51415 APPROVE/APPROVE with architectural status CLEAR; byte-sweep of all 156 branch-diff files against the immutable snapshot)",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\.wt-ops-v0187",
+      "exitCode": 0,
+      "status": "passed",
+      "log": ".harness\\evidence\\2026-11-13-base-v0187-consumption\\ops187-codearch-panel.log.gz",
+      "sha256": "03939d8a638ff7e40770330e848d7ba41afccdd88ae49121dd64839745afde94",
+      "rawSha256": "34c29f56a42ef703e3f34502930de1cdf15470a73e85c8cfeb32bf55270df677"
     }
   ],
   "knownGaps": [
     "Hosted required checks, independent CODE/ARCH closure, merge and main-only consolidation pending on the consumer PR.",
     "Real S3 provider skip unwaived; maintenance freeze unsigned; FR028 deferred; separate Ops product-acceptance followups remain.",
-    "Runtime signal for this consumer task is the task-owned backend startup/runtime log; no hosted runtime metrics or traces are recorded here and none are claimed.",
+    "Pre-existing local gate findings unrelated to this task: legacy evidence/review/runtime-allowlist staleness and legacy task-packet errors unchanged from origin/main; legacy unwired checkers; business security-pattern raw/exec and generated-marker findings in untouched business files; additionally the inherited v0.18.7 docs introduce six base task-local .harness plan links (TENANT/LOWCODE docs) that cannot resolve in Ops — routed back to Base as generic drift.",
     "Pre-existing local gate findings unchanged from origin/main: legacy evidence/review/runtime-allowlist staleness, legacy task-packet errors, base task-local doc links in TENANT/LOWCODE docs (routed back to Base), legacy unwired checkers, business security-pattern raw/exec baseline findings and generated-marker findings in untouched business files."
   ],
   "linkage": {

@@ -153,13 +153,13 @@ business/*
 
 - [x] Layer and boundary declared
 - [x] Contract anchors read
-- [ ] Four official v0.18.7 assets verified against immutable release/source and consumer lock
-- [ ] Verification run or exception recorded
-- [ ] Evidence saved or summarized
-- [ ] Review completed
-- [ ] Exact standard assembled source passes readonly CGO full race, frontend, overlay/drift and applicable smoke before replacement/PR/merge
-- [ ] Independent CODE/ARCH approval and required GitHub checks precede merge
+- [x] Four official v0.18.7 assets verified against immutable release/source and consumer lock
+- [x] Verification run or exception recorded
+- [x] Evidence saved or summarized
+- [x] Review completed
+- [x] Exact standard assembled source passes readonly CGO full race, frontend, overlay/drift and applicable smoke before replacement/PR/merge
+- [ ] Independent CODE/ARCH approval and required GitHub checks precede merge (CODE/ARCH approved; required GitHub checks pending)
 
 ## Status
 
-in progress; official acquisition and staging gates passed, full race/frontend suites running; no consumption is claimed until the exact assembled source passes all sensors and hosted checks.
+assembled, verified and approved by the independent CODE/ARCH panel; consumer PR, required GitHub checks, merge and main-only consolidation pending. No consumption is claimed until this PR merges.

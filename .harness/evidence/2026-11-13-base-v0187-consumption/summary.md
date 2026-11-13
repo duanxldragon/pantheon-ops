@@ -28,9 +28,14 @@ Ops consumes the immutable official foundation release `pantheon-base-v0.18.7` (
 - `scripts/frontmatter-check.mjs` was synced to the immutable v0.18.7 snapshot copy: the v0.18.7 docs are prettier-formatted (blank line between a relation heading and its list) and the already-official-synced `tests/docs/frontmatter-check.test.mjs` asserts that tolerance; without the sync the CI Docs Governance frontmatter gate failed. The checker test suite and the gate now pass.
 - Nine local gates still exit 1 exclusively on pre-existing legacy findings that are identical on origin/main (stale archive allowlist entries, legacy task packets/evidence, base task-local links inside inherited TENANT/LOWCODE docs, legacy unwired checkers, baseline business security-pattern and generated-marker findings). None references this task; none runs in the hosted required checks. The base-doc-link finding class is routed back to Base per the inheritance boundary.
 
+## Independent CODE/ARCH panel (completed)
+
+- Round 1 (commit 4304970): CODE REQUEST_CHANGES and ARCH BLOCKED — P1: `docs/PROJECT_INHERITANCE.{md,en.md}` anchors still pinned v0.18.6/5553bc0e; P2: materialization had dropped the generated DO-NOT-EDIT header in `frontend/src/modules/generated/system.ts`; P2: release notes rewrote producer validation wording without provenance; P2: CHANGELOG was declared but (correctly, per prior consumption practice) not modified.
+- Round 1 closure (commit 9b51415): anchors repinned to `pantheon-base-v0.18.7`/`3203624e55438866edb951bd74e671eab38d2f16`; system.ts restored byte-identical from the immutable snapshot; release notes gained a consumer-record provenance paragraph; manifest/packet corrected; commands.json sweep-entry wording corrected per round-2 ARCH P2.
+- Round 2 (commit 9b51415): both lanes APPROVE, architectural status CLEAR. Both lanes independently byte-swept the full branch diff against the immutable snapshot: the only deviations are the adjudicated exceptions (go.mod ops indirect deps, allowlisted business.go overlay hook, i18n businessFallback spreads, consumer release notes). Lane artifacts: `code-reviewer.md`, `architect.md`, `raw-*.md.gz`, `review-snapshot.json`, verdicts in `review.md`.
+
 ## Pending (recorded as they actually complete)
 
-- Independent CODE/ARCH review of the assembled delta (review.md currently records `blocked`).
 - Consumer PR with required hosted checks, merge, main-only consolidation.
 
 No consumption is claimed until the exact assembled source passes every sensor above and the consumer PR merges with required checks green.
