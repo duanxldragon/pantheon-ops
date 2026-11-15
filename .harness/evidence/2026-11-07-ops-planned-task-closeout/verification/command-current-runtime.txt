@@ -1,0 +1,82 @@
+
+Running 3 tests using 1 worker
+
+(node:21124) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x  1 tests\smoke\business\deploy\deploy-command.spec.ts:10:2 › viewed task command conflict refreshes without replay (light) (489ms)
+(node:24156) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x  2 tests\smoke\business\deploy\deploy-command.spec.ts:10:2 › viewed task command conflict refreshes without replay (dark) (4.6s)
+(node:19780) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok 3 tests\smoke\business\deploy\deploy-command.spec.ts:57:1 › batch cancel retains failed selection and reports partial failure (4.9s)
+
+
+  1) tests\smoke\business\deploy\deploy-command.spec.ts:10:2 › viewed task command conflict refreshes without replay (light) 
+
+    Error: cmdbhost.ip_exists
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 200
+    Received: 500
+
+      4 |
+      5 | async function success<T>(response: APIResponse): Promise<T> {
+    > 6 |  const payload = await response.json(); expect(response.ok(), payload.message).toBeTruthy(); expect(payload.code,payload.message).toBe(200); return payload.data as T;
+        |                                                                                                                                   ^
+      7 | }
+      8 | type CommandTask = {id:number;status:string;stateVersion:string;hosts:{id:number}[]};
+      9 | for(const mode of ['light','dark'] as const){
+        at success (D:\workspace\go\pantheon-platform\pantheon-ops\frontend\tests\smoke\business\deploy\deploy-command.spec.ts:6:131)
+        at D:\workspace\go\pantheon-platform\pantheon-ops\frontend\tests\smoke\business\deploy\deploy-command.spec.ts:17:12
+
+    Error Context: ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\command-current-browser\smoke-business-deploy-depl-515b4-eshes-without-replay-light-\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\command-current-browser\smoke-business-deploy-depl-515b4-eshes-without-replay-light-\trace.zip
+    Usage:
+
+        npx playwright show-trace ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\command-current-browser\smoke-business-deploy-depl-515b4-eshes-without-replay-light-\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  2) tests\smoke\business\deploy\deploy-command.spec.ts:10:2 › viewed task command conflict refreshes without replay (dark) 
+
+    Error: expect(received).toEqual(expected) // deep equality
+
+    - Expected  - 1
+    + Received  + 7
+
+    - Array []
+    + Array [
+    +   "Error: business.deploy.task.commandConflict
+    +
+    + expect(received).toBeTruthy()
+    +
+    + Received: false",
+    + ]
+
+      50 |     for(const [id,endpoint] of [[taskId,'deploy/tasks'],[hostId,'cmdb/hosts'],[scopeId,'bizscope'],[packageId,'deploy/packages']] as const){if(!id)continue;try{await success(await page.request.delete(`${apiBaseUrl}/business/${endpoint}/${id}`,{headers:cleanupHeaders}))}catch(error){cleanupErrors.push(`${endpoint}/${id}: ${String(error)}`)}}
+      51 |    }catch(error){cleanupErrors.push(String(error))}
+    > 52 |    await testInfo.attach('command-fixture-cleanup',{contentType:'application/json',body:JSON.stringify({token,taskId,hostId,scopeId,packageId,cleanupErrors})});if(!failed)expect(cleanupErrors).toEqual([]);
+         |                                                                                                                                                                                                  ^
+      53 |   }
+      54 |  });
+      55 | }
+        at D:\workspace\go\pantheon-platform\pantheon-ops\frontend\tests\smoke\business\deploy\deploy-command.spec.ts:52:194
+
+    Error Context: ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\command-current-browser\smoke-business-deploy-depl-8790f-reshes-without-replay-dark-\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\command-current-browser\smoke-business-deploy-depl-8790f-reshes-without-replay-dark-\trace.zip
+    Usage:
+
+        npx playwright show-trace ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\command-current-browser\smoke-business-deploy-depl-8790f-reshes-without-replay-dark-\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  2 failed
+    tests\smoke\business\deploy\deploy-command.spec.ts:10:2 › viewed task command conflict refreshes without replay (light) 
+    tests\smoke\business\deploy\deploy-command.spec.ts:10:2 › viewed task command conflict refreshes without replay (dark) 
+  1 passed (12.7s)

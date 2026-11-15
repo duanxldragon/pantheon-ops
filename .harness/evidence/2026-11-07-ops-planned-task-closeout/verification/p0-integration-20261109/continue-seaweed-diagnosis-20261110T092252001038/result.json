@@ -1,0 +1,124 @@
+{
+  "taskId": "2026-11-07-ops-planned-task-closeout",
+  "parentTask": "docs/harness/tasks/2026-11-07-ops-planned-task-closeout.task.md",
+  "tier": "L2",
+  "layer": "platform external-provider diagnosis; no product/Base/business source changes",
+  "host": "115.190.251.143",
+  "provider": "SeaweedFS 4.53",
+  "unit": "pantheon-p0-velero-s3-seaweed-v1",
+  "checkedUTC": "2026-11-10T09:22:52.029515+00:00",
+  "outcome": "root-cause-unresolved",
+  "remoteMutations": 0,
+  "remoteCommandSubmitted": false,
+  "reproduction": {
+    "provenance": "existing completed receipts; no new write reproduction in this run",
+    "manualPutHTTPStatus": 500,
+    "manualErrorCode": "InternalError",
+    "manualStreaming": false,
+    "manualObjectAbsent": true,
+    "manualBucketCleanupVerified": true,
+    "failedMinioModes": [
+      "default",
+      "signed-md5",
+      "unsigned-sha-with-signed-md5"
+    ],
+    "currentRealBaseS3Success": false
+  },
+  "hypotheses": [
+    {
+      "id": 1,
+      "claim": "default minimum-free-space threshold exceeds capped data disk",
+      "outcome": "disproved-by-saved-help-and-storage-status",
+      "defaultMinimumFreePercent": 1,
+      "diskTotalBytes": 234594304,
+      "diskAvailableBytes": 229003264,
+      "availablePercent": 97.6167,
+      "volumeReadOnly": false,
+      "helpExcerpt": [
+        "  -volume.minFreeSpace string",
+        "    \tmin free disk space (value<=100 as percentage like 1, other as human readable bytes, like 10GiB). Low disk space will mark all volumes as ReadOnly.",
+        "  -volume.minFreeSpacePercent string",
+        "    \tminimum free disk space (default to 1%). Low disk space will mark all volumes as ReadOnly (deprecated, use minFreeSpace instead). (default \"1\")"
+      ]
+    }
+  ],
+  "diagnosticSignalCaveat": {
+    "signal": "manual response checksum category",
+    "reason": "regex scans entire XML body; object path contains sha256; Message field was not isolated",
+    "checksumMismatchProven": false,
+    "reference": ".local/ops-acceptance/continue-base-s3-manual-protocol.py:69"
+  },
+  "connectionFailure": {
+    "errorType": "PermissionError",
+    "winerror": 10013,
+    "failedStage": "SSH socket connect",
+    "source": "first invocation of new readonly helper in this task; full traceback read; no remote command submitted",
+    "reference": ".local/ops-acceptance/remote.py:37"
+  },
+  "gaps": [
+    "current master writable-volume layout and collection mapping",
+    "current filer-to-master/volume failure category and source location",
+    "current native process UID, mount namespace permissions, cgroup pressure and exact journal messages",
+    "full S3 XML Message unavailable in persisted manual receipt; no checksum causal evidence"
+  ],
+  "repairRecommendation": null,
+  "repairScope": "Root only after cause is proven; preserve original UID/data/binary/spec/caps and rollback; no repair helper generated",
+  "similarPatternCheck": {
+    "nativeInstallerVolumeMax": 1,
+    "nativeInspectorEnforcesOriginalArgv": true,
+    "reference": ".local/ops-acceptance/resume-velero-s3-v6-native.py:274",
+    "collectionCapacityCauseProven": false,
+    "productSourceNotReviewed": "bounded provider-only scope"
+  },
+  "verification": {
+    "localHelperSyntax": "pass",
+    "embeddedRemoteSyntax": "pass",
+    "remoteWriteEndpointsAbsent": true,
+    "remoteHelperRuntime": "not validated; connection denied",
+    "productBuildAndTests": "not rerun; no product changes; existing real S3 test remains red"
+  },
+  "stopCondition": "bounded diagnosis ended after local evidence review; remote socket denied; one hypothesis disproved, no additional guesses or repairs",
+  "selfReview": "own-file syntax and read-only endpoint review only; no independent coverage requested or delegated",
+  "references": {
+    "storage": {
+      "path": ".local/ops-acceptance/continue-base-s3-storage-readonly-20261110T090617303822.json",
+      "sha256": "45b9d859e3cc9744c332d6cc9db5a5797a41fd9de1bfe28ad360f08478a627ae"
+    },
+    "protocol": {
+      "path": ".local/ops-acceptance/continue-base-s3-protocol-comparison-20261110T090146899828/protocol-comparison.json",
+      "sha256": "3c9aca7ce3092d0ca63f983eb14cf54a0be9140b92eb8e3259898c80c10029f7"
+    },
+    "manual": {
+      "path": ".local/ops-acceptance/continue-base-s3-manual-protocol-20261110T091331339761/manual-protocol-result.json",
+      "sha256": "f3b4cb613c4b6811e73a5c291517fd994560d8691a537f6422a7ca4adce5b6fa"
+    },
+    "manualMetadata": {
+      "path": ".local/ops-acceptance/continue-base-s3-manual-protocol-20261110T091331339761/http-metadata.jsonl",
+      "sha256": "75d09b155e225673fd3a16a2e7ee990dd093855a78c7f844c7c40ce6a6635a95"
+    },
+    "journalGap": {
+      "path": ".local/ops-acceptance/continue-base-s3-readonly-diagnosis-20261110T090747472988.json",
+      "sha256": "1fa1a252768fa1ae18ac1861a1b1e7e54f4452d8fddc01e07f7b472108989b39"
+    },
+    "nativeHelp": {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-velero-s3-v4-root-diagnostic-20261110T020956488756.json",
+      "sha256": "8dda226fd364f1f0e57c528afb1e7fb56eb30d2f708362a6171d048bd07405ce"
+    },
+    "installer": {
+      "path": ".local/ops-acceptance/resume-velero-s3-v4-remote.py",
+      "sha256": "63b2e9a90fb7b54fc522e6190ff6ad0cb353f199752dd7fea76b7d93cb47183a"
+    },
+    "nativeInspector": {
+      "path": ".local/ops-acceptance/resume-velero-s3-v6-native.py",
+      "sha256": "14f9ca3cc471bbf754da27fcdb71b2e22bd01153eefb02088dc43bb543527081"
+    },
+    "manualHelper": {
+      "path": ".local/ops-acceptance/continue-base-s3-manual-protocol.py",
+      "sha256": "0972d55990fdf78d5a79082033817ab7b1159ac18f802d1d07dc3bfb42010a81"
+    },
+    "newReadonlyHelper": {
+      "path": ".local/ops-acceptance/continue-seaweed-diagnosis-topology.py",
+      "sha256": "fd3172421141cd67deb6e8b32fd80135d80220f5c6de749dab40d84505961c6e"
+    }
+  }
+}

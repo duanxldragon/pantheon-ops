@@ -2,17 +2,21 @@
   "schemaVersion": 1,
   "taskId": "2026-09-28-ops-delivery-readiness-gap-closure",
   "title": "Close Pantheon Ops delivery readiness gaps",
-  "status": "planned",
+  "status": "in-progress",
   "priority": "P0",
   "deliveryTier": "L2",
   "primaryLayer": "business/*",
-  "qualityProfiles": ["runtime-quality", "architecture-fitness", "method-health"],
+  "qualityProfiles": [
+    "runtime-quality",
+    "architecture-fitness",
+    "method-health"
+  ],
   "ratchetDecision": "guide-updated",
   "goal": "Turn the current RC-ready local implementation into an evidence-backed production delivery decision without hiding external, Base-first, SSRF, tenant, or Harness gaps.",
   "scope": {
     "in": [
       "re-run and close the direct production acceptance gates identified by the 2026-08-31 round-2 review",
-      "verify the v0.13.0 foundation consumer boundary and route shared fixes back to pantheon-base",
+      "verify the v0.18.6 foundation consumer boundary and route shared fixes back to pantheon-base",
       "record tenant migration G2/G3 evidence as a separate multi-tenant release track",
       "triage active Harness/schema/link and generated-artifact gate failures into resumable child packets"
     ],
@@ -26,8 +30,26 @@
   "taskDoc": "docs/harness/tasks/2026-09-28-ops-delivery-readiness-gap-closure.task.md",
   "statusDoc": ".harness/tasks/2026-09-28-ops-delivery-readiness-gap-closure/STATUS.md",
   "executionQueueDoc": ".harness/tasks/2026-09-28-ops-delivery-readiness-gap-closure/EXECUTION_QUEUE.md",
-  "children": ["D1", "D2", "D3", "D4", "D5"],
-  "executionBatches": [["D3", "D5"], ["D1", "D2"], ["D4"]],
+  "children": [
+    "D1",
+    "D2",
+    "D3",
+    "D4",
+    "D5"
+  ],
+  "executionBatches": [
+    [
+      "D3",
+      "D5"
+    ],
+    [
+      "D1",
+      "D2"
+    ],
+    [
+      "D4"
+    ]
+  ],
   "runtimeSensitive": true,
   "estimatedEffort": {
     "singleTenantProduction": "4.5-9 engineer-days after endpoints, credentials, and maintainer decisions are available",
@@ -83,5 +105,14 @@
       "node scripts/harness/check-task-packet.mjs --root ."
     ],
     "visualEvidence": null
+  },
+  "lastReconciled": "2026-11-09",
+  "currentExecutionEvidence": ".harness/evidence/2026-11-07-ops-planned-task-closeout/summary.md",
+  "childStatus": {
+    "D1": "remote-partial-acceptance-current-SSH-timeout-provider-install-unverified",
+    "D2": "code-repaired-policy-open",
+    "D3": "current-rebuild-verified-implemented-Base-permission-release-pending",
+    "D4": "blocked-G2-G3",
+    "D5": "active-repaired-implemented-Base-link-archive-release-pending"
   }
 }

@@ -1,0 +1,71 @@
+{
+  "languageServer": "pyright",
+  "version": "1.1.414",
+  "protocol": "LSP stdio JSON-RPC",
+  "settings": {
+    "diagnosticMode": "openFilesOnly",
+    "typeCheckingMode": "basic",
+    "autoSearchPaths": true,
+    "useLibraryCodeForTypes": true,
+    "extraPaths": [
+      "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance"
+    ]
+  },
+  "sourceFiles": [
+    {
+      "path": ".local/ops-acceptance/continue-velero-alias-v3-contract.py",
+      "sha256": "bfac98f9c72ae3cbe3ff4bc3a9d97fe3d3c377f471e1ab851586c945772a4ca6",
+      "stable": true,
+      "diagnostics": []
+    },
+    {
+      "path": ".local/ops-acceptance/continue-velero-alias-v3-remote.py",
+      "sha256": "5e443950e04855771f6a36ad67041439a34902be9eb66dc0a960891e4dcb951b",
+      "stable": true,
+      "diagnostics": []
+    },
+    {
+      "path": ".local/ops-acceptance/continue-velero-alias-v3-root.py",
+      "sha256": "b19265f32665a589e76896591a5401c08149b173e77f767c1d9034b8c85d6331",
+      "stable": true,
+      "diagnostics": []
+    },
+    {
+      "path": ".local/ops-acceptance/continue-velero-alias-v3-generate.py",
+      "sha256": "a1c3738d2ebff357e18f20866f5ca9d84131d1f178332e321ef81ac2588ad88f",
+      "stable": true,
+      "diagnostics": []
+    },
+    {
+      "path": ".local/ops-acceptance/continue-velero-alias-v3-test.py",
+      "sha256": "5f99b64c7961918e58e4f5bd89aad7aa4c6c9798d303696c19c7faa478a3b7bd",
+      "stable": true,
+      "diagnostics": [
+        {
+          "range": {
+            "start": {
+              "line": 889,
+              "character": 6
+            },
+            "end": {
+              "line": 889,
+              "character": 17
+            }
+          },
+          "message": "Cannot assign to attribute \"_sealed_raw\" for class \"ModuleType\"\n\u00a0\u00a0Attribute \"_sealed_raw\" is unknown",
+          "severity": 1,
+          "code": "reportAttributeAccessIssue",
+          "source": "Pyright",
+          "codeDescription": {
+            "href": "https://github.com/microsoft/pyright/blob/main/docs/configuration.md#reportAttributeAccessIssue"
+          }
+        }
+      ]
+    }
+  ],
+  "exitCode": 1,
+  "runtimeExecuted": false,
+  "errorCount": 1,
+  "warningCount": 0,
+  "seconds": 5.625
+}

@@ -1,0 +1,854 @@
+--- FAIL: TestFileDistRoutesRejectUnsupportedDataScope (1.20s)
+    --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/missing (0.10s)
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/missing/POST/filedist/tasks (0.00s)
+            data_scope_test.go:64: unsupported scope reached handler: HTTP 400: {"code":400,"data":null,"message":"invalid_request"}
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/missing/POST/filedist/tasks/:id/start (0.01s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/missing/POST/filedist/tasks/:id/cancel (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/missing/POST/filedist/tasks/:id/retry (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/missing/POST/filedist/storages (0.00s)
+            data_scope_test.go:64: unsupported scope reached handler: HTTP 400: {"code":400,"data":null,"message":"invalid_request"}
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/missing/POST/filedist/files/upload (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/missing/POST/business/filedist/tasks (0.00s)
+            data_scope_test.go:64: unsupported scope reached handler: HTTP 400: {"code":400,"data":null,"message":"invalid_request"}
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/missing/POST/business/filedist/tasks/:id/start (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/missing/POST/business/filedist/tasks/:id/cancel (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/missing/POST/business/filedist/tasks/:id/retry (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/missing/POST/business/filedist/storages (0.00s)
+            data_scope_test.go:64: unsupported scope reached handler: HTTP 400: {"code":400,"data":null,"message":"invalid_request"}
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/missing/POST/business/filedist/files/upload (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/missing/GET/filedist/tasks (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/missing/GET/filedist/tasks/:id (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/missing/GET/filedist/tasks/:id/targets (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/missing/GET/filedist/tasks/:id/hosts (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/missing/GET/filedist/tasks/:id/events (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/missing/GET/filedist/tasks/:id/progress (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/missing/GET/filedist/files (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/missing/GET/filedist/files/:id (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/missing/GET/filedist/files/:id/download (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/missing/GET/filedist/storages (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/missing/GET/filedist/storages/:id (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/missing/GET/business/filedist/tasks (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/missing/GET/business/filedist/tasks/:id (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/missing/GET/business/filedist/tasks/:id/targets (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/missing/GET/business/filedist/tasks/:id/hosts (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/missing/GET/business/filedist/tasks/:id/events (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/missing/GET/business/filedist/tasks/:id/progress (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/missing/GET/business/filedist/files (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/missing/GET/business/filedist/files/:id (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/missing/GET/business/filedist/files/:id/download (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/missing/GET/business/filedist/storages (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/missing/GET/business/filedist/storages/:id (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/missing/PUT/filedist/storages/:id (0.00s)
+            data_scope_test.go:64: unsupported scope reached handler: HTTP 400: {"code":400,"data":null,"message":"invalid_request"}
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/missing/PUT/business/filedist/storages/:id (0.00s)
+            data_scope_test.go:64: unsupported scope reached handler: HTTP 400: {"code":400,"data":null,"message":"invalid_request"}
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/missing/DELETE/filedist/storages/:id (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/missing/DELETE/filedist/files/:id (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/missing/DELETE/filedist/tasks/:id (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/missing/DELETE/business/filedist/storages/:id (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/missing/DELETE/business/filedist/files/:id (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/missing/DELETE/business/filedist/tasks/:id (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+    --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/wrong-type (0.08s)
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/wrong-type/POST/filedist/tasks (0.00s)
+            data_scope_test.go:64: unsupported scope reached handler: HTTP 400: {"code":400,"data":null,"message":"invalid_request"}
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/wrong-type/POST/filedist/tasks/:id/start (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/wrong-type/POST/filedist/tasks/:id/cancel (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/wrong-type/POST/filedist/tasks/:id/retry (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/wrong-type/POST/filedist/storages (0.00s)
+            data_scope_test.go:64: unsupported scope reached handler: HTTP 400: {"code":400,"data":null,"message":"invalid_request"}
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/wrong-type/POST/filedist/files/upload (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/wrong-type/POST/business/filedist/tasks (0.00s)
+            data_scope_test.go:64: unsupported scope reached handler: HTTP 400: {"code":400,"data":null,"message":"invalid_request"}
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/wrong-type/POST/business/filedist/tasks/:id/start (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/wrong-type/POST/business/filedist/tasks/:id/cancel (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/wrong-type/POST/business/filedist/tasks/:id/retry (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/wrong-type/POST/business/filedist/storages (0.00s)
+            data_scope_test.go:64: unsupported scope reached handler: HTTP 400: {"code":400,"data":null,"message":"invalid_request"}
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/wrong-type/POST/business/filedist/files/upload (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/wrong-type/GET/filedist/tasks (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/wrong-type/GET/filedist/tasks/:id (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/wrong-type/GET/filedist/tasks/:id/targets (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/wrong-type/GET/filedist/tasks/:id/hosts (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/wrong-type/GET/filedist/tasks/:id/events (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/wrong-type/GET/filedist/tasks/:id/progress (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/wrong-type/GET/filedist/files (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/wrong-type/GET/filedist/files/:id (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/wrong-type/GET/filedist/files/:id/download (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/wrong-type/GET/filedist/storages (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/wrong-type/GET/filedist/storages/:id (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/wrong-type/GET/business/filedist/tasks (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/wrong-type/GET/business/filedist/tasks/:id (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/wrong-type/GET/business/filedist/tasks/:id/targets (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/wrong-type/GET/business/filedist/tasks/:id/hosts (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/wrong-type/GET/business/filedist/tasks/:id/events (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/wrong-type/GET/business/filedist/tasks/:id/progress (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/wrong-type/GET/business/filedist/files (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/wrong-type/GET/business/filedist/files/:id (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/wrong-type/GET/business/filedist/files/:id/download (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/wrong-type/GET/business/filedist/storages (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/wrong-type/GET/business/filedist/storages/:id (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/wrong-type/PUT/filedist/storages/:id (0.00s)
+            data_scope_test.go:64: unsupported scope reached handler: HTTP 400: {"code":400,"data":null,"message":"invalid_request"}
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/wrong-type/PUT/business/filedist/storages/:id (0.00s)
+            data_scope_test.go:64: unsupported scope reached handler: HTTP 400: {"code":400,"data":null,"message":"invalid_request"}
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/wrong-type/DELETE/filedist/storages/:id (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/wrong-type/DELETE/filedist/files/:id (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/wrong-type/DELETE/filedist/tasks/:id (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/wrong-type/DELETE/business/filedist/storages/:id (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/wrong-type/DELETE/business/filedist/files/:id (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/wrong-type/DELETE/business/filedist/tasks/:id (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+    --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/typed-nil (0.08s)
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/typed-nil/POST/filedist/tasks (0.00s)
+            data_scope_test.go:64: unsupported scope reached handler: HTTP 400: {"code":400,"data":null,"message":"invalid_request"}
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/typed-nil/POST/filedist/tasks/:id/start (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/typed-nil/POST/filedist/tasks/:id/cancel (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/typed-nil/POST/filedist/tasks/:id/retry (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/typed-nil/POST/filedist/storages (0.00s)
+            data_scope_test.go:64: unsupported scope reached handler: HTTP 400: {"code":400,"data":null,"message":"invalid_request"}
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/typed-nil/POST/filedist/files/upload (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/typed-nil/POST/business/filedist/tasks (0.00s)
+            data_scope_test.go:64: unsupported scope reached handler: HTTP 400: {"code":400,"data":null,"message":"invalid_request"}
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/typed-nil/POST/business/filedist/tasks/:id/start (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/typed-nil/POST/business/filedist/tasks/:id/cancel (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/typed-nil/POST/business/filedist/tasks/:id/retry (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/typed-nil/POST/business/filedist/storages (0.00s)
+            data_scope_test.go:64: unsupported scope reached handler: HTTP 400: {"code":400,"data":null,"message":"invalid_request"}
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/typed-nil/POST/business/filedist/files/upload (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/typed-nil/GET/filedist/tasks (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/typed-nil/GET/filedist/tasks/:id (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/typed-nil/GET/filedist/tasks/:id/targets (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/typed-nil/GET/filedist/tasks/:id/hosts (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/typed-nil/GET/filedist/tasks/:id/events (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/typed-nil/GET/filedist/tasks/:id/progress (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/typed-nil/GET/filedist/files (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/typed-nil/GET/filedist/files/:id (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/typed-nil/GET/filedist/files/:id/download (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/typed-nil/GET/filedist/storages (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/typed-nil/GET/filedist/storages/:id (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/typed-nil/GET/business/filedist/tasks (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/typed-nil/GET/business/filedist/tasks/:id (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/typed-nil/GET/business/filedist/tasks/:id/targets (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/typed-nil/GET/business/filedist/tasks/:id/hosts (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/typed-nil/GET/business/filedist/tasks/:id/events (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/typed-nil/GET/business/filedist/tasks/:id/progress (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/typed-nil/GET/business/filedist/files (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/typed-nil/GET/business/filedist/files/:id (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/typed-nil/GET/business/filedist/files/:id/download (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/typed-nil/GET/business/filedist/storages (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/typed-nil/GET/business/filedist/storages/:id (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/typed-nil/PUT/filedist/storages/:id (0.00s)
+            data_scope_test.go:64: unsupported scope reached handler: HTTP 400: {"code":400,"data":null,"message":"invalid_request"}
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/typed-nil/PUT/business/filedist/storages/:id (0.00s)
+            data_scope_test.go:64: unsupported scope reached handler: HTTP 400: {"code":400,"data":null,"message":"invalid_request"}
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/typed-nil/DELETE/filedist/storages/:id (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/typed-nil/DELETE/filedist/files/:id (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/typed-nil/DELETE/filedist/tasks/:id (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/typed-nil/DELETE/business/filedist/storages/:id (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/typed-nil/DELETE/business/filedist/files/:id (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/typed-nil/DELETE/business/filedist/tasks/:id (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+    --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/empty (0.13s)
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/empty/POST/filedist/tasks (0.00s)
+            data_scope_test.go:64: unsupported scope reached handler: HTTP 400: {"code":400,"data":null,"message":"invalid_request"}
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/empty/POST/filedist/tasks/:id/start (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/empty/POST/filedist/tasks/:id/cancel (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/empty/POST/filedist/tasks/:id/retry (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/empty/POST/filedist/storages (0.00s)
+            data_scope_test.go:64: unsupported scope reached handler: HTTP 400: {"code":400,"data":null,"message":"invalid_request"}
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/empty/POST/filedist/files/upload (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/empty/POST/business/filedist/tasks (0.00s)
+            data_scope_test.go:64: unsupported scope reached handler: HTTP 400: {"code":400,"data":null,"message":"invalid_request"}
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/empty/POST/business/filedist/tasks/:id/start (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/empty/POST/business/filedist/tasks/:id/cancel (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/empty/POST/business/filedist/tasks/:id/retry (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/empty/POST/business/filedist/storages (0.00s)
+            data_scope_test.go:64: unsupported scope reached handler: HTTP 400: {"code":400,"data":null,"message":"invalid_request"}
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/empty/POST/business/filedist/files/upload (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/empty/GET/filedist/tasks (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/empty/GET/filedist/tasks/:id (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/empty/GET/filedist/tasks/:id/targets (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/empty/GET/filedist/tasks/:id/hosts (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/empty/GET/filedist/tasks/:id/events (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/empty/GET/filedist/tasks/:id/progress (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/empty/GET/filedist/files (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/empty/GET/filedist/files/:id (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/empty/GET/filedist/files/:id/download (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/empty/GET/filedist/storages (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/empty/GET/filedist/storages/:id (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/empty/GET/business/filedist/tasks (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/empty/GET/business/filedist/tasks/:id (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/empty/GET/business/filedist/tasks/:id/targets (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/empty/GET/business/filedist/tasks/:id/hosts (0.01s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/empty/GET/business/filedist/tasks/:id/events (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/empty/GET/business/filedist/tasks/:id/progress (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/empty/GET/business/filedist/files (0.01s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/empty/GET/business/filedist/files/:id (0.01s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/empty/GET/business/filedist/files/:id/download (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/empty/GET/business/filedist/storages (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/empty/GET/business/filedist/storages/:id (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/empty/PUT/filedist/storages/:id (0.00s)
+            data_scope_test.go:64: unsupported scope reached handler: HTTP 400: {"code":400,"data":null,"message":"invalid_request"}
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/empty/PUT/business/filedist/storages/:id (0.00s)
+            data_scope_test.go:64: unsupported scope reached handler: HTTP 400: {"code":400,"data":null,"message":"invalid_request"}
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/empty/DELETE/filedist/storages/:id (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/empty/DELETE/filedist/files/:id (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/empty/DELETE/filedist/tasks/:id (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/empty/DELETE/business/filedist/storages/:id (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/empty/DELETE/business/filedist/files/:id (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/empty/DELETE/business/filedist/tasks/:id (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+    --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/whitespace (0.11s)
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/whitespace/POST/filedist/tasks (0.00s)
+            data_scope_test.go:64: unsupported scope reached handler: HTTP 400: {"code":400,"data":null,"message":"invalid_request"}
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/whitespace/POST/filedist/tasks/:id/start (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/whitespace/POST/filedist/tasks/:id/cancel (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/whitespace/POST/filedist/tasks/:id/retry (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/whitespace/POST/filedist/storages (0.00s)
+            data_scope_test.go:64: unsupported scope reached handler: HTTP 400: {"code":400,"data":null,"message":"invalid_request"}
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/whitespace/POST/filedist/files/upload (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/whitespace/POST/business/filedist/tasks (0.00s)
+            data_scope_test.go:64: unsupported scope reached handler: HTTP 400: {"code":400,"data":null,"message":"invalid_request"}
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/whitespace/POST/business/filedist/tasks/:id/start (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/whitespace/POST/business/filedist/tasks/:id/cancel (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/whitespace/POST/business/filedist/tasks/:id/retry (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/whitespace/POST/business/filedist/storages (0.00s)
+            data_scope_test.go:64: unsupported scope reached handler: HTTP 400: {"code":400,"data":null,"message":"invalid_request"}
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/whitespace/POST/business/filedist/files/upload (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/whitespace/GET/filedist/tasks (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/whitespace/GET/filedist/tasks/:id (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/whitespace/GET/filedist/tasks/:id/targets (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/whitespace/GET/filedist/tasks/:id/hosts (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/whitespace/GET/filedist/tasks/:id/events (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/whitespace/GET/filedist/tasks/:id/progress (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/whitespace/GET/filedist/files (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/whitespace/GET/filedist/files/:id (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/whitespace/GET/filedist/files/:id/download (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/whitespace/GET/filedist/storages (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/whitespace/GET/filedist/storages/:id (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/whitespace/GET/business/filedist/tasks (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/whitespace/GET/business/filedist/tasks/:id (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/whitespace/GET/business/filedist/tasks/:id/targets (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/whitespace/GET/business/filedist/tasks/:id/hosts (0.01s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/whitespace/GET/business/filedist/tasks/:id/events (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/whitespace/GET/business/filedist/tasks/:id/progress (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/whitespace/GET/business/filedist/files (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/whitespace/GET/business/filedist/files/:id (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/whitespace/GET/business/filedist/files/:id/download (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/whitespace/GET/business/filedist/storages (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/whitespace/GET/business/filedist/storages/:id (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/whitespace/PUT/filedist/storages/:id (0.00s)
+            data_scope_test.go:64: unsupported scope reached handler: HTTP 400: {"code":400,"data":null,"message":"invalid_request"}
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/whitespace/PUT/business/filedist/storages/:id (0.00s)
+            data_scope_test.go:64: unsupported scope reached handler: HTTP 400: {"code":400,"data":null,"message":"invalid_request"}
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/whitespace/DELETE/filedist/storages/:id (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/whitespace/DELETE/filedist/files/:id (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/whitespace/DELETE/filedist/tasks/:id (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/whitespace/DELETE/business/filedist/storages/:id (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/whitespace/DELETE/business/filedist/files/:id (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/whitespace/DELETE/business/filedist/tasks/:id (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+    --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/self-numeric-username (0.11s)
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/self-numeric-username/POST/filedist/tasks (0.00s)
+            data_scope_test.go:64: unsupported scope reached handler: HTTP 400: {"code":400,"data":null,"message":"invalid_request"}
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/self-numeric-username/POST/filedist/tasks/:id/start (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/self-numeric-username/POST/filedist/tasks/:id/cancel (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/self-numeric-username/POST/filedist/tasks/:id/retry (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/self-numeric-username/POST/filedist/storages (0.00s)
+            data_scope_test.go:64: unsupported scope reached handler: HTTP 400: {"code":400,"data":null,"message":"invalid_request"}
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/self-numeric-username/POST/filedist/files/upload (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/self-numeric-username/POST/business/filedist/tasks (0.00s)
+            data_scope_test.go:64: unsupported scope reached handler: HTTP 400: {"code":400,"data":null,"message":"invalid_request"}
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/self-numeric-username/POST/business/filedist/tasks/:id/start (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/self-numeric-username/POST/business/filedist/tasks/:id/cancel (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/self-numeric-username/POST/business/filedist/tasks/:id/retry (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/self-numeric-username/POST/business/filedist/storages (0.00s)
+            data_scope_test.go:64: unsupported scope reached handler: HTTP 400: {"code":400,"data":null,"message":"invalid_request"}
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/self-numeric-username/POST/business/filedist/files/upload (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/self-numeric-username/GET/filedist/tasks (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/self-numeric-username/GET/filedist/tasks/:id (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/self-numeric-username/GET/filedist/tasks/:id/targets (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/self-numeric-username/GET/filedist/tasks/:id/hosts (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/self-numeric-username/GET/filedist/tasks/:id/events (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/self-numeric-username/GET/filedist/tasks/:id/progress (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/self-numeric-username/GET/filedist/files (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/self-numeric-username/GET/filedist/files/:id (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/self-numeric-username/GET/filedist/files/:id/download (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/self-numeric-username/GET/filedist/storages (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/self-numeric-username/GET/filedist/storages/:id (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/self-numeric-username/GET/business/filedist/tasks (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/self-numeric-username/GET/business/filedist/tasks/:id (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/self-numeric-username/GET/business/filedist/tasks/:id/targets (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/self-numeric-username/GET/business/filedist/tasks/:id/hosts (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/self-numeric-username/GET/business/filedist/tasks/:id/events (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/self-numeric-username/GET/business/filedist/tasks/:id/progress (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/self-numeric-username/GET/business/filedist/files (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/self-numeric-username/GET/business/filedist/files/:id (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/self-numeric-username/GET/business/filedist/files/:id/download (0.01s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/self-numeric-username/GET/business/filedist/storages (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/self-numeric-username/GET/business/filedist/storages/:id (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/self-numeric-username/PUT/filedist/storages/:id (0.00s)
+            data_scope_test.go:64: unsupported scope reached handler: HTTP 400: {"code":400,"data":null,"message":"invalid_request"}
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/self-numeric-username/PUT/business/filedist/storages/:id (0.00s)
+            data_scope_test.go:64: unsupported scope reached handler: HTTP 400: {"code":400,"data":null,"message":"invalid_request"}
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/self-numeric-username/DELETE/filedist/storages/:id (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/self-numeric-username/DELETE/filedist/files/:id (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/self-numeric-username/DELETE/filedist/tasks/:id (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/self-numeric-username/DELETE/business/filedist/storages/:id (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/self-numeric-username/DELETE/business/filedist/files/:id (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/self-numeric-username/DELETE/business/filedist/tasks/:id (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+    --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/dept (0.13s)
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/dept/POST/filedist/tasks (0.00s)
+            data_scope_test.go:64: unsupported scope reached handler: HTTP 400: {"code":400,"data":null,"message":"invalid_request"}
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/dept/POST/filedist/tasks/:id/start (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/dept/POST/filedist/tasks/:id/cancel (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/dept/POST/filedist/tasks/:id/retry (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/dept/POST/filedist/storages (0.00s)
+            data_scope_test.go:64: unsupported scope reached handler: HTTP 400: {"code":400,"data":null,"message":"invalid_request"}
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/dept/POST/filedist/files/upload (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/dept/POST/business/filedist/tasks (0.00s)
+            data_scope_test.go:64: unsupported scope reached handler: HTTP 400: {"code":400,"data":null,"message":"invalid_request"}
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/dept/POST/business/filedist/tasks/:id/start (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/dept/POST/business/filedist/tasks/:id/cancel (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/dept/POST/business/filedist/tasks/:id/retry (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/dept/POST/business/filedist/storages (0.00s)
+            data_scope_test.go:64: unsupported scope reached handler: HTTP 400: {"code":400,"data":null,"message":"invalid_request"}
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/dept/POST/business/filedist/files/upload (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/dept/GET/filedist/tasks (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/dept/GET/filedist/tasks/:id (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/dept/GET/filedist/tasks/:id/targets (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/dept/GET/filedist/tasks/:id/hosts (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/dept/GET/filedist/tasks/:id/events (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/dept/GET/filedist/tasks/:id/progress (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/dept/GET/filedist/files (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/dept/GET/filedist/files/:id (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/dept/GET/filedist/files/:id/download (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/dept/GET/filedist/storages (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/dept/GET/filedist/storages/:id (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/dept/GET/business/filedist/tasks (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/dept/GET/business/filedist/tasks/:id (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/dept/GET/business/filedist/tasks/:id/targets (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/dept/GET/business/filedist/tasks/:id/hosts (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/dept/GET/business/filedist/tasks/:id/events (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/dept/GET/business/filedist/tasks/:id/progress (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/dept/GET/business/filedist/files (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/dept/GET/business/filedist/files/:id (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/dept/GET/business/filedist/files/:id/download (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/dept/GET/business/filedist/storages (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/dept/GET/business/filedist/storages/:id (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/dept/PUT/filedist/storages/:id (0.00s)
+            data_scope_test.go:64: unsupported scope reached handler: HTTP 400: {"code":400,"data":null,"message":"invalid_request"}
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/dept/PUT/business/filedist/storages/:id (0.00s)
+            data_scope_test.go:64: unsupported scope reached handler: HTTP 400: {"code":400,"data":null,"message":"invalid_request"}
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/dept/DELETE/filedist/storages/:id (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/dept/DELETE/filedist/files/:id (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/dept/DELETE/filedist/tasks/:id (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/dept/DELETE/business/filedist/storages/:id (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/dept/DELETE/business/filedist/files/:id (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/dept/DELETE/business/filedist/tasks/:id (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+    --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/children (0.15s)
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/children/POST/filedist/tasks (0.00s)
+            data_scope_test.go:64: unsupported scope reached handler: HTTP 400: {"code":400,"data":null,"message":"invalid_request"}
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/children/POST/filedist/tasks/:id/start (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/children/POST/filedist/tasks/:id/cancel (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/children/POST/filedist/tasks/:id/retry (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/children/POST/filedist/storages (0.00s)
+            data_scope_test.go:64: unsupported scope reached handler: HTTP 400: {"code":400,"data":null,"message":"invalid_request"}
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/children/POST/filedist/files/upload (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/children/POST/business/filedist/tasks (0.00s)
+            data_scope_test.go:64: unsupported scope reached handler: HTTP 400: {"code":400,"data":null,"message":"invalid_request"}
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/children/POST/business/filedist/tasks/:id/start (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/children/POST/business/filedist/tasks/:id/cancel (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/children/POST/business/filedist/tasks/:id/retry (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/children/POST/business/filedist/storages (0.00s)
+            data_scope_test.go:64: unsupported scope reached handler: HTTP 400: {"code":400,"data":null,"message":"invalid_request"}
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/children/POST/business/filedist/files/upload (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/children/GET/filedist/tasks (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/children/GET/filedist/tasks/:id (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/children/GET/filedist/tasks/:id/targets (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/children/GET/filedist/tasks/:id/hosts (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/children/GET/filedist/tasks/:id/events (0.01s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/children/GET/filedist/tasks/:id/progress (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/children/GET/filedist/files (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/children/GET/filedist/files/:id (0.01s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/children/GET/filedist/files/:id/download (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/children/GET/filedist/storages (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/children/GET/filedist/storages/:id (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/children/GET/business/filedist/tasks (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/children/GET/business/filedist/tasks/:id (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/children/GET/business/filedist/tasks/:id/targets (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/children/GET/business/filedist/tasks/:id/hosts (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/children/GET/business/filedist/tasks/:id/events (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/children/GET/business/filedist/tasks/:id/progress (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/children/GET/business/filedist/files (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/children/GET/business/filedist/files/:id (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/children/GET/business/filedist/files/:id/download (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/children/GET/business/filedist/storages (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/children/GET/business/filedist/storages/:id (0.01s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/children/PUT/filedist/storages/:id (0.00s)
+            data_scope_test.go:64: unsupported scope reached handler: HTTP 400: {"code":400,"data":null,"message":"invalid_request"}
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/children/PUT/business/filedist/storages/:id (0.00s)
+            data_scope_test.go:64: unsupported scope reached handler: HTTP 400: {"code":400,"data":null,"message":"invalid_request"}
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/children/DELETE/filedist/storages/:id (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/children/DELETE/filedist/files/:id (0.01s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/children/DELETE/filedist/tasks/:id (0.01s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/children/DELETE/business/filedist/storages/:id (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/children/DELETE/business/filedist/files/:id (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/children/DELETE/business/filedist/tasks/:id (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+    --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/custom (0.20s)
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/custom/POST/filedist/tasks (0.00s)
+            data_scope_test.go:64: unsupported scope reached handler: HTTP 400: {"code":400,"data":null,"message":"invalid_request"}
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/custom/POST/filedist/tasks/:id/start (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/custom/POST/filedist/tasks/:id/cancel (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/custom/POST/filedist/tasks/:id/retry (0.01s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/custom/POST/filedist/storages (0.00s)
+            data_scope_test.go:64: unsupported scope reached handler: HTTP 400: {"code":400,"data":null,"message":"invalid_request"}
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/custom/POST/filedist/files/upload (0.01s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/custom/POST/business/filedist/tasks (0.00s)
+            data_scope_test.go:64: unsupported scope reached handler: HTTP 400: {"code":400,"data":null,"message":"invalid_request"}
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/custom/POST/business/filedist/tasks/:id/start (0.01s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/custom/POST/business/filedist/tasks/:id/cancel (0.01s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/custom/POST/business/filedist/tasks/:id/retry (0.01s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/custom/POST/business/filedist/storages (0.00s)
+            data_scope_test.go:64: unsupported scope reached handler: HTTP 400: {"code":400,"data":null,"message":"invalid_request"}
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/custom/POST/business/filedist/files/upload (0.01s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/custom/GET/filedist/tasks (0.01s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/custom/GET/filedist/tasks/:id (0.01s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/custom/GET/filedist/tasks/:id/targets (0.01s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/custom/GET/filedist/tasks/:id/hosts (0.01s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/custom/GET/filedist/tasks/:id/events (0.01s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/custom/GET/filedist/tasks/:id/progress (0.01s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/custom/GET/filedist/files (0.01s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/custom/GET/filedist/files/:id (0.01s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/custom/GET/filedist/files/:id/download (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/custom/GET/filedist/storages (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/custom/GET/filedist/storages/:id (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/custom/GET/business/filedist/tasks (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/custom/GET/business/filedist/tasks/:id (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/custom/GET/business/filedist/tasks/:id/targets (0.01s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/custom/GET/business/filedist/tasks/:id/hosts (0.01s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/custom/GET/business/filedist/tasks/:id/events (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/custom/GET/business/filedist/tasks/:id/progress (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/custom/GET/business/filedist/files (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/custom/GET/business/filedist/files/:id (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/custom/GET/business/filedist/files/:id/download (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/custom/GET/business/filedist/storages (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/custom/GET/business/filedist/storages/:id (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/custom/PUT/filedist/storages/:id (0.00s)
+            data_scope_test.go:64: unsupported scope reached handler: HTTP 400: {"code":400,"data":null,"message":"invalid_request"}
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/custom/PUT/business/filedist/storages/:id (0.00s)
+            data_scope_test.go:64: unsupported scope reached handler: HTTP 400: {"code":400,"data":null,"message":"invalid_request"}
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/custom/DELETE/filedist/storages/:id (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/custom/DELETE/filedist/files/:id (0.01s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/custom/DELETE/filedist/tasks/:id (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/custom/DELETE/business/filedist/storages/:id (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/custom/DELETE/business/filedist/files/:id (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/custom/DELETE/business/filedist/tasks/:id (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+    --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/unknown (0.11s)
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/unknown/POST/filedist/tasks (0.00s)
+            data_scope_test.go:64: unsupported scope reached handler: HTTP 400: {"code":400,"data":null,"message":"invalid_request"}
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/unknown/POST/filedist/tasks/:id/start (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/unknown/POST/filedist/tasks/:id/cancel (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/unknown/POST/filedist/tasks/:id/retry (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/unknown/POST/filedist/storages (0.00s)
+            data_scope_test.go:64: unsupported scope reached handler: HTTP 400: {"code":400,"data":null,"message":"invalid_request"}
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/unknown/POST/filedist/files/upload (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/unknown/POST/business/filedist/tasks (0.00s)
+            data_scope_test.go:64: unsupported scope reached handler: HTTP 400: {"code":400,"data":null,"message":"invalid_request"}
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/unknown/POST/business/filedist/tasks/:id/start (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/unknown/POST/business/filedist/tasks/:id/cancel (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/unknown/POST/business/filedist/tasks/:id/retry (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/unknown/POST/business/filedist/storages (0.00s)
+            data_scope_test.go:64: unsupported scope reached handler: HTTP 400: {"code":400,"data":null,"message":"invalid_request"}
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/unknown/POST/business/filedist/files/upload (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/unknown/GET/filedist/tasks (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/unknown/GET/filedist/tasks/:id (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/unknown/GET/filedist/tasks/:id/targets (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/unknown/GET/filedist/tasks/:id/hosts (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/unknown/GET/filedist/tasks/:id/events (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/unknown/GET/filedist/tasks/:id/progress (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/unknown/GET/filedist/files (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/unknown/GET/filedist/files/:id (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/unknown/GET/filedist/files/:id/download (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/unknown/GET/filedist/storages (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/unknown/GET/filedist/storages/:id (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/unknown/GET/business/filedist/tasks (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/unknown/GET/business/filedist/tasks/:id (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/unknown/GET/business/filedist/tasks/:id/targets (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/unknown/GET/business/filedist/tasks/:id/hosts (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/unknown/GET/business/filedist/tasks/:id/events (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/unknown/GET/business/filedist/tasks/:id/progress (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/unknown/GET/business/filedist/files (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/unknown/GET/business/filedist/files/:id (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/unknown/GET/business/filedist/files/:id/download (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/unknown/GET/business/filedist/storages (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/unknown/GET/business/filedist/storages/:id (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/unknown/PUT/filedist/storages/:id (0.00s)
+            data_scope_test.go:64: unsupported scope reached handler: HTTP 400: {"code":400,"data":null,"message":"invalid_request"}
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/unknown/PUT/business/filedist/storages/:id (0.00s)
+            data_scope_test.go:64: unsupported scope reached handler: HTTP 400: {"code":400,"data":null,"message":"invalid_request"}
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/unknown/DELETE/filedist/storages/:id (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/unknown/DELETE/filedist/files/:id (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/unknown/DELETE/filedist/tasks/:id (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/unknown/DELETE/business/filedist/storages/:id (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/unknown/DELETE/business/filedist/files/:id (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+        --- FAIL: TestFileDistRoutesRejectUnsupportedDataScope/unknown/DELETE/business/filedist/tasks/:id (0.00s)
+            data_scope_test.go:61: expected denial envelope, HTTP 500: 
+FAIL
+FAIL	github.com/duanxldragon/pantheon-base/backend/modules/business/filedist	1.267s
+FAIL

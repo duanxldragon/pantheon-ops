@@ -1,0 +1,278 @@
+{
+  "case": "cold-restart",
+  "identity": "o2-live-b454c3a7a6ea-cold-restart",
+  "database": "ops_p0_o2_live_b454c3a7a6ea_cold_restart",
+  "databaseRetention": "retained; no drop",
+  "events": [
+    {
+      "credentialId": 1,
+      "packageId": 1,
+      "phase": "task-created",
+      "taskId": 1
+    },
+    {
+      "attemptNo": 2,
+      "leaseExpiresUnix": 1794214877,
+      "phase": "actual-process-crash-ready",
+      "taskId": 1,
+      "taskStatus": "running"
+    },
+    {
+      "case": "cold-restart",
+      "check": "fresh process discovers exactly one isolated persisted queue task",
+      "kind": "positive",
+      "passed": true
+    },
+    {
+      "case": "cold-restart",
+      "check": "fresh queue startup honors actual unexpired abandoned attempt lease",
+      "kind": "positive",
+      "passed": false
+    },
+    {
+      "case": "cold-restart",
+      "check": "startup during active lease never duplicates VM completion",
+      "kind": "positive",
+      "passed": true
+    },
+    {
+      "case": "cold-restart",
+      "failed": 1,
+      "negativePassed": 0,
+      "phase": "driver-result",
+      "positivePassed": 2
+    },
+    {
+      "case": "cold-restart",
+      "check": "fresh process discovers exactly one isolated persisted queue task",
+      "kind": "positive",
+      "passed": true
+    },
+    {
+      "case": "cold-restart",
+      "check": "public current checkpoint and recorded safe history",
+      "kind": "positive",
+      "passed": true
+    },
+    {
+      "fieldTypes": {
+        "attemptNo": "float64",
+        "sequence": "float64",
+        "taskHostId": "float64",
+        "taskStepId": "float64"
+      },
+      "httpStatus": 200,
+      "kind": "logs",
+      "phase": "public-projection-structure",
+      "responseCode": 200
+    },
+    {
+      "case": "cold-restart",
+      "check": "public log sequence ownership attempts and secret exclusion",
+      "kind": "positive",
+      "passed": true
+    },
+    {
+      "case": "cold-restart",
+      "check": "both actual VM streams persisted",
+      "kind": "positive",
+      "passed": true
+    },
+    {
+      "fieldTypes": {},
+      "httpStatus": 200,
+      "kind": "logs",
+      "phase": "public-projection-structure",
+      "responseCode": 200
+    },
+    {
+      "case": "cold-restart",
+      "check": "log cursor excludes already delivered sequence",
+      "kind": "positive",
+      "passed": true
+    },
+    {
+      "fieldTypes": {
+        "attemptNo": "missing",
+        "sequence": "float64",
+        "taskHostId": "missing",
+        "taskStepId": "missing"
+      },
+      "httpStatus": 200,
+      "kind": "events",
+      "phase": "public-projection-structure",
+      "responseCode": 200
+    },
+    {
+      "case": "cold-restart",
+      "check": "public event sequence ordered across committed transitions",
+      "kind": "positive",
+      "passed": true
+    },
+    {
+      "fieldTypes": {},
+      "httpStatus": 200,
+      "kind": "events",
+      "phase": "public-projection-structure",
+      "responseCode": 200
+    },
+    {
+      "case": "cold-restart",
+      "check": "event reconnect cursor no replay at latest sequence",
+      "kind": "positive",
+      "passed": true
+    },
+    {
+      "attempts": [
+        {
+          "attemptNo": 1,
+          "leaseReleased": true,
+          "status": "failed"
+        },
+        {
+          "attemptNo": 2,
+          "leaseReleased": true,
+          "status": "retryable"
+        },
+        {
+          "attemptNo": 3,
+          "leaseReleased": true,
+          "status": "success"
+        }
+      ],
+      "eventTypes": [
+        "task.started",
+        "step.running",
+        "step.running",
+        "step.success",
+        "task.completed"
+      ],
+      "finished": true,
+      "history": [
+        {
+          "id": 1,
+          "taskHostId": 1,
+          "stepKey": "package_default",
+          "stepOrder": 1,
+          "status": "success",
+          "attemptNo": 2,
+          "stateVersion": 4,
+          "startedAt": "2026-11-09T17:01:21.919+08:00",
+          "finishedAt": "2026-11-09T17:01:23.008+08:00",
+          "capturedAt": "2026-11-09T17:01:23.014+08:00"
+        },
+        {
+          "id": 1,
+          "taskHostId": 1,
+          "stepKey": "package_default",
+          "stepOrder": 1,
+          "status": "running",
+          "attemptNo": 1,
+          "stateVersion": 2,
+          "startedAt": "2026-11-09T16:56:20.772+08:00",
+          "finishedAt": null,
+          "capturedAt": "2026-11-09T16:56:20.777+08:00"
+        }
+      ],
+      "logCount": 2,
+      "phase": "persisted-state",
+      "status": "success",
+      "steps": [
+        {
+          "id": 1,
+          "taskHostId": 1,
+          "stepKey": "package_default",
+          "stepOrder": 1,
+          "status": "success",
+          "attemptNo": 2,
+          "stateVersion": 4,
+          "startedAt": "2026-11-09T17:01:21.919+08:00",
+          "finishedAt": "2026-11-09T17:01:23.008+08:00"
+        }
+      ],
+      "taskId": 1
+    },
+    {
+      "errorChainTypes": [
+        "*fmt.wrapError",
+        "*errors.errorString"
+      ],
+      "errorType": "*fmt.wrapError",
+      "phase": "independent-ssh-error",
+      "stage": "dial-handshake"
+    },
+    {
+      "contextCanceled": false,
+      "deadlineExceeded": false,
+      "driverFrames": [
+        {
+          "file": "live-diagnostic-o2-v5.go",
+          "line": 79
+        },
+        {
+          "file": "live-diagnostic-o2-v5.go",
+          "line": 167
+        },
+        {
+          "file": "live-diagnostic-o2-v5.go",
+          "line": 420
+        },
+        {
+          "file": "live-diagnostic-o2-v5.go",
+          "line": 648
+        }
+      ],
+      "errorKey": "suppressed",
+      "errorType": "*fmt.wrapError",
+      "phase": "operation-error"
+    },
+    {
+      "error": "operation or deadline; secret details suppressed",
+      "phase": "driver-failure"
+    },
+    {
+      "case": "cold-restart",
+      "failed": 1,
+      "negativePassed": 0,
+      "phase": "driver-result",
+      "positivePassed": 7
+    }
+  ],
+  "driverExitCode": 1,
+  "stderrPresent": false,
+  "deliberateCrashExitCode": 75,
+  "activeLeaseProbeExitCode": 1,
+  "recoveryExitCode": 1,
+  "realLeaseWait": true,
+  "leaseMutation": false,
+  "activeLeaseProbeFailed": true,
+  "status": "failed",
+  "cleanup": {
+    "phase": "exact-owned-cleanup",
+    "directory": "/opt/pantheon-p0-20261109/o2-live-b454c3a7a6ea-cold-restart",
+    "files": [
+      {
+        "file": "gate",
+        "sha256": "b625d07c359c5c321430ab2f66f3cf5b7a22729952a599227d9b1a2065cd1ebb",
+        "bytes": 33
+      },
+      {
+        "file": ".owner",
+        "sha256": "b625d07c359c5c321430ab2f66f3cf5b7a22729952a599227d9b1a2065cd1ebb",
+        "bytes": 33
+      },
+      {
+        "file": "done",
+        "sha256": "b625d07c359c5c321430ab2f66f3cf5b7a22729952a599227d9b1a2065cd1ebb",
+        "bytes": 33
+      },
+      {
+        "file": "started",
+        "sha256": "b625d07c359c5c321430ab2f66f3cf5b7a22729952a599227d9b1a2065cd1ebb",
+        "bytes": 33
+      }
+    ],
+    "absent": true,
+    "processKill": false
+  }
+}

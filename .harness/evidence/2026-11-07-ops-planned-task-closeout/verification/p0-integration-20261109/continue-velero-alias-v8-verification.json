@@ -1,0 +1,61 @@
+{
+  "requestSHA256": "30c929d01d33c80e8419984436802c92af84362a1fbba332fa7a5b226582368b",
+  "scriptHashes": {
+    ".local/ops-acceptance/continue-velero-alias-v8-contract.py": "dfb05b10db25a85f80a54f0426e603288ff147ba7b972cb98479799461912a31",
+    ".local/ops-acceptance/continue-velero-alias-v8-remote.py": "19b9d25d67eb32589b8a2b8c8aa9db59a8246f16e5a97fe34f89ab1c8733d026",
+    ".local/ops-acceptance/continue-velero-alias-v8-root.py": "77088fd9d3d56b7a5abdd6c0dcf20411d753fc9cc8f5c4b0883d470ec556f21e",
+    ".local/ops-acceptance/continue-velero-alias-v8-generate.py": "e38d428cdd78711707257ec958afeddbaa0c98166e110808e881aca6b9ebb3e0",
+    ".local/ops-acceptance/continue-velero-alias-v8-test.py": "f4bbd8ad6d18019a748d5f8693c6ae1eeb2bd39c7d330b80fb43cbcff87ea214"
+  },
+  "matrix": {
+    "originalRegressions": 238,
+    "currentTests": 106,
+    "newUniqueTests": 53,
+    "fullUniqueRegressions": 291,
+    "testsRun": 344,
+    "failures": 0,
+    "errors": 0,
+    "forgeryCases": 52,
+    "inheritedV5UniqueTests": 260,
+    "newV6UniqueTests": 13,
+    "inheritedV6UniqueTests": 273,
+    "newV7UniqueTests": 5,
+    "inheritedV7UniqueTests": 278,
+    "newV8UniqueTests": 13,
+    "skips": 0,
+    "oldGeneratorsExecuted": false,
+    "runtimeExecuted": false
+  },
+  "historicalAssets": 367,
+  "historicalHashesStable": true,
+  "remoteBaselineFiles": 39,
+  "memoryCompiles": 5,
+  "artifacts": {
+    "continue-velero-alias-v8-full.json": "d9c72f85e1b292e633b8caf964e03c24d15fadcb328501818cd9a91d1f4f4285",
+    "continue-velero-alias-v8-full.log": "92bdfdbd485cba4cae286bce172e8f5d50b80dce9800f3b375a28f2064b65f34",
+    "continue-velero-alias-v8-lsp.json": "15143e49e993708239f53ef505e0837217bc821658ed70ce38a8b28d278095b1",
+    "continue-velero-alias-v8-focused.json": "576f9248e87d1c2109c151d546f383cbb7f9e1877fcd3ca60d38860bb637dd72",
+    "continue-velero-alias-v8-seal.json": "89c99fe2be48744901324f6751c8cc2ea8ae08094fe6d6fa55183e0ba873cf4d",
+    "continue-velero-alias-v8-check-inputs.json": "f09d0090e5e8232fadb9bff4e3e3b2f38c7ed5bc05fff249d74f4d96cc4c352e",
+    "continue-velero-alias-v8-lsp-actual-20261111T040007147718.json": "5ba503d4382a30cc980225c074036a8387c246f347b9f0e72f9d74de8278dbc0"
+  },
+  "lsp": {
+    "version": "1.1.414",
+    "files": 5,
+    "errors": 0,
+    "warnings": 0,
+    "artifact": "continue-velero-alias-v8-lsp-actual-20261111T040007147718.json",
+    "sha256": "5ba503d4382a30cc980225c074036a8387c246f347b9f0e72f9d74de8278dbc0",
+    "exitCode": 0
+  },
+  "actualSealedV7CounterexamplesReproduced": true,
+  "onlyTwoExactNativePathsAdmitted": true,
+  "inputsNeverRewritten": true,
+  "exactReplicaSetSpecGateRetained": true,
+  "actualReadOnlyNativeControlSHA256": "56841818d2a070989a063a50cc56c79c1ff3489d878fc640e7a93833b16ddbc5",
+  "failedV7DiagnosticSHA256": "21c30cfe8b26fd55432dacc906dc234514cdbe25955777ecab2b816c7f366740",
+  "exactV7InspectionSHA256": "a01a40366227c68a7a8a39c3712ee2121818d969163ad301476c0c5adc02ac71",
+  "remoteExecuted": false,
+  "P0Approved": false,
+  "reviewsPending": true
+}

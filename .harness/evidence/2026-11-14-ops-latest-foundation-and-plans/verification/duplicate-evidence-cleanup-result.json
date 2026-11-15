@@ -1,0 +1,446 @@
+{
+  "purpose": "Remove only redundant task-generated staging evidence copies; canonical originals and product source stay intact",
+  "stage": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.tmp\\ops-v0188-final-r5",
+  "files": [
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-real-packaging-1794279171056/real-retained-archive-receipt.json",
+      "bytes": 12002750,
+      "sha256": "4b4f28b37eb6a2a821cd3e97d7853da44950a6364b6735fc3e7b67567b79bdaf"
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/o1-o3-full-race.txt",
+      "bytes": 1726120,
+      "sha256": "be30b5d86cff9ee196c96404b07d2d689147a8ba5d1c7069c5f77927b6c78336"
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-browser/smoke-business-observabili-a1888-n-denial-and-recovery-dark-/trace.zip",
+      "bytes": 1691479,
+      "sha256": "29b8e173aed405edda11a4979be3fd3114ec71f020b96e592161883687fa35f5"
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-browser/smoke-business-observabili-aaf1f--denial-and-recovery-light-/trace.zip",
+      "bytes": 1722167,
+      "sha256": "32d47d01e1fa042b924c5d61950ecbfdd38a0ac036ddccc622a40c396925a87a"
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-argo-v6-provider-changed-paths.json",
+      "bytes": 1169097,
+      "sha256": "a8935b048ada143d6a17729879291a08ca11a961ec53fba999ddc2991effd8e1"
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/command-batch-final-browser/smoke-business-deploy-depl-5e1fa-and-reports-partial-failure/trace.zip",
+      "bytes": 1814753,
+      "sha256": "0efd46e5e94c06d3cf33ca067716d639f03aabc553673cb6747e57c9d217fe4b"
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/command-batch-fixed-browser/smoke-business-deploy-depl-5e1fa-and-reports-partial-failure/trace.zip",
+      "bytes": 4968909,
+      "sha256": "9f2bfb456400d453505043a5546f39076c8057e1cccb0883f9379626b9a430c0"
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/command-current-browser/smoke-business-deploy-depl-8790f-reshes-without-replay-dark-/trace.zip",
+      "bytes": 1097412,
+      "sha256": "6570cc4c82ce618146bbb147e229da909942703cac3cc424be3a23f716654d74"
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/command-final-browser/smoke-business-deploy-depl-515b4-eshes-without-replay-light-/trace.zip",
+      "bytes": 2025401,
+      "sha256": "cbac4674d7301b0a542a6e55e5a9bdfdb1b3bb0baf00ba4a6aede1df53b7f428"
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/command-final-browser/smoke-business-deploy-depl-8790f-reshes-without-replay-dark-/trace.zip",
+      "bytes": 2023817,
+      "sha256": "a95715891e08bbe998e694414d6314fb2c1d9b85c51d2552165f59d98e4f0676"
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/deploy-context-runtime-ready/smoke-business-deploy-depl-bff2f-o-list-and-opens-edit-modal/trace.zip",
+      "bytes": 2257853,
+      "sha256": "7274e90b7779a45027b4feff6ef18e5f1f30117334ea695d8675ac5273056965"
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/frozen-plan-matrix-browser/smoke-business-deploy-depl-226da-firm-conflict-refresh-dark-/trace.zip",
+      "bytes": 3112504,
+      "sha256": "42ac09065d0dc7f30d0d07ea936ed5183ae4f2a9e3648be9a39bf92c772020f1"
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/frozen-plan-matrix-browser/smoke-business-deploy-depl-9c782-irm-conflict-refresh-light-/trace.zip",
+      "bytes": 3443427,
+      "sha256": "d2b8c57d54d7b5ce06d45d1a308b5c3d95df3240b694f5119c98b4c5a1b27e3a"
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/o1-o3-preview-edit-fixed/smoke-business-deploy-depl-226da-firm-conflict-refresh-dark-/trace.zip",
+      "bytes": 1439247,
+      "sha256": "fd1202e66b8ac57197c6b3ed4e05007339ea908c7d492e5708109250bf57ab0e"
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/o1-o3-preview-edit-fixed/smoke-business-deploy-depl-9c782-irm-conflict-refresh-light-/trace.zip",
+      "bytes": 1395855,
+      "sha256": "1f4a0c1f0bdd1a4a1697cc7cd33bb5ff6351bc26f75cb670f857fdc8d9f84465"
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/o1-o3-preview-i18n-fixed/smoke-business-deploy-depl-226da-firm-conflict-refresh-dark-/trace.zip",
+      "bytes": 1439436,
+      "sha256": "7775f2338f29ca0e6bca9478173a93dfc5fc33d7711537389b0f036bc8b20e10"
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/o1-o3-preview-i18n-fixed/smoke-business-deploy-depl-9c782-irm-conflict-refresh-light-/trace.zip",
+      "bytes": 1438443,
+      "sha256": "a2527cc9bba6263e40031beddad91da619cc9a1a024d7817b6a12e1d6367ea7c"
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/o2-o3-o4-authority-browser/smoke-business-deploy-depl-d16f5-s-keyboard-and-mobile-dark-/trace.zip",
+      "bytes": 2679745,
+      "sha256": "f49aef46465e6b6464fd432438c0b34e09d85e511c38b13502165276211148a9"
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/o2-o4-browser-ready/smoke-business-deploy-depl-58206--keyboard-and-mobile-light-/trace.zip",
+      "bytes": 2909875,
+      "sha256": "a476d26100f746834717598aa2beb27ae37035d61c146035965cba08eed432c7"
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/o2-o4-browser-ready/smoke-business-deploy-depl-d16f5-s-keyboard-and-mobile-dark-/trace.zip",
+      "bytes": 2920474,
+      "sha256": "920b73c109209a4c2ddafcc09e4ac561917c04b74ba26e72ef875dee186bb004"
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/o2-o4-browser-ready/smoke-business-observabili-a1888-n-denial-and-recovery-dark-/trace.zip",
+      "bytes": 1205812,
+      "sha256": "b2408d455a81efe5f1f75b3cf205b397324646eccf9bc9cdeefbb40df8d855e0"
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/o2-o4-browser-ready/smoke-business-observabili-aaf1f--denial-and-recovery-light-/trace.zip",
+      "bytes": 1169894,
+      "sha256": "14f3d277b53aee26df23fc85fa431d1b9105922ffd88d8135f9cd12b096993b5"
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/o2-step-history-browser-mobile-red/smoke-business-deploy-depl-58206--keyboard-and-mobile-light-/trace.zip",
+      "bytes": 1591975,
+      "sha256": "368692e946e71a4aa60bcbfbf8a044f9ea0a9a2b1596d5465354763c2b583211"
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/o2-step-history-browser-mobile-red/smoke-business-deploy-depl-d16f5-s-keyboard-and-mobile-dark-/trace.zip",
+      "bytes": 1437269,
+      "sha256": "2c6346f8c99f9cca8198590922edac1ab28fd5b8404ab7bcbf8312b43ffc2b6d"
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/o3-k8s-preview-browser-initial/smoke-business-k8s-release-47a17-y-rollback-and-mobile-dark-/trace.zip",
+      "bytes": 3040972,
+      "sha256": "cb990117d7d0de8391743c2169f5b8f9e46c184434d26c1355eb6f2b87155fb1"
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/o3-k8s-preview-browser-initial/smoke-business-k8s-release-6e84c--rollback-and-mobile-light-/trace.zip",
+      "bytes": 3152778,
+      "sha256": "45c2b23c26f59f5c351d127d1290014698c90c9a63f89ee3bd7d126ba5d73f52"
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/o2-current-live-v10/continue-o2-live-v10-build-ready-source-after.json",
+      "bytes": 1013034,
+      "sha256": "c26f290a4b310a70ff41aeb39371b898f2e9b89af022dbed3bb3da92afbb82d8"
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/o2-current-live-v11/continue-o2-live-v11-build-ready-source-after.json",
+      "bytes": 1092381,
+      "sha256": "32e5e281ba34a6f019248b868cb2965fb90bb0418b1c98751ad9746d8755950c"
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/o2-current-live-v11/discovery-initial.json",
+      "bytes": 1092381,
+      "sha256": "32e5e281ba34a6f019248b868cb2965fb90bb0418b1c98751ad9746d8755950c"
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/o2-current-live-v12/continue-o2-live-v12-build-ready-source-after.json",
+      "bytes": 1295798,
+      "sha256": "addc2d8f76959e95bb3cb8e03cb18398c4b2cdc5fd959b03dca842c94162fd0e"
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/o2-current-live-v10/local-verification-1794294220495869500/exact-source-helper-inputs.tar.gz",
+      "bytes": 12467536,
+      "sha256": "4fc9a1f1db6db7c4c54584807e1e03bff59a0b83d5e2af951156cbee0c5cbba0"
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/o2-current-live-v10/local-verification-1794294220495869500/source-after.json",
+      "bytes": 1013034,
+      "sha256": "c26f290a4b310a70ff41aeb39371b898f2e9b89af022dbed3bb3da92afbb82d8"
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/o2-current-live-v10/local-verification-1794294220495869500/source-before.json",
+      "bytes": 1013034,
+      "sha256": "c26f290a4b310a70ff41aeb39371b898f2e9b89af022dbed3bb3da92afbb82d8"
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/o2-current-live-v10/local-verification-1794294352885167700/exact-source-helper-inputs.tar.gz",
+      "bytes": 12467543,
+      "sha256": "be8fff4ba8cc7bc9d64f56827d2d404cc90f63bb7f0e7db13add769de1928172"
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/o2-current-live-v10/local-verification-1794294352885167700/source-after.json",
+      "bytes": 1013034,
+      "sha256": "c26f290a4b310a70ff41aeb39371b898f2e9b89af022dbed3bb3da92afbb82d8"
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/o2-current-live-v10/local-verification-1794294352885167700/source-before.json",
+      "bytes": 1013034,
+      "sha256": "c26f290a4b310a70ff41aeb39371b898f2e9b89af022dbed3bb3da92afbb82d8"
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/o2-current-live-v10/local-verification-1794295469416895500/exact-source-helper-inputs.tar.gz",
+      "bytes": 12467543,
+      "sha256": "d6633083176a17b78aa0727ceb7a4990bb8cfe184a47252e5451a62d6b0e592a"
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/o2-current-live-v10/local-verification-1794295469416895500/source-after.json",
+      "bytes": 1013034,
+      "sha256": "c26f290a4b310a70ff41aeb39371b898f2e9b89af022dbed3bb3da92afbb82d8"
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/o2-current-live-v10/local-verification-1794295469416895500/source-before.json",
+      "bytes": 1013034,
+      "sha256": "c26f290a4b310a70ff41aeb39371b898f2e9b89af022dbed3bb3da92afbb82d8"
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/o2-current-live-v10/local-verification-1794293837349146100/after/go-list-0.json-stream",
+      "bytes": 1577491,
+      "sha256": "ba809d829a262ae18da4a7219982a282e803710443b3f955dc9d6b3f9815bef4"
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/o2-current-live-v10/local-verification-1794293837349146100/after/go-list-1.json-stream",
+      "bytes": 1612401,
+      "sha256": "2f51e2f2ec1e45f6eafb4e2deff88b2d0f95bb9976bbeb0faa815d98c5302af9"
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/o2-current-live-v10/local-verification-1794293837349146100/after/go-list-2.json-stream",
+      "bytes": 1533527,
+      "sha256": "7bf3e6c3232e5bf5d629d51084edc7314b1dd5136376ef5fe02ef5accb9d89da"
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/o2-current-live-v10/local-verification-1794293837349146100/before/go-list-0.json-stream",
+      "bytes": 1608043,
+      "sha256": "9b6f0ad9accac7de3eac896e98387506e5f8644fff3550362ab7b49101b6f7ec"
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/o2-current-live-v10/local-verification-1794293837349146100/before/go-list-1.json-stream",
+      "bytes": 1642789,
+      "sha256": "0194a9745b160f387b7c868c75594e009876531c02a5fc9e779d0c55e7ffe715"
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/o2-current-live-v10/local-verification-1794293837349146100/before/go-list-2.json-stream",
+      "bytes": 1563979,
+      "sha256": "0dde9a8bfcc907155da2c1995f5d8f34948e338a91260a5a2128dd436f920133"
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/o2-current-live-v10/local-verification-1794294220495869500/after/go-list-0.json-stream",
+      "bytes": 1577298,
+      "sha256": "747f47f1708d03608457f710247c62855ed6de0f4f419308915f9f8dc848ae80"
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/o2-current-live-v10/local-verification-1794294220495869500/after/go-list-1.json-stream",
+      "bytes": 1612348,
+      "sha256": "c48d4565e0d4dcb6a72081661ca68b179115ecafe37429f1b67a814bd58f5851"
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/o2-current-live-v10/local-verification-1794294220495869500/after/go-list-2.json-stream",
+      "bytes": 1533527,
+      "sha256": "7bf3e6c3232e5bf5d629d51084edc7314b1dd5136376ef5fe02ef5accb9d89da"
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/o2-current-live-v10/local-verification-1794294220495869500/before/go-list-0.json-stream",
+      "bytes": 1577491,
+      "sha256": "ba809d829a262ae18da4a7219982a282e803710443b3f955dc9d6b3f9815bef4"
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/o2-current-live-v10/local-verification-1794294220495869500/before/go-list-1.json-stream",
+      "bytes": 1612401,
+      "sha256": "2f51e2f2ec1e45f6eafb4e2deff88b2d0f95bb9976bbeb0faa815d98c5302af9"
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/o2-current-live-v10/local-verification-1794294220495869500/before/go-list-2.json-stream",
+      "bytes": 1533527,
+      "sha256": "7bf3e6c3232e5bf5d629d51084edc7314b1dd5136376ef5fe02ef5accb9d89da"
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/o2-current-live-v10/local-verification-1794294352885167700/after/go-list-0.json-stream",
+      "bytes": 1577298,
+      "sha256": "747f47f1708d03608457f710247c62855ed6de0f4f419308915f9f8dc848ae80"
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/o2-current-live-v10/local-verification-1794294352885167700/after/go-list-1.json-stream",
+      "bytes": 1612348,
+      "sha256": "c48d4565e0d4dcb6a72081661ca68b179115ecafe37429f1b67a814bd58f5851"
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/o2-current-live-v10/local-verification-1794294352885167700/after/go-list-2.json-stream",
+      "bytes": 1533527,
+      "sha256": "7bf3e6c3232e5bf5d629d51084edc7314b1dd5136376ef5fe02ef5accb9d89da"
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/o2-current-live-v10/local-verification-1794294352885167700/before/go-list-0.json-stream",
+      "bytes": 1577298,
+      "sha256": "747f47f1708d03608457f710247c62855ed6de0f4f419308915f9f8dc848ae80"
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/o2-current-live-v10/local-verification-1794294352885167700/before/go-list-1.json-stream",
+      "bytes": 1612348,
+      "sha256": "c48d4565e0d4dcb6a72081661ca68b179115ecafe37429f1b67a814bd58f5851"
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/o2-current-live-v10/local-verification-1794294352885167700/before/go-list-2.json-stream",
+      "bytes": 1533527,
+      "sha256": "7bf3e6c3232e5bf5d629d51084edc7314b1dd5136376ef5fe02ef5accb9d89da"
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/o2-current-live-v10/local-verification-1794295469416895500/after/go-list-0.json-stream",
+      "bytes": 1577298,
+      "sha256": "747f47f1708d03608457f710247c62855ed6de0f4f419308915f9f8dc848ae80"
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/o2-current-live-v10/local-verification-1794295469416895500/after/go-list-1.json-stream",
+      "bytes": 1612348,
+      "sha256": "c48d4565e0d4dcb6a72081661ca68b179115ecafe37429f1b67a814bd58f5851"
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/o2-current-live-v10/local-verification-1794295469416895500/after/go-list-2.json-stream",
+      "bytes": 1533527,
+      "sha256": "7bf3e6c3232e5bf5d629d51084edc7314b1dd5136376ef5fe02ef5accb9d89da"
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/o2-current-live-v10/local-verification-1794295469416895500/before/go-list-0.json-stream",
+      "bytes": 1577298,
+      "sha256": "747f47f1708d03608457f710247c62855ed6de0f4f419308915f9f8dc848ae80"
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/o2-current-live-v10/local-verification-1794295469416895500/before/go-list-1.json-stream",
+      "bytes": 1612348,
+      "sha256": "c48d4565e0d4dcb6a72081661ca68b179115ecafe37429f1b67a814bd58f5851"
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/o2-current-live-v10/local-verification-1794295469416895500/before/go-list-2.json-stream",
+      "bytes": 1533527,
+      "sha256": "7bf3e6c3232e5bf5d629d51084edc7314b1dd5136376ef5fe02ef5accb9d89da"
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/o2-current-live-v11/local-verification-1794299401982924300/exact-source-helper-inputs.tar.gz",
+      "bytes": 16726161,
+      "sha256": "ea9a97bb123d661826eb1cf6a76e21142206e8d59c3b30c4d3b0203af8a0ec18"
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/o2-current-live-v11/local-verification-1794299401982924300/source-after.json",
+      "bytes": 1092381,
+      "sha256": "32e5e281ba34a6f019248b868cb2965fb90bb0418b1c98751ad9746d8755950c"
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/o2-current-live-v11/local-verification-1794299401982924300/source-before.json",
+      "bytes": 1092381,
+      "sha256": "32e5e281ba34a6f019248b868cb2965fb90bb0418b1c98751ad9746d8755950c"
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/o2-current-live-v12/local-verification-1794303079460017700/exact-source-helper-inputs.tar.gz",
+      "bytes": 40930556,
+      "sha256": "15b59ed6db03d7a3124f3c2650007227f90cc9f94ed2d674f42d605102c46e9f"
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/o2-current-live-v12/local-verification-1794303079460017700/source-after.json",
+      "bytes": 1295798,
+      "sha256": "addc2d8f76959e95bb3cb8e03cb18398c4b2cdc5fd959b03dca842c94162fd0e"
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/o2-current-live-v12/local-verification-1794303079460017700/source-before.json",
+      "bytes": 1295798,
+      "sha256": "addc2d8f76959e95bb3cb8e03cb18398c4b2cdc5fd959b03dca842c94162fd0e"
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/o2-current-live-v12/local-verification-1794303434945656000/exact-source-helper-inputs.tar.gz",
+      "bytes": 40930613,
+      "sha256": "160b0ddf5f31eccf0f772cba464ef6807906999cc988ae7bf3e70def39be8b89"
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/o2-current-live-v12/local-verification-1794303434945656000/source-after.json",
+      "bytes": 1295798,
+      "sha256": "addc2d8f76959e95bb3cb8e03cb18398c4b2cdc5fd959b03dca842c94162fd0e"
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/o2-current-live-v12/local-verification-1794303434945656000/source-before.json",
+      "bytes": 1295798,
+      "sha256": "addc2d8f76959e95bb3cb8e03cb18398c4b2cdc5fd959b03dca842c94162fd0e"
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/remote-p0-browser-v10/smoke-business-deploy-depl-d16f5-s-keyboard-and-mobile-dark-/trace.zip",
+      "bytes": 3955120,
+      "sha256": "dad8531ff75c9930267fe81fde086bdd578b064334813c188761ad11fc88d273"
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/remote-p0-browser-v6/smoke-business-deploy-depl-515b4-eshes-without-replay-light-/trace.zip",
+      "bytes": 2661534,
+      "sha256": "1df4b20be2121d9b2bf6d0437ad3c768c700f91c6fb37bf435b436fe82bbbdaa"
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/remote-p0-browser-v6/smoke-business-deploy-depl-58206--keyboard-and-mobile-light-/trace.zip",
+      "bytes": 3053085,
+      "sha256": "a5ee8cdc05cb87a6884934339c8ef8acfdd84898b977c8221d2cdbb11b45347d"
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/remote-p0-browser-v6/smoke-business-deploy-depl-5e1fa-and-reports-partial-failure/trace.zip",
+      "bytes": 5413303,
+      "sha256": "8152bb3c03e0088b89ca81f90aaa3be9af754e2774ff9ede9d0484462f751e9d"
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/remote-p0-browser-v6/smoke-business-deploy-depl-8790f-reshes-without-replay-dark-/trace.zip",
+      "bytes": 2589375,
+      "sha256": "b34423e5428f9aca9c5222e759512a07e2202af88408ae57a847fa5f8d3d411c"
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/remote-p0-browser-v6/smoke-business-deploy-depl-9c782-irm-conflict-refresh-light-/trace.zip",
+      "bytes": 2502984,
+      "sha256": "6e0e7f3ab81c09f3c1682c4f564d6e6257d1463f092b5faf45c3e574788c89ba"
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/remote-p0-browser-v6/smoke-business-deploy-depl-d16f5-s-keyboard-and-mobile-dark-/trace.zip",
+      "bytes": 3333477,
+      "sha256": "45e51e411c8bbeb8f00a58348ede48a656c217f0addcf8bec106a32ede3a8918"
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/remote-p0-browser-v6/smoke-business-observabili-724a5-ation-and-revocation-light-/trace.zip",
+      "bytes": 1815602,
+      "sha256": "f36c3bd7ed260eea2d4c399cd4d47645f1d83e7d881bf1e928ac55df963f12fb"
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/remote-p0-browser-v6/smoke-business-observabili-a1888-n-denial-and-recovery-dark-/trace.zip",
+      "bytes": 4768416,
+      "sha256": "49a897f9761f94fb98737b10253d179c620fceef504c67906757eae232bdd0e8"
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/remote-p0-browser-v6/smoke-business-observabili-aaf1f--denial-and-recovery-light-/trace.zip",
+      "bytes": 4881875,
+      "sha256": "6a88a3fdcce86232607a6b81f70ea68659f5b6676fda878aa8db3027c1dfc9c8"
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/remote-p0-browser-v6/smoke-business-observabili-fe48d-lation-and-revocation-dark-/trace.zip",
+      "bytes": 1849254,
+      "sha256": "e33a8ca01f42c429dc23330190004c5730a2bc24d1f36bcafd26e19cb18a679d"
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/workbench-browser-detail/smoke-business-deploy-depl-58206--keyboard-and-mobile-light-/trace.zip",
+      "bytes": 1460002,
+      "sha256": "aeffb4ec3edef7be2ded52dea0956cfb5070e8b2a8193fae38026b80903bb110"
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/workbench-browser-detail/smoke-business-deploy-depl-d16f5-s-keyboard-and-mobile-dark-/trace.zip",
+      "bytes": 1468857,
+      "sha256": "d7f5a4018ab3fbc61fd3fe71d1cc646e187e35ad5e7e18bb704bf33188b68821"
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/workbench-browser-final/smoke-business-deploy-depl-58206--keyboard-and-mobile-light-/trace.zip",
+      "bytes": 1260315,
+      "sha256": "e7544edf68c3c90c5b12fba5ce8bb19dce00292c652e475389c1a04fa1a4b95a"
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/workbench-browser-final/smoke-business-deploy-depl-d16f5-s-keyboard-and-mobile-dark-/trace.zip",
+      "bytes": 1647636,
+      "sha256": "d022a3c256c829bc85a060f42730561dd98f398dd272381cbc7b4d65a2f9fe09"
+    }
+  ],
+  "totalBytes": 299345517,
+  "deletedStagingCopies": 87,
+  "canonicalOriginalsPreservedAndReverified": true,
+  "productSourceTouched": false,
+  "result": "pass"
+}

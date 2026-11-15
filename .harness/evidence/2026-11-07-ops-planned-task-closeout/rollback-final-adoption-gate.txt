@@ -1,0 +1,3 @@
+Adoption check (strict): 0 finding(s), 0 warning(s)
+
+no findings

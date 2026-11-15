@@ -1,0 +1,38 @@
+{
+  "phase": "v2-final-local-integrity",
+  "exitCode": 0,
+  "parentTaskPacket": "docs/harness/tasks/2026-11-07-ops-planned-task-closeout.task.md",
+  "remoteExecuted": false,
+  "protectedOriginalHashCount": 64,
+  "protectedHashesStable": true,
+  "originalReviewedScriptCount": 8,
+  "originalReviewedProductSourceCount": 17,
+  "onlyChangedFunction": "private_ip",
+  "otherFunctionCount": 14,
+  "checksPassed": 115,
+  "allV2ScriptSyntaxValid": true,
+  "rootRequestSHA256": "4ce141353a0eb1b05c02642fa485c642ad937ecde0dd9c58d499e5afc65584f5",
+  "scriptHashes": {
+    ".local/ops-acceptance/resume-velero-s3-v2-check.py": "c07755a198206bc857de9e8406e6b78da996b0b8cd1bf8b52047d6c8449746c4",
+    ".local/ops-acceptance/resume-velero-s3-v2-generate.py": "9876d297815d4d60fc0effec945bb28f07ef6ab2cecf1c589a74e048a01ab940",
+    ".local/ops-acceptance/resume-velero-s3-v2-remote.py": "e5beba2fdfb5ac57d84f1367a1b67bdc89edd746529bf4e0d025d25bf1f81d1b",
+    ".local/ops-acceptance/resume-velero-s3-v2-root.py": "018807060fd20548564801e59bfd13f3b258102982b35065bb0f96e0483635d9"
+  },
+  "verificationSHA256": "3207bd02f59d40c74176b5ea9a5dd9888daa7fce234e5d37bf1221fdd7ea7323",
+  "handoffSHA256": "3ace777b0f64477338ea5418fb8404aa6ff62c7da7057b142d279dbe937ba919",
+  "handoffLinksChecked": 9,
+  "noV2TemporaryOrBytecodeLeftovers": true,
+  "providerAcceptanceVerified": false,
+  "backupRestoreVerified": false,
+  "createdUTC": "2026-11-10T01:03:16.455447+00:00",
+  "priorFinalCheck": "resume-velero-s3-v2-final-check-20261110T010252339482.json",
+  "reviewSHA256": "e27555937090c4e88f46e592ae075be97930e7cd82326908fdbf9b6c3c26d414",
+  "reviewOtherFunctionCount": 14,
+  "documentationChecks": {
+    "docsFrontmatter": "exit0, 462 docs checked",
+    "taskPacketTemplate": "exit0"
+  },
+  "scopedWhitespaceDiagnostics": 0,
+  "allFourScriptsIgnored": true,
+  "correction": "Handoff/review prose corrected to actual AST count 14; 17 is protected product-source count. Scripts/request unchanged."
+}

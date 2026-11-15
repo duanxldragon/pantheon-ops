@@ -1,0 +1,19 @@
+{
+  "command": "gopls check (all 10 final changed files)",
+  "exitCode": 0,
+  "files": [
+    "modules/business/capability/capability.go",
+    "modules/business/deploy/attempt_ownership.go",
+    "modules/business/deploy/cancel_unclaimed_test.go",
+    "modules/business/deploy/deploy_service_test.go",
+    "modules/business/deploy/deploy_service.go",
+    "modules/business/deploy/independent_o2_regression_test.go",
+    "modules/business/deploy/service_transaction_test.go",
+    "modules/business/deploy/target_selection.go",
+    "modules/business/service/state_transaction_test.go",
+    "modules/business/service/state.go"
+  ],
+  "goplsVersion": "v0.23.0",
+  "goplsSHA256": "77cea13fe23dcc911604328959dbefe4087edf5e9f858a50b125c76db03272bb",
+  "finishedUTC": "2026-11-10T07:17:20.0531998Z"
+}

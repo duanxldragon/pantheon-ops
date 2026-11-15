@@ -2,6 +2,8 @@ package backup
 
 import (
 	"context"
+	"errors"
+	"fmt"
 	"sync"
 	"time"
 
@@ -18,7 +20,7 @@ import (
 // Reconciler synchronizes Velero backup/restore state from the cluster CRDs.
 type Reconciler struct {
 	db             *gorm.DB
-	clusterService *cluster.ClusterService
+	clusterService backupClusterClients
 	interval       time.Duration
 	stopCh         chan struct{}
 	stopOnce       sync.Once
@@ -68,7 +70,7 @@ func (r *Reconciler) veleroClient(ctx context.Context, clusterID uint64) (*Veler
 	if err != nil {
 		return nil, err
 	}
-	dynamicClient, err := r.clusterService.GetDynamicClient(clusterID, nil)
+	dynamicClient, err := r.clusterService.GetDynamicClientWithContext(ctx, clusterID, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -89,7 +91,7 @@ func (r *Reconciler) reconcile(ctx context.Context) error {
 // reconcileBackups synchronizes backup states
 func (r *Reconciler) reconcileBackups(ctx context.Context) error {
 	var backups []VeleroBackup
-	if err := r.db.Where("status IN ?", []string{StatusNew, StatusInProgress}).Find(&backups).Error; err != nil {
+	if err := r.db.WithContext(ctx).Where("status IN ?", []string{StatusNew, StatusInProgress, StatusUnknown}).Find(&backups).Error; err != nil {
 		return err
 	}
 	for i := range backups {
@@ -110,9 +112,15 @@ func (r *Reconciler) reconcileBackup(ctx context.Context, backup *VeleroBackup) 
 	obj, err := vc.GetBackup(ctx, backup.Name)
 	if err != nil {
 		if apierrors.IsNotFound(err) {
-			// The CRD no longer exists; reflect that in the local record.
-			return r.db.Model(backup).Update("status", StatusFailed).Error
+			if backup.Status == StatusNew {
+				return nil
+			}
+			// A pending submission or lost response cannot prove refusal. Never resend.
+			return r.db.WithContext(ctx).Model(backup).Where("status IN ?", []string{StatusNew, StatusInProgress, StatusUnknown}).Updates(map[string]any{"status": StatusUnknown, "phase": phaseSubmissionUnknown}).Error
 		}
+		return err
+	}
+	if err := checkProviderIdentity(obj, backup.ID, backup.Phase); err != nil {
 		return err
 	}
 
@@ -151,13 +159,13 @@ func (r *Reconciler) reconcileBackup(ctx context.Context, backup *VeleroBackup) 
 	if len(updates) == 0 {
 		return nil
 	}
-	return r.db.Model(backup).Updates(updates).Error
+	return r.db.WithContext(ctx).Model(backup).Where("status IN ?", []string{StatusNew, StatusInProgress, StatusUnknown}).Updates(updates).Error
 }
 
 // reconcileRestores synchronizes restore states
 func (r *Reconciler) reconcileRestores(ctx context.Context) error {
 	var restores []VeleroRestore
-	if err := r.db.Where("status IN ?", []string{StatusNew, StatusInProgress}).Find(&restores).Error; err != nil {
+	if err := r.db.WithContext(ctx).Where("status IN ?", []string{StatusNew, StatusInProgress, StatusUnknown}).Find(&restores).Error; err != nil {
 		return err
 	}
 	for i := range restores {
@@ -178,8 +186,14 @@ func (r *Reconciler) reconcileRestore(ctx context.Context, restore *VeleroRestor
 	obj, err := vc.GetRestore(ctx, restore.Name)
 	if err != nil {
 		if apierrors.IsNotFound(err) {
-			return r.db.Model(restore).Update("status", StatusFailed).Error
+			if restore.Status == StatusNew {
+				return nil
+			}
+			return r.db.WithContext(ctx).Model(restore).Where("status IN ?", []string{StatusNew, StatusInProgress, StatusUnknown}).Updates(map[string]any{"status": StatusUnknown, "phase": phaseSubmissionUnknown}).Error
 		}
+		return err
+	}
+	if err := checkProviderIdentity(obj, restore.ID, restore.Phase); err != nil {
 		return err
 	}
 
@@ -209,7 +223,19 @@ func (r *Reconciler) reconcileRestore(ctx context.Context, restore *VeleroRestor
 	if len(updates) == 0 {
 		return nil
 	}
-	return r.db.Model(restore).Updates(updates).Error
+	return r.db.WithContext(ctx).Model(restore).Where("status IN ?", []string{StatusNew, StatusInProgress, StatusUnknown}).Updates(updates).Error
+}
+
+func checkProviderIdentity(obj *unstructured.Unstructured, id uint64, phase string) error {
+	identity := obj.GetAnnotations()[recordIdentityAnnotation]
+	if identity != "" && identity != fmt.Sprint(id) {
+		return errors.New("k8s.backup.restore_create_failed")
+	}
+	// Legacy records have no submission marker; keep their existing read contract.
+	if identity == "" && (phase == phasePendingSubmission || phase == phaseSubmissionUnknown || phase == phaseSubmitted) {
+		return errors.New("k8s.backup.restore_create_failed")
+	}
+	return nil
 }
 
 // CleanupExpiredBackups removes expired backup CRDs and local records.

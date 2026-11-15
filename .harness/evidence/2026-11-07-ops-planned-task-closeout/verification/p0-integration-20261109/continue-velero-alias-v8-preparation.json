@@ -1,0 +1,16 @@
+{
+  "exitCode": 0,
+  "remoteExecuted": false,
+  "request": "continue-velero-alias-v8-request.json",
+  "requestSHA256": "30c929d01d33c80e8419984436802c92af84362a1fbba332fa7a5b226582368b",
+  "scriptHashes": {
+    ".local/ops-acceptance/continue-velero-alias-v8-contract.py": "dfb05b10db25a85f80a54f0426e603288ff147ba7b972cb98479799461912a31",
+    ".local/ops-acceptance/continue-velero-alias-v8-remote.py": "19b9d25d67eb32589b8a2b8c8aa9db59a8246f16e5a97fe34f89ab1c8733d026",
+    ".local/ops-acceptance/continue-velero-alias-v8-root.py": "77088fd9d3d56b7a5abdd6c0dcf20411d753fc9cc8f5c4b0883d470ec556f21e",
+    ".local/ops-acceptance/continue-velero-alias-v8-generate.py": "e38d428cdd78711707257ec958afeddbaa0c98166e110808e881aca6b9ebb3e0",
+    ".local/ops-acceptance/continue-velero-alias-v8-test.py": "f4bbd8ad6d18019a748d5f8693c6ae1eeb2bd39c7d330b80fb43cbcff87ea214"
+  },
+  "remoteBaselineFiles": 39,
+  "ownedObjects": 22,
+  "P0Approved": false
+}

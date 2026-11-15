@@ -10,6 +10,14 @@ var moduleRelationFieldPattern = regexp.MustCompile(`^[A-Za-z][A-Za-z0-9_]*$`)
 
 const msgInvalidDependency = "module.generate.invalid_dependency"
 
+const (
+	msgInvalidRelation        = "module.generate.invalid_relation"
+	msgInvalidDataScope       = "module.generate.invalid_data_scope"
+	msgInvalidTemplateVersion = "module.generate.invalid_template_version"
+)
+
+const scopeBusiness = "business"
+
 func validateGovernanceContract(req *RegisterGeneratedModuleRequest) error {
 	if err := validateTemplateAndDataScope(req.Schema); err != nil {
 		return err
@@ -22,7 +30,7 @@ func validateGovernanceContract(req *RegisterGeneratedModuleRequest) error {
 	}
 	for _, relation := range req.Schema.Relations {
 		if !isValidRelationContract(req.Schema.Scope, relation) {
-			return common.NewBadRequest("module.generate.invalid_relation")
+			return common.NewBadRequest(msgInvalidRelation)
 		}
 	}
 	return nil
@@ -30,12 +38,34 @@ func validateGovernanceContract(req *RegisterGeneratedModuleRequest) error {
 
 func validateTemplateAndDataScope(schema ModuleSchema) error {
 	templateVersion := strings.TrimSpace(schema.TemplateVersion)
-	if templateVersion != "" && templateVersion != "v1" {
-		return common.NewBadRequest("module.generate.invalid_template_version")
+	if templateVersion != "" && templateVersion != "v1" && templateVersion != "v2" {
+		return common.NewBadRequest(msgInvalidTemplateVersion)
 	}
 	dataScopeMode := strings.TrimSpace(schema.DataScopeMode)
+	if dataScopeMode == "tenant" {
+		return validateTenantDataScope(schema, templateVersion)
+	}
 	if dataScopeMode != "" && !isValidDataScopeMode(dataScopeMode) {
-		return common.NewBadRequest("module.generate.invalid_data_scope")
+		return common.NewBadRequest(msgInvalidDataScope)
+	}
+	return nil
+}
+
+func validateTenantDataScope(schema ModuleSchema, templateVersion string) error {
+	if templateVersion != "v2" || schema.Scope != scopeBusiness {
+		return common.NewBadRequest(msgInvalidDataScope)
+	}
+	if len(schema.Relations) != 0 || schema.Metadata.TableRole == "detail" || schema.Metadata.TableRole == "relation" ||
+		schema.Metadata.PrimaryTable != "" || schema.Metadata.RelationFromField != "" || schema.Metadata.RelationToField != "" {
+		return common.NewBadRequest(msgInvalidRelation)
+	}
+	for _, field := range schema.Model.Fields {
+		if strings.EqualFold(strings.ReplaceAll(field.Name, "_", ""), "tenantid") {
+			return common.NewBadRequest(msgInvalidDataScope)
+		}
+		if field.Type == "relation" {
+			return common.NewBadRequest(msgInvalidRelation)
+		}
 	}
 	return nil
 }
@@ -46,7 +76,7 @@ func validateRelationMetadata(metadata ModuleMetadata) error {
 		metadata.RelationToField,
 	} {
 		if field != "" && (field != strings.TrimSpace(field) || !moduleRelationFieldPattern.MatchString(field)) {
-			return common.NewBadRequest("module.generate.invalid_relation")
+			return common.NewBadRequest(msgInvalidRelation)
 		}
 	}
 	return nil
@@ -71,8 +101,7 @@ func validateDependencies(name string, dependencies []ModuleDependency) error {
 // isValidDataScopeMode validates the scaffold data-scope contract.
 // The runtime truth source is backend/pkg/common/data_scope.go
 // (all / self / dept / dept_and_children / custom mapped to generator modes);
-// "tenant" is intentionally rejected: tenant isolation has no runtime
-// implementation yet (see TENANT_EVOLUTION_MASTER_PLAN_20260910.md, task 0).
+// Tenant mode is separately validated as an opt-in v2 business contract.
 func isValidDataScopeMode(mode string) bool {
 	switch strings.TrimSpace(mode) {
 	case "none", "owner", "dept", "custom":

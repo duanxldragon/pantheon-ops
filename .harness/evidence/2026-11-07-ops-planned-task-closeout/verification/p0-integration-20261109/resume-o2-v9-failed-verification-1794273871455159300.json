@@ -1,0 +1,111 @@
+{
+  "taskId": "2026-11-07-ops-planned-task-closeout",
+  "checks": [
+    {
+      "check": "all 45 original assertion call sites preserved verbatim",
+      "passed": true
+    },
+    {
+      "check": "cleanup AST unchanged after version prefix normalization",
+      "passed": true
+    },
+    {
+      "check": "remote_command AST unchanged after version prefix normalization",
+      "passed": true
+    },
+    {
+      "check": "pin AST unchanged after version prefix normalization",
+      "passed": true
+    },
+    {
+      "check": "root_execute_after_review AST unchanged after version prefix normalization",
+      "passed": true
+    },
+    {
+      "check": "source_hashes AST unchanged after version prefix normalization",
+      "passed": true
+    },
+    {
+      "check": "all 12 cases/order preserved",
+      "passed": true
+    },
+    {
+      "check": "remote CLI guard rejects before resource imports",
+      "passed": true
+    },
+    {
+      "check": "remote CLI guard rejects before resource imports",
+      "passed": true
+    },
+    {
+      "check": "cold prerequisite failure retains events and exact failure exit1",
+      "passed": true,
+      "origin": "in-memory fixture only"
+    },
+    {
+      "check": "ordinary failure exit1 and deliberate crash exit75 retained with verifier close",
+      "passed": true
+    },
+    {
+      "check": "resume-o2-v9-build.py syntax",
+      "passed": true
+    },
+    {
+      "check": "resume-o2-v9-prepare.py syntax",
+      "passed": true
+    },
+    {
+      "check": "resume-o2-v9-runner.py syntax",
+      "passed": true
+    },
+    {
+      "check": "resume-o2-v9-verify.py syntax",
+      "passed": true
+    },
+    {
+      "check": "all 185 product dependencies and prior v7/v8 artifacts unchanged",
+      "passed": true
+    }
+  ],
+  "commands": [
+    {
+      "command": [
+        "D:\\cache\\go\\pkg\\mod\\golang.org\\toolchain@v0.0.1-go1.26.10.windows-amd64\\bin\\go.exe",
+        "vet",
+        "-mod=readonly",
+        "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\resume-o2-v9-driver.go",
+        "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\resume-o2-v9-driver_test.go",
+        "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\resume-o2-v9-transport_test.go"
+      ],
+      "exitCode": 1,
+      "CGO_ENABLED": "1",
+      "GOOS": "windows",
+      "PATHPrefix": "D:/msys64/mingw64/bin",
+      "GOTOOLCHAIN": "local",
+      "goExecutable": "D:\\cache\\go\\pkg\\mod\\golang.org\\toolchain@v0.0.1-go1.26.10.windows-amd64\\bin\\go.exe",
+      "seconds": 4.313,
+      "log": "resume-o2-v9-verify-1794273871455159300-0.txt",
+      "logSHA256": "ebd408c950a3f89659fd4a7c4a2caac69252759919e26362f1389f9322630579"
+    }
+  ],
+  "failed": 2,
+  "exitCode": 1,
+  "sealBefore": {
+    "preservedFileCount": 102,
+    "artifactChanges": [],
+    "sourceCount": 185,
+    "sourceChanges": [],
+    "sealed": true
+  },
+  "sealAfter": {
+    "preservedFileCount": 102,
+    "artifactChanges": [],
+    "sourceCount": 185,
+    "sourceChanges": [],
+    "sealed": true
+  },
+  "scope": "local v9 verifier tooling only; fixtures are not true-VM acceptance",
+  "credentialsLoaded": false,
+  "remoteExecuted": false,
+  "attempt": 1794273871455159300
+}

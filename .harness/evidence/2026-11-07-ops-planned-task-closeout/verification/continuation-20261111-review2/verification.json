@@ -1,0 +1,16 @@
+{
+  "taskId": "2026-11-07-ops-planned-task-closeout",
+  "frontmatter": {
+    "command": "npm run check:docs-frontmatter",
+    "exitCode": 0
+  },
+  "taskTemplate": {
+    "command": "npm run check:task-packet-template",
+    "exitCode": 0
+  },
+  "currentCheckpointAndManifestMatch": true,
+  "previousReceiptHashUnchanged": true,
+  "P0ParentsClosed": 0,
+  "officialPublicationOrConsumption": false,
+  "independentApproval": false
+}

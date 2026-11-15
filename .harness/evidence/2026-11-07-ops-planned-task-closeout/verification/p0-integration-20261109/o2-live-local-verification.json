@@ -1,0 +1,55 @@
+{
+  "scope": "owned scripts local diagnostics and pre-execution safety boundaries; no real VM claims",
+  "checks": [
+    {
+      "check": "o2-live-runner.py AST parse",
+      "passed": true
+    },
+    {
+      "check": "o2-live-local-verify.py AST parse",
+      "passed": true
+    },
+    {
+      "check": "gofmt clean",
+      "passed": true,
+      "exitCode": 0
+    },
+    {
+      "check": "path traversal identity rejected",
+      "passed": true,
+      "exitCode": 1,
+      "seconds": 0.141,
+      "origin": "local real compiled race driver before DB/SSH initialization",
+      "credentialSentinelExcluded": true
+    },
+    {
+      "check": "production database rejected",
+      "passed": true,
+      "exitCode": 1,
+      "seconds": 0.063,
+      "origin": "local real compiled race driver before DB/SSH initialization",
+      "credentialSentinelExcluded": true
+    },
+    {
+      "check": "non-owned DB server rejected",
+      "passed": true,
+      "exitCode": 1,
+      "seconds": 0.031,
+      "origin": "local real compiled race driver before DB/SSH initialization",
+      "credentialSentinelExcluded": true
+    },
+    {
+      "check": "mismatched own database identity rejected",
+      "passed": true,
+      "exitCode": 1,
+      "seconds": 0.047,
+      "origin": "local real compiled race driver before DB/SSH initialization",
+      "credentialSentinelExcluded": true
+    }
+  ],
+  "passed": 7,
+  "failed": 0,
+  "trueVMPositivePassed": 0,
+  "trueVMNegativePassed": 0,
+  "driverSHA256": "a77f4a3e1dc34df75ae87dd0b90ce1a08d9993b52e19212af01c9a7860f1081b"
+}

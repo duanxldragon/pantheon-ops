@@ -1,0 +1,27 @@
+{
+  "phase": "install",
+  "exitCode": 1,
+  "host": "115.190.251.143",
+  "diagnostic": "resume-velero-s3-v3-root-diagnostic-20261110T010950095179.json",
+  "providerScriptSHA256": "7b1ba58c52d340a7d121c72e537baa3e20b072c0635289f9f82d97e5761ab7a5",
+  "originalArtifactsRetained": true,
+  "providerInstalled": false,
+  "backupRestoreVerified": false,
+  "remoteAttempted": true,
+  "records": [
+    {
+      "phase": "install",
+      "failedStage": "private-native-seaweed",
+      "exitCode": 1,
+      "owner": "velero-s3-seaweed-20261109-v1",
+      "errorType": "ValueError",
+      "detailsOmitted": true,
+      "ownedObjects": [],
+      "partialResourcesMayRemain": true,
+      "backupRestoreVerified": false
+    }
+  ],
+  "stderrPresent": false,
+  "remoteCommand": "timeout --signal=TERM --kill-after=5s 900s python3 /opt/pantheon-p0-20261109/velero-s3-seaweed-v1/resume-velero-s3-v3-remote.py install",
+  "reviewedSourceStable": true
+}

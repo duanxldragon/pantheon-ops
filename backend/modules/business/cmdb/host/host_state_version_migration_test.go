@@ -123,8 +123,12 @@ func testHostBackfillDownReapplyAndCAS(t *testing.T) {
 		t.Fatalf("expected current host version 5 untouched, got %d", got)
 	}
 
-	// Roll back the module-owned migration, then really execute its SQL again.
+	// Track module replay separately from the assembled chain, whose newest
+	// migration may belong to another business module.
 	m := newHostBackfillRunner(t, dsn)
+	if err := m.Up(); err != nil {
+		t.Fatalf("track module backfill before replay: %v", err)
+	}
 	if err := m.Down(); err != nil {
 		t.Fatalf("roll back host backfill: %v", err)
 	}
@@ -248,7 +252,7 @@ func newHostBackfillRunner(t *testing.T, dsn string) *migrate.Migrate {
 		t.Fatalf("open isolated migration connection: %v", err)
 	}
 	t.Cleanup(func() { _ = sqlDB.Close() })
-	driver, err := migrateMySQL.WithInstance(sqlDB, &migrateMySQL.Config{})
+	driver, err := migrateMySQL.WithInstance(sqlDB, &migrateMySQL.Config{MigrationsTable: "host_backfill_test_migrations"})
 	if err != nil {
 		t.Fatalf("create migration database driver: %v", err)
 	}

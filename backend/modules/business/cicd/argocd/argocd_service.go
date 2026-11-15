@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 // SQL fragments shared by the Argo CD registry queries. They stay package constants so every
@@ -21,12 +22,14 @@ const (
 //
 //nolint:revive // the exported service name keeps the Argo CD domain prefix for API clarity.
 type ArgoCDService struct {
-	db *gorm.DB
+	db            *gorm.DB
+	clientFactory func(string, string, string) (*ArgoCDClient, error)
+	authorizer    ActionAuthorizer
 }
 
 // NewArgoCDService creates a new ArgoCDService.
 func NewArgoCDService(db *gorm.DB) *ArgoCDService {
-	return &ArgoCDService{db: db}
+	return &ArgoCDService{db: db, clientFactory: NewArgoCDClient}
 }
 
 // Migrate creates or updates database schema.
@@ -73,8 +76,12 @@ func (s *ArgoCDService) AddServer(req AddServerRequest, createdBy string) (*Serv
 
 // ListServers returns every registered Argo CD server.
 func (s *ArgoCDService) ListServers() (*ServerListResponse, error) {
+	return s.ListServersContext(context.Background())
+}
+
+func (s *ArgoCDService) ListServersContext(ctx context.Context) (*ServerListResponse, error) {
 	var records []ArgoCDServer
-	if err := s.db.Order(orderByCreatedAtDesc).Find(&records).Error; err != nil {
+	if err := s.db.WithContext(ctx).Order(orderByCreatedAtDesc).Find(&records).Error; err != nil {
 		return nil, err
 	}
 	items := make([]ServerResponse, len(records))
@@ -222,8 +229,12 @@ func (s *ArgoCDService) AddRepository(req AddRepositoryRequest, createdBy string
 
 // ListRepositories reads the repositories configured on the remote Argo CD server.
 func (s *ArgoCDService) ListRepositories(serverID uint64) (*RepositoryListResponse, error) {
+	return s.ListRepositoriesContext(context.Background(), serverID)
+}
+
+func (s *ArgoCDService) ListRepositoriesContext(ctx context.Context, serverID uint64) (*RepositoryListResponse, error) {
 	var records []ArgoCDRepository
-	db := s.db
+	db := s.db.WithContext(ctx)
 	if serverID > 0 {
 		db = db.Where("server_id = ?", serverID)
 	}
@@ -358,8 +369,12 @@ func (s *ArgoCDService) CreateApplication(req CreateApplicationRequest, createdB
 
 // ListApplications reads the applications deployed on the given Argo CD server.
 func (s *ArgoCDService) ListApplications(serverID uint64) (*ApplicationListResponse, error) {
+	return s.ListApplicationsContext(context.Background(), serverID)
+}
+
+func (s *ArgoCDService) ListApplicationsContext(ctx context.Context, serverID uint64) (*ApplicationListResponse, error) {
 	var records []ArgoCDApplication
-	db := s.db
+	db := s.db.WithContext(ctx)
 	if serverID > 0 {
 		db = db.Where("server_id = ?", serverID)
 	}
@@ -383,30 +398,67 @@ func (s *ArgoCDService) GetApplication(id uint64) (*ApplicationResponse, error) 
 }
 
 // UpdateApplication applies req to the stored application identified by id.
-func (s *ArgoCDService) UpdateApplication(id uint64, req UpdateApplicationRequest) error {
+func (s *ArgoCDService) UpdateApplication(id uint64, req UpdateApplicationRequest, actors ...ActionActor) error {
+	return s.UpdateApplicationContext(context.Background(), id, req, actionActor(actors))
+}
+
+const applicationUpdateAction = "PUT /cicd/argocd/applications/:id"
+
+// UpdateApplicationContext binds permission to the complete effective current
+// and proposed targets under the same lock as the write. Empty DTO strings
+// retain their existing values; owning server/cluster are not DTO fields.
+func (s *ArgoCDService) UpdateApplicationContext(ctx context.Context, id uint64, req UpdateApplicationRequest, actor ActionActor) error {
+	return s.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		var current ArgoCDApplication
+		if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).First(&current, id).Error; err != nil {
+			return err
+		}
+		var server ArgoCDServer
+		if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).First(&server, current.ServerID).Error; err != nil {
+			return err
+		}
+		if err := s.authorizeAction(ctx, actor, applicationUpdateAction, &current, &server, []string{current.SourceRepoURL}); err != nil {
+			return err
+		}
+		proposed := current
+		updates := applyApplicationUpdate(&proposed, req)
+		if err := s.authorizeAction(ctx, actor, applicationUpdateAction, &proposed, &server, []string{proposed.SourceRepoURL}); err != nil {
+			return err
+		}
+		if len(updates) == 0 {
+			return nil
+		}
+		return tx.Model(&current).Updates(updates).Error
+	})
+}
+
+func applyApplicationUpdate(proposed *ArgoCDApplication, req UpdateApplicationRequest) map[string]interface{} {
 	updates := map[string]interface{}{}
 	if req.SourceRepoURL != "" {
+		proposed.SourceRepoURL = req.SourceRepoURL
 		updates["source_repo_url"] = req.SourceRepoURL
 	}
 	if req.SourcePath != "" {
+		proposed.SourcePath = req.SourcePath
 		updates["source_path"] = req.SourcePath
 	}
 	if req.SourceTargetRev != "" {
+		proposed.SourceTargetRev = req.SourceTargetRev
 		updates["source_target_rev"] = req.SourceTargetRev
 	}
 	if req.DestinationServer != "" {
+		proposed.DestinationServer = req.DestinationServer
 		updates["destination_server"] = req.DestinationServer
 	}
 	if req.DestinationNS != "" {
-		updates["destination_namespace"] = req.DestinationNS
+		proposed.DestinationNS = req.DestinationNS
+		updates["destination_ns"] = req.DestinationNS
 	}
 	if req.Project != "" {
+		proposed.Project = req.Project
 		updates["project"] = req.Project
 	}
-	if len(updates) == 0 {
-		return nil
-	}
-	return s.db.Model(&ArgoCDApplication{}).Where(idWhereClause, id).Updates(updates).Error
+	return updates
 }
 
 // DeleteApplication removes the application from Argo CD and from the local registry.
@@ -441,79 +493,6 @@ func (s *ArgoCDService) DeleteApplication(id uint64) error {
 		return fmt.Errorf("argocd.delete_failed: %w", err)
 	}
 	return s.db.Delete(&ArgoCDApplication{}, id).Error
-}
-
-// SyncApplication triggers a real sync on the remote ArgoCD server and
-// records the outcome in the sync history.
-func (s *ArgoCDService) SyncApplication(id uint64, revision string) (*SyncHistoryResponse, error) {
-	var record ArgoCDApplication
-	if err := s.db.First(&record, id).Error; err != nil {
-		return nil, err
-	}
-
-	var server ArgoCDServer
-	if err := s.db.First(&server, record.ServerID).Error; err != nil {
-		return nil, fmt.Errorf("server.not_found: %w", err)
-	}
-	authToken, err := DecryptSecret(server.AuthToken)
-	if err != nil {
-		return nil, fmt.Errorf("decryption_failed: %w", err)
-	}
-
-	now := time.Now()
-	history := &ArgoCDSyncHistory{
-		ApplicationID: id,
-		Revision:      revision,
-		Status:        "Running",
-		StartedAt:     now,
-	}
-	if err := s.db.Create(history).Error; err != nil {
-		return nil, err
-	}
-
-	client, err := NewArgoCDClient(server.Endpoint, authToken, server.CACert)
-	if err != nil {
-		return nil, err
-	}
-	opCtx, cancel := withCustomTimeout(context.TODO(), 30*time.Second)
-	defer cancel()
-
-	finished := time.Now()
-	status := "Succeeded"
-	var message string
-	if err := client.SyncApplication(opCtx, record.Name, revision); err != nil {
-		status = "Failed"
-		message = err.Error()
-	}
-	history.Status = status
-	history.Message = message
-	history.FinishedAt = &finished
-	_ = s.db.Model(history).Updates(map[string]interface{}{
-		"status": status, "message": message, "finished_at": finished,
-	}).Error
-
-	updates := map[string]interface{}{"last_synced_at": finished}
-	if status == "Succeeded" {
-		updates["status"] = AppStatusSynced
-		updates["sync_status"] = "Synced"
-	} else {
-		updates["status"] = AppStatusError
-		updates["sync_status"] = "OutOfSync"
-		updates["last_error"] = message
-	}
-	_ = s.db.Model(&record).Updates(updates).Error
-
-	if err != nil {
-		return nil, err
-	}
-	return &SyncHistoryResponse{
-		ID:         history.ID,
-		Revision:   history.Revision,
-		Status:     history.Status,
-		Message:    history.Message,
-		StartedAt:  history.StartedAt,
-		FinishedAt: history.FinishedAt,
-	}, nil
 }
 
 // RefreshApplication updates the app status from the remote.
@@ -553,25 +532,7 @@ func (s *ArgoCDService) RefreshApplication(id uint64) error {
 		return err
 	}
 
-	// Update database
-	updates := map[string]interface{}{
-		"health_status": status.Health.Status,
-		"sync_status":   status.Sync.Status,
-	}
-
-	if status.OperationState != nil {
-		updates["status"] = status.OperationState.Phase
-		if status.OperationState.Message != "" {
-			updates["last_error"] = status.OperationState.Message
-		}
-	}
-
-	return s.db.Model(&record).Updates(updates).Error
-}
-
-// RollbackApplication records a rollback sync event.
-func (s *ArgoCDService) RollbackApplication(id uint64, revision string) (*SyncHistoryResponse, error) {
-	return s.SyncApplication(id, revision)
+	return applyApplicationStatus(opCtx, s.db, &record, status)
 }
 
 // GetSyncHistory returns sync history for an application.
@@ -586,7 +547,7 @@ func (s *ArgoCDService) GetSyncHistory(appID uint64) ([]SyncHistoryResponse, err
 			ID:         r.ID,
 			Revision:   r.Revision,
 			Status:     r.Status,
-			Message:    r.Message,
+			Message:    publicActionMessage(r.Message),
 			StartedAt:  r.StartedAt,
 			FinishedAt: r.FinishedAt,
 		}
@@ -608,7 +569,7 @@ func (s *ArgoCDService) toApplicationResponse(r *ArgoCDApplication) *Application
 		Status:            r.Status,
 		HealthStatus:      r.HealthStatus,
 		SyncStatus:        r.SyncStatus,
-		LastError:         r.LastError,
+		LastError:         publicActionMessage(r.LastError),
 		LastSyncedAt:      r.LastSyncedAt,
 		CreatedAt:         r.CreatedAt,
 		CreatedBy:         r.CreatedBy,

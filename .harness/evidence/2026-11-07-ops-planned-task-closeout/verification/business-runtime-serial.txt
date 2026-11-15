@@ -1,0 +1,446 @@
+[smoke-suite] API base http://127.0.0.1:24483/api/v1
+[generated-modules] cleanup complete
+{
+  "modules": 0,
+  "schemas": 1,
+  "registries": 4,
+  "i18n": 5
+}
+(!) Your Vite config uses features that are unsupported by `configLoader: 'native'`, which is planned to become the default in a future major version of Vite:
+  - `__dirname` (vite.config.ts:32:25). Use `import.meta.dirname` instead
+Set `VITE_CONFIG_NATIVE_IGNORE_WARNING=true` to suppress this warning.
+Smoke Vite ready at http://127.0.0.1:24576/
+
+Running 14 tests using 1 worker
+
+(node:3208) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+17:00:28 [vite] http proxy error: /api/v1/system/setting/public
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+17:00:28 [vite] http proxy error: /api/v1/auth/me
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+17:00:28 [vite] http proxy error: /api/v1/system/menu/tree?scope=nav
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+17:00:28 [vite] http proxy error: /api/v1/auth/me
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+17:00:28 [vite] http proxy error: /api/v1/system/menu/tree?scope=nav
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+17:00:28 [vite] http proxy error: /api/v1/auth/tenants/current
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+17:00:28 [vite] http proxy error: /api/v1/system/refresh/state?topics=system:dept:changed,system:dict:changed,system:i18n:changed,system:menu:changed,system:permission:changed,system:post:changed,system:role:changed,system:setting:changed,system:user:changed
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+17:00:28 [vite] http proxy error: /api/v1/system/refresh/state?topics=system:dept:changed,system:dict:changed,system:i18n:changed,system:menu:changed,system:permission:changed,system:post:changed,system:role:changed,system:setting:changed,system:user:changed
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+17:00:33 [vite] http proxy error: /api/v1/system/refresh/state?topics=system:dept:changed,system:dict:changed,system:i18n:changed,system:menu:changed,system:permission:changed,system:post:changed,system:role:changed,system:setting:changed,system:user:changed
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+17:00:38 [vite] http proxy error: /api/v1/system/refresh/state?topics=system:dept:changed,system:dict:changed,system:i18n:changed,system:menu:changed,system:permission:changed,system:post:changed,system:role:changed,system:setting:changed,system:user:changed
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+  x   1 tests\smoke\business\deploy\deploy-pages.spec.ts:67:3 › Deploy business module smoke › deploy pages load under operations platform (12.6s)
+(node:10572) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+17:00:42 [vite] http proxy error: /api/v1/system/setting/public
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+17:00:42 [vite] http proxy error: /api/v1/auth/me
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+17:00:42 [vite] http proxy error: /api/v1/system/menu/tree?scope=nav
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+17:00:42 [vite] http proxy error: /api/v1/auth/me
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+17:00:42 [vite] http proxy error: /api/v1/system/menu/tree?scope=nav
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+17:00:42 [vite] http proxy error: /api/v1/auth/tenants/current
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+17:00:42 [vite] http proxy error: /api/v1/system/refresh/state?topics=system:dept:changed,system:dict:changed,system:i18n:changed,system:menu:changed,system:permission:changed,system:post:changed,system:role:changed,system:setting:changed,system:user:changed
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+17:00:42 [vite] http proxy error: /api/v1/system/refresh/state?topics=system:dept:changed,system:dict:changed,system:i18n:changed,system:menu:changed,system:permission:changed,system:post:changed,system:role:changed,system:setting:changed,system:user:changed
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+17:00:47 [vite] http proxy error: /api/v1/system/refresh/state?topics=system:dept:changed,system:dict:changed,system:i18n:changed,system:menu:changed,system:permission:changed,system:post:changed,system:role:changed,system:setting:changed,system:user:changed
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+17:00:52 [vite] http proxy error: /api/v1/system/refresh/state?topics=system:dept:changed,system:dict:changed,system:i18n:changed,system:menu:changed,system:permission:changed,system:post:changed,system:role:changed,system:setting:changed,system:user:changed
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+  x   2 tests\smoke\business\deploy\deploy-pages.spec.ts:110:3 › Deploy business module smoke › deploy task detail action opens a modal without leaving the list page (13.5s)
+(node:4888) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+17:00:55 [vite] http proxy error: /api/v1/system/setting/public
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+17:00:56 [vite] http proxy error: /api/v1/auth/me
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+17:00:56 [vite] http proxy error: /api/v1/system/menu/tree?scope=nav
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+17:00:56 [vite] http proxy error: /api/v1/auth/me
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+17:00:56 [vite] http proxy error: /api/v1/system/menu/tree?scope=nav
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+17:00:56 [vite] http proxy error: /api/v1/auth/tenants/current
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+17:00:56 [vite] http proxy error: /api/v1/system/refresh/state?topics=system:dept:changed,system:dict:changed,system:i18n:changed,system:menu:changed,system:permission:changed,system:post:changed,system:role:changed,system:setting:changed,system:user:changed
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+17:00:56 [vite] http proxy error: /api/v1/system/refresh/state?topics=system:dept:changed,system:dict:changed,system:i18n:changed,system:menu:changed,system:permission:changed,system:post:changed,system:role:changed,system:setting:changed,system:user:changed
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+17:01:01 [vite] http proxy error: /api/v1/system/refresh/state?topics=system:dept:changed,system:dict:changed,system:i18n:changed,system:menu:changed,system:permission:changed,system:post:changed,system:role:changed,system:setting:changed,system:user:changed
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+17:01:06 [vite] http proxy error: /api/v1/system/refresh/state?topics=system:dept:changed,system:dict:changed,system:i18n:changed,system:menu:changed,system:permission:changed,system:post:changed,system:role:changed,system:setting:changed,system:user:changed
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+  x   3 tests\smoke\business\deploy\deploy-pages.spec.ts:205:3 › Deploy business module smoke › deploy package detail action opens a modal without leaving the list page (12.6s)
+(node:6332) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+17:01:09 [vite] http proxy error: /api/v1/system/setting/public
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+17:01:09 [vite] http proxy error: /api/v1/auth/me
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+17:01:09 [vite] http proxy error: /api/v1/system/menu/tree?scope=nav
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+17:01:09 [vite] http proxy error: /api/v1/auth/me
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+17:01:09 [vite] http proxy error: /api/v1/system/menu/tree?scope=nav
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+17:01:09 [vite] http proxy error: /api/v1/auth/tenants/current
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+17:01:09 [vite] http proxy error: /api/v1/system/refresh/state?topics=system:dept:changed,system:dict:changed,system:i18n:changed,system:menu:changed,system:permission:changed,system:post:changed,system:role:changed,system:setting:changed,system:user:changed
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+17:01:09 [vite] http proxy error: /api/v1/system/refresh/state?topics=system:dept:changed,system:dict:changed,system:i18n:changed,system:menu:changed,system:permission:changed,system:post:changed,system:role:changed,system:setting:changed,system:user:changed
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+17:01:14 [vite] http proxy error: /api/v1/system/refresh/state?topics=system:dept:changed,system:dict:changed,system:i18n:changed,system:menu:changed,system:permission:changed,system:post:changed,system:role:changed,system:setting:changed,system:user:changed
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+17:01:19 [vite] http proxy error: /api/v1/system/refresh/state?topics=system:dept:changed,system:dict:changed,system:i18n:changed,system:menu:changed,system:permission:changed,system:post:changed,system:role:changed,system:setting:changed,system:user:changed
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+  x   4 tests\smoke\business\deploy\deploy-pages.spec.ts:245:3 › Deploy business module smoke › deploy template detail action opens a modal without leaving the list page (12.6s)
+(node:6824) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+17:01:23 [vite] http proxy error: /api/v1/system/setting/public
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+17:01:23 [vite] http proxy error: /api/v1/auth/me
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+17:01:23 [vite] http proxy error: /api/v1/system/menu/tree?scope=nav
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+17:01:23 [vite] http proxy error: /api/v1/auth/me
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+17:01:23 [vite] http proxy error: /api/v1/system/menu/tree?scope=nav
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+17:01:23 [vite] http proxy error: /api/v1/auth/tenants/current
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+17:01:23 [vite] http proxy error: /api/v1/system/refresh/state?topics=system:dept:changed,system:dict:changed,system:i18n:changed,system:menu:changed,system:permission:changed,system:post:changed,system:role:changed,system:setting:changed,system:user:changed
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+17:01:23 [vite] http proxy error: /api/v1/system/refresh/state?topics=system:dept:changed,system:dict:changed,system:i18n:changed,system:menu:changed,system:permission:changed,system:post:changed,system:role:changed,system:setting:changed,system:user:changed
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+17:01:28 [vite] http proxy error: /api/v1/system/refresh/state?topics=system:dept:changed,system:dict:changed,system:i18n:changed,system:menu:changed,system:permission:changed,system:post:changed,system:role:changed,system:setting:changed,system:user:changed
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+17:01:33 [vite] http proxy error: /api/v1/system/refresh/state?topics=system:dept:changed,system:dict:changed,system:i18n:changed,system:menu:changed,system:permission:changed,system:post:changed,system:role:changed,system:setting:changed,system:user:changed
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+  x   5 tests\smoke\business\deploy\deploy-pages.spec.ts:327:3 › Deploy business module smoke › deploy detail page loads with summary and host table (12.8s)
+(node:220) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+17:01:37 [vite] http proxy error: /api/v1/system/setting/public
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+17:01:37 [vite] http proxy error: /api/v1/auth/me
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+17:01:37 [vite] http proxy error: /api/v1/system/menu/tree?scope=nav
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+17:01:37 [vite] http proxy error: /api/v1/auth/me
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+17:01:37 [vite] http proxy error: /api/v1/system/menu/tree?scope=nav
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+17:01:37 [vite] http proxy error: /api/v1/auth/tenants/current
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+17:01:37 [vite] http proxy error: /api/v1/system/refresh/state?topics=system:dept:changed,system:dict:changed,system:i18n:changed,system:menu:changed,system:permission:changed,system:post:changed,system:role:changed,system:setting:changed,system:user:changed
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+17:01:37 [vite] http proxy error: /api/v1/system/refresh/state?topics=system:dept:changed,system:dict:changed,system:i18n:changed,system:menu:changed,system:permission:changed,system:post:changed,system:role:changed,system:setting:changed,system:user:changed
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+17:01:42 [vite] http proxy error: /api/v1/system/refresh/state?topics=system:dept:changed,system:dict:changed,system:i18n:changed,system:menu:changed,system:permission:changed,system:post:changed,system:role:changed,system:setting:changed,system:user:changed
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+  x   6 tests\smoke\business\deploy\deploy-pages.spec.ts:402:3 › Deploy business module smoke › deploy detail requires a reason when marking host failure (12.0s)
+(node:19444) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+17:01:49 [vite] http proxy error: /api/v1/system/setting/public
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+17:01:49 [vite] http proxy error: /api/v1/auth/me
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+17:01:49 [vite] http proxy error: /api/v1/system/menu/tree?scope=nav
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+17:01:50 [vite] http proxy error: /api/v1/auth/me
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+17:01:50 [vite] http proxy error: /api/v1/system/menu/tree?scope=nav
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+17:01:50 [vite] http proxy error: /api/v1/auth/tenants/current
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+17:01:50 [vite] http proxy error: /api/v1/system/refresh/state?topics=system:dept:changed,system:dict:changed,system:i18n:changed,system:menu:changed,system:permission:changed,system:post:changed,system:role:changed,system:setting:changed,system:user:changed
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+17:01:50 [vite] http proxy error: /api/v1/system/refresh/state?topics=system:dept:changed,system:dict:changed,system:i18n:changed,system:menu:changed,system:permission:changed,system:post:changed,system:role:changed,system:setting:changed,system:user:changed
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+17:01:55 [vite] http proxy error: /api/v1/system/refresh/state?topics=system:dept:changed,system:dict:changed,system:i18n:changed,system:menu:changed,system:permission:changed,system:post:changed,system:role:changed,system:setting:changed,system:user:changed
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+17:02:00 [vite] http proxy error: /api/v1/system/refresh/state?topics=system:dept:changed,system:dict:changed,system:i18n:changed,system:menu:changed,system:permission:changed,system:post:changed,system:role:changed,system:setting:changed,system:user:changed
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+17:02:05 [vite] http proxy error: /api/v1/system/refresh/state?topics=system:dept:changed,system:dict:changed,system:i18n:changed,system:menu:changed,system:permission:changed,system:post:changed,system:role:changed,system:setting:changed,system:user:changed
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+17:02:10 [vite] http proxy error: /api/v1/system/refresh/state?topics=system:dept:changed,system:dict:changed,system:i18n:changed,system:menu:changed,system:permission:changed,system:post:changed,system:role:changed,system:setting:changed,system:user:changed
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+17:02:15 [vite] http proxy error: /api/v1/system/refresh/state?topics=system:dept:changed,system:dict:changed,system:i18n:changed,system:menu:changed,system:permission:changed,system:post:changed,system:role:changed,system:setting:changed,system:user:changed
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+  x   7 tests\smoke\business\deploy\deploy-pages.spec.ts:486:3 › Deploy business module smoke › deploy template supports script steps and task params render in detail (30.1s)
+(node:5740) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+17:02:20 [vite] http proxy error: /api/v1/system/setting/public
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+17:02:20 [vite] http proxy error: /api/v1/auth/me
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+17:02:20 [vite] http proxy error: /api/v1/system/menu/tree?scope=nav
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+17:02:21 [vite] http proxy error: /api/v1/auth/me
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+17:02:21 [vite] http proxy error: /api/v1/system/menu/tree?scope=nav
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+17:02:21 [vite] http proxy error: /api/v1/auth/tenants/current
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+17:02:21 [vite] http proxy error: /api/v1/system/refresh/state?topics=system:dept:changed,system:dict:changed,system:i18n:changed,system:menu:changed,system:permission:changed,system:post:changed,system:role:changed,system:setting:changed,system:user:changed
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+17:02:21 [vite] http proxy error: /api/v1/system/refresh/state?topics=system:dept:changed,system:dict:changed,system:i18n:changed,system:menu:changed,system:permission:changed,system:post:changed,system:role:changed,system:setting:changed,system:user:changed
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+17:02:25 [vite] http proxy error: /api/v1/system/refresh/state?topics=system:dept:changed,system:dict:changed,system:i18n:changed,system:menu:changed,system:permission:changed,system:post:changed,system:role:changed,system:setting:changed,system:user:changed
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+17:02:30 [vite] http proxy error: /api/v1/system/refresh/state?topics=system:dept:changed,system:dict:changed,system:i18n:changed,system:menu:changed,system:permission:changed,system:post:changed,system:role:changed,system:setting:changed,system:user:changed
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+  x   8 tests\smoke\business\deploy\deploy-pages.spec.ts:608:3 › Deploy business module smoke › deploy detail edit action routes back to list and opens edit modal (12.8s)
+(node:12220) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+17:02:34 [vite] http proxy error: /api/v1/system/setting/public
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+17:02:35 [vite] http proxy error: /api/v1/auth/me
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+17:02:35 [vite] http proxy error: /api/v1/system/menu/tree?scope=nav
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+17:02:35 [vite] http proxy error: /api/v1/auth/me
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+17:02:35 [vite] http proxy error: /api/v1/system/menu/tree?scope=nav
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+17:02:35 [vite] http proxy error: /api/v1/auth/tenants/current
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+17:02:35 [vite] http proxy error: /api/v1/system/refresh/state?topics=system:dept:changed,system:dict:changed,system:i18n:changed,system:menu:changed,system:permission:changed,system:post:changed,system:role:changed,system:setting:changed,system:user:changed
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+17:02:35 [vite] http proxy error: /api/v1/system/refresh/state?topics=system:dept:changed,system:dict:changed,system:i18n:changed,system:menu:changed,system:permission:changed,system:post:changed,system:role:changed,system:setting:changed,system:user:changed
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+17:02:40 [vite] http proxy error: /api/v1/system/refresh/state?topics=system:dept:changed,system:dict:changed,system:i18n:changed,system:menu:changed,system:permission:changed,system:post:changed,system:role:changed,system:setting:changed,system:user:changed
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+17:02:45 [vite] http proxy error: /api/v1/system/refresh/state?topics=system:dept:changed,system:dict:changed,system:i18n:changed,system:menu:changed,system:permission:changed,system:post:changed,system:role:changed,system:setting:changed,system:user:changed
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+  x   9 tests\smoke\business\deploy\deploy-pages.spec.ts:694:3 › Deploy business module smoke › targeted smoke closes cmdb, bizscope, deploy with uploaded source package and visible task trace (12.8s)
+(node:17660) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+17:02:47 [vite] http proxy error: /api/v1/system/setting/public
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+17:02:48 [vite] http proxy error: /api/v1/auth/me
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+17:02:48 [vite] http proxy error: /api/v1/system/menu/tree?scope=nav
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+17:02:48 [vite] http proxy error: /api/v1/auth/me
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+17:02:48 [vite] http proxy error: /api/v1/system/menu/tree?scope=nav
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+17:02:48 [vite] http proxy error: /api/v1/auth/tenants/current
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+17:02:48 [vite] http proxy error: /api/v1/system/refresh/state?topics=system:dept:changed,system:dict:changed,system:i18n:changed,system:menu:changed,system:permission:changed,system:post:changed,system:role:changed,system:setting:changed,system:user:changed
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+17:02:48 [vite] http proxy error: /api/v1/system/refresh/state?topics=system:dept:changed,system:dict:changed,system:i18n:changed,system:menu:changed,system:permission:changed,system:post:changed,system:role:changed,system:setting:changed,system:user:changed
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+17:02:53 [vite] http proxy error: /api/v1/system/refresh/state?topics=system:dept:changed,system:dict:changed,system:i18n:changed,system:menu:changed,system:permission:changed,system:post:changed,system:role:changed,system:setting:changed,system:user:changed
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+17:02:58 [vite] http proxy error: /api/v1/system/refresh/state?topics=system:dept:changed,system:dict:changed,system:i18n:changed,system:menu:changed,system:permission:changed,system:post:changed,system:role:changed,system:setting:changed,system:user:changed
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+  x  10 tests\smoke\business\deploy\deploy-pages.spec.ts:846:3 › Deploy business module smoke › deploy pages stay within a phone viewport (12.5s)
+(node:19472) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+17:03:01 [vite] http proxy error: /api/v1/system/setting/public
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+17:03:01 [vite] http proxy error: /api/v1/auth/me
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+17:03:01 [vite] http proxy error: /api/v1/system/menu/tree?scope=nav
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+17:03:01 [vite] http proxy error: /api/v1/auth/me
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+17:03:01 [vite] http proxy error: /api/v1/system/menu/tree?scope=nav
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+17:03:01 [vite] http proxy error: /api/v1/auth/tenants/current
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+17:03:01 [vite] http proxy error: /api/v1/system/refresh/state?topics=system:dept:changed,system:dict:changed,system:i18n:changed,system:menu:changed,system:permission:changed,system:post:changed,system:role:changed,system:setting:changed,system:user:changed
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+17:03:01 [vite] http proxy error: /api/v1/system/refresh/state?topics=system:dept:changed,system:dict:changed,system:i18n:changed,system:menu:changed,system:permission:changed,system:post:changed,system:role:changed,system:setting:changed,system:user:changed
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+17:03:06 [vite] http proxy error: /api/v1/system/refresh/state?topics=system:dept:changed,system:dict:changed,system:i18n:changed,system:menu:changed,system:permission:changed,system:post:changed,system:role:changed,system:setting:changed,system:user:changed
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+17:03:11 [vite] http proxy error: /api/v1/system/refresh/state?topics=system:dept:changed,system:dict:changed,system:i18n:changed,system:menu:changed,system:permission:changed,system:post:changed,system:role:changed,system:setting:changed,system:user:changed
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+  x  11 tests\smoke\business\k8s\k8s-pages.spec.ts:22:3 › K8s business module smoke › cluster, release, and Kubernetes Service pages load on business routes (12.6s)
+(node:23012) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+17:03:14 [vite] http proxy error: /api/v1/system/setting/public
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+17:03:14 [vite] http proxy error: /api/v1/auth/me
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+17:03:14 [vite] http proxy error: /api/v1/system/menu/tree?scope=nav
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+17:03:15 [vite] http proxy error: /api/v1/auth/me
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+17:03:15 [vite] http proxy error: /api/v1/system/menu/tree?scope=nav
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+17:03:15 [vite] http proxy error: /api/v1/auth/tenants/current
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+17:03:15 [vite] http proxy error: /api/v1/system/refresh/state?topics=system:dept:changed,system:dict:changed,system:i18n:changed,system:menu:changed,system:permission:changed,system:post:changed,system:role:changed,system:setting:changed,system:user:changed
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+17:03:15 [vite] http proxy error: /api/v1/system/refresh/state?topics=system:dept:changed,system:dict:changed,system:i18n:changed,system:menu:changed,system:permission:changed,system:post:changed,system:role:changed,system:setting:changed,system:user:changed
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+17:03:20 [vite] http proxy error: /api/v1/system/refresh/state?topics=system:dept:changed,system:dict:changed,system:i18n:changed,system:menu:changed,system:permission:changed,system:post:changed,system:role:changed,system:setting:changed,system:user:changed
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+17:03:25 [vite] http proxy error: /api/v1/system/refresh/state?topics=system:dept:changed,system:dict:changed,system:i18n:changed,system:menu:changed,system:permission:changed,system:post:changed,system:role:changed,system:setting:changed,system:user:changed
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+  x  12 tests\smoke\business\k8s\k8s-pages.spec.ts:47:3 › K8s business module smoke › cluster list remains usable in a phone viewport (12.4s)
+(node:10460) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+17:03:28 [vite] http proxy error: /api/v1/system/setting/public
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+17:03:29 [vite] http proxy error: /api/v1/auth/me
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+17:03:29 [vite] http proxy error: /api/v1/system/menu/tree?scope=nav
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+17:03:29 [vite] http proxy error: /api/v1/auth/me
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+17:03:29 [vite] http proxy error: /api/v1/system/menu/tree?scope=nav
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+17:03:29 [vite] http proxy error: /api/v1/auth/tenants/current
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+17:03:29 [vite] http proxy error: /api/v1/system/refresh/state?topics=system:dept:changed,system:dict:changed,system:i18n:changed,system:menu:changed,system:permission:changed,system:post:changed,system:role:changed,system:setting:changed,system:user:changed
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+17:03:29 [vite] http proxy error: /api/v1/system/refresh/state?topics=system:dept:changed,system:dict:changed,system:i18n:changed,system:menu:changed,system:permission:changed,system:post:changed,system:role:changed,system:setting:changed,system:user:changed
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+17:03:34 [vite] http proxy error: /api/v1/system/refresh/state?topics=system:dept:changed,system:dict:changed,system:i18n:changed,system:menu:changed,system:permission:changed,system:post:changed,system:role:changed,system:setting:changed,system:user:changed
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)

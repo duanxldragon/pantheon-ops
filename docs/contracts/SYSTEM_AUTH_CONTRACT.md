@@ -11,7 +11,7 @@ related_designs:
   - docs/designs/SSO_OIDC_DESIGN.md
 related_acceptances:
   - docs/acceptances/ACCEPTANCE_CHECKLIST.md
-updated_at: 2026-11-04
+updated_at: 2026-11-11
 ---
 
 # system/auth 合同文档
@@ -19,6 +19,7 @@ updated_at: 2026-11-04
 English version: [SYSTEM_AUTH_CONTRACT.en.md](./SYSTEM_AUTH_CONTRACT.en.md)
 
 关联设计：
+
 - `AUTH_MODULE_DESIGN.md`
 - `SECURITY_CENTER_DESIGN.md`
 - `ERROR_CODE_AND_I18N.md`
@@ -26,11 +27,27 @@ English version: [SYSTEM_AUTH_CONTRACT.en.md](./SYSTEM_AUTH_CONTRACT.en.md)
 - `SSO_OIDC_DESIGN.md`
 
 关联验收：
+
 - `ACCEPTANCE_CHECKLIST.md`
 
 ---
 
 本文用于定义 Pantheon `system/auth` 能力域的执行契约。
+
+### 业务私有元数据的 owner 生命周期读取端口（2026-11-11）
+
+`businessauth.Reader` 保持原签名。已注册的 auth provider 可实现可选的
+`OwnerLifecycleReader.ReadOwnerLifecycle(ctx, tenantID, actorID) (OwnerLifecycle, error)`；
+`contracts.RegisteredBusinessOwnerLifecycleReader()` 在模块 Init 期间、全局 seal 前即可取得同一个 provider
+的能力，缺失或 typed nil 返回错误；seal 不增加新要求，且仍禁止替换 provider。依赖孤儿清理的业务模块
+须在启动时要求此能力，不能把缺少能力当作 owner 删除。该端口不挂载 HTTP API。
+
+返回值只有私有的 `TenantExists` / `ActorExists` 两个布尔字段（均不参与 JSON 序列化）。读取只访问
+权威 `tenants.id/status` 与 `system_user.id/deleted_at` 元数据，不读取凭证、名称、密码、会话、角色或
+成员关系。用户未软删除即存在，包括 disabled 和全局用户；不要求属于目标租户。正数租户只要行存在且
+`status != deleted` 即存在，包括 suspended / archived；租户 0 是隐含的平台 owner，但仍必须核对用户。
+actor 0、nil/cancelled context、nil DB、schema/query 错误均返回固定安全错误及空投影，不能被解释成删除。
+只有 nil error 时的 false 才能用于有界孤儿清理；该投影不提供请求鉴权或访问许可。
 
 它锁定的是认证、会话、安全中心、登录日志和认证策略的职责边界，避免后续再次把 `auth`、`iam`、`org`、`config` 混成一个“大 system 安全杂物间”。
 
@@ -195,12 +212,12 @@ Pantheon 早期最明显的结构性问题之一，是认证与后台用户管�
 
 `/system/login`、`/system/refresh`、`/system/logout`、`/system/user/info` 是与 `/auth/*` 同 handler 的 legacy 双入口（AUD-014，2026-10-31 决策：保留并标记弃用，而非立即下线；base 与 ops 前端均只调用 `/auth/*`）。
 
-| 端点 | Legacy 入口 | 当前入口 | 处置 |
-| --- | --- | --- | --- |
-| 登录 | `POST /api/v1/system/login` | `POST /api/v1/auth/login` | 保留至 2026-12-31，响应带弃用头 |
-| 刷新 | `POST /api/v1/system/refresh` | `POST /api/v1/auth/refresh` | 保留至 2026-12-31，响应带弃用头 |
-| 登出 | `POST /api/v1/system/logout` | `POST /api/v1/auth/logout` | 保留至 2026-12-31，响应带弃用头 |
-| 当前用户信息 | `GET /api/v1/system/user/info` | `GET /api/v1/auth/me` | 保留至 2026-12-31，响应带弃用头 |
+| 端点         | Legacy 入口                    | 当前入口                    | 处置                            |
+| ------------ | ------------------------------ | --------------------------- | ------------------------------- |
+| 登录         | `POST /api/v1/system/login`    | `POST /api/v1/auth/login`   | 保留至 2026-12-31，响应带弃用头 |
+| 刷新         | `POST /api/v1/system/refresh`  | `POST /api/v1/auth/refresh` | 保留至 2026-12-31，响应带弃用头 |
+| 登出         | `POST /api/v1/system/logout`   | `POST /api/v1/auth/logout`  | 保留至 2026-12-31，响应带弃用头 |
+| 当前用户信息 | `GET /api/v1/system/user/info` | `GET /api/v1/auth/me`       | 保留至 2026-12-31，响应带弃用头 |
 
 - 命中上述四个路径的响应必须带 `Deprecation: true` 与 `Sunset: Sat, 31 Dec 2026 23:59:59 GMT`（由 `middleware.LegacyDeprecationMiddleware` 按 `legacySelfServicePaths` 匹配，见 `backend/internal/middleware/csrf_middleware.go` 与 `backend/modules/auth/module.go` 两处挂载）
 - 下线日期登记为 **2026-12-31**。下线属对外承诺变更：执行前必须由维护者确认无外部集成方仍在调用这四条路径
@@ -283,8 +300,9 @@ Pantheon 早期最明显的结构性问题之一，是认证与后台用户管�
 - [ACCEPTANCE_CHECKLIST.md](../acceptances/ACCEPTANCE_CHECKLIST.md)
 
 ## 变更日志
-| 日期 | 版本 | 变更内容 | 原因 |
-|------|------|---------|------|
+
+| 日期       | 版本 | 变更内容 | 原因         |
+| ---------- | ---- | -------- | ------------ |
 | 2026-06-25 | v1.0 | 初始版本 | 评估审计添加 |
 
 ## Refresh rotation: atomic single use（2026-11-04）

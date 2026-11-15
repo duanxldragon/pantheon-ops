@@ -1,0 +1,17 @@
+{
+  "operations.service.application.menu": "アプリケーション",
+  "operations.service.service.menu": "サービス",
+  "operations.service.instance.menu": "サービスインスタンス",
+  "business.service.catalog.editApplication": "アプリケーションを編集",
+  "business.service.catalog.editService": "サービスを編集",
+  "business.service.catalog.applicationKeyword": "アプリケーションコードまたは名前を検索",
+  "business.service.catalog.host": "CMDB ホスト",
+  "business.service.catalog.hostBinding": "ホスト #{{id}}",
+  "business.service.catalog.runtime.vm": "仮想マシン",
+  "business.service.catalog.runtime.k8s": "Kubernetes",
+  "business.service.catalog.runtime.hybrid": "ハイブリッド",
+  "business.service.instance.empty": "サービスインスタンスはありません",
+  "business.service.instance.total": "該当インスタンス",
+  "business.service.catalog.operationFailed": "サービスカタログの操作に失敗しました",
+  "business.service.catalog.field.remark": "備考"
+}

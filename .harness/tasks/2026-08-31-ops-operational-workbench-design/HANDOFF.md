@@ -2,6 +2,8 @@
 
 ## Outcome
 
+2026-11-07: the design parent is archived as completed; implementation children remain open. See STATUS.md for the current v0.18.6 dependency review; do not replay the old unreleased-components assumption.
+
 本包把 Ops 运维体验拆为 O1-O7。当前只完成设计 readiness；任何工作台、外部集成和视觉效果都没有因本文自动完成。
 
 ## Start Protocol

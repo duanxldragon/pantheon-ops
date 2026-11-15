@@ -1,0 +1,7 @@
+{
+  "role": "executor",
+  "exitCode": 0,
+  "elapsedSeconds": 615.062,
+  "modelOverride": false,
+  "report": ".harness\\evidence\\2026-11-07-ops-planned-task-closeout\\verification\\p0-integration-20261109\\resume-velero-transport-report.md"
+}

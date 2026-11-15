@@ -1,0 +1,91 @@
+{
+  "case": "revoke-host",
+  "identity": "o2-live-67fc9fadd215-revoke-host",
+  "database": "ops_p0_o2_live_67fc9fadd215_revoke_host",
+  "databaseRetention": "retained; no drop",
+  "events": [
+    {
+      "credentialId": 1,
+      "packageId": 1,
+      "phase": "task-created",
+      "taskId": 1
+    },
+    {
+      "deadlineExceeded": false,
+      "phase": "independent-ssh-handshake",
+      "pinChecked": false,
+      "pinMatched": false
+    },
+    {
+      "authenticationFailed": false,
+      "deadlineExceeded": false,
+      "errorChainTypes": [
+        "*fmt.wrapError",
+        "*errors.errorString"
+      ],
+      "errorType": "*fmt.wrapError",
+      "phase": "independent-ssh-error",
+      "pinMismatch": false,
+      "stage": "handshake-auth",
+      "unexpectedEOF": true
+    },
+    {
+      "contextCanceled": false,
+      "deadlineExceeded": false,
+      "driverFrames": [
+        {
+          "file": "live-diagnostic-o2-v7.go",
+          "line": 83
+        },
+        {
+          "file": "live-diagnostic-o2-v7.go",
+          "line": 195
+        },
+        {
+          "file": "live-diagnostic-o2-v7.go",
+          "line": 205
+        },
+        {
+          "file": "live-diagnostic-o2-v7.go",
+          "line": 539
+        },
+        {
+          "file": "live-diagnostic-o2-v7.go",
+          "line": 698
+        }
+      ],
+      "errorKey": "suppressed",
+      "errorType": "*fmt.wrapError",
+      "phase": "operation-error"
+    },
+    {
+      "error": "operation or deadline; secret details suppressed",
+      "phase": "driver-failure"
+    },
+    {
+      "case": "revoke-host",
+      "failed": 1,
+      "negativePassed": 0,
+      "phase": "driver-result",
+      "positivePassed": 0
+    }
+  ],
+  "driverExitCode": 1,
+  "stderrPresent": false,
+  "missingOrFailedDriverSummary": true,
+  "missingAssertions": true,
+  "status": "failed",
+  "cleanup": {
+    "phase": "exact-owned-cleanup",
+    "directory": "/opt/pantheon-p0-20261109/o2-live-67fc9fadd215-revoke-host",
+    "files": [
+      {
+        "file": ".owner",
+        "sha256": "2978fe3addd1a3b96cc0792630010d4e4b06e1f406bfd77abada48cecea230e0",
+        "bytes": 32
+      }
+    ],
+    "absent": true,
+    "processKill": false
+  }
+}

@@ -1,0 +1,87 @@
+
+> @duanxldragon/pantheon-base-ui@0.11.2 prebuild
+> npm run patch:arco-react19 && npm run check:menu-contract && npm run check:i18n-hardcode && npm run check:i18n-generated-scope && npm run check:system-datetime-presentation && npm run check:shell-visual-contract && npm run check:ui-contract && npm run check:password-toggle && npm run check:search-toolbar-contract && npm run check:important-budget && npm run check:system-page-admission && npm run check:smoke-web-base && npm run check:smoke-coverage-contract && npm run check:import-path-case
+
+
+> @duanxldragon/pantheon-base-ui@0.11.2 patch:arco-react19
+> node ./scripts/patch-arco-react19.mjs
+
+[arco-react19] cleared Vite cache: node_modules/.vite, node_modules/.vite-temp
+[arco-react19] patch already applied
+
+> @duanxldragon/pantheon-base-ui@0.11.2 check:menu-contract
+> node ./scripts/check-menu-contract.mjs
+
+✅ manifest / menu seed 一致性检查通过（40 个菜单，50 条路由，237 个权限，52 个组件键）
+
+> @duanxldragon/pantheon-base-ui@0.11.2 check:i18n-hardcode
+> node ./scripts/check-i18n-hardcode.mjs
+
+✅ 展示型硬编码扫描通过（检查 310 个文件）
+
+> @duanxldragon/pantheon-base-ui@0.11.2 check:i18n-generated-scope
+> node ./scripts/check-i18n-generated-scope.mjs
+
+Generated i18n scope check passed.
+
+> @duanxldragon/pantheon-base-ui@0.11.2 check:system-datetime-presentation
+> node ./scripts/check-system-datetime-presentation.mjs
+
+system datetime presentation check passed for 43 files
+
+> @duanxldragon/pantheon-base-ui@0.11.2 check:shell-visual-contract
+> node ./scripts/check-shell-visual-contract.mjs
+
+Shell visual contract passed.
+
+> @duanxldragon/pantheon-base-ui@0.11.2 check:ui-contract
+> node ./scripts/check-ui-contract.mjs
+
+UI contract check: 0 finding(s) across 367 file(s)
+
+> @duanxldragon/pantheon-base-ui@0.11.2 check:password-toggle
+> node ./scripts/check-password-toggle.mjs
+
+Password toggle contract check: 0 finding(s) across 334 file(s)
+
+> @duanxldragon/pantheon-base-ui@0.11.2 check:search-toolbar-contract
+> node ./scripts/check-search-toolbar-contract.mjs
+
+SearchToolbar contract check: 0 finding(s) across 179 module file(s) + index.css
+
+> @duanxldragon/pantheon-base-ui@0.11.2 check:important-budget
+> node ./scripts/check-important-budget.mjs
+
+
+Total !important: 0 / budget 0
+!important budget check passed.
+
+> @duanxldragon/pantheon-base-ui@0.11.2 check:system-page-admission
+> node ./scripts/check-system-page-admission.mjs
+
+system page admission check passed for 16 entries
+
+> @duanxldragon/pantheon-base-ui@0.11.2 check:smoke-web-base
+> node ./scripts/check-smoke-web-base.mjs
+
+smoke web-base check passed for 113 files
+
+> @duanxldragon/pantheon-base-ui@0.11.2 check:smoke-coverage-contract
+> node ./scripts/check-smoke-coverage-contract.mjs
+
+file:///D:/workspace/go/pantheon-platform/pantheon-ops/frontend/scripts/check-smoke-coverage-contract.mjs:13
+  throw new Error(message);
+        ^
+
+Error: Smoke coverage contract failed.
+When routes, modules, smoke specs, or script entrypoints change, update the matching smoke command and tests/smoke/README.md in the same patch.
+Orphan smoke spec without script coverage: tests/smoke/business/observability-tempo-workbench.spec.ts.
+Smoke README coverage matrix is missing tests/smoke/business/observability-tempo-workbench.spec.ts.
+    at fail (file:///D:/workspace/go/pantheon-platform/pantheon-ops/frontend/scripts/check-smoke-coverage-contract.mjs:13:9)
+    at main (file:///D:/workspace/go/pantheon-platform/pantheon-ops/frontend/scripts/check-smoke-coverage-contract.mjs:109:5)
+    at file:///D:/workspace/go/pantheon-platform/pantheon-ops/frontend/scripts/check-smoke-coverage-contract.mjs:119:1
+    at ModuleJob.run (node:internal/modules/esm/module_job:430:25)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:661:26)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:101:5)
+
+Node.js v24.14.0

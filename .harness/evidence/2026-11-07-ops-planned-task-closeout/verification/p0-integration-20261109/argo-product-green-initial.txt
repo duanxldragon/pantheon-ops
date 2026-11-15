@@ -1,0 +1,25 @@
+
+2026/11/09 15:30:33 [34;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/cicd/argocd/argocd_action_test.go:139
+[0m[35m[warn] [0mremoving callback `argocd-outcome-fault` from D:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/cicd/argocd/argocd_action_test.go:139
+
+2026/11/09 15:30:33 [34;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/cicd/argocd/argocd_action_test.go:139
+[0m[35m[warn] [0mremoving callback `argocd-outcome-fault` from D:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/cicd/argocd/argocd_action_test.go:139
+
+2026/11/09 15:30:33 [34;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/cicd/argocd/argocd_action_test.go:139
+[0m[35m[warn] [0mremoving callback `argocd-outcome-fault` from D:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/cicd/argocd/argocd_action_test.go:139
+
+2026/11/09 15:30:34 [34;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/cicd/argocd/argocd_action_test.go:139
+[0m[35m[warn] [0mremoving callback `argocd-outcome-fault` from D:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/cicd/argocd/argocd_action_test.go:139
+--- FAIL: TestApplicationOutcomeWriteFailureKeepsDurableUncertainty (1.16s)
+    --- FAIL: TestApplicationOutcomeWriteFailureKeepsDurableUncertainty/accepted-rollback (0.27s)
+        argocd_action_test.go:147: 
+            	Error Trace:	D:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/cicd/argocd/argocd_action_test.go:147
+            	Error:      	Not equal: 
+            	            	expected: 1
+            	            	actual  : 0
+            	Test:       	TestApplicationOutcomeWriteFailureKeepsDurableUncertainty/accepted-rollback
+            	Messages:   	bookkeeping failure must never replay a provider mutation
+2026/11/09 15:30:37 http: TLS handshake error from 127.0.0.1:65472: remote error: tls: bad certificate
+FAIL
+FAIL	github.com/duanxldragon/pantheon-base/backend/modules/business/cicd/argocd	7.853s
+FAIL

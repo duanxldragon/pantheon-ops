@@ -1,0 +1,28 @@
+--- before/frontend/tests/unit/business/operational/deploy-detail-read.test.tsx
++++ after/frontend/tests/unit/business/operational/deploy-detail-read.test.tsx
+@@ -69,6 +69,25 @@
+     expect(screen.queryByText('business.deploy.task.refreshStale')).toBeNull();
+     expect(getDeployTaskDetail).toHaveBeenCalledTimes(3);
+   });
++  it('reads the terminal result when the last connected SSE event arrives during an older running request', async () => {
++    vi.useFakeTimers(); await setup('running'); const source = Source.instances[0];
++    act(() => { source.onopen?.(); });
++    const capturedRunning = await vi.mocked(getDeployTaskDetail).mock.results[0].value as DeployTaskRow;
++    let resolveRunning: ((value: DeployTaskRow) => void) | undefined;
++    vi.mocked(getDeployTaskDetail)
++      .mockImplementationOnce(() => new Promise((resolve) => { resolveRunning = resolve; }))
++      .mockResolvedValueOnce({ ...capturedRunning, status: 'success' });
++    act(() => { source.listeners.task(); }); await flush();
++    expect(getDeployTaskDetail).toHaveBeenCalledTimes(2);
++    // The server completes after this request captured running; no later SSE or polling follows.
++    act(() => { source.listeners.task(); }); await flush();
++    expect(getDeployTaskDetail).toHaveBeenCalledTimes(2);
++    await act(async () => { resolveRunning?.(capturedRunning); }); await flush();
++    expect(getDeployTaskDetail).toHaveBeenCalledTimes(3);
++    expect(screen.getAllByText('business.deploy.task.status.success').some((element) => element.closest('.arco-tag'))).toBe(true);
++    expect(screen.queryByText('business.deploy.task.refreshStale')).toBeNull();
++    expect(source.closed).toBe(true);
++  });
+   it('clears the task on silent detail denial', async () => {
+     await setup('running');
+     vi.mocked(getDeployTaskDetail).mockRejectedValueOnce(new RequestError({ kind: 'forbidden', status: 403 }));

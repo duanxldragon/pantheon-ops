@@ -1,0 +1,121 @@
+{
+  "taskId": "2026-11-07-ops-planned-task-closeout",
+  "checks": [
+    {
+      "check": "all 60 assertion calls preserved verbatim",
+      "passed": true,
+      "assertionCallCount": 45
+    },
+    {
+      "check": "all 12 cases preserved in order",
+      "passed": true
+    },
+    {
+      "check": "cleanup AST unchanged",
+      "passed": true
+    },
+    {
+      "check": "remote_command AST unchanged",
+      "passed": true
+    },
+    {
+      "check": "pin AST unchanged",
+      "passed": true
+    },
+    {
+      "check": "unknown key-shaped error excluded",
+      "passed": true
+    },
+    {
+      "check": "candidate CLI cannot execute before root review/reseal",
+      "passed": true
+    },
+    {
+      "check": "cold failure retains driver events before rejecting missing exit75/ready",
+      "passed": true,
+      "origin": "in-memory fake process and transport; no acceptance claim"
+    },
+    {
+      "check": "all sealed v7 sources and artifacts preserved",
+      "passed": true
+    }
+  ],
+  "commands": [
+    {
+      "command": [
+        "go",
+        "vet",
+        "-mod=readonly",
+        "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\resume-o2-v8-driver.go"
+      ],
+      "exitCode": 0,
+      "CGO_ENABLED": "1",
+      "GOOS": "windows",
+      "seconds": 69.0,
+      "log": "resume-o2-v8-candidate-verify-0.txt"
+    },
+    {
+      "command": [
+        "go",
+        "test",
+        "-mod=readonly",
+        "-race",
+        "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\resume-o2-v8-driver.go",
+        "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\resume-o2-v8-driver_test.go"
+      ],
+      "exitCode": 0,
+      "CGO_ENABLED": "1",
+      "GOOS": "windows",
+      "seconds": 103.687,
+      "log": "resume-o2-v8-candidate-verify-1.txt"
+    },
+    {
+      "command": [
+        "go",
+        "build",
+        "-mod=readonly",
+        "-race",
+        "-o",
+        "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\resume-o2-v8-driver.exe",
+        "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\resume-o2-v8-driver.go"
+      ],
+      "exitCode": 0,
+      "CGO_ENABLED": "1",
+      "GOOS": "windows",
+      "seconds": 4.594,
+      "log": "resume-o2-v8-candidate-verify-2.txt"
+    },
+    {
+      "command": [
+        "go",
+        "build",
+        "-mod=readonly",
+        "-o",
+        "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\resume-o2-v8-driver-linux",
+        "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\resume-o2-v8-driver.go"
+      ],
+      "exitCode": 0,
+      "CGO_ENABLED": "0",
+      "GOOS": "linux",
+      "seconds": 59.031,
+      "log": "resume-o2-v8-candidate-verify-3.txt"
+    }
+  ],
+  "scope": "v8 diagnostics candidate only; no true VM acceptance",
+  "remoteExecuted": false,
+  "sealBefore": {
+    "sourceCount": 185,
+    "sourceChanges": [],
+    "artifactChanges": [],
+    "sealed": true,
+    "sourceInventorySHA256": "17b4af459b818ecfd697f35ce8faedf8a86cf57856bc40d462eafc06c6d73483"
+  },
+  "sealAfter": {
+    "sourceCount": 185,
+    "sourceChanges": [],
+    "artifactChanges": [],
+    "sealed": true,
+    "sourceInventorySHA256": "17b4af459b818ecfd697f35ce8faedf8a86cf57856bc40d462eafc06c6d73483"
+  },
+  "failed": 0
+}

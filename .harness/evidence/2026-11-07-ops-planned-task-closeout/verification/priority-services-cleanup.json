@@ -1,0 +1,22 @@
+{
+  "checkedOwnership": true,
+  "backendPid": 24700,
+  "vitePid": 25200,
+  "redisPid": 15436,
+  "mysqlListenerPid": 7804,
+  "mysqlLauncherPid": 9844,
+  "redisGracefulSave": true,
+  "mysqlGracefulShutdown": true,
+  "checkedPorts": [
+    24485,
+    26316,
+    33316,
+    5173,
+    5175
+  ],
+  "remainingListeners": [],
+  "retainedMySQLData": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.tmp\\ops-planned-cmdb-services\\mysql-data",
+  "retainedRedisData": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.tmp\\ops-priority-runtime\\redis",
+  "deletedDirectories": [],
+  "completedUtc": "2026-11-08T01:25:43.8596468Z"
+}

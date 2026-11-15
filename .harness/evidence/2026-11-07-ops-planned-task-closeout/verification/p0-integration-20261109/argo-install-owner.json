@@ -1,0 +1,8 @@
+{
+  "host": "115.190.251.143",
+  "pid": 1231440,
+  "namespace": "pantheon-p0-argocd-20261109",
+  "version": "v3.2.0",
+  "script": "/opt/pantheon-p0-20261109/prepare-argo.sh",
+  "officialManifest": "https://raw.githubusercontent.com/argoproj/argo-cd/v3.2.0/manifests/install.yaml"
+}

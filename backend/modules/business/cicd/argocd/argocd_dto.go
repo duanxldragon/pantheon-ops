@@ -130,7 +130,8 @@ type ApplicationListResponse struct {
 
 // SyncApplicationRequest selects the revision an application syncs to.
 type SyncApplicationRequest struct {
-	Revision string `json:"revision,omitempty"`
+	Revision      string `json:"revision,omitempty"`
+	IntentVersion string `json:"intentVersion" binding:"required,max=8192"`
 }
 
 // SyncHistoryResponse lists the recorded sync operations of an application.

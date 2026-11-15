@@ -1,0 +1,15 @@
+{
+  "pid": 12280,
+  "verifiedCommandLine": "D:\\MySQL\\mysql\\bin\\mysqld.exe --no-defaults --basedir=D:/MySQL/mysql --datadir=D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.tmp\\ops-planned-cmdb-services\\mysql-data --port=33316 --bind-address=127.0.0.1 --mysqlx=OFF --console",
+  "dataRoot": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.tmp\\ops-planned-cmdb-services\\mysql-data\\",
+  "port": 33316,
+  "before": [
+    1,
+    1
+  ],
+  "duringTests": [
+    2,
+    0
+  ],
+  "restoreRequired": true
+}

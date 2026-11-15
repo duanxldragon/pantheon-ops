@@ -1,0 +1,647 @@
+--- .local/ops-acceptance/argo-adoption-v2-root-run.py
++++ .local/ops-acceptance/argo-adoption-v3-root-run.py
+@@ -1,4 +1,4 @@
+-"""Root-only v2 entry: consume the seal/helper bytes that were actually checked.
++"""Root-only v3 entry: consume the seal/helper bytes that were actually checked.
+ 
+ No credential transport is imported until preflight succeeds. A namespace change
+ after a completed capture cannot change its immutable bytes; changes during a
+@@ -19,15 +19,15 @@
+ 
+ LOCAL = Path(__file__).resolve().parent
+ ROOT = LOCAL.parents[1]
+-EVIDENCE = ROOT / '.harness/evidence/argo-adoption-v2-20261110'
+-SEAL = EVIDENCE / 'argo-adoption-v2-artifact-seal.json'
++EVIDENCE = ROOT / '.harness/evidence/argo-adoption-v3-20261110'
++SEAL = EVIDENCE / 'argo-adoption-v3-artifact-seal.json'
+ ORIGINAL_SEAL = ROOT / '.harness/evidence/argo-adoption-20261110/artifact-seal.json'
+ ORIGINAL_SHA = '08ba8f44013b10f92c533a1f96ed55a7346b0f6e17a968b8c313fdf1ab4d79ec'
+ BINARY = LOCAL / 'resume-argo-v6-reviewed-linux'
+ BINARY_SHA = 'cd68356983230edfa0c013235eccba4381a5fbe00d7076f47b7d4b7b8578138b'
+ BINARY_SIZE = 206041319
+ HELPER = LOCAL / 'argo-adoption-deploy.py'
+-ENTRY = LOCAL / 'argo-adoption-v2-root-run.py'
++ENTRY = LOCAL / 'argo-adoption-v3-root-run.py'
+ CAPTURE_LIMIT = 1 << 20
+ FILE_LIMIT = 64 << 20
+ 
+@@ -136,7 +136,7 @@
+             or seal['originalArtifactSealSHA256'] != ORIGINAL_SHA
+             or sha(ORIGINAL_SEAL) != ORIGINAL_SHA):
+         raise ValueError('original-seal-drift')
+-    for key in ['verificationReceipt', 'v2VerificationReceipt']:
++    for key in ['verificationReceipt', 'v2VerificationReceipt', 'v3VerificationReceipt']:
+         if sha(relative_path(seal[key])) != checked_sha(seal[key + 'SHA256']):
+             raise ValueError('verification-receipt-drift')
+     files = seal['files']
+@@ -155,6 +155,8 @@
+             actual = sha(path)
+         if actual != expected:
+             raise ValueError('reviewed-source-artifact-drift')
++    if helper_bytes is None:
++        raise ValueError('required-helper-capture-missing')
+     # Preserve the exact UTF-8 helper content; no text-mode newline conversion.
+     helper = helper_bytes.decode('utf-8')
+     if '\x00' in helper:
+@@ -191,7 +193,13 @@
+     from remote import connect
+     with connect() as connection:
+         result['transportConnected'] = True
+-        if connection.get_transport().getpeername()[0] != '115.190.251.143':
++        transport = connection.get_transport()
++        if transport is None:
++            raise ValueError('required-transport-missing')
++        sock = transport.sock
++        if sock is None:
++            raise ValueError('required-transport-socket-missing')
++        if transport.getpeername()[0] != '115.190.251.143':
+             raise ValueError('authorized-test-host-mismatch')
+         command = ('timeout --signal=TERM --kill-after=5s 250s python3 -B -c '
+                    + shlex.quote(helper) + ' ' + action)
+@@ -221,10 +229,10 @@
+ def main():
+     parser = argparse.ArgumentParser()
+     parser.add_argument('action', choices=['install', 'rollback'])
+-    parser.add_argument('--seal', required=True, help='Externally reviewed SHA256 of the v2 seal')
++    parser.add_argument('--seal', required=True, help='Externally reviewed SHA256 of the v3 seal')
+     args = parser.parse_args()
+     stamp = datetime.datetime.now(datetime.timezone.utc).strftime('%Y%m%dT%H%M%S%f')
+-    result_path = EVIDENCE / ('argo-adoption-v2-root-' + args.action + '-' + stamp + '.json')
++    result_path = EVIDENCE / ('argo-adoption-v3-root-' + args.action + '-' + stamp + '.json')
+     result = {'action': args.action, 'artifactSealSHA256': args.seal, 'startedAt': stamp,
+               'exitCode': 1, 'transportConnected': False, 'preflightPassed': False,
+               'remoteMutationUnknown': False, 'automaticRetry': False, 'P0Approved': False}
+--- .local/ops-acceptance/argo-adoption-v2-deploy-test.py
++++ .local/ops-acceptance/argo-adoption-v3-deploy-test.py
+@@ -17,7 +17,9 @@
+ import unittest
+ from unittest.mock import Mock, patch
+ 
+-spec = importlib.util.spec_from_file_location('adoption_v2', Path(__file__).with_name('argo-adoption-v2-root-run.py'))
++spec = importlib.util.spec_from_file_location('adoption_v3', Path(__file__).with_name('argo-adoption-v3-root-run.py'))
++if spec is None or spec.loader is None:
++    raise RuntimeError('required-module-spec-loader-missing')
+ module = importlib.util.module_from_spec(spec)
+ spec.loader.exec_module(module)
+ real_sha256 = hashlib.sha256
+@@ -40,11 +42,19 @@
+         super().close()
+ 
+ 
++class TestInput(io.BytesIO):
++    channel: SimpleNamespace
++
++    def __init__(self):
++        super().__init__()
++        self.channel = SimpleNamespace(shutdown_write=Mock())
++
++
+ class Channel:
+     def __init__(self, raw=b'{"nativeUpdateAccepted": true}', err=b''):
+         self.raw, self.err = raw, err
+ 
+-    def exit_status_ready(self):
++    def exit_status_ready(self) -> bool:
+         return True
+ 
+     def recv_ready(self):
+@@ -73,18 +83,18 @@
+         self.evidence = self.root / 'evidence'
+         self.evidence.mkdir()
+         self.helper = self.root / 'helper.py'
+-        self.entry = self.root / 'v2.py'
++        self.entry = self.root / 'v3.py'
+         self.binary = self.root / 'binary'
+         self.original = self.root / 'original.json'
+-        self.seal = self.evidence / 'v2-seal.json'
++        self.seal = self.evidence / 'v3-seal.json'
+         # CRLF and shell metacharacters exercise exact byte-to-command quoting.
+         self.approved_helper = b'print("approved $() `literal` \'quoted\'")\r\n'
+         self.evil_helper = b'print("UNSEALED-ATTACK")\n'
+         self.binary_bytes = b'\x7fELFsealed-fixture'
+-        inputs = {self.helper: self.approved_helper, self.entry: b'# v2 fixture\n',
++        inputs = {self.helper: self.approved_helper, self.entry: b'# v3 fixture\n',
+                   self.binary: self.binary_bytes, self.original: b'{"files": "original"}',
+                   self.root / 'final3.json': b'{"exitCode":0}',
+-                  self.root / 'v2-verification.json': b'{"exitCode":0}',
++                  self.root / 'v3-verification.json': b'{"exitCode":0}',
+                   self.root / 'source.go': b'package fixture\n'}
+         for path, raw in inputs.items():
+             path.write_bytes(raw)
+@@ -93,7 +103,8 @@
+         self.document = {'parentTask': '2026-11-07-ops-planned-task-closeout', 'P0Approved': False,
+                          'originalArtifactSeal': 'original.json', 'originalArtifactSealSHA256': digest(inputs[self.original]),
+                          'verificationReceipt': 'final3.json', 'verificationReceiptSHA256': digest(inputs[self.root / 'final3.json']),
+-                         'v2VerificationReceipt': 'v2-verification.json', 'v2VerificationReceiptSHA256': digest(inputs[self.root / 'v2-verification.json']),
++                         'v2VerificationReceipt': 'v3-verification.json', 'v2VerificationReceiptSHA256': digest(inputs[self.root / 'v3-verification.json']),
++                         'v3VerificationReceipt': 'v3-verification.json', 'v3VerificationReceiptSHA256': digest(inputs[self.root / 'v3-verification.json']),
+                          'files': self.inventory, 'binarySHA256': digest(self.binary_bytes), 'binarySize': len(self.binary_bytes)}
+         self.seal_bytes = json.dumps(self.document).encode()
+         self.seal.write_bytes(self.seal_bytes)
+@@ -103,8 +114,7 @@
+                            'HELPER': self.helper, 'ENTRY': self.entry, 'BINARY': self.binary,
+                            'BINARY_SHA': digest(self.binary_bytes), 'BINARY_SIZE': len(self.binary_bytes)}.items():
+             self.stack.enter_context(patch.object(module, key, value))
+-        self.stdin = io.BytesIO()
+-        self.stdin.channel = SimpleNamespace(shutdown_write=Mock())
++        self.stdin = TestInput()
+         self.channel = Channel()
+         self.connection = Mock()
+         self.connection.get_transport.return_value.getpeername.return_value = ('115.190.251.143', 22)
+@@ -117,9 +127,9 @@
+         self.stack.enter_context(patch.object(module.time, 'sleep'))
+ 
+     def run_entry(self, action='install'):
+-        with patch.object(sys, 'argv', ['v2', action, '--seal', self.expected]), patch('builtins.print'):
++        with patch.object(sys, 'argv', ['v3', action, '--seal', self.expected]), patch('builtins.print'):
+             code = module.main()
+-        receipts = list(self.evidence.glob('argo-adoption-v2-root-*.json'))
++        receipts = list(self.evidence.glob('argo-adoption-v3-root-*.json'))
+         self.assertEqual(1, len(receipts))
+         return code, json.loads(receipts[0].read_bytes())
+ 
+@@ -322,14 +332,14 @@
+         self.connect.assert_not_called()
+ 
+     def test_missing_helper_pin_refuses_before_connect(self):
+-        self.document['files'] = {'v2.py': self.inventory['v2.py']}
++        self.document['files'] = {'v3.py': self.inventory['v3.py']}
+         self.seal_bytes = json.dumps(self.document).encode()
+         self.seal.write_bytes(self.seal_bytes)
+         self.expected = digest(self.seal_bytes)
+         self.assert_refused()
+ 
+     def test_original_seal_or_receipt_or_binary_drift_refuses_before_connect(self):
+-        for path in [self.original, self.root / 'final3.json', self.root / 'v2-verification.json', self.binary]:
++        for path in [self.original, self.root / 'final3.json', self.root / 'v3-verification.json', self.binary]:
+             with self.subTest(path=path):
+                 before = path.read_bytes()
+                 path.write_bytes(b'changed')
+@@ -339,6 +349,44 @@
+                 path.write_bytes(before)
+         self.connect.assert_not_called()
+ 
++    def test_required_helper_capture_refuses_inconsistent_inventory_before_connect(self):
++        class InconsistentInventory(dict):
++            def items(self):
++                return [(key, value) for key, value in super().items() if key != 'helper.py']
++
++        real_loads = module.json.loads
++        document = dict(self.document, files=InconsistentInventory(self.inventory))
++
++        def loads(raw, **kwargs):
++            return document if raw == self.seal_bytes else real_loads(raw, **kwargs)
++
++        with patch.object(module.json, 'loads', side_effect=loads):
++            with self.assertRaisesRegex(ValueError, 'required-helper-capture-missing'):
++                with module.prepare(self.expected):
++                    self.fail('missing helper reached preflight yield')
++        self.connect.assert_not_called()
++        self.connection.exec_command.assert_not_called()
++
++    def test_missing_transport_refuses_exec_before_mutation_without_retry(self):
++        self.connection.get_transport.return_value = None
++        code, receipt = self.run_entry()
++        self.assertEqual(1, code)
++        self.assertTrue(receipt['preflightPassed'])
++        self.assertFalse(receipt['remoteMutationUnknown'])
++        self.assertFalse(receipt['automaticRetry'])
++        self.connection.exec_command.assert_not_called()
++        self.connect.assert_called_once()
++
++    def test_missing_transport_socket_refuses_exec_before_mutation_without_retry(self):
++        self.connection.get_transport.return_value.sock = None
++        code, receipt = self.run_entry()
++        self.assertEqual(1, code)
++        self.assertTrue(receipt['preflightPassed'])
++        self.assertFalse(receipt['remoteMutationUnknown'])
++        self.assertFalse(receipt['automaticRetry'])
++        self.connection.exec_command.assert_not_called()
++        self.connect.assert_called_once()
++
+     def test_wrong_testhost_refuses_exec_without_retry(self):
+         self.connection.get_transport.return_value.getpeername.return_value = ('127.0.0.1', 22)
+         code, receipt = self.run_entry()
+--- .local/ops-acceptance/argo-adoption-v2-verify.py
++++ .local/ops-acceptance/argo-adoption-v3-verify.py
+@@ -1,4 +1,4 @@
+-"""Narrow local v2 verification/seal. Never imports private transport or deploys.
++"""Narrow local v3 verification/seal. Never imports private transport or deploys.
+ 
+ Exclusive evidence writes preserve original receipts, failures and 31-file seal.
+ Go/source-wide/race/runtime approval remains with root's independent lane.
+@@ -17,10 +17,11 @@
+ ROOT = Path(__file__).resolve().parents[2]
+ LOCAL = ROOT / '.local/ops-acceptance'
+ ORIGINAL = ROOT / '.harness/evidence/argo-adoption-20261110'
+-EVIDENCE = ROOT / '.harness/evidence/argo-adoption-v2-20261110'
++PREVIOUS = ROOT / '.harness/evidence/argo-adoption-v2-20261110'
++EVIDENCE = ROOT / '.harness/evidence/argo-adoption-v3-20261110'
+ EV = ROOT / '.harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109'
+ ORIGINAL_SHA = '08ba8f44013b10f92c533a1f96ed55a7346b0f6e17a968b8c313fdf1ab4d79ec'
+-NEW_NAMES = ['argo-adoption-v2-root-run.py', 'argo-adoption-v2-deploy-test.py', 'argo-adoption-v2-verify.py']
++NEW_NAMES = ['argo-adoption-v3-root-run.py', 'argo-adoption-v3-deploy-test.py', 'argo-adoption-v3-verify.py']
+ 
+ 
+ def sha(path):
+@@ -44,8 +45,8 @@
+     if not args.label.isalnum():
+         raise ValueError('fresh-alphanumeric-label-required')
+     EVIDENCE.mkdir(exist_ok=True)
+-    receipt_path = EVIDENCE / ('argo-adoption-v2-' + args.label + '-verification.json')
+-    seal_path = EVIDENCE / 'argo-adoption-v2-artifact-seal.json'
++    receipt_path = EVIDENCE / ('argo-adoption-v3-' + args.label + '-verification.json')
++    seal_path = EVIDENCE / 'argo-adoption-v3-artifact-seal.json'
+     if receipt_path.exists() or seal_path.exists():
+         raise ValueError('fresh-evidence-required')
+     original_path = ORIGINAL / 'artifact-seal.json'
+@@ -55,7 +56,12 @@
+     original_seal = json.loads(original_bytes)
+     if len(original_seal['files']) != 31:
+         raise ValueError('original-inventory-drift')
+-    expected = dict(original_seal['files'])
++    previous_path = PREVIOUS / 'argo-adoption-v2-artifact-seal.json'
++    previous_seal = json.loads(previous_path.read_bytes())
++    if len(previous_seal['files']) != 34 or any(previous_seal['files'].get(p) != pin for p, pin in original_seal['files'].items()):
++        raise ValueError('preserved-v2-inventory-drift')
++    expected = dict(previous_seal['files'])
++    expected[previous_seal['v2VerificationReceipt']] = previous_seal['v2VerificationReceiptSHA256']
+     expected[original_seal['verificationReceipt']] = original_seal['verificationReceiptSHA256']
+     expected['.local/ops-acceptance/resume-argo-v6-reviewed-linux'] = original_seal['binarySHA256']
+     for relative, pin in expected.items():
+@@ -65,13 +71,14 @@
+         raise ValueError('binary-size-drift')
+     preserved = set(ROOT / p for p in expected)
+     preserved.update(p for p in ORIGINAL.rglob('*') if p.is_file())
++    preserved.update(p for p in PREVIOUS.rglob('*') if p.is_file())
+     preserved.update(EV / name for name in [
+         'resume-argo-adoption-independent-code-report.md', 'resume-argo-adoption-independent-code-report.receipt.json',
+         'resume-argo-adoption-independent-arch-report.md', 'resume-argo-adoption-independent-arch-report.receipt.json'])
+     before = {p.relative_to(ROOT).as_posix(): sha(p) for p in sorted(preserved)}
+     sources = [LOCAL / name for name in NEW_NAMES]
+     new_before = {p.relative_to(ROOT).as_posix(): sha(p) for p in sources}
+-    receipt = {'taskId': 'argo-adoption-v2-20261110', 'parentTask': original_seal['parentTask'],
++    receipt = {'taskId': 'argo-adoption-v3-20261110', 'parentTask': original_seal['parentTask'],
+                'parentPacket': 'docs/harness/tasks/2026-11-07-ops-planned-task-closeout.task.md',
+                'deliveryTier': 'L2', 'role': 'Generator', 'scope': 'R1 local deployment runner only',
+                'startedAt': datetime.datetime.now(datetime.timezone.utc).isoformat(),
+@@ -86,8 +93,8 @@
+                           'import ast,pathlib,sys; '
+                           '[compile(ast.parse(pathlib.Path(p).read_bytes(),filename=p,feature_version=(3,9)),p,"exec") for p in sys.argv[1:]]; '
+                           'print("AST Python 3.9 + in-memory compile: PASS (no imports/pyc)")', *map(str, sources)], 0),
+-        ('diffCheck', ['git', 'diff', '--check', '--no-index', '--', '.local/ops-acceptance/argo-adoption-root-run.py',
+-                       '.local/ops-acceptance/argo-adoption-v2-root-run.py'], 1)]
++        ('diffCheck', ['git', 'diff', '--check', '--no-index', '--', '.local/ops-acceptance/argo-adoption-v2-root-run.py',
++                       '.local/ops-acceptance/argo-adoption-v3-root-run.py'], 1)]
+     # Sensitivity checks mutate only the loaded module's memory. The selected
+     # regressions must fail by assertion when either checked-buffer use regresses.
+     mutant_script = (
+@@ -109,7 +116,7 @@
+         start = time.monotonic()
+         completed = subprocess.run(command, cwd=ROOT, capture_output=True, timeout=60)
+         raw = completed.stdout + completed.stderr
+-        log = EVIDENCE / ('argo-adoption-v2-' + args.label + '-' + name + '.log')
++        log = EVIDENCE / ('argo-adoption-v3-' + args.label + '-' + name + '.log')
+         with log.open('xb') as output:
+             output.write(raw)
+         passed = completed.returncode == expected_code
+@@ -126,10 +133,10 @@
+         receipt['commands'].append(row)
+         exit_code = exit_code or (0 if passed else 1)
+         print(json.dumps({key: value for key, value in row.items() if key != 'command'}), flush=True)
+-    delta = EVIDENCE / ('argo-adoption-v2-' + args.label + '-source-delta.diff')
++    delta = EVIDENCE / ('argo-adoption-v3-' + args.label + '-source-delta.diff')
+     with delta.open('x', encoding='utf-8', newline='\n') as output:
+         for path in sources:
+-            previous = LOCAL / 'argo-adoption-root-run.py' if path.name == NEW_NAMES[0] else None
++            previous = LOCAL / path.name.replace('v3', 'v2')
+             old_lines = previous.read_text().splitlines(keepends=True) if previous else []
+             output.writelines(difflib.unified_diff(old_lines, path.read_text().splitlines(keepends=True),
+                                                    fromfile=previous.relative_to(ROOT).as_posix() if previous else '/dev/null',
+@@ -141,6 +148,8 @@
+     stable = before == after and new_before == new_after
+     receipt.update(preservedHashesAfter=after, newSourceHashesAfter=new_after, sourceStable=stable,
+                    original31FileHashesPreserved=all(after[p] == pin for p, pin in original_seal['files'].items()),
++                   originalV2FileHashesPreserved=all(after[p] == pin for p, pin in previous_seal['files'].items()),
++                   preservedV2ArtifactSealSHA256=sha(previous_path),
+                    sourceDelta=delta.relative_to(ROOT).as_posix(), sourceDeltaSHA256=sha(delta),
+                    binarySHA256=original_seal['binarySHA256'], binarySize=original_seal['binarySize'],
+                    endedAt=datetime.datetime.now(datetime.timezone.utc).isoformat(),
+@@ -149,8 +158,12 @@
+     if receipt['exitCode'] == 0:
+         seal = {**original_seal, 'taskId': receipt['taskId'], 'originalArtifactSeal': original_path.relative_to(ROOT).as_posix(),
+                 'originalArtifactSealSHA256': ORIGINAL_SHA, 'files': {**original_seal['files'], **new_after},
+-                'v2VerificationReceipt': receipt_path.relative_to(ROOT).as_posix(),
+-                'v2VerificationReceiptSHA256': sha(receipt_path), 'P0Approved': False}
++                'v2ArtifactSeal': previous_path.relative_to(ROOT).as_posix(),
++                'v2ArtifactSealSHA256': sha(previous_path),
++                'v2VerificationReceipt': previous_seal['v2VerificationReceipt'],
++                'v2VerificationReceiptSHA256': previous_seal['v2VerificationReceiptSHA256'],
++                'v3VerificationReceipt': receipt_path.relative_to(ROOT).as_posix(),
++                'v3VerificationReceiptSHA256': sha(receipt_path), 'P0Approved': False}
+         write_json(seal_path, seal)
+         print(json.dumps({'artifact': seal_path.relative_to(ROOT).as_posix(), 'sealSHA256': sha(seal_path)}))
+     return receipt['exitCode']
+--- .local/ops-acceptance/argo-reviewed-live-v3-prepare.py
++++ .local/ops-acceptance/argo-reviewed-live-v4-prepare.py
+@@ -18,13 +18,16 @@
+ 
+ def prepare():
+     old = LOCAL / 'argo-final-live-v2.py'
+-    contract = LOCAL / 'argo-reviewed-live-v3-contract.py'
++    contract = LOCAL / 'argo-reviewed-live-v4-contract.py'
+     source = old.read_text(encoding='utf-8')
+     original_hash = hashlib.sha256(old.read_bytes()).hexdigest()
+     contract_source = contract.read_text(encoding='utf-8')
+     tree = ast.parse(contract_source)
+     function = next(node for node in tree.body if isinstance(node, ast.FunctionDef) and node.name == 'validate_request')
+-    guard = 'import re\nfrom urllib.parse import parse_qs, urlsplit\n' + ast.get_source_segment(contract_source, function)
++    exact_source = ast.get_source_segment(contract_source, function)
++    if exact_source is None:
++        raise ValueError('required-exact-contract-source-missing')
++    guard = 'import re\nfrom urllib.parse import parse_qs, urlsplit\n' + exact_source
+     before = "  expected='/api/v1/applications/'+APP\n"
+     start = source.index(before)
+     stop = source.index("  status,data=api(method,path[len('/api/v1/'):],limited,request.get('body'))", start)
+@@ -35,14 +38,33 @@
+     source = replace_once(source, "if self.command == 'PATCH' and status == 200 and uncertain['next']:", "if self.command == 'POST' and self.path.split('?', 1)[0].endswith(('/reviewed-actions/sync', '/reviewed-actions/rollback')) and status == 200 and uncertain['next']:")
+     source = replace_once(source, "do_GET = do_PATCH = do_POST = forward", "do_GET = do_POST = forward")
+     source = replace_once(source, "        if suffix == ['managed-resources']: return '/api/v1/applications/{application}/managed-resources'", "        if suffix == ['managed-resources']: return '/api/v1/applications/{application}/managed-resources'\n        if suffix in [['reviewed-actions', 'capabilities'], ['reviewed-actions', 'sync'], ['reviewed-actions', 'rollback']]: return '/api/v1/applications/{application}/' + '/'.join(suffix)")
+-    source = source.replace('argo-final-remote-staged-v2.py', 'argo-reviewed-remote-staged-v3.py')
+-    source = source.replace('argo-final-reviewed-phase-request.json', 'argo-reviewed-phase-request-v3.json')
+-    source = source.replace('argo-final-phase-request-v2.json', 'argo-reviewed-phase-request-v3.json')
++    source = source.replace('argo-final-remote-staged-v2.py', 'argo-reviewed-remote-staged-v4.py')
++    source = source.replace('argo-final-reviewed-phase-request.json', 'argo-reviewed-phase-request-v4.json')
++    source = source.replace('argo-final-phase-request-v2.json', 'argo-reviewed-phase-request-v4.json')
+     source = source.replace("staged['originalSourceHashes']", "staged['sourceHashes']")
+-    source = source.replace('argo-final-live-v2-go.txt', 'argo-reviewed-live-v3-go.txt').replace('argo-final-live-v2-result.json', 'argo-reviewed-live-v3-result.json')
++    source = source.replace('argo-final-live-v2-go.txt', 'argo-reviewed-live-v4-go.txt').replace('argo-final-live-v2-result.json', 'argo-reviewed-live-v4-result.json')
+     source = source.replace("'runtimeGap': 'original product first preview failed; this stage is not live green; use allowlisted providerTrace for actual response-shape diagnosis'", "'runtimeGap': 'reviewed provider deployment/readiness and real terminal have not yet been validated by this stage'")
+-    compile(source, 'argo-reviewed-live-v3.py', 'exec')
+-    destination = LOCAL / 'argo-reviewed-live-v3.py'
++    cleanup_fix = r'''    script = script.replace(tail, extra + tail)
++    before = "obj=json.loads(k(*args,'get',kind,identity['name'],'-o','json'))"
++    assert script.count(before) == 1
++    script = script.replace(before, before.replace('obj=', 'cleanup_obj='), 1)
++    before = "assert obj['metadata']['uid']==identity['uid'] and obj['metadata']['labels'].get('pantheon-p0-owner')=='ops-p0-20261109' and obj['metadata']['labels'].get('pantheon-p0-driver')=='argo-final'"
++    assert script.count(before) == 1
++    script = script.replace(before, before.replace('obj[', 'cleanup_obj['), 1)
++    before = "checks=0;stage='initialize';owned={};admin=None;code=0;git_server=None"
++    assert script.count(before) == 1
++    script = script.replace(before, before + ';bare=None', 1)
++    before = ' def obj(kind,body):\n'
++    assert script.count(before) == 1
++    script = script.replace(before, before + '  assert bare is not None\n', 1)
++    before = "   assert (bare/'refs/heads/main').read_text().strip()==NEW"
++    assert script.count(before) == 1
++    script = script.replace(before, "   assert bare is not None\n" + before, 1)
++    return script
++'''
++    source = replace_once(source, '    return script.replace(tail, extra + tail)\n', cleanup_fix)
++    compile(source, 'argo-reviewed-live-v4.py', 'exec')
++    destination = LOCAL / 'argo-reviewed-live-v4.py'
+     with destination.open('x', encoding='utf-8', newline='\n') as output:
+         output.write(source)
+     receipt = {'parentTask': '2026-11-07-ops-planned-task-closeout', 'remoteExecuted': False,
+@@ -52,7 +74,7 @@
+                'method': 'explicit bounded source transformation; generated runner is independently readable',
+                'protocol': 'reviewed-actions/v1 only; get/sync native project policy; lost reply after accepted POST',
+                'P0Approved': False}
+-    with (EV / 'argo-reviewed-live-v3-preparation.json').open('x', encoding='utf-8') as output:
++    with (EV / 'argo-reviewed-live-v4-preparation.json').open('x', encoding='utf-8') as output:
+         json.dump(receipt, output, indent=2)
+         output.write('\n')
+     print(json.dumps(receipt))
+--- .local/ops-acceptance/argo-reviewed-live-v3-test.py
++++ .local/ops-acceptance/argo-reviewed-live-v4-test.py
+@@ -1,10 +1,19 @@
+ """Meaningful finite-relay negative tests; no real provider success claim."""
+ import copy
++import ast
++from contextlib import redirect_stdout
++import io
++import json
++import tempfile
++import textwrap
++from unittest.mock import patch
+ import importlib.util
+ from pathlib import Path
+ import unittest
+ 
+-spec = importlib.util.spec_from_file_location('contract', Path(__file__).with_name('argo-reviewed-live-v3-contract.py'))
++spec = importlib.util.spec_from_file_location('contract', Path(__file__).with_name('argo-reviewed-live-v4-contract.py'))
++if spec is None or spec.loader is None:
++    raise RuntimeError('required-module-spec-loader-missing')
+ contract = importlib.util.module_from_spec(spec)
+ spec.loader.exec_module(contract)
+ BASE = '/api/v1/applications/owned-app'
+@@ -56,5 +65,77 @@
+                 contract.validate_request('POST', BASE + '/reviewed-actions/rollback', body, **PARAMS)
+ 
+ 
++def load_local(name):
++    module_spec = importlib.util.spec_from_file_location(name, Path(__file__).with_name(name + '.py'))
++    if module_spec is None or module_spec.loader is None:
++        raise RuntimeError('required-module-spec-loader-missing')
++    module = importlib.util.module_from_spec(module_spec)
++    module_spec.loader.exec_module(module)
++    return module
++
++
++class GenerationTests(unittest.TestCase):
++    def test_missing_exact_source_refuses_before_creating_outputs(self):
++        prepare = load_local('argo-reviewed-live-v4-prepare')
++        with patch.object(prepare.ast, 'get_source_segment', return_value=None):
++            with self.assertRaisesRegex(ValueError, 'required-exact-contract-source-missing'):
++                prepare.prepare()
++
++    def test_actual_prepare_reproduces_runner_bytes_and_preserves_inputs(self):
++        prepare = load_local('argo-reviewed-live-v4-prepare')
++        local = Path(__file__).resolve().parent
++        with tempfile.TemporaryDirectory() as directory:
++            root = Path(directory).resolve()
++            outputs = root / 'local'
++            outputs.mkdir()
++            evidence = root / 'evidence'
++            evidence.mkdir()
++            originals = {name: (local / name).read_bytes() for name in ['argo-final-live-v2.py', 'argo-reviewed-live-v4-contract.py']}
++            for name, raw in originals.items():
++                (outputs / name).write_bytes(raw)
++            with patch.object(prepare, 'ROOT', root), patch.object(prepare, 'LOCAL', outputs), patch.object(prepare, 'EV', evidence), redirect_stdout(io.StringIO()):
++                prepare.prepare()
++            self.assertEqual((local / 'argo-reviewed-live-v4.py').read_bytes(), (outputs / 'argo-reviewed-live-v4.py').read_bytes())
++            self.assertEqual({'argo-reviewed-live-v4-preparation.json'}, {p.name for p in evidence.iterdir()})
++            for name, raw in originals.items():
++                self.assertEqual(raw, (outputs / name).read_bytes())
++
++    def test_remote_bytes_change_only_cleanup_locals_and_required_path_guard(self):
++        runner = load_local('argo-reviewed-live-v4')
++        local = Path(__file__).resolve().parent
++        old = (local / 'argo-reviewed-remote-staged-v3.py').read_text(encoding='utf-8')
++        old_tree = ast.parse(old)
++        run = next(ast.literal_eval(node.value) for node in old_tree.body if isinstance(node, ast.Assign) and any(isinstance(target, ast.Name) and target.id == 'RUN' for target in node.targets))
++        with patch.object(runner.secrets, 'token_hex', return_value=run):
++            generated = runner.remote_source()
++        expected = old.replace("code=0;git_server=None\n", "code=0;git_server=None;bare=None\n", 1)
++        expected = expected.replace(' def obj(kind,body):\n', ' def obj(kind,body):\n  assert bare is not None\n', 1)
++        expected = expected.replace("   obj=json.loads(k(*args,'get',kind,identity['name'],'-o','json'))", "   cleanup_obj=json.loads(k(*args,'get',kind,identity['name'],'-o','json'))", 1)
++        expected = expected.replace("   assert obj['metadata']['uid']==identity['uid'] and obj['metadata']['labels'].get('pantheon-p0-owner')=='ops-p0-20261109' and obj['metadata']['labels'].get('pantheon-p0-driver')=='argo-final'", "   assert cleanup_obj['metadata']['uid']==identity['uid'] and cleanup_obj['metadata']['labels'].get('pantheon-p0-owner')=='ops-p0-20261109' and cleanup_obj['metadata']['labels'].get('pantheon-p0-driver')=='argo-final'", 1)
++        expected = expected.replace("   assert (bare/'refs/heads/main').read_text().strip()==NEW", "   assert bare is not None\n   assert (bare/'refs/heads/main').read_text().strip()==NEW", 1)
++        self.assertEqual(expected.encode(), generated.encode())
++        staged = (local / 'argo-reviewed-remote-staged-v4.py').read_text(encoding='utf-8')
++        staged_tree = ast.parse(staged)
++        new_run = next(ast.literal_eval(node.value) for node in staged_tree.body if isinstance(node, ast.Assign) and any(isinstance(target, ast.Name) and target.id == 'RUN' for target in node.targets))
++        with patch.object(runner.secrets, 'token_hex', return_value=new_run):
++            self.assertEqual(staged.encode(), runner.remote_source().encode())
++
++    def test_contract_bytes_and_embedded_function_are_unchanged(self):
++        local = Path(__file__).resolve().parent
++        old = (local / 'argo-reviewed-live-v3-contract.py').read_bytes()
++        self.assertEqual(old, (local / 'argo-reviewed-live-v4-contract.py').read_bytes())
++        source = old.decode('utf-8')
++        function = next(node for node in ast.parse(source).body if isinstance(node, ast.FunctionDef) and node.name == 'validate_request')
++        expected = ast.get_source_segment(source, function)
++        remote = (local / 'argo-reviewed-remote-staged-v4.py').read_text(encoding='utf-8')
++        parent = next(node for node in ast.parse(remote).body if isinstance(node, ast.Try))
++        embedded = next(node for node in parent.body if isinstance(node, ast.FunctionDef) and node.name == 'validate_request')
++        actual = ast.get_source_segment(remote, embedded)
++        self.assertIsNotNone(expected)
++        self.assertIsNotNone(actual)
++        assert actual is not None
++        self.assertEqual(expected, textwrap.dedent(' ' + actual))
++
++
+ if __name__ == '__main__':
+     unittest.main()
+--- .local/ops-acceptance/argo-reviewed-live-v3.py
++++ .local/ops-acceptance/argo-reviewed-live-v4.py
+@@ -141,7 +141,23 @@
+   emit({'phase':'retained-provider-health','readyCorePods':4,'memoryLimitMi':cap,'oomObserved':False,'exitCode':0})
+  except Exception as e:cleanup_code=1;emit({'phase':'retained-provider-health','exitCode':1,'errorType':type(e).__name__})
+ '''
+-    return script.replace(tail, extra + tail)
++    script = script.replace(tail, extra + tail)
++    before = "obj=json.loads(k(*args,'get',kind,identity['name'],'-o','json'))"
++    assert script.count(before) == 1
++    script = script.replace(before, before.replace('obj=', 'cleanup_obj='), 1)
++    before = "assert obj['metadata']['uid']==identity['uid'] and obj['metadata']['labels'].get('pantheon-p0-owner')=='ops-p0-20261109' and obj['metadata']['labels'].get('pantheon-p0-driver')=='argo-final'"
++    assert script.count(before) == 1
++    script = script.replace(before, before.replace('obj[', 'cleanup_obj['), 1)
++    before = "checks=0;stage='initialize';owned={};admin=None;code=0;git_server=None"
++    assert script.count(before) == 1
++    script = script.replace(before, before + ';bare=None', 1)
++    before = ' def obj(kind,body):\n'
++    assert script.count(before) == 1
++    script = script.replace(before, before + '  assert bare is not None\n', 1)
++    before = "   assert (bare/'refs/heads/main').read_text().strip()==NEW"
++    assert script.count(before) == 1
++    script = script.replace(before, "   assert bare is not None\n" + before, 1)
++    return script
+ 
+ 
+ def safe_schema(value):
+@@ -194,8 +210,8 @@
+     receipt = {'scope': 'ArgoCDService real provider integration; explicit fixture authority and private provider relay; no full Base auth/audit/public-origin claim',
+                'host': '115.190.251.143', 'command': COMMAND, 'startedAt': time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime()),
+                'sourceHashesBefore': source_hashes(), 'records': [], 'exitCode': 1}
+-    script = (ROOT / '.local/ops-acceptance/argo-reviewed-remote-staged-v3.py').read_text(encoding='utf-8')
+-    staged = json.loads((EV / 'argo-reviewed-phase-request-v3.json').read_text(encoding='utf-8'))
++    script = (ROOT / '.local/ops-acceptance/argo-reviewed-remote-staged-v4.py').read_text(encoding='utf-8')
++    staged = json.loads((EV / 'argo-reviewed-phase-request-v4.json').read_text(encoding='utf-8'))
+     if hashlib.sha256(script.encode()).hexdigest() != staged['remoteScriptSHA256']:
+         raise RuntimeError('staged remote script hash changed; regenerate reviewable phase request')
+     if hashlib.sha256(Path(__file__).read_bytes()).hexdigest() != staged['localScriptSHA256'] or receipt['sourceHashesBefore'] != staged['sourceHashes']:
+@@ -269,7 +285,7 @@
+             env.update(PATH='D:/msys64/mingw64/bin;' + env['PATH'], CGO_ENABLED='1',
+                        PANTHEON_TEST_DSN='root@tcp(127.0.0.1:33316)/ops_p0_acceptance?parseTime=true&loc=Local', PANTHEON_TEST_DSN_REQUIRED='1',
+                        PANTHEON_ARGO_PRODUCT_FIXTURE=json.dumps(fixture))
+-            with (EV / 'argo-reviewed-live-v3-go.txt').open('x', encoding='utf-8') as out:
++            with (EV / 'argo-reviewed-live-v4-go.txt').open('x', encoding='utf-8') as out:
+                 process = subprocess.Popen(COMMAND, cwd=ROOT / 'backend', env=env, stdout=out, stderr=subprocess.STDOUT)
+                 try:
+                     product_exit = process.wait(timeout=420)
+@@ -302,7 +318,7 @@
+         receipt['sourceHashesStable'] = receipt['sourceHashesBefore'] == receipt['sourceHashesAfter']
+         if not receipt['sourceHashesStable']:
+             receipt['exitCode'] = 2
+-        (EV / 'argo-reviewed-live-v3-result.json').open('x', encoding='utf-8').write(json.dumps(receipt, indent=2) + '\n')
++        (EV / 'argo-reviewed-live-v4-result.json').open('x', encoding='utf-8').write(json.dumps(receipt, indent=2) + '\n')
+         print(json.dumps({k: v for k, v in receipt.items() if k not in ['records', 'sourceHashesBefore', 'sourceHashesAfter']}, indent=2))
+     return receipt['exitCode']
+ 
+@@ -310,8 +326,8 @@
+ 
+ def stage():
+     script = remote_source()
+-    compile(script, 'argo-reviewed-remote-staged-v3.py', 'exec')
+-    remote_path = ROOT / '.local/ops-acceptance/argo-reviewed-remote-staged-v3.py'
++    compile(script, 'argo-reviewed-remote-staged-v4.py', 'exec')
++    remote_path = ROOT / '.local/ops-acceptance/argo-reviewed-remote-staged-v4.py'
+     with remote_path.open('x', encoding='utf-8', newline='\n') as f:
+         f.write(script)
+     request = {'parentTask': '2026-11-07-ops-planned-task-closeout', 'phase': 'root-execution-required',
+@@ -325,7 +341,7 @@
+                'scope': 'fixture authority and private verified provider relay; no Base current-session/IAM/audit or public-origin proof',
+                'runtimeGap': 'reviewed provider deployment/readiness and real terminal have not yet been validated by this stage',
+                'permissionBoundary': 'root owns credentialed remote execution; this final leaf does not run or bypass SSH restrictions'}
+-    with (EV / 'argo-reviewed-phase-request-v3.json').open('x', encoding='utf-8') as f:
++    with (EV / 'argo-reviewed-phase-request-v4.json').open('x', encoding='utf-8') as f:
+         json.dump(request,f,indent=2); f.write('\n')
+     print(json.dumps({k:v for k,v in request.items() if k != 'sourceHashes'},indent=2))
+ 
+@@ -337,7 +353,7 @@
+     if args.phase == 'stage':
+         stage()
+     else:
+-        staged = json.loads((EV / 'argo-reviewed-phase-request-v3.json').read_text(encoding='utf-8'))
++        staged = json.loads((EV / 'argo-reviewed-phase-request-v4.json').read_text(encoding='utf-8'))
+         if hashlib.sha256(Path(__file__).read_bytes()).hexdigest() != staged['localScriptSHA256'] or source_hashes() != staged['sourceHashes']:
+             raise RuntimeError('reviewed source/driver hash changed; prepare a new reviewed final phase before any remote access')
+         raise SystemExit(run())
+--- .local/ops-acceptance/argo-reviewed-remote-staged-v3.py
++++ .local/ops-acceptance/argo-reviewed-remote-staged-v4.py
+@@ -2,7 +2,7 @@
+ import base64, hashlib, http.client, json, os, re, socket, ssl, subprocess, time, zlib
+ from pathlib import Path
+ ARGO='pantheon-p0-argocd-20261109'
+-RUN='82cd20'
++RUN='ca3c2f'
+ NS='pantheon-p0-argo-live-'+RUN
+ PROJECT='p0-live-'+RUN
+ APP='p0-live-'+RUN
+@@ -10,7 +10,7 @@
+ REPO='https://github.com/argoproj/argocd-example-apps.git'
+ OLD='68657670d9131dc5bc5f538b14c1de3377d74591'
+ NEW='f58c7ed8cfe28ad70701c5923fdbd0154388ea9f'
+-checks=0;stage='initialize';owned={};admin=None;code=0;git_server=None
++checks=0;stage='initialize';owned={};admin=None;code=0;git_server=None;bare=None
+ 
+ def emit(v):print(json.dumps(v),flush=True)
+ def check(name,ok,**details):
+@@ -87,6 +87,7 @@
+  for sub in ['objects','refs/heads','info']:(bare/sub).mkdir(parents=True,exist_ok=True)
+  objects=[]
+  def obj(kind,body):
++  assert bare is not None
+   objects.append((kind,body))
+   raw=kind.encode()+b' '+str(len(body)).encode()+b'\0'+body
+   sha=hashlib.sha1(raw).hexdigest();d=bare/'objects'/sha[:2];d.mkdir(exist_ok=True);(d/sha[2:]).write_bytes(zlib.compress(raw));return sha
+@@ -233,8 +234,8 @@
+   if not identity:continue
+   try:
+    args=['-n',identity['namespace']] if identity['namespace'] else []
+-   obj=json.loads(k(*args,'get',kind,identity['name'],'-o','json'))
+-   assert obj['metadata']['uid']==identity['uid'] and obj['metadata']['labels'].get('pantheon-p0-owner')=='ops-p0-20261109' and obj['metadata']['labels'].get('pantheon-p0-driver')=='argo-final'
++   cleanup_obj=json.loads(k(*args,'get',kind,identity['name'],'-o','json'))
++   assert cleanup_obj['metadata']['uid']==identity['uid'] and cleanup_obj['metadata']['labels'].get('pantheon-p0-owner')=='ops-p0-20261109' and cleanup_obj['metadata']['labels'].get('pantheon-p0-driver')=='argo-final'
+    r=subprocess.run(['kubectl','--request-timeout=15s',*args,'delete',kind,identity['name'],'--wait=true','--timeout=60s'],capture_output=True,text=True,timeout=75)
+    assert r.returncode==0
+    absence=k(*args,'get',kind,identity['name'],'--ignore-not-found','-o','name');assert not absence.strip()
+@@ -249,6 +250,7 @@
+   try:
+    import shutil
+    resolved=fixture.resolve();assert resolved.parent==Path('/opt/pantheon-p0-20261109').resolve() and resolved.name=='argo-final-repo-'+RUN
++   assert bare is not None
+    assert (bare/'refs/heads/main').read_text().strip()==NEW
+    for kind in ['Application','AppProject','Namespace']:
+     identity=owned.get(kind)

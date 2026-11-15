@@ -1,0 +1,5 @@
+FAIL	github.com/duanxldragon/pantheon-base/backend/modules/business/deploy [build failed]
+FAIL
+# github.com/duanxldragon/pantheon-base/backend/modules/business/deploy [github.com/duanxldragon/pantheon-base/backend/modules/business/deploy.test]
+modules\business\deploy\attempt_ownership_test.go:30:13: invalid operation: owner (variable of type *cmdb.deployCMDBCapability) is not an interface
+modules\business\deploy\attempt_ownership_test.go:34:12: invalid operation: owner (variable of type *cmdb.deployCMDBCapability) is not an interface

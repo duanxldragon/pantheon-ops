@@ -62,20 +62,21 @@ var (
 type releaseClientProvider func(uint64, *common.DataScopeReq) (kubernetes.Interface, error)
 
 type releaseRequestSnapshot struct {
-	Operation           string `json:"operation"`
-	Name                string `json:"name"`
-	ClusterID           uint64 `json:"clusterId"`
-	ServiceID           uint64 `json:"serviceId,omitempty"`
-	ServiceInstanceID   uint64 `json:"serviceInstanceId,omitempty"`
-	ServiceName         string `json:"serviceName,omitempty"`
-	ServiceInstanceName string `json:"serviceInstanceName,omitempty"`
-	Namespace           string `json:"namespace"`
-	WorkloadType        string `json:"workloadType"`
-	WorkloadName        string `json:"workloadName"`
-	ContainerName       string `json:"containerName"`
-	Image               string `json:"image"`
-	Strategy            string `json:"strategy"`
-	PreviousReleaseID   uint64 `json:"previousReleaseId,omitempty"`
+	Operation           string              `json:"operation"`
+	Name                string              `json:"name"`
+	ClusterID           uint64              `json:"clusterId"`
+	ServiceID           uint64              `json:"serviceId,omitempty"`
+	ServiceInstanceID   uint64              `json:"serviceInstanceId,omitempty"`
+	ServiceName         string              `json:"serviceName,omitempty"`
+	ServiceInstanceName string              `json:"serviceInstanceName,omitempty"`
+	Namespace           string              `json:"namespace"`
+	WorkloadType        string              `json:"workloadType"`
+	WorkloadName        string              `json:"workloadName"`
+	ContainerName       string              `json:"containerName"`
+	Image               string              `json:"image"`
+	Strategy            string              `json:"strategy"`
+	PreviousReleaseID   uint64              `json:"previousReleaseId,omitempty"`
+	Review              *releaseReviewGuard `json:"review,omitempty"`
 }
 
 type workloadObservation struct {
@@ -101,6 +102,7 @@ type ReleaseService struct {
 	clientProvider   releaseClientProvider
 	operationTimeout time.Duration
 	pollInterval     time.Duration
+	requestCtx       context.Context
 }
 
 // NewReleaseService creates the Kubernetes release service.
@@ -110,11 +112,6 @@ func NewReleaseService(db *gorm.DB, clusterSvc *cluster.ClusterService, bindings
 		clusterSvc:       clusterSvc,
 		operationTimeout: releaseDurationFromEnv("PANTHEON_K8S_RELEASE_TIMEOUT", defaultReleaseTimeout, maxReleaseTimeout),
 		pollInterval:     releaseDurationFromEnv("PANTHEON_K8S_RELEASE_POLL_INTERVAL", defaultRolloutPollInterval, maxRolloutPollInterval),
-	}
-	if clusterSvc != nil {
-		service.clientProvider = func(clusterID uint64, dataScope *common.DataScopeReq) (kubernetes.Interface, error) {
-			return clusterSvc.GetClientset(clusterID, dataScope)
-		}
 	}
 	if len(bindings) > 0 {
 		service.namespaceSvc = bindings[0]
@@ -317,7 +314,7 @@ func (s *ReleaseService) Reconcile(id uint64, dataScope *common.DataScopeReq) (*
 	if err != nil {
 		return nil, err
 	}
-	ctx, cancel := context.WithTimeout(context.Background(), s.operationTimeout)
+	ctx, cancel := context.WithTimeout(s.operationContext(), s.operationTimeout)
 	defer cancel()
 
 	observed, err := observeWorkload(ctx, clientset, record.WorkloadType, record.Namespace, record.WorkloadName, record.ContainerName)
@@ -405,7 +402,7 @@ func (s *ReleaseService) execute(id uint64, dataScope *common.DataScopeReq) erro
 		return s.fail(record.ID, workloadObservation{}, err.Error(), err)
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), s.operationTimeout)
+	ctx, cancel := context.WithTimeout(s.operationContext(), s.operationTimeout)
 	defer cancel()
 
 	before, err := observeWorkload(ctx, clientset, record.WorkloadType, record.Namespace, record.WorkloadName, record.ContainerName)
@@ -416,7 +413,26 @@ func (s *ReleaseService) execute(id uint64, dataScope *common.DataScopeReq) erro
 		return err
 	}
 
-	target, err := applyImage(ctx, clientset, record.WorkloadType, record.Namespace, record.WorkloadName, record.ContainerName, record.ImageAfter)
+	var snapshot releaseRequestSnapshot
+	if err := json.Unmarshal(record.RequestSnapshot, &snapshot); err != nil {
+		return s.fail(record.ID, before, msgPreviewConflict, reviewConflict())
+	}
+	var target workloadObservation
+	if snapshot.Review != nil {
+		err = s.clusterSvc.WithClusterLockContext(ctx, record.ClusterID, dataScope, func(tx *gorm.DB, item *cluster.Cluster) error {
+			version, e := releaseClusterVersion(tx, item)
+			if e != nil {
+				return e
+			}
+			if version != snapshot.Review.ClusterVersion {
+				return reviewConflict()
+			}
+			target, e = applyImage(ctx, clientset, record.WorkloadType, record.Namespace, record.WorkloadName, record.ContainerName, record.ImageAfter, snapshot.Review)
+			return e
+		})
+	} else {
+		target, err = applyImage(ctx, clientset, record.WorkloadType, record.Namespace, record.WorkloadName, record.ContainerName, record.ImageAfter)
+	}
 	if err != nil {
 		if isAmbiguousApplyError(err) {
 			if persistErr := s.persistObservation(record.ID, before, false, err.Error()); persistErr != nil {
@@ -430,6 +446,9 @@ func (s *ReleaseService) execute(id uint64, dataScope *common.DataScopeReq) erro
 				return errReleaseApplyAmbiguous
 			}
 			return reconcileErr
+		}
+		if errors.Is(err, common.ErrConflict) {
+			return s.fail(record.ID, before, msgPreviewConflict, err)
 		}
 		return s.fail(record.ID, before, err.Error(), errReleaseApplyFailed)
 	}
@@ -497,11 +516,23 @@ func (s *ReleaseService) persistIntentWithKey(snapshot releaseRequestSnapshot, p
 
 	var record Release
 	var replay bool
-	err = s.clusterSvc.WithClusterLock(snapshot.ClusterID, dataScope, func(tx *gorm.DB, item *cluster.Cluster) error {
+	err = s.clusterSvc.WithClusterLockContext(s.operationContext(), snapshot.ClusterID, dataScope, func(tx *gorm.DB, item *cluster.Cluster) error {
+		if snapshot.Review != nil {
+			version, err := releaseClusterVersion(tx, item)
+			if err != nil {
+				return err
+			}
+			if version != snapshot.Review.ClusterVersion {
+				return reviewConflict()
+			}
+		}
 		var existing Release
 		err := tx.Where("idempotency_key = ?", key).First(&existing).Error
 		switch {
 		case err == nil:
+			if snapshot.Review != nil && existing.CreatedBy != createdBy {
+				return reviewConflict()
+			}
 			if existing.RequestFingerprint != fingerprint {
 				return errReleaseIdempotency
 			}
@@ -548,10 +579,16 @@ func (s *ReleaseService) releaseQuery(dataScope *common.DataScopeReq) *gorm.DB {
 }
 
 func (s *ReleaseService) clientFor(clusterID uint64, dataScope *common.DataScopeReq) (kubernetes.Interface, error) {
-	if s.clientProvider == nil {
+	if err := s.operationContext().Err(); err != nil {
+		return nil, err
+	}
+	if s.clientProvider != nil {
+		return s.clientProvider(clusterID, dataScope)
+	}
+	if s.clusterSvc == nil {
 		return nil, errors.New("k8s.release.client_not_configured")
 	}
-	return s.clientProvider(clusterID, dataScope)
+	return s.clusterSvc.GetClientsetWithContext(s.operationContext(), clusterID, dataScope)
 }
 
 func (s *ReleaseService) persistBeforeApply(id uint64, observed workloadObservation) error {
@@ -835,14 +872,14 @@ func observeWorkload(ctx context.Context, clientset kubernetes.Interface, worklo
 	}
 }
 
-func applyImage(ctx context.Context, clientset kubernetes.Interface, workloadType, namespace, name, containerName, image string) (workloadObservation, error) {
+func applyImage(ctx context.Context, clientset kubernetes.Interface, workloadType, namespace, name, containerName, image string, review ...*releaseReviewGuard) (workloadObservation, error) {
 	switch normalizeWorkloadType(workloadType) {
 	case "deployment":
-		return applyImageToDeployment(ctx, clientset, namespace, name, containerName, image)
+		return applyImageToDeployment(ctx, clientset, namespace, name, containerName, image, review...)
 	case "statefulset":
-		return applyImageToStatefulSet(ctx, clientset, namespace, name, containerName, image)
+		return applyImageToStatefulSet(ctx, clientset, namespace, name, containerName, image, review...)
 	case "daemonset":
-		return applyImageToDaemonSet(ctx, clientset, namespace, name, containerName, image)
+		return applyImageToDaemonSet(ctx, clientset, namespace, name, containerName, image, review...)
 	default:
 		return workloadObservation{}, errReleaseInvalidWorkload
 	}
@@ -857,10 +894,15 @@ func asResourceVersionConflict(err error) error {
 	return err
 }
 
-func applyImageToDeployment(ctx context.Context, clientset kubernetes.Interface, namespace, name, containerName, image string) (workloadObservation, error) {
+func applyImageToDeployment(ctx context.Context, clientset kubernetes.Interface, namespace, name, containerName, image string, review ...*releaseReviewGuard) (workloadObservation, error) {
 	item, err := clientset.AppsV1().Deployments(namespace).Get(ctx, name, metav1.GetOptions{})
 	if err != nil {
 		return workloadObservation{}, err
+	}
+	if len(review) > 0 {
+		if err := requireReviewTarget(item, review[0]); err != nil {
+			return workloadObservation{}, err
+		}
 	}
 	if err := setContainerImageStrict(item.Spec.Template.Spec.Containers, containerName, image); err != nil {
 		return workloadObservation{}, err
@@ -875,10 +917,15 @@ func applyImageToDeployment(ctx context.Context, clientset kubernetes.Interface,
 	return target, err
 }
 
-func applyImageToStatefulSet(ctx context.Context, clientset kubernetes.Interface, namespace, name, containerName, image string) (workloadObservation, error) {
+func applyImageToStatefulSet(ctx context.Context, clientset kubernetes.Interface, namespace, name, containerName, image string, review ...*releaseReviewGuard) (workloadObservation, error) {
 	item, err := clientset.AppsV1().StatefulSets(namespace).Get(ctx, name, metav1.GetOptions{})
 	if err != nil {
 		return workloadObservation{}, err
+	}
+	if len(review) > 0 {
+		if err := requireReviewTarget(item, review[0]); err != nil {
+			return workloadObservation{}, err
+		}
 	}
 	if err := setContainerImageStrict(item.Spec.Template.Spec.Containers, containerName, image); err != nil {
 		return workloadObservation{}, err
@@ -893,10 +940,15 @@ func applyImageToStatefulSet(ctx context.Context, clientset kubernetes.Interface
 	return target, err
 }
 
-func applyImageToDaemonSet(ctx context.Context, clientset kubernetes.Interface, namespace, name, containerName, image string) (workloadObservation, error) {
+func applyImageToDaemonSet(ctx context.Context, clientset kubernetes.Interface, namespace, name, containerName, image string, review ...*releaseReviewGuard) (workloadObservation, error) {
 	item, err := clientset.AppsV1().DaemonSets(namespace).Get(ctx, name, metav1.GetOptions{})
 	if err != nil {
 		return workloadObservation{}, err
+	}
+	if len(review) > 0 {
+		if err := requireReviewTarget(item, review[0]); err != nil {
+			return workloadObservation{}, err
+		}
 	}
 	if err := setContainerImageStrict(item.Spec.Template.Spec.Containers, containerName, image); err != nil {
 		return workloadObservation{}, err

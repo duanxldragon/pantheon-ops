@@ -23,6 +23,11 @@ config/kubeconfig.yaml
 .foundation/*
 !.foundation/allowed-drift.json
 !.foundation/foundation-release.lock.json
+# These Base-owned documentation dependencies are rehydrated from the locked
+# official snapshot. They must never become Ops repository-overlay inputs.
+/.harness/tasks/2026-11-07-ops-formal-queue-foundation-gaps/o4-tenant-implementation-plan.md
+/.harness/evidence/2026-11-13-v0188-release-preparation/summary.md
+/.harness/evidence/2026-11-13-v0188-release-preparation/smoke-empty-readiness/summary.md
 .tmp/
 tmp/
 .gocache/
@@ -57,6 +62,7 @@ test-results/
 
 # Local Pantheon artifacts
 .claude/
+.omx/
 .smoke.token
 .tmp-visual/
 .trace-debug/
@@ -66,3 +72,24 @@ frontend/tmp-icon-audit.js
 backend/cmd/server/uploads/
 backend/uploads/
 uploads/
+
+# Local acceptance endpoints, credentials and signed source materials
+.local/
+
+# O4 retained CODE test run and isolated CODE Go cache are local test inputs.
+# Keep their original hardlink fixtures/cache bytes; reports and other evidence
+# remain selected. These exclusions apply only to the two diagnosed run roots.
+/.harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/fixtures/ops-candidate-r6YFFe/
+/.harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/o2-current-code-review-20261110/gocache/
+
+# Independent selected-input CODE/ARCH reports diagnose 175 Git directory/long
+# records in this exact retained CODE run's test worktrees. Preserve every byte
+# in place; only this provenance-backed fixture root is a local test asset.
+/.harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/fixtures/
+
+# Local binary run-input archives and Playwright diagnostic traces in retained
+# verification fixture roots. Screenshots and text evidence stay selected and
+# committed; the archives are reproducible local test inputs.
+**/trace.zip
+**/exact-source-helper-inputs.tar.gz
+**/continue-*symlink-replay*.tar.gz

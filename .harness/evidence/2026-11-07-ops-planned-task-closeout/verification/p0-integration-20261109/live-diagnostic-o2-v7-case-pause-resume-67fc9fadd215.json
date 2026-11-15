@@ -1,0 +1,114 @@
+{
+  "case": "pause-resume",
+  "identity": "o2-live-67fc9fadd215-pause-resume",
+  "database": "ops_p0_o2_live_67fc9fadd215_pause_resume",
+  "databaseRetention": "retained; no drop",
+  "events": [
+    {
+      "credentialId": 1,
+      "packageId": 1,
+      "phase": "task-created",
+      "taskId": 1
+    },
+    {
+      "deadlineExceeded": false,
+      "phase": "independent-ssh-handshake",
+      "pinChecked": true,
+      "pinMatched": true
+    },
+    {
+      "deadlineExceeded": false,
+      "exitStatus": 0,
+      "passed": true,
+      "phase": "independent-ssh-command"
+    },
+    {
+      "marker": "started",
+      "ownershipChecked": true,
+      "phase": "independent-marker",
+      "present": false
+    },
+    {
+      "deadlineExceeded": false,
+      "phase": "independent-ssh-handshake",
+      "pinChecked": false,
+      "pinMatched": false
+    },
+    {
+      "authenticationFailed": false,
+      "deadlineExceeded": false,
+      "errorChainTypes": [
+        "*fmt.wrapError",
+        "*errors.errorString"
+      ],
+      "errorType": "*fmt.wrapError",
+      "phase": "independent-ssh-error",
+      "pinMismatch": false,
+      "stage": "handshake-auth",
+      "unexpectedEOF": true
+    },
+    {
+      "contextCanceled": false,
+      "deadlineExceeded": false,
+      "driverFrames": [
+        {
+          "file": "live-diagnostic-o2-v7.go",
+          "line": 83
+        },
+        {
+          "file": "live-diagnostic-o2-v7.go",
+          "line": 195
+        },
+        {
+          "file": "live-diagnostic-o2-v7.go",
+          "line": 205
+        },
+        {
+          "file": "live-diagnostic-o2-v7.go",
+          "line": 539
+        },
+        {
+          "file": "live-diagnostic-o2-v7.go",
+          "line": 698
+        }
+      ],
+      "errorKey": "suppressed",
+      "errorType": "*fmt.wrapError",
+      "phase": "operation-error"
+    },
+    {
+      "error": "operation or deadline; secret details suppressed",
+      "phase": "driver-failure"
+    },
+    {
+      "case": "pause-resume",
+      "failed": 1,
+      "negativePassed": 0,
+      "phase": "driver-result",
+      "positivePassed": 0
+    }
+  ],
+  "driverExitCode": 1,
+  "stderrPresent": false,
+  "missingOrFailedDriverSummary": true,
+  "missingAssertions": true,
+  "status": "failed",
+  "cleanup": {
+    "phase": "exact-owned-cleanup",
+    "directory": "/opt/pantheon-p0-20261109/o2-live-67fc9fadd215-pause-resume",
+    "files": [
+      {
+        "file": ".owner",
+        "sha256": "7c29098af099219bd4a9fd61ea28bf87d076f70c4691908873182aa8ad351122",
+        "bytes": 33
+      },
+      {
+        "file": "started",
+        "sha256": "7c29098af099219bd4a9fd61ea28bf87d076f70c4691908873182aa8ad351122",
+        "bytes": 33
+      }
+    ],
+    "absent": true,
+    "processKill": false
+  }
+}

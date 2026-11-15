@@ -1,0 +1,20 @@
+=== RUN   TestDeploySSHTransportScriptAndExitStatus
+=== RUN   TestDeploySSHTransportScriptAndExitStatus/password/exit0
+=== RUN   TestDeploySSHTransportScriptAndExitStatus/password/exit17
+=== RUN   TestDeploySSHTransportScriptAndExitStatus/private_key/exit0
+=== RUN   TestDeploySSHTransportScriptAndExitStatus/private_key/exit17
+--- PASS: TestDeploySSHTransportScriptAndExitStatus (0.05s)
+    --- PASS: TestDeploySSHTransportScriptAndExitStatus/password/exit0 (0.02s)
+    --- PASS: TestDeploySSHTransportScriptAndExitStatus/password/exit17 (0.01s)
+    --- PASS: TestDeploySSHTransportScriptAndExitStatus/private_key/exit0 (0.01s)
+    --- PASS: TestDeploySSHTransportScriptAndExitStatus/private_key/exit17 (0.01s)
+=== RUN   TestDeploySSHTransportRejectsChangedHostKey
+--- PASS: TestDeploySSHTransportRejectsChangedHostKey (0.03s)
+=== RUN   TestDeploySSHTransportCancelDuringSessionOpen
+--- PASS: TestDeploySSHTransportCancelDuringSessionOpen (0.01s)
+=== RUN   TestDeploySSHTransportCancelDuringOutput
+--- PASS: TestDeploySSHTransportCancelDuringOutput (0.01s)
+=== RUN   TestDeploySSHTransportPreCanceledContextDoesNotOpenSession
+--- PASS: TestDeploySSHTransportPreCanceledContextDoesNotOpenSession (0.01s)
+PASS
+ok  	github.com/duanxldragon/pantheon-base/backend/modules/business/deploy	1.201s

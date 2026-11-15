@@ -1,0 +1,79 @@
+{
+  "taskId": "2026-11-07-ops-planned-task-closeout",
+  "parent": "docs/harness/tasks/2026-11-07-ops-planned-task-closeout.task.md",
+  "tier": "L2",
+  "role": "Generator/executor",
+  "subject": "ARCH-O4-1: authenticate actual Base/Ops/metadata copy and exposed source reads before writing",
+  "historicalRequestSHA256": "9b6a0bec4daea400f8c99144934bbfcd87f0659db65e0993e8c91df085dd7786",
+  "evidence": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/continue-o4-copy-binding-20261110-r1-evidence.json",
+  "handoff": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/continue-o4-copy-binding-20261110-r1-handoff.md",
+  "sourceHashes": [
+    {
+      "path": "scripts/business-overlay/foundation-candidate.mjs",
+      "before": "17687364e7cc0420164707a9d92b33971f83d755efe57d61ace7e166a7105033",
+      "after": "77903fb900fcc676bea4b8246533db5fef8225ecef3a8fb8fdb75a21ed9bc552"
+    },
+    {
+      "path": "scripts/business-overlay/rebuild-from-candidate.mjs",
+      "before": "d92eb077c1b67cb3a0b291be24958db0533ecfac8c3c586930f0d9ce2468f104",
+      "after": "0d310bdcaffd8f961835737faf8aa6d1db1242bbdfa6ae10147e5e7871ed85c8"
+    },
+    {
+      "path": "scripts/business-overlay/candidate-copy-binding.test.mjs",
+      "before": null,
+      "after": "d220d33cb27d140c4bcf702e6b2688ec2377b7ce0a8fa92cff1e089ec43326ad"
+    }
+  ],
+  "tests": [
+    {
+      "log": ".local/ops-acceptance/continue-o4-copy-binding-20261110-r1/red-retained.tap",
+      "sha256": "0fe61662b7ceb550ae796fe0c0b50bd9245354e49860dab4ee79defcaca23292",
+      "tests": 2,
+      "pass": 0,
+      "fail": 2
+    },
+    {
+      "log": ".local/ops-acceptance/continue-o4-copy-binding-20261110-r1/red-copy.tap",
+      "sha256": "d24651eba461c151c1ca38055c62e14af12cbd063bd48019fa143f17fd09465f",
+      "tests": 3,
+      "pass": 0,
+      "fail": 3
+    },
+    {
+      "log": ".local/ops-acceptance/continue-o4-copy-binding-20261110-r1/green-retained-final.tap",
+      "sha256": "6656745aa994d420c4cf4a447ec2d1906751c784bb93cf5a5dc2e802a8d4f668",
+      "tests": 2,
+      "pass": 2,
+      "fail": 0
+    },
+    {
+      "log": ".local/ops-acceptance/continue-o4-copy-binding-20261110-r1/green-compatibility.tap",
+      "sha256": "b8e0fac133f3dce5868870d5b285309d1619359172aee1843ecc20811ad3d764",
+      "tests": 27,
+      "pass": 27,
+      "fail": 0
+    },
+    {
+      "log": ".local/ops-acceptance/continue-o4-copy-binding-20261110-r1/green-final.tap",
+      "sha256": "6326854ca0929ceea4883a91200bf28b6f6bbed87d928d912b04bbffca4ee2c4",
+      "tests": 207,
+      "pass": 207,
+      "fail": 0
+    }
+  ],
+  "requestedReview": [
+    "CODE",
+    "ARCH"
+  ],
+  "reviewStatus": "pending",
+  "selfApproval": false,
+  "actualCompleteAssembly": false,
+  "officialConsumption": false,
+  "P0Closed": false,
+  "remaining": [
+    "Independent review of this exact request",
+    "Dispatcher actual complete assembly in a metadata-quiescent interval",
+    "O4 C-F starts only from an actual successful sourceStable consumer receipt and .local/ops-acceptance/continue-o4-reviewed-attempt-result.json",
+    "Identity/IAM/audit/network/CMDB-key-only, official consumption, full Ops, final visual/functional and broader tenancy/history/views gates remain open"
+  ]
+}

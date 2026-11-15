@@ -1,0 +1,5 @@
+
+> check:docs-frontmatter
+> node scripts/frontmatter-check.mjs
+
+Frontmatter check passed. Checked 462 docs, 301 with frontmatter.

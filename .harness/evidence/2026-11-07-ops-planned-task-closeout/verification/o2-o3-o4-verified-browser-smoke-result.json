@@ -1,0 +1,15 @@
+{
+  "command": [
+    "npx.cmd",
+    "playwright",
+    "test",
+    "tests/smoke/business/k8s/release-preview.spec.ts",
+    "--workers=1",
+    "--output=D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.harness\\evidence\\2026-11-07-ops-planned-task-closeout\\verification\\o3-k8s-verified-browser"
+  ],
+  "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\frontend",
+  "exitCode": 0,
+  "elapsedSeconds": 19.453000000008615,
+  "artifact": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/o2-o3-o4-verified-browser-smoke.txt",
+  "lane": "browser"
+}

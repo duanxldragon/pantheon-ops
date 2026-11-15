@@ -1,0 +1,11 @@
+{
+  "command": [
+    "D:\\Python\\Python312\\python.exe",
+    "-B",
+    ".local/ops-acceptance/argo-reviewed-live-v4-test.py"
+  ],
+  "exitCode": 0,
+  "log": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-argo-lsp-clean-tools-live-v4-tests.log",
+  "logSHA256": "6b0487aa5edb195446371c77a093da68976b2623fd3cc4f941466b187e3a1357",
+  "seconds": 0.188
+}

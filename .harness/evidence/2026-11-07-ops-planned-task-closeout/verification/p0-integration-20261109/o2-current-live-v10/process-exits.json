@@ -1,0 +1,49 @@
+{
+  "commands": [
+    {
+      "command": [
+        "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\continue-o2-live-v10-driver-transient-1794294352885167700.exe"
+      ],
+      "exitCode": 1,
+      "expectedExitCode": 1,
+      "log": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/o2-current-live-v10/local-process-0.txt",
+      "logSHA256": "2cd1c28475e29129bae4f4761516bd07641dd77a2770b690a80beec158e4ae80",
+      "stdin": "empty owned identity JSON"
+    },
+    {
+      "command": [
+        "D:\\Python\\Python312\\python.exe",
+        "-B",
+        "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\continue-o2-live-v10-root-execute.py",
+        "--phase",
+        "execute",
+        "--request",
+        "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.harness\\evidence\\2026-11-07-ops-planned-task-closeout\\verification\\p0-integration-20261109\\o2-current-live-v10\\local-verification-1794294352885167700\\unsealed-request.json"
+      ],
+      "exitCode": 1,
+      "expectedExitCode": 1,
+      "log": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/o2-current-live-v10/local-process-1.txt",
+      "logSHA256": "f15fad9ef1a5d9324092c262c4b455fcfb8483cb8d7bc2799280726c4a288a8a",
+      "stdin": null
+    },
+    {
+      "command": [
+        "D:\\Python\\Python312\\python.exe",
+        "-B",
+        "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\continue-o2-live-v10-root-execute.py",
+        "--phase",
+        "check",
+        "--request",
+        "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.harness\\evidence\\2026-11-07-ops-planned-task-closeout\\verification\\p0-integration-20261109\\o2-current-live-v10\\local-verification-1794294352885167700\\unsealed-request.json"
+      ],
+      "exitCode": 1,
+      "expectedExitCode": 1,
+      "log": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/o2-current-live-v10/local-process-2.txt",
+      "logSHA256": "2a1358783c1efdbc49ec149a05ea18f54bdc08202e4893b1975869188086a798",
+      "stdin": null
+    }
+  ],
+  "credentialsLoaded": false,
+  "remoteExecuted": false,
+  "runtimeCasesExecuted": 0
+}

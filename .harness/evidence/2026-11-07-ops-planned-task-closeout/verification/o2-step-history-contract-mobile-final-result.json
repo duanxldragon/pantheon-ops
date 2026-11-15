@@ -1,0 +1,14 @@
+{
+  "command": [
+    "node",
+    "scripts/business-overlay/check-business-overlay.mjs",
+    "--root",
+    ".tmp/ops-step-history-mobile-final-stage"
+  ],
+  "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+  "exitCode": 0,
+  "elapsedSeconds": 0.35899999999674037,
+  "artifact": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/o2-step-history-contract-mobile-final.txt",
+  "sourceHashesStable": true,
+  "hashedFiles": 701
+}

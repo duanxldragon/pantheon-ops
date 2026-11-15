@@ -1,0 +1,8 @@
+--- FAIL: TestDeploySSHTransportCanceledConnectionPreservesCommand (1.85s)
+    --- FAIL: TestDeploySSHTransportCanceledConnectionPreservesCommand/pause_requested (0.96s)
+        deploy_ssh_transport_test.go:535: interrupted task = failed, want paused
+    --- FAIL: TestDeploySSHTransportCanceledConnectionPreservesCommand/cancel_requested (0.88s)
+        deploy_ssh_transport_test.go:535: interrupted task = failed, want cancel_requested
+FAIL
+FAIL	github.com/duanxldragon/pantheon-base/backend/modules/business/deploy	1.923s
+FAIL

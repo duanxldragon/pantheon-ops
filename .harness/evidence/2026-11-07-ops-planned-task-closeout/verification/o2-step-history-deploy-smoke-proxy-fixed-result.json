@@ -1,0 +1,16 @@
+{
+  "command": [
+    "npm.cmd",
+    "run",
+    "test:smoke:business:deploy",
+    "--",
+    "--workers=1",
+    "--output=D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.harness\\evidence\\2026-11-07-ops-planned-task-closeout\\verification\\o2-step-history-deploy-smoke-proxy-fixed"
+  ],
+  "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\frontend",
+  "exitCode": 0,
+  "elapsedSeconds": 112.875,
+  "artifact": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/o2-step-history-deploy-smoke-proxy-fixed.txt",
+  "sourceHashesStable": true,
+  "hashedFiles": 701
+}

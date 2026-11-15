@@ -1,0 +1,9 @@
+{
+  "status": "DEFECT_REPRODUCED",
+  "foreignFileOverwritten": true,
+  "successReceiptEmitted": true,
+  "sourceStableClaim": true,
+  "fixtureRoot": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.harness\\evidence\\2026-11-07-ops-planned-task-closeout\\o4-independent-code-review-20261110-01\\fixtures\\ops-candidate-Trs0bk",
+  "receiptPath": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.harness\\evidence\\2026-11-07-ops-planned-task-closeout\\o4-independent-code-review-20261110-01\\fixtures\\ops-candidate-Trs0bk\\ops\\.tmp\\foundation-candidates\\candidate-5e4757c4069b55bdacd523289dd85f7d9786ce939f06f5ece1610f7bf627fad1\\assembled\\.foundation-candidate-receipt.json",
+  "note": "Actual rebuildFromCandidate small fixture; directory replaced immediately before copy; no forced primary failure."
+}

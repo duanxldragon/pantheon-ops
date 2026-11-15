@@ -1,0 +1,139 @@
+
+Running 18 tests using 1 worker
+
+(node:12280) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok  1 tests\smoke\business\cmdb\cmdb-import-export-permissions.spec.ts:35:3 › CMDB view role with explicit API grants enforces separate CSV capabilities (5.5s)
+  ok  2 tests\smoke\business\cmdb\cmdb-import-export-permissions.spec.ts:35:3 › CMDB export role with explicit API grants enforces separate CSV capabilities (5.2s)
+  ok  3 tests\smoke\business\cmdb\cmdb-import-export-permissions.spec.ts:35:3 › CMDB import role with explicit API grants enforces separate CSV capabilities (5.7s)
+  ok  4 tests\smoke\business\cmdb\cmdb-import-export-permissions.spec.ts:35:3 › CMDB scoped role with explicit API grants enforces separate CSV capabilities (10.8s)
+  ok  5 tests\smoke\business\deploy\deploy-command.spec.ts:14:2 › viewed task command conflict refreshes without replay (light) (21.0s)
+  ok  6 tests\smoke\business\deploy\deploy-command.spec.ts:14:2 › viewed task command conflict refreshes without replay (dark) (25.6s)
+  ok  7 tests\smoke\business\deploy\deploy-command.spec.ts:63:1 › batch cancel retains failed selection and reports partial failure (26.1s)
+  ok  8 tests\smoke\business\deploy\deploy-selection-preview.spec.ts:16:2 › selection and preview confirm/conflict/refresh (light) (41.6s)
+  ok  9 tests\smoke\business\deploy\deploy-selection-preview.spec.ts:16:2 › selection and preview confirm/conflict/refresh (dark) (39.8s)
+  ok 10 tests\smoke\business\deploy\deploy-selection-preview.spec.ts:141:1 › rollback draft uses frozen definition and its own reviewed start (10.8s)
+  ok 11 tests\smoke\business\deploy\deploy-workbench.spec.ts:20:3 › deployment workbench sources, logs, keyboard and mobile (light) (28.4s)
+  ok 12 tests\smoke\business\deploy\deploy-workbench.spec.ts:20:3 › deployment workbench sources, logs, keyboard and mobile (dark) (33.0s)
+  ok 13 tests\smoke\business\k8s\release-preview.spec.ts:7:2 › K8s image preview conflict, same-request retry, rollback and mobile (light) (14.3s)
+  ok 14 tests\smoke\business\k8s\release-preview.spec.ts:7:2 › K8s image preview conflict, same-request retry, rollback and mobile (dark) (13.0s)
+  ok 15 tests\smoke\business\observability-tempo-workbench.spec.ts:11:3 › Tempo UTC range, detail, cancellation and revocation (light) (13.7s)
+  x  16 tests\smoke\business\observability-tempo-workbench.spec.ts:11:3 › Tempo UTC range, detail, cancellation and revocation (dark) (16.1s)
+(node:8832) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x  17 tests\smoke\business\observability-workbench.spec.ts:12:3 › Loki UTC range, cancellation, denial and recovery (light) (1.5m)
+(node:3544) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x  18 tests\smoke\business\observability-workbench.spec.ts:12:3 › Loki UTC range, cancellation, denial and recovery (dark) (1.5m)
+
+
+  1) tests\smoke\business\observability-tempo-workbench.spec.ts:11:3 › Tempo UTC range, detail, cancellation and revocation (dark) 
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator: getByText('Tempo fixture', { exact: true })
+    Expected: visible
+    Timeout: 10000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toBeVisible" getByText('Tempo fixture', { exact: true }) with timeout 10000ms
+      - waiting for getByText('Tempo fixture', { exact: true })
+
+
+      37 |     await page.setViewportSize({ width: 1440, height: 900 });
+      38 |     await page.goto('/business/observability/traces');
+    > 39 |     await expect(page.getByText('Tempo fixture', { exact: true })).toBeVisible();
+         |                                                                    ^
+      40 |     await page.getByRole('button', { name: '搜索', exact: true }).click();
+      41 |     await expect(page.getByText('tempo-ui-fixture', { exact: true })).toBeVisible();
+      42 |     await expect(page.locator('html')).toHaveAttribute('data-color-mode', mode);
+        at D:\workspace\go\pantheon-platform\pantheon-ops\frontend\tests\smoke\business\observability-tempo-workbench.spec.ts:39:68
+
+    Error Context: ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\p0-integration-20261109\remote-p0-browser-v13\smoke-business-observabili-fe48d-lation-and-revocation-dark-\error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\p0-integration-20261109\remote-p0-browser-v13\smoke-business-observabili-fe48d-lation-and-revocation-dark-\trace.zip
+    Usage:
+
+        npx playwright show-trace ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\p0-integration-20261109\remote-p0-browser-v13\smoke-business-observabili-fe48d-lation-and-revocation-dark-\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  2) tests\smoke\business\observability-workbench.spec.ts:12:3 › Loki UTC range, cancellation, denial and recovery (light) 
+
+    Test timeout of 90000ms exceeded.
+
+    Error: apiRequestContext.post: Test timeout of 90000ms exceeded.
+    Call log:
+      - → POST http://127.0.0.1:24485/api/v1/auth/login
+        - user-agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/156.0.8078.4 Safari/537.36
+        - accept: */*
+        - accept-encoding: gzip,deflate,br
+        - content-type: application/json
+        - content-length: 66
+
+
+       at smoke\helpers\auth.ts:57
+
+      55 | ): Promise<BrowserLoginResult> {
+      56 |   const request = resolveRequestContext(requestLike);
+    > 57 |   const response = await request.post(`${apiBaseUrl}/auth/login`, {
+         |                                  ^
+      58 |     data: credentials,
+      59 |   });
+      60 |   expect(response.ok()).toBeTruthy();
+        at loginByApi (D:\workspace\go\pantheon-platform\pantheon-ops\frontend\tests\smoke\helpers\auth.ts:57:34)
+        at D:\workspace\go\pantheon-platform\pantheon-ops\frontend\tests\smoke\business\observability-workbench.spec.ts:13:25
+
+    Error Context: ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\p0-integration-20261109\remote-p0-browser-v13\smoke-business-observabili-aaf1f--denial-and-recovery-light-\error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\p0-integration-20261109\remote-p0-browser-v13\smoke-business-observabili-aaf1f--denial-and-recovery-light-\trace.zip
+    Usage:
+
+        npx playwright show-trace ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\p0-integration-20261109\remote-p0-browser-v13\smoke-business-observabili-aaf1f--denial-and-recovery-light-\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  3) tests\smoke\business\observability-workbench.spec.ts:12:3 › Loki UTC range, cancellation, denial and recovery (dark) 
+
+    Test timeout of 90000ms exceeded.
+
+    Error: apiRequestContext.post: Test timeout of 90000ms exceeded.
+    Call log:
+      - → POST http://127.0.0.1:24485/api/v1/auth/login
+        - user-agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/156.0.8078.4 Safari/537.36
+        - accept: */*
+        - accept-encoding: gzip,deflate,br
+        - content-type: application/json
+        - content-length: 66
+
+
+       at smoke\helpers\auth.ts:57
+
+      55 | ): Promise<BrowserLoginResult> {
+      56 |   const request = resolveRequestContext(requestLike);
+    > 57 |   const response = await request.post(`${apiBaseUrl}/auth/login`, {
+         |                                  ^
+      58 |     data: credentials,
+      59 |   });
+      60 |   expect(response.ok()).toBeTruthy();
+        at loginByApi (D:\workspace\go\pantheon-platform\pantheon-ops\frontend\tests\smoke\helpers\auth.ts:57:34)
+        at D:\workspace\go\pantheon-platform\pantheon-ops\frontend\tests\smoke\business\observability-workbench.spec.ts:13:25
+
+    Error Context: ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\p0-integration-20261109\remote-p0-browser-v13\smoke-business-observabili-a1888-n-denial-and-recovery-dark-\error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\p0-integration-20261109\remote-p0-browser-v13\smoke-business-observabili-a1888-n-denial-and-recovery-dark-\trace.zip
+    Usage:
+
+        npx playwright show-trace ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\p0-integration-20261109\remote-p0-browser-v13\smoke-business-observabili-a1888-n-denial-and-recovery-dark-\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  3 failed
+    tests\smoke\business\observability-tempo-workbench.spec.ts:11:3 › Tempo UTC range, detail, cancellation and revocation (dark) 
+    tests\smoke\business\observability-workbench.spec.ts:12:3 › Loki UTC range, cancellation, denial and recovery (light) 
+    tests\smoke\business\observability-workbench.spec.ts:12:3 › Loki UTC range, cancellation, denial and recovery (dark) 
+  15 passed (8.3m)

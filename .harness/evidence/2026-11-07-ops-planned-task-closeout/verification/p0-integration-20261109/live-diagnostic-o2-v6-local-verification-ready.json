@@ -1,0 +1,96 @@
+{
+  "scope": "local v6 safety, cold-lease regression and typed diagnostics; no VM acceptance",
+  "checks": [
+    {
+      "check": "live-diagnostic-o2-v6-runner.py AST parse",
+      "passed": true
+    },
+    {
+      "check": "live-diagnostic-o2-v6-local-verify.py AST parse",
+      "passed": true
+    },
+    {
+      "check": "gofmt clean",
+      "passed": true
+    },
+    {
+      "check": "traversal identity rejected before DB/SSH",
+      "passed": true,
+      "exitCode": 1,
+      "sentinelExcluded": true
+    },
+    {
+      "check": "production database rejected before DB/SSH",
+      "passed": true,
+      "exitCode": 1,
+      "sentinelExcluded": true
+    },
+    {
+      "check": "foreign server rejected before DB/SSH",
+      "passed": true,
+      "exitCode": 1,
+      "sentinelExcluded": true
+    },
+    {
+      "check": "mismatched owned DB rejected before DB/SSH",
+      "passed": true,
+      "exitCode": 1,
+      "sentinelExcluded": true
+    },
+    {
+      "check": "checked SSH stdout returned",
+      "passed": true,
+      "origin": "offline channel stub; no transport acceptance"
+    },
+    {
+      "check": "checked SSH nonzero exit fails",
+      "passed": true,
+      "origin": "offline channel stub; no transport acceptance"
+    },
+    {
+      "check": "checked SSH missing exit status times out",
+      "passed": true,
+      "origin": "offline channel stub; no transport acceptance"
+    },
+    {
+      "check": "checked SSH oversized output fails",
+      "passed": true,
+      "origin": "offline channel stub; no transport acceptance"
+    },
+    {
+      "check": "matching owned files cleanup",
+      "passed": true,
+      "origin": "exact cleanup code with offline filesystem stub; no deletions"
+    },
+    {
+      "check": "foreign file cleanup denied",
+      "passed": true,
+      "origin": "exact cleanup code with offline filesystem stub; no deletions"
+    },
+    {
+      "check": "wrong owner cleanup denied",
+      "passed": true,
+      "origin": "exact cleanup code with offline filesystem stub; no deletions"
+    },
+    {
+      "check": "wrong marker bytes cleanup denied",
+      "passed": true,
+      "origin": "exact cleanup code with offline filesystem stub; no deletions"
+    },
+    {
+      "check": "symlink cleanup denied",
+      "passed": true,
+      "origin": "exact cleanup code with offline filesystem stub; no deletions"
+    },
+    {
+      "check": "compiled Windows CGO/race and Linux dependency identities sealed",
+      "passed": true,
+      "sourceCount": 185
+    }
+  ],
+  "passed": 17,
+  "failed": 0,
+  "trueVMPositivePassed": 0,
+  "trueVMNegativePassed": 0,
+  "driverSHA256": "88981572e327afe5614d9c9854a99098eec60d537253beecccf956b8b624a623"
+}

@@ -1,0 +1,23 @@
+{
+  "scope": "local official release bytes and image digest verification; no remote resources",
+  "exitCode": 1,
+  "records": [],
+  "archive": {
+    "file": "velero-v1.17.0-linux-amd64.tar.gz",
+    "sha256": "f507a956cf8ec00f483f5d7b04901614a9016a10feb32b3ecc968da36b4fc7be",
+    "bytes": 58499469,
+    "origin": "https://github.com/velero-io/velero/releases/download/v1.17.0/velero-v1.17.0-linux-amd64.tar.gz",
+    "checksumOrigin": "https://github.com/velero-io/velero/releases/download/v1.17.0/CHECKSUM"
+  },
+  "minioRegistryAuthority": {
+    "repository": "minio/minio",
+    "ref": "RELEASE.2025-09-07T16-13-09Z",
+    "README_SHA256": "fc33797597a30087c9efa9f25d9aa373b42efcf9a236df91a39ca1f11805fdfa",
+    "documentedImage": "quay.io/minio/minio"
+  },
+  "failedStage": "official-image-minio/minio",
+  "errorType": "HTTPError",
+  "httpStatus": 401,
+  "errno": null,
+  "detailsOmitted": true
+}

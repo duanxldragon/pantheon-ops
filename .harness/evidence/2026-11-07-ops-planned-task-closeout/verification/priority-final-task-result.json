@@ -1,0 +1,11 @@
+{
+  "command": [
+    "node",
+    "scripts/harness/check-task-packet.mjs",
+    "--root",
+    ".",
+    "--json"
+  ],
+  "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+  "exitCode": 1
+}

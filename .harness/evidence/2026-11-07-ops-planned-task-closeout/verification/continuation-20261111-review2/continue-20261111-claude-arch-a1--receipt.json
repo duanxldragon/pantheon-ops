@@ -1,0 +1,20 @@
+{
+  "role": "architect",
+  "lane": "ARCH",
+  "provider": "installed Claude CLI",
+  "exitCode": 1,
+  "timedOut": true,
+  "elapsedSeconds": 180.063,
+  "modelOverride": false,
+  "nativeModelSelectionChanged": false,
+  "tools": [
+    "Read",
+    "Glob",
+    "Grep"
+  ],
+  "hooksEnabled": false,
+  "promptSHA256": "62376861c52430a51fff35bcf01db49613923489ea19a11a2178b2694a95144e",
+  "roleSHA256": "d08f14fa1edf2ef41f219a4bc419f8b8a6498d2f3f9aaa91505da031be32ae3b",
+  "report": null,
+  "resultCount": 0
+}

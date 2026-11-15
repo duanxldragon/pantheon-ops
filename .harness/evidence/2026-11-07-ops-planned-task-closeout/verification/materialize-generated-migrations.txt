@@ -1,0 +1,1 @@
+{"source":"verified formal overlay assembly","baseCommit":"5553bc0e8ddc006cb7a6b99a46968bf8cf907a49","generatedFiles":["backend/pkg/database/migrations/000033_core_business_schema.up.sql","backend/pkg/database/migrations/000033_core_business_schema.down.sql"]}

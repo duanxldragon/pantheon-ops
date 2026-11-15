@@ -1,0 +1,40 @@
+[smoke-suite] API base http://127.0.0.1:24484/api/v1
+[generated-modules] cleanup complete
+{
+  "modules": 0,
+  "schemas": 1,
+  "registries": 4,
+  "i18n": 5
+}
+(!) Your Vite config uses features that are unsupported by `configLoader: 'native'`, which is planned to become the default in a future major version of Vite:
+  - `__dirname` (vite.config.ts:32:25). Use `import.meta.dirname` instead
+Set `VITE_CONFIG_NATIVE_IGNORE_WARNING=true` to suppress this warning.
+Smoke Vite ready at http://127.0.0.1:24588/
+
+Running 14 tests using 1 worker
+
+(node:15480) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok  1 tests\smoke\business\deploy\deploy-pages.spec.ts:67:3 › Deploy business module smoke › deploy pages load under operations platform (8.5s)
+  ok  2 tests\smoke\business\deploy\deploy-pages.spec.ts:110:3 › Deploy business module smoke › deploy task detail action opens a modal without leaving the list page (4.0s)
+  ok  3 tests\smoke\business\deploy\deploy-pages.spec.ts:205:3 › Deploy business module smoke › deploy package detail action opens a modal without leaving the list page (3.2s)
+  ok  4 tests\smoke\business\deploy\deploy-pages.spec.ts:245:3 › Deploy business module smoke › deploy template detail action opens a modal without leaving the list page (3.6s)
+  ok  5 tests\smoke\business\deploy\deploy-pages.spec.ts:327:3 › Deploy business module smoke › deploy detail page loads with summary and host table (3.2s)
+  ok  6 tests\smoke\business\deploy\deploy-pages.spec.ts:402:3 › Deploy business module smoke › deploy detail requires a reason when marking host failure (3.6s)
+  ok  7 tests\smoke\business\deploy\deploy-pages.spec.ts:486:3 › Deploy business module smoke › deploy template supports script steps and task params render in detail (5.3s)
+  ok  8 tests\smoke\business\deploy\deploy-pages.spec.ts:608:3 › Deploy business module smoke › deploy detail edit action routes back to list and opens edit modal (5.3s)
+  ok  9 tests\smoke\business\deploy\deploy-pages.spec.ts:694:3 › Deploy business module smoke › targeted smoke closes cmdb, bizscope, deploy with uploaded source package and visible task trace (3.3s)
+  ok 10 tests\smoke\business\deploy\deploy-pages.spec.ts:846:3 › Deploy business module smoke › deploy pages stay within a phone viewport (7.3s)
+  ok 11 tests\smoke\business\deploy\deploy-workbench.spec.ts:14:3 › deployment workbench sources, logs, keyboard and mobile (light) (6.3s)
+  ok 12 tests\smoke\business\deploy\deploy-workbench.spec.ts:14:3 › deployment workbench sources, logs, keyboard and mobile (dark) (6.4s)
+  ok 13 tests\smoke\business\observability-workbench.spec.ts:7:3 › Loki UTC range, cancellation, denial and recovery (light) (3.8s)
+  ok 14 tests\smoke\business\observability-workbench.spec.ts:7:3 › Loki UTC range, cancellation, denial and recovery (dark) (3.9s)
+
+  14 passed (1.2m)
+[generated-modules] cleanup complete
+{
+  "modules": 0,
+  "schemas": 1,
+  "registries": 4,
+  "i18n": 5
+}

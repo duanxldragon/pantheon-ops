@@ -1,0 +1,10 @@
+{
+  "files": 9,
+  "manifestSHA256": "de4e7190b1d19f3186f4c03ee04c10396f97f1d423b518f1bff0b5f6f5b52c40",
+  "archive": "continue-20261111-symlink-replay-a1.tar.gz",
+  "archiveSHA256": "04e04a92248027b5249969f24f96c148d442e0d925cd0f24d50ad62b392f1480",
+  "bytes": 62608,
+  "sourcesStillMatch": true,
+  "runtimeTestExecuted": false,
+  "independentApproval": false
+}

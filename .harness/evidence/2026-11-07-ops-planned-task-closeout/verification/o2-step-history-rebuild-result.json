@@ -1,0 +1,16 @@
+{
+  "command": [
+    "npm.cmd",
+    "run",
+    "rebuild:from-base",
+    "--",
+    "--target",
+    ".tmp/ops-step-history-stage"
+  ],
+  "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+  "exitCode": 0,
+  "elapsedSeconds": 15.094000000011874,
+  "artifact": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/o2-step-history-rebuild.txt",
+  "sourceHashesStable": true,
+  "hashedFiles": 699
+}

@@ -1,0 +1,15 @@
+{
+  "result": "pass",
+  "acquiredOfficialVersion": "pantheon-base-v0.18.8",
+  "baseCommit": "34428814a9efc997fd93d4434406a53df6460323",
+  "freshGitHubLookup": true,
+  "standardFetcher": true,
+  "standardAssembler": true,
+  "targetRoot": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.tmp\\ops-v0188-install-r6",
+  "ownedFiles": 5606,
+  "reportSHA256": "e092b077c6d06609c74681198f68bb82089392a2f14958e713dc2c23015cf8c5",
+  "bundleSHA256": "da20d44efe6edc1f7546c1f388ace98844bbe7fc945e6f509f99e2e34faec355",
+  "repoSHA256": "ba3b7b1b462ab39f0bc74158ea0e0c6afc2ef5c94be4149b5338849d47e6a646",
+  "sourceInputsRestoredBeforeInstallation": true,
+  "completedAt": "2026-11-14T01:22:06.912Z"
+}

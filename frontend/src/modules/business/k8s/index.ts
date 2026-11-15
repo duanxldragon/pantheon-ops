@@ -1,8 +1,10 @@
 import { defineModule } from '@duanxldragon/pantheon-base-ui';
+import { k8sDashboardWidgets } from '../shared/dashboard-widgets';
 
 export const K8sModule = defineModule({
   name: 'k8s',
   scope: 'business',
+  dashboardWidgets: k8sDashboardWidgets,
   routes: [
     {
       path: 'business/k8s/cluster',

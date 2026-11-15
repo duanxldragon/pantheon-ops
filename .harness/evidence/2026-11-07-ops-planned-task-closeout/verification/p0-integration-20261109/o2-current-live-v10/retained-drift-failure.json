@@ -1,0 +1,11 @@
+{
+  "allSevenCommandsPassed": true,
+  "changedSourceInputs": [
+    "repo:backend/modules/business/deploy/attempt_ownership.go"
+  ],
+  "exitCode": 1,
+  "receipt": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/o2-current-live-v10/local-verification-1794293837349146100/receipt.json",
+  "receiptSHA256": "9e9232ece8b3be26d1831296ecfe865333641cdf25f6593d44cc6402e198393e",
+  "runtimeCasesExecuted": 0,
+  "sourceStable": false
+}

@@ -1,0 +1,47 @@
+{
+  "unit": {
+    "MainPID": "0",
+    "ExecMainStatus": "0",
+    "LoadState": "not-found",
+    "ActiveState": "inactive",
+    "SubState": "dead"
+  },
+  "unitExit": 0,
+  "seaweedJournalExit": 0,
+  "seaweedObservedAddresses": [
+    "192.168.94.127:18080",
+    "192.168.94.127:18888",
+    "192.168.94.127:19333",
+    "192.168.94.127:29333"
+  ],
+  "seaweedCategories": {
+    "bindFailure": 0,
+    "oom": 0,
+    "unknownFlag": 0,
+    "permission": 0,
+    "ready": 9,
+    "disk": 0
+  },
+  "sshJournalExit": 0,
+  "sshCategories": {
+    "maxStartups": 42,
+    "reset": 515,
+    "authFailed": 399,
+    "success": 110,
+    "resource": 0
+  },
+  "sshJournalCharacters": 79381,
+  "findmntExit": 0,
+  "mount": {
+    "filesystems": [
+      {
+        "target": "/opt/pantheon-p0-20261109/velero-s3-seaweed-v1/data",
+        "source": "/dev/loop0",
+        "fstype": "ext4",
+        "options": "rw,nosuid,nodev,noexec,relatime"
+      }
+    ]
+  },
+  "rawJournalRetained": false,
+  "remoteMutation": false
+}

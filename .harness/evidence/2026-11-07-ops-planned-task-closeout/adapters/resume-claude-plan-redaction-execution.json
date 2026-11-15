@@ -1,0 +1,7 @@
+{
+  "status": "completed",
+  "exitCode": 0,
+  "seconds": 141,
+  "characters": 2061,
+  "command": "claude.exe -p --tools \"\" --output-format text; stdin=resume-claude-plan-redaction-prompt.md"
+}

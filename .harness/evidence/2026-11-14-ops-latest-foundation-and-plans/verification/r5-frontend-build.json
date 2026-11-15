@@ -1,0 +1,19 @@
+{
+  "name": "r5-frontend-build",
+  "command": [
+    "npm",
+    "run",
+    "build"
+  ],
+  "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.tmp\\ops-v0188-final-r5\\frontend",
+  "exitCode": 0,
+  "signal": null,
+  "elapsedSeconds": 44.318,
+  "privateFixtureSHA256": "8796d1a6c2b599e8e5406df8848638287d93827fb4436e6373c271b79cca5f05",
+  "logSHA256": "93c39aafe1bffe133caaaa02475eefaf878bc70ff4342eef1d96c5023884e466",
+  "logPrivate": true,
+  "credentialValuesPrinted": false,
+  "passEvents": 0,
+  "skipEvents": 0,
+  "failEvents": 0
+}

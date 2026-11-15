@@ -2,11 +2,15 @@
   "schemaVersion": 1,
   "taskId": "2026-08-31-ops-operational-workbench-design",
   "title": "Define Ops business operational workbenches",
-  "status": "planned",
+  "status": "completed",
   "priority": "P0-P2",
   "deliveryTier": "L2",
   "primaryLayer": "business/*",
-  "qualityProfiles": ["ui-runtime", "permission-policy", "architecture-fitness"],
+  "qualityProfiles": [
+    "ui-runtime",
+    "permission-policy",
+    "architecture-fitness"
+  ],
   "ratchetDecision": "guide-updated",
   "goal": "Turn Ops operational flows into resumable business workbench packets without duplicating Base contracts.",
   "scope": {
@@ -29,8 +33,32 @@
   "handoffDoc": ".harness/tasks/2026-08-31-ops-operational-workbench-design/HANDOFF.md",
   "executionQueueDoc": ".harness/tasks/2026-08-31-ops-operational-workbench-design/EXECUTION_QUEUE.md",
   "statusDoc": ".harness/tasks/2026-08-31-ops-operational-workbench-design/STATUS.md",
-  "children": ["O1", "O2", "O3", "O4", "O5", "O6", "O7"],
-  "executionBatches": [["O1", "O4"], ["O2", "O5"], ["O3", "O6"], ["O7"]],
+  "children": [
+    "O1",
+    "O2",
+    "O3",
+    "O4",
+    "O5",
+    "O6",
+    "O7"
+  ],
+  "executionBatches": [
+    [
+      "O1",
+      "O4"
+    ],
+    [
+      "O2",
+      "O5"
+    ],
+    [
+      "O3",
+      "O6"
+    ],
+    [
+      "O7"
+    ]
+  ],
   "runtimeSensitive": false,
   "linkage": {
     "taskId": "2026-08-31-ops-operational-workbench-design",
@@ -57,5 +85,9 @@
     "new schema or public contract",
     "external production mutation or credentials",
     "final visual and functional acceptance"
-  ]
+  ],
+  "completedScope": "design-and-implementation-handoff-only",
+  "implementationStatus": "not-completed",
+  "lastReconciled": "2026-11-07",
+  "currentExecutionEvidence": ".harness/evidence/2026-11-07-ops-planned-task-closeout/summary.md"
 }

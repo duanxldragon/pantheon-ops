@@ -1,0 +1,10 @@
+{"check": "installed Argo namespace ownership", "passed": true}
+{"check": "unauthenticated Argo API refused", "passed": true, "httpStatus": 401}
+{"check": "authenticated Argo session established", "passed": true, "httpStatus": 200}
+{"check": "authenticated Argo API health", "passed": true, "httpStatus": 200}
+{"check": "least privilege finite project token created", "passed": true, "httpStatus": 200, "expiresIn": 900}
+{"check": "project JWT has finite expiry", "passed": true}
+{"phase": "failure", "stage": "project JWT has finite expiry", "errorType": "TimeoutError"}
+{"phase": "cleanup", "kind": "AppProject", "uidChecked": true, "absenceVerified": true, "exitCode": 0}
+{"phase": "cleanup", "kind": "Namespace", "uidChecked": true, "absenceVerified": true, "exitCode": 0}
+{"phase": "result", "exitCode": 1, "checksPassed": 6, "providersRetained": true, "namespace": "pantheon-p0-argo-live-4ee693", "project": "p0-live-4ee693", "application": "p0-live-4ee693"}

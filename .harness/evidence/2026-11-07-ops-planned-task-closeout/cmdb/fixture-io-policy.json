@@ -1,0 +1,6 @@
+{
+  "previous": "1\t1",
+  "mysqlPort": 33316,
+  "ownerPid": 4536,
+  "reason": "isolated local test I/O contention; no durability/production acceptance in scope"
+}

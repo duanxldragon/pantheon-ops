@@ -1,0 +1,459 @@
+(!) Your Vite config uses features that are unsupported by `configLoader: 'native'`, which is planned to become the default in a future major version of Vite:
+  - `__dirname` (vitest.config.ts:10:25). Use `import.meta.dirname` instead
+Set `VITE_CONFIG_NATIVE_IGNORE_WARNING=true` to suppress this warning.
+
+ RUN  v5.0.5 D:/workspace/go/pantheon-platform/pantheon-ops/frontend
+
+ ❯ tests/unit/business/operational/tempo-query-state.test.tsx (7 tests | 7 failed) 1962ms
+   ❯ Tempo request and source authority (7)
+     × cancels search and rejects a late response when the provider ignores abort 496ms
+     × clears rows and details when changing source and ignores both old completions 137ms
+     × aborts closed details and prevents old completion from contaminating another trace 103ms
+     × marks completed results stale and removes them after query denial 48ms
+     × clears rows and closes details when detail authorization is revoked 1090ms
+     × passes explicit UTC bounds and rejects invalid ranges before contacting Tempo 42ms
+     × aborts discovery and running requests on unmount 42ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 7 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/unit/business/operational/tempo-query-state.test.tsx > Tempo request and source authority > cancels search and rejects a late response when the provider ignores abort
+TestingLibraryElementError: Unable to find an accessible element with the role "button" and name "business.observability.logs.stop"
+
+Here are the accessible roles:
+
+  textbox:
+
+  Name "expression":
+  <input
+    aria-label="expression"
+    value="{ resource.service.name != nil }"
+  />
+
+  --------------------------------------------------
+  combobox:
+
+  Name "":
+  <select
+    placeholder="business.observability.common.datasource"
+    style="width: 240px;"
+  />
+
+  --------------------------------------------------
+  option:
+
+  Name "Tempo A":
+  <option
+    value="1"
+  />
+
+  Name "Tempo B":
+  <option
+    value="2"
+  />
+
+  --------------------------------------------------
+  button:
+
+  Name "common.search":
+  <button />
+
+  --------------------------------------------------
+  paragraph:
+
+  Name "":
+  <p />
+
+  --------------------------------------------------
+
+Ignored nodes: comments, script, style
+<body>
+  <div>
+    <div>
+      <div>
+        <div>
+          <input
+            aria-label="expression"
+            value="{ resource.service.name != nil }"
+          />
+          <select
+            placeholder="business.observability.common.datasource"
+            style="width: 240px;"
+          >
+            <option
+              value="1"
+            >
+              Tempo A
+            </option>
+            <option
+              value="2"
+            >
+              Tempo B
+            </option>
+          </select>
+          <button>
+            common.search
+          </button>
+        </div>
+        <div>
+          <p>
+            loading
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+ ❯ Object.getElementError node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ tests/unit/business/operational/tempo-query-state.test.tsx:41:28
+     39|     const pending = deferred<ReturnType<typeof response>>(); provider.…
+     40|     await mount(); run(); const signal = provider.search.mock.calls[0]…
+     41|     fireEvent.click(screen.getByRole('button', { name: 'business.obser…
+       |                            ^
+     42|     await act(async () => pending.resolve(response('late-canceled')));
+     43|     expect(screen.queryByText('late-canceled')).toBeNull(); expect(pro…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/7]⎯
+
+ FAIL  tests/unit/business/operational/tempo-query-state.test.tsx > Tempo request and source authority > clears rows and details when changing source and ignores both old completions
+TestingLibraryElementError: Unable to find an accessible element with the role "combobox" and name "business.observability.common.datasource"
+
+Here are the accessible roles:
+
+  textbox:
+
+  Name "expression":
+  <input
+    aria-label="expression"
+    value="{ resource.service.name != nil }"
+  />
+
+  --------------------------------------------------
+  combobox:
+
+  Name "":
+  <select
+    placeholder="business.observability.common.datasource"
+    style="width: 240px;"
+  />
+
+  --------------------------------------------------
+  option:
+
+  Name "Tempo A":
+  <option
+    value="1"
+  />
+
+  Name "Tempo B":
+  <option
+    value="2"
+  />
+
+  --------------------------------------------------
+  button:
+
+  Name "common.search":
+  <button />
+
+  Name "close-detail":
+  <button />
+
+  --------------------------------------------------
+  complementary:
+
+  Name "":
+  <aside />
+
+  --------------------------------------------------
+  paragraph:
+
+  Name "":
+  <p />
+
+  --------------------------------------------------
+
+Ignored nodes: comments, script, style
+<body>
+  <div>
+    <div>
+      <div>
+        <div>
+          <input
+            aria-label="expression"
+            value="{ resource.service.name != nil }"
+          />
+          <select
+            placeholder="business.observability.common.datasource"
+            style="width: 240px;"
+          >
+            <option
+              value="1"
+            >
+              Tempo A
+            </option>
+            <option
+              value="2"
+            >
+              Tempo B
+            </option>
+          </select>
+          <button>
+            common.search
+          </button>
+        </div>
+        <div />
+      </div>
+      <aside>
+        <button>
+          close-detail
+        </button>
+        <p>
+          loading
+        </p>
+      </aside>
+    </div>
+  </div>
+</body>
+ ❯ Object.getElementError node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ tests/unit/business/operational/tempo-query-state.test.tsx:52:29
+     50|     const pendingSearch = deferred<ReturnType<typeof response>>(); pro…
+     51|     const searchSignal = provider.search.mock.calls[1][2] as AbortSign…
+     52|     fireEvent.change(screen.getByRole('combobox', { name: 'business.ob…
+       |                             ^
+     53|     expect(detailSignal.aborted).toBe(true); expect(searchSignal.abort…
+     54|     await act(async () => { pendingDetail.resolve({ resource: 'old-det…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/7]⎯
+
+ FAIL  tests/unit/business/operational/tempo-query-state.test.tsx > Tempo request and source authority > aborts closed details and prevents old completion from contaminating another trace
+TypeError: Cannot read properties of undefined (reading 'aborted')
+ ❯ tests/unit/business/operational/tempo-query-state.test.tsx:63:90
+     61|     await mount(); run(); await screen.findByText('trace-a'); fireEven…
+     62|     const signal = provider.detail.mock.calls[0][2] as AbortSignal;
+     63|     fireEvent.click(screen.getByRole('button', { name: 'close-detail' …
+       |                                                                                          ^
+     64|     provider.detail.mockResolvedValue({ resource: 'fresh-detail' }); f…
+     65|     await screen.findByText(/fresh-detail/); await act(async () => pen…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/7]⎯
+
+ FAIL  tests/unit/business/operational/tempo-query-state.test.tsx > Tempo request and source authority > marks completed results stale and removes them after query denial
+TestingLibraryElementError: Unable to find an element with the text: business.observability.traces.inputsChanged. This could be because the text is broken up by multiple elements. In this case, you can provide a function for your text matcher to make your matcher more flexible.
+
+Ignored nodes: comments, script, style
+<body>
+  <div>
+    <div>
+      <div>
+        <div>
+          <input
+            aria-label="expression"
+            value="{ status = error }"
+          />
+          <select
+            placeholder="business.observability.common.datasource"
+            style="width: 240px;"
+          >
+            <option
+              value="1"
+            >
+              Tempo A
+            </option>
+            <option
+              value="2"
+            >
+              Tempo B
+            </option>
+          </select>
+          <button>
+            common.search
+          </button>
+        </div>
+        <div>
+          <section>
+            <div>
+              <p>
+                authorized-trace
+              </p>
+              <button>
+                common.view
+              </button>
+            </div>
+          </section>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+ ❯ Object.getElementError node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ tests/unit/business/operational/tempo-query-state.test.tsx:71:19
+     69|     provider.search.mockResolvedValueOnce(response('authorized-trace')…
+     70|     fireEvent.change(screen.getByLabelText('expression'), { target: { …
+     71|     expect(screen.getByText('business.observability.traces.inputsChang…
+       |                   ^
+     72|     provider.search.mockRejectedValue({ response: { status: 403 } }); …
+     73|     await screen.findByText('business.observability.traces.forbidden')…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/7]⎯
+
+ FAIL  tests/unit/business/operational/tempo-query-state.test.tsx > Tempo request and source authority > clears rows and closes details when detail authorization is revoked
+TestingLibraryElementError: Unable to find an element with the text: business.observability.traces.forbidden. This could be because the text is broken up by multiple elements. In this case, you can provide a function for your text matcher to make your matcher more flexible.
+
+Ignored nodes: comments, script, style
+<body>
+  <div>
+    <div>
+      <div>
+        <div>
+          <input
+            aria-label="expression"
+            value="{ resource.service.name != nil }"
+          />
+          <select
+            placeholder="business.observability.common.datasource"
+            style="width: 240px;"
+          >
+            <option
+              value="1"
+            >
+              Tempo A
+            </option>
+            <option
+              value="2"
+            >
+              Tempo B
+            </option>
+          </select>
+          <button>
+            common.search
+          </button>
+        </div>
+        <div>
+          <section>
+            <div>
+              <p>
+                revoked-trace
+              </p>
+              <button>
+                common.view
+              </button>
+            </div>
+          </section>
+        </div>
+      </div>
+      <aside>
+        <button>
+          close-detail
+        </button>
+        <p>
+          business.observability.traces.detailEmpty
+        </p>
+      </aside>
+    </div>
+  </div>
+</body>
+
+Ignored nodes: comments, script, style
+<body>
+  <div>
+    <div>
+      <div>
+        <div>
+          <input
+            aria-label="expression"
+            value="{ resource.service.name != nil }"
+          />
+          <select
+            placeholder="business.observability.common.datasource"
+            style="width: 240px;"
+          >
+            <option
+              value="1"
+            >
+              Tempo A
+            </option>
+            <option
+              value="2"
+            >
+              Tempo B
+            </option>
+          </select>
+          <button>
+            common.search
+          </button>
+        </div>
+        <div>
+          <section>
+            <div>
+              <p>
+                revoked-trace
+              </p>
+              <button>
+                common.view
+              </button>
+            </div>
+          </section>
+        </div>
+      </div>
+      <aside>
+        <button>
+          close-detail
+        </button>
+        <p>
+          business.observability.traces.detailEmpty
+        </p>
+      </aside>
+    </div>
+  </div>
+</body>
+ ❯ waitForWrapper node_modules/@testing-library/dom/dist/wait-for.js:163:27
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:86:33
+ ❯ tests/unit/business/operational/tempo-query-state.test.tsx:78:18
+     76|     provider.search.mockResolvedValue(response('revoked-trace')); prov…
+     77|     await mount(); run(); await screen.findByText('revoked-trace'); fi…
+     78|     await screen.findByText('business.observability.traces.forbidden')…
+       |                  ^
+     79|   });
+     80|   it('passes explicit UTC bounds and rejects invalid ranges before con…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/7]⎯
+
+ FAIL  tests/unit/business/operational/tempo-query-state.test.tsx > Tempo request and source authority > passes explicit UTC bounds and rejects invalid ranges before contacting Tempo
+TypeError: .toMatch() expects to receive a string, but got undefined
+ ❯ tests/unit/business/operational/tempo-query-state.test.tsx:82:75
+     80|   it('passes explicit UTC bounds and rejects invalid ranges before con…
+     81|     provider.search.mockResolvedValue({ traces: [] }); await mount(); …
+     82|     const params = provider.search.mock.calls[0][1]; expect(params.sta…
+       |                                                                           ^
+     83|     fireEvent.change(screen.getByLabelText('business.observability.log…
+     84|     expect(provider.search).toHaveBeenCalledOnce(); expect(provider.wa…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/7]⎯
+
+ FAIL  tests/unit/business/operational/tempo-query-state.test.tsx > Tempo request and source authority > aborts discovery and running requests on unmount
+TypeError: Cannot read properties of undefined (reading 'aborted')
+ ❯ tests/unit/business/operational/tempo-query-state.test.tsx:89:30
+     87|     const pending = deferred<ReturnType<typeof response>>(); provider.…
+     88|     const signal = provider.search.mock.calls[0][2] as AbortSignal; co…
+     89|     cleanup(); expect(signal.aborted).toBe(true); expect(discoverySign…
+       |                              ^
+     90|     await act(async () => pending.resolve(response('unmounted'))); exp…
+     91|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/7]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  7 failed (7)
+   Start at  09:11:06
+   Duration  6.64s (import 35%, environment 31%, tests 31%, transform 2%)
+

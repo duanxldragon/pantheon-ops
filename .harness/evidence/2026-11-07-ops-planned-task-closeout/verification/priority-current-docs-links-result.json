@@ -1,0 +1,10 @@
+{
+  "command": [
+    "npm.cmd",
+    "run",
+    "check:harness-docs"
+  ],
+  "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+  "exitCode": 1,
+  "elapsedSeconds": 0.5
+}

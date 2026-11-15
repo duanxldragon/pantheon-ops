@@ -1,0 +1,69 @@
+{
+  "languageServer": "pyright",
+  "version": "1.1.414",
+  "protocol": "LSP stdio JSON-RPC",
+  "settings": {
+    "diagnosticMode": "openFilesOnly",
+    "typeCheckingMode": "basic",
+    "autoSearchPaths": true,
+    "useLibraryCodeForTypes": true,
+    "extraPaths": [
+      "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance"
+    ]
+  },
+  "sourceFiles": [
+    {
+      "path": ".local/ops-acceptance/argo-adoption-v3-root-run.py",
+      "sha256": "69477ec5d41ad5492eee66d876344cd96fff3106cc0e2825e15f4a60926a7f45",
+      "stable": true,
+      "diagnostics": []
+    },
+    {
+      "path": ".local/ops-acceptance/argo-adoption-v3-deploy-test.py",
+      "sha256": "b3946c1ca96deeb840407ae7fae1c01865e218f1339d42dd137e91f4327565f7",
+      "stable": true,
+      "diagnostics": []
+    },
+    {
+      "path": ".local/ops-acceptance/argo-adoption-v3-verify.py",
+      "sha256": "857dd597f81b81b6d6de17927240ff6c6bff5e0dd63fa53a3360f03256ae6352",
+      "stable": true,
+      "diagnostics": []
+    },
+    {
+      "path": ".local/ops-acceptance/argo-reviewed-live-v4-contract.py",
+      "sha256": "5adb78dededc09860f5e0ece51c693e781019b1903f08a49e23d3b8e31717cbb",
+      "stable": true,
+      "diagnostics": []
+    },
+    {
+      "path": ".local/ops-acceptance/argo-reviewed-live-v4-prepare.py",
+      "sha256": "19ebb6b5c8e416e502afa8228d68ce99358ce20be9d9af0a6683c35e7d0bb70c",
+      "stable": true,
+      "diagnostics": []
+    },
+    {
+      "path": ".local/ops-acceptance/argo-reviewed-live-v4-test.py",
+      "sha256": "99dbed5421e621453f0208230463e39f5960590f944e58b44d6d5cf8a05a03fe",
+      "stable": true,
+      "diagnostics": []
+    },
+    {
+      "path": ".local/ops-acceptance/argo-reviewed-live-v4.py",
+      "sha256": "b650c47d5d2c7c3122a8c414c56cdc9a8adbad1f19517cd09827c8243192472b",
+      "stable": true,
+      "diagnostics": []
+    },
+    {
+      "path": ".local/ops-acceptance/argo-reviewed-remote-staged-v4.py",
+      "sha256": "e476e7ff6a024de5234a369b1b91e02d857cad131ec4b036d586b524680c0a6b",
+      "stable": true,
+      "diagnostics": []
+    }
+  ],
+  "exitCode": 0,
+  "runtimeExecuted": false,
+  "errorCount": 0,
+  "warningCount": 0,
+  "seconds": 4.687
+}

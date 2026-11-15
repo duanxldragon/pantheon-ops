@@ -1,0 +1,213 @@
+
+Running 16 tests using 1 worker
+
+(node:17284) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x   1 tests\smoke\business\deploy\deploy-api.spec.ts:89:3 › Deploy business api smoke › deploy api creates starts and marks a manual task (0ms)
+  -   2 tests\smoke\business\deploy\deploy-api.spec.ts:167:3 › Deploy business api smoke › deploy api updates a draft task before execution
+  -   3 tests\smoke\business\deploy\deploy-api.spec.ts:294:3 › Deploy business api smoke › deploy api deletes draft and terminal tasks but rejects active execution
+  -   4 tests\smoke\business\deploy\deploy-api.spec.ts:395:3 › Deploy business api smoke › deploy api records uploaded package metadata and failed ssh trace
+(node:19568) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x   5 tests\smoke\business\deploy\deploy-pages.spec.ts:68:3 › Deploy business module smoke › deploy pages load under operations platform (221ms)
+(node:18556) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x   6 tests\smoke\business\deploy\deploy-pages.spec.ts:111:3 › Deploy business module smoke › deploy task detail action opens a modal without leaving the list page (288ms)
+(node:6524) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x   7 tests\smoke\business\deploy\deploy-pages.spec.ts:206:3 › Deploy business module smoke › deploy package detail action opens a modal without leaving the list page (454ms)
+(node:24036) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x   8 tests\smoke\business\deploy\deploy-pages.spec.ts:246:3 › Deploy business module smoke › deploy template detail action opens a modal without leaving the list page (532ms)
+(node:24572) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok  9 tests\smoke\business\deploy\deploy-pages.spec.ts:328:3 › Deploy business module smoke › deploy detail page loads with summary and host table (4.3s)
+  ok 10 tests\smoke\business\deploy\deploy-pages.spec.ts:403:3 › Deploy business module smoke › deploy detail requires a reason when marking host failure (4.4s)
+  ok 11 tests\smoke\business\deploy\deploy-pages.spec.ts:487:3 › Deploy business module smoke › deploy template supports script steps and task params render in detail (6.0s)
+  ok 12 tests\smoke\business\deploy\deploy-pages.spec.ts:609:3 › Deploy business module smoke › deploy detail edit action routes back to list and opens edit modal (7.1s)
+  ok 13 tests\smoke\business\deploy\deploy-pages.spec.ts:697:3 › Deploy business module smoke › targeted smoke closes cmdb, bizscope, deploy with uploaded source package and visible task trace (3.6s)
+  ok 14 tests\smoke\business\deploy\deploy-pages.spec.ts:849:3 › Deploy business module smoke › deploy pages stay within a phone viewport (7.3s)
+  ok 15 tests\smoke\business\deploy\deploy-selection-preview.spec.ts:11:2 › selection and preview confirm/conflict/refresh (light) (9.5s)
+  ok 16 tests\smoke\business\deploy\deploy-selection-preview.spec.ts:11:2 › selection and preview confirm/conflict/refresh (dark) (9.8s)
+
+
+  1) tests\smoke\business\deploy\deploy-api.spec.ts:89:3 › Deploy business api smoke › deploy api creates starts and marks a manual task 
+
+    Error: apiRequestContext.post: connect ECONNREFUSED 127.0.0.1:24485
+    Call log:
+      - → POST http://127.0.0.1:24485/api/v1/auth/login
+        - user-agent: Playwright/1.64.1 (x64; windows 10.0) node/24.14
+        - accept: */*
+        - accept-encoding: gzip,deflate,br
+        - content-type: application/json
+        - content-length: 40
+
+
+       at smoke\helpers\auth.ts:57
+
+      55 | ): Promise<BrowserLoginResult> {
+      56 |   const request = resolveRequestContext(requestLike);
+    > 57 |   const response = await request.post(`${apiBaseUrl}/auth/login`, {
+         |                                  ^
+      58 |     data: credentials,
+      59 |   });
+      60 |   expect(response.ok()).toBeTruthy();
+        at loginByApi (D:\workspace\go\pantheon-platform\pantheon-ops\frontend\tests\smoke\helpers\auth.ts:57:34)
+        at D:\workspace\go\pantheon-platform\pantheon-ops\frontend\tests\smoke\business\deploy\deploy-api.spec.ts:74:19
+
+    Error Context: ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\deploy-context-runtime\smoke-business-deploy-depl-47501-rts-and-marks-a-manual-task\error-context.md
+
+    Error Context: ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\deploy-context-runtime\smoke-business-deploy-depl-47501-rts-and-marks-a-manual-task\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\deploy-context-runtime\smoke-business-deploy-depl-47501-rts-and-marks-a-manual-task\trace.zip
+    Usage:
+
+        npx playwright show-trace ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\deploy-context-runtime\smoke-business-deploy-depl-47501-rts-and-marks-a-manual-task\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  2) tests\smoke\business\deploy\deploy-pages.spec.ts:68:3 › Deploy business module smoke › deploy pages load under operations platform 
+
+    Error: apiRequestContext.post: connect ECONNREFUSED 127.0.0.1:24485
+    Call log:
+      - → POST http://127.0.0.1:24485/api/v1/auth/login
+        - user-agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/156.0.8078.4 Safari/537.36
+        - accept: */*
+        - accept-encoding: gzip,deflate,br
+        - content-type: application/json
+        - content-length: 40
+
+
+       at smoke\helpers\auth.ts:57
+
+      55 | ): Promise<BrowserLoginResult> {
+      56 |   const request = resolveRequestContext(requestLike);
+    > 57 |   const response = await request.post(`${apiBaseUrl}/auth/login`, {
+         |                                  ^
+      58 |     data: credentials,
+      59 |   });
+      60 |   expect(response.ok()).toBeTruthy();
+        at loginByApi (D:\workspace\go\pantheon-platform\pantheon-ops\frontend\tests\smoke\helpers\auth.ts:57:34)
+        at D:\workspace\go\pantheon-platform\pantheon-ops\frontend\tests\smoke\business\deploy\deploy-pages.spec.ts:63:25
+
+    Error Context: ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\deploy-context-runtime\smoke-business-deploy-depl-ee0fa-d-under-operations-platform\error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\deploy-context-runtime\smoke-business-deploy-depl-ee0fa-d-under-operations-platform\trace.zip
+    Usage:
+
+        npx playwright show-trace ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\deploy-context-runtime\smoke-business-deploy-depl-ee0fa-d-under-operations-platform\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  3) tests\smoke\business\deploy\deploy-pages.spec.ts:111:3 › Deploy business module smoke › deploy task detail action opens a modal without leaving the list page 
+
+    Error: apiRequestContext.post: connect ECONNREFUSED 127.0.0.1:24485
+    Call log:
+      - → POST http://127.0.0.1:24485/api/v1/auth/login
+        - user-agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/156.0.8078.4 Safari/537.36
+        - accept: */*
+        - accept-encoding: gzip,deflate,br
+        - content-type: application/json
+        - content-length: 40
+
+
+       at smoke\helpers\auth.ts:57
+
+      55 | ): Promise<BrowserLoginResult> {
+      56 |   const request = resolveRequestContext(requestLike);
+    > 57 |   const response = await request.post(`${apiBaseUrl}/auth/login`, {
+         |                                  ^
+      58 |     data: credentials,
+      59 |   });
+      60 |   expect(response.ok()).toBeTruthy();
+        at loginByApi (D:\workspace\go\pantheon-platform\pantheon-ops\frontend\tests\smoke\helpers\auth.ts:57:34)
+        at D:\workspace\go\pantheon-platform\pantheon-ops\frontend\tests\smoke\business\deploy\deploy-pages.spec.ts:63:25
+
+    Error Context: ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\deploy-context-runtime\smoke-business-deploy-depl-d6a4b-thout-leaving-the-list-page\error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\deploy-context-runtime\smoke-business-deploy-depl-d6a4b-thout-leaving-the-list-page\trace.zip
+    Usage:
+
+        npx playwright show-trace ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\deploy-context-runtime\smoke-business-deploy-depl-d6a4b-thout-leaving-the-list-page\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  4) tests\smoke\business\deploy\deploy-pages.spec.ts:206:3 › Deploy business module smoke › deploy package detail action opens a modal without leaving the list page 
+
+    Error: apiRequestContext.post: connect ECONNREFUSED 127.0.0.1:24485
+    Call log:
+      - → POST http://127.0.0.1:24485/api/v1/auth/login
+        - user-agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/156.0.8078.4 Safari/537.36
+        - accept: */*
+        - accept-encoding: gzip,deflate,br
+        - content-type: application/json
+        - content-length: 40
+
+
+       at smoke\helpers\auth.ts:57
+
+      55 | ): Promise<BrowserLoginResult> {
+      56 |   const request = resolveRequestContext(requestLike);
+    > 57 |   const response = await request.post(`${apiBaseUrl}/auth/login`, {
+         |                                  ^
+      58 |     data: credentials,
+      59 |   });
+      60 |   expect(response.ok()).toBeTruthy();
+        at loginByApi (D:\workspace\go\pantheon-platform\pantheon-ops\frontend\tests\smoke\helpers\auth.ts:57:34)
+        at D:\workspace\go\pantheon-platform\pantheon-ops\frontend\tests\smoke\business\deploy\deploy-pages.spec.ts:63:25
+
+    Error Context: ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\deploy-context-runtime\smoke-business-deploy-depl-3eed5-thout-leaving-the-list-page\error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\deploy-context-runtime\smoke-business-deploy-depl-3eed5-thout-leaving-the-list-page\trace.zip
+    Usage:
+
+        npx playwright show-trace ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\deploy-context-runtime\smoke-business-deploy-depl-3eed5-thout-leaving-the-list-page\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  5) tests\smoke\business\deploy\deploy-pages.spec.ts:246:3 › Deploy business module smoke › deploy template detail action opens a modal without leaving the list page 
+
+    Error: apiRequestContext.post: connect ECONNREFUSED 127.0.0.1:24485
+    Call log:
+      - → POST http://127.0.0.1:24485/api/v1/auth/login
+        - user-agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/156.0.8078.4 Safari/537.36
+        - accept: */*
+        - accept-encoding: gzip,deflate,br
+        - content-type: application/json
+        - content-length: 40
+
+
+       at smoke\helpers\auth.ts:57
+
+      55 | ): Promise<BrowserLoginResult> {
+      56 |   const request = resolveRequestContext(requestLike);
+    > 57 |   const response = await request.post(`${apiBaseUrl}/auth/login`, {
+         |                                  ^
+      58 |     data: credentials,
+      59 |   });
+      60 |   expect(response.ok()).toBeTruthy();
+        at loginByApi (D:\workspace\go\pantheon-platform\pantheon-ops\frontend\tests\smoke\helpers\auth.ts:57:34)
+        at D:\workspace\go\pantheon-platform\pantheon-ops\frontend\tests\smoke\business\deploy\deploy-pages.spec.ts:63:25
+
+    Error Context: ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\deploy-context-runtime\smoke-business-deploy-depl-70818-thout-leaving-the-list-page\error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\deploy-context-runtime\smoke-business-deploy-depl-70818-thout-leaving-the-list-page\trace.zip
+    Usage:
+
+        npx playwright show-trace ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\deploy-context-runtime\smoke-business-deploy-depl-70818-thout-leaving-the-list-page\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  5 failed
+    tests\smoke\business\deploy\deploy-api.spec.ts:89:3 › Deploy business api smoke › deploy api creates starts and marks a manual task 
+    tests\smoke\business\deploy\deploy-pages.spec.ts:68:3 › Deploy business module smoke › deploy pages load under operations platform 
+    tests\smoke\business\deploy\deploy-pages.spec.ts:111:3 › Deploy business module smoke › deploy task detail action opens a modal without leaving the list page 
+    tests\smoke\business\deploy\deploy-pages.spec.ts:206:3 › Deploy business module smoke › deploy package detail action opens a modal without leaving the list page 
+    tests\smoke\business\deploy\deploy-pages.spec.ts:246:3 › Deploy business module smoke › deploy template detail action opens a modal without leaving the list page 
+  3 did not run
+  8 passed (1.0m)

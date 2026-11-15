@@ -2,7 +2,7 @@
 
 - Priority: `P1`
 - Layer: `business/deploy + business/k8s`
-- Status: `blocked`
+- Status: `in-progress; scoped implementation verified, complete acceptance open`
 - Base Dependency: B3 `TaskLogViewer`
 - Business Dependency: Deploy chunk stream + Kubernetes pod log API
 
@@ -48,3 +48,11 @@
 ## Gates
 
 - Base lock、日志保留/下载政策、外部集群/主机凭据、新公共 stream API。
+
+## Reconciliation 2026-11-07
+
+The required Base primitive is present in official v0.18.6. This resolves the prior component-release dependency only; all implementation and acceptance criteria above remain open. See the parent EXECUTION_QUEUE.md and current execution evidence.
+
+## Scoped implementation 2026-11-07
+
+Scoped business log composition: search, stream, wrap, pause/resume snapshots, dialog expansion and bounded replay/source isolation. Pod disconnect cancels upstream I/O and cross-origin WebSockets are rejected. Provider/lifecycle/browser tests pass locally. Audited download/redaction policy, live permission revocation and real Pod/VM sources remain open. Current evidence: `.harness/evidence/2026-11-07-ops-planned-task-closeout/summary.md`.

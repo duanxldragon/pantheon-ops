@@ -1,0 +1,12 @@
+{
+  "phase": "diagnostic-upload-recovery",
+  "exitCode": 1,
+  "uploads": [],
+  "remoteProviderMutation": false,
+  "originalScriptChanged": false,
+  "errorType": "AssertionError",
+  "errno": null,
+  "failedStage": "directory-identity",
+  "detailsOmitted": true,
+  "elapsedSeconds": 8.016
+}

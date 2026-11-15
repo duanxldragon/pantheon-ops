@@ -1,0 +1,14 @@
+{
+  "command": "python -B .local/ops-acceptance/continue-velero-alias-v6-test.py --full",
+  "exitCode": 0,
+  "stdout": "{\"originalRegressions\": 238, \"currentTests\": 87, \"newUniqueTests\": 34, \"fullUniqueRegressions\": 272, \"testsRun\": 325, \"skips\": 0, \"oldGeneratorsExecuted\": false, \"runtimeExecuted\": false}\r\n",
+  "failureDetails": null,
+  "scriptHashes": {
+    ".local/ops-acceptance/continue-velero-alias-v6-contract.py": "ca27d36178c871df792d14227e65592df04c790279fb20c10f55a042cb9b604b",
+    ".local/ops-acceptance/continue-velero-alias-v6-generate.py": "534556e8960ae6651b53eba00e8c68642605b70c15975eb722b46d60bfd8a79d",
+    ".local/ops-acceptance/continue-velero-alias-v6-remote.py": "6c39c11879753b35a46eff11cce029142b05cbd8f5659a2b790539d30fb14f9d",
+    ".local/ops-acceptance/continue-velero-alias-v6-root.py": "8bade656b5e5b9ab60857bb14238876418950207444dc87f0b14357a33de093a",
+    ".local/ops-acceptance/continue-velero-alias-v6-test.py": "039aa3846ff41f6c52482f26b3e65c682ac8068461d5de8b8445d2fbc3ff5966"
+  },
+  "sourceHashesStable": true
+}

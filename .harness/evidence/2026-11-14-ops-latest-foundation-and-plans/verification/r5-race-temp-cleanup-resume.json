@@ -1,0 +1,10 @@
+{
+  "observerAttachedToExactRunningGoPID": 6196,
+  "goCommandRestarted": false,
+  "goProcessExitCode": 1,
+  "sameFullPackageImportAndFinalPassMatch": true,
+  "assertionsAndOutputUnchanged": true,
+  "vanishedGeneratedFilesSkipped": 1160953,
+  "removedClosedPassedTestBinaries": 0,
+  "bytesReleased": 0
+}

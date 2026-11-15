@@ -1,0 +1,8 @@
+**APPROVE** for the supplied excerpt — deny-by-default key whitelist, type gate, `complete` gate, control-char strip, sentinel check, and whole-value redaction diff are sound; no proved P1/P2 leak.
+
+Two P3 nits (non-blocking):
+
+1. **Port branch echoes unnormalized text**: `Atoi("+80")`/`Atoi("0080")` succeed, so `"+80"`/`"0080"` pass and are returned verbatim. Fix: return `strconv.Itoa(port)` instead of `text`.
+2. **Path regex permits `..`**: `/^[A-Za-z0-9_./-]+$/` accepts `/../../etc`. Display-only, so not traversal, but add `!strings.Contains(text, "..")` for the `installRoot`/`dataRoot` cases (RE2 has no lookahead).
+
+Unverified outside excerpt: `validTaskAction`, `anyToString`, `taskPreviewValueLimit`, and `redactDeploySecrets` semantics assumed as named; `complete=false` handling is conservative either way.

@@ -1,0 +1,17 @@
+{
+  "lane": "code",
+  "role": "code-reviewer",
+  "exitCode": 0,
+  "timedOut": false,
+  "elapsedSeconds": 63.641,
+  "report": ".harness\\evidence\\2026-11-07-ops-planned-task-closeout\\verification\\p0-integration-20261109\\focused-argo-final-code-review.md",
+  "reviewedHashes": {
+    "backend/modules/business/cicd/argocd/argocd_action.go": "c2a272b558a9afc943202bf4dab300ac899fd5723ac408e228c2d8a84c0bd145",
+    "backend/modules/business/cicd/argocd/argocd_client.go": "9506d6d9dcd9e45128f7e8db287de88916e886c92f9d3be21b96acd780a9e303",
+    "backend/modules/business/cicd/argocd/argocd_action_test.go": "19f8d8d4636fcc12dacb1514f880271a5a362ef585c712388ce600c583523d59",
+    "backend/modules/business/cicd/argocd/argocd_client_test.go": "7be618be0830cd1aaf39e3229f31e34c2e5051b4c8fb5f74874e9fef8b5318d4"
+  },
+  "modelOverride": false,
+  "authorFallback": false,
+  "scope": "Argo error body redaction and uncertain submission outcome only"
+}

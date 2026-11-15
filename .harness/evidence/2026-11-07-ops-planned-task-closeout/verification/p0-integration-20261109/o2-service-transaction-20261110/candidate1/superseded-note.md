@@ -1,0 +1,2 @@
+Candidate 1 completed a source-stable 60-file focused matrix: 177 top-level passes, 2 original live-VM skips, no failures or missing prior/listed tests; race/vet/build/native diagnostics/diff-check all exit 0. Both historical databases remain untouched.
+After code review, cancellation release was narrowed to the existing releaseHostLease helper over the already locked host footprint. Candidate 1 remains superseded evidence; the final matrix is rerun against the refined source. No CODE/ARCH approval or P0 closure is inferred from either matrix.

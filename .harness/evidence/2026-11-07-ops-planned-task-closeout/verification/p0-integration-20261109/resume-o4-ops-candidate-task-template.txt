@@ -1,0 +1,5 @@
+
+> check:task-packet-template
+> node scripts/check-task-packet-template.mjs
+
+OK pantheon-ops task-packet template is present and linked

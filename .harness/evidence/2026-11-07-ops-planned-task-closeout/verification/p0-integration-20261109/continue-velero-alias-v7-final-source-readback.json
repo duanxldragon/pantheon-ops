@@ -1,0 +1,8 @@
+{
+  "requestAlreadyPresent": true,
+  "requestSealedByPostsealCheck": false,
+  "historicalCheckReceiptFieldNote": "requestSealed=false in preserved run-checks receipts means that check did not seal a request; the successful exclusive v7 seal and actual request remain present. Future helper fields distinguish these facts.",
+  "requestSHA256": "6bba684f283d6eca328ffe3e66e46391db67ae8606b634941183ea5a99e83ecc",
+  "sourceHashesStable": true,
+  "remoteExecuted": false
+}

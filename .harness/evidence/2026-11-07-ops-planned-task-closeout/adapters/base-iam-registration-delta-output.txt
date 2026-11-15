@@ -1,0 +1,12 @@
+**APPROVE (supplied scope only)** — no provable P1/P2 in the delta:
+
+- `RequiredAPIRoutesByPermission` builds fresh slices of value structs; no aliasing of the internal table, mutation-safe as claimed.
+- `requiredAPIPoliciesByPermissionKey` degrades to an empty slice for unknown/empty keys.
+
+Caveats (not proved, no fix demanded):
+1. **Duplication risk**: static table + `ReadOnlyExportRoutes` + `permissionroutes.Lookup` all merge unvalidated into one slice; a key/route present in both tables yields duplicate policies → duplicate grants in role sync. If disjointness is by construction, say so in a comment; else dedup on method+path.
+2. **Init-order capture**: `ReadOnlyExportRoutes` is read once at package init; later registration is silently invisible to drift checks.
+
+Omitted source (unreviewed): `permissionroutes` package, how `tenantctx.ReadOnlyExportRoutes` is populated, body of `getRoleMissingAPIPolicies` below the tenant-predicate comment (scoping claim unverifiable), and `permissionRequiredAPIsForKey`.
+
+Skipped: no tools per instruction — duplication and init-order caveats rest on the snippet alone.

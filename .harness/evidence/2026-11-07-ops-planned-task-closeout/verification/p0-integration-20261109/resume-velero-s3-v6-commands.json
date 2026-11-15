@@ -1,0 +1,98 @@
+{
+  "schemaVersion": 1,
+  "taskId": "2026-11-07-ops-planned-task-closeout",
+  "parentTaskPacket": "docs/harness/tasks/2026-11-07-ops-planned-task-closeout.task.md",
+  "tier": "L2",
+  "scope": "local v6 helper preparation only",
+  "rootRequestSHA256": "d89a0624f6fa9bae53371dd37af9d9550ebb8c227e8334f04ae108d1e8389e08",
+  "remoteExecuted": false,
+  "credentialsRead": false,
+  "backupRestoreVerified": false,
+  "P0Approved": false,
+  "commands": [
+    {
+      "command": "python -B .local/ops-acceptance/resume-velero-s3-v6-test.py",
+      "exitCode": 0,
+      "testsPassed": 46,
+      "elapsedSeconds": 5.46,
+      "result": "Ran 46 tests in 5.460s; OK",
+      "evidenceOrigin": "Fresh exec tool output chunk af4476, final fixture label refinement; mock-only",
+      "mockOnly": true
+    },
+    {
+      "command": "python -B .local/ops-acceptance/resume-velero-s3-v5-test.py; python -B .local/ops-acceptance/resume-velero-s3-v4-test.py; python -B .local/ops-acceptance/resume-velero-s3-v6-root.py check-inputs",
+      "testsPassed": [
+        32,
+        25
+      ],
+      "chunk_id": "d8f680",
+      "wall_time_seconds": 4.3437168,
+      "exit_code": 0,
+      "original_token_count": 1882,
+      "output": "test_all_v5_parse_compile (__main__.Derivation.test_all_v5_parse_compile) ... ok\r\ntest_exact_caps_and_pinned_images_reused (__main__.Derivation.test_exact_caps_and_pinned_images_reused) ... ok\r\ntest_fixture_is_byte_identical (__main__.Derivation.test_fixture_is_byte_identical) ... ok\r\ntest_official_argv_only_adds_config_and_never_calls_real_install (__main__.Derivation.test_official_argv_only_adds_config_and_never_calls_real_install) ... ok\r\ntest_original_remaining_body_exact (__main__.Derivation.test_original_remaining_body_exact) ... ok\r\ntest_original_validation_and_fixture_adapter_ast (__main__.Derivation.test_original_validation_and_fixture_adapter_ast) ... ok\r\ntest_remaining_body_cannot_replay_native_or_first_five (__main__.Derivation.test_remaining_body_cannot_replay_native_or_first_five) ... ok\r\ntest_unpinned_image_refuses_before_create (__main__.Derivation.test_unpinned_image_refuses_before_create) ... ok\r\ntest_changed_uid_owner_and_owner_reference_refuse (__main__.FiveGuard.test_changed_uid_owner_and_owner_reference_refuse) ... ok\r\ntest_credential_mismatch_refuses (__main__.FiveGuard.test_credential_mismatch_refuses) ... ok\r\ntest_diagnostic_refusal_retains_only_safe_official_shape (__main__.FiveGuard.test_diagnostic_refusal_retains_only_safe_official_shape) ... ok\r\ntest_exact_live_five_and_in_memory_credential_match (__main__.FiveGuard.test_exact_live_five_and_in_memory_credential_match) ... ok\r\ntest_extra_pod_refuses (__main__.FiveGuard.test_extra_pod_refuses) ... ok\r\ntest_foreign_service_or_endpoint_refuses (__main__.FiveGuard.test_foreign_service_or_endpoint_refuses) ... ok\r\ntest_mirrored_or_arbitrary_endpoint_slice_not_adopted (__main__.FiveGuard.test_mirrored_or_arbitrary_endpoint_slice_not_adopted) ... ok\r\ntest_only_kubernetes_defaults_excluded_from_adoption (__main__.FiveGuard.test_only_kubernetes_defaults_excluded_from_adoption) ... ok\r\ntest_all_remaining_names_checked_absent_before_any_create (__main__.ManifestSafety.test_all_remaining_names_checked_absent_before_any_create) ... ok\r\ntest_list_and_native_document_stream (__main__.ManifestSafety.test_list_and_native_document_stream) ... ok\r\ntest_secret_output_refuses (__main__.ManifestSafety.test_secret_output_refuses) ... ok\r\ntest_trailing_junk_duplicate_json_and_bound_refuse (__main__.ManifestSafety.test_trailing_junk_duplicate_json_and_bound_refuse) ... ok\r\ntest_unknown_namespace_schema_duplicates_refuse (__main__.ManifestSafety.test_unknown_namespace_schema_duplicates_refuse) ... ok\r\ntest_bounded_complete_keeps_original_five_and_migration (__main__.RecoveryGuard.test_bounded_complete_keeps_original_five_and_migration) ... ok\r\ntest_changed_manifest_refuses_without_any_write (__main__.RecoveryGuard.test_changed_manifest_refuses_without_any_write) ... ok\r\ntest_exclusive_writes_cannot_replace_failure (__main__.RecoveryGuard.test_exclusive_writes_cannot_replace_failure) ... ok\r\ntest_failed_predecessor_cannot_be_success (__main__.RecoveryGuard.test_failed_predecessor_cannot_be_success) ... ok\r\ntest_failure_directory_discovery_exact_hashes_only (__main__.RecoveryGuard.test_failure_directory_discovery_exact_hashes_only) ... ok\r\ntest_private_native_kubeconfig_required (__main__.RecoveryGuard.test_private_native_kubeconfig_required) ... ok\r\ntest_root_input_check_never_connects (__main__.RecoveryGuard.test_root_input_check_never_connects) ... ok\r\ntest_root_refuses_wrong_request_before_connect (__main__.RecoveryGuard.test_root_refuses_wrong_request_before_connect) ... ok\r\ntest_source_hash_change_refuses_without_connect (__main__.RecoveryGuard.test_source_hash_change_refuses_without_connect) ... ok\r\ntest_stale_diagnostic_refuses_without_any_write (__main__.RecoveryGuard.test_stale_diagnostic_refuses_without_any_write) ... ok\r\ntest_unknown_native_entry_refuses_before_config_or_source_reads (__main__.RecoveryGuard.test_unknown_native_entry_refuses_before_config_or_source_reads) ... ok\r\n\r\n----------------------------------------------------------------------\r\nRan 32 tests in 2.229s\r\n\r\nOK\r\ntest_actual_v3_failure_extras_private (__main__.BindingTests.test_actual_v3_failure_extras_private) ... ok\r\ntest_exact_eight_private_v4_listeners (__main__.BindingTests.test_exact_eight_private_v4_listeners) ... ok\r\ntest_wildcards_public_unknown_and_missing_denied (__main__.BindingTests.test_wildcards_public_unknown_and_missing_denied) ... ok\r\ntest_actual_help_supports_exact_flags (__main__.DerivationTests.test_actual_help_supports_exact_flags) ... ok\r\ntest_all_python_compile (__main__.DerivationTests.test_all_python_compile) ... ok\r\ntest_exact_ast_provider_delta (__main__.DerivationTests.test_exact_ast_provider_delta) ... ok\r\ntest_fixture_functions_and_every_assertion_preserved (__main__.DerivationTests.test_fixture_functions_and_every_assertion_preserved) ... ok\r\ntest_native_eth0_and_no_fallback (__main__.DerivationTests.test_native_eth0_and_no_fallback) ... ok\r\ntest_original_validation_preserved (__main__.DerivationTests.test_original_validation_preserved) ... ok\r\ntest_diagnostic_then_install_requires_exact_original_budget_and_ports (__main__.RootPhaseTests.test_diagnostic_then_install_requires_exact_original_budget_and_ports) ... ok\r\ntest_inspect_and_cleanup_pass_bound_snapshot_to_native (__main__.RootPhaseTests.test_inspect_and_cleanup_pass_bound_snapshot_to_native) ... ok\r\ntest_request_hash_refused_before_connect (__main__.RootPhaseTests.test_request_hash_refused_before_connect) ... ok\r\ntest_validate_and_cleanup_require_persisted_s3_finite_fixture_cleanup (__main__.RootPhaseTests.test_validate_and_cleanup_require_persisted_s3_finite_fixture_cleanup) ... ok\r\ntest_auth_exact_owner_and_counts_only (__main__.SafetyTests.test_auth_exact_owner_and_counts_only) ... ok\r\ntest_boolean_failed_exit_code_refused (__main__.SafetyTests.test_boolean_failed_exit_code_refused) ... ok\r\ntest_exact_cleanup_only_unmount_unlink_empty_rmdir (__main__.SafetyTests.test_exact_cleanup_only_unmount_unlink_empty_rmdir) ... ok\r\ntest_exact_native_findmnt_losetup (__main__.SafetyTests.test_exact_native_findmnt_losetup) ... ok\r\ntest_foreign_nested_mount_loop_backing_offset_ro_refused (__main__.SafetyTests.test_foreign_nested_mount_loop_backing_offset_ro_refused) ... ok\r\ntest_inspection_drift_blocks_before_unmount (__main__.SafetyTests.test_inspection_drift_blocks_before_unmount) ... ok\r\ntest_kubernetes_absence_from_successful_native_lists (__main__.SafetyTests.test_kubernetes_absence_from_successful_native_lists) ... ok\r\ntest_metadata_symlink_uid_gid_hardlink_mode_refused (__main__.SafetyTests.test_metadata_symlink_uid_gid_hardlink_mode_refused) ... ok\r\ntest_root_upload_exclusive_and_no_original_provision (__main__.SafetyTests.test_root_upload_exclusive_and_no_original_provision) ... ok\r\ntest_stopped_absent_unit_and_foreign_uid_rejection (__main__.SafetyTests.test_stopped_absent_unit_and_foreign_uid_rejection) ... ok\r\ntest_underlying_foreign_file_retained_after_unmount (__main__.SafetyTests.test_underlying_foreign_file_retained_after_unmount) ... ok\r\ntest_unknown_top_level_file_and_failed_shape_refused (__main__.SafetyTests.test_unknown_top_level_file_and_failed_shape_refused) ... ok\r\n\r\n----------------------------------------------------------------------\r\nRan 25 tests in 0.201s\r\n\r\nOK\r\n{\"exitCode\": 0, \"remoteExecuted\": false, \"rootRequestSHA256\": \"7fd278fb091fe56124d8e69799f9fcab11074e88d99e943d19699843a6e11fc2\", \"v6Scripts\": 6, \"originalFive\": 5, \"failureReceiptSHA256\": \"9c2048e5ff4d4f2ce139a8a19fe281afa26b539ba93a7c988cdd445a8a61683b\", \"backupRestoreVerified\": false}\r\n"
+    },
+    {
+      "command": "six-helper syntax compile and git check-ignore",
+      "chunk_id": "b0ff00",
+      "wall_time_seconds": 0.4041402,
+      "exit_code": 0,
+      "original_token_count": 86,
+      "output": "syntax compile: 6 helpers PASS\r\n.local/ops-acceptance/resume-velero-s3-v6-root.py\n.local/ops-acceptance/resume-velero-s3-v6-native.py\n.local/ops-acceptance/resume-velero-s3-v6-remote.py\n.local/ops-acceptance/resume-velero-s3-v6-fixture.py\n.local/ops-acceptance/resume-velero-s3-v6-test.py\n.local/ops-acceptance/resume-velero-s3-v6-generate.py\n"
+    },
+    {
+      "command": "final check-inputs, syntax, 156 original hashes and six final new hashes; exclusive final source diff",
+      "chunk_id": "623677",
+      "wall_time_seconds": 1.8827667,
+      "exit_code": 0,
+      "original_token_count": 276,
+      "output": "{\"exitCode\": 0, \"remoteExecuted\": false, \"rootRequestSHA256\": \"d89a0624f6fa9bae53371dd37af9d9550ebb8c227e8334f04ae108d1e8389e08\", \"v6Scripts\": 6, \"originalFive\": 5, \"failureReceiptSHA256\": \"9c2048e5ff4d4f2ce139a8a19fe281afa26b539ba93a7c988cdd445a8a61683b\", \"backupRestoreVerified\": false}\r\n6 syntax / 156 original hashes / 6 new hashes PASS\r\n{\r\n  \".local/ops-acceptance/resume-velero-s3-v6-fixture.py\": \"e53facea2f9b9822855de75f19aeab8210f9b4debe6da5f76b2fb84803d86fa3\",\r\n  \".local/ops-acceptance/resume-velero-s3-v6-generate.py\": \"f13cf4c51b9aed499a6f44f564b04d98979ce019cf094695303c025a7408e1a0\",\r\n  \".local/ops-acceptance/resume-velero-s3-v6-native.py\": \"14f9ca3cc471bbf754da27fcdb71b2e22bd01153eefb02088dc43bb543527081\",\r\n  \".local/ops-acceptance/resume-velero-s3-v6-remote.py\": \"5f54ba6f6229793d072588733eb522810607e25fdcd3a37f4665d895c68d8bc7\",\r\n  \".local/ops-acceptance/resume-velero-s3-v6-root.py\": \"68e1ea283aaf67e82363e120ea749d27d002d2004537a7c32f609619ed4cfcea\",\r\n  \".local/ops-acceptance/resume-velero-s3-v6-test.py\": \"a0230535f33d45e2646dfee8aeeaab8f8dd73f507b41d35210ac9645ce3e40a3\"\r\n}\r\n"
+    },
+    {
+      "command": "npm run check:docs-frontmatter; npm run check:task-packet-template",
+      "chunk_id": "935d59",
+      "wall_time_seconds": 1.7713758,
+      "exit_code": 0,
+      "original_token_count": 67,
+      "output": "\n> check:docs-frontmatter\n> node scripts/frontmatter-check.mjs\n\nFrontmatter check passed. Checked 462 docs, 301 with frontmatter.\n\n> check:task-packet-template\n> node scripts/check-task-packet-template.mjs\n\nOK pantheon-ops task-packet template is present and linked\n"
+    },
+    {
+      "command": "local installed diagnostic availability and check-inputs",
+      "chunk_id": "c49053",
+      "wall_time_seconds": 1.2168723,
+      "exit_code": 0,
+      "original_token_count": 82,
+      "output": "{'ruff': False, 'pyflakes': False}\r\n{\"exitCode\": 0, \"remoteExecuted\": false, \"rootRequestSHA256\": \"7fd278fb091fe56124d8e69799f9fcab11074e88d99e943d19699843a6e11fc2\", \"v6Scripts\": 6, \"originalFive\": 5, \"failureReceiptSHA256\": \"9c2048e5ff4d4f2ce139a8a19fe281afa26b539ba93a7c988cdd445a8a61683b\", \"backupRestoreVerified\": false}\r\n"
+    }
+  ],
+  "localReviewIterations": [
+    {
+      "tests": 43,
+      "result": "3 mock-fixture errors",
+      "reason": "Synthetic foreign objects lacked UIDs; Windows mock tried to stat /opt",
+      "corrected": "Valid mock identity and directory metadata; gates unchanged"
+    },
+    {
+      "tests": 44,
+      "result": "1 mock-fixture error",
+      "reason": "Nonnumeric mock resourceVersion",
+      "corrected": "Numeric string; strict metadata gate unchanged"
+    },
+    {
+      "tests": 45,
+      "result": "PASS",
+      "requestSHA256": "7fd278fb091fe56124d8e69799f9fcab11074e88d99e943d19699843a6e11fc2"
+    },
+    {
+      "tests": 46,
+      "result": "PASS",
+      "reason": "Final finite original Velero restore label regression",
+      "requestSHA256": "d89a0624f6fa9bae53371dd37af9d9550ebb8c227e8334f04ae108d1e8389e08"
+    }
+  ],
+  "knownGaps": [
+    "Ruff/pyflakes not installed",
+    "No fresh Go/frontend product build; no product sources changed",
+    "Root independent review and actual diagnostic/controller/Backup/Restore/cleanup pending",
+    "No P0, D1, production G2/G3 or release acceptance claim"
+  ]
+}

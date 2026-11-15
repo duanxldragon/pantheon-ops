@@ -1,0 +1,16 @@
+[
+  {
+    "repository": "pantheon-base",
+    "taskId": "2026-11-07-ops-formal-queue-foundation-gaps",
+    "expectedFiles": 104,
+    "planSha256": "9aaa0e53b43c040a4d04949693d3ef6ab4b086336fe953c3e04105400e4caaf7",
+    "parentStatus": "in-progress"
+  },
+  {
+    "repository": "pantheon-ops",
+    "taskId": "2026-11-07-ops-planned-task-closeout",
+    "expectedFiles": 180,
+    "planSha256": "9aaa0e53b43c040a4d04949693d3ef6ab4b086336fe953c3e04105400e4caaf7",
+    "parentStatus": "in-progress"
+  }
+]

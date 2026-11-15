@@ -1,0 +1,27 @@
+TAP version 13
+# Subtest: selected inputs: selected symlink still refuses before stage creation
+not ok 1 - selected inputs: selected symlink still refuses before stage creation
+  ---
+  duration_ms: 647.173
+  type: 'test'
+  location: 'D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\scripts\\business-overlay\\foundation-candidate.test.mjs:634:3'
+  failureType: 'testCodeFailure'
+  error: "EPERM: operation not permitted, symlink 'D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\continue-o4-copy-binding-20261110-r2\\tmp\\ops-candidate-OgD4X1\\ops\\package.json' -> 'D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\continue-o4-copy-binding-20261110-r2\\tmp\\ops-candidate-OgD4X1\\ops\\.harness\\report.md'"
+  code: 'EPERM'
+  stack: |-
+    Object.symlinkSync (node:fs:1868:11)
+    TestContext.<anonymous> (file:///D:/workspace/go/pantheon-platform/pantheon-ops/scripts/business-overlay/foundation-candidate.test.mjs:641:10)
+    Test.runInAsyncScope (node:async_hooks:228:14)
+    Test.run (node:internal/test_runner/test:1118:25)
+    Test.start (node:internal/test_runner/test:1015:17)
+    startSubtestAfterBootstrap (node:internal/test_runner/harness:358:17)
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 0
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 904.0588

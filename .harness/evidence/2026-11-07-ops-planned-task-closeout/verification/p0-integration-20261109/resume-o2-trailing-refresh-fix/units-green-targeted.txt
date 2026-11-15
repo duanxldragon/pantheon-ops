@@ -1,0 +1,232 @@
+(!) Your Vite config uses features that are unsupported by `configLoader: 'native'`, which is planned to become the default in a future major version of Vite:
+  - `__dirname` (vitest.config.ts:10:25). Use `import.meta.dirname` instead
+Set `VITE_CONFIG_NATIVE_IGNORE_WARNING=true` to suppress this warning.
+
+ RUN  v5.0.5 D:/workspace/go/pantheon-platform/pantheon-ops/frontend
+
+ ❯ tests/unit/business/operational/deploy-detail-read.test.tsx (8 tests | 1 failed) 779ms
+   ❯ rendered deployment detail controls and read freshness (8)
+     × reads the terminal result when the last connected SSE event arrives during an older running request 78ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/unit/business/operational/deploy-detail-read.test.tsx > rendered deployment detail controls and read freshness > reads the terminal result when the last connected SSE event arrives during an older running request
+TestingLibraryElementError: Found multiple elements with the text: business.deploy.task.status.success
+
+Here are the matching elements:
+
+Ignored nodes: comments, script, style
+<span
+  class="arco-tag-content"
+>
+  business.deploy.task.status.success
+</span>
+
+Ignored nodes: comments, script, style
+<span
+  class="deploy-page__metric-label"
+>
+  business.deploy.task.status.success
+</span>
+
+Ignored nodes: comments, script, style
+<span
+  class="deploy-page__status-label"
+>
+  business.deploy.task.status.success
+</span>
+
+Ignored nodes: comments, script, style
+<td
+  class="arco-descriptions-item-value"
+>
+  business.deploy.task.status.success
+</td>
+
+(If this is intentional, then use the `*AllBy*` variant of the query (like `queryAllByText`, `getAllByText`, or `findAllByText`)).
+
+Ignored nodes: comments, script, style
+<body>
+  <div>
+    <div>
+      <div>
+        visible-task
+        <div
+          class="arco-space arco-space-horizontal arco-space-align-center arco-space-wrap"
+        >
+          <div
+            class="arco-space-item"
+            style="margin-bottom: 8px;"
+          >
+            <button
+              class="arco-btn arco-btn-secondary arco-btn-size-default arco-btn-shape-square"
+              type="button"
+            >
+              <svg
+                aria-hidden="true"
+                class="arco-icon arco-icon-left"
+                fill="none"
+                focusable="false"
+                stroke="currentColor"
+                stroke-width="4"
+                viewBox="0 0 48 48"
+              >
+                <path
+                  d="M32 8.4 16.444 23.956 32 39.513"
+                />
+              </svg>
+              <span>
+                common.back
+              </span>
+            </button>
+          </div>
+        </div>
+      </div>
+      <div
+        class="arco-space arco-space-vertical system-page-template"
+      >
+        <div
+          class="arco-space-item"
+          style="margin-bottom: 16px;"
+        >
+          <div
+            class="arco-card arco-card-size-default arco-card-bordered page-panel system-page-hero"
+          >
+            <div
+              class="arco-card-body"
+            >
+              <div
+                class="system-page-hero__top"
+              >
+                <div
+                  class="system-page-hero__copy"
+                >
+                  <span
+                    class="system-page-hero__eyebrow"
+                  >
+                    business.deploy.task.hero.eyebrow
+                  </span>
+                  <h5
+                    class="arco-typography system-page-hero__title"
+                  >
+                    visible-task
+                  </h5>
+                  <div
+                    class="arco-typography system-page-hero__desc"
+                  >
+                    business.deploy.task.detailLead
+                  </div>
+                </div>
+                <div
+                  class="arco-tag arco-tag-green arco-tag-checked arco-tag-size-default"
+                >
+                  <span
+                    class="arco-tag-content"
+                  >
+                    business.deploy.task.status.success
+                  </span>
+                </div>
+              </div>
+              <div
+                class="deploy-page__hero-grid"
+              >
+                <div
+                  class="deploy-page__metric"
+                >
+                  <span
+                    class="deploy-page__metric-label"
+                  >
+                    business.deploy.task.hostTotal
+                  </span>
+                  <span
+                    class="deploy-page__metric-value"
+                  >
+                    0
+                  </span>
+                </div>
+                <div
+                  class="deploy-page__metric"
+                >
+                  <span
+                    class="deploy-page__metric-label"
+                  >
+                    business.deploy.task.status.success
+                  </span>
+                  <span
+                    class="deploy-page__metric-value"
+                  >
+                    0
+                  </span>
+                </div>
+                <div
+                  class="deploy-page__metric"
+                >
+                  <span
+                    class="deploy-page__metric-label"
+                  >
+                    business.deploy.task.status.failed
+                  </span>
+                  <span
+                    class="deploy-page__metric-value"
+                  >
+                    0
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div
+          class="arco-space-item"
+          style="margin-bottom: 16px;"
+        >
+          <div
+            class="arco-card arco-card-size-default arco-card-bordered page-panel"
+          >
+            <div
+              class="arco-card-body"
+            >
+              <div
+                class="arco-space arco-space-vertical"
+                style="width: 100%;"
+              >
+                <div
+                  class="arco-space-item"
+                  style="margin-bottom: 12px;"
+                >
+                  <span
+                    class="arco-typography"
+                    style="font-weight: 600;"
+                  >
+                    business.deploy.task.statusFlowTitle
+                  </span>
+                </div>
+                <div
+                  class="arco-space-item"
+                  style="margin-bottom: 12px;"
+                >
+                  <ul
+                    aria-label="business.deploy.task.statusFlowTitle"
+                    class="deploy-page__status-flow"
+      ...
+ ❯ Object.getElementError node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ getElementError node_modules/@testing-library/dom/dist/query-helpers.js:20:35
+ ❯ getMultipleElementsFoundError node_modules/@testing-library/dom/dist/query-helpers.js:23:10
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:55:13
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ tests/unit/business/operational/deploy-detail-read.test.tsx:87:19
+     85|     await act(async () => { resolveRunning?.(capturedRunning); }); awa…
+     86|     expect(getDeployTaskDetail).toHaveBeenCalledTimes(3);
+     87|     expect(screen.getByText('business.deploy.task.status.success')).to…
+       |                   ^
+     88|     expect(screen.queryByText('business.deploy.task.refreshStale')).to…
+     89|     expect(source.closed).toBe(true);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed | 1 passed (2)
+      Tests  1 failed | 16 passed (17)
+   Start at  12:08:16
+   Duration  4.17s (import 54%, environment 24%, tests 13%, transform 9%)
+

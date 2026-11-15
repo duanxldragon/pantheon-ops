@@ -1,0 +1,28 @@
+[
+  {
+    "name": "livePrepare",
+    "command": [
+      "D:\\Python\\Python312\\python.exe",
+      "-B",
+      ".local/ops-acceptance/argo-reviewed-live-v4-prepare.py"
+    ],
+    "exitCode": 0,
+    "log": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-argo-lsp-clean-tools-livePrepare.log",
+    "logSHA256": "1c7a4075db6bff8994c5267c1110e6ac309b9c1ab450d0ead182c8ec7f73a7d6",
+    "seconds": 0.047
+  },
+  {
+    "name": "liveStage",
+    "command": [
+      "D:\\Python\\Python312\\python.exe",
+      "-B",
+      ".local/ops-acceptance/argo-reviewed-live-v4.py",
+      "--phase",
+      "stage"
+    ],
+    "exitCode": 0,
+    "log": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-argo-lsp-clean-tools-liveStage.log",
+    "logSHA256": "e3baf3e79abe9522e84e2a08a778288a06f9ef0bebee0e363d63f9836b9cdf0e",
+    "seconds": 0.156
+  }
+]

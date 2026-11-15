@@ -1,0 +1,11 @@
+Traceback (most recent call last):
+  File "D:\workspace\go\pantheon-platform\pantheon-ops\.local\ops-acceptance\continue-o2-live-v10-root-execute.py", line 41, in <module>
+    raise SystemExit(main())
+                     ^^^^^^
+  File "D:\workspace\go\pantheon-platform\pantheon-ops\.local\ops-acceptance\continue-o2-live-v10-root-execute.py", line 25, in main
+    C.validate_request(args.request)
+  File "D:\workspace\go\pantheon-platform\pantheon-ops\.local\ops-acceptance\continue-o2-live-v10-contract.py", line 279, in validate_request
+    require(value.get('schema') == 'o2-current-request-v10' and value.get('state') == 'SEALED-CANDIDATE'
+  File "D:\workspace\go\pantheon-platform\pantheon-ops\.local\ops-acceptance\continue-o2-live-v10-contract.py", line 37, in require
+    raise RuntimeError(reason)
+RuntimeError: UNSEALED or changed matrix scope

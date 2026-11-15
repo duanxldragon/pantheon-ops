@@ -1,0 +1,34 @@
+{"check": "installed Argo namespace ownership", "passed": true}
+{"check": "unauthenticated Argo API refused", "passed": true, "httpStatus": 401}
+{"check": "authenticated Argo session established", "passed": true, "httpStatus": 200}
+{"check": "authenticated Argo API health", "passed": true, "httpStatus": 200}
+{"check": "repo-server accesses isolated in-cluster Git fixture", "passed": true, "exitCode": 0, "repository": "http://192.168.94.127:41345/fixture.git", "oldRevision": "a4f294e5045defd30372b40fee197ebb2e1eba2f", "newRevision": "3e5a4c5e4e48a0c008456dec6a52851b7b30e56b"}
+{"check": "least privilege finite project token created", "passed": true, "httpStatus": 200, "expiresIn": 900}
+{"check": "project JWT has finite expiry", "passed": true}
+{"check": "isolated Service-only application created", "passed": true, "httpStatus": 200}
+{"check": "project-scoped token can read own application", "passed": true, "httpStatus": 200}
+{"check": "invalid credential sync refused", "passed": true, "httpStatus": 401}
+{"check": "credential refusal leaves operation absent", "passed": true}
+{"check": "authorized sync accepted", "passed": true, "httpStatus": 200}
+{"check": "first sync has successful provider terminal state", "passed": true, "phase": "Succeeded"}
+{"check": "provider history records first pinned revision", "passed": true}
+{"check": "actual cluster contains Argo managed v1 Service", "passed": true, "serviceUID": "99ba6f27-04b7-4df3-b626-fe9194dbc563"}
+{"check": "second revision sync accepted", "passed": true, "httpStatus": 200}
+{"check": "second revision terminal succeeded", "passed": true}
+{"check": "actual Service routing changed to v2", "passed": true}
+{"check": "provider maintains two distinct revision history entries", "passed": true, "historyIDs": [0, 1]}
+{"check": "history ID rollback accepted", "passed": true, "httpStatus": 200, "historyID": 0}
+{"check": "provider history rollback reaches successful old revision", "passed": true}
+{"check": "history rollback restores actual v1 Service routing", "passed": true}
+{"check": "project token revocation accepted", "passed": true, "httpStatus": 200}
+{"check": "revoked credential cannot sync", "passed": true, "httpStatus": 401}
+{"check": "revoked credential refusal preserves completed operation", "passed": true}
+{"check": "project refuses unowned destination namespace", "passed": true, "httpStatus": 400}
+{"check": "rejected application was not persisted", "passed": true}
+{"check": "Service-only application creates no workload Pods", "passed": true}
+{"phase": "complete", "checksPassed": 28, "scope": "real Argo provider only; includes TLS/auth/RBAC/sync/terminal/history rollback; excludes Ops ArgoCDService/HTTP/audit"}
+{"phase": "cleanup", "kind": "Application", "uidChecked": true, "absenceVerified": true, "exitCode": 0}
+{"phase": "cleanup", "kind": "AppProject", "uidChecked": true, "absenceVerified": true, "exitCode": 0}
+{"phase": "cleanup", "kind": "Namespace", "uidChecked": true, "absenceVerified": true, "exitCode": 0}
+{"phase": "git-fixture-server-cleanup", "pidIdentityChecked": true, "exitCode": 0}
+{"phase": "result", "exitCode": 0, "checksPassed": 28, "providersRetained": true, "namespace": "pantheon-p0-argo-live-dc5eb4", "project": "p0-live-dc5eb4", "application": "p0-live-dc5eb4"}

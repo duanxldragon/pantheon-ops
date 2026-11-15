@@ -1,0 +1,51 @@
+{
+  "phase": "seaweed-listener-diagnosis",
+  "remoteMutation": "one exact owned unit start/stop",
+  "providerInstalled": false,
+  "backupRestoreVerified": false,
+  "exitCode": 0,
+  "mainPID": 108359,
+  "listeners": [
+    {
+      "protocol": "tcp",
+      "local": "192.168.94.127:28080"
+    },
+    {
+      "protocol": "tcp",
+      "local": "192.168.94.127:8181"
+    },
+    {
+      "protocol": "tcp",
+      "local": "192.168.94.127:18333"
+    },
+    {
+      "protocol": "tcp",
+      "local": "192.168.94.127:18080"
+    },
+    {
+      "protocol": "tcp",
+      "local": "192.168.94.127:28333"
+    },
+    {
+      "protocol": "tcp",
+      "local": "192.168.94.127:18888"
+    },
+    {
+      "protocol": "tcp",
+      "local": "192.168.94.127:28888"
+    },
+    {
+      "protocol": "tcp",
+      "local": "192.168.94.127:19333"
+    },
+    {
+      "protocol": "tcp",
+      "local": "192.168.94.127:9101"
+    },
+    {
+      "protocol": "tcp",
+      "local": "192.168.94.127:29333"
+    }
+  ],
+  "exactUnitStopped": true
+}

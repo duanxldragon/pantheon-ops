@@ -1,0 +1,226 @@
+{
+  "checkedUTC": "2026-11-10T09:46:14.770555+00:00",
+  "scope": "Existing unmodified Base real S3 test; temporary environment capacity repair only",
+  "testPassed": true,
+  "testSkips": 0,
+  "cleanupPassed": true,
+  "originalVeleroProviderUnchanged": true,
+  "currentHelperSHA256": "3cb003d765cd7b923ddc0736f129d104e7a22cc501e4116534f4c1dd00833209",
+  "syntaxChecked": true,
+  "receipts": {
+    "continue-base-s3-isolated-20261110T093423836567-start.json": {
+      "sha256": "9075e009b84c47371235675da52b2e4b3859718352a93a69c8fc0a4cb8e48b7b",
+      "data": {
+        "exitCode": 1,
+        "detailsOmitted": true,
+        "errorTypes": [],
+        "scriptLines": [
+          62
+        ]
+      }
+    },
+    "continue-base-s3-isolated-20261110T093520174877-ready.json": {
+      "sha256": "a7103abb5afa15bde2f61c83ab29c9191fc740d9cff9705f58d4d54c97bd04ca",
+      "data": {
+        "owner": "base-s3-isolated-20261110t093423836567",
+        "unit": "pantheon-base-s3-isolated-20261110t093423836567",
+        "ports": [
+          19334,
+          29334,
+          18081,
+          28081,
+          18889,
+          28889,
+          18334,
+          28334
+        ],
+        "home": "/opt/pantheon-p0-20261109/base-s3-isolated-20261110t093423836567",
+        "binary": "/opt/pantheon-p0-20261109/velero-s3-seaweed-v1/weed",
+        "binarySHA256": "fa936e61bfb11f33c1f823045c4007e7da4b8b38bb6adc3b970f132d832e805b",
+        "originalPID": 112862,
+        "originalNRestarts": 0,
+        "exitCode": 0,
+        "temporaryPID": 169295,
+        "privateBinding": true,
+        "initialFreeVolumes": 1,
+        "remoteMutations": 0
+      }
+    },
+    "continue-base-s3-isolated-20261110T093534951731-test.json": {
+      "sha256": "40b76564ce3080b78b35b1e76cf765bc17e0e11b9f6975b558750935d31b8f2d",
+      "data": {
+        "result": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\continue-base-real-s3-isolated-20261110T093535259714\\result.json",
+        "exitCode": 1,
+        "host": "115.190.251.143",
+        "scope": "Base existing real S3 upload test",
+        "remoteInstallation": false,
+        "providerBucketMutation": false,
+        "testBucketPolicy": "existing test creates pantheon-upload-it-<UnixNano>, deletes exact object and bucket",
+        "officialConsumption": false,
+        "P0Closed": false,
+        "command": [
+          "go",
+          "test",
+          "-json",
+          "-mod=readonly",
+          "-race",
+          "-count=1",
+          "-timeout",
+          "90s",
+          "./pkg/upload",
+          "-run",
+          "^TestServiceStoreUsesRealS3WhenConfigured$"
+        ],
+        "CGO_ENABLED": "1",
+        "testPasses": 0,
+        "testFailures": 1,
+        "testSkips": 0,
+        "loopbackTunnel": true,
+        "credentialTelemetry": false,
+        "errorType": "AssertionError",
+        "sourceStable": true,
+        "elapsedSeconds": 11.516,
+        "localTunnelClosed": true,
+        "originalHelperSHA256": "2d3ffa2cab1c4fd5e4fe14b41747514e33185f88f23fecee2af1a25196e97bee",
+        "originalHelperUnchanged": true,
+        "temporaryProviderOnly": true
+      }
+    },
+    "continue-base-s3-isolated-20261110T093743862398-diagnose.json": {
+      "sha256": "537af6e884442b96b0eb18c860e62a1ada29577cbbffce741e27e9fda3097635",
+      "data": {
+        "exitCode": 0,
+        "remoteMutations": 0,
+        "queries": [
+          {
+            "port": 19334,
+            "route": "/dir/status",
+            "data": {
+              "Max": 1,
+              "Free": 0,
+              "Layouts": [
+                {
+                  "collection": "empty",
+                  "writables": [
+                    1
+                  ]
+                },
+                {
+                  "collection": "test-owned",
+                  "writables": null
+                }
+              ]
+            }
+          },
+          {
+            "port": 18081,
+            "route": "/status",
+            "data": {
+              "Volumes": [
+                {
+                  "Collection": "other",
+                  "Size": 2028,
+                  "FileCount": 2,
+                  "ReadOnly": false
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "continue-base-s3-isolated-20261110T093856078556-cleanup.json": {
+      "sha256": "31e50bb04d7077dcbddd44935b1eaf96c07074db78e14cabdde2a7197200e978",
+      "data": {
+        "exitCode": 0,
+        "temporaryProviderStopped": true,
+        "ownedDiskUnmounted": true,
+        "ownedDirectoryAbsent": true,
+        "temporaryPortsAbsent": true,
+        "originalProviderUnchanged": true
+      }
+    },
+    "continue-base-s3-isolated-20261110T094123445997-start.json": {
+      "sha256": "78a747be79eb0753215134d49dbdae6795d50bbde9ba3f3949c486216b0d892f",
+      "data": {
+        "owner": "base-s3-isolated-20261110t094123445997",
+        "unit": "pantheon-base-s3-isolated-20261110t094123445997",
+        "ports": [
+          19334,
+          29334,
+          18081,
+          28081,
+          18889,
+          28889,
+          18334,
+          28334
+        ],
+        "home": "/opt/pantheon-p0-20261109/base-s3-isolated-20261110t094123445997",
+        "binary": "/opt/pantheon-p0-20261109/velero-s3-seaweed-v1/weed",
+        "binarySHA256": "fa936e61bfb11f33c1f823045c4007e7da4b8b38bb6adc3b970f132d832e805b",
+        "originalPID": 112862,
+        "originalNRestarts": 0,
+        "exitCode": 0,
+        "temporaryPID": 169843,
+        "privateBinding": true,
+        "memoryMaxBytes": 167772160,
+        "diskMaxBytes": 268435456,
+        "initialFreeVolumes": 3,
+        "originalProviderUnchanged": true
+      }
+    },
+    "continue-base-s3-isolated-20261110T094146084019-test.json": {
+      "sha256": "77623240fa419c7a487e8228335a27a06888e666cc089964970c4114decf2af2",
+      "data": {
+        "result": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\continue-base-real-s3-isolated-20261110T094146420660\\result.json",
+        "exitCode": 0,
+        "host": "115.190.251.143",
+        "scope": "Base existing real S3 upload test",
+        "remoteInstallation": false,
+        "providerBucketMutation": false,
+        "testBucketPolicy": "existing test creates pantheon-upload-it-<UnixNano>, deletes exact object and bucket",
+        "officialConsumption": false,
+        "P0Closed": false,
+        "command": [
+          "go",
+          "test",
+          "-json",
+          "-mod=readonly",
+          "-race",
+          "-count=1",
+          "-timeout",
+          "90s",
+          "./pkg/upload",
+          "-run",
+          "^TestServiceStoreUsesRealS3WhenConfigured$"
+        ],
+        "CGO_ENABLED": "1",
+        "testPasses": 1,
+        "testFailures": 0,
+        "testSkips": 0,
+        "loopbackTunnel": true,
+        "credentialTelemetry": false,
+        "existingObjectAndBucketCleanupAssertionsPassed": true,
+        "sourceStable": true,
+        "elapsedSeconds": 5.656,
+        "localTunnelClosed": true,
+        "originalHelperSHA256": "2d3ffa2cab1c4fd5e4fe14b41747514e33185f88f23fecee2af1a25196e97bee",
+        "originalHelperUnchanged": true,
+        "temporaryProviderOnly": true
+      }
+    },
+    "continue-base-s3-isolated-20261110T094210604263-cleanup.json": {
+      "sha256": "31e50bb04d7077dcbddd44935b1eaf96c07074db78e14cabdde2a7197200e978",
+      "data": {
+        "exitCode": 0,
+        "temporaryProviderStopped": true,
+        "ownedDiskUnmounted": true,
+        "ownedDirectoryAbsent": true,
+        "temporaryPortsAbsent": true,
+        "originalProviderUnchanged": true
+      }
+    }
+  },
+  "P0Closed": false,
+  "officialConsumption": false
+}

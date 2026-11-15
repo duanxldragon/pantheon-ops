@@ -1,0 +1,23 @@
+{
+  "exitCode": 0,
+  "command": [
+    "D:\\Python\\Python312\\python.exe",
+    "-B",
+    "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\continue-velero-alias-v7-root.py",
+    "check-inputs",
+    "--request-sha256",
+    "6bba684f283d6eca328ffe3e66e46391db67ae8606b634941183ea5a99e83ecc"
+  ],
+  "requestSHA256": "6bba684f283d6eca328ffe3e66e46391db67ae8606b634941183ea5a99e83ecc",
+  "scriptHashes": {
+    ".local/ops-acceptance/continue-velero-alias-v7-contract.py": "c33a31f6d6af824a9fdff7560433a6f4a6a2e617ae4f93cc33fa12c7b9e5a2f5",
+    ".local/ops-acceptance/continue-velero-alias-v7-remote.py": "637368b547c41c0e11f234873998defe297435513aa2cccef17fddf1d82dfb71",
+    ".local/ops-acceptance/continue-velero-alias-v7-root.py": "a9ec79669b0ff5733842319a618415741bfa6b2ef30848d6762eac1936e347d3",
+    ".local/ops-acceptance/continue-velero-alias-v7-generate.py": "541c6ab85957a7b5b973a6e6ba30993cec46cf7f55cf8d38b6db6782b73aa870",
+    ".local/ops-acceptance/continue-velero-alias-v7-test.py": "da3cd46b5693b8dce507a064c693b5833a24513b7838d05f1b5699eb4fc4122a"
+  },
+  "protectedHistoricalAssets": 347,
+  "remoteBaselineFiles": 37,
+  "remoteExecuted": false,
+  "P0Approved": false
+}

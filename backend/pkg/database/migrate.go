@@ -110,11 +110,12 @@ func MigrationsHealthy(db *gorm.DB) bool {
 	if db == nil {
 		return false
 	}
-	var count int64
-	if err := db.Table(migrationsTableName).Count(&count).Error; err != nil {
+	sqlDB, err := db.DB()
+	if err != nil {
 		return false
 	}
-	return count > 0
+	_, dirty, recorded, err := recordedMigrationVersion(sqlDB)
+	return err == nil && recorded && !dirty
 }
 
 // RunMigrations executes all pending database migrations.
@@ -165,6 +166,16 @@ func bootstrapExistingCurrentSchema(dsn string) error {
 		return fmt.Errorf("ping mysql connection: %w", err)
 	}
 
+	// A failed migration is authoritative, regardless of schema markers or
+	// embedded versions. Only an operator may recover a recorded dirty state.
+	version, dirty, _, err := recordedMigrationVersion(db)
+	if err != nil {
+		return err
+	}
+	if dirty {
+		return migrate.ErrDirty{Version: version}
+	}
+
 	latestVersion, err := latestMigrationVersion()
 	if err != nil {
 		return err
@@ -206,10 +217,13 @@ func bootstrapMigrationVersion(db *sql.DB, targetVersion int) error {
 	if err != nil {
 		return err
 	}
-	if versionRecorded && !dirty && version == targetVersion {
+	if dirty {
+		return migrate.ErrDirty{Version: version}
+	}
+	if versionRecorded && version == targetVersion {
 		return nil
 	}
-	if versionRecorded && !dirty && version > targetVersion {
+	if versionRecorded && version > targetVersion {
 		return nil
 	}
 
@@ -217,10 +231,6 @@ func bootstrapMigrationVersion(db *sql.DB, targetVersion int) error {
 		return err
 	}
 
-	if versionRecorded && dirty {
-		slog.Info("database migrations: repaired dirty current schema migration state", "version", targetVersion)
-		return nil
-	}
 	if versionRecorded && version != targetVersion {
 		slog.Info("database migrations: aligned current schema migration state", "from", version, "to", targetVersion)
 		return nil
@@ -261,17 +271,33 @@ func recordedMigrationVersion(db *sql.DB) (int, bool, bool, error) {
 		return 0, false, false, nil
 	}
 
-	var version int
-	var dirty bool
-	err = db.QueryRow("SELECT version, dirty FROM `"+migrationsTableName+"` LIMIT 1").Scan(&version, &dirty)
-	switch {
-	case err == sql.ErrNoRows:
-		return 0, false, false, nil
-	case err != nil:
+	rows, err := db.Query("SELECT version, dirty FROM `" + migrationsTableName + "`")
+	if err != nil {
 		return 0, false, false, fmt.Errorf("query schema migrations row: %w", err)
-	default:
-		return version, dirty, true, nil
 	}
+	defer func() { _ = rows.Close() }()
+
+	var version, count int
+	for rows.Next() {
+		var dirty bool
+		if err := rows.Scan(&version, &dirty); err != nil {
+			return 0, false, false, fmt.Errorf("scan schema migrations row: %w", err)
+		}
+		if dirty {
+			return version, true, true, nil
+		}
+		if version < 0 {
+			return 0, false, false, fmt.Errorf("invalid clean migration version: %d", version)
+		}
+		count++
+	}
+	if err := rows.Err(); err != nil {
+		return 0, false, false, fmt.Errorf("read schema migrations rows: %w", err)
+	}
+	if count > 1 {
+		return 0, false, false, fmt.Errorf("expected one schema migrations row, found %d", count)
+	}
+	return version, false, count == 1, nil
 }
 
 func looksLikeCurrentRuntimeSchema(db *sql.DB) (bool, error) {

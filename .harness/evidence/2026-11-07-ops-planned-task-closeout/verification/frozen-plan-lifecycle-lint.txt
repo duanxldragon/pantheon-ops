@@ -1,0 +1,21 @@
+
+D:\workspace\go\pantheon-platform\pantheon-ops\frontend\src\modules\business\deploy\task\DeployTaskPreview.tsx
+  27:5  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+D:\workspace\go\pantheon-platform\pantheon-ops\frontend\src\modules\business\deploy\task\DeployTaskPreview.tsx:27:5
+  25 |   const requestKey = useRef(crypto.randomUUID());
+  26 |   useEffect(() => {
+> 27 |     setPreview(null);
+     |     ^^^^^^^^^^ Avoid calling setState() directly within an effect
+  28 |     setState('loading');
+  29 |     const controller = new AbortController();
+  30 |     let expiry: ReturnType<typeof setTimeout> | undefined;  react-hooks/set-state-in-effect
+
+✖ 1 problem (1 error, 0 warnings)
+

@@ -1,0 +1,25 @@
+{
+  "command": [
+    "go",
+    "test",
+    "-mod=readonly",
+    "-race",
+    "-p",
+    "2",
+    "-timeout",
+    "30m",
+    "./..."
+  ],
+  "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\backend",
+  "exitCode": 0,
+  "elapsedSeconds": 686.6879999999946,
+  "artifact": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/o2-ssh-command-final-full-race.txt",
+  "sourceHashesStable": true,
+  "hashedFiles": 695,
+  "CGO_ENABLED": "1",
+  "minGW": "D:/msys64/mingw64/bin",
+  "mysqlPort": 33316,
+  "redisPort": 26316,
+  "baselineMigrationDSNConfigured": true,
+  "validSharedPackageCachePermitted": true
+}

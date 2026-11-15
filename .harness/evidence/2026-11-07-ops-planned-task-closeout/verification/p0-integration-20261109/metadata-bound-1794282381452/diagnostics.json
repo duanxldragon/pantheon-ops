@@ -1,0 +1,100 @@
+{
+  "timestamp": "2026-11-10T03:55:37.290Z",
+  "syntaxChecks": [
+    {
+      "file": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\scripts\\business-overlay\\foundation-candidate.mjs",
+      "command": [
+        "D:\\nodejs\\node.exe",
+        "--check",
+        "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\scripts\\business-overlay\\foundation-candidate.mjs"
+      ],
+      "exitCode": 0,
+      "output": ""
+    },
+    {
+      "file": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\scripts\\business-overlay\\foundation-candidate.test.mjs",
+      "command": [
+        "D:\\nodejs\\node.exe",
+        "--check",
+        "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\scripts\\business-overlay\\foundation-candidate.test.mjs"
+      ],
+      "exitCode": 0,
+      "output": ""
+    },
+    {
+      "file": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\resume-o4-metadata-bound-evidence.mjs",
+      "command": [
+        "D:\\nodejs\\node.exe",
+        "--check",
+        "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\resume-o4-metadata-bound-evidence.mjs"
+      ],
+      "exitCode": 0,
+      "output": ""
+    },
+    {
+      "file": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\resume-o4-metadata-bound-red-hooks.mjs",
+      "command": [
+        "D:\\nodejs\\node.exe",
+        "--check",
+        "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\resume-o4-metadata-bound-red-hooks.mjs"
+      ],
+      "exitCode": 0,
+      "output": ""
+    },
+    {
+      "file": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\resume-o4-stable-source-producer-consumer.mjs",
+      "command": [
+        "D:\\nodejs\\node.exe",
+        "--check",
+        "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\resume-o4-stable-source-producer-consumer.mjs"
+      ],
+      "exitCode": 0,
+      "output": ""
+    },
+    {
+      "file": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\resume-o4-metadata-bound-diagnostics.mjs",
+      "command": [
+        "D:\\nodejs\\node.exe",
+        "--check",
+        "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\resume-o4-metadata-bound-diagnostics.mjs"
+      ],
+      "exitCode": 0,
+      "output": ""
+    }
+  ],
+  "typescript": "6.0.3",
+  "options": {
+    "allowJs": true,
+    "checkJs": false,
+    "noEmit": true,
+    "target": "ES2022",
+    "module": "NodeNext"
+  },
+  "fullStaticTypeSafetyClaimed": false,
+  "diagnostics": [
+    {
+      "file": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\scripts\\business-overlay\\foundation-candidate.mjs",
+      "entries": []
+    },
+    {
+      "file": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\scripts\\business-overlay\\foundation-candidate.test.mjs",
+      "entries": []
+    },
+    {
+      "file": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\resume-o4-metadata-bound-evidence.mjs",
+      "entries": []
+    },
+    {
+      "file": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\resume-o4-metadata-bound-red-hooks.mjs",
+      "entries": []
+    },
+    {
+      "file": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\resume-o4-stable-source-producer-consumer.mjs",
+      "entries": []
+    },
+    {
+      "file": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\resume-o4-metadata-bound-diagnostics.mjs",
+      "entries": []
+    }
+  ]
+}

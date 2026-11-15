@@ -1,0 +1,16 @@
+[
+  {
+    "command": "go vet -mod=readonly ./...",
+    "cwd": "backend",
+    "exitCode": 0,
+    "seconds": 2.14,
+    "artifact": ".harness\\evidence\\2026-11-07-ops-planned-task-closeout\\verification\\command-final-vet.txt"
+  },
+  {
+    "command": "go build -mod=readonly -o ../.tmp/ops-planned-cmdb-services/server-command-final.exe ./cmd/server",
+    "cwd": "backend",
+    "exitCode": 0,
+    "seconds": 4.96,
+    "artifact": ".harness\\evidence\\2026-11-07-ops-planned-task-closeout\\verification\\command-final-backend-build.txt"
+  }
+]

@@ -1,0 +1,23 @@
+=== RUN   TestFrozenRollbackPreservesDefinitionAndOwnReview
+    task_rollback_snapshot_test.go:55: business.deploy.task.rollbackNotSupported
+--- FAIL: TestFrozenRollbackPreservesDefinitionAndOwnReview (1.32s)
+=== RUN   TestFrozenRollbackRejectsScopeAndCancellationWithoutRows
+    task_rollback_snapshot_test.go:121: business.deploy.task.rollbackNotSupported
+--- FAIL: TestFrozenRollbackRejectsScopeAndCancellationWithoutRows (1.57s)
+=== RUN   TestFrozenRollbackRejectsUnsupportedAndUnreadablePlans
+=== RUN   TestFrozenRollbackRejectsUnsupportedAndUnreadablePlans/malformed
+=== RUN   TestFrozenRollbackRejectsUnsupportedAndUnreadablePlans/multiple
+=== RUN   TestFrozenRollbackRejectsUnsupportedAndUnreadablePlans/script
+=== RUN   TestFrozenRollbackRejectsUnsupportedAndUnreadablePlans/conditional
+=== RUN   TestFrozenRollbackRejectsUnsupportedAndUnreadablePlans/no-inverse
+=== RUN   TestFrozenRollbackRejectsUnsupportedAndUnreadablePlans/unreadable-secret
+--- PASS: TestFrozenRollbackRejectsUnsupportedAndUnreadablePlans (8.70s)
+    --- PASS: TestFrozenRollbackRejectsUnsupportedAndUnreadablePlans/malformed (1.23s)
+    --- PASS: TestFrozenRollbackRejectsUnsupportedAndUnreadablePlans/multiple (1.39s)
+    --- PASS: TestFrozenRollbackRejectsUnsupportedAndUnreadablePlans/script (1.58s)
+    --- PASS: TestFrozenRollbackRejectsUnsupportedAndUnreadablePlans/conditional (1.45s)
+    --- PASS: TestFrozenRollbackRejectsUnsupportedAndUnreadablePlans/no-inverse (1.51s)
+    --- PASS: TestFrozenRollbackRejectsUnsupportedAndUnreadablePlans/unreadable-secret (1.54s)
+FAIL
+FAIL	github.com/duanxldragon/pantheon-base/backend/modules/business/deploy	11.668s
+FAIL

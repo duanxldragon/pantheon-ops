@@ -1,0 +1,8 @@
+{
+  "command": "claude.exe -p --tools \"\" --output-format text < formal-focused-ops-review-prompt.md",
+  "exitCode": 1,
+  "status": "timeout",
+  "seconds": 420,
+  "characters": 40427,
+  "scope": "provided source only; tools disabled"
+}

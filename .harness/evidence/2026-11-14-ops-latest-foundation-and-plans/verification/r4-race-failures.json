@@ -1,0 +1,5 @@
+{
+  "privateArtifactSHA256": "bc30056ffac911c071844b72c999d1b7ec82cdcc9792218b18ca159750117d79",
+  "reason": "Disk-full package build/link failures; no test assertion failure",
+  "completeRacePassed": false
+}

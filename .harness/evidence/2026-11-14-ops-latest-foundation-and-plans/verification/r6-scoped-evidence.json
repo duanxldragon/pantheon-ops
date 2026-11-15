@@ -1,0 +1,7 @@
+{
+  "chunk_id": "ed1df3",
+  "wall_time_seconds": 0.3711048,
+  "exit_code": 0,
+  "original_token_count": 129,
+  "output": "{\n  \"mode\": \"strict\",\n  \"fileCount\": 2,\n  \"errorCount\": 0,\n  \"warningCount\": 0,\n  \"historicalErrorCount\": 0,\n  \"currentSchemaFrom\": \"2026-10-26\",\n  \"results\": [\n    {\n      \"file\": \".harness/evidence/2026-11-14-ops-latest-foundation-and-plans/commands.json\",\n      \"errors\": [],\n      \"warnings\": [],\n      \"historicalErrors\": []\n    },\n    {\n      \"file\": \".harness/evidence/2026-11-13-ops-business-menu-ia-refactor/commands.json\",\n      \"errors\": [],\n      \"warnings\": [],\n      \"historicalErrors\": []\n    }\n  ]\n}\n"
+}

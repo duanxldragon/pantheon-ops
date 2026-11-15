@@ -1,0 +1,2013 @@
+{
+  "host": "115.190.251.143",
+  "origin": "public current DeployService/default SSH on actual VM; independent SSH state and fresh OS child process",
+  "run": "593d9f0f9442",
+  "cases": [
+    {
+      "case": "success",
+      "identity": "o2-live-593d9f0f9442-success",
+      "database": "ops_p0_o2_live_593d9f0f9442_success",
+      "databaseRetention": "retained; no drop",
+      "events": [
+        {
+          "credentialId": 1,
+          "packageId": 1,
+          "phase": "task-created",
+          "taskId": 1
+        },
+        {
+          "case": "success",
+          "check": "referenced package definition cannot replace frozen intent",
+          "kind": "negative",
+          "passed": true
+        },
+        {
+          "case": "success",
+          "check": "reviewed real SSH start success",
+          "kind": "positive",
+          "passed": true
+        },
+        {
+          "case": "success",
+          "check": "independent VM marker verifies success",
+          "kind": "positive",
+          "passed": true
+        },
+        {
+          "case": "success",
+          "check": "public current checkpoint and recorded safe history",
+          "kind": "positive",
+          "passed": true
+        },
+        {
+          "case": "success",
+          "check": "public log sequence ownership attempts and secret exclusion",
+          "kind": "positive",
+          "passed": false
+        },
+        {
+          "case": "success",
+          "check": "both actual VM streams persisted",
+          "kind": "positive",
+          "passed": true
+        },
+        {
+          "case": "success",
+          "check": "log cursor excludes already delivered sequence",
+          "kind": "positive",
+          "passed": true
+        },
+        {
+          "case": "success",
+          "check": "public event sequence ordered across committed transitions",
+          "kind": "positive",
+          "passed": false
+        },
+        {
+          "case": "success",
+          "check": "event reconnect cursor no replay at latest sequence",
+          "kind": "positive",
+          "passed": true
+        },
+        {
+          "attempts": [],
+          "eventTypes": [
+            "task.started",
+            "step.running",
+            "step.success",
+            "task.completed"
+          ],
+          "finished": true,
+          "history": [
+            {
+              "id": 1,
+              "taskHostId": 1,
+              "stepKey": "package_default",
+              "stepOrder": 1,
+              "status": "success",
+              "attemptNo": 1,
+              "stateVersion": 3,
+              "startedAt": "2026-11-09T16:10:12.525+08:00",
+              "finishedAt": "2026-11-09T16:10:14.006+08:00",
+              "capturedAt": "2026-11-09T16:10:14.009+08:00"
+            }
+          ],
+          "logCount": 2,
+          "phase": "persisted-state",
+          "status": "success",
+          "steps": [
+            {
+              "id": 1,
+              "taskHostId": 1,
+              "stepKey": "package_default",
+              "stepOrder": 1,
+              "status": "success",
+              "attemptNo": 1,
+              "stateVersion": 3,
+              "startedAt": "2026-11-09T16:10:12.525+08:00",
+              "finishedAt": "2026-11-09T16:10:14.006+08:00"
+            }
+          ],
+          "taskId": 1
+        },
+        {
+          "case": "success",
+          "check": "public current checkpoint and recorded safe history",
+          "kind": "positive",
+          "origin": "fresh-process",
+          "passed": true
+        },
+        {
+          "case": "success",
+          "check": "public log sequence ownership attempts and secret exclusion",
+          "kind": "positive",
+          "origin": "fresh-process",
+          "passed": false
+        },
+        {
+          "case": "success",
+          "check": "both actual VM streams persisted",
+          "kind": "positive",
+          "origin": "fresh-process",
+          "passed": true
+        },
+        {
+          "case": "success",
+          "check": "log cursor excludes already delivered sequence",
+          "kind": "positive",
+          "origin": "fresh-process",
+          "passed": true
+        },
+        {
+          "case": "success",
+          "check": "public event sequence ordered across committed transitions",
+          "kind": "positive",
+          "origin": "fresh-process",
+          "passed": false
+        },
+        {
+          "case": "success",
+          "check": "event reconnect cursor no replay at latest sequence",
+          "kind": "positive",
+          "origin": "fresh-process",
+          "passed": true
+        },
+        {
+          "attempts": [],
+          "eventTypes": [
+            "task.started",
+            "step.running",
+            "step.success",
+            "task.completed"
+          ],
+          "finished": true,
+          "history": [
+            {
+              "attemptNo": 1,
+              "capturedAt": "2026-11-09T16:10:14.009+08:00",
+              "finishedAt": "2026-11-09T16:10:14.006+08:00",
+              "id": 1,
+              "startedAt": "2026-11-09T16:10:12.525+08:00",
+              "stateVersion": 3,
+              "status": "success",
+              "stepKey": "package_default",
+              "stepOrder": 1,
+              "taskHostId": 1
+            }
+          ],
+          "logCount": 2,
+          "origin": "fresh-process",
+          "phase": "persisted-state",
+          "status": "success",
+          "steps": [
+            {
+              "attemptNo": 1,
+              "finishedAt": "2026-11-09T16:10:14.006+08:00",
+              "id": 1,
+              "startedAt": "2026-11-09T16:10:12.525+08:00",
+              "stateVersion": 3,
+              "status": "success",
+              "stepKey": "package_default",
+              "stepOrder": 1,
+              "taskHostId": 1
+            }
+          ],
+          "taskId": 1
+        },
+        {
+          "case": "success",
+          "failed": 2,
+          "negativePassed": 0,
+          "origin": "fresh-process",
+          "phase": "driver-result",
+          "positivePassed": 4
+        },
+        {
+          "case": "success",
+          "check": "new OS process inspect uses committed task state",
+          "kind": "positive",
+          "passed": false
+        },
+        {
+          "action": "pause",
+          "errorKey": "business.deploy.task.commandVersionRequired",
+          "phase": "control",
+          "taskId": 1
+        },
+        {
+          "case": "success",
+          "check": "missing state version denied",
+          "kind": "negative",
+          "passed": true
+        },
+        {
+          "action": "cancel",
+          "errorKey": "business.deploy.task.forbidden",
+          "phase": "control",
+          "taskId": 1
+        },
+        {
+          "case": "success",
+          "check": "scope denial precedes malformed command",
+          "kind": "negative",
+          "passed": true
+        },
+        {
+          "case": "success",
+          "check": "public logs deny scope before invalid cursor",
+          "kind": "negative",
+          "passed": true
+        },
+        {
+          "case": "success",
+          "check": "public events deny scope before invalid cursor",
+          "kind": "negative",
+          "passed": true
+        },
+        {
+          "action": "pause",
+          "errorKey": "business.deploy.task.invalidPauseState",
+          "phase": "control",
+          "taskId": 1
+        },
+        {
+          "case": "success",
+          "check": "terminal success rejects pause",
+          "kind": "negative",
+          "passed": true
+        },
+        {
+          "action": "resume",
+          "errorKey": "business.deploy.task.invalidResumeState",
+          "phase": "control",
+          "taskId": 1
+        },
+        {
+          "case": "success",
+          "check": "terminal success rejects resume",
+          "kind": "negative",
+          "passed": true
+        },
+        {
+          "action": "retry",
+          "errorKey": "business.deploy.task.invalidRetryState",
+          "phase": "control",
+          "taskId": 1
+        },
+        {
+          "case": "success",
+          "check": "terminal success rejects retry",
+          "kind": "negative",
+          "passed": true
+        },
+        {
+          "action": "cancel",
+          "errorKey": "business.deploy.task.invalidCancelState",
+          "phase": "control",
+          "taskId": 1
+        },
+        {
+          "case": "success",
+          "check": "terminal success rejects cancel",
+          "kind": "negative",
+          "passed": true
+        },
+        {
+          "case": "success",
+          "check": "frozen public rollback succeeds",
+          "kind": "positive",
+          "passed": true
+        },
+        {
+          "case": "success",
+          "check": "independent VM rollback removed marker",
+          "kind": "positive",
+          "passed": true
+        },
+        {
+          "case": "success",
+          "check": "public current checkpoint and recorded safe history",
+          "kind": "positive",
+          "origin": "fresh-process",
+          "passed": true
+        },
+        {
+          "case": "success",
+          "check": "public log sequence ownership attempts and secret exclusion",
+          "kind": "positive",
+          "origin": "fresh-process",
+          "passed": false
+        },
+        {
+          "case": "success",
+          "check": "both actual VM streams persisted",
+          "kind": "positive",
+          "origin": "fresh-process",
+          "passed": true
+        },
+        {
+          "case": "success",
+          "check": "log cursor excludes already delivered sequence",
+          "kind": "positive",
+          "origin": "fresh-process",
+          "passed": true
+        },
+        {
+          "case": "success",
+          "check": "public event sequence ordered across committed transitions",
+          "kind": "positive",
+          "origin": "fresh-process",
+          "passed": false
+        },
+        {
+          "case": "success",
+          "check": "event reconnect cursor no replay at latest sequence",
+          "kind": "positive",
+          "origin": "fresh-process",
+          "passed": true
+        },
+        {
+          "attempts": [],
+          "eventTypes": [
+            "task.started",
+            "step.running",
+            "step.success",
+            "task.completed"
+          ],
+          "finished": true,
+          "history": [
+            {
+              "attemptNo": 1,
+              "capturedAt": "2026-11-09T16:10:23.331+08:00",
+              "finishedAt": "2026-11-09T16:10:23.328+08:00",
+              "id": 2,
+              "startedAt": "2026-11-09T16:10:22.082+08:00",
+              "stateVersion": 3,
+              "status": "success",
+              "stepKey": "package_default",
+              "stepOrder": 1,
+              "taskHostId": 2
+            }
+          ],
+          "logCount": 2,
+          "origin": "fresh-process",
+          "phase": "persisted-state",
+          "status": "success",
+          "steps": [
+            {
+              "attemptNo": 1,
+              "finishedAt": "2026-11-09T16:10:23.328+08:00",
+              "id": 2,
+              "startedAt": "2026-11-09T16:10:22.082+08:00",
+              "stateVersion": 3,
+              "status": "success",
+              "stepKey": "package_default",
+              "stepOrder": 1,
+              "taskHostId": 2
+            }
+          ],
+          "taskId": 2
+        },
+        {
+          "case": "success",
+          "failed": 2,
+          "negativePassed": 0,
+          "origin": "fresh-process",
+          "phase": "driver-result",
+          "positivePassed": 4
+        },
+        {
+          "case": "success",
+          "check": "new OS process inspect uses committed task state",
+          "kind": "positive",
+          "passed": false
+        },
+        {
+          "case": "success",
+          "failed": 4,
+          "negativePassed": 9,
+          "phase": "driver-result",
+          "positivePassed": 8
+        }
+      ],
+      "driverExitCode": 1,
+      "stderrPresent": false,
+      "status": "failed",
+      "cleanup": {
+        "phase": "exact-owned-cleanup",
+        "directory": "/opt/pantheon-p0-20261109/o2-live-593d9f0f9442-success",
+        "files": [
+          {
+            "file": ".owner",
+            "sha256": "44563a70f1c8d0c4886bf39eb244bae26d75ba6294faa24392ed300ea78e0be1",
+            "bytes": 28
+          }
+        ],
+        "absent": true,
+        "processKill": false
+      }
+    },
+    {
+      "case": "failure-retry",
+      "identity": "o2-live-593d9f0f9442-failure-retry",
+      "database": "ops_p0_o2_live_593d9f0f9442_failure_retry",
+      "databaseRetention": "retained; no drop",
+      "events": [
+        {
+          "credentialId": 1,
+          "packageId": 1,
+          "phase": "task-created",
+          "taskId": 1
+        },
+        {
+          "case": "failure-retry",
+          "check": "actual remote exit 17 makes task failed",
+          "kind": "negative",
+          "passed": true
+        },
+        {
+          "case": "failure-retry",
+          "check": "public current checkpoint and recorded safe history",
+          "kind": "positive",
+          "passed": true
+        },
+        {
+          "case": "failure-retry",
+          "check": "public log sequence ownership attempts and secret exclusion",
+          "kind": "positive",
+          "passed": false
+        },
+        {
+          "case": "failure-retry",
+          "check": "both actual VM streams persisted",
+          "kind": "positive",
+          "passed": true
+        },
+        {
+          "case": "failure-retry",
+          "check": "log cursor excludes already delivered sequence",
+          "kind": "positive",
+          "passed": true
+        },
+        {
+          "case": "failure-retry",
+          "check": "public event sequence ordered across committed transitions",
+          "kind": "positive",
+          "passed": false
+        },
+        {
+          "case": "failure-retry",
+          "check": "event reconnect cursor no replay at latest sequence",
+          "kind": "positive",
+          "passed": true
+        },
+        {
+          "attempts": [],
+          "eventTypes": [
+            "task.started",
+            "step.running",
+            "step.failed",
+            "task.completed"
+          ],
+          "finished": true,
+          "history": [
+            {
+              "id": 1,
+              "taskHostId": 1,
+              "stepKey": "package_default",
+              "stepOrder": 1,
+              "status": "failed",
+              "attemptNo": 1,
+              "stateVersion": 3,
+              "startedAt": "2026-11-09T16:10:47.35+08:00",
+              "finishedAt": "2026-11-09T16:10:48.994+08:00",
+              "capturedAt": "2026-11-09T16:10:48.997+08:00"
+            }
+          ],
+          "logCount": 2,
+          "phase": "persisted-state",
+          "status": "failed",
+          "steps": [
+            {
+              "id": 1,
+              "taskHostId": 1,
+              "stepKey": "package_default",
+              "stepOrder": 1,
+              "status": "failed",
+              "attemptNo": 1,
+              "stateVersion": 3,
+              "startedAt": "2026-11-09T16:10:47.35+08:00",
+              "finishedAt": "2026-11-09T16:10:48.994+08:00"
+            }
+          ],
+          "taskId": 1
+        },
+        {
+          "case": "failure-retry",
+          "check": "public current checkpoint and recorded safe history",
+          "kind": "positive",
+          "origin": "fresh-process",
+          "passed": true
+        },
+        {
+          "case": "failure-retry",
+          "check": "public log sequence ownership attempts and secret exclusion",
+          "kind": "positive",
+          "origin": "fresh-process",
+          "passed": false
+        },
+        {
+          "case": "failure-retry",
+          "check": "both actual VM streams persisted",
+          "kind": "positive",
+          "origin": "fresh-process",
+          "passed": true
+        },
+        {
+          "case": "failure-retry",
+          "check": "log cursor excludes already delivered sequence",
+          "kind": "positive",
+          "origin": "fresh-process",
+          "passed": true
+        },
+        {
+          "case": "failure-retry",
+          "check": "public event sequence ordered across committed transitions",
+          "kind": "positive",
+          "origin": "fresh-process",
+          "passed": false
+        },
+        {
+          "case": "failure-retry",
+          "check": "event reconnect cursor no replay at latest sequence",
+          "kind": "positive",
+          "origin": "fresh-process",
+          "passed": true
+        },
+        {
+          "attempts": [],
+          "eventTypes": [
+            "task.started",
+            "step.running",
+            "step.failed",
+            "task.completed"
+          ],
+          "finished": true,
+          "history": [
+            {
+              "attemptNo": 1,
+              "capturedAt": "2026-11-09T16:10:48.997+08:00",
+              "finishedAt": "2026-11-09T16:10:48.994+08:00",
+              "id": 1,
+              "startedAt": "2026-11-09T16:10:47.35+08:00",
+              "stateVersion": 3,
+              "status": "failed",
+              "stepKey": "package_default",
+              "stepOrder": 1,
+              "taskHostId": 1
+            }
+          ],
+          "logCount": 2,
+          "origin": "fresh-process",
+          "phase": "persisted-state",
+          "status": "failed",
+          "steps": [
+            {
+              "attemptNo": 1,
+              "finishedAt": "2026-11-09T16:10:48.994+08:00",
+              "id": 1,
+              "startedAt": "2026-11-09T16:10:47.35+08:00",
+              "stateVersion": 3,
+              "status": "failed",
+              "stepKey": "package_default",
+              "stepOrder": 1,
+              "taskHostId": 1
+            }
+          ],
+          "taskId": 1
+        },
+        {
+          "case": "failure-retry",
+          "failed": 2,
+          "negativePassed": 0,
+          "origin": "fresh-process",
+          "phase": "driver-result",
+          "positivePassed": 4
+        },
+        {
+          "case": "failure-retry",
+          "check": "new OS process inspect uses committed task state",
+          "kind": "positive",
+          "passed": false
+        },
+        {
+          "case": "failure-retry",
+          "check": "failed partial install inverse obeys host state policy",
+          "kind": "negative",
+          "passed": true
+        },
+        {
+          "action": "retry",
+          "errorKey": "",
+          "phase": "control",
+          "taskId": 1
+        },
+        {
+          "errorKey": "suppressed",
+          "phase": "operation-error"
+        },
+        {
+          "error": "operation or deadline; secret details suppressed",
+          "phase": "driver-failure"
+        },
+        {
+          "case": "failure-retry",
+          "failed": 4,
+          "negativePassed": 2,
+          "phase": "driver-result",
+          "positivePassed": 4
+        }
+      ],
+      "driverExitCode": 1,
+      "stderrPresent": false,
+      "status": "failed",
+      "cleanup": {
+        "phase": "exact-owned-cleanup",
+        "directory": "/opt/pantheon-p0-20261109/o2-live-593d9f0f9442-failure-retry",
+        "files": [
+          {
+            "file": "gate",
+            "sha256": "40ac83b988f7194a6fd90f47ea610ac8a6e0861a61503f77d4200381c80dd95d",
+            "bytes": 34
+          },
+          {
+            "file": ".owner",
+            "sha256": "40ac83b988f7194a6fd90f47ea610ac8a6e0861a61503f77d4200381c80dd95d",
+            "bytes": 34
+          },
+          {
+            "file": "done",
+            "sha256": "40ac83b988f7194a6fd90f47ea610ac8a6e0861a61503f77d4200381c80dd95d",
+            "bytes": 34
+          }
+        ],
+        "absent": true,
+        "processKill": false
+      }
+    },
+    {
+      "case": "pause-resume",
+      "identity": "o2-live-593d9f0f9442-pause-resume",
+      "database": "ops_p0_o2_live_593d9f0f9442_pause_resume",
+      "databaseRetention": "retained; no drop",
+      "events": [
+        {
+          "credentialId": 1,
+          "packageId": 1,
+          "phase": "task-created",
+          "taskId": 1
+        },
+        {
+          "action": "pause",
+          "errorKey": "",
+          "phase": "control",
+          "taskId": 1
+        },
+        {
+          "case": "pause-resume",
+          "check": "real running command acknowledged paused",
+          "kind": "positive",
+          "passed": true
+        },
+        {
+          "action": "cancel",
+          "errorKey": "business.deploy.task.commandConflict",
+          "phase": "control",
+          "taskId": 1
+        },
+        {
+          "case": "pause-resume",
+          "check": "stale running view conflicts after control",
+          "kind": "negative",
+          "passed": true
+        },
+        {
+          "case": "pause-resume",
+          "check": "independent VM interrupted attempt never wrote completion",
+          "kind": "positive",
+          "passed": true
+        },
+        {
+          "case": "pause-resume",
+          "check": "public current checkpoint and recorded safe history",
+          "kind": "positive",
+          "origin": "fresh-process",
+          "passed": true
+        },
+        {
+          "case": "pause-resume",
+          "check": "public log sequence ownership attempts and secret exclusion",
+          "kind": "positive",
+          "origin": "fresh-process",
+          "passed": false
+        },
+        {
+          "case": "pause-resume",
+          "check": "both actual VM streams persisted",
+          "kind": "positive",
+          "origin": "fresh-process",
+          "passed": true
+        },
+        {
+          "case": "pause-resume",
+          "check": "log cursor excludes already delivered sequence",
+          "kind": "positive",
+          "origin": "fresh-process",
+          "passed": true
+        },
+        {
+          "case": "pause-resume",
+          "check": "public event sequence ordered across committed transitions",
+          "kind": "positive",
+          "origin": "fresh-process",
+          "passed": false
+        },
+        {
+          "case": "pause-resume",
+          "check": "event reconnect cursor no replay at latest sequence",
+          "kind": "positive",
+          "origin": "fresh-process",
+          "passed": true
+        },
+        {
+          "attempts": [
+            {
+              "attemptNo": 1,
+              "leaseReleased": true,
+              "status": "paused"
+            }
+          ],
+          "eventTypes": [
+            "task.started",
+            "step.running",
+            "task.pause_requested",
+            "task.paused"
+          ],
+          "finished": false,
+          "history": [
+            {
+              "attemptNo": 1,
+              "capturedAt": "2026-11-09T16:11:26.64+08:00",
+              "finishedAt": null,
+              "id": 1,
+              "startedAt": "2026-11-09T16:11:21.036+08:00",
+              "stateVersion": 3,
+              "status": "pending",
+              "stepKey": "package_default",
+              "stepOrder": 1,
+              "taskHostId": 1
+            }
+          ],
+          "logCount": 2,
+          "origin": "fresh-process",
+          "phase": "persisted-state",
+          "status": "paused",
+          "steps": [
+            {
+              "attemptNo": 1,
+              "finishedAt": null,
+              "id": 1,
+              "startedAt": "2026-11-09T16:11:21.036+08:00",
+              "stateVersion": 3,
+              "status": "pending",
+              "stepKey": "package_default",
+              "stepOrder": 1,
+              "taskHostId": 1
+            }
+          ],
+          "taskId": 1
+        },
+        {
+          "case": "pause-resume",
+          "failed": 2,
+          "negativePassed": 0,
+          "origin": "fresh-process",
+          "phase": "driver-result",
+          "positivePassed": 4
+        },
+        {
+          "case": "pause-resume",
+          "check": "new OS process inspect uses committed task state",
+          "kind": "positive",
+          "passed": false
+        },
+        {
+          "action": "resume",
+          "errorKey": "",
+          "origin": "fresh-process",
+          "phase": "control",
+          "taskId": 1
+        },
+        {
+          "case": "pause-resume",
+          "check": "public current checkpoint and recorded safe history",
+          "kind": "positive",
+          "origin": "fresh-process",
+          "passed": true
+        },
+        {
+          "case": "pause-resume",
+          "check": "public log sequence ownership attempts and secret exclusion",
+          "kind": "positive",
+          "origin": "fresh-process",
+          "passed": false
+        },
+        {
+          "case": "pause-resume",
+          "check": "both actual VM streams persisted",
+          "kind": "positive",
+          "origin": "fresh-process",
+          "passed": true
+        },
+        {
+          "case": "pause-resume",
+          "check": "log cursor excludes already delivered sequence",
+          "kind": "positive",
+          "origin": "fresh-process",
+          "passed": true
+        },
+        {
+          "case": "pause-resume",
+          "check": "public event sequence ordered across committed transitions",
+          "kind": "positive",
+          "origin": "fresh-process",
+          "passed": false
+        },
+        {
+          "case": "pause-resume",
+          "check": "event reconnect cursor no replay at latest sequence",
+          "kind": "positive",
+          "origin": "fresh-process",
+          "passed": true
+        },
+        {
+          "attempts": [
+            {
+              "attemptNo": 1,
+              "leaseReleased": true,
+              "status": "paused"
+            },
+            {
+              "attemptNo": 2,
+              "leaseReleased": true,
+              "status": "success"
+            }
+          ],
+          "eventTypes": [
+            "task.started",
+            "step.running",
+            "task.pause_requested",
+            "task.paused",
+            "task.resumed",
+            "step.running",
+            "step.success",
+            "task.completed"
+          ],
+          "finished": true,
+          "history": [
+            {
+              "attemptNo": 2,
+              "capturedAt": "2026-11-09T16:11:48.951+08:00",
+              "finishedAt": "2026-11-09T16:11:48.949+08:00",
+              "id": 1,
+              "startedAt": "2026-11-09T16:11:47.767+08:00",
+              "stateVersion": 5,
+              "status": "success",
+              "stepKey": "package_default",
+              "stepOrder": 1,
+              "taskHostId": 1
+            },
+            {
+              "attemptNo": 1,
+              "capturedAt": "2026-11-09T16:11:26.64+08:00",
+              "finishedAt": null,
+              "id": 1,
+              "startedAt": "2026-11-09T16:11:21.036+08:00",
+              "stateVersion": 3,
+              "status": "pending",
+              "stepKey": "package_default",
+              "stepOrder": 1,
+              "taskHostId": 1
+            }
+          ],
+          "logCount": 4,
+          "origin": "fresh-process",
+          "phase": "persisted-state",
+          "status": "success",
+          "steps": [
+            {
+              "attemptNo": 2,
+              "finishedAt": "2026-11-09T16:11:48.949+08:00",
+              "id": 1,
+              "startedAt": "2026-11-09T16:11:47.767+08:00",
+              "stateVersion": 5,
+              "status": "success",
+              "stepKey": "package_default",
+              "stepOrder": 1,
+              "taskHostId": 1
+            }
+          ],
+          "taskId": 1
+        },
+        {
+          "case": "pause-resume",
+          "failed": 2,
+          "negativePassed": 0,
+          "origin": "fresh-process",
+          "phase": "driver-result",
+          "positivePassed": 4
+        },
+        {
+          "case": "pause-resume",
+          "check": "new OS process resume uses committed task state",
+          "kind": "positive",
+          "passed": false
+        },
+        {
+          "case": "pause-resume",
+          "check": "fresh process resumed actual VM completion",
+          "kind": "positive",
+          "passed": true
+        },
+        {
+          "case": "pause-resume",
+          "failed": 2,
+          "negativePassed": 1,
+          "phase": "driver-result",
+          "positivePassed": 3
+        }
+      ],
+      "driverExitCode": 1,
+      "stderrPresent": false,
+      "status": "failed",
+      "cleanup": {
+        "phase": "exact-owned-cleanup",
+        "directory": "/opt/pantheon-p0-20261109/o2-live-593d9f0f9442-pause-resume",
+        "files": [
+          {
+            "file": "gate",
+            "sha256": "af08106097647c5c17dfd15cf6ebd1a27bb5647819a05d643de1235f00d85f7b",
+            "bytes": 33
+          },
+          {
+            "file": ".owner",
+            "sha256": "af08106097647c5c17dfd15cf6ebd1a27bb5647819a05d643de1235f00d85f7b",
+            "bytes": 33
+          },
+          {
+            "file": "done",
+            "sha256": "af08106097647c5c17dfd15cf6ebd1a27bb5647819a05d643de1235f00d85f7b",
+            "bytes": 33
+          },
+          {
+            "file": "started",
+            "sha256": "af08106097647c5c17dfd15cf6ebd1a27bb5647819a05d643de1235f00d85f7b",
+            "bytes": 33
+          }
+        ],
+        "absent": true,
+        "processKill": false
+      }
+    },
+    {
+      "case": "cancel",
+      "identity": "o2-live-593d9f0f9442-cancel",
+      "database": "ops_p0_o2_live_593d9f0f9442_cancel",
+      "databaseRetention": "retained; no drop",
+      "events": [
+        {
+          "credentialId": 1,
+          "packageId": 1,
+          "phase": "task-created",
+          "taskId": 1
+        },
+        {
+          "action": "cancel",
+          "errorKey": "",
+          "phase": "control",
+          "taskId": 1
+        },
+        {
+          "case": "cancel",
+          "check": "real running command acknowledged canceled",
+          "kind": "positive",
+          "passed": true
+        },
+        {
+          "action": "cancel",
+          "errorKey": "business.deploy.task.commandConflict",
+          "phase": "control",
+          "taskId": 1
+        },
+        {
+          "case": "cancel",
+          "check": "stale running view conflicts after control",
+          "kind": "negative",
+          "passed": true
+        },
+        {
+          "errorKey": "suppressed",
+          "phase": "operation-error"
+        },
+        {
+          "error": "operation or deadline; secret details suppressed",
+          "phase": "driver-failure"
+        },
+        {
+          "case": "cancel",
+          "failed": 1,
+          "negativePassed": 1,
+          "phase": "driver-result",
+          "positivePassed": 1
+        }
+      ],
+      "driverExitCode": 1,
+      "stderrPresent": false,
+      "status": "failed",
+      "cleanup": {
+        "phase": "exact-owned-cleanup",
+        "directory": "/opt/pantheon-p0-20261109/o2-live-593d9f0f9442-cancel",
+        "files": [
+          {
+            "file": ".owner",
+            "sha256": "82cf6265ce1d83298f6ec2895105f84f243136b3b7fed30a38f033a908f66fc2",
+            "bytes": 27
+          },
+          {
+            "file": "started",
+            "sha256": "82cf6265ce1d83298f6ec2895105f84f243136b3b7fed30a38f033a908f66fc2",
+            "bytes": 27
+          }
+        ],
+        "absent": true,
+        "processKill": false
+      }
+    },
+    {
+      "case": "concurrent",
+      "identity": "o2-live-593d9f0f9442-concurrent",
+      "database": "ops_p0_o2_live_593d9f0f9442_concurrent",
+      "databaseRetention": "retained; no drop",
+      "events": [
+        {
+          "credentialId": 1,
+          "packageId": 1,
+          "phase": "task-created",
+          "taskId": 1
+        },
+        {
+          "case": "concurrent",
+          "check": "concurrent viewed commands exactly one commit one conflict",
+          "kind": "positive",
+          "passed": true
+        },
+        {
+          "case": "concurrent",
+          "check": "real running command acknowledged paused",
+          "kind": "positive",
+          "passed": true
+        },
+        {
+          "action": "cancel",
+          "errorKey": "business.deploy.task.commandConflict",
+          "phase": "control",
+          "taskId": 1
+        },
+        {
+          "case": "concurrent",
+          "check": "stale running view conflicts after control",
+          "kind": "negative",
+          "passed": true
+        },
+        {
+          "case": "concurrent",
+          "check": "independent VM interrupted attempt never wrote completion",
+          "kind": "positive",
+          "passed": true
+        },
+        {
+          "case": "concurrent",
+          "check": "public current checkpoint and recorded safe history",
+          "kind": "positive",
+          "origin": "fresh-process",
+          "passed": true
+        },
+        {
+          "case": "concurrent",
+          "check": "public log sequence ownership attempts and secret exclusion",
+          "kind": "positive",
+          "origin": "fresh-process",
+          "passed": false
+        },
+        {
+          "case": "concurrent",
+          "check": "both actual VM streams persisted",
+          "kind": "positive",
+          "origin": "fresh-process",
+          "passed": true
+        },
+        {
+          "case": "concurrent",
+          "check": "log cursor excludes already delivered sequence",
+          "kind": "positive",
+          "origin": "fresh-process",
+          "passed": true
+        },
+        {
+          "case": "concurrent",
+          "check": "public event sequence ordered across committed transitions",
+          "kind": "positive",
+          "origin": "fresh-process",
+          "passed": false
+        },
+        {
+          "case": "concurrent",
+          "check": "event reconnect cursor no replay at latest sequence",
+          "kind": "positive",
+          "origin": "fresh-process",
+          "passed": true
+        },
+        {
+          "attempts": [
+            {
+              "attemptNo": 1,
+              "leaseReleased": true,
+              "status": "paused"
+            }
+          ],
+          "eventTypes": [
+            "task.started",
+            "step.running",
+            "task.pause_requested",
+            "task.paused"
+          ],
+          "finished": false,
+          "history": [
+            {
+              "attemptNo": 1,
+              "capturedAt": "2026-11-09T16:12:45.579+08:00",
+              "finishedAt": null,
+              "id": 1,
+              "startedAt": "2026-11-09T16:12:43.189+08:00",
+              "stateVersion": 3,
+              "status": "pending",
+              "stepKey": "package_default",
+              "stepOrder": 1,
+              "taskHostId": 1
+            }
+          ],
+          "logCount": 2,
+          "origin": "fresh-process",
+          "phase": "persisted-state",
+          "status": "paused",
+          "steps": [
+            {
+              "attemptNo": 1,
+              "finishedAt": null,
+              "id": 1,
+              "startedAt": "2026-11-09T16:12:43.189+08:00",
+              "stateVersion": 3,
+              "status": "pending",
+              "stepKey": "package_default",
+              "stepOrder": 1,
+              "taskHostId": 1
+            }
+          ],
+          "taskId": 1
+        },
+        {
+          "case": "concurrent",
+          "failed": 2,
+          "negativePassed": 0,
+          "origin": "fresh-process",
+          "phase": "driver-result",
+          "positivePassed": 4
+        },
+        {
+          "case": "concurrent",
+          "check": "new OS process inspect uses committed task state",
+          "kind": "positive",
+          "passed": false
+        },
+        {
+          "case": "concurrent",
+          "failed": 1,
+          "negativePassed": 1,
+          "phase": "driver-result",
+          "positivePassed": 3
+        }
+      ],
+      "driverExitCode": 1,
+      "stderrPresent": false,
+      "status": "failed",
+      "cleanup": {
+        "phase": "exact-owned-cleanup",
+        "directory": "/opt/pantheon-p0-20261109/o2-live-593d9f0f9442-concurrent",
+        "files": [
+          {
+            "file": ".owner",
+            "sha256": "45f89b1c0b68afaf32124b5b0199d8dcf2d73e2339833cd41f66a23c31dcda48",
+            "bytes": 31
+          },
+          {
+            "file": "started",
+            "sha256": "45f89b1c0b68afaf32124b5b0199d8dcf2d73e2339833cd41f66a23c31dcda48",
+            "bytes": 31
+          }
+        ],
+        "absent": true,
+        "processKill": false
+      }
+    },
+    {
+      "case": "revoke-credential",
+      "identity": "o2-live-593d9f0f9442-revoke-credential",
+      "database": "ops_p0_o2_live_593d9f0f9442_revoke_credential",
+      "databaseRetention": "retained; no drop",
+      "events": [
+        {
+          "credentialId": 1,
+          "packageId": 1,
+          "phase": "task-created",
+          "taskId": 1
+        },
+        {
+          "errorKey": "suppressed",
+          "phase": "operation-error"
+        },
+        {
+          "error": "operation or deadline; secret details suppressed",
+          "phase": "driver-failure"
+        },
+        {
+          "case": "revoke-credential",
+          "failed": 1,
+          "negativePassed": 0,
+          "phase": "driver-result",
+          "positivePassed": 0
+        }
+      ],
+      "driverExitCode": 1,
+      "stderrPresent": false,
+      "status": "failed",
+      "cleanup": {
+        "phase": "exact-owned-cleanup",
+        "directory": "/opt/pantheon-p0-20261109/o2-live-593d9f0f9442-revoke-credential",
+        "files": [
+          {
+            "file": ".owner",
+            "sha256": "aa4ba2bbedb1b99f72a75900beb3f17f1ddb97a53fd1c9d49b4cd5db64b5a951",
+            "bytes": 38
+          }
+        ],
+        "absent": true,
+        "processKill": false
+      }
+    },
+    {
+      "case": "revoke-rotation",
+      "identity": "o2-live-593d9f0f9442-revoke-rotation",
+      "database": "ops_p0_o2_live_593d9f0f9442_revoke_rotation",
+      "databaseRetention": "retained; no drop",
+      "events": [
+        {
+          "credentialId": 1,
+          "packageId": 1,
+          "phase": "task-created",
+          "taskId": 1
+        },
+        {
+          "action": "pause",
+          "errorKey": "",
+          "phase": "control",
+          "taskId": 1
+        },
+        {
+          "case": "revoke-rotation",
+          "check": "real running command acknowledged paused",
+          "kind": "positive",
+          "passed": true
+        },
+        {
+          "action": "cancel",
+          "errorKey": "business.deploy.task.commandConflict",
+          "phase": "control",
+          "taskId": 1
+        },
+        {
+          "case": "revoke-rotation",
+          "check": "stale running view conflicts after control",
+          "kind": "negative",
+          "passed": true
+        },
+        {
+          "case": "revoke-rotation",
+          "check": "independent VM interrupted attempt never wrote completion",
+          "kind": "positive",
+          "passed": true
+        },
+        {
+          "case": "revoke-rotation",
+          "check": "public current checkpoint and recorded safe history",
+          "kind": "positive",
+          "origin": "fresh-process",
+          "passed": true
+        },
+        {
+          "case": "revoke-rotation",
+          "check": "public log sequence ownership attempts and secret exclusion",
+          "kind": "positive",
+          "origin": "fresh-process",
+          "passed": false
+        },
+        {
+          "case": "revoke-rotation",
+          "check": "both actual VM streams persisted",
+          "kind": "positive",
+          "origin": "fresh-process",
+          "passed": true
+        },
+        {
+          "case": "revoke-rotation",
+          "check": "log cursor excludes already delivered sequence",
+          "kind": "positive",
+          "origin": "fresh-process",
+          "passed": true
+        },
+        {
+          "case": "revoke-rotation",
+          "check": "public event sequence ordered across committed transitions",
+          "kind": "positive",
+          "origin": "fresh-process",
+          "passed": false
+        },
+        {
+          "case": "revoke-rotation",
+          "check": "event reconnect cursor no replay at latest sequence",
+          "kind": "positive",
+          "origin": "fresh-process",
+          "passed": true
+        },
+        {
+          "attempts": [
+            {
+              "attemptNo": 1,
+              "leaseReleased": true,
+              "status": "paused"
+            }
+          ],
+          "eventTypes": [
+            "task.started",
+            "step.running",
+            "task.pause_requested",
+            "task.paused"
+          ],
+          "finished": false,
+          "history": [
+            {
+              "attemptNo": 1,
+              "capturedAt": "2026-11-09T16:13:41.297+08:00",
+              "finishedAt": null,
+              "id": 1,
+              "startedAt": "2026-11-09T16:13:38.254+08:00",
+              "stateVersion": 3,
+              "status": "pending",
+              "stepKey": "package_default",
+              "stepOrder": 1,
+              "taskHostId": 1
+            }
+          ],
+          "logCount": 2,
+          "origin": "fresh-process",
+          "phase": "persisted-state",
+          "status": "paused",
+          "steps": [
+            {
+              "attemptNo": 1,
+              "finishedAt": null,
+              "id": 1,
+              "startedAt": "2026-11-09T16:13:38.254+08:00",
+              "stateVersion": 3,
+              "status": "pending",
+              "stepKey": "package_default",
+              "stepOrder": 1,
+              "taskHostId": 1
+            }
+          ],
+          "taskId": 1
+        },
+        {
+          "case": "revoke-rotation",
+          "failed": 2,
+          "negativePassed": 0,
+          "origin": "fresh-process",
+          "phase": "driver-result",
+          "positivePassed": 4
+        },
+        {
+          "case": "revoke-rotation",
+          "check": "new OS process inspect uses committed task state",
+          "kind": "positive",
+          "passed": false
+        },
+        {
+          "action": "resume",
+          "errorKey": "",
+          "phase": "control",
+          "taskId": 1
+        },
+        {
+          "case": "revoke-rotation",
+          "check": "public credential revoke or rotation blocks recovered execution",
+          "kind": "negative",
+          "passed": true
+        },
+        {
+          "case": "revoke-rotation",
+          "check": "public current checkpoint and recorded safe history",
+          "kind": "positive",
+          "origin": "fresh-process",
+          "passed": true
+        },
+        {
+          "case": "revoke-rotation",
+          "check": "public log sequence ownership attempts and secret exclusion",
+          "kind": "positive",
+          "origin": "fresh-process",
+          "passed": false
+        },
+        {
+          "case": "revoke-rotation",
+          "check": "both actual VM streams persisted",
+          "kind": "positive",
+          "origin": "fresh-process",
+          "passed": true
+        },
+        {
+          "case": "revoke-rotation",
+          "check": "log cursor excludes already delivered sequence",
+          "kind": "positive",
+          "origin": "fresh-process",
+          "passed": true
+        },
+        {
+          "case": "revoke-rotation",
+          "check": "public event sequence ordered across committed transitions",
+          "kind": "positive",
+          "origin": "fresh-process",
+          "passed": false
+        },
+        {
+          "case": "revoke-rotation",
+          "check": "event reconnect cursor no replay at latest sequence",
+          "kind": "positive",
+          "origin": "fresh-process",
+          "passed": true
+        },
+        {
+          "attempts": [
+            {
+              "attemptNo": 1,
+              "leaseReleased": true,
+              "status": "paused"
+            }
+          ],
+          "eventTypes": [
+            "task.started",
+            "step.running",
+            "task.pause_requested",
+            "task.paused",
+            "task.resumed",
+            "task.failed"
+          ],
+          "finished": true,
+          "history": [
+            {
+              "attemptNo": 1,
+              "capturedAt": "2026-11-09T16:13:41.297+08:00",
+              "finishedAt": null,
+              "id": 1,
+              "startedAt": "2026-11-09T16:13:38.254+08:00",
+              "stateVersion": 3,
+              "status": "pending",
+              "stepKey": "package_default",
+              "stepOrder": 1,
+              "taskHostId": 1
+            }
+          ],
+          "logCount": 2,
+          "origin": "fresh-process",
+          "phase": "persisted-state",
+          "status": "failed",
+          "steps": [
+            {
+              "attemptNo": 1,
+              "finishedAt": null,
+              "id": 1,
+              "startedAt": "2026-11-09T16:13:38.254+08:00",
+              "stateVersion": 3,
+              "status": "pending",
+              "stepKey": "package_default",
+              "stepOrder": 1,
+              "taskHostId": 1
+            }
+          ],
+          "taskId": 1
+        },
+        {
+          "case": "revoke-rotation",
+          "failed": 2,
+          "negativePassed": 0,
+          "origin": "fresh-process",
+          "phase": "driver-result",
+          "positivePassed": 4
+        },
+        {
+          "case": "revoke-rotation",
+          "check": "new OS process inspect uses committed task state",
+          "kind": "positive",
+          "passed": false
+        },
+        {
+          "case": "revoke-rotation",
+          "failed": 2,
+          "negativePassed": 2,
+          "phase": "driver-result",
+          "positivePassed": 2
+        }
+      ],
+      "driverExitCode": 1,
+      "stderrPresent": false,
+      "status": "failed",
+      "cleanup": {
+        "phase": "exact-owned-cleanup",
+        "directory": "/opt/pantheon-p0-20261109/o2-live-593d9f0f9442-revoke-rotation",
+        "files": [
+          {
+            "file": "gate",
+            "sha256": "630639e313dfac26589af8f9b82753a76073aa4e9229c9428b40e71ffe553eed",
+            "bytes": 36
+          },
+          {
+            "file": ".owner",
+            "sha256": "630639e313dfac26589af8f9b82753a76073aa4e9229c9428b40e71ffe553eed",
+            "bytes": 36
+          },
+          {
+            "file": "started",
+            "sha256": "630639e313dfac26589af8f9b82753a76073aa4e9229c9428b40e71ffe553eed",
+            "bytes": 36
+          }
+        ],
+        "absent": true,
+        "processKill": false
+      }
+    },
+    {
+      "case": "revoke-source",
+      "identity": "o2-live-593d9f0f9442-revoke-source",
+      "database": "ops_p0_o2_live_593d9f0f9442_revoke_source",
+      "databaseRetention": "retained; no drop",
+      "events": [
+        {
+          "credentialId": 1,
+          "packageId": 1,
+          "phase": "task-created",
+          "taskId": 1
+        },
+        {
+          "errorKey": "suppressed",
+          "phase": "operation-error"
+        },
+        {
+          "error": "operation or deadline; secret details suppressed",
+          "phase": "driver-failure"
+        },
+        {
+          "case": "revoke-source",
+          "failed": 1,
+          "negativePassed": 0,
+          "phase": "driver-result",
+          "positivePassed": 0
+        }
+      ],
+      "driverExitCode": 1,
+      "stderrPresent": false,
+      "status": "failed",
+      "cleanup": {
+        "phase": "exact-owned-cleanup",
+        "directory": "/opt/pantheon-p0-20261109/o2-live-593d9f0f9442-revoke-source",
+        "files": [
+          {
+            "file": ".owner",
+            "sha256": "a4e3aba453628a23c0684480b4098572568a422477813ccb209f546ffdf60dcf",
+            "bytes": 34
+          },
+          {
+            "file": "started",
+            "sha256": "a4e3aba453628a23c0684480b4098572568a422477813ccb209f546ffdf60dcf",
+            "bytes": 34
+          }
+        ],
+        "absent": true,
+        "processKill": false
+      }
+    },
+    {
+      "case": "revoke-host",
+      "identity": "o2-live-593d9f0f9442-revoke-host",
+      "database": "ops_p0_o2_live_593d9f0f9442_revoke_host",
+      "databaseRetention": "retained; no drop",
+      "events": [
+        {
+          "credentialId": 1,
+          "packageId": 1,
+          "phase": "task-created",
+          "taskId": 1
+        },
+        {
+          "errorKey": "suppressed",
+          "phase": "operation-error"
+        },
+        {
+          "error": "operation or deadline; secret details suppressed",
+          "phase": "driver-failure"
+        },
+        {
+          "case": "revoke-host",
+          "failed": 1,
+          "negativePassed": 0,
+          "phase": "driver-result",
+          "positivePassed": 0
+        }
+      ],
+      "driverExitCode": 1,
+      "stderrPresent": false,
+      "status": "failed",
+      "cleanup": {
+        "phase": "exact-owned-cleanup",
+        "directory": "/opt/pantheon-p0-20261109/o2-live-593d9f0f9442-revoke-host",
+        "files": [
+          {
+            "file": ".owner",
+            "sha256": "cca02ccc1f3b1c49228d464ca7b5de6e0f536330b65603e2c68fdec9863de03b",
+            "bytes": 32
+          }
+        ],
+        "absent": true,
+        "processKill": false
+      }
+    },
+    {
+      "case": "start-negative",
+      "identity": "o2-live-593d9f0f9442-start-negative",
+      "database": "ops_p0_o2_live_593d9f0f9442_start_negative",
+      "databaseRetention": "retained; no drop",
+      "events": [
+        {
+          "credentialId": 1,
+          "packageId": 1,
+          "phase": "task-created",
+          "taskId": 1
+        },
+        {
+          "case": "start-negative",
+          "check": "public reviewed start requires preview",
+          "kind": "negative",
+          "passed": true
+        },
+        {
+          "case": "start-negative",
+          "check": "credential disabled after preview denies actual start",
+          "kind": "negative",
+          "passed": true
+        },
+        {
+          "errorKey": "suppressed",
+          "phase": "operation-error"
+        },
+        {
+          "error": "operation or deadline; secret details suppressed",
+          "phase": "driver-failure"
+        },
+        {
+          "case": "start-negative",
+          "failed": 1,
+          "negativePassed": 2,
+          "phase": "driver-result",
+          "positivePassed": 0
+        }
+      ],
+      "driverExitCode": 1,
+      "stderrPresent": false,
+      "status": "failed",
+      "cleanup": {
+        "phase": "exact-owned-cleanup",
+        "directory": "/opt/pantheon-p0-20261109/o2-live-593d9f0f9442-start-negative",
+        "files": [
+          {
+            "file": ".owner",
+            "sha256": "7f8ca2b3a8b22e8fec89a70c60f87ecc47ef6edd474e9fb2e5fb446cac6bf970",
+            "bytes": 35
+          }
+        ],
+        "absent": true,
+        "processKill": false
+      }
+    },
+    {
+      "case": "hostkey-negative",
+      "identity": "o2-live-593d9f0f9442-hostkey-negative",
+      "database": "ops_p0_o2_live_593d9f0f9442_hostkey_negative",
+      "databaseRetention": "retained; no drop",
+      "events": [
+        {
+          "credentialId": 1,
+          "packageId": 1,
+          "phase": "task-created",
+          "taskId": 1
+        },
+        {
+          "case": "hostkey-negative",
+          "check": "actual VM host-key mismatch denied by product SSH",
+          "kind": "negative",
+          "passed": true
+        },
+        {
+          "case": "hostkey-negative",
+          "check": "untrusted host never executes marker script",
+          "kind": "negative",
+          "passed": true
+        },
+        {
+          "case": "hostkey-negative",
+          "failed": 0,
+          "negativePassed": 2,
+          "phase": "driver-result",
+          "positivePassed": 0
+        }
+      ],
+      "driverExitCode": 0,
+      "stderrPresent": false,
+      "status": "passed",
+      "cleanup": {
+        "phase": "exact-owned-cleanup",
+        "directory": "/opt/pantheon-p0-20261109/o2-live-593d9f0f9442-hostkey-negative",
+        "files": [
+          {
+            "file": ".owner",
+            "sha256": "027ee66b15fd3e52493398ce94867b1bc1c6f22cbcfa224a430461575bb814c1",
+            "bytes": 37
+          }
+        ],
+        "absent": true,
+        "processKill": false
+      }
+    },
+    {
+      "case": "cold-restart",
+      "identity": "o2-live-593d9f0f9442-cold-restart",
+      "database": "ops_p0_o2_live_593d9f0f9442_cold_restart",
+      "databaseRetention": "retained; no drop",
+      "events": [
+        {
+          "credentialId": 1,
+          "packageId": 1,
+          "phase": "task-created",
+          "taskId": 1
+        },
+        {
+          "attemptNo": 1,
+          "leaseExpiresUnix": 1794212427,
+          "phase": "actual-process-crash-ready",
+          "taskId": 1,
+          "taskStatus": "running"
+        },
+        {
+          "case": "cold-restart",
+          "check": "fresh process discovers exactly one isolated persisted queue task",
+          "kind": "positive",
+          "passed": true
+        },
+        {
+          "case": "cold-restart",
+          "check": "fresh queue startup honors actual unexpired abandoned attempt lease",
+          "kind": "positive",
+          "passed": true
+        },
+        {
+          "case": "cold-restart",
+          "check": "startup during active lease never duplicates VM completion",
+          "kind": "positive",
+          "passed": true
+        },
+        {
+          "case": "cold-restart",
+          "failed": 0,
+          "negativePassed": 0,
+          "phase": "driver-result",
+          "positivePassed": 3
+        },
+        {
+          "case": "cold-restart",
+          "check": "fresh process discovers exactly one isolated persisted queue task",
+          "kind": "positive",
+          "passed": true
+        },
+        {
+          "case": "cold-restart",
+          "check": "public current checkpoint and recorded safe history",
+          "kind": "positive",
+          "passed": true
+        },
+        {
+          "case": "cold-restart",
+          "check": "public log sequence ownership attempts and secret exclusion",
+          "kind": "positive",
+          "passed": false
+        },
+        {
+          "case": "cold-restart",
+          "check": "both actual VM streams persisted",
+          "kind": "positive",
+          "passed": true
+        },
+        {
+          "case": "cold-restart",
+          "check": "log cursor excludes already delivered sequence",
+          "kind": "positive",
+          "passed": true
+        },
+        {
+          "case": "cold-restart",
+          "check": "public event sequence ordered across committed transitions",
+          "kind": "positive",
+          "passed": false
+        },
+        {
+          "case": "cold-restart",
+          "check": "event reconnect cursor no replay at latest sequence",
+          "kind": "positive",
+          "passed": true
+        },
+        {
+          "attempts": [
+            {
+              "attemptNo": 1,
+              "leaseReleased": true,
+              "status": "retryable"
+            },
+            {
+              "attemptNo": 2,
+              "leaseReleased": true,
+              "status": "success"
+            }
+          ],
+          "eventTypes": [
+            "task.started",
+            "step.running",
+            "step.running",
+            "step.success",
+            "task.completed"
+          ],
+          "finished": true,
+          "history": [
+            {
+              "id": 1,
+              "taskHostId": 1,
+              "stepKey": "package_default",
+              "stepOrder": 1,
+              "status": "success",
+              "attemptNo": 2,
+              "stateVersion": 4,
+              "startedAt": "2026-11-09T16:20:32.919+08:00",
+              "finishedAt": "2026-11-09T16:20:34.732+08:00",
+              "capturedAt": "2026-11-09T16:20:34.734+08:00"
+            },
+            {
+              "id": 1,
+              "taskHostId": 1,
+              "stepKey": "package_default",
+              "stepOrder": 1,
+              "status": "running",
+              "attemptNo": 1,
+              "stateVersion": 2,
+              "startedAt": "2026-11-09T16:15:31.197+08:00",
+              "finishedAt": null,
+              "capturedAt": "2026-11-09T16:15:31.201+08:00"
+            }
+          ],
+          "logCount": 2,
+          "phase": "persisted-state",
+          "status": "success",
+          "steps": [
+            {
+              "id": 1,
+              "taskHostId": 1,
+              "stepKey": "package_default",
+              "stepOrder": 1,
+              "status": "success",
+              "attemptNo": 2,
+              "stateVersion": 4,
+              "startedAt": "2026-11-09T16:20:32.919+08:00",
+              "finishedAt": "2026-11-09T16:20:34.732+08:00"
+            }
+          ],
+          "taskId": 1
+        },
+        {
+          "case": "cold-restart",
+          "check": "lease-expired actual process restart completes real VM execution",
+          "kind": "positive",
+          "passed": true
+        },
+        {
+          "case": "cold-restart",
+          "failed": 2,
+          "negativePassed": 0,
+          "phase": "driver-result",
+          "positivePassed": 6
+        }
+      ],
+      "driverExitCode": 1,
+      "stderrPresent": false,
+      "deliberateCrashExitCode": 75,
+      "activeLeaseProbeExitCode": 0,
+      "recoveryExitCode": 1,
+      "realLeaseWait": true,
+      "leaseMutation": false,
+      "status": "failed",
+      "cleanup": {
+        "phase": "exact-owned-cleanup",
+        "directory": "/opt/pantheon-p0-20261109/o2-live-593d9f0f9442-cold-restart",
+        "files": [
+          {
+            "file": "gate",
+            "sha256": "0d127b93891cfef013d5aac182ba2b2b5f5d0cb38b0c1183da869ecb4cf906c2",
+            "bytes": 33
+          },
+          {
+            "file": ".owner",
+            "sha256": "0d127b93891cfef013d5aac182ba2b2b5f5d0cb38b0c1183da869ecb4cf906c2",
+            "bytes": 33
+          },
+          {
+            "file": "done",
+            "sha256": "0d127b93891cfef013d5aac182ba2b2b5f5d0cb38b0c1183da869ecb4cf906c2",
+            "bytes": 33
+          },
+          {
+            "file": "started",
+            "sha256": "0d127b93891cfef013d5aac182ba2b2b5f5d0cb38b0c1183da869ecb4cf906c2",
+            "bytes": 33
+          }
+        ],
+        "absent": true,
+        "processKill": false
+      }
+    }
+  ],
+  "positivePassed": 62,
+  "negativePassed": 20,
+  "failed": 30,
+  "approval": "generator evidence only; no independent O2/P0 approval",
+  "artifacts": {
+    "o2-live-driver.go": "ef6184eb3beb64eef827658422d3e8d85d5ffc7989f89bb4a3ef61249d55600b",
+    "o2-live-runner.py": "45611b37ca83fde11a072bcd5897919d6819504965b3f74de65c08f86f18dd36",
+    "o2-live-driver.exe": "a77f4a3e1dc34df75ae87dd0b90ce1a08d9993b52e19212af01c9a7860f1081b",
+    "o2-live-driver-linux": "b215ddd230486a48f41cb087294d1fe69f0f9b26f7c2cd569cf635c5566e6028"
+  },
+  "seconds": 649.578,
+  "sourceStable": true,
+  "exitCode": 1
+}

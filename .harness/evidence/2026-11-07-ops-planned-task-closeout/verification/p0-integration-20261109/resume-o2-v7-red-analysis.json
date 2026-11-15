@@ -1,0 +1,59 @@
+{
+  "parentTaskPacket": "docs/harness/tasks/2026-11-07-ops-planned-task-closeout.task.md",
+  "tier": "L2",
+  "owner": "business/deploy",
+  "reproducer": "live-diagnostic-o2-v6-case-revoke-source-1312dbcf3f70.json",
+  "run": "1312dbcf3f70",
+  "sourceStable": true,
+  "positiveSetupsPassed": 10,
+  "negativeSetupsPassed": 2,
+  "failedAssertions": [
+    {
+      "case": "revoke-source",
+      "check": "inactive live business scope denies resumed VM side effect",
+      "kind": "negative",
+      "passed": false
+    }
+  ],
+  "observations": [
+    {
+      "ownerActiveDenied": true,
+      "phase": "source-revocation-observation",
+      "resumeErrorKey": "",
+      "sourceStatus": "inactive",
+      "taskStatus": "success",
+      "vmCompletionPresent": true
+    }
+  ],
+  "cleanup": {
+    "phase": "exact-owned-cleanup",
+    "directory": "/opt/pantheon-p0-20261109/o2-live-1312dbcf3f70-revoke-source",
+    "files": [
+      {
+        "file": "gate",
+        "sha256": "62e519c335ff02ff58c9217e89ac5ad50da1309ea47bd38d4c061f4fb2917850",
+        "bytes": 34
+      },
+      {
+        "file": ".owner",
+        "sha256": "62e519c335ff02ff58c9217e89ac5ad50da1309ea47bd38d4c061f4fb2917850",
+        "bytes": 34
+      },
+      {
+        "file": "done",
+        "sha256": "62e519c335ff02ff58c9217e89ac5ad50da1309ea47bd38d4c061f4fb2917850",
+        "bytes": 34
+      },
+      {
+        "file": "started",
+        "sha256": "62e519c335ff02ff58c9217e89ac5ad50da1309ea47bd38d4c061f4fb2917850",
+        "bytes": 34
+      }
+    ],
+    "absent": true,
+    "processKill": false
+  },
+  "databaseRetained": true,
+  "smallestChange": "reuse BizScopeReader.GetActive and transaction/context seams for admission and final host/SSH dispatch; keep frozen execution intent",
+  "excluded": "engine lease/state/retry/idempotency model; Base/shared/auth/UI/schema; full session/role authority; remote execute; P0 approval"
+}

@@ -25,7 +25,6 @@ import {
   getArgoCDServerList,
   getArgoCDApplicationList,
   getArgoCDRepositoryList,
-  syncArgoCDApplication,
   deleteArgoCDServer,
   deleteArgoCDRepository,
   deleteArgoCDApplication,
@@ -33,6 +32,7 @@ import {
   type ArgoCDApplicationRow,
   type ArgoCDRepositoryRow,
 } from './api';
+import ArgoCDPreview from './ArgoCDPreview';
 import '../../../../assets/list-page.css';
 
 type ArgoCDTab = 'servers' | 'repositories' | 'applications';
@@ -46,8 +46,10 @@ export default function ArgoCDList() {
   const [repositories, setRepositories] = useState<ArgoCDRepositoryRow[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<unknown>(null);
+  const [reviewApplication, setReviewApplication] = useState<ArgoCDApplicationRow | null>(null);
 
   const canDelete = hasPerm('business:cicd:argocd:delete');
+  const canCreate = hasPerm('business:cicd:argocd:create');
 
   const loadData = useCallback(async () => {
     setLoading(true);
@@ -80,27 +82,12 @@ export default function ArgoCDList() {
 
   const heroMetrics = useMemo(
     () => [
-      { key: 'servers', label: 'Servers', value: servers.length },
-      { key: 'apps', label: 'Applications', value: applications.length },
-      { key: 'repos', label: 'Repositories', value: repositories.length },
+      { key: 'servers', label: t('business.cicd.argocd.tab.servers'), value: servers.length },
+      { key: 'apps', label: t('business.cicd.argocd.tab.applications'), value: applications.length },
+      { key: 'repos', label: t('business.cicd.argocd.tab.repositories'), value: repositories.length },
     ],
-    [servers, applications, repositories],
+    [servers, applications, repositories, t],
   );
-
-  const handleSyncApp = useCallback(
-    async (row: ArgoCDApplicationRow) => {
-      try {
-        await syncArgoCDApplication(row.id);
-        Message.success(t('business.cicd.argocd.syncSuccess'));
-        await loadData();
-      } catch {
-        Message.error(t('business.cicd.argocd.syncFailed'));
-      }
-    },
-    [loadData, t],
-  );
-
-
 
   const handleDeleteServer = useCallback(
     async (row: ArgoCDServerRow) => {
@@ -263,14 +250,14 @@ export default function ArgoCDList() {
         fixed: 'right',
         render: (_: unknown, row) => (
           <Space className="system-list__actions">
-            <Button
+            {canCreate && <Button
               type="text"
               size="small"
               icon={<IconSync />}
-              onClick={() => void handleSyncApp(row)}
+              onClick={() => setReviewApplication(row)}
             >
-              {t('common.sync', 'Sync')}
-            </Button>
+              {t('business.cicd.argocd.preview.review')}
+            </Button>}
             {canDelete ? (
               <Popconfirm
                 title={t('business.cicd.argocd.deleteConfirm', { name: row.name })}
@@ -285,7 +272,7 @@ export default function ArgoCDList() {
         ),
       },
     ],
-    [canDelete, handleDeleteApp, handleSyncApp, t, statusColor],
+    [canCreate, canDelete, handleDeleteApp, t, statusColor],
   );
 
   const tabContent = useMemo(() => {
@@ -307,6 +294,7 @@ export default function ArgoCDList() {
 
   return (
     <PageContainer>
+      {reviewApplication && <ArgoCDPreview application={reviewApplication} onClose={() => setReviewApplication(null)} onAccepted={loadData} />}
       <Space direction="vertical" size={16} className="system-page-template">
         <GovernanceSummaryBar
           eyebrow={t('business.cicd.argocd.hero.eyebrow')}

@@ -1,0 +1,71 @@
+{
+  "languageServer": "pyright",
+  "version": "1.1.414",
+  "protocol": "LSP stdio JSON-RPC",
+  "settings": {
+    "diagnosticMode": "openFilesOnly",
+    "typeCheckingMode": "basic",
+    "autoSearchPaths": true,
+    "useLibraryCodeForTypes": true,
+    "extraPaths": [
+      "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance"
+    ]
+  },
+  "sourceFiles": [
+    {
+      "path": ".local/ops-acceptance/continue-velero-alias-contract.py",
+      "sha256": "a0cc68224e262e5781f7b87ee0e4f0520f40d686295644834de7909e92d51e97",
+      "stable": true,
+      "diagnostics": []
+    },
+    {
+      "path": ".local/ops-acceptance/continue-velero-alias-remote.py",
+      "sha256": "58f970e6e1661938cc5ce718b7d21e1ab58f7fcfa95e85db27edcc2e60e2c184",
+      "stable": true,
+      "diagnostics": []
+    },
+    {
+      "path": ".local/ops-acceptance/continue-velero-alias-root.py",
+      "sha256": "1caf77d2bd547742c8a6569b6c96eaab77d6d119b69c045e035417c41090a36d",
+      "stable": true,
+      "diagnostics": [
+        {
+          "range": {
+            "start": {
+              "line": 192,
+              "character": 50
+            },
+            "end": {
+              "line": 192,
+              "character": 55
+            }
+          },
+          "message": "Object of type \"None\" is not subscriptable",
+          "severity": 1,
+          "code": "reportOptionalSubscript",
+          "source": "Pyright",
+          "codeDescription": {
+            "href": "https://github.com/microsoft/pyright/blob/main/docs/configuration.md#reportOptionalSubscript"
+          }
+        }
+      ]
+    },
+    {
+      "path": ".local/ops-acceptance/continue-velero-alias-generate.py",
+      "sha256": "23a066817016fbc7e60aa5d03d48eb63ba359db0789090c14a2854aafb172c6d",
+      "stable": true,
+      "diagnostics": []
+    },
+    {
+      "path": ".local/ops-acceptance/continue-velero-alias-test.py",
+      "sha256": "7426b2ce46b7d463ba495baee364262a327e3e1beab9604bca456caf48d2372f",
+      "stable": true,
+      "diagnostics": []
+    }
+  ],
+  "exitCode": 1,
+  "runtimeExecuted": false,
+  "errorCount": 1,
+  "warningCount": 0,
+  "seconds": 4.531
+}

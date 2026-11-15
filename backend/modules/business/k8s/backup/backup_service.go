@@ -17,6 +17,9 @@ import (
 
 	"gorm.io/datatypes"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
+	"k8s.io/client-go/dynamic"
+	"k8s.io/client-go/kubernetes"
 )
 
 const backupOpTimeout = 30 * time.Second
@@ -34,8 +37,15 @@ const (
 //nolint:revive // the exported service name keeps the backup domain prefix for API clarity.
 type BackupService struct {
 	db               *gorm.DB
-	clusterService   *cluster.ClusterService
+	clusterService   backupClusterClients
 	namespaceService *namespace.NamespaceService
+}
+
+// Keep authorization in the shared cluster service, including cached clients.
+type backupClusterClients interface {
+	GetClientsetWithContext(context.Context, uint64, *common.DataScopeReq) (*kubernetes.Clientset, error)
+	GetDynamicClientWithContext(context.Context, uint64, *common.DataScopeReq) (dynamic.Interface, error)
+	WithClusterLockContext(context.Context, uint64, *common.DataScopeReq, func(*gorm.DB, *cluster.Cluster) error) error
 }
 
 // NewBackupService creates a new BackupService.
@@ -175,6 +185,11 @@ func (s *BackupService) toStorageLocationResponse(r *VeleroStorageLocation) *Sto
 
 // CreateBackup starts a Velero backup on the target cluster and records it.
 func (s *BackupService) CreateBackup(ctx context.Context, req CreateBackupRequest, dataScope *common.DataScopeReq, createdBy string) (*BackupResponse, error) {
+	dataScope = copyBackupScope(dataScope)
+	req.IncludedNamespaces = append([]string(nil), req.IncludedNamespaces...)
+	req.ExcludedNamespaces = append([]string(nil), req.ExcludedNamespaces...)
+	req.IncludedResources = append([]string(nil), req.IncludedResources...)
+	req.ExcludedResources = append([]string(nil), req.ExcludedResources...)
 	// Validate cluster exists
 	if _, err := s.clusterService.GetClientsetWithContext(ctx, req.ClusterID, dataScope); err != nil {
 		return nil, fmt.Errorf("cluster.not_found: %w", err)
@@ -189,6 +204,7 @@ func (s *BackupService) CreateBackup(ctx context.Context, req CreateBackupReques
 		LabelSelector:   req.LabelSelector,
 		StorageLocation: req.StorageLocation,
 		Status:          StatusNew,
+		Phase:           phasePendingSubmission,
 		CreatedBy:       createdBy,
 	}
 	if len(req.IncludedNamespaces) > 0 {
@@ -210,14 +226,26 @@ func (s *BackupService) CreateBackup(ctx context.Context, req CreateBackupReques
 
 	// Create the Velero Backup CRD on the cluster (best-effort, async); the
 	// DB record is created first so the async path can reference its ID.
-	if err := s.db.Create(record).Error; err != nil {
+	opCtx, cancel := shared.WithCustomTimeout(ctx, backupOpTimeout)
+	defer cancel()
+	if err := s.clusterService.WithClusterLockContext(opCtx, req.ClusterID, dataScope, func(tx *gorm.DB, target *cluster.Cluster) error {
+		if _, err := s.lockedVeleroClient(opCtx, tx, target, dataScope); err != nil {
+			return err
+		}
+		var count int64
+		if err := tx.Unscoped().Model(&VeleroBackup{}).Where("cluster_id = ? AND name = ?", req.ClusterID, req.Name).Count(&count).Error; err != nil {
+			return err
+		}
+		if count != 0 {
+			return errors.New("k8s.backup.create_failed")
+		}
+		return tx.Create(record).Error
+	}); err != nil {
 		return nil, err
 	}
 	go func() {
-		if err := s.createBackupCRD(context.Background(), req, dataScope); err != nil {
-			_ = s.db.Model(&VeleroBackup{}).Where(whereByID, record.ID).
-				Updates(map[string]interface{}{"status": StatusFailed}).Error
-		}
+		err := s.createBackupCRD(context.Background(), req, dataScope, record.ID)
+		s.finishSubmission(&VeleroBackup{}, record.ID, err)
 	}()
 	return s.toBackupResponse(record), nil
 }
@@ -485,12 +513,24 @@ func (s *BackupService) toScheduleResponse(r *VeleroSchedule) *ScheduleResponse 
 
 // CreateRestore starts a Velero restore for a recorded backup and persists the attempt.
 func (s *BackupService) CreateRestore(ctx context.Context, req CreateRestoreRequest, dataScope *common.DataScopeReq, createdBy string) (*RestoreResponse, error) {
-	// Validate backup exists
-	var backup VeleroBackup
-	if err := s.db.Where("name = ? AND cluster_id = ?", req.BackupName, req.ClusterID).First(&backup).Error; err != nil {
-		return nil, fmt.Errorf("backup.not_found: %w", err)
+	// An accepted attempt outlives the HTTP request. Copy its scope so the worker
+	// reauthorizes the same principal instead of retaining mutable caller state.
+	dataScope = copyBackupScope(dataScope)
+	req.IncludedNamespaces = append([]string(nil), req.IncludedNamespaces...)
+	req.ExcludedNamespaces = append([]string(nil), req.ExcludedNamespaces...)
+	req.IncludedResources = append([]string(nil), req.IncludedResources...)
+	req.ExcludedResources = append([]string(nil), req.ExcludedResources...)
+	if req.NamespaceMapping != nil {
+		mapping := make(map[string]string, len(req.NamespaceMapping))
+		for source, target := range req.NamespaceMapping {
+			mapping[source] = target
+		}
+		req.NamespaceMapping = mapping
 	}
-	_ = backup
+	liveExpiration, err := s.restoreSource(ctx, req, dataScope)
+	if err != nil {
+		return nil, err
+	}
 
 	record := &VeleroRestore{
 		Name:       req.Name,
@@ -498,6 +538,7 @@ func (s *BackupService) CreateRestore(ctx context.Context, req CreateRestoreRequ
 		BackupName: req.BackupName,
 		RestorePVs: req.RestorePVs,
 		Status:     StatusNew,
+		Phase:      phasePendingSubmission,
 		CreatedBy:  createdBy,
 	}
 	if len(req.NamespaceMapping) > 0 {
@@ -521,15 +562,48 @@ func (s *BackupService) CreateRestore(ctx context.Context, req CreateRestoreRequ
 		record.ExcludedResources = b
 	}
 
-	if err := s.db.Create(record).Error; err != nil {
+	// The live read can take time. Recheck scope/credentials under the existing
+	// cluster write lock and lock the source row before committing the attempt.
+	opCtx, cancel := shared.WithCustomTimeout(ctx, backupOpTimeout)
+	defer cancel()
+	err = s.clusterService.WithClusterLockContext(opCtx, req.ClusterID, dataScope, func(tx *gorm.DB, target *cluster.Cluster) error {
+		if _, err := s.lockedVeleroClient(opCtx, tx, target, dataScope); err != nil {
+			return fmt.Errorf("cluster.not_found: %w", err)
+		}
+		var source VeleroBackup
+		if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).Where("name = ? AND cluster_id = ?", req.BackupName, req.ClusterID).First(&source).Error; err != nil {
+			return fmt.Errorf("backup.not_found: %w", err)
+		}
+		if err := restoreRegistryEligible(&source); err != nil {
+			return err
+		}
+		if err := s.requireRestoreTargets(opCtx, tx, target, req, true); err != nil {
+			return err
+		}
+		var count int64
+		if err := tx.Unscoped().Model(&VeleroRestore{}).Where("cluster_id = ? AND name = ?", req.ClusterID, req.Name).Count(&count).Error; err != nil {
+			return err
+		}
+		if count != 0 {
+			return errors.New("k8s.backup.restore_create_failed")
+		}
+		if !liveExpiration.IsZero() && !liveExpiration.After(time.Now()) {
+			return errors.New("k8s.backup.restore_create_failed")
+		}
+		if err := tx.Create(record).Error; err != nil {
+			return err
+		}
+		// GORM's legacy default:true fills a false bool during insert. Preserve
+		// the namespace-only request in the same transaction without changing DDL.
+		return tx.Model(record).Update("RestorePVs", req.RestorePVs).Error
+	})
+	if err != nil {
 		return nil, err
 	}
-	// Create the Velero Restore CRD on the cluster (best-effort, async).
+	// Recheck authorization and the source when this accepted attempt executes.
 	go func() {
-		if err := s.createRestoreCRD(context.Background(), req, dataScope); err != nil {
-			_ = s.db.Model(&VeleroRestore{}).Where(whereByID, record.ID).
-				Updates(map[string]interface{}{"status": StatusFailed}).Error
-		}
+		err := s.createRestoreCRD(context.Background(), req, dataScope, record.ID)
+		s.finishSubmission(&VeleroRestore{}, record.ID, err)
 	}()
 	return s.toRestoreResponse(record), nil
 }
@@ -649,7 +723,7 @@ func (s *BackupService) GetVeleroStatus(ctx context.Context, clusterID uint64, d
 	defer cancel()
 
 	// Get dynamic client for Velero CRD operations
-	dynamicClient, err := s.clusterService.GetDynamicClient(clusterID, dataScope)
+	dynamicClient, err := s.clusterService.GetDynamicClientWithContext(ctx, clusterID, dataScope)
 	if err != nil {
 		return nil, err
 	}
@@ -683,7 +757,7 @@ func (s *BackupService) veleroClient(ctx context.Context, clusterID uint64, data
 	if err != nil {
 		return nil, err
 	}
-	dynamicClient, err := s.clusterService.GetDynamicClient(clusterID, dataScope)
+	dynamicClient, err := s.clusterService.GetDynamicClientWithContext(ctx, clusterID, dataScope)
 	if err != nil {
 		return nil, err
 	}
@@ -745,7 +819,7 @@ func restoreCRDSpec(req CreateRestoreRequest) map[string]interface{} {
 		"excludedNamespaces":      req.ExcludedNamespaces,
 		"includedResources":       req.IncludedResources,
 		"excludedResources":       req.ExcludedResources,
-		"includeClusterResources": true,
+		"includeClusterResources": false,
 	}
 	if len(req.NamespaceMapping) > 0 {
 		spec["namespaceMapping"] = req.NamespaceMapping
@@ -754,14 +828,32 @@ func restoreCRDSpec(req CreateRestoreRequest) map[string]interface{} {
 }
 
 // createBackupCRD creates the Velero Backup CRD on the target cluster.
-func (s *BackupService) createBackupCRD(ctx context.Context, req CreateBackupRequest, dataScope *common.DataScopeReq) error {
-	vc, err := s.veleroClient(ctx, req.ClusterID, dataScope)
-	if err != nil {
-		return err
-	}
+func (s *BackupService) createBackupCRD(ctx context.Context, req CreateBackupRequest, dataScope *common.DataScopeReq, recordID uint64) error {
 	opCtx, cancel := shared.WithCustomTimeout(ctx, backupOpTimeout)
 	defer cancel()
-	return vc.CreateBackup(opCtx, req.Name, backupCRDSpec(req))
+	var dispatched bool
+	err := s.clusterService.WithClusterLockContext(opCtx, req.ClusterID, dataScope, func(tx *gorm.DB, target *cluster.Cluster) error {
+		vc, err := s.lockedVeleroClient(opCtx, tx, target, dataScope)
+		if err != nil {
+			return err
+		}
+		var record VeleroBackup
+		if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).First(&record, recordID).Error; err != nil {
+			return err
+		}
+		if record.Status != StatusNew || record.ClusterID != req.ClusterID || record.Name != req.Name {
+			return errors.New("k8s.backup.create_failed")
+		}
+		if err := opCtx.Err(); err != nil {
+			return err
+		}
+		dispatched = true
+		return vc.createBackupWithIdentity(opCtx, req.Name, backupCRDSpec(req), recordID)
+	})
+	if dispatched && err != nil {
+		return submissionError{err}
+	}
+	return err
 }
 
 // createScheduleCRD creates the Velero Schedule CRD on the target cluster.
@@ -776,14 +868,99 @@ func (s *BackupService) createScheduleCRD(ctx context.Context, req CreateSchedul
 }
 
 // createRestoreCRD creates the Velero Restore CRD on the target cluster.
-func (s *BackupService) createRestoreCRD(ctx context.Context, req CreateRestoreRequest, dataScope *common.DataScopeReq) error {
-	vc, err := s.veleroClient(ctx, req.ClusterID, dataScope)
+func (s *BackupService) createRestoreCRD(ctx context.Context, req CreateRestoreRequest, dataScope *common.DataScopeReq, recordID uint64) error {
+	liveExpiration, err := s.restoreSource(ctx, req, dataScope)
 	if err != nil {
 		return err
 	}
 	opCtx, cancel := shared.WithCustomTimeout(ctx, backupOpTimeout)
 	defer cancel()
-	return vc.CreateRestore(opCtx, req.Name, restoreCRDSpec(req))
+	var dispatched bool
+	err = s.clusterService.WithClusterLockContext(opCtx, req.ClusterID, dataScope, func(tx *gorm.DB, target *cluster.Cluster) error {
+		vc, err := s.lockedVeleroClient(opCtx, tx, target, dataScope)
+		if err != nil {
+			return err
+		}
+		var source VeleroBackup
+		if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).Where("name = ? AND cluster_id = ?", req.BackupName, req.ClusterID).First(&source).Error; err != nil {
+			return fmt.Errorf("backup.not_found: %w", err)
+		}
+		if err := restoreRegistryEligible(&source); err != nil {
+			return err
+		}
+		var record VeleroRestore
+		if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).First(&record, recordID).Error; err != nil {
+			return err
+		}
+		if record.Status != StatusNew || record.ClusterID != req.ClusterID || record.BackupName != req.BackupName || record.Name != req.Name {
+			return errors.New("k8s.backup.restore_create_failed")
+		}
+		if err := s.requireRestoreTargets(opCtx, tx, target, req, true); err != nil {
+			return err
+		}
+		if err := opCtx.Err(); err != nil {
+			return err
+		}
+		if !liveExpiration.IsZero() && !liveExpiration.After(time.Now()) {
+			return errors.New("k8s.backup.restore_create_failed")
+		}
+		dispatched = true
+		return vc.createRestoreWithIdentity(opCtx, req.Name, restoreCRDSpec(req), recordID)
+	})
+	if dispatched && err != nil {
+		return submissionError{err}
+	}
+	return err
+}
+
+// restoreSource authorizes before looking up a guessed backup name and checks
+// both the registry and the live source. A stale Completed row cannot authorize
+// restoring a deleted, expired or failed provider backup.
+func (s *BackupService) restoreSource(ctx context.Context, req CreateRestoreRequest, dataScope *common.DataScopeReq) (time.Time, error) {
+	vc, err := s.veleroClient(ctx, req.ClusterID, dataScope)
+	if err != nil {
+		return time.Time{}, fmt.Errorf("cluster.not_found: %w", err)
+	}
+	var source VeleroBackup
+	if err := s.db.WithContext(ctx).Where("name = ? AND cluster_id = ?", req.BackupName, req.ClusterID).First(&source).Error; err != nil {
+		return time.Time{}, fmt.Errorf("backup.not_found: %w", err)
+	}
+	if err := restoreRegistryEligible(&source); err != nil {
+		return time.Time{}, err
+	}
+	opCtx, cancel := shared.WithCustomTimeout(ctx, backupOpTimeout)
+	defer cancel()
+	obj, err := vc.GetBackup(opCtx, req.BackupName)
+	if err != nil {
+		return time.Time{}, fmt.Errorf("backup.not_found: %w", err)
+	}
+	status, ok := nestedMap(obj.Object, "status")
+	if !ok || obj.GetDeletionTimestamp() != nil || nestedString(status, "phase") != StatusCompleted {
+		return time.Time{}, errors.New("k8s.backup.restore_create_failed")
+	}
+	var expires time.Time
+	if expiration := nestedString(status, "expiration"); expiration != "" {
+		expires, err = time.Parse(time.RFC3339, expiration)
+		if err != nil || !expires.After(time.Now()) {
+			return time.Time{}, errors.New("k8s.backup.restore_create_failed")
+		}
+	}
+	var target cluster.Cluster
+	if err := s.db.WithContext(ctx).First(&target, req.ClusterID).Error; err != nil {
+		return time.Time{}, err
+	}
+	if err := s.requireRestoreTargets(ctx, s.db, &target, req, false); err != nil {
+		return time.Time{}, err
+	}
+	return expires, nil
+}
+
+func restoreRegistryEligible(source *VeleroBackup) error {
+	if source.Status != StatusCompleted || (source.Phase != "" && source.Phase != StatusCompleted) ||
+		(source.Expiration != nil && !source.Expiration.After(time.Now())) {
+		return errors.New("k8s.backup.restore_create_failed")
+	}
+	return nil
 }
 
 // deleteBackupCRD deletes the Velero Backup CRD on the target cluster.

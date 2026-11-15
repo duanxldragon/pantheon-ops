@@ -1,0 +1,24 @@
+{
+  "startedAt": "2026-11-10T03:53:58.134Z",
+  "completedAt": "2026-11-10T03:54:12.032Z",
+  "executable": "node",
+  "args": [
+    "--import",
+    "./.local/ops-acceptance/resume-o4-metadata-bound-red-hooks.mjs",
+    "--test",
+    "--test-name-pattern=declared metadata count|candidate inventory and tar retain",
+    "scripts/business-overlay/foundation-candidate.test.mjs"
+  ],
+  "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+  "exitCode": 1,
+  "signal": null,
+  "log": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.harness\\evidence\\2026-11-07-ops-planned-task-closeout\\verification\\p0-integration-20261109\\metadata-bound-1794282381452\\metadata-boundary-red.log",
+  "counts": {
+    "tests": 2,
+    "pass": 1,
+    "fail": 1,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  }
+}

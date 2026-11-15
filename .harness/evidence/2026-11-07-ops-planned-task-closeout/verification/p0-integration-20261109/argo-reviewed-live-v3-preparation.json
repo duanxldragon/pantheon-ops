@@ -1,0 +1,12 @@
+{
+  "parentTask": "2026-11-07-ops-planned-task-closeout",
+  "remoteExecuted": false,
+  "originSHA256": "1c6f0cb210920b56e5e37a210d165633c45ca769d38701d15fb9026abdfcece8",
+  "origin": ".local/ops-acceptance/argo-final-live-v2.py",
+  "wireGuardSHA256": "5adb78dededc09860f5e0ece51c693e781019b1903f08a49e23d3b8e31717cbb",
+  "generatedRunner": ".local/ops-acceptance/argo-reviewed-live-v3.py",
+  "runnerSHA256": "cac63af2fd12b241f7dd5b2b18fba9d445c318cc731cf90924b8b493de34f135",
+  "method": "explicit bounded source transformation; generated runner is independently readable",
+  "protocol": "reviewed-actions/v1 only; get/sync native project policy; lost reply after accepted POST",
+  "P0Approved": false
+}

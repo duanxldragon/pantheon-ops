@@ -1,0 +1,98 @@
+ALLOWED_DRIFT backend/modules/business/business.go — fixture overlay hook
+ALLOWED_DRIFT frontend/src/core/router/modules.ts — fixture overlay hook
+OK shared drift check: 5 shared files compared, 3 identical to base, 2 allowlisted drift, 0 business-overlay files skipped, 2 derived business migrations verified (base=C:\Users\xiaolong\AppData\Local\Temp\ops-candidate-6Yo3ZX\ops\.tmp\foundation-candidates\candidate-5e4757c4069b55bdacd523289dd85f7d9786ce939f06f5ece1610f7bf627fad1\snapshot)
+DRIFT_MODIFIED backend/modules/business/business.go
+DRIFT_MODIFIED frontend/src/core/router/modules.ts
+FAIL shared drift check: 2 modified, 0 missing in base, 0 stale allowlist (5 shared files compared, 0 business-overlay files skipped, 2 derived business migrations verified, base=C:\Users\xiaolong\AppData\Local\Temp\ops-candidate-rqX9wg\ops\.tmp\foundation-candidates\candidate-5e4757c4069b55bdacd523289dd85f7d9786ce939f06f5ece1610f7bf627fad1\snapshot)
+✔ schema1 source-interface mapping matches the producer and rejects contradictory metadata (1248.7595ms)
+✔ requires external descriptor pin and rejects descriptor/archive tamper before staging (1213.1059ms)
+▶ rejects hostile regular tar paths, aliases, config and extension/link/special types with valid archive pins
+  ✔ ../escape (1390.8184ms)
+  ✔ /absolute (1216.31ms)
+  ✔ C:/outside (1313.1395ms)
+  ✔ //host/share (1136.7436ms)
+  ✔ dir\file (1519.9637ms)
+  ✔ x:y (1284.659ms)
+  ✔ .env.local (1422.5521ms)
+  ✔ config/secrets.json (1725.5599ms)
+  ✔ .aws/credentials (1411.6794ms)
+  ✔ aux.txt (1466.4635ms)
+  ✔ file. (1262.6642ms)
+  ✔ a//b (1336.0448ms)
+  ✔ tar type 1 (1106.6589ms)
+  ✔ tar type 2 (1303.5526ms)
+  ✔ tar type 3 (1375.5132ms)
+  ✔ tar type 5 (1170.2205ms)
+  ✔ tar type x (1093.7377ms)
+  ✔ tar type g (1226.0717ms)
+  ✔ tar type L (1110.451ms)
+  ✔ tar type K (1256.6005ms)
+✔ rejects hostile regular tar paths, aliases, config and extension/link/special types with valid archive pins (26137.0565ms)
+✔ rejects duplicate/case/directory collisions, missing entries, wrong file hashes and corrupt tar framing (1437.8059ms)
+✔ false capability comments cannot replace real declarations even when all digests are consistent (1240.524ms)
+▶ fresh extraction is sealed; mutations, additions, edit/revert and snapshot reuse refuse
+  ✔ write (1458.8721ms)
+  ✔ addition (1806.8464ms)
+  ✔ revert (1700.2514ms)
+  ✔ root-revert (1596.2002ms)
+✔ fresh extraction is sealed; mutations, additions, edit/revert and snapshot reuse refuse (6563.7506ms)
+✔ rebuild calls real assembly/drift seams, derives only declared migrations, preserves exact locks and never reads current Base sources (2609.9812ms)
+✔ protects repository/foreign/existing targets and rejects alternative manifest ownership (1451.5633ms)
+✔ rejects junction ancestors and hard-linked artifact/declared source without touching foreign bytes (1263.4569ms)
+▶ assembly rejects snapshot/artifact and declared Ops mutations including edit/revert; failure cleans owned stage only
+  ✔ snapshot (1758.5636ms)
+  ✔ artifact (1732.772ms)
+  ✔ business (1703.2501ms)
+  ✔ manifest (1908.8173ms)
+  ✔ lock (1893.822ms)
+  ✔ revert (1721.6818ms)
+  ✔ addition (1777.6473ms)
+✔ assembly rejects snapshot/artifact and declared Ops mutations including edit/revert; failure cleans owned stage only (12498.4869ms)
+▶ drift and migration conflicts refuse candidate publication
+  ✔ unallowlisted shared modification (2197.3371ms)
+  ✖ Base migration conflict (1288.6653ms)
+✖ drift and migration conflicts refuse candidate publication (3486.9755ms)
+✔ independently pinned build receipt binds source capability identity and exact executable bytes (1355.6308ms)
+✔ CLI help is precise; unsupported, duplicate, unpinned and formal-source options refuse (593.5393ms)
+ℹ tests 46
+ℹ suites 0
+ℹ pass 44
+ℹ fail 2
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 61314.2801
+
+✖ failing tests:
+
+test at scripts\business-overlay\foundation-candidate.test.mjs:261:11
+✖ Base migration conflict (1288.6653ms)
+  AssertionError [ERR_ASSERTION]: The input did not match the regular expression /conflict/. Input:
+  
+  'Error: Business migration requires up/down pair: 000031'
+  
+      at TestContext.<anonymous> (file:///D:/workspace/go/pantheon-platform/pantheon-ops/scripts/business-overlay/foundation-candidate.test.mjs:265:12)
+      at Test.runInAsyncScope (node:async_hooks:228:14)
+      at Test.run (node:internal/test_runner/test:1118:25)
+      at Test.start (node:internal/test_runner/test:1015:17)
+      at TestContext.test (node:internal/test_runner/test:368:20)
+      at TestContext.<anonymous> (file:///D:/workspace/go/pantheon-platform/pantheon-ops/scripts/business-overlay/foundation-candidate.test.mjs:261:11)
+      at async Test.run (node:internal/test_runner/test:1125:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:787:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: Error: Business migration requires up/down pair: 000031
+        at planBusinessMigrations (file:///D:/workspace/go/pantheon-platform/pantheon-ops/scripts/business-overlay/rebuild-from-base.mjs:157:43)
+        at assertSafeManifest (file:///D:/workspace/go/pantheon-platform/pantheon-ops/scripts/business-overlay/rebuild-from-base.mjs:181:3)
+        at rebuildFromCandidate (file:///D:/workspace/go/pantheon-platform/pantheon-ops/scripts/business-overlay/rebuild-from-candidate.mjs:21:3)
+        at rebuild (file:///D:/workspace/go/pantheon-platform/pantheon-ops/scripts/business-overlay/foundation-candidate.test.mjs:81:172)
+        at getActual (node:assert:611:5)
+        at strict.throws (node:assert:759:24)
+        at TestContext.<anonymous> (file:///D:/workspace/go/pantheon-platform/pantheon-ops/scripts/business-overlay/foundation-candidate.test.mjs:265:12)
+        at Test.runInAsyncScope (node:async_hooks:228:14)
+        at Test.run (node:internal/test_runner/test:1118:25)
+        at Test.start (node:internal/test_runner/test:1015:17),
+    expected: /conflict/,
+    operator: 'throws',
+    diff: 'simple'
+  }

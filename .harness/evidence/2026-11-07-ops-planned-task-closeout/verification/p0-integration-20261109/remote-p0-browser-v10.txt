@@ -1,0 +1,184 @@
+
+Running 18 tests using 1 worker
+
+(node:11632) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok  1 tests\smoke\business\cmdb\cmdb-import-export-permissions.spec.ts:35:3 › CMDB view role with explicit API grants enforces separate CSV capabilities (4.8s)
+  ok  2 tests\smoke\business\cmdb\cmdb-import-export-permissions.spec.ts:35:3 › CMDB export role with explicit API grants enforces separate CSV capabilities (4.9s)
+  ok  3 tests\smoke\business\cmdb\cmdb-import-export-permissions.spec.ts:35:3 › CMDB import role with explicit API grants enforces separate CSV capabilities (6.3s)
+  ok  4 tests\smoke\business\cmdb\cmdb-import-export-permissions.spec.ts:35:3 › CMDB scoped role with explicit API grants enforces separate CSV capabilities (8.5s)
+  ok  5 tests\smoke\business\deploy\deploy-command.spec.ts:14:2 › viewed task command conflict refreshes without replay (light) (31.5s)
+  ok  6 tests\smoke\business\deploy\deploy-command.spec.ts:14:2 › viewed task command conflict refreshes without replay (dark) (34.5s)
+  ok  7 tests\smoke\business\deploy\deploy-command.spec.ts:63:1 › batch cancel retains failed selection and reports partial failure (37.4s)
+  x   8 tests\smoke\business\deploy\deploy-selection-preview.spec.ts:16:2 › selection and preview confirm/conflict/refresh (light) (36.9s)
+(node:11420) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x   9 tests\smoke\business\deploy\deploy-selection-preview.spec.ts:16:2 › selection and preview confirm/conflict/refresh (dark) (33.7s)
+(node:11588) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok 10 tests\smoke\business\deploy\deploy-selection-preview.spec.ts:138:1 › rollback draft uses frozen definition and its own reviewed start (11.7s)
+  x  11 tests\smoke\business\deploy\deploy-workbench.spec.ts:20:3 › deployment workbench sources, logs, keyboard and mobile (light) (30.4s)
+(node:20932) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x  12 tests\smoke\business\deploy\deploy-workbench.spec.ts:20:3 › deployment workbench sources, logs, keyboard and mobile (dark) (50.8s)
+(node:8372) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok 13 tests\smoke\business\k8s\release-preview.spec.ts:7:2 › K8s image preview conflict, same-request retry, rollback and mobile (light) (26.0s)
+  ok 14 tests\smoke\business\k8s\release-preview.spec.ts:7:2 › K8s image preview conflict, same-request retry, rollback and mobile (dark) (25.3s)
+  ok 15 tests\smoke\business\observability-tempo-workbench.spec.ts:11:3 › Tempo UTC range, detail, cancellation and revocation (light) (22.8s)
+  ok 16 tests\smoke\business\observability-tempo-workbench.spec.ts:11:3 › Tempo UTC range, detail, cancellation and revocation (dark) (22.8s)
+  ok 17 tests\smoke\business\observability-workbench.spec.ts:12:3 › Loki UTC range, cancellation, denial and recovery (light) (36.9s)
+  ok 18 tests\smoke\business\observability-workbench.spec.ts:12:3 › Loki UTC range, cancellation, denial and recovery (dark) (39.3s)
+
+
+  1) tests\smoke\business\deploy\deploy-selection-preview.spec.ts:16:2 › selection and preview confirm/conflict/refresh (light) 
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator: locator('.deploy-target-selector').getByText('selection-preview-light-1794195270997 · 10.249.105.91', { exact: true }).first()
+    Expected: visible
+    Timeout: 10000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toBeVisible" locator('.deploy-target-selector').getByText('selection-preview-light-1794195270997 · 10.249.105.91', { exact: true }).first() with timeout 10000ms
+      - waiting for locator('.deploy-target-selector').getByText('selection-preview-light-1794195270997 · 10.249.105.91', { exact: true }).first()
+
+
+      37 |    await page.goto(`/business/deploy/task?editId=${taskId}`);
+      38 |    const selector = page.locator('.deploy-target-selector');
+    > 39 |    await expect(selector.getByText(`${token} · ${ip}`, { exact: true }).first()).toBeVisible();
+         |                                                                                  ^
+      40 |    await selector.getByLabel('每行输入一个主机 IP 或 ID').fill('not-a-host');
+      41 |    await selector.getByRole('button', { name: '解析并核对目标' }).click();
+      42 |    await expect(selector.getByText('目标无效或状态不允许，请调整选择后重新解析')).toBeVisible();
+        at D:\workspace\go\pantheon-platform\pantheon-ops\frontend\tests\smoke\business\deploy\deploy-selection-preview.spec.ts:39:82
+
+    Error Context: ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\p0-integration-20261109\remote-p0-browser-v10\smoke-business-deploy-depl-9c782-irm-conflict-refresh-light-\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\p0-integration-20261109\remote-p0-browser-v10\smoke-business-deploy-depl-9c782-irm-conflict-refresh-light-\trace.zip
+    Usage:
+
+        npx playwright show-trace ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\p0-integration-20261109\remote-p0-browser-v10\smoke-business-deploy-depl-9c782-irm-conflict-refresh-light-\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  2) tests\smoke\business\deploy\deploy-selection-preview.spec.ts:16:2 › selection and preview confirm/conflict/refresh (dark) 
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator: locator('.deploy-target-selector').getByText('selection-preview-dark-1794195310265 · 10.249.96.91', { exact: true }).first()
+    Expected: visible
+    Timeout: 10000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toBeVisible" locator('.deploy-target-selector').getByText('selection-preview-dark-1794195310265 · 10.249.96.91', { exact: true }).first() with timeout 10000ms
+      - waiting for locator('.deploy-target-selector').getByText('selection-preview-dark-1794195310265 · 10.249.96.91', { exact: true }).first()
+
+
+      37 |    await page.goto(`/business/deploy/task?editId=${taskId}`);
+      38 |    const selector = page.locator('.deploy-target-selector');
+    > 39 |    await expect(selector.getByText(`${token} · ${ip}`, { exact: true }).first()).toBeVisible();
+         |                                                                                  ^
+      40 |    await selector.getByLabel('每行输入一个主机 IP 或 ID').fill('not-a-host');
+      41 |    await selector.getByRole('button', { name: '解析并核对目标' }).click();
+      42 |    await expect(selector.getByText('目标无效或状态不允许，请调整选择后重新解析')).toBeVisible();
+        at D:\workspace\go\pantheon-platform\pantheon-ops\frontend\tests\smoke\business\deploy\deploy-selection-preview.spec.ts:39:82
+
+    Error Context: ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\p0-integration-20261109\remote-p0-browser-v10\smoke-business-deploy-depl-226da-firm-conflict-refresh-dark-\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\p0-integration-20261109\remote-p0-browser-v10\smoke-business-deploy-depl-226da-firm-conflict-refresh-dark-\trace.zip
+    Usage:
+
+        npx playwright show-trace ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\p0-integration-20261109\remote-p0-browser-v10\smoke-business-deploy-depl-226da-firm-conflict-refresh-dark-\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  3) tests\smoke\business\deploy\deploy-workbench.spec.ts:20:3 › deployment workbench sources, logs, keyboard and mobile (light) 
+
+    Error: expect(locator).toHaveCount(expected) failed
+
+    Locator:  locator('.deploy-execution-workbench').locator('.task-log-viewer__row')
+    Expected: 500
+    Received: 0
+    Timeout:  10000ms
+
+    Call log:
+      - Expect "toHaveCount" locator('.deploy-execution-workbench').locator('.task-log-viewer__row') with timeout 10000ms
+      - waiting for locator('.deploy-execution-workbench').locator('.task-log-viewer__row')
+        23 × locator resolved to 0 elements
+           - unexpected value "0"
+
+
+      72 |       await page.goto(`/business/deploy/task/${taskId}`);
+      73 |       const workbench = page.locator('.deploy-execution-workbench');
+    > 74 |       await expect(workbench.locator('.task-log-viewer__row')).toHaveCount(500);
+         |                                                                ^
+      75 |       await expect(page.locator('html')).toHaveAttribute('data-color-mode', mode);
+      76 |       await expect(workbench.getByText('fixture-first-error', { exact: true })).toHaveCount(0);
+      77 |       await workbench.locator('.arco-select').nth(1).click();
+        at D:\workspace\go\pantheon-platform\pantheon-ops\frontend\tests\smoke\business\deploy\deploy-workbench.spec.ts:74:64
+
+    Error Context: ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\p0-integration-20261109\remote-p0-browser-v10\smoke-business-deploy-depl-58206--keyboard-and-mobile-light-\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\p0-integration-20261109\remote-p0-browser-v10\smoke-business-deploy-depl-58206--keyboard-and-mobile-light-\trace.zip
+    Usage:
+
+        npx playwright show-trace ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\p0-integration-20261109\remote-p0-browser-v10\smoke-business-deploy-depl-58206--keyboard-and-mobile-light-\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  4) tests\smoke\business\deploy\deploy-workbench.spec.ts:20:3 › deployment workbench sources, logs, keyboard and mobile (dark) 
+
+    TypeError: Cannot set properties of null (setting 'steps')
+
+      44 |       await page.route(`**/business/deploy/tasks/${taskId}`, async (route) => {
+      45 |         const response = await route.fetch(); const body = await response.json();
+    > 46 |         body.data.steps = [{ id: 901, taskHostId: task.hosts[0].id, stepKey: 'fixture-install', stepOrder: 1, status: 'failed', attemptNo: 2, stateVersion: 7 }];
+         |                        ^
+      47 |         body.data.stepHistory = [{ id: 901, taskHostId: task.hosts[0].id, stepKey: 'fixture-old-install', stepOrder: 1, status: 'failed', attemptNo: 1, stateVersion: 3, capturedAt: '2026-11-07T00:00:00Z' }];
+      48 |         body.data.logAttempts = [{taskHostId: task.hosts[0].id,attemptNo:1},{taskHostId: task.hosts[0].id,attemptNo:2}];
+      49 |         await route.fulfill({ response, json: body });
+        at D:\workspace\go\pantheon-platform\pantheon-ops\frontend\tests\smoke\business\deploy\deploy-workbench.spec.ts:46:24
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator: getByText('没有日志查看权限', { exact: true }).first()
+    Expected: visible
+    Timeout: 10000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toBeVisible" getByText('没有日志查看权限', { exact: true }).first() with timeout 10000ms
+      - waiting for getByText('没有日志查看权限', { exact: true }).first()
+
+
+      124 |       denied = true;
+      125 |       await page.reload();
+    > 126 |       await expect(page.getByText('没有日志查看权限', { exact: true }).first()).toBeVisible();
+          |                                                                         ^
+      127 |       await expect(page.getByText('fixture-output', { exact: true })).toHaveCount(0);
+      128 |       await page.screenshot({ path: testInfo.outputPath(`workbench-${mode}-mobile-forbidden.png`), fullPage: true });
+      129 |       denied = false;
+        at D:\workspace\go\pantheon-platform\pantheon-ops\frontend\tests\smoke\business\deploy\deploy-workbench.spec.ts:126:73
+
+    Error Context: ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\p0-integration-20261109\remote-p0-browser-v10\smoke-business-deploy-depl-d16f5-s-keyboard-and-mobile-dark-\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\p0-integration-20261109\remote-p0-browser-v10\smoke-business-deploy-depl-d16f5-s-keyboard-and-mobile-dark-\trace.zip
+    Usage:
+
+        npx playwright show-trace ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\p0-integration-20261109\remote-p0-browser-v10\smoke-business-deploy-depl-d16f5-s-keyboard-and-mobile-dark-\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  4 failed
+    tests\smoke\business\deploy\deploy-selection-preview.spec.ts:16:2 › selection and preview confirm/conflict/refresh (light) 
+    tests\smoke\business\deploy\deploy-selection-preview.spec.ts:16:2 › selection and preview confirm/conflict/refresh (dark) 
+    tests\smoke\business\deploy\deploy-workbench.spec.ts:20:3 › deployment workbench sources, logs, keyboard and mobile (light) 
+    tests\smoke\business\deploy\deploy-workbench.spec.ts:20:3 › deployment workbench sources, logs, keyboard and mobile (dark) 
+  14 passed (7.9m)

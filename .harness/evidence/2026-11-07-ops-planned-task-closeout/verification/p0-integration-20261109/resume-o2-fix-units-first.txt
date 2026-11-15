@@ -1,0 +1,57 @@
+(!) Your Vite config uses features that are unsupported by `configLoader: 'native'`, which is planned to become the default in a future major version of Vite:
+  - `__dirname` (vitest.config.ts:10:25). Use `import.meta.dirname` instead
+Set `VITE_CONFIG_NATIVE_IGNORE_WARNING=true` to suppress this warning.
+
+ RUN  v5.0.5 D:/workspace/go/pantheon-platform/pantheon-ops/frontend
+
+ ❯ tests/unit/business/operational/deploy-read-revocation.test.tsx (4 tests | 1 failed) 59ms
+   ❯ task read revocation and generations (4)
+     × clears retained task on silent forbidden and fences in-flight success after stream denial 41ms
+ ❯ tests/unit/business/operational/log-lifecycle.test.tsx (3 tests | 1 failed) 1009ms
+   ❯ business operational log lifecycle (3)
+     × keeps the SSE instance and browser replay cursor across snapshot/callback updates 24ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/unit/business/operational/deploy-read-revocation.test.tsx > task read revocation and generations > clears retained task on silent forbidden and fences in-flight success after stream denial
+AssertionError: expected { id: 7, name: 'task-7', …(2) } to be null
+
+- Expected:
+null
+
++ Received:
+{
+  "hosts": [],
+  "id": 7,
+  "name": "task-7",
+  "status": "running",
+}
+
+ ❯ tests/unit/business/operational/deploy-read-revocation.test.tsx:28:33
+     26|     vi.mocked(getDeployTaskDetail).mockRejectedValueOnce({ status: 403…
+     27|     await act(async () => { await result.current.loadData({ silent: tr…
+     28|     expect(result.current.task).toBeNull(); expect(result.current.erro…
+       |                                 ^
+     29|     let resolve: ((value: DeployTaskRow) => void) | undefined;
+     30|     vi.mocked(getDeployTaskDetail).mockImplementationOnce(() => new Pr…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  tests/unit/business/operational/log-lifecycle.test.tsx > business operational log lifecycle > keeps the SSE instance and browser replay cursor across snapshot/callback updates
+AssertionError: expected "vi.fn()" to be called 1 times, but got 0 times
+ ❯ tests/unit/business/operational/log-lifecycle.test.tsx:36:21
+     34|     act(() => source.task?.());
+     35|     expect(FakeSource.instances).toHaveLength(1);
+     36|     expect(refresh).toHaveBeenCalledTimes(1);
+       |                     ^
+     37|     expect(nextRefresh).toHaveBeenCalledTimes(1);
+     38|     expect(source.closed).toBe(false);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+
+ Test Files  2 failed | 2 passed (4)
+      Tests  2 failed | 30 passed (32)
+   Start at  11:34:36
+   Duration  5.40s (import 48%, environment 32%, tests 12%, transform 6%)
+

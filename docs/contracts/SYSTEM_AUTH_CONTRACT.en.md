@@ -3,7 +3,7 @@ title: system/auth Contract
 doc_type: Contract
 layer: system/auth
 status: Active
-updated_at: 2026-11-04
+updated_at: 2026-11-11
 ---
 
 # system/auth Contract
@@ -11,6 +11,23 @@ updated_at: 2026-11-04
 Chinese version: [SYSTEM_AUTH_CONTRACT.md](./SYSTEM_AUTH_CONTRACT.md)
 
 This document defines the execution contract for the Pantheon `system/auth` capability domain.
+
+### Owner lifecycle read port for private business metadata (2026-11-11)
+
+`businessauth.Reader` retains its signatures. The registered auth provider may implement
+`OwnerLifecycleReader.ReadOwnerLifecycle(ctx, tenantID, actorID) (OwnerLifecycle, error)`.
+`contracts.RegisteredBusinessOwnerLifecycleReader()` returns that same provider's capability during module Init,
+before global sealing; missing and typed nil providers return an error. Sealing retains its existing requirements
+and prohibits replacement. Business modules requiring orphan cleanup must require this capability at startup;
+an unavailable capability is never evidence of deletion. This port exposes no HTTP endpoint.
+
+The private projection contains only `TenantExists` and `ActorExists`, both excluded from JSON. Queries read only
+authoritative `tenants.id/status` and `system_user.id/deleted_at` metadata, without credentials, names, passwords,
+sessions, roles or memberships. Every non-soft-deleted actor exists, including disabled and global actors, without
+target-tenant membership. Positive tenants exist when present with `status != deleted`, including suspended and
+archived tenants. Tenant 0 is the implicit platform owner, but the actor is always checked. Actor 0, nil/cancelled
+context, nil DB and schema/query failures return a fixed safe error and an empty projection. Only false with a
+nil error can support bounded orphan cleanup; this projection never grants request access.
 
 It locks down the responsibility boundaries for authentication, sessions, security center, login logs, and authentication strategy so that `auth`, `iam`, `org`, and `config` do not collapse back into one oversized “system security misc room”.
 
@@ -163,12 +180,12 @@ This contract depends on:
 
 `/system/login`, `/system/refresh`, `/system/logout` and `/system/user/info` are legacy dual entry points sharing handlers with `/auth/*` (AUD-014, 2026-10-31 decision: keep and mark deprecated instead of immediate removal; both base and ops frontends call only `/auth/*`).
 
-| Endpoint | Legacy path | Current path | Disposition |
-| --- | --- | --- | --- |
-| login | `POST /api/v1/system/login` | `POST /api/v1/auth/login` | kept until 2026-12-31 with deprecation headers |
-| refresh | `POST /api/v1/system/refresh` | `POST /api/v1/auth/refresh` | kept until 2026-12-31 with deprecation headers |
-| logout | `POST /api/v1/system/logout` | `POST /api/v1/auth/logout` | kept until 2026-12-31 with deprecation headers |
-| current user info | `GET /api/v1/system/user/info` | `GET /api/v1/auth/me` | kept until 2026-12-31 with deprecation headers |
+| Endpoint          | Legacy path                    | Current path                | Disposition                                    |
+| ----------------- | ------------------------------ | --------------------------- | ---------------------------------------------- |
+| login             | `POST /api/v1/system/login`    | `POST /api/v1/auth/login`   | kept until 2026-12-31 with deprecation headers |
+| refresh           | `POST /api/v1/system/refresh`  | `POST /api/v1/auth/refresh` | kept until 2026-12-31 with deprecation headers |
+| logout            | `POST /api/v1/system/logout`   | `POST /api/v1/auth/logout`  | kept until 2026-12-31 with deprecation headers |
+| current user info | `GET /api/v1/system/user/info` | `GET /api/v1/auth/me`       | kept until 2026-12-31 with deprecation headers |
 
 - Responses matching the four paths must carry `Deprecation: true` and `Sunset: Sat, 31 Dec 2026 23:59:59 GMT` (`middleware.LegacyDeprecationMiddleware` matching `legacySelfServicePaths`; see `backend/internal/middleware/csrf_middleware.go` and the two mounts in `backend/modules/auth/module.go`)
 - The sunset date is registered as **2026-12-31**. Removing the endpoints changes an external promise: the maintainer must first confirm that no external integrator still calls the four paths

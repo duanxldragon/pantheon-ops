@@ -1,0 +1,6 @@
+{
+  "command": "claude.exe -p --tools \"\" --output-format text < resume-advisor-health-prompt.md",
+  "status": "completed",
+  "exitCode": 0,
+  "seconds": 14
+}

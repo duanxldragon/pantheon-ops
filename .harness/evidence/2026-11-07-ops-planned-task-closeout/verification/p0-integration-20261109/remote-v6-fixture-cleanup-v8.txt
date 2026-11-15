@@ -1,0 +1,25 @@
+
+Running 1 test using 1 worker
+
+(node:10800) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x  1 .tmp\ops-acceptance\cleanup-v6.spec.ts:4:1 › clean exact v6 fixtures with identity checks and verify absence (3.7s)
+
+
+  1) .tmp\ops-acceptance\cleanup-v6.spec.ts:4:1 › clean exact v6 fixtures with identity checks and verify absence 
+
+    SyntaxError: Unexpected non-whitespace character after JSON at position 4 (line 1 column 5)
+
+      34 |   for(const [id,endpoint] of [[fixture.templateId,'deploy/templates'],[fixture.packageId,'deploy/packages'],[fixture.scopeId,'bizscope']] as const){
+      35 |    if(!id)continue;
+    > 36 |    const list=await (await request.get(`${apiBaseUrl}/business/${endpoint}`,{headers,params:{keyword:token,page:1,pageSize:100}})).json();
+         |               ^
+      37 |    expect(list.code).toBe(200);expect(list.data.total).toBeLessThan(100);
+      38 |    const existing=list.data.items.find((row:{id:number})=>row.id===id);
+      39 |    if(existing){
+        at D:\workspace\go\pantheon-platform\pantheon-ops\frontend\.tmp\ops-acceptance\cleanup-v6.spec.ts:36:15
+
+    Error Context: test-results\cleanup-v6-clean-exact-v6--37985-y-checks-and-verify-absence\error-context.md
+
+  1 failed
+    .tmp\ops-acceptance\cleanup-v6.spec.ts:4:1 › clean exact v6 fixtures with identity checks and verify absence 

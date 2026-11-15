@@ -1,0 +1,1088 @@
+diff --git "a/D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.harness\\evidence\\2026-11-07-ops-planned-task-closeout\\o4-generator-code-safety-repair-20261110-01\\before\\scripts\\business-overlay\\rebuild-from-base.mjs" b/scripts/business-overlay/rebuild-from-base.mjs
+index a806c65..bffd264 100644
+--- "a/D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.harness\\evidence\\2026-11-07-ops-planned-task-closeout\\o4-generator-code-safety-repair-20261110-01\\before\\scripts\\business-overlay\\rebuild-from-base.mjs"
++++ b/scripts/business-overlay/rebuild-from-base.mjs
+@@ -211,7 +211,7 @@ function pruneBaseRepositoryOverlay(targetRoot, manifest, io = fs) {
+   }
+ }
+ 
+-function rewriteBusinessGoImports(targetRoot, sourceModule, targetModule) {
++function rewriteBusinessGoImports(targetRoot, sourceModule, targetModule, io = fs) {
+   const backendRoot = path.join(targetRoot, 'backend', 'modules', 'business');
+   if (!fs.existsSync(backendRoot)) return [];
+   const changed = [];
+@@ -228,7 +228,7 @@ function rewriteBusinessGoImports(targetRoot, sourceModule, targetModule) {
+           .replaceAll(`${sourceModule}/`, `${targetModule}/`)
+           .replaceAll('"pantheon-base/', `"${targetModule}/`);
+         if (after !== before) {
+-          fs.writeFileSync(absolute, after, 'utf8');
++          io.writeFileSync(absolute, after, 'utf8');
+           changed.push(repoPath(path.relative(targetRoot, absolute)));
+         }
+       }
+@@ -508,15 +508,17 @@ function protectBusinessOverlayFromGeneratedCleanup(targetRoot, manifest, io = f
+   return ['frontend/scripts/cleanup-generated-modules.mjs'];
+ }
+ 
+-function mergeGoDependencies(opsRoot, targetRoot, manifest) {
++function mergeGoDependencies(opsRoot, targetRoot, manifest, io = fs) {
+   const dependencies = Object.entries(manifest.goDependencies ?? {});
+   if (dependencies.length === 0) return [];
+   const goMod = path.join(targetRoot, 'backend', 'go.mod');
+   for (const [modulePath, version] of dependencies) {
+-    const result = spawnSync('go', ['mod', 'edit', `-require=${modulePath}@${version}`], {
++    const args = ['mod', 'edit', `-require=${modulePath}@${version}`];
++    const options = {
+       cwd: path.dirname(goMod),
+       encoding: 'utf8',
+-    });
++    };
++    const result = io.runGo ? io.runGo(args, options) : spawnSync('go', args, options);
+     if (result.status !== 0) throw new Error(result.stderr.trim() || `Cannot add ${modulePath}@${version}`);
+   }
+   const sourceSum = fs.readFileSync(path.join(opsRoot, 'backend', 'go.sum'), 'utf8').split(/\r?\n/u);
+@@ -528,16 +530,18 @@ function mergeGoDependencies(opsRoot, targetRoot, manifest) {
+     if (matches.length < 2) throw new Error(`Missing go.sum entries for ${modulePath}@${version}`);
+     targetLines.push(...matches);
+   }
+-  fs.writeFileSync(targetSumPath, `${[...new Set(targetLines)].sort().join('\n')}\n`, 'utf8');
++  io.writeFileSync(targetSumPath, `${[...new Set(targetLines)].sort().join('\n')}\n`, 'utf8');
+   return ['backend/go.mod', 'backend/go.sum'];
+ }
+ 
+-export function normalizeGoDependencies(targetRoot) {
+-  const result = spawnSync('go', ['list', '-buildvcs=false', '-mod=mod', '-deps', '-test', './...'], {
++export function normalizeGoDependencies(targetRoot, io = fs) {
++  const args = ['list', '-buildvcs=false', '-mod=mod', '-deps', '-test', './...'];
++  const options = {
+     cwd: path.join(targetRoot, 'backend'),
+     encoding: 'utf8',
+     stdio: ['ignore', 'ignore', 'pipe'],
+-  });
++  };
++  const result = io.runGo ? io.runGo(args, options) : spawnSync('go', args, options);
+   if (result.status !== 0) {
+     throw new Error('Cannot normalize consumer Go dependencies: ' +
+       (result.error?.message || result.stderr?.trim() || 'go list failed'));
+@@ -549,7 +553,7 @@ function fileHash(filePath) {
+   return crypto.createHash('sha256').update(fs.readFileSync(filePath)).digest('hex');
+ }
+ 
+-function writeReport(targetRoot, baseCommit, copiedBusiness, copiedRepository, rewritten, generated) {
++function writeReport(targetRoot, baseCommit, copiedBusiness, copiedRepository, rewritten, generated, io = fs) {
+   const owned = [...new Set([...copiedBusiness, ...copiedRepository, ...generated])].sort();
+   const report = {
+     schemaVersion: 1,
+@@ -559,7 +563,7 @@ function writeReport(targetRoot, baseCommit, copiedBusiness, copiedRepository, r
+     generatedFiles: generated.sort(),
+   };
+   const output = path.join(targetRoot, '.business-overlay-report.json');
+-  fs.writeFileSync(output, `${JSON.stringify(report, null, 2)}\n`, 'utf8');
++  io.writeFileSync(output, `${JSON.stringify(report, null, 2)}\n`, 'utf8');
+   return report;
+ }
+ 
+@@ -627,7 +631,14 @@ export function assembleConsumerTree({ opsRoot = defaultOpsRoot, snapshot, targe
+ 
+   const baseTracked = snapshotFiles(resolvedBase);
+   const baseCommit = snapshot.baseCommit;
+-  for (const file of baseTracked) copyFile(resolvedBase, resolvedTarget, file, fileSystem);
++  // Do not create files/directories that would immediately need destructive
++  // pruning. Keep full baseTracked for collision validation below. The prune
++  // still rejects unexpected target entries through the supplied guarded I/O.
++  const exclusions = [...(manifest.replaceRoots ?? []), ...(manifest.baseExcludedPaths ?? [])].map(repoPath);
++  for (const file of baseTracked) {
++    if (!exclusions.some(entry => isWithin(file, entry)))
++      copyFile(resolvedBase, resolvedTarget, file, fileSystem);
++  }
+   pruneBaseRepositoryOverlay(resolvedTarget, manifest, fileSystem);
+   assertBusinessPathsDoNotOverwriteBase(opsRoot, resolvedBase, baseTracked, manifest.businessPaths ?? []);
+   const opsTracked = trackedFiles(opsRoot);
+@@ -637,13 +648,13 @@ export function assembleConsumerTree({ opsRoot = defaultOpsRoot, snapshot, targe
+   copiedRepository.push('business-overlay.json');
+ 
+   const targetModule = readGoModule(resolvedTarget);
+-  const rewritten = rewriteBusinessGoImports(resolvedTarget, manifest.sourceModule, targetModule);
++  const rewritten = rewriteBusinessGoImports(resolvedTarget, manifest.sourceModule, targetModule, fileSystem);
+   const generated = generateRegistries(resolvedTarget, manifest, targetModule, fileSystem);
+   generated.push(...projectConsumerReviewRegistry(resolvedBase, resolvedTarget, manifest, baseCommit, fileSystem));
+   generated.push(...assembleBusinessMigrations(opsRoot, resolvedTarget, manifest, fileSystem));
+-  rewritten.push(...rewriteBusinessGoImports(resolvedTarget, manifest.sourceModule, targetModule));
++  rewritten.push(...rewriteBusinessGoImports(resolvedTarget, manifest.sourceModule, targetModule, fileSystem));
+   generated.push(...wireBusinessRegistries(resolvedTarget, fileSystem));
+-  generated.push(...mergeGoDependencies(opsRoot, resolvedTarget, manifest));
++  generated.push(...mergeGoDependencies(opsRoot, resolvedTarget, manifest, fileSystem));
+   generateBusinessFallbacks(resolvedTarget, fileSystem);
+   generated.push(...wireBusinessFallbacks(resolvedTarget, fileSystem));
+   generated.push(...['frontend/src/i18n/resources/business/zh-CN.ts', 'frontend/src/i18n/resources/business/en-US.ts', 'frontend/src/i18n/resources/business/ja-JP.ts', 'frontend/src/i18n/resources/business/ko-KR.ts', 'frontend/src/i18n/resources/business/fr-FR.ts']);
+@@ -652,9 +663,11 @@ export function assembleConsumerTree({ opsRoot = defaultOpsRoot, snapshot, targe
+   generated.push(...wireBusinessSmokeCoverage(opsRoot, resolvedTarget, manifest, fileSystem));
+   generated.push(...protectBusinessOverlayFromGeneratedCleanup(resolvedTarget, manifest, fileSystem));
+   if (Object.keys(manifest.goDependencies ?? {}).length > 0) {
+-    generated.push(...normalizeGoDependencies(resolvedTarget));
++    generated.push(...normalizeGoDependencies(resolvedTarget, fileSystem));
+   }
+-  const report = writeReport(resolvedTarget, baseCommit, copiedBusiness, copiedRepository, rewritten, generated);
++  fileSystem.assertTargetStable?.();
++  const report = writeReport(resolvedTarget, baseCommit, copiedBusiness, copiedRepository, rewritten, generated, fileSystem);
++  fileSystem.assertTargetStable?.();
+   return { targetRoot: resolvedTarget, report };
+ }
+ 
+diff --git "a/D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.harness\\evidence\\2026-11-07-ops-planned-task-closeout\\o4-generator-code-safety-repair-20261110-01\\before\\scripts\\business-overlay\\rebuild-from-candidate.mjs" b/scripts/business-overlay/rebuild-from-candidate.mjs
+index 5b3b5f7..fbf3a82 100644
+--- "a/D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.harness\\evidence\\2026-11-07-ops-planned-task-closeout\\o4-generator-code-safety-repair-20261110-01\\before\\scripts\\business-overlay\\rebuild-from-candidate.mjs"
++++ b/scripts/business-overlay/rebuild-from-candidate.mjs
+@@ -168,19 +168,22 @@ export function rebuildFromCandidate({
+     assertRealPath(assembled, { directory: true, missing: true });
+     if (fs.existsSync(assembled))
+       throw new Error("Candidate assembly target was created concurrently");
++    const fileSystem = candidateAssemblyFileSystem(cacheRoot);
+     const result = assembleConsumerTree({
+       opsRoot,
+       snapshot,
+       targetRoot: assembled,
+       manifestPath: resolvedManifest,
+-      fileSystem: candidateAssemblyFileSystem(cacheRoot),
++      fileSystem,
+     });
++    fileSystem.assertTargetStable();
+     const after = verifySources();
+     const assembledInputs = captureInputs(
+       assembled,
+       fs.readdirSync(assembled).sort(),
+     );
+     const driftExitCode = checkSharedDrift({ root: assembled, snapshot, sourceRoot: opsRoot });
++    fileSystem.assertTargetStable();
+     verifySources();
+     if (driftExitCode !== 0)
+       throw new Error("Candidate shared drift check failed");
+@@ -250,6 +253,8 @@ export function rebuildFromCandidate({
+         { operation: "source-stability-before-and-after", result: "passed" },
+       ],
+       sourceStable: true,
++      directoryIdentityGuarantee: "Observed ancestor/directory pins rechecked; Node/Windows separate syscalls are not atomic creation ownership.",
++      cleanupStatus: "deferred-unproven-directories",
+       officialConsumption: false,
+       runtimeEvidence:
+         "Not collected by this staging tool; independent API/tool review, build receipt and paired runtime remain required.",
+@@ -259,9 +264,11 @@ export function rebuildFromCandidate({
+       ".foundation-candidate-receipt.json",
+     );
+     verifySources();
+-    fs.writeFileSync(receiptPath, `${JSON.stringify(receipt, null, 2)}\n`, {
++    fileSystem.assertTargetStable();
++    fileSystem.writeFileSync(receiptPath, `${JSON.stringify(receipt, null, 2)}\n`, {
+       flag: "wx",
+     });
++    fileSystem.assertTargetStable();
+     return { ...result, snapshot, receiptPath, receipt };
+   } catch (error) {
+     removeCandidateStage(cacheRoot, { cause: error });
+diff --git "a/D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.harness\\evidence\\2026-11-07-ops-planned-task-closeout\\o4-generator-code-safety-repair-20261110-01\\before\\scripts\\business-overlay\\foundation-candidate.mjs" b/scripts/business-overlay/foundation-candidate.mjs
+index 054d1b0..bebb87d 100644
+--- "a/D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.harness\\evidence\\2026-11-07-ops-planned-task-closeout\\o4-generator-code-safety-repair-20261110-01\\before\\scripts\\business-overlay\\foundation-candidate.mjs"
++++ b/scripts/business-overlay/foundation-candidate.mjs
+@@ -3,6 +3,7 @@
+ import crypto from "node:crypto";
+ import fs from "node:fs";
+ import path from "node:path";
++import { spawnSync } from "node:child_process";
+ 
+ export const LIMITS = Object.freeze({
+   files: 50000,
+@@ -550,16 +551,82 @@ function assertOwnedChain(absolute, identities) {
+     assertDirectoryIdentity(directory, identities);
+ }
+ 
+-function createStageDirectory(absolute, identities) {
++function createStageDirectory(absolute, stage) {
++  const identities = stage.directories;
+   assertOwnedChain(path.dirname(absolute), identities);
+   if (identities.has(absolute)) {
+     assertDirectoryIdentity(absolute, identities);
+     return;
+   }
+-  // mkdir is exclusive; capture immediately rather than enrolling a directory
+-  // found later by a recursive scan. Node provides no atomic mkdir+identity API.
++  // Node/Windows has no atomic mkdir+authenticated handle primitive. This pin
++  // can detect later replacement; it NEVER grants directory deletion authority.
++  // Record attempts before mkdir so an exception after native creation retains it.
++  stage.unprovenDirectories.add(absolute);
+   fs.mkdirSync(absolute);
+   identities.set(absolute, directoryIdentity(absolute));
++  assertOwnedChain(absolute, identities);
++  if (fs.readdirSync(absolute).length)
++    throw new Error(`Unproven directory creation contains unknown entries: ${absolute}`);
++}
++
++function fileIdentity(stat, absolute) {
++  if (!stat.isFile() || stat.isSymbolicLink() || stat.nlink !== 1n ||
++      typeof stat.dev !== "bigint" || typeof stat.ino !== "bigint" || stat.ino <= 0n)
++    throw new Error(`Unavailable regular file identity: ${absolute}`);
++  return [stat.dev, stat.ino, stat.birthtimeNs];
++}
++
++function assertFileIdentity(absolute, stage, fd) {
++  assertOwnedChain(path.dirname(absolute), stage.directories);
++  const expected = stage.files.get(absolute);
++  if (!expected) throw new Error(`Unknown file ownership: ${absolute}`);
++  const current = fileIdentity(fs.lstatSync(absolute, { bigint: true }), absolute);
++  const matches = value => value.every((part, i) => part === expected[i]);
++  if (!matches(current) || (fd !== undefined &&
++      !matches(fileIdentity(fs.fstatSync(fd, { bigint: true }), absolute))))
++    throw new Error(`Replaced regular file identity: ${absolute}`);
++  assertOwnedChain(path.dirname(absolute), stage.directories);
++}
++
++function writeStageFile(absolute, bytes, options, stage) {
++  assertOwnedChain(path.dirname(absolute), stage.directories);
++  const settings = typeof options === "string" ? { encoding: options } : (options ?? {});
++  const exclusive = String(settings.flag ?? "w").includes("x");
++  const existing = stage.files.has(absolute);
++  if (existing) assertFileIdentity(absolute, stage);
++  else {
++    try {
++      fs.lstatSync(absolute);
++      throw new Error(`Unknown file ownership: ${absolute}`);
++    } catch (error) { if (error.code !== "ENOENT") throw error; }
++  }
++  // No O_TRUNC on path open, no native copy-to-path. An exclusive-created fd
++  // authenticates that file instance even if the namespace changes afterward.
++  const flags = fs.constants.O_WRONLY | (fs.constants.O_NOFOLLOW ?? 0) |
++    ((!existing || exclusive) ? fs.constants.O_CREAT | fs.constants.O_EXCL : 0);
++  let fd;
++  let primaryFailure;
++  try {
++    fd = fs.openSync(absolute, flags, settings.mode ?? 0o644);
++    if (!existing) stage.files.set(absolute,
++      fileIdentity(fs.fstatSync(fd, { bigint: true }), absolute));
++    assertFileIdentity(absolute, stage, fd);
++    const buffer = Buffer.isBuffer(bytes) ? bytes :
++      (ArrayBuffer.isView(bytes) ? Buffer.from(bytes.buffer, bytes.byteOffset, bytes.byteLength) : Buffer.from(bytes, settings.encoding ?? "utf8"));
++    fs.ftruncateSync(fd, buffer.length);
++    assertFileIdentity(absolute, stage, fd);
++    fs.writeFileSync(fd, buffer);
++    assertFileIdentity(absolute, stage, fd);
++  } catch (error) {
++    primaryFailure = error;
++    throw error;
++  } finally {
++    if (fd !== undefined) {
++      try { fs.closeSync(fd); }
++      catch (closeError) { if (!primaryFailure) throw closeError; }
++    }
++  }
++  assertFileIdentity(absolute, stage);
+ }
+ const freeze = (value) => {
+   if (value && typeof value === "object") {
+@@ -776,12 +843,13 @@ export function resolveCandidateArtifact({
+     ]),
+   );
+   // Keep unknown identity failures fail-closed even if creation already happened.
+-  ownedStages.set(root, identities);
++  const stage = { directories: identities, files: new Map(), unprovenDirectories: new Set() };
++  ownedStages.set(root, stage);
+   const baseRoot = retainedSnapshotRoot ? path.resolve(retainedSnapshotRoot) : path.join(root, "snapshot");
+   // Existing source directories are identity pins for reads, never deletion ownership.
+   const sourceIdentities = retainedSnapshotRoot ? new Map() : identities;
+   try {
+-    createStageDirectory(root, identities);
++    createStageDirectory(root, stage);
+     if (retainedSnapshotRoot) {
+       for (const directory of directoryChain(baseRoot))
+         sourceIdentities.set(directory, directoryIdentity(directory));
+@@ -796,17 +864,17 @@ export function resolveCandidateArtifact({
+       };
+       visit(baseRoot);
+     } else {
+-      createStageDirectory(baseRoot, identities);
++      createStageDirectory(baseRoot, stage);
+     }
+     for (const entry of retainedSnapshotRoot ? [] : entries) {
+       const target = path.join(baseRoot, entry.path);
+       let directory = baseRoot;
+       for (const part of entry.path.split("/").slice(0, -1)) {
+         directory = path.join(directory, part);
+-        createStageDirectory(directory, identities);
++        createStageDirectory(directory, stage);
+       }
+       assertRealPath(target, { missing: true });
+-      fs.writeFileSync(target, entry.bytes, { flag: "wx", mode: 0o644 });
++      writeStageFile(target, entry.bytes, { flag: "wx", mode: 0o644 }, stage);
+     }
+     const verifyDirectoryIdentities = () => {
+       assertOwnedChain(root, identities);
+@@ -873,37 +941,38 @@ function isCandidateStageRoot(root, identity) {
+       path.basename(path.dirname(path.dirname(path.dirname(root)))) === ".tmp");
+ }
+ 
+-function removeOwnedDirectory(root, identities) {
+-  const visit = (directory, remove) => {
++function preflightStageDirectory(root, stage) {
++  const identities = stage.directories;
++  const seenDirectories = new Set(), seenFiles = new Set();
++  const visit = (directory) => {
+     assertOwnedChain(directory, identities);
++    seenDirectories.add(directory);
+     for (const name of fs.readdirSync(directory)) {
+       assertOwnedChain(directory, identities);
+       const absolute = path.join(directory, name);
+       const stat = fs.lstatSync(absolute);
+-      if (stat.isDirectory() && !stat.isSymbolicLink()) visit(absolute, remove);
++      if (stat.isDirectory() && !stat.isSymbolicLink()) visit(absolute);
+       else if (stat.isFile() && !stat.isSymbolicLink()) {
+-        if (remove) {
+-          assertOwnedChain(directory, identities);
+-          fs.unlinkSync(absolute);
+-        }
++        assertFileIdentity(absolute, stage);
++        seenFiles.add(absolute);
+       } else throw new Error(`Unsupported cleanup entry: ${absolute}`);
+     }
+-    if (remove) {
+-      assertOwnedChain(directory, identities);
+-      fs.rmdirSync(directory);
+-    }
++    assertOwnedChain(directory, identities);
+   };
+-  // Preflight the entire subtree before deleting anything. No location-based
+-  // enrollment and no recursively deleting path primitive.
+-  visit(root, false);
+-  visit(root, true);
++  visit(root);
++  const within = file => file === root || file.startsWith(root + path.sep);
+   for (const directory of identities.keys())
+-    if (directory === root || directory.startsWith(root + path.sep)) identities.delete(directory);
++    if (within(directory) && !seenDirectories.has(directory))
++      throw new Error(`Missing observed directory identity: ${directory}`);
++  for (const file of stage.files.keys())
++    if (within(file) && !seenFiles.has(file))
++      throw new Error(`Missing owned regular file identity: ${file}`);
+ }
+ 
+ export function candidateAssemblyFileSystem(root) {
+-  const identities = ownedStages.get(root);
+-  if (!identities || !isCandidateStageRoot(root)) throw new Error("Unknown candidate stage ownership");
++  const stage = ownedStages.get(root);
++  if (!stage || !isCandidateStageRoot(root)) throw new Error("Unknown candidate stage ownership");
++  const identities = stage.directories;
+   const assembled = path.join(root, "assembled");
+   const bounded = (file) => {
+     const absolute = path.resolve(file);
+@@ -912,21 +981,108 @@ export function candidateAssemblyFileSystem(root) {
+     return absolute;
+   };
+   return {
+-    ...fs,
++    // Expose only assembler reads and guarded mutations, not native path-based
++    // open/append/copy/rename/unlink methods that could bypass this lifecycle.
++    existsSync: fs.existsSync,
++    readFileSync: fs.readFileSync,
++    lstatSync: fs.lstatSync,
++    readdirSync: fs.readdirSync,
++    assertTargetStable() {
++      preflightStageDirectory(assembled, stage);
++    },
++    copyFileSync(source, file) {
++      const absolute = bounded(file);
++      assertOwnedChain(path.dirname(absolute), identities);
++      writeStageFile(absolute, readStableFile(source, LIMITS.archiveBytes), undefined, stage);
++    },
++    writeFileSync(file, bytes, options) {
++      writeStageFile(bounded(file), bytes, options, stage);
++    },
+     mkdirSync(file) {
+       const absolute = bounded(file);
+       let current = root;
+       assertOwnedChain(current, identities);
+       for (const part of path.relative(root, absolute).split(path.sep)) {
+         current = path.join(current, part);
+-        createStageDirectory(current, identities);
++        createStageDirectory(current, stage);
+       }
+     },
+     rmSync(file) {
+       const absolute = bounded(file);
+-      assertOwnedChain(path.dirname(absolute), identities);
+-      if (!fs.existsSync(absolute)) return;
+-      removeOwnedDirectory(absolute, identities);
++      // A pre-copy exclusion can have a missing parent. Validate every observed
++      // ancestor first, and never accept an existing unregistered directory.
++      for (const directory of directoryChain(path.dirname(absolute))) {
++        if (!identities.has(directory)) {
++          try { fs.lstatSync(directory); }
++          catch (error) { if (error.code === "ENOENT") return; throw error; }
++        }
++        assertDirectoryIdentity(directory, identities);
++      }
++      let stat;
++      try { stat = fs.lstatSync(absolute); }
++      catch (error) { if (error.code === "ENOENT") return; throw error; }
++      if (stat.isFile() && !stat.isSymbolicLink()) {
++        // Refuse ANY unknown sibling before deleting a known file. This full
++        // preflight is not authority enrollment, and unlink is still non-atomic.
++        preflightStageDirectory(root, stage);
++        assertFileIdentity(absolute, stage);
++        fs.unlinkSync(absolute);
++        assertOwnedChain(path.dirname(absolute), identities);
++        stage.files.delete(absolute);
++        return;
++      }
++      preflightStageDirectory(absolute, stage);
++      throw new Error(`Unproven directory creation; cleanup deferred: ${absolute}`);
++    },
++    runGo(args, options) {
++      // Go rewrites modfiles by rename and offers no authenticated target-fd
++      // interface. Keep those unproven outputs outside assembled; never enroll
++      // them by scanning or delete their workspace. The final target receipt
++      // validates only bytes imported through our existing exclusive file fds.
++      preflightStageDirectory(assembled, stage);
++      const work = path.join(root, `go-work-${crypto.randomUUID()}`);
++      createStageDirectory(work, stage);
++      const modfile = path.join(work, "go.mod");
++      const sumfile = path.join(work, "go.sum");
++      const goMod = bounded(path.join(options.cwd, "go.mod"));
++      const goSum = bounded(path.join(options.cwd, "go.sum"));
++      writeStageFile(modfile, readStableFile(goMod), { flag: "wx" }, stage);
++      writeStageFile(sumfile, readStableFile(goSum), { flag: "wx" }, stage);
++      assertOwnedChain(work, identities);
++      preflightStageDirectory(assembled, stage);
++      const command = [...args];
++      command.splice(args[0] === "mod" ? 2 : 1, 0, `-modfile=${modfile}`);
++      // Go may replace these exact two files. Their creation receipts cease to
++      // authenticate the outputs. They are retained, never cleanup-authorized.
++      stage.files.delete(modfile);
++      stage.files.delete(sumfile);
++      let result, primaryFailure;
++      try { result = spawnSync("go", command, options); }
++      catch (error) { primaryFailure = error; throw error; }
++      finally {
++        try {
++          assertOwnedChain(work, identities);
++          preflightStageDirectory(assembled, stage);
++        } catch (identityError) {
++          if (primaryFailure) {
++            // The caller's exact primary object/cause must survive the finally
++            // validation. removeCandidateStage records the identity refusal.
++          } else if (result && result.status !== 0) {
++            // Do not replace a real subprocess failure with the later refusal.
++            const failure = result.error ?? new Error(result.stderr?.trim() || "Go command failed");
++            failure.targetIdentityError = identityError;
++            throw failure;
++          } else throw identityError;
++        }
++      }
++      if (result.status === 0) {
++        const mod = readStableFile(modfile), sum = readStableFile(sumfile);
++        assertOwnedChain(work, identities);
++        writeStageFile(goMod, mod, undefined, stage);
++        writeStageFile(goSum, sum, undefined, stage);
++        preflightStageDirectory(assembled, stage);
++      }
++      return result;
+     },
+   };
+ }
+@@ -938,11 +1094,14 @@ export function removeCandidateStage(root, { cause } = {}) {
+     !isCandidateStageRoot(root)
+   )
+     throw new Error("Unsafe candidate cleanup target");
+-  const identities = ownedStages.get(root);
++  const stage = ownedStages.get(root);
+   try {
+-    removeOwnedDirectory(root, identities);
++    preflightStageDirectory(root, stage);
++    throw new Error("Unproven directory creation; cleanup deferred without deletion (Node mkdir has no authenticated creation handle)");
+   } catch (error) {
+-    throw new CandidateCleanupError(root, error.message, cause ?? error);
++    const refused = new CandidateCleanupError(root, error.message, cause ?? error);
++    refused.cleanupStatus = "deferred-unproven";
++    refused.retainedDirectories = [...stage.unprovenDirectories];
++    throw refused;
+   }
+-  ownedStages.delete(root);
+ }
+diff --git "a/D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.harness\\evidence\\2026-11-07-ops-planned-task-closeout\\o4-generator-code-safety-repair-20261110-01\\before\\scripts\\business-overlay\\foundation-candidate.test.mjs" b/scripts/business-overlay/foundation-candidate.test.mjs
+index 997ae89..b27267b 100644
+--- "a/D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.harness\\evidence\\2026-11-07-ops-planned-task-closeout\\o4-generator-code-safety-repair-20261110-01\\before\\scripts\\business-overlay\\foundation-candidate.test.mjs"
++++ b/scripts/business-overlay/foundation-candidate.test.mjs
+@@ -478,48 +478,50 @@ test("canonical assembly does not hide a genuinely stale in-coverage legacy allo
+   f.manifest.businessSmokeScripts = [];
+   write(f.ops, "business-overlay.json", JSON.stringify(f.manifest));
+   assert.throws(f.rebuild, /Candidate shared drift check failed/);
+-  assert.equal(fs.existsSync(f.cacheRoot), false);
++  assert.equal(fs.existsSync(f.cacheRoot), true, "unproven directory retained");
+ });
+ 
+ test("canonical generated bytes cannot be forged by editing the report or legacy allowlist", async (t) => {
+   for (const file of ["frontend/src/i18n/resources/en-US.ts", "frontend/src/i18n/resources/business/fr-FR.ts", "frontend/src/core/router/modules.ts", "frontend/src/modules/businessOverlay.ts", "backend/modules/business/business.go", "frontend/package.json", "frontend/scripts/cleanup-generated-modules.mjs", "frontend/tests/smoke/README.md"])
+     await t.test(file, (st) => {
+       const f = generatedFixture(st);
++      const targetPath = trackFileDescriptors(st);
+       const original = fs.writeFileSync;
+       st.mock.method(fs, "writeFileSync", function (target, ...args) {
+         const result = original.call(this, target, ...args);
+-        if (String(target).endsWith("assembled/.business-overlay-report.json".replaceAll("/", path.sep))) {
++        if (String(targetPath(target)).endsWith("assembled/.business-overlay-report.json".replaceAll("/", path.sep))) {
+           const changed = path.join(f.cacheRoot, "assembled", file);
+           fs.appendFileSync(changed, "\n// shared byte tamper\n");
+-          const report = JSON.parse(fs.readFileSync(target));
++          const report = JSON.parse(fs.readFileSync(targetPath(target)));
+           report.ownedFiles.find(entry => entry.path === file).sha256 = consumer.sha256(fs.readFileSync(changed));
+-          original.call(this, target, JSON.stringify(report));
++          original.call(this, targetPath(target), JSON.stringify(report));
+         }
+         return result;
+       });
+       assert.throws(f.rebuild, /Derived business output differs|Canonical business output/);
+-      assert.equal(fs.existsSync(f.cacheRoot), false, "proven owned assembly was cleaned");
++      assert.equal(fs.existsSync(f.cacheRoot), true, "unproven directory retained");
+     });
+ });
+ 
+ test("forged generatedFiles cannot exempt actual shared Base bytes", (t) => {
+   const f = generatedFixture(t);
++  const targetPath = trackFileDescriptors(t);
+   const original = fs.writeFileSync;
+   t.mock.method(fs, "writeFileSync", function (target, ...args) {
+     const result = original.call(this, target, ...args);
+-    if (String(target).endsWith(path.join("assembled", ".business-overlay-report.json"))) {
++    if (String(targetPath(target)).endsWith(path.join("assembled", ".business-overlay-report.json"))) {
+       const file = "backend/pkg/contracts/module.go";
+       const absolute = path.join(f.cacheRoot, "assembled", file);
+       fs.appendFileSync(absolute, "\n// shared byte tamper\n");
+-      const report = JSON.parse(fs.readFileSync(target));
++      const report = JSON.parse(fs.readFileSync(targetPath(target)));
+       report.generatedFiles.push(file);
+       report.ownedFiles.push({ path: file, sha256: consumer.sha256(fs.readFileSync(absolute)) });
+-      original.call(this, target, JSON.stringify(report));
++      original.call(this, targetPath(target), JSON.stringify(report));
+     }
+     return result;
+   });
+   assert.throws(f.rebuild, /Candidate shared drift check failed/);
+-  assert.equal(fs.existsSync(f.cacheRoot), false);
++  assert.equal(fs.existsSync(f.cacheRoot), true, "unproven directory retained");
+ });
+ 
+ test("fresh consumer attempt reuses verified immutable snapshot without touching retained failure", (t) => {
+@@ -533,7 +535,7 @@ test("fresh consumer attempt reuses verified immutable snapshot without touching
+   assert.deepEqual(consumer.captureInputs(first.targetRoot, fs.readdirSync(first.targetRoot).sort()), retained);
+   assert.throws(() => f.rebuild({ attempt: "fixture-retry" }), /already exists/);
+   assert.throws(() => f.rebuild({ attempt: "../escape" }), /attempt/);
+-  consumer.removeCandidateStage(second.snapshot.cacheRoot);
++  assertCleanupRefused(() => consumer.removeCandidateStage(second.snapshot.cacheRoot));
+   assert.equal(fs.existsSync(first.snapshot.baseRoot), true);
+   assert.deepEqual(consumer.captureInputs(first.targetRoot, fs.readdirSync(first.targetRoot).sort()), retained);
+ });
+@@ -546,7 +548,7 @@ test("fresh consumer attempts reject tampered retained snapshot and preserve the
+   assert.throws(() => f.rebuild({ attempt: "rejected-snapshot" }), /inventory mismatch/);
+   assert.match(fs.readFileSync(file, "utf8"), /tamper$/);
+   assert.equal(fs.existsSync(first.targetRoot), true);
+-  assert.equal(fs.existsSync(path.join(f.ops, '.tmp/foundation-candidate-attempts', first.receipt.candidateIdentity, 'rejected-snapshot')), false);
++  assert.equal(fs.existsSync(path.join(f.ops, '.tmp/foundation-candidate-attempts', first.receipt.candidateIdentity, 'rejected-snapshot')), true, "unproven failed attempt retained");
+ });
+ 
+ function checksum(archive) {
+@@ -558,21 +560,41 @@ function checksum(archive) {
+   archive.write(`${sum.toString(8).padStart(6, "0")}\0 `, 148, 8, "ascii");
+ }
+ 
++function trackFileDescriptors(t) {
++  const open = fs.openSync, files = new Map();
++  t.mock.method(fs, "openSync", function(file, ...args) {
++    const fd = open.call(this, file, ...args);
++    files.set(fd, file);
++    return fd;
++  });
++  return file => typeof file === "number" ? files.get(file) : file;
++}
++
+ function interceptCopy(action, run) {
+-  const copy = fs.copyFileSync;
++  const open = fs.openSync, close = fs.closeSync, writes = new Map();
+   let first = true;
+-  fs.copyFileSync = (...args) => {
+-    const result = copy(...args);
+-    if (first) {
++  // Native copy-to-path is gone. Fire after the first assembled target fd
++  // closes: copied bytes exist and Windows no longer holds its rename lock.
++  fs.openSync = (file, flags, ...args) => {
++    const result = open(file, flags, ...args);
++    if (typeof flags === "number" && (flags & fs.constants.O_WRONLY) && String(file).includes(`${path.sep}assembled${path.sep}`)) writes.set(result, file);
++    else writes.delete(result);
++    return result;
++  };
++  fs.closeSync = fd => {
++    const file = writes.get(fd); writes.delete(fd);
++    const result = close(fd);
++    if (file && first) {
+       first = false;
+-      action(...args);
++      action(file.replace(`${path.sep}assembled${path.sep}`, `${path.sep}snapshot${path.sep}`));
+     }
+     return result;
+   };
+   try {
+     return run();
+   } finally {
+-    fs.copyFileSync = copy;
++    fs.openSync = open;
++    fs.closeSync = close;
+   }
+ }
+ 
+@@ -596,6 +618,7 @@ for (const phase of ["extraction", "assembly"]) {
+   ]) {
+     test(`cleanup preserves renamed original and real replacement: ${phase}/${directory}`, (t) => {
+       const f = fixture(t);
++      const targetPath = trackFileDescriptors(t);
+       let attacked;
+       const retained = path.join(f.temp, "retained-original");
+       const replace = () => {
+@@ -620,13 +643,13 @@ for (const phase of ["extraction", "assembly"]) {
+           /injected directory replacement failure/,
+         );
+       } else {
+-        const originalWrite = fs.writeFileSync;
++        const originalClose = fs.closeSync;
+         let fired = false;
+-        fs.writeFileSync = (file, ...args) => {
+-          const result = originalWrite(file, ...args);
++        fs.closeSync = (file) => {
++          const result = originalClose(file);
+           if (
+             !fired &&
+-            String(file).includes(`${path.sep}snapshot${path.sep}`)
++            String(targetPath(file)).includes(`${path.sep}snapshot${path.sep}`)
+           ) {
+             fired = true;
+             replace();
+@@ -639,7 +662,7 @@ for (const phase of ["extraction", "assembly"]) {
+             /injected directory replacement failure/,
+           );
+         } finally {
+-          fs.writeFileSync = originalWrite;
++          fs.closeSync = originalClose;
+         }
+       }
+       assert.ok(attacked, "the real failure hook ran");
+@@ -681,11 +704,11 @@ test("cleanup refuses an unknown descendant before removing any owned files", (t
+   );
+ });
+ 
+-test("cleanup removes an unchanged extracted directory instance", (t) => {
++test("cleanup retains an unchanged extracted directory instance when mkdir ownership is unproven", (t) => {
+   const f = fixture(t);
+   f.resolve();
+-  consumer.removeCandidateStage(f.cacheRoot);
+-  assert.equal(fs.existsSync(f.cacheRoot), false);
++  assertCleanupRefused(() => consumer.removeCandidateStage(f.cacheRoot), /Unproven directory creation/);
++  assert.equal(fs.existsSync(f.cacheRoot), true);
+ });
+ 
+ for (const identity of ["missing", "zero"]) {
+@@ -725,15 +748,15 @@ test("source verification refuses an unchanged snapshot moved into a replacement
+   assert.equal(fs.lstatSync(retained).isDirectory(), true);
+ });
+ 
+-test("cleanup refuses a replaced ancestor observed during individual file deletion", (t) => {
++test("cleanup preflight refuses a replaced ancestor before any file deletion", (t) => {
+   const f = fixture(t);
+   f.resolve();
+   const retained = path.join(f.temp, "retained-stage");
+-  const originalUnlink = fs.unlinkSync;
++  const originalRead = fs.readdirSync;
+   let fired = false;
+-  fs.unlinkSync = (file) => {
+-    const result = originalUnlink(file);
+-    if (!fired) {
++  fs.readdirSync = (file, ...args) => {
++    const result = originalRead(file, ...args);
++    if (!fired && file === f.cacheRoot) {
+       fired = true;
+       fs.renameSync(f.cacheRoot, retained);
+       fs.mkdirSync(f.cacheRoot);
+@@ -744,14 +767,14 @@ test("cleanup refuses a replaced ancestor observed during individual file deleti
+   try {
+     assertCleanupRefused(() => consumer.removeCandidateStage(f.cacheRoot));
+   } finally {
+-    fs.unlinkSync = originalUnlink;
++    fs.readdirSync = originalRead;
+   }
+   assert.equal(fired, true);
+   assert.equal(
+     fs.readFileSync(path.join(f.cacheRoot, "foreign.txt"), "utf8"),
+     "preserve",
+   );
+-  // One owned file was already deleted: this test makes no atomicity claim.
++  // Preflight observes the replacement and refuses before any file deletion.
+   assert.equal(
+     fs.existsSync(path.join(retained, "snapshot/backend/go.sum")),
+     true,
+@@ -816,12 +839,13 @@ test("requires external descriptor pin and rejects descriptor/archive tamper bef
+ 
+ test("rejects descriptor edit/revert during extraction and bounded input overflow", (t) => {
+   const f = fixture(t);
++  const targetPath = trackFileDescriptors(t);
+   const originalWrite = fs.writeFileSync;
+   const originalDescriptor = fs.readFileSync(f.candidate.descriptorPath);
+   let changed = false;
+   fs.writeFileSync = (file, ...args) => {
+     const result = originalWrite(file, ...args);
+-    if (!changed && String(file).includes(`${path.sep}snapshot${path.sep}`)) {
++    if (!changed && String(targetPath(file)).includes(`${path.sep}snapshot${path.sep}`)) {
+       changed = true;
+       originalWrite(f.candidate.descriptorPath, "transient");
+       originalWrite(f.candidate.descriptorPath, originalDescriptor);
+@@ -838,7 +862,7 @@ test("rejects descriptor edit/revert during extraction and bounded input overflo
+   } finally {
+     fs.writeFileSync = originalWrite;
+   }
+-  assert.equal(fs.existsSync(f.cacheRoot), false);
++  assert.equal(fs.existsSync(f.cacheRoot), true, "unproven directory retained");
+   assert.throws(
+     () => consumer.readStableFile(f.candidate.artifactPath, 10),
+     /bounded/,
+@@ -1228,7 +1252,7 @@ test("rejects junction ancestors and hard-linked artifact/declared source withou
+   assert.throws(f.rebuild, /hard links/);
+ });
+ 
+-test("assembly rejects snapshot/artifact and declared Ops mutations including edit/revert and cleans proven owned output", async (t) => {
++test("assembly rejects snapshot/artifact and declared Ops mutations including edit/revert and retains unproven directories", async (t) => {
+   for (const mode of [
+     "snapshot",
+     "artifact",
+@@ -1287,7 +1311,7 @@ test("assembly rejects snapshot/artifact and declared Ops mutations including ed
+             ? /Candidate artifact inputs changed during assembly/
+             : /Declared Ops source\/manifest\/lock changed during candidate assembly/;
+       assert.throws(() => interceptCopy(action, f.rebuild), causeMessage);
+-      assert.equal(fs.existsSync(f.cacheRoot), false);
++      assert.equal(fs.existsSync(f.cacheRoot), true, "unproven directory retained");
+       assert.equal(
+         fs.existsSync(
+           path.join(
+@@ -1305,14 +1329,17 @@ test("drift and migration conflicts refuse candidate publication", async (t) =>
+   await t.test("unallowlisted shared modification", (st) => {
+     const f = fixture(st);
+     write(f.ops, ".foundation/allowed-drift.json", "{}");
+-    const copy = fs.copyFileSync;
+-    st.mock.method(fs, "copyFileSync", function (source, target, ...args) {
+-      const result = copy.call(this, source, target, ...args);
+-      if (String(target).endsWith(path.join("assembled", "docs", "base.md"))) fs.appendFileSync(target, "shared tamper");
++    const targetPath = trackFileDescriptors(st);
++    const originalClose = fs.closeSync; let fired = false;
++    st.mock.method(fs, "closeSync", function (target) {
++      const result = originalClose.call(this, target);
++      if (!fired && String(targetPath(target)).endsWith(path.join("assembled", "docs", "base.md"))) {
++        fired = true; fs.appendFileSync(targetPath(target), "shared tamper");
++      }
+       return result;
+     });
+     assert.throws(f.rebuild, /Candidate shared drift check failed/);
+-    assert.equal(fs.existsSync(f.cacheRoot), false);
++    assert.equal(fs.existsSync(f.cacheRoot), true, "unproven directory retained");
+     assert.equal(
+       fs.existsSync(
+         path.join(f.cacheRoot, "assembled/.foundation-candidate-receipt.json"),
+@@ -1344,7 +1371,7 @@ test("drift and migration conflicts refuse candidate publication", async (t) =>
+       f.rebuild,
+       /Business migration version conflicts with Base: 000031/,
+     );
+-    assert.equal(fs.existsSync(f.cacheRoot), false);
++    assert.equal(fs.existsSync(f.cacheRoot), true, "unproven directory retained");
+     assert.equal(
+       fs.existsSync(
+         path.join(f.cacheRoot, "assembled/.foundation-candidate-receipt.json"),
+@@ -1459,9 +1486,16 @@ test("CLI reports the assembly cause together with safe cleanup refusal", (t) =>
+   const f = fixture(t);
+   const preload = path.join(f.temp, "inject-foreign.mjs");
+   fs.writeFileSync(preload, `import fs from 'node:fs'; import path from 'node:path';
+-    const copy = fs.copyFileSync; fs.copyFileSync = (source, target, ...args) => {
+-      const result = copy(source, target, ...args);
+-      if (target.endsWith(path.join('assembled', 'docs', 'base.md'))) {
++    const open = fs.openSync, close = fs.closeSync, files = new Map();
++    fs.openSync = (target, flags, ...args) => {
++      const fd = open(target, flags, ...args);
++      if (typeof target === 'string' && typeof flags === 'number' && (flags & fs.constants.O_WRONLY)) files.set(fd, target);
++      else files.delete(fd);
++      return fd;
++    };
++    fs.closeSync = fd => {
++      const target = files.get(fd); files.delete(fd); const result = close(fd);
++      if (target && target.endsWith(path.join('assembled', 'docs', 'base.md'))) {
+         const unknown = path.join(path.dirname(target), 'foreign');
+         fs.mkdirSync(unknown); fs.writeFileSync(path.join(unknown, 'keep.txt'), 'preserve');
+         throw new Error('injected primary shared drift failure');
+diff --git a/scripts/business-overlay/candidate-ownership.test.mjs b/scripts/business-overlay/candidate-ownership.test.mjs
+new file mode 100644
+index 0000000..1fee5a5
+--- /dev/null
++++ b/scripts/business-overlay/candidate-ownership.test.mjs
+@@ -0,0 +1,264 @@
++import assert from 'node:assert/strict';
++import fs from 'node:fs';
++import os from 'node:os';
++import path from 'node:path';
++import { spawnSync } from 'node:child_process';
++import childProcess from 'node:child_process';
++import { syncBuiltinESMExports } from 'node:module';
++import test from 'node:test';
++import { buildCandidateArtifact } from '../../../pantheon-base/scripts/foundation-release/build-candidate-artifact.mjs';
++import * as consumer from './foundation-candidate.mjs';
++import { rebuildFromCandidate } from './rebuild-from-candidate.mjs';
++import { normalizeGoDependencies } from './rebuild-from-base.mjs';
++
++// The exact fixture extraction used by independent CODE's adversarial-checks-v2
++// and replacement-assembly-check. Attack assertions do not reuse implementation.
++const source = fs.readFileSync(new URL('./foundation-candidate.test.mjs', import.meta.url), 'utf8');
++const start = source.indexOf('function fixture(t) {');
++const end = source.indexOf('\nfunction repin(', start);
++const write = (root, file, bytes) => {
++  const target = path.join(root, file);
++  fs.mkdirSync(path.dirname(target), { recursive: true });
++  fs.writeFileSync(target, bytes);
++};
++const fixture = new Function('fs', 'path', 'os', 'spawnSync', 'assert', 'buildCandidateArtifact', 'consumer', 'rebuildFromCandidate', 'write',
++  source.slice(start, end) + '\nreturn fixture;')(fs, path, os, spawnSync, assert, buildCandidateArtifact, consumer, rebuildFromCandidate, write);
++const retainedFixture = () => fixture({ after() {} });
++function forbidDeletion(t) {
++  let attempts = 0;
++  for (const method of ['unlinkSync', 'rmdirSync']) t.mock.method(fs, method, () => {
++    attempts++; throw new Error('Test preserved attempted deletion');
++  });
++  return () => attempts;
++}
++function replace(f, directory) {
++  const retained = path.join(f.temp, 'retained-' + path.basename(directory));
++  fs.renameSync(directory, retained);
++  fs.mkdirSync(directory);
++  return retained;
++}
++
++test('independent HIGH1: observed directory replacement refuses copy and preserves foreign bytes', () => {
++  const f = retainedFixture(), snapshot = f.resolve();
++  const io = consumer.candidateAssemblyFileSystem(f.cacheRoot);
++  const docs = path.join(f.cacheRoot, 'assembled/docs'); io.mkdirSync(docs);
++  const retained = replace(f, docs), target = path.join(docs, 'base.md');
++  fs.writeFileSync(target, 'foreign original must remain');
++  assert.throws(() => io.copyFileSync(path.join(snapshot.baseRoot, 'docs/base.md'), target), /Replaced directory identity/);
++  assert.equal(fs.readFileSync(target, 'utf8'), 'foreign original must remain');
++  assert.equal(fs.statSync(retained).isDirectory(), true);
++});
++
++test('independent HIGH1: replacement at native copy/open cannot clobber or emit fixture success receipt', t => {
++  const f = retainedFixture(), docs = path.join(f.cacheRoot, 'assembled/docs'), target = path.join(docs, 'base.md');
++  let fired = false, retained;
++  const attack = file => { if (file === target && !fired) {
++    fired = true; retained = replace(f, docs); fs.writeFileSync(target, 'foreign original must remain');
++  }};
++  const copy = fs.copyFileSync, open = fs.openSync;
++  t.mock.method(fs, 'copyFileSync', function(src, dst, ...args) { attack(dst); return copy.call(this, src, dst, ...args); });
++  t.mock.method(fs, 'openSync', function(file, flags, ...args) {
++    if (typeof flags === 'number' && (flags & fs.constants.O_CREAT)) attack(file);
++    return open.call(this, file, flags, ...args);
++  });
++  const deletions = forbidDeletion(t);
++  assert.throws(f.rebuild, /Replaced directory identity|EEXIST/);
++  assert.equal(fired, true);
++  assert.equal(fs.readFileSync(target, 'utf8'), 'foreign original must remain');
++  assert.equal(fs.statSync(retained).isDirectory(), true);
++  assert.equal(fs.existsSync(path.join(f.cacheRoot, 'assembled/.foundation-candidate-receipt.json')), false);
++  assert.equal(deletions(), 0);
++});
++
++test('independent HIGH2: mkdir interception never authorizes foreign directory deletion', t => {
++  const f = retainedFixture(); f.resolve();
++  const io = consumer.candidateAssemblyFileSystem(f.cacheRoot), docs = path.join(f.cacheRoot, 'assembled/docs');
++  const mkdir = fs.mkdirSync; let fired = false, retained;
++  t.mock.method(fs, 'mkdirSync', function(file, ...args) {
++    const result = mkdir.call(this, file, ...args);
++    if (file === docs && !fired) { fired = true; retained = replace(f, docs); fs.writeFileSync(path.join(docs, 'foreign.txt'), 'preserve'); }
++    return result;
++  });
++  try { io.mkdirSync(docs); } catch (error) { assert.match(error.message, /Unproven|Unknown/); }
++  const deletions = forbidDeletion(t), primary = new Error('independent primary failure');
++  assert.throws(() => consumer.removeCandidateStage(f.cacheRoot, { cause: primary }), error => {
++    assert.equal(error.cause, primary); assert.match(error.message, /Unknown|Unproven|deferred/); return true;
++  });
++  assert.equal(fired, true); assert.equal(deletions(), 0);
++  assert.equal(fs.readFileSync(path.join(docs, 'foreign.txt'), 'utf8'), 'preserve');
++  assert.equal(fs.statSync(retained).isDirectory(), true);
++});
++
++test('independent HIGH3: unknown ordinary sibling rejects whole cleanup preflight before any deletion', t => {
++  const f = retainedFixture(), snapshot = f.resolve(), io = consumer.candidateAssemblyFileSystem(f.cacheRoot);
++  const assembled = path.join(f.cacheRoot, 'assembled'); io.mkdirSync(assembled);
++  const foreign = path.join(assembled, 'foreign-sibling.txt'); fs.writeFileSync(foreign, 'preserve');
++  const deletions = forbidDeletion(t);
++  assert.throws(() => consumer.removeCandidateStage(f.cacheRoot), /Unknown.*file/);
++  assert.equal(deletions(), 0); assert.equal(fs.readFileSync(foreign, 'utf8'), 'preserve');
++  assert.equal(fs.existsSync(path.join(snapshot.baseRoot, 'backend/go.mod')), true);
++});
++
++for (const excluded of ['docs/base.md', 'docs']) test(`independent MEDIUM4: ${excluded} exclusion preserves drift validation and produces fixture receipt`, () => {
++  const f = retainedFixture(); f.manifest.baseExcludedPaths = [excluded];
++  write(f.ops, 'business-overlay.json', JSON.stringify(f.manifest));
++  // This fixture intentionally covers docs in sharedPaths. A missing shared
++  // file requires its existing explicit drift declaration, even when excluded.
++  write(f.ops, '.foundation/allowed-drift.json', JSON.stringify({ 'docs/base.md': 'fixture deliberate exclusion' }));
++  const result = f.rebuild();
++  assert.equal(fs.existsSync(path.join(result.targetRoot, excluded)), false);
++  assert.equal(result.receipt.sourceStable, true);
++});
++
++test('file exclusions require recorded exclusive-created identity; replacement and unknown file remain', () => {
++  const f = retainedFixture(); f.resolve(); const io = consumer.candidateAssemblyFileSystem(f.cacheRoot);
++  const directory = path.join(f.cacheRoot, 'assembled'); io.mkdirSync(directory);
++  const known = path.join(directory, 'known.txt'); io.writeFileSync(known, 'owned'); io.rmSync(known);
++  assert.equal(fs.existsSync(known), false);
++  io.writeFileSync(known, 'owned'); fs.renameSync(known, path.join(f.temp, 'retained-known.txt')); fs.writeFileSync(known, 'foreign');
++  assert.throws(() => io.rmSync(known), /Replaced.*file/);
++  assert.throws(() => io.writeFileSync(known, 'clobber'), /Replaced.*file/);
++  const unknown = path.join(directory, 'unknown.txt'); fs.writeFileSync(unknown, 'foreign');
++  assert.throws(() => io.rmSync(unknown), /Unknown.*file|Replaced.*file/);
++  assert.throws(() => io.writeFileSync(unknown, 'clobber'), /Unknown.*file/);
++  assert.equal(fs.readFileSync(known, 'utf8'), 'foreign');
++  assert.equal(fs.readFileSync(unknown, 'utf8'), 'foreign');
++});
++
++test('root and assembler directory cleanup is explicitly deferred with no mutation or success', t => {
++  const f = retainedFixture(); f.resolve(); const io = consumer.candidateAssemblyFileSystem(f.cacheRoot);
++  const assembled = path.join(f.cacheRoot, 'assembled'); io.mkdirSync(assembled); io.writeFileSync(path.join(assembled, 'known.txt'), 'keep');
++  const deletions = forbidDeletion(t), primary = new Error('same primary object', { cause: new Error('same nested cause') });
++  assert.throws(() => consumer.removeCandidateStage(f.cacheRoot, { cause: primary }), error => {
++    assert.equal(error.cause, primary); assert.equal(error.cleanupStatus, 'deferred-unproven');
++    assert.ok(error.retainedDirectories.includes(f.cacheRoot)); assert.ok(error.retainedDirectories.includes(assembled)); return true;
++  });
++  assert.equal(deletions(), 0); assert.equal(fs.readFileSync(path.join(assembled, 'known.txt'), 'utf8'), 'keep');
++});
++
++test('receipt open rechecks every ancestor and never writes into a replacement target', t => {
++  const f = retainedFixture(), receipt = path.join(f.cacheRoot, 'assembled/.foundation-candidate-receipt.json');
++  const open = fs.openSync; let fired = false;
++  t.mock.method(fs, 'openSync', function(file, flags, ...args) {
++    if (file === receipt && !fired) {
++      fired = true; replace(f, path.dirname(receipt)); fs.writeFileSync(receipt, 'foreign receipt');
++    }
++    return open.call(this, file, flags, ...args);
++  });
++  const deletions = forbidDeletion(t);
++  assert.throws(f.rebuild, /Replaced directory identity|EEXIST/);
++  assert.equal(fired, true); assert.equal(fs.readFileSync(receipt, 'utf8'), 'foreign receipt'); assert.equal(deletions(), 0);
++});
++
++test('existing-file open never truncates a replaced regular file', t => {
++  const f = retainedFixture(); f.resolve(); const io = consumer.candidateAssemblyFileSystem(f.cacheRoot);
++  const directory = path.join(f.cacheRoot, 'assembled'); io.mkdirSync(directory);
++  const target = path.join(directory, 'known.txt'); io.writeFileSync(target, 'owned');
++  const open = fs.openSync; let fired = false;
++  t.mock.method(fs, 'openSync', function(file, flags, ...args) {
++    if (file === target && !fired) {
++      fired = true; assert.equal(flags & fs.constants.O_TRUNC, 0);
++      fs.renameSync(target, path.join(f.temp, 'retained-original-file')); fs.writeFileSync(target, 'foreign');
++    }
++    return open.call(this, file, flags, ...args);
++  });
++  assert.throws(() => io.writeFileSync(target, 'clobber'), /Replaced.*file/);
++  assert.equal(fired, true); assert.equal(fs.readFileSync(target, 'utf8'), 'foreign');
++});
++
++test('replacement during descriptor write preserves foreign file and rejects publication', t => {
++  const f = retainedFixture(); f.resolve(); const io = consumer.candidateAssemblyFileSystem(f.cacheRoot);
++  const directory = path.join(f.cacheRoot, 'assembled'); io.mkdirSync(directory);
++  const target = path.join(directory, 'known.txt'); io.writeFileSync(target, 'owned');
++  const nativeWrite = fs.writeFileSync; let fired = false, descriptorBlockedReplacement = false;
++  t.mock.method(fs, 'writeFileSync', function(file, ...args) {
++    if (typeof file === 'number' && !fired) {
++      fired = true;
++      try { replace(f, directory); }
++      catch (error) {
++        if (process.platform === 'win32' && error.code === 'EPERM') descriptorBlockedReplacement = true;
++        throw error;
++      }
++      nativeWrite(target, 'foreign');
++    }
++    return nativeWrite.call(this, file, ...args);
++  });
++  assert.throws(() => io.writeFileSync(target, 'new owned bytes'), /Replaced directory identity|EPERM/);
++  assert.equal(fired, true);
++  if (descriptorBlockedReplacement) {
++    assert.equal(fs.readFileSync(target).subarray(0, 5).toString(), 'owned');
++    io.assertTargetStable();
++  } else {
++    assert.equal(fs.readFileSync(target, 'utf8'), 'foreign');
++    assert.throws(() => io.assertTargetStable(), /Replaced directory identity/);
++  }
++});
++
++test('unknown sibling blocks known file exclusion before first unlink', t => {
++  const f = retainedFixture(); f.resolve(); const io = consumer.candidateAssemblyFileSystem(f.cacheRoot);
++  const directory = path.join(f.cacheRoot, 'assembled'); io.mkdirSync(directory);
++  const known = path.join(directory, 'known.txt'); io.writeFileSync(known, 'keep known');
++  const foreign = path.join(directory, 'z-foreign.txt'); fs.writeFileSync(foreign, 'keep foreign');
++  const deletions = forbidDeletion(t);
++  assert.throws(() => io.rmSync(known), /Unknown.*file/);
++  assert.equal(deletions(), 0); assert.equal(fs.readFileSync(known, 'utf8'), 'keep known');
++});
++
++test('final target validation refuses a recorded file or directory removed from the observed tree', () => {
++  const f = retainedFixture(); f.resolve(); const io = consumer.candidateAssemblyFileSystem(f.cacheRoot);
++  const assembled = path.join(f.cacheRoot, 'assembled'); io.mkdirSync(assembled);
++  const file = path.join(assembled, 'known.txt'); io.writeFileSync(file, 'retain');
++  fs.renameSync(file, path.join(f.temp, 'retained-missing-file'));
++  assert.throws(() => io.assertTargetStable(), /Missing owned regular file identity/);
++  fs.renameSync(path.join(f.temp, 'retained-missing-file'), file);
++  const nested = path.join(assembled, 'nested'); io.mkdirSync(nested);
++  fs.renameSync(nested, path.join(f.temp, 'retained-missing-directory'));
++  assert.throws(() => io.assertTargetStable(), /Missing observed directory identity/);
++});
++
++test('Go normalization uses alternate modfiles and imports through owned descriptors', () => {
++  const f = retainedFixture(); f.resolve(); const io = consumer.candidateAssemblyFileSystem(f.cacheRoot);
++  const assembled = path.join(f.cacheRoot, 'assembled'); io.mkdirSync(path.join(assembled, 'backend'));
++  io.writeFileSync(path.join(assembled, 'backend/go.mod'), 'module example.test/owned\n\ngo 1.24.0\n');
++  io.writeFileSync(path.join(assembled, 'backend/go.sum'), '');
++  io.writeFileSync(path.join(assembled, 'backend/main.go'), 'package owned\n');
++  assert.deepEqual(normalizeGoDependencies(assembled, io), ['backend/go.mod', 'backend/go.sum']);
++  io.assertTargetStable();
++  const work = fs.readdirSync(f.cacheRoot).find(name => name.startsWith('go-work-'));
++  assert.ok(work); assert.equal(fs.existsSync(path.join(f.cacheRoot, work, 'go.mod')), true);
++  assert.throws(() => consumer.removeCandidateStage(f.cacheRoot), /Unknown.*file/);
++});
++
++test('Go boundary rejects observed ancestor replacement before import and preserves primary failure', () => {
++  const f = retainedFixture(); f.resolve(); const io = consumer.candidateAssemblyFileSystem(f.cacheRoot);
++  const assembled = path.join(f.cacheRoot, 'assembled'); io.mkdirSync(path.join(assembled, 'backend'));
++  const mod = path.join(assembled, 'backend/go.mod'); io.writeFileSync(mod, 'module example.test/owned\n');
++  io.writeFileSync(path.join(assembled, 'backend/go.sum'), '');
++  const original = childProcess.spawnSync;
++  let fired = false;
++  childProcess.spawnSync = (command, args) => {
++    fired = true; assert.equal(command, 'go'); assert.ok(args.some(arg => arg.startsWith('-modfile=')));
++    replace(f, assembled); write(assembled, 'backend/go.mod', 'foreign mod must remain');
++    return { status: 1, stderr: 'independent Go primary failure' };
++  };
++  syncBuiltinESMExports();
++  try {
++    assert.throws(() => io.runGo(['mod', 'edit', '-require=example.test/a@v1.0.0'], { cwd: path.dirname(mod), encoding: 'utf8' }), /independent Go primary failure/);
++  } finally { childProcess.spawnSync = original; syncBuiltinESMExports(); }
++  assert.equal(fired, true); assert.equal(fs.readFileSync(mod, 'utf8'), 'foreign mod must remain');
++});
++
++test('throwing Go primary object and nested cause survive identity validation', () => {
++  const f = retainedFixture(); f.resolve(); const io = consumer.candidateAssemblyFileSystem(f.cacheRoot);
++  const assembled = path.join(f.cacheRoot, 'assembled'); io.mkdirSync(path.join(assembled, 'backend'));
++  const mod = path.join(assembled, 'backend/go.mod'); io.writeFileSync(mod, 'module example.test/owned\n');
++  io.writeFileSync(path.join(assembled, 'backend/go.sum'), '');
++  const primary = new Error('same thrown Go primary', { cause: new Error('same inner Go cause') });
++  const original = childProcess.spawnSync;
++  childProcess.spawnSync = () => { replace(f, assembled); throw primary; };
++  syncBuiltinESMExports();
++  try {
++    assert.throws(() => io.runGo(['mod', 'edit', '-require=example.test/a@v1.0.0'], { cwd: path.dirname(mod), encoding: 'utf8' }), error => error === primary && error.cause === primary.cause);
++    assert.throws(() => consumer.removeCandidateStage(f.cacheRoot, {cause:primary}), error => error.cause === primary);
++  } finally { childProcess.spawnSync = original; syncBuiltinESMExports(); }
++});

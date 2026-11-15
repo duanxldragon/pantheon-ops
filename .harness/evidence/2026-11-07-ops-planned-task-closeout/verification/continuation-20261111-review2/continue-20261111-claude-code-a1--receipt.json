@@ -1,0 +1,20 @@
+{
+  "role": "code-reviewer",
+  "lane": "CODE",
+  "provider": "installed Claude CLI",
+  "exitCode": 1,
+  "timedOut": false,
+  "elapsedSeconds": 173.5,
+  "modelOverride": false,
+  "nativeModelSelectionChanged": false,
+  "tools": [
+    "Read",
+    "Glob",
+    "Grep"
+  ],
+  "hooksEnabled": false,
+  "promptSHA256": "49ef3622a69e3921bd2d9eebfbe7cf190db65357999c321c6e578019a75bdc95",
+  "roleSHA256": "0314b1ec930fee50d190ae563f5ef1d5706c06de1fe861b9fbccb8034b026406",
+  "report": null,
+  "resultCount": 1
+}

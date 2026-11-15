@@ -1,0 +1,40 @@
+X509v3 Subject Alternative Name: 
+    DNS:kubernetes, DNS:kubernetes.default, DNS:kubernetes.default.svc, DNS:kubernetes.default.svc.cluster.local, DNS:localhost, DNS:iv-yedenmmwhsqc6iu4z5p6, IP Address:127.0.0.1, IP Address:0:0:0:0:0:0:0:1, IP Address:192.168.94.127, IP Address:10.43.0.1
+State Recv-Q Send-Q Local Address:Port Peer Address:PortProcess
+customresourcedefinition.apiextensions.k8s.io/accesscontrolpolicies.hub.traefik.io
+customresourcedefinition.apiextensions.k8s.io/addons.k3s.cattle.io
+customresourcedefinition.apiextensions.k8s.io/aiservices.hub.traefik.io
+customresourcedefinition.apiextensions.k8s.io/apiauths.hub.traefik.io
+customresourcedefinition.apiextensions.k8s.io/apibundles.hub.traefik.io
+customresourcedefinition.apiextensions.k8s.io/apicatalogitems.hub.traefik.io
+customresourcedefinition.apiextensions.k8s.io/apiplans.hub.traefik.io
+customresourcedefinition.apiextensions.k8s.io/apiportalauths.hub.traefik.io
+customresourcedefinition.apiextensions.k8s.io/apiportals.hub.traefik.io
+customresourcedefinition.apiextensions.k8s.io/apiratelimits.hub.traefik.io
+customresourcedefinition.apiextensions.k8s.io/apis.hub.traefik.io
+customresourcedefinition.apiextensions.k8s.io/apiversions.hub.traefik.io
+customresourcedefinition.apiextensions.k8s.io/backendtlspolicies.gateway.networking.k8s.io
+customresourcedefinition.apiextensions.k8s.io/contentitems.hub.traefik.io
+customresourcedefinition.apiextensions.k8s.io/etcdsnapshotfiles.k3s.cattle.io
+customresourcedefinition.apiextensions.k8s.io/gatewayclasses.gateway.networking.k8s.io
+customresourcedefinition.apiextensions.k8s.io/gateways.gateway.networking.k8s.io
+customresourcedefinition.apiextensions.k8s.io/grpcroutes.gateway.networking.k8s.io
+customresourcedefinition.apiextensions.k8s.io/helmchartconfigs.helm.cattle.io
+customresourcedefinition.apiextensions.k8s.io/helmcharts.helm.cattle.io
+customresourcedefinition.apiextensions.k8s.io/httproutes.gateway.networking.k8s.io
+customresourcedefinition.apiextensions.k8s.io/ingressroutes.traefik.io
+customresourcedefinition.apiextensions.k8s.io/ingressroutetcps.traefik.io
+customresourcedefinition.apiextensions.k8s.io/ingressrouteudps.traefik.io
+customresourcedefinition.apiextensions.k8s.io/listenersets.gateway.networking.k8s.io
+customresourcedefinition.apiextensions.k8s.io/managedapplications.hub.traefik.io
+customresourcedefinition.apiextensions.k8s.io/managedsubscriptions.hub.traefik.io
+customresourcedefinition.apiextensions.k8s.io/middlewares.traefik.io
+customresourcedefinition.apiextensions.k8s.io/middlewaretcps.traefik.io
+customresourcedefinition.apiextensions.k8s.io/referencegrants.gateway.networking.k8s.io
+customresourcedefinition.apiextensions.k8s.io/serverstransports.traefik.io
+customresourcedefinition.apiextensions.k8s.io/serverstransporttcps.traefik.io
+customresourcedefinition.apiextensions.k8s.io/tlsoptions.traefik.io
+customresourcedefinition.apiextensions.k8s.io/tlsroutes.gateway.networking.k8s.io
+customresourcedefinition.apiextensions.k8s.io/tlsstores.traefik.io
+customresourcedefinition.apiextensions.k8s.io/traefikservices.traefik.io
+customresourcedefinition.apiextensions.k8s.io/uplinks.hub.traefik.io

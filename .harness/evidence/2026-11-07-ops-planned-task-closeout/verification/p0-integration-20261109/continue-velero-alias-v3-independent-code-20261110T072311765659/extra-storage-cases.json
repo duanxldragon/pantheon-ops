@@ -1,0 +1,128 @@
+[
+  {
+    "mode": "lost-delete",
+    "receipt": {
+      "phase": "repair",
+      "exitCode": 1,
+      "owner": "velero-s3-seaweed-20261109-v1",
+      "rootRequestSHA256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "errorType": "TimeoutError",
+      "errorKey": null,
+      "detailsOmitted": true,
+      "addedAliases": [
+        "docker.io/library/import-2026-11-10@sha256:af344e0c699aea10cabe2568b463806b2bfc8223067d4e3e34a7de83dc600cfc",
+        "docker.io/library/import-2026-11-10@sha256:39ac717f889faf9c91dd674044e6da6950b58f988ff19660692f0e0cb4be57a0"
+      ],
+      "partialMutationMayRemain": true,
+      "s3ProbePath": "velero-s3-seaweed-v1/continue-velero-alias-v3-20261110t000000000000",
+      "s3Probe": {
+        "path": "velero-s3-seaweed-v1/continue-velero-alias-v3-20261110t000000000000",
+        "bytes": 128,
+        "sha256": "82f8e19b3dda50abdfbded298bb77cc85efdd9ba51a56f45a68abd0909d1e8da",
+        "putAttempted": true,
+        "putCompleted": true,
+        "putOutcomeUncertain": false,
+        "deleteAttempted": true,
+        "deleteCompleted": false,
+        "deleteOutcomeUncertain": true,
+        "inspectionOnly": true,
+        "replayPermitted": false
+      },
+      "inspectionOnly": true,
+      "replayPermitted": false,
+      "runtimeState": {
+        "pod": {
+          "ready": true
+        },
+        "storagePhase": "Available"
+      },
+      "providerInstalled": false,
+      "backupRestoreVerified": false
+    },
+    "calls": [
+      [
+        "PUT",
+        "velero-s3-seaweed-v1/continue-velero-alias-v3-20261110t000000000000"
+      ],
+      [
+        "GET",
+        "velero-s3-seaweed-v1/continue-velero-alias-v3-20261110t000000000000"
+      ],
+      [
+        "DELETE",
+        "velero-s3-seaweed-v1/continue-velero-alias-v3-20261110t000000000000"
+      ],
+      [
+        "GET",
+        "velero-s3-seaweed-v1/continue-velero-alias-v3-20261110t000000000000"
+      ]
+    ],
+    "storeCount": 0
+  },
+  {
+    "mode": "get-mismatch",
+    "receipt": {
+      "phase": "repair",
+      "exitCode": 1,
+      "owner": "velero-s3-seaweed-20261109-v1",
+      "rootRequestSHA256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "errorType": "ValueError",
+      "errorKey": "actual-s3-put-get-mismatch",
+      "detailsOmitted": true,
+      "addedAliases": [
+        "docker.io/library/import-2026-11-10@sha256:af344e0c699aea10cabe2568b463806b2bfc8223067d4e3e34a7de83dc600cfc",
+        "docker.io/library/import-2026-11-10@sha256:39ac717f889faf9c91dd674044e6da6950b58f988ff19660692f0e0cb4be57a0"
+      ],
+      "partialMutationMayRemain": true,
+      "s3ProbePath": "velero-s3-seaweed-v1/continue-velero-alias-v3-20261110t000000000000",
+      "s3Probe": {
+        "path": "velero-s3-seaweed-v1/continue-velero-alias-v3-20261110t000000000000",
+        "bytes": 128,
+        "sha256": "a0c45d58609d4f7e3f41252522c59486546cd90ba3d879e54adebca0631303ff",
+        "putAttempted": true,
+        "putCompleted": true,
+        "putOutcomeUncertain": false,
+        "deleteAttempted": false,
+        "deleteCompleted": false,
+        "deleteOutcomeUncertain": false,
+        "inspectionOnly": true,
+        "replayPermitted": false
+      },
+      "inspectionOnly": true,
+      "replayPermitted": false,
+      "runtimeState": {
+        "pod": {
+          "ready": true
+        },
+        "storagePhase": "Available"
+      },
+      "providerInstalled": false,
+      "backupRestoreVerified": false
+    },
+    "calls": [
+      [
+        "PUT",
+        "velero-s3-seaweed-v1/continue-velero-alias-v3-20261110t000000000000"
+      ],
+      [
+        "GET",
+        "velero-s3-seaweed-v1/continue-velero-alias-v3-20261110t000000000000"
+      ],
+      [
+        "GET",
+        "velero-s3-seaweed-v1/continue-velero-alias-v3-20261110t000000000000"
+      ]
+    ],
+    "storeCount": 1
+  },
+  {
+    "mode": "inspect-content-drift",
+    "errorKey": "owned-probe-content-drift",
+    "GETOnly": true
+  },
+  {
+    "mode": "inspect-non404",
+    "errorKey": "probe-inspection-absence-status",
+    "GETOnly": true
+  }
+]

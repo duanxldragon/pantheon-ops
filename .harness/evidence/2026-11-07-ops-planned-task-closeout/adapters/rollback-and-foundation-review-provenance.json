@@ -1,0 +1,86 @@
+[
+  {
+    "name": "final-consumer-archive-projection",
+    "execution": {
+      "status": "completed",
+      "exitCode": 0,
+      "seconds": 224,
+      "promptSha256": "6d35de444afd5c6b8a3af5adb33df6817f32089545ecc6977974405e35029855",
+      "command": "claude.exe -p --tools \"\" --output-format text; stdin=final-consumer-archive-projection-prompt.md"
+    },
+    "promptSha256": "6d35de444afd5c6b8a3af5adb33df6817f32089545ecc6977974405e35029855",
+    "outputSha256": "34a45fc352e5924353b706ccaf150dd84c85f380ad1286d2e4105752033fd8e7",
+    "scopeAndTriage": "APPROVE for projection function/config and supplied hostile tests. Helper normalization/call ordering and checker internals omitted. Full 62 overlay tests independently cover integration.",
+    "artifact": ".omx/artifacts/ask-claude-final-consumer-archive-projection-20261107.md"
+  },
+  {
+    "name": "final-base-iam-consumers",
+    "execution": {
+      "status": "timeout",
+      "exitCode": 1,
+      "seconds": 360,
+      "promptSha256": "0b7555fb20fd01cda55097cbbc8ee3fa13f2eb3e703d494c9ae43e9be4e9185f",
+      "command": "claude.exe -p --tools \"\" --output-format text; stdin=final-base-iam-consumers-prompt.md"
+    },
+    "promptSha256": "0b7555fb20fd01cda55097cbbc8ee3fa13f2eb3e703d494c9ae43e9be4e9185f",
+    "outputSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "scopeAndTriage": "360-second timeout; no verdict, approval or waived gap.",
+    "artifact": ".omx/artifacts/ask-claude-final-base-iam-consumers-20261107.md"
+  },
+  {
+    "name": "final-base-condition-editor",
+    "execution": {
+      "status": "timeout",
+      "exitCode": 1,
+      "seconds": 360,
+      "promptSha256": "d65cacc498f4f5f2d6a15e83f958b2a09e32e601d92d758448499c143743cf93",
+      "command": "claude.exe -p --tools \"\" --output-format text; stdin=final-base-condition-editor-prompt.md"
+    },
+    "promptSha256": "d65cacc498f4f5f2d6a15e83f958b2a09e32e601d92d758448499c143743cf93",
+    "outputSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "scopeAndTriage": "360-second timeout; no verdict, approval or waived gap.",
+    "artifact": ".omx/artifacts/ask-claude-final-base-condition-editor-20261107.md"
+  },
+  {
+    "name": "base-iam-registration-delta",
+    "execution": {
+      "status": "completed",
+      "exitCode": 0,
+      "seconds": 208,
+      "characters": 3015,
+      "command": "claude.exe -p --tools \"\" --output-format text; stdin=base-iam-registration-delta-prompt.md"
+    },
+    "promptSha256": "a5baedebb1a8c27d737e5dfd1535cc552bfb0ea0c2123019b8571d54eda0a076",
+    "outputSha256": "cba34a4b45df03e84b67ba671e22b073058fb6c0cb17e4361b70561ac4b55d24",
+    "scopeAndTriage": "APPROVE for discovery/API route composition delta. Registry already reviewed; full role sync omitted from this delta. Existing grant/revoke tests remain separate evidence.",
+    "artifact": ".omx/artifacts/ask-claude-base-iam-registration-delta-20261107.md"
+  },
+  {
+    "name": "base-condition-change-delta",
+    "execution": {
+      "status": "timeout",
+      "exitCode": 1,
+      "seconds": 360,
+      "characters": 3921,
+      "command": "claude.exe -p --tools \"\" --output-format text; stdin=base-condition-change-delta-prompt.md"
+    },
+    "promptSha256": "b73a98e170ba71e344642cb75fd8a4458c029d8df8c84391ed6c84974df061e6",
+    "outputSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "scopeAndTriage": "360-second timeout; no verdict. ConditionBuilder final independent source review remains open.",
+    "artifact": ".omx/artifacts/ask-claude-base-condition-change-delta-20261107.md"
+  },
+  {
+    "name": "frozen-rollback-source",
+    "execution": {
+      "status": "completed",
+      "exitCode": 0,
+      "seconds": 267,
+      "characters": 6856,
+      "command": "claude.exe -p --tools \"\" --output-format text; stdin=frozen-rollback-source-prompt.md"
+    },
+    "promptSha256": "a602dc97c84080e3357c8e5d9cdea50e2102df3c732ba4805b4271d2aafb61f6",
+    "outputSha256": "3987e842a5cc70c2218499d6b9b421297545d0506025646a93d352fb21a687c8",
+    "scopeAndTriage": "APPROVE for frozen rollback transaction and scoped wrappers. No-rollbacks gorm-not-found suggestion is not applied: GetRollbackInfo explicitly treats it as HTTP success with null. Authentication/authorization middleware and helpers omitted; actual handler scope tests are separate evidence.",
+    "artifact": ".omx/artifacts/ask-claude-frozen-rollback-source-20261107.md"
+  }
+]

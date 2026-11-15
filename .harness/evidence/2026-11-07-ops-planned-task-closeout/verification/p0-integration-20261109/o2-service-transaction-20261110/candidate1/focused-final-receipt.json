@@ -1,0 +1,60 @@
+{
+  "parent": "2026-11-07-ops-planned-task-closeout",
+  "scope": "backend/modules/business/{capability,service,deploy}/**",
+  "startedUTC": "2026-11-10T06:53:49.1858792Z",
+  "finishedUTC": "2026-11-10T06:59:48.5065877Z",
+  "sourceStable": true,
+  "fileCount": 60,
+  "changedFileCount": 10,
+  "CGO_ENABLED": "1",
+  "MinGW": "D:\\msys64\\mingw64\\bin",
+  "toolchain": "D:\\cache\\go\\pkg\\mod\\golang.org\\toolchain@v0.0.1-go1.26.10.windows-amd64",
+  "GOCACHE": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\o2-service-transaction-gocache",
+  "requiredMySQL": "1",
+  "results": [
+    {
+      "name": "race",
+      "command": "go test -mod=readonly -race -count=1 -timeout=25m ./modules/business/capability/... ./modules/business/service/... ./modules/business/deploy/... -v",
+      "exitCode": 0
+    },
+    {
+      "name": "vet",
+      "command": "go vet -mod=readonly ./modules/business/capability/... ./modules/business/service/... ./modules/business/deploy/...",
+      "exitCode": 0
+    },
+    {
+      "name": "build",
+      "command": "go build -mod=readonly ./modules/business/capability/... ./modules/business/service/... ./modules/business/deploy/...",
+      "exitCode": 0
+    },
+    {
+      "name": "test-inventory",
+      "command": "go test -mod=readonly -list . ./modules/business/capability/... ./modules/business/service/... ./modules/business/deploy/...",
+      "exitCode": 0
+    },
+    {
+      "name": "native-diagnostics",
+      "command": "gopls check modules/business/capability/capability.go modules/business/deploy/attempt_ownership.go modules/business/deploy/cancel_unclaimed_test.go modules/business/deploy/deploy_service_test.go modules/business/deploy/deploy_service.go modules/business/deploy/independent_o2_regression_test.go modules/business/deploy/service_transaction_test.go modules/business/deploy/target_selection.go modules/business/service/state_transaction_test.go modules/business/service/state.go",
+      "exitCode": 0
+    },
+    {
+      "name": "diff-check",
+      "command": "git diff --check -- modules/business/capability modules/business/service modules/business/deploy",
+      "exitCode": 0
+    }
+  ],
+  "topLevelPasses": 177,
+  "topLevelSkips": [
+    "TestDeployLiveVMExecution",
+    "TestDeployLiveVMCancellation"
+  ],
+  "topLevelFailures": [],
+  "missingPriorTests": [],
+  "missingListedTests": [],
+  "fixtureInventoryBeforeExit": 0,
+  "fixtureInventoryAfterExit": 0,
+  "fullOpsRace": "Dispatcher later",
+  "independentReview": "required current-source CODE/ARCH re-review",
+  "currentSourceVMAcceptance": "pending re-review and Dispatcher",
+  "P0Closure": "not claimed"
+}

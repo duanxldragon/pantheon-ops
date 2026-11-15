@@ -1,0 +1,126 @@
+{
+  "taskId": "2026-11-07-ops-planned-task-closeout",
+  "sourceStable": true,
+  "sourceCount": 185,
+  "artifacts": {
+    "resume-o2-v9-driver.go": "2a1270e2deccb1436a252653a4d73eac863b8d22d9847a6a25c453a1c8182b92",
+    "resume-o2-v9-runner.py": "bb8bb8b799ff7580c7a1d123a28b879fa6c359e7fe3802dc1e00aecaf380c95a",
+    "resume-o2-v9-driver_test.go": "5606aaf722584bc7439504860f6d3cf802af81cef16e87e3604b73e3901af2c8",
+    "resume-o2-v9-transport_test.go": "c05a5e8dcfaee1a4d4fb58c853ddac089832efb562bbebdfd0e98eedd744f5fe",
+    "resume-o2-v9-verify.py": "fc348ac5bba18743be65b1614c2d513db8dfc9ecb08e7a284dc10290ae9755de",
+    "resume-o2-v9-build.py": "e1994ba89f55044b0f3efdbf593c5e8366adb4bc03a8fcc5e931683893794d01",
+    "resume-o2-v9-seal.py": "76a71e7360368b02acce2ebbe4edbe70ae0a41bfca8ab7ed29e325ebe0f9b6b5",
+    "resume-o2-v9-prepare.py": "2201f2f2aca06931ef3a8e8ac1ac856907f8d1eef961883445cd2dae10a1252b",
+    "resume-o2-v9-root-entry_test.py": "ac965322a927b37e5b49b8c294605165a60f27e97924d81856ca18deaa3141fc",
+    "remote.py": "37acccd12ba3b30e38182f11101821f110355ed660c4cf559d91cc1c638e1b5e",
+    "known_hosts": "45a3379d7e5d75b57e4d47c37ea424b611ddc56ee6d2a70fdc89c05c1ae8213e",
+    "resume-o2-v9-driver.exe": "817db179039da303fcc657ad36c18e5594830af3600517618603d16dd87ffc4b",
+    "resume-o2-v9-driver-linux": "27adb04f2b43d3c32e94b362ab58ea8854a3e1766b15e934b1af2c05eb584278"
+  },
+  "commands": [
+    {
+      "command": [
+        "D:\\Python\\Python312\\python.exe",
+        "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\resume-o2-v9-root-entry_test.py"
+      ],
+      "exitCode": 0,
+      "CGO_ENABLED": "1",
+      "GOOS": "windows",
+      "PATHPrefix": "D:/msys64/mingw64/bin",
+      "GOTOOLCHAIN": "local",
+      "goExecutable": "D:\\cache\\go\\pkg\\mod\\golang.org\\toolchain@v0.0.1-go1.26.10.windows-amd64\\bin\\go.exe",
+      "GOROOT": "D:\\cache\\go\\pkg\\mod\\golang.org\\toolchain@v0.0.1-go1.26.10.windows-amd64",
+      "seconds": 0.172,
+      "log": "resume-o2-v9-verify-1794274678887620900-0.txt",
+      "logSHA256": "4f78d31f22eee2b2dbc4b8d543b14077a17ac68a6faefbd871b27426e9d6bff7"
+    },
+    {
+      "command": [
+        "D:\\cache\\go\\pkg\\mod\\golang.org\\toolchain@v0.0.1-go1.26.10.windows-amd64\\bin\\go.exe",
+        "vet",
+        "-mod=readonly",
+        "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\resume-o2-v9-driver.go",
+        "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\resume-o2-v9-driver_test.go",
+        "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\resume-o2-v9-transport_test.go"
+      ],
+      "exitCode": 0,
+      "CGO_ENABLED": "1",
+      "GOOS": "windows",
+      "PATHPrefix": "D:/msys64/mingw64/bin",
+      "GOTOOLCHAIN": "local",
+      "goExecutable": "D:\\cache\\go\\pkg\\mod\\golang.org\\toolchain@v0.0.1-go1.26.10.windows-amd64\\bin\\go.exe",
+      "GOROOT": "D:\\cache\\go\\pkg\\mod\\golang.org\\toolchain@v0.0.1-go1.26.10.windows-amd64",
+      "seconds": 3.36,
+      "log": "resume-o2-v9-verify-1794274678887620900-1.txt",
+      "logSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": [
+        "D:\\cache\\go\\pkg\\mod\\golang.org\\toolchain@v0.0.1-go1.26.10.windows-amd64\\bin\\go.exe",
+        "test",
+        "-mod=readonly",
+        "-race",
+        "-count=1",
+        "-v",
+        "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\resume-o2-v9-driver.go",
+        "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\resume-o2-v9-driver_test.go",
+        "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\resume-o2-v9-transport_test.go"
+      ],
+      "exitCode": 0,
+      "CGO_ENABLED": "1",
+      "GOOS": "windows",
+      "PATHPrefix": "D:/msys64/mingw64/bin",
+      "GOTOOLCHAIN": "local",
+      "goExecutable": "D:\\cache\\go\\pkg\\mod\\golang.org\\toolchain@v0.0.1-go1.26.10.windows-amd64\\bin\\go.exe",
+      "GOROOT": "D:\\cache\\go\\pkg\\mod\\golang.org\\toolchain@v0.0.1-go1.26.10.windows-amd64",
+      "seconds": 8.14,
+      "log": "resume-o2-v9-verify-1794274678887620900-2.txt",
+      "logSHA256": "c3a7ce6893b7714be9d50372a5266898387d4b11a5aeae0e7f99dc3a345c87e6"
+    },
+    {
+      "command": [
+        "D:\\cache\\go\\pkg\\mod\\golang.org\\toolchain@v0.0.1-go1.26.10.windows-amd64\\bin\\go.exe",
+        "build",
+        "-mod=readonly",
+        "-race",
+        "-o",
+        "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\resume-o2-v9-driver.exe",
+        "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\resume-o2-v9-driver.go"
+      ],
+      "exitCode": 0,
+      "CGO_ENABLED": "1",
+      "GOOS": "windows",
+      "PATHPrefix": "D:/msys64/mingw64/bin",
+      "GOTOOLCHAIN": "local",
+      "goExecutable": "D:\\cache\\go\\pkg\\mod\\golang.org\\toolchain@v0.0.1-go1.26.10.windows-amd64\\bin\\go.exe",
+      "GOROOT": "D:\\cache\\go\\pkg\\mod\\golang.org\\toolchain@v0.0.1-go1.26.10.windows-amd64",
+      "seconds": 3.735,
+      "log": "resume-o2-v9-verify-1794274678887620900-3.txt",
+      "logSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": [
+        "D:\\cache\\go\\pkg\\mod\\golang.org\\toolchain@v0.0.1-go1.26.10.windows-amd64\\bin\\go.exe",
+        "build",
+        "-mod=readonly",
+        "-o",
+        "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\resume-o2-v9-driver-linux",
+        "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\resume-o2-v9-driver.go"
+      ],
+      "exitCode": 0,
+      "CGO_ENABLED": "0",
+      "GOOS": "linux",
+      "PATHPrefix": "D:/msys64/mingw64/bin",
+      "GOTOOLCHAIN": "local",
+      "goExecutable": "D:\\cache\\go\\pkg\\mod\\golang.org\\toolchain@v0.0.1-go1.26.10.windows-amd64\\bin\\go.exe",
+      "GOROOT": "D:\\cache\\go\\pkg\\mod\\golang.org\\toolchain@v0.0.1-go1.26.10.windows-amd64",
+      "seconds": 3.265,
+      "log": "resume-o2-v9-verify-1794274678887620900-4.txt",
+      "logSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "verificationReceipt": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-v9-candidate-verification-1794274678887620900.json",
+  "exitCode": 0,
+  "remoteExecuted": false,
+  "credentialsLoaded": false
+}

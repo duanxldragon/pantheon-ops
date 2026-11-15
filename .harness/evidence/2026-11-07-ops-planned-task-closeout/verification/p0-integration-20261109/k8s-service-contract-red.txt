@@ -1,0 +1,30 @@
+=== RUN   TestServiceVersionContract
+=== RUN   TestServiceVersionContract/update_requires_version
+[GIN-debug] [WARNING] Running in "debug" mode. Switch to "release" mode in production.
+ - using env:	export GIN_MODE=release
+ - using code:	gin.SetMode(gin.ReleaseMode)
+
+[GIN-debug] GET    /clusters/:id/services    --> github.com/duanxldragon/pantheon-base/backend/modules/business/k8s/service.(*ServiceHandler).List-fm (1 handlers)
+[GIN-debug] POST   /clusters/:id/services    --> github.com/duanxldragon/pantheon-base/backend/modules/business/k8s/service.(*ServiceHandler).Create-fm (1 handlers)
+[GIN-debug] GET    /clusters/:id/services/:name --> github.com/duanxldragon/pantheon-base/backend/modules/business/k8s/service.(*ServiceHandler).Get-fm (1 handlers)
+[GIN-debug] DELETE /clusters/:id/services/:name --> github.com/duanxldragon/pantheon-base/backend/modules/business/k8s/service.(*ServiceHandler).Delete-fm (1 handlers)
+    service_version_contract_test.go:29: unversioned update status=404 body=404 page not found
+=== RUN   TestServiceVersionContract/delete_requires_version
+[GIN-debug] [WARNING] Running in "debug" mode. Switch to "release" mode in production.
+ - using env:	export GIN_MODE=release
+ - using code:	gin.SetMode(gin.ReleaseMode)
+
+[GIN-debug] GET    /clusters/:id/services    --> github.com/duanxldragon/pantheon-base/backend/modules/business/k8s/service.(*ServiceHandler).List-fm (1 handlers)
+[GIN-debug] POST   /clusters/:id/services    --> github.com/duanxldragon/pantheon-base/backend/modules/business/k8s/service.(*ServiceHandler).Create-fm (1 handlers)
+[GIN-debug] GET    /clusters/:id/services/:name --> github.com/duanxldragon/pantheon-base/backend/modules/business/k8s/service.(*ServiceHandler).Get-fm (1 handlers)
+[GIN-debug] DELETE /clusters/:id/services/:name --> github.com/duanxldragon/pantheon-base/backend/modules/business/k8s/service.(*ServiceHandler).Delete-fm (1 handlers)
+    service_version_contract_test.go:42: unversioned delete status=200 body={"code":500,"data":null,"message":"k8s.namespace.binding_required"}
+=== RUN   TestServiceVersionContract/projection_retains_provider_identity_and_named_port
+    service_version_contract_test.go:58: provider identity omitted: {"name":"app","namespace":"default","type":"","clusterIP":"","ports":[{"name":"","port":80,"targetPort":0,"nodePort":0,"protocol":""}],"selector":null,"loadBalancerIP":""}
+--- FAIL: TestServiceVersionContract (0.00s)
+    --- FAIL: TestServiceVersionContract/update_requires_version (0.00s)
+    --- FAIL: TestServiceVersionContract/delete_requires_version (0.00s)
+    --- FAIL: TestServiceVersionContract/projection_retains_provider_identity_and_named_port (0.00s)
+FAIL
+FAIL	github.com/duanxldragon/pantheon-base/backend/modules/business/k8s/service	0.130s
+FAIL

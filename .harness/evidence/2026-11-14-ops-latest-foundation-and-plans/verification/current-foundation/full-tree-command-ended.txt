@@ -1,0 +1,42 @@
+{
+  "foundationVerdict": "PASS",
+  "latestIdentityMatches": true,
+  "manifestIdentityMatches": true,
+  "assetChecks": [
+    {
+      "name": "foundation-release-pantheon-base-v0.18.8.tgz",
+      "passed": true
+    },
+    {
+      "name": "foundation-release-pantheon-base-v0.18.8.tgz.sha256",
+      "passed": true
+    },
+    {
+      "name": "repo.tar",
+      "passed": true
+    },
+    {
+      "name": "repo.tar.sha256",
+      "passed": true
+    }
+  ],
+  "snapshotFileCount": 4482,
+  "counts": {
+    "inheritedIdentical": 1599,
+    "declaredOverlay": 44,
+    "excludedBase": 2826,
+    "generatedAssembly": 13,
+    "missingInherited": 0,
+    "changedInherited": 0
+  },
+  "canonicalOutputs": 17,
+  "reviewProjectionFailures": [],
+  "unexpectedGenerated": [],
+  "reportBinding": {
+    "totalOwned": 5617,
+    "missing": 0,
+    "changed": 16,
+    "generatedChanged": []
+  }
+}
+

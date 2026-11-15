@@ -1,0 +1,51 @@
+{
+  "remainingServiceProcesses": [
+    {
+      "ProcessId": 13316,
+      "ExecutablePath": "D:\\MySQL\\mysql\\bin\\mysqld.exe"
+    },
+    {
+      "ProcessId": 7860,
+      "ExecutablePath": "D:\\MySQL\\mysql\\bin\\mysqld.exe"
+    }
+  ],
+  "processesBefore": [
+    {
+      "ProcessId": 13316,
+      "ParentProcessId": 24952,
+      "ExecutablePath": "D:\\MySQL\\mysql\\bin\\mysqld.exe",
+      "CommandLine": "\"D:\\MySQL\\mysql\\bin\\mysqld.exe\" --no-defaults --basedir=D:/MySQL/mysql --datadir=D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.tmp\\ops-planned-cmdb-services\\mysql-data --port=33316 --bind-address=127.0.0.1 --mysqlx=0 --console"
+    },
+    {
+      "ProcessId": 4968,
+      "ParentProcessId": 24952,
+      "ExecutablePath": "D:\\Redis\\redis-server.exe",
+      "CommandLine": "\"D:\\Redis\\redis-server.exe\" --bind 127.0.0.1 --port 26316 --dir D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.tmp\\ops-priority-runtime\\redis"
+    },
+    {
+      "ProcessId": 7860,
+      "ParentProcessId": 13316,
+      "ExecutablePath": "D:\\MySQL\\mysql\\bin\\mysqld.exe",
+      "CommandLine": "D:\\MySQL\\mysql\\bin\\mysqld.exe --no-defaults --basedir=D:/MySQL/mysql --datadir=D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.tmp\\ops-planned-cmdb-services\\mysql-data --port=33316 --bind-address=127.0.0.1 --mysqlx=0 --console"
+    }
+  ],
+  "ownershipVerified": true,
+  "raceCompletedBeforeShutdown": true,
+  "completedUtc": "2026-11-08T02:34:36.7116170Z",
+  "remainingListeners": [],
+  "redisExitCode": 0,
+  "mysqlDataRetained": true,
+  "listenersBefore": [
+    {
+      "LocalPort": 33316,
+      "OwningProcess": 7860
+    },
+    {
+      "LocalPort": 26316,
+      "OwningProcess": 4968
+    }
+  ],
+  "redisDataRetained": true,
+  "deletedPaths": [],
+  "mysqlExitCode": 0
+}

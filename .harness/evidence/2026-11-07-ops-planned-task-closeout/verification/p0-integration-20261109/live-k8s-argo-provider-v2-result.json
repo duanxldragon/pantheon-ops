@@ -1,0 +1,65 @@
+{
+  "scope": "real Argo provider only, not Ops service integration",
+  "host": "115.190.251.143",
+  "apiOrigin": "private in-cluster argocd-server Service via authorized host; verified certificate DNS name argocd-server",
+  "startedAt": "2026-11-09T06:39:34Z",
+  "exitCode": 1,
+  "stderrPresent": false,
+  "elapsedSeconds": 35.063,
+  "records": [
+    {
+      "check": "installed Argo namespace ownership",
+      "passed": true
+    },
+    {
+      "check": "unauthenticated Argo API refused",
+      "passed": true,
+      "httpStatus": 401
+    },
+    {
+      "check": "authenticated Argo session established",
+      "passed": true,
+      "httpStatus": 200
+    },
+    {
+      "check": "authenticated Argo API health",
+      "passed": true,
+      "httpStatus": 200
+    },
+    {
+      "check": "repo-server accesses isolated public Git fixture",
+      "passed": false,
+      "exitCode": 124,
+      "repository": "http://115.190.251.143:38171/fixture.git",
+      "oldRevision": "a4f294e5045defd30372b40fee197ebb2e1eba2f",
+      "newRevision": "3e5a4c5e4e48a0c008456dec6a52851b7b30e56b"
+    },
+    {
+      "phase": "failure",
+      "stage": "repo-server accesses isolated public Git fixture",
+      "errorType": "RuntimeError"
+    },
+    {
+      "phase": "cleanup",
+      "kind": "Namespace",
+      "uidChecked": true,
+      "absenceVerified": true,
+      "exitCode": 0
+    },
+    {
+      "phase": "git-fixture-server-cleanup",
+      "pidIdentityChecked": true,
+      "exitCode": 0
+    },
+    {
+      "phase": "result",
+      "exitCode": 1,
+      "checksPassed": 4,
+      "providersRetained": true,
+      "namespace": "pantheon-p0-argo-live-efcf2b",
+      "project": "p0-live-efcf2b",
+      "application": "p0-live-efcf2b"
+    }
+  ],
+  "checksPassed": 4
+}

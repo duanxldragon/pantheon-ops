@@ -1,0 +1,309 @@
+{
+  "phase": "diagnostic",
+  "exitCode": 1,
+  "remoteExecuted": true,
+  "rootRequestSHA256": "723824066805739acad3f52011c299a947f01c8035b872193c9113b4663949d6",
+  "v5ScriptHashes": {
+    ".local/ops-acceptance/resume-velero-s3-v5-fixture.py": "e32b5ceb96e68edf0a3af76b3dbde6362b0679387460e1e748f95c2e7ee93910",
+    ".local/ops-acceptance/resume-velero-s3-v5-generate.py": "600f6159a77ccc75558ffc89d07347565f18b50f602cc01ec101032696f46ce1",
+    ".local/ops-acceptance/resume-velero-s3-v5-native.py": "540ca34b11dcabfebb3c1554142c83fb2b22ae2728d1ca3bb7672c1bfa9192d2",
+    ".local/ops-acceptance/resume-velero-s3-v5-remote.py": "b558d5809f671100c240f8648812819d92052ee0fa0571fd77723d770cc62029",
+    ".local/ops-acceptance/resume-velero-s3-v5-root.py": "a20989cacaf2e89d79e5918b5d0e2b1a9d28d14e24db78ce91d0c452b7a6c28b",
+    ".local/ops-acceptance/resume-velero-s3-v5-test.py": "1278d8dfb6db9363a309ac574a07db039b7fc5d1642c047d61239f347e7f6b6b"
+  },
+  "failureReceiptSHA256": "9c2048e5ff4d4f2ce139a8a19fe281afa26b539ba93a7c988cdd445a8a61683b",
+  "providerInstalled": false,
+  "backupRestoreVerified": false,
+  "P0Approved": false,
+  "failedRemoteReceipt": "resume-velero-s3-install-20261110T021156210245.json",
+  "records": [
+    {
+      "phase": "diagnostic",
+      "exitCode": 1,
+      "owner": "velero-s3-seaweed-20261109-v1",
+      "rootRequestSHA256": "723824066805739acad3f52011c299a947f01c8035b872193c9113b4663949d6",
+      "failedStage": "preflight",
+      "errorType": "NativeRefusal",
+      "detailsOmitted": true,
+      "errorKey": "extra-or-foreign-namespace-object",
+      "ownedObjects": [],
+      "partialResourcesMayRemain": false,
+      "backupRestoreVerified": false,
+      "diagnosticEvidence": {
+        "officialOutput": {
+          "rawSHA256": "65e25156d194c147a43757d347cd070949ffd3fd99d7261cf3e226bd70de3c24",
+          "stdoutBytes": 201205
+        },
+        "manifest": {
+          "shape": "v1-List",
+          "rawSHA256": "65e25156d194c147a43757d347cd070949ffd3fd99d7261cf3e226bd70de3c24",
+          "stdoutBytes": 201205,
+          "commandArgs": [
+            "/opt/pantheon-p0-20261109/velero-s3-seaweed-v1/velero",
+            "install",
+            "--provider",
+            "aws",
+            "--plugins",
+            "docker.io/velero/velero-plugin-for-aws@sha256:b6ecf1a86975475d6bf27259ac0c7afbdc6aff2e15dc79f9dc4a0d77f142e558",
+            "--image",
+            "docker.io/velero/velero@sha256:367a1d2deb5adf3acc8056715aefe398850cd33b8d7a68e5a6f1f13b691a1c58",
+            "--bucket",
+            "velero-s3-seaweed-v1",
+            "--namespace",
+            "velero",
+            "--no-secret",
+            "--use-volume-snapshots=false",
+            "--backup-location-config",
+            "region=us-east-1,s3ForcePathStyle=true,s3Url=http://seaweedfs-s3.pantheon-p0-seaweed-velero-s3-v1.svc:18333",
+            "--dry-run",
+            "-o",
+            "json",
+            "--kubeconfig",
+            "/etc/rancher/k3s/k3s.yaml"
+          ],
+          "objects": [
+            {
+              "kind": "CustomResourceDefinition",
+              "name": "backuprepositories.velero.io",
+              "namespace": null
+            },
+            {
+              "kind": "CustomResourceDefinition",
+              "name": "backups.velero.io",
+              "namespace": null
+            },
+            {
+              "kind": "CustomResourceDefinition",
+              "name": "backupstoragelocations.velero.io",
+              "namespace": null
+            },
+            {
+              "kind": "CustomResourceDefinition",
+              "name": "deletebackuprequests.velero.io",
+              "namespace": null
+            },
+            {
+              "kind": "CustomResourceDefinition",
+              "name": "downloadrequests.velero.io",
+              "namespace": null
+            },
+            {
+              "kind": "CustomResourceDefinition",
+              "name": "podvolumebackups.velero.io",
+              "namespace": null
+            },
+            {
+              "kind": "CustomResourceDefinition",
+              "name": "podvolumerestores.velero.io",
+              "namespace": null
+            },
+            {
+              "kind": "CustomResourceDefinition",
+              "name": "restores.velero.io",
+              "namespace": null
+            },
+            {
+              "kind": "CustomResourceDefinition",
+              "name": "schedules.velero.io",
+              "namespace": null
+            },
+            {
+              "kind": "CustomResourceDefinition",
+              "name": "serverstatusrequests.velero.io",
+              "namespace": null
+            },
+            {
+              "kind": "CustomResourceDefinition",
+              "name": "volumesnapshotlocations.velero.io",
+              "namespace": null
+            },
+            {
+              "kind": "CustomResourceDefinition",
+              "name": "datadownloads.velero.io",
+              "namespace": null
+            },
+            {
+              "kind": "CustomResourceDefinition",
+              "name": "datauploads.velero.io",
+              "namespace": null
+            },
+            {
+              "kind": "Namespace",
+              "name": "velero",
+              "namespace": null
+            },
+            {
+              "kind": "ClusterRoleBinding",
+              "name": "velero",
+              "namespace": null
+            },
+            {
+              "kind": "ServiceAccount",
+              "name": "velero",
+              "namespace": "velero"
+            },
+            {
+              "kind": "BackupStorageLocation",
+              "name": "default",
+              "namespace": "velero"
+            },
+            {
+              "kind": "Deployment",
+              "name": "velero",
+              "namespace": "velero"
+            }
+          ],
+          "policySHA256": "aa71df7b02a1b1af54b3a051e688100452d0556f708d5cbf6161fb46377b5d33",
+          "policyLimits": {
+            "seaweedMi": 160,
+            "veleroMi": 320,
+            "combinedMi": 480,
+            "nativeDiskMi": 256
+          }
+        }
+      },
+      "refusedObjectMetadata": {
+        "apiResource": "endpointslices.discovery.k8s.io",
+        "kind": "EndpointSlice",
+        "name": "seaweedfs-s3-rp65g",
+        "namespace": "pantheon-p0-seaweed-velero-s3-v1",
+        "uid": "e34fea74-5bd1-4c47-adf6-f637e7a0dee6",
+        "listCount": 1,
+        "expectedOwnerMatches": true
+      }
+    }
+  ],
+  "remoteFiles": {
+    "resume-velero-s3-prep.py": {
+      "sha256": "0b5219ab2fe498a81b5d224c35dc8eaa7827f68467ab4dbee413a45a6445cc02",
+      "bytes": 10139,
+      "mode": 384
+    },
+    "resume-velero-s3-remote.py": {
+      "sha256": "6fe70db7027d422a5a03a990039359c3359997c26fc817c89109967f30da21b9",
+      "bytes": 24070,
+      "mode": 384
+    },
+    "resume-velero-s3-fixture.py": {
+      "sha256": "c6badc5582f0cd679450050818abd56cdec6518d6a14cd01f69ff0c6d5c0d055",
+      "bytes": 13090,
+      "mode": 384
+    },
+    "resume-velero-s3-artifacts.json": {
+      "sha256": "e54e0c8b9596349bcd36c95cba0f022ea65a9d5b8b9e69b3c0974acd893bc22b",
+      "bytes": 15246,
+      "mode": 384
+    },
+    "seaweedfs-4.53-release.json": {
+      "sha256": "7908e97ed2a798b18fe07ccf665143a19d5655d98d30ee1b54d93d8c145f7344",
+      "bytes": 152008,
+      "mode": 384
+    },
+    "linux_amd64.tar.gz": {
+      "sha256": "d1a7dec9f48d8b33895a0ea8951971defc2dc5312906dcc76fa5a5f74a6ee90d",
+      "bytes": 48457480,
+      "mode": 384
+    },
+    "velero-v1.17.0-linux-amd64.tar.gz": {
+      "sha256": "f507a956cf8ec00f483f5d7b04901614a9016a10feb32b3ecc968da36b4fc7be",
+      "bytes": 58499469,
+      "mode": 384
+    },
+    "velero-velero-v1.17.0.oci.tar": {
+      "sha256": "86b8928b6b053f7bb573df6f6492841f7e96ad03647f9ec9857351c4d267bea4",
+      "bytes": 80906240,
+      "mode": 384
+    },
+    "velero-velero-plugin-for-aws-v1.13.0.oci.tar": {
+      "sha256": "494a8f752943a96c7a08ddfa1f2059eb07291039b37bca1518566eef41df554e",
+      "bytes": 41523200,
+      "mode": 384
+    },
+    "resume-velero-s3-diagnostic-20261110T004347017585.json": {
+      "sha256": "708ec9d2777d8fe3c12dcbd4bb16ad984b299821b614b05a57971ae8b732ea8c",
+      "bytes": 266,
+      "mode": 384
+    },
+    "resume-velero-s3-v3-remote.py": {
+      "sha256": "7b1ba58c52d340a7d121c72e537baa3e20b072c0635289f9f82d97e5761ab7a5",
+      "bytes": 26081,
+      "mode": 384
+    },
+    "resume-velero-s3-diagnostic-20261110T010938338222.json": {
+      "sha256": "8d58b6fd6cb34a2aa02f2438e7053b9d7b345459ba77084933c3e4006ae2141e",
+      "bytes": 739,
+      "mode": 384
+    },
+    "velero": {
+      "sha256": "e7e14133f1a13d759d43b2bf188cf1a078ffe36184d25f77ae4005fc7c26e739",
+      "bytes": 142581282,
+      "mode": 448
+    },
+    "weed": {
+      "sha256": "fa936e61bfb11f33c1f823045c4007e7da4b8b38bb6adc3b970f132d832e805b",
+      "bytes": 156401824,
+      "mode": 448
+    },
+    "resume-velero-s3-v4-remote.py": {
+      "bytes": 26221,
+      "sha256": "63b2e9a90fb7b54fc522e6190ff6ad0cb353f199752dd7fea76b7d93cb47183a",
+      "mode": 384
+    },
+    "resume-velero-s3-v4-fixture.py": {
+      "bytes": 13093,
+      "sha256": "e32b5ceb96e68edf0a3af76b3dbde6362b0679387460e1e748f95c2e7ee93910",
+      "mode": 384
+    },
+    "resume-velero-s3-v4-native.py": {
+      "bytes": 12736,
+      "sha256": "f116a423d4f5c207db032829fc22b4bb3b8179eec41624bb0d9d14f0c4be402a",
+      "mode": 384
+    },
+    "resume-velero-s3-install-20261110T011213809221.json": {
+      "sha256": "863d7d71749d569a5317d27998b9b4cf6a59415c70ce2d9b96d0966653506cdd",
+      "bytes": 277,
+      "mode": 384
+    },
+    "resume-velero-s3-diagnostic-20261110T020930238788.json": {
+      "bytes": 750,
+      "sha256": "80fd2c538a82b91a0667e87a5887c28585e11bcc283b94e169ea563d2a09b4d7",
+      "mode": 384
+    },
+    "resume-velero-s3-diagnostic.json": {
+      "bytes": 750,
+      "sha256": "80fd2c538a82b91a0667e87a5887c28585e11bcc283b94e169ea563d2a09b4d7",
+      "mode": 384
+    },
+    "resume-velero-s3-help.json": {
+      "bytes": 17820,
+      "sha256": "e6c866ad5fe6598bd5b01c1c7cbe21bafc32a6ae355fcb9d971f3ae70c08458c",
+      "mode": 384
+    },
+    "resume-velero-s3-partial-owned.json": {
+      "bytes": 986,
+      "sha256": "7640f7541fbdb28bdb0b28e67e0957968a989c4c31559a0fa1318f27c0c2d43b",
+      "mode": 384
+    },
+    "resume-velero-s3-install-20261110T021156210245.json": {
+      "bytes": 1337,
+      "sha256": "3904bb56d051519743880d1cc252847031aff4be2b7372840fc26b7ad58ebe63",
+      "mode": 384
+    },
+    "resume-velero-s3-v5-remote.py": {
+      "bytes": 12502,
+      "sha256": "b558d5809f671100c240f8648812819d92052ee0fa0571fd77723d770cc62029",
+      "mode": 384
+    },
+    "resume-velero-s3-v5-native.py": {
+      "bytes": 12681,
+      "sha256": "540ca34b11dcabfebb3c1554142c83fb2b22ae2728d1ca3bb7672c1bfa9192d2",
+      "mode": 384
+    },
+    "resume-velero-s3-v5-fixture.py": {
+      "bytes": 13093,
+      "sha256": "e32b5ceb96e68edf0a3af76b3dbde6362b0679387460e1e748f95c2e7ee93910",
+      "mode": 384
+    }
+  },
+  "sourceHashesStable": true
+}

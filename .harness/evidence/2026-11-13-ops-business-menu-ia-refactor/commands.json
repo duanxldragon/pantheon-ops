@@ -1,0 +1,422 @@
+{
+  "taskId": "2026-11-13-ops-business-menu-ia-refactor",
+  "repo": "pantheon-ops",
+  "agent": {
+    "tool": "codex",
+    "adapter": "task-private IPC/CDP for Windows runtime; normal spec/assertions"
+  },
+  "commands": [
+    {
+      "command": "npm run lint",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.tmp\\ops-v0188-final-r5\\frontend",
+      "status": "passed",
+      "durationMs": 80544,
+      "notes": "See verification/r5-frontend-lint.json. Raw logs remain private and hash-linked; prior failures are preserved."
+    },
+    {
+      "command": "npm run build",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.tmp\\ops-v0188-final-r5\\frontend",
+      "status": "passed",
+      "durationMs": 44318,
+      "notes": "See verification/r5-frontend-build.json. Raw logs remain private and hash-linked; prior failures are preserved."
+    },
+    {
+      "command": "npm run test:unit -- --run --maxWorkers=2",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.tmp\\ops-v0188-final-r5\\frontend",
+      "status": "passed",
+      "durationMs": 65758,
+      "notes": "See verification/r5-frontend-units.json. Raw logs remain private and hash-linked; prior failures are preserved."
+    },
+    {
+      "command": "playwright test bizscope/service/cmdb --workers=1",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.tmp\\ops-v0188-final-r5",
+      "status": "passed",
+      "durationMs": 131614,
+      "notes": "See verification/r5-runtime-smoke-adapted.json. Raw logs remain private and hash-linked; prior failures are preserved."
+    },
+    {
+      "command": "go build -buildvcs=false -mod=readonly -o ../../ops-20261114-backup/runtime/pantheon-ops.exe ./cmd/server",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.tmp\\ops-v0188-final-r4\\backend",
+      "status": "passed",
+      "durationMs": 23155,
+      "notes": "See verification/r4-backend-build-stable.json. Raw logs remain private and hash-linked; prior failures are preserved."
+    },
+    {
+      "command": "go test -race -p=1 -buildvcs=false -mod=readonly -json ./...",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.tmp\\ops-v0188-final-r4\\backend",
+      "status": "failed",
+      "durationMs": 942796,
+      "notes": "See verification/r4-backend-race.json. Raw logs remain private and hash-linked; prior failures are preserved."
+    },
+    {
+      "command": "node scripts/harness/check-doc-links.mjs --root . --strict",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.tmp\\ops-v0188-final-r4",
+      "status": "failed",
+      "durationMs": 156,
+      "notes": "See verification/r4-doc-links.json. Raw logs remain private and hash-linked; prior failures are preserved."
+    },
+    {
+      "command": "node scripts/harness/check-review.mjs --root . --strict",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.tmp\\ops-v0188-final-r4",
+      "status": "failed",
+      "durationMs": 158,
+      "notes": "See verification/r4-review-registry.json. Raw logs remain private and hash-linked; prior failures are preserved."
+    },
+    {
+      "command": "node --test --test-isolation=none tests/scripts/business-overlay/*.test.mjs",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+      "status": "failed",
+      "durationMs": 592,
+      "notes": "See verification/overlay-tests-inprocess.json. Raw logs remain private and hash-linked; prior failures are preserved."
+    },
+    {
+      "command": "go test -race -buildvcs=false -mod=readonly -json ./modules/business/bizscope ./modules/business/service",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.tmp\\ops-v0188-initial\\backend",
+      "status": "passed",
+      "durationMs": 23760,
+      "notes": "See verification/menu-backend-test.json. Raw logs remain private and hash-linked; prior failures are preserved."
+    },
+    {
+      "command": "go test -race -p=1 -buildvcs=false -mod=readonly -json ./...",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.tmp\\ops-v0188-final-r5\\backend",
+      "status": "failed",
+      "durationMs": 2159989,
+      "notes": "See verification/r5-backend-race-verified.json. Raw logs remain private and hash-linked; prior failures are preserved."
+    },
+    {
+      "command": "go test -race -p=1 -buildvcs=false -mod=readonly -json ./...",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.tmp\\ops-v0188-final-r5\\backend",
+      "status": "passed",
+      "durationMs": 707390,
+      "notes": "See verification/r5-backend-race-retry.json. Raw logs remain private and hash-linked; prior failures are preserved."
+    },
+    {
+      "command": "verify-seed-double-boot.py using new isolated schema/API18216/Redis26325",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+      "status": "failed",
+      "notes": "Both fresh attempts failed at Redis Cygwin shared-memory startup; zero backend boots. RedisRequired retained, failed schemas/logs retained. verification/seed-double-boot.json."
+    },
+    {
+      "command": "node --test tests/scripts/business-overlay/*.test.mjs",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+      "status": "passed",
+      "notes": "66/66 tests,0failed/skip; deletion-selector-verification.json retains source pins and original successful receipt."
+    },
+    {
+      "command": "Task-private rebuild-r5.mjs using validated official assets and standard assembleConsumerTree",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+      "status": "passed",
+      "notes": "5515 owned/generated records; freshGitHubLookup:false; reportSHA25636c803cd5f09c09cf4b3d870898026d068facf976c8d3be3a38ba9448fb737ce."
+    },
+    {
+      "command": "Task-private verify-r5.mjs: official asset validation and standard checkSharedDrift",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.tmp\\ops-v0188-final-r5",
+      "status": "passed",
+      "notes": "857 shared,856 identical,1 permitted existing package scripts difference;288 business;14 generated migrations."
+    },
+    {
+      "command": "Task-private apply-r5.py followed by rollback-partial-install.py",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+      "status": "failed",
+      "notes": "Installation denied after52 writes; rollback verifies all158 preimages. This is not active upgrade success."
+    },
+    {
+      "command": "render-dashboard.mjs: actual Chromium CDP light/dark1440/390 screenshots",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+      "status": "passed",
+      "notes": "Four widgets all empty samples, no root overflow or pageErrors; full states open."
+    },
+    {
+      "command": "node scripts/harness/check-task-packet.mjs --json --root D:\\workspace\\go\\pantheon-platform\\pantheon-ops docs/harness/tasks/2026-11-14-ops-latest-foundation-and-plans.task.md docs/harness/tasks/2026-11-13-ops-business-menu-ia-refactor.task.md",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+      "status": "passed",
+      "notes": "verification/scoped-task-packets.json; uses the official candidate checker against the active repository. Scope is recorded in the receipt."
+    },
+    {
+      "command": "node scripts/harness/check-evidence.mjs --json --strict --root D:\\workspace\\go\\pantheon-platform\\pantheon-ops .harness/evidence/2026-11-14-ops-latest-foundation-and-plans/commands.json .harness/evidence/2026-11-13-ops-business-menu-ia-refactor/commands.json",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+      "status": "passed",
+      "notes": "verification/scoped-evidence.json; uses the official candidate checker against the active repository. Scope is recorded in the receipt."
+    },
+    {
+      "command": "node scripts/harness/check-review.mjs --json --strict --root D:\\workspace\\go\\pantheon-platform\\pantheon-ops .harness/evidence/2026-11-14-ops-latest-foundation-and-plans/review.md .harness/evidence/2026-11-13-ops-business-menu-ia-refactor/review.md",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+      "status": "failed",
+      "notes": "verification/scoped-review-with-registry.json; uses the official candidate checker against the active repository. Scope is recorded in the receipt."
+    },
+    {
+      "command": "node scripts/harness/check-runtime-evidence.mjs --json --strict --root D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+      "status": "failed",
+      "notes": "verification/root-runtime-registry.json; uses the official candidate checker against the active repository. Scope is recorded in the receipt."
+    },
+    {
+      "command": "node scripts/harness/check-visual-evidence.mjs --json --strict --root D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+      "status": "failed",
+      "notes": "verification/root-visual-registry.json; uses the official candidate checker against the active repository. Scope is recorded in the receipt."
+    },
+    {
+      "command": "node scripts/harness/check-doc-links.mjs --json --strict --root D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+      "status": "failed",
+      "notes": "verification/root-doc-links.json; uses the official candidate checker against the active repository. Scope is recorded in the receipt."
+    },
+    {
+      "command": "node scripts/harness/check-review.mjs --json --strict --root D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+      "status": "failed",
+      "notes": "verification/root-review-registry.json; uses the official candidate checker against the active repository. Scope is recorded in the receipt."
+    },
+    {
+      "command": "node --import ./.tmp/ops-20261114-backup/file-stdio.mjs .tmp/ops-20261114-resume/rebuild-r6.mjs",
+      "status": "failed",
+      "exitCode": 1,
+      "notes": "Default external Go cache AccessDenied; all7 temporary source inputs restored. See verification/rebuild-r6-failure.json.",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops"
+    },
+    {
+      "command": "node --import ./.tmp/ops-20261114-backup/file-stdio.mjs .tmp/ops-20261114-resume/rebuild-r6-retry.mjs",
+      "status": "passed",
+      "exitCode": 0,
+      "notes": "Explicit workspace-private GOCACHE/GOTMPDIR; standard GitHub fetch/asset verification/assembler and dependency normalization pass. No ACL change; first failure retained.",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops"
+    },
+    {
+      "command": "node --import ./.tmp/ops-20261114-backup/file-stdio.mjs .tmp/ops-20261114-resume/verify-r6.mjs",
+      "status": "passed",
+      "exitCode": 0,
+      "notes": "857 shared files/856 identical/1 existing declared package-script allowance;288 business files and14 paired migrations. Official acquired assets only.",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops"
+    },
+    {
+      "command": "node scripts/business-overlay/check-business-overlay.mjs --root .tmp/ops-v0188-install-r6",
+      "status": "passed",
+      "exitCode": 0,
+      "notes": "60 declared paths; rebuilt-tree contract passes.",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops"
+    },
+    {
+      "command": "python .tmp/ops-20261114-resume/apply-r6.py --apply",
+      "status": "failed",
+      "exitCode": 1,
+      "notes": "Exact tenant_owner_lifecycle_test.go PermissionDenied after60 attempted writes;165 preimages and index restored/verified. New rollbackZIP retained; active18.6.",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops"
+    },
+    {
+      "command": "python .local/ops-acceptance/ia-double-boot.py",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+      "status": "passed",
+      "durationMs": 60000,
+      "notes": "Fresh empty-schema double boot on native MySQL/Redis (v0.18.8 active tree). Two consecutive boots ready (50.0s/38.5s), 248 menu rows each, menu content set byte-identical (SHA 88ac5d3a...), bizscope M+3C and service-catalog M+3C present, retired paths /business/business-scope[/:id] and /business/service absent, ServiceCatalog component key absent, 0 orphan role_menu. Advisory: 19 business.cmdb F permission rows re-get PK ids each boot (content unchanged; pre-existing, unrelated to IA). Evidence: double-boot.json."
+    },
+    {
+      "command": "record active v0.18.8 installation (r7)",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+      "status": "passed",
+      "durationMs": 0,
+      "notes": "Official v0.18.8 active at 34428814a9efc997fd93d4434406a53df6460323; foundation-release.lock.json commit confirmed; active-adoption now complete. See ../2026-11-14-ops-latest-foundation-and-plans/verification/r7-active-installation.json."
+    }
+  ],
+  "knownGaps": [
+    "Active v0.18.8 adoption is blocked by Windows directory write denial; all158 install preimages restored and active lock/report are v0.18.6.",
+    "Final visual/functional human acceptance remains open. Application Delivery screenshots show permission/loading failure and repeated toasts; only display rename is evidenced.",
+    "Native Playwright runner failed Windows spawn EPERM. Actual24-test success uses task-private authenticated localhost IPC and real external Chromium CDP; nativeRunnerPassed:false.",
+    "Dashboard renders cover four empty samples at light/dark1440/390 only; populated/loading/error/revocation/time-range/live-provider states and full O6 acceptance remain open.",
+    "Menu mobile renders mostly cover empty lists; Application/Instance right columns need table scrolling. No complete responsive/full-state matrix approval.",
+    "Six P0 parents O2/O3/O4/D1/D2/D3 remain open; O1 FileDist owner/stable target/scheduling, O5 audited download/redaction/live-source, D4 production signatures and O6 full matrix remain open. Velero last; O7 deferred.",
+    "CMDB host/group detail key-only grants remain disabled pending an upstream released safe static matcher.",
+    "Candidate inherited docs scan has9 findings; review registry has49 errors across41 files. No shared-doc override, forged approval or waiver.",
+    "Asset replay uses previously acquired immutable official archives and records freshGitHubLookup:false. No fresh online lookup is claimed for r5.",
+    "Prior failed runtime/race and wrong-theme attempt evidence remain preserved privately; no historical fixture replay or user-cache deletion.",
+    "file-stdio output byte bound is enforced after process completion; an equivalent in-flight bound is not established.",
+    "Real empty-database double-boot idempotency and complete Application Delivery page functionality are not established by this scoped runtime run.",
+    "The first full r5 race command exited1:7 package build failures from disk exhaustion,3105 test passes and no assertion failures. Final standard retry passes with63 cached/7 freshly executed packages; the failed run remains independently preserved.",
+    "The final race retry skips6 external tests (Argo2,DeployVM2,observability1,realS3 1); full external/provider acceptance is not established by cached or fresh unit/race results.",
+    "Active whole-repository docs/review registry counts differ from the pre-closeout v0.18.8 candidate scan; see governance-readout.json. Whole registry failures are not scoped schema approval or waivers."
+  ],
+  "runtimeSensitive": true,
+  "runtimeLogs": [
+    ".harness/evidence/2026-11-14-ops-latest-foundation-and-plans/verification/r5-runtime-smoke-adapted.json"
+  ],
+  "runtimeMetrics": [
+    ".harness/evidence/2026-11-14-ops-latest-foundation-and-plans/verification/r5-runtime-smoke-counts.json"
+  ],
+  "browserEvidence": [
+    {
+      "viewport": "1440",
+      "url": "http://127.0.0.1:18215/business/cicd/argocd",
+      "screenshot": ".harness/evidence/2026-11-13-ops-business-menu-ia-refactor/visual/application-delivery-desktop.png",
+      "consoleErrors": [],
+      "checkedStates": [
+        "rendered",
+        "error"
+      ],
+      "visualGap": "Application Delivery permission/loading and repeated-toast failure; full page acceptance open."
+    },
+    {
+      "viewport": "390",
+      "url": "http://127.0.0.1:18215/business/cicd/argocd",
+      "screenshot": ".harness/evidence/2026-11-13-ops-business-menu-ia-refactor/visual/application-delivery-mobile.png",
+      "consoleErrors": [],
+      "checkedStates": [
+        "rendered",
+        "error"
+      ],
+      "visualGap": "Application Delivery permission/loading and repeated-toast failure; full page acceptance open."
+    },
+    {
+      "viewport": "1440",
+      "url": "http://127.0.0.1:18215/business/bizscope/environments",
+      "screenshot": ".harness/evidence/2026-11-13-ops-business-menu-ia-refactor/visual/bizscope-environments-desktop.png",
+      "consoleErrors": [],
+      "checkedStates": [
+        "rendered"
+      ],
+      "visualGap": "Mostly empty mobile sample; complete data/interaction/theme matrix and console errors not certified."
+    },
+    {
+      "viewport": "390",
+      "url": "http://127.0.0.1:18215/business/bizscope/environments",
+      "screenshot": ".harness/evidence/2026-11-13-ops-business-menu-ia-refactor/visual/bizscope-environments-mobile.png",
+      "consoleErrors": [],
+      "checkedStates": [
+        "rendered"
+      ],
+      "visualGap": "Mostly empty mobile sample; complete data/interaction/theme matrix and console errors not certified."
+    },
+    {
+      "viewport": "1440",
+      "url": "http://127.0.0.1:18215/business/bizscope/host-bindings",
+      "screenshot": ".harness/evidence/2026-11-13-ops-business-menu-ia-refactor/visual/bizscope-host-bindings-desktop.png",
+      "consoleErrors": [],
+      "checkedStates": [
+        "rendered"
+      ],
+      "visualGap": "Mostly empty mobile sample; complete data/interaction/theme matrix and console errors not certified."
+    },
+    {
+      "viewport": "390",
+      "url": "http://127.0.0.1:18215/business/bizscope/host-bindings",
+      "screenshot": ".harness/evidence/2026-11-13-ops-business-menu-ia-refactor/visual/bizscope-host-bindings-mobile.png",
+      "consoleErrors": [],
+      "checkedStates": [
+        "rendered"
+      ],
+      "visualGap": "Mostly empty mobile sample; complete data/interaction/theme matrix and console errors not certified."
+    },
+    {
+      "viewport": "1440",
+      "url": "http://127.0.0.1:18215/business/bizscope/scopes",
+      "screenshot": ".harness/evidence/2026-11-13-ops-business-menu-ia-refactor/visual/bizscope-scopes-desktop.png",
+      "consoleErrors": [],
+      "checkedStates": [
+        "rendered"
+      ],
+      "visualGap": "Mostly empty mobile sample; complete data/interaction/theme matrix and console errors not certified."
+    },
+    {
+      "viewport": "390",
+      "url": "http://127.0.0.1:18215/business/bizscope/scopes",
+      "screenshot": ".harness/evidence/2026-11-13-ops-business-menu-ia-refactor/visual/bizscope-scopes-mobile.png",
+      "consoleErrors": [],
+      "checkedStates": [
+        "rendered"
+      ],
+      "visualGap": "Mostly empty mobile sample; complete data/interaction/theme matrix and console errors not certified."
+    },
+    {
+      "viewport": "1440",
+      "url": "http://127.0.0.1:18215/business/service-catalog/applications",
+      "screenshot": ".harness/evidence/2026-11-13-ops-business-menu-ia-refactor/visual/service-applications-desktop.png",
+      "consoleErrors": [],
+      "checkedStates": [
+        "rendered"
+      ],
+      "visualGap": "Mostly empty mobile sample; complete data/interaction/theme matrix and console errors not certified."
+    },
+    {
+      "viewport": "390",
+      "url": "http://127.0.0.1:18215/business/service-catalog/applications",
+      "screenshot": ".harness/evidence/2026-11-13-ops-business-menu-ia-refactor/visual/service-applications-mobile.png",
+      "consoleErrors": [],
+      "checkedStates": [
+        "rendered"
+      ],
+      "visualGap": "Mostly empty mobile sample; complete data/interaction/theme matrix and console errors not certified."
+    },
+    {
+      "viewport": "1440",
+      "url": "http://127.0.0.1:18215/business/service-catalog/instances",
+      "screenshot": ".harness/evidence/2026-11-13-ops-business-menu-ia-refactor/visual/service-instances-desktop.png",
+      "consoleErrors": [],
+      "checkedStates": [
+        "rendered"
+      ],
+      "visualGap": "Mostly empty mobile sample; complete data/interaction/theme matrix and console errors not certified."
+    },
+    {
+      "viewport": "390",
+      "url": "http://127.0.0.1:18215/business/service-catalog/instances",
+      "screenshot": ".harness/evidence/2026-11-13-ops-business-menu-ia-refactor/visual/service-instances-mobile.png",
+      "consoleErrors": [],
+      "checkedStates": [
+        "rendered"
+      ],
+      "visualGap": "Mostly empty mobile sample; complete data/interaction/theme matrix and console errors not certified."
+    },
+    {
+      "viewport": "1440",
+      "url": "http://127.0.0.1:18215/business/service-catalog/services",
+      "screenshot": ".harness/evidence/2026-11-13-ops-business-menu-ia-refactor/visual/service-services-desktop.png",
+      "consoleErrors": [],
+      "checkedStates": [
+        "rendered"
+      ],
+      "visualGap": "Mostly empty mobile sample; complete data/interaction/theme matrix and console errors not certified."
+    },
+    {
+      "viewport": "390",
+      "url": "http://127.0.0.1:18215/business/service-catalog/services",
+      "screenshot": ".harness/evidence/2026-11-13-ops-business-menu-ia-refactor/visual/service-services-mobile.png",
+      "consoleErrors": [],
+      "checkedStates": [
+        "rendered"
+      ],
+      "visualGap": "Mostly empty mobile sample; complete data/interaction/theme matrix and console errors not certified."
+    }
+  ],
+  "linkage": {
+    "taskManifest": ".harness/tasks/2026-11-13-ops-business-menu-ia-refactor/manifest.json",
+    "evidenceDir": ".harness/evidence/2026-11-13-ops-business-menu-ia-refactor/",
+    "summaryFile": ".harness/evidence/2026-11-13-ops-business-menu-ia-refactor/summary.md",
+    "reviewFile": ".harness/evidence/2026-11-13-ops-business-menu-ia-refactor/review.md",
+    "changeRef": "none",
+    "planRefs": [
+      ".harness/tasks/2026-11-13-ops-business-menu-ia-refactor/plan.md",
+      "docs/harness/tasks/2026-11-13-ops-business-menu-ia-refactor.task.md"
+    ]
+  },
+  "r6Continuation": {
+    "activeRelease": "pantheon-base-v0.18.6",
+    "activeCommit": "5553bc0e8ddc006cb7a6b99a46968bf8cf907a49",
+    "candidateRelease": "pantheon-base-v0.18.8",
+    "candidateCommit": "34428814a9efc997fd93d4434406a53df6460323",
+    "candidatePath": ".tmp/ops-v0188-install-r6",
+    "reportSHA256": "e092b077c6d06609c74681198f68bb82089392a2f14958e713dc2c23015cf8c5",
+    "plannedWrites": 165,
+    "plannedDeletes": 0,
+    "attemptedWrites": 60,
+    "all165PreimagesReverified": true,
+    "indexSHA256Unchanged": true,
+    "rollbackArchiveSHA256": "d198d3849da9d108e13ca0e3a4e0a917dda4f2d356c3e27261db2bc313066bec",
+    "planSHA256": "fe0ec035867abf50018bacd7b720dc06142bc869144ab1b84aa18be504a8f80f",
+    "independentReview": "blocked; scope COMMENT",
+    "backend836AndFrontend165MatchValidatedR5": true,
+    "userAuthorizedElevation": true,
+    "elevatedProcessUsed": false,
+    "aclChanged": false,
+    "toolApprovalPolicy": "never",
+    "activeUpgradeComplete": false
+  }
+}

@@ -1,0 +1,20 @@
+--- v2
++++ v3
+@@ -58,7 +58,7 @@
+                 raise ValueError('duplicate-address-json-field')
+             value[key] = item
+         return value
+-    raw = command(['ip', '-j', '-4', 'address', 'show', 'scope', 'global'])
++    raw = command(['ip', '-j', '-4', 'address', 'show', 'dev', 'eth0', 'scope', 'global'])
+     if len(raw) > 64 * 1024:
+         raise ValueError('address-json-bound')
+     try:
+@@ -73,7 +73,7 @@
+         if not isinstance(link, dict):
+             raise ValueError('address-interface-object-required')
+         interface = link.get('ifname')
+-        if not isinstance(interface, str) or not re.fullmatch(r'(?:eth[0-9]+|en[A-Za-z0-9]+)', interface):
++        if not isinstance(interface, str) or interface != 'eth0':
+             raise ValueError('approved-vm-interface-required')
+         if interface in seen_interfaces:
+             raise ValueError('duplicate-vm-interface')

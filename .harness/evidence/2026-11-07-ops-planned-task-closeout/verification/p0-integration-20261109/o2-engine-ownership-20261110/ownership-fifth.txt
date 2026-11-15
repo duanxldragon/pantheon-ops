@@ -1,0 +1,96 @@
+=== RUN   TestOwnershipDualRenewalAndPhysicalContention
+
+2026/11/10 13:25:48 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/attempt_ownership.go:332 [35;1mrecord not found
+[0m[33m[0.521ms] [34;1m[rows:0][0m SELECT * FROM `biz_deploy_host_lease` WHERE host_id = 1 ORDER BY `biz_deploy_host_lease`.`id` LIMIT 1 FOR UPDATE
+--- PASS: TestOwnershipDualRenewalAndPhysicalContention (3.22s)
+=== RUN   TestOwnershipStaleCallbacksCannotChangeAnyTable
+
+2026/11/10 13:25:50 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/attempt_ownership.go:332 [35;1mrecord not found
+[0m[33m[0.507ms] [34;1m[rows:0][0m SELECT * FROM `biz_deploy_host_lease` WHERE host_id = 1 ORDER BY `biz_deploy_host_lease`.`id` LIMIT 1 FOR UPDATE
+=== RUN   TestOwnershipStaleCallbacksCannotChangeAnyTable/log
+2026/11/10 13:25:50 ERROR append deploy task log failed task_id=1 stream=stdout error=business.deploy.taskHost.staleReport
+=== RUN   TestOwnershipStaleCallbacksCannotChangeAnyTable/event
+2026/11/10 13:25:50 ERROR append deploy task event failed task_id=1 event_type=stale error=business.deploy.taskHost.staleReport
+=== RUN   TestOwnershipStaleCallbacksCannotChangeAnyTable/checkpoint/history
+=== RUN   TestOwnershipStaleCallbacksCannotChangeAnyTable/trace
+=== RUN   TestOwnershipStaleCallbacksCannotChangeAnyTable/result/component
+=== RUN   TestOwnershipStaleCallbacksCannotChangeAnyTable/component-helper
+=== RUN   TestOwnershipStaleCallbacksCannotChangeAnyTable/finish/release/requeue
+=== RUN   TestOwnershipStaleCallbacksCannotChangeAnyTable/final-task
+=== RUN   TestOwnershipStaleCallbacksCannotChangeAnyTable/legacy-finish
+--- PASS: TestOwnershipStaleCallbacksCannotChangeAnyTable (1.77s)
+    --- PASS: TestOwnershipStaleCallbacksCannotChangeAnyTable/log (0.03s)
+    --- PASS: TestOwnershipStaleCallbacksCannotChangeAnyTable/event (0.02s)
+    --- PASS: TestOwnershipStaleCallbacksCannotChangeAnyTable/checkpoint/history (0.02s)
+    --- PASS: TestOwnershipStaleCallbacksCannotChangeAnyTable/trace (0.02s)
+    --- PASS: TestOwnershipStaleCallbacksCannotChangeAnyTable/result/component (0.02s)
+    --- PASS: TestOwnershipStaleCallbacksCannotChangeAnyTable/component-helper (0.03s)
+    --- PASS: TestOwnershipStaleCallbacksCannotChangeAnyTable/finish/release/requeue (0.02s)
+    --- PASS: TestOwnershipStaleCallbacksCannotChangeAnyTable/final-task (0.02s)
+    --- PASS: TestOwnershipStaleCallbacksCannotChangeAnyTable/legacy-finish (0.03s)
+=== RUN   TestOwnershipWatchdogDoesNotWaitForDBOrResurrect
+
+2026/11/10 13:25:52 [32mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/attempt_ownership.go:332 [33mSLOW SQL >= 200ms
+[0m[31;1m[480.502ms] [33m[rows:1][35m SELECT * FROM `biz_deploy_host_lease` WHERE host_id = 1 ORDER BY `biz_deploy_host_lease`.`id` LIMIT 1 FOR UPDATE[0m
+--- PASS: TestOwnershipWatchdogDoesNotWaitForDBOrResurrect (2.26s)
+=== RUN   TestOwnershipFirstReadErrorCancelsVoidWriter
+2026/11/10 13:25:54 ERROR load deploy task step for log failed task_id=1 task_host_id=1 step_key=owned error="owned database read failed"
+
+2026/11/10 13:25:54 [34;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/attempt_ownership_test.go:268
+[0m[35m[warn] [0mremoving callback `ownership_read_error` from D:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/attempt_ownership_test.go:268
+--- PASS: TestOwnershipFirstReadErrorCancelsVoidWriter (1.62s)
+=== RUN   TestOwnershipUnknownOuterTransactionsRejected
+--- PASS: TestOwnershipUnknownOuterTransactionsRejected (1.53s)
+=== RUN   TestOwnershipCommitFailureCancelsAndRollsBackBothRenewals
+--- PASS: TestOwnershipCommitFailureCancelsAndRollsBackBothRenewals (1.40s)
+=== RUN   TestOwnershipBlockedMySQLLockCancelsBeforeRunnerReturns
+
+2026/11/10 13:25:59 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/attempt_ownership.go:326 [35;1mcontext deadline exceeded
+[0m[33m[197.047ms] [34;1m[rows:0][0m SELECT * FROM `biz_deploy_task_host` WHERE `biz_deploy_task_host`.`id` = 1 ORDER BY `biz_deploy_task_host`.`id` LIMIT 1 FOR UPDATE
+--- PASS: TestOwnershipBlockedMySQLLockCancelsBeforeRunnerReturns (1.71s)
+=== RUN   TestOwnershipRevokedRunnerAndLateExecutorReturn
+--- PASS: TestOwnershipRevokedRunnerAndLateExecutorReturn (1.64s)
+=== RUN   TestOwnershipProjectionRollbackIsAtomic
+
+2026/11/10 13:26:02 [34;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/attempt_ownership_test.go:450
+[0m[35m[warn] [0mremoving callback `ownership_projection_failure` from D:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/attempt_ownership_test.go:450
+--- PASS: TestOwnershipProjectionRollbackIsAtomic (1.85s)
+=== RUN   TestOwnershipCrashBudgetPauseCancelAndHistory
+
+2026/11/10 13:26:04 [32mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/deploy_service.go:196 [33mSLOW SQL >= 200ms
+[0m[31;1m[628.265ms] [33m[rows:0][35m CREATE TABLE `biz_deploy_task_attempt` (`id` bigint unsigned AUTO_INCREMENT,`task_id` bigint unsigned NOT NULL,`task_host_id` bigint unsigned NOT NULL,`attempt_no` bigint NOT NULL,`status` varchar(32) NOT NULL,`worker_id` varchar(128),`lease_expires_at` datetime(3) NULL,`started_at` datetime(3) NULL,`finished_at` datetime(3) NULL,`error_message` varchar(512),`created_at` datetime(3) NULL,`updated_at` datetime(3) NULL,PRIMARY KEY (`id`),INDEX `idx_biz_deploy_task_attempt_task_id` (`task_id`),INDEX `idx_biz_deploy_task_attempt_task_host_id` (`task_host_id`),INDEX `idx_biz_deploy_task_attempt_status` (`status`),INDEX `idx_biz_deploy_task_attempt_lease_expires_at` (`lease_expires_at`))[0m
+--- PASS: TestOwnershipCrashBudgetPauseCancelAndHistory (2.61s)
+=== RUN   TestOwnershipReconcileSerializesRenewAndFinish
+=== RUN   TestOwnershipReconcileSerializesRenewAndFinish/renew/owner
+
+2026/11/10 13:26:06 [32mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/deploy_service.go:196 [33mSLOW SQL >= 200ms
+[0m[31;1m[218.944ms] [33m[rows:0][35m CREATE TABLE `biz_deploy_task_host` (`id` bigint unsigned AUTO_INCREMENT,`task_id` bigint unsigned NOT NULL,`host_id` bigint unsigned NOT NULL,`hostname` varchar(128),`host_ip` varchar(45),`ssh_port` bigint DEFAULT 22,`os` varchar(32),`business_scope_id` bigint unsigned,`status` varchar(32) DEFAULT 'pending',`stdout` text,`stderr` text,`error_message` varchar(512),`executor_id` varchar(128),`report_key` varchar(128),`trace_steps` JSON,`started_at` datetime(3) NULL,`finished_at` datetime(3) NULL,`reported_at` datetime(3) NULL,`resolved_at` datetime(3) NULL,`created_at` datetime(3) NULL,`updated_at` datetime(3) NULL,`updated_by` varchar(64),PRIMARY KEY (`id`),INDEX `idx_biz_deploy_task_host_task_id` (`task_id`),UNIQUE INDEX `uk_deploy_task_host` (`task_id`,`host_id`),INDEX `idx_biz_deploy_task_host_host_id` (`host_id`),INDEX `idx_biz_deploy_task_host_business_scope_id` (`business_scope_id`),INDEX `idx_biz_deploy_task_host_status` (`status`))[0m
+=== RUN   TestOwnershipReconcileSerializesRenewAndFinish/renew/reconcile
+
+2026/11/10 13:26:08 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/attempt_ownership.go:332 [35;1mrecord not found
+[0m[33m[0.680ms] [34;1m[rows:0][0m SELECT * FROM `biz_deploy_host_lease` WHERE host_id = 1 ORDER BY `biz_deploy_host_lease`.`id` LIMIT 1 FOR UPDATE
+=== RUN   TestOwnershipReconcileSerializesRenewAndFinish/finish/owner
+
+2026/11/10 13:26:10 [32mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/deploy_service.go:196 [33mSLOW SQL >= 200ms
+[0m[31;1m[421.534ms] [33m[rows:0][35m CREATE TABLE `biz_deploy_credential_ref` (`id` bigint unsigned AUTO_INCREMENT,`name` varchar(128) NOT NULL,`username` varchar(128) NOT NULL,`auth_mode` varchar(32) NOT NULL,`secret_encrypted` text NOT NULL,`version` bigint unsigned NOT NULL DEFAULT 1,`status` varchar(32) NOT NULL DEFAULT 'active',`created_at` datetime(3) NULL,`updated_at` datetime(3) NULL,`deleted_at` datetime(3) NULL,PRIMARY KEY (`id`),UNIQUE INDEX `uk_deploy_credential_name_deleted` (`name`,`deleted_at`))[0m
+=== RUN   TestOwnershipReconcileSerializesRenewAndFinish/finish/reconcile
+
+2026/11/10 13:26:12 [32mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/deploy_service_test.go:32 [33mSLOW SQL >= 200ms
+[0m[31;1m[338.198ms] [33m[rows:0][35m CREATE TABLE `biz_cmdb_group` (`id` bigint unsigned AUTO_INCREMENT,`parent_id` bigint unsigned,`name` varchar(128) NOT NULL,`conditions` JSON,`deleted_at` datetime(3) NULL,PRIMARY KEY (`id`),INDEX `idx_biz_cmdb_group_deleted_at` (`deleted_at`))[0m
+--- PASS: TestOwnershipReconcileSerializesRenewAndFinish (7.98s)
+    --- PASS: TestOwnershipReconcileSerializesRenewAndFinish/renew/owner (1.98s)
+    --- PASS: TestOwnershipReconcileSerializesRenewAndFinish/renew/reconcile (1.95s)
+    --- PASS: TestOwnershipReconcileSerializesRenewAndFinish/finish/owner (2.02s)
+    --- PASS: TestOwnershipReconcileSerializesRenewAndFinish/finish/reconcile (2.04s)
+=== RUN   TestOwnershipExactDBExpiryAndNullLegacy
+=== RUN   TestOwnershipExactDBExpiryAndNullLegacy/attempt
+=== RUN   TestOwnershipExactDBExpiryAndNullLegacy/physical
+=== RUN   TestOwnershipExactDBExpiryAndNullLegacy/null
+--- PASS: TestOwnershipExactDBExpiryAndNullLegacy (1.91s)
+    --- PASS: TestOwnershipExactDBExpiryAndNullLegacy/attempt (0.03s)
+    --- PASS: TestOwnershipExactDBExpiryAndNullLegacy/physical (0.04s)
+    --- PASS: TestOwnershipExactDBExpiryAndNullLegacy/null (0.03s)
+=== RUN   TestOwnershipComponentSnapshot
+--- PASS: TestOwnershipComponentSnapshot (1.64s)
+PASS
+ok  	github.com/duanxldragon/pantheon-base/backend/modules/business/deploy	32.236s

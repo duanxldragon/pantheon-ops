@@ -1,0 +1,5 @@
+
+> check:harness-sync
+> node scripts/harness/check-sync-drift.mjs --root . --strict
+
+Sync drift check (strict): 0 finding(s)

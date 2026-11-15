@@ -1,0 +1,16 @@
+
+> @duanxldragon/pantheon-base-ui@0.11.2 test:unit
+> vitest run tests/unit/business/operational
+
+(!) Your Vite config uses features that are unsupported by `configLoader: 'native'`, which is planned to become the default in a future major version of Vite:
+  - `__dirname` (vitest.config.ts:10:25). Use `import.meta.dirname` instead
+Set `VITE_CONFIG_NATIVE_IGNORE_WARNING=true` to suppress this warning.
+
+ RUN  v5.0.5 D:/workspace/go/pantheon-platform/pantheon-ops/frontend
+
+
+ Test Files  9 passed (9)
+      Tests  61 passed (61)
+   Start at  11:06:08
+   Duration  6.07s (environment 53%, import 28%, tests 17%, transform 1%)
+

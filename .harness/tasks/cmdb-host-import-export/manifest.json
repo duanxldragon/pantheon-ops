@@ -107,5 +107,17 @@
     "targeted tests and repository gates recorded",
     "runtime or visual evidence recorded",
     "review summary recorded"
-  ]
+  ],
+  "status": "implementation-complete-authorization-gap",
+  "lastReconciled": "2026-11-07",
+  "currentExecutionEvidence": ".harness/evidence/2026-11-07-ops-planned-task-closeout/summary.md",
+  "runtimeGaps": [
+    "Key-only business permission grants do not create required API policies in Base v0.18.6."
+  ],
+  "currentRuntimeEvidence": {
+    "adminCsvChecks": 7,
+    "pageSmokeChecks": 9,
+    "restrictedRouteAndSelfOwnerChecks": 4,
+    "keyOnlyPermissionBinding": "upstream-open"
+  }
 }

@@ -3,6 +3,7 @@ package cluster
 import (
 	"strconv"
 
+	"github.com/duanxldragon/pantheon-base/backend/modules/business/shared/dashboard"
 	"github.com/duanxldragon/pantheon-base/backend/pkg/common"
 
 	"github.com/gin-gonic/gin"
@@ -76,6 +77,15 @@ func (h *ClusterHandler) RotateCredential(c *gin.Context) {
 
 // List returns Kubernetes clusters visible in the request scope.
 func (h *ClusterHandler) List(c *gin.Context) {
+	if c.Query("dashboard") == "true" {
+		resp, err := h.svc.DashboardSummary(c.Request.Context(), dashboard.Limit(c.Query("limit")), common.GetDataScope(c))
+		if err != nil {
+			common.FailWithError(c, common.CodeError, err, "k8s.cluster.list_failed")
+			return
+		}
+		common.Success(c, resp)
+		return
+	}
 	var query ClusterListQuery
 	if err := c.ShouldBindQuery(&query); err != nil {
 		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)

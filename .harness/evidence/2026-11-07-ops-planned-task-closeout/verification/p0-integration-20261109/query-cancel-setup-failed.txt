@@ -1,0 +1,6 @@
+FAIL	github.com/duanxldragon/pantheon-base/backend/modules/business/observability [build failed]
+# github.com/duanxldragon/pantheon-base/backend/modules/business/observability [github.com/duanxldragon/pantheon-base/backend/modules/business/observability.test]
+modules\business\observability\datasource_query_context_test.go:50:24: s.QueryContext undefined (type *DatasourceService has no field or method QueryContext)
+modules\business\observability\datasource_query_context_test.go:51:24: s.SearchTracesContext undefined (type *DatasourceService has no field or method SearchTracesContext)
+modules\business\observability\datasource_query_context_test.go:52:24: s.GetTraceContext undefined (type *DatasourceService has no field or method GetTraceContext)
+FAIL

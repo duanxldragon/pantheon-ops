@@ -1,0 +1,7 @@
+{
+  "command": "claude.exe -p --tools \"\" --output-format text < resume-review-permission-prompt.md",
+  "status": "timeout",
+  "exitCode": 1,
+  "seconds": 240,
+  "characters": 10607
+}

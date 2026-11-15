@@ -10,6 +10,7 @@ export interface ExecutionStepRailProps {
     OperationalDataState,
     React.ReactNode
   >;
+  statusLabels?: Partial<Record<ExecutionStep['status'], React.ReactNode>>;
   state?: OperationalDataState;
   maxVisibleSteps?: number;
   activeStepId?: string;
@@ -19,16 +20,18 @@ export default function ExecutionStepRail({
   title,
   steps,
   labels,
+  statusLabels,
   state = 'ready',
   maxVisibleSteps = 80,
   activeStepId,
   onStepClick,
 }: Readonly<ExecutionStepRailProps>) {
+  const titleId = React.useId();
   const visibleSteps = steps.slice(0, Math.max(1, maxVisibleSteps));
   return (
-    <section className="operational-primitive execution-step-rail" aria-label={String(title)}>
+    <section className="operational-primitive execution-step-rail" aria-labelledby={titleId}>
       <div className="operational-primitive__header">
-        <div className="operational-primitive__title">{title}</div>
+        <div className="operational-primitive__title" id={titleId}>{title}</div>
       </div>
       {state !== 'ready' ? (
         <div className="operational-primitive__state">{labels[state]}</div>
@@ -46,9 +49,9 @@ export default function ExecutionStepRail({
                 <span className="execution-step-rail__marker" aria-hidden="true" />
                 <span>{step.title}</span>
                 <span>
-                  <Tag>{step.status}</Tag>
-                  {step.attempts ? ` ${labels.attempts}: ${step.attempts}` : ''}
-                  {step.durationMs ? ` ${labels.duration}: ${step.durationMs}ms` : ''}
+                  <Tag>{statusLabels?.[step.status] ?? step.status}</Tag>
+                  {step.attempts ? <> {labels.attempts}: {step.attempts}</> : null}
+                  {step.durationMs ? <> {labels.duration}: {step.durationMs}ms</> : null}
                 </span>
               </button>
             </li>

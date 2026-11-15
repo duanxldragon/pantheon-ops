@@ -1,0 +1,70 @@
+{
+  "utc": "2026-11-10T04:15:13.835316+00:00",
+  "records": [
+    {
+      "name": "red",
+      "cwd": "frontend",
+      "command": "npx vitest run tests/unit/business/operational/deploy-read-revocation.test.tsx tests/unit/business/operational/deploy-detail-read.test.tsx",
+      "exitCode": 1,
+      "evidence": "units-red.txt",
+      "evidenceSHA256": "1348bd6efa4195bd406e63ca97b326fd95d4a20331862432a5790d19467b757c",
+      "outcome": "4 failing / 13 passing against exact old hook"
+    },
+    {
+      "name": "first-green",
+      "cwd": "frontend",
+      "command": "npx vitest run tests/unit/business/operational/deploy-read-revocation.test.tsx tests/unit/business/operational/deploy-detail-read.test.tsx",
+      "exitCode": 1,
+      "evidence": "units-green-targeted.txt",
+      "evidenceSHA256": "4b963bbd6e10c83d070eab2b4955de0d8750c26564339deb4905a31f7c398c18",
+      "outcome": "Hook 9/9; one detail assertion matched multiple existing success labels; final assertion scoped to status tag"
+    },
+    {
+      "name": "units",
+      "cwd": "frontend",
+      "command": "npx vitest run tests/unit/business/operational/deploy-context.test.tsx tests/unit/business/operational/deploy-log-cursor.test.tsx tests/unit/business/operational/deploy-read-revocation.test.tsx tests/unit/business/operational/deploy-detail-read.test.tsx tests/unit/business/operational/deploy-command.test.tsx tests/unit/business/operational/log-lifecycle.test.tsx",
+      "exitCode": 0,
+      "evidence": "units-final.txt",
+      "evidenceSHA256": "19e1848878e19b0c5eb0781013b69a49c9f0745a373884f01246d77529292063",
+      "outcome": "51/51, six files"
+    },
+    {
+      "name": "lint",
+      "cwd": "frontend",
+      "command": "npx eslint src/modules/business/deploy/task/useDeployTaskSnapshot.ts tests/unit/business/operational/deploy-read-revocation.test.tsx tests/unit/business/operational/deploy-detail-read.test.tsx",
+      "exitCode": 0,
+      "evidence": "lint-final.txt",
+      "evidenceSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "outcome": "Zero warnings/errors"
+    },
+    {
+      "name": "native-ts",
+      "cwd": "frontend",
+      "command": "node ../.harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-trailing-refresh-fix/native-ts-diagnostics.mjs",
+      "exitCode": 0,
+      "evidence": "native-ts-final.json",
+      "evidenceSHA256": "6b29e19232b36f87682a97daa9b0b8849354ebe4dfc9df31ce89ff093b40d230",
+      "outcome": "TypeScript 6.0.3 createProgram/getPreEmitDiagnostics includes tests; zero diagnostics"
+    },
+    {
+      "name": "build",
+      "cwd": "frontend",
+      "command": "npm run build",
+      "exitCode": 0,
+      "evidence": "build-final.txt",
+      "evidenceSHA256": "c086b5331aa3c299928318030b51afbcc078b4b1fba972932175f177a6221309",
+      "outcome": "Full prebuild gates, tsc -b and Vite; existing native-loader/dynamic-import warnings"
+    },
+    {
+      "name": "overlay",
+      "cwd": ".",
+      "command": "npm run check:business-overlay",
+      "exitCode": 0,
+      "evidence": "overlay-final.txt",
+      "evidenceSHA256": "55ee542cb301d23a24fd6e9278e56ec687d7f91041b98119fb7c4c69aeabf13d",
+      "outcome": "56 declared paths; current rebuilt tree contract only"
+    }
+  ],
+  "verificationBoundTo": "after.json",
+  "goRace": "Not run: no backend edits in this scoped lane"
+}

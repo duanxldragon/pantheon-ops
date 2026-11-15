@@ -1,0 +1,74 @@
+{
+  "case": "cancel",
+  "identity": "o2-live-593d9f0f9442-cancel",
+  "database": "ops_p0_o2_live_593d9f0f9442_cancel",
+  "databaseRetention": "retained; no drop",
+  "events": [
+    {
+      "credentialId": 1,
+      "packageId": 1,
+      "phase": "task-created",
+      "taskId": 1
+    },
+    {
+      "action": "cancel",
+      "errorKey": "",
+      "phase": "control",
+      "taskId": 1
+    },
+    {
+      "case": "cancel",
+      "check": "real running command acknowledged canceled",
+      "kind": "positive",
+      "passed": true
+    },
+    {
+      "action": "cancel",
+      "errorKey": "business.deploy.task.commandConflict",
+      "phase": "control",
+      "taskId": 1
+    },
+    {
+      "case": "cancel",
+      "check": "stale running view conflicts after control",
+      "kind": "negative",
+      "passed": true
+    },
+    {
+      "errorKey": "suppressed",
+      "phase": "operation-error"
+    },
+    {
+      "error": "operation or deadline; secret details suppressed",
+      "phase": "driver-failure"
+    },
+    {
+      "case": "cancel",
+      "failed": 1,
+      "negativePassed": 1,
+      "phase": "driver-result",
+      "positivePassed": 1
+    }
+  ],
+  "driverExitCode": 1,
+  "stderrPresent": false,
+  "status": "failed",
+  "cleanup": {
+    "phase": "exact-owned-cleanup",
+    "directory": "/opt/pantheon-p0-20261109/o2-live-593d9f0f9442-cancel",
+    "files": [
+      {
+        "file": ".owner",
+        "sha256": "82cf6265ce1d83298f6ec2895105f84f243136b3b7fed30a38f033a908f66fc2",
+        "bytes": 27
+      },
+      {
+        "file": "started",
+        "sha256": "82cf6265ce1d83298f6ec2895105f84f243136b3b7fed30a38f033a908f66fc2",
+        "bytes": 27
+      }
+    ],
+    "absent": true,
+    "processKill": false
+  }
+}

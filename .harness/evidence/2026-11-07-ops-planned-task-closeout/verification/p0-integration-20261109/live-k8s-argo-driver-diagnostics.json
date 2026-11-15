@@ -1,0 +1,10 @@
+{
+  "pythonCompileCommand": "python .local/ops-acceptance/live-k8s-argo-driver-diagnostics.py (py_compile of all owned live-k8s-argo-*.py)",
+  "pythonCompileExitCode": 0,
+  "compiledFileCount": 23,
+  "goVetCommand": "CGO_ENABLED=1 PATH=D:/msys64/mingw64/bin go vet -mod=readonly ../.local/ops-acceptance/live-k8s-argo-service-driver.go",
+  "goVetExitCode": 0,
+  "buildCommand": "CGO_ENABLED=1 PATH=D:/msys64/mingw64/bin go build -mod=readonly -race -o ../.local/ops-acceptance/live-k8s-argo-service-driver.exe ../.local/ops-acceptance/live-k8s-argo-service-driver.go",
+  "buildExitCode": 0,
+  "gofmtExitCode": 0
+}

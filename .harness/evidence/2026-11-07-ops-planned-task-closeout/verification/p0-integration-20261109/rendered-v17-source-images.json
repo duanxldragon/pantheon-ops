@@ -1,0 +1,50 @@
+[
+  {
+    "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/remote-p0-browser-v17/smoke-business-observabili-724a5-ation-and-revocation-light-/tempo-light-desktop.png",
+    "sha256": "ea5d94845090628c712a6610cb90a636c2d849e141550186fc35662ab75ae777",
+    "dimensions": [
+      1440,
+      1024
+    ]
+  },
+  {
+    "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/remote-p0-browser-v17/smoke-business-observabili-fe48d-lation-and-revocation-dark-/tempo-dark-desktop.png",
+    "sha256": "76341e3831dc93ac4fed93ae47e675ba41c92e3b115ba44361fbd6f3ab9c83df",
+    "dimensions": [
+      1440,
+      1024
+    ]
+  },
+  {
+    "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/remote-p0-browser-v17/smoke-business-observabili-724a5-ation-and-revocation-light-/tempo-light-mobile.png",
+    "sha256": "3274519cc3134ce1e6a4cfb08bd3496a33a342eacac6b46fa00d0b7bf9a34525",
+    "dimensions": [
+      390,
+      1185
+    ]
+  },
+  {
+    "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/remote-p0-browser-v17/smoke-business-observabili-fe48d-lation-and-revocation-dark-/tempo-dark-mobile.png",
+    "sha256": "dab5f567b663a755f0f4fb2cca82dd41a57a40bfd605142a4888398d69870699",
+    "dimensions": [
+      390,
+      1185
+    ]
+  },
+  {
+    "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/remote-p0-browser-v17/smoke-business-observabili-fe48d-lation-and-revocation-dark-/tempo-dark-mobile-forbidden.png",
+    "sha256": "8c6d92c713e668f60ba9748bfcdcc1425603eab41227bf42a8080ab7a9792896",
+    "dimensions": [
+      390,
+      995
+    ]
+  },
+  {
+    "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/remote-p0-browser-v17/smoke-business-observabili-fe48d-lation-and-revocation-dark-/tempo-dark-detail.png",
+    "sha256": "a65fc9cd327290caef132c4fd9298264aa943d4aa5f1d05736277ea909d846b4",
+    "dimensions": [
+      1440,
+      900
+    ]
+  }
+]

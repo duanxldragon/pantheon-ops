@@ -1,0 +1,8 @@
+{"ready": true, "host": "115.190.251.143", "databaseLocation": "test-owned MariaDB and Redis on the acceptance server", "pids": {"backend": 1226150, "web": 1226163}}
+{"host": "115.190.251.143", "backendAndFrontendOnRemote": true, "browserTransportFixtures": true, "liveProviderE2E": false, "specs": ["tests/smoke/business/deploy/deploy-workbench.spec.ts", "tests/smoke/business/deploy/deploy-selection-preview.spec.ts", "tests/smoke/business/deploy/deploy-command.spec.ts", "tests/smoke/business/k8s/release-preview.spec.ts", "tests/smoke/business/observability-workbench.spec.ts", "tests/smoke/business/observability-tempo-workbench.spec.ts", "tests/smoke/business/cmdb/cmdb-import-export-permissions.spec.ts"], "exitCode": 1}
+{"ownedRemoteProcessesStopped": true, "forwardingClosed": true}
+Traceback (most recent call last):
+  File "D:\workspace\go\pantheon-platform\pantheon-ops\.local\ops-acceptance\remote-web-v6.py", line 96, in <module>
+    (ev/'remote-p0-browser-v6-result.json').write_text(json.dumps(receipt,indent=2)+'\n');print(json.dumps(receipt));print('\n'.join((ev/'remote-p0-browser-v6.txt').read_text(encoding='utf-8').splitlines()[-35:]));raise SystemExit(result.returncode)
+                                                                                                                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+UnicodeEncodeError: 'gbk' codec can't encode character '\u203a' in position 1518: illegal multibyte sequence

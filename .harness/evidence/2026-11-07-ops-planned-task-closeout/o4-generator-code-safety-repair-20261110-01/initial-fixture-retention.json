@@ -1,0 +1,13 @@
+{
+  "taskId": "2026-11-07-ops-planned-task-closeout",
+  "source": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.harness\\evidence\\2026-11-07-ops-planned-task-closeout\\o4-generator-code-safety-repair-20261110-01\\fixtures",
+  "target": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.tmp\\o4-code-safety-initial-fixtures-20261110-01",
+  "rootIdentity": [
+    "613857395",
+    "1688849862735714"
+  ],
+  "entriesVerified": 30904,
+  "files": 16250,
+  "deleted": 0,
+  "reason": "Keep initial disposable large fixtures out of declared .harness metadata inputs. Original RED/failed/GREEN log paths map by replacing source prefix with target; every directory/file instance remains unchanged."
+}

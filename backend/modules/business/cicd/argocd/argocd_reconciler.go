@@ -2,19 +2,22 @@ package argocd
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/duanxldragon/pantheon-base/backend/pkg/logging"
 	"go.uber.org/zap"
 
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 // Reconciler synchronizes ArgoCD Application state
 type Reconciler struct {
-	db       *gorm.DB
-	interval time.Duration
-	stopCh   chan struct{}
+	db            *gorm.DB
+	interval      time.Duration
+	stopCh        chan struct{}
+	clientFactory func(string, string, string) (*ArgoCDClient, error)
 }
 
 // NewReconciler creates a reconciler
@@ -43,7 +46,7 @@ func (r *Reconciler) Start(ctx context.Context) {
 			return
 		case <-ticker.C:
 			if err := r.reconcile(ctx); err != nil {
-				logging.Error("reconciliation failed", zap.Error(err))
+				logging.Error("reconciliation failed", zap.String("error_type", fmt.Sprintf("%T", err)))
 			}
 		}
 	}
@@ -58,14 +61,15 @@ func (r *Reconciler) Stop() {
 func (r *Reconciler) reconcile(ctx context.Context) error {
 	// 1. 查询所有 ArgoCD Server
 	var servers []ArgoCDServer
-	if err := r.db.Where("status != ?", "disconnected").Find(&servers).Error; err != nil {
+	// A transient outage must not permanently remove a server from recovery.
+	if err := r.db.WithContext(ctx).Where("status IN ?", []string{ArgoCDStatusUnknown, ArgoCDStatusConnected, ArgoCDStatusDisconnected}).Find(&servers).Error; err != nil {
 		return err
 	}
 
 	for _, server := range servers {
 		if err := r.reconcileServer(ctx, &server); err != nil {
 			logging.Error("server reconciliation failed",
-				zap.String("server", server.Name), zap.Error(err))
+				zap.String("server", server.Name), zap.String("error_type", fmt.Sprintf("%T", err)))
 
 			// 更新服务器状态
 			r.db.Model(&server).Updates(map[string]interface{}{
@@ -93,7 +97,11 @@ func (r *Reconciler) reconcileServer(ctx context.Context, server *ArgoCDServer) 
 	}
 
 	// 1. 创建 ArgoCD client
-	client, err := NewArgoCDClient(server.Endpoint, authToken, server.CACert)
+	factory := r.clientFactory
+	if factory == nil {
+		factory = NewArgoCDClient
+	}
+	client, err := factory(server.Endpoint, authToken, server.CACert)
 	if err != nil {
 		return err
 	}
@@ -113,7 +121,7 @@ func (r *Reconciler) reconcileServer(ctx context.Context, server *ArgoCDServer) 
 	for _, app := range apps {
 		if err := r.reconcileApplication(ctx, client, &app); err != nil {
 			logging.Error("application reconciliation failed",
-				zap.String("app", app.Name), zap.Error(err))
+				zap.String("app", app.Name), zap.String("error_type", fmt.Sprintf("%T", err)))
 		}
 	}
 
@@ -128,49 +136,86 @@ func (r *Reconciler) reconcileApplication(ctx context.Context, client *ArgoCDCli
 		return err
 	}
 
-	// 2. 检测状态变化
-	stateChanged := app.SyncStatus != status.Sync.Status ||
-		app.HealthStatus != status.Health.Status
+	return applyApplicationStatus(ctx, r.db, app, status)
+}
 
-	// 3. 更新本地 Application 状态
-	updates := map[string]interface{}{
-		"sync_status":    status.Sync.Status,
-		"health_status":  status.Health.Status,
-		"last_synced_at": time.Now(),
-	}
-
-	if status.OperationState != nil {
-		updates["last_error"] = status.OperationState.Message
-	}
-
-	if err := r.db.Model(app).Updates(updates).Error; err != nil {
-		return err
-	}
-
-	// 4. 如果状态变化，记录同步历史
-	if stateChanged {
-		history := ArgoCDSyncHistory{
-			ApplicationID: app.ID,
-			Revision:      status.Sync.Revision,
-			Status:        status.Sync.Status,
-			StartedAt:     time.Now(),
-			FinishedAt:    func() *time.Time { t := time.Now(); return &t }(),
+func applyApplicationStatus(ctx context.Context, db *gorm.DB, app *ArgoCDApplication, status *ArgoCDApplicationStatus) error {
+	return db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		var current ArgoCDApplication
+		if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).First(&current, app.ID).Error; err != nil {
+			return err
 		}
-
-		if status.OperationState != nil {
-			history.Status = status.OperationState.Phase
-			history.Message = status.OperationState.Message
-			if status.OperationState.StartedAt != nil {
-				history.StartedAt = *status.OperationState.StartedAt
+		updates := map[string]interface{}{"sync_status": safeSyncStatus(status.Sync.Status), "health_status": safeHealthStatus(status.Health.Status)}
+		var pending []ArgoCDSyncHistory
+		if err := tx.Where("application_id = ? AND status IN ? AND finished_at IS NULL", app.ID, []string{AppStatusUnknown, "Running"}).Order("id DESC").Find(&pending).Error; err != nil {
+			return err
+		}
+		if len(pending) > 0 {
+			updates["status"] = AppStatusUnknown
+			updates["last_error"] = ""
+		}
+		for _, history := range pending {
+			metadata, ok := decodeActionMetadata(history.Message)
+			operation := status.OperationState
+			if !ok || metadata.UID != status.ApplicationUID || operation == nil || operation.Operation == nil || operation.Operation.Sync.Revision != metadata.Revision {
+				continue
+			}
+			markers := 0
+			matched := false
+			for _, info := range operation.Operation.Info {
+				if info.Name == actionInfoName {
+					markers++
+					matched = info.Value == metadata.Nonce
+				}
+			}
+			if markers != 1 || !matched {
+				continue
+			}
+			phase := operation.Phase
+			if phase != "Running" && phase != "Succeeded" && phase != "Failed" && phase != "Error" {
+				continue
+			}
+			terminal := phase != "Running"
+			if terminal && (operation.StartedAt == nil || operation.FinishedAt == nil || operation.FinishedAt.Before(*operation.StartedAt) || (phase == "Succeeded" && operation.SyncResult.Revision != metadata.Revision)) {
+				continue
+			}
+			metadata.Error = ""
+			if phase == "Failed" || phase == "Error" {
+				metadata.Error = "cicd.argocd.app_sync_failed"
+				if metadata.Rollback {
+					metadata.Error = "cicd.argocd.app_rollback_failed"
+				}
+			}
+			values := map[string]interface{}{"status": phase, "message": encodeActionMetadata(metadata)}
+			if terminal {
+				values["finished_at"] = operation.FinishedAt
+			}
+			if err := tx.Model(&history).Where("finished_at IS NULL").Updates(values).Error; err != nil {
+				return err
+			}
+			updates["status"] = phase
+			updates["last_error"] = metadata.Error
+			if phase == "Succeeded" {
+				updates["last_synced_at"] = operation.FinishedAt
 			}
 		}
+		return tx.Model(&current).Updates(updates).Error
+	})
+}
 
-		if err := r.db.Create(&history).Error; err != nil {
-			logging.Error("create sync history failed", zap.Error(err))
-		}
+func safeSyncStatus(value string) string {
+	switch value {
+	case "Synced", "OutOfSync", "Unknown":
+		return value
 	}
-
-	return nil
+	return "Unknown"
+}
+func safeHealthStatus(value string) string {
+	switch value {
+	case "Healthy", "Degraded", "Progressing", "Missing", "Unknown", "Suspended":
+		return value
+	}
+	return "Unknown"
 }
 
 // StartAll starts all reconcilers

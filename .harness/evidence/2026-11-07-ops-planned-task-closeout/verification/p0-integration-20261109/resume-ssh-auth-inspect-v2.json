@@ -1,0 +1,7 @@
+{
+  "host": "115.190.251.143",
+  "scope": "read-only sshd config and categorized logs; no credentials/raw logs",
+  "exitCode": 1,
+  "errorType": "SSHException",
+  "errno": null
+}

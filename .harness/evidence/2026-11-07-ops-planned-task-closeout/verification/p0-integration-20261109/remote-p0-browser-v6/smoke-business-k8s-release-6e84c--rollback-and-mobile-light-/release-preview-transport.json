@@ -1,0 +1,45 @@
+{
+  "provider": "browser transport fixture",
+  "realLocalAuth": true,
+  "realK8sMutation": false,
+  "ownedBusinessFixtures": 0,
+  "requests": [
+    {
+      "operation": "/api/v1/business/k8s/releases/77/rollback/preview",
+      "idempotencyKey": "a8714a60-35e6-4e1d-878c-ecd3d8b1d7d3"
+    },
+    {
+      "operation": "/api/v1/business/k8s/releases/77/rollback",
+      "idempotencyKey": "a8714a60-35e6-4e1d-878c-ecd3d8b1d7d3",
+      "intentVersion": "ticket-a8714a60-35e6-4e1d-878c-ecd3d8b1d7d3"
+    },
+    {
+      "operation": "/api/v1/business/k8s/releases/77/rollback/preview",
+      "idempotencyKey": "9131456d-61eb-487f-b3dc-819675329406"
+    },
+    {
+      "operation": "/api/v1/business/k8s/releases/77/rollback",
+      "idempotencyKey": "9131456d-61eb-487f-b3dc-819675329406",
+      "intentVersion": "ticket-9131456d-61eb-487f-b3dc-819675329406"
+    },
+    {
+      "operation": "/api/v1/business/k8s/releases/77/rollback",
+      "idempotencyKey": "9131456d-61eb-487f-b3dc-819675329406",
+      "intentVersion": "ticket-9131456d-61eb-487f-b3dc-819675329406"
+    },
+    {
+      "operation": "/api/v1/business/k8s/releases/preview",
+      "name": "create-image-fixture",
+      "clusterId": 901,
+      "namespace": "default",
+      "workloadType": "deployment",
+      "workloadName": "api",
+      "image": "image:v3",
+      "idempotencyKey": "1d9067b4-1563-4c2c-8845-1d89c87ba285"
+    },
+    {
+      "operation": "/api/v1/business/k8s/releases/77/rollback/preview",
+      "idempotencyKey": "5e9e0295-4e8c-402c-9fb1-0b0ea20c39d5"
+    }
+  ]
+}

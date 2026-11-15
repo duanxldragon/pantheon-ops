@@ -1,0 +1,10 @@
+{
+  "role": "code-reviewer",
+  "exitCode": 4294967295,
+  "elapsedSeconds": 436.656,
+  "modelOverride": false,
+  "promptSHA256": "8635c1f9666a9826533972d70de27da7d9ee3c05ca3ae255447a7c4a2605c8af",
+  "roleSHA256": "0314b1ec930fee50d190ae563f5ef1d5706c06de1fe861b9fbccb8034b026406",
+  "report": null,
+  "reportSHA256": null
+}

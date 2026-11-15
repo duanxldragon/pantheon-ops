@@ -1,0 +1,95 @@
+{
+  "taskId": "2026-11-07-ops-planned-task-closeout",
+  "lane": "O2 real VM generator/acceptance",
+  "scriptPath": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\live-diagnostic-o2-v7-runner.py",
+  "args": [
+    "--phase",
+    "execute"
+  ],
+  "host": "115.190.251.143",
+  "scope": [
+    "success",
+    "failure-retry",
+    "pause-resume",
+    "cancel",
+    "concurrent",
+    "revoke-credential",
+    "revoke-rotation",
+    "revoke-source",
+    "revoke-host",
+    "start-negative",
+    "hostkey-negative",
+    "cold-restart"
+  ],
+  "dependencies": [
+    "Root reviews scoped v7 phase request; no remote execute performed by generator",
+    "Final Deploy required-MySQL MinGW CGO1 race/vet/build and safety receipts pass; compiled sources sealed",
+    "Existing v6 restricted preflight errno13 retained; root uses its already authorized working execution tool",
+    "Complete all unchanged 12 cases including actual lease wait and exact owned cleanup; retain databases"
+  ],
+  "authority": "User authorized scoped SSH VM; root must use its approved execution tool if sandbox SSH returns errno13",
+  "remoteOwnership": "/opt/pantheon-p0-20261109/o2-live-<random-run>-<case>",
+  "dbOwnership": "fresh ops_p0_o2_live_<random-run>_<case> at existing local MySQL33316; retained",
+  "credentialOrigin": "existing authorized credentialref1 through remote.load_credential; decrypted in memory only",
+  "privateInjection": "local MySQL DSN and SSH credentials via driver stdin; never arguments/evidence",
+  "provider": "current production public DeployService default SSH + pinned host; independent SSH verifier",
+  "budgets": {
+    "driverSecondsPerCase": 130,
+    "maxCases": 12,
+    "remoteCommandSeconds": 18,
+    "coldRestartSeconds": 420,
+    "coldExecutionSeconds": 380,
+    "coldCleanupAndTerminationReserveSeconds": 40,
+    "actualUnmodifiedLeaseWaitSeconds": 305,
+    "additionalRemoteMemoryMiB": 128,
+    "driverRemoteMemory": 0,
+    "maxLocalDBConnections": 8
+  },
+  "cleanup": "only exact checked run directory owner token, regular allowlisted files with expected SHA256; no recursive delete or generic process kill",
+  "prohibited": [
+    "provider installation",
+    "other namespaces/services",
+    "old database deletion",
+    "product source edits",
+    "SQL/lock/baseline/ledger changes",
+    "commit/push/publication",
+    "whole-P0 approval"
+  ],
+  "knownGaps": [
+    "No full IAM middleware/session/role/data-grant rederivation: supplied DataScope is a current public service input",
+    "Cold restart probes the actual crashed attempt identity, preserves earlier failures, waits its actual five-minute lease without writes, then reconstructs queue; remote acceptance pending",
+    "Inactive source admission and final dispatch are locally verified on MySQL; complete true VM matrix remains pending",
+    "Independent SSH typed pin/auth/timeout/exit diagnostics preserve handshake failures; no retry or assumed transport fix",
+    "No browser/network SSE transport reconnect claim; HTTP projection cursor verified in-process",
+    "Frozen command definition validates public package immutability; no direct DB mutation",
+    "Legacy unscoped group targets retain their existing contract; no arbitrary business scope is inferred",
+    "Full tree verification, independent review and true VM 12-case acceptance remain root-owned; no P0 completion/approval"
+  ],
+  "artifactHashes": {
+    "live-diagnostic-o2-v7.go": "1554464aa40c1973eb7c055245f78bbe1b06203f751c79aa8fa008ce39a912af",
+    "live-diagnostic-o2-v7-runner.py": "1735b2032aecbdda36463d2f7b3d86d3bb5af330e8ce2043a55674ce0c424783",
+    "live-diagnostic-o2-v7_test.go": "ea8aa8c3974f919a7bc155c1d0c7d6c2a63f22fd62c48b78f9dddc7c8c21b782",
+    "live-diagnostic-o2-v7-local-verify.py": "0fad6d1d9de2ee32ecc3a93cde0af74b9543dad917c2e613b76f2b4c3b517fa4",
+    "remote.py": "37acccd12ba3b30e38182f11101821f110355ed660c4cf559d91cc1c638e1b5e",
+    "known_hosts": "45a3379d7e5d75b57e4d47c37ea424b611ddc56ee6d2a70fdc89c05c1ae8213e",
+    "live-diagnostic-o2-v7-driver.exe": "6fa3d02e2ef789092fdc522460121819294ad26946b46d5a1d52ca9c415537e9",
+    "live-diagnostic-o2-v7-driver-linux": "134645d7924c5d76c960a11ea759ab79958917ba81d21e58bc6a1b37595e619f"
+  },
+  "rootReviewRequiredBeforeExecute": true,
+  "readiness": "prepared-for-root-review; remote matrix not executed",
+  "parentTaskPacket": "docs/harness/tasks/2026-11-07-ops-planned-task-closeout.task.md",
+  "buildReceipt": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.harness\\evidence\\2026-11-07-ops-planned-task-closeout\\verification\\p0-integration-20261109\\live-diagnostic-o2-v7-build-ready-result.json",
+  "localVerificationReceipt": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.harness\\evidence\\2026-11-07-ops-planned-task-closeout\\verification\\p0-integration-20261109\\live-diagnostic-o2-v7-local-verification-ready.json",
+  "failureAnalysis": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.harness\\evidence\\2026-11-07-ops-planned-task-closeout\\verification\\p0-integration-20261109\\resume-o2-v7-red-analysis.json",
+  "scopedDeployVerificationReceipt": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.harness\\evidence\\2026-11-07-ops-planned-task-closeout\\verification\\p0-integration-20261109\\resume-o2-v7-green-final.json",
+  "sourceIdentityReceipt": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.harness\\evidence\\2026-11-07-ops-planned-task-closeout\\verification\\p0-integration-20261109\\resume-o2-v7-readiness.json",
+  "priorRestrictedPreflightReceipt": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.harness\\evidence\\2026-11-07-ops-planned-task-closeout\\verification\\p0-integration-20261109\\live-diagnostic-o2-v6-preflight-result.json",
+  "localPreparationReady": true,
+  "remoteMatrixExecuted": false,
+  "executionBlockedBy": {
+    "errorType": "PermissionError",
+    "errno": 13,
+    "origin": "retained v6 restricted-lane preflight; not repeated",
+    "rootAction": "run the reviewed scoped phase with the existing authorized tool"
+  }
+}

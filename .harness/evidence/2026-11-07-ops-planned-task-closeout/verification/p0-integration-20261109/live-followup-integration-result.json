@@ -1,0 +1,25 @@
+{
+  "tempoBrowserCasesPassed": 2,
+  "tempoScreenshotCount": 10,
+  "tempoSelectedInspected": 6,
+  "argoProviderChecksPassed": 28,
+  "argoProductAcceptance": false,
+  "veleroPreflightPassed": true,
+  "veleroLiveBackupSuccesses": 0,
+  "O4TenantExtensionAuthorized": true,
+  "O4Implemented": false,
+  "historicalRaceSourceChangesNow": [
+    "backend/modules/business/cicd/argocd/argocd_action.go",
+    "backend/modules/business/cicd/argocd/argocd_action_test.go",
+    "backend/modules/business/cicd/argocd/argocd_client.go",
+    "backend/modules/business/cicd/argocd/argocd_dto.go",
+    "backend/modules/business/cicd/argocd/argocd_handler.go",
+    "backend/modules/business/cicd/argocd/argocd_reconciler.go",
+    "backend/modules/business/cicd/argocd/argocd_service.go",
+    "backend/modules/business/k8s/backup/backup_service.go",
+    "backend/modules/business/k8s/backup/velero_client.go"
+  ],
+  "historicalRaceValidForNewChanges": false,
+  "completeP0": false,
+  "foundationLockChanged": false
+}

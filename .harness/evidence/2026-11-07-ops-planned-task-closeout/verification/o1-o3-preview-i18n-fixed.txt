@@ -1,0 +1,84 @@
+
+Running 2 tests using 1 worker
+
+(node:20952) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x  1 tests\smoke\business\deploy\deploy-selection-preview.spec.ts:11:2 › selection and preview confirm/conflict/refresh (light) (14.9s)
+(node:22328) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x  2 tests\smoke\business\deploy\deploy-selection-preview.spec.ts:11:2 › selection and preview confirm/conflict/refresh (dark) (15.1s)
+
+
+  1) tests\smoke\business\deploy\deploy-selection-preview.spec.ts:11:2 › selection and preview confirm/conflict/refresh (light) 
+
+    Error: expect(locator).toContainText(expected) failed
+
+    Locator: locator('.deploy-target-selector').getByRole('status')
+    Expected substring: "已解析 1 个目标"
+    Received string:    "已解析 {count} 个目标；去重 {duplicate}，不可用 {unavailable}，状态不匹配 {ineligible}，排除 {excluded}"
+    Timeout: 10000ms
+
+    Call log:
+      - Expect "toContainText" locator('.deploy-target-selector').getByRole('status') with timeout 10000ms
+      - waiting for locator('.deploy-target-selector').getByRole('status')
+        23 × locator resolved to <div role="status">…</div>
+           - unexpected value "已解析 {count} 个目标；去重 {duplicate}，不可用 {unavailable}，状态不匹配 {ineligible}，排除 {excluded}"
+
+
+      41 |    await selector.getByLabel('每行输入一个主机 IP 或 ID').fill(ip);
+      42 |    await selector.getByRole('button', { name: '解析并核对目标' }).click();
+    > 43 |    await expect(selector.getByRole('status')).toContainText('已解析 1 个目标');
+         |                                               ^
+      44 |    await expect(selector.getByRole('status')).toContainText('去重 1');
+      45 |    await page.screenshot({ path: testInfo.outputPath(`selection-${mode}-mobile-ready.png`), fullPage: true });
+      46 |    await page.locator('.arco-modal:visible').last().getByRole('button', { name: '取消', exact: true }).click();
+        at D:\workspace\go\pantheon-platform\pantheon-ops\frontend\tests\smoke\business\deploy\deploy-selection-preview.spec.ts:43:47
+
+    Error Context: ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\o1-o3-preview-i18n-fixed\smoke-business-deploy-depl-9c782-irm-conflict-refresh-light-\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\o1-o3-preview-i18n-fixed\smoke-business-deploy-depl-9c782-irm-conflict-refresh-light-\trace.zip
+    Usage:
+
+        npx playwright show-trace ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\o1-o3-preview-i18n-fixed\smoke-business-deploy-depl-9c782-irm-conflict-refresh-light-\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  2) tests\smoke\business\deploy\deploy-selection-preview.spec.ts:11:2 › selection and preview confirm/conflict/refresh (dark) 
+
+    Error: expect(locator).toContainText(expected) failed
+
+    Locator: locator('.deploy-target-selector').getByRole('status')
+    Expected substring: "已解析 1 个目标"
+    Received string:    "已解析 {count} 个目标；去重 {duplicate}，不可用 {unavailable}，状态不匹配 {ineligible}，排除 {excluded}"
+    Timeout: 10000ms
+
+    Call log:
+      - Expect "toContainText" locator('.deploy-target-selector').getByRole('status') with timeout 10000ms
+      - waiting for locator('.deploy-target-selector').getByRole('status')
+        23 × locator resolved to <div role="status">…</div>
+           - unexpected value "已解析 {count} 个目标；去重 {duplicate}，不可用 {unavailable}，状态不匹配 {ineligible}，排除 {excluded}"
+
+
+      41 |    await selector.getByLabel('每行输入一个主机 IP 或 ID').fill(ip);
+      42 |    await selector.getByRole('button', { name: '解析并核对目标' }).click();
+    > 43 |    await expect(selector.getByRole('status')).toContainText('已解析 1 个目标');
+         |                                               ^
+      44 |    await expect(selector.getByRole('status')).toContainText('去重 1');
+      45 |    await page.screenshot({ path: testInfo.outputPath(`selection-${mode}-mobile-ready.png`), fullPage: true });
+      46 |    await page.locator('.arco-modal:visible').last().getByRole('button', { name: '取消', exact: true }).click();
+        at D:\workspace\go\pantheon-platform\pantheon-ops\frontend\tests\smoke\business\deploy\deploy-selection-preview.spec.ts:43:47
+
+    Error Context: ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\o1-o3-preview-i18n-fixed\smoke-business-deploy-depl-226da-firm-conflict-refresh-dark-\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\o1-o3-preview-i18n-fixed\smoke-business-deploy-depl-226da-firm-conflict-refresh-dark-\trace.zip
+    Usage:
+
+        npx playwright show-trace ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\o1-o3-preview-i18n-fixed\smoke-business-deploy-depl-226da-firm-conflict-refresh-dark-\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  2 failed
+    tests\smoke\business\deploy\deploy-selection-preview.spec.ts:11:2 › selection and preview confirm/conflict/refresh (light) 
+    tests\smoke\business\deploy\deploy-selection-preview.spec.ts:11:2 › selection and preview confirm/conflict/refresh (dark) 

@@ -1,0 +1,255 @@
+{
+  "case": "cancel",
+  "identity": "o2-live-67fc9fadd215-cancel",
+  "database": "ops_p0_o2_live_67fc9fadd215_cancel",
+  "databaseRetention": "retained; no drop",
+  "events": [
+    {
+      "credentialId": 1,
+      "packageId": 1,
+      "phase": "task-created",
+      "taskId": 1
+    },
+    {
+      "deadlineExceeded": false,
+      "phase": "independent-ssh-handshake",
+      "pinChecked": true,
+      "pinMatched": true
+    },
+    {
+      "deadlineExceeded": false,
+      "exitStatus": 0,
+      "passed": true,
+      "phase": "independent-ssh-command"
+    },
+    {
+      "marker": "started",
+      "ownershipChecked": true,
+      "phase": "independent-marker",
+      "present": true
+    },
+    {
+      "action": "cancel",
+      "errorKey": "",
+      "phase": "control",
+      "taskId": 1
+    },
+    {
+      "case": "cancel",
+      "check": "real running command acknowledged canceled",
+      "kind": "positive",
+      "passed": true
+    },
+    {
+      "action": "cancel",
+      "errorKey": "business.deploy.task.commandConflict",
+      "phase": "control",
+      "taskId": 1
+    },
+    {
+      "case": "cancel",
+      "check": "stale running view conflicts after control",
+      "kind": "negative",
+      "passed": true
+    },
+    {
+      "deadlineExceeded": false,
+      "phase": "independent-ssh-handshake",
+      "pinChecked": true,
+      "pinMatched": true
+    },
+    {
+      "deadlineExceeded": false,
+      "exitStatus": 0,
+      "passed": true,
+      "phase": "independent-ssh-command"
+    },
+    {
+      "marker": "done",
+      "ownershipChecked": true,
+      "phase": "independent-marker",
+      "present": false
+    },
+    {
+      "case": "cancel",
+      "check": "independent VM interrupted attempt never wrote completion",
+      "kind": "positive",
+      "passed": true
+    },
+    {
+      "case": "cancel",
+      "check": "public current checkpoint and recorded safe history",
+      "kind": "positive",
+      "origin": "fresh-process",
+      "passed": true
+    },
+    {
+      "fieldTypes": {
+        "attemptNo": "float64",
+        "sequence": "float64",
+        "taskHostId": "float64",
+        "taskStepId": "float64"
+      },
+      "httpStatus": 200,
+      "kind": "logs",
+      "origin": "fresh-process",
+      "phase": "public-projection-structure",
+      "responseCode": 200
+    },
+    {
+      "case": "cancel",
+      "check": "public log sequence ownership attempts and secret exclusion",
+      "kind": "positive",
+      "origin": "fresh-process",
+      "passed": true
+    },
+    {
+      "case": "cancel",
+      "check": "both actual VM streams persisted",
+      "kind": "positive",
+      "origin": "fresh-process",
+      "passed": true
+    },
+    {
+      "fieldTypes": {},
+      "httpStatus": 200,
+      "kind": "logs",
+      "origin": "fresh-process",
+      "phase": "public-projection-structure",
+      "responseCode": 200
+    },
+    {
+      "case": "cancel",
+      "check": "log cursor excludes already delivered sequence",
+      "kind": "positive",
+      "origin": "fresh-process",
+      "passed": true
+    },
+    {
+      "fieldTypes": {
+        "attemptNo": "missing",
+        "sequence": "float64",
+        "taskHostId": "missing",
+        "taskStepId": "missing"
+      },
+      "httpStatus": 200,
+      "kind": "events",
+      "origin": "fresh-process",
+      "phase": "public-projection-structure",
+      "responseCode": 200
+    },
+    {
+      "case": "cancel",
+      "check": "public event sequence ordered across committed transitions",
+      "kind": "positive",
+      "origin": "fresh-process",
+      "passed": true
+    },
+    {
+      "fieldTypes": {},
+      "httpStatus": 200,
+      "kind": "events",
+      "origin": "fresh-process",
+      "phase": "public-projection-structure",
+      "responseCode": 200
+    },
+    {
+      "case": "cancel",
+      "check": "event reconnect cursor no replay at latest sequence",
+      "kind": "positive",
+      "origin": "fresh-process",
+      "passed": true
+    },
+    {
+      "attempts": [
+        {
+          "attemptNo": 1,
+          "leaseReleased": true,
+          "status": "canceled"
+        }
+      ],
+      "eventTypes": [
+        "task.started",
+        "step.running",
+        "task.cancel_requested",
+        "step.canceled",
+        "task.canceled"
+      ],
+      "finished": true,
+      "history": [
+        {
+          "attemptNo": 1,
+          "capturedAt": "2026-11-10T08:31:38.492+08:00",
+          "finishedAt": "2026-11-10T08:31:38.488+08:00",
+          "id": 1,
+          "startedAt": "2026-11-10T08:31:36.692+08:00",
+          "stateVersion": 3,
+          "status": "canceled",
+          "stepKey": "package_default",
+          "stepOrder": 1,
+          "taskHostId": 1
+        }
+      ],
+      "logCount": 2,
+      "origin": "fresh-process",
+      "phase": "persisted-state",
+      "status": "canceled",
+      "steps": [
+        {
+          "attemptNo": 1,
+          "finishedAt": "2026-11-10T08:31:38.488+08:00",
+          "id": 1,
+          "startedAt": "2026-11-10T08:31:36.692+08:00",
+          "stateVersion": 3,
+          "status": "canceled",
+          "stepKey": "package_default",
+          "stepOrder": 1,
+          "taskHostId": 1
+        }
+      ],
+      "taskId": 1
+    },
+    {
+      "case": "cancel",
+      "failed": 0,
+      "negativePassed": 0,
+      "origin": "fresh-process",
+      "phase": "driver-result",
+      "positivePassed": 6
+    },
+    {
+      "case": "cancel",
+      "check": "new OS process inspect uses committed task state",
+      "kind": "positive",
+      "passed": true
+    },
+    {
+      "case": "cancel",
+      "failed": 0,
+      "negativePassed": 1,
+      "phase": "driver-result",
+      "positivePassed": 3
+    }
+  ],
+  "driverExitCode": 0,
+  "stderrPresent": false,
+  "status": "passed",
+  "cleanup": {
+    "phase": "exact-owned-cleanup",
+    "directory": "/opt/pantheon-p0-20261109/o2-live-67fc9fadd215-cancel",
+    "files": [
+      {
+        "file": ".owner",
+        "sha256": "e1cf5a689d88eb0fd3a0732d65961477a50cf49e87b5860bd9e6d9f2a7d84c0a",
+        "bytes": 27
+      },
+      {
+        "file": "started",
+        "sha256": "e1cf5a689d88eb0fd3a0732d65961477a50cf49e87b5860bd9e6d9f2a7d84c0a",
+        "bytes": 27
+      }
+    ],
+    "absent": true,
+    "processKill": false
+  }
+}

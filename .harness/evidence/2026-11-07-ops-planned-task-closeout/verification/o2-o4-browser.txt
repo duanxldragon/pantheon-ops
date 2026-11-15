@@ -1,0 +1,158 @@
+
+Running 4 tests using 1 worker
+
+(node:5032) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x  1 tests\smoke\business\deploy\deploy-workbench.spec.ts:16:3 › deployment workbench sources, logs, keyboard and mobile (light) (183ms)
+(node:12264) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x  2 tests\smoke\business\deploy\deploy-workbench.spec.ts:16:3 › deployment workbench sources, logs, keyboard and mobile (dark) (174ms)
+(node:25508) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x  3 tests\smoke\business\observability-workbench.spec.ts:8:3 › Loki UTC range, cancellation, denial and recovery (light) (168ms)
+(node:7388) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x  4 tests\smoke\business\observability-workbench.spec.ts:8:3 › Loki UTC range, cancellation, denial and recovery (dark) (197ms)
+
+
+  1) tests\smoke\business\deploy\deploy-workbench.spec.ts:16:3 › deployment workbench sources, logs, keyboard and mobile (light) 
+
+    Error: apiRequestContext.post: connect ECONNREFUSED 127.0.0.1:24485
+    Call log:
+      - → POST http://127.0.0.1:24485/api/v1/auth/login
+        - user-agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/156.0.8078.4 Safari/537.36
+        - accept: */*
+        - accept-encoding: gzip,deflate,br
+        - content-type: application/json
+        - content-length: 40
+
+
+       at smoke\helpers\auth.ts:57
+
+      55 | ): Promise<BrowserLoginResult> {
+      56 |   const request = resolveRequestContext(requestLike);
+    > 57 |   const response = await request.post(`${apiBaseUrl}/auth/login`, {
+         |                                  ^
+      58 |     data: credentials,
+      59 |   });
+      60 |   expect(response.ok()).toBeTruthy();
+        at loginByApi (D:\workspace\go\pantheon-platform\pantheon-ops\frontend\tests\smoke\helpers\auth.ts:57:34)
+        at D:\workspace\go\pantheon-platform\pantheon-ops\frontend\tests\smoke\business\deploy\deploy-workbench.spec.ts:17:25
+
+    Error Context: ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\o2-o4-browser\smoke-business-deploy-depl-58206--keyboard-and-mobile-light-\error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\o2-o4-browser\smoke-business-deploy-depl-58206--keyboard-and-mobile-light-\trace.zip
+    Usage:
+
+        npx playwright show-trace ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\o2-o4-browser\smoke-business-deploy-depl-58206--keyboard-and-mobile-light-\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  2) tests\smoke\business\deploy\deploy-workbench.spec.ts:16:3 › deployment workbench sources, logs, keyboard and mobile (dark) 
+
+    Error: apiRequestContext.post: connect ECONNREFUSED 127.0.0.1:24485
+    Call log:
+      - → POST http://127.0.0.1:24485/api/v1/auth/login
+        - user-agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/156.0.8078.4 Safari/537.36
+        - accept: */*
+        - accept-encoding: gzip,deflate,br
+        - content-type: application/json
+        - content-length: 40
+
+
+       at smoke\helpers\auth.ts:57
+
+      55 | ): Promise<BrowserLoginResult> {
+      56 |   const request = resolveRequestContext(requestLike);
+    > 57 |   const response = await request.post(`${apiBaseUrl}/auth/login`, {
+         |                                  ^
+      58 |     data: credentials,
+      59 |   });
+      60 |   expect(response.ok()).toBeTruthy();
+        at loginByApi (D:\workspace\go\pantheon-platform\pantheon-ops\frontend\tests\smoke\helpers\auth.ts:57:34)
+        at D:\workspace\go\pantheon-platform\pantheon-ops\frontend\tests\smoke\business\deploy\deploy-workbench.spec.ts:17:25
+
+    Error Context: ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\o2-o4-browser\smoke-business-deploy-depl-d16f5-s-keyboard-and-mobile-dark-\error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\o2-o4-browser\smoke-business-deploy-depl-d16f5-s-keyboard-and-mobile-dark-\trace.zip
+    Usage:
+
+        npx playwright show-trace ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\o2-o4-browser\smoke-business-deploy-depl-d16f5-s-keyboard-and-mobile-dark-\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  3) tests\smoke\business\observability-workbench.spec.ts:8:3 › Loki UTC range, cancellation, denial and recovery (light) 
+
+    Error: apiRequestContext.post: connect ECONNREFUSED 127.0.0.1:24485
+    Call log:
+      - → POST http://127.0.0.1:24485/api/v1/auth/login
+        - user-agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/156.0.8078.4 Safari/537.36
+        - accept: */*
+        - accept-encoding: gzip,deflate,br
+        - content-type: application/json
+        - content-length: 40
+
+
+       at smoke\helpers\auth.ts:57
+
+      55 | ): Promise<BrowserLoginResult> {
+      56 |   const request = resolveRequestContext(requestLike);
+    > 57 |   const response = await request.post(`${apiBaseUrl}/auth/login`, {
+         |                                  ^
+      58 |     data: credentials,
+      59 |   });
+      60 |   expect(response.ok()).toBeTruthy();
+        at loginByApi (D:\workspace\go\pantheon-platform\pantheon-ops\frontend\tests\smoke\helpers\auth.ts:57:34)
+        at D:\workspace\go\pantheon-platform\pantheon-ops\frontend\tests\smoke\business\observability-workbench.spec.ts:9:25
+
+    Error Context: ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\o2-o4-browser\smoke-business-observabili-aaf1f--denial-and-recovery-light-\error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\o2-o4-browser\smoke-business-observabili-aaf1f--denial-and-recovery-light-\trace.zip
+    Usage:
+
+        npx playwright show-trace ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\o2-o4-browser\smoke-business-observabili-aaf1f--denial-and-recovery-light-\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  4) tests\smoke\business\observability-workbench.spec.ts:8:3 › Loki UTC range, cancellation, denial and recovery (dark) 
+
+    Error: apiRequestContext.post: connect ECONNREFUSED 127.0.0.1:24485
+    Call log:
+      - → POST http://127.0.0.1:24485/api/v1/auth/login
+        - user-agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/156.0.8078.4 Safari/537.36
+        - accept: */*
+        - accept-encoding: gzip,deflate,br
+        - content-type: application/json
+        - content-length: 40
+
+
+       at smoke\helpers\auth.ts:57
+
+      55 | ): Promise<BrowserLoginResult> {
+      56 |   const request = resolveRequestContext(requestLike);
+    > 57 |   const response = await request.post(`${apiBaseUrl}/auth/login`, {
+         |                                  ^
+      58 |     data: credentials,
+      59 |   });
+      60 |   expect(response.ok()).toBeTruthy();
+        at loginByApi (D:\workspace\go\pantheon-platform\pantheon-ops\frontend\tests\smoke\helpers\auth.ts:57:34)
+        at D:\workspace\go\pantheon-platform\pantheon-ops\frontend\tests\smoke\business\observability-workbench.spec.ts:9:25
+
+    Error Context: ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\o2-o4-browser\smoke-business-observabili-a1888-n-denial-and-recovery-dark-\error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\o2-o4-browser\smoke-business-observabili-a1888-n-denial-and-recovery-dark-\trace.zip
+    Usage:
+
+        npx playwright show-trace ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\o2-o4-browser\smoke-business-observabili-a1888-n-denial-and-recovery-dark-\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  4 failed
+    tests\smoke\business\deploy\deploy-workbench.spec.ts:16:3 › deployment workbench sources, logs, keyboard and mobile (light) 
+    tests\smoke\business\deploy\deploy-workbench.spec.ts:16:3 › deployment workbench sources, logs, keyboard and mobile (dark) 
+    tests\smoke\business\observability-workbench.spec.ts:8:3 › Loki UTC range, cancellation, denial and recovery (light) 
+    tests\smoke\business\observability-workbench.spec.ts:8:3 › Loki UTC range, cancellation, denial and recovery (dark) 

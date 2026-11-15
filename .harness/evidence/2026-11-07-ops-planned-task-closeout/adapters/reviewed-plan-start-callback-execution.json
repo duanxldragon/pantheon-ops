@@ -1,0 +1,7 @@
+{
+  "status": "completed",
+  "exitCode": 0,
+  "seconds": 231,
+  "characters": 2186,
+  "command": "claude.exe -p --tools \"\" --output-format text; stdin=reviewed-plan-start-callback-prompt.md"
+}

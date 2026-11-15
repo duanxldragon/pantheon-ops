@@ -1,0 +1,23 @@
+{
+  "O4PlanReviews": {
+    "code": {
+      "path": ".harness/evidence/2026-11-07-ops-formal-queue-foundation-gaps/o4-plan-independent-code.md",
+      "sha256": "1589507ea00f13349a1ff07b250c6929476e12b1bb9b87b5bc1a3f698f8c26f9",
+      "verdict": "REQUEST CHANGES"
+    },
+    "arch": {
+      "path": ".harness/evidence/2026-11-07-ops-formal-queue-foundation-gaps/o4-plan-independent-arch.md",
+      "sha256": "17db5cf8e5cf87377ed6ee945642d09c4bf1078bb9c12fd5a363a4cfb9e16bf1",
+      "verdict": "BLOCK"
+    }
+  },
+  "O4Implemented": false,
+  "veleroCurrentCodeReview": "REQUEST CHANGES",
+  "veleroCurrentArchitectureReview": "WATCH",
+  "argoProductLiveExitCode": 1,
+  "argoRemoteCleanupExitCode": 0,
+  "O2MatrixInProgress": true,
+  "newFullRaceRequired": true,
+  "completeP0": false,
+  "officialReleaseAndLockChanged": false
+}

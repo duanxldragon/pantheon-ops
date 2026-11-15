@@ -1,0 +1,199 @@
+[
+  {
+    "path": ".local/ops-acceptance/continue-velero-alias-v3-contract.py",
+    "sha256": "bfac98f9c72ae3cbe3ff4bc3a9d97fe3d3c377f471e1ab851586c945772a4ca6",
+    "inMemoryCompile": true,
+    "broadHandlers": [],
+    "emptyHandlers": [],
+    "effectCalls": [],
+    "secretLiteralAssignments": []
+  },
+  {
+    "path": ".local/ops-acceptance/continue-velero-alias-v3-remote.py",
+    "sha256": "5e443950e04855771f6a36ad67041439a34902be9eb66dc0a960891e4dcb951b",
+    "inMemoryCompile": true,
+    "broadHandlers": [
+      479,
+      550,
+      558,
+      654,
+      517
+    ],
+    "emptyHandlers": [],
+    "effectCalls": [
+      {
+        "line": 209,
+        "call": "C.compile_captured",
+        "firstArg": "ast.Module(body=[tree], type_ignores=[])"
+      },
+      {
+        "line": 332,
+        "call": "C.compile_captured",
+        "firstArg": "C.function_source(N, 'inspect')"
+      },
+      {
+        "line": 366,
+        "call": "C.compile_captured",
+        "firstArg": "ast.Module(body=nodes, type_ignores=[])"
+      },
+      {
+        "line": 457,
+        "call": "fresh_predecessor",
+        "firstArg": "inputs"
+      },
+      {
+        "line": 462,
+        "call": "fresh_predecessor",
+        "firstArg": "inputs"
+      },
+      {
+        "line": 469,
+        "call": "C.compile_captured",
+        "firstArg": "source"
+      },
+      {
+        "line": 547,
+        "call": "fresh_predecessor",
+        "firstArg": "inputs"
+      },
+      {
+        "line": 555,
+        "call": "fresh_predecessor",
+        "firstArg": "inputs"
+      },
+      {
+        "line": 581,
+        "call": "C.compile_captured",
+        "firstArg": "ast.Module(body=terminal, type_ignores=[])"
+      },
+      {
+        "line": 465,
+        "call": "fresh_predecessor",
+        "firstArg": "inputs"
+      },
+      {
+        "line": 470,
+        "call": "fresh_predecessor",
+        "firstArg": "inputs"
+      },
+      {
+        "line": 475,
+        "call": "C.compile_captured",
+        "firstArg": "source"
+      },
+      {
+        "line": 504,
+        "call": "fresh_predecessor",
+        "firstArg": "inputs"
+      },
+      {
+        "line": 549,
+        "call": "P.s3",
+        "firstArg": "'PUT'"
+      },
+      {
+        "line": 557,
+        "call": "P.s3",
+        "firstArg": "'DELETE'"
+      },
+      {
+        "line": 563,
+        "call": "P.s3",
+        "firstArg": "'GET'"
+      },
+      {
+        "line": 618,
+        "call": "P.s3",
+        "firstArg": "'GET'"
+      },
+      {
+        "line": 509,
+        "call": "fresh_predecessor",
+        "firstArg": "inputs"
+      },
+      {
+        "line": 554,
+        "call": "P.s3",
+        "firstArg": "'GET'"
+      }
+    ],
+    "secretLiteralAssignments": []
+  },
+  {
+    "path": ".local/ops-acceptance/continue-velero-alias-v3-root.py",
+    "sha256": "d3604678f345f258157a572add4fa8d8d367f30f27d66082e0e06589a1285897",
+    "inMemoryCompile": true,
+    "broadHandlers": [
+      344,
+      409,
+      427,
+      353,
+      360
+    ],
+    "emptyHandlers": [
+      85
+    ],
+    "effectCalls": [
+      {
+        "line": 110,
+        "call": "C.compile_captured",
+        "firstArg": "adapted"
+      },
+      {
+        "line": 249,
+        "call": "C.compile_captured",
+        "firstArg": "source"
+      },
+      {
+        "line": 293,
+        "call": "W.connect",
+        "firstArg": null
+      },
+      {
+        "line": 384,
+        "call": "W.connect",
+        "firstArg": null
+      },
+      {
+        "line": 351,
+        "call": "W.connect",
+        "firstArg": null
+      },
+      {
+        "line": 358,
+        "call": "W.connect",
+        "firstArg": null
+      }
+    ],
+    "secretLiteralAssignments": []
+  },
+  {
+    "path": ".local/ops-acceptance/continue-velero-alias-v3-generate.py",
+    "sha256": "a1c3738d2ebff357e18f20866f5ca9d84131d1f178332e321ef81ac2588ad88f",
+    "inMemoryCompile": true,
+    "broadHandlers": [],
+    "emptyHandlers": [],
+    "effectCalls": [],
+    "secretLiteralAssignments": []
+  },
+  {
+    "path": ".local/ops-acceptance/continue-velero-alias-v3-test.py",
+    "sha256": "da68651673b5a7281a152ecd0dce5d6138f1ccd6a9cd5efa70eb513585a8f176",
+    "inMemoryCompile": true,
+    "broadHandlers": [],
+    "emptyHandlers": [],
+    "effectCalls": [
+      {
+        "line": 470,
+        "call": "C.compile_captured",
+        "firstArg": "source"
+      },
+      {
+        "line": 486,
+        "call": "C.compile_captured",
+        "firstArg": "block"
+      }
+    ],
+    "secretLiteralAssignments": []
+  }
+]

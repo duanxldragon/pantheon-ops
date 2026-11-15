@@ -1,0 +1,7 @@
+
+> rebuild:from-base
+> node scripts/business-overlay/rebuild-from-base.mjs --target .tmp/ops-priority-o2-final-stage
+
+OK rebuilt clean Ops tree at D:\workspace\go\pantheon-platform\pantheon-ops\.tmp\ops-priority-o2-final-stage
+Base commit: 5553bc0e8ddc006cb7a6b99a46968bf8cf907a49
+Declared/generated Ops files: 2310

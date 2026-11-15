@@ -1,0 +1,251 @@
+{
+  "originals": {
+    "Base/scripts/foundation-release/candidate-descriptor.mjs": {
+      "sha256": "a9b242e4b6d787344f16357b6c7397ab4a7ffda633e21556138e240ccece71a6",
+      "bytes": 15162
+    },
+    "Base/scripts/foundation-release/build-candidate-artifact.mjs": {
+      "sha256": "646e622f2eef3ae30d29aed50272d3f4665dd54d04c2fcb1ffb41777e554d6e3",
+      "bytes": 13519
+    },
+    "Base/scripts/foundation-release/candidate-artifact.test.mjs": {
+      "sha256": "17301133892fe649d7fdd2ec25ed7e0a570c45b47f7a0842ed896b0723dd9b11",
+      "bytes": 31966
+    },
+    "Ops/scripts/business-overlay/foundation-candidate.mjs": {
+      "sha256": "da8a8eeeb0a9f52514b157353475a75d43675711f264731cd8564398d7610161",
+      "bytes": 27127
+    },
+    "Ops/scripts/business-overlay/rebuild-from-candidate.mjs": {
+      "sha256": "cbcf32ed8246736eb78469eabffa9d80145c67bfaf96d4a9928d660cabc74e32",
+      "bytes": 11477
+    },
+    "Ops/scripts/business-overlay/foundation-candidate.test.mjs": {
+      "sha256": "4590052710de1c1d283400cf7ef9784cb2095722154a265523360e55e578e32b",
+      "bytes": 36692
+    }
+  },
+  "preserved": {
+    "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.harness\\evidence\\2026-11-07-ops-planned-task-closeout\\o4-adoption-1794278076834\\base-candidate-tests.log": {
+      "sha256": "b232dd9da81bca1593e82780c39c105ebeaa0939f6194999020e012eb9559748",
+      "bytes": 3250
+    },
+    "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.harness\\evidence\\2026-11-07-ops-planned-task-closeout\\o4-adoption-1794278076834\\failure-receipt.json": {
+      "sha256": "443a71b351c6ef31c1b5ab67b2e0177ae66e87ebc159fe86b6389f75cf503cf0",
+      "bytes": 450
+    },
+    "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.harness\\evidence\\2026-11-07-ops-planned-task-closeout\\o4-adoption-1794278076834\\files-and-commands.json": {
+      "sha256": "c21951c20d87ced4b7a933992872901f84b44fe9c3167ab0524d4b6b3da352ef",
+      "bytes": 5335
+    },
+    "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.harness\\evidence\\2026-11-07-ops-planned-task-closeout\\o4-adoption-1794278076834\\generator-report.md": {
+      "sha256": "b57a7726835d5bc85260100d81f610d737bdcc53f006818f0213120121804232",
+      "bytes": 9654
+    },
+    "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.harness\\evidence\\2026-11-07-ops-planned-task-closeout\\o4-adoption-1794278076834\\input-shape-diagnostics.json": {
+      "sha256": "4811a4afb47a54ac0967b44e6bc84cbe623393abc10e49107e1f3a11c49e59d2",
+      "bytes": 1252
+    },
+    "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.harness\\evidence\\2026-11-07-ops-planned-task-closeout\\o4-adoption-1794278076834\\ops-candidate-tests.log": {
+      "sha256": "a1623d4b6cb8ae38bceb032e3c5af88594da4336239119d10d23d633a90b132a",
+      "bytes": 5587
+    },
+    "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.harness\\evidence\\2026-11-07-ops-planned-task-closeout\\o4-adoption-1794278076834\\overlay-check.log": {
+      "sha256": "55ee542cb301d23a24fd6e9278e56ec687d7f91041b98119fb7c4c69aeabf13d",
+      "bytes": 154
+    },
+    "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.harness\\evidence\\2026-11-07-ops-planned-task-closeout\\o4-adoption-1794278076834\\overlay-tests.log": {
+      "sha256": "d71e3974b56cd38286672e09b7b241ce1044d9897924bf2d0b067cb36430c814",
+      "bytes": 4806
+    },
+    "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.harness\\evidence\\2026-11-07-ops-planned-task-closeout\\o4-adoption-1794278076834\\prerequisite-receipt.json": {
+      "sha256": "f90e7544d7bed15a22bb47be49dd6a9afc85b2b328fab995fd570938099f4df5",
+      "bytes": 18895
+    },
+    "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.harness\\evidence\\2026-11-07-ops-planned-task-closeout\\o4-adoption-1794278076834\\producer-receipt.json": {
+      "sha256": "ba3fd0301e5100288d75eb9f1d293d330a15e9632a026497a7de9451014745c5",
+      "bytes": 813
+    },
+    "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.harness\\evidence\\2026-11-07-ops-planned-task-closeout\\o4-adoption-1794278076834\\real-input-regressions.log": {
+      "sha256": "095402fec44510fe65f73b05d177d3a3e065c8c0665813c5a7701fbe04a7c833",
+      "bytes": 493
+    },
+    "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.harness\\evidence\\2026-11-07-ops-planned-task-closeout\\o4-adoption-1794278076834\\source-inventory.json": {
+      "sha256": "96d841a52308b1581928693606e66eab462a744710db8ffff7563b2fd95541be",
+      "bytes": 66098
+    },
+    "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\foundation-release.lock.json": {
+      "sha256": "95de1a87270e15c0d4c672418a5df906818a88652f8a3e6c480f1484ee9fa70c",
+      "bytes": 3250
+    },
+    "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\business-overlay.json": {
+      "sha256": "d8fc5a88227d9242f30d71905af4963556e3a1e0d7247a053a4a03fbbd570111",
+      "bytes": 11757
+    },
+    "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\scripts\\business-overlay\\rebuild-from-base.mjs": {
+      "sha256": "5706de2dcd8d2334b374fa8dd1f621a9c4ddeb4b8b1a075172f4395e4ae2fdbd",
+      "bytes": 35171
+    },
+    "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\o4-adoption-1794278076834-sealed\\candidate-64cbd8e211df852a17d9bc7a93ac09af300eb40fde4b08db5133a95c436a38de.tar": {
+      "sha256": "2d679d5f06d244e91e4c7c14b20118a30d9125f5b1bc01089d7a6eca3c49cb89",
+      "bytes": 12705792
+    },
+    "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\o4-adoption-1794278076834-sealed\\candidate-descriptor.json": {
+      "sha256": "77faf23ed88c721bfd6e14b2888194a92769de9c3402bce5ebe622093a283f51",
+      "bytes": 212860
+    }
+  },
+  "reviews": [
+    {
+      "path": ".harness/archive/2026-09/evidence/2026-09-04-readme-v0.11.0-update/review.md",
+      "bytes": 347,
+      "sha256": "c6557930b6c98a5d6961028fb56f08fb0edd45fd0f8c1d3a74b9519b669b915c",
+      "headings": [
+        "# Review Artifact",
+        "## 审查范围",
+        "## 审查发现",
+        "## 审查结论",
+        "## 审查人",
+        "## 审查时间"
+      ],
+      "sensitiveIndicators": {
+        "privateKey": false,
+        "awsKey": false,
+        "githubToken": false,
+        "credentialUrl": false
+      }
+    },
+    {
+      "path": ".harness/archive/2026-09/evidence/2026-09-10-tenant-canary-slice/review.md",
+      "bytes": 3314,
+      "sha256": "79ec502f299edfe10b85554506c073bb0f1bf54b439205cce313ad8774086248",
+      "headings": [
+        "# Review: 2026-09-10-tenant-canary-slice",
+        "## Adversarial attempts & outcomes",
+        "## Findings",
+        "## Conditions / Notes",
+        "## Verdict"
+      ],
+      "sensitiveIndicators": {
+        "privateKey": false,
+        "awsKey": false,
+        "githubToken": false,
+        "credentialUrl": false
+      }
+    },
+    {
+      "path": ".harness/archive/2026-09/evidence/2026-09-10-tenant-contract-design/review.md",
+      "bytes": 1588,
+      "sha256": "0b27857520e3598906607808e7e8795236c0487fbc8214ff65e4fd4ecb55ec29",
+      "headings": [
+        "# Review: 2026-09-10-tenant-contract-design",
+        "## Adversarial checks",
+        "## Conditions",
+        "## Verdict"
+      ],
+      "sensitiveIndicators": {
+        "privateKey": false,
+        "awsKey": false,
+        "githubToken": false,
+        "credentialUrl": false
+      }
+    },
+    {
+      "path": ".harness/archive/2026-09/evidence/2026-09-10-tenant-core-auth-iam/review.md",
+      "bytes": 8428,
+      "sha256": "58684bd1b3c1384c938740dea5a53539e13bb3f16fbf6d4d04649bb4c75fb325",
+      "headings": [
+        "# Review: 2026-09-10-tenant-core-auth-iam — slice 1",
+        "## Adversarial attempts & outcomes",
+        "## Findings",
+        "## Verdict",
+        "# Review addendum: slice 2 (2026-09-12)",
+        "## Adversarial attempts & outcomes",
+        "## Findings (slice 2)",
+        "## Verdict (slice 2)"
+      ],
+      "sensitiveIndicators": {
+        "privateKey": false,
+        "awsKey": false,
+        "githubToken": false,
+        "credentialUrl": false
+      }
+    },
+    {
+      "path": ".harness/archive/2026-09/evidence/2026-09-10-tenant-migration-runbook/review.md",
+      "bytes": 1881,
+      "sha256": "2acb4f2f35acd75325bd322f30390076bf083e8c6a032276d66f42bdd2edfdc5",
+      "headings": [
+        "# Review: 2026-09-10-tenant-migration-runbook",
+        "## Findings",
+        "## Conditions / Notes",
+        "## Verdict"
+      ],
+      "sensitiveIndicators": {
+        "privateKey": false,
+        "awsKey": false,
+        "githubToken": false,
+        "credentialUrl": false
+      }
+    },
+    {
+      "path": ".harness/archive/2026-09/evidence/2026-09-10-tenant-ready-guardrails/review.md",
+      "bytes": 2762,
+      "sha256": "e5f63237c46f507222a7f66712d4033bb4713ebb5dd9d39746bfafc7d45b0b29",
+      "headings": [
+        "# Review — 2026-09-10-tenant-ready-guardrails",
+        "## Contract review",
+        "## Guardrail docs review",
+        "## Coverage reconciliation review (adversarial)",
+        "## Human gate audit",
+        "## Verdict"
+      ],
+      "sensitiveIndicators": {
+        "privateKey": false,
+        "awsKey": false,
+        "githubToken": false,
+        "credentialUrl": false
+      }
+    },
+    {
+      "path": ".harness/archive/2026-08/evidence/2026-08-31-base-operational-workbench-design/review.md",
+      "bytes": 3899,
+      "sha256": "c927bcab6ed2673b331b733326a90d602c2575c6b689b29e39b5e7bace16ad43",
+      "headings": [
+        "# Review Artifact",
+        "## Machine Readable",
+        "## Findings",
+        "## Boundary Review",
+        "## Impeccable Review",
+        "## Residual Gates",
+        "## Verdict"
+      ],
+      "sensitiveIndicators": {
+        "privateKey": false,
+        "awsKey": false,
+        "githubToken": false,
+        "credentialUrl": false
+      }
+    },
+    {
+      "path": ".harness/archive/2026-09/evidence/2026-09-24-fix-report-residual-closeout/review.md",
+      "bytes": 8681,
+      "sha256": "2ec09bf32677fccb3d833ebac6e798353ec6632c5e5a32a172c8902d41e22b97",
+      "headings": [
+        "# Self-review — 2026-09-24 fix-report residual closeout",
+        "## Scope check",
+        "## Risk points examined",
+        "## Findings",
+        "## Deferred",
+        "## Verdict",
+        "## Machine Readable"
+      ],
+      "sensitiveIndicators": {
+        "privateKey": false,
+        "awsKey": false,
+        "githubToken": false,
+        "credentialUrl": false
+      }
+    }
+  ]
+}

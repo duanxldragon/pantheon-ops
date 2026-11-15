@@ -1,0 +1,159 @@
+
+> @duanxldragon/pantheon-base-ui@0.11.2 test:unit
+> vitest run tests/unit/business/operational/k8s-service-version.test.tsx
+
+(!) Your Vite config uses features that are unsupported by `configLoader: 'native'`, which is planned to become the default in a future major version of Vite:
+  - `__dirname` (vitest.config.ts:10:25). Use `import.meta.dirname` instead
+Set `VITE_CONFIG_NATIVE_IGNORE_WARNING=true` to suppress this warning.
+
+ RUN  v5.0.5 D:/workspace/go/pantheon-platform/pantheon-ops/frontend
+
+ ❯ tests/unit/business/operational/k8s-service-version.test.tsx (6 tests | 2 failed) 2232ms
+   ❯ Kubernetes Service version authority (6)
+     × clears visible rows and pending edits after permission revocation 1133ms
+     × keeps a completed mutation from restoring the old cluster list after a source switch 188ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/unit/business/operational/k8s-service-version.test.tsx > Kubernetes Service version authority > clears visible rows and pending edits after permission revocation
+TestingLibraryElementError: Unable to find an element with the text: request-error. This could be because the text is broken up by multiple elements. In this case, you can provide a function for your text matcher to make your matcher more flexible.
+
+Ignored nodes: comments, script, style
+<body>
+  <div>
+    <div>
+      <div>
+        <div>
+          <select
+            aria-label="business.k8s.service.field.cluster"
+          >
+            <option
+              value="1"
+            >
+              Cluster A
+            </option>
+            <option
+              value="2"
+            >
+              Cluster B
+            </option>
+          </select>
+          <input
+            placeholder="business.k8s.service.field.namespace"
+            style="width: 180px;"
+            value=""
+          />
+        </div>
+        <div>
+          <button>
+            business.k8s.service.add
+          </button>
+        </div>
+        <div>
+          <section>
+            <div>
+              <p>
+                service-a
+              </p>
+              <div>
+                <button>
+                  common.edit
+                </button>
+                <div>
+                  <button>
+                    common.delete
+                  </button>
+                </div>
+              </div>
+            </div>
+          </section>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+
+Ignored nodes: comments, script, style
+<body>
+  <div>
+    <div>
+      <div>
+        <div>
+          <select
+            aria-label="business.k8s.service.field.cluster"
+          >
+            <option
+              value="1"
+            >
+              Cluster A
+            </option>
+            <option
+              value="2"
+            >
+              Cluster B
+            </option>
+          </select>
+          <input
+            placeholder="business.k8s.service.field.namespace"
+            style="width: 180px;"
+            value=""
+          />
+        </div>
+        <div>
+          <button>
+            business.k8s.service.add
+          </button>
+        </div>
+        <div>
+          <section>
+            <div>
+              <p>
+                service-a
+              </p>
+              <div>
+                <button>
+                  common.edit
+                </button>
+                <div>
+                  <button>
+                    common.delete
+                  </button>
+                </div>
+              </div>
+            </div>
+          </section>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+ ❯ waitForWrapper node_modules/@testing-library/dom/dist/wait-for.js:163:27
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:86:33
+ ❯ tests/unit/business/operational/k8s-service-version.test.tsx:47:18
+     45|   it('clears visible rows and pending edits after permission revocatio…
+     46|     api.list.mockResolvedValue({ items: [row()] }); api.update.mockRej…
+     47|     await screen.findByText('request-error'); expect(screen.queryByTex…
+       |                  ^
+     48|   });
+     49|   it('keeps a completed mutation from restoring the old cluster list a…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  tests/unit/business/operational/k8s-service-version.test.tsx > Kubernetes Service version authority > keeps a completed mutation from restoring the old cluster list after a source switch
+AssertionError: expected "vi.fn()" to be called 2 times, but got 5 times
+ ❯ tests/unit/business/operational/k8s-service-version.test.tsx:53:126
+     51|     await mount(); edit(); fireEvent.change(screen.getByRole('combobox…
+     52|     await screen.findByText('service-b'); await act(async () => pendin…
+     53|     expect(screen.queryByText('service-a')).toBeNull(); expect(screen.…
+       |                                                                                                                              ^
+     54|   });
+     55|   it('deletes using both identity preconditions from the selected row'…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  2 failed | 4 passed (6)
+   Start at  09:58:30
+   Duration  5.60s (tests 42%, environment 28%, import 25%, transform 5%)
+

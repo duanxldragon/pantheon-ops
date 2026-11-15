@@ -1,0 +1,27 @@
+{
+  "exitCode": 0,
+  "requestSHA256": "6bba684f283d6eca328ffe3e66e46391db67ae8606b634941183ea5a99e83ecc",
+  "matrix": {
+    "originalRegressions": 238,
+    "currentTests": 93,
+    "newUniqueTests": 40,
+    "fullUniqueRegressions": 278,
+    "testsRun": 331,
+    "failures": 0,
+    "errors": 0,
+    "forgeryCases": 52,
+    "inheritedV5UniqueTests": 260,
+    "newV6UniqueTests": 13,
+    "inheritedV6UniqueTests": 273,
+    "newV7UniqueTests": 5,
+    "skips": 0,
+    "oldGeneratorsExecuted": false,
+    "runtimeExecuted": false
+  },
+  "sourceHashesStable": true,
+  "receipt": "continue-velero-alias-v7-postseal_full.json",
+  "receiptSHA256": "1bac9bcdd6b27ea184c705b6d683c0bf72bfda9fbe8c7584c70603690a1b5f79",
+  "logSHA256": "ae634d7a43d58a4ac8754c7f94191a171ea49d95d57642d40cab47cc0b67f783",
+  "remoteExecuted": false,
+  "P0Approved": false
+}

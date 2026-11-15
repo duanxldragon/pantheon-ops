@@ -11,6 +11,7 @@ import (
 
 	"gorm.io/datatypes"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 // AlertRuleService manages alert rules.
@@ -32,11 +33,11 @@ func (s *AlertRuleService) Migrate() error {
 }
 
 // Create adds a new alert rule.
-func (s *AlertRuleService) Create(dto AlertRuleDTO, createdBy string, scopes ...*common.DataScopeReq) (*AlertRuleResponse, error) {
+func (s *AlertRuleService) createLocked(dto AlertRuleDTO, createdBy string, scopes ...*common.DataScopeReq) (*AlertRuleResponse, error) {
 	scope := firstDataScope(scopes)
 	// Verify datasource exists
 	var ds PrometheusDatasource
-	if err := s.db.Scopes(database.WithDataScope(scope)).First(&ds, dto.DatasourceID).Error; err != nil {
+	if err := s.db.Where("tenant_id = 0").Scopes(database.WithDataScope(scope)).First(&ds, dto.DatasourceID).Error; err != nil {
 		return nil, fmt.Errorf("datasource.not_found: %w", err)
 	}
 	if err := s.validateNotificationChannels(dto.NotificationChannels, ds.DeptID, scope); err != nil {
@@ -73,7 +74,7 @@ func (s *AlertRuleService) Create(dto AlertRuleDTO, createdBy string, scopes ...
 // List returns alert rules with filtering.
 func (s *AlertRuleService) List(query AlertRuleListQuery, scopes ...*common.DataScopeReq) (*AlertRuleListResponse, error) {
 	scope := firstDataScope(scopes)
-	db := s.db.Model(&AlertRule{}).Scopes(database.WithDataScope(scope))
+	db := s.db.Model(&AlertRule{}).Scopes(database.WithDataScope(scope)).Where("datasource_id IN (?)", s.db.Model(&PrometheusDatasource{}).Where("tenant_id = 0").Scopes(database.WithDataScope(scope)).Select("id"))
 
 	if query.Keyword != "" {
 		db = db.Where("name LIKE ?", "%"+query.Keyword+"%")
@@ -114,7 +115,7 @@ func (s *AlertRuleService) List(query AlertRuleListQuery, scopes ...*common.Data
 	for _, r := range records {
 		if _, exists := dsMap[r.DatasourceID]; !exists {
 			var ds PrometheusDatasource
-			if err := s.db.Scopes(database.WithDataScope(scope)).First(&ds, r.DatasourceID).Error; err == nil {
+			if err := s.db.Where("tenant_id = 0").Scopes(database.WithDataScope(scope)).First(&ds, r.DatasourceID).Error; err == nil {
 				dsMap[r.DatasourceID] = &ds
 			}
 		}
@@ -142,20 +143,22 @@ func (s *AlertRuleService) GetByID(id uint64, scopes ...*common.DataScopeReq) (*
 	}
 
 	var ds PrometheusDatasource
-	_ = s.db.Scopes(database.WithDataScope(scope)).First(&ds, record.DatasourceID).Error
+	if err := s.db.Where("tenant_id = 0").Scopes(database.WithDataScope(scope)).First(&ds, record.DatasourceID).Error; err != nil {
+		return nil, ErrWorkspaceDenied
+	}
 
 	return s.toResponse(&record, &ds), nil
 }
 
 // Update modifies an existing alert rule.
-func (s *AlertRuleService) Update(id uint64, dto AlertRuleDTO, scopes ...*common.DataScopeReq) error {
+func (s *AlertRuleService) updateLocked(id uint64, dto AlertRuleDTO, scopes ...*common.DataScopeReq) error {
 	scope := firstDataScope(scopes)
 	var record AlertRule
 	if err := s.db.Scopes(database.WithDataScope(scope)).First(&record, id).Error; err != nil {
 		return err
 	}
 	var datasource PrometheusDatasource
-	if err := s.db.Scopes(database.WithDataScope(scope)).First(&datasource, dto.DatasourceID).Error; err != nil {
+	if err := s.db.Where("tenant_id = 0").Scopes(database.WithDataScope(scope)).First(&datasource, dto.DatasourceID).Error; err != nil {
 		return err
 	}
 	if err := s.validateNotificationChannels(dto.NotificationChannels, datasource.DeptID, scope); err != nil {
@@ -363,4 +366,31 @@ func (s *AlertRuleService) toEventResponse(e *AlertEvent) *AlertEventResponse {
 		ResolvedAt:  e.ResolvedAt,
 		CreatedAt:   e.CreatedAt,
 	}
+}
+
+func (s *AlertRuleService) Create(dto AlertRuleDTO, createdBy string, scopes ...*common.DataScopeReq) (*AlertRuleResponse, error) {
+	var result *AlertRuleResponse
+	err := s.db.Transaction(func(tx *gorm.DB) error {
+		var source PrometheusDatasource
+		if err := tx.Where("tenant_id = 0").Scopes(database.WithDataScope(firstDataScope(scopes))).Clauses(clause.Locking{Strength: "UPDATE"}).First(&source, dto.DatasourceID).Error; err != nil {
+			return ErrWorkspaceDenied
+		}
+		var err error
+		copied := *s
+		copied.db = tx
+		result, err = copied.createLocked(dto, createdBy, scopes...)
+		return err
+	})
+	return result, err
+}
+func (s *AlertRuleService) Update(id uint64, dto AlertRuleDTO, scopes ...*common.DataScopeReq) error {
+	return s.db.Transaction(func(tx *gorm.DB) error {
+		var source PrometheusDatasource
+		if err := tx.Where("tenant_id = 0").Scopes(database.WithDataScope(firstDataScope(scopes))).Clauses(clause.Locking{Strength: "UPDATE"}).First(&source, dto.DatasourceID).Error; err != nil {
+			return ErrWorkspaceDenied
+		}
+		copied := *s
+		copied.db = tx
+		return copied.updateLocked(id, dto, scopes...)
+	})
 }

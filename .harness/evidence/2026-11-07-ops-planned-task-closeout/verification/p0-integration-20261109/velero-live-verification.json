@@ -1,0 +1,247 @@
+{
+  "scope": "ignored offline Velero negative adapter; no backend/frontend changes",
+  "sourceHashesBefore": {
+    "backend\\modules\\business\\k8s\\backup\\backup.go": "bb6162665a7b710351ed6df4f2c204ad3914088aa7119d7cbbaa4a3170b61c8f",
+    "backend\\modules\\business\\k8s\\backup\\backup_dto.go": "b6d0430c93bb33dada0f1155b2bb3ff17cf403fc619ab687ba141e64616aa7e4",
+    "backend\\modules\\business\\k8s\\backup\\backup_handler.go": "320bf427300d6cb88038adfbf581600c8c82cd2f760bdfa755dfca4711d99e96",
+    "backend\\modules\\business\\k8s\\backup\\backup_model.go": "0119686da49fa62c3106ca6a90206592122153eaf5f858ae884a824590c3ea51",
+    "backend\\modules\\business\\k8s\\backup\\backup_service.go": "0f6c6bb791248b8549a8ffb1b9c84b567866ff48ddd275d8456fdeef34837c2a",
+    "backend\\modules\\business\\k8s\\backup\\drill.go": "0de6e13dc1a2a4f0ea0acb3cd2478d636d2de8ff9a5b07024ba4e18abcddc702",
+    "backend\\modules\\business\\k8s\\backup\\reconciler.go": "044fccce5bf558a6542d33f7d4dcfd7ddd65937d820cde2cb217814de3bbff5c",
+    "backend\\modules\\business\\k8s\\backup\\velero_client.go": "800a650cad83b3aa3e71b26d8e2bcbbe644b3df7a58e9b8494dd203f4129536d",
+    "backend\\modules\\business\\k8s\\backup\\velero_client_test.go": "0272dd81e1e6dee02185d8fbba9119c8767f796edc7073cfecf31d86fcc0a3d9",
+    "backend\\modules\\business\\k8s\\pkg\\client_factory.go": "5acfbc581567a4205cb736f128fa9586e31ba672048306361ca3fac16f790b3f",
+    "backend\\modules\\business\\k8s\\cluster\\cluster_service.go": "41bf597c5530c56387a881ff01b60b87fd75c0a90dc6a11b327a725aba8e91b2"
+  },
+  "commands": [
+    {
+      "name": "driver-build",
+      "command": [
+        "go",
+        "build",
+        "-mod=readonly",
+        "-race",
+        "-o",
+        "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\velero-live-negative-driver.exe",
+        "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\velero-live-negative-driver.go"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 9.797,
+      "CGO_ENABLED": "1",
+      "GOMAXPROCS": "2",
+      "mingwPath": "D:/msys64/mingw64/bin"
+    },
+    {
+      "name": "driver-vet",
+      "command": [
+        "go",
+        "vet",
+        "-mod=readonly",
+        "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\velero-live-negative-driver.go"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 1.641,
+      "CGO_ENABLED": "1",
+      "GOMAXPROCS": "2",
+      "mingwPath": "D:/msys64/mingw64/bin"
+    },
+    {
+      "name": "targeted-race",
+      "command": [
+        "go",
+        "test",
+        "-mod=readonly",
+        "-race",
+        "-count=1",
+        "-timeout=120s",
+        "./modules/business/k8s/backup",
+        "./modules/business/k8s/pkg"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 7.265,
+      "CGO_ENABLED": "1",
+      "GOMAXPROCS": "2",
+      "mingwPath": "D:/msys64/mingw64/bin"
+    }
+  ],
+  "remoteResourcesCreated": 0,
+  "remoteCredentialsCreated": 0,
+  "driverExitCode": 0,
+  "driverStderrPresent": false,
+  "records": [
+    {
+      "check": "owner lists isolated backup registry fixture",
+      "passed": true
+    },
+    {
+      "check": "foreign department cannot list backup registry",
+      "passed": true
+    },
+    {
+      "check": "foreign department cannot get backup registry",
+      "passed": true
+    },
+    {
+      "check": "foreign department cannot delete backup registry",
+      "passed": true
+    },
+    {
+      "check": "owner lists isolated restore registry fixture",
+      "passed": true
+    },
+    {
+      "check": "foreign department cannot list restore registry",
+      "passed": true
+    },
+    {
+      "check": "foreign department cannot get restore registry",
+      "passed": true
+    },
+    {
+      "check": "foreign department cannot delete restore registry",
+      "passed": true
+    },
+    {
+      "check": "missing backup get returns record-not-found",
+      "passed": true
+    },
+    {
+      "check": "missing backup delete returns backup.not_found",
+      "passed": true
+    },
+    {
+      "check": "missing restore delete returns restore.not_found",
+      "passed": true
+    },
+    {
+      "check": "missing backup restore creates no registry record",
+      "passed": true
+    },
+    {
+      "check": "foreign department backup create denied before persistence",
+      "passed": true
+    },
+    {
+      "check": "missing credential backup create denied before persistence",
+      "passed": true
+    },
+    {
+      "check": "failed provider backup deletion retains registry",
+      "passed": true
+    },
+    {
+      "check": "failed provider restore deletion retains registry",
+      "passed": true
+    },
+    {
+      "check": "department revocation removes backup access",
+      "passed": true
+    },
+    {
+      "check": "department revocation removes restore access",
+      "passed": true
+    },
+    {
+      "check": "pre-canceled backup create creates no registry record",
+      "passed": true
+    },
+    {
+      "check": "expired backup create deadline creates no registry record",
+      "passed": true
+    },
+    {
+      "check": "public origin and explicit TLS server name accepted lazily",
+      "passed": true
+    },
+    {
+      "check": "private or metadata origin rejected: https://127.0.0.1:6443",
+      "passed": true
+    },
+    {
+      "check": "private or metadata origin rejected: https://10.0.0.1:6443",
+      "passed": true
+    },
+    {
+      "check": "private or metadata origin rejected: https://169.254.169.254:6443",
+      "passed": true
+    },
+    {
+      "check": "insecure TLS kubeconfig rejected",
+      "passed": true
+    },
+    {
+      "check": "proxy bypass kubeconfig rejected",
+      "passed": true
+    },
+    {
+      "evidence": {
+        "callerDept": 20,
+        "clusterDept": 10,
+        "recordID": 2,
+        "remoteRequest": false,
+        "returnedStatus": "New"
+      },
+      "finding": "CreateRestore persists unauthorized foreign-cluster request before async scope validation"
+    },
+    {
+      "check": "async unauthorized restore fails before remote request",
+      "passed": true
+    },
+    {
+      "check": "synthetic active reference builds lazy client without remote request",
+      "passed": true
+    },
+    {
+      "check": "revoked reference denies cached client access",
+      "passed": true
+    },
+    {
+      "check": "revoked reference denies product backup create before persistence",
+      "passed": true
+    },
+    {
+      "checksPassed": 30,
+      "findings": 1,
+      "phase": "complete",
+      "remoteRequests": 0,
+      "scope": "offline product Service + isolated MySQL; no successful real backup/restore, provider RBAC, finite SA, S3 or HTTP/audit coverage"
+    }
+  ],
+  "checksPassed": 30,
+  "findings": [
+    {
+      "evidence": {
+        "callerDept": 20,
+        "clusterDept": 10,
+        "recordID": 2,
+        "remoteRequest": false,
+        "returnedStatus": "New"
+      },
+      "finding": "CreateRestore persists unauthorized foreign-cluster request before async scope validation"
+    }
+  ],
+  "isolatedDatabase": "ops_velero_live_negative_dcfc3bc81d",
+  "driverElapsedSeconds": 1.688,
+  "exitCode": 0,
+  "cleanup": {
+    "isolatedDatabaseDropped": true,
+    "absenceVerified": true,
+    "remoteResourcesCreated": 0,
+    "credentialFilesCreated": 0,
+    "retainedProviderResources": "none created; existing remote providers not inspected"
+  },
+  "sourceHashesAfter": {
+    "backend\\modules\\business\\k8s\\backup\\backup.go": "bb6162665a7b710351ed6df4f2c204ad3914088aa7119d7cbbaa4a3170b61c8f",
+    "backend\\modules\\business\\k8s\\backup\\backup_dto.go": "b6d0430c93bb33dada0f1155b2bb3ff17cf403fc619ab687ba141e64616aa7e4",
+    "backend\\modules\\business\\k8s\\backup\\backup_handler.go": "320bf427300d6cb88038adfbf581600c8c82cd2f760bdfa755dfca4711d99e96",
+    "backend\\modules\\business\\k8s\\backup\\backup_model.go": "0119686da49fa62c3106ca6a90206592122153eaf5f858ae884a824590c3ea51",
+    "backend\\modules\\business\\k8s\\backup\\backup_service.go": "0f6c6bb791248b8549a8ffb1b9c84b567866ff48ddd275d8456fdeef34837c2a",
+    "backend\\modules\\business\\k8s\\backup\\drill.go": "0de6e13dc1a2a4f0ea0acb3cd2478d636d2de8ff9a5b07024ba4e18abcddc702",
+    "backend\\modules\\business\\k8s\\backup\\reconciler.go": "044fccce5bf558a6542d33f7d4dcfd7ddd65937d820cde2cb217814de3bbff5c",
+    "backend\\modules\\business\\k8s\\backup\\velero_client.go": "800a650cad83b3aa3e71b26d8e2bcbbe644b3df7a58e9b8494dd203f4129536d",
+    "backend\\modules\\business\\k8s\\backup\\velero_client_test.go": "0272dd81e1e6dee02185d8fbba9119c8767f796edc7073cfecf31d86fcc0a3d9",
+    "backend\\modules\\business\\k8s\\pkg\\client_factory.go": "5acfbc581567a4205cb736f128fa9586e31ba672048306361ca3fac16f790b3f",
+    "backend\\modules\\business\\k8s\\cluster\\cluster_service.go": "41bf597c5530c56387a881ff01b60b87fd75c0a90dc6a11b327a725aba8e91b2"
+  },
+  "observedSourceHashesUnchanged": true
+}

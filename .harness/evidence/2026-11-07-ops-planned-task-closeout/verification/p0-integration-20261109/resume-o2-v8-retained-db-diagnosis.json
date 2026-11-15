@@ -1,0 +1,754 @@
+{
+  "taskId": "2026-11-07-ops-planned-task-closeout",
+  "run": "67fc9fadd215",
+  "cases": [
+    {
+      "case": "success",
+      "schema": "ops_p0_o2_live_67fc9fadd215_success",
+      "tasks": [
+        {
+          "id": 1,
+          "status": "success",
+          "business_scope_id": 1,
+          "started": 1,
+          "finished": 1
+        },
+        {
+          "id": 2,
+          "status": "success",
+          "business_scope_id": 1,
+          "started": 1,
+          "finished": 1
+        }
+      ],
+      "hosts": [
+        {
+          "id": 1,
+          "taskId": 1,
+          "status": "success",
+          "errorCategory": "none"
+        },
+        {
+          "id": 2,
+          "taskId": 2,
+          "status": "success",
+          "errorCategory": "none"
+        }
+      ],
+      "attempts": [],
+      "eventCounts": [
+        {
+          "taskId": 1,
+          "eventType": "step.running",
+          "count": 1
+        },
+        {
+          "taskId": 1,
+          "eventType": "step.success",
+          "count": 1
+        },
+        {
+          "taskId": 1,
+          "eventType": "task.completed",
+          "count": 1
+        },
+        {
+          "taskId": 1,
+          "eventType": "task.started",
+          "count": 1
+        },
+        {
+          "taskId": 2,
+          "eventType": "step.running",
+          "count": 1
+        },
+        {
+          "taskId": 2,
+          "eventType": "step.success",
+          "count": 1
+        },
+        {
+          "taskId": 2,
+          "eventType": "task.completed",
+          "count": 1
+        },
+        {
+          "taskId": 2,
+          "eventType": "task.started",
+          "count": 1
+        }
+      ],
+      "scopes": [
+        {
+          "id": 1,
+          "status": "active"
+        }
+      ],
+      "stepCounts": [
+        {
+          "taskId": 1,
+          "status": "success",
+          "count": 1
+        },
+        {
+          "taskId": 2,
+          "status": "success",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "case": "failure-retry",
+      "schema": "ops_p0_o2_live_67fc9fadd215_failure_retry",
+      "tasks": [
+        {
+          "id": 1,
+          "status": "success",
+          "business_scope_id": 1,
+          "started": 1,
+          "finished": 1
+        }
+      ],
+      "hosts": [
+        {
+          "id": 1,
+          "taskId": 1,
+          "status": "success",
+          "errorCategory": "none"
+        }
+      ],
+      "attempts": [
+        {
+          "id": 1,
+          "taskId": 1,
+          "attemptNo": 1,
+          "status": "success",
+          "leasePresent": false,
+          "errorCategory": "none"
+        }
+      ],
+      "eventCounts": [
+        {
+          "taskId": 1,
+          "eventType": "step.failed",
+          "count": 1
+        },
+        {
+          "taskId": 1,
+          "eventType": "step.running",
+          "count": 2
+        },
+        {
+          "taskId": 1,
+          "eventType": "step.success",
+          "count": 1
+        },
+        {
+          "taskId": 1,
+          "eventType": "task.completed",
+          "count": 2
+        },
+        {
+          "taskId": 1,
+          "eventType": "task.retried",
+          "count": 1
+        },
+        {
+          "taskId": 1,
+          "eventType": "task.started",
+          "count": 1
+        }
+      ],
+      "scopes": [
+        {
+          "id": 1,
+          "status": "active"
+        }
+      ],
+      "stepCounts": [
+        {
+          "taskId": 1,
+          "status": "success",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "case": "pause-resume",
+      "schema": "ops_p0_o2_live_67fc9fadd215_pause_resume",
+      "tasks": [
+        {
+          "id": 1,
+          "status": "running",
+          "business_scope_id": 1,
+          "started": 1,
+          "finished": 0
+        }
+      ],
+      "hosts": [
+        {
+          "id": 1,
+          "taskId": 1,
+          "status": "running",
+          "errorCategory": "none"
+        }
+      ],
+      "attempts": [
+        {
+          "id": 1,
+          "taskId": 1,
+          "attemptNo": 1,
+          "status": "running",
+          "leasePresent": true,
+          "errorCategory": "none"
+        }
+      ],
+      "eventCounts": [
+        {
+          "taskId": 1,
+          "eventType": "step.running",
+          "count": 1
+        },
+        {
+          "taskId": 1,
+          "eventType": "task.started",
+          "count": 1
+        }
+      ],
+      "scopes": [
+        {
+          "id": 1,
+          "status": "active"
+        }
+      ],
+      "stepCounts": [
+        {
+          "taskId": 1,
+          "status": "running",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "case": "cancel",
+      "schema": "ops_p0_o2_live_67fc9fadd215_cancel",
+      "tasks": [
+        {
+          "id": 1,
+          "status": "canceled",
+          "business_scope_id": 1,
+          "started": 1,
+          "finished": 1
+        }
+      ],
+      "hosts": [
+        {
+          "id": 1,
+          "taskId": 1,
+          "status": "skipped",
+          "errorCategory": "none"
+        }
+      ],
+      "attempts": [
+        {
+          "id": 1,
+          "taskId": 1,
+          "attemptNo": 1,
+          "status": "canceled",
+          "leasePresent": false,
+          "errorCategory": "none"
+        }
+      ],
+      "eventCounts": [
+        {
+          "taskId": 1,
+          "eventType": "step.canceled",
+          "count": 1
+        },
+        {
+          "taskId": 1,
+          "eventType": "step.running",
+          "count": 1
+        },
+        {
+          "taskId": 1,
+          "eventType": "task.cancel_requested",
+          "count": 1
+        },
+        {
+          "taskId": 1,
+          "eventType": "task.canceled",
+          "count": 1
+        },
+        {
+          "taskId": 1,
+          "eventType": "task.started",
+          "count": 1
+        }
+      ],
+      "scopes": [
+        {
+          "id": 1,
+          "status": "active"
+        }
+      ],
+      "stepCounts": [
+        {
+          "taskId": 1,
+          "status": "canceled",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "case": "concurrent",
+      "schema": "ops_p0_o2_live_67fc9fadd215_concurrent",
+      "tasks": [
+        {
+          "id": 1,
+          "status": "running",
+          "business_scope_id": 1,
+          "started": 1,
+          "finished": 0
+        }
+      ],
+      "hosts": [
+        {
+          "id": 1,
+          "taskId": 1,
+          "status": "running",
+          "errorCategory": "none"
+        }
+      ],
+      "attempts": [
+        {
+          "id": 1,
+          "taskId": 1,
+          "attemptNo": 1,
+          "status": "running",
+          "leasePresent": true,
+          "errorCategory": "none"
+        }
+      ],
+      "eventCounts": [
+        {
+          "taskId": 1,
+          "eventType": "task.started",
+          "count": 1
+        }
+      ],
+      "scopes": [
+        {
+          "id": 1,
+          "status": "active"
+        }
+      ],
+      "stepCounts": [
+        {
+          "taskId": 1,
+          "status": "pending",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "case": "revoke-credential",
+      "schema": "ops_p0_o2_live_67fc9fadd215_revoke_credential",
+      "tasks": [
+        {
+          "id": 1,
+          "status": "running",
+          "business_scope_id": 1,
+          "started": 1,
+          "finished": 0
+        }
+      ],
+      "hosts": [
+        {
+          "id": 1,
+          "taskId": 1,
+          "status": "running",
+          "errorCategory": "none"
+        }
+      ],
+      "attempts": [
+        {
+          "id": 1,
+          "taskId": 1,
+          "attemptNo": 1,
+          "status": "running",
+          "leasePresent": true,
+          "errorCategory": "none"
+        }
+      ],
+      "eventCounts": [
+        {
+          "taskId": 1,
+          "eventType": "task.started",
+          "count": 1
+        }
+      ],
+      "scopes": [
+        {
+          "id": 1,
+          "status": "active"
+        }
+      ],
+      "stepCounts": [
+        {
+          "taskId": 1,
+          "status": "pending",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "case": "revoke-rotation",
+      "schema": "ops_p0_o2_live_67fc9fadd215_revoke_rotation",
+      "tasks": [
+        {
+          "id": 1,
+          "status": "failed",
+          "business_scope_id": 1,
+          "started": 1,
+          "finished": 1
+        }
+      ],
+      "hosts": [
+        {
+          "id": 1,
+          "taskId": 1,
+          "status": "failed",
+          "errorCategory": "noncanonical-suppressed"
+        }
+      ],
+      "attempts": [
+        {
+          "id": 1,
+          "taskId": 1,
+          "attemptNo": 1,
+          "status": "failed",
+          "leasePresent": false,
+          "errorCategory": "business.deploy.task.sshConnectFailed"
+        },
+        {
+          "id": 2,
+          "taskId": 1,
+          "attemptNo": 2,
+          "status": "paused",
+          "leasePresent": false,
+          "errorCategory": "none"
+        }
+      ],
+      "eventCounts": [
+        {
+          "taskId": 1,
+          "eventType": "step.running",
+          "count": 1
+        },
+        {
+          "taskId": 1,
+          "eventType": "task.failed",
+          "count": 1
+        },
+        {
+          "taskId": 1,
+          "eventType": "task.pause_requested",
+          "count": 1
+        },
+        {
+          "taskId": 1,
+          "eventType": "task.paused",
+          "count": 1
+        },
+        {
+          "taskId": 1,
+          "eventType": "task.resumed",
+          "count": 1
+        },
+        {
+          "taskId": 1,
+          "eventType": "task.started",
+          "count": 1
+        }
+      ],
+      "scopes": [
+        {
+          "id": 1,
+          "status": "active"
+        }
+      ],
+      "stepCounts": [
+        {
+          "taskId": 1,
+          "status": "pending",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "case": "revoke-source",
+      "schema": "ops_p0_o2_live_67fc9fadd215_revoke_source",
+      "tasks": [
+        {
+          "id": 1,
+          "status": "paused",
+          "business_scope_id": 1,
+          "started": 1,
+          "finished": 0
+        }
+      ],
+      "hosts": [
+        {
+          "id": 1,
+          "taskId": 1,
+          "status": "running",
+          "errorCategory": "none"
+        }
+      ],
+      "attempts": [
+        {
+          "id": 1,
+          "taskId": 1,
+          "attemptNo": 1,
+          "status": "paused",
+          "leasePresent": false,
+          "errorCategory": "none"
+        }
+      ],
+      "eventCounts": [
+        {
+          "taskId": 1,
+          "eventType": "step.running",
+          "count": 1
+        },
+        {
+          "taskId": 1,
+          "eventType": "task.pause_requested",
+          "count": 1
+        },
+        {
+          "taskId": 1,
+          "eventType": "task.paused",
+          "count": 1
+        },
+        {
+          "taskId": 1,
+          "eventType": "task.started",
+          "count": 1
+        }
+      ],
+      "scopes": [
+        {
+          "id": 1,
+          "status": "active"
+        }
+      ],
+      "stepCounts": [
+        {
+          "taskId": 1,
+          "status": "pending",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "case": "revoke-host",
+      "schema": "ops_p0_o2_live_67fc9fadd215_revoke_host",
+      "tasks": [
+        {
+          "id": 1,
+          "status": "running",
+          "business_scope_id": 1,
+          "started": 1,
+          "finished": 0
+        }
+      ],
+      "hosts": [
+        {
+          "id": 1,
+          "taskId": 1,
+          "status": "running",
+          "errorCategory": "none"
+        }
+      ],
+      "attempts": [
+        {
+          "id": 1,
+          "taskId": 1,
+          "attemptNo": 1,
+          "status": "running",
+          "leasePresent": true,
+          "errorCategory": "none"
+        }
+      ],
+      "eventCounts": [
+        {
+          "taskId": 1,
+          "eventType": "task.started",
+          "count": 1
+        }
+      ],
+      "scopes": [
+        {
+          "id": 1,
+          "status": "active"
+        }
+      ],
+      "stepCounts": [
+        {
+          "taskId": 1,
+          "status": "pending",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "case": "start-negative",
+      "schema": "ops_p0_o2_live_67fc9fadd215_start_negative",
+      "tasks": [
+        {
+          "id": 1,
+          "status": "draft",
+          "business_scope_id": 1,
+          "started": 0,
+          "finished": 0
+        }
+      ],
+      "hosts": [],
+      "attempts": [],
+      "eventCounts": [],
+      "scopes": [
+        {
+          "id": 1,
+          "status": "active"
+        }
+      ],
+      "stepCounts": []
+    },
+    {
+      "case": "hostkey-negative",
+      "schema": "ops_p0_o2_live_67fc9fadd215_hostkey_negative",
+      "tasks": [
+        {
+          "id": 1,
+          "status": "failed",
+          "business_scope_id": 1,
+          "started": 1,
+          "finished": 1
+        }
+      ],
+      "hosts": [
+        {
+          "id": 1,
+          "taskId": 1,
+          "status": "failed",
+          "errorCategory": "business.deploy.task.sshConnectFailed"
+        }
+      ],
+      "attempts": [],
+      "eventCounts": [
+        {
+          "taskId": 1,
+          "eventType": "task.completed",
+          "count": 1
+        },
+        {
+          "taskId": 1,
+          "eventType": "task.started",
+          "count": 1
+        }
+      ],
+      "scopes": [
+        {
+          "id": 1,
+          "status": "active"
+        }
+      ],
+      "stepCounts": [
+        {
+          "taskId": 1,
+          "status": "pending",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "case": "cold-restart",
+      "schema": "ops_p0_o2_live_67fc9fadd215_cold_restart",
+      "tasks": [
+        {
+          "id": 1,
+          "status": "running",
+          "business_scope_id": 1,
+          "started": 1,
+          "finished": 0
+        }
+      ],
+      "hosts": [
+        {
+          "id": 1,
+          "taskId": 1,
+          "status": "running",
+          "errorCategory": "none"
+        }
+      ],
+      "attempts": [
+        {
+          "id": 1,
+          "taskId": 1,
+          "attemptNo": 1,
+          "status": "running",
+          "leasePresent": true,
+          "errorCategory": "none"
+        }
+      ],
+      "eventCounts": [
+        {
+          "taskId": 1,
+          "eventType": "step.running",
+          "count": 1
+        },
+        {
+          "taskId": 1,
+          "eventType": "task.started",
+          "count": 1
+        }
+      ],
+      "scopes": [
+        {
+          "id": 1,
+          "status": "active"
+        }
+      ],
+      "stepCounts": [
+        {
+          "taskId": 1,
+          "status": "running",
+          "count": 1
+        }
+      ]
+    }
+  ],
+  "transaction": "READ ONLY WITH CONSISTENT SNAPSHOT; rollback",
+  "sensitiveMessagePolicy": "host/attempt error in memory to exact static category only; unknown suppressed",
+  "credentialTablesRead": false,
+  "commandConfigResultLogContentsRead": false,
+  "remoteExecuted": false,
+  "databaseMutated": false,
+  "seconds": 1.641,
+  "sealBefore": {
+    "sourceCount": 185,
+    "sourceChanges": [],
+    "artifactChanges": [],
+    "sealed": true,
+    "sourceInventorySHA256": "17b4af459b818ecfd697f35ce8faedf8a86cf57856bc40d462eafc06c6d73483"
+  },
+  "sealAfter": {
+    "sourceCount": 185,
+    "sourceChanges": [],
+    "artifactChanges": [],
+    "sealed": true,
+    "sourceInventorySHA256": "17b4af459b818ecfd697f35ce8faedf8a86cf57856bc40d462eafc06c6d73483"
+  }
+}

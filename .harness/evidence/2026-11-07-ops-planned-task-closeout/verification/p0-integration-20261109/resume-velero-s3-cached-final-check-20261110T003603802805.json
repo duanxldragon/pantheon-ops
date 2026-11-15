@@ -1,0 +1,21 @@
+{
+  "phase": "s3-cached-final-local-verification",
+  "exitCode": 0,
+  "sourceEvidenceHashesStable": true,
+  "reviewedScriptHashesStable": true,
+  "verifiedCachedFiles": 26,
+  "cachedFilesRehashed": true,
+  "receiptEqualsLoader": true,
+  "receiptSHA256": "e54e0c8b9596349bcd36c95cba0f022ea65a9d5b8b9e69b3c0974acd893bc22b",
+  "newScriptHashes": {
+    "resume-velero-s3-cached-check.py": "d475fef3d762d4155751ea60f69637a49d00c19189e2a5eafebdac3540a7ddec",
+    "resume-velero-s3-cached-completion.py": "44433c1a81406988c758ddf0ae2a46d5e2af60b173e8d005d4a365ca84deffc6",
+    "resume-velero-s3-cached-loader-check.py": "9876402c2f81edbe2ef6daba1c4ee88189a74c1c23e591854a04975f45315c84"
+  },
+  "evidenceLinksValid": true,
+  "temporaryLeftovers": false,
+  "remoteExecuted": false,
+  "D1Closed": false,
+  "formalP0Closed": false,
+  "createdUTC": "2026-11-10T00:36:03.802805+00:00"
+}

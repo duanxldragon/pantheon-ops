@@ -1,0 +1,15 @@
+{
+  "result": "pass",
+  "acquiredOfficialVersion": "pantheon-base-v0.18.8",
+  "baseCommit": "34428814a9efc997fd93d4434406a53df6460323",
+  "freshGitHubLookup": true,
+  "standardFetcher": true,
+  "standardAssembler": true,
+  "targetRoot": "C:\\Users\\xiaolong\\AppData\\Local\\Temp\\pantheon-ops-v0188-r7-462f99e5d84447d2a554c4ba13652569",
+  "ownedFiles": 5613,
+  "reportSHA256": "82fabe5c39653f7d4119b3f905e6acea18faac350454a713bdbc86444d0fd4c6",
+  "bundleSHA256": "da20d44efe6edc1f7546c1f388ace98844bbe7fc945e6f509f99e2e34faec355",
+  "repoSHA256": "ba3b7b1b462ab39f0bc74158ea0e0c6afc2ef5c94be4149b5338849d47e6a646",
+  "sourceInputsRestoredBeforeInstallation": true,
+  "completedAt": "2026-11-14T02:25:22.313Z"
+}

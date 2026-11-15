@@ -1,0 +1,87 @@
+--- before/frontend/tests/unit/business/operational/deploy-read-revocation.test.tsx
++++ after/frontend/tests/unit/business/operational/deploy-read-revocation.test.tsx
+@@ -27,12 +27,19 @@
+     vi.mocked(getDeployTaskDetail).mockRejectedValueOnce(new RequestError({ kind: 'forbidden', status: 403, code: 403 }));
+     await act(async () => { await result.current.loadData({ silent: true }); });
+     expect(result.current.task).toBeNull(); expect(result.current.error).toBeInstanceOf(RequestError);
++  });
++  it('fences in-flight success and pending refreshes after stream denial', async () => {
++    vi.mocked(getDeployTaskDetail).mockResolvedValue(task(7));
++    const { result } = renderHook(() => useDeployTaskSnapshot(7)); await flush();
+     let resolve: ((value: DeployTaskRow) => void) | undefined;
+     vi.mocked(getDeployTaskDetail).mockImplementationOnce(() => new Promise((r) => { resolve = r; }));
+     let pending: Promise<void>;
+-    act(() => { pending = result.current.loadData({ silent: true }); result.current.deny(); });
++    act(() => { pending = result.current.loadData({ silent: true }); });
++    await act(async () => { await result.current.loadData({ silent: true }); result.current.deny(); });
+     await act(async () => { resolve?.(task(7)); await pending; });
+-    expect(result.current.task).toBeNull();
++    await act(async () => { await result.current.loadData({ silent: true }); });
++    expect(result.current.task).toBeNull(); expect(result.current.error).toBeInstanceOf(RequestError);
++    expect(getDeployTaskDetail).toHaveBeenCalledTimes(2);
+   });
+   it('marks ordinary silent failures stale and allows recoverable refresh', async () => {
+     vi.mocked(getDeployTaskDetail).mockResolvedValue(task(7));
+@@ -68,12 +75,54 @@
+ });
+ 
+ 
+-it('does not let repeated stream refreshes starve an in-flight snapshot', async () => {
+- let resolve: ((value: DeployTaskRow) => void) | undefined;
+- vi.mocked(getDeployTaskDetail).mockImplementationOnce(() => new Promise((r) => { resolve=r; }));
+- const {result}=renderHook(() => useDeployTaskSnapshot(7)); await flush();
+- await act(async () => { await result.current.loadData({silent:true}); await result.current.loadData({silent:true}); });
+- expect(getDeployTaskDetail).toHaveBeenCalledOnce();
+- await act(async () => { resolve?.(task(7)); });
+- expect(result.current.task?.id).toBe(7);
++it('coalesces multiple in-flight refreshes into one trailing request without a busy loop', async () => {
++  let resolveFirst: ((value: DeployTaskRow) => void) | undefined;
++  let resolveTrailing: ((value: DeployTaskRow) => void) | undefined;
++  vi.mocked(getDeployTaskDetail)
++    .mockImplementationOnce(() => new Promise((resolve) => { resolveFirst = resolve; }))
++    .mockImplementationOnce(() => new Promise((resolve) => { resolveTrailing = resolve; }));
++  const { result } = renderHook(() => useDeployTaskSnapshot(7)); await flush();
++  await act(async () => { await result.current.loadData({ silent: true }); await result.current.loadData({ silent: true }); });
++  expect(getDeployTaskDetail).toHaveBeenCalledOnce();
++  await act(async () => { resolveFirst?.(task(7)); });
++  expect(result.current.task?.status).toBe('running');
++  expect(getDeployTaskDetail).toHaveBeenCalledTimes(2);
++  await act(async () => { resolveTrailing?.({ ...task(7), status: 'success' }); });
++  await flush();
++  expect(result.current.task?.status).toBe('success'); expect(result.current.stale).toBe(false);
++  expect(getDeployTaskDetail).toHaveBeenCalledTimes(2);
+ });
++
++it('clears pending refreshes on detail forbidden and prevents later loads in the denied generation', async () => {
++  let reject: ((reason: unknown) => void) | undefined;
++  vi.mocked(getDeployTaskDetail).mockImplementationOnce(() => new Promise((_, r) => { reject = r; }));
++  const { result } = renderHook(() => useDeployTaskSnapshot(7)); await flush();
++  await act(async () => { await result.current.loadData({ silent: true }); });
++  await act(async () => { reject?.(new RequestError({ kind: 'forbidden', status: 403 })); });
++  await act(async () => { await result.current.loadData({ silent: true }); });
++  expect(result.current.task).toBeNull(); expect(result.current.error).toBeInstanceOf(RequestError);
++  expect(getDeployTaskDetail).toHaveBeenCalledOnce();
++});
++
++it('does not run pending old-generation refreshes after navigation or from a departed callback', async () => {
++  let resolve: ((value: DeployTaskRow) => void) | undefined;
++  vi.mocked(getDeployTaskDetail).mockImplementationOnce(() => new Promise((r) => { resolve = r; })).mockResolvedValueOnce(task(8));
++  const { result, rerender } = renderHook(({ id }) => useDeployTaskSnapshot(id), { initialProps: { id: 7 } }); await flush();
++  const oldRefresh = result.current.loadData;
++  await act(async () => { await oldRefresh({ silent: true }); });
++  rerender({ id: 8 }); await flush();
++  await act(async () => { resolve?.(task(7)); await oldRefresh({ silent: true }); });
++  expect(result.current.task?.id).toBe(8); expect(result.current.error).toBeNull();
++  expect(getDeployTaskDetail).toHaveBeenCalledTimes(2);
++});
++
++it('does not run pending refreshes or accept callbacks after disposal', async () => {
++  let resolve: ((value: DeployTaskRow) => void) | undefined;
++  vi.mocked(getDeployTaskDetail).mockImplementationOnce(() => new Promise((r) => { resolve = r; }));
++  const { result, unmount } = renderHook(() => useDeployTaskSnapshot(7)); await flush();
++  const oldRefresh = result.current.loadData;
++  await act(async () => { await oldRefresh({ silent: true }); });
++  unmount();
++  await act(async () => { resolve?.(task(7)); await oldRefresh({ silent: true }); });
++  expect(getDeployTaskDetail).toHaveBeenCalledOnce();
++});

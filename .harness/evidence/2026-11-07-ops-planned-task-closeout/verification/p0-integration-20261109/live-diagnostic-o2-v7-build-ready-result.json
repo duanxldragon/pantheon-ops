@@ -1,0 +1,77 @@
+{
+  "commands": [
+    {
+      "command": [
+        "go",
+        "vet",
+        "-mod=readonly",
+        "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\live-diagnostic-o2-v7.go"
+      ],
+      "CGO_ENABLED": "1",
+      "GOOS": "windows",
+      "exitCode": 0,
+      "seconds": 95.031,
+      "log": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.harness\\evidence\\2026-11-07-ops-planned-task-closeout\\verification\\p0-integration-20261109\\live-diagnostic-o2-v7-build-ready-0.txt"
+    },
+    {
+      "command": [
+        "go",
+        "build",
+        "-mod=readonly",
+        "-race",
+        "-o",
+        "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\live-diagnostic-o2-v7-driver.exe",
+        "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\live-diagnostic-o2-v7.go"
+      ],
+      "CGO_ENABLED": "1",
+      "GOOS": "windows",
+      "exitCode": 0,
+      "seconds": 50.562,
+      "log": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.harness\\evidence\\2026-11-07-ops-planned-task-closeout\\verification\\p0-integration-20261109\\live-diagnostic-o2-v7-build-ready-1.txt"
+    },
+    {
+      "command": [
+        "go",
+        "build",
+        "-mod=readonly",
+        "-o",
+        "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\live-diagnostic-o2-v7-driver-linux",
+        "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\live-diagnostic-o2-v7.go"
+      ],
+      "CGO_ENABLED": "0",
+      "GOOS": "linux",
+      "exitCode": 0,
+      "seconds": 61.11,
+      "log": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.harness\\evidence\\2026-11-07-ops-planned-task-closeout\\verification\\p0-integration-20261109\\live-diagnostic-o2-v7-build-ready-2.txt"
+    },
+    {
+      "command": [
+        "go",
+        "test",
+        "-mod=readonly",
+        "-race",
+        "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\live-diagnostic-o2-v7.go",
+        "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\live-diagnostic-o2-v7_test.go"
+      ],
+      "CGO_ENABLED": "1",
+      "GOOS": "windows",
+      "exitCode": 0,
+      "seconds": 21.203,
+      "log": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.harness\\evidence\\2026-11-07-ops-planned-task-closeout\\verification\\p0-integration-20261109\\live-diagnostic-o2-v7-build-ready-3.txt"
+    }
+  ],
+  "sourceCount": 185,
+  "sourceStable": true,
+  "changedFiles": [],
+  "artifacts": {
+    "live-diagnostic-o2-v7.go": "1554464aa40c1973eb7c055245f78bbe1b06203f751c79aa8fa008ce39a912af",
+    "live-diagnostic-o2-v7-runner.py": "1735b2032aecbdda36463d2f7b3d86d3bb5af330e8ce2043a55674ce0c424783",
+    "live-diagnostic-o2-v7_test.go": "ea8aa8c3974f919a7bc155c1d0c7d6c2a63f22fd62c48b78f9dddc7c8c21b782",
+    "live-diagnostic-o2-v7-local-verify.py": "0fad6d1d9de2ee32ecc3a93cde0af74b9543dad917c2e613b76f2b4c3b517fa4",
+    "remote.py": "37acccd12ba3b30e38182f11101821f110355ed660c4cf559d91cc1c638e1b5e",
+    "known_hosts": "45a3379d7e5d75b57e4d47c37ea424b611ddc56ee6d2a70fdc89c05c1ae8213e",
+    "live-diagnostic-o2-v7-driver.exe": "6fa3d02e2ef789092fdc522460121819294ad26946b46d5a1d52ca9c415537e9",
+    "live-diagnostic-o2-v7-driver-linux": "134645d7924c5d76c960a11ea759ab79958917ba81d21e58bc6a1b37595e619f"
+  },
+  "exitCode": 0
+}

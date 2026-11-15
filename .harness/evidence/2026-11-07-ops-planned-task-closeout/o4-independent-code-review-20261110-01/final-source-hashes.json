@@ -1,0 +1,38 @@
+[
+  {
+    "path": "scripts/business-overlay/rebuild-from-base.mjs",
+    "expected": "127955e086e03a3460fcc910c9e01688880b5c394982293aead0711c5a1a0226",
+    "afterAllChecks": "127955e086e03a3460fcc910c9e01688880b5c394982293aead0711c5a1a0226",
+    "matches": true
+  },
+  {
+    "path": "scripts/business-overlay/rebuild-from-candidate.mjs",
+    "expected": "77ec66c1f9df0d3027280eacb8b618cc24a142d8575bef8163777a25c2e3c26e",
+    "afterAllChecks": "77ec66c1f9df0d3027280eacb8b618cc24a142d8575bef8163777a25c2e3c26e",
+    "matches": true
+  },
+  {
+    "path": "scripts/business-overlay/check-shared-drift.mjs",
+    "expected": "a6ee2b769c1d27167c7f426ad913981c28b99f462054342e826dc194a1c4302b",
+    "afterAllChecks": "a6ee2b769c1d27167c7f426ad913981c28b99f462054342e826dc194a1c4302b",
+    "matches": true
+  },
+  {
+    "path": "scripts/business-overlay/foundation-candidate.mjs",
+    "expected": "ab22e05de2e2c867d555e136ddcb899d20fb307e36af6a1b79db601d5cb4fac0",
+    "afterAllChecks": "ab22e05de2e2c867d555e136ddcb899d20fb307e36af6a1b79db601d5cb4fac0",
+    "matches": true
+  },
+  {
+    "path": "scripts/business-overlay/foundation-candidate.test.mjs",
+    "expected": "af6b275390ee096a18bcab503f7fb4158fa628f2702e5b84283d265b2b102bc4",
+    "afterAllChecks": "af6b275390ee096a18bcab503f7fb4158fa628f2702e5b84283d265b2b102bc4",
+    "matches": true
+  },
+  {
+    "path": "tests/scripts/business-overlay/check-shared-drift.test.mjs",
+    "expected": "b79af64de465f3b1e2efda7e14d595fb2ba24ee46bdb36b04f2e79824338be36",
+    "afterAllChecks": "b79af64de465f3b1e2efda7e14d595fb2ba24ee46bdb36b04f2e79824338be36",
+    "matches": true
+  }
+]

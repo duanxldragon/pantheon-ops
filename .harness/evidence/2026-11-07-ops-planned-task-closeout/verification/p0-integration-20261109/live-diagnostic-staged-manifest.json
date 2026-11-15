@@ -1,0 +1,41 @@
+{
+  "parentTask": "2026-11-07-ops-planned-task-closeout",
+  "tier": "L2",
+  "originalHashes": {
+    "o2-live-driver.go": "ef6184eb3beb64eef827658422d3e8d85d5ffc7989f89bb4a3ef61249d55600b",
+    "o2-live-runner.py": "45611b37ca83fde11a072bcd5897919d6819504965b3f74de65c08f86f18dd36",
+    "argo-product-live.py": "3ec463bd245a3c81fb3f6a6518fe81c61eb58c49f1c40ea914fbc3e38de3742b",
+    "argo-product-remote-staged.py": "f5aa4a23fec611e747730c4c00844cef98ea1119337e33a9d4214ef04eec78b4"
+  },
+  "newArtifacts": {
+    "live-diagnostic-o2-v2.go": "5ff4cc7de41e2c3f8ba3cd0e32e0cad98c4830943720bf1c1582ff01562c5385",
+    "live-diagnostic-o2-v2-runner.py": "56372070e34c97bed21ff87fecbfd1202866e9150d45a3469e6c31d59634e563",
+    "live-diagnostic-argo-v2-runner.py": "5d6008cd8f2c87b970328ae984495a0cd39f9e0b6ecb02ae104de266cfa13b84",
+    "live-diagnostic-argo-v2-remote-staged.py": "5f0fb40b9ec203c62b712107c5b8e6c749d5ef6f27485dfa572a3e9f1fd73bcf"
+  },
+  "o2CommandsAfterOriginalRun": [
+    [
+      "python",
+      "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\live-diagnostic-o2-v2-runner.py",
+      "--phase",
+      "build"
+    ],
+    [
+      "python",
+      "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\live-diagnostic-o2-v2-runner.py",
+      "--phase",
+      "execute",
+      "--case",
+      "success"
+    ]
+  ],
+  "o2ReadOnlyProbe": {
+    "source": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\live-diagnostic-o2-inspect.go",
+    "input": "stdin Identity, DSN for EXACT corresponding retained database, TaskID=1; no credential key or SSH credential needed"
+  },
+  "fix": "Driver response CodeSuccess/CodeForbidden contract; unchanged order/ownership/attempt/sentinel predicates; cursor additionally requires success and positive final sequence",
+  "pending": "Compile/vet/offline reproduction; root-run provider phases; suppressed status/history errors still unclassified",
+  "noProductSourceEdits": true,
+  "noExistingEvidenceOverwrite": true,
+  "review": "self-review: no specialist agents per lane restriction; coordinating root owns acceptance"
+}

@@ -1,0 +1,47 @@
+{
+  "source": "verified official v0.18.8 repo.tar extraction",
+  "files": [
+    {
+      "path": "scripts/frontmatter-check.mjs",
+      "currentSHA256": "0ba25e4223e3200424f41e989cf066804e72a3989fc3103ef035263e343c7f95",
+      "officialSHA256": "b744e0573ad20ccbd259011bdb8a0e8655bbf3e30b869e9146a57bfc93173f54",
+      "identical": false
+    },
+    {
+      "path": "docs/contracts/PLATFORM_CONTRACT.md",
+      "currentSHA256": "c7900a938329996340d77fb5445d2d477d1098bbfa43da28825ce771a814933c",
+      "officialSHA256": "c7900a938329996340d77fb5445d2d477d1098bbfa43da28825ce771a814933c",
+      "identical": true
+    },
+    {
+      "path": "docs/contracts/SYSTEM_AUTH_CONTRACT.md",
+      "currentSHA256": "a3e62599ced87e98940118aa40f56a5ae75f7d0d1362cf50a695e5d3a3dc4c4e",
+      "officialSHA256": "a3e62599ced87e98940118aa40f56a5ae75f7d0d1362cf50a695e5d3a3dc4c4e",
+      "identical": true
+    },
+    {
+      "path": "docs/contracts/SYSTEM_CONFIG_CONTRACT.md",
+      "currentSHA256": "db3765381c2651952f4af212dd0b1059b0fef320ca5f66f2dc713d11f212a501",
+      "officialSHA256": "db3765381c2651952f4af212dd0b1059b0fef320ca5f66f2dc713d11f212a501",
+      "identical": true
+    },
+    {
+      "path": "docs/contracts/SYSTEM_IAM_CONTRACT.md",
+      "currentSHA256": "f15cfd88e3c5926084541858652e8092ed165b3d590f82b8eae5d1364889956f",
+      "officialSHA256": "f15cfd88e3c5926084541858652e8092ed165b3d590f82b8eae5d1364889956f",
+      "identical": true
+    },
+    {
+      "path": "docs/contracts/SYSTEM_ORG_CONTRACT.md",
+      "currentSHA256": "f7523c5a90d199e1f7b2a4c0aa2a0ce9f476ce9964400e57d21d44f93d8386b1",
+      "officialSHA256": "f7523c5a90d199e1f7b2a4c0aa2a0ce9f476ce9964400e57d21d44f93d8386b1",
+      "identical": true
+    },
+    {
+      "path": "docs/contracts/TENANT_CONTRACT_V1.md",
+      "currentSHA256": "b5301eeededc2a189815cfd4b7b560ac8d5ec8c83e1a048d65c01356fcac823a",
+      "officialSHA256": "b5301eeededc2a189815cfd4b7b560ac8d5ec8c83e1a048d65c01356fcac823a",
+      "identical": true
+    }
+  ]
+}

@@ -1,0 +1,302 @@
+--- a/scripts/business-overlay/foundation-candidate.mjs
++++ b/scripts/business-overlay/foundation-candidate.mjs
+@@ -56,6 +56,45 @@
+   ],
+ });
+ 
++// Curated PUBLIC review leaves required by the existing consumer-artifact
++// contract. Keep this block byte-equivalent in both schema1 validators. This
++// permits no recursive selection or other private .harness payload.
++export const PUBLIC_REVIEW_ARCHIVE_PATHS = Object.freeze([
++  ".harness/archive/2026-08/evidence/2026-08-31-base-operational-workbench-design/review.md",
++  ".harness/archive/2026-09/evidence/2026-09-04-readme-v0.11.0-update/review.md",
++  ".harness/archive/2026-09/evidence/2026-09-10-tenant-canary-slice/review.md",
++  ".harness/archive/2026-09/evidence/2026-09-10-tenant-contract-design/review.md",
++  ".harness/archive/2026-09/evidence/2026-09-10-tenant-core-auth-iam/review.md",
++  ".harness/archive/2026-09/evidence/2026-09-10-tenant-migration-runbook/review.md",
++  ".harness/archive/2026-09/evidence/2026-09-10-tenant-ready-guardrails/review.md",
++  ".harness/archive/2026-09/evidence/2026-09-24-fix-report-residual-closeout/review.md"
++]);
++
++export function assertPublicReviewPackaging(entries) {
++  const payload = new Map(entries.map(entry => [entry.path, entry.bytes]));
++  const configPath = 'config/foundation-consumer-artifacts.json';
++  const registryPath = 'config/review-loop-legacy-artifacts.json';
++  const archival = entries.filter(entry => entry.path.startsWith('.harness/'));
++  if (!payload.has(configPath) && !payload.has(registryPath) && !archival.length) return;
++  if (!payload.has(configPath) || !payload.has(registryPath))
++    throw new Error('Public review packaging requires both original registry configurations');
++  const parse = file => JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(payload.get(file)));
++  const config = parse(configPath);
++  if (config.schemaVersion !== 1 || config.sourceOwner !== 'pantheon-base' ||
++      config.reviewLegacyRegistry?.path !== registryPath ||
++      config.reviewLegacyRegistry?.artifactRoot !== '.harness/archive')
++    throw new Error('Invalid Base consumer review packaging contract');
++  const registry = parse(registryPath);
++  const refs = registry.entries;
++  if (registry.schemaVersion !== 1 || !Array.isArray(refs) ||
++      refs.length > PUBLIC_REVIEW_ARCHIVE_PATHS.length || new Set(refs).size !== refs.length ||
++      refs.some(ref => !PUBLIC_REVIEW_ARCHIVE_PATHS.includes(ref)))
++    throw new Error('Registry must reference only curated public review leaves');
++  if (refs.some(ref => !payload.has(ref)) ||
++      archival.some(entry => !refs.includes(entry.path)))
++    throw new Error('Public review archive payload must exactly match registry references');
++}
++
+ export function assertCandidatePath(value) {
+   if (
+     typeof value !== "string" ||
+@@ -77,6 +116,7 @@
+   ) {
+     throw new Error(`Unsafe candidate path: ${value}`);
+   }
++  if (PUBLIC_REVIEW_ARCHIVE_PATHS.includes(value)) return value;
+   const parts = value.toLowerCase().split("/");
+   if (
+     parts.some(
+@@ -389,6 +429,7 @@
+   assertInventory(files);
+   if (JSON.stringify(files) !== JSON.stringify(descriptor.files))
+     throw new Error("Candidate archive inventory mismatch");
++  assertPublicReviewPackaging(entries);
+   return entries;
+ }
+ 
+@@ -589,11 +630,14 @@
+       for (const name of fs.readdirSync(absolute).sort())
+         visit(`${relative}/${name}`);
+     } else {
+-      const bytes = readStableFile(absolute);
++      // Retained official release archives are metadata inputs, not candidate
++      // product sources. Only these exact archive shapes get the higher bound.
++      const archive = /^\.foundation\/releases\/(?<release>(?:pantheon-)?base-v\d+\.\d+\.\d+)\/(?:repo\.tar|foundation-release-\k<release>\.tgz)$/u.test(relative) ||
++        /^\.foundation\/releases\/foundation-release-(?:pantheon-)?base-v\d+\.\d+\.\d+\.tgz$/u.test(relative);
++      const captured = hashStableInput(absolute, archive ? LIMITS.archiveBytes : LIMITS.fileBytes);
+       files.set(relative, {
+         path: relative,
+-        bytes: bytes.length,
+-        sha256: sha256(bytes),
++        ...captured,
+       });
+       if (files.size > LIMITS.files)
+         throw new Error("Candidate input count exceeds limit");
+@@ -605,6 +649,39 @@
+     files: [...files.entries()].sort(sort).map(([, file]) => file),
+     stamps: [...stamps.entries()].sort(sort),
+   };
++}
++
++function hashStableInput(absolute, maxBytes) {
++  assertRealPath(absolute);
++  const before = fs.lstatSync(absolute, { bigint: true });
++  const identity = (stat) => [stat.dev, stat.ino, stat.size, stat.mtimeNs,
++    stat.ctimeNs, stat.mode, stat.nlink].map(String);
++  if (!before.isFile() || before.isSymbolicLink() || before.nlink !== 1n ||
++      before.ino <= 0n || before.size > BigInt(maxBytes))
++    throw new Error("Candidate input must be a bounded regular file without hard links");
++  const fd = fs.openSync(absolute, fs.constants.O_RDONLY | (fs.constants.O_NOFOLLOW ?? 0));
++  try {
++    if (!same(identity(before), identity(fs.fstatSync(fd, { bigint: true }))))
++      throw new Error("Candidate input changed while opening");
++    const bytes = Number(before.size);
++    const chunk = Buffer.alloc(Math.min(1024 * 1024, bytes || 1));
++    const hash = crypto.createHash("sha256");
++    let offset = 0;
++    while (offset < bytes) {
++      const count = fs.readSync(fd, chunk, 0, Math.min(chunk.length, bytes - offset), offset);
++      if (!count) throw new Error("Candidate input truncated while reading");
++      hash.update(chunk.subarray(0, count));
++      offset += count;
++    }
++    if (!same(identity(before), identity(fs.fstatSync(fd, { bigint: true }))))
++      throw new Error("Candidate input changed while reading");
++    assertRealPath(absolute);
++    if (!same(identity(before), identity(fs.lstatSync(absolute, { bigint: true }))))
++      throw new Error("Candidate input path changed while reading");
++    return { bytes, sha256: hash.digest("hex") };
++  } finally {
++    fs.closeSync(fd);
++  }
+ }
+ 
+ function assertExports(entries, requiredExports) {
+--- a/scripts/business-overlay/foundation-candidate.test.mjs
++++ b/scripts/business-overlay/foundation-candidate.test.mjs
+@@ -9,6 +9,177 @@
+ import * as producer from "../../../pantheon-base/scripts/foundation-release/candidate-descriptor.mjs";
+ import * as consumer from "./foundation-candidate.mjs";
+ import { rebuildFromCandidate } from "./rebuild-from-candidate.mjs";
++
++test("captured retained archives stream within explicit metadata bounds", (t) => {
++  const root = fs.mkdtempSync(path.join(os.tmpdir(), "ops-captured-archive-"));
++  t.after(() => fs.rmSync(root, { recursive: true, force: true }));
++  const relative = ".foundation/releases/pantheon-base-v0.18.6/repo.tar";
++  const file = path.join(root, relative);
++  fs.mkdirSync(path.dirname(file), { recursive: true });
++  fs.writeFileSync(file, "");
++  fs.truncateSync(file, consumer.LIMITS.fileBytes + 1);
++  assert.throws(() => consumer.readStableFile(file), /bounded/);
++  const originalRead = fs.readSync;
++  let reads = 0;
++  t.mock.method(fs, "readSync", function (fd, buffer, offset, length, position) {
++    assert.ok(buffer.length <= 1024 * 1024);
++    assert.ok(length <= 1024 * 1024);
++    reads++;
++    return originalRead.call(this, fd, buffer, offset, length, position);
++  });
++  const before = consumer.captureInputs(root, [".foundation"]);
++  assert.ok(reads > 32);
++  assert.equal(before.files[0].bytes, consumer.LIMITS.fileBytes + 1);
++  assert.deepEqual(consumer.captureInputs(root, [".foundation"]), before);
++  assert.equal(consumer.LIMITS.fileBytes, 32 * 1024 * 1024);
++  assert.equal(consumer.LIMITS.archiveBytes, 512 * 1024 * 1024);
++  fs.truncateSync(file, consumer.LIMITS.archiveBytes + 1);
++  assert.throws(() => consumer.captureInputs(root, [".foundation"]), /bounded/);
++  fs.truncateSync(file, consumer.LIMITS.fileBytes + 1);
++  for (const invalid of ["backend/repo.tar", ".foundation/repo.tar",
++    ".foundation/releases/private/repo.tar", ".foundation/releases/pantheon-base-v0.18.6/source.go",
++    ".foundation/releases/pantheon-base-v0.18.6/foundation-release-pantheon-base-v0.17.6.tgz"]) {
++    const target = path.join(root, invalid);
++    fs.mkdirSync(path.dirname(target), { recursive: true });
++    fs.renameSync(file, target);
++    assert.throws(() => consumer.captureInputs(root, [invalid]), /bounded/);
++    fs.renameSync(target, file);
++  }
++  for (const valid of [".foundation/releases/pantheon-base-v0.18.6/foundation-release-pantheon-base-v0.18.6.tgz",
++    ".foundation/releases/foundation-release-pantheon-base-v0.18.6.tgz"]) {
++    const target = path.join(root, valid);
++    fs.renameSync(file, target);
++    assert.equal(consumer.captureInputs(root, [valid]).files[0].bytes, consumer.LIMITS.fileBytes + 1);
++    fs.renameSync(target, file);
++  }
++  fs.linkSync(file, path.join(root, "hard-link"));
++  assert.throws(() => consumer.captureInputs(root, [relative]), /hard links/);
++  fs.unlinkSync(path.join(root, "hard-link"));
++  assert.throws(() => consumer.captureInputs(root, [".foundation/../escape"]), /Unsafe/);
++  assert.throws(() => consumer.captureInputs(root, [".foundation\\escape"]), /Unsafe/);
++  fs.symlinkSync(path.dirname(file), path.join(root, "redirect"), "junction");
++  assert.throws(() => consumer.captureInputs(root, ["redirect"]), /real directories/);
++});
++
++test("chunked capture rejects actual file changes while reading", async (t) => {
++  for (const attack of ["truncate", "grow", "mutate", "replace", "short-read", "open-replace"]) {
++    await t.test(attack, (t) => {
++      const root = fs.mkdtempSync(path.join(os.tmpdir(), "ops-capture-mutation-"));
++      t.after(() => fs.rmSync(root, { recursive: true, force: true }));
++      const relative = ".foundation/releases/pantheon-base-v0.18.6/repo.tar";
++      const file = path.join(root, relative);
++      fs.mkdirSync(path.dirname(file), { recursive: true });
++      fs.writeFileSync(file, Buffer.alloc(2 * 1024 * 1024, 65));
++      const mutate = () => {
++        if (attack === "truncate") fs.truncateSync(file, 1);
++        if (attack === "grow") fs.appendFileSync(file, "extra");
++        if (attack === "mutate") {
++          const before = fs.statSync(file);
++          const fd = fs.openSync(file, "r+");
++          fs.writeSync(fd, Buffer.from("B"), 0, 1, 0);
++          fs.closeSync(fd);
++          // Rapid Windows writes may share a timestamp tick. Make this actual
++          // on-disk modification observable to the existing stamp contract.
++          fs.utimesSync(file, before.atime, new Date(before.mtimeMs + 2000));
++        }
++        if (attack === "replace" || attack === "open-replace") {
++          fs.renameSync(file, file + ".original");
++          fs.copyFileSync(file + ".original", file);
++        }
++      };
++      let triggered = false;
++      const original = attack === "open-replace" ? fs.openSync : fs.readSync;
++      t.mock.method(fs, attack === "open-replace" ? "openSync" : "readSync", function (...args) {
++        const result = original.apply(this, args);
++        if (!triggered && (attack !== "open-replace" || args[0] === file)) {
++          triggered = true;
++          mutate();
++          if (attack === "short-read") return 0;
++        }
++        return result;
++      });
++      assert.throws(() => consumer.captureInputs(root, [relative]), /changed|truncated/);
++      assert.equal(triggered, true);
++      if (attack === "replace" || attack === "open-replace")
++        assert.equal(fs.existsSync(file + ".original"), true);
++    });
++  }
++});
++
++test("public archive contract accepts only exact registry-backed review leaves", (t) => {
++  const refs = consumer.PUBLIC_REVIEW_ARCHIVE_PATHS;
++  assert.equal(refs.length, 8);
++  const config = { schemaVersion: 1, sourceOwner: "pantheon-base",
++    reviewLegacyRegistry: { path: "config/review-loop-legacy-artifacts.json", artifactRoot: ".harness/archive" } };
++  const registry = { schemaVersion: 1, entries: [...refs] };
++  const row = (file, value) => ({ path: file, bytes: Buffer.from(JSON.stringify(value)) });
++  const entries = [row("config/foundation-consumer-artifacts.json", config),
++    row("config/review-loop-legacy-artifacts.json", registry),
++    ...refs.map(file => ({ path: file, bytes: Buffer.from("Historical review fixture.\n") }))];
++  assert.doesNotThrow(() => consumer.assertPublicReviewPackaging(entries));
++  for (const file of refs) assert.equal(consumer.assertCandidatePath(file), file);
++  for (const invalid of [".harness", ".harness/archive", ".harness/archive/extra/review.md",
++    refs[0].toUpperCase(), refs[0].replace("/review.md", "/../review.md"),
++    refs[0].replace("/review.md", "/credentials.json"), ".harness/evidence/current/review.md",
++    ".harness/archive/.aws/credentials", ".harness/archive/cache/review.md"]) {
++    assert.throws(() => consumer.assertCandidatePath(invalid));
++  }
++  for (const missing of [0, 1, 2])
++    assert.throws(() => consumer.assertPublicReviewPackaging(entries.filter((_, index) => index !== missing)));
++  for (const badRefs of [[...refs, refs[0]], [...refs.slice(1)], [refs[0].toUpperCase()],
++    [".harness/archive/extra/review.md"], [".harness/archive/../secret/review.md"]]) {
++    const changed = [...entries];
++    changed[1] = row("config/review-loop-legacy-artifacts.json", { ...registry, entries: badRefs });
++    assert.throws(() => consumer.assertPublicReviewPackaging(changed));
++  }
++  assert.throws(() => consumer.assertPublicReviewPackaging([...entries,
++    { path: ".harness/evidence/private.json", bytes: Buffer.from("{}") }]));
++  const changed = [...entries];
++  changed[0] = row("config/foundation-consumer-artifacts.json", {
++    ...config, reviewLegacyRegistry: { ...config.reviewLegacyRegistry, artifactRoot: ".harness" },
++  });
++  assert.throws(() => consumer.assertPublicReviewPackaging(changed), /contract/);
++});
++
++test("retained archive fixtures survive assembly and both capture paths", (t) => {
++  const f = fixture(t);
++  const opsRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
++  const evidence = process.env.O4_REAL_RETAINED_ARCHIVE_DIAGNOSTICS;
++  const offenders = evidence ? JSON.parse(fs.readFileSync(evidence)).offenders : [
++    { path: ".foundation/releases/pantheon-base-v0.17.6/repo.tar", bytes: 45168640 },
++    { path: ".foundation/releases/pantheon-base-v0.18.6/repo.tar", bytes: 59422720 },
++    { path: ".foundation/releases/pantheon-base-v0.18.6/foundation-release-pantheon-base-v0.18.6.tgz", bytes: 36214646 },
++  ];
++  assert.equal(offenders.length, evidence ? 9 : 3);
++  for (const offender of offenders) {
++    consumer.assertRelativeInput(offender.path);
++    assert.ok(offender.path.startsWith(".foundation/releases/"));
++    const target = path.join(f.ops, offender.path);
++    fs.mkdirSync(path.dirname(target), { recursive: true });
++    // Real retained metadata in a disposable fixture; the product manifest and
++    // caches stay untouched. The existing assembler owns all subsequent copies.
++    if (evidence) fs.copyFileSync(path.join(opsRoot, offender.path), target);
++    else {
++      fs.writeFileSync(target, "");
++      fs.truncateSync(target, offender.bytes);
++    }
++    assert.throws(() => consumer.readStableFile(target), /bounded/);
++  }
++  const inputs = consumer.captureInputs(f.ops, [".foundation"]);
++  const result = rebuildFromCandidate({ opsRoot: f.ops, ...f.candidate,
++    expectedDescriptorSha256: f.candidate.descriptorSha256 });
++  const assembled = consumer.captureInputs(result.targetRoot, [".foundation"]);
++  assert.deepEqual(assembled.files, inputs.files);
++  for (const offender of offenders) {
++    const source = result.receipt.opsSourceFilesBefore.find(file => file.path === offender.path);
++    const target = result.receipt.assembledSourceFiles.find(file => file.path === offender.path);
++    assert.equal(source.bytes, offender.bytes);
++    assert.deepEqual(target, source);
++  }
++  assert.equal(result.receipt.officialLockSha256Before, result.receipt.officialLockSha256After);
++  assert.equal(result.receipt.sourceStable, true);
++  assert.equal(result.receipt.checks.find(check => check.operation === "checkSharedDrift").exitCode, 0);
++});
+ 
+ // Only fixture construction imports the explicitly located Base source tooling.
+ // The production consumer is self-contained and reads pinned artifact bytes.

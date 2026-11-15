@@ -1,0 +1,55 @@
+[
+  {
+    "archStatus": "CLEAR",
+    "accepted": true,
+    "expectedAccepted": true,
+    "gateHashes": {
+      "continue-velero-alias-v3-independent-code-report.md": "f0de8988c07ea42beff4b8708f670368bd38723318ec798c3bb9550556b17cf4",
+      "continue-velero-alias-v3-independent-arch-report.md": "bfdbaab80cb31dfcee1a7cdfe1b57e733644d92f4c97fe955f958fe28abe4df0"
+    }
+  },
+  {
+    "archStatus": "WATCH",
+    "accepted": true,
+    "expectedAccepted": false,
+    "gateHashes": {
+      "continue-velero-alias-v3-independent-code-report.md": "f0de8988c07ea42beff4b8708f670368bd38723318ec798c3bb9550556b17cf4",
+      "continue-velero-alias-v3-independent-arch-report.md": "0eff49053503a682b84d0c45e610c94a2707c15dc18fc4a2da748ed19d3c3438"
+    }
+  },
+  {
+    "archStatus": "BLOCK",
+    "accepted": true,
+    "expectedAccepted": false,
+    "gateHashes": {
+      "continue-velero-alias-v3-independent-code-report.md": "f0de8988c07ea42beff4b8708f670368bd38723318ec798c3bb9550556b17cf4",
+      "continue-velero-alias-v3-independent-arch-report.md": "bd746414339e39937f6c3b9e17937aec4e427f599fef9699bdace323a267f5c3"
+    }
+  },
+  {
+    "archStatus": "UNKNOWN",
+    "accepted": true,
+    "expectedAccepted": false,
+    "gateHashes": {
+      "continue-velero-alias-v3-independent-code-report.md": "f0de8988c07ea42beff4b8708f670368bd38723318ec798c3bb9550556b17cf4",
+      "continue-velero-alias-v3-independent-arch-report.md": "c13f032abdbd391b340fb487af90e09dcd71866dabedefb6aa7965e9fc36f500"
+    }
+  },
+  {
+    "archStatus": null,
+    "accepted": true,
+    "expectedAccepted": false,
+    "gateHashes": {
+      "continue-velero-alias-v3-independent-code-report.md": "f0de8988c07ea42beff4b8708f670368bd38723318ec798c3bb9550556b17cf4",
+      "continue-velero-alias-v3-independent-arch-report.md": "6266fcab6dd21cc48f34e062db6048c58bf96770a9831ff9074d5cf31ecce1cc"
+    }
+  },
+  {
+    "rootPassedBlockGateAndReachedConnection": true,
+    "rootResult": {
+      "exitCode": 1,
+      "remoteExecuted": false,
+      "errorType": "RuntimeError"
+    }
+  }
+]

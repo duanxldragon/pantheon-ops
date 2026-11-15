@@ -1,0 +1,93 @@
+{
+  "review": "independent CODE; root staged alias recovery only",
+  "finishedAt": "2026-11-10T06:12:21.787198+00:00",
+  "verdict": "REQUEST CHANGES",
+  "filesReviewed": 5,
+  "issues": [
+    {
+      "severity": "HIGH",
+      "path": ".local/ops-acceptance/continue-velero-alias-remote.py",
+      "line": 317,
+      "issue": "Raw inspector recompilation loses CapturedSyntax; reopened sealed provider source is evaluated without captured-byte verification.",
+      "reproduction": "test_recompiled_inspector_executes_reopened_unsealed_source_expression",
+      "fix": "Keep the captured read transformation or obtain the provider source directly from its loaded captured buffer."
+    },
+    {
+      "severity": "MEDIUM",
+      "path": ".local/ops-acceptance/continue-velero-alias-remote.py",
+      "line": 161,
+      "issue": "Only entries[5:] receive full policy comparison; original Service spec mutations return identical original-five proof.",
+      "reproduction": "test_unreviewed_service_spec_returns_identical_native_five_proof",
+      "fix": "Bind the first five complete specs and allowed defaults to reviewed immutable evidence; refuse drift before either tag."
+    }
+  ],
+  "requestSHA256": "f053fb6dda5d44af557eabdee4ad04b676da47591d7add0e210a442425a81d70",
+  "sourceHashesBefore": {
+    ".local/ops-acceptance/continue-velero-alias-contract.py": "a18eaa2cac4b5e2358090b3c9aebe3eaa4cdb1450d22a0c3a1d2f80f890cdef6",
+    ".local/ops-acceptance/continue-velero-alias-remote.py": "906f24a70436eefc53245d5251c831b3828e5227edc8ffe8dcac3fb2f78dbfb6",
+    ".local/ops-acceptance/continue-velero-alias-root.py": "fd02f3dc08438891241d3c775dcb06124badb791fd9622c0a0b0358eb24f1e0d",
+    ".local/ops-acceptance/continue-velero-alias-generate.py": "d8b8582cc0e227e1445845d12b63b71161b7e1868684b4a2e3a801931634958a",
+    ".local/ops-acceptance/continue-velero-alias-test.py": "46ad82310bb2de04e83a3c77ff20f1b7378b1b6c57027d2b03f435a7da6febc2"
+  },
+  "sourceHashesAfter": {
+    ".local/ops-acceptance/continue-velero-alias-contract.py": "a18eaa2cac4b5e2358090b3c9aebe3eaa4cdb1450d22a0c3a1d2f80f890cdef6",
+    ".local/ops-acceptance/continue-velero-alias-remote.py": "906f24a70436eefc53245d5251c831b3828e5227edc8ffe8dcac3fb2f78dbfb6",
+    ".local/ops-acceptance/continue-velero-alias-root.py": "fd02f3dc08438891241d3c775dcb06124badb791fd9622c0a0b0358eb24f1e0d",
+    ".local/ops-acceptance/continue-velero-alias-generate.py": "d8b8582cc0e227e1445845d12b63b71161b7e1868684b4a2e3a801931634958a",
+    ".local/ops-acceptance/continue-velero-alias-test.py": "46ad82310bb2de04e83a3c77ff20f1b7378b1b6c57027d2b03f435a7da6febc2"
+  },
+  "sourceHashesStable": true,
+  "originalFailureSHA256": "f27d06fcc7160e534d3a2d8dde304367620bc7bf1f4e66148476d3b405de2601",
+  "originalFailurePreserved": true,
+  "commands": [
+    {
+      "command": "python -B .local/ops-acceptance/continue-velero-alias-root.py check-inputs --request-sha256 f053fb6dda5d44af557eabdee4ad04b676da47591d7add0e210a442425a81d70",
+      "exitCode": 0
+    },
+    {
+      "command": "python -B .local/ops-acceptance/continue-velero-alias-test.py",
+      "exitCode": 0,
+      "tests": 27,
+      "skips": 0
+    },
+    {
+      "command": "python -B .local/ops-acceptance/python-lsp-check.py independent-code-review-alias continue-velero-alias-contract.py continue-velero-alias-remote.py continue-velero-alias-root.py continue-velero-alias-generate.py continue-velero-alias-test.py",
+      "exitCode": 0,
+      "artifact": "python-lsp-independent-code-review-alias-20261110T060836980742.json",
+      "sha256": "99b22e92a86fce1bd5752e207cccdf7bb893d057ef587e12b487a75a2e742788",
+      "files": 5,
+      "errors": 0,
+      "warnings": 0
+    },
+    {
+      "command": "python -B .harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/continue-velero-alias-independent-code-review-test.py",
+      "exitCode": 0,
+      "tests": 2,
+      "skips": 0,
+      "sha256": "e2e6c3ba89037cc11533ff5740f00639ffc45edd4c8aa769e86d428881e2a1f9",
+      "initialHelperSetupFailure": "missing ast in isolated context; corrected in new review helper only; original sources unchanged"
+    },
+    {
+      "command": "compile(path.read_bytes(), path, \"exec\") for the five request script paths",
+      "exitCode": 0,
+      "compiled": 5
+    }
+  ],
+  "toolGaps": [
+    "CodeGraph MCP unavailable",
+    "lsp_diagnostics API unavailable; real Pyright LSP run instead",
+    "ast_grep_search API unavailable; Python AST scan used"
+  ],
+  "notRun": [
+    "remote diagnostic/repair/validate/cleanup",
+    "Go race/product build",
+    "158 inherited historical tests"
+  ],
+  "remoteExecuted": false,
+  "credentialAccess": false,
+  "productChanged": false,
+  "P0Approved": false,
+  "architectureVerdictIssued": false,
+  "stage1": "FAIL: captured-byte and original-five spec bindings",
+  "rootCauseGuard": "FAIL: primary captured-source contract not preserved; no normal quality approval"
+}

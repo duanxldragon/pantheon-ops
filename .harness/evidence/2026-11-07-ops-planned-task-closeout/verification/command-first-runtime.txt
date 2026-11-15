@@ -1,0 +1,80 @@
+
+Running 2 tests using 1 worker
+
+(node:6516) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x  1 tests\smoke\business\deploy\deploy-command.spec.ts:10:2 › viewed task command conflict refreshes without replay (light) (12.3s)
+(node:23564) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x  2 tests\smoke\business\deploy\deploy-command.spec.ts:10:2 › viewed task command conflict refreshes without replay (dark) (12.1s)
+
+
+  1) tests\smoke\business\deploy\deploy-command.spec.ts:10:2 › viewed task command conflict refreshes without replay (light) 
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator: getByRole('button', { name: '重试', exact: true })
+    Expected: visible
+    Timeout: 10000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toBeVisible" getByRole('button', { name: '重试', exact: true }) with timeout 10000ms
+      - waiting for getByRole('button', { name: '重试', exact: true })
+
+
+      33 |    });
+      34 |    await page.setViewportSize({width:1440,height:900});await page.goto(`/business/deploy/task/${taskId}`);
+    > 35 |    const retry=page.getByRole('button',{name:'重试',exact:true});await expect(retry).toBeVisible();
+         |                                                                                    ^
+      36 |    const conflict=page.waitForResponse(response=>response.url().endsWith(`/tasks/${taskId}/retry`));await retry.click();expect((await (await conflict).json()).code).toBe(409);
+      37 |    await expect(page.getByText('任务状态已变化，请刷新并确认当前状态后重新操作。',{exact:true})).toBeVisible();await expect.poll(()=>refreshes).toBeGreaterThan(0);
+      38 |    expect(commands).toBe(1);
+        at D:\workspace\go\pantheon-platform\pantheon-ops\frontend\tests\smoke\business\deploy\deploy-command.spec.ts:35:84
+
+    Error Context: ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\command-first-browser\smoke-business-deploy-depl-515b4-eshes-without-replay-light-\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\command-first-browser\smoke-business-deploy-depl-515b4-eshes-without-replay-light-\trace.zip
+    Usage:
+
+        npx playwright show-trace ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\command-first-browser\smoke-business-deploy-depl-515b4-eshes-without-replay-light-\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  2) tests\smoke\business\deploy\deploy-command.spec.ts:10:2 › viewed task command conflict refreshes without replay (dark) 
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator: getByRole('button', { name: '重试', exact: true })
+    Expected: visible
+    Timeout: 10000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toBeVisible" getByRole('button', { name: '重试', exact: true }) with timeout 10000ms
+      - waiting for getByRole('button', { name: '重试', exact: true })
+
+
+      33 |    });
+      34 |    await page.setViewportSize({width:1440,height:900});await page.goto(`/business/deploy/task/${taskId}`);
+    > 35 |    const retry=page.getByRole('button',{name:'重试',exact:true});await expect(retry).toBeVisible();
+         |                                                                                    ^
+      36 |    const conflict=page.waitForResponse(response=>response.url().endsWith(`/tasks/${taskId}/retry`));await retry.click();expect((await (await conflict).json()).code).toBe(409);
+      37 |    await expect(page.getByText('任务状态已变化，请刷新并确认当前状态后重新操作。',{exact:true})).toBeVisible();await expect.poll(()=>refreshes).toBeGreaterThan(0);
+      38 |    expect(commands).toBe(1);
+        at D:\workspace\go\pantheon-platform\pantheon-ops\frontend\tests\smoke\business\deploy\deploy-command.spec.ts:35:84
+
+    Error Context: ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\command-first-browser\smoke-business-deploy-depl-8790f-reshes-without-replay-dark-\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\command-first-browser\smoke-business-deploy-depl-8790f-reshes-without-replay-dark-\trace.zip
+    Usage:
+
+        npx playwright show-trace ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\command-first-browser\smoke-business-deploy-depl-8790f-reshes-without-replay-dark-\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  2 failed
+    tests\smoke\business\deploy\deploy-command.spec.ts:10:2 › viewed task command conflict refreshes without replay (light) 
+    tests\smoke\business\deploy\deploy-command.spec.ts:10:2 › viewed task command conflict refreshes without replay (dark) 

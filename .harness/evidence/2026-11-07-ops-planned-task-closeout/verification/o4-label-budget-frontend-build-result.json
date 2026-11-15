@@ -1,0 +1,11 @@
+{
+  "command": [
+    "npm.cmd",
+    "run",
+    "build"
+  ],
+  "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\frontend",
+  "exitCode": 0,
+  "elapsedSeconds": 24.84299999999348,
+  "artifact": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/o4-label-budget-frontend-build.txt"
+}

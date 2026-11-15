@@ -1,0 +1,2 @@
+2026-11-09T13:47:30.447+0800	[34mINFO[0m	server/main.go:39	Starting Pantheon Base	{"version": "dev", "environment": "development"}
+2026/11/09 13:47:30 ERROR failed to connect database error="Error 1049 (42000): Unknown database 'ops_p0_remote_acceptance_v6'"

@@ -3,7 +3,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
 import { fileURLToPath } from 'node:url';
-import { assertSafeManifest, planBusinessMigrations } from './rebuild-from-base.mjs';
+import { assertSafeManifest, planBusinessMigrations, verifyBusinessDerivedOutputs } from './rebuild-from-base.mjs';
 import { resolveBaseFromLock } from './foundation-release.mjs';
 
 // Compare consumer bytes to the verified, locked official GitHub snapshot.
@@ -11,7 +11,7 @@ import { resolveBaseFromLock } from './foundation-release.mjs';
 
 const defaultRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 
-export function checkSharedDrift({ root, snapshot, group = 'all' }) {
+export function checkSharedDrift({ root, snapshot, group = 'all', sourceRoot }) {
   const base = snapshot.baseRoot;
   const lock = snapshot.manifest;
   const sharedPaths = lock.sharedPaths ?? {};
@@ -89,6 +89,9 @@ export function checkSharedDrift({ root, snapshot, group = 'all' }) {
 
   if (group !== 'all' && !Object.hasOwn(sharedPaths, group)) throw new Error('Unknown shared path group: ' + group);
   const groups = group === 'all' ? Object.keys(sharedPaths) : [group];
+  const comparedRoots = groups.flatMap(g => sharedPaths[g] ?? []);
+  const covered = file => comparedRoots.some(entry => file === entry || file.startsWith(entry + '/'));
+  const derivedOutputs = verifyBusinessDerivedOutputs({ root, snapshot, manifest, sourceRoot });
   const opsFiles = new Set();
   for (const g of groups) {
     for (const sharedPath of sharedPaths[g] ?? []) {
@@ -100,11 +103,17 @@ export function checkSharedDrift({ root, snapshot, group = 'all' }) {
   const modified = [];
   const missingInBase = [];
   const matchedAllowlist = new Set();
+  const supersededAllowlist = new Set();
   let comparedFiles = 0;
   let skippedBusinessFiles = 0;
 
   for (const relative of [...opsFiles].sort()) {
     if (derivedMigrations.has(relative)) continue;
+    if (derivedOutputs.has(relative)) {
+      if (Object.hasOwn(allowedDrift, relative) && hashBaseFile(base, relative) !== sha256File(path.join(root, relative)))
+        supersededAllowlist.add(relative);
+      continue;
+    }
     if (isBusinessPath(relative)) {
       skippedBusinessFiles += 1;
       continue;
@@ -132,7 +141,15 @@ export function checkSharedDrift({ root, snapshot, group = 'all' }) {
   }
   const staleAllowlist = Object.keys(allowedDrift)
     .filter((file) => !file.startsWith('$'))
+    .filter(covered)
+    .filter((file) => !supersededAllowlist.has(file))
     .filter((file) => !matchedAllowlist.has(file));
+
+  for (const file of Object.keys(allowedDrift).filter(file => !file.startsWith('$') && !covered(file)))
+    console.log(`ALLOWLIST_NOT_COMPARED ${file} (outside selected shared path coverage; no equality claim)`);
+  console.log(`DERIVED_BUSINESS_VERIFIED ${derivedOutputs.size} canonical assembler outputs (report hashes checked)`);
+  for (const file of supersededAllowlist)
+    console.log(`LEGACY_ALLOWLIST_SUPERSEDED ${file} (canonical assembly verified; entry grants no exemption)`);
 
   for (const file of unexpectedModified) console.error(`DRIFT_MODIFIED ${file}`);
   for (const file of unexpectedMissing) console.error(`DRIFT_MISSING_IN_BASE ${file}`);

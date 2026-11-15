@@ -1,0 +1,520 @@
+--- sealed-v6-root
++++ new-v7-root
+@@ -1,71 +1,83 @@
+ """Local sealed inputs -> root diagnostic -> bounded complete -> original validate/cleanup."""
+ from pathlib import Path
+-import argparse, ast, datetime, hashlib, importlib.util, json, re, sys
++import argparse, ast, datetime, hashlib, importlib.util, json, re, shlex, sys
+ sys.dont_write_bytecode = True
+ ROOT = Path(__file__).resolve().parents[2]
+ LOCAL = ROOT / '.local/ops-acceptance'
+ EV = ROOT / '.harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109'
+-REQUEST = 'resume-velero-s3-v6-root-request.json'
++REQUEST = 'resume-velero-s3-v7-root-request-final.json'
++
++import types
++_seals_path = Path(__file__).with_name('resume-velero-s3-v7-seals.py')
++_seals_raw = _seals_path.read_bytes()
++if hashlib.sha256(_seals_raw).hexdigest() != '56d889f19ed8635737ce6e45005a917196a264637a29d91b492424cd4f168697':
++    raise ValueError('v7-seals-bootstrap-drift')
++S = types.ModuleType('v7_seals'); S.__file__ = str(_seals_path)
++exec(compile(_seals_raw, str(_seals_path), 'exec'), S.__dict__)
++if S.EV.is_dir():
++    S.v6_request()
+ 
+ def load(name):
+-    spec = importlib.util.spec_from_file_location(name.replace('-', '_'), LOCAL / (name + '.py'))
+-    module = importlib.util.module_from_spec(spec)
+-    spec.loader.exec_module(module)
+-    return module
++    return S.load(name)
+ 
+ W = load('resume-velero-s3-v4-root')
+ ORIGINAL_REVIEW = W.reviewed_inputs
+ sha, require, parse = W.sha, W.require, W.parse
+ REMOTE, OWNER = W.REMOTE, W.OWNER
+-SCRIPTS = ['resume-velero-s3-v6-remote.py', 'resume-velero-s3-v6-native.py', 'resume-velero-s3-v6-fixture.py']
++SCRIPTS = ['resume-velero-s3-v7-remote.py', 'resume-velero-s3-v7-seals.py', 'resume-velero-s3-v7-fixture.py']
+ 
+ def reviewed_inputs():
+-    request = parse((EV / REQUEST).read_text())
+-    require(request['phaseOrder'] == ['diagnostic', 'complete', 'validate', 'cleanup'] and request['remoteOwnedPath'] == REMOTE and
+-            request['owner'] == OWNER and request['tier'] == 'L2' and request['requiresRootExecution'], 'fixed-v6-request')
+-    require(request['schemaVersion'] == 2 and request['v5RequestSHA256'] ==
+-            '723824066805739acad3f52011c299a947f01c8035b872193c9113b4663949d6' and
+-            request['v5DiagnosticReceiptSHA256'] == '4c9ae739221233ae3d3c0f1a10706b97e9ed2557fdc690c78d5086bbfc5aab53' and
+-            request['mirrorInspectionSHA256'] == 'b792321b9c3ce9240cd2e6f0664e93b2396ea0defe003f0f45f9c923a5f2224a',
+-            'fixed-v5-failure-and-mirror-inspection')
++    # Consume the exact v6 request/failure/inspection bytes; no rehashing old seals.
++    old = S.v6_request()
++    previous = S.load('resume-velero-s3-v6-root')
++    _, original, prior, artifacts = previous.reviewed_inputs()
++    raw = (EV / REQUEST).read_bytes()
++    request_hash = S.digest(raw)
++    raw = S.capture(EV / REQUEST, request_hash)
++    request = parse(raw)
++    require(request['schemaVersion'] == 3 and request['v6RequestSHA256'] == S.V6_REQUEST_SHA and
++            request['v6DiagnosticReceipt'] == S.DIAGNOSTIC and request['v6DiagnosticReceiptSHA256'] == S.DIAGNOSTIC_SHA and
++            request['absenceInspectionReceipt'] == S.INSPECTION and request['absenceInspectionSHA256'] == S.INSPECTION_SHA,
++            'fixed-v6-failure-absence-chain')
++    failed = parse(S.capture(EV / S.DIAGNOSTIC, S.DIAGNOSTIC_SHA))
++    inspected = parse(S.capture(EV / S.INSPECTION, S.INSPECTION_SHA))
++    require(failed['phase'] == 'diagnostic' and type(failed['exitCode']) is int and failed['exitCode'] == 1 and
++            failed['remoteExecuted'] is True and failed['rootRequestSHA256'] == S.V6_REQUEST_SHA and
++            failed['v6ScriptHashes'] == old['scriptHashes'] and failed['records'][0]['errorKey'] == 'not-absent-or-get-failed' and
++            inspected['exitCode'] == 0 and inspected['remoteMutation'] is False and
++            inspected['v6DiagnosticSHA256'] == S.DIAGNOSTIC_SHA and inspected['record']['veleroCRDs'] == [] and
++            inspected['record']['veleroGroupAdvertised'] is False and inspected['record']['objectCount'] == 18,
++            'actual-v6-compatibility-evidence')
++    require(request['remoteBaseline'] == failed['remoteFiles'] and request['v6ScriptHashes'] == old['scriptHashes'],
++            'exact-v6-remote-baseline')
++    for key, value in old.items():
++        if key not in ['schemaVersion', 'protectedHashes', 'scriptHashes', 'remoteBaseline']:
++            require(request[key] == value, 'original-request-policy-drift')
++    for name, expected in {**old['protectedHashes'], **old['scriptHashes']}.items():
++        require(request['protectedHashes'].get(name) == expected, 'prior-seal-replacement')
++    expected_names = {'resume-velero-s3-v7-' + n + '.py' for n in ['root', 'remote', 'native', 'fixture', 'seals', 'generate', 'test']}
++    require({Path(n).name for n in request['scriptHashes']} == expected_names and
++            all(n.startswith('.local/ops-acceptance/resume-velero-s3-v7-') for n in request['scriptHashes']), 'exact-new-v7-helper-set')
+     for name, expected in {**request['protectedHashes'], **request['scriptHashes']}.items():
+         path = ROOT / name
+         require(path.is_file() and not path.is_symlink() and path.stat().st_nlink == 1 and
+                 path.resolve() == path.absolute() and sha(path) == expected, 'sealed-local-input-drift')
+-    old, original, previous, artifacts = ORIGINAL_REVIEW()
+-    require(old['scriptHashes'] == request['v4ScriptHashes'] and old['productSourceHashes'] == request['productSourceHashes'] and
+-            old['driverBinarySHA256'] == request['driverBinarySHA256'], 'v4-source-binary-drift')
+-    failure = parse((EV / request['failureReceipt']).read_text())
+-    require(failure['phase'] == 'install' and failure['exitCode'] == 1 and failure['remoteExecuted'] is True and
+-            failure['rootRequestSHA256'] == sha(EV / 'resume-velero-s3-v4-root-request.json') and len(failure['records']) == 1 and
+-            failure['records'][0] == request['knownFailure'] and failure['records'][0]['ownedObjects'] == request['originalFive'],
+-            'exact-v4-failure-required')
+-    require(request['failureReceiptSHA256'] == '9c2048e5ff4d4f2ce139a8a19fe281afa26b539ba93a7c988cdd445a8a61683b' and
+-            sha(EV / request['failureReceipt']) == request['failureReceiptSHA256'], 'canonical-failure-hash-required')
+-    prior = parse((EV / request['v5DiagnosticReceipt']).read_text())
+-    inspection = parse((EV / request['mirrorInspectionReceipt']).read_text())
+-    require(sha(EV / request['v5DiagnosticReceipt']) == request['v5DiagnosticReceiptSHA256'] and
+-            sha(EV / request['mirrorInspectionReceipt']) == request['mirrorInspectionSHA256'] and
+-            sha(EV / 'resume-velero-s3-v5-root-request.json') == request['v5RequestSHA256'] and
+-            prior['exitCode'] == 1 and prior['phase'] == 'diagnostic' and prior['remoteExecuted'] is True and
+-            prior['rootRequestSHA256'] == request['v5RequestSHA256'] and prior['v5ScriptHashes'] == request['v5ScriptHashes'] and
+-            prior['remoteFiles'] == request['remoteBaseline'] and prior['failedRemoteReceipt'] == request['failedRemoteReceipt'] and
+-            inspection['exitCode'] == 0 and inspection['remoteMutation'] is False and
+-            inspection['objects'] == request['mirrorInspection'], 'actual-failure-inspection-baseline')
+-    load('resume-velero-s3-v6-native').inspection_policy(request['mirrorInspection'])
+-    return request, original, previous, artifacts
++    S.configure(request['scriptHashes'], ROOT)
++    request['_capturedRequestSHA256'] = request_hash
++    return request, original, prior, artifacts
+ 
+ def prior_receipt(name, expected_hash, phase):
+-    require(isinstance(name, str) and re.fullmatch(r'resume-velero-s3-v6-root-[a-z-]+-[0-9]{8}T[0-9]{12}\.json', name), 'fixed-v6-receipt')
++    require(isinstance(name, str) and re.fullmatch(r'resume-velero-s3-v7-root-[a-z-]+-[0-9]{8}T[0-9]{12}\.json', name), 'fixed-v6-receipt')
+     require(isinstance(expected_hash, str) and re.fullmatch(r'[0-9a-f]{64}', expected_hash), 'explicit-prior-hash')
+     path = EV / name
+-    require(path.is_file() and not path.is_symlink() and path.stat().st_nlink == 1 and sha(path) == expected_hash, 'prior-receipt-drift')
+-    receipt = parse(path.read_text())
++    require(path.is_file() and not path.is_symlink() and path.stat().st_nlink == 1, 'prior-receipt-drift')
++    receipt = parse(S.capture(path, expected_hash))
+     request = reviewed_inputs()[0]
+     require(receipt['phase'] == phase and type(receipt['exitCode']) is int and receipt['exitCode'] == 0 and receipt['remoteExecuted'] is True and
+-            receipt['rootRequestSHA256'] == sha(EV / REQUEST) and receipt['v6ScriptHashes'] == request['scriptHashes'] and
++            receipt['rootRequestSHA256'] == request['_capturedRequestSHA256'] and receipt['v7ScriptHashes'] == request['scriptHashes'] and
+             receipt['mirrorInspectionSHA256'] == request['mirrorInspectionSHA256'] and
+-            receipt['v5DiagnosticReceiptSHA256'] == request['v5DiagnosticReceiptSHA256'], 'successful-sealed-predecessor')
++            receipt['v5DiagnosticReceiptSHA256'] == request['v5DiagnosticReceiptSHA256'] and
++            receipt['v6DiagnosticReceiptSHA256'] == S.DIAGNOSTIC_SHA and receipt['absenceInspectionSHA256'] == S.INSPECTION_SHA, 'successful-sealed-predecessor')
+     if phase == 'complete':
+         require(receipt['providerInstalled'] is True and receipt['records'][0]['details']['originalFiveReused'] is True and
+                 receipt['records'][0]['details']['migration']['failureReceiptSHA256'] == request['failureReceiptSHA256'], 'explicit-recovery-predecessor')
+@@ -83,7 +95,8 @@
+         # Only exact reuploads of the new helpers may already exist; never overwrite.
+         for name in SCRIPTS:
+             if name in names:
+-                records[name] = {'bytes': (LOCAL / name).stat().st_size, 'sha256': sha(LOCAL / name), 'mode': 0o600}
++                raw = S.capture(LOCAL / name, request['scriptHashes']['.local/ops-acceptance/' + name])
++                records[name] = {'bytes': len(raw), 'sha256': S.digest(raw), 'mode': 0o600}
+         extra = names - set(records) - {'data', 'data.img', 's3-auth.json'}
+         require(not extra, 'unknown-remote-recovery-entry')
+         failed = request['failedRemoteReceipt']
+@@ -99,6 +112,7 @@
+ def upload(client, records):
+     with client.open_sftp() as sftp:
+         for name in SCRIPTS:
++            raw = S.capture(LOCAL / name, S.SEALS[str((LOCAL / name).absolute())])
+             if name in records:
+                 continue
+             destination = REMOTE + '/' + name
+@@ -109,16 +123,51 @@
+             else:
+                 raise ValueError('unreviewed-existing-v6-file')
+             with sftp.open(destination, 'wx') as output:
+-                output.write((LOCAL / name).read_bytes())
++                output.write(raw)
+                 output.flush()
+             sftp.chmod(destination, 0o600)
+-            records[name] = {'bytes': (LOCAL / name).stat().st_size, 'sha256': sha(LOCAL / name), 'mode': 0o600}
++            records[name] = {'bytes': len(raw), 'sha256': S.digest(raw), 'mode': 0o600}
+     return W.checked_listing(client, records, native=True)
++
++def sealed_command(script, phase, records, timeout):
++    require((script, phase) in [('resume-velero-s3-v7-remote.py', 'diagnostic'),
++            ('resume-velero-s3-v7-remote.py', 'complete'), ('resume-velero-s3-v7-fixture.py', 'prepare'),
++            ('resume-velero-s3-v7-fixture.py', 'cleanup')] and type(timeout) is int and 1 <= timeout <= 900,
++            'fixed-captured-helper-command')
++    expected = records[script]
++    require(re.fullmatch(r'[0-9a-f]{64}', expected['sha256']) and type(expected['bytes']) is int and
++            0 < expected['bytes'] <= 1024 * 1024, 'fixed-captured-helper-seal')
++    path = REMOTE + '/' + script
++    # The invoked helper is read once, checked and compiled from that exact buffer.
++    code = '\n'.join([
++        'from pathlib import Path', 'import hashlib, os, stat, sys',
++        'path = Path(' + repr(path) + ')', 'before = path.lstat()',
++        "if os.geteuid() != 0 or path.resolve() != path or not stat.S_ISREG(before.st_mode) or before.st_nlink != 1 or before.st_uid != 0 or before.st_gid != 0 or stat.S_IMODE(before.st_mode) != 0o600: raise ValueError('captured-command-file-identity')",
++        "with path.open('rb') as stream:",
++        "    opened = os.fstat(stream.fileno()); raw = stream.read(1024 * 1024 + 1); after = os.fstat(stream.fileno())",
++        'identity = lambda s: (s.st_dev, s.st_ino, s.st_size, s.st_mtime_ns, s.st_ctime_ns, s.st_mode, s.st_nlink, s.st_uid, s.st_gid)',
++        'if identity(before) != identity(opened) or identity(opened) != identity(after) or identity(after) != identity(path.lstat()) or len(raw) != ' + str(expected['bytes']) + " or hashlib.sha256(raw).hexdigest() != " + repr(expected['sha256']) + ": raise ValueError('captured-command-byte-drift')",
++        'sys.argv = [str(path), ' + repr(phase) + ']',
++        "exec(compile(raw, str(path), 'exec'), {'__name__': '__main__', '__file__': str(path)})"])
++    return 'timeout --signal=TERM --kill-after=5s ' + str(timeout) + 's python3 -B -c ' + shlex.quote(code)
++
++def invoke_fixture(client, script, phase, inputs=None, timeout=600):
++    require(inputs is None and script == 'resume-velero-s3-v7-fixture.py' and phase in ['prepare', 'cleanup'],
++            'fixed-captured-fixture-invocation')
++    command = sealed_command(script, phase, W.STATE['files'], timeout)
++    previous = reviewed_inputs()[2]
++    raw, code, stderr = previous.bounded_exec(client, command, 512 * 1024, timeout + 15)
++    lines = raw.decode('utf-8').splitlines()
++    require(len(lines) == 1 and not stderr, 'one-captured-fixture-receipt')
++    receipt = parse(lines[0])
++    require(type(code) is int and code in [0, 1] and receipt.get('exitCode') == code and
++            receipt.get('phase') in [phase, 'fixture' if phase == 'prepare' else phase], 'typed-captured-fixture-receipt')
++    return {'phase': phase, 'exitCode': code, 'records': [receipt], 'stderrPresent': stderr, 'remoteCommand': command}
+ 
+ def invoke_recovery(client, phase, inputs):
+     require(phase in ['diagnostic', 'complete'], 'fixed-recovery-invocation')
+     timeout = 900
+-    command = 'timeout --signal=TERM --kill-after=5s 900s python3 -B ' + REMOTE + '/resume-velero-s3-v6-remote.py ' + phase
++    command = sealed_command('resume-velero-s3-v7-remote.py', phase, inputs['expectedFiles'], timeout)
+     stdin, output, error = client.exec_command(command, timeout=timeout + 15)
+     output.channel.sendall(json.dumps(inputs).encode())
+     output.channel.shutdown_write()
+@@ -146,20 +195,20 @@
+     require(inventory[:5] == request['originalFive'] and len(inventory) > 5 and
+             all(x.get('uid') and x['owner'] == OWNER for x in inventory) and len({x['uid'] for x in inventory}) == len(inventory), 'recovery-uid-inventory')
+     canonical = {'resume-velero-s3-partial-owned.json': inventory, 'resume-velero-s3-provider.json': provider,
+-                 'resume-velero-s3-v6-original-partial-owned.json': request['originalFive'], 'resume-velero-s3-v6-migration.json': details['migration']}
++                 'resume-velero-s3-v7-original-partial-owned.json': request['originalFive'], 'resume-velero-s3-v7-migration.json': details['migration']}
+     records = {k: v for k, v in before.items() if k != 'resume-velero-s3-partial-owned.json'}
+     with client.open_sftp() as sftp:
+         names = set(sftp.listdir(REMOTE))
+         extra = names - set(before) - set(canonical) - {'data', 'data.img', 's3-auth.json'}
+         require(len(extra) == 1, 'one-new-recovery-receipt')
+         timestamp = next(iter(extra))
+-        require(re.fullmatch(r'resume-velero-s3-v6-complete-[0-9]{8}T[0-9]{12}\.json', timestamp), 'unknown-recovery-entry')
++        require(re.fullmatch(r'resume-velero-s3-v7-complete-[0-9]{8}T[0-9]{12}\.json', timestamp), 'unknown-recovery-entry')
+         for name, expected in {**canonical, timestamp: receipt}.items():
+             W.file_metadata(sftp, name)
+             raw = W.bounded_file(sftp, name)
+             require(parse(raw) == expected, 'exact-recovery-product-required')
+             records[name] = {'bytes': len(raw), 'sha256': hashlib.sha256(raw).hexdigest(), 'mode': 0o600}
+-        require(records['resume-velero-s3-v6-original-partial-owned.json']['sha256'] ==
++        require(records['resume-velero-s3-v7-original-partial-owned.json']['sha256'] ==
+                 before['resume-velero-s3-partial-owned.json']['sha256'], 'original-progress-byte-preservation')
+     return W.checked_listing(client, records, native=True)
+ 
+@@ -167,23 +216,25 @@
+     # Keep all original validation assertions and fixture operations, with explicit v6 seals/imports.
+     W.reviewed_inputs = reviewed_inputs
+     W.SCRIPTS = SCRIPTS
+-    source = (LOCAL / 'resume-velero-s3-v4-root.py').read_text()
++    W.invoke = invoke_fixture
++    source = S.source(W)
+     for name in ['validate', 'remote_phase']:
+         node = next(x for x in ast.parse(source).body if isinstance(x, ast.FunctionDef) and x.name == name)
+-        adapted = ast.get_source_segment(source, node).replace("'resume-velero-s3-v4-fixture.py'", "'resume-velero-s3-v6-fixture.py'")
++        adapted = ast.get_source_segment(source, node).replace("'resume-velero-s3-v4-fixture.py'", "'resume-velero-s3-v7-fixture.py'")
+         exec(compile(adapted, '<original-v4-' + name + '-v6-fixture-adapter>', 'exec'), W.__dict__)
+ 
+ def run(args):
+     request = reviewed_inputs()[0]
+-    request_hash = sha(EV / REQUEST)
++    request_hash = request['_capturedRequestSHA256']
+     require(args.request_sha256 == request_hash, 'explicit-v6-request-hash')
+     predecessor = {'complete': 'diagnostic', 'validate': 'complete', 'cleanup': 'validate'}
+     prior = prior_receipt(args.receipt, args.sha256, predecessor[args.phase]) if args.phase != 'diagnostic' else None
+     bind_original_adapters()
+     W.STATE.clear()
+     result = {'phase': args.phase, 'exitCode': 1, 'remoteExecuted': False, 'rootRequestSHA256': request_hash,
+-              'v6ScriptHashes': request['scriptHashes'], 'failureReceiptSHA256': request['failureReceiptSHA256'],
++              'v7ScriptHashes': request['scriptHashes'], 'failureReceiptSHA256': request['failureReceiptSHA256'],
+               'v5DiagnosticReceiptSHA256': request['v5DiagnosticReceiptSHA256'], 'mirrorInspectionSHA256': request['mirrorInspectionSHA256'],
++              'v6DiagnosticReceiptSHA256': S.DIAGNOSTIC_SHA, 'absenceInspectionSHA256': S.INSPECTION_SHA,
+               'providerInstalled': False, 'backupRestoreVerified': False, 'P0Approved': False}
+     try:
+         with W.connect() as client:
+@@ -201,7 +252,8 @@
+                           'originalFive': request['originalFive'], 'failureReceiptSHA256': request['failureReceiptSHA256'],
+                           'failedRemoteReceipt': failed, 'privateIP': request['privateIP'], 'binaryHashes': request['binaryHashes']}
+                 inputs.update(mirrorInspection=request['mirrorInspection'], mirrorInspectionSHA256=request['mirrorInspectionSHA256'],
+-                              v5DiagnosticReceiptSHA256=request['v5DiagnosticReceiptSHA256'])
++                              v5DiagnosticReceiptSHA256=request['v5DiagnosticReceiptSHA256'],
++                              v6DiagnosticReceiptSHA256=S.DIAGNOSTIC_SHA, absenceInspectionSHA256=S.INSPECTION_SHA)
+                 if prior:
+                     inputs['approvedDiagnostic'] = prior['records'][0]['details']
+                 receipt = invoke_recovery(client, args.phase, inputs)
+@@ -224,13 +276,13 @@
+                         cleanup.get('privatePorts') == sorted(request['approvedPorts']), 'original-live-validation-cleanup-required')
+                 result['providerInstalled'] = True
+             else:
+-                output = W.remote_phase(client, 'resume-velero-s3-v6-fixture.py', 'cleanup')
++                output = W.remote_phase(client, 'resume-velero-s3-v7-fixture.py', 'cleanup')
+                 result.update(exitCode=output['exitCode'], records=output['records'], providerInstalled=True)
+                 require(output['exitCode'] == 0 and output['records'][0]['s3PersistenceVerified'], 'final-persistence-cleanup-required')
+                 result['backupRestoreVerified'] = prior['backupRestoreVerified']
+                 records = W.STATE['files']
+             result['remoteFiles'] = records
+-            reviewed_inputs()
++            require(reviewed_inputs()[0]['_capturedRequestSHA256'] == request_hash, 'request-bytes-changed-during-phase')
+             result['sourceHashesStable'] = True
+     except Exception as exc:
+         result.update(exitCode=1, errorType=type(exc).__name__, detailsOmitted=True,
+@@ -248,15 +300,15 @@
+     try:
+         if args.phase == 'check-inputs':
+             value = reviewed_inputs()[0]
+-            print(json.dumps({'exitCode': 0, 'remoteExecuted': False, 'rootRequestSHA256': sha(EV / REQUEST),
+-                              'v6Scripts': len(value['scriptHashes']), 'originalFive': len(value['originalFive']),
++            print(json.dumps({'exitCode': 0, 'remoteExecuted': False, 'rootRequestSHA256': reviewed_inputs()[0]['_capturedRequestSHA256'],
++                              'v7Scripts': len(value['scriptHashes']), 'originalFive': len(value['originalFive']),
+                               'failureReceiptSHA256': value['failureReceiptSHA256'], 'backupRestoreVerified': False}))
+             return 0
+         result = run(args)
+     except Exception as exc:
+         result = {'phase': args.phase, 'exitCode': 1, 'errorType': type(exc).__name__, 'detailsOmitted': True,
+                   'remoteExecuted': False, 'backupRestoreVerified': False, 'P0Approved': False}
+-    name = 'resume-velero-s3-v6-root-' + args.phase + '-' + datetime.datetime.now(datetime.timezone.utc).strftime('%Y%m%dT%H%M%S%f') + '.json'
++    name = 'resume-velero-s3-v7-root-' + args.phase + '-' + datetime.datetime.now(datetime.timezone.utc).strftime('%Y%m%dT%H%M%S%f') + '.json'
+     with (EV / name).open('x', encoding='utf-8', newline='\n') as output:
+         output.write(json.dumps(result, indent=2) + '\n')
+     print(json.dumps({'phase': args.phase, 'exitCode': result['exitCode'], 'artifact': name, 'sha256': sha(EV / name),
+--- sealed-v6-remote
++++ new-v7-remote
+@@ -2,9 +2,16 @@
+ from pathlib import Path
+ import ast, copy, datetime, hashlib, importlib.util, json, os, sys
+ sys.dont_write_bytecode = True
+-spec = importlib.util.spec_from_file_location('v6_native', Path(__file__).with_name('resume-velero-s3-v6-native.py'))
+-N = importlib.util.module_from_spec(spec)
+-spec.loader.exec_module(N)
++import types
++_seals_path = Path(__file__).with_name('resume-velero-s3-v7-seals.py')
++_seals_raw = _seals_path.read_bytes()
++if hashlib.sha256(_seals_raw).hexdigest() != '56d889f19ed8635737ce6e45005a917196a264637a29d91b492424cd4f168697':
++    raise ValueError('v7-seals-bootstrap-drift')
++S = types.ModuleType('v7_seals'); S.__file__ = str(_seals_path)
++exec(compile(_seals_raw, str(_seals_path), 'exec'), S.__dict__)
++if S.EV.is_dir():
++    S.v6_request()
++N = S.load('resume-velero-s3-v6-native')
+ P, require, parse = N.P, N.require, N.parse
+ DIAGNOSTIC_PROGRESS = {}
+ 
+@@ -60,7 +67,7 @@
+ 
+ def official_manifest(artifacts):
+     # Exact original argv plus the explicit native config. Never invoke real install.
+-    source = Path(P.__file__).read_text()
++    source = S.source(P)
+     node = next(n for n in ast.parse(source).body if isinstance(n, ast.FunctionDef) and n.name == 'install')
+     assignment = next(n for n in node.body if isinstance(n, ast.Assign) and any(isinstance(t, ast.Name) and t.id == 'manifest' for t in n.targets))
+     args_node = assignment.value.args[0].args[0]
+@@ -72,6 +79,8 @@
+     args += ['--kubeconfig', str(N.KUBECONFIG)]
+     raw = P.command(args, timeout=90)
+     DIAGNOSTIC_PROGRESS['officialOutput'] = {'rawSHA256': sha_bytes(raw.encode()), 'stdoutBytes': len(raw.encode())}
++    require(sha_bytes(raw.encode()) == '65e25156d194c147a43757d347cd070949ffd3fd99d7261cf3e226bd70de3c24',
++            'pinned-official-manifest-byte-drift')
+     manifest, shape = decode_manifest(raw)
+     return manifest, {'shape': shape, 'rawSHA256': sha_bytes(raw.encode()), 'stdoutBytes': len(raw.encode()), 'commandArgs': args,
+                       'objects': [{'kind': o['kind'], 'name': o['metadata']['name'], 'namespace': o['metadata'].get('namespace')}
+@@ -79,7 +88,7 @@
+ 
+ def tail_source():
+     # Reuse actual v4 statements from `images = ...` through its success receipt.
+-    source = Path(P.__file__).read_text()
++    source = S.source(P)
+     node = next(n for n in ast.parse(source).body if isinstance(n, ast.FunctionDef) and n.name == 'install')
+     index = next(i for i, n in enumerate(node.body) if isinstance(n, ast.Assign) and any(isinstance(t, ast.Name) and t.id == 'images' for t in n.targets))
+     segment = ''.join(source.splitlines(True)[node.body[index].lineno - 1:node.end_lineno])
+@@ -89,11 +98,94 @@
+     segment = segment.replace(original, 'manifest = copy.deepcopy(_reviewed_manifest)', 1)
+     return 'def continuation_tail(artifacts, ip, endpoint, listeners, memory):\n    global PHASE\n' + segment
+ 
++CRD_PLURALS = ['backuprepositories', 'backups', 'backupstoragelocations', 'deletebackuprequests',
++               'downloadrequests', 'podvolumebackups', 'podvolumerestores', 'restores', 'schedules',
++               'serverstatusrequests', 'volumesnapshotlocations', 'datadownloads', 'datauploads']
++OFFICIAL_IDENTITIES = {('CustomResourceDefinition', n + '.velero.io', None) for n in CRD_PLURALS} | {
++    ('Namespace', 'velero', None), ('ClusterRoleBinding', 'velero', None),
++    ('ServiceAccount', 'velero', 'velero'), ('BackupStorageLocation', 'default', 'velero'),
++    ('Deployment', 'velero', 'velero')}
++
++def bounded_kubectl(args):
++    try:
++        result = P.subprocess.run(['kubectl', '--request-timeout=20s', '--kubeconfig', str(N.KUBECONFIG), *args],
++                                  capture_output=True, text=True, timeout=30)
++    except P.subprocess.TimeoutExpired as exc:
++        raise ValueError('absence-probe-timeout') from exc
++    require(type(result.returncode) is int and isinstance(result.stdout, str) and isinstance(result.stderr, str) and
++            len(result.stdout.encode()) <= 256 * 1024 and len(result.stderr.encode()) <= 4096,
++            'absence-probe-output-bound')
++    return result
++
++def get_result(kind, name, namespace=None):
++    return bounded_kubectl(['get', kind, name, *(['-n', namespace] if namespace else []), '-o', 'json'])
++
++def normal_absent(kind, name, namespace=None):
++    result = get_result(kind, name, namespace)
++    # A complete server NotFound line for this name; mixed errors cannot masquerade as absence.
++    require(result.returncode == 1 and not result.stdout.strip() and N.re.fullmatch(
++        r'Error from server \(NotFound\): [A-Za-z0-9.]+ "' + N.re.escape(name) + r'" not found\s*', result.stderr),
++        'not-absent-or-get-failed')
++
++def unregistered_group():
++    result = bounded_kubectl(['get', '--raw', '/apis'])
++    require(result.returncode == 0 and not result.stderr.strip(), 'authoritative-discovery-failed')
++    discovery = parse(result.stdout)
++    require(isinstance(discovery, dict) and discovery.get('apiVersion') == 'v1' and
++            discovery.get('kind') == 'APIGroupList' and set(discovery) <= {'apiVersion', 'kind', 'groups'} and
++            isinstance(discovery.get('groups'), list) and len(discovery['groups']) <= 256, 'malformed-server-discovery')
++    names = []
++    for group in discovery['groups']:
++        require(isinstance(group, dict) and set(group) <= {'name', 'versions', 'preferredVersion', 'serverAddressByClientCIDRs'} and
++                isinstance(group.get('name'), str) and N.re.fullmatch(r'[a-z0-9]+(?:[.-][a-z0-9]+)*', group['name']) and
++                isinstance(group.get('versions'), list) and 0 < len(group['versions']) <= 32,
++                'malformed-server-discovery-group')
++        versions = []
++        for version in group['versions']:
++            require(isinstance(version, dict) and set(version) == {'groupVersion', 'version'} and
++                    isinstance(version['version'], str) and N.re.fullmatch(r'v[0-9]+(?:(?:alpha|beta)[0-9]+)?', version['version']) and
++                    version['groupVersion'] == group['name'] + '/' + version['version'], 'malformed-server-discovery-version')
++            versions.append(version['version'])
++        require(len(versions) == len(set(versions)) and group.get('preferredVersion') in group['versions'],
++                'malformed-server-discovery-preference')
++        if 'serverAddressByClientCIDRs' in group:
++            addresses = group['serverAddressByClientCIDRs']
++            require(isinstance(addresses, list) and len(addresses) <= 32 and all(
++                isinstance(a, dict) and set(a) == {'clientCIDR', 'serverAddress'} and
++                all(isinstance(v, str) and 0 < len(v) <= 256 for v in a.values()) for a in addresses),
++                'malformed-server-discovery-addresses')
++        names.append(group['name'])
++    require(len(names) == len(set(names)) and 'velero.io' not in names, 'velero-group-registered-or-duplicate')
++    return {'path': '/apis', 'rawSHA256': sha_bytes(result.stdout.encode()), 'stdoutBytes': len(result.stdout.encode()),
++            'groupCount': len(names), 'veleroGroupAdvertised': False}
++
+ def preflight_objects(manifest):
++    manifest = decode_manifest(json.dumps(manifest))[0]
++    identities = {(o['kind'], o['metadata']['name'], o['metadata'].get('namespace')) for o in manifest['items']}
++    require(identities == OFFICIAL_IDENTITIES and len(manifest['items']) == 18, 'exact-reviewed-official-identities')
++    bsl = next(o for o in manifest['items'] if o['kind'] == 'BackupStorageLocation')
++    crd = next(o for o in manifest['items'] if o['metadata']['name'] == 'backupstoragelocations.velero.io')
++    spec = crd.get('spec', {})
++    require(isinstance(spec, dict) and spec.get('group') == 'velero.io' and spec.get('scope') == 'Namespaced' and
++            isinstance(spec.get('names'), dict) and spec['names'].get('kind') == bsl['kind'] and
++            spec['names'].get('plural') == 'backupstoragelocations' and
++            spec['names'].get('singular') == 'backupstoragelocation' and
++            spec['names'].get('listKind') == 'BackupStorageLocationList' and
++            isinstance(spec.get('versions'), list) and len(spec['versions']) == 1 and
++            spec['versions'][0].get('name') == 'v1' and spec['versions'][0].get('served') is True and
++            spec['versions'][0].get('storage') is True, 'exact-reviewed-cr-crd-association')
++    # All ordinary resources retain strict NotFound checks before any exception is considered.
+     for obj in manifest['items']:
+-        if obj['kind'] == 'Namespace':
+-            continue
+-        P.absent(obj['kind'], obj['metadata']['name'], obj['metadata'].get('namespace'))
++        if obj['kind'] not in ['Namespace', 'BackupStorageLocation']:
++            normal_absent(obj['kind'], obj['metadata']['name'], obj['metadata'].get('namespace'))
++    normal_absent('CustomResourceDefinition', 'backupstoragelocations.velero.io')
++    proof = unregistered_group()
++    result = get_result('BackupStorageLocation', 'default', 'velero')
++    require(result.returncode == 1 and not result.stdout.strip() and result.stderr.strip() ==
++            'error: the server doesn\'t have a resource type "BackupStorageLocation"', 'unregistered-cr-get-proof-required')
++    DIAGNOSTIC_PROGRESS['absenceProof'] = {'kind': 'BackupStorageLocation', 'apiVersion': 'velero.io/v1',
++        'name': 'default', 'namespace': 'velero', 'crd': 'backupstoragelocations.velero.io',
++        'crdNotFound': True, 'officialManifestAssociation': True, 'discovery': proof}
+ 
+ def policy_manifest(manifest, artifacts):
+     # Run only the original transformation/validation portion; stop before every apply.
+@@ -108,6 +200,7 @@
+ 
+ def diagnostic(inputs):
+     N.sealed_files(inputs['expectedFiles'])
++    S.configure({n: v for n, v in inputs['expectedFiles'].items() if n.endswith('.py') or n in ['resume-velero-s3-artifacts.json', 'seaweedfs-4.53-release.json']}, P.HOME_DIR)
+     artifacts = P.load_artifacts()[1]
+     manifest, summary = official_manifest(artifacts)
+     policy = policy_manifest(manifest, artifacts)
+@@ -117,7 +210,8 @@
+     native = N.inspect(inputs)
+     DIAGNOSTIC_PROGRESS['native'] = native
+     preflight_objects(manifest)
+-    return {'native': native, 'manifest': summary, 'noKubernetesMutation': True, 'dryRunOnly': True,
++    return {'native': native, 'manifest': summary, 'absenceProof': DIAGNOSTIC_PROGRESS['absenceProof'],
++            'noKubernetesMutation': True, 'dryRunOnly': True,
+             'credentialValuesPrinted': False, 'providerInstalled': False}
+ 
+ def complete(inputs):
+@@ -132,29 +226,33 @@
+     manifest, summary = official_manifest(artifacts)
+     require(summary['rawSHA256'] == approved['manifest']['rawSHA256'], 'second-official-dry-run-drift')
+     N.sealed_files(inputs['expectedFiles'])
++    S.configure({n: v for n, v in inputs['expectedFiles'].items() if n.endswith('.py') or n in ['resume-velero-s3-artifacts.json', 'seaweedfs-4.53-release.json']}, P.HOME_DIR)
+     require(N.exact_five(inputs['originalFive'], inputs['privateIP']) == current['native']['five'], 'last-five-mirror-state-drift')
++    preflight_objects(manifest)  # Fresh authoritative absence proof before migration writes.
+     original = list(inputs['originalFive'])
+     progress = P.HOME_DIR / P.INVENTORY
+-    old_raw = progress.read_bytes()
++    old_raw = S.capture(progress, inputs['expectedFiles'][P.INVENTORY]['sha256'])
+     require(parse(old_raw) == original and sha_bytes(old_raw) == inputs['expectedFiles'][P.INVENTORY]['sha256'], 'exact-v4-progress-required')
+     require(not (P.HOME_DIR / 'resume-velero-s3-provider.json').exists(), 'canonical-provider-already-exists')
+     # Explicit migration preserves the old canonical progress bytes before it evolves.
+-    exclusive('resume-velero-s3-v6-original-partial-owned.json', old_raw)
++    exclusive('resume-velero-s3-v7-original-partial-owned.json', old_raw)
+     migration = {'phase': 'migration', 'exitCode': 0, 'owner': P.OWNER,
+                  'rootRequestSHA256': inputs['rootRequestSHA256'], 'failureReceiptSHA256': inputs['failureReceiptSHA256'],
+                  'v5DiagnosticReceiptSHA256': inputs['v5DiagnosticReceiptSHA256'],
++                 'v6DiagnosticReceiptSHA256': inputs['v6DiagnosticReceiptSHA256'], 'absenceInspectionSHA256': inputs['absenceInspectionSHA256'],
+                  'mirrorInspectionSHA256': inputs['mirrorInspectionSHA256'],
+                  'failedRemoteReceipt': inputs['failedRemoteReceipt'], 'originalFive': original,
+                  'priorProgressSHA256': sha_bytes(old_raw), 'canonicalProgress': P.INVENTORY,
+-                 'archivedProgress': 'resume-velero-s3-v6-original-partial-owned.json',
++                 'archivedProgress': 'resume-velero-s3-v7-original-partial-owned.json',
+                  'canonicalProvider': 'resume-velero-s3-provider.json', 'canonicalProviderPreviouslyAbsent': True,
+                  'manifestRawSHA256': summary['rawSHA256'], 'backupRestoreVerified': False}
+-    exclusive('resume-velero-s3-v6-migration.json', (json.dumps(migration, indent=2) + '\n').encode())
++    exclusive('resume-velero-s3-v7-migration.json', (json.dumps(migration, indent=2) + '\n').encode())
+     P.PHASE = 'owned-kubernetes-provider-continuation'
+     P.__dict__.update(copy=copy, _reviewed_manifest=manifest)
+     exec(compile(tail_source(), '<sealed-v4-remaining-install>', 'exec'), P.__dict__)
+     native = current['native']
+     require(N.exact_five(original, native['privateIP']) == native['five'], 'pre-create-five-mirror-state-drift')
++    preflight_objects(manifest)  # Repeat immediately before the first remaining CREATE.
+     # Original success receipt is canonical and remains compatible with unchanged fixture/driver.
+     receipt = P.continuation_tail(artifacts, native['privateIP'], 'http://' + native['privateIP'] + ':18333',
+                                   native['ports'], native['memoryBeforeMi'])
+@@ -172,6 +270,7 @@
+         inputs = parse(raw)
+         require(inputs['home'] == str(P.HOME_DIR) and inputs['owner'] == P.OWNER and
+                 N.V4.sha(Path(__file__)) == inputs['expectedFiles'][Path(__file__).name]['sha256'], 'sealed-v6-request')
++        require(inputs['v6DiagnosticReceiptSHA256'] == S.DIAGNOSTIC_SHA and inputs['absenceInspectionSHA256'] == S.INSPECTION_SHA, 'fixed-v6-compatibility-chain')
+         require(phase in ['diagnostic', 'complete'], 'fixed-recovery-phase')
+         detail = diagnostic(inputs) if phase == 'diagnostic' else complete(inputs)
+         receipt = {'phase': phase, 'exitCode': 0, 'owner': P.OWNER, 'rootRequestSHA256': inputs['rootRequestSHA256'],
+@@ -185,7 +284,7 @@
+         if isinstance(exc, N.NativeRefusal):
+             receipt['refusedObjectMetadata'] = exc.safe_metadata
+     if phase == 'complete':
+-        exclusive('resume-velero-s3-v6-complete-' + datetime.datetime.now(datetime.timezone.utc).strftime('%Y%m%dT%H%M%S%f') + '.json',
++        exclusive('resume-velero-s3-v7-complete-' + datetime.datetime.now(datetime.timezone.utc).strftime('%Y%m%dT%H%M%S%f') + '.json',
+                   (json.dumps(receipt, indent=2) + '\n').encode())
+     print(json.dumps(receipt))
+     return receipt['exitCode']

@@ -4,11 +4,14 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"mime/multipart"
 	"strconv"
 	"strings"
 	"time"
 
+	"github.com/duanxldragon/pantheon-base/backend/modules/business/cmdb"
+	"github.com/duanxldragon/pantheon-base/backend/modules/business/shared/dashboard"
 	"github.com/duanxldragon/pantheon-base/backend/pkg/common"
 	"github.com/duanxldragon/pantheon-base/backend/pkg/impexp"
 
@@ -54,6 +57,8 @@ func (h *DeployHandler) RegisterRoutes(r gin.IRoutes) {
 	r.DELETE("/credentials/:id", h.DeleteCredential)
 	r.GET("/tasks", h.ListTasks)
 	r.POST("/tasks", h.CreateTask)
+	r.POST("/targets/resolve", h.ResolveTargetSelection)
+	r.POST("/tasks/:id/preview", h.PreviewTask)
 	r.GET(taskIDRoute, h.GetTask)
 	r.PUT(taskIDRoute, h.UpdateTask)
 	r.DELETE(taskIDRoute, h.DeleteTask)
@@ -377,6 +382,15 @@ func (h *DeployHandler) DeletePackage(c *gin.Context) {
 }
 
 func (h *DeployHandler) ListTasks(c *gin.Context) {
+	if c.Query("dashboard") == "true" {
+		resp, err := h.svc.DashboardSummary(c.Request.Context(), dashboard.Limit(c.Query("limit")), c.Query("status"), common.GetDataScope(c))
+		if err != nil {
+			common.FailWithError(c, common.CodeError, err, "deploytask.list_failed")
+			return
+		}
+		common.Success(c, resp)
+		return
+	}
 	var query TaskQuery
 	if err := c.ShouldBindQuery(&query); err != nil {
 		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
@@ -397,7 +411,7 @@ func (h *DeployHandler) CreateTask(c *gin.Context) {
 		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
 		return
 	}
-	resp, err := h.svc.CreateTask(req, currentActor(c), common.GetDataScope(c))
+	resp, err := h.svc.CreateTaskContext(c.Request.Context(), req, currentActor(c), common.GetDataScope(c))
 	if err != nil {
 		failDeployTaskError(c, err, "deploytask.create_failed")
 		return
@@ -436,7 +450,7 @@ func (h *DeployHandler) UpdateTask(c *gin.Context) {
 		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
 		return
 	}
-	resp, err := h.svc.UpdateTask(id, req, currentActor(c), common.GetDataScope(c))
+	resp, err := h.svc.UpdateTaskContext(c.Request.Context(), id, req, currentActor(c), common.GetDataScope(c))
 	if err != nil {
 		failDeployTaskError(c, err, "deploytask.update_failed")
 		return
@@ -471,7 +485,8 @@ func (h *DeployHandler) StartTask(c *gin.Context) {
 		}
 	}
 	req.IdempotencyKey = strings.TrimSpace(c.GetHeader("X-Idempotency-Key"))
-	resp, err := h.svc.StartTask(id, req, currentActor(c), common.GetDataScope(c))
+	req.RequirePreview = true
+	resp, err := h.svc.StartTaskContext(c.Request.Context(), id, req, currentActor(c), common.GetDataScope(c))
 	if err != nil {
 		failDeployTaskError(c, err, "deploytask.start_failed")
 		return
@@ -486,7 +501,12 @@ func (h *DeployHandler) PauseTask(c *gin.Context) {
 	if !ok {
 		return
 	}
-	resp, err := h.svc.PauseTask(id, currentActor(c), common.GetDataScope(c))
+	var req TaskCommandRequest
+	if err := c.ShouldBindJSON(&req); err != nil && !errors.Is(err, io.EOF) {
+		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
+		return
+	}
+	resp, err := h.svc.ControlTask(c.Request.Context(), id, currentActor(c), common.GetDataScope(c), "pause", req)
 	if err != nil {
 		failDeployTaskError(c, err, "deploytask.pause_failed")
 		return
@@ -501,7 +521,12 @@ func (h *DeployHandler) ResumeTask(c *gin.Context) {
 	if !ok {
 		return
 	}
-	resp, err := h.svc.ResumeTask(id, currentActor(c), common.GetDataScope(c))
+	var req TaskCommandRequest
+	if err := c.ShouldBindJSON(&req); err != nil && !errors.Is(err, io.EOF) {
+		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
+		return
+	}
+	resp, err := h.svc.ControlTask(c.Request.Context(), id, currentActor(c), common.GetDataScope(c), "resume", req)
 	if err != nil {
 		failDeployTaskError(c, err, "deploytask.resume_failed")
 		return
@@ -516,7 +541,12 @@ func (h *DeployHandler) RetryTask(c *gin.Context) {
 	if !ok {
 		return
 	}
-	resp, err := h.svc.RetryTask(id, currentActor(c), common.GetDataScope(c))
+	var req TaskCommandRequest
+	if err := c.ShouldBindJSON(&req); err != nil && !errors.Is(err, io.EOF) {
+		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
+		return
+	}
+	resp, err := h.svc.ControlTask(c.Request.Context(), id, currentActor(c), common.GetDataScope(c), "retry", req)
 	if err != nil {
 		failDeployTaskError(c, err, "deploytask.retry_failed")
 		return
@@ -530,7 +560,12 @@ func (h *DeployHandler) CancelTask(c *gin.Context) {
 	if !ok {
 		return
 	}
-	resp, err := h.svc.CancelTask(id, currentActor(c), common.GetDataScope(c))
+	var req TaskCommandRequest
+	if err := c.ShouldBindJSON(&req); err != nil && !errors.Is(err, io.EOF) {
+		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
+		return
+	}
+	resp, err := h.svc.ControlTask(c.Request.Context(), id, currentActor(c), common.GetDataScope(c), "cancel", req)
 	if err != nil {
 		failDeployTaskError(c, err, "deploytask.cancel_failed")
 		return
@@ -589,7 +624,8 @@ func failDeployTaskHostError(c *gin.Context, err error, fallback string) {
 
 func deployTaskConflictError(err error) bool {
 	switch strings.TrimSpace(errorText(err)) {
-	case "business.deploy.task.invalidStartState",
+	case ErrTaskCommandConflict.Error(), ErrTaskPreviewConflict.Error(), cmdb.ErrTargetSelectionConflict.Error(),
+		"business.deploy.task.invalidStartState",
 		"business.deploy.task.invalidCancelState",
 		errDeployTaskInvalidUpdateState,
 		errDeployTaskInvalidDeleteState,
@@ -600,7 +636,8 @@ func deployTaskConflictError(err error) bool {
 		errDeployTemplateImmutable,
 		errDeployTaskInvalidPauseState,
 		errDeployTaskInvalidResumeState,
-		errDeployTaskInvalidRetryState:
+		errDeployTaskInvalidRetryState,
+		"business.deploy.attempt.exhausted":
 		return true
 	default:
 		return false
@@ -609,7 +646,8 @@ func deployTaskConflictError(err error) bool {
 
 func deployTaskValidationError(err error) bool {
 	switch strings.TrimSpace(errorText(err)) {
-	case "business.deploy.task.nameRequired",
+	case ErrTaskCommandVersionRequired.Error(), ErrTaskPreviewRequired.Error(), cmdb.ErrTargetSelectionInvalid.Error(),
+		"business.deploy.task.nameRequired",
 		"business.deploy.task.packageRequired",
 		"business.deploy.task.packageDisabled",
 		"business.deploy.task.scopeRequired",
@@ -684,11 +722,14 @@ type TaskEventItem struct {
 
 // TaskLogItem is a JSON-serializable log chunk record.
 type TaskLogItem struct {
-	ID        uint64 `json:"id"`
-	Sequence  uint64 `json:"sequence"`
-	Stream    string `json:"stream"`
-	Content   string `json:"content"`
-	CreatedAt string `json:"createdAt"`
+	TaskHostID uint64 `json:"taskHostId"`
+	TaskStepID uint64 `json:"taskStepId"`
+	ID         uint64 `json:"id"`
+	Sequence   uint64 `json:"sequence"`
+	Stream     string `json:"stream"`
+	Content    string `json:"content"`
+	CreatedAt  string `json:"createdAt"`
+	AttemptNo  int    `json:"attemptNo"`
 }
 
 // ListTaskEvents handles event log retrieval for a task.
@@ -697,7 +738,8 @@ func (h *DeployHandler) ListTaskEvents(c *gin.Context) {
 	if !ok {
 		return
 	}
-	if _, err := h.svc.loadVisibleTask(id, common.GetDataScope(c)); err != nil {
+	reads := h.svc.targetRequestService(c.Request.Context())
+	if _, err := reads.loadVisibleTask(id, common.GetDataScope(c)); err != nil {
 		failDeployTaskError(c, err, msgTaskEventsFailed)
 		return
 	}
@@ -710,9 +752,9 @@ func (h *DeployHandler) ListTaskEvents(c *gin.Context) {
 		}
 		after = parsed
 	}
-	events, err := h.svc.loadTaskEvents(id, after)
+	events, err := reads.loadScopedTaskEvents(id, after, common.GetDataScope(c))
 	if err != nil {
-		common.FailWithError(c, common.CodeError, err, msgTaskEventsFailed)
+		failDeployTaskError(c, err, msgTaskEventsFailed)
 		return
 	}
 	items := make([]TaskEventItem, 0, len(events))
@@ -733,33 +775,62 @@ func (h *DeployHandler) ListTaskLogs(c *gin.Context) {
 	if !ok {
 		return
 	}
-	if _, err := h.svc.loadVisibleTask(id, common.GetDataScope(c)); err != nil {
+	reads := h.svc.targetRequestService(c.Request.Context())
+	if _, err := reads.loadVisibleTask(id, common.GetDataScope(c)); err != nil {
 		failDeployTaskError(c, err, "deploytask.logs_failed")
 		return
 	}
-	var after uint64
-	if v := c.Query("after"); v != "" {
-		parsed, err := strconv.ParseUint(v, 10, 64)
-		if err != nil {
-			common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
-			return
-		}
-		after = parsed
-	}
-	chunks, err := h.svc.loadLogChunks(id, after)
+	after, filter, err := parseTaskLogQuery(c)
 	if err != nil {
-		common.FailWithError(c, common.CodeError, err, "deploytask.logs_failed")
+		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
 		return
 	}
-	items := make([]TaskLogItem, 0, len(chunks))
-	for _, chunk := range chunks {
-		items = append(items, TaskLogItem{
-			ID: chunk.ID, Sequence: chunk.Sequence, Stream: chunk.Stream,
-			Content:   chunk.Content,
-			CreatedAt: chunk.CreatedAt.Format("2006-01-02T15:04:05Z07:00"),
-		})
+	chunks, err := reads.loadScopedLogChunks(id, after, filter, common.GetDataScope(c))
+	if err != nil {
+		failDeployTaskError(c, err, "deploytask.logs_failed")
+		return
 	}
-	common.Success(c, map[string]any{"items": items, "total": len(items)})
+	items, clipped, err := reads.safeTaskLogItems(id, chunks)
+	if err != nil {
+		failDeployTaskError(c, err, "deploytask.logs_failed")
+		return
+	}
+	c.Header("Cache-Control", "no-store")
+	common.Success(c, map[string]any{"items": items, "total": len(items), "truncated": clipped, "redaction": "known-task-secrets"})
+}
+
+func parseTaskLogQuery(c *gin.Context) (uint64, taskLogFilter, error) {
+	var after uint64
+	var filter taskLogFilter
+	for _, field := range []struct {
+		key       string
+		target    *uint64
+		bits      int
+		allowZero bool
+	}{
+		{"after", &after, 64, true}, {"hostId", &filter.hostID, 64, false},
+		{"stepId", &filter.stepID, 64, false}, {"attemptNo", &filter.attemptNo, 31, false},
+	} {
+		values, present := c.Request.URL.Query()[field.key]
+		if !present {
+			continue
+		}
+		if len(values) != 1 {
+			return 0, filter, errors.New(msgParamInvalid)
+		}
+		parsed, err := strconv.ParseUint(values[0], 10, field.bits)
+		if err != nil || (!field.allowZero && parsed == 0) {
+			return 0, filter, errors.New(msgParamInvalid)
+		}
+		*field.target = parsed
+	}
+	if values, present := c.Request.URL.Query()["firstError"]; present {
+		if len(values) != 1 || values[0] != "1" || after != 0 {
+			return 0, filter, errors.New(msgParamInvalid)
+		}
+		filter.firstError = true
+	}
+	return after, filter, nil
 }
 
 // StreamTaskEvents streams authenticated, data-scoped task events with replay.
@@ -768,7 +839,8 @@ func (h *DeployHandler) StreamTaskEvents(c *gin.Context) {
 	if !ok {
 		return
 	}
-	if _, err := h.svc.loadVisibleTask(id, common.GetDataScope(c)); err != nil {
+	reads := h.svc.targetRequestService(c.Request.Context())
+	if _, err := reads.loadVisibleTask(id, common.GetDataScope(c)); err != nil {
 		failDeployTaskError(c, err, msgTaskEventsFailed)
 		return
 	}
@@ -788,8 +860,12 @@ func (h *DeployHandler) StreamTaskEvents(c *gin.Context) {
 	defer heartbeatTicker.Stop()
 
 	writeEvents := func() error {
-		events, loadErr := h.svc.loadTaskEvents(id, after)
+		events, loadErr := reads.loadScopedTaskEvents(id, after, common.GetDataScope(c))
 		if loadErr != nil {
+			if errors.Is(loadErr, errDeployTaskForbidden) {
+				_, _ = fmt.Fprint(c.Writer, "event: forbidden\ndata: {}\n\n")
+				c.Writer.Flush()
+			}
 			return loadErr
 		}
 		for _, event := range events {
@@ -850,9 +926,9 @@ func (h *DeployHandler) RollbackTask(c *gin.Context) {
 
 	userID := strconv.FormatUint(common.GetUserID(c), 10)
 
-	rollbackTask, err := h.svc.RollbackTask(c.Request.Context(), taskID, userID)
+	rollbackTask, err := h.svc.RollbackTask(c.Request.Context(), taskID, userID, common.GetDataScope(c))
 	if err != nil {
-		common.FailWithError(c, common.CodeError, err, "deploy.rollback_failed")
+		failDeployTaskError(c, err, "business.deploy.task.rollbackFailed")
 		return
 	}
 
@@ -868,15 +944,52 @@ func (h *DeployHandler) GetRollbackInfo(c *gin.Context) {
 		return
 	}
 
-	rollbackTask, err := h.svc.GetRollbackTask(c.Request.Context(), taskID)
+	rollbackTask, err := h.svc.GetRollbackTask(c.Request.Context(), taskID, common.GetDataScope(c))
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			common.Success(c, nil)
 			return
 		}
-		common.FailWithError(c, common.CodeError, err, "deploy.get_rollback_failed")
+		failDeployTaskError(c, err, "business.deploy.task.rollbackLookupFailed")
 		return
 	}
 
 	common.Success(c, rollbackTask)
+}
+
+// ResolveTargetSelection is a read-only provider resolution; audit stores only
+// bounded counts through the response, never secret execution parameters.
+func (h *DeployHandler) ResolveTargetSelection(c *gin.Context) {
+	common.SetAuditMetadata(c, "解析部署目标", common.BusinessOther)
+	var req cmdb.TargetSelection
+	if err := c.ShouldBindJSON(&req); err != nil {
+		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
+		return
+	}
+	result, err := h.svc.ResolveTargetSelection(c.Request.Context(), req, common.GetDataScope(c))
+	if err != nil {
+		failDeployTaskError(c, err, "business.cmdb.selection.invalid")
+		return
+	}
+	common.Success(c, result)
+}
+func (h *DeployHandler) PreviewTask(c *gin.Context) {
+	common.SetAuditMetadata(c, "预览部署变更", common.BusinessOther)
+	id, ok := parseIDParam(c)
+	if !ok {
+		return
+	}
+	var req StartTaskRequest
+	if c.Request.ContentLength > 0 {
+		if err := c.ShouldBindJSON(&req); err != nil {
+			common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
+			return
+		}
+	}
+	result, err := h.svc.PreviewTaskContext(c.Request.Context(), id, req, currentActor(c), common.GetDataScope(c))
+	if err != nil {
+		failDeployTaskError(c, err, "business.deploy.preview.conflict")
+		return
+	}
+	common.Success(c, result)
 }

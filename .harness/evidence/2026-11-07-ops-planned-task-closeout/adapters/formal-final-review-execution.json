@@ -1,0 +1,7 @@
+{
+  "command": "claude -p --tools \"\" --output-format text < formal-final-review-prompt.md",
+  "exitCode": 1,
+  "status": "timeout",
+  "timeoutSeconds": 900,
+  "notes": "cmd wrapper left owned child holding output pipes; child verified by PID/executable/creation time and stopped. No final review output was returned."
+}

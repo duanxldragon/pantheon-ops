@@ -1,0 +1,264 @@
+{
+  "schemaVersion": 1,
+  "parentTaskPacket": "docs/harness/tasks/2026-11-07-ops-planned-task-closeout.task.md",
+  "tier": "L2",
+  "layer": "business/k8s acceptance tooling only",
+  "owner": "velero-s3-seaweed-20261109-v1",
+  "host": "115.190.251.143",
+  "remoteOwnedPath": "/opt/pantheon-p0-20261109/velero-s3-seaweed-v1",
+  "nativeCLI": [
+    "ip",
+    "-j",
+    "-4",
+    "address",
+    "show",
+    "dev",
+    "eth0",
+    "scope",
+    "global"
+  ],
+  "phaseOrder": [
+    "inspect-native",
+    "clean-native",
+    "diagnostic",
+    "install",
+    "validate",
+    "cleanup"
+  ],
+  "requiresRootExecution": true,
+  "authorization": "User already authorized all test-server operations; leaf performs no remote operation. Root executes after independent script review without another user prompt.",
+  "originalScriptHashes": {
+    ".local/ops-acceptance/resume-velero-s3-check.py": "65763c0931a701ffbe513fae76f1dcfcef1a7776edf4fb7fd9aa2e55bf876e4e",
+    ".local/ops-acceptance/resume-velero-s3-fixture.py": "c6badc5582f0cd679450050818abd56cdec6518d6a14cd01f69ff0c6d5c0d055",
+    ".local/ops-acceptance/resume-velero-s3-prep.py": "0b5219ab2fe498a81b5d224c35dc8eaa7827f68467ab4dbee413a45a6445cc02",
+    ".local/ops-acceptance/resume-velero-s3-remote.py": "6fe70db7027d422a5a03a990039359c3359997c26fc817c89109967f30da21b9",
+    ".local/ops-acceptance/resume-velero-s3-root.py": "65d8155901e32eb76318658972f995b24ec241a38df71d2adb92e0ae694675d5",
+    ".local/ops-acceptance/resume-velero-s3-live-driver.go": "6c54674516391523693c1b9f4186704580dbe24919c5e28c0e457b29252555db",
+    ".local/ops-acceptance/resume-velero-transport-prep.py": "1c2b41d64b18643833b4ed42af60f86226b1a6e95d9bb67c151362b09f451b2c",
+    ".local/ops-acceptance/remote.py": "37acccd12ba3b30e38182f11101821f110355ed660c4cf559d91cc1c638e1b5e"
+  },
+  "productSourceHashes": {
+    "backend/modules/business/k8s/backup/backup.go": "bb6162665a7b710351ed6df4f2c204ad3914088aa7119d7cbbaa4a3170b61c8f",
+    "backend/modules/business/k8s/backup/backup_dto.go": "b6d0430c93bb33dada0f1155b2bb3ff17cf403fc619ab687ba141e64616aa7e4",
+    "backend/modules/business/k8s/backup/backup_handler.go": "320bf427300d6cb88038adfbf581600c8c82cd2f760bdfa755dfca4711d99e96",
+    "backend/modules/business/k8s/backup/backup_model.go": "0119686da49fa62c3106ca6a90206592122153eaf5f858ae884a824590c3ea51",
+    "backend/modules/business/k8s/backup/backup_service.go": "1e80d782e8bb7156a9b14f96810533f9e3be2e154fc24798066d6ef17194c604",
+    "backend/modules/business/k8s/backup/drill.go": "0de6e13dc1a2a4f0ea0acb3cd2478d636d2de8ff9a5b07024ba4e18abcddc702",
+    "backend/modules/business/k8s/backup/reconciler.go": "9d0b61f817267058f52a7b53d52c66d157598fcc51abfedfe986ce174aa5b3a7",
+    "backend/modules/business/k8s/backup/restore_authorization_test.go": "9ec9e243cf6d57e12f51023f164d0855eb1cfd022d75649ed0bdfb94fc78deb7",
+    "backend/modules/business/k8s/backup/restore_final_boundary_test.go": "2bf419325e543031afa5dbf1b3a968265ea544e2f0e4f90f94b0c5e80b67f293",
+    "backend/modules/business/k8s/backup/submission.go": "0bfb92cbfae5530a5dcc7330b48a9d0b375a91e84691c4340885c80ffad8f1d9",
+    "backend/modules/business/k8s/backup/velero_client.go": "dc7310ef0801e16b761b6612c9ee494aa3db91fdeb5a3af2a3f13a4b05ea189e",
+    "backend/modules/business/k8s/backup/velero_client_test.go": "0272dd81e1e6dee02185d8fbba9119c8767f796edc7073cfecf31d86fcc0a3d9",
+    "backend/modules/business/k8s/cluster/cluster_service.go": "a7afe5394f13525d15f62501cc61fd0355c0a90166bf347c9dbee4babcc6f64b",
+    "backend/modules/business/k8s/cluster/credential_revocation_test.go": "9356afee25dd1c41ba5fbd25eead7bf3332a53b00447952455caa40f30874420",
+    ".local/ops-acceptance/velero-final-live-driver.go": "fbfb911f3192a04cb842adaf40036ef8d709fbd643f72b6f3aadb5db9327a250",
+    "backend/go.mod": "0a768a28d27080b25cc7a2a7d1499aa05a19395d93507c281bb5f12a00cbb824",
+    "backend/go.sum": "9c2da89859365c93ec438192ebd2db009ef727e4dae8176a341b46ed03340914"
+  },
+  "driverBinarySHA256": "7204fc7cabbfe4ed9b73c4edf83fedd9f917c2f614b943f287baab8da0d5244e",
+  "protectedHashes": {
+    ".local/ops-acceptance/resume-velero-s3-check.py": "65763c0931a701ffbe513fae76f1dcfcef1a7776edf4fb7fd9aa2e55bf876e4e",
+    ".local/ops-acceptance/resume-velero-s3-fixture.py": "c6badc5582f0cd679450050818abd56cdec6518d6a14cd01f69ff0c6d5c0d055",
+    ".local/ops-acceptance/resume-velero-s3-prep.py": "0b5219ab2fe498a81b5d224c35dc8eaa7827f68467ab4dbee413a45a6445cc02",
+    ".local/ops-acceptance/resume-velero-s3-remote.py": "6fe70db7027d422a5a03a990039359c3359997c26fc817c89109967f30da21b9",
+    ".local/ops-acceptance/resume-velero-s3-root.py": "65d8155901e32eb76318658972f995b24ec241a38df71d2adb92e0ae694675d5",
+    ".local/ops-acceptance/resume-velero-s3-live-driver.go": "6c54674516391523693c1b9f4186704580dbe24919c5e28c0e457b29252555db",
+    ".local/ops-acceptance/resume-velero-transport-prep.py": "1c2b41d64b18643833b4ed42af60f86226b1a6e95d9bb67c151362b09f451b2c",
+    ".local/ops-acceptance/remote.py": "37acccd12ba3b30e38182f11101821f110355ed660c4cf559d91cc1c638e1b5e",
+    "backend/modules/business/k8s/backup/backup.go": "bb6162665a7b710351ed6df4f2c204ad3914088aa7119d7cbbaa4a3170b61c8f",
+    "backend/modules/business/k8s/backup/backup_dto.go": "b6d0430c93bb33dada0f1155b2bb3ff17cf403fc619ab687ba141e64616aa7e4",
+    "backend/modules/business/k8s/backup/backup_handler.go": "320bf427300d6cb88038adfbf581600c8c82cd2f760bdfa755dfca4711d99e96",
+    "backend/modules/business/k8s/backup/backup_model.go": "0119686da49fa62c3106ca6a90206592122153eaf5f858ae884a824590c3ea51",
+    "backend/modules/business/k8s/backup/backup_service.go": "1e80d782e8bb7156a9b14f96810533f9e3be2e154fc24798066d6ef17194c604",
+    "backend/modules/business/k8s/backup/drill.go": "0de6e13dc1a2a4f0ea0acb3cd2478d636d2de8ff9a5b07024ba4e18abcddc702",
+    "backend/modules/business/k8s/backup/reconciler.go": "9d0b61f817267058f52a7b53d52c66d157598fcc51abfedfe986ce174aa5b3a7",
+    "backend/modules/business/k8s/backup/restore_authorization_test.go": "9ec9e243cf6d57e12f51023f164d0855eb1cfd022d75649ed0bdfb94fc78deb7",
+    "backend/modules/business/k8s/backup/restore_final_boundary_test.go": "2bf419325e543031afa5dbf1b3a968265ea544e2f0e4f90f94b0c5e80b67f293",
+    "backend/modules/business/k8s/backup/submission.go": "0bfb92cbfae5530a5dcc7330b48a9d0b375a91e84691c4340885c80ffad8f1d9",
+    "backend/modules/business/k8s/backup/velero_client.go": "dc7310ef0801e16b761b6612c9ee494aa3db91fdeb5a3af2a3f13a4b05ea189e",
+    "backend/modules/business/k8s/backup/velero_client_test.go": "0272dd81e1e6dee02185d8fbba9119c8767f796edc7073cfecf31d86fcc0a3d9",
+    "backend/modules/business/k8s/cluster/cluster_service.go": "a7afe5394f13525d15f62501cc61fd0355c0a90166bf347c9dbee4babcc6f64b",
+    "backend/modules/business/k8s/cluster/credential_revocation_test.go": "9356afee25dd1c41ba5fbd25eead7bf3332a53b00447952455caa40f30874420",
+    ".local/ops-acceptance/velero-final-live-driver.go": "fbfb911f3192a04cb842adaf40036ef8d709fbd643f72b6f3aadb5db9327a250",
+    "backend/go.mod": "0a768a28d27080b25cc7a2a7d1499aa05a19395d93507c281bb5f12a00cbb824",
+    "backend/go.sum": "9c2da89859365c93ec438192ebd2db009ef727e4dae8176a341b46ed03340914",
+    ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-velero-s3-cached-checks-20261110T003119069459.json": "fa0591c30e38004494518de83afbcb0d43585917480f4b83b3997f90ab70340b",
+    ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-velero-s3-cached-checks-20261110T003216480740.json": "cde149b9cb83c419c044f00b15fa44ae11460e5d9662767128c81ae5c9d867d4",
+    ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-velero-s3-cached-commands.json": "6eade6d8bdfc9c991a06829541370308a1006443d684ce30d322d72ceaad2108",
+    ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-velero-s3-cached-completion-20261110T003228969327.json": "e54e0c8b9596349bcd36c95cba0f022ea65a9d5b8b9e69b3c0974acd893bc22b",
+    ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-velero-s3-cached-final-check-20261110T003603802805.json": "8d253b3aca695ddf17d58b3b5e0230be4276838326901c5abb46052f99547174",
+    ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-velero-s3-cached-generator-report.md": "78c7f3a3b9d01188508f6a1f69d859562d4856e905149cc879a2d844a87627a7",
+    ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-velero-s3-cached-generator-report.receipt.json": "d24d2225ccf4634eb67f983ce0bf2c12032420dbc51ea30d60b855b4cd96c991",
+    ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-velero-s3-cached-handoff.md": "c04f5f7603f5746a0bfdb0c666473597335df936f207d09adabaa0298254e0f3",
+    ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-velero-s3-cached-loader-check-20261110T003340924706.json": "73dd0a934771a11b23a11a7a87cb39ab5e206af3f4ad43f6d339f01853bef4e1",
+    ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-velero-s3-cached-prior-loader-20261110T003228969327.json": "ee189ce4a3bd4e00f02447436a0ec01f07b86bc6b6bf29e2f97f886be43016b7",
+    ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-velero-s3-cached-review.json": "72050f8b6be59851209883866a1f1878ba7202fa7a130e938ecdaaa510c73bd7",
+    ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-velero-s3-check-failed-20261109T095724511279.json": "7053a179c6ad3932cacc688dabee2b306b4341a0db05e767b1cfda200ccfe043",
+    ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-velero-s3-closeout.json": "8f1be2442e199af806832a42c70b196366c0edaa21a3a0ffed99f356610e57e9",
+    ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-velero-s3-diagnostic-recovery-20261110T004550826959.json": "0bd5c6e3a64b2a41089b7df7cb0f80746e722df3caf61325c87248a61b843977",
+    ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-velero-s3-generator-report.md": "6933271677e06b3d24a5de41694af15b5fd332cfe556005a63621632a7c2fb76",
+    ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-velero-s3-generator-report.receipt.json": "e51fdb07e121eb28a557f9a2907cefdc4145eed65303e0f7801c6eb302577e11",
+    ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-velero-s3-handoff.md": "a307570d2ac271f30dda0210ad1eebfc4568b3902919674c20c2e8aee256cf4a",
+    ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-velero-s3-race-build-20261109T095802337061.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-velero-s3-race-build-20261109T100633950177.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-velero-s3-review.json": "3b2f0228bf2f7b7f551a3e25529d0e0f649e1b5b9da2fb7f6d4a9ecb67b290c2",
+    ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-velero-s3-root-diagnostic-20261110T004346423634.json": "458866f99ca6e50768c9594499b654db7652ad28de83aeaafe8311a1a3502432",
+    ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-velero-s3-root-request.json": "6d079b8d2b9dc99ffd278c3d74825e4d72f4ff3f5c5d847d3ddd6781701c9ef0",
+    ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-velero-s3-root-result-diagnostic-20261110T004347842492.json": "bcedace6e46d14371a22190fb8c173dc1d427cb5c7b352e07dd430e38dd37bb3",
+    ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-velero-s3-safe-diagnosis-20261110T004954045274.json": "d9a04e223ddeaef43936b95c25adf59a522a59c0f0a34713213bfb1220362c0f",
+    ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-velero-s3-transport-20261109T094851260556.json": "8939b5de2341c79e4fae8dd44f498f83af1846b96d6c96fc9d74950b622e1cea",
+    ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-velero-s3-transport-20261109T095831841676.json": "2cf95e440ad9af2a4178a7ddf0a5fd0881cfe621dda8d4a062a71dfcd5083c5d",
+    ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-velero-s3-transport-20261109T100823969535.json": "7269148e7b9d23d4866f7e61e54c9ce1e496ef35d6e461bcef7f2b192d6801c8",
+    ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-velero-s3-transport-20261109T101156612488.json": "03ad6bf68c05e84c1237834ad9a0b51946784b8fb1fc0691e01b08ce94dd20c6",
+    ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-velero-s3-transport-20261109T101459860875.json": "ee189ce4a3bd4e00f02447436a0ec01f07b86bc6b6bf29e2f97f886be43016b7",
+    ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-velero-s3-verification-20261109T095802337061.json": "4911fd4da46b75c5e19c9411b9161a0af464ad4796e874670482e1e827db05e3",
+    ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-velero-s3-verification-20261109T100633950177.json": "fc208127fe3bb2c3b9f2900ca1eb61146092b10f4cfc3407177b71a82ae7b893",
+    ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-velero-s3-vet-20261109T095802337061.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-velero-s3-vet-20261109T100633950177.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    ".local/ops-acceptance/resume-velero-s3-cached-check.py": "d475fef3d762d4155751ea60f69637a49d00c19189e2a5eafebdac3540a7ddec",
+    ".local/ops-acceptance/resume-velero-s3-cached-completion.py": "44433c1a81406988c758ddf0ae2a46d5e2af60b173e8d005d4a365ca84deffc6",
+    ".local/ops-acceptance/resume-velero-s3-cached-loader-check.py": "9876402c2f81edbe2ef6daba1c4ee88189a74c1c23e591854a04975f45315c84",
+    ".local/ops-acceptance/resume-velero-s3-diagnostic-recovery.py": "61f2d9bd568ba751571911938d1db35730195a65a1c67ac0d76c1738050014b2",
+    ".local/ops-acceptance/resume-velero-s3-safe-diagnosis.py": "4959573bca0e255b4cb2137c11c97585ec2d2ddf370983a91116fa0d829118ee",
+    ".local/ops-acceptance/resume-velero-s3-cache-v1/resume-velero-s3-artifacts.json": "e54e0c8b9596349bcd36c95cba0f022ea65a9d5b8b9e69b3c0974acd893bc22b",
+    ".local/ops-acceptance/resume-velero-s3-v3-remote.py": "7b1ba58c52d340a7d121c72e537baa3e20b072c0635289f9f82d97e5761ab7a5",
+    ".local/ops-acceptance/resume-velero-s3-v3-root.py": "030d0effa59a2ec85b63dd7eb133c595d13d68ff9f6a238a721f4987d8f45522",
+    ".local/ops-acceptance/resume-velero-s3-v3-prepare.py": "376a16285a4f7843ca49a57c8f3c1307d2e3db32e11f64399ff5dc0b27230dcf",
+    ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-velero-s3-v3-root-diagnostic-20261110T010950095179.json": "3437101eb0cc50fdb48ebfd787cad47ada6d05be73f56007bb12c39192067a95",
+    ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-velero-s3-v3-install-result-20261110T011217586443.json": "2bb5eeb7b63e6e04b7e5a9b868f0838d0f8d3b060c89c672a14153dc1df7fd72",
+    ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-velero-s3-v3-root-request.json": "ad0779266d7275da18b4eba24aef9557eb18d0b52c911cdaff09ee176f9a2cce",
+    ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-seaweed-listener-diagnosis-20261110T011723375932.json": "548841f08f7f94b7099013bd922d4b734293ddb9160181bad229f420e77034df",
+    ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-velero-native-inspection-20261110T010514525598.json": "8b12c792a841ebd6f69b353e6be67e33da0589548d75625cc5be2f10c1e3c1b6",
+    ".local/ops-acceptance/resume-velero-s3-live-driver.exe": "7204fc7cabbfe4ed9b73c4edf83fedd9f917c2f614b943f287baab8da0d5244e"
+  },
+  "scriptHashes": {
+    ".local/ops-acceptance/resume-velero-s3-v4-fixture.py": "e32b5ceb96e68edf0a3af76b3dbde6362b0679387460e1e748f95c2e7ee93910",
+    ".local/ops-acceptance/resume-velero-s3-v4-generate.py": "45b9a273106739f87639130ae9bb93039fbf51209a94af4b60f8fc805badaf19",
+    ".local/ops-acceptance/resume-velero-s3-v4-native.py": "f116a423d4f5c207db032829fc22b4bb3b8179eec41624bb0d9d14f0c4be402a",
+    ".local/ops-acceptance/resume-velero-s3-v4-remote.py": "63b2e9a90fb7b54fc522e6190ff6ad0cb353f199752dd7fea76b7d93cb47183a",
+    ".local/ops-acceptance/resume-velero-s3-v4-root.py": "5798157ebfa3ca1000a2a6a5cf8639bea40e7994e33a20f14721437db860c5af",
+    ".local/ops-acceptance/resume-velero-s3-v4-test.py": "de66659301307a68da0f4f0c33e51ffa61f93560ad80093c62ca9e018d9b19e2"
+  },
+  "remoteBaseline": {
+    "resume-velero-s3-prep.py": {
+      "sha256": "0b5219ab2fe498a81b5d224c35dc8eaa7827f68467ab4dbee413a45a6445cc02",
+      "bytes": 10139,
+      "mode": 384
+    },
+    "resume-velero-s3-remote.py": {
+      "sha256": "6fe70db7027d422a5a03a990039359c3359997c26fc817c89109967f30da21b9",
+      "bytes": 24070,
+      "mode": 384
+    },
+    "resume-velero-s3-fixture.py": {
+      "sha256": "c6badc5582f0cd679450050818abd56cdec6518d6a14cd01f69ff0c6d5c0d055",
+      "bytes": 13090,
+      "mode": 384
+    },
+    "resume-velero-s3-artifacts.json": {
+      "sha256": "e54e0c8b9596349bcd36c95cba0f022ea65a9d5b8b9e69b3c0974acd893bc22b",
+      "bytes": 15246,
+      "mode": 384
+    },
+    "seaweedfs-4.53-release.json": {
+      "sha256": "7908e97ed2a798b18fe07ccf665143a19d5655d98d30ee1b54d93d8c145f7344",
+      "bytes": 152008,
+      "mode": 384
+    },
+    "linux_amd64.tar.gz": {
+      "sha256": "d1a7dec9f48d8b33895a0ea8951971defc2dc5312906dcc76fa5a5f74a6ee90d",
+      "bytes": 48457480,
+      "mode": 384
+    },
+    "velero-v1.17.0-linux-amd64.tar.gz": {
+      "sha256": "f507a956cf8ec00f483f5d7b04901614a9016a10feb32b3ecc968da36b4fc7be",
+      "bytes": 58499469,
+      "mode": 384
+    },
+    "velero-velero-v1.17.0.oci.tar": {
+      "sha256": "86b8928b6b053f7bb573df6f6492841f7e96ad03647f9ec9857351c4d267bea4",
+      "bytes": 80906240,
+      "mode": 384
+    },
+    "velero-velero-plugin-for-aws-v1.13.0.oci.tar": {
+      "sha256": "494a8f752943a96c7a08ddfa1f2059eb07291039b37bca1518566eef41df554e",
+      "bytes": 41523200,
+      "mode": 384
+    },
+    "resume-velero-s3-diagnostic-20261110T004347017585.json": {
+      "sha256": "708ec9d2777d8fe3c12dcbd4bb16ad984b299821b614b05a57971ae8b732ea8c",
+      "bytes": 266,
+      "mode": 384
+    },
+    "resume-velero-s3-v3-remote.py": {
+      "sha256": "7b1ba58c52d340a7d121c72e537baa3e20b072c0635289f9f82d97e5761ab7a5",
+      "bytes": 26081,
+      "mode": 384
+    },
+    "resume-velero-s3-diagnostic-20261110T010938338222.json": {
+      "sha256": "8d58b6fd6cb34a2aa02f2438e7053b9d7b345459ba77084933c3e4006ae2141e",
+      "bytes": 739,
+      "mode": 384
+    },
+    "resume-velero-s3-diagnostic.json": {
+      "sha256": "8d58b6fd6cb34a2aa02f2438e7053b9d7b345459ba77084933c3e4006ae2141e",
+      "bytes": 739,
+      "mode": 384
+    },
+    "resume-velero-s3-help.json": {
+      "sha256": "b8f38fab05bfa9e66b44f1dccae35c7098b5ba5dc8c2e20152545cc032f8f268",
+      "bytes": 17756,
+      "mode": 384
+    },
+    "velero": {
+      "sha256": "e7e14133f1a13d759d43b2bf188cf1a078ffe36184d25f77ae4005fc7c26e739",
+      "bytes": 142581282,
+      "mode": 448
+    },
+    "weed": {
+      "sha256": "fa936e61bfb11f33c1f823045c4007e7da4b8b38bb6adc3b970f132d832e805b",
+      "bytes": 156401824,
+      "mode": 448
+    }
+  },
+  "knownFailedInstallContent": {
+    "phase": "install",
+    "failedStage": "private-native-seaweed",
+    "exitCode": 1,
+    "owner": "velero-s3-seaweed-20261109-v1",
+    "errorType": "ValueError",
+    "detailsOmitted": true,
+    "ownedObjects": [],
+    "partialResourcesMayRemain": true,
+    "backupRestoreVerified": false
+  },
+  "privateIP": "192.168.94.127",
+  "binaryHashes": {
+    "weed": "fa936e61bfb11f33c1f823045c4007e7da4b8b38bb6adc3b970f132d832e805b",
+    "velero": "e7e14133f1a13d759d43b2bf188cf1a078ffe36184d25f77ae4005fc7c26e739"
+  },
+  "approvedPorts": [
+    19333,
+    29333,
+    18080,
+    28080,
+    18888,
+    28888,
+    18333,
+    28333
+  ],
+  "resourcePolicies": {
+    "combinedMemoryMaxMi": 480,
+    "maxAllowedMi": 512,
+    "headroomRequiredMi": 1024,
+    "seaweedMemoryMaxMi": 160,
+    "veleroMemoryMaxMi": 320,
+    "nativeDataDiskMaxMi": 256,
+    "cpuQuota": "25%",
+    "uidOwnershipAndCleanup": "All original source/unit/S3/OCI/Velero/fixture ownership and cleanup functions byte-equivalent"
+  },
+  "rootRequestHashRequiredOnEveryRemotePhase": true,
+  "P0Approved": false,
+  "realAcceptancePending": true
+}

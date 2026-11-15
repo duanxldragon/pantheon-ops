@@ -1,0 +1,115 @@
+{
+  "parentTaskId": "2026-11-07-ops-planned-task-closeout",
+  "tier": "L2",
+  "adapter": "Generator",
+  "host": "115.190.251.143",
+  "recordedAt": "2026-11-09T06:48:17Z",
+  "boundedAcceptanceCompleted": true,
+  "wholeP0Approved": false,
+  "serviceProductIntegration": {
+    "command": "python .local/ops-acceptance/live-k8s-argo-service.py",
+    "checksPassed": 22,
+    "exitCode": 0,
+    "raceInstrumented": true,
+    "evidence": "live-k8s-argo-service-result.json",
+    "origin": "https://115.190.251.143:6443",
+    "tlsServerName": "kubernetes",
+    "tlsVerification": "CA trust acquired through pinned SSH; existing certificate DNS SAN verified; no insecure mode"
+  },
+  "argoProviderOnly": {
+    "command": "python .local/ops-acceptance/live-k8s-argo-provider-v7.py",
+    "checksPassed": 28,
+    "exitCode": 0,
+    "evidence": "live-k8s-argo-provider-v7-result.json",
+    "gitSourceScope": "isolated fixture through authorized node InternalIP; no private network policy change; not product egress acceptance",
+    "providerAPI": "installed in-cluster Service; CA and argocd-server DNS SAN verified; excludes public Ops Argo client integration"
+  },
+  "postflight": {
+    "command": "python .local/ops-acceptance/live-k8s-argo-postflight.py",
+    "exitCode": 0,
+    "corePodsReady": 4,
+    "coreMemoryLimits": "960Mi",
+    "ownedNamespacesApplicationsProjectsRemaining": 0,
+    "providersRetained": true
+  },
+  "diagnostics": {
+    "pythonCompileCommand": "python .local/ops-acceptance/live-k8s-argo-driver-diagnostics.py (py_compile of all owned live-k8s-argo-*.py)",
+    "pythonCompileExitCode": 0,
+    "compiledFileCount": 23,
+    "goVetCommand": "CGO_ENABLED=1 PATH=D:/msys64/mingw64/bin go vet -mod=readonly ../.local/ops-acceptance/live-k8s-argo-service-driver.go",
+    "goVetExitCode": 0,
+    "buildCommand": "CGO_ENABLED=1 PATH=D:/msys64/mingw64/bin go build -mod=readonly -race -o ../.local/ops-acceptance/live-k8s-argo-service-driver.exe ../.local/ops-acceptance/live-k8s-argo-service-driver.go",
+    "buildExitCode": 0,
+    "gofmtExitCode": 0
+  },
+  "retainedFailedAttempts": [
+    {
+      "evidence": "live-k8s-argo-service-first-attempt-result.json",
+      "exitCode": 1,
+      "checksPassed": 0
+    },
+    {
+      "evidence": "live-k8s-argo-provider-first-attempt-result.json",
+      "exitCode": 1,
+      "checksPassed": 6
+    },
+    {
+      "evidence": "live-k8s-argo-provider-v2-result.json",
+      "exitCode": 1,
+      "checksPassed": 4
+    },
+    {
+      "evidence": "live-k8s-argo-provider-v3-result.json",
+      "exitCode": 1,
+      "checksPassed": 7
+    },
+    {
+      "evidence": "live-k8s-argo-provider-v4-result.json",
+      "exitCode": 1,
+      "checksPassed": 4
+    },
+    {
+      "evidence": "live-k8s-argo-provider-v5-result.json",
+      "exitCode": 1,
+      "checksPassed": 7
+    },
+    {
+      "evidence": "live-k8s-argo-provider-v6-result.json",
+      "exitCode": 1,
+      "checksPassed": 7
+    }
+  ],
+  "newProductDefectsReproduced": [],
+  "findings": [
+    "Existing K3s certificate lacks authorized public IP SAN; supported tls-server-name kubernetes verified against trusted CA resolves product method integration without weakening checked dial.",
+    "repo-server GitHub git ls-remote returned 124 at 15s; public host fixture also returned 124. In-cluster fixture works. External repository egress remains unverified.",
+    "Simple dumb HTTP fixture worked for CLI Git but Argo repository test rejected it with unexpected EOF; smart HTTP fixture resolved this harness mismatch.",
+    "One fixture attempt hit OSError on fixed-port reuse; free ephemeral port resolved harness allocation."
+  ],
+  "uncoveredAcceptance": [
+    "Ops ArgoCDService action persistence/reconciler and Ops HTTP routes, actor permissions, data scope, product audit, safe public Argo API origin and production CA integration.",
+    "Service HTTP actor authorization, product audit, BizScope/CMDB key-only grants/revokes; department-row and namespace/action/reference revocations only were tested.",
+    "Service/Argo in-flight revocation and delayed-provider operation timeout matrices, remote restart/recovery, long/complex deployment cancellation and retry.",
+    "O3 broader K8s manifests/config/resources and complex deployment/old-version restore; this Argo fixture changes only Service selector v1/v2.",
+    "Velero and signed backup/restore/RPO/RTO/capacity acceptance were not run.",
+    "Independent final CODE/ARCH and UI visual acceptance were not performed; UI was not changed or inspected."
+  ],
+  "fixtureDatabasesRetained": [
+    "ops_p0_live_k8s_929033",
+    "ops_p0_live_k8s_3c38b2"
+  ],
+  "allowedWrites": "only new ignored live-k8s-argo drivers and live-k8s-argo evidence; isolated authorized server fixtures; no Ops backend/SQL/mod/sum, lock, overlay, checkpoint, commands, summary, commits, pushes or publication",
+  "driverHashes": {
+    "live-k8s-argo-service-driver.go": "d40aa4db8a184a880442bfa1071c123929103c563583e8a106bb314254ad9437",
+    "live-k8s-argo-service-driver.exe": "a7884ed5d18de3074728d686ae2f7d61ab10f895a11f7dbef0271b74e6d5aa10",
+    "live-k8s-argo-service.py": "1b2a936eaafbbfbcd1e2101b9fb264dda40b88a5e6ba3f147716a3dd81ae2d92",
+    "live-k8s-argo-provider-v7.py": "a03e6545f7bcf30a40a186071fe8636f87599af2b6bfef6757fb285d65632bda"
+  },
+  "fileCleanup": {
+    "command": "python .local/ops-acceptance/live-k8s-argo-file-cleanup.py",
+    "exitCode": 0,
+    "temporaryGitDirectoriesRemoved": 6,
+    "credentialFilesConfirmedAbsent": 2,
+    "evidence": "live-k8s-argo-file-cleanup-result.json"
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "candidateIdentity": "candidate-64cbd8e211df852a17d9bc7a93ac09af300eb40fde4b08db5133a95c436a38de",
+  "descriptorPath": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\o4-adoption-1794278076834-sealed\\candidate-descriptor.json",
+  "descriptorSha256": "77faf23ed88c721bfd6e14b2888194a92769de9c3402bce5ebe622093a283f51",
+  "artifactPath": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\o4-adoption-1794278076834-sealed\\candidate-64cbd8e211df852a17d9bc7a93ac09af300eb40fde4b08db5133a95c436a38de.tar",
+  "artifactSha256": "2d679d5f06d244e91e4c7c14b20118a30d9125f5b1bc01089d7a6eca3c49cb89",
+  "aggregateSha256": "64cbd8e211df852a17d9bc7a93ac09af300eb40fde4b08db5133a95c436a38de",
+  "sourceStable": true,
+  "files": 1133,
+  "officialConsumption": false
+}

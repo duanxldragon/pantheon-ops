@@ -1,0 +1,21 @@
+{
+  "queryCount": 11,
+  "mode": "light",
+  "provider": "browser transport fixture",
+  "resultModes": [
+    "logs",
+    "trend",
+    "fields",
+    "raw"
+  ],
+  "storedResults": false,
+  "labelFixtureCount": 500,
+  "renderedLabels": 6,
+  "maxPreviewCharacters": 81,
+  "follow": {
+    "transport": "bounded range polling",
+    "intervalAfterCompletionMs": 5000,
+    "rollingWindowMinutes": 15,
+    "stoppedBetweenRequests": true
+  }
+}

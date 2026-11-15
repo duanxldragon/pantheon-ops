@@ -1,0 +1,176 @@
+{
+  "case": "concurrent",
+  "identity": "o2-live-593d9f0f9442-concurrent",
+  "database": "ops_p0_o2_live_593d9f0f9442_concurrent",
+  "databaseRetention": "retained; no drop",
+  "events": [
+    {
+      "credentialId": 1,
+      "packageId": 1,
+      "phase": "task-created",
+      "taskId": 1
+    },
+    {
+      "case": "concurrent",
+      "check": "concurrent viewed commands exactly one commit one conflict",
+      "kind": "positive",
+      "passed": true
+    },
+    {
+      "case": "concurrent",
+      "check": "real running command acknowledged paused",
+      "kind": "positive",
+      "passed": true
+    },
+    {
+      "action": "cancel",
+      "errorKey": "business.deploy.task.commandConflict",
+      "phase": "control",
+      "taskId": 1
+    },
+    {
+      "case": "concurrent",
+      "check": "stale running view conflicts after control",
+      "kind": "negative",
+      "passed": true
+    },
+    {
+      "case": "concurrent",
+      "check": "independent VM interrupted attempt never wrote completion",
+      "kind": "positive",
+      "passed": true
+    },
+    {
+      "case": "concurrent",
+      "check": "public current checkpoint and recorded safe history",
+      "kind": "positive",
+      "origin": "fresh-process",
+      "passed": true
+    },
+    {
+      "case": "concurrent",
+      "check": "public log sequence ownership attempts and secret exclusion",
+      "kind": "positive",
+      "origin": "fresh-process",
+      "passed": false
+    },
+    {
+      "case": "concurrent",
+      "check": "both actual VM streams persisted",
+      "kind": "positive",
+      "origin": "fresh-process",
+      "passed": true
+    },
+    {
+      "case": "concurrent",
+      "check": "log cursor excludes already delivered sequence",
+      "kind": "positive",
+      "origin": "fresh-process",
+      "passed": true
+    },
+    {
+      "case": "concurrent",
+      "check": "public event sequence ordered across committed transitions",
+      "kind": "positive",
+      "origin": "fresh-process",
+      "passed": false
+    },
+    {
+      "case": "concurrent",
+      "check": "event reconnect cursor no replay at latest sequence",
+      "kind": "positive",
+      "origin": "fresh-process",
+      "passed": true
+    },
+    {
+      "attempts": [
+        {
+          "attemptNo": 1,
+          "leaseReleased": true,
+          "status": "paused"
+        }
+      ],
+      "eventTypes": [
+        "task.started",
+        "step.running",
+        "task.pause_requested",
+        "task.paused"
+      ],
+      "finished": false,
+      "history": [
+        {
+          "attemptNo": 1,
+          "capturedAt": "2026-11-09T16:12:45.579+08:00",
+          "finishedAt": null,
+          "id": 1,
+          "startedAt": "2026-11-09T16:12:43.189+08:00",
+          "stateVersion": 3,
+          "status": "pending",
+          "stepKey": "package_default",
+          "stepOrder": 1,
+          "taskHostId": 1
+        }
+      ],
+      "logCount": 2,
+      "origin": "fresh-process",
+      "phase": "persisted-state",
+      "status": "paused",
+      "steps": [
+        {
+          "attemptNo": 1,
+          "finishedAt": null,
+          "id": 1,
+          "startedAt": "2026-11-09T16:12:43.189+08:00",
+          "stateVersion": 3,
+          "status": "pending",
+          "stepKey": "package_default",
+          "stepOrder": 1,
+          "taskHostId": 1
+        }
+      ],
+      "taskId": 1
+    },
+    {
+      "case": "concurrent",
+      "failed": 2,
+      "negativePassed": 0,
+      "origin": "fresh-process",
+      "phase": "driver-result",
+      "positivePassed": 4
+    },
+    {
+      "case": "concurrent",
+      "check": "new OS process inspect uses committed task state",
+      "kind": "positive",
+      "passed": false
+    },
+    {
+      "case": "concurrent",
+      "failed": 1,
+      "negativePassed": 1,
+      "phase": "driver-result",
+      "positivePassed": 3
+    }
+  ],
+  "driverExitCode": 1,
+  "stderrPresent": false,
+  "status": "failed",
+  "cleanup": {
+    "phase": "exact-owned-cleanup",
+    "directory": "/opt/pantheon-p0-20261109/o2-live-593d9f0f9442-concurrent",
+    "files": [
+      {
+        "file": ".owner",
+        "sha256": "45f89b1c0b68afaf32124b5b0199d8dcf2d73e2339833cd41f66a23c31dcda48",
+        "bytes": 31
+      },
+      {
+        "file": "started",
+        "sha256": "45f89b1c0b68afaf32124b5b0199d8dcf2d73e2339833cd41f66a23c31dcda48",
+        "bytes": 31
+      }
+    ],
+    "absent": true,
+    "processKill": false
+  }
+}

@@ -1,0 +1,32 @@
+DRIFT_MODIFIED backend/modules/business/business.go
+DRIFT_MODIFIED frontend/src/core/router/modules.ts
+FAIL shared drift check: 2 modified, 0 missing in base, 0 stale allowlist (5 shared files compared, 0 business-overlay files skipped, 2 derived business migrations verified, base=C:\Users\xiaolong\AppData\Local\Temp\ops-candidate-8k1i2P\ops\.tmp\foundation-candidates\candidate-5e4757c4069b55bdacd523289dd85f7d9786ce939f06f5ece1610f7bf627fad1\snapshot)
+▶ fresh extraction is sealed; mutations, additions, edit/revert and snapshot reuse refuse
+  ✔ write (2256.2233ms)
+  ✔ addition (2228.9941ms)
+  ✔ revert (2331.0794ms)
+  ✔ root-revert (2008.5804ms)
+✔ fresh extraction is sealed; mutations, additions, edit/revert and snapshot reuse refuse (8827.4574ms)
+✔ protects repository/foreign/existing targets and rejects alternative manifest ownership (2577.4079ms)
+▶ assembly rejects snapshot/artifact and declared Ops mutations including edit/revert; failure cleans owned stage only
+  ✔ snapshot (2287.2711ms)
+  ✔ artifact (2119.087ms)
+  ✔ business (2165.0992ms)
+  ✔ manifest (2364.3121ms)
+  ✔ lock (2563.6094ms)
+  ✔ revert (2087.5801ms)
+  ✔ addition (2125.2216ms)
+  ✔ git-selection (2275.7304ms)
+✔ assembly rejects snapshot/artifact and declared Ops mutations including edit/revert; failure cleans owned stage only (17990.5711ms)
+▶ drift and migration conflicts refuse candidate publication
+  ✔ unallowlisted shared modification (2761.6898ms)
+  ✔ Base migration conflict (1903.2181ms)
+✔ drift and migration conflicts refuse candidate publication (4665.7843ms)
+ℹ tests 18
+ℹ suites 0
+ℹ pass 18
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 34238.0973

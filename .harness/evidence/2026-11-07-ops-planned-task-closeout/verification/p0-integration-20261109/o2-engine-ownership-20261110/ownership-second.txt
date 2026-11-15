@@ -1,0 +1,71 @@
+=== RUN   TestOwnershipDualRenewalAndPhysicalContention
+--- PASS: TestOwnershipDualRenewalAndPhysicalContention (2.71s)
+=== RUN   TestOwnershipStaleCallbacksCannotChangeAnyTable
+
+2026/11/10 13:20:51 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/attempt_ownership.go:327 [35;1mrecord not found
+[0m[33m[1.429ms] [34;1m[rows:0][0m SELECT * FROM `biz_deploy_host_lease` WHERE host_id = 1 ORDER BY `biz_deploy_host_lease`.`id` LIMIT 1 FOR UPDATE
+=== RUN   TestOwnershipStaleCallbacksCannotChangeAnyTable/log
+2026/11/10 13:20:51 ERROR append deploy task log failed task_id=1 stream=stdout error="record not found"
+=== RUN   TestOwnershipStaleCallbacksCannotChangeAnyTable/event
+2026/11/10 13:20:51 ERROR append deploy task event failed task_id=1 event_type=stale error="record not found"
+=== RUN   TestOwnershipStaleCallbacksCannotChangeAnyTable/checkpoint/history
+=== RUN   TestOwnershipStaleCallbacksCannotChangeAnyTable/trace
+=== RUN   TestOwnershipStaleCallbacksCannotChangeAnyTable/result/component
+=== RUN   TestOwnershipStaleCallbacksCannotChangeAnyTable/component-helper
+=== RUN   TestOwnershipStaleCallbacksCannotChangeAnyTable/finish/release/requeue
+=== RUN   TestOwnershipStaleCallbacksCannotChangeAnyTable/final-task
+=== RUN   TestOwnershipStaleCallbacksCannotChangeAnyTable/legacy-finish
+--- PASS: TestOwnershipStaleCallbacksCannotChangeAnyTable (1.41s)
+    --- PASS: TestOwnershipStaleCallbacksCannotChangeAnyTable/log (0.01s)
+    --- PASS: TestOwnershipStaleCallbacksCannotChangeAnyTable/event (0.01s)
+    --- PASS: TestOwnershipStaleCallbacksCannotChangeAnyTable/checkpoint/history (0.01s)
+    --- PASS: TestOwnershipStaleCallbacksCannotChangeAnyTable/trace (0.01s)
+    --- PASS: TestOwnershipStaleCallbacksCannotChangeAnyTable/result/component (0.01s)
+    --- PASS: TestOwnershipStaleCallbacksCannotChangeAnyTable/component-helper (0.01s)
+    --- PASS: TestOwnershipStaleCallbacksCannotChangeAnyTable/finish/release/requeue (0.01s)
+    --- PASS: TestOwnershipStaleCallbacksCannotChangeAnyTable/final-task (0.01s)
+    --- PASS: TestOwnershipStaleCallbacksCannotChangeAnyTable/legacy-finish (0.01s)
+=== RUN   TestOwnershipWatchdogDoesNotWaitForDBOrResurrect
+
+2026/11/10 13:20:53 [32mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/attempt_ownership.go:327 [33mSLOW SQL >= 200ms
+[0m[31;1m[486.767ms] [33m[rows:1][35m SELECT * FROM `biz_deploy_host_lease` WHERE host_id = 1 ORDER BY `biz_deploy_host_lease`.`id` LIMIT 1 FOR UPDATE[0m
+--- PASS: TestOwnershipWatchdogDoesNotWaitForDBOrResurrect (2.02s)
+=== RUN   TestOwnershipFirstReadErrorCancelsVoidWriter
+2026/11/10 13:20:54 ERROR load deploy task step for log failed task_id=1 task_host_id=1 step_key=owned error="owned database read failed"
+
+2026/11/10 13:20:54 [34;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/attempt_ownership_test.go:265
+[0m[35m[warn] [0mremoving callback `ownership_read_error` from D:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/attempt_ownership_test.go:265
+--- PASS: TestOwnershipFirstReadErrorCancelsVoidWriter (1.09s)
+=== RUN   TestOwnershipUnknownOuterTransactionsRejected
+--- PASS: TestOwnershipUnknownOuterTransactionsRejected (1.19s)
+=== RUN   TestOwnershipCrashBudgetPauseCancelAndHistory
+--- PASS: TestOwnershipCrashBudgetPauseCancelAndHistory (1.62s)
+=== RUN   TestOwnershipReconcileSerializesRenewAndFinish
+=== RUN   TestOwnershipReconcileSerializesRenewAndFinish/renew/owner
+=== RUN   TestOwnershipReconcileSerializesRenewAndFinish/renew/reconcile
+
+2026/11/10 13:20:59 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/attempt_ownership.go:327 [35;1mrecord not found
+[0m[33m[0.624ms] [34;1m[rows:0][0m SELECT * FROM `biz_deploy_host_lease` WHERE host_id = 1 ORDER BY `biz_deploy_host_lease`.`id` LIMIT 1 FOR UPDATE
+=== RUN   TestOwnershipReconcileSerializesRenewAndFinish/finish/owner
+=== RUN   TestOwnershipReconcileSerializesRenewAndFinish/finish/reconcile
+--- PASS: TestOwnershipReconcileSerializesRenewAndFinish (4.71s)
+    --- PASS: TestOwnershipReconcileSerializesRenewAndFinish/renew/owner (1.16s)
+    --- PASS: TestOwnershipReconcileSerializesRenewAndFinish/renew/reconcile (1.11s)
+    --- PASS: TestOwnershipReconcileSerializesRenewAndFinish/finish/owner (1.17s)
+    --- PASS: TestOwnershipReconcileSerializesRenewAndFinish/finish/reconcile (1.27s)
+=== RUN   TestOwnershipExactDBExpiryAndNullLegacy
+=== RUN   TestOwnershipExactDBExpiryAndNullLegacy/attempt
+=== RUN   TestOwnershipExactDBExpiryAndNullLegacy/physical
+=== RUN   TestOwnershipExactDBExpiryAndNullLegacy/null
+--- PASS: TestOwnershipExactDBExpiryAndNullLegacy (1.20s)
+    --- PASS: TestOwnershipExactDBExpiryAndNullLegacy/attempt (0.01s)
+    --- PASS: TestOwnershipExactDBExpiryAndNullLegacy/physical (0.02s)
+    --- PASS: TestOwnershipExactDBExpiryAndNullLegacy/null (0.02s)
+=== RUN   TestOwnershipComponentSnapshot
+--- PASS: TestOwnershipComponentSnapshot (1.14s)
+=== RUN   TestMarkHostResultDefersTerminalTaskUntilActiveAttemptFinishes
+--- PASS: TestMarkHostResultDefersTerminalTaskUntilActiveAttemptFinishes (1.47s)
+=== RUN   TestHasActiveTaskAttemptRejectsLegacyNilOwnership
+--- PASS: TestHasActiveTaskAttemptRejectsLegacyNilOwnership (1.42s)
+PASS
+ok  	github.com/duanxldragon/pantheon-base/backend/modules/business/deploy	21.131s

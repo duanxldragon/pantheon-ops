@@ -1,0 +1,32 @@
+{
+  "command": "python -B .local/ops-acceptance/continue-velero-alias-v5-test.py --full (offline socket/subprocess guards)",
+  "exitCode": 0,
+  "log": ".local/ops-acceptance/continue-velero-alias-v5-work/resume-full-20261110T092930613489.log",
+  "logSHA256": "87bfad2dfeed0fe38361f472ae3db54ab2d7090592e80e75171a9ccd0e61eab9",
+  "summary": {
+    "originalRegressions": 238,
+    "currentTests": 75,
+    "newUniqueTests": 22,
+    "fullUniqueRegressions": 260,
+    "testsRun": 313,
+    "skips": 0,
+    "oldGeneratorsExecuted": false,
+    "runtimeExecuted": false
+  },
+  "scriptHashesBefore": {
+    ".local/ops-acceptance/continue-velero-alias-v5-contract.py": "dd5979f9159e33ab63c0e56e98912cb0b8dff041c2ab95372ee120ba7aaf87a3",
+    ".local/ops-acceptance/continue-velero-alias-v5-remote.py": "80c6780c5f71ac8b37cc8300c70112ec6673a953b784f5806bcd95c0917e6ff1",
+    ".local/ops-acceptance/continue-velero-alias-v5-root.py": "0803c7ec38c029192299060c852d277a8fe62efe81ab0411d3ed6ac2b00b5fb5",
+    ".local/ops-acceptance/continue-velero-alias-v5-generate.py": "27914715d77179f983ad722f197ca2f3595587fcb868c5760b43144e860292df",
+    ".local/ops-acceptance/continue-velero-alias-v5-test.py": "b513dec356e3502e5524cb7b571b3c945daeb5f9332102c978dce42cc8ec1217"
+  },
+  "scriptHashesAfter": {
+    ".local/ops-acceptance/continue-velero-alias-v5-contract.py": "dd5979f9159e33ab63c0e56e98912cb0b8dff041c2ab95372ee120ba7aaf87a3",
+    ".local/ops-acceptance/continue-velero-alias-v5-remote.py": "80c6780c5f71ac8b37cc8300c70112ec6673a953b784f5806bcd95c0917e6ff1",
+    ".local/ops-acceptance/continue-velero-alias-v5-root.py": "0803c7ec38c029192299060c852d277a8fe62efe81ab0411d3ed6ac2b00b5fb5",
+    ".local/ops-acceptance/continue-velero-alias-v5-generate.py": "27914715d77179f983ad722f197ca2f3595587fcb868c5760b43144e860292df",
+    ".local/ops-acceptance/continue-velero-alias-v5-test.py": "b513dec356e3502e5524cb7b571b3c945daeb5f9332102c978dce42cc8ec1217"
+  },
+  "stable": true,
+  "remoteExecuted": false
+}

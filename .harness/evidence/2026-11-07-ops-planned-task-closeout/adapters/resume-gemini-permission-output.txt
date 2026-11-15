@@ -1,0 +1,2 @@
+
+Opening authentication page in your browser. Do you want to continue? [Y/n]: Independent CODE review, read-only source-only. Tools disabled. Report only proved P0/P1/P2 defects, concrete source line and minimal fix. Max 450 words. End with verdict APPROVE or CHANGES_REQUESTED for supplied source only, plus explicit scope limits. No production, complete project, or release acceptance. Generic shared source belongs to Base, business semantics to Ops. Unknown runtime dependencies must be flagged conditional rather than assumed defective.

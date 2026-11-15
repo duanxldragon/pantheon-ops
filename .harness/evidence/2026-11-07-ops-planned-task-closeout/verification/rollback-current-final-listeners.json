@@ -1,0 +1,13 @@
+{
+  "ports": [
+    24485,
+    26316,
+    33316,
+    5173,
+    5175
+  ],
+  "remainingListeners": [],
+  "dataRetained": true,
+  "timestamp": "2026-11-07T14:13:06.9676700Z",
+  "status": "passed"
+}

@@ -1,0 +1,19 @@
+{
+  "phase": "native-ip",
+  "exitCode": 1,
+  "errorType": "ValueError",
+  "errorKey": "approved-vm-interface-required",
+  "detailsOmitted": true,
+  "providerInstalled": false,
+  "backupRestoreVerified": false,
+  "partialDiagnosticFilesMayRemain": false,
+  "nativeCLI": [
+    "ip",
+    "-j",
+    "-4",
+    "address",
+    "show",
+    "scope",
+    "global"
+  ]
+}

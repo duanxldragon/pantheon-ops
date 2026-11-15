@@ -1,0 +1,84 @@
+{
+  "case": "concurrent",
+  "identity": "o2-live-b454c3a7a6ea-concurrent",
+  "database": "ops_p0_o2_live_b454c3a7a6ea_concurrent",
+  "databaseRetention": "retained; no drop",
+  "events": [
+    {
+      "credentialId": 1,
+      "packageId": 1,
+      "phase": "task-created",
+      "taskId": 1
+    },
+    {
+      "errorChainTypes": [
+        "*fmt.wrapError",
+        "*errors.errorString"
+      ],
+      "errorType": "*fmt.wrapError",
+      "phase": "independent-ssh-error",
+      "stage": "dial-handshake"
+    },
+    {
+      "contextCanceled": false,
+      "deadlineExceeded": false,
+      "driverFrames": [
+        {
+          "file": "live-diagnostic-o2-v5.go",
+          "line": 79
+        },
+        {
+          "file": "live-diagnostic-o2-v5.go",
+          "line": 167
+        },
+        {
+          "file": "live-diagnostic-o2-v5.go",
+          "line": 176
+        },
+        {
+          "file": "live-diagnostic-o2-v5.go",
+          "line": 493
+        },
+        {
+          "file": "live-diagnostic-o2-v5.go",
+          "line": 648
+        }
+      ],
+      "errorKey": "suppressed",
+      "errorType": "*fmt.wrapError",
+      "phase": "operation-error"
+    },
+    {
+      "error": "operation or deadline; secret details suppressed",
+      "phase": "driver-failure"
+    },
+    {
+      "case": "concurrent",
+      "failed": 1,
+      "negativePassed": 0,
+      "phase": "driver-result",
+      "positivePassed": 0
+    }
+  ],
+  "driverExitCode": 1,
+  "stderrPresent": false,
+  "status": "failed",
+  "cleanup": {
+    "phase": "exact-owned-cleanup",
+    "directory": "/opt/pantheon-p0-20261109/o2-live-b454c3a7a6ea-concurrent",
+    "files": [
+      {
+        "file": ".owner",
+        "sha256": "cc38d1d26306f8997624259f97f108b78c522151168649259d496ae340ecb886",
+        "bytes": 31
+      },
+      {
+        "file": "started",
+        "sha256": "cc38d1d26306f8997624259f97f108b78c522151168649259d496ae340ecb886",
+        "bytes": 31
+      }
+    ],
+    "absent": true,
+    "processKill": false
+  }
+}

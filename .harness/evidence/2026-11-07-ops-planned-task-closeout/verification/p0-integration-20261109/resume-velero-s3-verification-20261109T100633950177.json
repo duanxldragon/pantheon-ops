@@ -1,0 +1,109 @@
+{
+  "phase": "offline-and-build-v1",
+  "exitCode": 0,
+  "checks": [
+    {
+      "check": "all-new-Python-scripts-parse-and-compile-without-bytecode",
+      "passed": true
+    },
+    {
+      "check": "actual-official-Velero-SHA256-and-regular-amd64-ELF",
+      "passed": true
+    },
+    {
+      "check": "actual-cached-official-image-indices-have-unique-linux-amd64-manifests",
+      "passed": true
+    },
+    {
+      "check": "release-digest-size-origin-version-and-publication-tampering-denied",
+      "passed": true
+    },
+    {
+      "check": "path-traversal-absolute-Windows-links-duplicates-and-wrong-ELF-denied-before-extract",
+      "passed": true
+    },
+    {
+      "check": "cleanup-foreign-owner-and-recreated-UID-denied",
+      "passed": true
+    },
+    {
+      "check": "existing-SSH-helper-rejects-unknown-host-keys",
+      "passed": true
+    },
+    {
+      "check": "fixed-owned-provider-path-private-port-set-and-480Mi-provider-budget",
+      "passed": true
+    },
+    {
+      "check": "product-source-and-module-bytes-unchanged-during-fresh-race-build-vet",
+      "passed": true
+    }
+  ],
+  "commands": [
+    {
+      "command": [
+        "go",
+        "build",
+        "-mod=readonly",
+        "-race",
+        "-o",
+        "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\resume-velero-s3-live-driver.exe",
+        "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\resume-velero-s3-live-driver.go"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 8.937,
+      "CGO_ENABLED": "1",
+      "MinGW": "D:/msys64/mingw64/bin",
+      "artifact": "resume-velero-s3-race-build-20261109T100633950177.txt"
+    },
+    {
+      "command": [
+        "go",
+        "vet",
+        "-mod=readonly",
+        "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\resume-velero-s3-live-driver.go"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 1.969,
+      "CGO_ENABLED": "1",
+      "MinGW": "D:/msys64/mingw64/bin",
+      "artifact": "resume-velero-s3-vet-20261109T100633950177.txt"
+    }
+  ],
+  "scriptHashes": {
+    ".local/ops-acceptance/resume-velero-s3-check.py": "65763c0931a701ffbe513fae76f1dcfcef1a7776edf4fb7fd9aa2e55bf876e4e",
+    ".local/ops-acceptance/resume-velero-s3-fixture.py": "c6badc5582f0cd679450050818abd56cdec6518d6a14cd01f69ff0c6d5c0d055",
+    ".local/ops-acceptance/resume-velero-s3-prep.py": "0b5219ab2fe498a81b5d224c35dc8eaa7827f68467ab4dbee413a45a6445cc02",
+    ".local/ops-acceptance/resume-velero-s3-remote.py": "6fe70db7027d422a5a03a990039359c3359997c26fc817c89109967f30da21b9",
+    ".local/ops-acceptance/resume-velero-s3-root.py": "65d8155901e32eb76318658972f995b24ec241a38df71d2adb92e0ae694675d5",
+    ".local/ops-acceptance/resume-velero-s3-live-driver.go": "6c54674516391523693c1b9f4186704580dbe24919c5e28c0e457b29252555db",
+    ".local/ops-acceptance/resume-velero-transport-prep.py": "1c2b41d64b18643833b4ed42af60f86226b1a6e95d9bb67c151362b09f451b2c",
+    ".local/ops-acceptance/remote.py": "37acccd12ba3b30e38182f11101821f110355ed660c4cf559d91cc1c638e1b5e"
+  },
+  "productSourceHashes": {
+    "backend/modules/business/k8s/backup/backup.go": "bb6162665a7b710351ed6df4f2c204ad3914088aa7119d7cbbaa4a3170b61c8f",
+    "backend/modules/business/k8s/backup/backup_dto.go": "b6d0430c93bb33dada0f1155b2bb3ff17cf403fc619ab687ba141e64616aa7e4",
+    "backend/modules/business/k8s/backup/backup_handler.go": "320bf427300d6cb88038adfbf581600c8c82cd2f760bdfa755dfca4711d99e96",
+    "backend/modules/business/k8s/backup/backup_model.go": "0119686da49fa62c3106ca6a90206592122153eaf5f858ae884a824590c3ea51",
+    "backend/modules/business/k8s/backup/backup_service.go": "1e80d782e8bb7156a9b14f96810533f9e3be2e154fc24798066d6ef17194c604",
+    "backend/modules/business/k8s/backup/drill.go": "0de6e13dc1a2a4f0ea0acb3cd2478d636d2de8ff9a5b07024ba4e18abcddc702",
+    "backend/modules/business/k8s/backup/reconciler.go": "9d0b61f817267058f52a7b53d52c66d157598fcc51abfedfe986ce174aa5b3a7",
+    "backend/modules/business/k8s/backup/restore_authorization_test.go": "9ec9e243cf6d57e12f51023f164d0855eb1cfd022d75649ed0bdfb94fc78deb7",
+    "backend/modules/business/k8s/backup/restore_final_boundary_test.go": "2bf419325e543031afa5dbf1b3a968265ea544e2f0e4f90f94b0c5e80b67f293",
+    "backend/modules/business/k8s/backup/submission.go": "0bfb92cbfae5530a5dcc7330b48a9d0b375a91e84691c4340885c80ffad8f1d9",
+    "backend/modules/business/k8s/backup/velero_client.go": "dc7310ef0801e16b761b6612c9ee494aa3db91fdeb5a3af2a3f13a4b05ea189e",
+    "backend/modules/business/k8s/backup/velero_client_test.go": "0272dd81e1e6dee02185d8fbba9119c8767f796edc7073cfecf31d86fcc0a3d9",
+    "backend/modules/business/k8s/cluster/cluster_service.go": "a7afe5394f13525d15f62501cc61fd0355c0a90166bf347c9dbee4babcc6f64b",
+    "backend/modules/business/k8s/cluster/credential_revocation_test.go": "9356afee25dd1c41ba5fbd25eead7bf3332a53b00447952455caa40f30874420",
+    ".local/ops-acceptance/velero-final-live-driver.go": "fbfb911f3192a04cb842adaf40036ef8d709fbd643f72b6f3aadb5db9327a250",
+    "backend/go.mod": "0a768a28d27080b25cc7a2a7d1499aa05a19395d93507c281bb5f12a00cbb824",
+    "backend/go.sum": "9c2da89859365c93ec438192ebd2db009ef727e4dae8176a341b46ed03340914"
+  },
+  "driverBinarySHA256": "7204fc7cabbfe4ed9b73c4edf83fedd9f917c2f614b943f287baab8da0d5244e",
+  "remoteExecuted": false,
+  "SeaweedAssetDownloaded": false,
+  "providerReadinessVerified": false,
+  "backupRestoreVerified": false,
+  "selfReviewOnly": true,
+  "reason": "Leaf scope explicitly prohibits delegation; root review and execution remain required."
+}

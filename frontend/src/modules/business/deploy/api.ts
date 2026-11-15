@@ -166,7 +166,36 @@ export interface DeployTaskHostRow {
   updatedAt: string;
 }
 
+export interface DeployTaskStepRow {
+  id: number;
+  taskHostId: number;
+  stepKey: string;
+  stepOrder: number;
+  status: string;
+  attemptNo: number;
+  stateVersion: number;
+  startedAt?: string;
+  finishedAt?: string;
+}
+
+export interface DeployTaskLogRow {
+  attemptNo?: number;
+  sequence: number;
+  taskHostId: number;
+  taskStepId: number;
+  stream: string;
+  content: string;
+  createdAt: string;
+}
+
 export interface DeployTaskRow {
+  stateVersion: string;
+  targetSelection?: DeployTargetSelection;
+  scopeVersion?: string;
+  steps?: DeployTaskStepRow[];
+  logAttempts?: Array<{ taskHostId: number; attemptNo: number }>;
+  stepHistory?: Array<DeployTaskStepRow & { capturedAt: string }>;
+  stepHistoryLimited?: boolean;
   id: number;
   name: string;
   templateId: number;
@@ -207,6 +236,8 @@ export interface DeployTaskListResp {
 }
 
 export interface DeployTaskPayload {
+  targetSelection?: DeployTargetSelection;
+  scopeVersion?: string;
   name: string;
   templateId?: number;
   packageId?: number;
@@ -235,6 +266,7 @@ export interface DeployCredentialRow {
 // be sent from the client. The idempotency key is generated per user submission
 // and transported via the X-Idempotency-Key header.
 export interface StartDeployTaskPayload {
+  intentVersion?: string;
   credentialRefId?: number;
   timeoutSeconds?: number;
   hostFingerprint?: string;
@@ -400,13 +432,13 @@ export function deleteDeployTask(id: number) {
   });
 }
 
-export function startDeployTask(id: number, data?: StartDeployTaskPayload) {
+export function startDeployTask(id: number, data?: StartDeployTaskPayload, requestKey = crypto.randomUUID()) {
   return apiRequest<DeployTaskRow>({
     url: `/business/deploy/tasks/${id}/start`,
     method: 'post',
     data,
     headers: {
-      'X-Idempotency-Key': crypto.randomUUID(),
+      'X-Idempotency-Key': requestKey,
     },
   });
 }
@@ -418,25 +450,33 @@ export function getDeployCredentialList() {
   });
 }
 
-export function cancelDeployTask(id: number) {
+export function cancelDeployTask(id: number, stateVersion: string) {
   return apiRequest<DeployTaskRow>({
     url: `/business/deploy/tasks/${id}/cancel`,
     method: 'post',
+    data: { stateVersion },
     headers: { 'X-Idempotency-Key': crypto.randomUUID() },
   });
 }
 
-function controlDeployTask(id: number, action: 'pause' | 'resume' | 'retry') {
+function controlDeployTask(id: number, action: 'pause' | 'resume' | 'retry', stateVersion: string) {
   return apiRequest<DeployTaskRow>({
     url: `/business/deploy/tasks/${id}/${action}`,
     method: 'post',
+    data: { stateVersion },
     headers: { 'X-Idempotency-Key': crypto.randomUUID() },
   });
 }
 
-export const pauseDeployTask = (id: number) => controlDeployTask(id, 'pause');
-export const resumeDeployTask = (id: number) => controlDeployTask(id, 'resume');
-export const retryDeployTask = (id: number) => controlDeployTask(id, 'retry');
+export const pauseDeployTask = (id: number, stateVersion: string) => controlDeployTask(id, 'pause', stateVersion);
+export const resumeDeployTask = (id: number, stateVersion: string) => controlDeployTask(id, 'resume', stateVersion);
+export const retryDeployTask = (id: number, stateVersion: string) => controlDeployTask(id, 'retry', stateVersion);
+
+export function isDeployTaskCommandConflict(error: unknown) {
+  if (!error || typeof error !== 'object') return false;
+  const value = error as { code?: number; status?: number };
+  return value.code === 409 || value.status === 409;
+}
 
 export function markDeployHostResult(id: number, data: MarkHostResultPayload) {
   return apiRequest<DeployTaskHostRow>({
@@ -444,4 +484,83 @@ export function markDeployHostResult(id: number, data: MarkHostResultPayload) {
     method: 'post',
     data,
   });
+}
+
+export interface DeployTaskLogFilter {
+  hostId?: number;
+  stepId?: number;
+  attemptNo?: number;
+  firstError?: boolean;
+}
+
+export function getDeployTaskLogs(id: number, after = 0, signal?: AbortSignal, filter: DeployTaskLogFilter = {}) {
+  return apiRequest<{ items: DeployTaskLogRow[]; total: number; truncated?: boolean; redaction?: 'known-task-secrets' }>({
+    url: `/business/deploy/tasks/${id}/logs`, method: 'get', params: { after, hostId: filter.hostId, stepId: filter.stepId, attemptNo: filter.attemptNo, firstError: filter.firstError ? 1 : undefined }, signal, skipErrorMessage: true,
+  });
+}
+
+export function downloadDeployTaskLogs(id: number, signal: AbortSignal, filter: DeployTaskLogFilter = {}) {
+  return apiRequest<{ items: DeployTaskLogRow[]; truncated: boolean; redaction: 'known-task-secrets'; rowLimit: number; byteLimit: number }>({
+    url: `/business/deploy/tasks/${id}/log-download`, method: 'get',
+    params: { hostId: filter.hostId, stepId: filter.stepId, attemptNo: filter.attemptNo, firstError: filter.firstError ? 1 : undefined },
+    signal, skipErrorMessage: true,
+  });
+}
+
+export interface DeployTargetSelection {
+  businessScopeId: number;
+  hostIds: number[];
+  groupIds: number[];
+  includeScope: boolean;
+  manual: string[];
+  excludedIds: number[];
+}
+export interface DeployTargetResolution {
+  selection: DeployTargetSelection;
+  scopeVersion: string;
+  resolvedAt: string;
+  hosts: Array<{ id: number; hostname: string; ip: string; status: string; stateVersion: number; businessScopeId: number; source: string }>;
+  duplicateCount: number;
+  unavailableCount: number;
+  ineligibleCount: number;
+  excludedCount: number;
+  sources: Record<string, number>;
+}
+export interface DeployTaskPreviewPlan {
+  templateId: number;
+  templateName: string;
+  templateVersion: string;
+  stepCount: number;
+  parameterCount: number;
+  truncated: boolean;
+  steps: Array<{
+    id: string;
+    name: string;
+    type: string;
+    action: string;
+    packageName: string;
+    packageVersion: string;
+    failurePolicy: string;
+    continueOnHostFailure: boolean;
+    parameters: Array<{ key: string; value?: string; hidden: boolean }>;
+  }>;
+}
+export interface DeployTaskPreviewResponse {
+  intentId: string;
+  intentVersion: string;
+  currentVersion: string;
+  targetVersion: string;
+  targetCount: number;
+  businessScopeName: string;
+  changes: Array<{ id: string; field: string; kind: 'added' | 'removed' | 'modified' | 'unchanged' | 'conflict'; before?: string; after?: string }>;
+  plan?: DeployTaskPreviewPlan;
+  riskKeys: string[];
+  rollbackAvailable: boolean;
+  expiresAt: string;
+}
+export function resolveDeployTargets(data: DeployTargetSelection, signal?: AbortSignal) {
+  return apiRequest<DeployTargetResolution>({ url: '/business/deploy/targets/resolve', method: 'post', data, signal, skipErrorMessage: true });
+}
+export function previewDeployTask(id: number, data: StartDeployTaskPayload, signal?: AbortSignal) {
+  return apiRequest<DeployTaskPreviewResponse>({ url: `/business/deploy/tasks/${id}/preview`, method: 'post', data, signal, skipErrorMessage: true });
 }

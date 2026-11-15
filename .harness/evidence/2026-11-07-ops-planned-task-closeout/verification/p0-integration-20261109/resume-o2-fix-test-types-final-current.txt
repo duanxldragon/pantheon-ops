@@ -1,0 +1,10 @@
+{
+  "checked": [
+    "tests/unit/business/operational/deploy-context.test.tsx",
+    "tests/unit/business/operational/deploy-log-cursor.test.tsx",
+    "tests/unit/business/operational/deploy-read-revocation.test.tsx",
+    "tests/unit/business/operational/deploy-detail-read.test.tsx",
+    "tests/smoke/business/deploy/deploy-pages.spec.ts"
+  ],
+  "diagnostics": []
+}

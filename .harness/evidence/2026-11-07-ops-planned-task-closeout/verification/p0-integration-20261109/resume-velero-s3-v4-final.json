@@ -1,0 +1,22 @@
+{
+  "exitCode": 0,
+  "requestSHA256": "ea4d2d5e406f95cb3e838067f66ed32c40e0e7b02152e117d25e59ad1da4f812",
+  "allV4SourcesCompile": true,
+  "allV4InputHashesMatch": true,
+  "temporaryFixturesAbsent": true,
+  "v4BytecodeAbsent": true,
+  "artifactHashes": {
+    "resume-velero-s3-v4-cli-summary.md": "6472df0cb8683ecb4d8d9757592a6cdbff337fa221f72fa004c3c644d70d7c85",
+    "resume-velero-s3-v4-commands.json": "a85399923c05b045dc2b69ede60dcc206ad0fc0f21776827682e2a1a3c4c0e84",
+    "resume-velero-s3-v4-derivation.json": "1596d41c5ffb9a56c3f1dc7cdeec4032d3e035ae19d88e16c7675dc4a0eb723d",
+    "resume-velero-s3-v4-handoff.md": "55a9c701f8125b6cbee6efd3c6de0cc3a3ac295a684763b29112b9abfccc72f2",
+    "resume-velero-s3-v4-plan.md": "74ec99faf3bdad367b63a91af7dfd39f57e286c3a857589bbf088f950be5d22f",
+    "resume-velero-s3-v4-review.json": "cb91eb3604e557a4763fcdffb76bbd6ef115e009bf35ddb81ecc637f906c9665",
+    "resume-velero-s3-v4-root-request-candidate-19190967fc96d70ec8a7e4a590b01c4bd7ac459402ac9e913eee801f954831b2.json": "19190967fc96d70ec8a7e4a590b01c4bd7ac459402ac9e913eee801f954831b2",
+    "resume-velero-s3-v4-root-request-candidate-cb2916edcebac8ea001b599616998e09ae6d9f117f119b5158d418599d89c99a.json": "cb2916edcebac8ea001b599616998e09ae6d9f117f119b5158d418599d89c99a",
+    "resume-velero-s3-v4-root-request.json": "ea4d2d5e406f95cb3e838067f66ed32c40e0e7b02152e117d25e59ad1da4f812",
+    "resume-velero-s3-v4-source.diff": "b70b70b5acee0fbe0819a7622c626c46e7e8974a06b48042b1ffcb127fb41f8b"
+  },
+  "remoteExecuted": false,
+  "P0Approved": false
+}

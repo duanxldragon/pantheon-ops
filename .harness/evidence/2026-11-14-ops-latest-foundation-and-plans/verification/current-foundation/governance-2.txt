@@ -1,0 +1,39 @@
+{
+  "mode": "strict",
+  "findingCount": 8,
+  "findings": [
+    {
+      "file": "docs/contracts/TENANT_CONTRACT_V1.en.md",
+      "reason": "missing internal link target: ../../.harness/tasks/2026-11-07-ops-formal-queue-foundation-gaps/o4-tenant-implementation-plan.md"
+    },
+    {
+      "file": "docs/contracts/TENANT_CONTRACT_V1.md",
+      "reason": "missing internal link target: ../../.harness/tasks/2026-11-07-ops-formal-queue-foundation-gaps/o4-tenant-implementation-plan.md"
+    },
+    {
+      "file": "docs/designs/LOWCODE_GENERATOR_GUIDE.en.md",
+      "reason": "missing internal link target: ../../.harness/tasks/2026-11-07-ops-formal-queue-foundation-gaps/o4-tenant-implementation-plan.md"
+    },
+    {
+      "file": "docs/designs/LOWCODE_GENERATOR_GUIDE.md",
+      "reason": "missing internal link target: ../../.harness/tasks/2026-11-07-ops-formal-queue-foundation-gaps/o4-tenant-implementation-plan.md"
+    },
+    {
+      "file": "docs/release-notes/RELEASE_NOTES_v0.18.8.md",
+      "reason": "missing internal link target: ../../.harness/evidence/2026-11-13-v0188-release-preparation/smoke-empty-readiness/summary.md"
+    },
+    {
+      "file": "docs/release-notes/RELEASE_NOTES_v0.18.8.md",
+      "reason": "missing internal link target: ../../.harness/evidence/2026-11-13-v0188-release-preparation/summary.md"
+    },
+    {
+      "file": "docs/runbooks/TENANT_MIGRATION_RUNBOOK.md",
+      "reason": "missing internal link target: ../../.harness/tasks/2026-11-07-ops-formal-queue-foundation-gaps/o4-tenant-implementation-plan.md"
+    },
+    {
+      "file": "docs/TENANT_INITIALIZATION_GUIDE.md",
+      "reason": "missing internal link target: ../.harness/tasks/2026-11-07-ops-formal-queue-foundation-gaps/o4-tenant-implementation-plan.md"
+    }
+  ]
+}
+

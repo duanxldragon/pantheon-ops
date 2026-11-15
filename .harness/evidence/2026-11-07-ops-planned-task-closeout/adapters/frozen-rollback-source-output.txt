@@ -1,0 +1,7 @@
+**APPROVE — supplied scope only.**
+
+Transaction semantics hold: single `SELECT … FOR UPDATE` on the original, all reads/writes (visibility, scope resolution, secrets, insert) bound to the same `tx`, status/mode gates reject scripts/multistep/conditions before any mutation, and step action is rewritten without replaying forward commands. Post-commit read correctly uses a fresh non-tx service.
+
+One nit (not provable as P2 without omitted source): `GetRollbackTask` returns the raw `gorm.ErrRecordNotFound` when no rollback exists (`inner.db.Where("rollback_task_id = ?")…First`) while the not-found path in `createFrozenRollback` maps to `errDeployTaskNotFound`. If the deploy error mapper doesn't translate gorm not-found, clients get an unmapped 500. Minimal fix: `if errors.Is(err, gorm.ErrRecordNotFound) { err = errDeployTaskNotFound }`.
+
+Omitted, unverifiable here: `taskVisible`, `resolveDeployScopeName`, `loadDeployTaskSecretMaterial`/`persistDeployTaskSecrets`, `decodeExecutionSnapshot`, `redactExecutionSnapshotSecrets`, `validateFixedTemplateDefinition`, `DetermineRollbackAction`, deploy error mapper, handler wiring.

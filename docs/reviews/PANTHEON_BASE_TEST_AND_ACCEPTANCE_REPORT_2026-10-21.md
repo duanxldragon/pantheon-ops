@@ -15,13 +15,13 @@ updated_at: 2026-10-22
 
 ## 1. 环境条件（非项目缺陷，但影响验证边界）
 
-| 条件 | 实测 | 影响 |
-|---|---|---|
-| `git` 直连 github.com:443 超时 | 复现 | 所有 GitHub 状态核查改用 `gh` CLI（API 可达），结论不受影响 |
-| 本地 MySQL 3306 存活；默认凭据 1045 | 复现 | 初始 DSN 核查失败；后从仓库根目录已入库的 `.env.test` 取得可用开发 DSN（root@127.0.0.1:3306）。`pkg/testmysql` 仅按测试名创建/删除 `pantheon_base_test_*` 隔离库，不触碰业务库 |
-| Git Bash 下 `npm/npx` shim 损坏 | 复现 | 前端门禁以 `node ./node_modules/...` 直调执行 |
-| Windows PATH 上的 `node` 是无扩展名 shim | `exec.LookPath("node")` 失败 ⇒ `dynamicmodule` 生成器套件 4 例报 `module.generate.server_export_failed`；设 `PANTHEON_NODE_BIN=D:\nodejs\node.exe` 后通过 | **本地环境怪癖，非代码缺陷**（CI Linux 正常）；已记入限制 |
-| 无全栈运行环境（后端进程+浏览器） | 未启动 | Playwright 冒烟、HTTP 级对抗 curl、UI 视觉终验移交 CI 与维护者三触点③；本报告不声称浏览器级通过 |
+| 条件                                     | 实测                                                                                                                                                      | 影响                                                                                                                                                                           |
+| ---------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `git` 直连 github.com:443 超时           | 复现                                                                                                                                                      | 所有 GitHub 状态核查改用 `gh` CLI（API 可达），结论不受影响                                                                                                                    |
+| 本地 MySQL 3306 存活；默认凭据 1045      | 复现                                                                                                                                                      | 初始 DSN 核查失败；后从仓库根目录已入库的 `.env.test` 取得可用开发 DSN（root@127.0.0.1:3306）。`pkg/testmysql` 仅按测试名创建/删除 `pantheon_base_test_*` 隔离库，不触碰业务库 |
+| Git Bash 下 `npm/npx` shim 损坏          | 复现                                                                                                                                                      | 前端门禁以 `node ./node_modules/...` 直调执行                                                                                                                                  |
+| Windows PATH 上的 `node` 是无扩展名 shim | `exec.LookPath("node")` 失败 ⇒ `dynamicmodule` 生成器套件 4 例报 `module.generate.server_export_failed`；设 `PANTHEON_NODE_BIN=D:\nodejs\node.exe` 后通过 | **本地环境怪癖，非代码缺陷**（CI Linux 正常）；已记入限制                                                                                                                      |
+| 无全栈运行环境（后端进程+浏览器）        | 未启动                                                                                                                                                    | Playwright 冒烟、HTTP 级对抗 curl、UI 视觉终验移交 CI 与维护者三触点③；本报告不声称浏览器级通过                                                                                |
 
 ## 2. 后端门禁（全部真实执行）
 
@@ -36,6 +36,7 @@ $ gofmt -l .                # 无输出（含整改后全部文件）
 ```
 $ go test ./...             # exit 0；46 包 ok，0 FAIL
 ```
+
 skip 面抽样（`go test ./modules/system/iam/tenant/... ./pkg/tenant/... ./pkg/database/... -v | grep '--- SKIP'`）：租户服务/ provisioning/成员/会话撤销等 30+ 例因 "mysql test dsn is not configured" 跳过——**此现象曾掩盖 R1-R4，见 §4**。
 
 ### 2.2 真 MySQL 全量（决定性证据）
@@ -87,7 +88,6 @@ $ PANTHEON_TEST_DSN=... PANTHEON_TEST_REDIS_ADDR=127.0.0.1:6379 PANTHEON_TEST_RE
 方法论记录（比这条用例本身更重要）：本仓库的 skip 与 pass 在 CI 输出里长得一样，
 「本地全绿」在未核对 skip 日志前不构成证据。CI 侧实况见 §5。
 
-
 ## 3. 前端门禁（全部真实执行）
 
 ```
@@ -96,20 +96,21 @@ $ node ./node_modules/vitest/vitest.mjs run                    # Test Files 26 p
 $ node ./node_modules/eslint/bin/eslint.js . --max-warnings 0  # exit 0
 $ node ./node_modules/vite/bin/vite.js build                   # ✓ built in 716ms，exit 0
 ```
+
 新增会话边界用例：`routeWarmDataSessionBoundary.test.ts`（4 例，含同页签 A→登出→B 不泄漏预热数据）、`requestOperationTokenSession.test.ts`（3 例）。
 
 ## 4. 对抗验证与整改质量记录
 
 ### 4.1 多租户对抗场景（单元/真 DB 层）
 
-| 场景（任务书 §5.9） | 覆盖 | 结果 |
-|---|---|---|
-| A 租户读/改/删 B 租户数据 | scoped 查询 + `CrossTenantPolicyDoesNotLeak`（`casbin_tenant_domain_test.go:77`）+ 各服务租户谓词测试 | 通过 |
-| 为他租户用户分配他租户角色 | role/permission 套件（他租户角色不可见/不可授权） | 通过 |
-| 篡改请求头/体租户标识 | 中间件测试 + `TENANT_FORBIDDEN`（v0.17.0 #393 路径，body tenantId 指向他租户被拒） | 通过 |
-| 租户停用后旧 Token 调用 | FIX-3 会话撤销测试（即时性语义层） | 通过（HTTP 级见 §4.3 gap） |
-| 初始化并发/重跑幂等 | `*Idempotently` 系列、`TestEnsureTenantRolePolicies_IsIdempotent` 等真 DB 通过；并发双写场景未注入（B7 延期项） | 部分通过 |
-| 租户上下文缺失默认行为 | FIX-2 后 ctx==nil 不加过滤仅限无上下文内部调用；HTTP 链路必有上下文，缺失即 401/403 | 通过（静态+单测） |
+| 场景（任务书 §5.9）        | 覆盖                                                                                                            | 结果                       |
+| -------------------------- | --------------------------------------------------------------------------------------------------------------- | -------------------------- |
+| A 租户读/改/删 B 租户数据  | scoped 查询 + `CrossTenantPolicyDoesNotLeak`（`casbin_tenant_domain_test.go:77`）+ 各服务租户谓词测试           | 通过                       |
+| 为他租户用户分配他租户角色 | role/permission 套件（他租户角色不可见/不可授权）                                                               | 通过                       |
+| 篡改请求头/体租户标识      | 中间件测试 + `TENANT_FORBIDDEN`（v0.17.0 #393 路径，body tenantId 指向他租户被拒）                              | 通过                       |
+| 租户停用后旧 Token 调用    | FIX-3 会话撤销测试（即时性语义层）                                                                              | 通过（HTTP 级见 §4.3 gap） |
+| 初始化并发/重跑幂等        | `*Idempotently` 系列、`TestEnsureTenantRolePolicies_IsIdempotent` 等真 DB 通过；并发双写场景未注入（B7 延期项） | 部分通过                   |
+| 租户上下文缺失默认行为     | FIX-2 后 ctx==nil 不加过滤仅限无上下文内部调用；HTTP 链路必有上下文，缺失即 401/403                             | 通过（静态+单测）          |
 
 ### 4.2 CI 证据（gh 实测，2026-10-21）
 
@@ -127,14 +128,14 @@ $ node ./node_modules/vite/bin/vite.js build                   # ✓ built in 71
 整改 PR #396（`acceptance/remediation-2026-10-21` → `release/v0.17.0`）已合并为 `462216ec`，但合并发生在四项红灯之下，
 且合并后 push 触发的 run 39553427164 / 39553427175 复现同样四项：
 
-| 门禁 | 结果 | 取证 |
-|---|---|---|
-| Backend Tests | 失败 | job 119067894874 唯一失败用例 `TestSessionAdminOps_CompatPinsToPlatformTenant`（§2.3 的 R5） |
-| Unit Tests | 失败 | job 119067544459 同一用例、同一断言行 |
-| CI Summary | 失败 | job 119069015404 关键项判据只读 `UNIT_TESTS` / `COVERAGE_GATE`；前者 failure、后者 skipped（Coverage Gate 本身未失败） |
-| Quality Gates | 失败 | job 119069653739 输入里仅 `Backend Tests: failure`，其余全绿 |
-| SonarCloud Code Analysis | 失败 | check-run 119067749735，`Quality Gate failed`：Security Rating on New Code 未达 A；新代码问题 `gosecurity:S3649`（BLOCKER，`tenant_service.go:714`）、`go:S1192`、`go:S3776` |
-| Core Smoke Tests / Security Gates / CodeQL / Go Lint / Secret Scan / Docs Governance / PR Governance Prereq / Frontend 全套 / Boundary / Duplication / Change Scope | 通过 | 同一 commit |
+| 门禁                                                                                                                                                                | 结果 | 取证                                                                                                                                                                         |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Backend Tests                                                                                                                                                       | 失败 | job 119067894874 唯一失败用例 `TestSessionAdminOps_CompatPinsToPlatformTenant`（§2.3 的 R5）                                                                                 |
+| Unit Tests                                                                                                                                                          | 失败 | job 119067544459 同一用例、同一断言行                                                                                                                                        |
+| CI Summary                                                                                                                                                          | 失败 | job 119069015404 关键项判据只读 `UNIT_TESTS` / `COVERAGE_GATE`；前者 failure、后者 skipped（Coverage Gate 本身未失败）                                                       |
+| Quality Gates                                                                                                                                                       | 失败 | job 119069653739 输入里仅 `Backend Tests: failure`，其余全绿                                                                                                                 |
+| SonarCloud Code Analysis                                                                                                                                            | 失败 | check-run 119067749735，`Quality Gate failed`：Security Rating on New Code 未达 A；新代码问题 `gosecurity:S3649`（BLOCKER，`tenant_service.go:714`）、`go:S1192`、`go:S3776` |
+| Core Smoke Tests / Security Gates / CodeQL / Go Lint / Secret Scan / Docs Governance / PR Governance Prereq / Frontend 全套 / Boundary / Duplication / Change Scope | 通过 | 同一 commit                                                                                                                                                                  |
 
 ⇒ 四条测试类红灯是**一个根因**（R5），跟进提交已修正测试期望；`gosecurity:S3649` 属污点跟踪误报（值只进入绑定的 `?` 占位符），
 但为让门禁可读，`AddMember` / `RemoveMember` 的原样 SQL 片段已改为 GORM map 条件（同一批占位符、零字符串拼接），
@@ -187,6 +188,7 @@ open Dependabot alerts 归零。最终 main `17af0d85`：Sonar 分支分析（10
 $ node scripts/frontmatter-check.mjs
 Frontmatter check passed. Checked 335 docs, 242 with frontmatter.   # exit 0
 ```
+
 本次同步修正：`RELEASE_NOTES_v0.17.0.md`（双根因叙述+验收整改节+验证边界）、`CHANGELOG.md`（同）、`docs/TENANT_SCOPE_FREEZE_DECISION_2026-10-15.md`（状态→已批准+指向）、`docs/designs/TENANT_RESOURCE_SCOPE_MATRIX.md`（menu tenant_id 占位列澄清、平台能力门、字典改 tenant-replicated、updated_at 2026-10-21）。
 
 ## 6. 2026-10-22 浏览器级验收与 skip 审计（追加）
@@ -199,4 +201,4 @@ Frontmatter check passed. Checked 335 docs, 242 with frontmatter.   # exit 0
 - **skip 审计**：开启 `PANTHEON_TEST_DSN_REQUIRED=true` 与 `PANTHEON_TEST_REDIS_REQUIRED=true` 后运行 `go test ./... -count=1`（真实 MySQL + Redis），exit 0 且 `--- SKIP` 计数为 0；required + 无 DSN 的探针按预期 `FAIL`，未设置 required 时按预期 `SKIP`。
 - **仍为 gap**：浏览器写路径、跨租户 HTTP 攻击矩阵、生产备份恢复演练。前者由 Go 集成测试/CI Tenant Smoke 覆盖，后两者保持原登记。
 
-证据：[`.harness/evidence/2026-10-22-release-and-residual-closeout/`](../../.harness/evidence/2026-10-22-release-and-residual-closeout/summary.md)。
+证据：[`.harness/evidence/2026-10-22-release-and-residual-closeout/`](https://github.com/duanxldragon/pantheon-base/blob/135730fd6f63ad73cf40f6e4b321fdd9f69ea932/.harness/archive/2026-10/evidence/2026-10-22-release-and-residual-closeout/summary.md)。

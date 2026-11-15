@@ -1,0 +1,9 @@
+
+Running 2 tests using 1 worker
+
+(node:13580) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok 1 tests\smoke\business\deploy\deploy-command.spec.ts:10:2 › viewed task command conflict refreshes without replay (light) (4.5s)
+  ok 2 tests\smoke\business\deploy\deploy-command.spec.ts:10:2 › viewed task command conflict refreshes without replay (dark) (4.4s)
+
+  2 passed (9.8s)

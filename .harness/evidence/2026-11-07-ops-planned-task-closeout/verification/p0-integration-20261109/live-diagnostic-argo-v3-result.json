@@ -1,0 +1,172 @@
+{
+  "scope": "ArgoCDService real provider integration; explicit fixture authority and private provider relay; no full Base auth/audit/public-origin claim",
+  "host": "115.190.251.143",
+  "command": [
+    "go",
+    "test",
+    "-mod=readonly",
+    "-race",
+    "-count=1",
+    "-timeout",
+    "6m",
+    "-run",
+    "^TestArgoProductLive$",
+    "-v",
+    "./modules/business/cicd/argocd"
+  ],
+  "startedAt": "2026-11-09T08:43:42Z",
+  "sourceHashesBefore": {
+    "backend/modules/business/cicd/argocd/argocd_action.go": "a40cb30cafeef524b5e8a618f125b51d442d81be35280255984ffa6a2deee3f4",
+    "backend/modules/business/cicd/argocd/argocd_action_test.go": "74616e27c6cb8d88996e0de201055b69ea1657cb4ce19a3a872ec4e90b66c0db",
+    "backend/modules/business/cicd/argocd/argocd_authorization.go": "9472a619b03959ed4527eaecba71603fadef93c1ba122fcf6d8cc851e218e615",
+    "backend/modules/business/cicd/argocd/argocd_client.go": "86b7585a5e507d9853e61ffa94b72e384a1d88a1bbcce4d3b1eb6ab853538ba2",
+    "backend/modules/business/cicd/argocd/argocd_client_test.go": "bcde3d50692dcb201e0993c4ce46f560df2f1a6fdb656b7b1becfccacc15c330",
+    "backend/modules/business/cicd/argocd/argocd_dto.go": "2c31d0e0b281302cfb94a461308d404328acba346e820a9e4ba95fc351c8f954",
+    "backend/modules/business/cicd/argocd/argocd_encryption.go": "a422f27f943f0970cc15474ef2de3012cfba4c6196cd9e9039855b4b22afe7d0",
+    "backend/modules/business/cicd/argocd/argocd_encryption_test.go": "7d50a440191bbbbb2bd61dc3593d13f52febd3c74fba2bed3bbd3c450030dba8",
+    "backend/modules/business/cicd/argocd/argocd_final_test.go": "405588de41496604b749275fdbfed1da589004b2a8f5f6572019aab8a9c8a39e",
+    "backend/modules/business/cicd/argocd/argocd_handler.go": "238eada7655f00170fce5778c01c8d6bc421582553fb5c6a682c7ccd070149e6",
+    "backend/modules/business/cicd/argocd/argocd_handler_authorization.go": "24173ef5cb00f9526bc80a91f78500da91418ed3c593729b4ab2d3b3b0709244",
+    "backend/modules/business/cicd/argocd/argocd_model.go": "cb6d986924dd6c2fab6434d140d7c3052c8d1d6ed8c2ecf82ebe37e0080bf1fe",
+    "backend/modules/business/cicd/argocd/argocd_preview.go": "0a5b00a5867449a73c82fd625508f525f45fb03f2f1b3e25dffc8c8242f47a86",
+    "backend/modules/business/cicd/argocd/argocd_product_live_test.go": "99ef67c42afe39b5df9ae009b85fe73fd663c89cf61a3b4245e05e404e2e6560",
+    "backend/modules/business/cicd/argocd/argocd_product_test.go": "5b108106135f04ceff099f72327d40e98cde355607b2934add31375329796f2d",
+    "backend/modules/business/cicd/argocd/argocd_reconciler.go": "6a4b44b92f6be142c8fee99638814bfa32f893b9357f87016fbc6836be6ca294",
+    "backend/modules/business/cicd/argocd/argocd_service.go": "47941274427eb16357073b99469ed57375e0991bad5f9a5825a1cbba4630a450",
+    "backend/modules/business/cicd/argocd/argocd_webhook.go": "b25f4d14a26ea39b59466bcb177e797828300d8dfefaa5c1a3840dab5e16fbfa",
+    "backend/modules/business/cicd/argocd/argocd_webhook_test.go": "7cf7f4f10b6f4d93512d49bb128e4e5e1cab9229fe091bb947059ad3834fbc30",
+    "backend/modules/business/cicd/argocd/timeout.go": "d9038c76fbe717171ec4730724cf8c4cd1a32c9adc3ecf3ee2118325bbd6b792"
+  },
+  "records": [
+    {
+      "check": "installed Argo namespace ownership",
+      "passed": true
+    },
+    {
+      "check": "unauthenticated Argo API refused",
+      "passed": true,
+      "httpStatus": 401
+    },
+    {
+      "check": "authenticated Argo session established",
+      "passed": true,
+      "httpStatus": 200
+    },
+    {
+      "check": "authenticated Argo API health",
+      "passed": true,
+      "httpStatus": 200
+    },
+    {
+      "check": "repo-server accesses isolated in-cluster Git fixture",
+      "passed": true,
+      "exitCode": 0,
+      "repository": "http://192.168.94.127:45341/fixture.git",
+      "oldRevision": "7d041f0a60015e75fddff0fd2ea0390f5de7ebfe",
+      "newRevision": "e78325d55bf757903122d0f9e0649d48a6b1f240"
+    },
+    {
+      "check": "finite exact application project token created",
+      "passed": true,
+      "expiresIn": 900
+    },
+    {
+      "check": "owned isolated Service-only application created",
+      "passed": true
+    },
+    {
+      "phase": "product-fixture-ready",
+      "Repo": "http://192.168.94.127:45341/fixture.git",
+      "Namespace": "pantheon-p0-argo-live-c9c507",
+      "Project": "p0-live-c9c507",
+      "Application": "p0-live-c9c507",
+      "OldRevision": "7d041f0a60015e75fddff0fd2ea0390f5de7ebfe",
+      "NewRevision": "e78325d55bf757903122d0f9e0649d48a6b1f240",
+      "credentialLifetimeSeconds": 900,
+      "certificateVerified": true,
+      "providerAccess": "private explicit fixture via pinned SSH",
+      "authorityScope": "fixture-only; Base current identity authority remains a dependency"
+    },
+    {
+      "check": "finite provider credential revoked after product phase",
+      "passed": true
+    },
+    {
+      "phase": "cleanup",
+      "kind": "Application",
+      "uidChecked": true,
+      "absenceVerified": true,
+      "exitCode": 0
+    },
+    {
+      "phase": "cleanup",
+      "kind": "AppProject",
+      "uidChecked": true,
+      "absenceVerified": true,
+      "exitCode": 0
+    },
+    {
+      "phase": "cleanup",
+      "kind": "Namespace",
+      "uidChecked": true,
+      "absenceVerified": true,
+      "exitCode": 0
+    },
+    {
+      "phase": "git-fixture-server-cleanup",
+      "pidIdentityChecked": true,
+      "exitCode": 0
+    },
+    {
+      "phase": "owned-fixture-files-cleanup",
+      "resolvedPathChecked": true,
+      "commitChecked": true,
+      "serverAbsent": true,
+      "exitCode": 0
+    },
+    {
+      "phase": "retained-provider-health",
+      "readyCorePods": 4,
+      "memoryLimitMi": 960,
+      "oomObserved": false,
+      "exitCode": 0
+    },
+    {
+      "phase": "result",
+      "exitCode": 0,
+      "checksPassed": 8,
+      "providersRetained": true,
+      "namespace": "pantheon-p0-argo-live-c9c507",
+      "project": "p0-live-c9c507",
+      "application": "p0-live-c9c507"
+    }
+  ],
+  "exitCode": 2,
+  "productExitCode": 1,
+  "remoteExitCode": 0,
+  "stderrPresent": false,
+  "sourceHashesAfter": {
+    "backend/modules/business/cicd/argocd/argocd_action.go": "a40cb30cafeef524b5e8a618f125b51d442d81be35280255984ffa6a2deee3f4",
+    "backend/modules/business/cicd/argocd/argocd_action_test.go": "74616e27c6cb8d88996e0de201055b69ea1657cb4ce19a3a872ec4e90b66c0db",
+    "backend/modules/business/cicd/argocd/argocd_authorization.go": "9472a619b03959ed4527eaecba71603fadef93c1ba122fcf6d8cc851e218e615",
+    "backend/modules/business/cicd/argocd/argocd_client.go": "86b7585a5e507d9853e61ffa94b72e384a1d88a1bbcce4d3b1eb6ab853538ba2",
+    "backend/modules/business/cicd/argocd/argocd_client_test.go": "bcde3d50692dcb201e0993c4ce46f560df2f1a6fdb656b7b1becfccacc15c330",
+    "backend/modules/business/cicd/argocd/argocd_dto.go": "2c31d0e0b281302cfb94a461308d404328acba346e820a9e4ba95fc351c8f954",
+    "backend/modules/business/cicd/argocd/argocd_encryption.go": "a422f27f943f0970cc15474ef2de3012cfba4c6196cd9e9039855b4b22afe7d0",
+    "backend/modules/business/cicd/argocd/argocd_encryption_test.go": "7d50a440191bbbbb2bd61dc3593d13f52febd3c74fba2bed3bbd3c450030dba8",
+    "backend/modules/business/cicd/argocd/argocd_final_test.go": "54341bcab10b541a04fbe8d1d6e9cdf18095fee40833ed937850795388268ab6",
+    "backend/modules/business/cicd/argocd/argocd_handler.go": "238eada7655f00170fce5778c01c8d6bc421582553fb5c6a682c7ccd070149e6",
+    "backend/modules/business/cicd/argocd/argocd_handler_authorization.go": "fd55340a18347dbbfed3aaa82e00986f1945ea4603d2fa3071ccdd914b916f2f",
+    "backend/modules/business/cicd/argocd/argocd_model.go": "cb6d986924dd6c2fab6434d140d7c3052c8d1d6ed8c2ecf82ebe37e0080bf1fe",
+    "backend/modules/business/cicd/argocd/argocd_preview.go": "0a5b00a5867449a73c82fd625508f525f45fb03f2f1b3e25dffc8c8242f47a86",
+    "backend/modules/business/cicd/argocd/argocd_product_live_test.go": "99ef67c42afe39b5df9ae009b85fe73fd663c89cf61a3b4245e05e404e2e6560",
+    "backend/modules/business/cicd/argocd/argocd_product_test.go": "5b108106135f04ceff099f72327d40e98cde355607b2934add31375329796f2d",
+    "backend/modules/business/cicd/argocd/argocd_reconciler.go": "6a4b44b92f6be142c8fee99638814bfa32f893b9357f87016fbc6836be6ca294",
+    "backend/modules/business/cicd/argocd/argocd_service.go": "47941274427eb16357073b99469ed57375e0991bad5f9a5825a1cbba4630a450",
+    "backend/modules/business/cicd/argocd/argocd_webhook.go": "b25f4d14a26ea39b59466bcb177e797828300d8dfefaa5c1a3840dab5e16fbfa",
+    "backend/modules/business/cicd/argocd/argocd_webhook_test.go": "7cf7f4f10b6f4d93512d49bb128e4e5e1cab9229fe091bb947059ad3834fbc30",
+    "backend/modules/business/cicd/argocd/timeout.go": "d9038c76fbe717171ec4730724cf8c4cd1a32c9adc3ecf3ee2118325bbd6b792"
+  },
+  "elapsedSeconds": 20.765,
+  "sourceHashesStable": false
+}

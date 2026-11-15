@@ -1,0 +1,8 @@
+{
+  "status": "completed",
+  "exitCode": 0,
+  "seconds": 51.22,
+  "promptSha256": "dc42edc2f3891f31060fc82e47adc9819b3cbcd3ea378d73eb7073961bfe26dc",
+  "characters": 5274,
+  "command": "claude.exe -p --tools \"\" --output-format text; prompt supplied on stdin"
+}

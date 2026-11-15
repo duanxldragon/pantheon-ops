@@ -1,0 +1,16 @@
+{
+  "languageServer": "pyright",
+  "version": "1.1.414",
+  "protocol": "LSP stdio JSON-RPC",
+  "settings": {
+    "diagnosticMode": "openFilesOnly",
+    "typeCheckingMode": "basic",
+    "autoSearchPaths": true,
+    "useLibraryCodeForTypes": true
+  },
+  "sourceFiles": [],
+  "exitCode": 1,
+  "runtimeExecuted": false,
+  "errorType": "AssertionError",
+  "seconds": 100.062
+}

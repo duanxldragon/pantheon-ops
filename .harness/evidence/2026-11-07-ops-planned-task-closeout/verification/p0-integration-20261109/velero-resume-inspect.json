@@ -1,0 +1,173 @@
+{
+  "phase": "inspect",
+  "host": "115.190.251.143",
+  "remoteResourcesCreated": 0,
+  "sshHostPolicy": "existing pinned remote.connect / RejectPolicy",
+  "exitCode": 0,
+  "stderrPresent": false,
+  "records": [
+    {
+      "memory": {
+        "MemTotalMi": 3916,
+        "MemAvailableMi": 1415
+      },
+      "extraMemoryLimitMi": 512,
+      "providerNamespacesAbsent": true,
+      "veleroCRDsAbsent": true,
+      "tls": {
+        "origin": "https://115.190.251.143:6443",
+        "serverName": "kubernetes",
+        "verified": true,
+        "peerSHA256": "828d54d489545bb2552c9364af10903ccfb7ae08274d9e891a966fc72ca60cf1",
+        "SAN": [
+          [
+            "DNS",
+            "iv-yedenmmwhsqc6iu4z5p6"
+          ],
+          [
+            "DNS",
+            "kubernetes"
+          ],
+          [
+            "DNS",
+            "kubernetes.default"
+          ],
+          [
+            "DNS",
+            "kubernetes.default.svc"
+          ],
+          [
+            "DNS",
+            "kubernetes.default.svc.cluster.local"
+          ],
+          [
+            "DNS",
+            "localhost"
+          ],
+          [
+            "IP Address",
+            "10.43.0.1"
+          ],
+          [
+            "IP Address",
+            "127.0.0.1"
+          ],
+          [
+            "IP Address",
+            "192.168.94.127"
+          ],
+          [
+            "IP Address",
+            "0:0:0:0:0:0:0:1"
+          ]
+        ]
+      },
+      "existingProviderPods": [
+        {
+          "namespace": "pantheon-p0-argocd-20261109",
+          "name": "argocd-application-controller-0",
+          "phase": "Running",
+          "limits": [
+            {
+              "cpu": "500m",
+              "memory": "384Mi"
+            }
+          ]
+        },
+        {
+          "namespace": "pantheon-p0-argocd-20261109",
+          "name": "argocd-redis-8697c9d7b5-krcv7",
+          "phase": "Running",
+          "limits": [
+            {
+              "cpu": "500m",
+              "memory": "128Mi"
+            }
+          ]
+        },
+        {
+          "namespace": "pantheon-p0-argocd-20261109",
+          "name": "argocd-repo-server-8dd9658c9-mb9x7",
+          "phase": "Running",
+          "limits": [
+            {
+              "cpu": "500m",
+              "memory": "256Mi"
+            }
+          ]
+        },
+        {
+          "namespace": "pantheon-p0-argocd-20261109",
+          "name": "argocd-server-56dd54ddf9-jd5m9",
+          "phase": "Running",
+          "limits": [
+            {
+              "cpu": "500m",
+              "memory": "192Mi"
+            }
+          ]
+        }
+      ],
+      "releases": [
+        {
+          "repository": "vmware-tanzu/velero",
+          "tag": "v1.17.0",
+          "htmlURL": "https://github.com/velero-io/velero/releases/tag/v1.17.0",
+          "assets": [
+            {
+              "name": "CHECKSUM",
+              "url": "https://github.com/velero-io/velero/releases/download/v1.17.0/CHECKSUM",
+              "digest": "sha256:2b7aec4c0e17072feb60b82943d1b3380858a205a872a0767cf414a5d4b2404c"
+            },
+            {
+              "name": "velero-v1.17.0-darwin-amd64.tar.gz",
+              "url": "https://github.com/velero-io/velero/releases/download/v1.17.0/velero-v1.17.0-darwin-amd64.tar.gz",
+              "digest": "sha256:20ab414e12786b9bc1562375fe3095cc84fde98cbc4c7c618dc25bc8317aee89"
+            },
+            {
+              "name": "velero-v1.17.0-darwin-arm64.tar.gz",
+              "url": "https://github.com/velero-io/velero/releases/download/v1.17.0/velero-v1.17.0-darwin-arm64.tar.gz",
+              "digest": "sha256:307df4e476aa7ea3b09446eb35512aa6cbf9d2dc1e6cd60fc08e9f31c32d17e1"
+            },
+            {
+              "name": "velero-v1.17.0-linux-amd64.tar.gz",
+              "url": "https://github.com/velero-io/velero/releases/download/v1.17.0/velero-v1.17.0-linux-amd64.tar.gz",
+              "digest": "sha256:f507a956cf8ec00f483f5d7b04901614a9016a10feb32b3ecc968da36b4fc7be"
+            },
+            {
+              "name": "velero-v1.17.0-linux-arm.tar.gz",
+              "url": "https://github.com/velero-io/velero/releases/download/v1.17.0/velero-v1.17.0-linux-arm.tar.gz",
+              "digest": "sha256:ffe199570eaab63f8099e9436f62e1d6e4f5640b501412a94caba6c6f1d5154d"
+            },
+            {
+              "name": "velero-v1.17.0-linux-arm64.tar.gz",
+              "url": "https://github.com/velero-io/velero/releases/download/v1.17.0/velero-v1.17.0-linux-arm64.tar.gz",
+              "digest": "sha256:a0108e85b8c5e91656d5aa3a1f8566e976f9610e69e4418eee7c8a9ae9e9d55b"
+            },
+            {
+              "name": "velero-v1.17.0-linux-ppc64le.tar.gz",
+              "url": "https://github.com/velero-io/velero/releases/download/v1.17.0/velero-v1.17.0-linux-ppc64le.tar.gz",
+              "digest": "sha256:8c520209374bd26f647d96ea109610d85f6690c64ed570c217ed731b6c8abcaa"
+            },
+            {
+              "name": "velero-v1.17.0-linux-s390x.tar.gz",
+              "url": "https://github.com/velero-io/velero/releases/download/v1.17.0/velero-v1.17.0-linux-s390x.tar.gz",
+              "digest": "sha256:0d85f263e94fbd2d0fd666c90b9dbb9ed39ab4e91ee10317f0dea7456f02c9b4"
+            },
+            {
+              "name": "velero-v1.17.0-windows-amd64.tar.gz",
+              "url": "https://github.com/velero-io/velero/releases/download/v1.17.0/velero-v1.17.0-windows-amd64.tar.gz",
+              "digest": "sha256:06a98822b7b363dbe278d0191187521fad7a1b02a43419e6b75866a5d65b4fdd"
+            }
+          ]
+        },
+        {
+          "repository": "vmware-tanzu/velero-plugin-for-aws",
+          "tag": "v1.13.0",
+          "htmlURL": "https://github.com/velero-io/velero-plugin-for-aws/releases/tag/v1.13.0",
+          "assets": []
+        }
+      ]
+    }
+  ]
+}

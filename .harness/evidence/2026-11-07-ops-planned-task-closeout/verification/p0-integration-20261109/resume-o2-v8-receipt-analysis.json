@@ -1,0 +1,302 @@
+{
+  "taskId": "2026-11-07-ops-planned-task-closeout",
+  "run": "67fc9fadd215",
+  "tier": "L2",
+  "matrixSHA256": "e96cce4ad5d7964c35ec3f2754755ec321fcb66e41f6512e3e8d7587b7e941ac",
+  "matrixExitCode": 1,
+  "sourceStableDuringMatrix": true,
+  "seal": {
+    "sourceCount": 185,
+    "sourceChanges": [],
+    "artifactChanges": [],
+    "sealed": true,
+    "sourceInventorySHA256": "17b4af459b818ecfd697f35ce8faedf8a86cf57856bc40d462eafc06c6d73483"
+  },
+  "cases": [
+    {
+      "case": "success",
+      "status": "passed",
+      "failurePhase": "case-complete",
+      "assessment": "passed-v7-case",
+      "driverExitCode": 0,
+      "prePinEOF": false,
+      "driverFrames": [],
+      "positiveAssertions": 25,
+      "negativeAssertions": 9,
+      "failedAssertions": 0,
+      "cleanupComplete": true,
+      "receipt": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/live-diagnostic-o2-v7-case-success-67fc9fadd215.json",
+      "receiptSHA256": "3866f3b747f88a7fe7a392430a3d57244b04c9dfe57b4ea5b5142fc981539502"
+    },
+    {
+      "case": "failure-retry",
+      "status": "passed",
+      "failurePhase": "case-complete",
+      "assessment": "passed-v7-case",
+      "driverExitCode": 0,
+      "prePinEOF": false,
+      "driverFrames": [],
+      "positiveAssertions": 28,
+      "negativeAssertions": 3,
+      "failedAssertions": 0,
+      "cleanupComplete": true,
+      "receipt": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/live-diagnostic-o2-v7-case-failure-retry-67fc9fadd215.json",
+      "receiptSHA256": "e3164f3a2ac74d064b41953bf4868827503c60ad6e1ff7eeba87d5e59aa13aca"
+    },
+    {
+      "case": "pause-resume",
+      "status": "failed",
+      "failurePhase": "started-marker-before-control",
+      "assessment": "independent-verifier-pre-pin-EOF; product-case-incomplete",
+      "driverExitCode": 1,
+      "prePinEOF": true,
+      "driverFrames": [
+        {
+          "file": "live-diagnostic-o2-v7.go",
+          "line": 83
+        },
+        {
+          "file": "live-diagnostic-o2-v7.go",
+          "line": 195
+        },
+        {
+          "file": "live-diagnostic-o2-v7.go",
+          "line": 205
+        },
+        {
+          "file": "live-diagnostic-o2-v7.go",
+          "line": 539
+        },
+        {
+          "file": "live-diagnostic-o2-v7.go",
+          "line": 698
+        }
+      ],
+      "positiveAssertions": 0,
+      "negativeAssertions": 0,
+      "failedAssertions": 0,
+      "cleanupComplete": true,
+      "receipt": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/live-diagnostic-o2-v7-case-pause-resume-67fc9fadd215.json",
+      "receiptSHA256": "33d74a91a470d7441cb6a78c086abab9c33d76da994d25be0da39c090e3636d7"
+    },
+    {
+      "case": "cancel",
+      "status": "passed",
+      "failurePhase": "case-complete",
+      "assessment": "passed-v7-case",
+      "driverExitCode": 0,
+      "prePinEOF": false,
+      "driverFrames": [],
+      "positiveAssertions": 9,
+      "negativeAssertions": 1,
+      "failedAssertions": 0,
+      "cleanupComplete": true,
+      "receipt": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/live-diagnostic-o2-v7-case-cancel-67fc9fadd215.json",
+      "receiptSHA256": "4924d8131540b60d6f1555eed0ca3347fed9ce227885045845c51e031b859e62"
+    },
+    {
+      "case": "concurrent",
+      "status": "failed",
+      "failurePhase": "started-marker-before-control",
+      "assessment": "independent-verifier-pre-pin-EOF; product-case-incomplete",
+      "driverExitCode": 1,
+      "prePinEOF": true,
+      "driverFrames": [
+        {
+          "file": "live-diagnostic-o2-v7.go",
+          "line": 83
+        },
+        {
+          "file": "live-diagnostic-o2-v7.go",
+          "line": 195
+        },
+        {
+          "file": "live-diagnostic-o2-v7.go",
+          "line": 205
+        },
+        {
+          "file": "live-diagnostic-o2-v7.go",
+          "line": 539
+        },
+        {
+          "file": "live-diagnostic-o2-v7.go",
+          "line": 698
+        }
+      ],
+      "positiveAssertions": 0,
+      "negativeAssertions": 0,
+      "failedAssertions": 0,
+      "cleanupComplete": true,
+      "receipt": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/live-diagnostic-o2-v7-case-concurrent-67fc9fadd215.json",
+      "receiptSHA256": "9558cb52554b0ecaaef0253e0d641508d8746093e0200b19b1c5ab2dbf53aa2b"
+    },
+    {
+      "case": "revoke-credential",
+      "status": "failed",
+      "failurePhase": "started-marker-before-control",
+      "assessment": "independent-verifier-pre-pin-EOF; product-case-incomplete",
+      "driverExitCode": 1,
+      "prePinEOF": true,
+      "driverFrames": [
+        {
+          "file": "live-diagnostic-o2-v7.go",
+          "line": 83
+        },
+        {
+          "file": "live-diagnostic-o2-v7.go",
+          "line": 195
+        },
+        {
+          "file": "live-diagnostic-o2-v7.go",
+          "line": 205
+        },
+        {
+          "file": "live-diagnostic-o2-v7.go",
+          "line": 539
+        },
+        {
+          "file": "live-diagnostic-o2-v7.go",
+          "line": 698
+        }
+      ],
+      "positiveAssertions": 0,
+      "negativeAssertions": 0,
+      "failedAssertions": 0,
+      "cleanupComplete": true,
+      "receipt": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/live-diagnostic-o2-v7-case-revoke-credential-67fc9fadd215.json",
+      "receiptSHA256": "76ff46f2a9ddd10945ca5c6da53a84356317d4b4d80693978a7bb34cfb3fceb9"
+    },
+    {
+      "case": "revoke-rotation",
+      "status": "passed",
+      "failurePhase": "case-complete",
+      "assessment": "passed-v7-case",
+      "driverExitCode": 0,
+      "prePinEOF": false,
+      "driverFrames": [],
+      "positiveAssertions": 16,
+      "negativeAssertions": 2,
+      "failedAssertions": 0,
+      "cleanupComplete": true,
+      "receipt": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/live-diagnostic-o2-v7-case-revoke-rotation-67fc9fadd215.json",
+      "receiptSHA256": "d3e097ed2f8ac737ee181b80e7e2624894ed9023719f171c3fe21c75ec7c4c05"
+    },
+    {
+      "case": "revoke-source",
+      "status": "failed",
+      "failurePhase": "interrupted-completion-marker-before-revocation",
+      "assessment": "independent-verifier-pre-pin-EOF; product-case-incomplete",
+      "driverExitCode": 1,
+      "prePinEOF": true,
+      "driverFrames": [
+        {
+          "file": "live-diagnostic-o2-v7.go",
+          "line": 83
+        },
+        {
+          "file": "live-diagnostic-o2-v7.go",
+          "line": 195
+        },
+        {
+          "file": "live-diagnostic-o2-v7.go",
+          "line": 582
+        },
+        {
+          "file": "live-diagnostic-o2-v7.go",
+          "line": 698
+        }
+      ],
+      "positiveAssertions": 1,
+      "negativeAssertions": 1,
+      "failedAssertions": 0,
+      "cleanupComplete": true,
+      "receipt": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/live-diagnostic-o2-v7-case-revoke-source-67fc9fadd215.json",
+      "receiptSHA256": "55922bff80dc7b58a389643114fc787c5a419045d26a06914b40b6c79b5a3221"
+    },
+    {
+      "case": "revoke-host",
+      "status": "failed",
+      "failurePhase": "started-marker-before-control",
+      "assessment": "independent-verifier-pre-pin-EOF; product-case-incomplete",
+      "driverExitCode": 1,
+      "prePinEOF": true,
+      "driverFrames": [
+        {
+          "file": "live-diagnostic-o2-v7.go",
+          "line": 83
+        },
+        {
+          "file": "live-diagnostic-o2-v7.go",
+          "line": 195
+        },
+        {
+          "file": "live-diagnostic-o2-v7.go",
+          "line": 205
+        },
+        {
+          "file": "live-diagnostic-o2-v7.go",
+          "line": 539
+        },
+        {
+          "file": "live-diagnostic-o2-v7.go",
+          "line": 698
+        }
+      ],
+      "positiveAssertions": 0,
+      "negativeAssertions": 0,
+      "failedAssertions": 0,
+      "cleanupComplete": true,
+      "receipt": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/live-diagnostic-o2-v7-case-revoke-host-67fc9fadd215.json",
+      "receiptSHA256": "a8fb6c4b316fe6b13d88d87a6fd7abdbf0247d6143ea9e6541b7b19781069005"
+    },
+    {
+      "case": "start-negative",
+      "status": "passed",
+      "failurePhase": "case-complete",
+      "assessment": "passed-v7-case",
+      "driverExitCode": 0,
+      "prePinEOF": false,
+      "driverFrames": [],
+      "positiveAssertions": 0,
+      "negativeAssertions": 3,
+      "failedAssertions": 0,
+      "cleanupComplete": true,
+      "receipt": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/live-diagnostic-o2-v7-case-start-negative-67fc9fadd215.json",
+      "receiptSHA256": "9e2dc5839de3b60b2030483cd5e6a930a1283a88ff35a1661ca7fcee90101dc6"
+    },
+    {
+      "case": "hostkey-negative",
+      "status": "failed",
+      "failurePhase": "product-start-with-wrong-pin",
+      "assessment": "product-error-expectation-not-met; returned-key-not-retained",
+      "driverExitCode": 1,
+      "prePinEOF": false,
+      "driverFrames": [],
+      "positiveAssertions": 0,
+      "negativeAssertions": 1,
+      "failedAssertions": 1,
+      "cleanupComplete": true,
+      "receipt": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/live-diagnostic-o2-v7-case-hostkey-negative-67fc9fadd215.json",
+      "receiptSHA256": "67a0013fc69ab973fcd16f27754030a2ca954650716d59b1f844d08c0b0ca785"
+    },
+    {
+      "case": "cold-restart",
+      "status": "blocked",
+      "failurePhase": "initial-crash-start-before-ready-validation",
+      "assessment": "runner-discarded-initial-driver-events; precise-phase-unavailable",
+      "driverExitCode": 1,
+      "prePinEOF": false,
+      "driverFrames": [],
+      "positiveAssertions": 0,
+      "negativeAssertions": 0,
+      "failedAssertions": 0,
+      "cleanupComplete": true,
+      "receipt": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/live-diagnostic-o2-v7-case-cold-restart-67fc9fadd215.json",
+      "receiptSHA256": "fb2f03ea6a0e2e6b095f06815ba0647cbf178bb2323eb5809cf6f52c5d04afe5"
+    }
+  ],
+  "method": "retained unchanged true-VM reproduction; no new acceptance execution",
+  "scope": "business/deploy; no IAM/session or P0 completion",
+  "remoteExecuted": false,
+  "secretRead": false
+}

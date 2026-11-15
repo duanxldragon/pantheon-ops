@@ -1,0 +1,7 @@
+{
+  "exitCode": 0,
+  "CGO_ENABLED": "1",
+  "mysqlRequired": "1",
+  "mysqlPort": 33316,
+  "finishedUTC": "2026-11-10T07:16:42.7640171Z"
+}

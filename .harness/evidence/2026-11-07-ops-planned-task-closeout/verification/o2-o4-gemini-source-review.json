@@ -1,0 +1,23 @@
+{
+  "backend": "local Gemini CLI",
+  "status": "failed",
+  "exitCode": 130,
+  "elapsedSeconds": 3.443104,
+  "scope": "supplied O2 and O4 source/excerpts; unauthenticated CLI did not review or approve",
+  "sourceHashes": {
+    "frontend/src/modules/business/deploy/task/DeployExecutionWorkbench.tsx": "5701dd3184d85364d7a2603a8d16e674910d733a31b1c37d2190b675abe0477a",
+    "frontend/src/modules/business/deploy/task/useDeployTaskLogs.ts": "33ed5e755339f4b4e1c28bbf322658e97f228b290f749cca04fd020d01f09fdb",
+    "frontend/src/modules/business/shared/OperationalLogPanel.tsx": "ac88c1b54dcee64f9071f4e12c62460e09866fec531ff558a91fde43a6ace6ae",
+    "backend/modules/business/deploy/migrations/000034_deploy_log_attempt.up.sql": "b9bc55bf8fd3228c1cb3c1d56c1a794beed2db16ff49da13ce358db690d1bb78",
+    "backend/modules/business/deploy/migrations/000034_deploy_log_attempt.down.sql": "429c54193b50ff009a1144deab46d32ca72a605d0648f01abff7d33b931a35c2",
+    "backend/modules/business/deploy/log_attempt_migration_test.go": "da6e67c00bf545e1a60b0a5b7fdc3fcba28f51993be18b511b53f54a50c3c0cb",
+    "frontend/src/modules/business/observability/log-results.ts": "52b437976180c31db077b7953324aa94eb3aafe1e7032c89e1c758ccd3771255",
+    "frontend/src/modules/business/observability/LogResultPanels.tsx": "e18c725b78f91d6a9cf322f1642065aff64f5ad76da5fbe51e3595e19bcf7aca",
+    "frontend/src/modules/business/observability/LogExplorer.tsx": "fc9f5b3a0427fe9b73b19b44f943f74939e90aca3f8e8f028ef1788a8f128191",
+    "backend/modules/business/deploy/deploy_handler.go#// TaskLogItem": "06deeb7f646cfe6638ef9a9bdfc05afd6c6e0bd8cccf4c268f0e2e9b82faf077",
+    "backend/modules/business/deploy/deploy_service.go#// --- FZ-04: Append-only log chunks ---": "adae1cad7470982b4ae8b52b7ffeb854d3e425219a3b5f505eed08ccdc515beb",
+    "backend/modules/business/deploy/deploy_service.go#func (s *DeployService) GetTask(": "6c489dd27c51bc66ba24255e2761d436534de084f924d2aa48e0d48039a466dd"
+  },
+  "artifact": ".omx\\artifacts\\ask-gemini-o2-o4-source-20261108.md",
+  "approval": false
+}

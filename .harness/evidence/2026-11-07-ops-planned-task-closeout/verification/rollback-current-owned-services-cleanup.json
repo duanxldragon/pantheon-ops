@@ -1,0 +1,15 @@
+{
+  "settingsRestored": [
+    1,
+    1
+  ],
+  "stoppedPids": [
+    6472,
+    7380,
+    4588,
+    3128
+  ],
+  "identityVerified": true,
+  "dataRetained": true,
+  "method": "Exact owned binary/listener/datadir checks; Redis/MySQL graceful shutdown; no filesystem deletion"
+}

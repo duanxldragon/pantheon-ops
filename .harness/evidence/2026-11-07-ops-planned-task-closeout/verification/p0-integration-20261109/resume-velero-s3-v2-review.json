@@ -1,0 +1,42 @@
+{
+  "parentTaskPacket": "docs/harness/tasks/2026-11-07-ops-planned-task-closeout.task.md",
+  "tier": "L2",
+  "role": "Generator",
+  "reviewMode": "self-review-only",
+  "reason": "Leaf scope prohibits recursive delegation and remote operations; root independent review remains required",
+  "verification": "resume-velero-s3-v2-checks-20261110T010047205450.json",
+  "rootRequest": "resume-velero-s3-v2-root-request.json",
+  "rootRequestSHA256": "4ce141353a0eb1b05c02642fa485c642ad937ecde0dd9c58d499e5afc65584f5",
+  "reviewApprovalGranted": false,
+  "findings": [
+    {
+      "severity": "resolved-local",
+      "finding": "Original private_ip assumes family; real retained diagnosis shows KeyError at original line 55",
+      "resolution": "Native ip -j -4 query with strict IPv4/RFC1918/interface/shape and candidate-count validation. Real-shaped same parser fixture reproduces original KeyError and passes v2."
+    },
+    {
+      "severity": "resolved-local",
+      "finding": "Unknown partial directory entries must not be adopted or deleted",
+      "resolution": "Exact nine reviewed files plus exact original failed receipt and optional exact v2 hash only. Root owner/mode/path/single-link checks, server-local SHA256, exclusive single script upload."
+    },
+    {
+      "severity": "resolved-test-harness",
+      "finding": "Extended metadata test deepcopy tried to copy module object; test run stopped after 106 passed checks",
+      "resolution": "Fixture deepcopy retains module identity and copies only metadata. Failed receipt retained; final run passes 115 checks."
+    },
+    {
+      "severity": "pending-root-runtime",
+      "finding": "Actual native -4 output, binary help/flag diagnosis, installation and Backup/Restore not executed in this lane",
+      "resolution": "Root reviews hash-bound request and runs native-ip then diagnostic; installation needs actual successful diagnostic/help and separate root continuation review. No provider CLI compatibility assumptions or policy weakening."
+    }
+  ],
+  "sourceByteEquivalence": "Only private_ip replaced; every other byte and 14 other function ASTs identical",
+  "protectedHashesStable": true,
+  "remoteExecuted": false,
+  "providerInstalled": false,
+  "backupRestoreVerified": false,
+  "D1Closed": false,
+  "P0Closed": false,
+  "rootReviewRequired": true,
+  "gateOutcomes": "Parser caught missing-family assumption and malformed/nonprivate/multiple inputs; ownership checks caught foreign/missing/link/hash/metadata entries; no provider acceptance claim"
+}

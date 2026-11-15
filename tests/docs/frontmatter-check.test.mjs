@@ -176,6 +176,16 @@ test('parseContractBodyReferences reads contract sections', () => {
   assert.deepEqual(parsed.byField.related_acceptances, ['BAZ.md']);
 });
 
+test('parseContractBodyReferences tolerates the prettier blank line after a relation heading', () => {
+  const source = `# Contract\n\n关联设计：\n\n- \`FOO.md\`\n- \`BAR.md\`\n\n关联验收：\n- \`BAZ.md\`\n`;
+  const parsed = parseContractBodyReferences(source);
+  assert.deepEqual(parsed.byField.related_designs, ['FOO.md', 'BAR.md']);
+  assert.deepEqual(parsed.byField.related_acceptances, ['BAZ.md']);
+
+  const trailing = `# Contract\n\n关联设计：\n- \`FOO.md\`\n\n段落文字\n\n- \`NOTARELATION.md\`\n`;
+  assert.deepEqual(parseContractBodyReferences(trailing).byField.related_designs, ['FOO.md']);
+});
+
 test('extractReadmeDocLinks ignores external and anchor links', () => {
   const source = `[Local](./designs/FOO.md)\n[Web](https://example.com)\n[Anchor](#section)\n[Parent](../DESIGN.md)`;
   assert.deepEqual(extractReadmeDocLinks(source), ['./designs/FOO.md', '../DESIGN.md']);

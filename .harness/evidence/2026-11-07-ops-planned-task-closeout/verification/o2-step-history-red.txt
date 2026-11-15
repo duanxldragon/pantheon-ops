@@ -1,0 +1,5 @@
+--- FAIL: TestStepHistoryKeepsPriorAttemptCheckpoint (1.00s)
+    step_history_test.go:29: expected both recorded attempts, current=[{ID:1 TaskHostID:1 StepKey:install StepOrder:1 Status:success AttemptNo:2 StateVersion:5 StartedAt:2026-11-08 10:48:49.203 +0800 CST FinishedAt:2026-11-08 10:48:49.207 +0800 CST}] history=[]
+FAIL
+FAIL	github.com/duanxldragon/pantheon-base/backend/modules/business/deploy	1.074s
+FAIL

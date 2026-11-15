@@ -1,0 +1,52 @@
+[
+  {
+    "path": "backend/modules/business/capability/capability.go",
+    "oldSHA256": "d39e3b34fb8c0452dc4239361e307acd8d23a71e20e72fa0c34d0fa3dff3831e",
+    "newSHA256": "b96cabf381428701b53834907a29f9821def51f740d26144c5f3e4b1f0b82e19"
+  },
+  {
+    "path": "backend/modules/business/deploy/attempt_ownership.go",
+    "oldSHA256": "1c3073b1a29dcc27f9a49f8e9b89902df01f1a4d92f9757fe85861a48b6e2f0c",
+    "newSHA256": "843ae292a60679be8e75e5b437a36bd19718c8fd5c33b842a22081ae1ee788f9"
+  },
+  {
+    "path": "backend/modules/business/deploy/cancel_unclaimed_test.go",
+    "oldSHA256": null,
+    "newSHA256": "5f7dd6b7537a6645b0aed7f7cfd7b7a1e2567c0f9e92448fc3409b757d780e72"
+  },
+  {
+    "path": "backend/modules/business/deploy/deploy_service_test.go",
+    "oldSHA256": "62eb9dab66526067912e160f08f4058fae6f46011cf87252303e8f4943db2106",
+    "newSHA256": "aafed8ce256f9fc6dd12f924f79437c14f44438a53a0838c4076cc5998f76bb4"
+  },
+  {
+    "path": "backend/modules/business/deploy/deploy_service.go",
+    "oldSHA256": "1f60a774c742cfd72d0c3fb15414637e4fa690703c6af5ebf4eaec5706e3287b",
+    "newSHA256": "3c52f840a49a7f2dd989fe549ab2e0ff1e7e46d20a906e60bdd779cf9b187b9a"
+  },
+  {
+    "path": "backend/modules/business/deploy/independent_o2_regression_test.go",
+    "oldSHA256": null,
+    "newSHA256": "51a4584e4daee6500df9b33070d1e45e9f28cc133695e435f57bb36c4bb4fe09"
+  },
+  {
+    "path": "backend/modules/business/deploy/service_transaction_test.go",
+    "oldSHA256": null,
+    "newSHA256": "ec727226646c0532d0d2dc405643a8f32858c7f5cb8671e7a1e3278257b3cac8"
+  },
+  {
+    "path": "backend/modules/business/deploy/target_selection.go",
+    "oldSHA256": "e554d3ab8a372eadbf6b44196fc836f53ed3227f49ada47a3e12be6dc081b279",
+    "newSHA256": "489cffa041660a6c43c5ff75da5ed68276f929378075ff4df46f5990aefa164b"
+  },
+  {
+    "path": "backend/modules/business/service/state_transaction_test.go",
+    "oldSHA256": null,
+    "newSHA256": "6d6faa3000b591de71035eca9569432278fd0a48c070e758a5d019e8fac5c357"
+  },
+  {
+    "path": "backend/modules/business/service/state.go",
+    "oldSHA256": "26deb8fdc2e81e8032cacb06ac60888f0d5fd8fbe7d48e9e2b0119e4e66af2ce",
+    "newSHA256": "f78c9dd45fbea516fce61a598f60f9cf77a8045359761e75b5c14ce742bd41f0"
+  }
+]

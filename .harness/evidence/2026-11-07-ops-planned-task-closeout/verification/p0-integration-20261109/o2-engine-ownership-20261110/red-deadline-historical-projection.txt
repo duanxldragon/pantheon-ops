@@ -1,0 +1,5 @@
+FAIL	github.com/duanxldragon/pantheon-base/backend/modules/business/deploy [build failed]
+# github.com/duanxldragon/pantheon-base/backend/modules/business/deploy [github.com/duanxldragon/pantheon-base/backend/modules/business/deploy.test]
+modules\business\deploy\attempt_ownership_test.go:37:33: transport.scripts undefined (type *fakeDeploySSHRunner has no field or method scripts)
+modules\business\deploy\attempt_ownership_test.go:38:70: transport.scripts undefined (type *fakeDeploySSHRunner has no field or method scripts)
+FAIL

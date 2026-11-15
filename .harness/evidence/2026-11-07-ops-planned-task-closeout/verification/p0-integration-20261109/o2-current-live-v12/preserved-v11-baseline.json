@@ -1,0 +1,13 @@
+{
+  "groups": {
+    "candidateHashes": 12,
+    "evidenceHashes": 88,
+    "ownerPins": 65,
+    "protectedOldHashes": 232
+  },
+  "originalInputInventory": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/o2-current-live-v11/local-verification-1794299401982924300/source-after.json",
+  "protectedSuccessorCount": 358,
+  "requestSHA256": "ffbc6666c896de2b00ec2eb799aa96e41e9b4d3bb0e5a9417d049db361649e51",
+  "reviewProtocol": "o2-v10-review-v1",
+  "unchangedSchemaCompatibility": true
+}

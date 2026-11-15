@@ -32,46 +32,46 @@ updated_at: 2026-10-07
 
 ## 2. 综合评分（当前发布可用度，满分 10 分）
 
-| 维度 | 暂评 | 依据与边界 |
-| --- | ---: | --- |
-| 功能完整性 | 7 | 主要域和受控生成能力已实现；数据权限行为有缺陷，当前版本未完成端到端验收 |
-| 架构设计 | 7 | 模块化单体边界总体清晰；权限失效路径和局部跨域实现依赖需收敛 |
-| 性能 | 7 | 常用列表与导出有上限；部分无界查询/回填需实测，暂无规模负载结论 |
-| 安全 | 3 | 存在高置信的越权、跨租户可见性和敏感审计数据风险 |
-| UI 体验 | 7 | 统一组件与 token 基线存在；本轮无当前提交渲染和交互证据 |
-| 工程化 | 3 | `main` 的质量与发布门禁失败，PR/分支尚未收口 |
-| 文档质量 | 6 | 合同、部署和 API 入口齐备；发布状态和升级命令存在失真 |
+| 维度       | 暂评 | 依据与边界                                                               |
+| ---------- | ---: | ------------------------------------------------------------------------ |
+| 功能完整性 |    7 | 主要域和受控生成能力已实现；数据权限行为有缺陷，当前版本未完成端到端验收 |
+| 架构设计   |    7 | 模块化单体边界总体清晰；权限失效路径和局部跨域实现依赖需收敛             |
+| 性能       |    7 | 常用列表与导出有上限；部分无界查询/回填需实测，暂无规模负载结论          |
+| 安全       |    3 | 存在高置信的越权、跨租户可见性和敏感审计数据风险                         |
+| UI 体验    |    7 | 统一组件与 token 基线存在；本轮无当前提交渲染和交互证据                  |
+| 工程化     |    3 | `main` 的质量与发布门禁失败，PR/分支尚未收口                             |
+| 文档质量   |    6 | 合同、部署和 API 入口齐备；发布状态和升级命令存在失真                    |
 
 评分是证据受限的评估，不沿用已有交付报告中的“96% 成熟度”自评。
 
 ## 3. 功能、架构与体验覆盖
 
-| 范围 | 本轮判断 |
-| --- | --- |
-| 用户、组织、认证与会话 | 有后端模块、路由、前端页面和相关测试；自助/管理会话的授权边界仍有 Blocker |
-| RBAC、菜单、API、按钮和数据权限 | 各层实现入口存在；数据范围失效放行及角色更新清空自定义范围使该链路不能验收 |
-| 字典、参数配置、i18n、操作/安全审计 | 模块与页面存在；操作审计的非 JSON 请求体处理需先修复 |
-| 文件与 CRUD | 上传和受控读取、通用列表/导入导出能力存在；独立文件资产目录与生命周期管理未获本轮证据，不将其自动升级为发布 Blocker |
-| 代码生成与动态模块 | 生成器、注册与生命周期实现存在；本轮没有执行生成到运行的完整链路 |
-| 前端系统 | Arco、共享表格/筛选/状态组件和 i18n/权限守卫构成统一基线；当前提交未取得浏览器截图、控制台与失败态证据，不能宣称最终视觉通过 |
+| 范围                                | 本轮判断                                                                                                                     |
+| ----------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| 用户、组织、认证与会话              | 有后端模块、路由、前端页面和相关测试；自助/管理会话的授权边界仍有 Blocker                                                    |
+| RBAC、菜单、API、按钮和数据权限     | 各层实现入口存在；数据范围失效放行及角色更新清空自定义范围使该链路不能验收                                                   |
+| 字典、参数配置、i18n、操作/安全审计 | 模块与页面存在；操作审计的非 JSON 请求体处理需先修复                                                                         |
+| 文件与 CRUD                         | 上传和受控读取、通用列表/导入导出能力存在；独立文件资产目录与生命周期管理未获本轮证据，不将其自动升级为发布 Blocker          |
+| 代码生成与动态模块                  | 生成器、注册与生命周期实现存在；本轮没有执行生成到运行的完整链路                                                             |
+| 前端系统                            | Arco、共享表格/筛选/状态组件和 i18n/权限守卫构成统一基线；当前提交未取得浏览器截图、控制台与失败态证据，不能宣称最终视觉通过 |
 
 认证、IAM、组织、配置和平台壳层的物理边界总体清楚，未发现已证实的循环依赖。上述“存在”仅是源码及部分测试证据，不等同于生产环境功能验收。
 
 ## 4. 发布 Blocker（直接证据与推断分开）
 
-| ID | 问题、影响与级别 | 直接证据 | 最小收敛条件 |
-| --- | --- | --- | --- |
-| F01 | **高：数据范围策略读取失败时保留 `all`，受限角色可能读取/导出全量用户。**这是错误路径上的安全推断，未做故障注入复现。 | [`data_scope_middleware.go#L85`](../../backend/internal/middleware/data_scope_middleware.go#L85)、[`#L140`](../../backend/internal/middleware/data_scope_middleware.go#L140)、[`scope.go#L21`](../../backend/pkg/database/scope.go#L21)、[`user_export.go#L391`](../../backend/modules/system/iam/user/user_export.go#L391) | 读取失败即拒绝；覆盖用户列表与导出故障注入 |
-| F02 | **高：自助会话吊销未校验 session 属主，已登录者知道目标 ID 时可使他人下线。** | [`login_handler.go#L633`](../../backend/modules/auth/login/login_handler.go#L633)、[`session_service.go#L151`](../../backend/modules/auth/session/session_service.go#L151)、[`casbin_middleware.go#L119`](../../backend/internal/middleware/casbin_middleware.go#L119) | 使用属主校验路径；跨用户及当前会话语义测试通过 |
-| F03 | **高：会话管理读/吊销缺少租户范围，获管理权限的租户用户可能看到他租户 session ID、IP、设备信息。**限多租户模式，尚未双租户运行复现。 | [`session_service.go#L350`](../../backend/modules/auth/session/session_service.go#L350)、[`#L409`](../../backend/modules/auth/session/session_service.go#L409)、[`session_model.go#L23`](../../backend/modules/auth/session/session_model.go#L23) | 清单、统计和单/批量吊销按租户隔离；显式平台权限例外经审查 |
-| F04 | **高：“我的登录日志”使用用户名包含匹配，可能暴露相似用户名的 IP、设备和时间。** | [`login_handler.go#L642`](../../backend/modules/auth/login/login_handler.go#L642)、[`login_service.go#L178`](../../backend/modules/auth/login/login_service.go#L178)、[`#L198`](../../backend/modules/auth/login/login_service.go#L198) | 自助查询精确身份匹配；相似用户名及租户隔离测试通过 |
-| F05 | **高：非 JSON 请求解析失败时审计保留原始请求体，multipart/上传内容及敏感字段可能落库；10 MiB 请求还可能造成内存/日志容量压力。**静态路径证据，未检查生产日志。 | [`operation_log_middleware.go#L215`](../../backend/internal/middleware/operation_log_middleware.go#L215)、[`#L258`](../../backend/internal/middleware/operation_log_middleware.go#L258)、[`#L374`](../../backend/internal/middleware/operation_log_middleware.go#L374)、[`system_modules.go#L360`](../../backend/modules/system/system_modules.go#L360) | 对二进制/multipart 仅记白名单元数据，设置小型审计体上限并测试不会落原文 |
-| F06 | **高：角色常规编辑覆盖自定义数据范围的部门 ID，破坏已配置权限。** | [`role_service.go#L374`](../../backend/modules/system/iam/role/role_service.go#L374)、[`#L645`](../../backend/modules/system/iam/role/role_service.go#L645)、[`permission_data_scope.go#L79`](../../backend/modules/system/iam/permission/permission_data_scope.go#L79) | 编辑角色保留部门集合；“配置自定义范围→编辑角色→查询”回归通过 |
-| G01 | **发布门禁：远端 `main` 的 Code Quality Gates 与 Release Gate 失败。** | [Code Quality Gates 运行 37131143242](https://github.com/duanxldragon/pantheon-base/actions/runs/37131143242)、[Release Gate 运行 37131143233](https://github.com/duanxldragon/pantheon-base/actions/runs/37131143233)。失败日志显示缺失 `SHELL_VERSION.json`、`scripts/harness/check-doc-frontmatter.mjs` 对上游镜像漂移；汇总门禁失败。 | 确定文件/规则真相源，修复后在同一候选 SHA 重跑全部必需门禁 |
-| G02 | **发布门禁：4 个开放 PR（#359–#362），远端 5 个分支，本地亦不在 `main`。**与用户规定的“PR 全合并、仅保留 main”不符。 | 2026-10-07 GitHub 分支/PR 实时检查；本地 `git branch -a`、`git status --short --branch`。 | 对本次发布的 PR 完成合并或明确处置；取得用户要求的最终 main-only 状态并留证 |
-| G03 | **部署文档：已发布升级说明引用不存在的 SQL 脚本，并把裸 SQL 写进 bash 代码块。**现有 `tenant-migration-execute.sh` 不是这些命令的直接替代。 | [`RELEASE_NOTES_v0.14.0.md#L88`](../release-notes/RELEASE_NOTES_v0.14.0.md#L88)、[`#L91`](../release-notes/RELEASE_NOTES_v0.14.0.md#L91)、[`#L96`](../release-notes/RELEASE_NOTES_v0.14.0.md#L96)；脚本清单及 [`tenant-migration-execute.sh`](../../scripts/tenant-migration-execute.sh) | 以实际迁移路径重写升级/回滚步骤，并在一次性环境演练 |
+| ID  | 问题、影响与级别                                                                                                                                               | 直接证据                                                                                                                                                                                                                                                                                                                                                | 最小收敛条件                                                                |
+| --- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------- |
+| F01 | **高：数据范围策略读取失败时保留 `all`，受限角色可能读取/导出全量用户。**这是错误路径上的安全推断，未做故障注入复现。                                          | [`data_scope_middleware.go#L85`](../../backend/internal/middleware/data_scope_middleware.go#L85)、[`#L140`](../../backend/internal/middleware/data_scope_middleware.go#L140)、[`scope.go#L21`](../../backend/pkg/database/scope.go#L21)、[`user_export.go#L391`](../../backend/modules/system/iam/user/user_export.go#L391)                             | 读取失败即拒绝；覆盖用户列表与导出故障注入                                  |
+| F02 | **高：自助会话吊销未校验 session 属主，已登录者知道目标 ID 时可使他人下线。**                                                                                  | [`login_handler.go#L633`](../../backend/modules/auth/login/login_handler.go#L633)、[`session_service.go#L151`](../../backend/modules/auth/session/session_service.go#L151)、[`casbin_middleware.go#L119`](../../backend/internal/middleware/casbin_middleware.go#L119)                                                                                  | 使用属主校验路径；跨用户及当前会话语义测试通过                              |
+| F03 | **高：会话管理读/吊销缺少租户范围，获管理权限的租户用户可能看到他租户 session ID、IP、设备信息。**限多租户模式，尚未双租户运行复现。                           | [`session_service.go#L350`](../../backend/modules/auth/session/session_service.go#L350)、[`#L409`](../../backend/modules/auth/session/session_service.go#L409)、[`session_model.go#L23`](../../backend/modules/auth/session/session_model.go#L23)                                                                                                       | 清单、统计和单/批量吊销按租户隔离；显式平台权限例外经审查                   |
+| F04 | **高：“我的登录日志”使用用户名包含匹配，可能暴露相似用户名的 IP、设备和时间。**                                                                                | [`login_handler.go#L642`](../../backend/modules/auth/login/login_handler.go#L642)、[`login_service.go#L178`](../../backend/modules/auth/login/login_service.go#L178)、[`#L198`](../../backend/modules/auth/login/login_service.go#L198)                                                                                                                 | 自助查询精确身份匹配；相似用户名及租户隔离测试通过                          |
+| F05 | **高：非 JSON 请求解析失败时审计保留原始请求体，multipart/上传内容及敏感字段可能落库；10 MiB 请求还可能造成内存/日志容量压力。**静态路径证据，未检查生产日志。 | [`operation_log_middleware.go#L215`](../../backend/internal/middleware/operation_log_middleware.go#L215)、[`#L258`](../../backend/internal/middleware/operation_log_middleware.go#L258)、[`#L374`](../../backend/internal/middleware/operation_log_middleware.go#L374)、[`system_modules.go#L360`](../../backend/modules/system/system_modules.go#L360) | 对二进制/multipart 仅记白名单元数据，设置小型审计体上限并测试不会落原文     |
+| F06 | **高：角色常规编辑覆盖自定义数据范围的部门 ID，破坏已配置权限。**                                                                                              | [`role_service.go#L374`](../../backend/modules/system/iam/role/role_service.go#L374)、[`#L645`](../../backend/modules/system/iam/role/role_service.go#L645)、[`permission_data_scope.go#L79`](../../backend/modules/system/iam/permission/permission_data_scope.go#L79)                                                                                 | 编辑角色保留部门集合；“配置自定义范围→编辑角色→查询”回归通过                |
+| G01 | **发布门禁：远端 `main` 的 Code Quality Gates 与 Release Gate 失败。**                                                                                         | [Code Quality Gates 运行 37131143242](https://github.com/duanxldragon/pantheon-base/actions/runs/37131143242)、[Release Gate 运行 37131143233](https://github.com/duanxldragon/pantheon-base/actions/runs/37131143233)。失败日志显示缺失 `SHELL_VERSION.json`、`scripts/harness/check-doc-frontmatter.mjs` 对上游镜像漂移；汇总门禁失败。               | 确定文件/规则真相源，修复后在同一候选 SHA 重跑全部必需门禁                  |
+| G02 | **发布门禁：4 个开放 PR（#359–#362），远端 5 个分支，本地亦不在 `main`。**与用户规定的“PR 全合并、仅保留 main”不符。                                           | 2026-10-07 GitHub 分支/PR 实时检查；本地 `git branch -a`、`git status --short --branch`。                                                                                                                                                                                                                                                               | 对本次发布的 PR 完成合并或明确处置；取得用户要求的最终 main-only 状态并留证 |
+| G03 | **部署文档：已发布升级说明引用不存在的 SQL 脚本，并把裸 SQL 写进 bash 代码块。**现有 `tenant-migration-execute.sh` 不是这些命令的直接替代。                    | [`RELEASE_NOTES_v0.14.0.md#L88`](../release-notes/RELEASE_NOTES_v0.14.0.md#L88)、[`#L91`](../release-notes/RELEASE_NOTES_v0.14.0.md#L91)、[`#L96`](../release-notes/RELEASE_NOTES_v0.14.0.md#L96)；脚本清单及 [`tenant-migration-execute.sh`](../../scripts/tenant-migration-execute.sh)                                                                | 以实际迁移路径重写升级/回滚步骤，并在一次性环境演练                         |
 
-SonarCloud 对上述 `main` SHA 的公开分析为 **Quality Gate OK**，未解决项为 **26 个 MAJOR BUG、0 个 CRITICAL/BLOCKER BUG、0 个 VULNERABILITY**。26 个扫描项尚未逐条人工判真，不能直接称为 26 个真实缺陷；但仓库 [Release Gate](../../.github/workflows/release-gate.yml#L205) 规定检查未解决问题，必须分类收敛。当前 Release Gate 在 Candidate Checks 阶段已失败，其 Sonar job 未执行。
+SonarCloud 对上述 `main` SHA 的公开分析为 **Quality Gate OK**，未解决项为 **26 个 MAJOR BUG、0 个 CRITICAL/BLOCKER BUG、0 个 VULNERABILITY**。26 个扫描项尚未逐条人工判真，不能直接称为 26 个真实缺陷；但仓库 [Release Gate](https://github.com/duanxldragon/pantheon-base/blob/135730fd6f63ad73cf40f6e4b321fdd9f69ea932/.github/workflows/release-gate.yml#L205) 规定检查未解决问题，必须分类收敛。当前 Release Gate 在 Candidate Checks 阶段已失败，其 Sonar job 未执行。
 
 ## 5. 非阻塞优化与未知项
 
@@ -88,4 +88,4 @@ SonarCloud 对上述 `main` SHA 的公开分析为 **Quality Gate OK**，未解�
 - 本轮 `5173`、`5174`、`8080` 服务不可访问，未取得当前提交浏览器截图/控制台；历史截图不能替代本次最终视觉验收。
 - 未运行 `govulncheck`、`npm audit`、`go test -race` 或完整浏览器 smoke。本报告不把未执行的检查写为通过。
 
-**Release 判定：修复后收尾。**先关闭 F01–F06，再关闭 G01–G03 与扫描项，执行同一候选提交的功能、安全、视觉、性能和工程门禁，最后按维护者要求收口 PR/分支。执行计划与独立任务清单见 [2026-10-07 整改任务包](../harness/tasks/2026-10-07-release-readiness-remediation.task.md) 和 `.harness/tasks/2026-10-07-*/manifest.json`。发布/规则豁免属于维护者质量门禁决策；Agent 不使用 `solo-override`。
+**Release 判定：修复后收尾。**先关闭 F01–F06，再关闭 G01–G03 与扫描项，执行同一候选提交的功能、安全、视觉、性能和工程门禁，最后按维护者要求收口 PR/分支。执行计划与独立任务清单见 [2026-10-07 整改任务包](https://github.com/duanxldragon/pantheon-base/blob/135730fd6f63ad73cf40f6e4b321fdd9f69ea932/docs/harness/tasks/2026-10-07-release-readiness-remediation.task.md) 和 `.harness/tasks/2026-10-07-*/manifest.json`。发布/规则豁免属于维护者质量门禁决策；Agent 不使用 `solo-override`。

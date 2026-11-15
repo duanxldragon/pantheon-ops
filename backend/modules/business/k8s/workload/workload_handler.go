@@ -26,15 +26,29 @@ func NewWorkloadHandler(svc *WorkloadService, rbacSvc *rbac.K8sRBACService) *Wor
 
 // RegisterRoutes registers Kubernetes workload endpoints.
 func (h *WorkloadHandler) RegisterRoutes(r gin.IRoutes) {
+	h.RegisterResourceRoutes(r)
+	h.RegisterLogRoutes(r)
+}
+
+// RegisterResourceRoutes keeps finite resource reads on their existing chain.
+func (h *WorkloadHandler) RegisterResourceRoutes(r gin.IRoutes) {
 	r.GET("/workloads", h.List)
 	r.GET("/clusters/:id/workloads/:namespace/:kind/:name/pods", h.GetPods)
 	r.POST("/clusters/:id/workloads/:namespace/:kind/:name/scale", h.Scale)
 	r.POST("/clusters/:id/workloads/:namespace/:kind/:name/restart", h.Restart)
+}
+
+// RegisterLogRoutes is composed with the live authorization checkpoint.
+func (h *WorkloadHandler) RegisterLogRoutes(r gin.IRoutes) {
 	r.GET("/clusters/:id/pods/:namespace/:podName/logs", h.PodLogs)
 }
 
 // List returns workloads visible through a Kubernetes cluster.
 func (h *WorkloadHandler) List(c *gin.Context) {
+	if c.Query("dashboard") == "true" {
+		h.dashboardSummary(c)
+		return
+	}
 	var query WorkloadListQuery
 	if err := c.ShouldBindQuery(&query); err != nil {
 		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)

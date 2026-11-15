@@ -1,0 +1,54 @@
+[
+  {
+    "name": "HIGH1 copy/write observed replacement preserves all foreign bytes",
+    "status": "pass",
+    "root": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.tmp\\continue-o4-safety-independent-code-euvGxP\\ops-candidate-0m0bO8",
+    "foreignUnchanged": true
+  },
+  {
+    "name": "HIGH2 empty mkdir-to-pin replacement never grants deletion authority",
+    "status": "pass",
+    "root": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.tmp\\continue-o4-safety-independent-code-euvGxP\\ops-candidate-nwWwAt",
+    "emptyReplacementRetained": true
+  },
+  {
+    "name": "HIGH2 nonempty mkdir-to-pin replacement refused without touching subtree",
+    "status": "pass",
+    "root": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.tmp\\continue-o4-safety-independent-code-euvGxP\\ops-candidate-8Ml8An"
+  },
+  {
+    "name": "HIGH3 foreign sibling refuses whole cleanup and known-file exclusion preflight",
+    "status": "pass",
+    "root": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.tmp\\continue-o4-safety-independent-code-euvGxP\\ops-candidate-yx8I3H",
+    "allSubtreeInstancesUnchanged": true
+  },
+  {
+    "name": "MEDIUM4 exact exclusion docs/base.md with matching-prefix sibling",
+    "status": "pass",
+    "root": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.tmp\\continue-o4-safety-independent-code-euvGxP\\ops-candidate-US1qUF",
+    "fixtureReceiptOnly": true
+  },
+  {
+    "name": "MEDIUM4 exact exclusion docs with matching-prefix sibling",
+    "status": "pass",
+    "root": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.tmp\\continue-o4-safety-independent-code-euvGxP\\ops-candidate-tJQMx6",
+    "fixtureReceiptOnly": true
+  },
+  {
+    "name": "Go success with observed ancestor replacement refuses all protected imports",
+    "status": "pass",
+    "root": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.tmp\\continue-o4-safety-independent-code-euvGxP\\ops-candidate-OzsWmA",
+    "successfulSubprocessCannotAuthorizeImport": true
+  },
+  {
+    "name": "Go success with target file replacement cannot overwrite foreign file",
+    "status": "pass",
+    "root": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.tmp\\continue-o4-safety-independent-code-euvGxP\\ops-candidate-BePZus"
+  },
+  {
+    "name": "Go thrown object and nested cause retained through later cleanup refusal",
+    "status": "pass",
+    "root": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.tmp\\continue-o4-safety-independent-code-euvGxP\\ops-candidate-pbD4Vg",
+    "exactCausePreserved": true
+  }
+]

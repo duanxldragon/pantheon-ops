@@ -1,0 +1,3 @@
+{"phase": "prepared", "identity": {"namespace": "pantheon-p0-live-3c38b2", "uid": "5b3a8d91-b348-4a76-8fc8-f533a8eece99", "ownerLabelChecked": true}, "configPath": "/opt/pantheon-p0-20261109/live-k8s-argo-pantheon-p0-live-3c38b2.json", "tokenDuration": "15m", "rbac": "only namespaced Services get/list/create/update/delete", "credentialMode": "0600; never stdout"}
+{"exitCode": 1, "failedStage": "product create"}
+{"phase": "owned-namespace-cleanup", "uidChecked": true, "absenceVerified": true, "exitCode": 0}

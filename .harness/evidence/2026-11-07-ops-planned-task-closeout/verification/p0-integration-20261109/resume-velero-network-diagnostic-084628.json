@@ -1,0 +1,49 @@
+{
+  "phase": "local-transport-diagnostic",
+  "remoteResourcesCreated": 0,
+  "records": [
+    {
+      "transport": "stdlib-https",
+      "origin": "https://auth.docker.io/token",
+      "errorType": "URLError",
+      "httpStatus": null,
+      "reasonType": "PermissionError",
+      "errno": 13,
+      "winerror": 10013,
+      "rawOmitted": true
+    },
+    {
+      "transport": "stdlib-https",
+      "origin": "https://quay.io/v2/",
+      "errorType": "URLError",
+      "httpStatus": null,
+      "reasonType": "PermissionError",
+      "errno": 13,
+      "winerror": 10013,
+      "rawOmitted": true
+    },
+    {
+      "transport": "stdlib-https",
+      "origin": "https://api.github.com/repos/minio/minio/releases/tags/RELEASE.2024-12-18T13-15-44Z",
+      "errorType": "URLError",
+      "httpStatus": null,
+      "reasonType": "PermissionError",
+      "errno": 13,
+      "winerror": 10013,
+      "rawOmitted": true
+    },
+    {
+      "transport": "gh-api",
+      "exitCode": 1,
+      "stderrPresent": true,
+      "rawOmitted": true
+    },
+    {
+      "transport": "curl-https",
+      "exitCode": 7,
+      "stderrPresent": false,
+      "rawOmitted": true,
+      "httpStatus": "000"
+    }
+  ]
+}

@@ -1,0 +1,91 @@
+{
+  "readOnly": true,
+  "pods": [
+    {
+      "name": "velero-7865c6d85d-vqj6s",
+      "uid": "64778884-3a8a-4c16-a224-4ffbb7b44073",
+      "phase": "Pending",
+      "conditions": [
+        {
+          "type": "PodReadyToStartContainers",
+          "status": "True",
+          "reason": null
+        },
+        {
+          "type": "Initialized",
+          "status": "False",
+          "reason": "ContainersNotInitialized"
+        },
+        {
+          "type": "Ready",
+          "status": "False",
+          "reason": "ContainersNotReady"
+        },
+        {
+          "type": "ContainersReady",
+          "status": "False",
+          "reason": "ContainersNotReady"
+        },
+        {
+          "type": "PodScheduled",
+          "status": "True",
+          "reason": null
+        }
+      ],
+      "containers": [
+        {
+          "name": "velero-velero-plugin-for-aws",
+          "ready": false,
+          "restartCount": 0,
+          "state": {
+            "waiting": {
+              "reason": "CreateContainerError"
+            }
+          }
+        },
+        {
+          "name": "velero",
+          "ready": false,
+          "restartCount": 0,
+          "state": {
+            "waiting": {
+              "reason": "PodInitializing"
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "podsQueryExitCode": 0,
+  "storage": [
+    {
+      "name": "default",
+      "uid": "44b748bb-ca27-447e-a597-894c5f6cf5c5",
+      "phase": null,
+      "lastValidationTime": null
+    }
+  ],
+  "storageQueryExitCode": 0,
+  "receiptFiles": [
+    {
+      "name": "resume-velero-s3-v8-complete-20261110T052525438509.json",
+      "bytes": 19863
+    },
+    {
+      "name": "resume-velero-s3-v8-migration.json",
+      "bytes": 2276
+    },
+    {
+      "name": "resume-velero-s3-v8-original-partial-owned.json",
+      "bytes": 986
+    }
+  ],
+  "memoryKiB": {
+    "MemTotal": 4010888,
+    "MemAvailable": 1114452
+  },
+  "credentialValuesPrinted": false,
+  "exitCode": 0,
+  "elapsedSeconds": 4.046,
+  "host": "115.190.251.143"
+}

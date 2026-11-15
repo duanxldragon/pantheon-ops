@@ -10,7 +10,7 @@ updated_at: 2026-11-04
 
 # 测试体系优化 - 快速启动指南
 
-> 历史 smoke 分层规划，core/full 分层已存在。当前入口以 [Core 工作流](../.github/workflows/smoke-core.yml) 和 `.github/workflows/smoke-{core,full}.yml` 为准；原耗时/收益为当时规划，非本轮实测。
+> 历史 smoke 分层规划，core/full 分层已存在。当前入口以 [Core 工作流](https://github.com/duanxldragon/pantheon-base/blob/135730fd6f63ad73cf40f6e4b321fdd9f69ea932/.github/workflows/smoke-core.yml) 和 `.github/workflows/smoke-{core,full}.yml` 为准；原耗时/收益为当时规划，非本轮实测。
 
 > **TL;DR**: 当前每次 PR 机械等待冒烟测试 120 分钟。优化方案：拆分核心冒烟套件(20分钟) + 保留完整回归(每日)，开发效率提升 80%。
 
@@ -96,25 +96,25 @@ cp smoke-full.yml smoke-core.yml
 
 ```yaml
 # smoke-core.yml
-name: Core Smoke Tests  # 改名
+name: Core Smoke Tests # 改名
 
 on:
   push:
     branches:
-      - main            # 保留
-      - release/**      # 保留
+      - main # 保留
+      - release/** # 保留
   # 移除 schedule (每日任务在 smoke-full)
-  workflow_dispatch:    # 保留手动触发
+  workflow_dispatch: # 保留手动触发
 
 jobs:
   smoke-core:
-    timeout-minutes: 30  # 从 120 改为 30
+    timeout-minutes: 30 # 从 120 改为 30
     steps:
       # ... 其他步骤保持不变 ...
-      
-      - name: Run core smoke suite  # 改名
+
+      - name: Run core smoke suite # 改名
         working-directory: frontend
-        run: npm run test:smoke:core  # 改为核心套件
+        run: npm run test:smoke:core # 改为核心套件
 ```
 
 **C. 更新 `smoke-full.yml`**
@@ -123,7 +123,7 @@ jobs:
 # smoke-full.yml
 on:
   schedule:
-    - cron: "37 18 * * *"  # 每日 UTC 18:37
+    - cron: "37 18 * * *" # 每日 UTC 18:37
   workflow_dispatch:
   # 移除 push.branches.main - 这个交给 smoke-core
 
@@ -179,6 +179,7 @@ jobs:
 ```
 
 使用方式：
+
 ```bash
 # PR 上打标签
 gh pr edit <PR号> --add-label "test:smoke"
@@ -198,7 +199,7 @@ gh pr edit <PR号> --add-label "test:smoke"
                         等待 120 分钟 🕐🕑🕒 😴
                                           ↓
                           发现问题 → 修复 → 重新走流程
-                          
+
 总反馈周期: 130 分钟+
 ```
 
@@ -216,7 +217,7 @@ gh pr edit <PR号> --add-label "test:smoke"
                         95% 的问题在这里发现 ✅
                                     ↓
                   每日 smoke-full (边缘场景兜底)
-                  
+
 PR 反馈周期: 10-15 分钟
 合并后反馈: 20 分钟 (提速 83%)
 ```
@@ -239,6 +240,7 @@ gh run list --workflow=smoke-core.yml --limit 50 --json conclusion | jq '[.[] | 
 ```
 
 **目标基线**:
+
 - ✅ smoke-core 平均耗时: 18-22 分钟
 - ✅ 成功率: >95%
 - ✅ 假阳性率 (误报): <2%
@@ -249,7 +251,8 @@ gh run list --workflow=smoke-core.yml --limit 50 --json conclusion | jq '[.[] | 
 
 ### Q1: 核心冒烟遗漏了边缘场景怎么办？
 
-**A**: 
+**A**:
+
 - 保留完整 smoke-full 每日运行 (兜底)
 - 每季度审查核心套件有效性
 - 生产问题回溯时补充到核心套件
@@ -258,6 +261,7 @@ gh run list --workflow=smoke-core.yml --limit 50 --json conclusion | jq '[.[] | 
 
 **A**:
 有进一步优化空间：
+
 1. **并行度提高**: `--workers=2` → `--workers=4` (需要更多 runner 资源)
 2. **测试数据复用**: 减少 fixture setup 时间
 3. **选择性运行**: 基于 git diff 只跑相关模块 (advanced)
@@ -266,13 +270,15 @@ gh run list --workflow=smoke-core.yml --limit 50 --json conclusion | jq '[.[] | 
 
 ### Q3: 如何决定哪些测试放入核心套件？
 
-**A**: 
+**A**:
 三个标准：
+
 1. **影响面**: 所有用户都会用到的功能 (登录、导航)
 2. **风险度**: 数据破坏性操作 (删除、批量更新)
 3. **历史回归**: 过去 6 个月反复出问题的区域
 
 查看历史：
+
 ```bash
 # 查看最近 3 个月的 smoke-full 失败记录
 gh run list --workflow=smoke-full.yml --limit 100 --json conclusion,createdAt \
@@ -283,6 +289,7 @@ gh run list --workflow=smoke-full.yml --limit 100 --json conclusion,createdAt \
 
 **A**:
 **后端 (Go)**:
+
 ```bash
 # 1. 找出覆盖率低的关键模块
 cd backend
@@ -297,6 +304,7 @@ gotests -all -w modules/system/user/service.go
 ```
 
 **前端 (TypeScript)**:
+
 ```bash
 # 1. 查看覆盖率报告
 cd frontend
@@ -314,16 +322,19 @@ open coverage/index.html
 完成 2 周快速见效后，可以考虑：
 
 ### 第 1 个月
+
 - [ ] 补充后端中间件单元测试 (覆盖率 +5%)
 - [ ] 补充前端 hooks 单元测试
 - [ ] 为所有 spec 添加 `@priority` 标签
 
 ### 第 2 个月
+
 - [ ] 实施 E2E 测试分层 (critical/high/medium)
 - [ ] 补充核心服务单元测试 (覆盖率 +10%)
 - [ ] 优化测试数据管理 (fixture 复用)
 
 ### 第 3 个月
+
 - [ ] 引入测试数据工厂 (减少 setup 时间)
 - [ ] 实施视觉回归测试 (Playwright screenshots)
 - [ ] 建立测试质量看板
@@ -370,12 +381,14 @@ git checkout -b feat/test-suite-optimization
 # 4. 遇到问题查看 FAQ 或提 Issue
 ```
 
-**预计投入**: 
+**预计投入**:
+
 - Week 1: 12 小时 (拆分 + workflow)
 - Week 2: 4 小时 (PR 门禁 + 调优)
 - **总计**: 2 周，16 小时
 
 **预期收益**:
+
 - 反馈时间减少 83%
 - 开发者等待时间减少 80%
 - 每周节省团队 10+ 小时

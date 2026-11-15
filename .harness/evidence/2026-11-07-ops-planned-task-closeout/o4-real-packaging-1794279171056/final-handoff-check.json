@@ -1,0 +1,15 @@
+{
+  "filesHashStable": 13,
+  "localLinksChecked": 19,
+  "missingLinks": [],
+  "temporaryDuplicatesRemoved": [
+    "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\resume-o4-base-packaging-delta.patch",
+    "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\resume-o4-base-red.log",
+    "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\resume-o4-ops-red.log",
+    "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\resume-o4-real-packaging-diagnostics.json",
+    "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\resume-o4-preview-assembly.log"
+  ],
+  "baseProducerApplied": false,
+  "rootIndependentReview": "pending",
+  "fullTaskComplete": false
+}

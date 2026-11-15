@@ -1,0 +1,100 @@
+{
+  "changedFiles": [
+    {
+      "path": "backend/modules/business/deploy/deploy_handler.go",
+      "beforeSHA256": "36c81d49130dc181de52326d6a03b119db700229ab3608a9639b23fcc6ac6fff",
+      "sha256": "bb77f28047edf2913da7326472ca1c6a838196b0c3541487fd802688fc844f11"
+    },
+    {
+      "path": "backend/modules/business/deploy/deploy_seed.go",
+      "beforeSHA256": "ed4ed1585112aa2c0b0f06687ae2624e58324538ca1f2e79e2030be2f0df901d",
+      "sha256": "ffdb7563872fe1789b2f02591b198b5d6c5aaa842b1deb9291479df4b3ecec65"
+    },
+    {
+      "path": "backend/modules/business/deploy/deploy_service.go",
+      "beforeSHA256": "8ea2ee60bb99d9a2577bf342ac7e826953670db04e4aa3c8cfb399383f7efedc",
+      "sha256": "7b4695ff601636e905ef3f6903df15b48d1f23fd4c5f2a33282c6c281670b9a7"
+    },
+    {
+      "path": "backend/modules/business/deploy/read_scope.go",
+      "beforeSHA256": null,
+      "sha256": "7e03927b4f301131fba9674135ea3dc383e87715b41f12fa56c9a24c5284debc"
+    },
+    {
+      "path": "backend/modules/business/deploy/read_scope_test.go",
+      "beforeSHA256": null,
+      "sha256": "2c11f916fd519e76354425472ce185894d24b17272810bc371c53ec06ab60055"
+    },
+    {
+      "path": "frontend/src/modules/business/deploy/locales/en-US.json",
+      "beforeSHA256": "e231b371fecdf4a08400d7dd541b0ac3cd6c3ac77057160f0d947840350547ce",
+      "sha256": "1023ba943bb98869a03701a0d80d372bca4ebaf38f0786937b7bf1f354f65130"
+    },
+    {
+      "path": "frontend/src/modules/business/deploy/locales/zh-CN.json",
+      "beforeSHA256": "327da559ed5bac215340859b9a41f70411d2da2a453188f54adcaf1b28808b5b",
+      "sha256": "de7c1bc5f6cffa239ae861399a91fa0e220a0c89db43509aef1ee1c3b93d7089"
+    },
+    {
+      "path": "frontend/src/modules/business/deploy/task/DeployExecutionWorkbench.tsx",
+      "beforeSHA256": "9356ccd861ba5b10e7f0bf58b58f489d14634be06c40d64cbddf109137f73286",
+      "sha256": "a6575f14e436730137e9c23d17cab6b5edc33f4247da60946327b036adb8b999"
+    },
+    {
+      "path": "frontend/src/modules/business/deploy/task/DeployTaskDetail.tsx",
+      "beforeSHA256": "1ea8b443bfe32f86a55ab15f3c0adfca44b3071c5456b28920f2942b6567f4f3",
+      "sha256": "6de99548ea4a1e37e4e1443392e4d045cc0a4ca61801fd9e118d21958b89c5c4"
+    },
+    {
+      "path": "frontend/src/modules/business/deploy/task/useDeployTaskSnapshot.ts",
+      "beforeSHA256": null,
+      "sha256": "cb1a487107711798af476edfbe5880b09496e75a8ccb0fc361e3ccc1ba9abbdd"
+    },
+    {
+      "path": "frontend/src/modules/business/deploy/task/useDeployTaskStream.ts",
+      "beforeSHA256": "7043751fd26ae00910d41914b7e8b99d441f89e099b8d729cd19911dfabcc227",
+      "sha256": "95744cde6cc5d2e9a118cbae9173d6ec3bf0dcb205966e67718a83685ec58f5c"
+    },
+    {
+      "path": "frontend/tests/smoke/business/deploy/deploy-pages.spec.ts",
+      "beforeSHA256": "abdd9310709f15f3f8f0d869f8120344bc0f2bf6123b96a7b8b9a966022e774e",
+      "sha256": "9bf8c567e9ef2dbcb2c04da5450bbf63897cc1ee619de8bf27e3febc72591af6"
+    },
+    {
+      "path": "frontend/tests/unit/business/operational/deploy-context.test.tsx",
+      "beforeSHA256": "8aeaa42a0d0ddb6f88f17ff969ae6739dd7060e571de7f06325542106707752e",
+      "sha256": "1faaeb1fa68ce2048ecc42233fc8c804f5db1328fc88b765de0e89c1300b227b"
+    },
+    {
+      "path": "frontend/tests/unit/business/operational/deploy-detail-read.test.tsx",
+      "beforeSHA256": null,
+      "sha256": "e592ec396c47a37a757cce82c9c7b234186c508d1f8ad59ce8bb3d4e2109c343"
+    },
+    {
+      "path": "frontend/tests/unit/business/operational/deploy-log-cursor.test.tsx",
+      "beforeSHA256": "ceed93cae2c05eb9b4e5711c6f478ac590761841a46e2f240c43face172b9cb0",
+      "sha256": "b0f7db9cdf4f57cc9cdd341c42f3a2fa0461373e1728851753cd11fbbbbbd43c"
+    },
+    {
+      "path": "frontend/tests/unit/business/operational/deploy-read-revocation.test.tsx",
+      "beforeSHA256": null,
+      "sha256": "49fbe4a4baafb9005326a24ee98e14b75b880dc4cdbb88560a79152952400a2e"
+    }
+  ],
+  "unchangedBeforePaths": 43,
+  "protectedHistoricalArtifacts": [
+    {
+      "path": ".local/ops-acceptance/resume-o2-v9-root-reviewed-phase-request.json",
+      "sha256": "807c967f6ce2993366c5cf76573e939bff43dd2e1c6bdcc438035e18e215eada",
+      "expected": "807c967f6ce2993366c5cf76573e939bff43dd2e1c6bdcc438035e18e215eada",
+      "matchesReviewedSHA256": true
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-v9-matrix-result-1815605de83a.json",
+      "sha256": "c3d169b12e82f0e6a60952393a104522be4d92e9d9138c7a08f7951ab529d043",
+      "expected": "c3d169b12e82f0e6a60952393a104522be4d92e9d9138c7a08f7951ab529d043",
+      "matchesReviewedSHA256": true
+    }
+  ],
+  "notes": "Hashes bind this Generator handoff only, not independent approval or final P0 acceptance."
+}

@@ -1,0 +1,7 @@
+**APPROVE with 2 P2 defects.**
+
+**P2 — validation callback misses prop lifecycle.** `onValidationChange` fires only inside `changeNode` (after edits). Initial mount and externally-driven `value` changes never report, so a parent relying on the callback starts desynced from the rendered `invalidIds`. Repair: `React.useEffect(() => { onValidationChange?.(validateConditionAst(value, fields)); }, [value, fields]);` and drop the duplicate call in `changeNode`.
+
+**P2 — `String(title)` and `String(formatConditionValue(...))` on ReactNode.** When `title` is an element, the section's `aria-label` becomes `"[object Object]"`, defeating the label. Same for the default `Input` value: `formatConditionValue` can return the `unserializableValue` ReactNode, so the controlled input renders `"[object Object]"` and the next keystroke commits that string as the rule's value. Repair: derive a plain string (e.g. `typeof title === 'string' ? title : undefined`); give `formatConditionValue` a string-only fallback used for the input path.
+
+Controlled flow, structure preservation (spread keeps siblings/id), root-remove guard, read-only `renderNode` behavior, and state gating all check out. Not reviewed: `validateConditionAst`, `conditionAst` helpers, CSS, tests.

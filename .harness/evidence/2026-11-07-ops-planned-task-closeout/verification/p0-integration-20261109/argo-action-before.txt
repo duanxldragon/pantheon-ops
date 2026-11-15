@@ -1,0 +1,29 @@
+--- FAIL: TestApplicationActionRejectedIsNotSuccessful (0.21s)
+    argocd_action_test.go:21: 
+        	Error Trace:	D:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/cicd/argocd/argocd_action_test.go:21
+        	Error:      	An error is expected but got nil.
+        	Test:       	TestApplicationActionRejectedIsNotSuccessful
+--- FAIL: TestApplicationActionAcceptanceIsNotCompletion (0.20s)
+    argocd_action_test.go:27: 
+        	Error Trace:	D:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/cicd/argocd/argocd_action_test.go:27
+        	Error:      	Not equal: 
+        	            	expected: "Running"
+        	            	actual  : "Succeeded"
+        	            	
+        	            	Diff:
+        	            	--- Expected
+        	            	+++ Actual
+        	            	@@ -1 +1 @@
+        	            	-Running
+        	            	+Succeeded
+        	Test:       	TestApplicationActionAcceptanceIsNotCompletion
+--- FAIL: TestApplicationRollbackUsesProviderHistory (0.22s)
+    argocd_action_test.go:37: 
+        	Error Trace:	D:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/cicd/argocd/argocd_action_test.go:37
+        	Error:      	Not equal: 
+        	            	expected: 1
+        	            	actual  : 0
+        	Test:       	TestApplicationRollbackUsesProviderHistory
+FAIL
+FAIL	github.com/duanxldragon/pantheon-base/backend/modules/business/cicd/argocd	0.669s
+FAIL

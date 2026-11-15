@@ -1,0 +1,6 @@
+{
+  "command": "node scripts/business-overlay/check-business-overlay.mjs --root .tmp/p0-argo-current-stage",
+  "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+  "exitCode": 0,
+  "elapsedSeconds": 0.156
+}

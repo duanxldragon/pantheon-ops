@@ -1,0 +1,10 @@
+warning: in the working copy of 'frontend/src/modules/business/deploy/locales/en-US.json', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'frontend/src/modules/business/deploy/locales/zh-CN.json', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'frontend/src/modules/business/deploy/task/DeployTaskDetail.tsx', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'frontend/src/modules/business/deploy/task/DeployTaskList.tsx', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'frontend/tests/smoke/business/deploy/deploy-pages.spec.ts', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'frontend/src/modules/business/deploy/task/DeployExecutionWorkbench.tsx', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'frontend/src/modules/business/deploy/task/DeployTargetSelector.tsx', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'frontend/src/modules/business/deploy/task/DeployTaskPreview.tsx', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'frontend/src/modules/business/deploy/task/useDeployTaskLogs.ts', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'frontend/src/modules/business/deploy/task/useDeployTaskStream.ts', CRLF will be replaced by LF the next time Git touches it

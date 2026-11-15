@@ -1,0 +1,18 @@
+{
+  "phase": "download-install",
+  "host": "115.190.251.143",
+  "extraMemoryLimitMi": 512,
+  "exitCode": 1,
+  "stderrPresent": false,
+  "records": [
+    {
+      "phase": "verified-download",
+      "exitCode": 1,
+      "errorType": "HTTPError",
+      "messageOmitted": true,
+      "partialOwnedResourcesMayRemain": false,
+      "owner": "velero-resume-20261109",
+      "retainedOwnedObjects": []
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "host": "115.190.251.143",
+  "backendAndFrontendOnRemote": true,
+  "browserTransportFixtures": true,
+  "liveProviderE2E": false,
+  "specs": [
+    "tests/smoke/business/deploy/deploy-workbench.spec.ts",
+    "tests/smoke/business/deploy/deploy-selection-preview.spec.ts",
+    "tests/smoke/business/deploy/deploy-command.spec.ts",
+    "tests/smoke/business/k8s/release-preview.spec.ts",
+    "tests/smoke/business/observability-workbench.spec.ts",
+    "tests/smoke/business/observability-tempo-workbench.spec.ts",
+    "tests/smoke/business/cmdb/cmdb-import-export-permissions.spec.ts"
+  ],
+  "exitCode": 0
+}

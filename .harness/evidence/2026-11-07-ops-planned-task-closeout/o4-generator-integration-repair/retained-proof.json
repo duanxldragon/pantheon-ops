@@ -1,0 +1,17 @@
+{
+  "descriptorSha256": "2f105d76e38c82e8c301d816269ea26669a7a0291a5860be74d6ca71281a9ce6",
+  "baseCommit": "135730fd6f63ad73cf40f6e4b321fdd9f69ea932",
+  "candidateIdentity": "candidate-4315cee606c249a42c8a3372c26dee9a4658a9259229485de85953430c7f439f",
+  "snapshotFiles": 1141,
+  "snapshotAggregateSha256": "4315cee606c249a42c8a3372c26dee9a4658a9259229485de85953430c7f439f",
+  "reportSha256": "13ff60276a0c94df5ca26a371e70c40b56bf1d3bb178e5e3f900b0e980c7e337",
+  "ownedOutputsChecked": 4634,
+  "originalFailureLogSha256": "4d5a2a6c21e4ba78a519f2eb244a80f3f7e321b1ccac35405cd6a81ddb66b88c",
+  "noConsumerReceipt": true,
+  "noRootConsumerReceipt": true,
+  "officialLockSha256": "95de1a87270e15c0d4c672418a5df906818a88652f8a3e6c480f1484ee9fa70c",
+  "allowedDriftSha256": "c165b37783be77622fba0479ab1e346d3c0bea3713ebafbfe7e72ebb3fd41d8e",
+  "manifestSha256": "d8fc5a88227d9242f30d71905af4963556e3a1e0d7247a053a4a03fbbd570111",
+  "actualAssemblyRun": false,
+  "independentReviewPending": true
+}

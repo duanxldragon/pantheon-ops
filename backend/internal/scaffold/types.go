@@ -122,7 +122,7 @@ type ModuleModel struct {
 
 type ModuleSchema struct {
 	Name               string             `json:"name"`
-	TemplateVersion    string             `json:"templateVersion,omitempty"`
+	TemplateVersion    string             `json:"templateVersion,omitempty"` // omitted/v1 legacy; v2 permits flat business tenancy
 	DisplayName        string             `json:"displayName"`
 	DisplayNameEn      string             `json:"displayNameEn,omitempty"`
 	Description        string             `json:"description"`

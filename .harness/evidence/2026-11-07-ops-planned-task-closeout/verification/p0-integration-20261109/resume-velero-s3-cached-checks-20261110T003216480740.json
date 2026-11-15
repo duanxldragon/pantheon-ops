@@ -1,0 +1,289 @@
+{
+  "phase": "s3-cached-integrity-checks",
+  "exitCode": 0,
+  "remoteExecuted": false,
+  "providerSimulated": false,
+  "actualCacheReadOnly": true,
+  "checks": [
+    {
+      "check": "Python syntax compilation of both new scripts",
+      "passed": true,
+      "elapsedSeconds": 0.015
+    },
+    {
+      "check": "small file verified by actual size and digest",
+      "passed": true,
+      "elapsedSeconds": 0.0
+    },
+    {
+      "check": "same-size byte tampering refused",
+      "passed": true,
+      "elapsedSeconds": 0.0
+    },
+    {
+      "check": "missing bytes refused with precise file",
+      "passed": true,
+      "elapsedSeconds": 0.0
+    },
+    {
+      "check": "filesystem size bound refused",
+      "passed": true,
+      "elapsedSeconds": 0.0
+    },
+    {
+      "check": "parent path escape refused",
+      "passed": true,
+      "elapsedSeconds": 0.0
+    },
+    {
+      "check": "absolute path outside owned fixture refused",
+      "passed": true,
+      "elapsedSeconds": 0.0
+    },
+    {
+      "check": "filesystem hardlink refused",
+      "passed": true,
+      "elapsedSeconds": 0.0
+    },
+    {
+      "check": "duplicate JSON fields refused",
+      "passed": true,
+      "elapsedSeconds": 0.0
+    },
+    {
+      "check": "oversized JSON refused",
+      "passed": true,
+      "elapsedSeconds": 0.0
+    },
+    {
+      "check": "nonfinite JSON refused",
+      "passed": true,
+      "elapsedSeconds": 0.0
+    },
+    {
+      "check": "streaming ELF integrity accepts small fixture",
+      "passed": true,
+      "elapsedSeconds": 0.0
+    },
+    {
+      "check": "ELF byte digest tampering refused",
+      "passed": true,
+      "elapsedSeconds": 0.0
+    },
+    {
+      "check": "wrong ELF architecture refused",
+      "passed": true,
+      "elapsedSeconds": 0.0
+    },
+    {
+      "check": "unsafe archive member refused: ../escape",
+      "passed": true,
+      "elapsedSeconds": 0.016
+    },
+    {
+      "check": "unsafe archive member refused: /absolute",
+      "passed": true,
+      "elapsedSeconds": 0.0
+    },
+    {
+      "check": "unsafe archive member refused: C:/escape",
+      "passed": true,
+      "elapsedSeconds": 0.0
+    },
+    {
+      "check": "unsafe archive member refused: a\\escape",
+      "passed": true,
+      "elapsedSeconds": 0.0
+    },
+    {
+      "check": "unsafe archive member refused: a/./b",
+      "passed": true,
+      "elapsedSeconds": 0.0
+    },
+    {
+      "check": "unsafe archive member refused: a//b",
+      "passed": true,
+      "elapsedSeconds": 0.0
+    },
+    {
+      "check": "archive link or special member refused: 2",
+      "passed": true,
+      "elapsedSeconds": 0.0
+    },
+    {
+      "check": "archive link or special member refused: 1",
+      "passed": true,
+      "elapsedSeconds": 0.0
+    },
+    {
+      "check": "archive link or special member refused: 3",
+      "passed": true,
+      "elapsedSeconds": 0.0
+    },
+    {
+      "check": "duplicate tar member refused",
+      "passed": true,
+      "elapsedSeconds": 0.0
+    },
+    {
+      "check": "oversized archive member refused",
+      "passed": true,
+      "elapsedSeconds": 0.0
+    },
+    {
+      "check": "decompression expansion bounded",
+      "passed": true,
+      "elapsedSeconds": 0.0
+    },
+    {
+      "check": "streaming tar expansion bounded",
+      "passed": true,
+      "elapsedSeconds": 0.0
+    },
+    {
+      "check": "invalid digest path refused",
+      "passed": true,
+      "elapsedSeconds": 0.0
+    },
+    {
+      "check": "external descriptor URL refused",
+      "passed": true,
+      "elapsedSeconds": 0.0
+    },
+    {
+      "check": "wrong image platform refused",
+      "passed": true,
+      "elapsedSeconds": 0.0
+    },
+    {
+      "check": "failed reconstruction leaves prior loader unchanged",
+      "passed": true,
+      "elapsedSeconds": 0.0
+    },
+    {
+      "check": "actual cached official metadata archives ELF OCI blobs layers and platforms independently reverified with network forbidden",
+      "passed": true,
+      "elapsedSeconds": 6.5
+    },
+    {
+      "check": "original aggregate receipts and root request preserved byte for byte",
+      "passed": true,
+      "elapsedSeconds": 0.0
+    },
+    {
+      "check": "read-only verification did not publish loader",
+      "passed": true,
+      "elapsedSeconds": 0.0
+    }
+  ],
+  "actualCacheVerification": {
+    "stagedArtifactBytes": 229386389,
+    "seaweedRelease": {
+      "version": "4.53",
+      "metadataSHA256": "7908e97ed2a798b18fe07ccf665143a19d5655d98d30ee1b54d93d8c145f7344",
+      "assetID": 724882169,
+      "origin": "https://github.com/seaweedfs/seaweedfs/releases/download/4.53/linux_amd64.tar.gz",
+      "sha256": "d1a7dec9f48d8b33895a0ea8951971defc2dc5312906dcc76fa5a5f74a6ee90d",
+      "bytes": 48457480
+    },
+    "images": [
+      {
+        "tag": "docker.io/velero/velero:v1.17.0",
+        "image": "docker.io/velero/velero@sha256:367a1d2deb5adf3acc8056715aefe398850cd33b8d7a68e5a6f1f13b691a1c58",
+        "digest": "sha256:367a1d2deb5adf3acc8056715aefe398850cd33b8d7a68e5a6f1f13b691a1c58",
+        "indexDigest": "sha256:22d17d9a7e9cda10b1ffc63b4baebc35f805a22b203cb5ca65fffee51ddbde92",
+        "configDigest": "sha256:d97ed3c80e05489432fd0e2ae33dd149ca3e3b09b7e07925b16e75bda6a608fd",
+        "platform": "linux/amd64",
+        "registryManifestVerified": true,
+        "officialBlobsVerified": true,
+        "uncompressedLayerDigestsVerified": true,
+        "compressedBlobBytes": 80877499,
+        "layers": [
+          {
+            "compressedDigest": "sha256:9d790a082352e93dcb3c6906c7fef61c424475f9473775cbf27dfaf50fb49a63",
+            "compressedBytes": 10146201,
+            "diffDigest": "sha256:ef610fc1d5819637f809faa0cb917b78b7829356ed2fa79455510e85662a3d88",
+            "uncompressedBytes": 24680448
+          },
+          {
+            "compressedDigest": "sha256:5d41fa514ee390bc59e0653cd9c909038c4cb81f6b52886fabd14eee5586b7f1",
+            "compressedBytes": 304,
+            "diffDigest": "sha256:d71bc7ca8b550528285d7f4c2cd57f52dbce46a7b37223182cc6bc36348b6c7d",
+            "uncompressedBytes": 4096
+          },
+          {
+            "compressedDigest": "sha256:d69a02cea0aa8237f4506ac51bfb81fb0a01e9c126a2bb65c9e7a754b8b41c76",
+            "compressedBytes": 420,
+            "diffDigest": "sha256:f1082ac4e78f6f401b6e0a80d70adbfc3a99675f0f837860f19244825f28b43e",
+            "uncompressedBytes": 2560
+          },
+          {
+            "compressedDigest": "sha256:01646cfd2e753845d38cca805859f844b5f6f6ce6b1153f7080044503570fb28",
+            "compressedBytes": 61454889,
+            "diffDigest": "sha256:eedfc0d78de6540dd7d8ae605d843e16be2b4bb462e2e2b225d56d6eaeddc3cc",
+            "uncompressedBytes": 147257856
+          },
+          {
+            "compressedDigest": "sha256:f8b6ce6701dbad4cb34be0e0388dd29cb991897b1dc2370c9fe7efa9f2dcbb7b",
+            "compressedBytes": 9273835,
+            "diffDigest": "sha256:284d91e446c3cc1d607627145382dc774b4781c3dffa997d6a357750f687be1b",
+            "uncompressedBytes": 24738816
+          }
+        ],
+        "cachedArchive": {
+          "file": "velero-velero-v1.17.0.oci.tar",
+          "bytes": 80906240,
+          "sha256": "86b8928b6b053f7bb573df6f6492841f7e96ad03647f9ec9857351c4d267bea4",
+          "format": "oci-image-layout-tar"
+        },
+        "imageVersionSmokeVerified": false,
+        "provenance": "Retained official registry evidence, independently matched to cached bytes; no fresh registry request"
+      },
+      {
+        "tag": "docker.io/velero/velero-plugin-for-aws:v1.13.0",
+        "image": "docker.io/velero/velero-plugin-for-aws@sha256:b6ecf1a86975475d6bf27259ac0c7afbdc6aff2e15dc79f9dc4a0d77f142e558",
+        "digest": "sha256:b6ecf1a86975475d6bf27259ac0c7afbdc6aff2e15dc79f9dc4a0d77f142e558",
+        "indexDigest": "sha256:0b08ec0d150424fa914487e6665d7c84fff0c6a8eca76a23fa6d09e621d36d8a",
+        "configDigest": "sha256:1a2a8fe1e034947415f347630091a3ae8867a8cfd55a806724f38a0b1c772f8d",
+        "platform": "linux/amd64",
+        "registryManifestVerified": true,
+        "officialBlobsVerified": true,
+        "uncompressedLayerDigestsVerified": true,
+        "compressedBlobBytes": 41501199,
+        "layers": [
+          {
+            "compressedDigest": "sha256:dc1a11e6bcc03b9ddeeb5ee68a92dd37e90436e696a5502d40674f633437b8ce",
+            "compressedBytes": 40026878,
+            "diffDigest": "sha256:01e00cade927806d40f29ea1dfc0b427e47a96d0fe81e36dfdaad3e6afbfe83f",
+            "uncompressedBytes": 102865920
+          },
+          {
+            "compressedDigest": "sha256:7469b762d337fe0ccc7252c18fec751437dca56b8fded67762d15b682db49928",
+            "compressedBytes": 1472881,
+            "diffDigest": "sha256:2cc64cf07caf6fd4fbba2b1181a37b773292fae8f984c7424e43c4703a0b8684",
+            "uncompressedBytes": 2430976
+          }
+        ],
+        "cachedArchive": {
+          "file": "velero-velero-plugin-for-aws-v1.13.0.oci.tar",
+          "bytes": 41523200,
+          "sha256": "494a8f752943a96c7a08ddfa1f2059eb07291039b37bca1518566eef41df554e",
+          "format": "oci-image-layout-tar"
+        },
+        "imageVersionSmokeVerified": false,
+        "provenance": "Retained official registry evidence, independently matched to cached bytes; no fresh registry request"
+      }
+    ]
+  },
+  "elapsedSeconds": 6.531,
+  "scriptHashes": {
+    "resume-velero-s3-cached-completion.py": "44433c1a81406988c758ddf0ae2a46d5e2af60b173e8d005d4a365ca84deffc6",
+    "resume-velero-s3-cached-check.py": "d475fef3d762d4155751ea60f69637a49d00c19189e2a5eafebdac3540a7ddec"
+  },
+  "sourceEvidenceHashes": {
+    "resume-velero-s3-transport-20261109T101156612488.json": "03ad6bf68c05e84c1237834ad9a0b51946784b8fb1fc0691e01b08ce94dd20c6",
+    "resume-velero-s3-transport-20261109T101459860875.json": "ee189ce4a3bd4e00f02447436a0ec01f07b86bc6b6bf29e2f97f886be43016b7",
+    "resume-velero-s3-root-request.json": "6d079b8d2b9dc99ffd278c3d74825e4d72f4ff3f5c5d847d3ddd6781701c9ef0"
+  },
+  "createdUTC": "2026-11-10T00:32:16.480740+00:00"
+}

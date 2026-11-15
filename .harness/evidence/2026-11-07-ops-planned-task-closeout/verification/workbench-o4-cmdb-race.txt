@@ -1,0 +1,6 @@
+# github.com/duanxldragon/pantheon-base/backend/modules/business/observability [github.com/duanxldragon/pantheon-base/backend/modules/business/observability.test]
+modules\business\observability\datasource_service.go:529:10: cannot use nil as bool value in return statement
+modules\business\observability\datasource_service.go:532:10: cannot use nil as bool value in return statement
+FAIL	github.com/duanxldragon/pantheon-base/backend/modules/business/observability [build failed]
+ok  	github.com/duanxldragon/pantheon-base/backend/modules/business/cmdb/host	17.321s
+FAIL

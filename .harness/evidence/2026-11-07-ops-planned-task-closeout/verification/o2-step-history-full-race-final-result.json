@@ -1,0 +1,24 @@
+{
+  "command": [
+    "go",
+    "test",
+    "-mod=readonly",
+    "-race",
+    "-p",
+    "2",
+    "-timeout",
+    "30m",
+    "./..."
+  ],
+  "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\backend",
+  "exitCode": 0,
+  "elapsedSeconds": 1507.8120000000054,
+  "artifact": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/o2-step-history-full-race-final.txt",
+  "sourceHashesStable": true,
+  "hashedFiles": 701,
+  "CGO_ENABLED": "1",
+  "minGW": "D:/msys64/mingw64/bin",
+  "requiredMySQL": 33316,
+  "requiredRedis": 26316,
+  "migrationDSNConfigured": true
+}

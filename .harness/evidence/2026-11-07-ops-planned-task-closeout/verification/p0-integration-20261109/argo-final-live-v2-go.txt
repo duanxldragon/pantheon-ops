@@ -1,0 +1,11 @@
+=== RUN   TestArgoFinalProductLive
+    argocd_final_live_test.go:108: 
+        	Error Trace:	D:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/cicd/argocd/argocd_final_live_test.go:64
+        	            				D:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/cicd/argocd/argocd_final_live_test.go:108
+        	Error:      	Received unexpected error:
+        	            	cicd.argocd.app_sync_failed
+        	Test:       	TestArgoFinalProductLive
+--- FAIL: TestArgoFinalProductLive (1.27s)
+FAIL
+FAIL	github.com/duanxldragon/pantheon-base/backend/modules/business/cicd/argocd	1.496s
+FAIL

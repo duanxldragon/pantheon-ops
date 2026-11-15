@@ -1,0 +1,344 @@
+--- .local/ops-acceptance/argo-adoption-v2-root-run.py
++++ .local/ops-acceptance/argo-adoption-v3-root-run.py
+@@ -1,4 +1,4 @@
+-"""Root-only v2 entry: consume the seal/helper bytes that were actually checked.
++"""Root-only v3 entry: consume the seal/helper bytes that were actually checked.
+ 
+ No credential transport is imported until preflight succeeds. A namespace change
+ after a completed capture cannot change its immutable bytes; changes during a
+@@ -19,15 +19,15 @@
+ 
+ LOCAL = Path(__file__).resolve().parent
+ ROOT = LOCAL.parents[1]
+-EVIDENCE = ROOT / '.harness/evidence/argo-adoption-v2-20261110'
+-SEAL = EVIDENCE / 'argo-adoption-v2-artifact-seal.json'
++EVIDENCE = ROOT / '.harness/evidence/argo-adoption-v3-20261110'
++SEAL = EVIDENCE / 'argo-adoption-v3-artifact-seal.json'
+ ORIGINAL_SEAL = ROOT / '.harness/evidence/argo-adoption-20261110/artifact-seal.json'
+ ORIGINAL_SHA = '08ba8f44013b10f92c533a1f96ed55a7346b0f6e17a968b8c313fdf1ab4d79ec'
+ BINARY = LOCAL / 'resume-argo-v6-reviewed-linux'
+ BINARY_SHA = 'cd68356983230edfa0c013235eccba4381a5fbe00d7076f47b7d4b7b8578138b'
+ BINARY_SIZE = 206041319
+ HELPER = LOCAL / 'argo-adoption-deploy.py'
+-ENTRY = LOCAL / 'argo-adoption-v2-root-run.py'
++ENTRY = LOCAL / 'argo-adoption-v3-root-run.py'
+ CAPTURE_LIMIT = 1 << 20
+ FILE_LIMIT = 64 << 20
+ 
+@@ -136,7 +136,7 @@
+             or seal['originalArtifactSealSHA256'] != ORIGINAL_SHA
+             or sha(ORIGINAL_SEAL) != ORIGINAL_SHA):
+         raise ValueError('original-seal-drift')
+-    for key in ['verificationReceipt', 'v2VerificationReceipt']:
++    for key in ['verificationReceipt', 'v2VerificationReceipt', 'v3VerificationReceipt']:
+         if sha(relative_path(seal[key])) != checked_sha(seal[key + 'SHA256']):
+             raise ValueError('verification-receipt-drift')
+     files = seal['files']
+@@ -155,6 +155,8 @@
+             actual = sha(path)
+         if actual != expected:
+             raise ValueError('reviewed-source-artifact-drift')
++    if helper_bytes is None:
++        raise ValueError('required-helper-capture-missing')
+     # Preserve the exact UTF-8 helper content; no text-mode newline conversion.
+     helper = helper_bytes.decode('utf-8')
+     if '\x00' in helper:
+@@ -191,7 +193,13 @@
+     from remote import connect
+     with connect() as connection:
+         result['transportConnected'] = True
+-        if connection.get_transport().getpeername()[0] != '115.190.251.143':
++        transport = connection.get_transport()
++        if transport is None:
++            raise ValueError('required-transport-missing')
++        sock = transport.sock
++        if sock is None:
++            raise ValueError('required-transport-socket-missing')
++        if transport.getpeername()[0] != '115.190.251.143':
+             raise ValueError('authorized-test-host-mismatch')
+         command = ('timeout --signal=TERM --kill-after=5s 250s python3 -B -c '
+                    + shlex.quote(helper) + ' ' + action)
+@@ -221,10 +229,10 @@
+ def main():
+     parser = argparse.ArgumentParser()
+     parser.add_argument('action', choices=['install', 'rollback'])
+-    parser.add_argument('--seal', required=True, help='Externally reviewed SHA256 of the v2 seal')
++    parser.add_argument('--seal', required=True, help='Externally reviewed SHA256 of the v3 seal')
+     args = parser.parse_args()
+     stamp = datetime.datetime.now(datetime.timezone.utc).strftime('%Y%m%dT%H%M%S%f')
+-    result_path = EVIDENCE / ('argo-adoption-v2-root-' + args.action + '-' + stamp + '.json')
++    result_path = EVIDENCE / ('argo-adoption-v3-root-' + args.action + '-' + stamp + '.json')
+     result = {'action': args.action, 'artifactSealSHA256': args.seal, 'startedAt': stamp,
+               'exitCode': 1, 'transportConnected': False, 'preflightPassed': False,
+               'remoteMutationUnknown': False, 'automaticRetry': False, 'P0Approved': False}
+--- .local/ops-acceptance/argo-adoption-v2-deploy-test.py
++++ .local/ops-acceptance/argo-adoption-v3-deploy-test.py
+@@ -17,7 +17,9 @@
+ import unittest
+ from unittest.mock import Mock, patch
+ 
+-spec = importlib.util.spec_from_file_location('adoption_v2', Path(__file__).with_name('argo-adoption-v2-root-run.py'))
++spec = importlib.util.spec_from_file_location('adoption_v3', Path(__file__).with_name('argo-adoption-v3-root-run.py'))
++if spec is None or spec.loader is None:
++    raise RuntimeError('required-module-spec-loader-missing')
+ module = importlib.util.module_from_spec(spec)
+ spec.loader.exec_module(module)
+ real_sha256 = hashlib.sha256
+@@ -40,11 +42,19 @@
+         super().close()
+ 
+ 
++class TestInput(io.BytesIO):
++    channel: SimpleNamespace
++
++    def __init__(self):
++        super().__init__()
++        self.channel = SimpleNamespace(shutdown_write=Mock())
++
++
+ class Channel:
+     def __init__(self, raw=b'{"nativeUpdateAccepted": true}', err=b''):
+         self.raw, self.err = raw, err
+ 
+-    def exit_status_ready(self):
++    def exit_status_ready(self) -> bool:
+         return True
+ 
+     def recv_ready(self):
+@@ -73,18 +83,18 @@
+         self.evidence = self.root / 'evidence'
+         self.evidence.mkdir()
+         self.helper = self.root / 'helper.py'
+-        self.entry = self.root / 'v2.py'
++        self.entry = self.root / 'v3.py'
+         self.binary = self.root / 'binary'
+         self.original = self.root / 'original.json'
+-        self.seal = self.evidence / 'v2-seal.json'
++        self.seal = self.evidence / 'v3-seal.json'
+         # CRLF and shell metacharacters exercise exact byte-to-command quoting.
+         self.approved_helper = b'print("approved $() `literal` \'quoted\'")\r\n'
+         self.evil_helper = b'print("UNSEALED-ATTACK")\n'
+         self.binary_bytes = b'\x7fELFsealed-fixture'
+-        inputs = {self.helper: self.approved_helper, self.entry: b'# v2 fixture\n',
++        inputs = {self.helper: self.approved_helper, self.entry: b'# v3 fixture\n',
+                   self.binary: self.binary_bytes, self.original: b'{"files": "original"}',
+                   self.root / 'final3.json': b'{"exitCode":0}',
+-                  self.root / 'v2-verification.json': b'{"exitCode":0}',
++                  self.root / 'v3-verification.json': b'{"exitCode":0}',
+                   self.root / 'source.go': b'package fixture\n'}
+         for path, raw in inputs.items():
+             path.write_bytes(raw)
+@@ -93,7 +103,8 @@
+         self.document = {'parentTask': '2026-11-07-ops-planned-task-closeout', 'P0Approved': False,
+                          'originalArtifactSeal': 'original.json', 'originalArtifactSealSHA256': digest(inputs[self.original]),
+                          'verificationReceipt': 'final3.json', 'verificationReceiptSHA256': digest(inputs[self.root / 'final3.json']),
+-                         'v2VerificationReceipt': 'v2-verification.json', 'v2VerificationReceiptSHA256': digest(inputs[self.root / 'v2-verification.json']),
++                         'v2VerificationReceipt': 'v3-verification.json', 'v2VerificationReceiptSHA256': digest(inputs[self.root / 'v3-verification.json']),
++                         'v3VerificationReceipt': 'v3-verification.json', 'v3VerificationReceiptSHA256': digest(inputs[self.root / 'v3-verification.json']),
+                          'files': self.inventory, 'binarySHA256': digest(self.binary_bytes), 'binarySize': len(self.binary_bytes)}
+         self.seal_bytes = json.dumps(self.document).encode()
+         self.seal.write_bytes(self.seal_bytes)
+@@ -103,8 +114,7 @@
+                            'HELPER': self.helper, 'ENTRY': self.entry, 'BINARY': self.binary,
+                            'BINARY_SHA': digest(self.binary_bytes), 'BINARY_SIZE': len(self.binary_bytes)}.items():
+             self.stack.enter_context(patch.object(module, key, value))
+-        self.stdin = io.BytesIO()
+-        self.stdin.channel = SimpleNamespace(shutdown_write=Mock())
++        self.stdin = TestInput()
+         self.channel = Channel()
+         self.connection = Mock()
+         self.connection.get_transport.return_value.getpeername.return_value = ('115.190.251.143', 22)
+@@ -117,9 +127,9 @@
+         self.stack.enter_context(patch.object(module.time, 'sleep'))
+ 
+     def run_entry(self, action='install'):
+-        with patch.object(sys, 'argv', ['v2', action, '--seal', self.expected]), patch('builtins.print'):
++        with patch.object(sys, 'argv', ['v3', action, '--seal', self.expected]), patch('builtins.print'):
+             code = module.main()
+-        receipts = list(self.evidence.glob('argo-adoption-v2-root-*.json'))
++        receipts = list(self.evidence.glob('argo-adoption-v3-root-*.json'))
+         self.assertEqual(1, len(receipts))
+         return code, json.loads(receipts[0].read_bytes())
+ 
+@@ -322,14 +332,14 @@
+         self.connect.assert_not_called()
+ 
+     def test_missing_helper_pin_refuses_before_connect(self):
+-        self.document['files'] = {'v2.py': self.inventory['v2.py']}
++        self.document['files'] = {'v3.py': self.inventory['v3.py']}
+         self.seal_bytes = json.dumps(self.document).encode()
+         self.seal.write_bytes(self.seal_bytes)
+         self.expected = digest(self.seal_bytes)
+         self.assert_refused()
+ 
+     def test_original_seal_or_receipt_or_binary_drift_refuses_before_connect(self):
+-        for path in [self.original, self.root / 'final3.json', self.root / 'v2-verification.json', self.binary]:
++        for path in [self.original, self.root / 'final3.json', self.root / 'v3-verification.json', self.binary]:
+             with self.subTest(path=path):
+                 before = path.read_bytes()
+                 path.write_bytes(b'changed')
+@@ -339,6 +349,44 @@
+                 path.write_bytes(before)
+         self.connect.assert_not_called()
+ 
++    def test_required_helper_capture_refuses_inconsistent_inventory_before_connect(self):
++        class InconsistentInventory(dict):
++            def items(self):
++                return [(key, value) for key, value in super().items() if key != 'helper.py']
++
++        real_loads = module.json.loads
++        document = dict(self.document, files=InconsistentInventory(self.inventory))
++
++        def loads(raw, **kwargs):
++            return document if raw == self.seal_bytes else real_loads(raw, **kwargs)
++
++        with patch.object(module.json, 'loads', side_effect=loads):
++            with self.assertRaisesRegex(ValueError, 'required-helper-capture-missing'):
++                with module.prepare(self.expected):
++                    self.fail('missing helper reached preflight yield')
++        self.connect.assert_not_called()
++        self.connection.exec_command.assert_not_called()
++
++    def test_missing_transport_refuses_exec_before_mutation_without_retry(self):
++        self.connection.get_transport.return_value = None
++        code, receipt = self.run_entry()
++        self.assertEqual(1, code)
++        self.assertTrue(receipt['preflightPassed'])
++        self.assertFalse(receipt['remoteMutationUnknown'])
++        self.assertFalse(receipt['automaticRetry'])
++        self.connection.exec_command.assert_not_called()
++        self.connect.assert_called_once()
++
++    def test_missing_transport_socket_refuses_exec_before_mutation_without_retry(self):
++        self.connection.get_transport.return_value.sock = None
++        code, receipt = self.run_entry()
++        self.assertEqual(1, code)
++        self.assertTrue(receipt['preflightPassed'])
++        self.assertFalse(receipt['remoteMutationUnknown'])
++        self.assertFalse(receipt['automaticRetry'])
++        self.connection.exec_command.assert_not_called()
++        self.connect.assert_called_once()
++
+     def test_wrong_testhost_refuses_exec_without_retry(self):
+         self.connection.get_transport.return_value.getpeername.return_value = ('127.0.0.1', 22)
+         code, receipt = self.run_entry()
+--- .local/ops-acceptance/argo-adoption-v2-verify.py
++++ .local/ops-acceptance/argo-adoption-v3-verify.py
+@@ -1,4 +1,4 @@
+-"""Narrow local v2 verification/seal. Never imports private transport or deploys.
++"""Narrow local v3 verification/seal. Never imports private transport or deploys.
+ 
+ Exclusive evidence writes preserve original receipts, failures and 31-file seal.
+ Go/source-wide/race/runtime approval remains with root's independent lane.
+@@ -17,10 +17,11 @@
+ ROOT = Path(__file__).resolve().parents[2]
+ LOCAL = ROOT / '.local/ops-acceptance'
+ ORIGINAL = ROOT / '.harness/evidence/argo-adoption-20261110'
+-EVIDENCE = ROOT / '.harness/evidence/argo-adoption-v2-20261110'
++PREVIOUS = ROOT / '.harness/evidence/argo-adoption-v2-20261110'
++EVIDENCE = ROOT / '.harness/evidence/argo-adoption-v3-20261110'
+ EV = ROOT / '.harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109'
+ ORIGINAL_SHA = '08ba8f44013b10f92c533a1f96ed55a7346b0f6e17a968b8c313fdf1ab4d79ec'
+-NEW_NAMES = ['argo-adoption-v2-root-run.py', 'argo-adoption-v2-deploy-test.py', 'argo-adoption-v2-verify.py']
++NEW_NAMES = ['argo-adoption-v3-root-run.py', 'argo-adoption-v3-deploy-test.py', 'argo-adoption-v3-verify.py']
+ 
+ 
+ def sha(path):
+@@ -44,8 +45,8 @@
+     if not args.label.isalnum():
+         raise ValueError('fresh-alphanumeric-label-required')
+     EVIDENCE.mkdir(exist_ok=True)
+-    receipt_path = EVIDENCE / ('argo-adoption-v2-' + args.label + '-verification.json')
+-    seal_path = EVIDENCE / 'argo-adoption-v2-artifact-seal.json'
++    receipt_path = EVIDENCE / ('argo-adoption-v3-' + args.label + '-verification.json')
++    seal_path = EVIDENCE / 'argo-adoption-v3-artifact-seal.json'
+     if receipt_path.exists() or seal_path.exists():
+         raise ValueError('fresh-evidence-required')
+     original_path = ORIGINAL / 'artifact-seal.json'
+@@ -55,7 +56,12 @@
+     original_seal = json.loads(original_bytes)
+     if len(original_seal['files']) != 31:
+         raise ValueError('original-inventory-drift')
+-    expected = dict(original_seal['files'])
++    previous_path = PREVIOUS / 'argo-adoption-v2-artifact-seal.json'
++    previous_seal = json.loads(previous_path.read_bytes())
++    if len(previous_seal['files']) != 34 or any(previous_seal['files'].get(p) != pin for p, pin in original_seal['files'].items()):
++        raise ValueError('preserved-v2-inventory-drift')
++    expected = dict(previous_seal['files'])
++    expected[previous_seal['v2VerificationReceipt']] = previous_seal['v2VerificationReceiptSHA256']
+     expected[original_seal['verificationReceipt']] = original_seal['verificationReceiptSHA256']
+     expected['.local/ops-acceptance/resume-argo-v6-reviewed-linux'] = original_seal['binarySHA256']
+     for relative, pin in expected.items():
+@@ -65,13 +71,14 @@
+         raise ValueError('binary-size-drift')
+     preserved = set(ROOT / p for p in expected)
+     preserved.update(p for p in ORIGINAL.rglob('*') if p.is_file())
++    preserved.update(p for p in PREVIOUS.rglob('*') if p.is_file())
+     preserved.update(EV / name for name in [
+         'resume-argo-adoption-independent-code-report.md', 'resume-argo-adoption-independent-code-report.receipt.json',
+         'resume-argo-adoption-independent-arch-report.md', 'resume-argo-adoption-independent-arch-report.receipt.json'])
+     before = {p.relative_to(ROOT).as_posix(): sha(p) for p in sorted(preserved)}
+     sources = [LOCAL / name for name in NEW_NAMES]
+     new_before = {p.relative_to(ROOT).as_posix(): sha(p) for p in sources}
+-    receipt = {'taskId': 'argo-adoption-v2-20261110', 'parentTask': original_seal['parentTask'],
++    receipt = {'taskId': 'argo-adoption-v3-20261110', 'parentTask': original_seal['parentTask'],
+                'parentPacket': 'docs/harness/tasks/2026-11-07-ops-planned-task-closeout.task.md',
+                'deliveryTier': 'L2', 'role': 'Generator', 'scope': 'R1 local deployment runner only',
+                'startedAt': datetime.datetime.now(datetime.timezone.utc).isoformat(),
+@@ -86,8 +93,8 @@
+                           'import ast,pathlib,sys; '
+                           '[compile(ast.parse(pathlib.Path(p).read_bytes(),filename=p,feature_version=(3,9)),p,"exec") for p in sys.argv[1:]]; '
+                           'print("AST Python 3.9 + in-memory compile: PASS (no imports/pyc)")', *map(str, sources)], 0),
+-        ('diffCheck', ['git', 'diff', '--check', '--no-index', '--', '.local/ops-acceptance/argo-adoption-root-run.py',
+-                       '.local/ops-acceptance/argo-adoption-v2-root-run.py'], 1)]
++        ('diffCheck', ['git', 'diff', '--check', '--no-index', '--', '.local/ops-acceptance/argo-adoption-v2-root-run.py',
++                       '.local/ops-acceptance/argo-adoption-v3-root-run.py'], 1)]
+     # Sensitivity checks mutate only the loaded module's memory. The selected
+     # regressions must fail by assertion when either checked-buffer use regresses.
+     mutant_script = (
+@@ -109,7 +116,7 @@
+         start = time.monotonic()
+         completed = subprocess.run(command, cwd=ROOT, capture_output=True, timeout=60)
+         raw = completed.stdout + completed.stderr
+-        log = EVIDENCE / ('argo-adoption-v2-' + args.label + '-' + name + '.log')
++        log = EVIDENCE / ('argo-adoption-v3-' + args.label + '-' + name + '.log')
+         with log.open('xb') as output:
+             output.write(raw)
+         passed = completed.returncode == expected_code
+@@ -126,10 +133,10 @@
+         receipt['commands'].append(row)
+         exit_code = exit_code or (0 if passed else 1)
+         print(json.dumps({key: value for key, value in row.items() if key != 'command'}), flush=True)
+-    delta = EVIDENCE / ('argo-adoption-v2-' + args.label + '-source-delta.diff')
++    delta = EVIDENCE / ('argo-adoption-v3-' + args.label + '-source-delta.diff')
+     with delta.open('x', encoding='utf-8', newline='\n') as output:
+         for path in sources:
+-            previous = LOCAL / 'argo-adoption-root-run.py' if path.name == NEW_NAMES[0] else None
++            previous = LOCAL / path.name.replace('v3', 'v2')
+             old_lines = previous.read_text().splitlines(keepends=True) if previous else []
+             output.writelines(difflib.unified_diff(old_lines, path.read_text().splitlines(keepends=True),
+                                                    fromfile=previous.relative_to(ROOT).as_posix() if previous else '/dev/null',
+@@ -141,6 +148,8 @@
+     stable = before == after and new_before == new_after
+     receipt.update(preservedHashesAfter=after, newSourceHashesAfter=new_after, sourceStable=stable,
+                    original31FileHashesPreserved=all(after[p] == pin for p, pin in original_seal['files'].items()),
++                   originalV2FileHashesPreserved=all(after[p] == pin for p, pin in previous_seal['files'].items()),
++                   preservedV2ArtifactSealSHA256=sha(previous_path),
+                    sourceDelta=delta.relative_to(ROOT).as_posix(), sourceDeltaSHA256=sha(delta),
+                    binarySHA256=original_seal['binarySHA256'], binarySize=original_seal['binarySize'],
+                    endedAt=datetime.datetime.now(datetime.timezone.utc).isoformat(),
+@@ -149,8 +158,12 @@
+     if receipt['exitCode'] == 0:
+         seal = {**original_seal, 'taskId': receipt['taskId'], 'originalArtifactSeal': original_path.relative_to(ROOT).as_posix(),
+                 'originalArtifactSealSHA256': ORIGINAL_SHA, 'files': {**original_seal['files'], **new_after},
+-                'v2VerificationReceipt': receipt_path.relative_to(ROOT).as_posix(),
+-                'v2VerificationReceiptSHA256': sha(receipt_path), 'P0Approved': False}
++                'v2ArtifactSeal': previous_path.relative_to(ROOT).as_posix(),
++                'v2ArtifactSealSHA256': sha(previous_path),
++                'v2VerificationReceipt': previous_seal['v2VerificationReceipt'],
++                'v2VerificationReceiptSHA256': previous_seal['v2VerificationReceiptSHA256'],
++                'v3VerificationReceipt': receipt_path.relative_to(ROOT).as_posix(),
++                'v3VerificationReceiptSHA256': sha(receipt_path), 'P0Approved': False}
+         write_json(seal_path, seal)
+         print(json.dumps({'artifact': seal_path.relative_to(ROOT).as_posix(), 'sealSHA256': sha(seal_path)}))
+     return receipt['exitCode']

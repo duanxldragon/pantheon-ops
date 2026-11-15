@@ -1,0 +1,57 @@
+{
+  "scope": [
+    "latest-foundation-and-plans",
+    "business-menu-ia-refactor"
+  ],
+  "activeRepository": {
+    "root-doc-links": {
+      "exitCode": 1,
+      "findingCount": 19
+    },
+    "root-review-registry": {
+      "exitCode": 1,
+      "fileCount": 67,
+      "errorCount": 93
+    },
+    "root-runtime-registry": {
+      "exitCode": 1,
+      "fileCount": 47,
+      "errorCount": 2,
+      "warningCount": 0
+    },
+    "root-visual-registry": {
+      "exitCode": 1,
+      "warningCount": 4,
+      "uiTaskCount": 3
+    },
+    "scoped-task-packets": {
+      "exitCode": 0,
+      "errorCount": 0,
+      "warningCount": 0
+    },
+    "scoped-evidence": {
+      "exitCode": 0,
+      "fileCount": 2,
+      "errorCount": 0,
+      "warningCount": 0
+    },
+    "scoped-review": {
+      "scopedOnlyPassed": true
+    },
+    "scoped-runtime": {
+      "scopedOnlyPassed": true
+    },
+    "scoped-visual": {
+      "scopedOnlyPassed": true
+    },
+    "root-docs-frontmatter": {
+      "ok": true
+    }
+  },
+  "preCloseoutCandidateBaseline": {
+    "docLinkFindings": 9,
+    "reviewErrors": 49,
+    "reviewFiles": 41
+  },
+  "scopePassDoesNotApproveBlockedAdoptionOrHistoricalRegistry": true
+}

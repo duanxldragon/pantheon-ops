@@ -1,0 +1,88 @@
+{
+  "case": "hostkey-negative",
+  "identity": "o2-live-387b7ef4c32d-hostkey-negative",
+  "database": "ops_p0_o2_live_387b7ef4c32d_hostkey_negative",
+  "databaseRetention": "retained; no drop",
+  "events": [
+    {
+      "credentialId": 1,
+      "packageId": 1,
+      "phase": "task-created",
+      "taskId": 1
+    },
+    {
+      "operationPhase": "wrong-pin-product-start",
+      "phase": "v8-operation-phase",
+      "taskId": 1
+    },
+    {
+      "errorCategory": "business.deploy.task.sshHostKeyMismatch",
+      "phase": "v8-product-start-category",
+      "taskId": 1
+    },
+    {
+      "case": "hostkey-negative",
+      "check": "actual VM host-key mismatch denied by product SSH",
+      "kind": "negative",
+      "passed": true
+    },
+    {
+      "operationPhase": "marker-done",
+      "phase": "v8-operation-phase",
+      "taskId": 1
+    },
+    {
+      "operationPhase": "marker-done",
+      "ordinal": 1,
+      "phase": "v9-verifier-connection"
+    },
+    {
+      "deadlineExceeded": false,
+      "phase": "independent-ssh-handshake",
+      "pinCallbacks": 1,
+      "pinChecked": true,
+      "pinMatched": true
+    },
+    {
+      "deadlineExceeded": false,
+      "exitStatus": 0,
+      "passed": true,
+      "phase": "independent-ssh-command"
+    },
+    {
+      "marker": "done",
+      "ownershipChecked": true,
+      "phase": "independent-marker",
+      "present": false
+    },
+    {
+      "case": "hostkey-negative",
+      "check": "untrusted host never executes marker script",
+      "kind": "negative",
+      "passed": true
+    },
+    {
+      "case": "hostkey-negative",
+      "failed": 0,
+      "negativePassed": 2,
+      "phase": "driver-result",
+      "positivePassed": 0
+    }
+  ],
+  "driverExitCode": 0,
+  "stderrPresent": false,
+  "status": "passed",
+  "cleanup": {
+    "phase": "exact-owned-cleanup",
+    "directory": "/opt/pantheon-p0-20261109/o2-live-387b7ef4c32d-hostkey-negative",
+    "files": [
+      {
+        "file": ".owner",
+        "sha256": "d85ee7cf95a126661bd7f702bf51c215a3a108ed3321f673ba4dfff0d60fe380",
+        "bytes": 37
+      }
+    ],
+    "absent": true,
+    "processKill": false
+  }
+}

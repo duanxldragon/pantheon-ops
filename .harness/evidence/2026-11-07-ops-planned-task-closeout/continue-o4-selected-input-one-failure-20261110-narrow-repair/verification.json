@@ -1,0 +1,75 @@
+{
+  "taskId": "2026-11-07-ops-planned-task-closeout",
+  "scope": "L2 Generator narrow test-only repair",
+  "red": {
+    "tests": 1,
+    "suites": 0,
+    "pass": 0,
+    "fail": 1,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0,
+    "duration_ms": 2260.0131
+  },
+  "focused": {
+    "tests": 16,
+    "suites": 0,
+    "pass": 16,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0,
+    "duration_ms": 34036.6798
+  },
+  "focusedCommands": [
+    {
+      "name": "syntax",
+      "command": [
+        "node",
+        "--check",
+        "scripts/business-overlay/foundation-candidate.test.mjs"
+      ],
+      "exitCode": 0,
+      "durationMs": 50,
+      "log": ".local/ops-acceptance/continue-o4-selected-input-one-failure-20261110-narrow-repair-syntax.log"
+    },
+    {
+      "name": "focused",
+      "command": [
+        "node",
+        "--test",
+        "--test-reporter=tap",
+        "--test-name-pattern=^selected inputs:",
+        "scripts/business-overlay/foundation-candidate.test.mjs"
+      ],
+      "exitCode": 0,
+      "durationMs": 34112,
+      "log": ".local/ops-acceptance/continue-o4-selected-input-one-failure-20261110-narrow-repair-focused.log"
+    }
+  ],
+  "twoSuite": {
+    "name": "two-suite",
+    "command": [
+      "node",
+      "--test",
+      "--test-reporter=tap",
+      "scripts/business-overlay/candidate-ownership.test.mjs",
+      "scripts/business-overlay/foundation-candidate.test.mjs"
+    ],
+    "exitCode": 0,
+    "durationMs": 187572,
+    "counts": {
+      "tests": 124,
+      "suites": 0,
+      "pass": 124,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 187515.97
+    },
+    "log": ".local/ops-acceptance/continue-o4-selected-input-one-failure-20261110-narrow-repair-two-suite.log"
+  },
+  "buildTypecheck": "Not applicable to Node test-only assertion change; node --check passed.",
+  "status": "Scoped repair verified; complete candidate assembly and independent final delta reviews OPEN; no self-approval."
+}

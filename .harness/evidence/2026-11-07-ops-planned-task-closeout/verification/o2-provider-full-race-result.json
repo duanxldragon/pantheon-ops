@@ -1,0 +1,7 @@
+{
+  "CGO_ENABLED": "1",
+  "elapsedSeconds": 584.5816933,
+  "command": "go test -mod=readonly -race -p 2 -timeout 30m ./...",
+  "exitCode": 0,
+  "mySQLPort": 33316
+}

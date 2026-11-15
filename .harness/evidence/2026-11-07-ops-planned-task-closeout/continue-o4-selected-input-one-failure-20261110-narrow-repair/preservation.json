@@ -1,0 +1,118 @@
+{
+  "result": "PASS",
+  "sourcesAndLocks": {
+    ".gitignore": {
+      "expected": "04b7bb31311f121d90dbd72fdf8cff3ce6127ee73b6b77469bbcf147a7e7df12",
+      "actual": "04b7bb31311f121d90dbd72fdf8cff3ce6127ee73b6b77469bbcf147a7e7df12",
+      "unchangedFromPreRepair": true,
+      "passed": true
+    },
+    "scripts/business-overlay/foundation-candidate.mjs": {
+      "expected": "02deaf187133b267622359e5756100262f99c48b031f76db47716157c8c974f1",
+      "actual": "02deaf187133b267622359e5756100262f99c48b031f76db47716157c8c974f1",
+      "unchangedFromPreRepair": true,
+      "passed": true
+    },
+    "scripts/business-overlay/rebuild-from-candidate.mjs": {
+      "expected": "b06fa5a04595f9a245920814f3ba0e31b5f3a9009061c249c62ef69fd8030f06",
+      "actual": "b06fa5a04595f9a245920814f3ba0e31b5f3a9009061c249c62ef69fd8030f06",
+      "unchangedFromPreRepair": true,
+      "passed": true
+    },
+    "scripts/business-overlay/rebuild-from-base.mjs": {
+      "expected": "24e7e834622d7e61d240a25aedfd5c914cee86ea9780dc7280a31ce55ee06c76",
+      "actual": "24e7e834622d7e61d240a25aedfd5c914cee86ea9780dc7280a31ce55ee06c76",
+      "unchangedFromPreRepair": true,
+      "passed": true
+    },
+    "scripts/business-overlay/foundation-candidate.test.mjs": {
+      "expected": "6f2cb9a366de1fdb71838ccc89ccfc76af39d68570aafde06cbe660dfd9b8894",
+      "actual": "6f2cb9a366de1fdb71838ccc89ccfc76af39d68570aafde06cbe660dfd9b8894",
+      "unchangedFromPreRepair": false,
+      "passed": true
+    },
+    "foundation-release.lock.json": {
+      "expected": "95de1a87270e15c0d4c672418a5df906818a88652f8a3e6c480f1484ee9fa70c",
+      "actual": "95de1a87270e15c0d4c672418a5df906818a88652f8a3e6c480f1484ee9fa70c",
+      "unchangedFromPreRepair": true,
+      "passed": true
+    },
+    "business-overlay.json": {
+      "expected": "d8fc5a88227d9242f30d71905af4963556e3a1e0d7247a053a4a03fbbd570111",
+      "actual": "d8fc5a88227d9242f30d71905af4963556e3a1e0d7247a053a4a03fbbd570111",
+      "unchangedFromPreRepair": true,
+      "passed": true
+    }
+  },
+  "protectedOriginals": [
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/fixtures/ops-candidate-r6YFFe/business-link",
+      "dev": 3324948374466508915,
+      "inode": "281474979169911",
+      "links": 2,
+      "bytes": 57,
+      "mode": 33206,
+      "sha256": "4e4125ef1acb371da2a60fd589c1163108c5a636ee455ef1900ec94908ed36b3"
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/fixtures/ops-candidate-r6YFFe/ops/backend/modules/business/cmdb/module.go",
+      "dev": 3324948374466508915,
+      "inode": "281474979169911",
+      "links": 2,
+      "bytes": 57,
+      "mode": 33206,
+      "sha256": "4e4125ef1acb371da2a60fd589c1163108c5a636ee455ef1900ec94908ed36b3"
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/o2-current-code-review-20261110/gocache/a9/a9f1bf6da7767d53d6bd7b4c5e72c655aacbdadacc9a7d95d2750351f9c24743-d",
+      "dev": 3324948374466508915,
+      "inode": "281474979355186",
+      "links": 1,
+      "bytes": 62530476,
+      "mode": 33206
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/o2-current-code-review-20261110/gocache/c4/c4601194b6f04c0be84ce9d2ae87a92b0ba900405b5bb379ae4aa5fd4c3c4676-d",
+      "dev": 3324948374466508915,
+      "inode": "281474979355205",
+      "links": 1,
+      "bytes": 55594218,
+      "mode": 33206
+    }
+  ],
+  "baselineSourceDriftPreexisted": [
+    {
+      "file": ".gitignore",
+      "expected": "407a312d46fcf48ff8058bdb33cad51c86e728d7c153a17531ce3b9481f92562",
+      "actual": "04b7bb31311f121d90dbd72fdf8cff3ce6127ee73b6b77469bbcf147a7e7df12",
+      "unchanged": false
+    },
+    {
+      "file": "scripts/business-overlay/foundation-candidate.mjs",
+      "expected": "85cb656a5e4923e3df8239450001441397d69e7c6fbfb8b0dc89c9c0c38edd1f",
+      "actual": "02deaf187133b267622359e5756100262f99c48b031f76db47716157c8c974f1",
+      "unchanged": false
+    },
+    {
+      "file": "scripts/business-overlay/rebuild-from-candidate.mjs",
+      "expected": "f487f012f25ec652156b99f3765d989f0bf947be91dfef3c6654b2e6762b7ea0",
+      "actual": "b06fa5a04595f9a245920814f3ba0e31b5f3a9009061c249c62ef69fd8030f06",
+      "unchanged": false
+    },
+    {
+      "file": "scripts/business-overlay/rebuild-from-base.mjs",
+      "expected": "9bb2a1cb7304df6bcac8293cb48bc6daf44373897f0be609d149433cf9b626df",
+      "actual": "24e7e834622d7e61d240a25aedfd5c914cee86ea9780dc7280a31ce55ee06c76",
+      "unchanged": false
+    },
+    {
+      "file": "scripts/business-overlay/foundation-candidate.test.mjs",
+      "expected": "e33cd08abe468efb3e513c887a9c73af4075762d1d1bb28aeeef1706fa271fda",
+      "actual": "51d67946fe496cb58469191e5920882ccbadfff5a7c35e9842fcf7f3257282d7",
+      "unchanged": false
+    }
+  ],
+  "largeCacheReads": false,
+  "independentApproval": "PENDING",
+  "completeCandidateAssembly": "OPEN"
+}

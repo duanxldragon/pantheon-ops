@@ -1,0 +1,132 @@
+(!) Your Vite config uses features that are unsupported by `configLoader: 'native'`, which is planned to become the default in a future major version of Vite:
+  - `__dirname` (vitest.config.ts:10:25). Use `import.meta.dirname` instead
+Set `VITE_CONFIG_NATIVE_IGNORE_WARNING=true` to suppress this warning.
+
+ RUN  v5.0.5 D:/workspace/go/pantheon-platform/pantheon-ops/frontend
+
+ ❯ tests/unit/business/operational/deploy-context.test.tsx (17 tests | 1 failed) 409ms
+   ❯ unequal checkpoint counters (1)
+     × locates the actual failed step using its own attempt, including the default selection 11ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/unit/business/operational/deploy-context.test.tsx > unequal checkpoint counters > locates the actual failed step using its own attempt, including the default selection
+TestingLibraryElementError: Unable to find an element with the text: actual failure. This could be because the text is broken up by multiple elements. In this case, you can provide a function for your text matcher to make your matcher more flexible.
+
+Ignored nodes: comments, script, style
+<body>
+  <div>
+    <section
+      aria-label="business.deploy.logs.context"
+      class="deploy-execution-workbench"
+    >
+      <div>
+        <select
+          aria-label="business.deploy.logs.host"
+        >
+          <option
+            value=""
+          />
+          <option
+            value="11"
+          >
+            alpha / 10.0.0.1
+          </option>
+          <option
+            value="12"
+          >
+            beta / 10.0.0.2
+          </option>
+        </select>
+        <select
+          aria-label="business.deploy.logs.attempts"
+        >
+          <option
+            value=""
+          />
+          <option
+            value="all"
+          >
+            business.deploy.logs.allAttempts
+          </option>
+          <option
+            value="1"
+          >
+            #1
+          </option>
+          <option
+            value="2"
+          >
+            #2
+          </option>
+        </select>
+        <button>
+          business.deploy.logs.jumpFailure
+        </button>
+        <button>
+          business.deploy.logs.reconnect
+        </button>
+        <span>
+          alpha
+           / 
+          10.0.0.1
+        </span>
+      </div>
+      <div>
+        <button
+          data-status="success"
+        >
+          prepare
+        </button>
+      </div>
+      <div
+        class="business-log-panel"
+      >
+        <div>
+          <button
+            aria-pressed="false"
+          >
+            business.deploy.logs.fullscreen
+          </button>
+          <select
+            aria-label="business.deploy.logs.stream"
+          >
+            <option
+              value=""
+            />
+          </select>
+        </div>
+        <div>
+          <button>
+            pause-tail
+          </button>
+        </div>
+      </div>
+    </section>
+    <output
+      data-testid="location"
+    >
+      ?host=11
+    </output>
+  </div>
+</body>
+ ❯ Object.getElementError node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ tests/unit/business/operational/deploy-context.test.tsx:190:17
+    188|   fixture.rows=[{...log(1,202,'actual failure','stderr'),attemptNo:1}];
+    189|   setup('/task?host=11',task);
+    190|   expect(screen.getByText('actual failure')).toBeTruthy();
+       |                 ^
+    191|   fireEvent.click(screen.getByRole('button',{name:'business.deploy.log…
+    192|   expect(query().get('step')).toBe('202'); expect(query().get('attempt…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 16 passed (17)
+   Start at  11:32:40
+   Duration  2.02s (environment 54%, tests 22%, import 12%, transform 10%, worker 2%)
+

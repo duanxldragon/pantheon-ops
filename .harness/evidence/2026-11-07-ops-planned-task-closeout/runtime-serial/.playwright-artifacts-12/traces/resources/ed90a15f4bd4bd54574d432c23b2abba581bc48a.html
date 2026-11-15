@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <script type="module">import { injectIntoGlobalHook } from "/@react-refresh";
+injectIntoGlobalHook(window);
+window.$RefreshReg$ = () => {};
+window.$RefreshSig$ = () => (type) => type;</script>
+
+    <script type="module" src="/@vite/client"></script>
+
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>pantheon platform</title>
+    <script>
+      // Pre-paint language: assistive tech picks pronunciation from <html lang>,
+      // so it must already be right before the bundle loads. Keep this list in
+      // sync with SUPPORTED_LOCALES in src/i18n/index.ts, which owns the value
+      // again as soon as i18n initialises.
+      (() => {
+        const supported = ['zh-CN', 'en-US', 'ja-JP', 'ko-KR', 'fr-FR'];
+        let lang = null;
+        try {
+          lang = localStorage.getItem('pantheon_lang');
+        } catch (error) {
+          lang = null;
+        }
+        document.documentElement.lang = supported.includes(lang ?? '') ? lang : 'zh-CN';
+      })();
+    </script>
+    <script>
+      // Pre-paint color mode: set the root attribute before first paint so the
+      // page background never flashes light-on-dark. Body's arco-theme is set
+      // by colorMode.ts before React renders.
+      (() => {
+        let mode = null;
+        try {
+          mode = localStorage.getItem('pantheon_color_mode');
+        } catch (error) {
+          // Storage can be unavailable (privacy mode); fall through to the
+          // media-query default below.
+          mode = null;
+        }
+        if (mode !== 'light' && mode !== 'dark') {
+          mode =
+            window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+              ? 'dark'
+              : 'light';
+        }
+        document.documentElement.dataset.colorMode = mode;
+      })();
+    </script>
+    <script>
+      (() => {
+        const resizeObserverNoise = 'ResizeObserver loop completed with undelivered notifications.';
+        const isKnownNoise = (value) => {
+          if (value instanceof ErrorEvent) {
+            return value.message === resizeObserverNoise;
+          }
+          if (value instanceof PromiseRejectionEvent) {
+            return (
+              value.reason?.message === resizeObserverNoise || value.reason === resizeObserverNoise
+            );
+          }
+          return false;
+        };
+
+        window.addEventListener(
+          'error',
+          (event) => {
+            if (!isKnownNoise(event)) {
+              return;
+            }
+            event.preventDefault();
+            event.stopImmediatePropagation();
+          },
+          true,
+        );
+
+        window.addEventListener(
+          'unhandledrejection',
+          (event) => {
+            if (!isKnownNoise(event)) {
+              return;
+            }
+            event.preventDefault();
+            event.stopImmediatePropagation();
+          },
+          true,
+        );
+      })();
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

@@ -1,0 +1,6 @@
+{
+  "originalManifestSHA256": "3d886b50f86b33114a52950c7fa204cb44bf08c542228fe70f54bad611c3e74e",
+  "currentManifestSHA256": "7521e8b25526e66a2a1bc64dbd793b85c3103bbe3f7a792ad639149e5430e520",
+  "onlyChange": "Remove old scripts/frontmatter-check.mjs repository override; inherit official published Base checker",
+  "originalPreimagePreserved": true
+}

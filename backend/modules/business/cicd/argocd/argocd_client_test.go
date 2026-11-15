@@ -3,6 +3,7 @@ package argocd
 import (
 	"context"
 	"crypto/tls"
+	"encoding/json"
 	"encoding/pem"
 	"net/http"
 	"net/http/httptest"
@@ -102,6 +103,56 @@ func TestArgoCDClient_TestConnection(t *testing.T) {
 			} else {
 				assert.NoError(t, err)
 			}
+		})
+	}
+}
+
+func TestArgoCDClientProviderErrorsExcludePrivateBodies(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusForbidden)
+		_, _ = w.Write([]byte("repository-password=private-provider-fixture\nmanifest-secret=private-provider-fixture"))
+	}))
+	defer server.Close()
+	client, err := newTestArgoCDClient(server.URL, "test-token", "")
+	require.NoError(t, err)
+	for _, tc := range []struct {
+		name string
+		call func() error
+	}{
+		{"connection", func() error { return client.TestConnection(context.Background()) }},
+		{"create", func() error { return client.CreateApplication(context.Background(), &CreateApplicationPayload{}) }},
+		{"delete", func() error { return client.DeleteApplication(context.Background(), "test-app", false) }},
+		{"sync", func() error { return client.SyncApplication(context.Background(), "test-app", "main") }},
+		{"rollback", func() error { return client.RollbackApplication(context.Background(), "test-app", 1) }},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			err := tc.call()
+			require.Error(t, err)
+			require.NotContains(t, err.Error(), "private-provider-fixture")
+			var rejected *providerStatusError
+			require.ErrorAs(t, err, &rejected)
+			require.Equal(t, http.StatusForbidden, rejected.status)
+		})
+	}
+}
+
+func TestArgoCDClientInvalidOperationTimesExcludePrivateValues(t *testing.T) {
+	for _, field := range []string{"startedAt", "finishedAt"} {
+		t.Run(field, func(t *testing.T) {
+			provider := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				_ = json.NewEncoder(w).Encode(map[string]interface{}{
+					"status": map[string]interface{}{"operationState": map[string]interface{}{
+						"phase": "Failed", field: "repository-password=private-provider-fixture",
+					}},
+				})
+			}))
+			defer provider.Close()
+			client, err := newTestArgoCDClient(provider.URL, "test-token", "")
+			require.NoError(t, err)
+			status, err := client.GetApplicationStatus(context.Background(), "test-app")
+			require.Nil(t, status)
+			require.EqualError(t, err, "cicd.argocd.app_sync_failed")
+			require.NotContains(t, err.Error(), "private-provider-fixture")
 		})
 	}
 }

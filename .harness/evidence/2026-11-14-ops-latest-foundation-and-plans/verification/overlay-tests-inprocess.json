@@ -1,0 +1,20 @@
+{
+  "name": "overlay-tests-inprocess",
+  "command": [
+    "node",
+    "--test",
+    "--test-isolation=none",
+    "tests/scripts/business-overlay/*.test.mjs"
+  ],
+  "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+  "exitCode": 1,
+  "signal": null,
+  "elapsedSeconds": 0.592,
+  "privateFixtureSHA256": "8796d1a6c2b599e8e5406df8848638287d93827fb4436e6373c271b79cca5f05",
+  "logSHA256": "2c5a6d741aaab3b8d92fc2991d49ccf71f746d55be50f4be2bd9b0e0c85e5ece",
+  "logPrivate": true,
+  "credentialValuesPrinted": false,
+  "passEvents": 0,
+  "skipEvents": 0,
+  "failEvents": 0
+}

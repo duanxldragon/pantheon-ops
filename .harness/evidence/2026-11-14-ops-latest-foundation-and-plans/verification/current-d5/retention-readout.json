@@ -1,0 +1,52 @@
+{
+  "status": "passed for manifest projection and exact selected metadata; final active installation pending standard assembly",
+  "source": "verified official pantheon-base-v0.18.8 repo.tar extraction",
+  "baseCommit": "34428814a9efc997fd93d4434406a53df6460323",
+  "snapshotHarnessFiles": 2667,
+  "inheritedHarnessFiles": [
+    {
+      "path": ".harness/evidence/2026-11-13-v0188-release-preparation/smoke-empty-readiness/summary.md",
+      "sha256": "d9175100e9af833a83aee152d0bf2f41274c52bc6a53998c8d9e836600197780"
+    },
+    {
+      "path": ".harness/evidence/2026-11-13-v0188-release-preparation/summary.md",
+      "sha256": "68faed919620f62978afe8a09ab63d44328f5adaec6b92b327eb710abcb3485b"
+    },
+    {
+      "path": ".harness/tasks/2026-11-07-ops-formal-queue-foundation-gaps/o4-tenant-implementation-plan.md",
+      "sha256": "36dea1e7116e6f5f5942d8e2b0fb7c25399eaba89ea4c3fd466d7f39f9bb8a60"
+    }
+  ],
+  "excludedHarnessFiles": 2664,
+  "exactExcludedRoots": 168,
+  "baseReviewOrTaskManifestImported": false,
+  "inheritedMetadataDeclaredOpsOwned": false,
+  "changedFiles": [
+    {
+      "path": "business-overlay.json",
+      "sha256": "5e5ee9044042bc28245299aaf77328f5b684d98ab586314aaa103f361e56d6cd"
+    },
+    {
+      "path": ".gitignore",
+      "sha256": "abd9913912ec2eabdac68853e55204cdb71e2dacf516cd4e9adfb908f8c91d91"
+    },
+    {
+      "path": "tests/scripts/business-overlay/rebuild-from-base.test.mjs",
+      "sha256": "699cf9205e3c0630256e38df0ffb29b8e5f0a3712d0c90058c646d0e33c3fbf0"
+    }
+  ],
+  "verification": {
+    "overlayRegressionTests": {
+      "passed": 66,
+      "failed": 0,
+      "skipped": 0,
+      "log": ".harness/evidence/2026-11-14-ops-latest-foundation-and-plans/verification/current-d5/overlay-tests.log"
+    },
+    "activeOverlayContract": {
+      "passed": false,
+      "reason": "new business migration 000039 generated destinations do not exist until final standard assembly",
+      "log": ".harness/evidence/2026-11-14-ops-latest-foundation-and-plans/verification/current-d5/overlay-contract.log"
+    },
+    "activeDocumentationScan": "the prior eight findings remain active until the three official inherited leaves are installed by standard assembly"
+  }
+}

@@ -1,0 +1,26 @@
+**Architectural Status: `CLEAR` for this bounded business-domain delta.** No material source defect was identified in the supplied implementation. This verdict does not approve the entire P0 or release; test execution and the separately running CGO race remain unverified here.
+
+The implementation respects the stated outcome contract:
+
+- **Acceptance remains nonterminal.** HTTP 200 makes the client return success; the service records `Running` without assigning a finish timestamp. It updates only application `status` and `last_error`, preserving deployment indicators. The acceptance test asserts that `SyncStatus` and `LastSyncedAt` remain unchanged. Evidence: `backend/modules/business/cicd/argocd/argocd_client.go:231–235`, `backend/modules/business/cicd/argocd/argocd_action.go:86–89`, `backend/modules/business/cicd/argocd/argocd_action_test.go:52–61`.
+- **Rejection and uncertainty are distinguished correctly under the supplied contract.** Recognized standard 4xx responses, excluding 408, produce `Failed` with a finish timestamp. Transport errors, 5xx, 408, and unrecognized cancellation/proxy codes retain `Unknown` without one. Evidence: `backend/modules/business/cicd/argocd/argocd_action.go:90–105,135–140`. Tests cover representative rejections and uncertain HTTP responses: `backend/modules/business/cicd/argocd/argocd_action_test.go:34–48,64–83`.
+- **Provider failure payloads are excluded from the reviewed outcome paths.** Sync and rollback errors retain only action/status metadata, which the service replaces with a safe business key or context error before returning or persisting it. Status-decoding errors are sanitized, and failed operation messages become a fixed business key. Evidence: `backend/modules/business/cicd/argocd/argocd_client.go:26–35,194–197,231–232,366–367`; `backend/modules/business/cicd/argocd/argocd_action.go:93–105,143–159`.
+- **Bookkeeping failure preserves durable uncertainty.** The history is created as `Unknown` before the provider mutation. Subsequent history/application updates share a transaction using a bounded context detached from request cancellation. That error branch contains no provider replay. Fault-injection tests assert one mutation and retained `Unknown`, including failure of the application update. Evidence: `backend/modules/business/cicd/argocd/argocd_action.go:75–84,107–127`; `backend/modules/business/cicd/argocd/argocd_action_test.go:88–135`.
+
+The fundamental risk is the **non-atomic boundary between provider mutation and local outcome persistence**. A request can mutate Argo and then lose its response or fail local bookkeeping. Prewriting `Unknown` and allowing only established acceptance or rejection to refine that record addresses this risk without claiming completion (`backend/modules/business/cicd/argocd/argocd_action.go:75–105,111–127`). No additional root-cause defect is established by the supplied source.
+
+Concrete recommendations:
+
+1. **Low effort — strengthen boundary verification.** Add a provider fixture that observes the POST and then disconnects without an HTTP response; assert `Unknown`, nil `FinishedAt`, safe errors, and one mutation. Existing tests exercise cancellation and uncertain HTTP statuses, but neither directly exercises that transport failure shape (`backend/modules/business/cicd/argocd/argocd_action_test.go:64–85,169–199`).
+2. **Low effort — verify the prewrite prerequisite.** Inject failure of the initial history creation and assert zero provider mutations. The implementation already returns before dispatch; this would directly protect its central ordering guarantee (`backend/modules/business/cicd/argocd/argocd_action.go:77–84`).
+3. **Verification only — attach actual execution results.** Supplied tests establish intended assertions, not passing runs. The reconciliation test also cannot establish the reconciler’s implementation correctness because that source was not supplied (`backend/modules/business/cicd/argocd/argocd_action_test.go:202–220`).
+
+Concrete tradeoffs:
+
+| Choice                           | Benefit                                                   | Concern                                                                                                            |
+| -------------------------------- | --------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| Prewrite `Unknown`               | Preserves evidence across crashes and bookkeeping failure | A crash before dispatch can leave an unknown record for an operation never submitted (`argocd_action.go:75–84`).   |
+| Detached five-second bookkeeping | Cancellation can still produce a durable outcome          | Response latency can extend beyond cancellation; persistence may still fail (`argocd_action.go:107–127`).          |
+| Safe generic failure keys        | Prevents private provider payload disclosure              | Accepted-but-unrecorded actions return errors that do not prove retry safety (`argocd_action.go:124–127,143–150`). |
+
+**Stop condition reached:** the supplied source supports this bounded verdict. Provider terminal correlation and real rollback/diff/DataScope acceptance remain explicitly open parent-P0 work, not defects attributed to this delta.

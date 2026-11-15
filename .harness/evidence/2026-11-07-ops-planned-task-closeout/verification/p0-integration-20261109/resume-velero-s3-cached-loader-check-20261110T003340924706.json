@@ -1,0 +1,27 @@
+{
+  "phase": "s3-cached-reviewed-loader-inspection",
+  "exitCode": 0,
+  "remoteExecuted": false,
+  "pathMapping": "Original prep from .local/ops-acceptance; all payloads from actual cache",
+  "checks": [
+    {
+      "check": "Original root reviewed(): script/product hashes and pinned SSH policy",
+      "passed": true,
+      "reviewedScriptCount": 8,
+      "productSourceCount": 17
+    },
+    {
+      "check": "Original remote load_artifacts(): actual local payload identity/size/SHA256 and metadata",
+      "passed": true
+    },
+    {
+      "check": "Loader record exactly equals new independent completion receipt",
+      "passed": true
+    }
+  ],
+  "cachedCompletionReceipt": "resume-velero-s3-cached-completion-20261110T003228969327.json",
+  "cachedCompletionSHA256": "e54e0c8b9596349bcd36c95cba0f022ea65a9d5b8b9e69b3c0974acd893bc22b",
+  "stagedArtifactBytes": 229386389,
+  "scriptSHA256": "9876402c2f81edbe2ef6daba1c4ee88189a74c1c23e591854a04975f45315c84",
+  "createdUTC": "2026-11-10T00:33:40.924706+00:00"
+}

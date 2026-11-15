@@ -1,0 +1,13 @@
+{
+  "exitCode": 0,
+  "nonParserFunctionsUnchanged": 14,
+  "actualPhysicalInterfaceAccepted": true,
+  "malformedOverlayPublicDuplicateEmptyDenied": 6,
+  "priorEvidencePreserved": true,
+  "remoteOperation": false,
+  "scriptHashes": {
+    ".local/ops-acceptance/resume-velero-s3-v3-remote.py": "7b1ba58c52d340a7d121c72e537baa3e20b072c0635289f9f82d97e5761ab7a5",
+    ".local/ops-acceptance/resume-velero-s3-v3-root.py": "030d0effa59a2ec85b63dd7eb133c595d13d68ff9f6a238a721f4987d8f45522",
+    ".local/ops-acceptance/resume-velero-s3-v3-prepare.py": "376a16285a4f7843ca49a57c8f3c1307d2e3db32e11f64399ff5dc0b27230dcf"
+  }
+}

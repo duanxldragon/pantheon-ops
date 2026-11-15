@@ -1,0 +1,9 @@
+{
+  "kind": "live-k8s-argo",
+  "role": "executor",
+  "adapter": "existing CLI",
+  "exitCode": 0,
+  "elapsedSeconds": 2319.578,
+  "modelOverride": false,
+  "report": ".harness\\evidence\\2026-11-07-ops-planned-task-closeout\\verification\\p0-integration-20261109\\live-k8s-argo-generator-report.md"
+}

@@ -1,0 +1,80 @@
+
+> test:business-overlay
+> node --test tests/scripts/business-overlay/*.test.mjs
+
+✔ passes when all shared files match snapshot bytes (332.6569ms)
+✔ fails on drifted shared file and passes once allowlisted (361.0195ms)
+✔ excludes business overlay paths from comparison (289.2749ms)
+✔ fails loudly when the lock declares no sharedPaths (254.5768ms)
+✔ reports stale allowlist entries (237.5989ms)
+✔ accepts only byte-identical derived business migration targets (282.7662ms)
+▶ rejects tampered migration bytes even when the target is allowlisted
+  ✔ up (272.9199ms)
+  ✔ down (300.2682ms)
+✔ rejects tampered migration bytes even when the target is allowlisted (574.0159ms)
+✔ rejects undeclared targets even when the report calls them generated (299.38ms)
+✔ continues to protect Base migrations listed in generatedFiles (270.6946ms)
+▶ requires regular canonical migration source files
+  ✔ up missing (263.903ms)
+  ✔ up directory (306.1997ms)
+  ✔ down missing (272.5571ms)
+  ✔ down directory (291.2722ms)
+✔ requires regular canonical migration source files (1134.8689ms)
+✔ rejects a missing derived target (282.9689ms)
+▶ rejects Base version collisions in the snapshot
+  ✔ 000032_backfill.up.sql (260.6986ms)
+  ✔ 32_future_base.down.sql (257.3591ms)
+✔ rejects Base version collisions in the snapshot (518.5248ms)
+▶ cannot exempt generic product paths through migration declarations
+  ✔ businessPaths (295.1759ms)
+  ✔ repositoryOverlayPaths (376.2611ms)
+✔ cannot exempt generic product paths through migration declarations (672.2096ms)
+✔ uses snapshot bytes and migration inventory nested inside a differing Ops HEAD (353.1148ms)
+✔ detects shared files deleted from the consumer (320.7763ms)
+✔ production drift command refuses local Base arguments (75.3888ms)
+✔ excluded Base history is recorded, while an invalid active consumer review still fails (92.612ms)
+✔ retained archives remain listed and missing retained artifacts fail (9.0051ms)
+✔ current or traversal entries cannot be projected away (6.8562ms)
+✔ selects latest stable GitHub release, validates four assets and atomically pins it (410.4841ms)
+✔ rebuild source is re-extracted from verified archive after cache tampering (496.7724ms)
+▶ missing asset, prerelease, wrong tag and altered GitHub digest preserve prior lock
+  ✔ missing (274.9779ms)
+  ✔ prerelease (258.8688ms)
+  ✔ wrong-tag (275.2182ms)
+  ✔ digest (284.4911ms)
+✔ missing asset, prerelease, wrong tag and altered GitHub digest preserve prior lock (1094.5842ms)
+✔ pinned archive corruption is rejected before extraction or network access (402.8207ms)
+✔ repo.tar commit and pinned GitHub tag must agree (410.5005ms)
+✔ network failure and unsafe lock cache path cannot change the lock (358.2287ms)
+✔ rejects archive traversal, Git metadata and Windows drive paths (0.5232ms)
+✔ git-archive commit is checked even when checksum and manifest assets look valid (485.2898ms)
+✔ cache junction cannot redirect official assets outside Ops (292.389ms)
+✔ explicit v0.18.4 consumption fetches the requested GitHub tag instead of latest (376.1147ms)
+✔ wrong requested release leaves existing lock untouched (256.3998ms)
+✔ invalid explicit release cannot trigger GitHub access or local consumption (317.3938ms)
+✔ normalizes transitive and test-only imports before readonly loading without further module changes (704.0881ms)
+✔ fails on an unresolved dependency instead of reporting a complete graph (10448.2719ms)
+✔ rebuilds a deterministic Base snapshot with generated business registries (6123.7426ms)
+✔ rejects a business path that overwrites a Base hook file (473.5148ms)
+✔ rejects a manifest that claims a generic product path (461.5786ms)
+✔ validateReleaseBundleChecksum accepts a matching checksum (1.602ms)
+✔ validateReleaseBundleChecksum rejects a mismatched checksum (1.1258ms)
+✔ validateReleaseBundleChecksum rejects missing checksums (1.0581ms)
+✔ release bundle checksum validation rejects tampered bundles via lock file path (672.4091ms)
+✔ refuses to consume a live base tree when no lock snapshot is present (186.4305ms)
+✔ migration assembly requires module-owned, paired and unique inputs (0.5622ms)
+▶ migration assembly rejects missing or non-file sources before copying either half
+  ✔ up missing (516.3773ms)
+  ✔ up directory (440.0529ms)
+  ✔ down missing (481.0096ms)
+  ✔ down directory (471.0885ms)
+✔ migration assembly rejects missing or non-file sources before copying either half (1909.5747ms)
+✔ production rebuild refuses local Base arguments (73.717ms)
+ℹ tests 62
+ℹ suites 0
+ℹ pass 62
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 11282.3263

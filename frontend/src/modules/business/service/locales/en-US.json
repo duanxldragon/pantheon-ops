@@ -1,0 +1,17 @@
+{
+  "operations.service.application.menu": "Applications",
+  "operations.service.service.menu": "Services",
+  "operations.service.instance.menu": "Service Instances",
+  "business.service.catalog.editApplication": "Edit Application",
+  "business.service.catalog.editService": "Edit Service",
+  "business.service.catalog.applicationKeyword": "Search application code or name",
+  "business.service.catalog.host": "CMDB Host",
+  "business.service.catalog.hostBinding": "Host #{{id}}",
+  "business.service.catalog.runtime.vm": "Virtual Machine",
+  "business.service.catalog.runtime.k8s": "Kubernetes",
+  "business.service.catalog.runtime.hybrid": "Hybrid",
+  "business.service.instance.empty": "No service instances",
+  "business.service.instance.total": "Matching Instances",
+  "business.service.catalog.operationFailed": "Service catalog operation failed",
+  "business.service.catalog.field.remark": "Remark"
+}

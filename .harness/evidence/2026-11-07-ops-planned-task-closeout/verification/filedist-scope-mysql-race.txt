@@ -1,0 +1,888 @@
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/missing
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/missing/POST/filedist/tasks
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/missing/POST/filedist/tasks/:id/start
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/missing/POST/filedist/tasks/:id/cancel
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/missing/POST/filedist/tasks/:id/retry
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/missing/POST/filedist/storages
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/missing/POST/filedist/files/upload
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/missing/POST/business/filedist/tasks
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/missing/POST/business/filedist/tasks/:id/start
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/missing/POST/business/filedist/tasks/:id/cancel
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/missing/POST/business/filedist/tasks/:id/retry
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/missing/POST/business/filedist/storages
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/missing/POST/business/filedist/files/upload
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/missing/GET/filedist/tasks
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/missing/GET/filedist/tasks/:id
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/missing/GET/filedist/tasks/:id/targets
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/missing/GET/filedist/tasks/:id/hosts
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/missing/GET/filedist/tasks/:id/events
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/missing/GET/filedist/tasks/:id/progress
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/missing/GET/filedist/files
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/missing/GET/filedist/files/:id
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/missing/GET/filedist/files/:id/download
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/missing/GET/filedist/storages
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/missing/GET/filedist/storages/:id
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/missing/GET/business/filedist/tasks
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/missing/GET/business/filedist/tasks/:id
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/missing/GET/business/filedist/tasks/:id/targets
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/missing/GET/business/filedist/tasks/:id/hosts
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/missing/GET/business/filedist/tasks/:id/events
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/missing/GET/business/filedist/tasks/:id/progress
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/missing/GET/business/filedist/files
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/missing/GET/business/filedist/files/:id
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/missing/GET/business/filedist/files/:id/download
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/missing/GET/business/filedist/storages
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/missing/GET/business/filedist/storages/:id
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/missing/PUT/filedist/storages/:id
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/missing/PUT/business/filedist/storages/:id
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/missing/DELETE/filedist/storages/:id
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/missing/DELETE/filedist/files/:id
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/missing/DELETE/filedist/tasks/:id
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/missing/DELETE/business/filedist/storages/:id
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/missing/DELETE/business/filedist/files/:id
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/missing/DELETE/business/filedist/tasks/:id
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/wrong-type
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/wrong-type/POST/filedist/tasks
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/wrong-type/POST/filedist/tasks/:id/start
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/wrong-type/POST/filedist/tasks/:id/cancel
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/wrong-type/POST/filedist/tasks/:id/retry
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/wrong-type/POST/filedist/storages
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/wrong-type/POST/filedist/files/upload
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/wrong-type/POST/business/filedist/tasks
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/wrong-type/POST/business/filedist/tasks/:id/start
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/wrong-type/POST/business/filedist/tasks/:id/cancel
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/wrong-type/POST/business/filedist/tasks/:id/retry
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/wrong-type/POST/business/filedist/storages
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/wrong-type/POST/business/filedist/files/upload
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/wrong-type/GET/filedist/tasks
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/wrong-type/GET/filedist/tasks/:id
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/wrong-type/GET/filedist/tasks/:id/targets
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/wrong-type/GET/filedist/tasks/:id/hosts
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/wrong-type/GET/filedist/tasks/:id/events
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/wrong-type/GET/filedist/tasks/:id/progress
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/wrong-type/GET/filedist/files
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/wrong-type/GET/filedist/files/:id
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/wrong-type/GET/filedist/files/:id/download
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/wrong-type/GET/filedist/storages
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/wrong-type/GET/filedist/storages/:id
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/wrong-type/GET/business/filedist/tasks
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/wrong-type/GET/business/filedist/tasks/:id
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/wrong-type/GET/business/filedist/tasks/:id/targets
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/wrong-type/GET/business/filedist/tasks/:id/hosts
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/wrong-type/GET/business/filedist/tasks/:id/events
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/wrong-type/GET/business/filedist/tasks/:id/progress
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/wrong-type/GET/business/filedist/files
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/wrong-type/GET/business/filedist/files/:id
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/wrong-type/GET/business/filedist/files/:id/download
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/wrong-type/GET/business/filedist/storages
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/wrong-type/GET/business/filedist/storages/:id
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/wrong-type/PUT/filedist/storages/:id
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/wrong-type/PUT/business/filedist/storages/:id
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/wrong-type/DELETE/filedist/storages/:id
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/wrong-type/DELETE/filedist/files/:id
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/wrong-type/DELETE/filedist/tasks/:id
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/wrong-type/DELETE/business/filedist/storages/:id
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/wrong-type/DELETE/business/filedist/files/:id
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/wrong-type/DELETE/business/filedist/tasks/:id
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/typed-nil
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/typed-nil/POST/filedist/tasks
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/typed-nil/POST/filedist/tasks/:id/start
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/typed-nil/POST/filedist/tasks/:id/cancel
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/typed-nil/POST/filedist/tasks/:id/retry
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/typed-nil/POST/filedist/storages
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/typed-nil/POST/filedist/files/upload
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/typed-nil/POST/business/filedist/tasks
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/typed-nil/POST/business/filedist/tasks/:id/start
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/typed-nil/POST/business/filedist/tasks/:id/cancel
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/typed-nil/POST/business/filedist/tasks/:id/retry
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/typed-nil/POST/business/filedist/storages
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/typed-nil/POST/business/filedist/files/upload
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/typed-nil/GET/filedist/tasks
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/typed-nil/GET/filedist/tasks/:id
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/typed-nil/GET/filedist/tasks/:id/targets
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/typed-nil/GET/filedist/tasks/:id/hosts
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/typed-nil/GET/filedist/tasks/:id/events
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/typed-nil/GET/filedist/tasks/:id/progress
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/typed-nil/GET/filedist/files
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/typed-nil/GET/filedist/files/:id
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/typed-nil/GET/filedist/files/:id/download
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/typed-nil/GET/filedist/storages
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/typed-nil/GET/filedist/storages/:id
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/typed-nil/GET/business/filedist/tasks
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/typed-nil/GET/business/filedist/tasks/:id
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/typed-nil/GET/business/filedist/tasks/:id/targets
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/typed-nil/GET/business/filedist/tasks/:id/hosts
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/typed-nil/GET/business/filedist/tasks/:id/events
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/typed-nil/GET/business/filedist/tasks/:id/progress
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/typed-nil/GET/business/filedist/files
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/typed-nil/GET/business/filedist/files/:id
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/typed-nil/GET/business/filedist/files/:id/download
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/typed-nil/GET/business/filedist/storages
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/typed-nil/GET/business/filedist/storages/:id
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/typed-nil/PUT/filedist/storages/:id
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/typed-nil/PUT/business/filedist/storages/:id
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/typed-nil/DELETE/filedist/storages/:id
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/typed-nil/DELETE/filedist/files/:id
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/typed-nil/DELETE/filedist/tasks/:id
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/typed-nil/DELETE/business/filedist/storages/:id
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/typed-nil/DELETE/business/filedist/files/:id
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/typed-nil/DELETE/business/filedist/tasks/:id
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/empty
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/empty/POST/filedist/tasks
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/empty/POST/filedist/tasks/:id/start
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/empty/POST/filedist/tasks/:id/cancel
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/empty/POST/filedist/tasks/:id/retry
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/empty/POST/filedist/storages
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/empty/POST/filedist/files/upload
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/empty/POST/business/filedist/tasks
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/empty/POST/business/filedist/tasks/:id/start
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/empty/POST/business/filedist/tasks/:id/cancel
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/empty/POST/business/filedist/tasks/:id/retry
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/empty/POST/business/filedist/storages
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/empty/POST/business/filedist/files/upload
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/empty/GET/filedist/tasks
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/empty/GET/filedist/tasks/:id
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/empty/GET/filedist/tasks/:id/targets
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/empty/GET/filedist/tasks/:id/hosts
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/empty/GET/filedist/tasks/:id/events
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/empty/GET/filedist/tasks/:id/progress
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/empty/GET/filedist/files
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/empty/GET/filedist/files/:id
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/empty/GET/filedist/files/:id/download
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/empty/GET/filedist/storages
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/empty/GET/filedist/storages/:id
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/empty/GET/business/filedist/tasks
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/empty/GET/business/filedist/tasks/:id
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/empty/GET/business/filedist/tasks/:id/targets
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/empty/GET/business/filedist/tasks/:id/hosts
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/empty/GET/business/filedist/tasks/:id/events
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/empty/GET/business/filedist/tasks/:id/progress
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/empty/GET/business/filedist/files
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/empty/GET/business/filedist/files/:id
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/empty/GET/business/filedist/files/:id/download
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/empty/GET/business/filedist/storages
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/empty/GET/business/filedist/storages/:id
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/empty/PUT/filedist/storages/:id
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/empty/PUT/business/filedist/storages/:id
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/empty/DELETE/filedist/storages/:id
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/empty/DELETE/filedist/files/:id
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/empty/DELETE/filedist/tasks/:id
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/empty/DELETE/business/filedist/storages/:id
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/empty/DELETE/business/filedist/files/:id
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/empty/DELETE/business/filedist/tasks/:id
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/whitespace
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/whitespace/POST/filedist/tasks
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/whitespace/POST/filedist/tasks/:id/start
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/whitespace/POST/filedist/tasks/:id/cancel
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/whitespace/POST/filedist/tasks/:id/retry
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/whitespace/POST/filedist/storages
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/whitespace/POST/filedist/files/upload
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/whitespace/POST/business/filedist/tasks
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/whitespace/POST/business/filedist/tasks/:id/start
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/whitespace/POST/business/filedist/tasks/:id/cancel
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/whitespace/POST/business/filedist/tasks/:id/retry
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/whitespace/POST/business/filedist/storages
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/whitespace/POST/business/filedist/files/upload
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/whitespace/GET/filedist/tasks
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/whitespace/GET/filedist/tasks/:id
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/whitespace/GET/filedist/tasks/:id/targets
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/whitespace/GET/filedist/tasks/:id/hosts
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/whitespace/GET/filedist/tasks/:id/events
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/whitespace/GET/filedist/tasks/:id/progress
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/whitespace/GET/filedist/files
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/whitespace/GET/filedist/files/:id
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/whitespace/GET/filedist/files/:id/download
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/whitespace/GET/filedist/storages
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/whitespace/GET/filedist/storages/:id
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/whitespace/GET/business/filedist/tasks
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/whitespace/GET/business/filedist/tasks/:id
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/whitespace/GET/business/filedist/tasks/:id/targets
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/whitespace/GET/business/filedist/tasks/:id/hosts
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/whitespace/GET/business/filedist/tasks/:id/events
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/whitespace/GET/business/filedist/tasks/:id/progress
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/whitespace/GET/business/filedist/files
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/whitespace/GET/business/filedist/files/:id
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/whitespace/GET/business/filedist/files/:id/download
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/whitespace/GET/business/filedist/storages
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/whitespace/GET/business/filedist/storages/:id
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/whitespace/PUT/filedist/storages/:id
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/whitespace/PUT/business/filedist/storages/:id
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/whitespace/DELETE/filedist/storages/:id
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/whitespace/DELETE/filedist/files/:id
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/whitespace/DELETE/filedist/tasks/:id
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/whitespace/DELETE/business/filedist/storages/:id
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/whitespace/DELETE/business/filedist/files/:id
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/whitespace/DELETE/business/filedist/tasks/:id
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/self-numeric-username
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/self-numeric-username/POST/filedist/tasks
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/self-numeric-username/POST/filedist/tasks/:id/start
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/self-numeric-username/POST/filedist/tasks/:id/cancel
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/self-numeric-username/POST/filedist/tasks/:id/retry
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/self-numeric-username/POST/filedist/storages
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/self-numeric-username/POST/filedist/files/upload
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/self-numeric-username/POST/business/filedist/tasks
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/self-numeric-username/POST/business/filedist/tasks/:id/start
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/self-numeric-username/POST/business/filedist/tasks/:id/cancel
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/self-numeric-username/POST/business/filedist/tasks/:id/retry
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/self-numeric-username/POST/business/filedist/storages
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/self-numeric-username/POST/business/filedist/files/upload
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/self-numeric-username/GET/filedist/tasks
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/self-numeric-username/GET/filedist/tasks/:id
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/self-numeric-username/GET/filedist/tasks/:id/targets
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/self-numeric-username/GET/filedist/tasks/:id/hosts
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/self-numeric-username/GET/filedist/tasks/:id/events
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/self-numeric-username/GET/filedist/tasks/:id/progress
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/self-numeric-username/GET/filedist/files
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/self-numeric-username/GET/filedist/files/:id
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/self-numeric-username/GET/filedist/files/:id/download
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/self-numeric-username/GET/filedist/storages
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/self-numeric-username/GET/filedist/storages/:id
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/self-numeric-username/GET/business/filedist/tasks
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/self-numeric-username/GET/business/filedist/tasks/:id
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/self-numeric-username/GET/business/filedist/tasks/:id/targets
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/self-numeric-username/GET/business/filedist/tasks/:id/hosts
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/self-numeric-username/GET/business/filedist/tasks/:id/events
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/self-numeric-username/GET/business/filedist/tasks/:id/progress
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/self-numeric-username/GET/business/filedist/files
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/self-numeric-username/GET/business/filedist/files/:id
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/self-numeric-username/GET/business/filedist/files/:id/download
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/self-numeric-username/GET/business/filedist/storages
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/self-numeric-username/GET/business/filedist/storages/:id
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/self-numeric-username/PUT/filedist/storages/:id
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/self-numeric-username/PUT/business/filedist/storages/:id
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/self-numeric-username/DELETE/filedist/storages/:id
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/self-numeric-username/DELETE/filedist/files/:id
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/self-numeric-username/DELETE/filedist/tasks/:id
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/self-numeric-username/DELETE/business/filedist/storages/:id
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/self-numeric-username/DELETE/business/filedist/files/:id
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/self-numeric-username/DELETE/business/filedist/tasks/:id
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/dept
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/dept/POST/filedist/tasks
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/dept/POST/filedist/tasks/:id/start
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/dept/POST/filedist/tasks/:id/cancel
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/dept/POST/filedist/tasks/:id/retry
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/dept/POST/filedist/storages
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/dept/POST/filedist/files/upload
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/dept/POST/business/filedist/tasks
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/dept/POST/business/filedist/tasks/:id/start
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/dept/POST/business/filedist/tasks/:id/cancel
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/dept/POST/business/filedist/tasks/:id/retry
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/dept/POST/business/filedist/storages
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/dept/POST/business/filedist/files/upload
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/dept/GET/filedist/tasks
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/dept/GET/filedist/tasks/:id
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/dept/GET/filedist/tasks/:id/targets
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/dept/GET/filedist/tasks/:id/hosts
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/dept/GET/filedist/tasks/:id/events
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/dept/GET/filedist/tasks/:id/progress
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/dept/GET/filedist/files
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/dept/GET/filedist/files/:id
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/dept/GET/filedist/files/:id/download
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/dept/GET/filedist/storages
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/dept/GET/filedist/storages/:id
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/dept/GET/business/filedist/tasks
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/dept/GET/business/filedist/tasks/:id
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/dept/GET/business/filedist/tasks/:id/targets
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/dept/GET/business/filedist/tasks/:id/hosts
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/dept/GET/business/filedist/tasks/:id/events
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/dept/GET/business/filedist/tasks/:id/progress
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/dept/GET/business/filedist/files
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/dept/GET/business/filedist/files/:id
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/dept/GET/business/filedist/files/:id/download
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/dept/GET/business/filedist/storages
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/dept/GET/business/filedist/storages/:id
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/dept/PUT/filedist/storages/:id
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/dept/PUT/business/filedist/storages/:id
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/dept/DELETE/filedist/storages/:id
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/dept/DELETE/filedist/files/:id
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/dept/DELETE/filedist/tasks/:id
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/dept/DELETE/business/filedist/storages/:id
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/dept/DELETE/business/filedist/files/:id
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/dept/DELETE/business/filedist/tasks/:id
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/children
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/children/POST/filedist/tasks
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/children/POST/filedist/tasks/:id/start
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/children/POST/filedist/tasks/:id/cancel
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/children/POST/filedist/tasks/:id/retry
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/children/POST/filedist/storages
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/children/POST/filedist/files/upload
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/children/POST/business/filedist/tasks
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/children/POST/business/filedist/tasks/:id/start
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/children/POST/business/filedist/tasks/:id/cancel
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/children/POST/business/filedist/tasks/:id/retry
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/children/POST/business/filedist/storages
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/children/POST/business/filedist/files/upload
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/children/GET/filedist/tasks
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/children/GET/filedist/tasks/:id
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/children/GET/filedist/tasks/:id/targets
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/children/GET/filedist/tasks/:id/hosts
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/children/GET/filedist/tasks/:id/events
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/children/GET/filedist/tasks/:id/progress
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/children/GET/filedist/files
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/children/GET/filedist/files/:id
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/children/GET/filedist/files/:id/download
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/children/GET/filedist/storages
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/children/GET/filedist/storages/:id
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/children/GET/business/filedist/tasks
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/children/GET/business/filedist/tasks/:id
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/children/GET/business/filedist/tasks/:id/targets
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/children/GET/business/filedist/tasks/:id/hosts
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/children/GET/business/filedist/tasks/:id/events
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/children/GET/business/filedist/tasks/:id/progress
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/children/GET/business/filedist/files
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/children/GET/business/filedist/files/:id
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/children/GET/business/filedist/files/:id/download
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/children/GET/business/filedist/storages
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/children/GET/business/filedist/storages/:id
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/children/PUT/filedist/storages/:id
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/children/PUT/business/filedist/storages/:id
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/children/DELETE/filedist/storages/:id
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/children/DELETE/filedist/files/:id
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/children/DELETE/filedist/tasks/:id
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/children/DELETE/business/filedist/storages/:id
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/children/DELETE/business/filedist/files/:id
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/children/DELETE/business/filedist/tasks/:id
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/custom
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/custom/POST/filedist/tasks
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/custom/POST/filedist/tasks/:id/start
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/custom/POST/filedist/tasks/:id/cancel
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/custom/POST/filedist/tasks/:id/retry
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/custom/POST/filedist/storages
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/custom/POST/filedist/files/upload
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/custom/POST/business/filedist/tasks
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/custom/POST/business/filedist/tasks/:id/start
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/custom/POST/business/filedist/tasks/:id/cancel
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/custom/POST/business/filedist/tasks/:id/retry
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/custom/POST/business/filedist/storages
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/custom/POST/business/filedist/files/upload
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/custom/GET/filedist/tasks
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/custom/GET/filedist/tasks/:id
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/custom/GET/filedist/tasks/:id/targets
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/custom/GET/filedist/tasks/:id/hosts
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/custom/GET/filedist/tasks/:id/events
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/custom/GET/filedist/tasks/:id/progress
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/custom/GET/filedist/files
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/custom/GET/filedist/files/:id
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/custom/GET/filedist/files/:id/download
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/custom/GET/filedist/storages
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/custom/GET/filedist/storages/:id
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/custom/GET/business/filedist/tasks
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/custom/GET/business/filedist/tasks/:id
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/custom/GET/business/filedist/tasks/:id/targets
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/custom/GET/business/filedist/tasks/:id/hosts
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/custom/GET/business/filedist/tasks/:id/events
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/custom/GET/business/filedist/tasks/:id/progress
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/custom/GET/business/filedist/files
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/custom/GET/business/filedist/files/:id
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/custom/GET/business/filedist/files/:id/download
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/custom/GET/business/filedist/storages
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/custom/GET/business/filedist/storages/:id
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/custom/PUT/filedist/storages/:id
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/custom/PUT/business/filedist/storages/:id
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/custom/DELETE/filedist/storages/:id
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/custom/DELETE/filedist/files/:id
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/custom/DELETE/filedist/tasks/:id
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/custom/DELETE/business/filedist/storages/:id
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/custom/DELETE/business/filedist/files/:id
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/custom/DELETE/business/filedist/tasks/:id
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/unknown
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/unknown/POST/filedist/tasks
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/unknown/POST/filedist/tasks/:id/start
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/unknown/POST/filedist/tasks/:id/cancel
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/unknown/POST/filedist/tasks/:id/retry
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/unknown/POST/filedist/storages
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/unknown/POST/filedist/files/upload
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/unknown/POST/business/filedist/tasks
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/unknown/POST/business/filedist/tasks/:id/start
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/unknown/POST/business/filedist/tasks/:id/cancel
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/unknown/POST/business/filedist/tasks/:id/retry
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/unknown/POST/business/filedist/storages
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/unknown/POST/business/filedist/files/upload
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/unknown/GET/filedist/tasks
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/unknown/GET/filedist/tasks/:id
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/unknown/GET/filedist/tasks/:id/targets
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/unknown/GET/filedist/tasks/:id/hosts
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/unknown/GET/filedist/tasks/:id/events
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/unknown/GET/filedist/tasks/:id/progress
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/unknown/GET/filedist/files
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/unknown/GET/filedist/files/:id
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/unknown/GET/filedist/files/:id/download
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/unknown/GET/filedist/storages
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/unknown/GET/filedist/storages/:id
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/unknown/GET/business/filedist/tasks
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/unknown/GET/business/filedist/tasks/:id
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/unknown/GET/business/filedist/tasks/:id/targets
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/unknown/GET/business/filedist/tasks/:id/hosts
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/unknown/GET/business/filedist/tasks/:id/events
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/unknown/GET/business/filedist/tasks/:id/progress
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/unknown/GET/business/filedist/files
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/unknown/GET/business/filedist/files/:id
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/unknown/GET/business/filedist/files/:id/download
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/unknown/GET/business/filedist/storages
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/unknown/GET/business/filedist/storages/:id
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/unknown/PUT/filedist/storages/:id
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/unknown/PUT/business/filedist/storages/:id
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/unknown/DELETE/filedist/storages/:id
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/unknown/DELETE/filedist/files/:id
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/unknown/DELETE/filedist/tasks/:id
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/unknown/DELETE/business/filedist/storages/:id
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/unknown/DELETE/business/filedist/files/:id
+=== RUN   TestFileDistRoutesRejectUnsupportedDataScope/unknown/DELETE/business/filedist/tasks/:id
+--- PASS: TestFileDistRoutesRejectUnsupportedDataScope (0.11s)
+    --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/missing (0.01s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/missing/POST/filedist/tasks (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/missing/POST/filedist/tasks/:id/start (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/missing/POST/filedist/tasks/:id/cancel (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/missing/POST/filedist/tasks/:id/retry (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/missing/POST/filedist/storages (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/missing/POST/filedist/files/upload (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/missing/POST/business/filedist/tasks (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/missing/POST/business/filedist/tasks/:id/start (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/missing/POST/business/filedist/tasks/:id/cancel (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/missing/POST/business/filedist/tasks/:id/retry (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/missing/POST/business/filedist/storages (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/missing/POST/business/filedist/files/upload (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/missing/GET/filedist/tasks (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/missing/GET/filedist/tasks/:id (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/missing/GET/filedist/tasks/:id/targets (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/missing/GET/filedist/tasks/:id/hosts (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/missing/GET/filedist/tasks/:id/events (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/missing/GET/filedist/tasks/:id/progress (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/missing/GET/filedist/files (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/missing/GET/filedist/files/:id (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/missing/GET/filedist/files/:id/download (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/missing/GET/filedist/storages (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/missing/GET/filedist/storages/:id (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/missing/GET/business/filedist/tasks (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/missing/GET/business/filedist/tasks/:id (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/missing/GET/business/filedist/tasks/:id/targets (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/missing/GET/business/filedist/tasks/:id/hosts (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/missing/GET/business/filedist/tasks/:id/events (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/missing/GET/business/filedist/tasks/:id/progress (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/missing/GET/business/filedist/files (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/missing/GET/business/filedist/files/:id (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/missing/GET/business/filedist/files/:id/download (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/missing/GET/business/filedist/storages (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/missing/GET/business/filedist/storages/:id (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/missing/PUT/filedist/storages/:id (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/missing/PUT/business/filedist/storages/:id (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/missing/DELETE/filedist/storages/:id (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/missing/DELETE/filedist/files/:id (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/missing/DELETE/filedist/tasks/:id (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/missing/DELETE/business/filedist/storages/:id (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/missing/DELETE/business/filedist/files/:id (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/missing/DELETE/business/filedist/tasks/:id (0.00s)
+    --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/wrong-type (0.01s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/wrong-type/POST/filedist/tasks (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/wrong-type/POST/filedist/tasks/:id/start (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/wrong-type/POST/filedist/tasks/:id/cancel (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/wrong-type/POST/filedist/tasks/:id/retry (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/wrong-type/POST/filedist/storages (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/wrong-type/POST/filedist/files/upload (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/wrong-type/POST/business/filedist/tasks (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/wrong-type/POST/business/filedist/tasks/:id/start (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/wrong-type/POST/business/filedist/tasks/:id/cancel (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/wrong-type/POST/business/filedist/tasks/:id/retry (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/wrong-type/POST/business/filedist/storages (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/wrong-type/POST/business/filedist/files/upload (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/wrong-type/GET/filedist/tasks (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/wrong-type/GET/filedist/tasks/:id (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/wrong-type/GET/filedist/tasks/:id/targets (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/wrong-type/GET/filedist/tasks/:id/hosts (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/wrong-type/GET/filedist/tasks/:id/events (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/wrong-type/GET/filedist/tasks/:id/progress (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/wrong-type/GET/filedist/files (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/wrong-type/GET/filedist/files/:id (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/wrong-type/GET/filedist/files/:id/download (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/wrong-type/GET/filedist/storages (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/wrong-type/GET/filedist/storages/:id (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/wrong-type/GET/business/filedist/tasks (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/wrong-type/GET/business/filedist/tasks/:id (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/wrong-type/GET/business/filedist/tasks/:id/targets (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/wrong-type/GET/business/filedist/tasks/:id/hosts (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/wrong-type/GET/business/filedist/tasks/:id/events (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/wrong-type/GET/business/filedist/tasks/:id/progress (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/wrong-type/GET/business/filedist/files (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/wrong-type/GET/business/filedist/files/:id (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/wrong-type/GET/business/filedist/files/:id/download (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/wrong-type/GET/business/filedist/storages (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/wrong-type/GET/business/filedist/storages/:id (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/wrong-type/PUT/filedist/storages/:id (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/wrong-type/PUT/business/filedist/storages/:id (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/wrong-type/DELETE/filedist/storages/:id (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/wrong-type/DELETE/filedist/files/:id (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/wrong-type/DELETE/filedist/tasks/:id (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/wrong-type/DELETE/business/filedist/storages/:id (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/wrong-type/DELETE/business/filedist/files/:id (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/wrong-type/DELETE/business/filedist/tasks/:id (0.00s)
+    --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/typed-nil (0.01s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/typed-nil/POST/filedist/tasks (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/typed-nil/POST/filedist/tasks/:id/start (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/typed-nil/POST/filedist/tasks/:id/cancel (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/typed-nil/POST/filedist/tasks/:id/retry (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/typed-nil/POST/filedist/storages (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/typed-nil/POST/filedist/files/upload (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/typed-nil/POST/business/filedist/tasks (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/typed-nil/POST/business/filedist/tasks/:id/start (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/typed-nil/POST/business/filedist/tasks/:id/cancel (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/typed-nil/POST/business/filedist/tasks/:id/retry (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/typed-nil/POST/business/filedist/storages (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/typed-nil/POST/business/filedist/files/upload (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/typed-nil/GET/filedist/tasks (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/typed-nil/GET/filedist/tasks/:id (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/typed-nil/GET/filedist/tasks/:id/targets (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/typed-nil/GET/filedist/tasks/:id/hosts (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/typed-nil/GET/filedist/tasks/:id/events (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/typed-nil/GET/filedist/tasks/:id/progress (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/typed-nil/GET/filedist/files (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/typed-nil/GET/filedist/files/:id (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/typed-nil/GET/filedist/files/:id/download (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/typed-nil/GET/filedist/storages (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/typed-nil/GET/filedist/storages/:id (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/typed-nil/GET/business/filedist/tasks (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/typed-nil/GET/business/filedist/tasks/:id (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/typed-nil/GET/business/filedist/tasks/:id/targets (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/typed-nil/GET/business/filedist/tasks/:id/hosts (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/typed-nil/GET/business/filedist/tasks/:id/events (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/typed-nil/GET/business/filedist/tasks/:id/progress (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/typed-nil/GET/business/filedist/files (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/typed-nil/GET/business/filedist/files/:id (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/typed-nil/GET/business/filedist/files/:id/download (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/typed-nil/GET/business/filedist/storages (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/typed-nil/GET/business/filedist/storages/:id (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/typed-nil/PUT/filedist/storages/:id (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/typed-nil/PUT/business/filedist/storages/:id (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/typed-nil/DELETE/filedist/storages/:id (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/typed-nil/DELETE/filedist/files/:id (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/typed-nil/DELETE/filedist/tasks/:id (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/typed-nil/DELETE/business/filedist/storages/:id (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/typed-nil/DELETE/business/filedist/files/:id (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/typed-nil/DELETE/business/filedist/tasks/:id (0.00s)
+    --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/empty (0.01s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/empty/POST/filedist/tasks (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/empty/POST/filedist/tasks/:id/start (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/empty/POST/filedist/tasks/:id/cancel (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/empty/POST/filedist/tasks/:id/retry (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/empty/POST/filedist/storages (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/empty/POST/filedist/files/upload (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/empty/POST/business/filedist/tasks (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/empty/POST/business/filedist/tasks/:id/start (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/empty/POST/business/filedist/tasks/:id/cancel (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/empty/POST/business/filedist/tasks/:id/retry (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/empty/POST/business/filedist/storages (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/empty/POST/business/filedist/files/upload (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/empty/GET/filedist/tasks (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/empty/GET/filedist/tasks/:id (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/empty/GET/filedist/tasks/:id/targets (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/empty/GET/filedist/tasks/:id/hosts (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/empty/GET/filedist/tasks/:id/events (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/empty/GET/filedist/tasks/:id/progress (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/empty/GET/filedist/files (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/empty/GET/filedist/files/:id (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/empty/GET/filedist/files/:id/download (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/empty/GET/filedist/storages (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/empty/GET/filedist/storages/:id (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/empty/GET/business/filedist/tasks (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/empty/GET/business/filedist/tasks/:id (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/empty/GET/business/filedist/tasks/:id/targets (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/empty/GET/business/filedist/tasks/:id/hosts (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/empty/GET/business/filedist/tasks/:id/events (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/empty/GET/business/filedist/tasks/:id/progress (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/empty/GET/business/filedist/files (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/empty/GET/business/filedist/files/:id (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/empty/GET/business/filedist/files/:id/download (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/empty/GET/business/filedist/storages (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/empty/GET/business/filedist/storages/:id (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/empty/PUT/filedist/storages/:id (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/empty/PUT/business/filedist/storages/:id (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/empty/DELETE/filedist/storages/:id (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/empty/DELETE/filedist/files/:id (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/empty/DELETE/filedist/tasks/:id (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/empty/DELETE/business/filedist/storages/:id (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/empty/DELETE/business/filedist/files/:id (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/empty/DELETE/business/filedist/tasks/:id (0.00s)
+    --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/whitespace (0.01s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/whitespace/POST/filedist/tasks (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/whitespace/POST/filedist/tasks/:id/start (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/whitespace/POST/filedist/tasks/:id/cancel (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/whitespace/POST/filedist/tasks/:id/retry (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/whitespace/POST/filedist/storages (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/whitespace/POST/filedist/files/upload (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/whitespace/POST/business/filedist/tasks (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/whitespace/POST/business/filedist/tasks/:id/start (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/whitespace/POST/business/filedist/tasks/:id/cancel (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/whitespace/POST/business/filedist/tasks/:id/retry (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/whitespace/POST/business/filedist/storages (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/whitespace/POST/business/filedist/files/upload (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/whitespace/GET/filedist/tasks (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/whitespace/GET/filedist/tasks/:id (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/whitespace/GET/filedist/tasks/:id/targets (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/whitespace/GET/filedist/tasks/:id/hosts (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/whitespace/GET/filedist/tasks/:id/events (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/whitespace/GET/filedist/tasks/:id/progress (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/whitespace/GET/filedist/files (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/whitespace/GET/filedist/files/:id (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/whitespace/GET/filedist/files/:id/download (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/whitespace/GET/filedist/storages (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/whitespace/GET/filedist/storages/:id (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/whitespace/GET/business/filedist/tasks (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/whitespace/GET/business/filedist/tasks/:id (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/whitespace/GET/business/filedist/tasks/:id/targets (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/whitespace/GET/business/filedist/tasks/:id/hosts (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/whitespace/GET/business/filedist/tasks/:id/events (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/whitespace/GET/business/filedist/tasks/:id/progress (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/whitespace/GET/business/filedist/files (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/whitespace/GET/business/filedist/files/:id (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/whitespace/GET/business/filedist/files/:id/download (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/whitespace/GET/business/filedist/storages (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/whitespace/GET/business/filedist/storages/:id (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/whitespace/PUT/filedist/storages/:id (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/whitespace/PUT/business/filedist/storages/:id (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/whitespace/DELETE/filedist/storages/:id (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/whitespace/DELETE/filedist/files/:id (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/whitespace/DELETE/filedist/tasks/:id (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/whitespace/DELETE/business/filedist/storages/:id (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/whitespace/DELETE/business/filedist/files/:id (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/whitespace/DELETE/business/filedist/tasks/:id (0.00s)
+    --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/self-numeric-username (0.01s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/self-numeric-username/POST/filedist/tasks (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/self-numeric-username/POST/filedist/tasks/:id/start (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/self-numeric-username/POST/filedist/tasks/:id/cancel (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/self-numeric-username/POST/filedist/tasks/:id/retry (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/self-numeric-username/POST/filedist/storages (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/self-numeric-username/POST/filedist/files/upload (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/self-numeric-username/POST/business/filedist/tasks (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/self-numeric-username/POST/business/filedist/tasks/:id/start (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/self-numeric-username/POST/business/filedist/tasks/:id/cancel (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/self-numeric-username/POST/business/filedist/tasks/:id/retry (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/self-numeric-username/POST/business/filedist/storages (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/self-numeric-username/POST/business/filedist/files/upload (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/self-numeric-username/GET/filedist/tasks (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/self-numeric-username/GET/filedist/tasks/:id (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/self-numeric-username/GET/filedist/tasks/:id/targets (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/self-numeric-username/GET/filedist/tasks/:id/hosts (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/self-numeric-username/GET/filedist/tasks/:id/events (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/self-numeric-username/GET/filedist/tasks/:id/progress (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/self-numeric-username/GET/filedist/files (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/self-numeric-username/GET/filedist/files/:id (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/self-numeric-username/GET/filedist/files/:id/download (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/self-numeric-username/GET/filedist/storages (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/self-numeric-username/GET/filedist/storages/:id (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/self-numeric-username/GET/business/filedist/tasks (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/self-numeric-username/GET/business/filedist/tasks/:id (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/self-numeric-username/GET/business/filedist/tasks/:id/targets (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/self-numeric-username/GET/business/filedist/tasks/:id/hosts (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/self-numeric-username/GET/business/filedist/tasks/:id/events (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/self-numeric-username/GET/business/filedist/tasks/:id/progress (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/self-numeric-username/GET/business/filedist/files (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/self-numeric-username/GET/business/filedist/files/:id (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/self-numeric-username/GET/business/filedist/files/:id/download (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/self-numeric-username/GET/business/filedist/storages (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/self-numeric-username/GET/business/filedist/storages/:id (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/self-numeric-username/PUT/filedist/storages/:id (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/self-numeric-username/PUT/business/filedist/storages/:id (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/self-numeric-username/DELETE/filedist/storages/:id (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/self-numeric-username/DELETE/filedist/files/:id (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/self-numeric-username/DELETE/filedist/tasks/:id (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/self-numeric-username/DELETE/business/filedist/storages/:id (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/self-numeric-username/DELETE/business/filedist/files/:id (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/self-numeric-username/DELETE/business/filedist/tasks/:id (0.00s)
+    --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/dept (0.01s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/dept/POST/filedist/tasks (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/dept/POST/filedist/tasks/:id/start (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/dept/POST/filedist/tasks/:id/cancel (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/dept/POST/filedist/tasks/:id/retry (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/dept/POST/filedist/storages (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/dept/POST/filedist/files/upload (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/dept/POST/business/filedist/tasks (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/dept/POST/business/filedist/tasks/:id/start (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/dept/POST/business/filedist/tasks/:id/cancel (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/dept/POST/business/filedist/tasks/:id/retry (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/dept/POST/business/filedist/storages (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/dept/POST/business/filedist/files/upload (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/dept/GET/filedist/tasks (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/dept/GET/filedist/tasks/:id (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/dept/GET/filedist/tasks/:id/targets (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/dept/GET/filedist/tasks/:id/hosts (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/dept/GET/filedist/tasks/:id/events (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/dept/GET/filedist/tasks/:id/progress (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/dept/GET/filedist/files (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/dept/GET/filedist/files/:id (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/dept/GET/filedist/files/:id/download (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/dept/GET/filedist/storages (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/dept/GET/filedist/storages/:id (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/dept/GET/business/filedist/tasks (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/dept/GET/business/filedist/tasks/:id (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/dept/GET/business/filedist/tasks/:id/targets (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/dept/GET/business/filedist/tasks/:id/hosts (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/dept/GET/business/filedist/tasks/:id/events (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/dept/GET/business/filedist/tasks/:id/progress (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/dept/GET/business/filedist/files (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/dept/GET/business/filedist/files/:id (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/dept/GET/business/filedist/files/:id/download (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/dept/GET/business/filedist/storages (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/dept/GET/business/filedist/storages/:id (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/dept/PUT/filedist/storages/:id (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/dept/PUT/business/filedist/storages/:id (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/dept/DELETE/filedist/storages/:id (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/dept/DELETE/filedist/files/:id (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/dept/DELETE/filedist/tasks/:id (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/dept/DELETE/business/filedist/storages/:id (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/dept/DELETE/business/filedist/files/:id (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/dept/DELETE/business/filedist/tasks/:id (0.00s)
+    --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/children (0.01s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/children/POST/filedist/tasks (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/children/POST/filedist/tasks/:id/start (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/children/POST/filedist/tasks/:id/cancel (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/children/POST/filedist/tasks/:id/retry (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/children/POST/filedist/storages (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/children/POST/filedist/files/upload (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/children/POST/business/filedist/tasks (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/children/POST/business/filedist/tasks/:id/start (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/children/POST/business/filedist/tasks/:id/cancel (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/children/POST/business/filedist/tasks/:id/retry (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/children/POST/business/filedist/storages (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/children/POST/business/filedist/files/upload (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/children/GET/filedist/tasks (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/children/GET/filedist/tasks/:id (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/children/GET/filedist/tasks/:id/targets (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/children/GET/filedist/tasks/:id/hosts (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/children/GET/filedist/tasks/:id/events (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/children/GET/filedist/tasks/:id/progress (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/children/GET/filedist/files (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/children/GET/filedist/files/:id (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/children/GET/filedist/files/:id/download (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/children/GET/filedist/storages (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/children/GET/filedist/storages/:id (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/children/GET/business/filedist/tasks (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/children/GET/business/filedist/tasks/:id (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/children/GET/business/filedist/tasks/:id/targets (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/children/GET/business/filedist/tasks/:id/hosts (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/children/GET/business/filedist/tasks/:id/events (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/children/GET/business/filedist/tasks/:id/progress (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/children/GET/business/filedist/files (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/children/GET/business/filedist/files/:id (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/children/GET/business/filedist/files/:id/download (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/children/GET/business/filedist/storages (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/children/GET/business/filedist/storages/:id (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/children/PUT/filedist/storages/:id (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/children/PUT/business/filedist/storages/:id (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/children/DELETE/filedist/storages/:id (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/children/DELETE/filedist/files/:id (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/children/DELETE/filedist/tasks/:id (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/children/DELETE/business/filedist/storages/:id (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/children/DELETE/business/filedist/files/:id (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/children/DELETE/business/filedist/tasks/:id (0.00s)
+    --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/custom (0.01s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/custom/POST/filedist/tasks (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/custom/POST/filedist/tasks/:id/start (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/custom/POST/filedist/tasks/:id/cancel (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/custom/POST/filedist/tasks/:id/retry (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/custom/POST/filedist/storages (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/custom/POST/filedist/files/upload (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/custom/POST/business/filedist/tasks (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/custom/POST/business/filedist/tasks/:id/start (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/custom/POST/business/filedist/tasks/:id/cancel (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/custom/POST/business/filedist/tasks/:id/retry (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/custom/POST/business/filedist/storages (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/custom/POST/business/filedist/files/upload (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/custom/GET/filedist/tasks (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/custom/GET/filedist/tasks/:id (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/custom/GET/filedist/tasks/:id/targets (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/custom/GET/filedist/tasks/:id/hosts (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/custom/GET/filedist/tasks/:id/events (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/custom/GET/filedist/tasks/:id/progress (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/custom/GET/filedist/files (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/custom/GET/filedist/files/:id (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/custom/GET/filedist/files/:id/download (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/custom/GET/filedist/storages (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/custom/GET/filedist/storages/:id (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/custom/GET/business/filedist/tasks (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/custom/GET/business/filedist/tasks/:id (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/custom/GET/business/filedist/tasks/:id/targets (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/custom/GET/business/filedist/tasks/:id/hosts (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/custom/GET/business/filedist/tasks/:id/events (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/custom/GET/business/filedist/tasks/:id/progress (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/custom/GET/business/filedist/files (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/custom/GET/business/filedist/files/:id (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/custom/GET/business/filedist/files/:id/download (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/custom/GET/business/filedist/storages (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/custom/GET/business/filedist/storages/:id (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/custom/PUT/filedist/storages/:id (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/custom/PUT/business/filedist/storages/:id (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/custom/DELETE/filedist/storages/:id (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/custom/DELETE/filedist/files/:id (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/custom/DELETE/filedist/tasks/:id (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/custom/DELETE/business/filedist/storages/:id (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/custom/DELETE/business/filedist/files/:id (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/custom/DELETE/business/filedist/tasks/:id (0.00s)
+    --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/unknown (0.01s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/unknown/POST/filedist/tasks (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/unknown/POST/filedist/tasks/:id/start (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/unknown/POST/filedist/tasks/:id/cancel (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/unknown/POST/filedist/tasks/:id/retry (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/unknown/POST/filedist/storages (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/unknown/POST/filedist/files/upload (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/unknown/POST/business/filedist/tasks (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/unknown/POST/business/filedist/tasks/:id/start (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/unknown/POST/business/filedist/tasks/:id/cancel (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/unknown/POST/business/filedist/tasks/:id/retry (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/unknown/POST/business/filedist/storages (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/unknown/POST/business/filedist/files/upload (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/unknown/GET/filedist/tasks (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/unknown/GET/filedist/tasks/:id (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/unknown/GET/filedist/tasks/:id/targets (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/unknown/GET/filedist/tasks/:id/hosts (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/unknown/GET/filedist/tasks/:id/events (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/unknown/GET/filedist/tasks/:id/progress (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/unknown/GET/filedist/files (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/unknown/GET/filedist/files/:id (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/unknown/GET/filedist/files/:id/download (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/unknown/GET/filedist/storages (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/unknown/GET/filedist/storages/:id (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/unknown/GET/business/filedist/tasks (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/unknown/GET/business/filedist/tasks/:id (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/unknown/GET/business/filedist/tasks/:id/targets (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/unknown/GET/business/filedist/tasks/:id/hosts (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/unknown/GET/business/filedist/tasks/:id/events (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/unknown/GET/business/filedist/tasks/:id/progress (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/unknown/GET/business/filedist/files (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/unknown/GET/business/filedist/files/:id (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/unknown/GET/business/filedist/files/:id/download (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/unknown/GET/business/filedist/storages (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/unknown/GET/business/filedist/storages/:id (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/unknown/PUT/filedist/storages/:id (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/unknown/PUT/business/filedist/storages/:id (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/unknown/DELETE/filedist/storages/:id (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/unknown/DELETE/filedist/files/:id (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/unknown/DELETE/filedist/tasks/:id (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/unknown/DELETE/business/filedist/storages/:id (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/unknown/DELETE/business/filedist/files/:id (0.00s)
+        --- PASS: TestFileDistRoutesRejectUnsupportedDataScope/unknown/DELETE/business/filedist/tasks/:id (0.00s)
+=== RUN   TestFileDistExplicitUnrestrictedScope
+--- PASS: TestFileDistExplicitUnrestrictedScope (0.00s)
+=== RUN   TestFileDistScopeGateDoesNotAffectSiblingRoutes
+--- PASS: TestFileDistScopeGateDoesNotAffectSiblingRoutes (0.00s)
+=== RUN   TestFileDistScopedHandlerPersistence
+--- PASS: TestFileDistScopedHandlerPersistence (0.26s)
+=== RUN   TestCreateTaskPreservesExplicitZeroRetries
+--- PASS: TestCreateTaskPreservesExplicitZeroRetries (0.24s)
+=== RUN   TestTransferErrorWithoutRetriesFinishesTarget
+--- PASS: TestTransferErrorWithoutRetriesFinishesTarget (0.08s)
+=== RUN   TestFileDistRoutesRequireAuthentication
+--- PASS: TestFileDistRoutesRequireAuthentication (0.00s)
+=== RUN   TestStorageSecretsAreEncryptedAndRedacted
+--- PASS: TestStorageSecretsAreEncryptedAndRedacted (0.20s)
+=== RUN   TestNormalizeLocalStoragePathRejectsParentTraversal
+--- PASS: TestNormalizeLocalStoragePathRejectsParentTraversal (0.00s)
+=== RUN   TestCreateStorageRejectsTraversalBasePath
+--- PASS: TestCreateStorageRejectsTraversalBasePath (0.16s)
+=== RUN   TestResolveWithinRootKeepsPathsInsideStorage
+--- PASS: TestResolveWithinRootKeepsPathsInsideStorage (0.00s)
+=== RUN   TestSanitizeUploadFileNameReducesNameToOneElement
+--- PASS: TestSanitizeUploadFileNameReducesNameToOneElement (0.00s)
+=== RUN   TestUploadPathStaysInsideRootForAdversarialNames
+--- PASS: TestUploadPathStaysInsideRootForAdversarialNames (0.00s)
+PASS
+ok  	github.com/duanxldragon/pantheon-base/backend/modules/business/filedist	2.143s

@@ -1,0 +1,98 @@
+{
+  "host": "115.190.251.143",
+  "realRemoteExecution": true,
+  "genericReleasedValidator": true,
+  "productAuditVerified": false,
+  "providerRBACVerified": false,
+  "realCredentialsForwardingVerified": false,
+  "sourceSHA256": "a8eb82da92721104c260ade049f5d45141186e427e8cd5860a204add3db58f73",
+  "driverSHA256": "5e0ea585695f00f118cdbaf7c2ad1554ea728fd3bc26e8b0f138e6ff155af8ef",
+  "testBinarySHA256": "929e49eca368bf96fdfbfa70a1543236ae6ce4ad73089a367d421d67d53346ac",
+  "driverExitCode": 0,
+  "scenarios": [
+    {
+      "scenario": "explicit-public-host-allow",
+      "passed": true,
+      "elapsedMs": 0
+    },
+    {
+      "scenario": "scheme-file-deny",
+      "passed": true,
+      "elapsedMs": 0
+    },
+    {
+      "scenario": "scheme-ftp-deny",
+      "passed": true,
+      "elapsedMs": 0
+    },
+    {
+      "scenario": "port-deny",
+      "passed": true,
+      "elapsedMs": 0
+    },
+    {
+      "scenario": "different-domain-deny",
+      "passed": true,
+      "elapsedMs": 0
+    },
+    {
+      "scenario": "ipv4-loopback-deny",
+      "passed": true,
+      "elapsedMs": 0
+    },
+    {
+      "scenario": "metadata-deny",
+      "passed": true,
+      "elapsedMs": 0
+    },
+    {
+      "scenario": "ipv4-private-deny",
+      "passed": true,
+      "elapsedMs": 0
+    },
+    {
+      "scenario": "ipv6-loopback-deny",
+      "passed": true,
+      "elapsedMs": 0
+    },
+    {
+      "scenario": "ipv6-private-deny",
+      "passed": true,
+      "elapsedMs": 0
+    },
+    {
+      "scenario": "mapped-private-deny",
+      "passed": true,
+      "elapsedMs": 0
+    },
+    {
+      "scenario": "actual-public-request",
+      "passed": true,
+      "elapsedMs": 2
+    },
+    {
+      "scenario": "private-redirect-deny",
+      "passed": true,
+      "elapsedMs": 1
+    },
+    {
+      "scenario": "public-redirect-deny",
+      "passed": true,
+      "elapsedMs": 1
+    },
+    {
+      "scenario": "actual-response-timeout",
+      "passed": true,
+      "elapsedMs": 120
+    }
+  ],
+  "deterministicDNSAndTransportTestsExitCode": 0,
+  "fixtureCounters": {
+    "sinkRequests": 0,
+    "requests": 5
+  },
+  "syntheticRedirectAuthorizationSinkNotReached": true,
+  "fixturePID": 14810,
+  "fixtureCleanup": "stopped",
+  "fixtureCleanupExitCode": 0
+}

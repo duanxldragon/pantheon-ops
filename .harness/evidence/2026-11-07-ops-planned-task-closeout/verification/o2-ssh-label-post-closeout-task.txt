@@ -1,0 +1,13 @@
+{
+  "results": [
+    {
+      "file": "docs/harness/tasks/2026-11-07-ops-planned-task-closeout.task.md",
+      "errors": [],
+      "warnings": []
+    }
+  ],
+  "errorCount": 0,
+  "warningCount": 0,
+  "legacySkippedCount": 0,
+  "legacyConfig": null
+}

@@ -1,0 +1,25 @@
+[GIN] 2026/11/09 - 10:14:48 | 503 |   1.36ms |       127.0.0.1 | GET      "/api/v1/health"
+
+2026/11/09 10:14:50 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/pkg/database/migrate.go:114 [35;1mError 1146 (42S02): Table 'ops_p0_remote_acceptance.schema_migrations' doesn't exist
+[0m[33m[0.406ms] [34;1m[rows:0][0m SELECT count(*) FROM `schema_migrations`
+[GIN] 2026/11/09 - 10:14:50 | 503 |   1.31ms |       127.0.0.1 | GET      "/api/v1/health"
+
+2026/11/09 10:14:52 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/pkg/database/migrate.go:114 [35;1mError 1146 (42S02): Table 'ops_p0_remote_acceptance.schema_migrations' doesn't exist
+[0m[33m[0.396ms] [34;1m[rows:0][0m SELECT count(*) FROM `schema_migrations`
+[GIN] 2026/11/09 - 10:14:52 | 503 |   1.34ms |       127.0.0.1 | GET      "/api/v1/health"
+
+2026/11/09 10:14:54 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/pkg/database/migrate.go:114 [35;1mError 1146 (42S02): Table 'ops_p0_remote_acceptance.schema_migrations' doesn't exist
+[0m[33m[0.382ms] [34;1m[rows:0][0m SELECT count(*) FROM `schema_migrations`
+[GIN] 2026/11/09 - 10:14:54 | 503 |   1.34ms |       127.0.0.1 | GET      "/api/v1/health"
+
+2026/11/09 10:14:55 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/pkg/database/migrate.go:114 [35;1mError 1146 (42S02): Table 'ops_p0_remote_acceptance.schema_migrations' doesn't exist
+[0m[33m[0.380ms] [34;1m[rows:0][0m SELECT count(*) FROM `schema_migrations`
+[GIN] 2026/11/09 - 10:14:55 | 503 |   1.13ms |       127.0.0.1 | GET      "/api/v1/health"
+
+2026/11/09 10:14:57 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/pkg/database/migrate.go:114 [35;1mError 1146 (42S02): Table 'ops_p0_remote_acceptance.schema_migrations' doesn't exist
+[0m[33m[0.317ms] [34;1m[rows:0][0m SELECT count(*) FROM `schema_migrations`
+[GIN] 2026/11/09 - 10:14:57 | 503 | 993.329µs |       127.0.0.1 | GET      "/api/v1/health"
+
+2026/11/09 10:14:59 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/pkg/database/migrate.go:114 [35;1mError 1146 (42S02): Table 'ops_p0_remote_acceptance.schema_migrations' doesn't exist
+[0m[33m[0.328ms] [34;1m[rows:0][0m SELECT count(*) FROM `schema_migrations`
+[GIN] 2026/11/09 - 10:14:59 | 503 |   1.04ms |       127.0.0.1 | GET      "/api/v1/health"

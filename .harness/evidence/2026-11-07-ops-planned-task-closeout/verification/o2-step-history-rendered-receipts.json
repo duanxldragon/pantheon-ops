@@ -1,0 +1,122 @@
+{
+  "contactSheet": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/o2-step-history-mobile-final-crop-sheet.png",
+  "viewports": [
+    "1440x900",
+    "390x844"
+  ],
+  "themes": [
+    "light",
+    "dark"
+  ],
+  "browserCases": 2,
+  "transportFixture": true,
+  "realLocalAuthentication": true,
+  "realLocalBusinessFixtures": true,
+  "realVM": false,
+  "priorScreenshots": [
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/o2-step-history-browser/smoke-business-deploy-depl-58206--keyboard-and-mobile-light-/workbench-light-desktop-history.png",
+      "sha256": "6d471271238595d0e8e2b1dbaedf31b60e526fd3720d9312e7079ec51ff78dca"
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/o2-step-history-browser/smoke-business-deploy-depl-58206--keyboard-and-mobile-light-/workbench-light-desktop.png",
+      "sha256": "5204514f4e4dcd3822a9cff5d67df4ce1bd7e2c0af40344e13f549dd1ce630ee"
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/o2-step-history-browser/smoke-business-deploy-depl-58206--keyboard-and-mobile-light-/workbench-light-first-error.png",
+      "sha256": "76491e663a22437fbb91a1695a216373e120b02d0c4603d9e8294390e9a0ce29"
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/o2-step-history-browser/smoke-business-deploy-depl-58206--keyboard-and-mobile-light-/workbench-light-mobile-expanded.png",
+      "sha256": "ed4685b98f6d03aef118bd28797538af4d4e4f07f385c6da513205c76c07ebac"
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/o2-step-history-browser/smoke-business-deploy-depl-58206--keyboard-and-mobile-light-/workbench-light-mobile-forbidden.png",
+      "sha256": "b09cec62bde21958c19c5afe91b4ba3a1a2519a7f9b8a67c8b3dd480eb90ecf0"
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/o2-step-history-browser/smoke-business-deploy-depl-58206--keyboard-and-mobile-light-/workbench-light-mobile-history.png",
+      "sha256": "039a048c19ec4143e1526eb1070b1ff00c22664731283ade92d85802febe95ee"
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/o2-step-history-browser/smoke-business-deploy-depl-d16f5-s-keyboard-and-mobile-dark-/workbench-dark-desktop-history.png",
+      "sha256": "4c3137c297a535fff4d6f073ff6a43a7c38c2caf00f2e5474141c47b77263a82"
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/o2-step-history-browser/smoke-business-deploy-depl-d16f5-s-keyboard-and-mobile-dark-/workbench-dark-desktop.png",
+      "sha256": "5349375cbcff711a4db1aaa572082b72f164c8ed6adefbb1e6061f8afdc5ba6c"
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/o2-step-history-browser/smoke-business-deploy-depl-d16f5-s-keyboard-and-mobile-dark-/workbench-dark-first-error.png",
+      "sha256": "02dd7a5d2d3175cb6907bdea7b944165671902bc04a81125c78e497b482fd059"
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/o2-step-history-browser/smoke-business-deploy-depl-d16f5-s-keyboard-and-mobile-dark-/workbench-dark-mobile-expanded.png",
+      "sha256": "1f44af428545efab0d08a8480bde2e8da7ceeff50164c3599ac783f022df4a48"
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/o2-step-history-browser/smoke-business-deploy-depl-d16f5-s-keyboard-and-mobile-dark-/workbench-dark-mobile-forbidden.png",
+      "sha256": "f90cb7088c85c270d36ad7efe201611265faf1a82cf34bdf58f09880fff5f5da"
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/o2-step-history-browser/smoke-business-deploy-depl-d16f5-s-keyboard-and-mobile-dark-/workbench-dark-mobile-history.png",
+      "sha256": "edc1d80d5ed401f05a7656df8b69dcc9b1c3eed837fb17db78b1cee82e032eee"
+    }
+  ],
+  "screenshots": [
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/o2-step-history-browser-mobile-green/smoke-business-deploy-depl-58206--keyboard-and-mobile-light-/workbench-light-desktop-history.png",
+      "sha256": "23f5f0523cc8b1dd0b73f98a0586ee49ab9aea37277990c5a5d4ceebb67c8dab"
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/o2-step-history-browser-mobile-green/smoke-business-deploy-depl-58206--keyboard-and-mobile-light-/workbench-light-desktop.png",
+      "sha256": "2a8eec4db4f479b8a98efd94cc4e50c264d2eb2e700e9225a459792ce539316f"
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/o2-step-history-browser-mobile-green/smoke-business-deploy-depl-58206--keyboard-and-mobile-light-/workbench-light-first-error.png",
+      "sha256": "d4accfbc6735d0f866ce7a1f6e70839e77315121e1d0bf658d3751554a4266ca"
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/o2-step-history-browser-mobile-green/smoke-business-deploy-depl-58206--keyboard-and-mobile-light-/workbench-light-mobile-expanded.png",
+      "sha256": "b69d322b1a5f5302ec6a98e501ee3b75f06b285b243557573716253f2dddf2d2"
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/o2-step-history-browser-mobile-green/smoke-business-deploy-depl-58206--keyboard-and-mobile-light-/workbench-light-mobile-forbidden.png",
+      "sha256": "a6bb08c038c03a69779a3940d6bd5f851b6d7e8ddebd9e9db42a466beffd31e4"
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/o2-step-history-browser-mobile-green/smoke-business-deploy-depl-58206--keyboard-and-mobile-light-/workbench-light-mobile-history.png",
+      "sha256": "b1ca6cf6f5b895f1c89dc10766037369847151f7de8d343dd7478cf1a7c322a0"
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/o2-step-history-browser-mobile-green/smoke-business-deploy-depl-d16f5-s-keyboard-and-mobile-dark-/workbench-dark-desktop-history.png",
+      "sha256": "179aea95f2aadfa019b0ea9b4aa3a2398e6013476ffda65be5484bdc796d0cf3"
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/o2-step-history-browser-mobile-green/smoke-business-deploy-depl-d16f5-s-keyboard-and-mobile-dark-/workbench-dark-desktop.png",
+      "sha256": "84f9b51ff63de74993ae63c0e282f8d3c5698555dd8999287846a2fff107a1bd"
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/o2-step-history-browser-mobile-green/smoke-business-deploy-depl-d16f5-s-keyboard-and-mobile-dark-/workbench-dark-first-error.png",
+      "sha256": "a66e4ce5d2bc5feb63259458d69cb04ec219b0310d7ae67ae42460541dc805c1"
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/o2-step-history-browser-mobile-green/smoke-business-deploy-depl-d16f5-s-keyboard-and-mobile-dark-/workbench-dark-mobile-expanded.png",
+      "sha256": "509e06d839c5b8e8e186feade22003492a9cdd8fd9fcc6ff3aa422f64e41f2d8"
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/o2-step-history-browser-mobile-green/smoke-business-deploy-depl-d16f5-s-keyboard-and-mobile-dark-/workbench-dark-mobile-forbidden.png",
+      "sha256": "7c2708bb1a13d965c2a8ad9c08db86a68a7be97230edfa104ef66a43922bc67d"
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/o2-step-history-browser-mobile-green/smoke-business-deploy-depl-d16f5-s-keyboard-and-mobile-dark-/workbench-dark-mobile-history.png",
+      "sha256": "85abe6e97c1e31744b8a517d5effaa8915be0010717a909353de9712bb524fc4"
+    }
+  ],
+  "mobileGeometry": {
+    "redOverflowPx": 473.828125,
+    "currentCaseCount": 2,
+    "directChildOverflowMaxPx": 1,
+    "historyCaptionOverflowMaxPx": 1
+  }
+}

@@ -1,0 +1,44 @@
+[
+  {
+    "command": "node scripts/harness/check-task-packet.mjs --json --root D:\\workspace\\go\\pantheon-platform\\pantheon-ops docs/harness/tasks/2026-11-14-ops-latest-foundation-and-plans.task.md docs/harness/tasks/2026-11-13-ops-business-menu-ia-refactor.task.md",
+    "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+    "status": "passed",
+    "notes": "verification/scoped-task-packets.json; uses the official candidate checker against the active repository. Scope is recorded in the receipt."
+  },
+  {
+    "command": "node scripts/harness/check-evidence.mjs --json --strict --root D:\\workspace\\go\\pantheon-platform\\pantheon-ops .harness/evidence/2026-11-14-ops-latest-foundation-and-plans/commands.json .harness/evidence/2026-11-13-ops-business-menu-ia-refactor/commands.json",
+    "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+    "status": "passed",
+    "notes": "verification/scoped-evidence.json; uses the official candidate checker against the active repository. Scope is recorded in the receipt."
+  },
+  {
+    "command": "node scripts/harness/check-review.mjs --json --strict --root D:\\workspace\\go\\pantheon-platform\\pantheon-ops .harness/evidence/2026-11-14-ops-latest-foundation-and-plans/review.md .harness/evidence/2026-11-13-ops-business-menu-ia-refactor/review.md",
+    "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+    "status": "failed",
+    "notes": "verification/scoped-review-with-registry.json; uses the official candidate checker against the active repository. Scope is recorded in the receipt."
+  },
+  {
+    "command": "node scripts/harness/check-runtime-evidence.mjs --json --strict --root D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+    "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+    "status": "failed",
+    "notes": "verification/root-runtime-registry.json; uses the official candidate checker against the active repository. Scope is recorded in the receipt."
+  },
+  {
+    "command": "node scripts/harness/check-visual-evidence.mjs --json --strict --root D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+    "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+    "status": "failed",
+    "notes": "verification/root-visual-registry.json; uses the official candidate checker against the active repository. Scope is recorded in the receipt."
+  },
+  {
+    "command": "node scripts/harness/check-doc-links.mjs --json --strict --root D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+    "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+    "status": "failed",
+    "notes": "verification/root-doc-links.json; uses the official candidate checker against the active repository. Scope is recorded in the receipt."
+  },
+  {
+    "command": "node scripts/harness/check-review.mjs --json --strict --root D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+    "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+    "status": "failed",
+    "notes": "verification/root-review-registry.json; uses the official candidate checker against the active repository. Scope is recorded in the receipt."
+  }
+]

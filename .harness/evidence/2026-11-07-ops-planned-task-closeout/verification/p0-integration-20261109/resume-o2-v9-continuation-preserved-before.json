@@ -1,0 +1,13 @@
+{
+  ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-v9-failed-verification-1794273737440186200.json": "66dab6e8863e789d5aed1139e7fb56091f3986aa28c723c644021038cbd3391c",
+  ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-v9-failed-verification-1794273852572054400.json": "8338e17f9da467209c35379e98efd52d40ed59b988fb0f659432cdb50d0d04d5",
+  ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-v9-failed-verification-1794273871455159300.json": "ae68f3a57707d77f124061544cad768691288558677230d7d0054108b0bd83e2",
+  ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-v9-generator-report.receipt.json": "2bf315de892fa85c24918844c55189bc4f1cb5d56abec79345578f3037a60c85",
+  ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-v9-verify-1794273737440186200-0.txt": "9b37cc5d7b2bb624ff5896d4bedede5f1c55f52ec62b6feab9926bf3be64af4e",
+  ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-v9-verify-1794273852572054400-0.txt": "719a3d9a80108d6f7767ab9cc9f48163c8b32ce924b583d76f4de662a8939285",
+  ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-v9-verify-1794273871455159300-0.txt": "ebd408c950a3f89659fd4a7c4a2caac69252759919e26362f1389f9322630579",
+  ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-v9-verify-1794274208029252500-0.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-v9-verify-1794274208029252500-1.txt": "21eb04b41d8b6027c1217a37f13ed6fe418fc616b76362113dd18ae5fa6919e4",
+  ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-v9-verify-1794274208029252500-2.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  ".local/ops-acceptance/resume-o2-v9-generator-first-failed-events.jsonl": "ef23b1039f318cbe779716cbf583733da0578db1de1b97b3e8d5a1c413d549ec"
+}

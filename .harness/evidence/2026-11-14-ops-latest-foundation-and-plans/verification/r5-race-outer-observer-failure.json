@@ -1,0 +1,10 @@
+{
+  "outerObserverExitCode": 1,
+  "reason": "Go removed generated _testmain.go between file check and read (FileNotFoundError)",
+  "actualGoStillRunningAtRecovery": true,
+  "actualGoPID": 6196,
+  "goCommandRestarted": false,
+  "recoveryObserver": "resume-race-temp-cleanup.py",
+  "assertionsAndOutputUnchanged": true,
+  "oldFailurePreserved": true
+}

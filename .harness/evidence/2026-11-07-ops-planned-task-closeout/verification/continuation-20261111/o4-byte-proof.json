@@ -1,0 +1,30 @@
+{
+  "verified": true,
+  "rawOriginalsAuthenticated": true,
+  "forwardAndReverseBytesEqual": true,
+  "byteDeltaSHA256": "3c3995659e85a0c7bf330289ca0cf48374bb13f32e1f4d511b17f782204cef24",
+  "sourceDiffSHA256": "c329e0ea1fbdf5fa1edf7d3527bbd942fb4d59a75f4ab9a2663c3153f56be6e2",
+  "records": [
+    {
+      "path": "scripts/business-overlay/foundation-candidate.mjs",
+      "originalSHA256": "17687364e7cc0420164707a9d92b33971f83d755efe57d61ace7e166a7105033",
+      "finalSHA256": "77903fb900fcc676bea4b8246533db5fef8225ecef3a8fb8fdb75a21ed9bc552",
+      "originalBytes": 46867,
+      "finalBytes": 48367
+    },
+    {
+      "path": "scripts/business-overlay/rebuild-from-candidate.mjs",
+      "originalSHA256": "d92eb077c1b67cb3a0b291be24958db0533ecfac8c3c586930f0d9ce2468f104",
+      "finalSHA256": "0d310bdcaffd8f961835737faf8aa6d1db1242bbdfa6ae10147e5e7871ed85c8",
+      "originalBytes": 12326,
+      "finalBytes": 12476
+    },
+    {
+      "path": "scripts/business-overlay/candidate-copy-binding.test.mjs",
+      "originalSHA256": null,
+      "finalSHA256": "8e462b763f7588d2062230d7f3828e4e46f91b338c4b0c927f8c71c3a377f382",
+      "originalBytes": 0,
+      "finalBytes": 8171
+    }
+  ]
+}

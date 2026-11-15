@@ -1,0 +1,7 @@
+{
+  "command": "node scripts/business-overlay/check-shared-drift.mjs --root .tmp\\p0-argo-current-stage",
+  "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+  "exitCode": 0,
+  "elapsedSeconds": 54.468,
+  "log": ".harness\\evidence\\2026-11-07-ops-planned-task-closeout\\verification\\p0-integration-20261109\\resume-drift.txt"
+}

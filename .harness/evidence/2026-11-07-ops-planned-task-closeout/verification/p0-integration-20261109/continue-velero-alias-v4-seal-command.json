@@ -1,0 +1,12 @@
+{
+  "command": [
+    "D:\\Python\\Python312\\python.exe",
+    "-B",
+    "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\continue-velero-alias-v4-generate.py"
+  ],
+  "exitCode": 0,
+  "stdout": "{\n  \"exitCode\": 0,\n  \"remoteExecuted\": false,\n  \"request\": \"continue-velero-alias-v4-request.json\",\n  \"requestSHA256\": \"dd3804fec93693b331397bc9b74182540ba694fc12543dcb3e5b3aeedae8e0fb\",\n  \"scriptHashes\": {\n    \".local/ops-acceptance/continue-velero-alias-v4-contract.py\": \"701a4303ef4b788674768e36a80fbdf8d112b923a2671ee7e7d98de4af42c716\",\n    \".local/ops-acceptance/continue-velero-alias-v4-remote.py\": \"6d6b0e07e5783df733c1555dcfc0e882f22619f5649a6ceb57272fd0f3924ee1\",\n    \".local/ops-acceptance/continue-velero-alias-v4-root.py\": \"2f20c713093771a1431d5732cb6ab3bb6c0f8b2c8899a18ccef79136a94f9647\",\n    \".local/ops-acceptance/continue-velero-alias-v4-generate.py\": \"96158db7547ed7f6fadc2f07f32bf1d8dbcdf57b6b55205f6718d0b4cf97bbf8\",\n    \".local/ops-acceptance/continue-velero-alias-v4-test.py\": \"0bf43e8c8eb74f64d3dab865a2f97f837d7314c988defb9ba2d5a62c4e8adbe6\"\n  },\n  \"remoteBaselineFiles\": 35,\n  \"ownedObjects\": 22,\n  \"P0Approved\": false\n}\n\n",
+  "stderr": "",
+  "remoteExecuted": false,
+  "exclusiveSealAttempt": 1
+}

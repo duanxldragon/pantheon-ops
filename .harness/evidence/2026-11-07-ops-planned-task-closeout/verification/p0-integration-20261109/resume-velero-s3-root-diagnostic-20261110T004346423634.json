@@ -1,0 +1,20 @@
+{
+  "phase": "diagnostic",
+  "exitCode": 1,
+  "stderrPresent": false,
+  "records": [
+    {
+      "phase": "diagnostic",
+      "failedStage": "preflight",
+      "exitCode": 1,
+      "owner": "velero-s3-seaweed-20261109-v1",
+      "errorType": "KeyError",
+      "detailsOmitted": true,
+      "ownedObjects": [],
+      "partialResourcesMayRemain": false,
+      "backupRestoreVerified": false
+    }
+  ],
+  "provider": "SeaweedFS 4.53",
+  "rawErrorsOmitted": true
+}

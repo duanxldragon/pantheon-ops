@@ -1,0 +1,193 @@
+
+> @duanxldragon/pantheon-base-ui@0.11.2 test:unit
+> vitest run tests/unit/business/operational/deploy-context.test.tsx
+
+(!) Your Vite config uses features that are unsupported by `configLoader: 'native'`, which is planned to become the default in a future major version of Vite:
+  - `__dirname` (vitest.config.ts:10:25). Use `import.meta.dirname` instead
+Set `VITE_CONFIG_NATIVE_IGNORE_WARNING=true` to suppress this warning.
+
+ RUN  v5.0.5 D:/workspace/go/pantheon-platform/pantheon-ops/frontend
+
+ ❯ tests/unit/business/operational/deploy-context.test.tsx (9 tests | 8 failed) 329ms
+   ❯ persisted host/attempt/step/stream context (9)
+     × shows the latest persisted attempt by default without old or unattributed logs 76ms
+     × keeps an explicit old attempt selected when a newer attempt arrives 18ms
+     × infers the attempt from a valid step deep link when attempt is absent 169ms
+     × cannot use a step from another attempt to override an explicit attempt 6ms
+     × resets dependent selections on host change while preserving unrelated URL state 15ms
+     × persists stream selection in the URL and preserves the selected attempt 4ms
+     × jumps to the first failed step in the latest attempt and its available error stream 14ms
+     × does not resurrect a paused snapshot after denial and reauthorization 17ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 8 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/unit/business/operational/deploy-context.test.tsx > persisted host/attempt/step/stream context > shows the latest persisted attempt by default without old or unattributed logs
+AssertionError: expected <p></p> to be null
+
+- Expected:
+null
+
++ Received:
+<p>
+  old error
+</p>
+
+ ❯ tests/unit/business/operational/deploy-context.test.tsx:47:45
+     45|     fixture.rows=[log(1,101,'old error'),log(2,202,'latest error'),log…
+     46|     setup();
+     47|     expect(screen.queryByText('old error')).toBeNull();
+       |                                             ^
+     48|     expect(screen.queryByText('unattributed')).toBeNull();
+     49|     expect(screen.getByText('latest error')).toBeTruthy();
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/8]⎯
+
+ FAIL  tests/unit/business/operational/deploy-context.test.tsx > persisted host/attempt/step/stream context > keeps an explicit old attempt selected when a newer attempt arrives
+AssertionError: expected <p></p> to be null
+
+- Expected:
+null
+
++ Received:
+<p>
+  new error
+</p>
+
+ ❯ tests/unit/business/operational/deploy-context.test.tsx:59:45
+     57|     rerender(view({...task}));
+     58|     expect(screen.getByText('old error')).toBeTruthy();
+     59|     expect(screen.queryByText('new error')).toBeNull();
+       |                                             ^
+     60|     expect(query().get('attempt')).toBe('1');
+     61|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/8]⎯
+
+ FAIL  tests/unit/business/operational/deploy-context.test.tsx > persisted host/attempt/step/stream context > infers the attempt from a valid step deep link when attempt is absent
+AssertionError: expected <button></button> to be null
+
+- Expected:
+null
+
++ Received:
+<button>
+  latest-install
+</button>
+
+ ❯ tests/unit/business/operational/deploy-context.test.tsx:67:66
+     65|     expect(screen.getByText('old error')).toBeTruthy();
+     66|     expect(screen.queryByText('new error')).toBeNull();
+     67|     expect(screen.queryByRole('button',{name:'latest-install'})).toBeN…
+       |                                                                  ^
+     68|   });
+     69|   it('cannot use a step from another attempt to override an explicit a…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/8]⎯
+
+ FAIL  tests/unit/business/operational/deploy-context.test.tsx > persisted host/attempt/step/stream context > cannot use a step from another attempt to override an explicit attempt
+AssertionError: expected <p></p> to be null
+
+- Expected:
+null
+
++ Received:
+<p>
+  old error
+</p>
+
+ ❯ tests/unit/business/operational/deploy-context.test.tsx:72:45
+     70|     fixture.rows=[log(1,101,'old error'),log(2,202,'new error')];
+     71|     setup('/task?host=11&attempt=2&step=101');
+     72|     expect(screen.queryByText('old error')).toBeNull();
+       |                                             ^
+     73|     expect(screen.getByText('new error')).toBeTruthy();
+     74|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/8]⎯
+
+ FAIL  tests/unit/business/operational/deploy-context.test.tsx > persisted host/attempt/step/stream context > resets dependent selections on host change while preserving unrelated URL state
+AssertionError: expected true to be false // Object.is equality
+
+- Expected
++ Received
+
+- false
++ true
+
+ ❯ tests/unit/business/operational/deploy-context.test.tsx:85:78
+     83|     fireEvent.change(screen.getByLabelText('business.deploy.logs.host'…
+     84|     expect(query().get('host')).toBe('12');
+     85|     for(const name of ['attempt','step','stream']) expect(query().has(…
+       |                                                                              ^
+     86|     expect(query().get('tab')).toBe('audit');
+     87|     expect(screen.queryByText('old error')).toBeNull();
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/8]⎯
+
+ FAIL  tests/unit/business/operational/deploy-context.test.tsx > persisted host/attempt/step/stream context > persists stream selection in the URL and preserves the selected attempt
+AssertionError: expected <p></p> to be null
+
+- Expected:
+null
+
++ Received:
+<p>
+  normal output
+</p>
+
+ ❯ tests/unit/business/operational/deploy-context.test.tsx:93:49
+     91|     fixture.rows=[log(1,202,'normal output'),log(2,202,'error output',…
+     92|     setup('/task?host=11&attempt=2&stream=stderr');
+     93|     expect(screen.queryByText('normal output')).toBeNull();
+       |                                                 ^
+     94|     expect(screen.getByText('error output')).toBeTruthy();
+     95|     fireEvent.change(screen.getByLabelText('business.deploy.logs.strea…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/8]⎯
+
+ FAIL  tests/unit/business/operational/deploy-context.test.tsx > persisted host/attempt/step/stream context > jumps to the first failed step in the latest attempt and its available error stream
+AssertionError: expected null to be '2' // Object.is equality
+
+- Expected:
+"2"
+
++ Received:
+null
+
+ ❯ tests/unit/business/operational/deploy-context.test.tsx:106:36
+    104|     fireEvent.click(screen.getByRole('button',{name:'business.deploy.l…
+    105|     expect(query().get('host')).toBe('11');
+    106|     expect(query().get('attempt')).toBe('2');
+       |                                    ^
+    107|     expect(query().get('step')).toBe('202');
+    108|     expect(query().get('stream')).toBe('stderr');
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/8]⎯
+
+ FAIL  tests/unit/business/operational/deploy-context.test.tsx > persisted host/attempt/step/stream context > does not resurrect a paused snapshot after denial and reauthorization
+AssertionError: expected <p></p> to be null
+
+- Expected:
+null
+
++ Received:
+<p>
+  before denial
+</p>
+
+ ❯ tests/unit/business/operational/deploy-context.test.tsx:119:49
+    117|     expect(screen.queryByText('before denial')).toBeNull();
+    118|     fixture.state='ready';fixture.rows=[log(2,202,'after reauthorizati…
+    119|     expect(screen.queryByText('before denial')).toBeNull();
+       |                                                 ^
+    120|     expect(screen.getByText('after reauthorization')).toBeTruthy();
+    121|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/8]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  8 failed | 1 passed (9)
+   Start at  08:03:43
+   Duration  1.95s (environment 55%, tests 19%, import 17%, transform 8%, worker 1%)
+

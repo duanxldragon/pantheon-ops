@@ -1,0 +1,7 @@
+secret/web-mysql created
+pod/web-mysql created
+pod/web-redis created
+
+pod/web-mysql condition met
+pod/web-redis condition met
+

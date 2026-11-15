@@ -1,0 +1,50 @@
+{
+  "createdUTC": "2026-11-10 01:37:07 UTC",
+  "parentTaskPacket": "docs/harness/tasks/2026-11-07-ops-planned-task-closeout.task.md",
+  "evidenceDirectory": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/",
+  "tier": "L2",
+  "rootRequestSHA256": "ea4d2d5e406f95cb3e838067f66ed32c40e0e7b02152e117d25e59ad1da4f812",
+  "reviewType": "generator-self-review",
+  "independentRootReviewPending": true,
+  "P0Approved": false,
+  "findings": [],
+  "resolvedDuringSelfReview": [
+    "ext4 unmount legitimately updates image hash; bind pre-unmount state and record post-unmount hash",
+    "mounted ext4 root may be 0755; require root canonical non-writable metadata, empty underlying 0700 mountpoint",
+    "remote hash output capacity increased for exact bounded growing receipt set",
+    "retain full actual diagnostic canonical values and timestamps without credential material"
+  ],
+  "graphChecks": {
+    "toolsUnavailable": "No codegraph tools were exposed",
+    "remoteUnchangedFunctions": [
+      "command",
+      "k",
+      "persist",
+      "sha",
+      "capacity",
+      "private_ip",
+      "absent",
+      "namespace",
+      "resource",
+      "apply",
+      "s3",
+      "load_artifacts",
+      "assert_bindings"
+    ],
+    "fixtureFunctionsASTIdentical": 6,
+    "validationDelta": "only v4 fixture filename; original assertions and MySQL/finite cleanup unchanged",
+    "boundary": "new ignored acceptance scripts only; no platform/system/product mutation"
+  },
+  "knownGaps": [
+    "No remote execution or real v4 acceptance performed by Generator",
+    "Root must review inspected data tree before approving exact snapshot SHA for cleanup",
+    "Original partial fixture preparation failure path preserved; ambiguous UID recovery needs actual state inspection",
+    "No overall P0, D1, IAM HTTP audit, production recovery or release approval"
+  ],
+  "gateOutcomes": [
+    "AST gate reproduced known intended delta only",
+    "private ports gate reproduced v3 rejection and v4 exact eight private ports",
+    "metadata/mount/identity/snapshot refusal fixtures pass"
+  ],
+  "checksPassed": true
+}

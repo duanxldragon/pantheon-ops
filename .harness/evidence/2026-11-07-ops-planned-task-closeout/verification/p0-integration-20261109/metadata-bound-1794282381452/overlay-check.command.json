@@ -1,0 +1,13 @@
+{
+  "startedAt": "2026-11-10T03:53:58.775Z",
+  "completedAt": "2026-11-10T03:53:58.905Z",
+  "executable": "node",
+  "args": [
+    "scripts/business-overlay/check-business-overlay.mjs"
+  ],
+  "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+  "exitCode": 0,
+  "signal": null,
+  "log": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.harness\\evidence\\2026-11-07-ops-planned-task-closeout\\verification\\p0-integration-20261109\\metadata-bound-1794282381452\\overlay-check.log",
+  "counts": {}
+}

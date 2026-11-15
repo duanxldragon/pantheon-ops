@@ -1,0 +1,14 @@
+import fs from 'node:fs';
+import path from 'node:path';
+import crypto from 'node:crypto';
+import { fileURLToPath } from 'node:url';
+const evidence = path.dirname(fileURLToPath(import.meta.url));
+const sha = p => crypto.createHash('sha256').update(fs.readFileSync(p)).digest('hex');
+const repair = '.harness/evidence/2026-11-07-ops-planned-task-closeout/o4-generator-code-safety-repair-20261110-01';
+const pins = JSON.parse(fs.readFileSync(path.join(repair, 'source-hashes.json')));
+const protectedFiles = JSON.parse(fs.readFileSync(path.join(repair, 'before-hashes.json'))).protectedFiles;
+const sources = pins.map(p => ({path:p.path, expected:p.newSha256, before:sha(p.path)}));
+const protectedPins = protectedFiles.map(p=>({...p,before:sha(p.path)}));
+if(sources.some(p=>p.before!==p.expected) || protectedPins.some(p=>p.before!==p.sha256)) throw new Error('Pin mismatch');
+fs.writeFileSync(path.join(evidence, 'source-hashes-before.json'), JSON.stringify({sources,protectedPins},null,2)+'\n', {flag:'wx'});
+console.log(JSON.stringify({node:process.version, sources:sources.length, protectedPins:protectedPins.length, allPinsMatch:true}));

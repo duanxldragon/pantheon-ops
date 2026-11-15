@@ -1,0 +1,30 @@
+{
+  "verification": "full",
+  "command": [
+    "D:\\Python\\Python312\\python.exe",
+    "-B",
+    "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\continue-velero-alias-v8-test.py",
+    "--full"
+  ],
+  "exitCode": 0,
+  "log": ".local/ops-acceptance/post-config-velero-v8/full-20261111T040001497784.log",
+  "logSHA256": "92bdfdbd485cba4cae286bce172e8f5d50b80dce9800f3b375a28f2064b65f34",
+  "sourceHashes": {
+    ".local/ops-acceptance/continue-velero-alias-v8-contract.py": "dfb05b10db25a85f80a54f0426e603288ff147ba7b972cb98479799461912a31",
+    ".local/ops-acceptance/continue-velero-alias-v8-remote.py": "19b9d25d67eb32589b8a2b8c8aa9db59a8246f16e5a97fe34f89ab1c8733d026",
+    ".local/ops-acceptance/continue-velero-alias-v8-root.py": "77088fd9d3d56b7a5abdd6c0dcf20411d753fc9cc8f5c4b0883d470ec556f21e",
+    ".local/ops-acceptance/continue-velero-alias-v8-generate.py": "e38d428cdd78711707257ec958afeddbaa0c98166e110808e881aca6b9ebb3e0",
+    ".local/ops-acceptance/continue-velero-alias-v8-test.py": "f4bbd8ad6d18019a748d5f8693c6ae1eeb2bd39c7d330b80fb43cbcff87ea214"
+  },
+  "sourceHashesStable": true,
+  "v7SourceHashes": {
+    ".local/ops-acceptance/continue-velero-alias-v7-contract.py": "c33a31f6d6af824a9fdff7560433a6f4a6a2e617ae4f93cc33fa12c7b9e5a2f5",
+    ".local/ops-acceptance/continue-velero-alias-v7-remote.py": "637368b547c41c0e11f234873998defe297435513aa2cccef17fddf1d82dfb71",
+    ".local/ops-acceptance/continue-velero-alias-v7-root.py": "a9ec79669b0ff5733842319a618415741bfa6b2ef30848d6762eac1936e347d3",
+    ".local/ops-acceptance/continue-velero-alias-v7-generate.py": "541c6ab85957a7b5b973a6e6ba30993cec46cf7f55cf8d38b6db6782b73aa870",
+    ".local/ops-acceptance/continue-velero-alias-v7-test.py": "da3cd46b5693b8dce507a064c693b5833a24513b7838d05f1b5699eb4fc4122a"
+  },
+  "v7SourceHashesStable": true,
+  "runtimeExecuted": false,
+  "actualGeneratorSealed": false
+}

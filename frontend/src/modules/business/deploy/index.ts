@@ -1,8 +1,10 @@
 import { defineModule } from '@duanxldragon/pantheon-base-ui';
+import { deployDashboardWidgets } from '../shared/dashboard-widgets';
 
 export const DeployModule = defineModule({
   name: 'deploy',
   scope: 'business',
+  dashboardWidgets: deployDashboardWidgets,
   routes: [
     {
       path: 'business/deploy/package',

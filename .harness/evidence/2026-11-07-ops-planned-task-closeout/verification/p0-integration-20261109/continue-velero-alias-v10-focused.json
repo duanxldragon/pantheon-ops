@@ -1,0 +1,31 @@
+{
+  "verification": "focused",
+  "command": [
+    "D:\\Python\\Python312\\python.exe",
+    "-B",
+    "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\continue-velero-alias-v10-test.py",
+    "V10CRDProjectionRegression",
+    "NativeAndPreparation.test_prepare_and_check_consume_original_products_without_writing"
+  ],
+  "exitCode": 0,
+  "log": ".local/ops-acceptance/post-config-velero-v10/focused-20261111T053134405832.log",
+  "logSHA256": "76a993ae85b14f3919901118aa5932d514098c22ff9a1cc0905f09c5f91c172c",
+  "sourceHashes": {
+    ".local/ops-acceptance/continue-velero-alias-v10-contract.py": "56b4932709872f6ef9f34cdf1a88a5c0b952ddd9d2c04c1e15c08adb4efa1a33",
+    ".local/ops-acceptance/continue-velero-alias-v10-remote.py": "0d95ec93fa7c292cb0a653d6e35dadb35196c90ed23d117a8f85b77d32450c59",
+    ".local/ops-acceptance/continue-velero-alias-v10-root.py": "8283a467f24ef6bf81f44374a8a33342ab6cafb1afe5d627602c6b8c1ca729a4",
+    ".local/ops-acceptance/continue-velero-alias-v10-generate.py": "4c9728711768d0111043c63160820d0f1993ce8e92842bb97594db92f45a36fe",
+    ".local/ops-acceptance/continue-velero-alias-v10-test.py": "dcb4041a11bcab07ff55800f65ed08325fc477db3a15184b320dee9438a5a869"
+  },
+  "sourceHashesStable": true,
+  "v9SourceHashes": {
+    ".local/ops-acceptance/continue-velero-alias-v9-contract.py": "4d0cafc45a28a062c9522e1d037c8223751ab6d6f8be8275547a7375eae081cb",
+    ".local/ops-acceptance/continue-velero-alias-v9-remote.py": "9808a19641723be60ae77fe8f4613ded2d55c71e2cebf70e11befba4a2a939ae",
+    ".local/ops-acceptance/continue-velero-alias-v9-root.py": "58724bdd924161dc41a37eed98917c64b748e4213fcc88507d9ba27063a2623e",
+    ".local/ops-acceptance/continue-velero-alias-v9-generate.py": "696288f7d6bf4bb865e5e116b2dcb19dc8627ba6493f6823aafedc404d0d841d",
+    ".local/ops-acceptance/continue-velero-alias-v9-test.py": "1b0410b652b27714332e689111e2c69f870eea19c685346fb99a1ed4349f2c6f"
+  },
+  "v9SourceHashesStable": true,
+  "runtimeExecuted": false,
+  "actualGeneratorSealed": false
+}

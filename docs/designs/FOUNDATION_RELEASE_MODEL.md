@@ -200,3 +200,7 @@ consumer repo -> consume base foundation release
 - Base version：临时 commit
 
 只有紧急例外才允许消费未发布 commit，并且必须留下原因、回滚边界和后续并入正式 release 的计划。
+
+## Consumer archive registry projection
+
+`config/foundation-consumer-artifacts.json` declares the Base-owned legacy-review registry and `.harness/archive` artifact root. A consumer assembler may project entries only when those exact Base archives are excluded by declared replace/exclusion roots. Source archive existence must be validated first; stale Base entries still fail. Retained Base artifacts remain listed. The generated registry records source owner, immutable Base commit, source-config SHA256 and excluded Base artifact paths. It never exempts current consumer reviews. The original Base registry and historical reviews are unchanged. This contract requires a new verified foundation release before consumer adoption.

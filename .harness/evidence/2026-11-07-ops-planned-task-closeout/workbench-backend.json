@@ -1,0 +1,7 @@
+{
+  "vetExitCode": 0,
+  "mysqlRequired": "1",
+  "raceExitCode": 1,
+  "buildExitCode": 0,
+  "cgo": "1"
+}

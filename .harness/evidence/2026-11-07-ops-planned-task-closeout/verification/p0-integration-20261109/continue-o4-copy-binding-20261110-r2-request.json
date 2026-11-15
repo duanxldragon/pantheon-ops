@@ -1,0 +1,138 @@
+{
+  "taskId": "2026-11-07-ops-planned-task-closeout",
+  "parent": "docs/harness/tasks/2026-11-07-ops-planned-task-closeout.task.md",
+  "tier": "L2",
+  "role": "Generator/executor",
+  "subject": "O4 copy binding follow-up: authenticated raw-original delta and zero new checkJs diagnostics across all three files",
+  "previousRequest": {
+    "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/continue-o4-copy-binding-20261110-r1-request.json",
+    "sha256": "6dc636da5804c8c1783f702bfe9e4618b9398b7a965461f5c7d6471ff72dc90e"
+  },
+  "historicalRequestSHA256": "9b6a0bec4daea400f8c99144934bbfcd87f0659db65e0993e8c91df085dd7786",
+  "evidence": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/continue-o4-copy-binding-20261110-r2-evidence.json",
+  "handoff": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/continue-o4-copy-binding-20261110-r2-handoff.md",
+  "sourceHashes": [
+    {
+      "path": "scripts/business-overlay/foundation-candidate.mjs",
+      "before": "17687364e7cc0420164707a9d92b33971f83d755efe57d61ace7e166a7105033",
+      "after": "77903fb900fcc676bea4b8246533db5fef8225ecef3a8fb8fdb75a21ed9bc552"
+    },
+    {
+      "path": "scripts/business-overlay/rebuild-from-candidate.mjs",
+      "before": "d92eb077c1b67cb3a0b291be24958db0533ecfac8c3c586930f0d9ce2468f104",
+      "after": "0d310bdcaffd8f961835737faf8aa6d1db1242bbdfa6ae10147e5e7871ed85c8"
+    },
+    {
+      "path": "scripts/business-overlay/candidate-copy-binding.test.mjs",
+      "before": null,
+      "after": "8e462b763f7588d2062230d7f3828e4e46f91b338c4b0c927f8c71c3a377f382"
+    }
+  ],
+  "r2OnlyChange": {
+    "path": "scripts/business-overlay/candidate-copy-binding.test.mjs",
+    "before": "d220d33cb27d140c4bcf702e6b2688ec2377b7ce0a8fa92cff1e089ec43326ad",
+    "after": "8e462b763f7588d2062230d7f3828e4e46f91b338c4b0c927f8c71c3a377f382",
+    "diff": {
+      "path": ".local/ops-acceptance/continue-o4-copy-binding-20261110-r2/r2-test-only.diff",
+      "sha256": "268338e768372ddc3738b02eaf6c1f2978df73f1b19181cd808cb512e9ed8266"
+    },
+    "description": "JSDoc/types, typed mock argument forwarding, BufferEncoding and callback typing; two production scripts unchanged from r1."
+  },
+  "originalProof": {
+    "command": "python .local/ops-acceptance/continue-o4-copy-binding-20261110-r2/byte-proof.py",
+    "script": {
+      "path": ".local/ops-acceptance/continue-o4-copy-binding-20261110-r2/byte-proof.py",
+      "sha256": "1ff55072ca39ab897b37b677651f2451679480c8dfc869f058cdcf080d0f0604"
+    },
+    "log": {
+      "path": ".local/ops-acceptance/continue-o4-copy-binding-20261110-r2/byte-proof-final.json",
+      "sha256": "b99f8f6d743b81acf6661e8ccfd4cf90e5c7c8bd21ad49d6b0dabf69ef7294bb"
+    },
+    "delta": {
+      "path": ".local/ops-acceptance/continue-o4-copy-binding-20261110-r2/byte-delta.json",
+      "sha256": "3c3995659e85a0c7bf330289ca0cf48374bb13f32e1f4d511b17f782204cef24"
+    },
+    "diff": {
+      "path": ".local/ops-acceptance/continue-o4-copy-binding-20261110-r2/source.diff",
+      "sha256": "c329e0ea1fbdf5fa1edf7d3527bbd942fb4d59a75f4ab9a2663c3153f56be6e2"
+    },
+    "rawOriginals": [
+      {
+        "path": ".local/ops-acceptance/continue-o4-copy-binding-20261110-r2/original/foundation-candidate.mjs",
+        "sha256": "17687364e7cc0420164707a9d92b33971f83d755efe57d61ace7e166a7105033",
+        "bytes": 46867
+      },
+      {
+        "path": ".local/ops-acceptance/continue-o4-copy-binding-20261110-r2/original/rebuild-from-candidate.mjs",
+        "sha256": "d92eb077c1b67cb3a0b291be24958db0533ecfac8c3c586930f0d9ce2468f104",
+        "bytes": 12326
+      }
+    ],
+    "recovery": "Literal inverse replacements from immutable r1 source record; raw bytes authenticated against original r1 request pins. No standalone pre-r1 backup is claimed.",
+    "retainedRecoveryRecord": {
+      "path": ".local/ops-acceptance/continue-o4-copy-binding-20261110-r1/review-diff.py",
+      "sha256": "45c4bfb86fa6fef9622c14decee06ce6fe7a3ac8a6b328492ea7346c8b723ca0"
+    },
+    "rawOriginalsAuthenticated": true,
+    "forwardAndReverseBytesEqual": true
+  },
+  "tests": [
+    {
+      "command": "python .local/ops-acceptance/continue-o4-copy-binding-20261110-r2/byte-proof.py",
+      "exitCode": 0,
+      "log": ".local/ops-acceptance/continue-o4-copy-binding-20261110-r2/byte-proof-final.json",
+      "sha256": "b99f8f6d743b81acf6661e8ccfd4cf90e5c7c8bd21ad49d6b0dabf69ef7294bb"
+    },
+    {
+      "command": "node .local/ops-acceptance/continue-o4-copy-binding-20261110-r2/diagnostics.mjs --original scripts/business-overlay/foundation-candidate.mjs scripts/business-overlay/rebuild-from-candidate.mjs scripts/business-overlay/candidate-copy-binding.test.mjs",
+      "exitCode": 0,
+      "log": ".local/ops-acceptance/continue-o4-copy-binding-20261110-r2/diagnostics-original-all3.json",
+      "sha256": "4464d334ab91f08d9e3ce422f6388ccdb601f01d386b354154e19b7844082933"
+    },
+    {
+      "command": "node .local/ops-acceptance/continue-o4-copy-binding-20261110-r2/diagnostics.mjs scripts/business-overlay/foundation-candidate.mjs scripts/business-overlay/rebuild-from-candidate.mjs scripts/business-overlay/candidate-copy-binding.test.mjs",
+      "exitCode": 0,
+      "log": ".local/ops-acceptance/continue-o4-copy-binding-20261110-r2/diagnostics-final-all3.json",
+      "sha256": "f8d92f525df5a091875efc030ae74f64ab67aeb65fae6534cb45b026395704de"
+    },
+    {
+      "command": "node --import ./.local/ops-acceptance/continue-o4-copy-binding-20261110-r2/preload.mjs --test --test-reporter=tap scripts/business-overlay/foundation-candidate.test.mjs scripts/business-overlay/candidate-ownership.test.mjs scripts/business-overlay/candidate-copy-binding.test.mjs tests/scripts/business-overlay/*.test.mjs",
+      "exitCode": 0,
+      "log": ".local/ops-acceptance/continue-o4-copy-binding-20261110-r2/focused-207.tap",
+      "sha256": "36380e45140803e09674db333e96452675f3506032d61cc89b7f7291c7b4dca2"
+    },
+    {
+      "command": "npm run check:business-overlay",
+      "exitCode": 0,
+      "log": ".local/ops-acceptance/continue-o4-copy-binding-20261110-r2/contract-powershell.log",
+      "sha256": "55ee542cb301d23a24fd6e9278e56ec687d7f91041b98119fb7c4c69aeabf13d"
+    }
+  ],
+  "diagnostics": {
+    "allChangedFilesIncluded": true,
+    "checkJs": true,
+    "inherited": 137,
+    "new": 0,
+    "newTest": 0,
+    "comparison": {
+      "path": ".local/ops-acceptance/continue-o4-copy-binding-20261110-r2/diagnostic-comparison.json",
+      "sha256": "1d70ae8991cc82f2b88e9dfffc072ca48e062d7c11b897b4717a4d7566625ccc"
+    }
+  },
+  "requestedReview": [
+    "CODE",
+    "ARCH"
+  ],
+  "reviewStatus": "pending",
+  "selfApproval": false,
+  "actualCompleteAssembly": false,
+  "officialConsumption": false,
+  "P0Closed": false,
+  "sixP0ParentsRemainOpen": true,
+  "remaining": [
+    "Root independent final CODE/ARCH review of this exact r2 request",
+    "Root actual complete assembly in a metadata-quiescent interval after actual review",
+    "O4 C-F requires an actual successful sourceStable consumer receipt and .local/ops-acceptance/continue-o4-reviewed-attempt-result.json",
+    "C-F and all six P0 parents remain open; identity/IAM/audit/network/CMDB-key-only, official consumption/full Ops/final visual-functional and broader tenancy/history/views gates remain open"
+  ]
+}

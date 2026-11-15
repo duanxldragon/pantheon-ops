@@ -1,0 +1,986 @@
+{
+  "phase": "inspect-native",
+  "exitCode": 0,
+  "remoteExecuted": true,
+  "rootRequestSHA256": "ea4d2d5e406f95cb3e838067f66ed32c40e0e7b02152e117d25e59ad1da4f812",
+  "v4ScriptHashes": {
+    ".local/ops-acceptance/resume-velero-s3-v4-fixture.py": "e32b5ceb96e68edf0a3af76b3dbde6362b0679387460e1e748f95c2e7ee93910",
+    ".local/ops-acceptance/resume-velero-s3-v4-generate.py": "45b9a273106739f87639130ae9bb93039fbf51209a94af4b60f8fc805badaf19",
+    ".local/ops-acceptance/resume-velero-s3-v4-native.py": "f116a423d4f5c207db032829fc22b4bb3b8179eec41624bb0d9d14f0c4be402a",
+    ".local/ops-acceptance/resume-velero-s3-v4-remote.py": "63b2e9a90fb7b54fc522e6190ff6ad0cb353f199752dd7fea76b7d93cb47183a",
+    ".local/ops-acceptance/resume-velero-s3-v4-root.py": "20209264b26af232a1b8c68e93943b5496e37ff93098f100928b81df5b186898",
+    ".local/ops-acceptance/resume-velero-s3-v4-test.py": "3fb7373b6903ffd3f805e2c48378a58f1ce63573377dc1c5b9b8dab49cb27da0"
+  },
+  "originalScriptHashesVerified": 8,
+  "productSourceHashesVerified": 17,
+  "driverBinarySHA256": "7204fc7cabbfe4ed9b73c4edf83fedd9f917c2f614b943f287baab8da0d5244e",
+  "providerInstalled": false,
+  "backupRestoreVerified": false,
+  "P0Approved": false,
+  "records": [
+    {
+      "phase": "inspect",
+      "exitCode": 0,
+      "owner": "velero-s3-seaweed-20261109-v1",
+      "details": {
+        "files": {
+          "resume-velero-s3-prep.py": {
+            "bytes": 10139,
+            "mode": 384,
+            "device": 64770,
+            "inode": 2211173,
+            "sha256": "0b5219ab2fe498a81b5d224c35dc8eaa7827f68467ab4dbee413a45a6445cc02"
+          },
+          "resume-velero-s3-remote.py": {
+            "bytes": 24070,
+            "mode": 384,
+            "device": 64770,
+            "inode": 2211174,
+            "sha256": "6fe70db7027d422a5a03a990039359c3359997c26fc817c89109967f30da21b9"
+          },
+          "resume-velero-s3-fixture.py": {
+            "bytes": 13090,
+            "mode": 384,
+            "device": 64770,
+            "inode": 2211175,
+            "sha256": "c6badc5582f0cd679450050818abd56cdec6518d6a14cd01f69ff0c6d5c0d055"
+          },
+          "resume-velero-s3-artifacts.json": {
+            "bytes": 15246,
+            "mode": 384,
+            "device": 64770,
+            "inode": 2211176,
+            "sha256": "e54e0c8b9596349bcd36c95cba0f022ea65a9d5b8b9e69b3c0974acd893bc22b"
+          },
+          "seaweedfs-4.53-release.json": {
+            "bytes": 152008,
+            "mode": 384,
+            "device": 64770,
+            "inode": 2211177,
+            "sha256": "7908e97ed2a798b18fe07ccf665143a19d5655d98d30ee1b54d93d8c145f7344"
+          },
+          "linux_amd64.tar.gz": {
+            "bytes": 48457480,
+            "mode": 384,
+            "device": 64770,
+            "inode": 2211178,
+            "sha256": "d1a7dec9f48d8b33895a0ea8951971defc2dc5312906dcc76fa5a5f74a6ee90d"
+          },
+          "velero-v1.17.0-linux-amd64.tar.gz": {
+            "bytes": 58499469,
+            "mode": 384,
+            "device": 64770,
+            "inode": 2211179,
+            "sha256": "f507a956cf8ec00f483f5d7b04901614a9016a10feb32b3ecc968da36b4fc7be"
+          },
+          "velero-velero-v1.17.0.oci.tar": {
+            "bytes": 80906240,
+            "mode": 384,
+            "device": 64770,
+            "inode": 2211180,
+            "sha256": "86b8928b6b053f7bb573df6f6492841f7e96ad03647f9ec9857351c4d267bea4"
+          },
+          "velero-velero-plugin-for-aws-v1.13.0.oci.tar": {
+            "bytes": 41523200,
+            "mode": 384,
+            "device": 64770,
+            "inode": 2211181,
+            "sha256": "494a8f752943a96c7a08ddfa1f2059eb07291039b37bca1518566eef41df554e"
+          },
+          "resume-velero-s3-diagnostic-20261110T004347017585.json": {
+            "bytes": 266,
+            "mode": 384,
+            "device": 64770,
+            "inode": 2211182,
+            "sha256": "708ec9d2777d8fe3c12dcbd4bb16ad984b299821b614b05a57971ae8b732ea8c"
+          },
+          "resume-velero-s3-v3-remote.py": {
+            "bytes": 26081,
+            "mode": 384,
+            "device": 64770,
+            "inode": 2211187,
+            "sha256": "7b1ba58c52d340a7d121c72e537baa3e20b072c0635289f9f82d97e5761ab7a5"
+          },
+          "resume-velero-s3-diagnostic-20261110T010938338222.json": {
+            "bytes": 739,
+            "mode": 384,
+            "device": 64770,
+            "inode": 2211192,
+            "sha256": "8d58b6fd6cb34a2aa02f2438e7053b9d7b345459ba77084933c3e4006ae2141e"
+          },
+          "resume-velero-s3-diagnostic.json": {
+            "bytes": 739,
+            "mode": 384,
+            "device": 64770,
+            "inode": 2211191,
+            "sha256": "8d58b6fd6cb34a2aa02f2438e7053b9d7b345459ba77084933c3e4006ae2141e"
+          },
+          "resume-velero-s3-help.json": {
+            "bytes": 17756,
+            "mode": 384,
+            "device": 64770,
+            "inode": 2211190,
+            "sha256": "b8f38fab05bfa9e66b44f1dccae35c7098b5ba5dc8c2e20152545cc032f8f268"
+          },
+          "velero": {
+            "bytes": 142581282,
+            "mode": 448,
+            "device": 64770,
+            "inode": 2211189,
+            "sha256": "e7e14133f1a13d759d43b2bf188cf1a078ffe36184d25f77ae4005fc7c26e739"
+          },
+          "weed": {
+            "bytes": 156401824,
+            "mode": 448,
+            "device": 64770,
+            "inode": 2211188,
+            "sha256": "fa936e61bfb11f33c1f823045c4007e7da4b8b38bb6adc3b970f132d832e805b"
+          },
+          "resume-velero-s3-v4-remote.py": {
+            "bytes": 26221,
+            "mode": 384,
+            "device": 64770,
+            "inode": 2211193,
+            "sha256": "63b2e9a90fb7b54fc522e6190ff6ad0cb353f199752dd7fea76b7d93cb47183a"
+          },
+          "resume-velero-s3-v4-fixture.py": {
+            "bytes": 13093,
+            "mode": 384,
+            "device": 64770,
+            "inode": 2211194,
+            "sha256": "e32b5ceb96e68edf0a3af76b3dbde6362b0679387460e1e748f95c2e7ee93910"
+          },
+          "resume-velero-s3-v4-native.py": {
+            "bytes": 12736,
+            "mode": 384,
+            "device": 64770,
+            "inode": 2211195,
+            "sha256": "f116a423d4f5c207db032829fc22b4bb3b8179eec41624bb0d9d14f0c4be402a"
+          },
+          "resume-velero-s3-install-20261110T011213809221.json": {
+            "bytes": 277,
+            "mode": 384,
+            "device": 64770,
+            "inode": 2211186,
+            "sha256": "863d7d71749d569a5317d27998b9b4cf6a59415c70ce2d9b96d0966653506cdd"
+          }
+        },
+        "failedInstallReceipt": "resume-velero-s3-install-20261110T011213809221.json",
+        "unit": {
+          "MainPID": "0",
+          "LoadState": "not-found",
+          "ActiveState": "inactive"
+        },
+        "kubernetesProviderObjectsAbsent": true,
+        "image": {
+          "bytes": 268435456,
+          "mode": 384,
+          "device": 64770,
+          "inode": 2211183,
+          "sha256": "12e0c83a027fc3e9770e3fc1c132ace9eab51fd25be2c61d7fee5a77a4021156"
+        },
+        "auth": {
+          "bytes": 260,
+          "mode": 384,
+          "device": 64770,
+          "inode": 2211185,
+          "sha256": "b607e9346eb76d5d75f561fb252b213186dfd6b7bef58f96c7448cd565cf3735",
+          "identityCount": 1,
+          "credentialCount": 1
+        },
+        "data": {
+          "bytes": 4096,
+          "mode": 493,
+          "device": 1792,
+          "inode": 2
+        },
+        "mount": {
+          "mount": {
+            "target": "/opt/pantheon-p0-20261109/velero-s3-seaweed-v1/data",
+            "source": "/dev/loop0",
+            "fstype": "ext4",
+            "options": "rw,nosuid,nodev,noexec,relatime"
+          },
+          "loop": {
+            "name": "/dev/loop0",
+            "back-file": "/opt/pantheon-p0-20261109/velero-s3-seaweed-v1/data.img",
+            "back-ino": 2211183,
+            "offset": 0,
+            "sizelimit": 0,
+            "ro": false
+          }
+        },
+        "dataTree": [
+          {
+            "path": ".vid_stamp",
+            "directory": false,
+            "bytes": 69,
+            "mode": 384,
+            "device": 1792,
+            "inode": 37,
+            "sha256": "b546257f9a843409758ed96ba864e24a82ab30a64b6fea6d408bc61ea48f6716"
+          },
+          {
+            "path": "1.dat",
+            "directory": false,
+            "bytes": 744,
+            "mode": 384,
+            "device": 1792,
+            "inode": 61,
+            "sha256": "6c2009f369d0679ede38f213d2dccb7a3d7018f09989eaae05b80030b03cfbfb"
+          },
+          {
+            "path": "1.idx",
+            "directory": false,
+            "bytes": 16,
+            "mode": 384,
+            "device": 1792,
+            "inode": 69,
+            "sha256": "85bbcb366f328a9090c20b5559c49acfb4dd3c00ca63f381ab6df17ef75ec119"
+          },
+          {
+            "path": "1.vif",
+            "directory": false,
+            "bytes": 203,
+            "mode": 420,
+            "device": 1792,
+            "inode": 70,
+            "sha256": "f4004760ebdf91d1dada887db2e8d36e46ce0cc53a6f20da074438e9c11fc2c5"
+          },
+          {
+            "path": "filerldb2",
+            "directory": true,
+            "bytes": 4096,
+            "mode": 448,
+            "device": 1792,
+            "inode": 32769
+          },
+          {
+            "path": "filerldb2/00",
+            "directory": true,
+            "bytes": 4096,
+            "mode": 448,
+            "device": 1792,
+            "inode": 16
+          },
+          {
+            "path": "filerldb2/00/000002.ldb",
+            "directory": false,
+            "bytes": 374,
+            "mode": 384,
+            "device": 1792,
+            "inode": 71,
+            "sha256": "94a862062b67f1bedef17be6cabce607d3a913a78abfede56da92048640375d9"
+          },
+          {
+            "path": "filerldb2/00/000003.log",
+            "directory": false,
+            "bytes": 0,
+            "mode": 384,
+            "device": 1792,
+            "inode": 72,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "path": "filerldb2/00/CURRENT",
+            "directory": false,
+            "bytes": 16,
+            "mode": 384,
+            "device": 1792,
+            "inode": 75,
+            "sha256": "0861415cada612ea5834d56e2cf1055d3e63979b69eb71d32ae9ae394d8306cd"
+          },
+          {
+            "path": "filerldb2/00/CURRENT.bak",
+            "directory": false,
+            "bytes": 16,
+            "mode": 384,
+            "device": 1792,
+            "inode": 74,
+            "sha256": "179aee986b08dd1c9b42165766a9f86be710e30d130c79ff234c4f8fbfb85f76"
+          },
+          {
+            "path": "filerldb2/00/LOCK",
+            "directory": false,
+            "bytes": 0,
+            "mode": 384,
+            "device": 1792,
+            "inode": 17,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "path": "filerldb2/00/LOG",
+            "directory": false,
+            "bytes": 1115,
+            "mode": 384,
+            "device": 1792,
+            "inode": 18,
+            "sha256": "ec6ecf5bddadb8812d94fda35b08df806a07ed2108ca28a8b18fb0a6b119df63"
+          },
+          {
+            "path": "filerldb2/00/MANIFEST-000004",
+            "directory": false,
+            "bytes": 197,
+            "mode": 384,
+            "device": 1792,
+            "inode": 73,
+            "sha256": "163a75dbe64d3a6a102baf0104ba3ffcb9a89e50c32e0cc8d53357811435b4a7"
+          },
+          {
+            "path": "filerldb2/01",
+            "directory": true,
+            "bytes": 4096,
+            "mode": 448,
+            "device": 1792,
+            "inode": 22
+          },
+          {
+            "path": "filerldb2/01/000002.ldb",
+            "directory": false,
+            "bytes": 376,
+            "mode": 384,
+            "device": 1792,
+            "inode": 19,
+            "sha256": "6320f18272f4b2d04bead29045dbdd564196aae12390ed583e3aeaf8980dabb3"
+          },
+          {
+            "path": "filerldb2/01/000003.log",
+            "directory": false,
+            "bytes": 0,
+            "mode": 384,
+            "device": 1792,
+            "inode": 20,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "path": "filerldb2/01/CURRENT",
+            "directory": false,
+            "bytes": 16,
+            "mode": 384,
+            "device": 1792,
+            "inode": 77,
+            "sha256": "0861415cada612ea5834d56e2cf1055d3e63979b69eb71d32ae9ae394d8306cd"
+          },
+          {
+            "path": "filerldb2/01/CURRENT.bak",
+            "directory": false,
+            "bytes": 16,
+            "mode": 384,
+            "device": 1792,
+            "inode": 76,
+            "sha256": "179aee986b08dd1c9b42165766a9f86be710e30d130c79ff234c4f8fbfb85f76"
+          },
+          {
+            "path": "filerldb2/01/LOCK",
+            "directory": false,
+            "bytes": 0,
+            "mode": 384,
+            "device": 1792,
+            "inode": 23,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "path": "filerldb2/01/LOG",
+            "directory": false,
+            "bytes": 1105,
+            "mode": 384,
+            "device": 1792,
+            "inode": 24,
+            "sha256": "b74e2bcd73b7f46a5e6c5d39ea0b002c9e7e55fecb3343204da348e14575c046"
+          },
+          {
+            "path": "filerldb2/01/MANIFEST-000004",
+            "directory": false,
+            "bytes": 169,
+            "mode": 384,
+            "device": 1792,
+            "inode": 21,
+            "sha256": "3738e15f2943ef4401b4cc605a122d77bcc795fb876ac4a90cce6b3ddff530fe"
+          },
+          {
+            "path": "filerldb2/02",
+            "directory": true,
+            "bytes": 4096,
+            "mode": 448,
+            "device": 1792,
+            "inode": 28
+          },
+          {
+            "path": "filerldb2/02/000002.ldb",
+            "directory": false,
+            "bytes": 256,
+            "mode": 384,
+            "device": 1792,
+            "inode": 25,
+            "sha256": "d9a26813536aff4fdb7ecb5f76bc1f014eaee6264d926c9d2f8363b2c6d894ee"
+          },
+          {
+            "path": "filerldb2/02/000003.log",
+            "directory": false,
+            "bytes": 0,
+            "mode": 384,
+            "device": 1792,
+            "inode": 26,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "path": "filerldb2/02/CURRENT",
+            "directory": false,
+            "bytes": 16,
+            "mode": 384,
+            "device": 1792,
+            "inode": 79,
+            "sha256": "0861415cada612ea5834d56e2cf1055d3e63979b69eb71d32ae9ae394d8306cd"
+          },
+          {
+            "path": "filerldb2/02/CURRENT.bak",
+            "directory": false,
+            "bytes": 16,
+            "mode": 384,
+            "device": 1792,
+            "inode": 78,
+            "sha256": "179aee986b08dd1c9b42165766a9f86be710e30d130c79ff234c4f8fbfb85f76"
+          },
+          {
+            "path": "filerldb2/02/LOCK",
+            "directory": false,
+            "bytes": 0,
+            "mode": 384,
+            "device": 1792,
+            "inode": 29,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "path": "filerldb2/02/LOG",
+            "directory": false,
+            "bytes": 1112,
+            "mode": 384,
+            "device": 1792,
+            "inode": 30,
+            "sha256": "ef712dd23140aaa64c2e4ca0ca08d80063c9c19a2882ef81bedec9735365bb80"
+          },
+          {
+            "path": "filerldb2/02/MANIFEST-000004",
+            "directory": false,
+            "bytes": 175,
+            "mode": 384,
+            "device": 1792,
+            "inode": 27,
+            "sha256": "15c6d23cc089bf6bf15f6c752cd8d9fbf16a6553570ebe8631a22ad59ac9ce6a"
+          },
+          {
+            "path": "filerldb2/03",
+            "directory": true,
+            "bytes": 4096,
+            "mode": 448,
+            "device": 1792,
+            "inode": 34
+          },
+          {
+            "path": "filerldb2/03/000002.ldb",
+            "directory": false,
+            "bytes": 324,
+            "mode": 384,
+            "device": 1792,
+            "inode": 31,
+            "sha256": "81bca9a9cfd5d97213d0fdcc6dd1e4efb83dc9ae5c5df9e04cf94817ff170dec"
+          },
+          {
+            "path": "filerldb2/03/000003.log",
+            "directory": false,
+            "bytes": 0,
+            "mode": 384,
+            "device": 1792,
+            "inode": 32,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "path": "filerldb2/03/CURRENT",
+            "directory": false,
+            "bytes": 16,
+            "mode": 384,
+            "device": 1792,
+            "inode": 81,
+            "sha256": "0861415cada612ea5834d56e2cf1055d3e63979b69eb71d32ae9ae394d8306cd"
+          },
+          {
+            "path": "filerldb2/03/CURRENT.bak",
+            "directory": false,
+            "bytes": 16,
+            "mode": 384,
+            "device": 1792,
+            "inode": 80,
+            "sha256": "179aee986b08dd1c9b42165766a9f86be710e30d130c79ff234c4f8fbfb85f76"
+          },
+          {
+            "path": "filerldb2/03/LOCK",
+            "directory": false,
+            "bytes": 0,
+            "mode": 384,
+            "device": 1792,
+            "inode": 35,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "path": "filerldb2/03/LOG",
+            "directory": false,
+            "bytes": 1109,
+            "mode": 384,
+            "device": 1792,
+            "inode": 36,
+            "sha256": "ef5af15648c3e9539940b44937c9d5c9143e75965d38e5cbcbe8afe69c9b97f7"
+          },
+          {
+            "path": "filerldb2/03/MANIFEST-000004",
+            "directory": false,
+            "bytes": 185,
+            "mode": 384,
+            "device": 1792,
+            "inode": 33,
+            "sha256": "eb5acf72d9706a08cfc8958de9a478de9f9cf551c6017ac3c3efe889d4627112"
+          },
+          {
+            "path": "filerldb2/04",
+            "directory": true,
+            "bytes": 4096,
+            "mode": 448,
+            "device": 1792,
+            "inode": 40
+          },
+          {
+            "path": "filerldb2/04/000002.ldb",
+            "directory": false,
+            "bytes": 285,
+            "mode": 384,
+            "device": 1792,
+            "inode": 38,
+            "sha256": "435ce7b629cdaf25ad2ade2029c6001ee0f9c940d8ff2bd0762a3d3370b08706"
+          },
+          {
+            "path": "filerldb2/04/000003.log",
+            "directory": false,
+            "bytes": 0,
+            "mode": 384,
+            "device": 1792,
+            "inode": 39,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "path": "filerldb2/04/CURRENT",
+            "directory": false,
+            "bytes": 16,
+            "mode": 384,
+            "device": 1792,
+            "inode": 83,
+            "sha256": "0861415cada612ea5834d56e2cf1055d3e63979b69eb71d32ae9ae394d8306cd"
+          },
+          {
+            "path": "filerldb2/04/CURRENT.bak",
+            "directory": false,
+            "bytes": 16,
+            "mode": 384,
+            "device": 1792,
+            "inode": 82,
+            "sha256": "179aee986b08dd1c9b42165766a9f86be710e30d130c79ff234c4f8fbfb85f76"
+          },
+          {
+            "path": "filerldb2/04/LOCK",
+            "directory": false,
+            "bytes": 0,
+            "mode": 384,
+            "device": 1792,
+            "inode": 41,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "path": "filerldb2/04/LOG",
+            "directory": false,
+            "bytes": 1101,
+            "mode": 384,
+            "device": 1792,
+            "inode": 42,
+            "sha256": "f8076a7a4e2864aa1207a69aa242312f96edb19e3d6629f5810f937375263290"
+          },
+          {
+            "path": "filerldb2/04/MANIFEST-000004",
+            "directory": false,
+            "bytes": 161,
+            "mode": 384,
+            "device": 1792,
+            "inode": 65,
+            "sha256": "f0197c7a5e4a44ebe9cfb0c71263c91a53a3e8b0332c6f272509f1594b6b43b2"
+          },
+          {
+            "path": "filerldb2/05",
+            "directory": true,
+            "bytes": 4096,
+            "mode": 448,
+            "device": 1792,
+            "inode": 46
+          },
+          {
+            "path": "filerldb2/05/000002.log",
+            "directory": false,
+            "bytes": 0,
+            "mode": 384,
+            "device": 1792,
+            "inode": 43,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "path": "filerldb2/05/CURRENT",
+            "directory": false,
+            "bytes": 16,
+            "mode": 384,
+            "device": 1792,
+            "inode": 84,
+            "sha256": "f1e338495ed17df4b482ce25d53b545e17b782ec77ada5331286ecab66c6d55b"
+          },
+          {
+            "path": "filerldb2/05/CURRENT.bak",
+            "directory": false,
+            "bytes": 16,
+            "mode": 384,
+            "device": 1792,
+            "inode": 45,
+            "sha256": "179aee986b08dd1c9b42165766a9f86be710e30d130c79ff234c4f8fbfb85f76"
+          },
+          {
+            "path": "filerldb2/05/LOCK",
+            "directory": false,
+            "bytes": 0,
+            "mode": 384,
+            "device": 1792,
+            "inode": 47,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "path": "filerldb2/05/LOG",
+            "directory": false,
+            "bytes": 1007,
+            "mode": 384,
+            "device": 1792,
+            "inode": 48,
+            "sha256": "5cad487f549a4527889099e6b564d26311fac7817de2af41047e0186d628a0cb"
+          },
+          {
+            "path": "filerldb2/05/MANIFEST-000003",
+            "directory": false,
+            "bytes": 41,
+            "mode": 384,
+            "device": 1792,
+            "inode": 44,
+            "sha256": "3933e8c40512b17c4012d1b4b019126517157dd3aee3f384e6256bc8e34037ec"
+          },
+          {
+            "path": "filerldb2/06",
+            "directory": true,
+            "bytes": 4096,
+            "mode": 448,
+            "device": 1792,
+            "inode": 52
+          },
+          {
+            "path": "filerldb2/06/000002.log",
+            "directory": false,
+            "bytes": 0,
+            "mode": 384,
+            "device": 1792,
+            "inode": 49,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "path": "filerldb2/06/CURRENT",
+            "directory": false,
+            "bytes": 16,
+            "mode": 384,
+            "device": 1792,
+            "inode": 85,
+            "sha256": "f1e338495ed17df4b482ce25d53b545e17b782ec77ada5331286ecab66c6d55b"
+          },
+          {
+            "path": "filerldb2/06/CURRENT.bak",
+            "directory": false,
+            "bytes": 16,
+            "mode": 384,
+            "device": 1792,
+            "inode": 51,
+            "sha256": "179aee986b08dd1c9b42165766a9f86be710e30d130c79ff234c4f8fbfb85f76"
+          },
+          {
+            "path": "filerldb2/06/LOCK",
+            "directory": false,
+            "bytes": 0,
+            "mode": 384,
+            "device": 1792,
+            "inode": 53,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "path": "filerldb2/06/LOG",
+            "directory": false,
+            "bytes": 1007,
+            "mode": 384,
+            "device": 1792,
+            "inode": 54,
+            "sha256": "9b050423edd46e9749a874ce7b22fadca60dd9d4bfd8428be9c44f3ceaae06be"
+          },
+          {
+            "path": "filerldb2/06/MANIFEST-000003",
+            "directory": false,
+            "bytes": 41,
+            "mode": 384,
+            "device": 1792,
+            "inode": 50,
+            "sha256": "3933e8c40512b17c4012d1b4b019126517157dd3aee3f384e6256bc8e34037ec"
+          },
+          {
+            "path": "filerldb2/07",
+            "directory": true,
+            "bytes": 4096,
+            "mode": 448,
+            "device": 1792,
+            "inode": 59
+          },
+          {
+            "path": "filerldb2/07/000002.log",
+            "directory": false,
+            "bytes": 0,
+            "mode": 384,
+            "device": 1792,
+            "inode": 55,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "path": "filerldb2/07/CURRENT",
+            "directory": false,
+            "bytes": 16,
+            "mode": 384,
+            "device": 1792,
+            "inode": 86,
+            "sha256": "f1e338495ed17df4b482ce25d53b545e17b782ec77ada5331286ecab66c6d55b"
+          },
+          {
+            "path": "filerldb2/07/CURRENT.bak",
+            "directory": false,
+            "bytes": 16,
+            "mode": 384,
+            "device": 1792,
+            "inode": 57,
+            "sha256": "179aee986b08dd1c9b42165766a9f86be710e30d130c79ff234c4f8fbfb85f76"
+          },
+          {
+            "path": "filerldb2/07/LOCK",
+            "directory": false,
+            "bytes": 0,
+            "mode": 384,
+            "device": 1792,
+            "inode": 15,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "path": "filerldb2/07/LOG",
+            "directory": false,
+            "bytes": 1007,
+            "mode": 384,
+            "device": 1792,
+            "inode": 60,
+            "sha256": "0ae2442a2c44e5190abfad38c58ae299b64a430272fd996ff250138d4df07971"
+          },
+          {
+            "path": "filerldb2/07/MANIFEST-000003",
+            "directory": false,
+            "bytes": 41,
+            "mode": 384,
+            "device": 1792,
+            "inode": 56,
+            "sha256": "3933e8c40512b17c4012d1b4b019126517157dd3aee3f384e6256bc8e34037ec"
+          },
+          {
+            "path": "lost+found",
+            "directory": true,
+            "bytes": 16384,
+            "mode": 448,
+            "device": 1792,
+            "inode": 11
+          },
+          {
+            "path": "m19333",
+            "directory": true,
+            "bytes": 4096,
+            "mode": 448,
+            "device": 1792,
+            "inode": 12
+          },
+          {
+            "path": "m19333/conf",
+            "directory": false,
+            "bytes": 28,
+            "mode": 384,
+            "device": 1792,
+            "inode": 58,
+            "sha256": "23e173a1bf01f53c0bedbc0ce62eaa55da7bc259caafd670fe700ff9887c80ce"
+          },
+          {
+            "path": "m19333/log",
+            "directory": false,
+            "bytes": 498,
+            "mode": 384,
+            "device": 1792,
+            "inode": 14,
+            "sha256": "fac87ecdfd6014aa5fd9cbfe113eb239cf9e639dfc92e5402bda4a47fbd6bafd"
+          },
+          {
+            "path": "m19333/max_volume_id",
+            "directory": false,
+            "bytes": 90,
+            "mode": 384,
+            "device": 1792,
+            "inode": 66,
+            "sha256": "56f5acf3392c1accbdb471c958fb476c9282fe26988e0ffcda7ccfe20f1e99d7"
+          },
+          {
+            "path": "m19333/snapshot",
+            "directory": true,
+            "bytes": 4096,
+            "mode": 448,
+            "device": 1792,
+            "inode": 13
+          },
+          {
+            "path": "m19333/snapshot/0_4.ss",
+            "directory": false,
+            "bytes": 314,
+            "mode": 384,
+            "device": 1792,
+            "inode": 68,
+            "sha256": "a4345d4dd35067b7ab09cc326e795161098338dd45dd61cd8581668dfe1a96ce"
+          },
+          {
+            "path": "m19333/state",
+            "directory": false,
+            "bytes": 57,
+            "mode": 384,
+            "device": 1792,
+            "inode": 62,
+            "sha256": "a9b7126319a1dc0d4cf61b2808bc7a6a79935eb9dee9d21b1ab2814312c2862e"
+          },
+          {
+            "path": "vol_dir.uuid",
+            "directory": false,
+            "bytes": 36,
+            "mode": 384,
+            "device": 1792,
+            "inode": 64,
+            "sha256": "441ba7ace9090cdfc72b1fe82a8e56aea5d01aca34552e061fd969db25d7c4b5"
+          }
+        ]
+      },
+      "rootRequestSHA256": "ea4d2d5e406f95cb3e838067f66ed32c40e0e7b02152e117d25e59ad1da4f812",
+      "backupRestoreVerified": false
+    }
+  ],
+  "remoteFiles": {
+    "resume-velero-s3-prep.py": {
+      "sha256": "0b5219ab2fe498a81b5d224c35dc8eaa7827f68467ab4dbee413a45a6445cc02",
+      "bytes": 10139,
+      "mode": 384
+    },
+    "resume-velero-s3-remote.py": {
+      "sha256": "6fe70db7027d422a5a03a990039359c3359997c26fc817c89109967f30da21b9",
+      "bytes": 24070,
+      "mode": 384
+    },
+    "resume-velero-s3-fixture.py": {
+      "sha256": "c6badc5582f0cd679450050818abd56cdec6518d6a14cd01f69ff0c6d5c0d055",
+      "bytes": 13090,
+      "mode": 384
+    },
+    "resume-velero-s3-artifacts.json": {
+      "sha256": "e54e0c8b9596349bcd36c95cba0f022ea65a9d5b8b9e69b3c0974acd893bc22b",
+      "bytes": 15246,
+      "mode": 384
+    },
+    "seaweedfs-4.53-release.json": {
+      "sha256": "7908e97ed2a798b18fe07ccf665143a19d5655d98d30ee1b54d93d8c145f7344",
+      "bytes": 152008,
+      "mode": 384
+    },
+    "linux_amd64.tar.gz": {
+      "sha256": "d1a7dec9f48d8b33895a0ea8951971defc2dc5312906dcc76fa5a5f74a6ee90d",
+      "bytes": 48457480,
+      "mode": 384
+    },
+    "velero-v1.17.0-linux-amd64.tar.gz": {
+      "sha256": "f507a956cf8ec00f483f5d7b04901614a9016a10feb32b3ecc968da36b4fc7be",
+      "bytes": 58499469,
+      "mode": 384
+    },
+    "velero-velero-v1.17.0.oci.tar": {
+      "sha256": "86b8928b6b053f7bb573df6f6492841f7e96ad03647f9ec9857351c4d267bea4",
+      "bytes": 80906240,
+      "mode": 384
+    },
+    "velero-velero-plugin-for-aws-v1.13.0.oci.tar": {
+      "sha256": "494a8f752943a96c7a08ddfa1f2059eb07291039b37bca1518566eef41df554e",
+      "bytes": 41523200,
+      "mode": 384
+    },
+    "resume-velero-s3-diagnostic-20261110T004347017585.json": {
+      "sha256": "708ec9d2777d8fe3c12dcbd4bb16ad984b299821b614b05a57971ae8b732ea8c",
+      "bytes": 266,
+      "mode": 384
+    },
+    "resume-velero-s3-v3-remote.py": {
+      "sha256": "7b1ba58c52d340a7d121c72e537baa3e20b072c0635289f9f82d97e5761ab7a5",
+      "bytes": 26081,
+      "mode": 384
+    },
+    "resume-velero-s3-diagnostic-20261110T010938338222.json": {
+      "sha256": "8d58b6fd6cb34a2aa02f2438e7053b9d7b345459ba77084933c3e4006ae2141e",
+      "bytes": 739,
+      "mode": 384
+    },
+    "resume-velero-s3-diagnostic.json": {
+      "sha256": "8d58b6fd6cb34a2aa02f2438e7053b9d7b345459ba77084933c3e4006ae2141e",
+      "bytes": 739,
+      "mode": 384
+    },
+    "resume-velero-s3-help.json": {
+      "sha256": "b8f38fab05bfa9e66b44f1dccae35c7098b5ba5dc8c2e20152545cc032f8f268",
+      "bytes": 17756,
+      "mode": 384
+    },
+    "velero": {
+      "sha256": "e7e14133f1a13d759d43b2bf188cf1a078ffe36184d25f77ae4005fc7c26e739",
+      "bytes": 142581282,
+      "mode": 448
+    },
+    "weed": {
+      "sha256": "fa936e61bfb11f33c1f823045c4007e7da4b8b38bb6adc3b970f132d832e805b",
+      "bytes": 156401824,
+      "mode": 448
+    },
+    "resume-velero-s3-v4-remote.py": {
+      "bytes": 26221,
+      "sha256": "63b2e9a90fb7b54fc522e6190ff6ad0cb353f199752dd7fea76b7d93cb47183a",
+      "mode": 384
+    },
+    "resume-velero-s3-v4-fixture.py": {
+      "bytes": 13093,
+      "sha256": "e32b5ceb96e68edf0a3af76b3dbde6362b0679387460e1e748f95c2e7ee93910",
+      "mode": 384
+    },
+    "resume-velero-s3-v4-native.py": {
+      "bytes": 12736,
+      "sha256": "f116a423d4f5c207db032829fc22b4bb3b8179eec41624bb0d9d14f0c4be402a",
+      "mode": 384
+    },
+    "resume-velero-s3-install-20261110T011213809221.json": {
+      "sha256": "863d7d71749d569a5317d27998b9b4cf6a59415c70ce2d9b96d0966653506cdd",
+      "bytes": 277,
+      "mode": 384
+    }
+  },
+  "sourceHashesStable": true
+}

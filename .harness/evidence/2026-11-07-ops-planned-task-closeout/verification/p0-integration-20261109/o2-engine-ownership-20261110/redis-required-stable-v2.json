@@ -1,0 +1,7 @@
+{
+  "required": true,
+  "listener": "127.0.0.1:26316",
+  "operation": "read-only RESP PING",
+  "reply": "+PONG",
+  "timestampUTC": "2026-11-10T06:07:39.7051736Z"
+}

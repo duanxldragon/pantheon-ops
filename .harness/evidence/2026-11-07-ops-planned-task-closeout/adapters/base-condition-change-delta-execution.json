@@ -1,0 +1,7 @@
+{
+  "status": "timeout",
+  "exitCode": 1,
+  "seconds": 360,
+  "characters": 3921,
+  "command": "claude.exe -p --tools \"\" --output-format text; stdin=base-condition-change-delta-prompt.md"
+}

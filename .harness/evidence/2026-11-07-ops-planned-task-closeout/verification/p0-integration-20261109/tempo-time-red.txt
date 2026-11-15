@@ -1,0 +1,6 @@
+=== RUN   TestTempoSearchNormalizesAbsoluteUTCToProviderSeconds
+    datasource_query_context_test.go:99: Tempo requires Unix seconds, got end=2026-11-09T01%3A15%3A00Z&limit=100&q=%7B%7D&start=2026-11-09T01%3A00%3A00Z
+--- FAIL: TestTempoSearchNormalizesAbsoluteUTCToProviderSeconds (0.11s)
+FAIL
+FAIL	github.com/duanxldragon/pantheon-base/backend/modules/business/observability	0.193s
+FAIL

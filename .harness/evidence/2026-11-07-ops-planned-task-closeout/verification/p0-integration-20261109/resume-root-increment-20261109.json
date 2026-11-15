@@ -1,0 +1,46 @@
+{
+  "status": "implementation-in-progress",
+  "updatedUTC": "2026-11-09T10:12:53.004185+00:00",
+  "documentationHashes": {
+    "DESIGN.md": "96ae84c57fdae705443a4063953bfbfb4fcd55c70f0310f26a4bd4d6c606cf60",
+    "DESIGN.en.md": "5599370ad0f888ae688ac2310b9bdb4c4e512771c784fe9ee4508e7a88515873",
+    "docs/TENANT_INITIALIZATION_GUIDE.md": "105580a3e50467f2c19a86d3388d627ef66d87b0720c04a28359ff46ae40aa89",
+    "docs/runbooks/TENANT_MIGRATION_RUNBOOK.md": "ea96ec38f4da154cc6cea03dbd3028ea2623ea34acca14471c88cc9f8ff247ee",
+    "docs/designs/LOWCODE_GENERATOR_GUIDE.md": "f80717dda14746f2296a74c81fd6ea61fdaa039d8788e98895f9b78dd1a6d5aa",
+    "docs/designs/LOWCODE_GENERATOR_GUIDE.en.md": "30e55f2fa9f749bc0af865d97ef9466a456d7fce467c9698bf4357950cba4fcc"
+  },
+  "docChecks": {
+    "diffCheck": 0,
+    "frontmatter": 0,
+    "taskTemplate": 0
+  },
+  "prerequisiteAPI": {
+    "scopedPassingTestEvents": 100,
+    "skippedTests": 0,
+    "vetExit": 0,
+    "fullBuildExit": 0,
+    "stableBackendFiles": 525
+  },
+  "opsCandidate": {
+    "newTests": 48,
+    "existingOverlayTests": 62,
+    "fail": 0,
+    "officialLockSHA256": "95de1a87270e15c0d4c672418a5df906818a88652f8a3e6c480f1484ee9fa70c"
+  },
+  "argoV4": {
+    "productExit": 1,
+    "remoteCleanupExit": 0,
+    "providerTraces": 60,
+    "observedCause": "HTTP200-no-native-operation-no-version-change-no-Service-Kubernetes-and-API-agree",
+    "repairLane": "resume-argo-v5-generator-report"
+  },
+  "remaining": [
+    "independent API/candidate review",
+    "generator locale and final runtime/rendering",
+    "Ops backend and frontend tenant adoption",
+    "migration37/recovery/supported startup",
+    "O2v7/Argov5/Velero actual provider acceptance",
+    "full final-source checks",
+    "official paired release-consumption and original P0 independent/functional/visual acceptance"
+  ]
+}

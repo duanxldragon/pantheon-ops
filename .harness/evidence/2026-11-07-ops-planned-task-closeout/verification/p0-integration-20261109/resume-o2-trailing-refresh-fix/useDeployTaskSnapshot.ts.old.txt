@@ -1,0 +1,51 @@
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { isForbiddenRequestError, RequestError } from '../../../../api/request';
+import { getDeployTaskDetail, type DeployTaskRow } from '../api';
+
+interface Snapshot {
+  id?: number;
+  task: DeployTaskRow | null;
+  error: unknown;
+  loading: boolean;
+  stale: boolean;
+}
+
+// A departed request/stream generation cannot clear or replace the new task.
+export function useDeployTaskSnapshot(id: number | undefined) {
+  const [snapshot, setSnapshot] = useState<Snapshot>({ id, task: null, error: null, loading: true, stale: false });
+  const generation = useRef<{ id?: number; disposed: boolean; request: number; running: boolean } | null>(null);
+  const loadData = useCallback(async (options?: { silent?: boolean }) => {
+    const session = generation.current;
+    if (!id || !session || session.id !== id || session.disposed || session.running) return;
+    session.running = true;
+    const request = ++session.request;
+    if (!options?.silent) setSnapshot((previous) => ({ ...previous, id, loading: true, error: null }));
+    try {
+      const task = await getDeployTaskDetail(id);
+      if (session.disposed || session.request !== request) return;
+      setSnapshot({ id, task, error: null, loading: false, stale: false });
+    } catch (error) {
+      if (session.disposed || session.request !== request) return;
+      if (isForbiddenRequestError(error) || !options?.silent) {
+        setSnapshot({ id, task: null, error, loading: false, stale: false });
+      } else {
+        setSnapshot((previous) => ({ ...previous, loading: false, stale: true }));
+      }
+    } finally { session.running = false; }
+  }, [id]);
+  const deny = useCallback(() => {
+    const session = generation.current;
+    if (!session || session.id !== id || session.disposed) return;
+    // Fence any in-flight successful refresh after an explicit stream denial.
+    ++session.request;
+    setSnapshot({ id, task: null, error: new RequestError({ kind: 'forbidden', status: 403, code: 403 }), loading: false, stale: false });
+  }, [id]);
+  useEffect(() => {
+    const session = { id, disposed: false, request: 0, running: false };
+    generation.current = session;
+    queueMicrotask(() => { if (!session.disposed) void loadData(); });
+    return () => { session.disposed = true; };
+  }, [id, loadData]);
+  const current = snapshot.id === id ? snapshot : { task: null, error: null, loading: true, stale: false };
+  return { ...current, loadData, deny };
+}

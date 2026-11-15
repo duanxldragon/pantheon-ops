@@ -1,0 +1,176 @@
+=== RUN   TestCreateRestoreRejectsBeforePersistence
+=== RUN   TestCreateRestoreRejectsBeforePersistence/missing_credential
+=== RUN   TestCreateRestoreRejectsBeforePersistence/canceled
+=== RUN   TestCreateRestoreRejectsBeforePersistence/expired
+=== RUN   TestCreateRestoreRejectsBeforePersistence/revoked_source
+=== RUN   TestCreateRestoreRejectsBeforePersistence/revoked_credential
+--- PASS: TestCreateRestoreRejectsBeforePersistence (2.53s)
+    --- PASS: TestCreateRestoreRejectsBeforePersistence/missing_credential (0.58s)
+    --- PASS: TestCreateRestoreRejectsBeforePersistence/canceled (0.61s)
+    --- PASS: TestCreateRestoreRejectsBeforePersistence/expired (0.53s)
+    --- PASS: TestCreateRestoreRejectsBeforePersistence/revoked_source (0.46s)
+    --- PASS: TestCreateRestoreRejectsBeforePersistence/revoked_credential (0.34s)
+=== RUN   TestCreateRestoreEligibleSourceAndEnqueue
+=== RUN   TestCreateRestoreEligibleSourceAndEnqueue/revoked_registry_source_with_authorized_cached_client
+=== RUN   TestCreateRestoreEligibleSourceAndEnqueue/registry_New
+=== RUN   TestCreateRestoreEligibleSourceAndEnqueue/registry_InProgress
+=== RUN   TestCreateRestoreEligibleSourceAndEnqueue/registry_Failed
+=== RUN   TestCreateRestoreEligibleSourceAndEnqueue/expired_registry
+=== RUN   TestCreateRestoreEligibleSourceAndEnqueue/live_
+=== RUN   TestCreateRestoreEligibleSourceAndEnqueue/live_New
+=== RUN   TestCreateRestoreEligibleSourceAndEnqueue/live_InProgress
+=== RUN   TestCreateRestoreEligibleSourceAndEnqueue/live_Failed
+=== RUN   TestCreateRestoreEligibleSourceAndEnqueue/live_PartiallyFailed
+=== RUN   TestCreateRestoreEligibleSourceAndEnqueue/live_Deleting
+=== RUN   TestCreateRestoreEligibleSourceAndEnqueue/deleted_live_source
+=== RUN   TestCreateRestoreEligibleSourceAndEnqueue/live_expiration_2026-11-09T07:40:29Z
+=== RUN   TestCreateRestoreEligibleSourceAndEnqueue/live_expiration_malformed
+=== RUN   TestCreateRestoreEligibleSourceAndEnqueue/cancel_during_source_inspection
+=== RUN   TestCreateRestoreEligibleSourceAndEnqueue/revoked_during_live_inspection_department
+=== RUN   TestCreateRestoreEligibleSourceAndEnqueue/revoked_during_live_inspection_credential
+=== RUN   TestCreateRestoreEligibleSourceAndEnqueue/revoked_during_live_inspection_source
+=== RUN   TestCreateRestoreEligibleSourceAndEnqueue/worker_rechecks_live_source
+    restore_authorization_test.go:285: Error 1054 (42S22): Unknown column 'restore_pvs' in 'field list'
+=== RUN   TestCreateRestoreEligibleSourceAndEnqueue/authorized_successful_enqueue
+    restore_authorization_test.go:331: Error 1054 (42S22): Unknown column 'restore_pvs' in 'field list'
+
+2026/11/09 16:40:29 [34;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/k8s/backup/restore_authorization_test.go:322
+[0m[35m[warn] [0mremoving callback `restore_auth_assert_locks` from D:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/k8s/backup/restore_authorization_test.go:322
+--- FAIL: TestCreateRestoreEligibleSourceAndEnqueue (0.69s)
+    --- PASS: TestCreateRestoreEligibleSourceAndEnqueue/revoked_registry_source_with_authorized_cached_client (0.03s)
+    --- PASS: TestCreateRestoreEligibleSourceAndEnqueue/registry_New (0.02s)
+    --- PASS: TestCreateRestoreEligibleSourceAndEnqueue/registry_InProgress (0.02s)
+    --- PASS: TestCreateRestoreEligibleSourceAndEnqueue/registry_Failed (0.01s)
+    --- PASS: TestCreateRestoreEligibleSourceAndEnqueue/expired_registry (0.01s)
+    --- PASS: TestCreateRestoreEligibleSourceAndEnqueue/live_ (0.01s)
+    --- PASS: TestCreateRestoreEligibleSourceAndEnqueue/live_New (0.00s)
+    --- PASS: TestCreateRestoreEligibleSourceAndEnqueue/live_InProgress (0.00s)
+    --- PASS: TestCreateRestoreEligibleSourceAndEnqueue/live_Failed (0.00s)
+    --- PASS: TestCreateRestoreEligibleSourceAndEnqueue/live_PartiallyFailed (0.01s)
+    --- PASS: TestCreateRestoreEligibleSourceAndEnqueue/live_Deleting (0.00s)
+    --- PASS: TestCreateRestoreEligibleSourceAndEnqueue/deleted_live_source (0.00s)
+    --- PASS: TestCreateRestoreEligibleSourceAndEnqueue/live_expiration_2026-11-09T07:40:29Z (0.00s)
+    --- PASS: TestCreateRestoreEligibleSourceAndEnqueue/live_expiration_malformed (0.00s)
+    --- PASS: TestCreateRestoreEligibleSourceAndEnqueue/cancel_during_source_inspection (0.00s)
+    --- PASS: TestCreateRestoreEligibleSourceAndEnqueue/revoked_during_live_inspection_department (0.02s)
+    --- PASS: TestCreateRestoreEligibleSourceAndEnqueue/revoked_during_live_inspection_credential (0.02s)
+    --- PASS: TestCreateRestoreEligibleSourceAndEnqueue/revoked_during_live_inspection_source (0.03s)
+    --- FAIL: TestCreateRestoreEligibleSourceAndEnqueue/worker_rechecks_live_source (0.02s)
+    --- FAIL: TestCreateRestoreEligibleSourceAndEnqueue/authorized_successful_enqueue (0.01s)
+=== RUN   TestRestoreFinalIndependentDenials
+=== RUN   TestRestoreFinalIndependentDenials/foreign_department
+=== RUN   TestRestoreFinalIndependentDenials/department_revoked_cached
+=== RUN   TestRestoreFinalIndependentDenials/foreign_source
+--- PASS: TestRestoreFinalIndependentDenials (1.49s)
+    --- PASS: TestRestoreFinalIndependentDenials/foreign_department (0.51s)
+    --- PASS: TestRestoreFinalIndependentDenials/department_revoked_cached (0.48s)
+    --- PASS: TestRestoreFinalIndependentDenials/foreign_source (0.49s)
+=== RUN   TestRestoreFinalSecondGETRevocation
+=== RUN   TestRestoreFinalSecondGETRevocation/department
+    restore_final_boundary_test.go:184: Error 1054 (42S22): Unknown column 'restore_pvs' in 'field list'
+=== RUN   TestRestoreFinalSecondGETRevocation/credential
+    restore_final_boundary_test.go:184: Error 1054 (42S22): Unknown column 'restore_pvs' in 'field list'
+=== RUN   TestRestoreFinalSecondGETRevocation/source
+    restore_final_boundary_test.go:184: Error 1054 (42S22): Unknown column 'restore_pvs' in 'field list'
+=== RUN   TestRestoreFinalSecondGETRevocation/binding
+    restore_final_boundary_test.go:184: Error 1054 (42S22): Unknown column 'restore_pvs' in 'field list'
+=== RUN   TestRestoreFinalSecondGETRevocation/attempt
+    restore_final_boundary_test.go:184: Error 1054 (42S22): Unknown column 'restore_pvs' in 'field list'
+--- FAIL: TestRestoreFinalSecondGETRevocation (2.11s)
+    --- FAIL: TestRestoreFinalSecondGETRevocation/department (0.54s)
+    --- FAIL: TestRestoreFinalSecondGETRevocation/credential (0.36s)
+    --- FAIL: TestRestoreFinalSecondGETRevocation/source (0.42s)
+    --- FAIL: TestRestoreFinalSecondGETRevocation/binding (0.40s)
+    --- FAIL: TestRestoreFinalSecondGETRevocation/attempt (0.39s)
+=== RUN   TestRestoreFinalTargetDenials
+=== RUN   TestRestoreFinalTargetDenials/unbound_remap
+=== RUN   TestRestoreFinalTargetDenials/unmapped_source
+=== RUN   TestRestoreFinalTargetDenials/no_action
+=== RUN   TestRestoreFinalTargetDenials/cross_scope
+=== RUN   TestRestoreFinalTargetDenials/wrong_environment
+=== RUN   TestRestoreFinalTargetDenials/wildcard
+=== RUN   TestRestoreFinalTargetDenials/all_namespaces
+=== RUN   TestRestoreFinalTargetDenials/pv_cluster_resource
+--- PASS: TestRestoreFinalTargetDenials (3.51s)
+    --- PASS: TestRestoreFinalTargetDenials/unbound_remap (0.43s)
+    --- PASS: TestRestoreFinalTargetDenials/unmapped_source (0.35s)
+    --- PASS: TestRestoreFinalTargetDenials/no_action (0.40s)
+    --- PASS: TestRestoreFinalTargetDenials/cross_scope (0.51s)
+    --- PASS: TestRestoreFinalTargetDenials/wrong_environment (0.49s)
+    --- PASS: TestRestoreFinalTargetDenials/wildcard (0.47s)
+    --- PASS: TestRestoreFinalTargetDenials/all_namespaces (0.50s)
+    --- PASS: TestRestoreFinalTargetDenials/pv_cluster_resource (0.36s)
+=== RUN   TestRestoreFinalAcceptedResponseTimeout
+    restore_final_boundary_test.go:289: Error 1054 (42S22): Unknown column 'restore_pvs' in 'field list'
+--- FAIL: TestRestoreFinalAcceptedResponseTimeout (0.40s)
+=== RUN   TestFinalRestoreLocksSingleCreate
+    restore_final_boundary_test.go:338: Error 1054 (42S22): Unknown column 'restore_pvs' in 'field list'
+--- FAIL: TestFinalRestoreLocksSingleCreate (0.43s)
+=== RUN   TestFinalRestoreRecordNamespaceOnly
+    restore_final_boundary_test.go:350: Error 1054 (42S22): Unknown column 'restore_pvs' in 'field list'
+--- FAIL: TestFinalRestoreRecordNamespaceOnly (0.37s)
+=== RUN   TestFinalBackupAcceptedTimeoutAndRestart
+=== RUN   TestFinalBackupAcceptedTimeoutAndRestart/refused=false
+=== RUN   TestFinalBackupAcceptedTimeoutAndRestart/refused=true
+--- PASS: TestFinalBackupAcceptedTimeoutAndRestart (0.82s)
+    --- PASS: TestFinalBackupAcceptedTimeoutAndRestart/refused=false (0.40s)
+    --- PASS: TestFinalBackupAcceptedTimeoutAndRestart/refused=true (0.41s)
+=== RUN   TestFinalRestartUnknownDoesNotResend
+--- PASS: TestFinalRestartUnknownDoesNotResend (0.47s)
+=== RUN   TestRestoreFinalDeterministicProviderRefusal
+    restore_final_boundary_test.go:461: Error 1054 (42S22): Unknown column 'restore_pvs' in 'field list'
+--- FAIL: TestRestoreFinalDeterministicProviderRefusal (0.49s)
+=== RUN   TestVeleroClient_IsInstalled
+=== RUN   TestVeleroClient_IsInstalled/velero_installed
+=== RUN   TestVeleroClient_IsInstalled/velero_not_installed
+--- PASS: TestVeleroClient_IsInstalled (0.00s)
+    --- PASS: TestVeleroClient_IsInstalled/velero_installed (0.00s)
+    --- PASS: TestVeleroClient_IsInstalled/velero_not_installed (0.00s)
+=== RUN   TestVeleroClient_CreateBackup
+--- PASS: TestVeleroClient_CreateBackup (0.00s)
+=== RUN   TestVeleroClient_CreateSchedule
+--- PASS: TestVeleroClient_CreateSchedule (0.00s)
+=== RUN   TestVeleroClient_CreateRestore
+--- PASS: TestVeleroClient_CreateRestore (0.00s)
+=== RUN   TestVeleroClient_DeleteBackup
+--- PASS: TestVeleroClient_DeleteBackup (0.00s)
+=== RUN   TestVeleroClient_GetRunningPods
+--- PASS: TestVeleroClient_GetRunningPods (0.00s)
+FAIL
+FAIL	github.com/duanxldragon/pantheon-base/backend/modules/business/k8s/backup	13.456s
+=== RUN   TestQuantityToCores
+--- PASS: TestQuantityToCores (0.00s)
+=== RUN   TestQuantityToGB
+--- PASS: TestQuantityToGB (0.00s)
+=== RUN   TestIsNodeReady
+--- PASS: TestIsNodeReady (0.00s)
+=== RUN   TestToResponse
+--- PASS: TestToResponse (0.02s)
+=== RUN   TestToNodeSnapshot
+--- PASS: TestToNodeSnapshot (0.00s)
+=== RUN   TestClusterUpdateRejectsConcurrentStaleScopeMutation
+
+2026/11/09 16:40:26 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/k8s/cluster/cluster_service.go:328 [35;1mrecord not found
+[0m[33m[0.626ms] [34;1m[rows:0][0m SELECT * FROM `biz_k8s_cluster` WHERE id = 1 AND dept_id = 10 AND `biz_k8s_cluster`.`deleted_at` IS NULL ORDER BY `biz_k8s_cluster`.`id` LIMIT 1 FOR UPDATE
+--- PASS: TestClusterUpdateRejectsConcurrentStaleScopeMutation (0.11s)
+=== RUN   TestCredentialReferenceFailsClosedWithInline
+=== RUN   TestCredentialReferenceFailsClosedWithInline/revoked_lazy
+=== RUN   TestCredentialReferenceFailsClosedWithInline/missing_lazy
+=== RUN   TestCredentialReferenceFailsClosedWithInline/empty_lazy
+=== RUN   TestCredentialReferenceFailsClosedWithInline/foreign_lazy
+=== RUN   TestCredentialReferenceFailsClosedWithInline/revoked_cached
+=== RUN   TestCredentialReferenceFailsClosedWithInline/missing_cached
+=== RUN   TestCredentialReferenceFailsClosedWithInline/empty_cached
+=== RUN   TestCredentialReferenceFailsClosedWithInline/foreign_cached
+--- PASS: TestCredentialReferenceFailsClosedWithInline (1.79s)
+    --- PASS: TestCredentialReferenceFailsClosedWithInline/revoked_lazy (0.20s)
+    --- PASS: TestCredentialReferenceFailsClosedWithInline/missing_lazy (0.23s)
+    --- PASS: TestCredentialReferenceFailsClosedWithInline/empty_lazy (0.28s)
+    --- PASS: TestCredentialReferenceFailsClosedWithInline/foreign_lazy (0.23s)
+    --- PASS: TestCredentialReferenceFailsClosedWithInline/revoked_cached (0.22s)
+    --- PASS: TestCredentialReferenceFailsClosedWithInline/missing_cached (0.22s)
+    --- PASS: TestCredentialReferenceFailsClosedWithInline/empty_cached (0.22s)
+    --- PASS: TestCredentialReferenceFailsClosedWithInline/foreign_cached (0.19s)
+PASS
+ok  	github.com/duanxldragon/pantheon-base/backend/modules/business/k8s/cluster	3.041s
+FAIL

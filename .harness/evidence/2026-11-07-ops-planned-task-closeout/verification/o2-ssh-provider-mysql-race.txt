@@ -1,0 +1,35 @@
+=== RUN   TestDeploySSHTransportScriptAndExitStatus
+=== RUN   TestDeploySSHTransportScriptAndExitStatus/password/exit0
+=== RUN   TestDeploySSHTransportScriptAndExitStatus/password/exit17
+=== RUN   TestDeploySSHTransportScriptAndExitStatus/private_key/exit0
+=== RUN   TestDeploySSHTransportScriptAndExitStatus/private_key/exit17
+--- PASS: TestDeploySSHTransportScriptAndExitStatus (0.07s)
+    --- PASS: TestDeploySSHTransportScriptAndExitStatus/password/exit0 (0.02s)
+    --- PASS: TestDeploySSHTransportScriptAndExitStatus/password/exit17 (0.02s)
+    --- PASS: TestDeploySSHTransportScriptAndExitStatus/private_key/exit0 (0.02s)
+    --- PASS: TestDeploySSHTransportScriptAndExitStatus/private_key/exit17 (0.02s)
+=== RUN   TestDeploySSHTransportRejectsChangedHostKey
+--- PASS: TestDeploySSHTransportRejectsChangedHostKey (0.01s)
+=== RUN   TestDeploySSHTransportCancelDuringSessionOpen
+--- PASS: TestDeploySSHTransportCancelDuringSessionOpen (0.01s)
+=== RUN   TestDeploySSHTransportCancelDuringOutput
+--- PASS: TestDeploySSHTransportCancelDuringOutput (0.01s)
+=== RUN   TestDeploySSHTransportPreCanceledContextDoesNotOpenSession
+--- PASS: TestDeploySSHTransportPreCanceledContextDoesNotOpenSession (0.01s)
+=== RUN   TestDeploySSHTransportBusinessExecution
+=== RUN   TestDeploySSHTransportBusinessExecution/exit0
+
+2026/11/08 10:01:50 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/deploy_service.go:1930 [35;1mrecord not found
+[0m[33m[0.654ms] [34;1m[rows:0][0m SELECT * FROM `biz_deploy_task_step` WHERE task_id = 1 AND task_host_id = 1 AND step_key = 'package_default' ORDER BY `biz_deploy_task_step`.`id` LIMIT 1
+    deploy_ssh_transport_test.go:383: close tcp 127.0.0.1:62736->127.0.0.1:62735: use of closed network connection
+=== RUN   TestDeploySSHTransportBusinessExecution/exit17
+
+2026/11/08 10:01:51 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/deploy_service.go:1930 [35;1mrecord not found
+[0m[33m[1.183ms] [34;1m[rows:0][0m SELECT * FROM `biz_deploy_task_step` WHERE task_id = 1 AND task_host_id = 1 AND step_key = 'package_default' ORDER BY `biz_deploy_task_step`.`id` LIMIT 1
+    deploy_ssh_transport_test.go:383: Process exited with status 17; close: close tcp 127.0.0.1:62742->127.0.0.1:62741: use of closed network connection
+--- FAIL: TestDeploySSHTransportBusinessExecution (2.26s)
+    --- FAIL: TestDeploySSHTransportBusinessExecution/exit0 (1.09s)
+    --- FAIL: TestDeploySSHTransportBusinessExecution/exit17 (1.18s)
+FAIL
+FAIL	github.com/duanxldragon/pantheon-base/backend/modules/business/deploy	2.487s
+FAIL

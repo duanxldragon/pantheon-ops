@@ -1,0 +1,61 @@
+
+Running 1 test using 1 worker
+
+(node:24812) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x  1 tests\smoke\business\deploy\deploy-command.spec.ts:57:1 › batch cancel retains failed selection and reports partial failure (1.0m)
+
+
+  1) tests\smoke\business\deploy\deploy-command.spec.ts:57:1 › batch cancel retains failed selection and reports partial failure 
+
+    Test timeout of 60000ms exceeded.
+
+    Error: locator.click: Test timeout of 60000ms exceeded.
+    Browser logs:
+
+    <launching> C:\Users\xiaolong\AppData\Local\ms-playwright\chromium_headless_shell-1248\chrome-headless-shell-win64\chrome-headless-shell.exe --disable-field-trial-config --disable-background-networking --disable-background-timer-throttling --disable-backgrounding-occluded-windows --disable-back-forward-cache --disable-breakpad --disable-client-side-phishing-detection --disable-component-extensions-with-background-pages --disable-component-update --no-default-browser-check --disable-default-apps --disable-dev-shm-usage --disable-edgeupdater --disable-extensions --disable-features=AvoidUnnecessaryBeforeUnloadCheckSync,DestroyProfileOnBrowserClose,DialMediaRouteProvider,GlobalMediaControls,HttpsUpgrades,LensOverlay,MediaRouter,PaintHolding,ThirdPartyStoragePartitioning,BlockOriginHeaderModificationOnRedirect,AvoidCorsURLLoaderRestartOnRedirect,Translate,AutoDeElevate,OptimizationHints,NetworkTimeServiceQuerying,AimEnabled,msForceBrowserSignIn,msEdgeUpdateLaunchServicesPreferredVersion --enable-features=CDPScreenshotNewSurface --allow-pre-commit-input --disable-hang-monitor --disable-ipc-flooding-protection --disable-popup-blocking --disable-prompt-on-repost --disable-renderer-backgrounding --disable-updater-scheduler --force-color-profile=srgb --metrics-recording-only --no-first-run --password-store=basic --use-mock-keychain --no-service-autorun --export-tagged-pdf --disable-search-engine-choice-screen --unsafely-disable-devtools-self-xss-warnings --edge-skip-compat-layer-relaunch --disable-infobars --disable-search-engine-choice-screen --disable-sync --enable-unsafe-swiftshader --headless --hide-scrollbars --mute-audio --blink-settings=primaryHoverType=2,availableHoverTypes=2,primaryPointerType=4,availablePointerTypes=4 --no-sandbox --user-data-dir=C:\Users\xiaolong\AppData\Local\Temp\playwright_chromiumdev_profile-ZLznfC --remote-debugging-pipe --no-startup-window
+    <launched> pid=13020
+    [pid=13020][err] [1107/225348.629:INFO:CONSOLE:946] "[vite] connecting...", source: http://127.0.0.1:5173/@vite/client (946)
+    [pid=13020][err] [1107/225348.702:INFO:CONSOLE:1055] "[vite] connected.", source: http://127.0.0.1:5173/@vite/client (1055)
+    [pid=13020][err] [1107/225349.326:INFO:CONSOLE:15805] "%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold", source: http://127.0.0.1:5173/node_modules/.vite/deps/client-DxIT2JRZ.js?v=bb00929e (15805)
+    [pid=13020] <gracefully close start>
+    Call log:
+      - waiting for getByRole('button', { name: '取消', exact: true }).first()
+        - locator resolved to <button disabled type="button" class="arco-btn arco-btn-secondary arco-btn-size-default arco-btn-shape-square arco-btn-status-danger arco-btn-disabled">…</button>
+      - attempting click action
+        2 × waiting for element to be visible, enabled and stable
+          - element is not enabled
+        - retrying click action
+        - waiting 20ms
+        2 × waiting for element to be visible, enabled and stable
+          - element is not enabled
+        - retrying click action
+          - waiting 100ms
+        110 × waiting for element to be visible, enabled and stable
+            - element is not enabled
+          - retrying click action
+            - waiting 500ms
+        - waiting for element to be visible, enabled and stable
+
+
+      78 |   const rowA=page.getByRole('row').filter({hasText:`${token}-a`}).first();const rowB=page.getByRole('row').filter({hasText:`${token}-b`}).first();
+      79 |   await expect(rowA).toBeVisible();await expect(rowB).toBeVisible();await rowA.locator('label.arco-checkbox').click();await rowB.locator('label.arco-checkbox').click();
+    > 80 |   await page.getByRole('button',{name:'取消',exact:true}).first().click();await page.getByRole('button',{name:'确定',exact:true}).click();
+         |                                                                 ^
+      81 |   await expect(page.locator('.arco-alert-content').getByText('部分任务未能取消。列表已刷新，请确认剩余选择后重新操作。',{exact:true})).toBeVisible();
+      82 |   await expect(rowA.getByRole('checkbox')).not.toBeChecked();await expect(rowB.getByRole('checkbox')).toBeChecked();expect(submissions).toBe(2);
+      83 |   expect((await success<CommandTask>(await page.request.get(`${apiBaseUrl}/business/deploy/tasks/${taskIds[0]}`,{headers}))).status).toBe('canceled');
+        at D:\workspace\go\pantheon-platform\pantheon-ops\frontend\tests\smoke\business\deploy\deploy-command.spec.ts:80:65
+
+    Error Context: ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\command-batch-final-browser\smoke-business-deploy-depl-5e1fa-and-reports-partial-failure\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\command-batch-final-browser\smoke-business-deploy-depl-5e1fa-and-reports-partial-failure\trace.zip
+    Usage:
+
+        npx playwright show-trace ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\command-batch-final-browser\smoke-business-deploy-depl-5e1fa-and-reports-partial-failure\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  1 failed
+    tests\smoke\business\deploy\deploy-command.spec.ts:57:1 › batch cancel retains failed selection and reports partial failure 

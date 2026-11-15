@@ -1,0 +1,16 @@
+{
+  "command": [
+    "npx.cmd",
+    "playwright",
+    "test",
+    "tests/smoke/business/deploy/deploy-workbench.spec.ts",
+    "--workers=1",
+    "--output=D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.harness\\evidence\\2026-11-07-ops-planned-task-closeout\\verification\\o2-step-history-browser-mobile-green"
+  ],
+  "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\frontend",
+  "exitCode": 0,
+  "elapsedSeconds": 26.79700000002049,
+  "artifact": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/o2-step-history-browser-mobile-green.txt",
+  "sourceHashesStable": true,
+  "hashedFiles": 701
+}

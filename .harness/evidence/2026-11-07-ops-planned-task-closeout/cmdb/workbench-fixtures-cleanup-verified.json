@@ -1,0 +1,186 @@
+{
+  "database": "ops_planned_final_versioned",
+  "match": "^workbench-(light|dark)-[0-9]{13}$",
+  "removed": [
+    {
+      "endpoint": "deploy/tasks",
+      "id": 32,
+      "token": "workbench-dark-1794044249537"
+    },
+    {
+      "endpoint": "deploy/tasks",
+      "id": 31,
+      "token": "workbench-light-1794044248155"
+    },
+    {
+      "endpoint": "deploy/tasks",
+      "id": 30,
+      "token": "workbench-dark-1794044207852"
+    },
+    {
+      "endpoint": "deploy/tasks",
+      "id": 29,
+      "token": "workbench-light-1794044205933"
+    },
+    {
+      "endpoint": "deploy/tasks",
+      "id": 28,
+      "token": "workbench-dark-1794044028001"
+    },
+    {
+      "endpoint": "deploy/tasks",
+      "id": 27,
+      "token": "workbench-light-1794044026429"
+    },
+    {
+      "endpoint": "deploy/tasks",
+      "id": 26,
+      "token": "workbench-dark-1794043979742"
+    },
+    {
+      "endpoint": "deploy/tasks",
+      "id": 25,
+      "token": "workbench-light-1794043978256"
+    },
+    {
+      "endpoint": "bizscope",
+      "id": 37,
+      "token": "workbench-dark-1794044249537"
+    },
+    {
+      "endpoint": "bizscope",
+      "id": 36,
+      "token": "workbench-light-1794044248155"
+    },
+    {
+      "endpoint": "bizscope",
+      "id": 35,
+      "token": "workbench-dark-1794044207852"
+    },
+    {
+      "endpoint": "bizscope",
+      "id": 34,
+      "token": "workbench-light-1794044205933"
+    },
+    {
+      "endpoint": "bizscope",
+      "id": 33,
+      "token": "workbench-dark-1794044028001"
+    },
+    {
+      "endpoint": "bizscope",
+      "id": 32,
+      "token": "workbench-light-1794044026429"
+    },
+    {
+      "endpoint": "bizscope",
+      "id": 31,
+      "token": "workbench-dark-1794043979742"
+    },
+    {
+      "endpoint": "bizscope",
+      "id": 30,
+      "token": "workbench-light-1794043978256"
+    },
+    {
+      "endpoint": "deploy/packages",
+      "id": 40,
+      "token": "workbench-dark-1794044249537"
+    },
+    {
+      "endpoint": "deploy/packages",
+      "id": 39,
+      "token": "workbench-light-1794044248155"
+    },
+    {
+      "endpoint": "deploy/packages",
+      "id": 38,
+      "token": "workbench-dark-1794044207852"
+    },
+    {
+      "endpoint": "deploy/packages",
+      "id": 37,
+      "token": "workbench-light-1794044205933"
+    },
+    {
+      "endpoint": "deploy/packages",
+      "id": 36,
+      "token": "workbench-dark-1794044028001"
+    },
+    {
+      "endpoint": "deploy/packages",
+      "id": 35,
+      "token": "workbench-light-1794044026429"
+    },
+    {
+      "endpoint": "deploy/packages",
+      "id": 34,
+      "token": "workbench-dark-1794043979742"
+    },
+    {
+      "endpoint": "deploy/packages",
+      "id": 33,
+      "token": "workbench-light-1794043978256"
+    }
+  ],
+  "remaining": [],
+  "pages": [
+    {
+      "endpoint": "deploy/tasks",
+      "page": 1,
+      "received": 8,
+      "total": 8,
+      "pageSize": 100
+    },
+    {
+      "endpoint": "cmdb/hosts",
+      "page": 1,
+      "received": 0,
+      "total": 0,
+      "pageSize": 100
+    },
+    {
+      "endpoint": "bizscope",
+      "page": 1,
+      "received": 45,
+      "total": 45,
+      "pageSize": 100
+    },
+    {
+      "endpoint": "deploy/packages",
+      "page": 1,
+      "received": 8,
+      "total": 8,
+      "pageSize": 100
+    },
+    {
+      "endpoint": "deploy/tasks",
+      "page": 1,
+      "received": 0,
+      "total": 0,
+      "pageSize": 100
+    },
+    {
+      "endpoint": "cmdb/hosts",
+      "page": 1,
+      "received": 0,
+      "total": 0,
+      "pageSize": 100
+    },
+    {
+      "endpoint": "bizscope",
+      "page": 1,
+      "received": 37,
+      "total": 37,
+      "pageSize": 100
+    },
+    {
+      "endpoint": "deploy/packages",
+      "page": 1,
+      "received": 0,
+      "total": 0,
+      "pageSize": 100
+    }
+  ],
+  "errors": []
+}

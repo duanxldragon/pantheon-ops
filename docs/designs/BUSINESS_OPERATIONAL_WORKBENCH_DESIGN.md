@@ -3,7 +3,7 @@ title: Business Operational Workbench Design
 doc_type: Design
 layer: business/*
 status: Draft
-updated_at: 2026-08-31
+updated_at: 2026-11-08
 linked_contracts:
   - docs/PROJECT_INHERITANCE.md
   - docs/designs/BUSINESS_CMDB_MODULE_DESIGN.md
@@ -21,6 +21,12 @@ Pantheon Ops 已有 CMDB 列表、部署任务详情、Pod 日志和可观测性
 本文把这些业务流程补成任务导向工作台。共享 UI 原语由 Pantheon Base 先交付，Ops 只实现 `business/*` 的数据 adapter、状态机组合、权限、DataScope、审计和业务文案。
 
 ## 2. 当前证据与适用边界
+
+### 2.0 当前执行状态（2026-11-08）
+
+正式 Base v0.18.6 已提供 ContextSelector、ExecutionStepRail、TaskLogViewer、ChangeDiff、ConditionBuilder 与表格视图偏好。O1 的 Deploy 目标选择与 O3 的签署预览/有限回滚、K8s 镜像预览已有局部实现和本地证据；O2/O4/O5 也已实现并验证部分范围，所有正式验收仍开放；O6 缺少已发布 Dashboard operational renderer/data adapter，保持 blocked；O7 仍按关系模型成熟度 gate deferred。
+
+当前入口为 `.harness/tasks/2026-08-31-ops-operational-workbench-design/EXECUTION_QUEUE.md`，本轮证据为 `.harness/evidence/2026-11-07-ops-planned-task-closeout/summary.md`。现有页面烟测不能代替新工作台验收。
 
 ### 2.1 已有基础
 
@@ -57,13 +63,13 @@ Pantheon Ops 已有 CMDB 列表、部署任务详情、Pod 日志和可观测性
 
 ## 4. Base 依赖与 Ops 所有权
 
-| 能力 | 依赖 Base | Ops 实现 |
-| --- | --- | --- |
-| 目标选择 | `ContextSelector` 外壳 | BizScope、CMDB 拓扑/分组/主机、集群 adapter 和 DataScope |
-| 执行详情 | `ExecutionStepRail`、`TaskLogViewer` | Deploy/K8s 状态机、SSE、重试/取消/回滚权限 |
-| 变更预览 | `ChangeDiff` | Deploy/K8s/Argo CD 版本解析、影响对象、风险规则 |
-| 日志查询 | `ConditionBuilder`、表格视图 | Loki 查询 API、字段目录、时间范围和历史 |
-| Dashboard | 新 widget kinds | 业务 widget 注册、数据查询、permission 和 cleanup |
+| 能力      | 依赖 Base                            | Ops 实现                                                 |
+| --------- | ------------------------------------ | -------------------------------------------------------- |
+| 目标选择  | `ContextSelector` 外壳               | BizScope、CMDB 拓扑/分组/主机、集群 adapter 和 DataScope |
+| 执行详情  | `ExecutionStepRail`、`TaskLogViewer` | Deploy/K8s 状态机、SSE、重试/取消/回滚权限               |
+| 变更预览  | `ChangeDiff`                         | Deploy/K8s/Argo CD 版本解析、影响对象、风险规则          |
+| 日志查询  | `ConditionBuilder`、表格视图         | Loki 查询 API、字段目录、时间范围和历史                  |
+| Dashboard | 新 widget kinds                      | 业务 widget 注册、数据查询、permission 和 cleanup        |
 
 如果 Base 组件尚未通过 foundation release，Ops packet 保持 blocked；不得在 Ops 复制共享组件实现。
 
@@ -211,3 +217,17 @@ Pod 日志和 Deploy 日志共用 Base `TaskLogViewer`，但 adapter 分离：
 3. desktop/mobile、关键状态、明暗主题和键盘交互有渲染/运行证据。
 4. 外部 Prometheus/Loki/Tempo/K8s/Argo CD/主机动作没有凭据时记录真实 gap，不伪造验收。
 5. 最终视觉/功能验收由维护者基于实际渲染与可用环境完成。
+
+## Deploy 冻结配置预览实现边界
+
+`POST /business/deploy/tasks/:id/preview` 在既有签名 envelope 上增加只读 `plan`：从任务保存的 execution snapshot 读取模板、步骤和软件包身份、动作、失败策略与拟执行参数。当前参数未采集，页面明确显示未知，不能据此生成真实前后差异。live template/package 的后续修改不改变冻结预览；更新任务冻结快照会使原 intent ticket 失效。
+
+后端仅公开既有固定渲染器的结构参数（端口、目录、服务名、主机名、版本、保留策略和动作），其他自由文本/对象及秘密、sentinel、超长值均隐藏。秘密集合无法完整解密时，新的字符串字段全部隐藏。命令、来源 URL、条件和 StepConfig 不进入 DTO。最多返回 100 个步骤、200 个参数和 128 字节公开值，并明确报告截断。执行引擎、权限、schema 和风险授权策略沿用原合同。
+
+业务 UI 复用已消费的 ChangeDiff，并以折叠区展示冻结配置，支持搜索、键盘操作和主题。改变任务/凭证引用/超时/主机指纹时重新建立审阅会话，清除旧配置和票据。此增量不关闭 K8s/Argo/rollback preview、真实外部环境和最终验收。
+
+## Deploy 回退草稿边界
+
+回退创建和查询都在请求 DataScope 内验证源任务及派生任务。可支持的单软件包卸载逆操作使用源任务保存的模板、软件包、参数与秘密集合，不再从当前模板重建计划；即使当前定义被禁用，冻结计划仍可供审阅。创建仅生成 draft，派生任务的启动必须获取并确认自己的签名 preview。事务内重新验证目标范围和当前状态，原任务不变。
+
+现有 install/reinstall/upgrade 的 inverse 是 uninstall，不承诺恢复之前的软件版本。多步骤、脚本、条件、依赖图和没有卸载定义的计划返回 rollbackNotSupported，等待明确的恢复契约；不能只改 action 后重放原来的正向命令。真实主机执行和更复杂的回退策略仍是 O3 的显式未完成项。

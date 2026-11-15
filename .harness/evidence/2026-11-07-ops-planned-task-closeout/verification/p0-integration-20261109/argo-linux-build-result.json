@@ -1,0 +1,11 @@
+{
+  "hostTarget": "115.190.251.143",
+  "artifact": ".tmp/ops-priority-runtime/server-p0-linux-argo",
+  "sha256": "3863dd5adf5db6fa3dcff2b3c7e4669d7f9424f85e05cc12ec3b194c9f02232c",
+  "GOOS": "linux",
+  "GOARCH": "amd64",
+  "CGO_ENABLED": "0",
+  "exitCode": 0,
+  "deployed": false,
+  "doesNotReplaceWindowsCGORace": true
+}

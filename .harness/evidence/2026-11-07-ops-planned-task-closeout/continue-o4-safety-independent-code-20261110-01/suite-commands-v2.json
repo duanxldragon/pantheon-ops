@@ -1,0 +1,43 @@
+[
+  {
+    "name": "ownership-suite",
+    "command": [
+      "node",
+      "--import",
+      "file:///D:/workspace/go/pantheon-platform/pantheon-ops/.harness/evidence/2026-11-07-ops-planned-task-closeout/continue-o4-safety-independent-code-20261110-01/preserve-new-fixtures.mjs",
+      "--test",
+      "scripts/business-overlay/candidate-ownership.test.mjs"
+    ],
+    "startedAt": "2026-11-10T06:29:12.420Z",
+    "status": 0
+  },
+  {
+    "name": "candidate-focused",
+    "command": [
+      "node",
+      "--import",
+      "file:///D:/workspace/go/pantheon-platform/pantheon-ops/.harness/evidence/2026-11-07-ops-planned-task-closeout/continue-o4-safety-independent-code-20261110-01/preserve-new-fixtures.mjs",
+      "--test",
+      "--test-name-pattern",
+      "real generated|official v0.18.6|canonical|forged generatedFiles|fresh consumer|cleanup |source verification|schema1 source|requires external|rebuild calls|protects repository|assembly rejects|drift and migration|CLI reports",
+      "scripts/business-overlay/foundation-candidate.test.mjs"
+    ],
+    "startedAt": "2026-11-10T06:29:32.971Z",
+    "status": 0
+  },
+  {
+    "name": "overlay-focused",
+    "command": [
+      "node",
+      "--import",
+      "file:///D:/workspace/go/pantheon-platform/pantheon-ops/.harness/evidence/2026-11-07-ops-planned-task-closeout/continue-o4-safety-independent-code-20261110-01/preserve-new-fixtures.mjs",
+      "--test",
+      "tests/scripts/business-overlay/check-shared-drift.test.mjs",
+      "tests/scripts/business-overlay/rebuild-from-base.test.mjs",
+      "tests/scripts/business-overlay/normalize-go-dependencies.test.mjs",
+      "tests/scripts/business-overlay/consumer-review-projection.test.mjs"
+    ],
+    "startedAt": "2026-11-10T06:30:58.091Z",
+    "status": 0
+  }
+]

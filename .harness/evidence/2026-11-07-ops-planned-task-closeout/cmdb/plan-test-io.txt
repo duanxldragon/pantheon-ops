@@ -1,0 +1,4 @@
+@@datadir
+D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.tmp\\ops-planned-cmdb-services\\mysql-data\\
+@@GLOBAL.innodb_flush_log_at_trx_commit	@@GLOBAL.sync_binlog
+2	0

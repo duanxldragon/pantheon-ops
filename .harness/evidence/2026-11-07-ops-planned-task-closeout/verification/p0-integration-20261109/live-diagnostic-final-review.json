@@ -1,0 +1,68 @@
+{
+  "taskId": "2026-11-07-ops-planned-task-closeout",
+  "scope": "final diagnostic self-review; no product edits or true server executions",
+  "checks": [
+    {
+      "check": "live-diagnostic-argo-v2-remote-staged.py final syntax",
+      "passed": true
+    },
+    {
+      "check": "live-diagnostic-argo-v2-runner.py final syntax",
+      "passed": true
+    },
+    {
+      "check": "live-diagnostic-o2-v2-runner.py final syntax",
+      "passed": true
+    },
+    {
+      "check": "live-diagnostic-stage.py final syntax",
+      "passed": true
+    },
+    {
+      "check": "live-diagnostic-verify.py final syntax",
+      "passed": true
+    },
+    {
+      "check": "decoded manifests/live structural fields reveal no values or arbitrary map keys",
+      "passed": true
+    },
+    {
+      "check": "reviewed Argo request matches final local/remote hashes",
+      "passed": true
+    },
+    {
+      "check": "original live drivers remain byte-identical",
+      "passed": true
+    },
+    {
+      "check": "final Go diagnostic format",
+      "passed": true
+    },
+    {
+      "check": "all new local diagnostic files ignored",
+      "passed": true
+    }
+  ],
+  "artifactHashes": {
+    "live-diagnostic-argo-v2-remote-staged.py": "5f0fb40b9ec203c62b712107c5b8e6c749d5ef6f27485dfa572a3e9f1fd73bcf",
+    "live-diagnostic-argo-v2-runner.py": "1aafb8450b64a28e1dcf82ca03842c09985638ba5662150411e29b25cd387521",
+    "live-diagnostic-o2-contract.exe": "5f6c7d76e4088f11f9f10e4e7a5f521c2c234b1394774bed72c951dbc276a5b6",
+    "live-diagnostic-o2-contract.go": "5167ca6a386dfa20f7665bca8d731e1a5095d87a3af6f00b2d41ec80684c1148",
+    "live-diagnostic-o2-inspect.exe": "981a6f57369cacfaa359b1ac19fd647c388f0303c7809f7841fc0803cb9210a4",
+    "live-diagnostic-o2-inspect.go": "d7f7d9400a3ec5814e7b361a83be1589c837bf5b67558d8a18211056c3e24d39",
+    "live-diagnostic-o2-v2-runner.py": "56372070e34c97bed21ff87fecbfd1202866e9150d45a3469e6c31d59634e563",
+    "live-diagnostic-o2-v2.exe": "dac3205a287eb87aec698a7630065495338c05a1f3a716fa2c554a7aef192453",
+    "live-diagnostic-o2-v2.go": "49ac74638caa205844663403d99f2d73aa2f190fd426d7da0fce0981928a9d59",
+    "live-diagnostic-report-events.jsonl": "1a5a2a6ced4673406b042deae87bf09f5842189b7045cc83711e33c35d77d1a9",
+    "live-diagnostic-stage.py": "4c9f3b1729029a2d11d11cdbe1d01996ae7d01ae92d431679555651579648c21",
+    "live-diagnostic-verify.py": "293df7c766901cda26590e2fcf886a5d9e350a0cf13fc401746e8566add9db8e"
+  },
+  "sourceOwnership": "Pantheon Ops business/*; inherited response contract stays owned by Base",
+  "CodeGraph": "tool unavailable; exact user-specified source reads used",
+  "knownGaps": [
+    "Argo true provider trace pending",
+    "suppressed O2 operation errors pending retained DB read-only reproduction or v2 run",
+    "coordinating root owns full tree verification/acceptance"
+  ],
+  "exitCode": 0
+}

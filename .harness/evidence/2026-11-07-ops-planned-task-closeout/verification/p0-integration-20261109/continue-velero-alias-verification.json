@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "linkage": {
+    "taskId": "2026-11-07-ops-planned-task-closeout",
+    "taskPacket": "docs/harness/tasks/2026-11-07-ops-planned-task-closeout.task.md"
+  },
+  "command": [
+    "python",
+    "-B",
+    ".local/ops-acceptance/continue-velero-alias-test.py"
+  ],
+  "exitCode": 0,
+  "stdout": "",
+  "stderr": "test_actual_official_image_association_and_wrong_config_or_layer (__main__.AliasContract.test_actual_official_image_association_and_wrong_config_or_layer) ... ok\ntest_captured_command_executes_same_sealed_buffer (__main__.AliasContract.test_captured_command_executes_same_sealed_buffer) ... ok\ntest_config_content_and_layers_are_checked (__main__.AliasContract.test_config_content_and_layers_are_checked) ... ok\ntest_duplicate_malformed_and_unknown_provider_references (__main__.AliasContract.test_duplicate_malformed_and_unknown_provider_references) ... ok\ntest_failed_wrong_phase_stale_bool_hash_predecessors_refuse (__main__.AliasContract.test_failed_wrong_phase_stale_bool_hash_predecessors_refuse) ... ok\ntest_missing_predecessor_external_hash_and_install_refuse_before_connect (__main__.AliasContract.test_missing_predecessor_external_hash_and_install_refuse_before_connect) ... ok\ntest_native_adapter_removes_only_absence_checks (__main__.AliasContract.test_native_adapter_removes_only_absence_checks) ... ok\ntest_normalization_mismatch_reproduced_and_repair_is_exact (__main__.AliasContract.test_normalization_mismatch_reproduced_and_repair_is_exact) ... ok\ntest_policy_extra_fields_and_uid_drift_refuse (__main__.AliasContract.test_policy_extra_fields_and_uid_drift_refuse) ... ok\ntest_present_matching_alias_is_uncertain_not_success (__main__.AliasContract.test_present_matching_alias_is_uncertain_not_success) ... ok\ntest_real_cached_index_links_exact_reviewed_manifest (__main__.AliasContract.test_real_cached_index_links_exact_reviewed_manifest) ... ok\ntest_source_file_and_predecessor_hash_tamper_refuse (__main__.AliasContract.test_source_file_and_predecessor_hash_tamper_refuse) ... ok\ntest_wrong_source_index_type_official_and_unknown_alias_refuse (__main__.AliasContract.test_wrong_source_index_type_official_and_unknown_alias_refuse) ... ok\ntest_live_pod_uid_restart_hostnetwork_and_controller_drift_refuse (__main__.NativeAndPreparation.test_live_pod_uid_restart_hostnetwork_and_controller_drift_refuse) ... ok\ntest_partial_capture_is_readonly_and_refuses_unknown_outputs (__main__.NativeAndPreparation.test_partial_capture_is_readonly_and_refuses_unknown_outputs) ... ok\ntest_prepare_and_check_consume_original_products_without_writing (__main__.NativeAndPreparation.test_prepare_and_check_consume_original_products_without_writing) ... ok\ntest_typed_bounded_command_and_exact_endpoint_warning_only (__main__.NativeAndPreparation.test_typed_bounded_command_and_exact_endpoint_warning_only) ... ok\ntest_alias_only_success_truthfully_recovers_compatible_receipt (__main__.PartialRecovery.test_alias_only_success_truthfully_recovers_compatible_receipt) ... ok\ntest_bsl_denied_cannot_make_provider_receipt (__main__.PartialRecovery.test_bsl_denied_cannot_make_provider_receipt) ... ok\ntest_controller_not_ready_cannot_make_provider_receipt (__main__.PartialRecovery.test_controller_not_ready_cannot_make_provider_receipt) ... ok\ntest_diagnostic_drift_blocks_all_mutations (__main__.PartialRecovery.test_diagnostic_drift_blocks_all_mutations) ... ok\ntest_first_mutation_reply_lost_is_uncertain_no_retry (__main__.PartialRecovery.test_first_mutation_reply_lost_is_uncertain_no_retry) ... ok\ntest_first_success_second_failure_preserves_both_journals (__main__.PartialRecovery.test_first_success_second_failure_preserves_both_journals) ... ok\ntest_journal_exclusive_and_records_exact_bytes (__main__.PartialRecovery.test_journal_exclusive_and_records_exact_bytes) ... ok\ntest_no_install_import_resource_create_restart_or_native_mutation_calls (__main__.PartialRecovery.test_no_install_import_resource_create_restart_or_native_mutation_calls) ... ok\ntest_s3_denied_cannot_make_provider_receipt (__main__.PartialRecovery.test_s3_denied_cannot_make_provider_receipt) ... ok\ntest_second_mutation_reply_lost_preserves_first_success (__main__.PartialRecovery.test_second_mutation_reply_lost_preserves_first_success) ... ok\n\n----------------------------------------------------------------------\nRan 27 tests in 3.515s\n\nOK\n",
+  "sourceHashes": {
+    ".local/ops-acceptance/continue-velero-alias-contract.py": "a18eaa2cac4b5e2358090b3c9aebe3eaa4cdb1450d22a0c3a1d2f80f890cdef6",
+    ".local/ops-acceptance/continue-velero-alias-remote.py": "906f24a70436eefc53245d5251c831b3828e5227edc8ffe8dcac3fb2f78dbfb6",
+    ".local/ops-acceptance/continue-velero-alias-root.py": "fd02f3dc08438891241d3c775dcb06124badb791fd9622c0a0b0358eb24f1e0d",
+    ".local/ops-acceptance/continue-velero-alias-generate.py": "d8b8582cc0e227e1445845d12b63b71161b7e1868684b4a2e3a801931634958a",
+    ".local/ops-acceptance/continue-velero-alias-test.py": "46ad82310bb2de04e83a3c77ff20f1b7378b1b6c57027d2b03f435a7da6febc2"
+  },
+  "requestSHA256": "f053fb6dda5d44af557eabdee4ad04b676da47591d7add0e210a442425a81d70",
+  "compiled": 5,
+  "tests": 27,
+  "skipped": 0,
+  "lspArtifact": "python-lsp-continue-velero-alias-sealed-20261110T055622323439.json",
+  "lspSHA256": "0e232c55179b1f0870148a5aec240c49997054097f577d8dfa43a0ae6369e44b",
+  "lspErrors": 0,
+  "lspWarnings": 0,
+  "remoteExecuted": false,
+  "P0Approved": false
+}

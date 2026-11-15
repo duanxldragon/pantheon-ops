@@ -1,0 +1,324 @@
+{
+  "case": "pause-resume",
+  "identity": "o2-live-593d9f0f9442-pause-resume",
+  "database": "ops_p0_o2_live_593d9f0f9442_pause_resume",
+  "databaseRetention": "retained; no drop",
+  "events": [
+    {
+      "credentialId": 1,
+      "packageId": 1,
+      "phase": "task-created",
+      "taskId": 1
+    },
+    {
+      "action": "pause",
+      "errorKey": "",
+      "phase": "control",
+      "taskId": 1
+    },
+    {
+      "case": "pause-resume",
+      "check": "real running command acknowledged paused",
+      "kind": "positive",
+      "passed": true
+    },
+    {
+      "action": "cancel",
+      "errorKey": "business.deploy.task.commandConflict",
+      "phase": "control",
+      "taskId": 1
+    },
+    {
+      "case": "pause-resume",
+      "check": "stale running view conflicts after control",
+      "kind": "negative",
+      "passed": true
+    },
+    {
+      "case": "pause-resume",
+      "check": "independent VM interrupted attempt never wrote completion",
+      "kind": "positive",
+      "passed": true
+    },
+    {
+      "case": "pause-resume",
+      "check": "public current checkpoint and recorded safe history",
+      "kind": "positive",
+      "origin": "fresh-process",
+      "passed": true
+    },
+    {
+      "case": "pause-resume",
+      "check": "public log sequence ownership attempts and secret exclusion",
+      "kind": "positive",
+      "origin": "fresh-process",
+      "passed": false
+    },
+    {
+      "case": "pause-resume",
+      "check": "both actual VM streams persisted",
+      "kind": "positive",
+      "origin": "fresh-process",
+      "passed": true
+    },
+    {
+      "case": "pause-resume",
+      "check": "log cursor excludes already delivered sequence",
+      "kind": "positive",
+      "origin": "fresh-process",
+      "passed": true
+    },
+    {
+      "case": "pause-resume",
+      "check": "public event sequence ordered across committed transitions",
+      "kind": "positive",
+      "origin": "fresh-process",
+      "passed": false
+    },
+    {
+      "case": "pause-resume",
+      "check": "event reconnect cursor no replay at latest sequence",
+      "kind": "positive",
+      "origin": "fresh-process",
+      "passed": true
+    },
+    {
+      "attempts": [
+        {
+          "attemptNo": 1,
+          "leaseReleased": true,
+          "status": "paused"
+        }
+      ],
+      "eventTypes": [
+        "task.started",
+        "step.running",
+        "task.pause_requested",
+        "task.paused"
+      ],
+      "finished": false,
+      "history": [
+        {
+          "attemptNo": 1,
+          "capturedAt": "2026-11-09T16:11:26.64+08:00",
+          "finishedAt": null,
+          "id": 1,
+          "startedAt": "2026-11-09T16:11:21.036+08:00",
+          "stateVersion": 3,
+          "status": "pending",
+          "stepKey": "package_default",
+          "stepOrder": 1,
+          "taskHostId": 1
+        }
+      ],
+      "logCount": 2,
+      "origin": "fresh-process",
+      "phase": "persisted-state",
+      "status": "paused",
+      "steps": [
+        {
+          "attemptNo": 1,
+          "finishedAt": null,
+          "id": 1,
+          "startedAt": "2026-11-09T16:11:21.036+08:00",
+          "stateVersion": 3,
+          "status": "pending",
+          "stepKey": "package_default",
+          "stepOrder": 1,
+          "taskHostId": 1
+        }
+      ],
+      "taskId": 1
+    },
+    {
+      "case": "pause-resume",
+      "failed": 2,
+      "negativePassed": 0,
+      "origin": "fresh-process",
+      "phase": "driver-result",
+      "positivePassed": 4
+    },
+    {
+      "case": "pause-resume",
+      "check": "new OS process inspect uses committed task state",
+      "kind": "positive",
+      "passed": false
+    },
+    {
+      "action": "resume",
+      "errorKey": "",
+      "origin": "fresh-process",
+      "phase": "control",
+      "taskId": 1
+    },
+    {
+      "case": "pause-resume",
+      "check": "public current checkpoint and recorded safe history",
+      "kind": "positive",
+      "origin": "fresh-process",
+      "passed": true
+    },
+    {
+      "case": "pause-resume",
+      "check": "public log sequence ownership attempts and secret exclusion",
+      "kind": "positive",
+      "origin": "fresh-process",
+      "passed": false
+    },
+    {
+      "case": "pause-resume",
+      "check": "both actual VM streams persisted",
+      "kind": "positive",
+      "origin": "fresh-process",
+      "passed": true
+    },
+    {
+      "case": "pause-resume",
+      "check": "log cursor excludes already delivered sequence",
+      "kind": "positive",
+      "origin": "fresh-process",
+      "passed": true
+    },
+    {
+      "case": "pause-resume",
+      "check": "public event sequence ordered across committed transitions",
+      "kind": "positive",
+      "origin": "fresh-process",
+      "passed": false
+    },
+    {
+      "case": "pause-resume",
+      "check": "event reconnect cursor no replay at latest sequence",
+      "kind": "positive",
+      "origin": "fresh-process",
+      "passed": true
+    },
+    {
+      "attempts": [
+        {
+          "attemptNo": 1,
+          "leaseReleased": true,
+          "status": "paused"
+        },
+        {
+          "attemptNo": 2,
+          "leaseReleased": true,
+          "status": "success"
+        }
+      ],
+      "eventTypes": [
+        "task.started",
+        "step.running",
+        "task.pause_requested",
+        "task.paused",
+        "task.resumed",
+        "step.running",
+        "step.success",
+        "task.completed"
+      ],
+      "finished": true,
+      "history": [
+        {
+          "attemptNo": 2,
+          "capturedAt": "2026-11-09T16:11:48.951+08:00",
+          "finishedAt": "2026-11-09T16:11:48.949+08:00",
+          "id": 1,
+          "startedAt": "2026-11-09T16:11:47.767+08:00",
+          "stateVersion": 5,
+          "status": "success",
+          "stepKey": "package_default",
+          "stepOrder": 1,
+          "taskHostId": 1
+        },
+        {
+          "attemptNo": 1,
+          "capturedAt": "2026-11-09T16:11:26.64+08:00",
+          "finishedAt": null,
+          "id": 1,
+          "startedAt": "2026-11-09T16:11:21.036+08:00",
+          "stateVersion": 3,
+          "status": "pending",
+          "stepKey": "package_default",
+          "stepOrder": 1,
+          "taskHostId": 1
+        }
+      ],
+      "logCount": 4,
+      "origin": "fresh-process",
+      "phase": "persisted-state",
+      "status": "success",
+      "steps": [
+        {
+          "attemptNo": 2,
+          "finishedAt": "2026-11-09T16:11:48.949+08:00",
+          "id": 1,
+          "startedAt": "2026-11-09T16:11:47.767+08:00",
+          "stateVersion": 5,
+          "status": "success",
+          "stepKey": "package_default",
+          "stepOrder": 1,
+          "taskHostId": 1
+        }
+      ],
+      "taskId": 1
+    },
+    {
+      "case": "pause-resume",
+      "failed": 2,
+      "negativePassed": 0,
+      "origin": "fresh-process",
+      "phase": "driver-result",
+      "positivePassed": 4
+    },
+    {
+      "case": "pause-resume",
+      "check": "new OS process resume uses committed task state",
+      "kind": "positive",
+      "passed": false
+    },
+    {
+      "case": "pause-resume",
+      "check": "fresh process resumed actual VM completion",
+      "kind": "positive",
+      "passed": true
+    },
+    {
+      "case": "pause-resume",
+      "failed": 2,
+      "negativePassed": 1,
+      "phase": "driver-result",
+      "positivePassed": 3
+    }
+  ],
+  "driverExitCode": 1,
+  "stderrPresent": false,
+  "status": "failed",
+  "cleanup": {
+    "phase": "exact-owned-cleanup",
+    "directory": "/opt/pantheon-p0-20261109/o2-live-593d9f0f9442-pause-resume",
+    "files": [
+      {
+        "file": "gate",
+        "sha256": "af08106097647c5c17dfd15cf6ebd1a27bb5647819a05d643de1235f00d85f7b",
+        "bytes": 33
+      },
+      {
+        "file": ".owner",
+        "sha256": "af08106097647c5c17dfd15cf6ebd1a27bb5647819a05d643de1235f00d85f7b",
+        "bytes": 33
+      },
+      {
+        "file": "done",
+        "sha256": "af08106097647c5c17dfd15cf6ebd1a27bb5647819a05d643de1235f00d85f7b",
+        "bytes": 33
+      },
+      {
+        "file": "started",
+        "sha256": "af08106097647c5c17dfd15cf6ebd1a27bb5647819a05d643de1235f00d85f7b",
+        "bytes": 33
+      }
+    ],
+    "absent": true,
+    "processKill": false
+  }
+}

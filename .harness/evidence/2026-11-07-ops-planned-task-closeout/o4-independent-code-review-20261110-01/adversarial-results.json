@@ -1,0 +1,39 @@
+[
+  {
+    "name": "single regular file exclusion",
+    "status": "DEFECT_REPRODUCED",
+    "error": "Unknown directory ownership: D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.harness\\evidence\\2026-11-07-ops-planned-task-closeout\\o4-independent-code-review-20261110-01\\fixtures\\ops-candidate-AAYCDS\\ops\\.tmp\\foundation-candidates\\candidate-5e4757c4069b55bdacd523289dd85f7d9786ce939f06f5ece1610f7bf627fad1\\assembled\\docs\\base.md",
+    "fixtureRoot": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.harness\\evidence\\2026-11-07-ops-planned-task-closeout\\o4-independent-code-review-20261110-01\\fixtures\\ops-candidate-AAYCDS"
+  },
+  {
+    "name": "replacement between exclusive mkdir and immediate identity capture",
+    "status": "DEFECT_REPRODUCED",
+    "foreignUnlinkAttempted": true,
+    "primaryPreserved": true,
+    "fixtureRoot": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.harness\\evidence\\2026-11-07-ops-planned-task-closeout\\o4-independent-code-review-20261110-01\\fixtures\\ops-candidate-G31no3",
+    "error": "Candidate cleanup ownership/identity refused: Review preserved attempted foreign unlink; retained stage D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.harness\\evidence\\2026-11-07-ops-planned-task-closeout\\o4-independent-code-review-20261110-01\\fixtures\\ops-candidate-G31no3\\ops\\.tmp\\foundation-candidates\\candidate-5e4757c4069b55bdacd523289dd85f7d9786ce939f06f5ece1610f7bf627fad1; original failure: independent primary failure"
+  },
+  {
+    "name": "observed directory replacement before file copy",
+    "status": "DEFECT_REPRODUCED",
+    "foreignFileOverwritten": true,
+    "fixtureRoot": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.harness\\evidence\\2026-11-07-ops-planned-task-closeout\\o4-independent-code-review-20261110-01\\fixtures\\ops-candidate-x0kdNU"
+  },
+  {
+    "name": "foreign regular sibling inside registered directory",
+    "status": "DEFECT_REPRODUCED",
+    "foreignUnlinkAttempted": true,
+    "fixtureRoot": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.harness\\evidence\\2026-11-07-ops-planned-task-closeout\\o4-independent-code-review-20261110-01\\fixtures\\ops-candidate-KfX0yu",
+    "error": "Candidate cleanup ownership/identity refused: Review preserved foreign sibling; retained stage D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.harness\\evidence\\2026-11-07-ops-planned-task-closeout\\o4-independent-code-review-20261110-01\\fixtures\\ops-candidate-KfX0yu\\ops\\.tmp\\foundation-candidates\\candidate-5e4757c4069b55bdacd523289dd85f7d9786ce939f06f5ece1610f7bf627fad1; original failure: Review preserved foreign sibling"
+  },
+  {
+    "name": "adjacent BigInt directory IDs refuse replacement",
+    "status": "PASS",
+    "fixtureRoot": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.harness\\evidence\\2026-11-07-ops-planned-task-closeout\\o4-independent-code-review-20261110-01\\fixtures\\ops-candidate-H0tob7"
+  },
+  {
+    "name": "foreign stage sibling is outside cleanup ownership",
+    "status": "PASS",
+    "fixtureRoot": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.harness\\evidence\\2026-11-07-ops-planned-task-closeout\\o4-independent-code-review-20261110-01\\fixtures\\ops-candidate-KfXuoW"
+  }
+]

@@ -1,0 +1,697 @@
+[
+  {
+    "repo": "pantheon-ops",
+    "path": "backend/modules/business/bizscope/bizscope_service.go",
+    "sha256": "4654F1B9077CCDE03FC717223A63E2ACFED0DF8771CBEECA71A4D2F5027E9999"
+  },
+  {
+    "repo": "pantheon-ops",
+    "path": "backend/modules/business/cmdb/capability.go",
+    "sha256": "87DA5F9BDE5E3F69022617CF6C92B7E4A4C0BDFEE106A6876E511C925C16F566"
+  },
+  {
+    "repo": "pantheon-ops",
+    "path": "backend/modules/business/cmdb/host/host_state_version_migration_test.go",
+    "sha256": "A2C9B213892D6D086638218BD78F3E9307974705DE7A6DB240EADA6629E76649"
+  },
+  {
+    "repo": "pantheon-ops",
+    "path": "backend/modules/business/cmdb/target_selection_test.go",
+    "sha256": "4342665A326DB22C269A885981F16841920549F2C5AF8EBA80E3C5EFCCD7E846"
+  },
+  {
+    "repo": "pantheon-ops",
+    "path": "backend/modules/business/cmdb/target_selection.go",
+    "sha256": "C457445FC08B607E0DC83477A00343CB994C503084B472F1B30C8E8E57591CFF"
+  },
+  {
+    "repo": "pantheon-ops",
+    "path": "backend/modules/business/deploy/deploy_dto.go",
+    "sha256": "EABABD208F853CFCBD92BE84A89633104DCF30EBF34C2152EE2AD480D2880A58"
+  },
+  {
+    "repo": "pantheon-ops",
+    "path": "backend/modules/business/deploy/deploy_handler.go",
+    "sha256": "36C81D49130DC181DE52326D6A03B119DB700229AB3608A9639B23FCC6AC6FFF"
+  },
+  {
+    "repo": "pantheon-ops",
+    "path": "backend/modules/business/deploy/deploy_model.go",
+    "sha256": "71C8AA8BF0075CB668BB5FB09ACF930A1F4776872A7413A7601F9842E6E712F0"
+  },
+  {
+    "repo": "pantheon-ops",
+    "path": "backend/modules/business/deploy/deploy_reliability_test.go",
+    "sha256": "58FF415824EE9810596302B61E593D148B2B2FD52AE405BE8DBE9C2BD6612C63"
+  },
+  {
+    "repo": "pantheon-ops",
+    "path": "backend/modules/business/deploy/deploy_rollback.go",
+    "sha256": "CB054C1930B8AFA125D24F6CA78C1CB323DBC72E0D5C59EB487E4A9BD306D3E3"
+  },
+  {
+    "repo": "pantheon-ops",
+    "path": "backend/modules/business/deploy/deploy_seed.go",
+    "sha256": "ED4ED1585112AA2C0B0F06687AE2624E58324538CA1F2E79E2030BE2F0DF901D"
+  },
+  {
+    "repo": "pantheon-ops",
+    "path": "backend/modules/business/deploy/deploy_service_test.go",
+    "sha256": "62EB9DAB66526067912E160F08F4058FAE6F46011CF87252303E8F4943DB2106"
+  },
+  {
+    "repo": "pantheon-ops",
+    "path": "backend/modules/business/deploy/deploy_service.go",
+    "sha256": "95C27E19E1134805F1FEEBF7465CD8B1A80E9023B31790E813AF1114586D832B"
+  },
+  {
+    "repo": "pantheon-ops",
+    "path": "backend/modules/business/deploy/deploy_ssh_transport_test.go",
+    "sha256": "18D28E745FE711A40E02D213ABBCF9D7FDD5ED89403FE1C1FAEFBB0DE8DF0302"
+  },
+  {
+    "repo": "pantheon-ops",
+    "path": "backend/modules/business/deploy/log_attempt_migration_test.go",
+    "sha256": "DA6E67C00BF545E1A60B0A5B7FDC3FCBA28F51993BE18B511B53F54A50C3C0CB"
+  },
+  {
+    "repo": "pantheon-ops",
+    "path": "backend/modules/business/deploy/migrations/000034_deploy_log_attempt.down.sql",
+    "sha256": "79EDB509A17DA7461697D2567803B77DD08AD2BA139C1055D05DA4F336590A37"
+  },
+  {
+    "repo": "pantheon-ops",
+    "path": "backend/modules/business/deploy/migrations/000034_deploy_log_attempt.up.sql",
+    "sha256": "F175E065722F1CE721AFA2CD7203CA8A71FDE7DBEBB46C5CCA0FD19ABD3D9342"
+  },
+  {
+    "repo": "pantheon-ops",
+    "path": "backend/modules/business/deploy/migrations/000035_deploy_step_history.down.sql",
+    "sha256": "6AEB009B5826E53E0D8B063C09FA0E5C65F9C3D04947375348ADE9809C618840"
+  },
+  {
+    "repo": "pantheon-ops",
+    "path": "backend/modules/business/deploy/migrations/000035_deploy_step_history.up.sql",
+    "sha256": "1ABF23EB1549D5929ADC732BC1A35865C81494693EFA468F6EF5D9B64B411CFA"
+  },
+  {
+    "repo": "pantheon-ops",
+    "path": "backend/modules/business/deploy/step_history_test.go",
+    "sha256": "2059E33519344E3A691D6275056F67FC1CED8D7304D4CE2FB14E0B0E431E50B8"
+  },
+  {
+    "repo": "pantheon-ops",
+    "path": "backend/modules/business/deploy/step_history.go",
+    "sha256": "6BBFBC6249F2AFEF10E7F2E3BA6BB333B318921AB2AF390CCDBEC7772A2DC441"
+  },
+  {
+    "repo": "pantheon-ops",
+    "path": "backend/modules/business/deploy/target_selection.go",
+    "sha256": "96BA7BEE68F99293A492B7ED3FAAFEC8B8590AD7F08A3AD3BFEA5BEA6E2AABC6"
+  },
+  {
+    "repo": "pantheon-ops",
+    "path": "backend/modules/business/deploy/task_command_test.go",
+    "sha256": "A04A68B5134EC0B60296E6EFA5F9C31B634CD5B52E6EA177655B9C9632013682"
+  },
+  {
+    "repo": "pantheon-ops",
+    "path": "backend/modules/business/deploy/task_command.go",
+    "sha256": "008241A4396723D6ACDBEE14B0D088DA4E77F112DD15182BD524C4D297942437"
+  },
+  {
+    "repo": "pantheon-ops",
+    "path": "backend/modules/business/deploy/task_preview_plan.go",
+    "sha256": "94839E26C1C4B87F71097FD8127E95F79248C45EE18165EE486BFAE76E650195"
+  },
+  {
+    "repo": "pantheon-ops",
+    "path": "backend/modules/business/deploy/task_preview_test.go",
+    "sha256": "78288F6914F16B531DB798A63534053385C5462E6B2EFA341771088D7756A2D0"
+  },
+  {
+    "repo": "pantheon-ops",
+    "path": "backend/modules/business/deploy/task_preview.go",
+    "sha256": "656255301998F2BBEA30041F493D71F50622BBCDE74DE644EB74F5D06D067C15"
+  },
+  {
+    "repo": "pantheon-ops",
+    "path": "backend/modules/business/deploy/task_rollback_snapshot_test.go",
+    "sha256": "DF3C8671E98998777BA6AAF7DABCB3C0765258D78FED93A3F71CCC89D5942767"
+  },
+  {
+    "repo": "pantheon-ops",
+    "path": "backend/modules/business/deploy/task_rollback_snapshot.go",
+    "sha256": "3D0A60FA0C9F388AB4FACCD742BD443CC838BD8386FCCE0475A14745A15DEB87"
+  },
+  {
+    "repo": "pantheon-ops",
+    "path": "backend/modules/business/deploy/workbench_test.go",
+    "sha256": "38AC2EF1EC9AE8B8108FAA69CCE2189CEE4EC6E062C1672B9F16AEEE0AA7B77B"
+  },
+  {
+    "repo": "pantheon-ops",
+    "path": "backend/modules/business/filedist/data_scope_test.go",
+    "sha256": "8CB2D8A2247411CF65CECE260661A2BCD48EDA80F87ACA3F5EA828CD9E2B68A7"
+  },
+  {
+    "repo": "pantheon-ops",
+    "path": "backend/modules/business/filedist/distribution_model.go",
+    "sha256": "7E21E6D9877A27536E3A111694CAE9EFABD7C6AD406E99186D3B071BF54FD6E2"
+  },
+  {
+    "repo": "pantheon-ops",
+    "path": "backend/modules/business/filedist/distribution_service_test.go",
+    "sha256": "AA1FD99EFDA9A1A8185A77C6B652E8F407669137328082487349626C8E4B0FFA"
+  },
+  {
+    "repo": "pantheon-ops",
+    "path": "backend/modules/business/filedist/distribution_service.go",
+    "sha256": "D68E29A788C61920783703F98BB81BDCA659A73D96563A48F320E4D3A5477FC4"
+  },
+  {
+    "repo": "pantheon-ops",
+    "path": "backend/modules/business/filedist/filedist_handler.go",
+    "sha256": "01616D3C335ED0F5A0F06B54C08F458E41F0B6F047AC8AF0F80152E7763AB67C"
+  },
+  {
+    "repo": "pantheon-ops",
+    "path": "backend/modules/business/k8s/cluster/cluster_service.go",
+    "sha256": "41BF597C5530C56387A881FF01B60B87FD75C0A90DC6A11B327A725ABA8E91B2"
+  },
+  {
+    "repo": "pantheon-ops",
+    "path": "backend/modules/business/k8s/k8s_seed.go",
+    "sha256": "913D5DD3541621B05DFC44F37699CE6E72C1F6647E736D26606EBF69C5E739AA"
+  },
+  {
+    "repo": "pantheon-ops",
+    "path": "backend/modules/business/k8s/pkg/client_factory_test.go",
+    "sha256": "964258A9AAE992572497044988AAAAA077C42D0998566AD3C33514DF052E3048"
+  },
+  {
+    "repo": "pantheon-ops",
+    "path": "backend/modules/business/k8s/pkg/client_factory.go",
+    "sha256": "5ACFBC581567A4205CB736F128FA9586E31BA672048306361CA3FAC16F790B3F"
+  },
+  {
+    "repo": "pantheon-ops",
+    "path": "backend/modules/business/k8s/pkg/release_review_test.go",
+    "sha256": "AEC9390575D04FB946AA6281FD4552BBB2AC827D1CB803F427084A489DAEE26B"
+  },
+  {
+    "repo": "pantheon-ops",
+    "path": "backend/modules/business/k8s/pkg/release_review.go",
+    "sha256": "0A7CABD7278DE8708BA0E01CAB70A787BBD961EF0EBC4B3CE035F60D368530B4"
+  },
+  {
+    "repo": "pantheon-ops",
+    "path": "backend/modules/business/k8s/release/release_dto.go",
+    "sha256": "BBBFF22445DB36CF73208F928D786442E9E097E77178FEE425464F73F437CE36"
+  },
+  {
+    "repo": "pantheon-ops",
+    "path": "backend/modules/business/k8s/release/release_handler.go",
+    "sha256": "D60908847FC1E3B7B1966B552BF759694DCF8237EE34350B62A73DCC175C1344"
+  },
+  {
+    "repo": "pantheon-ops",
+    "path": "backend/modules/business/k8s/release/release_preview_test.go",
+    "sha256": "F33F51A5CD58D7980653D4CF3182025FF9C69372F260BEFD1CE46F2C7F916247"
+  },
+  {
+    "repo": "pantheon-ops",
+    "path": "backend/modules/business/k8s/release/release_preview.go",
+    "sha256": "FB1ABD08810B09E02100336C4943B9AAD5FEC5CC8861300B80CB2456C385DADE"
+  },
+  {
+    "repo": "pantheon-ops",
+    "path": "backend/modules/business/k8s/release/release_service.go",
+    "sha256": "4716012924A0A301B51686DED73AAD192A86A26EDF39D5407FC14172CC6A5ACE"
+  },
+  {
+    "repo": "pantheon-ops",
+    "path": "backend/modules/business/k8s/workload/log_handler_test.go",
+    "sha256": "B3431AF0800DF629D93B77EA4B4A4FC92493B56B2FD4CCD5CCD4B2C6B14E0ED2"
+  },
+  {
+    "repo": "pantheon-ops",
+    "path": "backend/modules/business/k8s/workload/log_handler.go",
+    "sha256": "FF6339ADE20FC9418744624CDE22A4DEDF12631465FBC61341731C2C7D6F0399"
+  },
+  {
+    "repo": "pantheon-ops",
+    "path": "backend/modules/business/observability/datasource_service_test.go",
+    "sha256": "8542859C835CD445D90B057421F97484D6C62EB19E8717FDDE5C62D87D91BDD4"
+  },
+  {
+    "repo": "pantheon-ops",
+    "path": "backend/modules/business/observability/datasource_service.go",
+    "sha256": "D626AC1142FA63C740B47927F4CC0B6006EAB11706E78FBB3FD3CC039161CCB9"
+  },
+  {
+    "repo": "pantheon-ops",
+    "path": "backend/modules/business/observability/notification_network_test.go",
+    "sha256": "FE415EC7E996EDB711800FC41B2DD369C77E74D2766E6F98B4CE191E01A08EBF"
+  },
+  {
+    "repo": "pantheon-ops",
+    "path": "backend/modules/business/observability/notification_service.go",
+    "sha256": "527EEA33514D03AF5A40EBA53440B707812B22114AE3F485AEF1A769F821ECCF"
+  },
+  {
+    "repo": "pantheon-ops",
+    "path": "backend/modules/business/observability/notification_smtp.go",
+    "sha256": "D26ED90CCF5CDFB5A5414C561333D60C8A698651479616EECA855BAA5C0D47CE"
+  },
+  {
+    "repo": "pantheon-ops",
+    "path": "backend/modules/business/observability/observability_handler.go",
+    "sha256": "B9EFFD91D35EA6FAE9F6AA8EFF1EE2EF5CBF3AC2786817B8908F4E50F8D2A251"
+  },
+  {
+    "repo": "pantheon-ops",
+    "path": "backend/modules/business/observability/seed_test.go",
+    "sha256": "01BD5470312393604D6ADC058F061356F7736F8540C721F52591054930464DDE"
+  },
+  {
+    "repo": "pantheon-ops",
+    "path": "backend/modules/business/observability/seed.go",
+    "sha256": "1327F3AE8125121E2DE02047DD084B8D0B4E2DCCA9F59101DC2698237139022C"
+  },
+  {
+    "repo": "pantheon-ops",
+    "path": "backend/modules/business/opsinit/migrations_test.go",
+    "sha256": "18B6FE9256D39A2F164C471E558CC5259C4ED56E70924D70836AF72E4F0D7F4D"
+  },
+  {
+    "repo": "pantheon-ops",
+    "path": "backend/modules/business/opsinit/migrations/000033_core_business_schema.down.sql",
+    "sha256": "028ECA1E92CB2FB295593256E48390FD2DF6D7FABD071A71A8D5EF14FC19B2C0"
+  },
+  {
+    "repo": "pantheon-ops",
+    "path": "backend/modules/business/opsinit/migrations/000033_core_business_schema.up.sql",
+    "sha256": "4249D3D68A7FAD1407FDE74823EAC4AE0F929C7576A8E6A61BB0D9EC3F2EE0F8"
+  },
+  {
+    "repo": "pantheon-ops",
+    "path": "backend/pkg/database/migrations/000033_core_business_schema.down.sql",
+    "sha256": "028ECA1E92CB2FB295593256E48390FD2DF6D7FABD071A71A8D5EF14FC19B2C0"
+  },
+  {
+    "repo": "pantheon-ops",
+    "path": "backend/pkg/database/migrations/000033_core_business_schema.up.sql",
+    "sha256": "4249D3D68A7FAD1407FDE74823EAC4AE0F929C7576A8E6A61BB0D9EC3F2EE0F8"
+  },
+  {
+    "repo": "pantheon-ops",
+    "path": "backend/pkg/database/migrations/000034_deploy_log_attempt.down.sql",
+    "sha256": "79EDB509A17DA7461697D2567803B77DD08AD2BA139C1055D05DA4F336590A37"
+  },
+  {
+    "repo": "pantheon-ops",
+    "path": "backend/pkg/database/migrations/000034_deploy_log_attempt.up.sql",
+    "sha256": "F175E065722F1CE721AFA2CD7203CA8A71FDE7DBEBB46C5CCA0FD19ABD3D9342"
+  },
+  {
+    "repo": "pantheon-ops",
+    "path": "backend/pkg/database/migrations/000035_deploy_step_history.down.sql",
+    "sha256": "6AEB009B5826E53E0D8B063C09FA0E5C65F9C3D04947375348ADE9809C618840"
+  },
+  {
+    "repo": "pantheon-ops",
+    "path": "backend/pkg/database/migrations/000035_deploy_step_history.up.sql",
+    "sha256": "1ABF23EB1549D5929ADC732BC1A35865C81494693EFA468F6EF5D9B64B411CFA"
+  },
+  {
+    "repo": "pantheon-ops",
+    "path": "business-overlay.json",
+    "sha256": "CCE23467A27185DFCE80601F8BB8213CC155E0955ED8544A393BCD09F6E67160"
+  },
+  {
+    "repo": "pantheon-ops",
+    "path": "frontend/package.json",
+    "sha256": "9E933AFBF7A2F0875044EB31E18F12B96BD0ED358EED0D1CB5CF518D984DB746"
+  },
+  {
+    "repo": "pantheon-ops",
+    "path": "frontend/src/i18n/resources/business/en-US.ts",
+    "sha256": "8A30CE9BD2B8A347D17B3F2562E61A13AFDAA662C49E5B8EA2D274269C9BFF00"
+  },
+  {
+    "repo": "pantheon-ops",
+    "path": "frontend/src/i18n/resources/business/zh-CN.ts",
+    "sha256": "8D790E4C31CB31851E8451B03544C657B049B7F73B7ED59651A6EBABC80855CD"
+  },
+  {
+    "repo": "pantheon-ops",
+    "path": "frontend/src/modules/business/cmdb/host/api.ts",
+    "sha256": "5D754162951AA24188B60BE131FF5076E69FA85B650810E251B4C10D221D33A4"
+  },
+  {
+    "repo": "pantheon-ops",
+    "path": "frontend/src/modules/business/cmdb/locales/en-US.json",
+    "sha256": "8AEF0F485B1666EB6F0FEA5B33EC1B8DA6295D707B52EC6AEAD58FBD805BC8B2"
+  },
+  {
+    "repo": "pantheon-ops",
+    "path": "frontend/src/modules/business/cmdb/locales/zh-CN.json",
+    "sha256": "6E212A4F1CA41D827FA2CC84E997F8216A245D845B87FED40D095B165D3B7550"
+  },
+  {
+    "repo": "pantheon-ops",
+    "path": "frontend/src/modules/business/deploy/api.ts",
+    "sha256": "0D0135CF3BDC9275E969A90AD709D3157C04FEE01498965975ACE3FC664573E5"
+  },
+  {
+    "repo": "pantheon-ops",
+    "path": "frontend/src/modules/business/deploy/deploy.css",
+    "sha256": "AFB45D3ECF4758374D33447440B9E2B179A7A6B4ADDB4EB8A3E4F34EFD75DFF7"
+  },
+  {
+    "repo": "pantheon-ops",
+    "path": "frontend/src/modules/business/deploy/locales/en-US.json",
+    "sha256": "E231B371FECDF4A08400D7DD541B0AC3CD6C3AC77057160F0D947840350547CE"
+  },
+  {
+    "repo": "pantheon-ops",
+    "path": "frontend/src/modules/business/deploy/locales/zh-CN.json",
+    "sha256": "327DA559ED5BAC215340859B9A41F70411D2DA2A453188F54ADCAF1B28808B5B"
+  },
+  {
+    "repo": "pantheon-ops",
+    "path": "frontend/src/modules/business/deploy/task/DeployExecutionWorkbench.tsx",
+    "sha256": "9356CCD861BA5B10E7F0BF58B58F489D14634BE06C40D64CBDDF109137F73286"
+  },
+  {
+    "repo": "pantheon-ops",
+    "path": "frontend/src/modules/business/deploy/task/DeployTargetSelector.tsx",
+    "sha256": "71A81BE72F8AD145D8CADFDE97082AFE2FA5440336D58D88F2C8197A50D5B131"
+  },
+  {
+    "repo": "pantheon-ops",
+    "path": "frontend/src/modules/business/deploy/task/DeployTaskDetail.tsx",
+    "sha256": "1EA8B443BFE32F86A55AB15F3C0ADFCA44B3071C5456B28920F2942B6567F4F3"
+  },
+  {
+    "repo": "pantheon-ops",
+    "path": "frontend/src/modules/business/deploy/task/DeployTaskList.tsx",
+    "sha256": "1616EB2393854BEC6C35A137D668C11B5CF4A83E5D77388758FA16039BD7C055"
+  },
+  {
+    "repo": "pantheon-ops",
+    "path": "frontend/src/modules/business/deploy/task/DeployTaskPreview.tsx",
+    "sha256": "906E357BFBD62A25554778CAEF66671A3346F1F6E3ECB4774E06E6B3A7B37C8B"
+  },
+  {
+    "repo": "pantheon-ops",
+    "path": "frontend/src/modules/business/deploy/task/useDeployTaskLogs.ts",
+    "sha256": "9FC4B84175C54CD43A98DAE50784EB23C59A6AF87549BA8531F79811908DA957"
+  },
+  {
+    "repo": "pantheon-ops",
+    "path": "frontend/src/modules/business/deploy/task/useDeployTaskStream.ts",
+    "sha256": "7043751FD26AE00910D41914B7E8B99D441F89E099B8D729CD19911DFABCC227"
+  },
+  {
+    "repo": "pantheon-ops",
+    "path": "frontend/src/modules/business/k8s/api.ts",
+    "sha256": "9F3825C5FB653F28EC47062BDE274C2746ABEDAEC76AF2307B1535E32E0C9437"
+  },
+  {
+    "repo": "pantheon-ops",
+    "path": "frontend/src/modules/business/k8s/release/ReleaseList.tsx",
+    "sha256": "26C5245DE77D3F9A4148388521B2F3CA943D9AE2AD9C9884E816C9BD48FA1307"
+  },
+  {
+    "repo": "pantheon-ops",
+    "path": "frontend/src/modules/business/k8s/release/ReleasePreview.tsx",
+    "sha256": "7D579FC7F8D998310D6B134AC9E26AD24F3753D6A47010DC2C8F9EEFFBDC7DA2"
+  },
+  {
+    "repo": "pantheon-ops",
+    "path": "frontend/src/modules/business/k8s/workload/PodLogViewer.tsx",
+    "sha256": "0C7DDEC82EB94E5B2CCB4269D9D6892543695EBCA502AF17BFDD5445F5F313B6"
+  },
+  {
+    "repo": "pantheon-ops",
+    "path": "frontend/src/modules/business/observability/api.ts",
+    "sha256": "6FD26310590FF699D5E985D84816BB07715B0672593C3101D62701AF37F3269C"
+  },
+  {
+    "repo": "pantheon-ops",
+    "path": "frontend/src/modules/business/observability/log-explorer.css",
+    "sha256": "0F2285304B567D8506C2A9E155DC948306D692DCD94664713DB97D2D13AD4F67"
+  },
+  {
+    "repo": "pantheon-ops",
+    "path": "frontend/src/modules/business/observability/log-results.ts",
+    "sha256": "D9A4209A9A1E1D5FE71E90B09C0814A2BB693B43A754C7A03160FC260EB54C63"
+  },
+  {
+    "repo": "pantheon-ops",
+    "path": "frontend/src/modules/business/observability/LogExplorer.tsx",
+    "sha256": "749CD575BB6F82603B1D5B4C48CF5FD93AA9B7B6C972761C165DC60C88D55CFB"
+  },
+  {
+    "repo": "pantheon-ops",
+    "path": "frontend/src/modules/business/observability/LogResultPanels.tsx",
+    "sha256": "81A0B85985BDE0334F0717453B369AABA3DBB50A8A9B10480A9A89A521E574AC"
+  },
+  {
+    "repo": "pantheon-ops",
+    "path": "frontend/src/modules/business/shared/operational-log.css",
+    "sha256": "32DF4241F51C8D7C01A11D2C8A66E6D26B01BCD017EA3599FED8ED9D203AF68C"
+  },
+  {
+    "repo": "pantheon-ops",
+    "path": "frontend/src/modules/business/shared/OperationalLogPanel.tsx",
+    "sha256": "26E7FBCBE624DED48F06DDF8F813C1B8B7E4E689504B4741884BF66D8E6B27AB"
+  },
+  {
+    "repo": "pantheon-ops",
+    "path": "frontend/src/modules/business/v12locales/en-US.json",
+    "sha256": "BE8EACE66160DF17A627F8A33CFE6A86397894E6689549A1C8C07D6363EDFAA9"
+  },
+  {
+    "repo": "pantheon-ops",
+    "path": "frontend/src/modules/business/v12locales/zh-CN.json",
+    "sha256": "825110F30346D39A9C312118EB5E9EF7E19F3F8F7CF08853A3BEF3000EFDDA28"
+  },
+  {
+    "repo": "pantheon-ops",
+    "path": "frontend/tests/smoke/business/cmdb/cmdb-import-export-permissions.spec.ts",
+    "sha256": "29642E1D1761B6C897D72A352BCAF92CEB47FB0F2170A9AC50718C9A6D7B17E6"
+  },
+  {
+    "repo": "pantheon-ops",
+    "path": "frontend/tests/smoke/business/deploy/deploy-api.spec.ts",
+    "sha256": "82D233D44085C4F2E8CDE472A13A4B4F6AED2FF635EE8565E7A25C197AC17686"
+  },
+  {
+    "repo": "pantheon-ops",
+    "path": "frontend/tests/smoke/business/deploy/deploy-command.spec.ts",
+    "sha256": "06C8885D278F83641EE3C12C35981684027D395EB8999CE02769DC3B4EC6C786"
+  },
+  {
+    "repo": "pantheon-ops",
+    "path": "frontend/tests/smoke/business/deploy/deploy-pages.spec.ts",
+    "sha256": "ABDD9310709F15F3F8F0D869F8120344BC0F2BF6123B96A7B8B9A966022E774E"
+  },
+  {
+    "repo": "pantheon-ops",
+    "path": "frontend/tests/smoke/business/deploy/deploy-selection-preview.spec.ts",
+    "sha256": "233ADDAF62536792A2FBB82B20C0E74FD45FAEC4B26254970C0E3BB39BDE424A"
+  },
+  {
+    "repo": "pantheon-ops",
+    "path": "frontend/tests/smoke/business/deploy/deploy-workbench.spec.ts",
+    "sha256": "52305E53A95C12EF968E4EB6FA74E17A801A3DE48CED599801BC27FF85A892DC"
+  },
+  {
+    "repo": "pantheon-ops",
+    "path": "frontend/tests/smoke/business/deploy/reviewed-start.ts",
+    "sha256": "B7FEFDA17822370E80DF5DB6597EB15FD9872B46F0CAA4B4221A11F1D5A695CD"
+  },
+  {
+    "repo": "pantheon-ops",
+    "path": "frontend/tests/smoke/business/k8s/release-preview.spec.ts",
+    "sha256": "BE86D3CC365947A3E56D89ABA17F00FBB0E1C41911D9728DE4EF4D4909762B2E"
+  },
+  {
+    "repo": "pantheon-ops",
+    "path": "frontend/tests/smoke/business/observability-workbench.spec.ts",
+    "sha256": "0028262AFC3434DED209BC128944255658E8C75DB8E51D170B867D22ADE11F30"
+  },
+  {
+    "repo": "pantheon-ops",
+    "path": "frontend/tests/smoke/README.md",
+    "sha256": "9A8CE7BB4224E594989917B56AFC366D726EB9D048A3FB1026D35ACE41D93E50"
+  },
+  {
+    "repo": "pantheon-ops",
+    "path": "frontend/tests/unit/business/operational/deploy-command.test.tsx",
+    "sha256": "5E5A8E5199318A752CB99FB815762F56A39298BC7C3C89E64DBD99A2AB75A65A"
+  },
+  {
+    "repo": "pantheon-ops",
+    "path": "frontend/tests/unit/business/operational/deploy-context.test.tsx",
+    "sha256": "8AEAA42A0D0DDB6F88F17FF969AE6739DD7060E571DE7F06325542106707752E"
+  },
+  {
+    "repo": "pantheon-ops",
+    "path": "frontend/tests/unit/business/operational/deploy-log-cursor.test.tsx",
+    "sha256": "CEED93CAE2C05EB9B4E5711C6F478AC590761841A46E2F240C43FACE172B9CB0"
+  },
+  {
+    "repo": "pantheon-ops",
+    "path": "frontend/tests/unit/business/operational/deploy-preview.test.tsx",
+    "sha256": "17BD0ECEA77104215C36CA97FA236F2F040B21A7DE9B3E5C9410ED5D833B9E41"
+  },
+  {
+    "repo": "pantheon-ops",
+    "path": "frontend/tests/unit/business/operational/deploy-selection.test.tsx",
+    "sha256": "9DD027C3DD472C48341DC2593F3A5BCF2518C75BDEB411CF459668FAE2B89C4D"
+  },
+  {
+    "repo": "pantheon-ops",
+    "path": "frontend/tests/unit/business/operational/k8s-release-preview.test.tsx",
+    "sha256": "E19052E408468348658ACA7CB9D532294D1B06473A4D86AB68D3E77EBCB576B3"
+  },
+  {
+    "repo": "pantheon-ops",
+    "path": "frontend/tests/unit/business/operational/log-lifecycle.test.tsx",
+    "sha256": "27E55BC19D74F658382B13ACEDABA01D1B0CD42A7808CF62FA0DD121F50B91CC"
+  },
+  {
+    "repo": "pantheon-ops",
+    "path": "frontend/tests/unit/business/operational/log-results.test.ts",
+    "sha256": "97CB8506046027C113DC22D2F3459E74F0C821BAFCF6B1A27C3113379D918457"
+  },
+  {
+    "repo": "pantheon-ops",
+    "path": "frontend/tests/unit/business/operational/loki-query-state.test.tsx",
+    "sha256": "32ED7CE0C140E6CEB0338870CBC3532BA35ACEDA4C76A09D030FB5FC70C3AE52"
+  },
+  {
+    "repo": "pantheon-ops",
+    "path": "scripts/business-overlay/rebuild-from-base.mjs",
+    "sha256": "5706DE2DCD8D2334B374FA8DD1F621A9C4DDEB4B8B1A075172F4395E4AE2FDBD"
+  },
+  {
+    "repo": "pantheon-base",
+    "path": "backend/modules/system/iam/permission/permission_workbench.go",
+    "sha256": "5E57D0773990DDEBC9B308DDD6425A883663745B14D3EB5349828332AEBF3A28"
+  },
+  {
+    "repo": "pantheon-base",
+    "path": "backend/modules/system/iam/role/role_policy_sync_test.go",
+    "sha256": "1BC3E700EB9EC67138D6F35EB2C4E477314D13887BC72959F3ABF3493BEBB7F0"
+  },
+  {
+    "repo": "pantheon-base",
+    "path": "backend/pkg/permissionroutes/registry_test.go",
+    "sha256": "7AEE0C318AD365288E950F3DF2DA303BDC0B3653FC4E6BF2CA453B5A07A843E5"
+  },
+  {
+    "repo": "pantheon-base",
+    "path": "backend/pkg/permissionroutes/registry.go",
+    "sha256": "0C07C2A03DABBE924C22D246B7623A4F96B74D208F3B9B311A1DFB86FD5299C1"
+  },
+  {
+    "repo": "pantheon-base",
+    "path": "config/foundation-consumer-artifacts.json",
+    "sha256": "1D3CC1E52D3A5E5FBA00A70C2D84467AD8C279AD5D66F3F9F92DE238DF7F1161"
+  },
+  {
+    "repo": "pantheon-base",
+    "path": "frontend/src/components/operational/ConditionBuilder.tsx",
+    "sha256": "365AAD5A579C7B3013EB23DDDC8E0DEB33E4CBD92127EA3FAC54531FBE3D240C"
+  },
+  {
+    "repo": "pantheon-base",
+    "path": "frontend/src/components/operational/ExecutionStepRail.tsx",
+    "sha256": "110A79743E886BAC2B2A214440F13026F0C97D1D0C2834F5B391970AFCDC49C5"
+  },
+  {
+    "repo": "pantheon-base",
+    "path": "frontend/src/components/operational/operational.css",
+    "sha256": "2D5444B8A2F34E54103BB1D4E7CEFFF76F1F69E158DDF5EADACB5C3C099D256D"
+  },
+  {
+    "repo": "pantheon-base",
+    "path": "frontend/src/components/operational/OperationalWorkbenchVisualFixture.tsx",
+    "sha256": "381C1BE9CEACE6AC09F9A82C2F2F2C1A964714CEA51E077F98B42AF35A7F1607"
+  },
+  {
+    "repo": "pantheon-base",
+    "path": "frontend/src/core/router/types.ts",
+    "sha256": "F0D1E2748EF74865D582C0B6356D61B997E7A954CC05906DE8852C6B49BF9A76"
+  },
+  {
+    "repo": "pantheon-base",
+    "path": "frontend/src/i18n/resources/en-US.ts",
+    "sha256": "1C74633E37DB2DA5989F0A60C36B98CBFEE6EBC69FC3DCBDE14A98857FC5F1F5"
+  },
+  {
+    "repo": "pantheon-base",
+    "path": "frontend/src/i18n/resources/fr-FR.ts",
+    "sha256": "233B839C9A756030616E19F584A730051C7B09EA47C260FF7E5D71E107E1A712"
+  },
+  {
+    "repo": "pantheon-base",
+    "path": "frontend/src/i18n/resources/ja-JP.ts",
+    "sha256": "E7A8A2F6C765EB6C42EAF1FF162698910935753DF5E0304820352FD00AA1FFA9"
+  },
+  {
+    "repo": "pantheon-base",
+    "path": "frontend/src/i18n/resources/ko-KR.ts",
+    "sha256": "AC940EF9C1DD6858C2DD82E5A130946D42A66C90D7B0BF80680AC16F4644772E"
+  },
+  {
+    "repo": "pantheon-base",
+    "path": "frontend/src/i18n/resources/zh-CN.ts",
+    "sha256": "EDD418AFFFDFF7F3282E30A8E5CB45FB24A3DB4ECF0A1B71DAEDA0CC95A0B7DB"
+  },
+  {
+    "repo": "pantheon-base",
+    "path": "frontend/src/modules/platform/Dashboard.tsx",
+    "sha256": "706CDBF43A817FCC4FB3E51D700144A0E745CC6C1875E37A09E3FD76B3A5AB55"
+  },
+  {
+    "repo": "pantheon-base",
+    "path": "frontend/src/modules/platform/operational-dashboard.css",
+    "sha256": "76DCE0AA008BFA75B3933864D5AD61B9D5EA942FC79EFEA6D28D5AFF437AE36F"
+  },
+  {
+    "repo": "pantheon-base",
+    "path": "frontend/src/modules/platform/OperationalDashboardWidgets.tsx",
+    "sha256": "B37EA05F69D749835CB69603BB18DD11374210D260CD78174E0463426E329C3C"
+  },
+  {
+    "repo": "pantheon-base",
+    "path": "frontend/src/modules/platform/widgets.tsx",
+    "sha256": "F42D2B12840204007D682A9E018BC4AFF9D70847CF0BB613562E598283698D86"
+  },
+  {
+    "repo": "pantheon-base",
+    "path": "frontend/tests/unit/components/operational/conditionEditing.test.tsx",
+    "sha256": "80EE988DC4B85E1B9E72ED21AFB4D8FF7F290A788502F8CB27963F95FBC98E59"
+  },
+  {
+    "repo": "pantheon-base",
+    "path": "frontend/tests/unit/platform/operational-dashboard.test.tsx",
+    "sha256": "6FF6A8A46D7B162FB7051D5E091E3C0DDD125517B864F02A6C90A4620DB74035"
+  },
+  {
+    "repo": "pantheon-base",
+    "path": "frontend/tests/visual/operational-dashboard.spec.ts",
+    "sha256": "8B62775CD9AFFF05D3D4FBF212E3BFA23473475B899121AAC426F2037677A59D"
+  },
+  {
+    "repo": "pantheon-base",
+    "path": "frontend/tests/visual/operational-editor.spec.ts",
+    "sha256": "CF7833EBDF255FB7F745C04DE3D05A07C999FBDFDBDCAF5911B656B4525A8746"
+  }
+]

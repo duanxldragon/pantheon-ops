@@ -1,0 +1,11 @@
+Traceback (most recent call last):
+  File "D:\workspace\go\pantheon-platform\pantheon-ops\.local\ops-acceptance\continue-o2-live-v10-root-execute.py", line 41, in <module>
+    raise SystemExit(main())
+                     ^^^^^^
+  File "D:\workspace\go\pantheon-platform\pantheon-ops\.local\ops-acceptance\continue-o2-live-v10-root-execute.py", line 24, in main
+    C.authorization(args.authorization, args.request)
+  File "D:\workspace\go\pantheon-platform\pantheon-ops\.local\ops-acceptance\continue-o2-live-v10-contract.py", line 296, in authorization
+    require(path is not None, 'execution disabled: independent CODE/ARCH + Dispatcher authorization receipt required')
+  File "D:\workspace\go\pantheon-platform\pantheon-ops\.local\ops-acceptance\continue-o2-live-v10-contract.py", line 37, in require
+    raise RuntimeError(reason)
+RuntimeError: execution disabled: independent CODE/ARCH + Dispatcher authorization receipt required

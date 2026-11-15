@@ -1,0 +1,9 @@
+{
+  "command": "go test -mod=readonly -race -count=1 -timeout=25m ./modules/business/capability/... ./modules/business/service/... ./modules/business/deploy/... -json",
+  "exitCode": 0,
+  "CGO_ENABLED": "1",
+  "mysqlRequired": "1",
+  "mysqlPort": 33316,
+  "cache": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.harness\\evidence\\2026-11-07-ops-planned-task-closeout\\verification\\p0-integration-20261109\\o2-current-code-review-20261110\\gocache",
+  "finishedUTC": "2026-11-10T07:19:13.9276206Z"
+}

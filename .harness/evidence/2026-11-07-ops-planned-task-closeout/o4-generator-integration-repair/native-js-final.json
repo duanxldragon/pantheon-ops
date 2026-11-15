@@ -1,0 +1,62 @@
+[
+  {
+    "file": "scripts/business-overlay/rebuild-from-base.mjs",
+    "command": [
+      "node",
+      "--check",
+      "scripts/business-overlay/rebuild-from-base.mjs"
+    ],
+    "exitCode": 0,
+    "diagnostics": ""
+  },
+  {
+    "file": "scripts/business-overlay/rebuild-from-candidate.mjs",
+    "command": [
+      "node",
+      "--check",
+      "scripts/business-overlay/rebuild-from-candidate.mjs"
+    ],
+    "exitCode": 0,
+    "diagnostics": ""
+  },
+  {
+    "file": "scripts/business-overlay/check-shared-drift.mjs",
+    "command": [
+      "node",
+      "--check",
+      "scripts/business-overlay/check-shared-drift.mjs"
+    ],
+    "exitCode": 0,
+    "diagnostics": ""
+  },
+  {
+    "file": "scripts/business-overlay/foundation-candidate.mjs",
+    "command": [
+      "node",
+      "--check",
+      "scripts/business-overlay/foundation-candidate.mjs"
+    ],
+    "exitCode": 0,
+    "diagnostics": ""
+  },
+  {
+    "file": "scripts/business-overlay/foundation-candidate.test.mjs",
+    "command": [
+      "node",
+      "--check",
+      "scripts/business-overlay/foundation-candidate.test.mjs"
+    ],
+    "exitCode": 0,
+    "diagnostics": ""
+  },
+  {
+    "file": "tests/scripts/business-overlay/check-shared-drift.test.mjs",
+    "command": [
+      "node",
+      "--check",
+      "tests/scripts/business-overlay/check-shared-drift.test.mjs"
+    ],
+    "exitCode": 0,
+    "diagnostics": ""
+  }
+]

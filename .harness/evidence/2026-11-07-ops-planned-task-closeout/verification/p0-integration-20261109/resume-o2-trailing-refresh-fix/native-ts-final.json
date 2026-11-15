@@ -1,0 +1,11 @@
+{
+  "compiler": "6.0.3",
+  "files": [
+    "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\frontend\\src\\modules\\business\\deploy\\task\\useDeployTaskSnapshot.ts",
+    "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\frontend\\tests\\unit\\business\\operational\\deploy-read-revocation.test.tsx",
+    "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\frontend\\tests\\unit\\business\\operational\\deploy-detail-read.test.tsx"
+  ],
+  "ownedDiagnostics": [],
+  "totalErrors": 0,
+  "outsideOwnedDiagnostics": []
+}

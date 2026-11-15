@@ -1,0 +1,16 @@
+{
+  "mode": "strict",
+  "fileCount": 1,
+  "errorCount": 0,
+  "warningCount": 0,
+  "historicalErrorCount": 0,
+  "currentSchemaFrom": "2026-10-26",
+  "results": [
+    {
+      "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/commands.json",
+      "errors": [],
+      "warnings": [],
+      "historicalErrors": []
+    }
+  ]
+}

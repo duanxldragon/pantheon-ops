@@ -1,0 +1,7 @@
+{
+  "matchingOwnedProcesses": [],
+  "verifiedStopped": true,
+  "host": "115.190.251.143",
+  "exitCode": 0,
+  "scope": "exact argv equality; read-only process absence proof"
+}

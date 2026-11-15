@@ -1,0 +1,85 @@
+{
+  "checks": [
+    {
+      "check": "all 45 original assertion call sites preserved verbatim",
+      "passed": true
+    },
+    {
+      "check": "cleanup AST unchanged after version prefix normalization",
+      "passed": true
+    },
+    {
+      "check": "remote_command AST unchanged after version prefix normalization",
+      "passed": true
+    },
+    {
+      "check": "pin AST unchanged after version prefix normalization",
+      "passed": true
+    },
+    {
+      "check": "root_execute_after_review AST unchanged after version prefix normalization",
+      "passed": true
+    },
+    {
+      "check": "all 12 cases/order preserved",
+      "passed": true
+    },
+    {
+      "check": "remote CLI guard rejects before resource imports",
+      "passed": true
+    },
+    {
+      "check": "remote CLI guard rejects before resource imports",
+      "passed": true
+    },
+    {
+      "check": "cold prerequisite failure retains events and exact failure exit1",
+      "passed": true,
+      "origin": "in-memory fixture only"
+    },
+    {
+      "check": "ordinary failure exit1 and deliberate crash exit75 retained with verifier close",
+      "passed": true
+    },
+    {
+      "check": "resume-o2-v9-build.py syntax",
+      "passed": true
+    },
+    {
+      "check": "resume-o2-v9-prepare.py syntax",
+      "passed": true
+    },
+    {
+      "check": "resume-o2-v9-root-entry_test.py syntax",
+      "passed": true
+    },
+    {
+      "check": "resume-o2-v9-root-execute.py syntax",
+      "passed": true
+    },
+    {
+      "check": "resume-o2-v9-runner.py syntax",
+      "passed": true
+    },
+    {
+      "check": "resume-o2-v9-seal.py syntax",
+      "passed": true
+    },
+    {
+      "check": "resume-o2-v9-verify.py syntax",
+      "passed": true
+    }
+  ],
+  "failed": 0,
+  "preservation": {
+    "preservedFileCount": 102,
+    "artifactChanges": [],
+    "sourceCount": 185,
+    "sourceChanges": [],
+    "sealed": true
+  },
+  "priorFailedArtifactsPreserved": 11,
+  "actualDependencyInventoryMatchesV8": true,
+  "remoteExecuted": false,
+  "credentialsLoaded": false
+}

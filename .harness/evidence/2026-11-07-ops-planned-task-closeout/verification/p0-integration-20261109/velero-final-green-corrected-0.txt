@@ -1,0 +1,164 @@
+=== RUN   TestCreateRestoreRejectsBeforePersistence
+=== RUN   TestCreateRestoreRejectsBeforePersistence/missing_credential
+=== RUN   TestCreateRestoreRejectsBeforePersistence/canceled
+=== RUN   TestCreateRestoreRejectsBeforePersistence/expired
+=== RUN   TestCreateRestoreRejectsBeforePersistence/revoked_source
+=== RUN   TestCreateRestoreRejectsBeforePersistence/revoked_credential
+--- PASS: TestCreateRestoreRejectsBeforePersistence (2.57s)
+    --- PASS: TestCreateRestoreRejectsBeforePersistence/missing_credential (0.54s)
+    --- PASS: TestCreateRestoreRejectsBeforePersistence/canceled (0.52s)
+    --- PASS: TestCreateRestoreRejectsBeforePersistence/expired (0.49s)
+    --- PASS: TestCreateRestoreRejectsBeforePersistence/revoked_source (0.51s)
+    --- PASS: TestCreateRestoreRejectsBeforePersistence/revoked_credential (0.51s)
+=== RUN   TestCreateRestoreEligibleSourceAndEnqueue
+=== RUN   TestCreateRestoreEligibleSourceAndEnqueue/revoked_registry_source_with_authorized_cached_client
+=== RUN   TestCreateRestoreEligibleSourceAndEnqueue/registry_New
+=== RUN   TestCreateRestoreEligibleSourceAndEnqueue/registry_InProgress
+=== RUN   TestCreateRestoreEligibleSourceAndEnqueue/registry_Failed
+=== RUN   TestCreateRestoreEligibleSourceAndEnqueue/expired_registry
+=== RUN   TestCreateRestoreEligibleSourceAndEnqueue/live_
+=== RUN   TestCreateRestoreEligibleSourceAndEnqueue/live_New
+=== RUN   TestCreateRestoreEligibleSourceAndEnqueue/live_InProgress
+=== RUN   TestCreateRestoreEligibleSourceAndEnqueue/live_Failed
+=== RUN   TestCreateRestoreEligibleSourceAndEnqueue/live_PartiallyFailed
+=== RUN   TestCreateRestoreEligibleSourceAndEnqueue/live_Deleting
+=== RUN   TestCreateRestoreEligibleSourceAndEnqueue/deleted_live_source
+=== RUN   TestCreateRestoreEligibleSourceAndEnqueue/live_expiration_2026-11-09T07:42:15Z
+=== RUN   TestCreateRestoreEligibleSourceAndEnqueue/live_expiration_malformed
+=== RUN   TestCreateRestoreEligibleSourceAndEnqueue/cancel_during_source_inspection
+=== RUN   TestCreateRestoreEligibleSourceAndEnqueue/revoked_during_live_inspection_department
+=== RUN   TestCreateRestoreEligibleSourceAndEnqueue/revoked_during_live_inspection_credential
+=== RUN   TestCreateRestoreEligibleSourceAndEnqueue/revoked_during_live_inspection_source
+=== RUN   TestCreateRestoreEligibleSourceAndEnqueue/worker_rechecks_live_source
+=== RUN   TestCreateRestoreEligibleSourceAndEnqueue/authorized_successful_enqueue
+
+2026/11/09 16:42:16 [34;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/k8s/backup/restore_authorization_test.go:322
+[0m[35m[warn] [0mremoving callback `restore_auth_assert_locks` from D:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/k8s/backup/restore_authorization_test.go:322
+--- PASS: TestCreateRestoreEligibleSourceAndEnqueue (0.85s)
+    --- PASS: TestCreateRestoreEligibleSourceAndEnqueue/revoked_registry_source_with_authorized_cached_client (0.02s)
+    --- PASS: TestCreateRestoreEligibleSourceAndEnqueue/registry_New (0.01s)
+    --- PASS: TestCreateRestoreEligibleSourceAndEnqueue/registry_InProgress (0.02s)
+    --- PASS: TestCreateRestoreEligibleSourceAndEnqueue/registry_Failed (0.02s)
+    --- PASS: TestCreateRestoreEligibleSourceAndEnqueue/expired_registry (0.01s)
+    --- PASS: TestCreateRestoreEligibleSourceAndEnqueue/live_ (0.01s)
+    --- PASS: TestCreateRestoreEligibleSourceAndEnqueue/live_New (0.01s)
+    --- PASS: TestCreateRestoreEligibleSourceAndEnqueue/live_InProgress (0.01s)
+    --- PASS: TestCreateRestoreEligibleSourceAndEnqueue/live_Failed (0.01s)
+    --- PASS: TestCreateRestoreEligibleSourceAndEnqueue/live_PartiallyFailed (0.01s)
+    --- PASS: TestCreateRestoreEligibleSourceAndEnqueue/live_Deleting (0.01s)
+    --- PASS: TestCreateRestoreEligibleSourceAndEnqueue/deleted_live_source (0.01s)
+    --- PASS: TestCreateRestoreEligibleSourceAndEnqueue/live_expiration_2026-11-09T07:42:15Z (0.01s)
+    --- PASS: TestCreateRestoreEligibleSourceAndEnqueue/live_expiration_malformed (0.01s)
+    --- PASS: TestCreateRestoreEligibleSourceAndEnqueue/cancel_during_source_inspection (0.01s)
+    --- PASS: TestCreateRestoreEligibleSourceAndEnqueue/revoked_during_live_inspection_department (0.03s)
+    --- PASS: TestCreateRestoreEligibleSourceAndEnqueue/revoked_during_live_inspection_credential (0.05s)
+    --- PASS: TestCreateRestoreEligibleSourceAndEnqueue/revoked_during_live_inspection_source (0.04s)
+    --- PASS: TestCreateRestoreEligibleSourceAndEnqueue/worker_rechecks_live_source (0.04s)
+    --- PASS: TestCreateRestoreEligibleSourceAndEnqueue/authorized_successful_enqueue (0.04s)
+=== RUN   TestRestoreFinalIndependentDenials
+=== RUN   TestRestoreFinalIndependentDenials/foreign_department
+=== RUN   TestRestoreFinalIndependentDenials/department_revoked_cached
+=== RUN   TestRestoreFinalIndependentDenials/foreign_source
+--- PASS: TestRestoreFinalIndependentDenials (1.56s)
+    --- PASS: TestRestoreFinalIndependentDenials/foreign_department (0.56s)
+    --- PASS: TestRestoreFinalIndependentDenials/department_revoked_cached (0.46s)
+    --- PASS: TestRestoreFinalIndependentDenials/foreign_source (0.55s)
+=== RUN   TestRestoreFinalSecondGETRevocation
+=== RUN   TestRestoreFinalSecondGETRevocation/department
+=== RUN   TestRestoreFinalSecondGETRevocation/credential
+=== RUN   TestRestoreFinalSecondGETRevocation/source
+=== RUN   TestRestoreFinalSecondGETRevocation/binding
+=== RUN   TestRestoreFinalSecondGETRevocation/attempt
+--- PASS: TestRestoreFinalSecondGETRevocation (2.96s)
+    --- PASS: TestRestoreFinalSecondGETRevocation/department (0.52s)
+    --- PASS: TestRestoreFinalSecondGETRevocation/credential (0.55s)
+    --- PASS: TestRestoreFinalSecondGETRevocation/source (0.56s)
+    --- PASS: TestRestoreFinalSecondGETRevocation/binding (0.56s)
+    --- PASS: TestRestoreFinalSecondGETRevocation/attempt (0.77s)
+=== RUN   TestRestoreFinalTargetDenials
+=== RUN   TestRestoreFinalTargetDenials/unbound_remap
+=== RUN   TestRestoreFinalTargetDenials/unmapped_source
+=== RUN   TestRestoreFinalTargetDenials/no_action
+=== RUN   TestRestoreFinalTargetDenials/cross_scope
+=== RUN   TestRestoreFinalTargetDenials/wrong_environment
+=== RUN   TestRestoreFinalTargetDenials/wildcard
+=== RUN   TestRestoreFinalTargetDenials/all_namespaces
+=== RUN   TestRestoreFinalTargetDenials/pv_cluster_resource
+--- PASS: TestRestoreFinalTargetDenials (3.37s)
+    --- PASS: TestRestoreFinalTargetDenials/unbound_remap (0.38s)
+    --- PASS: TestRestoreFinalTargetDenials/unmapped_source (0.40s)
+    --- PASS: TestRestoreFinalTargetDenials/no_action (0.37s)
+    --- PASS: TestRestoreFinalTargetDenials/cross_scope (0.37s)
+    --- PASS: TestRestoreFinalTargetDenials/wrong_environment (0.44s)
+    --- PASS: TestRestoreFinalTargetDenials/wildcard (0.45s)
+    --- PASS: TestRestoreFinalTargetDenials/all_namespaces (0.43s)
+    --- PASS: TestRestoreFinalTargetDenials/pv_cluster_resource (0.53s)
+=== RUN   TestRestoreFinalAcceptedResponseTimeout
+--- PASS: TestRestoreFinalAcceptedResponseTimeout (0.56s)
+=== RUN   TestFinalRestoreLocksSingleCreate
+--- PASS: TestFinalRestoreLocksSingleCreate (0.53s)
+=== RUN   TestFinalRestoreRecordNamespaceOnly
+--- PASS: TestFinalRestoreRecordNamespaceOnly (0.63s)
+=== RUN   TestFinalBackupAcceptedTimeoutAndRestart
+=== RUN   TestFinalBackupAcceptedTimeoutAndRestart/refused=false
+=== RUN   TestFinalBackupAcceptedTimeoutAndRestart/refused=true
+--- PASS: TestFinalBackupAcceptedTimeoutAndRestart (1.11s)
+    --- PASS: TestFinalBackupAcceptedTimeoutAndRestart/refused=false (0.60s)
+    --- PASS: TestFinalBackupAcceptedTimeoutAndRestart/refused=true (0.51s)
+=== RUN   TestFinalRestartUnknownDoesNotResend
+--- PASS: TestFinalRestartUnknownDoesNotResend (0.52s)
+=== RUN   TestRestoreFinalDeterministicProviderRefusal
+--- PASS: TestRestoreFinalDeterministicProviderRefusal (0.51s)
+=== RUN   TestVeleroClient_IsInstalled
+=== RUN   TestVeleroClient_IsInstalled/velero_installed
+=== RUN   TestVeleroClient_IsInstalled/velero_not_installed
+--- PASS: TestVeleroClient_IsInstalled (0.00s)
+    --- PASS: TestVeleroClient_IsInstalled/velero_installed (0.00s)
+    --- PASS: TestVeleroClient_IsInstalled/velero_not_installed (0.00s)
+=== RUN   TestVeleroClient_CreateBackup
+--- PASS: TestVeleroClient_CreateBackup (0.00s)
+=== RUN   TestVeleroClient_CreateSchedule
+--- PASS: TestVeleroClient_CreateSchedule (0.00s)
+=== RUN   TestVeleroClient_CreateRestore
+--- PASS: TestVeleroClient_CreateRestore (0.00s)
+=== RUN   TestVeleroClient_DeleteBackup
+--- PASS: TestVeleroClient_DeleteBackup (0.00s)
+=== RUN   TestVeleroClient_GetRunningPods
+--- PASS: TestVeleroClient_GetRunningPods (0.00s)
+PASS
+ok  	github.com/duanxldragon/pantheon-base/backend/modules/business/k8s/backup	16.308s
+=== RUN   TestQuantityToCores
+--- PASS: TestQuantityToCores (0.00s)
+=== RUN   TestQuantityToGB
+--- PASS: TestQuantityToGB (0.00s)
+=== RUN   TestIsNodeReady
+--- PASS: TestIsNodeReady (0.00s)
+=== RUN   TestToResponse
+--- PASS: TestToResponse (0.02s)
+=== RUN   TestToNodeSnapshot
+--- PASS: TestToNodeSnapshot (0.00s)
+=== RUN   TestClusterUpdateRejectsConcurrentStaleScopeMutation
+
+2026/11/09 16:42:12 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/k8s/cluster/cluster_service.go:328 [35;1mrecord not found
+[0m[33m[0.847ms] [34;1m[rows:0][0m SELECT * FROM `biz_k8s_cluster` WHERE id = 1 AND dept_id = 10 AND `biz_k8s_cluster`.`deleted_at` IS NULL ORDER BY `biz_k8s_cluster`.`id` LIMIT 1 FOR UPDATE
+--- PASS: TestClusterUpdateRejectsConcurrentStaleScopeMutation (0.12s)
+=== RUN   TestCredentialReferenceFailsClosedWithInline
+=== RUN   TestCredentialReferenceFailsClosedWithInline/revoked_lazy
+=== RUN   TestCredentialReferenceFailsClosedWithInline/missing_lazy
+=== RUN   TestCredentialReferenceFailsClosedWithInline/empty_lazy
+=== RUN   TestCredentialReferenceFailsClosedWithInline/foreign_lazy
+=== RUN   TestCredentialReferenceFailsClosedWithInline/revoked_cached
+=== RUN   TestCredentialReferenceFailsClosedWithInline/missing_cached
+=== RUN   TestCredentialReferenceFailsClosedWithInline/empty_cached
+=== RUN   TestCredentialReferenceFailsClosedWithInline/foreign_cached
+--- PASS: TestCredentialReferenceFailsClosedWithInline (1.60s)
+    --- PASS: TestCredentialReferenceFailsClosedWithInline/revoked_lazy (0.18s)
+    --- PASS: TestCredentialReferenceFailsClosedWithInline/missing_lazy (0.21s)
+    --- PASS: TestCredentialReferenceFailsClosedWithInline/empty_lazy (0.16s)
+    --- PASS: TestCredentialReferenceFailsClosedWithInline/foreign_lazy (0.21s)
+    --- PASS: TestCredentialReferenceFailsClosedWithInline/revoked_cached (0.21s)
+    --- PASS: TestCredentialReferenceFailsClosedWithInline/missing_cached (0.20s)
+    --- PASS: TestCredentialReferenceFailsClosedWithInline/empty_cached (0.19s)
+    --- PASS: TestCredentialReferenceFailsClosedWithInline/foreign_cached (0.22s)
+PASS
+ok  	github.com/duanxldragon/pantheon-base/backend/modules/business/k8s/cluster	2.843s

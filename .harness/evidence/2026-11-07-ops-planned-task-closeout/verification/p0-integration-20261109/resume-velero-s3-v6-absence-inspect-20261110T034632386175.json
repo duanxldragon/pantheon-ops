@@ -1,0 +1,32 @@
+{
+  "phase": "sealed-velero-absence-read-only",
+  "remoteMutation": false,
+  "exitCode": 1,
+  "providerInstalled": false,
+  "P0Approved": false,
+  "v6DiagnosticSHA256": "4a486df4fa7f3b35f5a5c7596dd0045e76bfdd18fe1facb2a806af3d769b305e",
+  "stderrPresent": false,
+  "record": {
+    "errorType": "AssertionError",
+    "frames": [
+      {
+        "line": 3,
+        "function": "<module>",
+        "file": "<string>"
+      },
+      {
+        "line": 26,
+        "function": "<module>",
+        "file": "<string>"
+      },
+      {
+        "line": 17,
+        "function": "get",
+        "file": "<string>"
+      }
+    ]
+  },
+  "errorType": "AssertionError",
+  "detailsOmitted": true,
+  "seconds": 9.843
+}

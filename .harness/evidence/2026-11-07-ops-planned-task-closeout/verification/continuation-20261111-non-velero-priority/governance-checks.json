@@ -1,0 +1,18 @@
+{
+  "recordPurpose": "Actual Root checks after reprioritizing Velero; historical checks are preserved separately",
+  "docsFrontmatter": {"command": "node scripts/frontmatter-check.mjs", "exitCode": 0, "checkedDocs": 462, "withFrontmatter": 301},
+  "strictTemplateHealth": {"command": "node scripts/harness/check-template-health.mjs --root . --strict", "exitCode": 0, "findings": 0, "warnings": 0},
+  "changedGovernanceDiffCheck": {"exitCode": 0, "paths": [".harness/tasks/2026-11-07-ops-planned-task-closeout/remaining-priorities.md", ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/continuation-20261111-non-velero-priority/checkpoint.md"]},
+  "previewReads": [
+    {"url": "http://127.0.0.1:5173/login", "httpStatus": 200},
+    {"url": "http://127.0.0.1:8080/api/v1/health", "httpStatus": 200},
+    {"url": "http://127.0.0.1:5173/api/v1/system/setting/public", "httpStatus": 200, "applicationCode": 200},
+    {"url": "http://127.0.0.1:8080/api/v1/system/setting/public", "httpStatus": 200, "applicationCode": 200}
+  ],
+  "previewMutated": false,
+  "wholeWorkingTreeDiffCheckClaimed": false,
+  "priorWholeTreeEOFGapRetained": true,
+  "VeleroDeferredByMaintainer": true,
+  "newP0Closures": 0,
+  "finalFullAssembly": "HOLD"
+}

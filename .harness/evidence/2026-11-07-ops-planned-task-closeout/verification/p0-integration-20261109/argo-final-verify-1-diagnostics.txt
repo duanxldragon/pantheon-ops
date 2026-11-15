@@ -1,0 +1,14 @@
+2026/11/09 16:45:19 Error:2026/11/09 16:45:19 go/packages.Load #1: err: exit status 1: stderr: open D:\cache\go\build\86\86e55cf06ae0341c0fdcecd5fd8889f47a0e8c5a7f25aa6e5490e30e19bb2d30-a: Access is denied.
+open D:\cache\go\build\07\07beb245683c6259044489de7711356552a27d668e0f975dd19b493eef5692d2-a: Access is denied.
+open D:\cache\go\build\ba\ba05cd43b5c5ebe925138d8560c6437f296e8762c401b48024f74293bea1120f-a: Access is denied.
+
+	view_id="1"
+	snapshot=0
+	directory=D:\workspace\go\pantheon-platform\pantheon-ops\backend
+	query=[D:\workspace\go\pantheon-platform\pantheon-ops\backend\... builtin]
+	packages=0
+	duration=955.6944ms
+2026/11/09 16:45:19 Error:2026/11/09 16:45:19 initial workspace load failed: packages.Load error: err: exit status 1: stderr: open D:\cache\go\build\86\86e55cf06ae0341c0fdcecd5fd8889f47a0e8c5a7f25aa6e5490e30e19bb2d30-a: Access is denied.
+open D:\cache\go\build\07\07beb245683c6259044489de7711356552a27d668e0f975dd19b493eef5692d2-a: Access is denied.
+open D:\cache\go\build\ba\ba05cd43b5c5ebe925138d8560c6437f296e8762c401b48024f74293bea1120f-a: Access is denied.
+

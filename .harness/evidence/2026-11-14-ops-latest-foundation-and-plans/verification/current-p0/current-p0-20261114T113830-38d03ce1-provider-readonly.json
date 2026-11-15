@@ -1,0 +1,11 @@
+{
+  "endpoint": "http://115.190.251.143:9090/api/v1/query?query=vector%281%29",
+  "method": "GET",
+  "remoteMutations": 0,
+  "credentialsPrinted": false,
+  "coverage": "provider-readonly-preflight; not composed-product acceptance",
+  "httpStatus": 200,
+  "responseSHA256": "cd7d0c59d266e4e9e29a6d9d223b9f34f7b3eb0a0570234877680ae2427724e1",
+  "providerSuccess": true,
+  "vectorOne": true
+}

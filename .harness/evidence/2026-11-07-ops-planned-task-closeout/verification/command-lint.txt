@@ -1,0 +1,25 @@
+
+> @duanxldragon/pantheon-base-ui@0.11.2 lint
+> eslint .
+
+
+D:\workspace\go\pantheon-platform\pantheon-ops\frontend\src\modules\business\deploy\task\DeployTaskDetail.tsx
+  892:19  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+D:\workspace\go\pantheon-platform\pantheon-ops\frontend\src\modules\business\deploy\task\DeployTaskDetail.tsx:892:19
+  890 |   const [loading, setLoading] = useState(true);
+  891 |   const [commandConflict, setCommandConflict] = useState(false);
+> 892 |   useEffect(() => setCommandConflict(false), [id]);
+      |                   ^^^^^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  893 |   const [submitting, setSubmitting] = useState(false);
+  894 |   const [startSubmitting, setStartSubmitting] = useState(false);
+  895 |   const [credentials, setCredentials] = useState<DeployCredentialRow[]>([]);  react-hooks/set-state-in-effect
+
+✖ 1 problem (1 error, 0 warnings)
+

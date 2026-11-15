@@ -1,0 +1,48 @@
+
+> @duanxldragon/pantheon-base-ui@0.11.2 test:smoke:business:deploy
+> node scripts/run-smoke-suite.mjs --host 127.0.0.1 --port 5173 --config playwright.config.ts -- tests/smoke/business/deploy/deploy-pages.spec.ts tests/smoke/business/deploy/deploy-workbench.spec.ts tests/smoke/business/deploy/deploy-selection-preview.spec.ts tests/smoke/business/deploy/deploy-command.spec.ts --workers=1 --workers=1 --output=D:\workspace\go\pantheon-platform\pantheon-ops\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\o2-step-history-deploy-smoke-proxy-fixed
+
+[smoke-suite] API base http://127.0.0.1:24485/api/v1
+[generated-modules] cleanup complete
+{
+  "modules": 0,
+  "schemas": 1,
+  "registries": 4,
+  "i18n": 5
+}
+(!) Your Vite config uses features that are unsupported by `configLoader: 'native'`, which is planned to become the default in a future major version of Vite:
+  - `__dirname` (vite.config.ts:32:25). Use `import.meta.dirname` instead
+Set `VITE_CONFIG_NATIVE_IGNORE_WARNING=true` to suppress this warning.
+Smoke Vite ready at http://127.0.0.1:5173/
+
+Running 18 tests using 1 worker
+
+(node:24532) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok  1 tests\smoke\business\deploy\deploy-command.spec.ts:10:2 › viewed task command conflict refreshes without replay (light) (4.7s)
+  ok  2 tests\smoke\business\deploy\deploy-command.spec.ts:10:2 › viewed task command conflict refreshes without replay (dark) (3.9s)
+  ok  3 tests\smoke\business\deploy\deploy-command.spec.ts:59:1 › batch cancel retains failed selection and reports partial failure (4.5s)
+  ok  4 tests\smoke\business\deploy\deploy-pages.spec.ts:69:3 › Deploy business module smoke › deploy pages load under operations platform (7.4s)
+  ok  5 tests\smoke\business\deploy\deploy-pages.spec.ts:112:3 › Deploy business module smoke › deploy task detail action opens a modal without leaving the list page (4.0s)
+  ok  6 tests\smoke\business\deploy\deploy-pages.spec.ts:207:3 › Deploy business module smoke › deploy package detail action opens a modal without leaving the list page (2.9s)
+  ok  7 tests\smoke\business\deploy\deploy-pages.spec.ts:247:3 › Deploy business module smoke › deploy template detail action opens a modal without leaving the list page (3.5s)
+  ok  8 tests\smoke\business\deploy\deploy-pages.spec.ts:329:3 › Deploy business module smoke › deploy detail page loads with summary and host table (3.1s)
+  ok  9 tests\smoke\business\deploy\deploy-pages.spec.ts:404:3 › Deploy business module smoke › deploy detail requires a reason when marking host failure (3.7s)
+  ok 10 tests\smoke\business\deploy\deploy-pages.spec.ts:488:3 › Deploy business module smoke › deploy template supports script steps and task params render in detail (5.0s)
+  ok 11 tests\smoke\business\deploy\deploy-pages.spec.ts:610:3 › Deploy business module smoke › deploy detail edit action routes back to list and opens edit modal (9.4s)
+  ok 12 tests\smoke\business\deploy\deploy-pages.spec.ts:708:3 › Deploy business module smoke › targeted smoke closes cmdb, bizscope, deploy with uploaded source package and visible task trace (3.8s)
+  ok 13 tests\smoke\business\deploy\deploy-pages.spec.ts:860:3 › Deploy business module smoke › deploy pages stay within a phone viewport (7.4s)
+  ok 14 tests\smoke\business\deploy\deploy-selection-preview.spec.ts:12:2 › selection and preview confirm/conflict/refresh (light) (10.9s)
+  ok 15 tests\smoke\business\deploy\deploy-selection-preview.spec.ts:12:2 › selection and preview confirm/conflict/refresh (dark) (11.7s)
+  ok 16 tests\smoke\business\deploy\deploy-selection-preview.spec.ts:134:1 › rollback draft uses frozen definition and its own reviewed start (2.6s)
+  ok 17 tests\smoke\business\deploy\deploy-workbench.spec.ts:16:3 › deployment workbench sources, logs, keyboard and mobile (light) (10.1s)
+  ok 18 tests\smoke\business\deploy\deploy-workbench.spec.ts:16:3 › deployment workbench sources, logs, keyboard and mobile (dark) (10.2s)
+
+  18 passed (1.8m)
+[generated-modules] cleanup complete
+{
+  "modules": 0,
+  "schemas": 1,
+  "registries": 4,
+  "i18n": 5
+}

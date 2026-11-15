@@ -1,0 +1,33 @@
+{
+  "command": [
+    "D:/Go/bin/go.exe",
+    "build",
+    "-buildvcs=false",
+    "-mod=readonly",
+    "-o",
+    "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.tmp\\current-p0-20261114T112123-795aee28\\pantheon-ops.exe",
+    "./cmd/server"
+  ],
+  "exitCode": 1,
+  "failure": null,
+  "elapsedSeconds": 99.093,
+  "sourceStable": false,
+  "changedSources": [
+    "backend/modules/business/deploy/deploy_service.go",
+    "backend/modules/business/shared/dashboard/snapshot.go",
+    "backend/modules/business/filedist/distribution_service.go",
+    "backend/modules/business/deploy/dashboard_summary.go",
+    "backend/modules/business/deploy/deploy_dto.go",
+    "backend/modules/business/filedist/target_selection.go"
+  ],
+  "sourceCount": 837,
+  "fixtureSHA256": "8796d1a6c2b599e8e5406df8848638287d93827fb4436e6373c271b79cca5f05",
+  "stdoutSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stderrSHA256": "30f037f90a71a5f14b7ae02dd1b79e661a09c41b47042276c090fa81691a857e",
+  "privateLogs": true,
+  "credentialsPrinted": false,
+  "testPasses": 0,
+  "packagePasses": 0,
+  "skipped": [],
+  "failed": []
+}

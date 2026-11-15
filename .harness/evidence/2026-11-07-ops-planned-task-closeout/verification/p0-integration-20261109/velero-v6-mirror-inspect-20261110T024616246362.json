@@ -1,0 +1,120 @@
+{
+  "phase": "velero-mirrored-endpointslice-read-only",
+  "remoteMutation": false,
+  "exitCode": 0,
+  "objects": {
+    "service": {
+      "metadata": {
+        "name": "seaweedfs-s3",
+        "namespace": "pantheon-p0-seaweed-velero-s3-v1",
+        "uid": "97c4a5d0-203d-473f-8068-cdc1a29e1490",
+        "resourceVersion": "2001499",
+        "labels": {
+          "app.kubernetes.io/component": "seaweedfs-s3",
+          "pantheon-p0-owner": "velero-s3-seaweed-20261109-v1"
+        },
+        "ownerReferences": null,
+        "deletionTimestamp": null,
+        "managedFields": null
+      },
+      "spec": {
+        "clusterIP": "10.43.75.62",
+        "clusterIPs": [
+          "10.43.75.62"
+        ],
+        "internalTrafficPolicy": "Cluster",
+        "ipFamilies": [
+          "IPv4"
+        ],
+        "ipFamilyPolicy": "SingleStack",
+        "ports": [
+          {
+            "name": "s3",
+            "port": 18333,
+            "protocol": "TCP",
+            "targetPort": 18333
+          }
+        ],
+        "sessionAffinity": "None",
+        "type": "ClusterIP"
+      }
+    },
+    "endpoints": {
+      "metadata": {
+        "name": "seaweedfs-s3",
+        "namespace": "pantheon-p0-seaweed-velero-s3-v1",
+        "uid": "b6ab7b83-3a24-4b10-87d1-fae129a51dca",
+        "resourceVersion": "2001500",
+        "labels": {
+          "app.kubernetes.io/component": "seaweedfs-s3",
+          "pantheon-p0-owner": "velero-s3-seaweed-20261109-v1"
+        },
+        "ownerReferences": null,
+        "deletionTimestamp": null,
+        "managedFields": null
+      },
+      "subsets": [
+        {
+          "addresses": [
+            {
+              "ip": "192.168.94.127"
+            }
+          ],
+          "ports": [
+            {
+              "name": "s3",
+              "port": 18333,
+              "protocol": "TCP"
+            }
+          ]
+        }
+      ]
+    },
+    "slices": [
+      {
+        "metadata": {
+          "name": "seaweedfs-s3-rp65g",
+          "namespace": "pantheon-p0-seaweed-velero-s3-v1",
+          "uid": "e34fea74-5bd1-4c47-adf6-f637e7a0dee6",
+          "resourceVersion": "2001501",
+          "labels": {
+            "app.kubernetes.io/component": "seaweedfs-s3",
+            "endpointslice.kubernetes.io/managed-by": "endpointslicemirroring-controller.k8s.io",
+            "kubernetes.io/service-name": "seaweedfs-s3",
+            "pantheon-p0-owner": "velero-s3-seaweed-20261109-v1"
+          },
+          "ownerReferences": [
+            {
+              "apiVersion": "v1",
+              "blockOwnerDeletion": true,
+              "controller": true,
+              "kind": "Endpoints",
+              "name": "seaweedfs-s3",
+              "uid": "b6ab7b83-3a24-4b10-87d1-fae129a51dca"
+            }
+          ],
+          "deletionTimestamp": null,
+          "managedFields": null
+        },
+        "addressType": "IPv4",
+        "ports": [
+          {
+            "name": "s3",
+            "port": 18333,
+            "protocol": "TCP"
+          }
+        ],
+        "endpoints": [
+          {
+            "addresses": [
+              "192.168.94.127"
+            ],
+            "conditions": {
+              "ready": true
+            }
+          }
+        ]
+      }
+    ]
+  }
+}

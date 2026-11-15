@@ -1,0 +1,27 @@
+{
+  "exitCode": 0,
+  "elapsedSeconds": 1345.703,
+  "attempt": "post-config-r4-20261111-f58af86f62ab",
+  "targetRoot": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.tmp\\foundation-candidate-attempts\\candidate-4315cee606c249a42c8a3372c26dee9a4658a9259229485de85953430c7f439f\\post-config-r4-20261111-f58af86f62ab\\assembled",
+  "logSHA256": "ed928fde4d7d9247732ec3e2441ca256f41ebd875458019d79fe5ea025a52820",
+  "bindingStable": true,
+  "officialConsumption": false,
+  "P0Approved": false,
+  "receiptPath": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.tmp\\foundation-candidate-attempts\\candidate-4315cee606c249a42c8a3372c26dee9a4658a9259229485de85953430c7f439f\\post-config-r4-20261111-f58af86f62ab\\assembled\\.foundation-candidate-receipt.json",
+  "receiptSHA256": "fc1e7da7944fdb57b2b54f1fbdc5712d5f62dcc205383f9e74c858717c073542",
+  "retainedSnapshotRoot": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.tmp\\foundation-candidates\\candidate-4315cee606c249a42c8a3372c26dee9a4658a9259229485de85953430c7f439f\\snapshot",
+  "descriptorPath": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\o4-metadata-bound-current-v2-stable-real\\sealed\\candidate-descriptor.json",
+  "descriptorSHA256": "2f105d76e38c82e8c301d816269ea26669a7a0291a5860be74d6ca71281a9ce6",
+  "artifactPath": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\o4-metadata-bound-current-v2-stable-real\\sealed\\candidate-4315cee606c249a42c8a3372c26dee9a4658a9259229485de85953430c7f439f.tar",
+  "reviewHashes": {
+    ".local\\ops-acceptance\\post-config-reviews\\post-config-o4-r4-code-report.json": "eaa8eaaf1441da3c13e246dfa8d72c7aaa09a6f5d2d7ade8d818f44014168781",
+    ".local\\ops-acceptance\\post-config-reviews\\post-config-o4-r4-arch-report.json": "659d15c679838ea846db2074426e7f176a6fbcd13cca0d2d9556669af2655b12"
+  },
+  "reviewedSourceHashes": {
+    "scripts/business-overlay/foundation-candidate.mjs": "54dcbaf0addebc5523d3ffdfde07839412f2b7bb94d005d9313aac5e13a0d4d8",
+    "scripts/business-overlay/rebuild-from-candidate.mjs": "0d310bdcaffd8f961835737faf8aa6d1db1242bbdfa6ae10147e5e7871ed85c8",
+    "scripts/business-overlay/candidate-retained-evidence.test.mjs": "329730e585a3a8fb8dca716003c86c2a6656bca9407c6a55cd321743ee55b09f",
+    "scripts/business-overlay/candidate-copy-binding.test.mjs": "8e462b763f7588d2062230d7f3828e4e46f91b338c4b0c927f8c71c3a377f382"
+  },
+  "sourceStable": true
+}

@@ -1,0 +1,14 @@
+{
+  "command": [
+    "node",
+    "scripts/harness/check-review.mjs",
+    "--root",
+    ".",
+    "--strict",
+    ".harness/evidence/2026-11-07-ops-planned-task-closeout/review.md"
+  ],
+  "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+  "exitCode": 1,
+  "elapsedSeconds": 0.062000000005355105,
+  "artifact": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/o2-ssh-o4-label-final-review.txt"
+}

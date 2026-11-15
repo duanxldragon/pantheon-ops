@@ -1,0 +1,38 @@
+
+Running 1 test using 1 worker
+
+(node:24952) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x  1 tests\smoke\business\deploy\deploy-command.spec.ts:57:1 › batch cancel retains failed selection and reports partial failure (748ms)
+
+
+  1) tests\smoke\business\deploy\deploy-command.spec.ts:57:1 › batch cancel retains failed selection and reports partial failure 
+
+    Error: business.deploy.task.leaseConflict
+
+    expect(received).toBeTruthy()
+
+    Received: false
+
+      4 |
+      5 | async function success<T>(response: APIResponse): Promise<T> {
+    > 6 |  const payload = await response.json(); expect(response.ok(), payload.message).toBeTruthy(); expect(payload.code,payload.message).toBe(200); return payload.data as T;
+        |                                                                                ^
+      7 | }
+      8 | type CommandTask = {id:number;status:string;stateVersion:string;hosts:{id:number}[]};
+      9 | for(const mode of ['light','dark'] as const){
+        at success (D:\workspace\go\pantheon-platform\pantheon-ops\frontend\tests\smoke\business\deploy\deploy-command.spec.ts:6:80)
+        at D:\workspace\go\pantheon-platform\pantheon-ops\frontend\tests\smoke\business\deploy\deploy-command.spec.ts:68:4
+
+    Error Context: ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\command-batch-browser\smoke-business-deploy-depl-5e1fa-and-reports-partial-failure\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\command-batch-browser\smoke-business-deploy-depl-5e1fa-and-reports-partial-failure\trace.zip
+    Usage:
+
+        npx playwright show-trace ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\command-batch-browser\smoke-business-deploy-depl-5e1fa-and-reports-partial-failure\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  1 failed
+    tests\smoke\business\deploy\deploy-command.spec.ts:57:1 › batch cancel retains failed selection and reports partial failure 

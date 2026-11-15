@@ -1,0 +1,14 @@
+Warning: Basic terminal detected (TERM=dumb). Visual rendering will be limited. For the best experience, use a terminal emulator with truecolor support.
+Warning: 256-color support not detected. Using a terminal with at least 256-color support is recommended for a better visual experience.
+Error authenticating: FatalCancellationError: Authentication cancelled by user.
+    at initOauthClient (file:///D:/cache/npm-global/node_modules/@google/gemini-cli/bundle/chunk-RWBXO4OP.js:279434:15)
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at async createCodeAssistContentGenerator (file:///D:/cache/npm-global/node_modules/@google/gemini-cli/bundle/chunk-RWBXO4OP.js:311777:24)
+    at async file:///D:/cache/npm-global/node_modules/@google/gemini-cli/bundle/chunk-RWBXO4OP.js:312169:75
+    at async createContentGenerator (file:///D:/cache/npm-global/node_modules/@google/gemini-cli/bundle/chunk-RWBXO4OP.js:312122:21)
+    at async Config.refreshAuth (file:///D:/cache/npm-global/node_modules/@google/gemini-cli/bundle/chunk-RWBXO4OP.js:380165:29)
+    at async main (file:///D:/cache/npm-global/node_modules/@google/gemini-cli/bundle/gemini-6YZTUGIX.js:17488:9) {
+  exitCode: 130
+}
+Ripgrep is not available. Falling back to GrepTool.
+Authentication cancelled by user.

@@ -1,0 +1,43 @@
+[
+  {
+    "exitCode": 0,
+    "name": "check:docs-frontmatter",
+    "notes": "Corrected new packet doc_type to existing Remediation enum and reran."
+  },
+  {
+    "exitCode": 0,
+    "name": "check:task-packet-template"
+  },
+  {
+    "exitCode": 0,
+    "name": "check:harness-method"
+  },
+  {
+    "exitCode": 0,
+    "name": "check:harness-adoption"
+  },
+  {
+    "exitCode": 1,
+    "name": "check:harness-docs"
+  },
+  {
+    "exitCode": 0,
+    "name": "check:harness-inventory"
+  },
+  {
+    "exitCode": 0,
+    "name": "check:harness-sync"
+  },
+  {
+    "exitCode": 0,
+    "name": "check:harness-encoding"
+  },
+  {
+    "exitCode": 0,
+    "name": "check:structure"
+  },
+  {
+    "exitCode": 0,
+    "name": "check:ui-quality-gate"
+  }
+]

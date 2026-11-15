@@ -1,0 +1,54 @@
+[
+  {
+    "kind": "baseline",
+    "command": [
+      "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\resume-argo-v6-provider-tools\\bin\\protoc.exe",
+      "-ID:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\resume-argo-v6-provider-codegen\\include",
+      "--plugin=protoc-gen-gogofast=D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\argo-reviewed-provider-v3.2.0\\dist\\protoc-gen-gogofast.exe",
+      "--plugin=protoc-gen-grpc-gateway=D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\argo-reviewed-provider-v3.2.0\\dist\\protoc-gen-grpc-gateway.exe",
+      "--plugin=protoc-gen-swagger=D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\argo-reviewed-provider-v3.2.0\\dist\\protoc-gen-swagger.exe",
+      "--gogofast_out=plugins=grpc:D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\resume-argo-v6-provider-codegen\\baseline",
+      "--grpc-gateway_out=logtostderr=true:D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\resume-argo-v6-provider-codegen\\baseline",
+      "--swagger_out=logtostderr=true:D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\resume-argo-v6-provider-codegen\\baseline",
+      "server/application/application.proto"
+    ],
+    "exit": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "baselineOutput": "application.pb.go",
+    "matchesHEAD": true,
+    "sha256": "fba2beac1c688bf3c33493bc41bdc17befe19a432d632b1f7449cf9e0a710806",
+    "rawMatchesHEAD": true,
+    "originalSHA256": "fba2beac1c688bf3c33493bc41bdc17befe19a432d632b1f7449cf9e0a710806"
+  },
+  {
+    "baselineOutput": "application.pb.gw.go",
+    "matchesHEAD": true,
+    "sha256": "7d1f9aa205a7df4481f83437d360911a9ef2da32f79150cebd8ba52c54c704cc",
+    "rawMatchesHEAD": true,
+    "originalSHA256": "7d1f9aa205a7df4481f83437d360911a9ef2da32f79150cebd8ba52c54c704cc"
+  },
+  {
+    "kind": "patched",
+    "command": [
+      "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\resume-argo-v6-provider-tools\\bin\\protoc.exe",
+      "-ID:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\resume-argo-v6-provider-codegen\\include",
+      "--plugin=protoc-gen-gogofast=D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\argo-reviewed-provider-v3.2.0\\dist\\protoc-gen-gogofast.exe",
+      "--plugin=protoc-gen-grpc-gateway=D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\argo-reviewed-provider-v3.2.0\\dist\\protoc-gen-grpc-gateway.exe",
+      "--plugin=protoc-gen-swagger=D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\argo-reviewed-provider-v3.2.0\\dist\\protoc-gen-swagger.exe",
+      "--gogofast_out=plugins=grpc:D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\resume-argo-v6-provider-codegen\\patched",
+      "--grpc-gateway_out=logtostderr=true:D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\resume-argo-v6-provider-codegen\\patched",
+      "--swagger_out=logtostderr=true:D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\resume-argo-v6-provider-codegen\\patched",
+      "server/application/application.proto"
+    ],
+    "exit": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "swagger": "assets/swagger.json",
+    "merge": "Only new routes and four service definitions; upstream collector transforms applied."
+  }
+]

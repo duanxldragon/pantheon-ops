@@ -1,0 +1,12 @@
+{
+  "handoffSHA256": "e29dde0769429d059247a5fed1ac73e7fc93a598c54a41166856c95de8327c86",
+  "sealingSHA256": "e44b989f8b9f62195f5436ab3cd27d859226454d153d75b925d5d5d217bfc9ff",
+  "requestSHA256": "96fef023020ad1f8e880e01f04612acfa0480bd3009c009063fa8756703e3b07",
+  "sourceHashesStable": true,
+  "protectedUnchanged": 237,
+  "handoffPowerShellBlocksParsed": 6,
+  "parseErrors": 0,
+  "remoteExecuted": false,
+  "independentReviewsPending": true,
+  "P0Approved": false
+}

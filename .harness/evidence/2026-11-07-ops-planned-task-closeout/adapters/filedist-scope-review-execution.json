@@ -1,0 +1,7 @@
+{
+  "status": "timeout",
+  "exitCode": 1,
+  "seconds": 120.06,
+  "promptSha256": "980426f4191bc2b43d0ea4b54595fa26f4b19f7cd3e6bfeef5844802ff450fe9",
+  "command": "claude.exe -p --tools empty --output-format text; stdin supplied source"
+}

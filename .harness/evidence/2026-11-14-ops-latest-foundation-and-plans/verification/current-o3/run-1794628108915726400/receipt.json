@@ -1,0 +1,32 @@
+{
+  "command": [
+    "go",
+    "test",
+    "-race",
+    "-p=1",
+    "-buildvcs=false",
+    "-mod=readonly",
+    "-json",
+    "./modules/business/cicd/argocd",
+    "./modules/business/k8s/release"
+  ],
+  "exitCode": 1,
+  "elapsedSeconds": 0.172,
+  "sourceStable": true,
+  "sourceCount": 35,
+  "fixtureSHA256": "8796d1a6c2b599e8e5406df8848638287d93827fb4436e6373c271b79cca5f05",
+  "testPasses": 0,
+  "skipped": [],
+  "failed": [
+    {
+      "Action": "fail",
+      "Package": "./modules/business/cicd/argocd"
+    },
+    {
+      "Action": "fail",
+      "Package": "./modules/business/k8s/release"
+    }
+  ],
+  "credentialsPrinted": false,
+  "privateLogs": ".harness/evidence/2026-11-14-ops-latest-foundation-and-plans/verification/current-o3/run-1794628108915726400"
+}

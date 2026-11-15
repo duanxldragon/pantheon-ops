@@ -1,0 +1,6 @@
+=== RUN   TestOwnershipDualRenewalAndPhysicalContention
+--- PASS: TestOwnershipDualRenewalAndPhysicalContention (4.56s)
+=== RUN   TestOwnershipFinishCommitAndQueuedRenewalHaveOneLifecycle
+--- PASS: TestOwnershipFinishCommitAndQueuedRenewalHaveOneLifecycle (1.06s)
+PASS
+ok  	github.com/duanxldragon/pantheon-base/backend/modules/business/deploy	6.720s

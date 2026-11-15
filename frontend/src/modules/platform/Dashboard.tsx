@@ -29,10 +29,13 @@ import {
 } from './api';
 import {
   dashboardDomainOverviewWidgets,
+  dashboardWidgetRegistry,
   dashboardQuickActionWidgets,
   isDashboardWidgetVisible,
 } from './widgets';
 import './Dashboard.css';
+import OperationalDashboardWidgets from './OperationalDashboardWidgets';
+import type { DashboardOperationalWidget } from '../../core/router/types';
 
 const Row = Grid.Row;
 const Col = Grid.Col;
@@ -520,6 +523,9 @@ const DashboardPage: React.FC = () => {
   const primaryAttentionItems = attentionItems;
   return (
     <PageContainer className="dashboard-page">
+      <OperationalDashboardWidgets widgets={dashboardWidgetRegistry.filter((widget): widget is DashboardOperationalWidget =>
+        widget.slot !== 'quick-action' && widget.slot !== 'domain-overview' &&
+        isDashboardWidgetVisible(widget, { menuTree, hasPerm, isAdmin, isFeatureEnabled: hasFeature }))} />
       {loading && !summary ? (
         <Card className="page-panel dashboard-panel-card">
           <PageLoading />

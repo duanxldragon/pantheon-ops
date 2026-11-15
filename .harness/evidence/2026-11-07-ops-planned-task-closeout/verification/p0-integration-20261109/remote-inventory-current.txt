@@ -1,0 +1,78 @@
+Kubernetes nodes
+NAME                      STATUS   ROLES           AGE   VERSION        INTERNAL-IP      EXTERNAL-IP   OS-IMAGE           KERNEL-VERSION             CONTAINER-RUNTIME
+iv-yedenmmwhsqc6iu4z5p6   Ready    control-plane   70d   v1.36.3+k3s1   192.168.94.127   <none>        Ubuntu 24.04 LTS   6.8.0-55-generic (amd64)   containerd://2.3.2-k3s2
+Kubernetes workloads
+kube-system            coredns-54996dc9b4-5nv5c                  Running
+kube-system            helm-install-traefik-7c44w                Succeeded
+kube-system            helm-install-traefik-crd-xcr87            Succeeded
+kube-system            local-path-provisioner-58d557dc48-bb86x   Running
+kube-system            metrics-server-6dc596dfb8-2wknq           Running
+kube-system            svclb-traefik-3fb9f78e-4jps8              Pending
+kube-system            traefik-59b7647586-wpnzz                  Pending
+pantheon-p0-20261109   loki                                      Running
+pantheon-p0-20261109   metrics                                   Running
+pantheon-p0-20261109   tempo                                     Running
+pantheon-p0-20261109   web-mysql                                 Running
+pantheon-p0-20261109   web-redis                                 Running
+Existing integration services
+default       kubernetes       443
+kube-system   kube-dns         53,53,9153
+kube-system   metrics-server   443
+kube-system   traefik          80,443
+Cached images
+docker.io/grafana/loki:3.6.3
+docker.io/grafana/tempo:2.9.0
+docker.io/rancher/klipper-helm:v0.13.3-build20260727
+docker.io/rancher/local-path-provisioner:v0.0.36
+docker.io/rancher/mirrored-coredns-coredns:1.14.6
+docker.io/rancher/mirrored-metrics-server:v0.9.0
+docker.io/rancher/mirrored-pause:3.10.2
+docker.io/victoriametrics/victoria-metrics:v1.133.0
+docker.m.daocloud.io/grafana/loki:3.6.3
+docker.m.daocloud.io/grafana/tempo:2.9.0
+docker.m.daocloud.io/library/mariadb:11.8.5
+docker.m.daocloud.io/library/mariadb@sha256:345fa26d595e8c7fe298e0c4098ed400356f502458769c8902229b3437d6da2b
+docker.m.daocloud.io/library/redis:7.4.2
+docker.m.daocloud.io/library/redis@sha256:fbdbaea47b9ae4ecc2082ecdb4e1cea81e32176ffb1dcf643d422ad07427e5d9
+docker.m.daocloud.io/rancher/klipper-helm:v0.13.3-build20260727
+docker.m.daocloud.io/rancher/local-path-provisioner:v0.0.36
+docker.m.daocloud.io/rancher/mirrored-coredns-coredns:1.14.6
+docker.m.daocloud.io/rancher/mirrored-metrics-server:v0.9.0
+docker.m.daocloud.io/rancher/mirrored-pause:3.10.2
+docker.m.daocloud.io/victoriametrics/victoria-metrics:v1.133.0
+sha256:06c425ea32fada30ffe48e2bf9eed3666cce2ea088fd8c9de5ed4ed18b15de4f
+sha256:0c39d4d4587dd16a83a355976070cc2373c0187558bfea77df74146a1efd316a
+sha256:38769e68987be09b11cde7aac2d6b163910d5e075f1564c1fc7ac5efc0517ec4
+sha256:4a83b15d3ecfe0d916b2d0a7991bc2854a629b8097017c2ee1ff65b30ae4c07c
+sha256:520212b8b0fcd9309d7362d592f513b72880fa5a4e9e8b91442e7ee3b622c6a9
+sha256:65750d044ac86b73a473c01a854d5f7f2b55a77b43f007d0e10a5db5dd1d926f
+sha256:8e0d8d2218ec831bae4293da6ebb77a000dfea7a35fc18175fe9d24bf2a4cb31
+sha256:9254fb81aa65831cce153dfdf883805d40157b78ccec0c10fd82c499113fd1de
+sha256:bfe9184ea9e5b839e6b01d279a2e508a3bb50e66c843dfd2183dd7608550ce78
+sha256:d7b01abacd67fcd2cd2f61b87cb46c850c4f090e77d3d5ae0878b9894e0fcd0f
+Tools
+/usr/bin/curl
+/usr/bin/python3
+State  Recv-Q Send-Q Local Address:Port  Peer Address:PortProcess                                                       
+LISTEN 0      4096      127.0.0.54:53         0.0.0.0:*    users:(("systemd-resolve",pid=154551,fd=17))                 
+LISTEN 0      4096       127.0.0.1:10010      0.0.0.0:*    users:(("containerd",pid=1052537,fd=15))                     
+LISTEN 0      511          0.0.0.0:6379       0.0.0.0:*    users:(("redis-server",pid=1511266,fd=6))                    
+LISTEN 0      4096       127.0.0.1:6444       0.0.0.0:*    users:(("k3s-server",pid=1052515,fd=20))                     
+LISTEN 0      511          0.0.0.0:80         0.0.0.0:*    users:(("nginx",pid=1504476,fd=6),("nginx",pid=1504475,fd=6))
+LISTEN 0      5          127.0.0.1:25073      0.0.0.0:*    users:(("python3",pid=1228770,fd=3))                         
+LISTEN 0      4096       127.0.0.1:10257      0.0.0.0:*    users:(("k3s-server",pid=1052515,fd=165))                    
+LISTEN 0      4096       127.0.0.1:10256      0.0.0.0:*    users:(("k3s-server",pid=1052515,fd=209))                    
+LISTEN 0      4096       127.0.0.1:10259      0.0.0.0:*    users:(("k3s-server",pid=1052515,fd=203))                    
+LISTEN 0      4096       127.0.0.1:10258      0.0.0.0:*    users:(("k3s-server",pid=1052515,fd=210))                    
+LISTEN 0      4096       127.0.0.1:10249      0.0.0.0:*    users:(("k3s-server",pid=1052515,fd=220))                    
+LISTEN 0      4096       127.0.0.1:10248      0.0.0.0:*    users:(("k3s-server",pid=1052515,fd=180))                    
+LISTEN 0      4096       127.0.0.1:9000       0.0.0.0:*    users:(("minio",pid=1513149,fd=7))                           
+LISTEN 0      4096   127.0.0.53%lo:53         0.0.0.0:*    users:(("systemd-resolve",pid=154551,fd=15))                 
+LISTEN 0      4096           [::1]:9000          [::]:*    users:(("minio",pid=1513149,fd=8))                           
+LISTEN 0      4096               *:24485            *:*    users:(("server-p0-linux",pid=1228760,fd=10))                
+LISTEN 0      4096               *:10250            *:*    users:(("k3s-server",pid=1052515,fd=192))                    
+LISTEN 0      4096               *:22               *:*    users:(("sshd",pid=154542,fd=3),("systemd",pid=1,fd=120))    
+LISTEN 0      4096               *:33103            *:*    users:(("minio",pid=1513149,fd=9))                           
+LISTEN 0      4096               *:6443             *:*    users:(("k3s-server",pid=1052515,fd=12))                     
+LISTEN 0      4096               *:9090             *:*    users:(("prometheus",pid=1513969,fd=7))                      
+LISTEN 0      4096               *:9000             *:*    users:(("minio",pid=1513149,fd=6))                           

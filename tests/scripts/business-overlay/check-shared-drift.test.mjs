@@ -6,11 +6,11 @@ import { spawnSync } from 'node:child_process';
 import test from 'node:test';
 import { pathToFileURL } from 'node:url';
 
-function runDriftCheck(root, base) {
+function runDriftCheck(root, base, group = 'all') {
   const moduleURL = pathToFileURL(path.resolve('scripts/business-overlay/check-shared-drift.mjs')).href;
   const script = `import { checkSharedDrift } from ${JSON.stringify(moduleURL)}; import fs from 'node:fs'; import path from 'node:path';
-    process.exitCode = checkSharedDrift({root:process.argv[1],snapshot:{baseRoot:process.argv[2],manifest:JSON.parse(fs.readFileSync(path.join(process.argv[1],'foundation-release.lock.json'),'utf8'))}});`;
-  return spawnSync(process.execPath, ['--input-type=module', '-e', script, root, base], { encoding: 'utf8' });
+    process.exitCode = checkSharedDrift({root:process.argv[1],group:process.argv[3],snapshot:{baseRoot:process.argv[2],manifest:JSON.parse(fs.readFileSync(path.join(process.argv[1],'foundation-release.lock.json'),'utf8'))}});`;
+  return spawnSync(process.execPath, ['--input-type=module', '-e', script, root, base, group], { encoding: 'utf8' });
 }
 
 function initGitRepo(root, files) {
@@ -132,6 +132,25 @@ test('reports stale allowlist entries', () => {
   const result = runDriftCheck(opsRoot, baseRoot);
   assert.equal(result.status, 1);
   assert.match(result.stderr, /STALE_ALLOWLIST backend\/pkg\/gone\.go/);
+});
+
+test('group selection does not claim unexamined allowlist entries are stale or equal', (t) => {
+  const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'pantheon-drift-coverage-'));
+  t.after(() => fs.rmSync(temp, { recursive: true, force: true }));
+  const baseRoot = path.join(temp, 'base');
+  const opsRoot = path.join(temp, 'ops');
+  const files = { 'backend/pkg/shared.go': 'package shared\n', 'frontend/package.json': '{}\n' };
+  initGitRepo(baseRoot, files);
+  fixtureLock(opsRoot, { backend: ['backend/pkg'], frontend: ['frontend/package.json'] });
+  for (const [file, content] of Object.entries(files)) write(opsRoot, file, content);
+  write(opsRoot, '.foundation/allowed-drift.json', JSON.stringify({ 'frontend/package.json': 'legacy allowance' }));
+  const selected = runDriftCheck(opsRoot, baseRoot, 'backend');
+  assert.equal(selected.status, 0, selected.stderr);
+  assert.match(selected.stdout, /ALLOWLIST_NOT_COMPARED frontend\/package.json/);
+  assert.doesNotMatch(selected.stderr, /STALE_ALLOWLIST/);
+  const all = runDriftCheck(opsRoot, baseRoot);
+  assert.equal(all.status, 1);
+  assert.match(all.stderr, /STALE_ALLOWLIST frontend\/package.json/);
 });
 
 

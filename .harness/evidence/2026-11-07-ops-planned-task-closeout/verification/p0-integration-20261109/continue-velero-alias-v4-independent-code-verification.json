@@ -1,0 +1,218 @@
+{
+  "lane": "CODE",
+  "independent": true,
+  "decision": "REQUEST CHANGES",
+  "issueCounts": {
+    "CRITICAL": 0,
+    "HIGH": 0,
+    "MEDIUM": 1,
+    "LOW": 0
+  },
+  "requestSHA256": "dd3804fec93693b331397bc9b74182540ba694fc12543dcb3e5b3aeedae8e0fb",
+  "scriptHashesBefore": {
+    ".local/ops-acceptance/continue-velero-alias-v4-contract.py": "701a4303ef4b788674768e36a80fbdf8d112b923a2671ee7e7d98de4af42c716",
+    ".local/ops-acceptance/continue-velero-alias-v4-remote.py": "6d6b0e07e5783df733c1555dcfc0e882f22619f5649a6ceb57272fd0f3924ee1",
+    ".local/ops-acceptance/continue-velero-alias-v4-root.py": "2f20c713093771a1431d5732cb6ab3bb6c0f8b2c8899a18ccef79136a94f9647",
+    ".local/ops-acceptance/continue-velero-alias-v4-generate.py": "96158db7547ed7f6fadc2f07f32bf1d8dbcdf57b6b55205f6718d0b4cf97bbf8",
+    ".local/ops-acceptance/continue-velero-alias-v4-test.py": "0bf43e8c8eb74f64d3dab865a2f97f837d7314c988defb9ba2d5a62c4e8adbe6"
+  },
+  "scriptHashesAfter": {
+    ".local/ops-acceptance/continue-velero-alias-v4-contract.py": "701a4303ef4b788674768e36a80fbdf8d112b923a2671ee7e7d98de4af42c716",
+    ".local/ops-acceptance/continue-velero-alias-v4-remote.py": "6d6b0e07e5783df733c1555dcfc0e882f22619f5649a6ceb57272fd0f3924ee1",
+    ".local/ops-acceptance/continue-velero-alias-v4-root.py": "2f20c713093771a1431d5732cb6ab3bb6c0f8b2c8899a18ccef79136a94f9647",
+    ".local/ops-acceptance/continue-velero-alias-v4-generate.py": "96158db7547ed7f6fadc2f07f32bf1d8dbcdf57b6b55205f6718d0b4cf97bbf8",
+    ".local/ops-acceptance/continue-velero-alias-v4-test.py": "0bf43e8c8eb74f64d3dab865a2f97f837d7314c988defb9ba2d5a62c4e8adbe6"
+  },
+  "protectedCount": 267,
+  "checkedFiles": 273,
+  "changedFiles": [],
+  "compileCount": 5,
+  "focused": {
+    "testsRun": 65,
+    "errors": 0,
+    "failures": 0,
+    "skips": 0,
+    "remoteExecuted": false,
+    "runtimeApproved": false
+  },
+  "adversarial": [
+    {
+      "boundary": "after-put",
+      "processExit": 143,
+      "durablePrefix": 1,
+      "inspection": {
+        "exitCode": 0,
+        "inspectionStatus": "COMPLETE",
+        "methods": [
+          "GET"
+        ],
+        "terminalRepairReceiptPresent": false,
+        "corruption": null
+      }
+    },
+    {
+      "boundary": "forged-alias-request",
+      "inspection": {
+        "exitCode": 0,
+        "inspectionStatus": "COMPLETE",
+        "methods": [
+          "GET"
+        ],
+        "terminalRepairReceiptPresent": false,
+        "corruption": "alias-request"
+      }
+    },
+    {
+      "boundary": "contradictory-terminal-success",
+      "inspection": {
+        "exitCode": 0,
+        "inspectionStatus": "COMPLETE",
+        "methods": [
+          "GET"
+        ],
+        "terminalRepairReceiptPresent": true,
+        "corruption": "terminal-predecessor-and-success"
+      }
+    },
+    {
+      "boundary": "after-delete",
+      "processExit": 143,
+      "durablePrefix": 3,
+      "inspection": {
+        "exitCode": 0,
+        "inspectionStatus": "COMPLETE",
+        "methods": [
+          "GET"
+        ],
+        "terminalRepairReceiptPresent": false,
+        "corruption": null
+      }
+    }
+  ],
+  "extraBoundaries": [
+    {
+      "boundary": "put-intent-directory-fsync-failure",
+      "exitCode": 1,
+      "mutations": [],
+      "directoryFDsClosed": true
+    },
+    {
+      "boundary": "put-outcome-directory-fsync-failure",
+      "exitCode": 1,
+      "mutations": [
+        "PUT"
+      ],
+      "directoryFDsClosed": true
+    },
+    {
+      "boundary": "predecessor-age",
+      "seconds": 0,
+      "accepted": true
+    },
+    {
+      "boundary": "predecessor-age",
+      "seconds": 1800,
+      "accepted": true
+    },
+    {
+      "boundary": "predecessor-age",
+      "seconds": 1800.000001,
+      "accepted": false
+    },
+    {
+      "boundary": "predecessor-age",
+      "seconds": -1e-06,
+      "accepted": false
+    }
+  ],
+  "lsp": {
+    "artifact": "continue-velero-alias-v4-independent-code-lsp-actual-20261110T084543060168.json",
+    "sha256": "dfc0a7f2ce5ada17f01e848716630c3ab73ed469e08341cd2de54757fe8b6a9d",
+    "version": "1.1.414",
+    "files": 5,
+    "errors": 0,
+    "warnings": 0,
+    "settings": {
+      "diagnosticMode": "openFilesOnly",
+      "typeCheckingMode": "basic",
+      "autoSearchPaths": true,
+      "useLibraryCodeForTypes": true,
+      "extraPaths": [
+        "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance"
+      ]
+    },
+    "suppression": false
+  },
+  "authorFullSuite": {
+    "unique": 250,
+    "executions": 303,
+    "preserved": 238,
+    "new": 12,
+    "zeroSkips": true,
+    "independentlyRerun": false
+  },
+  "report": {
+    "artifact": "continue-velero-alias-v4-independent-code-report.md",
+    "sha256": "2b516cce681bfad3a277c28453e91b355d67e53935aa7be7e3f3ce0d112e249a",
+    "jsonFences": 1,
+    "words": 519
+  },
+  "localArtifacts": {
+    "adversarial.json": {
+      "path": ".local/ops-acceptance/continue-velero-alias-v4-independent-code-20261110T1642002491820/adversarial.json",
+      "sha256": "1070f61e02e40616a4d7df55129c7b030fe659f9224a55552d80f80f110c63b5"
+    },
+    "adversarial.py": {
+      "path": ".local/ops-acceptance/continue-velero-alias-v4-independent-code-20261110T1642002491820/adversarial.py",
+      "sha256": "6744b9de290f41806d16942da64dda6df5defe2f467977e9af3552ab7838f247"
+    },
+    "after.json": {
+      "path": ".local/ops-acceptance/continue-velero-alias-v4-independent-code-20261110T1642002491820/after.json",
+      "sha256": "254644fa6dc57ba1041a1a77fe5e8e25c8a42dd270c63319329c603cc0a1341a"
+    },
+    "before.json": {
+      "path": ".local/ops-acceptance/continue-velero-alias-v4-independent-code-20261110T1642002491820/before.json",
+      "sha256": "254644fa6dc57ba1041a1a77fe5e8e25c8a42dd270c63319329c603cc0a1341a"
+    },
+    "extra-boundaries.json": {
+      "path": ".local/ops-acceptance/continue-velero-alias-v4-independent-code-20261110T1642002491820/extra-boundaries.json",
+      "sha256": "5b6df2bc4e832bd487b35c1cd4ad45e082493b571424a66690c3bf0355617046"
+    },
+    "extra_boundaries.py": {
+      "path": ".local/ops-acceptance/continue-velero-alias-v4-independent-code-20261110T1642002491820/extra_boundaries.py",
+      "sha256": "1661a060a88bbd2c40992973a1ab34d4f900b5c9842f2d05d39d2e82c79b0b11"
+    },
+    "focused.json": {
+      "path": ".local/ops-acceptance/continue-velero-alias-v4-independent-code-20261110T1642002491820/focused.json",
+      "sha256": "6d23b6d39c2bcec360da71ae3eb801f55cfb6f9318c34399e30d87318c969df7"
+    },
+    "focused.log": {
+      "path": ".local/ops-acceptance/continue-velero-alias-v4-independent-code-20261110T1642002491820/focused.log",
+      "sha256": "a1a732b7738b78165c6cbeaad4420892f3c519773fd2b6e4b4190d18ef72b753"
+    },
+    "patterns.json": {
+      "path": ".local/ops-acceptance/continue-velero-alias-v4-independent-code-20261110T1642002491820/patterns.json",
+      "sha256": "54a85ae022c0cfdfcededcf5eb253597bc93a71fe210c9ced48f05d7bf07c7c8"
+    },
+    "report-draft.md": {
+      "path": ".local/ops-acceptance/continue-velero-alias-v4-independent-code-20261110T1642002491820/report-draft.md",
+      "sha256": "2b516cce681bfad3a277c28453e91b355d67e53935aa7be7e3f3ce0d112e249a"
+    },
+    "review_checks.py": {
+      "path": ".local/ops-acceptance/continue-velero-alias-v4-independent-code-20261110T1642002491820/review_checks.py",
+      "sha256": "71adb3074c7c02a43dceed963880911bd4caad8781a2e3742075ab8dcd642a34"
+    },
+    "seal_review_evidence.py": {
+      "path": ".local/ops-acceptance/continue-velero-alias-v4-independent-code-20261110T1642002491820/seal_review_evidence.py",
+      "sha256": "8edad57d736789c677c3d1760e3bb6449ea3a34b4d6711f11a0b98d2fd7a70d2"
+    }
+  },
+  "remoteExecuted": false,
+  "actualProviderExecuted": false,
+  "realRuntimeApproved": false,
+  "parentApproved": false,
+  "P0Approved": false,
+  "sourceChanges": false,
+  "oldGeneratorsRerun": false,
+  "approvalGranted": false
+}

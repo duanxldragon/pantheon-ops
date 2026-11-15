@@ -1,0 +1,36 @@
+{
+  "backendStop": "verified own Stop-Process",
+  "durability": "original1/1 restored after temporary2/0 test profile",
+  "dataRetained": true,
+  "ownedProcesses": [
+    {
+      "port": 24485,
+      "parent": 25272,
+      "pid": 2416,
+      "hashVerified": true,
+      "executable": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.tmp\\ops-priority-runtime\\server-step-history.exe"
+    },
+    {
+      "port": 33316,
+      "parent": 3772,
+      "pid": 20832,
+      "hashVerified": true,
+      "executable": "D:\\MySQL\\mysql\\bin\\mysqld.exe"
+    },
+    {
+      "port": 26316,
+      "parent": 24536,
+      "pid": 5160,
+      "hashVerified": true,
+      "executable": "D:\\Redis\\redis-server.exe"
+    }
+  ],
+  "mysqlRedisStop": "graceful CLI shutdown",
+  "webStop": "verified own Vite stopped before suite; suite web stopped itself",
+  "otherServices": "untouched",
+  "remainingPids": [],
+  "serverDatadir": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.tmp\\ops-planned-cmdb-services\\mysql-data",
+  "remainingPorts": [],
+  "redisDirectory": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.tmp\\ops-priority-runtime\\redis",
+  "completedUtc": "2026-11-08T03:28:14.0065348Z"
+}

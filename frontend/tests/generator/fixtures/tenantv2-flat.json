@@ -1,0 +1,208 @@
+{
+  "name": "tenantfixture/item",
+  "templateVersion": "v2",
+  "displayName": "隔离条目",
+  "displayNameEn": "Fixture items",
+  "description": "Generated runtime fixture",
+  "scope": "business",
+  "templateLevel": "enterprise",
+  "pageActionTemplate": "standard",
+  "pageActions": [
+    "view",
+    "create",
+    "update",
+    "delete"
+  ],
+  "dependencies": [],
+  "relations": [],
+  "dataScopeMode": "tenant",
+  "metadata": {
+    "businessContext": "tenantfixture",
+    "tableRole": "main",
+    "boundedContext": "item",
+    "owner": "generator-runtime"
+  },
+  "model": {
+    "tableName": "biz_tenantfixture_item",
+    "modelName": "TenantItem",
+    "fields": [
+      {
+        "name": "code",
+        "type": "string",
+        "label": "编码",
+        "labelEn": "Code",
+        "required": true,
+        "searchable": true,
+        "sortable": true,
+        "visibleInList": true,
+        "visibleInForm": true,
+        "validation": {
+          "unique": true
+        }
+      },
+      {
+        "name": "name",
+        "type": "string",
+        "label": "名称",
+        "labelEn": "Name",
+        "required": true,
+        "searchable": true,
+        "sortable": true,
+        "visibleInList": true,
+        "visibleInForm": true
+      },
+      {
+        "name": "deptId",
+        "type": "int",
+        "label": "部门",
+        "labelEn": "Department",
+        "required": false,
+        "searchable": false,
+        "sortable": true,
+        "visibleInList": true,
+        "visibleInForm": true
+      },
+      {
+        "name": "readOnly",
+        "type": "string",
+        "label": "只读字段",
+        "labelEn": "Read only field",
+        "required": false,
+        "searchable": false,
+        "sortable": false,
+        "visibleInList": true,
+        "visibleInForm": false
+      }
+    ]
+  },
+  "menus": [
+    {
+      "key": "tenantfixture",
+      "parentKey": "business",
+      "titleKey": "business.tenantfixture.title",
+      "path": "/business/tenantfixture",
+      "type": "M",
+      "icon": "apps",
+      "routeName": "business-tenantfixture",
+      "module": "business.tenantfixture",
+      "sort": 10
+    },
+    {
+      "key": "tenantfixture-item",
+      "parentKey": "tenantfixture",
+      "titleKey": "business.tenantfixture.item.title",
+      "path": "/business/tenantfixture/item",
+      "component": "business/tenantfixture/item/TenantItemList",
+      "pagePermission": "business:tenantfixture:item:list",
+      "type": "C",
+      "icon": "apps",
+      "routeName": "business-tenantfixture-item",
+      "module": "business.tenantfixture.item",
+      "sort": 10
+    },
+    {
+      "key": "tenantfixture-item-view",
+      "parentKey": "tenantfixture-item",
+      "titleKey": "business.tenantfixture.item.permission.view",
+      "perms": "business:tenantfixture:item:view",
+      "type": "F",
+      "sort": 1
+    },
+    {
+      "key": "tenantfixture-item-create",
+      "parentKey": "tenantfixture-item",
+      "titleKey": "business.tenantfixture.item.permission.create",
+      "perms": "business:tenantfixture:item:create",
+      "type": "F",
+      "sort": 2
+    },
+    {
+      "key": "tenantfixture-item-update",
+      "parentKey": "tenantfixture-item",
+      "titleKey": "business.tenantfixture.item.permission.update",
+      "perms": "business:tenantfixture:item:update",
+      "type": "F",
+      "sort": 3
+    },
+    {
+      "key": "tenantfixture-item-delete",
+      "parentKey": "tenantfixture-item",
+      "titleKey": "business.tenantfixture.item.permission.delete",
+      "perms": "business:tenantfixture:item:delete",
+      "type": "F",
+      "sort": 4
+    }
+  ],
+  "permissions": [
+    {
+      "key": "business:tenantfixture:item:list",
+      "name": "business.tenantfixture.item.permission.view",
+      "type": "menu",
+      "module": "business.tenantfixture.item"
+    },
+    {
+      "key": "business:tenantfixture:item:view",
+      "name": "business.tenantfixture.item.permission.view",
+      "type": "button",
+      "module": "business.tenantfixture.item"
+    },
+    {
+      "key": "business:tenantfixture:item:create",
+      "name": "business.tenantfixture.item.permission.create",
+      "type": "button",
+      "module": "business.tenantfixture.item"
+    },
+    {
+      "key": "business:tenantfixture:item:update",
+      "name": "business.tenantfixture.item.permission.update",
+      "type": "button",
+      "module": "business.tenantfixture.item"
+    },
+    {
+      "key": "business:tenantfixture:item:delete",
+      "name": "business.tenantfixture.item.permission.delete",
+      "type": "button",
+      "module": "business.tenantfixture.item"
+    }
+  ],
+  "i18n": {
+    "namespace": "business.tenantfixture.item",
+    "translations": {
+      "zh": {
+        "business.tenantfixture.item.title": "title",
+        "business.tenantfixture.title": "title",
+        "business.tenantfixture.item.permission.view": "view",
+        "business.tenantfixture.item.permission.create": "create",
+        "business.tenantfixture.item.permission.update": "update",
+        "business.tenantfixture.item.permission.delete": "delete",
+        "business.tenantfixture.item.field.code.label": "label",
+        "business.tenantfixture.item.field.name.label": "label",
+        "business.tenantfixture.item.field.deptId.label": "label",
+        "business.tenantfixture.item.audit.create": "create",
+        "business.tenantfixture.item.audit.update": "update",
+        "business.tenantfixture.item.audit.delete": "delete",
+        "business.tenantfixture.item.field.readOnly.label": "只读字段"
+      },
+      "en": {
+        "business.tenantfixture.item.title": "title",
+        "business.tenantfixture.title": "title",
+        "business.tenantfixture.item.permission.view": "view",
+        "business.tenantfixture.item.permission.create": "create",
+        "business.tenantfixture.item.permission.update": "update",
+        "business.tenantfixture.item.permission.delete": "delete",
+        "business.tenantfixture.item.field.code.label": "label",
+        "business.tenantfixture.item.field.name.label": "label",
+        "business.tenantfixture.item.field.deptId.label": "label",
+        "business.tenantfixture.item.audit.create": "create",
+        "business.tenantfixture.item.audit.update": "update",
+        "business.tenantfixture.item.audit.delete": "delete",
+        "business.tenantfixture.item.field.readOnly.label": "Read only field"
+      }
+    }
+  },
+  "enableExport": false,
+  "enableImport": false,
+  "enableAudit": true,
+  "enableDataScope": true,
+  "includeDashboardWidget": false
+}

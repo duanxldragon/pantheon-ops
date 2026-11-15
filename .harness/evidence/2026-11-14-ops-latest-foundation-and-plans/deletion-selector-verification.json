@@ -1,0 +1,45 @@
+{
+  "taskId": "2026-11-14-ops-latest-foundation-and-plans",
+  "scope": "Tracked worktree deletion in standard overlay selection",
+  "verifiedAt": "2026-11-13T22:48:24.783Z",
+  "semantics": [
+    "Only indexed ENOENT leaves may be absent",
+    "Deleted index identity is preserved in gitEntries with deleted:true",
+    "Absent leaves are excluded from copy/read inventory",
+    "Reappearance changes candidate frozen selection",
+    "Missing declared roots still fail capture and assembly",
+    "Dangling links remain rejected; Windows junction exercised"
+  ],
+  "commands": [
+    {
+      "command": "node --test tests/scripts/business-overlay/*.test.mjs",
+      "status": "passed",
+      "tests": 66,
+      "passed": 66,
+      "failed": 0,
+      "skipped": 0,
+      "durationMs": 10106.0472,
+      "nodeVersion": "v24.14.0"
+    },
+    {
+      "command": "node --check scripts/business-overlay/rebuild-from-base.mjs",
+      "status": "passed"
+    },
+    {
+      "command": "node --check tests/scripts/business-overlay/rebuild-from-base.test.mjs",
+      "status": "passed"
+    }
+  ],
+  "sourcePins": [
+    {
+      "path": "scripts/business-overlay/rebuild-from-base.mjs",
+      "sha256": "e6301a35f19fa0587993fb4c068d007fe033f2d913510137a86d1bf9c8b7eacd"
+    },
+    {
+      "path": "tests/scripts/business-overlay/rebuild-from-base.test.mjs",
+      "sha256": "f7bec234fd58556aede352927b2e028c2064c38cb8ed6283e8cc8f94aa4d5ae3"
+    }
+  ],
+  "indexMutated": false,
+  "sharedBaseSourcesChanged": false
+}

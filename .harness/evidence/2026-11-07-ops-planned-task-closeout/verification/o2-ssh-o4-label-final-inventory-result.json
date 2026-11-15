@@ -1,0 +1,11 @@
+{
+  "command": [
+    "npm.cmd",
+    "run",
+    "check:harness-inventory"
+  ],
+  "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+  "exitCode": 0,
+  "elapsedSeconds": 0.4840000000258442,
+  "artifact": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/o2-ssh-o4-label-final-inventory.txt"
+}

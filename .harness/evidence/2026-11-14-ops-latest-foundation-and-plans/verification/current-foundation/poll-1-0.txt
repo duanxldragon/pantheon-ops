@@ -1,0 +1,13 @@
+DERIVED_BUSINESS_VERIFIED 17 canonical assembler outputs (report hashes checked)
+LEGACY_ALLOWLIST_SUPERSEDED backend/modules/business/business.go (canonical assembly verified; entry grants no exemption)
+LEGACY_ALLOWLIST_SUPERSEDED backend/modules/business/business_overlay_registry.go (canonical assembly verified; entry grants no exemption)
+LEGACY_ALLOWLIST_SUPERSEDED backend/modules/system/iam/menu/business_overlay_component_registry.go (canonical assembly verified; entry grants no exemption)
+LEGACY_ALLOWLIST_SUPERSEDED backend/modules/system/iam/menu/component_registry.go (canonical assembly verified; entry grants no exemption)
+LEGACY_ALLOWLIST_SUPERSEDED frontend/scripts/cleanup-generated-modules.mjs (canonical assembly verified; entry grants no exemption)
+LEGACY_ALLOWLIST_SUPERSEDED frontend/src/core/router/businessOverlayComponentRegistry.ts (canonical assembly verified; entry grants no exemption)
+LEGACY_ALLOWLIST_SUPERSEDED frontend/src/core/router/componentRegistry.ts (canonical assembly verified; entry grants no exemption)
+LEGACY_ALLOWLIST_SUPERSEDED frontend/src/core/router/modules.ts (canonical assembly verified; entry grants no exemption)
+LEGACY_ALLOWLIST_SUPERSEDED frontend/tests/smoke/README.md (canonical assembly verified; entry grants no exemption)
+ALLOWED_DRIFT frontend/package.json — overlay scripts: business smoke suites (test:smoke:business:*) declared by ops only
+OK shared drift check: 857 shared files compared, 856 identical to base, 1 allowlisted drift, 288 business-overlay files skipped, 14 derived business migrations verified (base=D:\workspace\go\pantheon-platform\pantheon-ops\.foundation\releases\pantheon-base-v0.18.8\repo)
+

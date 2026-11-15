@@ -1,0 +1,10 @@
+{
+  "scope": "local official release bytes and image digest verification; no remote resources",
+  "exitCode": 1,
+  "records": [],
+  "failedStage": "release-metadata",
+  "errorType": "HTTPError",
+  "httpStatus": 403,
+  "errno": null,
+  "detailsOmitted": true
+}

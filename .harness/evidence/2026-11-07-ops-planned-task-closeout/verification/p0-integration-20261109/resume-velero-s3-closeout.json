@@ -1,0 +1,15 @@
+{
+  "phase": "local-tooling-closeout",
+  "exitCode": 0,
+  "reviewedHashesStable": true,
+  "evidenceFilesExist": true,
+  "offlineChecksPassed": 9,
+  "raceBuildPassed": true,
+  "vetPassed": true,
+  "gofmtAndOwnedWhitespacePassed": true,
+  "remoteExecuted": false,
+  "transportComplete": false,
+  "D1Closed": false,
+  "P0Closed": false,
+  "rootRequestSHA256": "6d079b8d2b9dc99ffd278c3d74825e4d72f4ff3f5c5d847d3ddd6781701c9ef0"
+}

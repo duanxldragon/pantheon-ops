@@ -1,0 +1,80 @@
+
+Running 2 tests using 1 worker
+
+(node:12696) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x  1 tests\smoke\business\observability-workbench.spec.ts:8:3 › Loki UTC range, cancellation, denial and recovery (light) (11.7s)
+(node:25280) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x  2 tests\smoke\business\observability-workbench.spec.ts:8:3 › Loki UTC range, cancellation, denial and recovery (dark) (10.8s)
+
+
+  1) tests\smoke\business\observability-workbench.spec.ts:8:3 › Loki UTC range, cancellation, denial and recovery (light) 
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator: getByText('Loki fixture', { exact: true })
+    Expected: visible
+    Timeout: 10000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toBeVisible" getByText('Loki fixture', { exact: true }) with timeout 10000ms
+      - waiting for getByText('Loki fixture', { exact: true })
+
+
+      32 |     await page.setViewportSize({ width: 1440, height: 900 });
+      33 |     await page.goto('/business/observability/logs');
+    > 34 |     await expect(page.getByText('Loki fixture', { exact: true })).toBeVisible();
+         |                                                                   ^
+      35 |     await page.getByRole('button', { name: '搜索', exact: true }).click();
+      36 |     await expect(page.getByText('local-loki-result', { exact: true })).toBeVisible();
+      37 |     await expect(page.locator('html')).toHaveAttribute('data-color-mode', mode);
+        at D:\workspace\go\pantheon-platform\pantheon-ops\frontend\tests\smoke\business\observability-workbench.spec.ts:34:67
+
+    Error Context: ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\o4-label-budget-browser\smoke-business-observabili-aaf1f--denial-and-recovery-light-\error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\o4-label-budget-browser\smoke-business-observabili-aaf1f--denial-and-recovery-light-\trace.zip
+    Usage:
+
+        npx playwright show-trace ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\o4-label-budget-browser\smoke-business-observabili-aaf1f--denial-and-recovery-light-\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  2) tests\smoke\business\observability-workbench.spec.ts:8:3 › Loki UTC range, cancellation, denial and recovery (dark) 
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator: getByText('Loki fixture', { exact: true })
+    Expected: visible
+    Timeout: 10000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toBeVisible" getByText('Loki fixture', { exact: true }) with timeout 10000ms
+      - waiting for getByText('Loki fixture', { exact: true })
+
+
+      32 |     await page.setViewportSize({ width: 1440, height: 900 });
+      33 |     await page.goto('/business/observability/logs');
+    > 34 |     await expect(page.getByText('Loki fixture', { exact: true })).toBeVisible();
+         |                                                                   ^
+      35 |     await page.getByRole('button', { name: '搜索', exact: true }).click();
+      36 |     await expect(page.getByText('local-loki-result', { exact: true })).toBeVisible();
+      37 |     await expect(page.locator('html')).toHaveAttribute('data-color-mode', mode);
+        at D:\workspace\go\pantheon-platform\pantheon-ops\frontend\tests\smoke\business\observability-workbench.spec.ts:34:67
+
+    Error Context: ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\o4-label-budget-browser\smoke-business-observabili-a1888-n-denial-and-recovery-dark-\error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\o4-label-budget-browser\smoke-business-observabili-a1888-n-denial-and-recovery-dark-\trace.zip
+    Usage:
+
+        npx playwright show-trace ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\o4-label-budget-browser\smoke-business-observabili-a1888-n-denial-and-recovery-dark-\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  2 failed
+    tests\smoke\business\observability-workbench.spec.ts:8:3 › Loki UTC range, cancellation, denial and recovery (light) 
+    tests\smoke\business\observability-workbench.spec.ts:8:3 › Loki UTC range, cancellation, denial and recovery (dark) 

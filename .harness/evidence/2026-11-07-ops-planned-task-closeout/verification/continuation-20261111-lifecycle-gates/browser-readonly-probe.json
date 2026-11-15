@@ -1,0 +1,19 @@
+{
+  "remoteExecuted": true,
+  "remoteMutations": 0,
+  "exitCode": 0,
+  "observed": {
+    "commands": {
+      "chromium": null,
+      "chromium-browser": null,
+      "google-chrome": null,
+      "node": null,
+      "npm": null,
+      "python3": "/usr/bin/python3",
+      "docker": null
+    },
+    "candidatePaths": [],
+    "readOnly": true,
+    "remoteMutations": 0
+  }
+}

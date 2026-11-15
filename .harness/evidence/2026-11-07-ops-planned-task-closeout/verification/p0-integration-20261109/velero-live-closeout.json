@@ -1,0 +1,152 @@
+{
+  "taskID": "2026-11-07-ops-planned-task-closeout",
+  "parentPacket": ".harness/tasks/2026-09-28-ops-delivery-readiness-gap-closure/packets/D1-external-integration-acceptance.md",
+  "timestampUTC": "2026-11-09T06:55:17.906207+00:00",
+  "status": "offline-verified-live-blocked",
+  "tier": "L2",
+  "ownerLayer": "business/k8s/backup",
+  "syntaxChecked": [
+    "velero-live-inspect.py",
+    "velero-live-verify.py",
+    "velero-live-closeout.py"
+  ],
+  "checksPassed": 30,
+  "confirmedFindings": [
+    {
+      "evidence": {
+        "callerDept": 20,
+        "clusterDept": 10,
+        "recordID": 2,
+        "remoteRequest": false,
+        "returnedStatus": "New"
+      },
+      "finding": "CreateRestore persists unauthorized foreign-cluster request before async scope validation"
+    }
+  ],
+  "validation": [
+    {
+      "name": "driver-build",
+      "command": [
+        "go",
+        "build",
+        "-mod=readonly",
+        "-race",
+        "-o",
+        "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\velero-live-negative-driver.exe",
+        "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\velero-live-negative-driver.go"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 9.797,
+      "CGO_ENABLED": "1",
+      "GOMAXPROCS": "2",
+      "mingwPath": "D:/msys64/mingw64/bin"
+    },
+    {
+      "name": "driver-vet",
+      "command": [
+        "go",
+        "vet",
+        "-mod=readonly",
+        "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\velero-live-negative-driver.go"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 1.641,
+      "CGO_ENABLED": "1",
+      "GOMAXPROCS": "2",
+      "mingwPath": "D:/msys64/mingw64/bin"
+    },
+    {
+      "name": "targeted-race",
+      "command": [
+        "go",
+        "test",
+        "-mod=readonly",
+        "-race",
+        "-count=1",
+        "-timeout=120s",
+        "./modules/business/k8s/backup",
+        "./modules/business/k8s/pkg"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 7.265,
+      "CGO_ENABLED": "1",
+      "GOMAXPROCS": "2",
+      "mingwPath": "D:/msys64/mingw64/bin"
+    }
+  ],
+  "cleanup": {
+    "isolatedDatabaseDropped": true,
+    "absenceVerified": true,
+    "remoteResourcesCreated": 0,
+    "credentialFilesCreated": 0,
+    "retainedProviderResources": "none created; existing remote providers not inspected"
+  },
+  "preflight": {
+    "exitCode": 1,
+    "errorType": "PermissionError",
+    "errno": 13,
+    "failedOperation": "remote.connect -> paramiko SSHClient.connect -> socket.connect to 115.190.251.143:22",
+    "scope": "read-only; no remote command executed",
+    "sshHostPolicy": "existing remote.py pinned host / RejectPolicy / credentialref1"
+  },
+  "provenance": {
+    "releaseAPIFetched": false,
+    "releaseChecksumsVerified": false,
+    "imagesInstalled": [],
+    "reason": "remote capacity and provider ownership could not be inspected; no install or release download attempted"
+  },
+  "coverageGaps": [
+    "live capacity/provider inventory",
+    "trusted server CA and certificate SAN verification",
+    "finite namespace-scoped SA / real provider RBAC",
+    "actual Backup/Restore CR create/get/delete",
+    "completed ConfigMap backup to real S3-compatible store",
+    "restore data verification in second owned namespace",
+    "actual object-store content cleanup",
+    "live provider failure and finite timeout",
+    "HTTP auth/audit and maintainer review",
+    "D1/P0 completion; D4 production signed G2/G3"
+  ],
+  "sourceBoundaries": [
+    {
+      "file": "backend/modules/business/k8s/backup/velero_client.go",
+      "line": 51,
+      "observation": "Velero namespace is fixed to velero. A differently named isolated provider namespace cannot be selected through the current public client. Actual inventory is required before any reuse or creation."
+    },
+    {
+      "file": "backend/modules/business/k8s/backup/backup_service.go",
+      "line": 487,
+      "observation": "CreateRestore queries backup without DataScope, persists and returns New, and only later validates scope in an async task. Confirmed with real isolated MySQL; foreign-scope task ultimately Failed without a remote request."
+    },
+    {
+      "file": "backend/modules/business/k8s/backup/backup_service.go",
+      "line": 71,
+      "observation": "Storage-location CRUD is registry-only; actual provider BSL/credentials require an explicit test fixture, not this product method."
+    },
+    {
+      "file": "backend/modules/business/k8s/backup/velero_client.go",
+      "line": 98,
+      "observation": "IsInstalled gets a cluster-scoped Namespace. A purely namespaced Role cannot grant this status operation; inventory via pinned SSH is independent of this application RBAC limitation."
+    },
+    {
+      "file": "backend/modules/business/k8s/backup/velero_client.go",
+      "line": 190,
+      "observation": "Product DeleteBackup deletes the Backup CR, without issuing DeleteBackupRequest. Object-store deletion is unverified and cannot be inferred from registry/CR absence."
+    }
+  ],
+  "review": {
+    "kind": "findings-first self-review",
+    "reason": "leaf executor explicitly forbids recursive agents/CLI; root owns independent review and later source fixes",
+    "sourceModified": false,
+    "sourceHashesUnchanged": true,
+    "secretsInEvidence": false
+  },
+  "localArtifacts": {
+    "velero-live-inspect.py": "56e9f505a7acf29e598f40c07016355ca9f9940fb4dfff08a24f1bc1e97346ee",
+    "velero-live-negative-driver.go": "055a611ac42c40c3231729deeedfb5488c00f28eb964a083af699fc9338afb96",
+    "velero-live-verify.py": "906e31f0fe5f42f0feccc57c48a0e33e8fc22f2b2b691de30779fbb04a888d4e",
+    "velero-live-closeout.py": "c878a916c628fc87789330464554cffe71908d68fbaa27fcb0f779523bdccd03",
+    "velero-live-negative-driver.exe": "ab8650e4683649782fa4705a895f3f966f90bf54520730a865df5796f0badfb4"
+  },
+  "gateOutcomes": "DataScope diagnostic caught unauthorized restore registry creation | SSH preflight caught denied external connection | none"
+}

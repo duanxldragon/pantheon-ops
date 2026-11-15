@@ -1,0 +1,15 @@
+{
+  "command": [
+    "npm.cmd",
+    "run",
+    "rebuild:from-base",
+    "--",
+    "--target",
+    ".tmp/ops-priority-rendered-stage"
+  ],
+  "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+  "exitCode": 0,
+  "elapsedSeconds": 13.48399999999674,
+  "artifact": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/o2-o3-o4-rendered-stage-rebuild.txt",
+  "lane": "stage"
+}

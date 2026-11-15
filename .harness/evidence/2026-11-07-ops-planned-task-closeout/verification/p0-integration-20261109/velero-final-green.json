@@ -1,0 +1,92 @@
+{
+  "phase": "green",
+  "commands": [
+    {
+      "command": [
+        "go",
+        "test",
+        "-mod=readonly",
+        "-race",
+        "-count=1",
+        "-timeout=180s",
+        "-v",
+        "./modules/business/k8s/backup",
+        "./modules/business/k8s/cluster"
+      ],
+      "exitCode": 1,
+      "elapsedSeconds": 20.359,
+      "artifact": "velero-final-green-0.txt",
+      "requiredMySQL": true,
+      "CGO_ENABLED": "1",
+      "MinGW": "D:/msys64/mingw64/bin",
+      "skipFound": false
+    },
+    {
+      "command": [
+        "go",
+        "vet",
+        "-mod=readonly",
+        "./modules/business/k8s/backup",
+        "./modules/business/k8s/cluster"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 4.0,
+      "artifact": "velero-final-green-1.txt",
+      "requiredMySQL": true,
+      "CGO_ENABLED": "1",
+      "MinGW": "D:/msys64/mingw64/bin",
+      "skipFound": false
+    },
+    {
+      "command": [
+        "go",
+        "build",
+        "-mod=readonly",
+        "./modules/business/k8s/backup",
+        "./modules/business/k8s/cluster"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 1.391,
+      "artifact": "velero-final-green-2.txt",
+      "requiredMySQL": true,
+      "CGO_ENABLED": "1",
+      "MinGW": "D:/msys64/mingw64/bin",
+      "skipFound": false
+    }
+  ],
+  "sourceHashesBefore": {
+    ".local/ops-acceptance/velero-final-live-driver.go": "fbfb911f3192a04cb842adaf40036ef8d709fbd643f72b6f3aadb5db9327a250",
+    "backend/modules/business/k8s/backup/backup.go": "bb6162665a7b710351ed6df4f2c204ad3914088aa7119d7cbbaa4a3170b61c8f",
+    "backend/modules/business/k8s/backup/backup_dto.go": "b6d0430c93bb33dada0f1155b2bb3ff17cf403fc619ab687ba141e64616aa7e4",
+    "backend/modules/business/k8s/backup/backup_handler.go": "320bf427300d6cb88038adfbf581600c8c82cd2f760bdfa755dfca4711d99e96",
+    "backend/modules/business/k8s/backup/backup_model.go": "0119686da49fa62c3106ca6a90206592122153eaf5f858ae884a824590c3ea51",
+    "backend/modules/business/k8s/backup/backup_service.go": "c0c1cc389bba0c818be971dccc9ec1efec9e10023212189fdc186135c0704429",
+    "backend/modules/business/k8s/backup/drill.go": "0de6e13dc1a2a4f0ea0acb3cd2478d636d2de8ff9a5b07024ba4e18abcddc702",
+    "backend/modules/business/k8s/backup/reconciler.go": "9d0b61f817267058f52a7b53d52c66d157598fcc51abfedfe986ce174aa5b3a7",
+    "backend/modules/business/k8s/backup/restore_authorization_test.go": "9ec9e243cf6d57e12f51023f164d0855eb1cfd022d75649ed0bdfb94fc78deb7",
+    "backend/modules/business/k8s/backup/restore_final_boundary_test.go": "9ff6db0f3dc512c8e6a028a14be00aabc05646689821e31d6c3d437074c8be5b",
+    "backend/modules/business/k8s/backup/submission.go": "0bfb92cbfae5530a5dcc7330b48a9d0b375a91e84691c4340885c80ffad8f1d9",
+    "backend/modules/business/k8s/backup/velero_client.go": "dc7310ef0801e16b761b6612c9ee494aa3db91fdeb5a3af2a3f13a4b05ea189e",
+    "backend/modules/business/k8s/backup/velero_client_test.go": "0272dd81e1e6dee02185d8fbba9119c8767f796edc7073cfecf31d86fcc0a3d9",
+    "backend/modules/business/k8s/cluster/cluster_service.go": "a7afe5394f13525d15f62501cc61fd0355c0a90166bf347c9dbee4babcc6f64b",
+    "backend/modules/business/k8s/cluster/credential_revocation_test.go": "9356afee25dd1c41ba5fbd25eead7bf3332a53b00447952455caa40f30874420"
+  },
+  "sourceHashesAfter": {
+    ".local/ops-acceptance/velero-final-live-driver.go": "fbfb911f3192a04cb842adaf40036ef8d709fbd643f72b6f3aadb5db9327a250",
+    "backend/modules/business/k8s/backup/backup.go": "bb6162665a7b710351ed6df4f2c204ad3914088aa7119d7cbbaa4a3170b61c8f",
+    "backend/modules/business/k8s/backup/backup_dto.go": "b6d0430c93bb33dada0f1155b2bb3ff17cf403fc619ab687ba141e64616aa7e4",
+    "backend/modules/business/k8s/backup/backup_handler.go": "320bf427300d6cb88038adfbf581600c8c82cd2f760bdfa755dfca4711d99e96",
+    "backend/modules/business/k8s/backup/backup_model.go": "0119686da49fa62c3106ca6a90206592122153eaf5f858ae884a824590c3ea51",
+    "backend/modules/business/k8s/backup/backup_service.go": "c0c1cc389bba0c818be971dccc9ec1efec9e10023212189fdc186135c0704429",
+    "backend/modules/business/k8s/backup/drill.go": "0de6e13dc1a2a4f0ea0acb3cd2478d636d2de8ff9a5b07024ba4e18abcddc702",
+    "backend/modules/business/k8s/backup/reconciler.go": "9d0b61f817267058f52a7b53d52c66d157598fcc51abfedfe986ce174aa5b3a7",
+    "backend/modules/business/k8s/backup/restore_authorization_test.go": "9ec9e243cf6d57e12f51023f164d0855eb1cfd022d75649ed0bdfb94fc78deb7",
+    "backend/modules/business/k8s/backup/restore_final_boundary_test.go": "9ff6db0f3dc512c8e6a028a14be00aabc05646689821e31d6c3d437074c8be5b",
+    "backend/modules/business/k8s/backup/submission.go": "0bfb92cbfae5530a5dcc7330b48a9d0b375a91e84691c4340885c80ffad8f1d9",
+    "backend/modules/business/k8s/backup/velero_client.go": "dc7310ef0801e16b761b6612c9ee494aa3db91fdeb5a3af2a3f13a4b05ea189e",
+    "backend/modules/business/k8s/backup/velero_client_test.go": "0272dd81e1e6dee02185d8fbba9119c8767f796edc7073cfecf31d86fcc0a3d9",
+    "backend/modules/business/k8s/cluster/cluster_service.go": "a7afe5394f13525d15f62501cc61fd0355c0a90166bf347c9dbee4babcc6f64b",
+    "backend/modules/business/k8s/cluster/credential_revocation_test.go": "9356afee25dd1c41ba5fbd25eead7bf3332a53b00447952455caa40f30874420"
+  },
+  "sourceHashesStable": true
+}

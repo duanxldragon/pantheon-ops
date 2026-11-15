@@ -1,0 +1,26 @@
+[
+  {
+    "path": "backend/modules/business/deploy/deploy_model.go",
+    "approvedSHA256": "5ab24f9e9674f809328d3a128a53c24d7dd4d1e19c2ddd9baf80f8ab08e22530",
+    "currentSHA256": "5ab24f9e9674f809328d3a128a53c24d7dd4d1e19c2ddd9baf80f8ab08e22530",
+    "matches": true
+  },
+  {
+    "path": "backend/modules/business/deploy/step_history.go",
+    "approvedSHA256": "6bbfbc6249f2afef10e7f2e3ba6bb333b318921ab2af390ccdbec7772a2dc441",
+    "currentSHA256": "6bbfbc6249f2afef10e7f2e3ba6bb333b318921ab2af390ccdbec7772a2dc441",
+    "matches": true
+  },
+  {
+    "path": "backend/modules/business/cmdb/target_selection.go",
+    "approvedSHA256": "c457445fc08b607e0dc83477a00343cb994c503084b472f1b30c8e8e57591cff",
+    "currentSHA256": "c457445fc08b607e0dc83477a00343cb994c503084b472f1b30c8e8e57591cff",
+    "matches": true
+  },
+  {
+    "path": "backend/modules/business/cmdb/capability.go",
+    "approvedSHA256": "87da5f9bde5e3f69022617cf6c92b7e4a4c0bdfee106a6876e511c925c16f566",
+    "currentSHA256": "87da5f9bde5e3f69022617cf6c92b7e4a4c0bdfee106a6876e511c925c16f566",
+    "matches": true
+  }
+]

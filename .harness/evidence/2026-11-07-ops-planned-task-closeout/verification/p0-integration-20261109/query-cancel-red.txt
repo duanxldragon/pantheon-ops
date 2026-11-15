@@ -1,0 +1,29 @@
+=== RUN   TestDatasourceHTTPQueryCancellation
+=== RUN   TestDatasourceHTTPQueryCancellation/prometheus
+[GIN-debug] [WARNING] Running in "debug" mode. Switch to "release" mode in production.
+ - using env:	export GIN_MODE=release
+ - using code:	gin.SetMode(gin.ReleaseMode)
+
+[GIN-debug] GET    /datasources/:id/query    --> github.com/duanxldragon/pantheon-base/backend/modules/business/observability.(*ObservabilityHandler).QueryDatasource-fm (1 handlers)
+    datasource_query_context_test.go:39: request canceled but provider remained running
+=== RUN   TestDatasourceHTTPQueryCancellation/victoriametrics
+[GIN-debug] [WARNING] Running in "debug" mode. Switch to "release" mode in production.
+ - using env:	export GIN_MODE=release
+ - using code:	gin.SetMode(gin.ReleaseMode)
+
+[GIN-debug] GET    /datasources/:id/query    --> github.com/duanxldragon/pantheon-base/backend/modules/business/observability.(*ObservabilityHandler).QueryDatasource-fm (1 handlers)
+    datasource_query_context_test.go:39: request canceled but provider remained running
+=== RUN   TestDatasourceHTTPQueryCancellation/tempo
+[GIN-debug] [WARNING] Running in "debug" mode. Switch to "release" mode in production.
+ - using env:	export GIN_MODE=release
+ - using code:	gin.SetMode(gin.ReleaseMode)
+
+[GIN-debug] GET    /datasources/:id/traces   --> github.com/duanxldragon/pantheon-base/backend/modules/business/observability.(*ObservabilityHandler).SearchTraces-fm (1 handlers)
+    datasource_query_context_test.go:39: request canceled but provider remained running
+--- FAIL: TestDatasourceHTTPQueryCancellation (6.57s)
+    --- FAIL: TestDatasourceHTTPQueryCancellation/prometheus (2.16s)
+    --- FAIL: TestDatasourceHTTPQueryCancellation/victoriametrics (2.18s)
+    --- FAIL: TestDatasourceHTTPQueryCancellation/tempo (2.22s)
+FAIL
+FAIL	github.com/duanxldragon/pantheon-base/backend/modules/business/observability	6.645s
+FAIL

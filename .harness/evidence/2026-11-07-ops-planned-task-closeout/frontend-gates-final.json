@@ -1,0 +1,15 @@
+[
+  {
+    "exitCode": 0,
+    "name": "lint"
+  },
+  {
+    "exitCode": 0,
+    "name": "type-check"
+  },
+  {
+    "exitCode": 0,
+    "name": "build",
+    "notes": "Registered new CMDB permission spec in business smoke script/README; reran full prebuild/build."
+  }
+]

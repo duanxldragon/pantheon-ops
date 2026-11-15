@@ -1,0 +1,27 @@
+
+Running 20 tests using 1 worker
+
+(node:25344) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok  1 tests\smoke\business\deploy\deploy-api.spec.ts:89:3 › Deploy business api smoke › deploy api creates starts and marks a manual task (189ms)
+  ok  2 tests\smoke\business\deploy\deploy-api.spec.ts:167:3 › Deploy business api smoke › deploy api updates a draft task before execution (199ms)
+  ok  3 tests\smoke\business\deploy\deploy-api.spec.ts:294:3 › Deploy business api smoke › deploy api deletes draft and terminal tasks but rejects active execution (236ms)
+  ok  4 tests\smoke\business\deploy\deploy-api.spec.ts:395:3 › Deploy business api smoke › deploy api records uploaded package metadata and failed ssh trace (337ms)
+  ok  5 tests\smoke\business\deploy\deploy-pages.spec.ts:69:3 › Deploy business module smoke › deploy pages load under operations platform (8.1s)
+  ok  6 tests\smoke\business\deploy\deploy-pages.spec.ts:112:3 › Deploy business module smoke › deploy task detail action opens a modal without leaving the list page (3.6s)
+  ok  7 tests\smoke\business\deploy\deploy-pages.spec.ts:207:3 › Deploy business module smoke › deploy package detail action opens a modal without leaving the list page (2.7s)
+  ok  8 tests\smoke\business\deploy\deploy-pages.spec.ts:247:3 › Deploy business module smoke › deploy template detail action opens a modal without leaving the list page (3.3s)
+  ok  9 tests\smoke\business\deploy\deploy-pages.spec.ts:329:3 › Deploy business module smoke › deploy detail page loads with summary and host table (2.9s)
+  ok 10 tests\smoke\business\deploy\deploy-pages.spec.ts:404:3 › Deploy business module smoke › deploy detail requires a reason when marking host failure (3.2s)
+  ok 11 tests\smoke\business\deploy\deploy-pages.spec.ts:488:3 › Deploy business module smoke › deploy template supports script steps and task params render in detail (4.7s)
+  ok 12 tests\smoke\business\deploy\deploy-pages.spec.ts:610:3 › Deploy business module smoke › deploy detail edit action routes back to list and opens edit modal (8.1s)
+  ok 13 tests\smoke\business\deploy\deploy-pages.spec.ts:708:3 › Deploy business module smoke › targeted smoke closes cmdb, bizscope, deploy with uploaded source package and visible task trace (2.6s)
+  ok 14 tests\smoke\business\deploy\deploy-pages.spec.ts:860:3 › Deploy business module smoke › deploy pages stay within a phone viewport (6.4s)
+  ok 15 tests\smoke\business\deploy\deploy-selection-preview.spec.ts:11:2 › selection and preview confirm/conflict/refresh (light) (11.6s)
+  ok 16 tests\smoke\business\deploy\deploy-selection-preview.spec.ts:11:2 › selection and preview confirm/conflict/refresh (dark) (11.9s)
+  ok 17 tests\smoke\business\deploy\deploy-workbench.spec.ts:15:3 › deployment workbench sources, logs, keyboard and mobile (light) (7.0s)
+  ok 18 tests\smoke\business\deploy\deploy-workbench.spec.ts:15:3 › deployment workbench sources, logs, keyboard and mobile (dark) (7.1s)
+  ok 19 tests\smoke\business\observability-workbench.spec.ts:7:3 › Loki UTC range, cancellation, denial and recovery (light) (4.2s)
+  ok 20 tests\smoke\business\observability-workbench.spec.ts:7:3 › Loki UTC range, cancellation, denial and recovery (dark) (3.9s)
+
+  20 passed (1.6m)

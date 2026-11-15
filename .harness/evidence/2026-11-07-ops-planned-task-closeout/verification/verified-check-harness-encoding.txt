@@ -1,0 +1,5 @@
+
+> check:harness-encoding
+> node scripts/harness/check-encoding.mjs --root . --strict
+
+Encoding check (strict): 0 finding(s) across 2278 scanned file(s)

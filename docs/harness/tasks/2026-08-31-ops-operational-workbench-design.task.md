@@ -2,8 +2,8 @@
 title: Define Ops business operational workbenches
 doc_type: Design
 layer: business/*
-status: Active
-updated_at: 2026-08-31
+status: Archived
+updated_at: 2026-11-07
 linked_contracts:
   - docs/designs/BUSINESS_OPERATIONAL_WORKBENCH_DESIGN.md
 ---
@@ -11,6 +11,8 @@ linked_contracts:
 # Task Packet: 2026-08-31-ops-operational-workbench-design
 
 ## Goal
+
+Design packet closure: design and O1-O7 handoff are complete. This archive does not close implementation, release dependencies or final visual/runtime acceptance. Current execution state is in the original STATUS.md.
 
 把 Pantheon Ops 的目标选择、变更预览、执行、查询、日志和 Dashboard 体验拆成可独立实现且遵守 Base-first 继承边界的业务工作包。
 

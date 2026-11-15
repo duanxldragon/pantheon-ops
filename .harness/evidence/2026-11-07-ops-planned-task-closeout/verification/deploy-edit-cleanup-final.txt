@@ -1,0 +1,8 @@
+
+Running 1 test using 1 worker
+
+(node:11824) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok 1 tests\smoke\business\deploy\deploy-pages.spec.ts:610:3 › Deploy business module smoke › deploy detail edit action routes back to list and opens edit modal (8.8s)
+
+  1 passed (9.8s)

@@ -1,0 +1,7 @@
+{
+  "sseFirstEventBeforeUpstreamCompletion": true,
+  "firstEventSeconds": 0.0,
+  "sseCompletedBodyPreserved": true,
+  "errorStatusAndBodyPreserved": true,
+  "productSourceChanged": false
+}

@@ -1,0 +1,11 @@
+{
+  "command": [
+    "node",
+    "scripts/business-overlay/check-shared-drift.mjs",
+    "--root",
+    ".tmp/ops-priority-rendered-stage"
+  ],
+  "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+  "exitCode": 0,
+  "elapsedSeconds": 17.71899999998277
+}

@@ -1,0 +1,42 @@
+{
+  "phase": "native-ip",
+  "exitCode": 0,
+  "host": "115.190.251.143",
+  "remoteExecuted": true,
+  "remoteProviderMutation": false,
+  "providerInstalled": false,
+  "backupRestoreVerified": false,
+  "nativeCLI": [
+    "ip",
+    "-j",
+    "-4",
+    "address",
+    "show",
+    "dev",
+    "eth0",
+    "scope",
+    "global"
+  ],
+  "compatibilityMapping": "Actual K3s host has eth0, flannel.1 and cni0. Native dev eth0 selects the observed physical VM interface; overlays are never candidate bind addresses. No IP fallback or provider flag override.",
+  "v2RemoteSHA256": "7b1ba58c52d340a7d121c72e537baa3e20b072c0635289f9f82d97e5761ab7a5",
+  "rootRequestSHA256": "ad0779266d7275da18b4eba24aef9557eb18d0b52c911cdaff09ee176f9a2cce",
+  "uploads": [],
+  "retransferredArtifactBytes": 0,
+  "originalScriptHashesVerified": 8,
+  "productSourceHashesVerified": 17,
+  "nativeStdout": "[{\"ifindex\":2,\"ifname\":\"eth0\",\"flags\":[\"BROADCAST\",\"MULTICAST\",\"UP\",\"LOWER_UP\"],\"mtu\":1500,\"qdisc\":\"fq_codel\",\"operstate\":\"UP\",\"group\":\"default\",\"txqlen\":1000,\"altnames\":[\"enp3s1\"],\"addr_info\":[{\"family\":\"inet\",\"local\":\"192.168.94.127\",\"prefixlen\":16,\"metric\":100,\"broadcast\":\"192.168.255.255\",\"scope\":\"global\",\"dynamic\":true,\"label\":\"eth0\",\"valid_life_time\":315287304,\"preferred_life_time\":315287304}]}]\n",
+  "nativeStdoutSHA256": "678560aea9bdc4999acf8ba63f3303dfbc139ff168983519e7a80ec85b2f7b22",
+  "privateIP": "192.168.94.127",
+  "remoteOriginalFileHashes": {
+    "resume-velero-s3-prep.py": "0b5219ab2fe498a81b5d224c35dc8eaa7827f68467ab4dbee413a45a6445cc02",
+    "resume-velero-s3-remote.py": "6fe70db7027d422a5a03a990039359c3359997c26fc817c89109967f30da21b9",
+    "resume-velero-s3-fixture.py": "c6badc5582f0cd679450050818abd56cdec6518d6a14cd01f69ff0c6d5c0d055",
+    "resume-velero-s3-artifacts.json": "e54e0c8b9596349bcd36c95cba0f022ea65a9d5b8b9e69b3c0974acd893bc22b",
+    "seaweedfs-4.53-release.json": "7908e97ed2a798b18fe07ccf665143a19d5655d98d30ee1b54d93d8c145f7344",
+    "linux_amd64.tar.gz": "d1a7dec9f48d8b33895a0ea8951971defc2dc5312906dcc76fa5a5f74a6ee90d",
+    "velero-v1.17.0-linux-amd64.tar.gz": "f507a956cf8ec00f483f5d7b04901614a9016a10feb32b3ecc968da36b4fc7be",
+    "velero-velero-v1.17.0.oci.tar": "86b8928b6b053f7bb573df6f6492841f7e96ad03647f9ec9857351c4d267bea4",
+    "velero-velero-plugin-for-aws-v1.13.0.oci.tar": "494a8f752943a96c7a08ddfa1f2059eb07291039b37bca1518566eef41df554e",
+    "resume-velero-s3-diagnostic-20261110T004347017585.json": "708ec9d2777d8fe3c12dcbd4bb16ad984b299821b614b05a57971ae8b732ea8c"
+  }
+}

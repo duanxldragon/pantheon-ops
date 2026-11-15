@@ -1,0 +1,98 @@
+{
+  "ownership": "Only exact fixture tokens recorded in this command workflow failed Playwright trace attachments",
+  "tokens": [
+    "command-batch-1794063068726",
+    "command-light-1794063613740",
+    "command-dark-1794063615059",
+    "command-light-1794063381418",
+    "command-light-1794062871424",
+    "command-dark-1794062884564",
+    "command-batch-1794063228330",
+    "command-batch-1794063117729",
+    "command-dark-1794063442718"
+  ],
+  "deleted": [
+    {
+      "endpoint": "deploy/tasks",
+      "id": 173,
+      "name": "command-dark-1794063442718"
+    },
+    {
+      "endpoint": "deploy/tasks",
+      "id": 171,
+      "name": "command-batch-1794063228330-b"
+    },
+    {
+      "endpoint": "deploy/tasks",
+      "id": 170,
+      "name": "command-batch-1794063228330-a"
+    },
+    {
+      "endpoint": "deploy/tasks",
+      "id": 169,
+      "name": "command-batch-1794063117729-b"
+    },
+    {
+      "endpoint": "deploy/tasks",
+      "id": 168,
+      "name": "command-batch-1794063117729-a"
+    },
+    {
+      "endpoint": "cmdb/hosts",
+      "id": 183,
+      "name": "command-dark-1794063442718"
+    },
+    {
+      "endpoint": "cmdb/hosts",
+      "id": 181,
+      "name": "command-batch-1794063228330-b-host"
+    },
+    {
+      "endpoint": "cmdb/hosts",
+      "id": 180,
+      "name": "command-batch-1794063228330"
+    },
+    {
+      "endpoint": "cmdb/hosts",
+      "id": 179,
+      "name": "command-batch-1794063117729-b-host"
+    },
+    {
+      "endpoint": "cmdb/hosts",
+      "id": 178,
+      "name": "command-batch-1794063117729"
+    },
+    {
+      "endpoint": "bizscope",
+      "id": 173,
+      "name": "command-dark-1794063442718"
+    },
+    {
+      "endpoint": "bizscope",
+      "id": 171,
+      "name": "command-batch-1794063228330"
+    },
+    {
+      "endpoint": "bizscope",
+      "id": 170,
+      "name": "command-batch-1794063117729"
+    },
+    {
+      "endpoint": "deploy/packages",
+      "id": 190,
+      "name": "command-dark-1794063442718"
+    },
+    {
+      "endpoint": "deploy/packages",
+      "id": 188,
+      "name": "command-batch-1794063228330"
+    },
+    {
+      "endpoint": "deploy/packages",
+      "id": 187,
+      "name": "command-batch-1794063117729"
+    }
+  ],
+  "remaining": [],
+  "errors": []
+}

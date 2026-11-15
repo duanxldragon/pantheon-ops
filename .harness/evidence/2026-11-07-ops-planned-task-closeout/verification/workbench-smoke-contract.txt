@@ -1,0 +1,5 @@
+
+> @duanxldragon/pantheon-base-ui@0.11.2 check:smoke-coverage-contract
+> node ./scripts/check-smoke-coverage-contract.mjs
+
+smoke coverage contract passed for 43 smoke specs and 26 script entries

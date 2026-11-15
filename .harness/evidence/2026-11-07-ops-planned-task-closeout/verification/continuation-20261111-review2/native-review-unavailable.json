@@ -1,0 +1,14 @@
+[
+  {
+    "role": "code-reviewer",
+    "status": 503,
+    "model": "gpt-5.5",
+    "requestId": "202611110908382712752717pjxkGB6A2b1e"
+  },
+  {
+    "role": "architect",
+    "status": 503,
+    "model": "gpt-5.4-mini",
+    "requestId": "202611110909279280195624qkwlHTRG4yH7"
+  }
+]

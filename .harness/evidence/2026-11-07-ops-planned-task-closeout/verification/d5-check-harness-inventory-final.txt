@@ -1,0 +1,5 @@
+
+> check:harness-inventory
+> node scripts/harness/check-doc-inventory.mjs --root . --strict
+
+Docs inventory check (strict): 0 finding(s)

@@ -1,0 +1,7 @@
+{
+  "phase": "diagnostic",
+  "exitCode": 1,
+  "errorType": "FileNotFoundError",
+  "errno": 2,
+  "detailsOmitted": true
+}

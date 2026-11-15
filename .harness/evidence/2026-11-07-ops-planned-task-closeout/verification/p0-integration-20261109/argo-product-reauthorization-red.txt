@@ -1,0 +1,11 @@
+
+2026/11/09 15:41:53 [34;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/cicd/argocd/argocd_product_test.go:235
+[0m[35m[warn] [0mremoving callback `argo-product-revoke-source` from D:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/cicd/argocd/argocd_product_test.go:235
+--- FAIL: TestProductConfigRevokedAfterReservationCannotDispatch (0.41s)
+    argocd_product_test.go:237: 
+        	Error Trace:	D:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/cicd/argocd/argocd_product_test.go:237
+        	Error:      	An error is expected but got nil.
+        	Test:       	TestProductConfigRevokedAfterReservationCannotDispatch
+FAIL
+FAIL	github.com/duanxldragon/pantheon-base/backend/modules/business/cicd/argocd	0.482s
+FAIL

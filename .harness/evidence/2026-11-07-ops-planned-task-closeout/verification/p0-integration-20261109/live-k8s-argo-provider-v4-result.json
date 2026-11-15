@@ -1,0 +1,52 @@
+{
+  "scope": "real Argo provider only, not Ops service integration",
+  "host": "115.190.251.143",
+  "apiOrigin": "private in-cluster argocd-server Service via authorized host; verified certificate DNS name argocd-server",
+  "startedAt": "2026-11-09T06:42:02Z",
+  "exitCode": 1,
+  "stderrPresent": false,
+  "elapsedSeconds": 16.985,
+  "records": [
+    {
+      "check": "installed Argo namespace ownership",
+      "passed": true
+    },
+    {
+      "check": "unauthenticated Argo API refused",
+      "passed": true,
+      "httpStatus": 401
+    },
+    {
+      "check": "authenticated Argo session established",
+      "passed": true,
+      "httpStatus": 200
+    },
+    {
+      "check": "authenticated Argo API health",
+      "passed": true,
+      "httpStatus": 200
+    },
+    {
+      "phase": "failure",
+      "stage": "authenticated Argo API health",
+      "errorType": "OSError"
+    },
+    {
+      "phase": "cleanup",
+      "kind": "Namespace",
+      "uidChecked": true,
+      "absenceVerified": true,
+      "exitCode": 0
+    },
+    {
+      "phase": "result",
+      "exitCode": 1,
+      "checksPassed": 4,
+      "providersRetained": true,
+      "namespace": "pantheon-p0-argo-live-409fe7",
+      "project": "p0-live-409fe7",
+      "application": "p0-live-409fe7"
+    }
+  ],
+  "checksPassed": 4
+}

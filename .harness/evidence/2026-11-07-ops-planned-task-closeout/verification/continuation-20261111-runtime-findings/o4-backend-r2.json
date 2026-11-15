@@ -1,0 +1,97 @@
+{
+  "createdAtNs": 1794376507253955100,
+  "scope": "O4 C-F backend interim current business validation",
+  "officialConsumption": false,
+  "P0Approved": false,
+  "currentSourceStageCertified": false,
+  "sourceFiles": {
+    "backend/modules/business/observability/alert_evaluator.go": "458b054a726d6d56e3d96f4cba284a74c1efaa921f15f891aa46ead56b3f7902",
+    "backend/modules/business/observability/alert_rule_model.go": "79bbde04d61b58abdcf3ce755853e0b3d1ad7102dda0d213458677dcab926017",
+    "backend/modules/business/observability/alert_rule_service.go": "84ebc4027597855f12cbdecc039001b59f1d66924d1d68778672b112adbab894",
+    "backend/modules/business/observability/audit_policy.go": "d827a231901252ae26e11db27a5d31efe0d9a9f29e4f814cfddc956ed317a986",
+    "backend/modules/business/observability/datasource_live_acceptance_test.go": "fb8524299808efe80d6e237f89e1961097de6314a3e78c49bd2d6b0297b46735",
+    "backend/modules/business/observability/datasource_model.go": "346462525b91feff4b89bae1d2c18f144b5a003cbb630bcb81a4ba421c316f2a",
+    "backend/modules/business/observability/datasource_purge.go": "f1bc6016c8a0731d916284b4ab4320477da01f26ac65c56d8b4c6aa09322c9e4",
+    "backend/modules/business/observability/datasource_query_context_test.go": "7a15472a4dfaf874cda4cb16ee31dc51def6cffd65f9869e8af927b1498f7c53",
+    "backend/modules/business/observability/datasource_service.go": "00f271c6ee34cb5f6cc8bbe6708f44521597abf35e1f3719f4224ab7eec05e43",
+    "backend/modules/business/observability/datasource_service_test.go": "8542859c835cd445d90b057421f97484d6c62eb19e8717fdde5c62d87d91bdd4",
+    "backend/modules/business/observability/migration_recovery.go": "f42cf1b9ac956bcd06cb1a7ee54e7651cf59795b53d57a3b4844b9d83e61157b",
+    "backend/modules/business/observability/migration_recovery_test.go": "dec77dbff87fdef5d4ee4543c2881866bc120609162ebccc3bb87b5a778a779c",
+    "backend/modules/business/observability/migrations/000037_o4_business_tenant_workspace.down.sql": "e9f84a8d58b523f36eef89cdb4b1e3c4ad755a4b6a2a2a41074d1b5b6b7a89d9",
+    "backend/modules/business/observability/migrations/000037_o4_business_tenant_workspace.up.sql": "417819e6873d67c68b49e76a148b6fcd2f7320b7e02ee653f00db16f3f3faf1b",
+    "backend/modules/business/observability/notification_model.go": "838831003b54aa2a21a5a2d5e4e9c9b8146290f1547617121e4af7d66ed2e6f0",
+    "backend/modules/business/observability/notification_network_test.go": "fe415ec7e996edb711800fc41b2dd369c77e74d2766e6f98b4ce191e01a08ebf",
+    "backend/modules/business/observability/notification_service.go": "527eea33514d03af5a40eba53440b707812b22114ae3f485aef1a769f821eccf",
+    "backend/modules/business/observability/notification_service_test.go": "dd97570a860df85293d349743723cb4e4c4d8c6ae2c76f76160fb62eaa4de2a7",
+    "backend/modules/business/observability/notification_smtp.go": "d26ed90ccf5cdfb5a5414c561333d60c8a698651479616eeca855baa5c0d47ce",
+    "backend/modules/business/observability/observability.go": "e572d4a1f39092c814b42a1175c1db26ec3ad7b86e7e89a17966911a71497603",
+    "backend/modules/business/observability/observability_handler.go": "9109eb5951da519eaa55241125b64ef070323d01ec9dfb160b84a42fd7d281f6",
+    "backend/modules/business/observability/query_expression.go": "e047018be70cdf96a73bd9f4252d9cfc1630429df9f7412c29a0016db9fa7af9",
+    "backend/modules/business/observability/query_expression_test.go": "eb1117d83f9e2c1e3e15c4957d0dc05fcd30f00b72d71a7218881a6ed039814a",
+    "backend/modules/business/observability/query_permit.go": "c5f61e393567722c5fab2ae348fa201a09df9e108ebacadc37306bf8a1dba9c5",
+    "backend/modules/business/observability/query_permit_test.go": "837b1dd5a259b6e38417895fc16a8860649ddf8bf722f3ccb2074a961e427681",
+    "backend/modules/business/observability/query_workspace_dto.go": "6f79ef3b14bc5fa70ed68210881a5f44b207800eb306cd0cdb13cb65a18c3cf4",
+    "backend/modules/business/observability/query_workspace_dto_test.go": "0d0545ce56e29365e35a406a6d91cde792c076f1d7cf7c2dcc1de287e4610c41",
+    "backend/modules/business/observability/query_workspace_handler.go": "bfbc1b7bf4c76d7126fae45bec0b78aa1970f4d68152884b15f15a563be020ba",
+    "backend/modules/business/observability/query_workspace_handler_test.go": "7906c44d997f7aa8be75ca44786999cfae4e28b9ff0e1cc7fed4c2e6fad4c0cc",
+    "backend/modules/business/observability/query_workspace_lifecycle_test.go": "a3ccd8fb1c5c9134fc164260769f215c5d446ddc1e7b910f2b17177f5f28022c",
+    "backend/modules/business/observability/query_workspace_maintenance.go": "e2b7dc88a33f19a4448627969685300a8a153ef492b28640a3496ae53e473d06",
+    "backend/modules/business/observability/query_workspace_maintenance_test.go": "4b209719f847a04872e4190470c9cb10172da077f10dfe1eaeadcb39a2bd6079",
+    "backend/modules/business/observability/query_workspace_model.go": "7ccdcc603a88e2736886f70b3a431e2537c903a092451d51100e10d7b68513f4",
+    "backend/modules/business/observability/query_workspace_service.go": "c2961900b0d3c9c560ed45cc09d958258560ac20dbcbd11383ccfb0ceae1c2f5",
+    "backend/modules/business/observability/query_workspace_service_test.go": "20e2f876612939681a4a207a63ac5b93d5d335e0024fb4ac31246bf004ba07ea",
+    "backend/modules/business/observability/schema_readiness.go": "d5db2c8d61dfc9abc61e4ff8e732ba6bb963d7b5898b766a4bc89845ff1104b1",
+    "backend/modules/business/observability/schema_readiness_test.go": "b12c39c16cc994093b34199628e4641191718dda1f8f0b29b7ac338dc723e6cb",
+    "backend/modules/business/observability/seed.go": "0edfc04d56325ed3bb8d7e60bfe57774683d22a12619aaeb51219b856ee594a9",
+    "backend/modules/business/observability/seed_test.go": "ff0d461c4e388d28c996c430a01946e19674383c802c1840167d3bf1c18028cd",
+    "backend/modules/business/opsinit/artifact_schema_compatibility.go": "e784325895a627cab844e8272b3da3041bd65dbe903eb80778ece613c5146905",
+    "backend/modules/business/opsinit/artifact_schema_compatibility_test.go": "c1eb9e8227d18a4ed64609b89f389f255cfa5a01a13e026f6c87d6675ec44766",
+    "backend/modules/business/opsinit/cmd/o4-migration-recover/main.go": "cfe2ff3e0e951023c38ec9cab53ded17c273ed69efe336bc3327b0aa360c01e8",
+    "backend/modules/business/opsinit/cmd/o4-start/main.go": "662e119b004259e3a1c32f42a24f4518ff9c264ff817008b45271e0cb7c0f3fb",
+    "backend/modules/business/opsinit/idempotency_middleware.go": "f941631558f8ceeccb402ca82f05491279aa0b5cc9c9791efe37c43bc514a44e",
+    "backend/modules/business/opsinit/idempotency_middleware_test.go": "33cbe7370b3da82164c47f9a70ad76f56078edd64fff9842949740ea9124e838",
+    "backend/modules/business/opsinit/migrations/000033_core_business_schema.down.sql": "028eca1e92cb2fb295593256e48390fd2df6d7fabd071a71a8d5ef14fc19b2c0",
+    "backend/modules/business/opsinit/migrations/000033_core_business_schema.up.sql": "4249d3d68a7fad1407fde74823eac4ae0f929c7576a8e6a61bb0d9ec3f2ee0f8",
+    "backend/modules/business/opsinit/migrations_test.go": "18b6fe9256d39a2f164c471e558cc5259c4ed56e70924d70836af72e4f0d7f4d",
+    "backend/modules/business/opsinit/opsinit.go": "4fe6ccb2bf09bd6b0e5ec9080dce26c109f8e4e4f8424ca994adeb76390e07d5"
+  },
+  "sourceStable": true,
+  "checks": {
+    "race": {
+      "exitCode": 0,
+      "seconds": 41.78100000001723,
+      "skipCount": 1,
+      "skips": [
+        "TestDatasourceLiveAcceptance"
+      ]
+    },
+    "vet": {
+      "exitCode": 0,
+      "seconds": 2.3429999999934807
+    },
+    "build": {
+      "exitCode": 0,
+      "seconds": 9.48399999999674
+    },
+    "actualOfficialMigration": {
+      "passed": true,
+      "cases": 6,
+      "fixtureOnly": true
+    }
+  },
+  "evidenceSHA256": {
+    "paired-scoped-current-race-result.json": "75796653b108fcc9d7eac2559c0765c6df60b7e0298f1e7b53f7afdc41900e67",
+    "paired-scoped-current-race.log": "19871f4597aacb91525b4f6a3087f1b7bbfc99c08836f941d14a1450f46aee2e",
+    "paired-scoped-current-vet-result.json": "0505574bd600d839202af3d69b1c9863f42ef43dc406f1f70f6b823682912f1a",
+    "paired-scoped-current-build-result.json": "38367fa34a2399eb7dae688f8fdea9c505a4f46830ba6fd383ee8b0f86f6f68c",
+    "official-migration-v4-result.json": "85f6221bb2a72fa2d5b0593ccb68c1db4efb28a94ae47eb87aca6faff24d9190",
+    "verify_official_migrations_v4.py": "e67f24fa97e43b3a963363288a86a58766a5c7da8063448d3757a28b4a2ede67"
+  },
+  "gaps": [
+    "Root full-source code/metadata quiescence and new reviewed --attempt assembly receipt",
+    "Fresh assembled tree direct race/vet/build and actual supported startup evidence",
+    "User/tenant removal orphan sweep needs existing public lifecycle/read-only seam; current periodic sweep covers only expiry and datasource orphan metadata",
+    "Real product HTTP provider acceptance not executed: exact public URL and distinct full/denied authenticated sessions/source IDs supplied by Root",
+    "Root full-source race, independent CODE/ARCH, official release/consumption and final visual/function acceptance remain open"
+  ]
+}

@@ -1,0 +1,212 @@
+
+Running 3 tests using 1 worker
+
+(node:8424) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x  1 tests\smoke\business\deploy\deploy-command.spec.ts:10:2 › viewed task command conflict refreshes without replay (light) (1.0m)
+(node:5372) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x  2 tests\smoke\business\deploy\deploy-command.spec.ts:10:2 › viewed task command conflict refreshes without replay (dark) (1.0m)
+(node:24980) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok 3 tests\smoke\business\deploy\deploy-command.spec.ts:57:1 › batch cancel retains failed selection and reports partial failure (4.7s)
+
+
+  1) tests\smoke\business\deploy\deploy-command.spec.ts:10:2 › viewed task command conflict refreshes without replay (light) 
+
+    Test timeout of 60000ms exceeded.
+
+    Error: locator.click: Test timeout of 60000ms exceeded.
+    Call log:
+      - waiting for getByRole('button', { name: '重试失败步骤', exact: true })
+        - locator resolved to <button type="button" class="arco-btn arco-btn-secondary arco-btn-size-default arco-btn-shape-square">…</button>
+      - attempting click action
+        - waiting for element to be visible, enabled and stable
+        - element is visible, enabled and stable
+        - scrolling into view if needed
+        - done scrolling
+        - <span class="app-shell__menu-entry-label">可观测中心</span> from <aside class="arco-layout-sider arco-layout-sider-light app-shell__sider">…</aside> subtree intercepts pointer events
+      - retrying click action
+        - waiting for element to be visible, enabled and stable
+        - element is visible, enabled and stable
+        - scrolling into view if needed
+        - done scrolling
+        - <div role="menu" class="arco-menu arco-menu-light arco-menu-vertical app-shell__menu">…</div> from <aside class="arco-layout-sider arco-layout-sider-light app-shell__sider">…</aside> subtree intercepts pointer events
+      - retrying click action
+        - waiting 20ms
+        - waiting for element to be visible, enabled and stable
+        - element is visible, enabled and stable
+        - scrolling into view if needed
+        - done scrolling
+        - <span class="app-shell__menu-entry-label">可观测中心</span> from <aside class="arco-layout-sider arco-layout-sider-light app-shell__sider">…</aside> subtree intercepts pointer events
+      2 × retrying click action
+          - waiting 100ms
+          - waiting for element to be visible, enabled and stable
+          - element is visible, enabled and stable
+          - scrolling into view if needed
+          - done scrolling
+          - <div class="app-shell__brand">…</div> from <aside class="arco-layout-sider arco-layout-sider-light app-shell__sider">…</aside> subtree intercepts pointer events
+      26 × retrying click action
+           - waiting 500ms
+           - waiting for element to be visible, enabled and stable
+           - element is visible, enabled and stable
+           - scrolling into view if needed
+           - done scrolling
+           - <div role="menu" class="arco-menu arco-menu-light arco-menu-vertical app-shell__menu">…</div> from <aside class="arco-layout-sider arco-layout-sider-light app-shell__sider">…</aside> subtree intercepts pointer events
+         - retrying click action
+           - waiting 500ms
+           - waiting for element to be visible, enabled and stable
+           - element is visible, enabled and stable
+           - scrolling into view if needed
+           - done scrolling
+           - <span class="app-shell__menu-entry-label">可观测中心</span> from <aside class="arco-layout-sider arco-layout-sider-light app-shell__sider">…</aside> subtree intercepts pointer events
+         - retrying click action
+           - waiting 500ms
+           - waiting for element to be visible, enabled and stable
+           - element is visible, enabled and stable
+           - scrolling into view if needed
+           - done scrolling
+           - <div class="app-shell__brand">…</div> from <aside class="arco-layout-sider arco-layout-sider-light app-shell__sider">…</aside> subtree intercepts pointer events
+         - retrying click action
+           - waiting 500ms
+           - waiting for element to be visible, enabled and stable
+           - element is visible, enabled and stable
+           - scrolling into view if needed
+           - done scrolling
+           - <div class="app-shell__brand">…</div> from <aside class="arco-layout-sider arco-layout-sider-light app-shell__sider">…</aside> subtree intercepts pointer events
+      - retrying click action
+        - waiting 500ms
+        - waiting for element to be visible, enabled and stable
+        - element is visible, enabled and stable
+        - scrolling into view if needed
+        - done scrolling
+        - <div role="menu" class="arco-menu arco-menu-light arco-menu-vertical app-shell__menu">…</div> from <aside class="arco-layout-sider arco-layout-sider-light app-shell__sider">…</aside> subtree intercepts pointer events
+      - retrying click action
+        - waiting 500ms
+        - waiting for element to be visible, enabled and stable
+
+
+      41 |    await page.setViewportSize({width:390,height:844});await page.getByRole('button',{name:'切换导航',exact:true}).click();await page.evaluate(()=>window.scrollTo(0,0));await page.screenshot({path:testInfo.outputPath(`command-conflict-${mode}-mobile.png`),fullPage:true});
+      42 |    expect(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth)).toBe(true);
+    > 43 |    await retry.click();await expect(page.locator('.arco-alert-content').getByText('任务状态已变化，请刷新并确认当前状态后重新操作。',{exact:true})).toHaveCount(0);
+         |                ^
+      44 |    await expect.poll(async()=> (await success<CommandTask>(await page.request.get(`${apiBaseUrl}/business/deploy/tasks/${taskId}`,{headers}))).status).toBe('running');expect(commands).toBe(2);
+      45 |   }catch(error){failed=true;throw error}finally{
+      46 |    const cleanupErrors:string[]=[];
+        at D:\workspace\go\pantheon-platform\pantheon-ops\frontend\tests\smoke\business\deploy\deploy-command.spec.ts:43:16
+
+    Error Context: ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\command-final-browser\smoke-business-deploy-depl-515b4-eshes-without-replay-light-\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\command-final-browser\smoke-business-deploy-depl-515b4-eshes-without-replay-light-\trace.zip
+    Usage:
+
+        npx playwright show-trace ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\command-final-browser\smoke-business-deploy-depl-515b4-eshes-without-replay-light-\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  2) tests\smoke\business\deploy\deploy-command.spec.ts:10:2 › viewed task command conflict refreshes without replay (dark) 
+
+    Test timeout of 60000ms exceeded.
+
+    Error: locator.click: Test timeout of 60000ms exceeded.
+    Browser logs:
+
+    <launching> C:\Users\xiaolong\AppData\Local\ms-playwright\chromium_headless_shell-1248\chrome-headless-shell-win64\chrome-headless-shell.exe --disable-field-trial-config --disable-background-networking --disable-background-timer-throttling --disable-backgrounding-occluded-windows --disable-back-forward-cache --disable-breakpad --disable-client-side-phishing-detection --disable-component-extensions-with-background-pages --disable-component-update --no-default-browser-check --disable-default-apps --disable-dev-shm-usage --disable-edgeupdater --disable-extensions --disable-features=AvoidUnnecessaryBeforeUnloadCheckSync,DestroyProfileOnBrowserClose,DialMediaRouteProvider,GlobalMediaControls,HttpsUpgrades,LensOverlay,MediaRouter,PaintHolding,ThirdPartyStoragePartitioning,BlockOriginHeaderModificationOnRedirect,AvoidCorsURLLoaderRestartOnRedirect,Translate,AutoDeElevate,OptimizationHints,NetworkTimeServiceQuerying,AimEnabled,msForceBrowserSignIn,msEdgeUpdateLaunchServicesPreferredVersion --enable-features=CDPScreenshotNewSurface --allow-pre-commit-input --disable-hang-monitor --disable-ipc-flooding-protection --disable-popup-blocking --disable-prompt-on-repost --disable-renderer-backgrounding --disable-updater-scheduler --force-color-profile=srgb --metrics-recording-only --no-first-run --password-store=basic --use-mock-keychain --no-service-autorun --export-tagged-pdf --disable-search-engine-choice-screen --unsafely-disable-devtools-self-xss-warnings --edge-skip-compat-layer-relaunch --disable-infobars --disable-search-engine-choice-screen --disable-sync --enable-unsafe-swiftshader --headless --hide-scrollbars --mute-audio --blink-settings=primaryHoverType=2,availableHoverTypes=2,primaryPointerType=4,availablePointerTypes=4 --no-sandbox --user-data-dir=C:\Users\xiaolong\AppData\Local\Temp\playwright_chromiumdev_profile-zexoZu --remote-debugging-pipe --no-startup-window
+    <launched> pid=25360
+    [pid=25360][err] [1107/225723.002:INFO:CONSOLE:946] "[vite] connecting...", source: http://127.0.0.1:5173/@vite/client (946)
+    [pid=25360][err] [1107/225723.068:INFO:CONSOLE:1055] "[vite] connected.", source: http://127.0.0.1:5173/@vite/client (1055)
+    [pid=25360][err] [1107/225723.683:INFO:CONSOLE:15805] "%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold", source: http://127.0.0.1:5173/node_modules/.vite/deps/client-DxIT2JRZ.js?v=bb00929e (15805)
+    [pid=25360] <gracefully close start>
+    Call log:
+      - waiting for getByRole('button', { name: '重试失败步骤', exact: true })
+        - locator resolved to <button type="button" class="arco-btn arco-btn-secondary arco-btn-size-default arco-btn-shape-square">…</button>
+      - attempting click action
+        - waiting for element to be visible, enabled and stable
+        - element is visible, enabled and stable
+        - scrolling into view if needed
+        - done scrolling
+        - <span class="app-shell__menu-entry-label">可观测中心</span> from <aside class="arco-layout-sider arco-layout-sider-light app-shell__sider">…</aside> subtree intercepts pointer events
+      - retrying click action
+        - waiting for element to be visible, enabled and stable
+        - element is visible, enabled and stable
+        - scrolling into view if needed
+        - done scrolling
+        - <div role="menu" class="arco-menu arco-menu-light arco-menu-vertical app-shell__menu">…</div> from <aside class="arco-layout-sider arco-layout-sider-light app-shell__sider">…</aside> subtree intercepts pointer events
+      - retrying click action
+        - waiting 20ms
+        - waiting for element to be visible, enabled and stable
+        - element is visible, enabled and stable
+        - scrolling into view if needed
+        - done scrolling
+        - <span class="app-shell__menu-entry-label">可观测中心</span> from <aside class="arco-layout-sider arco-layout-sider-light app-shell__sider">…</aside> subtree intercepts pointer events
+      2 × retrying click action
+          - waiting 100ms
+          - waiting for element to be visible, enabled and stable
+          - element is visible, enabled and stable
+          - scrolling into view if needed
+          - done scrolling
+          - <div class="app-shell__brand">…</div> from <aside class="arco-layout-sider arco-layout-sider-light app-shell__sider">…</aside> subtree intercepts pointer events
+      26 × retrying click action
+           - waiting 500ms
+           - waiting for element to be visible, enabled and stable
+           - element is visible, enabled and stable
+           - scrolling into view if needed
+           - done scrolling
+           - <div role="menu" class="arco-menu arco-menu-light arco-menu-vertical app-shell__menu">…</div> from <aside class="arco-layout-sider arco-layout-sider-light app-shell__sider">…</aside> subtree intercepts pointer events
+         - retrying click action
+           - waiting 500ms
+           - waiting for element to be visible, enabled and stable
+           - element is visible, enabled and stable
+           - scrolling into view if needed
+           - done scrolling
+           - <span class="app-shell__menu-entry-label">可观测中心</span> from <aside class="arco-layout-sider arco-layout-sider-light app-shell__sider">…</aside> subtree intercepts pointer events
+         - retrying click action
+           - waiting 500ms
+           - waiting for element to be visible, enabled and stable
+           - element is visible, enabled and stable
+           - scrolling into view if needed
+           - done scrolling
+           - <div class="app-shell__brand">…</div> from <aside class="arco-layout-sider arco-layout-sider-light app-shell__sider">…</aside> subtree intercepts pointer events
+         - retrying click action
+           - waiting 500ms
+           - waiting for element to be visible, enabled and stable
+           - element is visible, enabled and stable
+           - scrolling into view if needed
+           - done scrolling
+           - <div class="app-shell__brand">…</div> from <aside class="arco-layout-sider arco-layout-sider-light app-shell__sider">…</aside> subtree intercepts pointer events
+      - retrying click action
+        - waiting 500ms
+        - waiting for element to be visible, enabled and stable
+        - element is visible, enabled and stable
+        - scrolling into view if needed
+        - done scrolling
+        - <div role="menu" class="arco-menu arco-menu-light arco-menu-vertical app-shell__menu">…</div> from <aside class="arco-layout-sider arco-layout-sider-light app-shell__sider">…</aside> subtree intercepts pointer events
+      - retrying click action
+        - waiting 500ms
+        - waiting for element to be visible, enabled and stable
+
+
+      41 |    await page.setViewportSize({width:390,height:844});await page.getByRole('button',{name:'切换导航',exact:true}).click();await page.evaluate(()=>window.scrollTo(0,0));await page.screenshot({path:testInfo.outputPath(`command-conflict-${mode}-mobile.png`),fullPage:true});
+      42 |    expect(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth)).toBe(true);
+    > 43 |    await retry.click();await expect(page.locator('.arco-alert-content').getByText('任务状态已变化，请刷新并确认当前状态后重新操作。',{exact:true})).toHaveCount(0);
+         |                ^
+      44 |    await expect.poll(async()=> (await success<CommandTask>(await page.request.get(`${apiBaseUrl}/business/deploy/tasks/${taskId}`,{headers}))).status).toBe('running');expect(commands).toBe(2);
+      45 |   }catch(error){failed=true;throw error}finally{
+      46 |    const cleanupErrors:string[]=[];
+        at D:\workspace\go\pantheon-platform\pantheon-ops\frontend\tests\smoke\business\deploy\deploy-command.spec.ts:43:16
+
+    Error Context: ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\command-final-browser\smoke-business-deploy-depl-8790f-reshes-without-replay-dark-\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\command-final-browser\smoke-business-deploy-depl-8790f-reshes-without-replay-dark-\trace.zip
+    Usage:
+
+        npx playwright show-trace ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\command-final-browser\smoke-business-deploy-depl-8790f-reshes-without-replay-dark-\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  2 failed
+    tests\smoke\business\deploy\deploy-command.spec.ts:10:2 › viewed task command conflict refreshes without replay (light) 
+    tests\smoke\business\deploy\deploy-command.spec.ts:10:2 › viewed task command conflict refreshes without replay (dark) 
+  1 passed (2.1m)

@@ -1,11 +1,13 @@
 package filedist
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"time"
 
+	"github.com/duanxldragon/pantheon-base/backend/modules/business/cmdb"
 	"github.com/duanxldragon/pantheon-base/backend/modules/business/secrets"
 
 	"gorm.io/datatypes"
@@ -20,9 +22,11 @@ const (
 
 // DistributionService manages file distribution tasks.
 type DistributionService struct {
-	db             *gorm.DB
-	storageService *StorageService
-	transferEngine *TransferEngine
+	db              *gorm.DB
+	storageService  *StorageService
+	transferEngine  *TransferEngine
+	targetSelection cmdb.TargetSelectionCapability
+	authorizer      FileDistributionAuthorizer
 }
 
 // NewDistributionService creates a new DistributionService.
@@ -50,7 +54,14 @@ func (s *DistributionService) CreateTask(dto DistributionTaskDTO, createdBy stri
 		return nil, fmt.Errorf("file.not_found: %w", err)
 	}
 
-	targetsJSON, _ := json.Marshal(dto.Targets)
+	// Keep execution credentials only in the encrypted target rows. Copy the
+	// request slice so snapshot sanitization cannot mutate caller-owned input.
+	snapshotTargets := append([]TargetConfig(nil), dto.Targets...)
+	for i := range snapshotTargets {
+		snapshotTargets[i].Password = ""
+		snapshotTargets[i].PrivateKey = ""
+	}
+	targetsJSON, _ := json.Marshal(snapshotTargets)
 
 	task := &DistributionTask{
 		Name:         dto.Name,
@@ -186,6 +197,11 @@ func (s *DistributionService) StartTask(id uint64) error {
 	if task.Status != statusPending {
 		return fmt.Errorf("task_not_pending")
 	}
+	if len(task.Selection) != 0 {
+		if err := s.validateTaskAction(id, "start"); err != nil {
+			return err
+		}
+	}
 	go s.executeTask(id)
 	return nil
 }
@@ -248,6 +264,11 @@ func (s *DistributionService) RetryTask(id uint64) error {
 	if task.Status != statusFailed {
 		return fmt.Errorf("task_not_failed")
 	}
+	if len(task.Selection) != 0 {
+		if err := s.validateTaskAction(id, "retry"); err != nil {
+			return err
+		}
+	}
 
 	// Reset task status
 	updates := map[string]interface{}{
@@ -302,6 +323,16 @@ func (s *DistributionService) DeleteTask(id uint64) error {
 
 // executeTask executes a distribution task.
 func (s *DistributionService) executeTask(taskID uint64) {
+	var subject DistributionTask
+	if err := s.db.First(&subject, taskID).Error; err != nil {
+		return
+	}
+	if len(subject.Selection) != 0 {
+		if err := s.validateTaskAction(taskID, "execute"); err != nil {
+			s.markTaskFailed(taskID, safeDistributionFailure(err))
+			return
+		}
+	}
 	now := time.Now()
 	claim := s.db.Model(&DistributionTask{}).Where("id = ? AND status = ?", taskID, statusPending).Updates(map[string]interface{}{
 		"status":     statusRunning,
@@ -343,6 +374,9 @@ func (s *DistributionService) executeTask(taskID uint64) {
 			PrivateKey:      privateKey,
 			HostFingerprint: target.HostFingerprint,
 			MaxRetries:      target.MaxRetries,
+		}
+		if len(subject.Selection) != 0 {
+			transferTask.Authorize = func(ctx context.Context) error { return s.authorizeQueuedTarget(ctx, taskID) }
 		}
 
 		// Get task file ID

@@ -1,0 +1,141 @@
+{
+  "taskID": "2026-11-07-ops-planned-task-closeout",
+  "parentPacket": ".harness/tasks/2026-09-28-ops-delivery-readiness-gap-closure/packets/D1-external-integration-acceptance.md",
+  "timestampUTC": "2026-11-09T07:42:06.505980+00:00",
+  "tier": "L2",
+  "ownerLayer": "business/k8s/backup",
+  "status": "local-repair-verified-remote-phases-staged",
+  "redBusinessFailureVerified": true,
+  "hostileAndEnqueueSubtestsPassed": 28,
+  "requiredMySQL": true,
+  "sourceHashes": {
+    "backend/modules/business/k8s/backup/backup.go": "bb6162665a7b710351ed6df4f2c204ad3914088aa7119d7cbbaa4a3170b61c8f",
+    "backend/modules/business/k8s/backup/backup_dto.go": "b6d0430c93bb33dada0f1155b2bb3ff17cf403fc619ab687ba141e64616aa7e4",
+    "backend/modules/business/k8s/backup/backup_handler.go": "320bf427300d6cb88038adfbf581600c8c82cd2f760bdfa755dfca4711d99e96",
+    "backend/modules/business/k8s/backup/backup_model.go": "0119686da49fa62c3106ca6a90206592122153eaf5f858ae884a824590c3ea51",
+    "backend/modules/business/k8s/backup/backup_service.go": "4320ceb9bfdfa85eb660ef8fcf83dc0b4de02ecddf3bce8b0babd3f91a88e934",
+    "backend/modules/business/k8s/backup/drill.go": "0de6e13dc1a2a4f0ea0acb3cd2478d636d2de8ff9a5b07024ba4e18abcddc702",
+    "backend/modules/business/k8s/backup/reconciler.go": "044fccce5bf558a6542d33f7d4dcfd7ddd65937d820cde2cb217814de3bbff5c",
+    "backend/modules/business/k8s/backup/restore_authorization_test.go": "16b228b1416bda79debb068fe0b00545c14e1c0921d35b3697a27e2e7df197ea",
+    "backend/modules/business/k8s/backup/velero_client.go": "b24de4061c69f37daa7b8bfcd13cf5a7132d5f2f0c4fbf286ef46da9aeb0552b",
+    "backend/modules/business/k8s/backup/velero_client_test.go": "0272dd81e1e6dee02185d8fbba9119c8767f796edc7073cfecf31d86fcc0a3d9"
+  },
+  "commands": [
+    {
+      "command": [
+        "go",
+        "test",
+        "-mod=readonly",
+        "-race",
+        "-count=1",
+        "-timeout=120s",
+        "-v",
+        "./modules/business/k8s/backup"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 9.391,
+      "artifact": "velero-resume-green-0.txt",
+      "requiredMySQL": true,
+      "CGO_ENABLED": "1",
+      "MinGW": "D:/msys64/mingw64/bin"
+    },
+    {
+      "command": [
+        "go",
+        "vet",
+        "-mod=readonly",
+        "./modules/business/k8s/backup"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 1.563,
+      "artifact": "velero-resume-green-1.txt",
+      "requiredMySQL": true,
+      "CGO_ENABLED": "1",
+      "MinGW": "D:/msys64/mingw64/bin"
+    },
+    {
+      "command": [
+        "go",
+        "build",
+        "-mod=readonly",
+        "./modules/business/k8s/backup"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 0.468,
+      "artifact": "velero-resume-green-2.txt",
+      "requiredMySQL": true,
+      "CGO_ENABLED": "1",
+      "MinGW": "D:/msys64/mingw64/bin"
+    },
+    {
+      "command": [
+        "go",
+        "build",
+        "-mod=readonly",
+        "-race",
+        "-o",
+        "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\velero-resume-live-driver.exe",
+        "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\velero-resume-live-driver.go"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 0.563,
+      "artifact": "velero-resume-staged-0.txt",
+      "requiredMySQL": true,
+      "CGO_ENABLED": "1",
+      "MinGW": "D:/msys64/mingw64/bin"
+    },
+    {
+      "command": [
+        "go",
+        "vet",
+        "-mod=readonly",
+        "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\velero-resume-live-driver.go"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 0.859,
+      "artifact": "velero-resume-staged-1.txt",
+      "requiredMySQL": true,
+      "CGO_ENABLED": "1",
+      "MinGW": "D:/msys64/mingw64/bin"
+    }
+  ],
+  "pythonSyntaxChecked": [
+    "velero-resume-closeout.py",
+    "velero-resume-fixture-remote.py",
+    "velero-resume-inspect.py",
+    "velero-resume-install-remote.py",
+    "velero-resume-install.py",
+    "velero-resume-validate.py",
+    "velero-resume-verify.py"
+  ],
+  "scriptAndDriverHashes": {
+    "velero-resume-closeout.py": "b2bad9e47d667811ec8cd6c624a383a52667bbef0d8c32b67bbee73d60a245ff",
+    "velero-resume-fixture-remote.py": "7142b060459cb218495f5ad30362cdcf978765e0ee789be21c5c746343c3f7fb",
+    "velero-resume-inspect.py": "b30ba762bb9ebd88f496a5105fb48d98e8987a1ea090b1e5501def2ab92a8a5c",
+    "velero-resume-install-remote.py": "c11cd2ecbc04677057a6c6e380f899cd6406f3f594c0c28cf2239c895d2c228e",
+    "velero-resume-install.py": "f3e6f2d9664dcb3250e95807b0b45b82237c8b833c51c738908f0d6a596d8b61",
+    "velero-resume-live-driver.exe": "299cde89721d46da0bb4f2cf759bd4720cf3b7beb8722beed33890e9821fc77c",
+    "velero-resume-live-driver.go": "6bb83acc9f68022401fb03186d4dd70276c60d2bb02d75de1e70e8670d34f876",
+    "velero-resume-validate.py": "f12e88e9a832951ae8c288626ea55223aea2b3bf1691f42db6bbf6fe35a04ffd",
+    "velero-resume-verify.py": "e8629e221369262e5f3abbaec79973b7360a1cd92d092c171641a32f390bd556"
+  },
+  "remotePhasesExecuted": [],
+  "remoteResourcesCreatedThisContinuation": 0,
+  "liveAcceptancePassed": false,
+  "scopeGuard": "backup source/tests and new velero-resume-* ignored drivers/evidence only",
+  "gaps": [
+    "Root must execute staged inspect, download-install and validate through its authorized execution path; this leaf must not retry known sandbox SSH errno13.",
+    "Fixed official releases, image digests, actual memory and TLS SAN are runtime assertions in staged scripts; not yet observed by this continuation.",
+    "Successful live backup/S3 persistence/restore content, actual provider RBAC and remote cleanup are pending.",
+    "Whole D1/P0, independent review, full repository race and overlay/gate integration belong to root; no common ledger or overlay changed.",
+    "D4 signed production recovery/RPO/RTO excluded."
+  ],
+  "review": {
+    "kind": "findings-first self-review",
+    "independentReviewPending": true,
+    "findings": [],
+    "reviewedBoundary": "foreign/own DataScope -> actual cluster client helper -> live source eligibility -> cluster/source row locks -> context-aware commit -> worker reauthorization",
+    "providerMocksOnlyForLocalTests": true
+  },
+  "gateOutcomes": "required MySQL hostile regression caught foreign-scope persistence, cancellation and revoked cached credentials; live-state/enqueue test caught namespace map normalization; cluster/source row-lock probes verified persistence serialization"
+}

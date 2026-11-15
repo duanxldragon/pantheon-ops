@@ -306,10 +306,21 @@ func (s *ClusterService) Delete(id uint64, dataScope *common.DataScopeReq) error
 // cluster-owned history. MySQL uses an advisory lock; all dialects also take
 // a row lock inside the transaction.
 func (s *ClusterService) WithClusterLock(id uint64, dataScope *common.DataScopeReq, action func(tx *gorm.DB, cluster *Cluster) error) error {
+	return s.withClusterLock(context.Background(), id, dataScope, action, true)
+}
+
+// WithClusterLockContext preserves request cancellation while serializing cluster-owned writes.
+func (s *ClusterService) WithClusterLockContext(ctx context.Context, id uint64, dataScope *common.DataScopeReq, action func(tx *gorm.DB, cluster *Cluster) error) error {
+	// Transaction row locks serialize every cluster writer and release on cancellation.
+	// Session advisory locks cannot safely follow a canceled transaction back to the pool.
+	return s.withClusterLock(ctx, id, dataScope, action, false)
+}
+
+func (s *ClusterService) withClusterLock(ctx context.Context, id uint64, dataScope *common.DataScopeReq, action func(tx *gorm.DB, cluster *Cluster) error, advisory bool) error {
 	if s.db == nil {
 		return errors.New("database.not_initialized")
 	}
-	return s.db.Transaction(func(tx *gorm.DB) error {
+	return s.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		var item Cluster
 		query := tx.Model(&Cluster{}).Scopes(database.WithDataScope(dataScope)).
 			Clauses(clause.Locking{Strength: "UPDATE"}).
@@ -323,7 +334,7 @@ func (s *ClusterService) WithClusterLock(id uint64, dataScope *common.DataScopeR
 
 		lockName := fmt.Sprintf("pantheon:k8s:cluster:%d", id)
 		locked := false
-		if tx.Name() == "mysql" {
+		if advisory && tx.Name() == "mysql" {
 			var acquired int
 			if err := tx.Raw("SELECT GET_LOCK(?, 10)", lockName).Scan(&acquired).Error; err != nil {
 				return err
@@ -453,18 +464,9 @@ func (s *ClusterService) clientsetForCluster(cluster *Cluster) (*kubernetes.Clie
 }
 
 func (s *ClusterService) clientsetForClusterWithContext(ctx context.Context, cluster *Cluster) (*kubernetes.Clientset, error) {
-	var encrypted string
-	if cluster.KubeconfigCredentialRefID > 0 {
-		var ref ClusterCredentialRef
-		if err := s.db.WithContext(ctx).First(&ref, cluster.KubeconfigCredentialRefID).Error; err == nil && ref.Status == "active" {
-			encrypted = ref.Encrypted
-		}
-	}
-	if encrypted == "" {
-		encrypted = cluster.KubeconfigEncrypted
-	}
-	if strings.TrimSpace(encrypted) == "" {
-		return nil, errors.New("k8s.cluster.credential_not_found")
+	encrypted, err := s.clusterCredentialWithContext(ctx, cluster)
+	if err != nil {
+		return nil, err
 	}
 
 	// Decrypt kubeconfig
@@ -488,22 +490,13 @@ func (s *ClusterService) GetDynamicClientWithContext(ctx context.Context, id uin
 	if err != nil {
 		return nil, err
 	}
-	return s.dynamicClientForCluster(cluster)
+	return s.dynamicClientForClusterWithContext(ctx, cluster)
 }
 
-func (s *ClusterService) dynamicClientForCluster(cluster *Cluster) (dynamic.Interface, error) {
-	var encrypted string
-	if cluster.KubeconfigCredentialRefID > 0 {
-		var ref ClusterCredentialRef
-		if err := s.db.First(&ref, cluster.KubeconfigCredentialRefID).Error; err == nil && ref.Status == "active" {
-			encrypted = ref.Encrypted
-		}
-	}
-	if encrypted == "" {
-		encrypted = cluster.KubeconfigEncrypted
-	}
-	if strings.TrimSpace(encrypted) == "" {
-		return nil, errors.New("k8s.cluster.credential_not_found")
+func (s *ClusterService) dynamicClientForClusterWithContext(ctx context.Context, cluster *Cluster) (dynamic.Interface, error) {
+	encrypted, err := s.clusterCredentialWithContext(ctx, cluster)
+	if err != nil {
+		return nil, err
 	}
 
 	// Decrypt kubeconfig
@@ -519,6 +512,32 @@ func (s *ClusterService) dynamicClientForCluster(cluster *Cluster) (dynamic.Inte
 	}
 
 	return dynamic.NewForConfig(restConfig)
+}
+
+// An explicit reference is authoritative. Revocation, deletion or corrupt
+// reference material must never reactivate legacy inline credentials.
+func (s *ClusterService) clusterCredentialWithContext(ctx context.Context, cluster *Cluster) (string, error) {
+	if err := ctx.Err(); err != nil {
+		return "", err
+	}
+	encrypted := cluster.KubeconfigEncrypted
+	if cluster.KubeconfigCredentialRefID > 0 {
+		var ref ClusterCredentialRef
+		if err := s.db.WithContext(ctx).First(&ref, cluster.KubeconfigCredentialRefID).Error; err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				return "", errors.New("k8s.cluster.credential_not_found")
+			}
+			return "", err
+		}
+		if ref.Status != "active" || ref.ClusterID != cluster.ID {
+			return "", errors.New("k8s.cluster.credential_not_found")
+		}
+		encrypted = ref.Encrypted
+	}
+	if strings.TrimSpace(encrypted) == "" {
+		return "", errors.New("k8s.cluster.credential_not_found")
+	}
+	return encrypted, ctx.Err()
 }
 
 func clusterCredentialResponse(ref *ClusterCredentialRef) ClusterCredentialResponse {

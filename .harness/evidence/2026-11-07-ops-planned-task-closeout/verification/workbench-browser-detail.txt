@@ -1,0 +1,107 @@
+[smoke-suite] API base http://127.0.0.1:24484/api/v1
+[generated-modules] cleanup complete
+{
+  "modules": 0,
+  "schemas": 1,
+  "registries": 4,
+  "i18n": 5
+}
+(!) Your Vite config uses features that are unsupported by `configLoader: 'native'`, which is planned to become the default in a future major version of Vite:
+  - `__dirname` (vite.config.ts:32:25). Use `import.meta.dirname` instead
+Set `VITE_CONFIG_NATIVE_IGNORE_WARNING=true` to suppress this warning.
+Smoke Vite ready at http://127.0.0.1:24584/
+
+Running 2 tests using 1 worker
+
+(node:14924) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x  1 tests\smoke\business\deploy\deploy-workbench.spec.ts:14:3 › deployment workbench sources, logs, keyboard and mobile (light) (14.2s)
+(node:20156) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x  2 tests\smoke\business\deploy\deploy-workbench.spec.ts:14:3 › deployment workbench sources, logs, keyboard and mobile (dark) (13.8s)
+
+
+  1) tests\smoke\business\deploy\deploy-workbench.spec.ts:14:3 › deployment workbench sources, logs, keyboard and mobile (light) 
+
+    Error: expect(locator).toBeHidden() failed
+
+    Locator:  getByRole('dialog')
+    Expected: hidden
+    Received: visible
+    Timeout:  10000ms
+
+    Call log:
+      - Expect "toBeHidden" getByRole('dialog') with timeout 10000ms
+      - waiting for getByRole('dialog')
+        3 × locator resolved to <div role="dialog" aria-modal="true" aria-labelledby="arco-dialog-7" class="arco-modal app-dialog business-log-dialog zoomModal-appear zoomModal-appear-active">…</div>
+          - unexpected value "visible"
+        20 × locator resolved to <div role="dialog" aria-modal="true" aria-labelledby="arco-dialog-7" class="arco-modal app-dialog business-log-dialog zoomModal-appear-done zoomModal-enter-done">…</div>
+           - unexpected value "visible"
+
+
+      71 |       await page.screenshot({ path: testInfo.outputPath(`workbench-${mode}-mobile-expanded.png`), fullPage: true });
+      72 |       await page.keyboard.press('Escape');
+    > 73 |       await expect(dialog).toBeHidden();
+         |                            ^
+      74 |       denied = true;
+      75 |       await page.reload();
+      76 |       await expect(page.getByText('没有日志查看权限', { exact: true }).first()).toBeVisible();
+        at D:\workspace\go\pantheon-platform\pantheon-ops\frontend\tests\smoke\business\deploy\deploy-workbench.spec.ts:73:28
+
+    Error Context: ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\workbench-browser-detail\smoke-business-deploy-depl-58206--keyboard-and-mobile-light-\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\workbench-browser-detail\smoke-business-deploy-depl-58206--keyboard-and-mobile-light-\trace.zip
+    Usage:
+
+        npx playwright show-trace ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\workbench-browser-detail\smoke-business-deploy-depl-58206--keyboard-and-mobile-light-\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  2) tests\smoke\business\deploy\deploy-workbench.spec.ts:14:3 › deployment workbench sources, logs, keyboard and mobile (dark) 
+
+    Error: expect(locator).toBeHidden() failed
+
+    Locator:  getByRole('dialog')
+    Expected: hidden
+    Received: visible
+    Timeout:  10000ms
+
+    Call log:
+      - Expect "toBeHidden" getByRole('dialog') with timeout 10000ms
+      - waiting for getByRole('dialog')
+        4 × locator resolved to <div role="dialog" aria-modal="true" aria-labelledby="arco-dialog-7" class="arco-modal app-dialog business-log-dialog zoomModal-appear zoomModal-appear-active">…</div>
+          - unexpected value "visible"
+        19 × locator resolved to <div role="dialog" aria-modal="true" aria-labelledby="arco-dialog-7" class="arco-modal app-dialog business-log-dialog zoomModal-appear-done zoomModal-enter-done">…</div>
+           - unexpected value "visible"
+
+
+      71 |       await page.screenshot({ path: testInfo.outputPath(`workbench-${mode}-mobile-expanded.png`), fullPage: true });
+      72 |       await page.keyboard.press('Escape');
+    > 73 |       await expect(dialog).toBeHidden();
+         |                            ^
+      74 |       denied = true;
+      75 |       await page.reload();
+      76 |       await expect(page.getByText('没有日志查看权限', { exact: true }).first()).toBeVisible();
+        at D:\workspace\go\pantheon-platform\pantheon-ops\frontend\tests\smoke\business\deploy\deploy-workbench.spec.ts:73:28
+
+    Error Context: ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\workbench-browser-detail\smoke-business-deploy-depl-d16f5-s-keyboard-and-mobile-dark-\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\workbench-browser-detail\smoke-business-deploy-depl-d16f5-s-keyboard-and-mobile-dark-\trace.zip
+    Usage:
+
+        npx playwright show-trace ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\workbench-browser-detail\smoke-business-deploy-depl-d16f5-s-keyboard-and-mobile-dark-\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  2 failed
+    tests\smoke\business\deploy\deploy-workbench.spec.ts:14:3 › deployment workbench sources, logs, keyboard and mobile (light) 
+    tests\smoke\business\deploy\deploy-workbench.spec.ts:14:3 › deployment workbench sources, logs, keyboard and mobile (dark) 
+[generated-modules] cleanup complete
+{
+  "modules": 0,
+  "schemas": 1,
+  "registries": 4,
+  "i18n": 5
+}

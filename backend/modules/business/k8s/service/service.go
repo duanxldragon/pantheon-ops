@@ -24,24 +24,27 @@ const (
 //
 //nolint:revive // retained as the public Service port DTO name.
 type ServicePort struct {
-	Name       string `json:"name"`
-	Port       int32  `json:"port"`
-	TargetPort int32  `json:"targetPort"`
-	NodePort   int32  `json:"nodePort"`
-	Protocol   string `json:"protocol"`
+	Name           string `json:"name"`
+	Port           int32  `json:"port"`
+	TargetPort     int32  `json:"targetPort"`
+	TargetPortName string `json:"targetPortName,omitempty"`
+	NodePort       int32  `json:"nodePort"`
+	Protocol       string `json:"protocol"`
 }
 
 // ServiceItem summarizes a Kubernetes Service.
 //
 //nolint:revive // retained as the public Service DTO name.
 type ServiceItem struct {
-	Name           string            `json:"name"`
-	Namespace      string            `json:"namespace"`
-	Type           string            `json:"type"`
-	ClusterIP      string            `json:"clusterIP"`
-	Ports          []ServicePort     `json:"ports"`
-	Selector       map[string]string `json:"selector"`
-	LoadBalancerIP string            `json:"loadBalancerIP"`
+	UID             string            `json:"uid"`
+	ResourceVersion string            `json:"resourceVersion"`
+	Name            string            `json:"name"`
+	Namespace       string            `json:"namespace"`
+	Type            string            `json:"type"`
+	ClusterIP       string            `json:"clusterIP"`
+	Ports           []ServicePort     `json:"ports"`
+	Selector        map[string]string `json:"selector"`
+	LoadBalancerIP  string            `json:"loadBalancerIP"`
 }
 
 // ServiceListResponse contains Service summaries.
@@ -90,11 +93,16 @@ func (s *ServiceService) Migrate() error {
 
 // List returns Services in a namespace.
 func (s *ServiceService) List(clusterID uint64, query ServiceListQuery, dataScope *common.DataScopeReq) (*ServiceListResponse, error) {
-	clientset, err := s.clusterSvc.GetClientset(clusterID, dataScope)
+	return s.ListContext(context.Background(), clusterID, query, dataScope)
+}
+
+// ListContext preserves caller cancellation during provider I/O.
+func (s *ServiceService) ListContext(ctx context.Context, clusterID uint64, query ServiceListQuery, dataScope *common.DataScopeReq) (*ServiceListResponse, error) {
+	clientset, err := s.clusterSvc.GetClientsetWithContext(ctx, clusterID, dataScope)
 	if err != nil {
 		return nil, err
 	}
-	ctx, cancel := context.WithTimeout(context.Background(), opTimeout)
+	ctx, cancel := context.WithTimeout(ctx, opTimeout)
 	defer cancel()
 
 	list, err := clientset.CoreV1().Services(query.Namespace).List(ctx, metav1.ListOptions{})
@@ -114,11 +122,16 @@ func (s *ServiceService) List(clusterID uint64, query ServiceListQuery, dataScop
 
 // Get returns one Service.
 func (s *ServiceService) Get(clusterID uint64, namespace, name string, dataScope *common.DataScopeReq) (*ServiceItem, error) {
-	clientset, err := s.clusterSvc.GetClientset(clusterID, dataScope)
+	return s.GetContext(context.Background(), clusterID, namespace, name, dataScope)
+}
+
+// GetContext preserves caller cancellation during provider I/O.
+func (s *ServiceService) GetContext(ctx context.Context, clusterID uint64, namespace, name string, dataScope *common.DataScopeReq) (*ServiceItem, error) {
+	clientset, err := s.clusterSvc.GetClientsetWithContext(ctx, clusterID, dataScope)
 	if err != nil {
 		return nil, err
 	}
-	ctx, cancel := context.WithTimeout(context.Background(), opTimeout)
+	ctx, cancel := context.WithTimeout(ctx, opTimeout)
 	defer cancel()
 
 	svc, err := clientset.CoreV1().Services(namespace).Get(ctx, name, metav1.GetOptions{})
@@ -131,17 +144,22 @@ func (s *ServiceService) Get(clusterID uint64, namespace, name string, dataScope
 
 // Create creates a Service.
 func (s *ServiceService) Create(clusterID uint64, namespace string, req CreateServiceRequest, dataScope *common.DataScopeReq) (*ServiceItem, error) {
+	return s.CreateContext(context.Background(), clusterID, namespace, req, dataScope)
+}
+
+// CreateContext preserves caller cancellation during provider I/O.
+func (s *ServiceService) CreateContext(ctx context.Context, clusterID uint64, namespace string, req CreateServiceRequest, dataScope *common.DataScopeReq) (*ServiceItem, error) {
 	if s.namespaceSvc == nil {
 		return nil, errors.New("k8s.namespace.binding_required")
 	}
-	if err := s.namespaceSvc.RequireWrite(clusterID, namespace, "service:create"); err != nil {
+	if err := s.namespaceSvc.RequireWriteWithContext(ctx, clusterID, namespace, "service:create"); err != nil {
 		return nil, err
 	}
-	clientset, err := s.clusterSvc.GetClientset(clusterID, dataScope)
+	clientset, err := s.clusterSvc.GetClientsetWithContext(ctx, clusterID, dataScope)
 	if err != nil {
 		return nil, err
 	}
-	ctx, cancel := context.WithTimeout(context.Background(), opTimeout)
+	ctx, cancel := context.WithTimeout(ctx, opTimeout)
 	defer cancel()
 
 	svc := &corev1.Service{
@@ -160,27 +178,6 @@ func (s *ServiceService) Create(clusterID uint64, namespace string, req CreateSe
 	return &item, nil
 }
 
-// Delete removes a Service.
-func (s *ServiceService) Delete(clusterID uint64, namespace, name string, dataScope *common.DataScopeReq) error {
-	if s.namespaceSvc == nil {
-		return errors.New("k8s.namespace.binding_required")
-	}
-	if err := s.namespaceSvc.RequireWrite(clusterID, namespace, "service:delete"); err != nil {
-		return err
-	}
-	clientset, err := s.clusterSvc.GetClientset(clusterID, dataScope)
-	if err != nil {
-		return err
-	}
-	ctx, cancel := context.WithTimeout(context.Background(), opTimeout)
-	defer cancel()
-
-	if err := clientset.CoreV1().Services(namespace).Delete(ctx, name, metav1.DeleteOptions{}); err != nil {
-		return errors.New("k8s.service.delete_failed")
-	}
-	return nil
-}
-
 func toItem(svc *corev1.Service) ServiceItem {
 	ports := make([]ServicePort, 0, len(svc.Spec.Ports))
 	for _, p := range svc.Spec.Ports {
@@ -189,9 +186,10 @@ func toItem(svc *corev1.Service) ServiceItem {
 			Port: p.Port,
 			// IntVal is already int32, so no narrowing conversion happens here; a
 			// named (string) target port has no numeric value and stays 0.
-			TargetPort: p.TargetPort.IntVal,
-			NodePort:   p.NodePort,
-			Protocol:   string(p.Protocol),
+			TargetPort:     p.TargetPort.IntVal,
+			TargetPortName: p.TargetPort.StrVal,
+			NodePort:       p.NodePort,
+			Protocol:       string(p.Protocol),
 		})
 	}
 	lbIP := ""
@@ -199,13 +197,15 @@ func toItem(svc *corev1.Service) ServiceItem {
 		lbIP = svc.Status.LoadBalancer.Ingress[0].IP
 	}
 	return ServiceItem{
-		Name:           svc.Name,
-		Namespace:      svc.Namespace,
-		Type:           string(svc.Spec.Type),
-		ClusterIP:      svc.Spec.ClusterIP,
-		Ports:          ports,
-		Selector:       svc.Spec.Selector,
-		LoadBalancerIP: lbIP,
+		UID:             string(svc.UID),
+		ResourceVersion: svc.ResourceVersion,
+		Name:            svc.Name,
+		Namespace:       svc.Namespace,
+		Type:            string(svc.Spec.Type),
+		ClusterIP:       svc.Spec.ClusterIP,
+		Ports:           ports,
+		Selector:        svc.Spec.Selector,
+		LoadBalancerIP:  lbIP,
 	}
 }
 
@@ -218,6 +218,12 @@ func toServicePorts(ports []ServicePort) []corev1.ServicePort {
 			NodePort:   p.NodePort,
 			Protocol:   corev1.Protocol(p.Protocol),
 			TargetPort: intstr.FromInt32(p.TargetPort),
+		}
+		if p.TargetPortName != "" {
+			sp.TargetPort = intstr.FromString(p.TargetPortName)
+		}
+		if sp.Protocol == "" {
+			sp.Protocol = corev1.ProtocolTCP
 		}
 		out = append(out, sp)
 	}

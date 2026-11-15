@@ -1,0 +1,17 @@
+{
+  "taskId": "argo-adoption-v2-20261110",
+  "parentTask": "2026-11-07-ops-planned-task-closeout",
+  "at": "2026-11-10T03:46:44.705160+00:00",
+  "candidateSealSHA256": "fb57123370e5c99d0149faa32237ff1b5462ad70422e4093f446938f0a875d03",
+  "original31PinsIntact": true,
+  "new34PinsMatch": true,
+  "preserved67HashesMatch": true,
+  "originalFinal3LogsMatch": true,
+  "newVerificationLogsMatch": true,
+  "exactDeltaMatch": true,
+  "handoffCommandsMatch": true,
+  "handoffSHA256": "435c87d2ba7bef8d47f7c00a301d8d45c178add9f7d9e1a06da5d4c8deae9d51",
+  "P0Approved": false,
+  "remoteExecuted": false,
+  "independentDeltaReviewPending": true
+}

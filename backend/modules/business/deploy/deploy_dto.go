@@ -1,6 +1,9 @@
 package deploy
 
-import "time"
+import (
+	"github.com/duanxldragon/pantheon-base/backend/modules/business/cmdb"
+	"time"
+)
 
 type PackageQuery struct {
 	Page          int    `form:"page"`
@@ -184,43 +187,50 @@ type TemplateListResponse struct {
 }
 
 type TaskQuery struct {
-	Page         int    `form:"page"`
-	PageSize     int    `form:"pageSize"`
-	Keyword      string `form:"keyword"`
-	Status       string `form:"status"`
-	ExecutorType string `form:"executorType"`
+	CreatedFrom     string `form:"createdFrom"`
+	CreatedTo       string `form:"createdTo"`
+	BusinessScopeID uint64 `form:"businessScopeId"`
+	Page            int    `form:"page"`
+	PageSize        int    `form:"pageSize"`
+	Keyword         string `form:"keyword"`
+	Status          string `form:"status"`
+	ExecutorType    string `form:"executorType"`
 }
 
 type CreateTaskRequest struct {
-	Name              string            `json:"name" binding:"required"`
-	TemplateID        uint64            `json:"templateId"`
-	PackageID         uint64            `json:"packageId"`
-	BusinessScopeID   uint64            `json:"businessScopeId"`
-	ServiceID         uint64            `json:"serviceId"`
-	ServiceInstanceID uint64            `json:"serviceInstanceId"`
-	Action            string            `json:"action"`
-	TargetType        string            `json:"targetType" binding:"required"`
-	TargetIDs         []uint64          `json:"targetIds" binding:"required"`
-	ExecutorType      string            `json:"executorType"`
-	TemplateParams    map[string]any    `json:"templateParams"`
-	SecretParams      map[string]string `json:"secretParams"`
-	Remark            string            `json:"remark"`
+	TargetSelection   *cmdb.TargetSelection `json:"targetSelection"`
+	ScopeVersion      string                `json:"scopeVersion"`
+	Name              string                `json:"name" binding:"required"`
+	TemplateID        uint64                `json:"templateId"`
+	PackageID         uint64                `json:"packageId"`
+	BusinessScopeID   uint64                `json:"businessScopeId"`
+	ServiceID         uint64                `json:"serviceId"`
+	ServiceInstanceID uint64                `json:"serviceInstanceId"`
+	Action            string                `json:"action"`
+	TargetType        string                `json:"targetType"`
+	TargetIDs         []uint64              `json:"targetIds"`
+	ExecutorType      string                `json:"executorType"`
+	TemplateParams    map[string]any        `json:"templateParams"`
+	SecretParams      map[string]string     `json:"secretParams"`
+	Remark            string                `json:"remark"`
 }
 
 type UpdateTaskRequest struct {
-	Name              *string            `json:"name"`
-	TemplateID        *uint64            `json:"templateId"`
-	PackageID         *uint64            `json:"packageId"`
-	BusinessScopeID   *uint64            `json:"businessScopeId"`
-	ServiceID         *uint64            `json:"serviceId"`
-	ServiceInstanceID *uint64            `json:"serviceInstanceId"`
-	Action            *string            `json:"action"`
-	TargetType        *string            `json:"targetType"`
-	TargetIDs         []uint64           `json:"targetIds"`
-	ExecutorType      *string            `json:"executorType"`
-	TemplateParams    *map[string]any    `json:"templateParams"`
-	SecretParams      *map[string]string `json:"secretParams"`
-	Remark            *string            `json:"remark"`
+	TargetSelection   *cmdb.TargetSelection `json:"targetSelection"`
+	ScopeVersion      string                `json:"scopeVersion"`
+	Name              *string               `json:"name"`
+	TemplateID        *uint64               `json:"templateId"`
+	PackageID         *uint64               `json:"packageId"`
+	BusinessScopeID   *uint64               `json:"businessScopeId"`
+	ServiceID         *uint64               `json:"serviceId"`
+	ServiceInstanceID *uint64               `json:"serviceInstanceId"`
+	Action            *string               `json:"action"`
+	TargetType        *string               `json:"targetType"`
+	TargetIDs         []uint64              `json:"targetIds"`
+	ExecutorType      *string               `json:"executorType"`
+	TemplateParams    *map[string]any       `json:"templateParams"`
+	SecretParams      *map[string]string    `json:"secretParams"`
+	Remark            *string               `json:"remark"`
 }
 
 // StartTaskRequest is the public Start API contract. It accepts only a
@@ -230,6 +240,8 @@ type UpdateTaskRequest struct {
 // credential reference. The json:"-" fields are internal-only and populated
 // after credential resolution for the executor.
 type StartTaskRequest struct {
+	IntentVersion   string `json:"intentVersion"`
+	RequirePreview  bool   `json:"-"`
 	CredentialRefID uint64 `json:"credentialRefId"`
 	TimeoutSeconds  int    `json:"timeoutSeconds"`
 	HostFingerprint string `json:"hostFingerprint"`
@@ -284,7 +296,39 @@ type MarkHostResultRequest struct {
 	HealthRevision string `json:"healthRevision"`
 }
 
+// TaskStepResponse exposes persisted execution state, never commands or conditions.
+type TaskStepResponse struct {
+	ID           uint64     `json:"id"`
+	TaskHostID   uint64     `json:"taskHostId"`
+	StepKey      string     `json:"stepKey"`
+	StepOrder    int        `json:"stepOrder"`
+	Status       string     `json:"status"`
+	AttemptNo    int        `json:"attemptNo"`
+	StateVersion uint64     `json:"stateVersion"`
+	StartedAt    *time.Time `json:"startedAt"`
+	FinishedAt   *time.Time `json:"finishedAt"`
+}
+
+// TaskStepHistoryResponse is the last recorded safe checkpoint in a step attempt.
+type TaskStepHistoryResponse struct {
+	TaskStepResponse
+	CapturedAt time.Time `json:"capturedAt"`
+}
+
+type TaskLogAttemptResponse struct {
+	TaskHostID uint64 `json:"taskHostId"`
+	AttemptNo  int    `json:"attemptNo"`
+}
+
 type TaskResponse struct {
+	StepHistory        []TaskStepHistoryResponse `json:"stepHistory"`
+	StepHistoryLimited bool                      `json:"stepHistoryLimited"`
+	LogAttempts        []TaskLogAttemptResponse  `json:"logAttempts"`
+	StateVersion       string                    `json:"stateVersion"`
+	TargetSelection    *cmdb.TargetSelection     `json:"targetSelection,omitempty"`
+	ScopeVersion       string                    `json:"scopeVersion,omitempty"`
+	Steps              []TaskStepResponse        `json:"steps"`
+
 	ID                   uint64               `json:"id"`
 	Name                 string               `json:"name"`
 	TemplateID           uint64               `json:"templateId"`

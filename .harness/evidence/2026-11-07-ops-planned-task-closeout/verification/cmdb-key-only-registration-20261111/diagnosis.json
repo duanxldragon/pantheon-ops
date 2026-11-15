@@ -1,0 +1,208 @@
+{
+  "utc": "2026-11-11T06:04:04.508201+00:00",
+  "parentTaskPacket": "docs/harness/tasks/2026-11-07-ops-planned-task-closeout.task.md",
+  "sourceRecords": [
+    {
+      "sourceReceipt": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\cmdb-key-only-20261111\\runtime-f8b3b2a4cad6\\result.json",
+      "sourceReceiptSHA256": "6c7fd87b3228a31c9fa38daa8ed9a5d40b2bfeb7c2dba1a881706b71339fe011",
+      "originalReceiptUnchanged": true,
+      "requests": 157,
+      "checks": 83,
+      "intendedAllowFailures": [
+        {
+          "name": "view:hosts:allowed",
+          "phase": "automatic"
+        },
+        {
+          "name": "view:hosts:allowed",
+          "phase": "public-remediation"
+        },
+        {
+          "name": "export:export:allowed",
+          "phase": "automatic"
+        },
+        {
+          "name": "export:export:allowed",
+          "phase": "public-remediation"
+        },
+        {
+          "name": "import:import-template:allowed",
+          "phase": "automatic"
+        },
+        {
+          "name": "import:import:allowed",
+          "phase": "automatic"
+        },
+        {
+          "name": "import:import-template:allowed",
+          "phase": "public-remediation"
+        },
+        {
+          "name": "import:import:allowed",
+          "phase": "public-remediation"
+        },
+        {
+          "name": "scoped:hosts:allowed",
+          "phase": "automatic"
+        },
+        {
+          "name": "scoped:export:allowed",
+          "phase": "automatic"
+        },
+        {
+          "name": "scoped:import-template:allowed",
+          "phase": "automatic"
+        },
+        {
+          "name": "scoped:import:allowed",
+          "phase": "automatic"
+        },
+        {
+          "name": "scoped:hosts:allowed",
+          "phase": "public-remediation"
+        },
+        {
+          "name": "scoped:export:allowed",
+          "phase": "public-remediation"
+        },
+        {
+          "name": "scoped:import-template:allowed",
+          "phase": "public-remediation"
+        },
+        {
+          "name": "scoped:import:allowed",
+          "phase": "public-remediation"
+        }
+      ],
+      "scenarios": [
+        {
+          "name": "view",
+          "assignedKeys": [
+            "business:cmdb:host:view"
+          ],
+          "unknownPermissionCount": 0,
+          "requiredApiPolicyCount": 0,
+          "apiPolicyCount": 0,
+          "publicRemediationCreatedCount": 0,
+          "sameSessionDeniesAfterRevocation": true
+        },
+        {
+          "name": "export",
+          "assignedKeys": [
+            "business:cmdb:host:export"
+          ],
+          "unknownPermissionCount": 0,
+          "requiredApiPolicyCount": 0,
+          "apiPolicyCount": 0,
+          "publicRemediationCreatedCount": 0,
+          "sameSessionDeniesAfterRevocation": true
+        },
+        {
+          "name": "import",
+          "assignedKeys": [
+            "business:cmdb:host:import"
+          ],
+          "unknownPermissionCount": 0,
+          "requiredApiPolicyCount": 0,
+          "apiPolicyCount": 0,
+          "publicRemediationCreatedCount": 0,
+          "sameSessionDeniesAfterRevocation": true
+        },
+        {
+          "name": "scoped",
+          "assignedKeys": [
+            "business:cmdb:host:view",
+            "business:cmdb:host:export",
+            "business:cmdb:host:import"
+          ],
+          "unknownPermissionCount": 0,
+          "requiredApiPolicyCount": 0,
+          "apiPolicyCount": 0,
+          "publicRemediationCreatedCount": 0,
+          "sameSessionDeniesAfterRevocation": true
+        }
+      ],
+      "runtimeErrorType": "ProgrammingError",
+      "activeOwnedFixturesIndependentlyRechecked": {
+        "hosts": 0,
+        "users": 0,
+        "roles": 0
+      },
+      "zeroOwnedProcessesAtOriginalCleanup": true,
+      "databaseRetained": true
+    },
+    {
+      "sourceReceipt": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\cmdb-key-only-20261111\\runtime-e57ca76766aa\\result.json",
+      "sourceReceiptSHA256": "ab3dfa6ec025336f5045725d9ed6b55c9b4dbf06df909f4c580874a59578bffd",
+      "originalReceiptUnchanged": true,
+      "requests": 75,
+      "checks": 37,
+      "intendedAllowFailures": [
+        {
+          "name": "view:hosts:allowed",
+          "phase": "automatic"
+        },
+        {
+          "name": "view:hosts:allowed",
+          "phase": "public-remediation"
+        },
+        {
+          "name": "export:export:allowed",
+          "phase": "automatic"
+        },
+        {
+          "name": "export:export:allowed",
+          "phase": "public-remediation"
+        }
+      ],
+      "scenarios": [
+        {
+          "name": "view",
+          "assignedKeys": [
+            "business:cmdb:host:view"
+          ],
+          "unknownPermissionCount": 0,
+          "requiredApiPolicyCount": 0,
+          "apiPolicyCount": 0,
+          "publicRemediationCreatedCount": 0,
+          "sameSessionDeniesAfterRevocation": true
+        },
+        {
+          "name": "export",
+          "assignedKeys": [
+            "business:cmdb:host:export"
+          ],
+          "unknownPermissionCount": 0,
+          "requiredApiPolicyCount": 0,
+          "apiPolicyCount": 0,
+          "publicRemediationCreatedCount": 0,
+          "sameSessionDeniesAfterRevocation": null
+        }
+      ],
+      "runtimeErrorType": "ConnectionResetError",
+      "activeOwnedFixturesIndependentlyRechecked": {
+        "hosts": 0,
+        "users": 0,
+        "roles": 0
+      },
+      "zeroOwnedProcessesAtOriginalCleanup": true,
+      "databaseRetained": true
+    }
+  ],
+  "helperDiagnostics": {
+    "nativeASTErrors": 0,
+    "unittestExitCode": 0,
+    "testsRun": 19,
+    "logSHA256": "ad4d8717e81be148404ae0e9c233079c7764edb21b41e11b77c95457e021c59f"
+  },
+  "schemaFix": "run.py now counts actual biz_cmdb_host table instead of nonexistent cmdb_host",
+  "queryMode": "read-only SELECT COUNT of captured fixture IDs",
+  "newBusinessSourceHashes": {
+    "backend/modules/business/cmdb/cmdb.go": "50f1d51a7bf14557ee878f2a6bb62f51209dad842c4369736d1535d10db63ee4",
+    "backend/modules/business/cmdb/permission_routes.go": "413e3ae9aa9925b8bbae1774ce6ad22ab816df3f22e041fc9d6c4e11aa9e1b4f",
+    "backend/modules/business/cmdb/permission_routes_test.go": "8df4c96ca9c353822f4ed5dccc137085ef02fcc079b7260c6dcbb1e5522be0ca"
+  },
+  "keyOnlyGrantAcceptance": false,
+  "officialConsumption": false,
+  "P0Approved": false
+}

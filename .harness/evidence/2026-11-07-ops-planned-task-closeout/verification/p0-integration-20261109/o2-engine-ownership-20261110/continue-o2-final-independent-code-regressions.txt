@@ -1,0 +1,11 @@
+=== RUN   TestIndependentO2CancelBeforeFirstClaimSettles
+    continue_o2_final_independent_code_test.go:25: after cancel + recovery: task=cancel_requested retained physical leases=1
+    continue_o2_final_independent_code_test.go:27: cancellation with no worker claim never settles/releases: task=cancel_requested leases=1
+--- FAIL: TestIndependentO2CancelBeforeFirstClaimSettles (1.19s)
+=== RUN   TestIndependentO2ServiceProjectionRollsBackWithFinish
+    continue_o2_final_independent_code_test.go:57: outer finish failed and deploy/CMDB rolled back; actual service instance=stopped version=1 lifecycle=1
+    continue_o2_final_independent_code_test.go:59: service instance survived failed finish: observed=stopped version=1 lifecycle=1
+--- FAIL: TestIndependentO2ServiceProjectionRollsBackWithFinish (1.58s)
+FAIL
+FAIL	github.com/duanxldragon/pantheon-base/backend/modules/business/deploy	2.851s
+FAIL

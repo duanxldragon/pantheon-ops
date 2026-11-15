@@ -11,7 +11,7 @@ English version: [PROJECT_INHERITANCE.en.md](./PROJECT_INHERITANCE.en.md)
 - `business-overlay.json`：Ops 唯一机器可读资产清单和装配清单。
 - `.business-overlay-report.json`：每次重建输出的 Base commit、Ops 文件哈希、生成文件和 import 重写记录。
 
-重建结果保留 Base 的目录布局和 Go module `pantheon-base`。业务源码在注入时将历史 import `pantheon-ops/backend/...` 改写为 `pantheon-base/...`，共享源码不再改写 module identity。
+重建结果保留 Base 的目录布局和 Go module `github.com/duanxldragon/pantheon-base/backend`。业务源码在注入时将历史 import `pantheon-ops/backend/...` 改写为 `pantheon-base/...`，共享源码不再改写 module identity。
 
 ## 2. 装配扩展点
 
@@ -33,8 +33,8 @@ Base 的菜单契约门禁（`check-menu-contract.mjs`）按命名约定发现�
 ```powershell
 # 1. 从 GitHub 查询最新稳定的正式 Base release，下载四个资产，校验 SHA256、
 # manifest 和不可变 tag，全部成功后才更新 Ops 锁文件。
-# 不指定版本时获取 GitHub 最新稳定版；本次明确锁定 v0.18.6：
-npm run fetch:base-release -- --release pantheon-base-v0.18.6
+# 不指定版本时获取 GitHub 最新稳定版；以下为当前活动版本 v0.18.8 的获取示例：
+npm run fetch:base-release -- --release pantheon-base-v0.18.8
 
 # 2. 从该正式锁定版本重建暂存树，不覆盖当前 Ops。
 npm run rebuild:from-base -- --target .tmp/clean-base-overlay
@@ -77,7 +77,7 @@ npm run check:shared-drift -- --root .tmp/clean-base-overlay
 > 以下英文 marker 供 `../pantheon-base/scripts/harness/check-inheritance-contract.mjs` 机械校验，请勿翻译或删除；版本变化时必须与 `foundation-release.lock.json` 同步更新。
 
 - Base repository: `../pantheon-base`
-- Base version: `pantheon-base-v0.18.6` (`5553bc0e8ddc006cb7a6b99a46968bf8cf907a49`)
+- Base version: `pantheon-base-v0.18.8` (`34428814a9efc997fd93d4434406a53df6460323`)
 - If a foundation rule must change, update `pantheon-base` first
 
 ## 8. 业务数据迁移
@@ -91,3 +91,31 @@ npm run check:shared-drift -- --root .tmp/clean-base-overlay
 重建器将 `goDependencies` 加入正式 Base 快照后，在生成文件哈希报告前执行 Go 的完整包与测试依赖加载。归一化产出的 `backend/go.mod` / `go.sum` 作为生成文件记录；缺少包、校验和或加载失败会中止重建，不生成成功报告。
 
 暂存树必须直接通过 `go list -buildvcs=false -mod=readonly -deps -test ./...` 及适用构建/测试，不能在验收期间临时使用 `-mod=mod` 修补依赖。归档快照通过已校验 release/lock 记录来源，不读取外围仓库的 VCS stamp。离线缓存不足时补齐所需依赖后重建；不能跳过加载检查。正式发行与完整 race/业务 smoke 门禁继续适用。
+
+## 10. 当前业务空库基线
+
+业务迁移 `000033_core_business_schema` 在关闭 AutoMigrate 时补齐 CMDB、BizScope、Deploy、Service、K8s 的 29 个核心表，与 `000032` 配对装配到正式 Base 迁移链。源文件属于 `business/opsinit/migrations`；禁止手工修改共享目标目录。
+
+该基线使用 CREATE TABLE IF NOT EXISTS 保留既有表和数据，down 同样保留表和数据。它不修复不兼容历史列，也不授权生产升级或多租户迁移；历史生产数据库仍需单独迁移评审、备份与演练。空库、版本 32 到 33、重复执行和保留式 down 的当前本地证据见 `.harness/evidence/2026-11-07-ops-planned-task-closeout/summary.md`。
+
+The fresh baseline uses generated active-row keys to enforce active natural-key uniqueness while permitting soft-deleted identities to be reused. Existing incompatible tables are still preserved, so legacy index corrections require a separate upgrade migration.
+
+## 11. 部署日志尝试元数据
+
+业务迁移 `000034_deploy_log_attempt` 在已有 `000033` 表基线上增加日志 `attempt_no`。新日志保存写入时的步骤尝试编号，步骤检查点更新不会重写旧日志归属。历史日志保留为 `0`（未归属），仅在明确选择所有尝试时合并展示；不推测历史归属。迁移有表/列存在保护，重复执行和保留式 down 不丢失输出。通过业务清单装配到正式迁移链，禁止手工修改共享目标源码。生产升级仍遵守单独评审、备份和演练门禁。
+
+## 12. 部署步骤检查点历史
+
+业务迁移 `000035_deploy_step_history` 提供仅含身份、步骤尝试、状态、版本和时间的追加式检查点观察记录。每次既有检查点更新与快照在同一事务提交，不改变引擎重试/租约/恢复策略。历史视图使用该步骤尝试最后记录的状态，旧检查点不回填；这不是完整执行时间线或终态保证。现有任务详情按 CMDB 权限过滤主机、步骤、日志尝试和历史元数据，历史投影最多500项并明确截断。无新公开路由、秘密/配置/错误原文或共享源码 override。配对迁移由业务清单正式装配，down 保留历史；生产升级、独立评审和正式最终验收仍开放。
+
+业务迁移 `000036_deploy_log_sequence_scope` 将部署日志唯一键从全局 `sequence` 修正为 `(task_id, sequence)`。序号分配本来就以任务为单位，旧索引会丢弃第二个任务的同序号日志。升级只接受已知旧索引形状，未知形状明确失败；缺表跳过、正确索引重放幂等，down 保留新索引和历史。业务清单正式装配 up/down，禁止手改共享生成目标。真实 MySQL 验证跨任务保留、任务内去重、并发写入、旧库升级/重放及保留式 down；真机成功部署后的逆操作也验证第二任务日志。此证据不替代完整 P0 验收或生产迁移门禁。
+
+## Earlier r5 checkpoint (historical; superseded by the installation below)
+
+Official GitHub latest stable v0.18.8 and its four immutable assets were acquired and verified. The fully assembled candidate is `.tmp/ops-v0188-final-r5`; its lock/report target commit `34428814a9efc997fd93d4434406a53df6460323`. A working-tree install was denied by Windows directory permissions at `backend/modules/system/iam/tenant/tenant_owner_lifecycle_test.go`. All 158 install preimages were restored; the active lock/report remain v0.18.6. Candidate validation does not establish active adoption. No local Base/Ops Git comparison or shared-source copying was used. Later asset replays record `freshGitHubLookup:false`.
+
+Business menu/environment migration000038, bounded recorded-state Dashboard adapters and CMDB permission-key registration are implemented. The candidate passes frontend lint/type-check/build, 414 unit tests and 24 actual browser tests via an isolated IPC/CDP adapter (`nativeRunnerPassed:false`). Dashboard renders cover four empty-state widgets in light/dark at 1440/390; full provider/state acceptance remains open. Six P0 parent packets remain open, as do final visual/functional acceptance and production gates. See [current execution evidence](../.harness/evidence/2026-11-14-ops-latest-foundation-and-plans/summary.md).
+
+## v0.18.8 installation continuation
+
+The active installation now consumes official `pantheon-base-v0.18.8`, commit `34428814a9efc997fd93d4434406a53df6460323`, assembled from verified GitHub release assets and the current declared business overlay. Prior denied-installation records describe the earlier attempt and are preserved. The new installation uses fresh preimages; six P0 parents, external-provider acceptance and final visual/functional acceptance remain open. See [current evidence](../.harness/evidence/2026-11-14-ops-latest-foundation-and-plans/summary.md).

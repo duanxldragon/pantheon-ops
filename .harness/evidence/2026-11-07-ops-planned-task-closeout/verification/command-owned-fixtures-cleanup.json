@@ -1,0 +1,55 @@
+{
+  "ownership": "Only exact fixture tokens recorded in this command workflow failed Playwright trace attachments",
+  "tokens": [
+    "command-batch-1794063068726",
+    "command-light-1794063613740",
+    "command-dark-1794063615059",
+    "command-light-1794063381418",
+    "command-light-1794062871424",
+    "command-dark-1794062884564"
+  ],
+  "deleted": [
+    {
+      "endpoint": "deploy/tasks",
+      "id": 176,
+      "name": "command-dark-1794063615059"
+    },
+    {
+      "endpoint": "deploy/tasks",
+      "id": 172,
+      "name": "command-light-1794063381418"
+    },
+    {
+      "endpoint": "cmdb/hosts",
+      "id": 186,
+      "name": "command-dark-1794063615059"
+    },
+    {
+      "endpoint": "cmdb/hosts",
+      "id": 182,
+      "name": "command-light-1794063381418"
+    },
+    {
+      "endpoint": "bizscope",
+      "id": 176,
+      "name": "command-dark-1794063615059"
+    },
+    {
+      "endpoint": "bizscope",
+      "id": 172,
+      "name": "command-light-1794063381418"
+    },
+    {
+      "endpoint": "deploy/packages",
+      "id": 192,
+      "name": "command-dark-1794063615059"
+    },
+    {
+      "endpoint": "deploy/packages",
+      "id": 189,
+      "name": "command-light-1794063381418"
+    }
+  ],
+  "remaining": [],
+  "errors": []
+}

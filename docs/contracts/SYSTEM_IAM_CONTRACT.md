@@ -12,7 +12,7 @@ related_designs:
 related_acceptances:
   - docs/acceptances/ACCEPTANCE_CHECKLIST.md
   - docs/acceptances/PLATFORM_ACCEPTANCE_MATRIX_20260430_UI_MIGRATION.md
-updated_at: 2026-11-04
+updated_at: 2026-11-12
 ---
 
 # system/iam 合同文档
@@ -20,6 +20,7 @@ updated_at: 2026-11-04
 English version: [SYSTEM_IAM_CONTRACT.en.md](./SYSTEM_IAM_CONTRACT.en.md)
 
 关联设计：
+
 - `PERMISSION_MODEL.md`
 - `MODULE_CONTRACT.md`
 - `FRONTEND_PAGE_TEMPLATES.md`
@@ -27,6 +28,7 @@ English version: [SYSTEM_IAM_CONTRACT.en.md](./SYSTEM_IAM_CONTRACT.en.md)
 - `NAVIGATION_IA_STRATEGY.md`
 
 关联验收：
+
 - `ACCEPTANCE_CHECKLIST.md`
 - `PLATFORM_ACCEPTANCE_MATRIX_20260430_UI_MIGRATION.md`
 
@@ -172,6 +174,7 @@ Pantheon 的 `iam` 不是简单的“用户管理页集合”，而是系统底�
 - `workbench` 首屏必须服务整改，而不是只提供全量体检表
 - `workbench` 首屏必须支持按角色浏览完整授权结果，不能用默认过滤把 `clean` 角色直接隐藏
 - 角色治理状态固定为 `pending | remediated | clean`
+- 业务接口权限 binding 的唯一权威来源是 `backend/pkg/permissionroutes` 的 provider 启动期注册表（无 HTTP 写入口），启动封存点封存后任何注册一律 fail-closed 拒绝，详见 [PERMISSION_WORKBENCH_GOVERNANCE_DESIGN.md](../designs/PERMISSION_WORKBENCH_GOVERNANCE_DESIGN.md) 第 7 节
 - `overview` 必须至少提供：
   - `pendingRemediationRoleCount`
   - `remediatedRoleCount`
@@ -281,7 +284,8 @@ Pantheon 的 `iam` 不是简单的“用户管理页集合”，而是系统底�
 - [PLATFORM_ACCEPTANCE_MATRIX_20260430_UI_MIGRATION.md](../acceptances/PLATFORM_ACCEPTANCE_MATRIX_20260430_UI_MIGRATION.md)
 
 ## 变更日志
-| 日期 | 版本 | 变更内容 | 原因 |
-|------|------|---------|------|
-| 2026-06-25 | v1.0 | 初始版本 | 评估审计添加 |
 
+| 日期       | 版本 | 变更内容                                                 | 原因         |
+| ---------- | ---- | -------------------------------------------------------- | ------------ |
+| 2026-06-25 | v1.0 | 初始版本                                                 | 评估审计添加 |
+| 2026-11-12 | v1.1 | 7.4 增加业务 API binding 权威来源说明（指向设计第 7 节） | 架构审查 A-4 |

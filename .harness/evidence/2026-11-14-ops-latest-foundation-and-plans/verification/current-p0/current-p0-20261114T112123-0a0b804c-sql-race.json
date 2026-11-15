@@ -1,0 +1,37 @@
+{
+  "command": [
+    "D:/Go/bin/go.exe",
+    "test",
+    "-race",
+    "-p=1",
+    "-count=1",
+    "-buildvcs=false",
+    "-mod=readonly",
+    "-json",
+    "./modules/business/observability",
+    "./modules/business/k8s",
+    "./modules/business/opsinit"
+  ],
+  "exitCode": 4294967295,
+  "failure": null,
+  "elapsedSeconds": 123.266,
+  "sourceStable": false,
+  "changedSources": [
+    "backend/modules/business/deploy/dashboard_summary.go",
+    "backend/modules/business/filedist/target_selection.go",
+    "backend/modules/business/deploy/deploy_dto.go",
+    "backend/modules/business/filedist/distribution_service.go",
+    "backend/modules/business/shared/dashboard/snapshot.go",
+    "backend/modules/business/deploy/deploy_service.go"
+  ],
+  "sourceCount": 837,
+  "fixtureSHA256": "8796d1a6c2b599e8e5406df8848638287d93827fb4436e6373c271b79cca5f05",
+  "stdoutSHA256": "5dee1c33354d823a3f52402ba4c9c14e6ea7048204d69cb4e3b75371d7a04305",
+  "stderrSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "privateLogs": true,
+  "credentialsPrinted": false,
+  "testPasses": 0,
+  "packagePasses": 0,
+  "skipped": [],
+  "failed": []
+}

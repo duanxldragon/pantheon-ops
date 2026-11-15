@@ -1,0 +1,9 @@
+{
+  "hashes": {
+    "frontend/src/modules/business/observability/LogExplorer.tsx": "43023772b1bf69c2fa13528e976e7b99c76cb478a383643d6c90f295b6c9aff6",
+    "frontend/tests/unit/business/operational/loki-query-state.test.tsx": "28b5ac16e989026da9dc8a50cd93a7d7ba466f79b90dd203498b56b375d0c444",
+    "frontend/tests/smoke/business/observability-workbench.spec.ts": "24eaa42eb966e6337b9db0d1394250924035bc9b7ba9155684001b1e5017fdd3"
+  },
+  "browserEvidence": "prepared; unexecuted",
+  "acceptanceHost": "115.190.251.143"
+}

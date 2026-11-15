@@ -1,0 +1,11 @@
+{
+  "command": [
+    "node",
+    "scripts/harness/check-encoding.mjs",
+    "--root",
+    ".",
+    "--strict"
+  ],
+  "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+  "exitCode": 0
+}

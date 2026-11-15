@@ -1,0 +1,23 @@
+{
+  "host": "115.190.251.143",
+  "origin": "public current DeployService/default SSH on actual VM; independent SSH state and fresh OS child process",
+  "run": "26769802168a",
+  "cases": [],
+  "positivePassed": 0,
+  "negativePassed": 0,
+  "failed": 0,
+  "approval": "generator evidence only; no independent O2/P0 approval",
+  "artifacts": {
+    "live-diagnostic-o2-v2.go": "49ac74638caa205844663403d99f2d73aa2f190fd426d7da0fce0981928a9d59",
+    "live-diagnostic-o2-v2-runner.py": "56372070e34c97bed21ff87fecbfd1202866e9150d45a3469e6c31d59634e563",
+    "live-diagnostic-o2-v2-driver.exe": "dac3205a287eb87aec698a7630065495338c05a1f3a716fa2c554a7aef192453",
+    "live-diagnostic-o2-v2-driver-linux": "54b0c444c58f33c1aaa9df69757e3e10d79511a5aa791f4c52f2963bcb5a040e"
+  },
+  "blocker": {
+    "errorType": "RuntimeError",
+    "errno": null
+  },
+  "seconds": 0.234,
+  "sourceStable": false,
+  "exitCode": 1
+}

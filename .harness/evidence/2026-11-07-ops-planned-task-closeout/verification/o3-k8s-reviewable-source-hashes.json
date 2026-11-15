@@ -1,0 +1,17 @@
+{
+  "backend/modules/business/k8s/pkg/release_review.go": "0a7cabd7278de8708ba0e01cab70a787bbd961ef0ebc4b3ce035f60d368530b4",
+  "backend/modules/business/k8s/pkg/release_review_test.go": "aec9390575d04fb946aa6281fd4552bbb2ac827d1cb803f427084a489daee26b",
+  "backend/modules/business/k8s/release/release_preview.go": "fb1abd08810b09e02100336c4943b9aad5fec5cc8861300b80cb2456c385dade",
+  "backend/modules/business/k8s/release/release_preview_test.go": "252b83a52fc9b0dba347d670adc081a66fa5b6f06c3848c240bdb7b4913555ab",
+  "frontend/src/modules/business/k8s/release/ReleasePreview.tsx": "7d579fc7f8d998310d6b134ac9e26ad24f3753d6a47010dc2c8f9eeffbdc7da2",
+  "frontend/tests/unit/business/operational/k8s-release-preview.test.tsx": "e19052e408468348658aca7cb9d532294d1b06473a4d86ab68d3e77ebcb576b3",
+  "frontend/tests/smoke/business/k8s/release-preview.spec.ts": "83cf6f752c09b9a2f637c9ffcdbc407b651c1841308cd26dc8f0852101a8f133",
+  "backend/modules/business/k8s/cluster/cluster_service.go": "3047f195c5ea140f270db05f7d81957d5f723ededb22e5f39a35f87fcd71c776",
+  "backend/modules/business/k8s/release/release_handler.go": "d60908847fc1e3b7b1966b552bf759694dcf8237ee34350b62a73dcc175c1344",
+  "backend/modules/business/k8s/release/release_dto.go": "bbbff22445db36cf73208f928d786442e9e097e77178fee425464f73f437ce36",
+  "backend/modules/business/k8s/release/release_service.go": "4716012924a0a301b51686ded73aad192a86a26edf39d5407fc14172cc6a5ace",
+  "backend/modules/business/k8s/k8s_seed.go": "913d5dd3541621b05dfc44f37699ce6e72c1f6647e736d26606ebf69c5e739aa",
+  "frontend/src/modules/business/k8s/api.ts": "40d5ae1854cadef64147b7a346e6ec3475d0d61a1fca88e3bc7b4592582feb55",
+  "frontend/src/modules/business/k8s/release/ReleaseList.tsx": "26c5245de77d3f9a4148388521b2f3ca943d9ae2ad9c9884e816c9bd48fa1307",
+  "docs/designs/BUSINESS_ERROR_SEMANTICS_APPENDIX.md": "62b0643d2d6f6d2386fd17b20ee3122479e6da5bbcf0100314b0983ff02c13e9"
+}

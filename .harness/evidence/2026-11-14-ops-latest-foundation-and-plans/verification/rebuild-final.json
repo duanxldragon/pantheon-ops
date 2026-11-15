@@ -1,0 +1,14 @@
+{
+  "result": "pass",
+  "acquiredOfficialVersion": "pantheon-base-v0.18.8",
+  "baseCommit": "34428814a9efc997fd93d4434406a53df6460323",
+  "freshGitHubLookup": true,
+  "standardFetcher": true,
+  "standardAssembler": true,
+  "purpose": "Regenerate assembly report after inheritance/task status documentation final",
+  "targetRoot": "C:\\Users\\xiaolong\\AppData\\Local\\Temp\\pantheon-ops-v0188-final-fa139d7ee9b64e5e97c156aa3f9df6ff",
+  "ownedFiles": 5617,
+  "reportSHA256": "240bb969f9a7a11f92a4252577eb325edd4fd68c79c84dc4a12e8f9ab71ed238",
+  "bundleSHA256": "da20d44efe6edc1f7546c1f388ace98844bbe7fc945e6f509f99e2e34faec355",
+  "repoSHA256": "ba3b7b1b462ab39f0bc74158ea0e0c6afc2ef5c94be4149b5338849d47e6a646"
+}

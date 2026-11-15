@@ -1,0 +1,38 @@
+{
+  "role": "CODE reviewer",
+  "stage1": "PASS",
+  "sourceFiles": {
+    "argo-adoption-v3-root-run.py": "69477ec5d41ad5492eee66d876344cd96fff3106cc0e2825e15f4a60926a7f45",
+    "argo-adoption-v3-deploy-test.py": "b3946c1ca96deeb840407ae7fae1c01865e218f1339d42dd137e91f4327565f7",
+    "argo-adoption-v3-verify.py": "857dd597f81b81b6d6de17927240ff6c6bff5e0dd63fa53a3360f03256ae6352",
+    "argo-reviewed-live-v4-contract.py": "5adb78dededc09860f5e0ece51c693e781019b1903f08a49e23d3b8e31717cbb",
+    "argo-reviewed-live-v4-prepare.py": "19ebb6b5c8e416e502afa8228d68ce99358ce20be9d9af0a6683c35e7d0bb70c",
+    "argo-reviewed-live-v4-test.py": "99dbed5421e621453f0208230463e39f5960590f944e58b44d6d5cf8a05a03fe",
+    "argo-reviewed-live-v4.py": "b650c47d5d2c7c3122a8c414c56cdc9a8adbad1f19517cd09827c8243192472b",
+    "argo-reviewed-remote-staged-v4.py": "e476e7ff6a024de5234a369b1b91e02d857cad131ec4b036d586b524680c0a6b"
+  },
+  "exactPins": {
+    ".harness/evidence/argo-adoption-v3-20261110/argo-adoption-v3-artifact-seal.json": "6f3174aa85fd8a7dd6369e3aef289363a36c327655f497e2d65148a5853868a3",
+    ".harness/evidence/argo-adoption-v2-20261110/argo-adoption-v2-artifact-seal.json": "fb57123370e5c99d0149faa32237ff1b5462ad70422e4093f446938f0a875d03",
+    ".harness/evidence/argo-adoption-20261110/artifact-seal.json": "08ba8f44013b10f92c533a1f96ed55a7346b0f6e17a968b8c313fdf1ab4d79ec",
+    ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/argo-reviewed-phase-request-v4.json": "e7934f5656cd8aa537af487e898cd91431240aac955c76d3b7cfd9c0efc85b5d",
+    ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-argo-lsp-clean-tools-source-delta.diff": "cd7cec76900901725d48fe713bb4304c92cb50f4e840b3cc3f2658653ea8fd57",
+    ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-argo-lsp-clean-tools-final-verification.json": "c7a88f0ce6b9d4f48ce05dee30ab254de9e9c922c53646f2e2d827d61102dd9e",
+    ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/python-lsp-argo-v3-live-v4-20261110T041425075704.json": "87ef3b21636f1b006239a67c5f3949fff55e17bb4efbd41eea989c0b02429f59"
+  },
+  "exactSourceDeltaMatched": true,
+  "originalPreserved": 1566,
+  "changedBaselinePaths": [
+    ".local/ops-acceptance/resume-argo-lsp-clean-tools-generator-report-events.jsonl"
+  ],
+  "missingOriginalPaths": [],
+  "namedLogsVerified": true,
+  "actualPrepare": "PASS",
+  "continuousCheckedBinaryFd": true,
+  "binarySize": 206041319,
+  "binarySHA256": "cd68356983230edfa0c013235eccba4381a5fbe00d7076f47b7d4b7b8578138b",
+  "transportImported": false,
+  "remoteExecuted": false,
+  "P0Approved": false,
+  "seconds": 0.656
+}

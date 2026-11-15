@@ -1,0 +1,53 @@
+{
+  "tool": "TypeScript LanguageService",
+  "version": "6.0.3",
+  "checkJs": false,
+  "typeSafetyApproval": false,
+  "baseProducerApplied": false,
+  "diagnostics": [
+    {
+      "file": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.harness\\evidence\\2026-11-07-ops-planned-task-closeout\\o4-real-packaging-1794279171056\\proposed-base\\candidate-descriptor.mjs",
+      "sha256": "d0602231061a28717cae154908ffffa7b31ca10fffd4b6687eab5364ea463666",
+      "syntactic": [],
+      "semantic": [],
+      "suggestions": []
+    },
+    {
+      "file": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.harness\\evidence\\2026-11-07-ops-planned-task-closeout\\o4-real-packaging-1794279171056\\proposed-base\\build-candidate-artifact.mjs",
+      "sha256": "6df8e50aebfd1bd2b5be2ec80bfd3b51a41279a6c5a3f1b2ba31b3e94d102525",
+      "syntactic": [],
+      "semantic": [],
+      "suggestions": []
+    },
+    {
+      "file": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.harness\\evidence\\2026-11-07-ops-planned-task-closeout\\o4-real-packaging-1794279171056\\proposed-base\\candidate-artifact.test.mjs",
+      "sha256": "f7dfecd2ade669ad264e3aa7a6a26fadec8bad53b83b97dacd0d9ba4bd6907eb",
+      "syntactic": [],
+      "semantic": [],
+      "suggestions": []
+    },
+    {
+      "file": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\scripts\\business-overlay\\foundation-candidate.mjs",
+      "sha256": "e8e3cb25c3c052ab1e8111b60600f803ee4bd5e7b06090c89b391908364a1fd1",
+      "syntactic": [],
+      "semantic": [],
+      "suggestions": []
+    },
+    {
+      "file": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\scripts\\business-overlay\\rebuild-from-candidate.mjs",
+      "sha256": "cbcf32ed8246736eb78469eabffa9d80145c67bfaf96d4a9928d660cabc74e32",
+      "syntactic": [],
+      "semantic": [],
+      "suggestions": []
+    },
+    {
+      "file": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\scripts\\business-overlay\\foundation-candidate.test.mjs",
+      "sha256": "9fc65b83d994eb4fe0229a6a7d9428539c36c7f3fbce936775e270802f8d0acf",
+      "syntactic": [],
+      "semantic": [],
+      "suggestions": []
+    }
+  ],
+  "errors": 0,
+  "sourceStable": true
+}

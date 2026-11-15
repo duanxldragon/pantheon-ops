@@ -1,0 +1,6 @@
+{
+  "status": "completed",
+  "exitCode": 130,
+  "seconds": 5,
+  "command": "node gemini.js -p <source-only review> --approval-mode plan --output-format text; stdin=resume-gemini-permission-prompt.md"
+}

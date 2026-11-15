@@ -1,0 +1,411 @@
+{
+  "scope": "read-only capacity/provider preflight",
+  "host": "115.190.251.143",
+  "sshHostPolicy": "existing remote.connect(); pinned known_hosts; RejectPolicy; credentialref1",
+  "remoteResourcesCreated": 0,
+  "exitCode": 0,
+  "records": [
+    {
+      "kind": "capacity",
+      "memory": {
+        "MemTotalMi": 3916,
+        "MemAvailableMi": 1381,
+        "SwapTotalMi": 0,
+        "SwapFreeMi": 0
+      },
+      "uptimeSeconds": 8411,
+      "disk": "/dev/vda2               40013 13210     25080      35% /"
+    },
+    {
+      "kind": "provider-inventory",
+      "pods": [
+        {
+          "namespace": "kube-system",
+          "name": "coredns-54996dc9b4-5nv5c",
+          "phase": "Running",
+          "ready": true,
+          "containers": [
+            {
+              "image": "rancher/mirrored-coredns-coredns:1.14.6",
+              "resources": {
+                "limits": {
+                  "memory": "170Mi"
+                },
+                "requests": {
+                  "cpu": "100m",
+                  "memory": "70Mi"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "namespace": "kube-system",
+          "name": "helm-install-traefik-7c44w",
+          "phase": "Succeeded",
+          "ready": false,
+          "containers": [
+            {
+              "image": "rancher/klipper-helm:v0.13.3-build20260727",
+              "resources": {
+                "limits": {
+                  "cpu": "32",
+                  "memory": "32G"
+                },
+                "requests": {
+                  "cpu": "100m",
+                  "memory": "10M"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "namespace": "kube-system",
+          "name": "helm-install-traefik-crd-xcr87",
+          "phase": "Succeeded",
+          "ready": false,
+          "containers": [
+            {
+              "image": "rancher/klipper-helm:v0.13.3-build20260727",
+              "resources": {
+                "limits": {
+                  "cpu": "32",
+                  "memory": "32G"
+                },
+                "requests": {
+                  "cpu": "100m",
+                  "memory": "10M"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "namespace": "kube-system",
+          "name": "local-path-provisioner-58d557dc48-bb86x",
+          "phase": "Running",
+          "ready": true,
+          "containers": [
+            {
+              "image": "rancher/local-path-provisioner:v0.0.36",
+              "resources": {}
+            }
+          ]
+        },
+        {
+          "namespace": "kube-system",
+          "name": "metrics-server-6dc596dfb8-2wknq",
+          "phase": "Running",
+          "ready": true,
+          "containers": [
+            {
+              "image": "rancher/mirrored-metrics-server:v0.9.0",
+              "resources": {
+                "requests": {
+                  "cpu": "100m",
+                  "memory": "70Mi"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "namespace": "kube-system",
+          "name": "svclb-traefik-3fb9f78e-4jps8",
+          "phase": "Pending",
+          "ready": false,
+          "containers": [
+            {
+              "image": "rancher/klipper-lb:v0.4.17",
+              "resources": {}
+            },
+            {
+              "image": "rancher/klipper-lb:v0.4.17",
+              "resources": {}
+            }
+          ]
+        },
+        {
+          "namespace": "kube-system",
+          "name": "traefik-59b7647586-wpnzz",
+          "phase": "Pending",
+          "ready": false,
+          "containers": [
+            {
+              "image": "rancher/mirrored-library-traefik:3.7.8",
+              "resources": {}
+            }
+          ]
+        },
+        {
+          "namespace": "pantheon-p0-20261109",
+          "name": "loki",
+          "phase": "Running",
+          "ready": true,
+          "containers": [
+            {
+              "image": "docker.io/grafana/loki:3.6.3",
+              "resources": {
+                "limits": {
+                  "cpu": "1",
+                  "memory": "384Mi"
+                },
+                "requests": {
+                  "cpu": "50m",
+                  "memory": "64Mi"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "namespace": "pantheon-p0-20261109",
+          "name": "metrics",
+          "phase": "Running",
+          "ready": true,
+          "containers": [
+            {
+              "image": "docker.io/victoriametrics/victoria-metrics:v1.133.0",
+              "resources": {
+                "limits": {
+                  "cpu": "1",
+                  "memory": "256Mi"
+                },
+                "requests": {
+                  "cpu": "50m",
+                  "memory": "64Mi"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "namespace": "pantheon-p0-20261109",
+          "name": "tempo",
+          "phase": "Running",
+          "ready": true,
+          "containers": [
+            {
+              "image": "docker.io/grafana/tempo:2.9.0",
+              "resources": {
+                "limits": {
+                  "cpu": "1",
+                  "memory": "512Mi"
+                },
+                "requests": {
+                  "cpu": "50m",
+                  "memory": "64Mi"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "namespace": "pantheon-p0-20261109",
+          "name": "web-mysql",
+          "phase": "Running",
+          "ready": true,
+          "containers": [
+            {
+              "image": "docker.m.daocloud.io/library/mariadb:11.8.5",
+              "resources": {
+                "limits": {
+                  "cpu": "1",
+                  "memory": "512Mi"
+                },
+                "requests": {
+                  "cpu": "50m",
+                  "memory": "64Mi"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "namespace": "pantheon-p0-20261109",
+          "name": "web-redis",
+          "phase": "Running",
+          "ready": true,
+          "containers": [
+            {
+              "image": "docker.m.daocloud.io/library/redis:7.4.2",
+              "resources": {
+                "limits": {
+                  "cpu": "1",
+                  "memory": "128Mi"
+                },
+                "requests": {
+                  "cpu": "50m",
+                  "memory": "64Mi"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "namespace": "pantheon-p0-argocd-20261109",
+          "name": "argocd-application-controller-0",
+          "phase": "Running",
+          "ready": true,
+          "containers": [
+            {
+              "image": "quay.io/argoproj/argocd:v3.2.0",
+              "resources": {
+                "limits": {
+                  "cpu": "500m",
+                  "memory": "384Mi"
+                },
+                "requests": {
+                  "cpu": "50m",
+                  "memory": "64Mi"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "namespace": "pantheon-p0-argocd-20261109",
+          "name": "argocd-redis-8697c9d7b5-krcv7",
+          "phase": "Running",
+          "ready": true,
+          "containers": [
+            {
+              "image": "public.ecr.aws/docker/library/redis:8.2.2-alpine",
+              "resources": {
+                "limits": {
+                  "cpu": "500m",
+                  "memory": "128Mi"
+                },
+                "requests": {
+                  "cpu": "50m",
+                  "memory": "64Mi"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "namespace": "pantheon-p0-argocd-20261109",
+          "name": "argocd-repo-server-8dd9658c9-mb9x7",
+          "phase": "Running",
+          "ready": true,
+          "containers": [
+            {
+              "image": "quay.io/argoproj/argocd:v3.2.0",
+              "resources": {
+                "limits": {
+                  "cpu": "500m",
+                  "memory": "256Mi"
+                },
+                "requests": {
+                  "cpu": "50m",
+                  "memory": "64Mi"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "namespace": "pantheon-p0-argocd-20261109",
+          "name": "argocd-server-56dd54ddf9-jd5m9",
+          "phase": "Running",
+          "ready": true,
+          "containers": [
+            {
+              "image": "quay.io/argoproj/argocd:v3.2.0",
+              "resources": {
+                "limits": {
+                  "cpu": "500m",
+                  "memory": "192Mi"
+                },
+                "requests": {
+                  "cpu": "50m",
+                  "memory": "64Mi"
+                }
+              }
+            }
+          ]
+        }
+      ],
+      "namespaces": [
+        {
+          "name": "default",
+          "uid": "2abf349d-95bb-4c3d-99cf-03921803e07d",
+          "owner": null
+        },
+        {
+          "name": "kube-node-lease",
+          "uid": "5f4a20c3-baba-498d-8809-187fe6045ded",
+          "owner": null
+        },
+        {
+          "name": "kube-public",
+          "uid": "4f84e251-ee56-4bac-8aa0-49352fb2a6cc",
+          "owner": null
+        },
+        {
+          "name": "kube-system",
+          "uid": "b87ecfc1-9f6d-4fbf-bb8d-d636bdbe045d",
+          "owner": null
+        },
+        {
+          "name": "pantheon-p0-20261109",
+          "uid": "907d1020-c85e-434b-ac89-36c7c78e7b1f",
+          "owner": null
+        },
+        {
+          "name": "pantheon-p0-argocd-20261109",
+          "uid": "e6821e41-3e59-477f-af84-11ba32627360",
+          "owner": "ops-p0-20261109"
+        }
+      ]
+    },
+    {
+      "kind": "velero-crds",
+      "items": []
+    },
+    {
+      "kind": "cached-images",
+      "images": [
+        "docker.io/grafana/loki:3.6.3",
+        "docker.io/grafana/tempo:2.9.0",
+        "docker.io/rancher/klipper-helm:v0.13.3-build20260727",
+        "docker.io/rancher/local-path-provisioner:v0.0.36",
+        "docker.io/rancher/mirrored-coredns-coredns:1.14.6",
+        "docker.io/rancher/mirrored-metrics-server:v0.9.0",
+        "docker.io/rancher/mirrored-pause:3.10.2",
+        "docker.io/victoriametrics/victoria-metrics:v1.133.0",
+        "docker.m.daocloud.io/grafana/loki:3.6.3",
+        "docker.m.daocloud.io/grafana/tempo:2.9.0",
+        "docker.m.daocloud.io/library/mariadb:11.8.5",
+        "docker.m.daocloud.io/library/mariadb@sha256:345fa26d595e8c7fe298e0c4098ed400356f502458769c8902229b3437d6da2b",
+        "docker.m.daocloud.io/library/redis:7.4.2",
+        "docker.m.daocloud.io/library/redis@sha256:fbdbaea47b9ae4ecc2082ecdb4e1cea81e32176ffb1dcf643d422ad07427e5d9",
+        "docker.m.daocloud.io/rancher/klipper-helm:v0.13.3-build20260727",
+        "docker.m.daocloud.io/rancher/local-path-provisioner:v0.0.36",
+        "docker.m.daocloud.io/rancher/mirrored-coredns-coredns:1.14.6",
+        "docker.m.daocloud.io/rancher/mirrored-metrics-server:v0.9.0",
+        "docker.m.daocloud.io/rancher/mirrored-pause:3.10.2",
+        "docker.m.daocloud.io/victoriametrics/victoria-metrics:v1.133.0",
+        "public.ecr.aws/docker/library/redis:8.2.2-alpine",
+        "public.ecr.aws/docker/library/redis@sha256:59b6e694653476de2c992937ebe1c64182af4728e54bb49e9b7a6c26614d8933",
+        "quay.io/argoproj/argocd:v3.2.0",
+        "quay.io/argoproj/argocd@sha256:3c9b3b33a7e6c9c56a9d8417af1845afc516f714941962208b125017bbc1e4b1",
+        "sha256:06c425ea32fada30ffe48e2bf9eed3666cce2ea088fd8c9de5ed4ed18b15de4f",
+        "sha256:0c39d4d4587dd16a83a355976070cc2373c0187558bfea77df74146a1efd316a",
+        "sha256:38769e68987be09b11cde7aac2d6b163910d5e075f1564c1fc7ac5efc0517ec4",
+        "sha256:4a83b15d3ecfe0d916b2d0a7991bc2854a629b8097017c2ee1ff65b30ae4c07c",
+        "sha256:520212b8b0fcd9309d7362d592f513b72880fa5a4e9e8b91442e7ee3b622c6a9",
+        "sha256:5d79a9ce29f8b3fe50fd5c07ee1bf654b5cec557b895835825bf6825d525e4f2",
+        "sha256:65750d044ac86b73a473c01a854d5f7f2b55a77b43f007d0e10a5db5dd1d926f",
+        "sha256:8e0d8d2218ec831bae4293da6ebb77a000dfea7a35fc18175fe9d24bf2a4cb31",
+        "sha256:9254fb81aa65831cce153dfdf883805d40157b78ccec0c10fd82c499113fd1de",
+        "sha256:bfe9184ea9e5b839e6b01d279a2e508a3bb50e66c843dfd2183dd7608550ce78",
+        "sha256:d3cbb1b21dbee6c33d74a5100cd10985b6f97140d2c37197a86fe65a194fe474",
+        "sha256:d7b01abacd67fcd2cd2f61b87cb46c850c4f090e77d3d5ae0878b9894e0fcd0f"
+      ]
+    }
+  ],
+  "stderrPresent": false
+}

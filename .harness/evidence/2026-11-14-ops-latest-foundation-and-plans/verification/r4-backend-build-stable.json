@@ -1,0 +1,23 @@
+{
+  "name": "r4-backend-build-stable",
+  "command": [
+    "go",
+    "build",
+    "-buildvcs=false",
+    "-mod=readonly",
+    "-o",
+    "../../ops-20261114-backup/runtime/pantheon-ops.exe",
+    "./cmd/server"
+  ],
+  "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.tmp\\ops-v0188-final-r4\\backend",
+  "exitCode": 0,
+  "signal": null,
+  "elapsedSeconds": 23.155,
+  "privateFixtureSHA256": "8796d1a6c2b599e8e5406df8848638287d93827fb4436e6373c271b79cca5f05",
+  "logSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "logPrivate": true,
+  "credentialValuesPrinted": false,
+  "passEvents": 0,
+  "skipEvents": 0,
+  "failEvents": 0
+}

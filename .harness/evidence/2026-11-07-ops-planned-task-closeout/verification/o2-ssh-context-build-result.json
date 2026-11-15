@@ -1,0 +1,16 @@
+{
+  "command": [
+    "go",
+    "build",
+    "-mod=readonly",
+    "-o",
+    "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.tmp\\ops-priority-runtime\\server-o2-ssh-context.exe",
+    "./cmd/server"
+  ],
+  "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\backend",
+  "exitCode": 0,
+  "elapsedSeconds": 6.172000000020489,
+  "artifact": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/o2-ssh-context-build.txt",
+  "sourceHashesStable": true,
+  "hashedFiles": 695
+}

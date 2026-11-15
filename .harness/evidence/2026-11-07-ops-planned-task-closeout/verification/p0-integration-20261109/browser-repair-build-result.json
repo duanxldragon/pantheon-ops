@@ -1,0 +1,6 @@
+{
+  "command": "npm.cmd run build",
+  "cwd": "frontend",
+  "exitCode": 0,
+  "elapsedSeconds": 40.54700000000048
+}

@@ -1,0 +1,107 @@
+
+> check:business-foundation
+> npm run check:business-boundaries && npm run check:business-overlay && npm run test:business-boundaries && npm run test:business-overlay
+
+
+> check:business-boundaries
+> node scripts/check-business-module-boundaries.mjs
+
+business module boundary check passed
+
+> check:business-overlay
+> node scripts/business-overlay/check-business-overlay.mjs
+
+OK business overlay contract (54 declared paths, rebuilt tree)
+
+> test:business-boundaries
+> node --test tests/scripts/check-business-module-boundaries.test.mjs
+
+✔ fails forbidden cross-module request-path access (65.4095ms)
+✔ fails raw scope table access in K8s and BizScope host mutation (59.3174ms)
+✔ fails capability contracts that expose GORM types (95.6655ms)
+✔ passes owner access and explicitly allowlisted fixtures (92.7583ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 399.5537
+
+> test:business-overlay
+> node --test tests/scripts/business-overlay/*.test.mjs
+
+✔ passes when all shared files match snapshot bytes (351.2561ms)
+✔ fails on drifted shared file and passes once allowlisted (355.1548ms)
+✔ excludes business overlay paths from comparison (245.3809ms)
+✔ fails loudly when the lock declares no sharedPaths (245.5513ms)
+✔ reports stale allowlist entries (250.7573ms)
+✔ accepts only byte-identical derived business migration targets (294.5038ms)
+▶ rejects tampered migration bytes even when the target is allowlisted
+  ✔ up (294.0394ms)
+  ✔ down (374.7586ms)
+✔ rejects tampered migration bytes even when the target is allowlisted (669.9223ms)
+✔ rejects undeclared targets even when the report calls them generated (388.578ms)
+✔ continues to protect Base migrations listed in generatedFiles (285.2175ms)
+▶ requires regular canonical migration source files
+  ✔ up missing (275.7569ms)
+  ✔ up directory (295.2535ms)
+  ✔ down missing (465.0768ms)
+  ✔ down directory (309.0836ms)
+✔ requires regular canonical migration source files (1346.326ms)
+✔ rejects a missing derived target (288.1154ms)
+▶ rejects Base version collisions in the snapshot
+  ✔ 000032_backfill.up.sql (377.0041ms)
+  ✔ 32_future_base.down.sql (307.6595ms)
+✔ rejects Base version collisions in the snapshot (685.2457ms)
+▶ cannot exempt generic product paths through migration declarations
+  ✔ businessPaths (297.6292ms)
+  ✔ repositoryOverlayPaths (355.2629ms)
+✔ cannot exempt generic product paths through migration declarations (653.4773ms)
+✔ uses snapshot bytes and migration inventory nested inside a differing Ops HEAD (405.3962ms)
+✔ detects shared files deleted from the consumer (268.8131ms)
+✔ production drift command refuses local Base arguments (99.0669ms)
+✔ selects latest stable GitHub release, validates four assets and atomically pins it (456.9416ms)
+✔ rebuild source is re-extracted from verified archive after cache tampering (460.6036ms)
+▶ missing asset, prerelease, wrong tag and altered GitHub digest preserve prior lock
+  ✔ missing (265.2206ms)
+  ✔ prerelease (267.4717ms)
+  ✔ wrong-tag (287.8051ms)
+  ✔ digest (298.9586ms)
+✔ missing asset, prerelease, wrong tag and altered GitHub digest preserve prior lock (1120.3735ms)
+✔ pinned archive corruption is rejected before extraction or network access (512.4862ms)
+✔ repo.tar commit and pinned GitHub tag must agree (464.5868ms)
+✔ network failure and unsafe lock cache path cannot change the lock (382.6998ms)
+✔ rejects archive traversal, Git metadata and Windows drive paths (0.9979ms)
+✔ git-archive commit is checked even when checksum and manifest assets look valid (660.9911ms)
+✔ cache junction cannot redirect official assets outside Ops (348.5149ms)
+✔ explicit v0.18.4 consumption fetches the requested GitHub tag instead of latest (406.0077ms)
+✔ wrong requested release leaves existing lock untouched (371.4987ms)
+✔ invalid explicit release cannot trigger GitHub access or local consumption (345.4096ms)
+✔ normalizes transitive and test-only imports before readonly loading without further module changes (873.4142ms)
+✔ fails on an unresolved dependency instead of reporting a complete graph (10194.6546ms)
+✔ rebuilds a deterministic Base snapshot with generated business registries (5990.8614ms)
+✔ rejects a business path that overwrites a Base hook file (496.8749ms)
+✔ rejects a manifest that claims a generic product path (469.6199ms)
+✔ validateReleaseBundleChecksum accepts a matching checksum (3.3221ms)
+✔ validateReleaseBundleChecksum rejects a mismatched checksum (2.5518ms)
+✔ validateReleaseBundleChecksum rejects missing checksums (1.1613ms)
+✔ release bundle checksum validation rejects tampered bundles via lock file path (840.7341ms)
+✔ refuses to consume a live base tree when no lock snapshot is present (185.8626ms)
+✔ migration assembly requires module-owned, paired and unique inputs (0.6537ms)
+▶ migration assembly rejects missing or non-file sources before copying either half
+  ✔ up missing (563.4021ms)
+  ✔ up directory (478.7582ms)
+  ✔ down missing (533.2599ms)
+  ✔ down directory (604.691ms)
+✔ migration assembly rejects missing or non-file sources before copying either half (2181.6853ms)
+✔ production rebuild refuses local Base arguments (149.078ms)
+ℹ tests 59
+ℹ suites 0
+ℹ pass 59
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 11185.7865

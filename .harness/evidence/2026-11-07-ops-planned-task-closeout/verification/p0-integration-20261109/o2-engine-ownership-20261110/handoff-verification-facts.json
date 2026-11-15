@@ -1,0 +1,22 @@
+{
+  "sourceStable": true,
+  "verifiedFileCount": 46,
+  "changedDeployFileCount": 10,
+  "topLevelPasses": 157,
+  "skippedLiveTests": [
+    "--- SKIP: TestDeployLiveVMExecution (0.00s)",
+    "--- SKIP: TestDeployLiveVMCancellation (0.00s)"
+  ],
+  "ownershipTestsSkipped": 0,
+  "redArtifacts": [
+    "red-snapshot-actual.txt",
+    "red-discovery-lock-order.txt",
+    "red-deadline-historical-projection-actual.txt",
+    "preflight-stable-v2.txt"
+  ],
+  "requiredRedisEvidence": "redis-required-stable-v2.json",
+  "ownedTimeoutFixturesCleaned": 2,
+  "foreignFixturesPreserved": 2,
+  "nativeDiagnostic": "Pre-existing unnecessary fmt.Sprintf suggestion at deploy_service.go:4612; no compile/type diagnostics",
+  "sourceAcceptance": "Pending independent implementation CODE/ARCH and root full-tree gates; O2/P0 not closed"
+}

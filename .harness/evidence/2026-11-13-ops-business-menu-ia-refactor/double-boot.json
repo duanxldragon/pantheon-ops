@@ -1,0 +1,32 @@
+{
+  "taskId": "2026-11-13-ops-business-menu-ia-refactor",
+  "autoMigrate": false,
+  "schema_identifier": "ops_ia_doubleboot_e50a5c76",
+  "schema_dropped": true,
+  "twoConsecutiveBootsReady": true,
+  "boot1ReadyElapsed_s": 50.02,
+  "boot2ReadyElapsed_s": 38.5,
+  "menuRowCountBoot1": 248,
+  "menuRowCountBoot2": 248,
+  "seedContentIdempotent": true,
+  "seedIdOrderSHA_boot1": "b255d5dc1129f82edcfc4a2311338424be441eabafca99d21361242b08bd20bd",
+  "seedIdOrderSHA_boot2": "e05831beda17aed79bf96fb5f14745b893205b8e1213357fab95cb7bf1458719",
+  "seedContentSetSHA256": "88ac5d3af764487e4826e64d942ef42de170229164277b049118998965d2d8ef",
+  "rowIdOrderDiffersBetweenBoots": true,
+  "rowIdChurnNote": "Menu content set is byte-identical across boots; the only difference is PK order of 19 business.cmdb F permission rows, whose ids are re-assigned each boot (content unchanged). Unrelated to the IA refactor.",
+  "checks": {
+    "bizscopeM": true,
+    "bizscopeC_scopes": true,
+    "bizscopeC_hostBindings": true,
+    "bizscopeC_environments": true,
+    "serviceCatalogM": true,
+    "serviceC_applications": true,
+    "serviceC_services": true,
+    "serviceC_instances": true,
+    "retiredPathsAbsent": true,
+    "serviceCatalogComponentAbsent": true
+  },
+  "orphanRoleMenuRows": 0,
+  "conclusion": "PASS",
+  "retainedLogsDir": ".local\\ops-acceptance\\ia-double-boot-logs\\20261114_184510"
+}

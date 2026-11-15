@@ -1,0 +1,16 @@
+{
+  "approval": false,
+  "credentialsLoaded": false,
+  "elapsedScope": "FINAL verification start through handoff creation",
+  "elapsedSeconds": 1059.212,
+  "executionTransport": "native Codex tools; installed Generator CLI partials resumed; no new CLI completion claimed",
+  "exitCode": 0,
+  "independent": false,
+  "modelOverride": false,
+  "remoteExecuted": false,
+  "report": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/o2-current-live-v12/handoff-final.md",
+  "reportSHA256": "fad4d8e96beae1f9329140475b5d1307ce286cffd407905e118e2a83bd03976c",
+  "role": "executor",
+  "runtimeCasesExecuted": 0,
+  "subjectSHA256": "eb0a1cf9b56afec530deb0eeea7149389b64ef5bfbe7d26b2da9d6705ae24d9d"
+}

@@ -1,0 +1,101 @@
+[smoke-suite] API base http://127.0.0.1:24484/api/v1
+[generated-modules] cleanup complete
+{
+  "modules": 0,
+  "schemas": 1,
+  "registries": 4,
+  "i18n": 5
+}
+(!) Your Vite config uses features that are unsupported by `configLoader: 'native'`, which is planned to become the default in a future major version of Vite:
+  - `__dirname` (vite.config.ts:32:25). Use `import.meta.dirname` instead
+Set `VITE_CONFIG_NATIVE_IGNORE_WARNING=true` to suppress this warning.
+Smoke Vite ready at http://127.0.0.1:24578/
+
+Running 2 tests using 1 worker
+
+(node:12900) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x  1 tests\smoke\business\deploy\deploy-workbench.spec.ts:14:3 › deployment workbench sources, logs, keyboard and mobile (light) (918ms)
+(node:3380) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x  2 tests\smoke\business\deploy\deploy-workbench.spec.ts:14:3 › deployment workbench sources, logs, keyboard and mobile (dark) (185ms)
+
+
+  1) tests\smoke\business\deploy\deploy-workbench.spec.ts:14:3 › deployment workbench sources, logs, keyboard and mobile (light) 
+
+    Error: apiRequestContext.post: connect ECONNREFUSED 127.0.0.1:24484
+    Call log:
+      - → POST http://127.0.0.1:24484/api/v1/auth/login
+        - user-agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/156.0.8078.4 Safari/537.36
+        - accept: */*
+        - accept-encoding: gzip,deflate,br
+        - content-type: application/json
+        - content-length: 40
+
+
+       at smoke\helpers\auth.ts:57
+
+      55 | ): Promise<BrowserLoginResult> {
+      56 |   const request = resolveRequestContext(requestLike);
+    > 57 |   const response = await request.post(`${apiBaseUrl}/auth/login`, {
+         |                                  ^
+      58 |     data: credentials,
+      59 |   });
+      60 |   expect(response.ok()).toBeTruthy();
+        at loginByApi (D:\workspace\go\pantheon-platform\pantheon-ops\frontend\tests\smoke\helpers\auth.ts:57:34)
+        at D:\workspace\go\pantheon-platform\pantheon-ops\frontend\tests\smoke\business\deploy\deploy-workbench.spec.ts:15:25
+
+    Error Context: ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\workbench-browser\smoke-business-deploy-depl-58206--keyboard-and-mobile-light-\error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\workbench-browser\smoke-business-deploy-depl-58206--keyboard-and-mobile-light-\trace.zip
+    Usage:
+
+        npx playwright show-trace ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\workbench-browser\smoke-business-deploy-depl-58206--keyboard-and-mobile-light-\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  2) tests\smoke\business\deploy\deploy-workbench.spec.ts:14:3 › deployment workbench sources, logs, keyboard and mobile (dark) 
+
+    Error: apiRequestContext.post: connect ECONNREFUSED 127.0.0.1:24484
+    Call log:
+      - → POST http://127.0.0.1:24484/api/v1/auth/login
+        - user-agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/156.0.8078.4 Safari/537.36
+        - accept: */*
+        - accept-encoding: gzip,deflate,br
+        - content-type: application/json
+        - content-length: 40
+
+
+       at smoke\helpers\auth.ts:57
+
+      55 | ): Promise<BrowserLoginResult> {
+      56 |   const request = resolveRequestContext(requestLike);
+    > 57 |   const response = await request.post(`${apiBaseUrl}/auth/login`, {
+         |                                  ^
+      58 |     data: credentials,
+      59 |   });
+      60 |   expect(response.ok()).toBeTruthy();
+        at loginByApi (D:\workspace\go\pantheon-platform\pantheon-ops\frontend\tests\smoke\helpers\auth.ts:57:34)
+        at D:\workspace\go\pantheon-platform\pantheon-ops\frontend\tests\smoke\business\deploy\deploy-workbench.spec.ts:15:25
+
+    Error Context: ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\workbench-browser\smoke-business-deploy-depl-d16f5-s-keyboard-and-mobile-dark-\error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\workbench-browser\smoke-business-deploy-depl-d16f5-s-keyboard-and-mobile-dark-\trace.zip
+    Usage:
+
+        npx playwright show-trace ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\workbench-browser\smoke-business-deploy-depl-d16f5-s-keyboard-and-mobile-dark-\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  2 failed
+    tests\smoke\business\deploy\deploy-workbench.spec.ts:14:3 › deployment workbench sources, logs, keyboard and mobile (light) 
+    tests\smoke\business\deploy\deploy-workbench.spec.ts:14:3 › deployment workbench sources, logs, keyboard and mobile (dark) 
+[generated-modules] cleanup complete
+{
+  "modules": 0,
+  "schemas": 1,
+  "registries": 4,
+  "i18n": 5
+}

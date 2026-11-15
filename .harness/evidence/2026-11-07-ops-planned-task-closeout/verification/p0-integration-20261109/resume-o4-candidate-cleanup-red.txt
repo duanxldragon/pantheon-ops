@@ -1,0 +1,331 @@
+ALLOWED_DRIFT backend/modules/business/business.go — fixture overlay hook
+ALLOWED_DRIFT frontend/src/core/router/modules.ts — fixture overlay hook
+OK shared drift check: 5 shared files compared, 3 identical to base, 2 allowlisted drift, 0 business-overlay files skipped, 2 derived business migrations verified (base=C:\Users\xiaolong\AppData\Local\Temp\ops-candidate-slgebG\ops\.tmp\foundation-candidates\candidate-5e4757c4069b55bdacd523289dd85f7d9786ce939f06f5ece1610f7bf627fad1\snapshot)
+DRIFT_MODIFIED backend/modules/business/business.go
+DRIFT_MODIFIED frontend/src/core/router/modules.ts
+FAIL shared drift check: 2 modified, 0 missing in base, 0 stale allowlist (5 shared files compared, 0 business-overlay files skipped, 2 derived business migrations verified, base=C:\Users\xiaolong\AppData\Local\Temp\ops-candidate-0PxBWl\ops\.tmp\foundation-candidates\candidate-5e4757c4069b55bdacd523289dd85f7d9786ce939f06f5ece1610f7bf627fad1\snapshot)
+✖ cleanup preserves renamed original and real replacement: extraction/stage (926.8631ms)
+✖ cleanup preserves renamed original and real replacement: extraction/snapshot (926.9718ms)
+✖ cleanup preserves renamed original and real replacement: extraction/nested (939.4695ms)
+✖ cleanup preserves renamed original and real replacement: extraction/ancestor (968.041ms)
+✖ cleanup preserves renamed original and real replacement: assembly/stage (1388.1931ms)
+✖ cleanup preserves renamed original and real replacement: assembly/snapshot (1211.8057ms)
+✖ cleanup preserves renamed original and real replacement: assembly/nested (1498.9625ms)
+✖ cleanup preserves renamed original and real replacement: assembly/ancestor (1300.3973ms)
+✖ cleanup preserves renamed original and real replacement: assembly/assembled (1037.6332ms)
+✖ cleanup refuses an unknown descendant before removing any owned files (1119.0894ms)
+✔ cleanup removes an unchanged extracted directory instance (860.5613ms)
+✔ schema1 source-interface mapping matches the producer and rejects contradictory metadata (663.1366ms)
+✔ requires external descriptor pin and rejects descriptor/archive tamper before staging (546.6183ms)
+✔ rejects descriptor edit/revert during extraction and bounded input overflow (851.0135ms)
+▶ rejects hostile regular tar paths, aliases, config and extension/link/special types with valid archive pins
+  ✔ ../escape (624.6294ms)
+  ✔ /absolute (669.2241ms)
+  ✔ C:/outside (792.9955ms)
+  ✔ //host/share (745.7258ms)
+  ✔ dir\file (710.8864ms)
+  ✔ x:y (698.1488ms)
+  ✔ .env.local (589.4252ms)
+  ✔ config/secrets.json (729.4422ms)
+  ✔ .aws/credentials (603.8355ms)
+  ✔ aux.txt (838.8832ms)
+  ✔ file. (1041.3741ms)
+  ✔ a//b (844.0175ms)
+  ✔ tar type 1 (947.7776ms)
+  ✔ tar type 2 (1023.9105ms)
+  ✔ tar type 3 (1071.9765ms)
+  ✔ tar type 5 (727.7811ms)
+  ✔ tar type x (711.6915ms)
+  ✔ tar type g (776.604ms)
+  ✔ tar type L (597.1894ms)
+  ✔ tar type K (823.5649ms)
+✔ rejects hostile regular tar paths, aliases, config and extension/link/special types with valid archive pins (15575.3456ms)
+✔ rejects duplicate/case/directory collisions, missing entries, wrong file hashes and corrupt tar framing (641.3889ms)
+✔ false capability comments cannot replace real declarations even when all digests are consistent (679.9764ms)
+▶ fresh extraction is sealed; mutations, additions, edit/revert and snapshot reuse refuse
+  ✔ write (901.339ms)
+  ✔ addition (1159.3865ms)
+  ✔ revert (1369.8723ms)
+  ✔ root-revert (1026.9859ms)
+✔ fresh extraction is sealed; mutations, additions, edit/revert and snapshot reuse refuse (4458.7384ms)
+✔ rebuild calls real assembly/drift seams, derives only declared migrations, preserves exact locks and never reads current Base sources (1807.7096ms)
+✔ protects repository/foreign/existing targets and rejects alternative manifest ownership (1385.0675ms)
+✔ rejects junction ancestors and hard-linked artifact/declared source without touching foreign bytes (708.4037ms)
+▶ assembly rejects snapshot/artifact and declared Ops mutations including edit/revert; failure cleans owned stage only
+  ✔ snapshot (1144.2712ms)
+  ✔ artifact (1197.2397ms)
+  ✔ business (1281.237ms)
+  ✔ manifest (1296.0695ms)
+  ✔ lock (1130.1679ms)
+  ✔ revert (1633.2015ms)
+  ✔ addition (1361.7338ms)
+  ✔ git-selection (1727.7954ms)
+✔ assembly rejects snapshot/artifact and declared Ops mutations including edit/revert; failure cleans owned stage only (10774.2427ms)
+▶ drift and migration conflicts refuse candidate publication
+  ✔ unallowlisted shared modification (1569.0725ms)
+  ✔ Base migration conflict (1050.0267ms)
+✔ drift and migration conflicts refuse candidate publication (2619.9328ms)
+✔ independently pinned build receipt binds source capability identity and exact executable bytes (823.4885ms)
+✔ CLI help is precise; unsupported, duplicate, unpinned and formal-source options refuse (456.4986ms)
+ℹ tests 59
+ℹ suites 0
+ℹ pass 49
+ℹ fail 10
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 54310.5371
+
+✖ failing tests:
+
+test at scripts\business-overlay\foundation-candidate.test.mjs:211:5
+✖ cleanup preserves renamed original and real replacement: extraction/stage (926.8631ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + 'Error'
+  - 'CandidateCleanupError'
+  
+      at Object.<anonymous> (file:///D:/workspace/go/pantheon-platform/pantheon-ops/scripts/business-overlay/foundation-candidate.test.mjs:201:12)
+      at expectedException (node:assert:578:17)
+      at expectsError (node:assert:703:21)
+      at strict.throws (node:assert:759:3)
+      at assertCleanupRefused (file:///D:/workspace/go/pantheon-platform/pantheon-ops/scripts/business-overlay/foundation-candidate.test.mjs:200:10)
+      at TestContext.<anonymous> (file:///D:/workspace/go/pantheon-platform/pantheon-ops/scripts/business-overlay/foundation-candidate.test.mjs:239:11)
+      at Test.runInAsyncScope (node:async_hooks:228:14)
+      at Test.run (node:internal/test_runner/test:1118:25)
+      at Test.start (node:internal/test_runner/test:1015:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:358:17) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'Error',
+    expected: 'CandidateCleanupError',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at scripts\business-overlay\foundation-candidate.test.mjs:211:5
+✖ cleanup preserves renamed original and real replacement: extraction/snapshot (926.9718ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + 'Error'
+  - 'CandidateCleanupError'
+  
+      at Object.<anonymous> (file:///D:/workspace/go/pantheon-platform/pantheon-ops/scripts/business-overlay/foundation-candidate.test.mjs:201:12)
+      at expectedException (node:assert:578:17)
+      at expectsError (node:assert:703:21)
+      at strict.throws (node:assert:759:3)
+      at assertCleanupRefused (file:///D:/workspace/go/pantheon-platform/pantheon-ops/scripts/business-overlay/foundation-candidate.test.mjs:200:10)
+      at TestContext.<anonymous> (file:///D:/workspace/go/pantheon-platform/pantheon-ops/scripts/business-overlay/foundation-candidate.test.mjs:239:11)
+      at Test.runInAsyncScope (node:async_hooks:228:14)
+      at Test.run (node:internal/test_runner/test:1118:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:787:18)
+      at Test.postRun (node:internal/test_runner/test:1247:19) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'Error',
+    expected: 'CandidateCleanupError',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at scripts\business-overlay\foundation-candidate.test.mjs:211:5
+✖ cleanup preserves renamed original and real replacement: extraction/nested (939.4695ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + 'Error'
+  - 'CandidateCleanupError'
+  
+      at Object.<anonymous> (file:///D:/workspace/go/pantheon-platform/pantheon-ops/scripts/business-overlay/foundation-candidate.test.mjs:201:12)
+      at expectedException (node:assert:578:17)
+      at expectsError (node:assert:703:21)
+      at strict.throws (node:assert:759:3)
+      at assertCleanupRefused (file:///D:/workspace/go/pantheon-platform/pantheon-ops/scripts/business-overlay/foundation-candidate.test.mjs:200:10)
+      at TestContext.<anonymous> (file:///D:/workspace/go/pantheon-platform/pantheon-ops/scripts/business-overlay/foundation-candidate.test.mjs:239:11)
+      at Test.runInAsyncScope (node:async_hooks:228:14)
+      at Test.run (node:internal/test_runner/test:1118:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:787:18)
+      at Test.postRun (node:internal/test_runner/test:1247:19) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'Error',
+    expected: 'CandidateCleanupError',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at scripts\business-overlay\foundation-candidate.test.mjs:211:5
+✖ cleanup preserves renamed original and real replacement: extraction/ancestor (968.041ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + 'Error'
+  - 'CandidateCleanupError'
+  
+      at Object.<anonymous> (file:///D:/workspace/go/pantheon-platform/pantheon-ops/scripts/business-overlay/foundation-candidate.test.mjs:201:12)
+      at expectedException (node:assert:578:17)
+      at expectsError (node:assert:703:21)
+      at strict.throws (node:assert:759:3)
+      at assertCleanupRefused (file:///D:/workspace/go/pantheon-platform/pantheon-ops/scripts/business-overlay/foundation-candidate.test.mjs:200:10)
+      at TestContext.<anonymous> (file:///D:/workspace/go/pantheon-platform/pantheon-ops/scripts/business-overlay/foundation-candidate.test.mjs:239:11)
+      at Test.runInAsyncScope (node:async_hooks:228:14)
+      at Test.run (node:internal/test_runner/test:1118:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:787:18)
+      at Test.postRun (node:internal/test_runner/test:1247:19) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'Error',
+    expected: 'CandidateCleanupError',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at scripts\business-overlay\foundation-candidate.test.mjs:211:5
+✖ cleanup preserves renamed original and real replacement: assembly/stage (1388.1931ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + 'Error'
+  - 'CandidateCleanupError'
+  
+      at Object.<anonymous> (file:///D:/workspace/go/pantheon-platform/pantheon-ops/scripts/business-overlay/foundation-candidate.test.mjs:201:12)
+      at expectedException (node:assert:578:17)
+      at expectsError (node:assert:703:21)
+      at strict.throws (node:assert:759:3)
+      at assertCleanupRefused (file:///D:/workspace/go/pantheon-platform/pantheon-ops/scripts/business-overlay/foundation-candidate.test.mjs:200:10)
+      at TestContext.<anonymous> (file:///D:/workspace/go/pantheon-platform/pantheon-ops/scripts/business-overlay/foundation-candidate.test.mjs:226:9)
+      at Test.runInAsyncScope (node:async_hooks:228:14)
+      at Test.run (node:internal/test_runner/test:1118:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:787:18)
+      at Test.postRun (node:internal/test_runner/test:1247:19) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'Error',
+    expected: 'CandidateCleanupError',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at scripts\business-overlay\foundation-candidate.test.mjs:211:5
+✖ cleanup preserves renamed original and real replacement: assembly/snapshot (1211.8057ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + 'Error'
+  - 'CandidateCleanupError'
+  
+      at Object.<anonymous> (file:///D:/workspace/go/pantheon-platform/pantheon-ops/scripts/business-overlay/foundation-candidate.test.mjs:201:12)
+      at expectedException (node:assert:578:17)
+      at expectsError (node:assert:703:21)
+      at strict.throws (node:assert:759:3)
+      at assertCleanupRefused (file:///D:/workspace/go/pantheon-platform/pantheon-ops/scripts/business-overlay/foundation-candidate.test.mjs:200:10)
+      at TestContext.<anonymous> (file:///D:/workspace/go/pantheon-platform/pantheon-ops/scripts/business-overlay/foundation-candidate.test.mjs:226:9)
+      at Test.runInAsyncScope (node:async_hooks:228:14)
+      at Test.run (node:internal/test_runner/test:1118:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:787:18)
+      at Test.postRun (node:internal/test_runner/test:1247:19) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'Error',
+    expected: 'CandidateCleanupError',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at scripts\business-overlay\foundation-candidate.test.mjs:211:5
+✖ cleanup preserves renamed original and real replacement: assembly/nested (1498.9625ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + 'Error'
+  - 'CandidateCleanupError'
+  
+      at Object.<anonymous> (file:///D:/workspace/go/pantheon-platform/pantheon-ops/scripts/business-overlay/foundation-candidate.test.mjs:201:12)
+      at expectedException (node:assert:578:17)
+      at expectsError (node:assert:703:21)
+      at strict.throws (node:assert:759:3)
+      at assertCleanupRefused (file:///D:/workspace/go/pantheon-platform/pantheon-ops/scripts/business-overlay/foundation-candidate.test.mjs:200:10)
+      at TestContext.<anonymous> (file:///D:/workspace/go/pantheon-platform/pantheon-ops/scripts/business-overlay/foundation-candidate.test.mjs:226:9)
+      at Test.runInAsyncScope (node:async_hooks:228:14)
+      at Test.run (node:internal/test_runner/test:1118:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:787:18)
+      at Test.postRun (node:internal/test_runner/test:1247:19) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'Error',
+    expected: 'CandidateCleanupError',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at scripts\business-overlay\foundation-candidate.test.mjs:211:5
+✖ cleanup preserves renamed original and real replacement: assembly/ancestor (1300.3973ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + 'Error'
+  - 'CandidateCleanupError'
+  
+      at Object.<anonymous> (file:///D:/workspace/go/pantheon-platform/pantheon-ops/scripts/business-overlay/foundation-candidate.test.mjs:201:12)
+      at expectedException (node:assert:578:17)
+      at expectsError (node:assert:703:21)
+      at strict.throws (node:assert:759:3)
+      at assertCleanupRefused (file:///D:/workspace/go/pantheon-platform/pantheon-ops/scripts/business-overlay/foundation-candidate.test.mjs:200:10)
+      at TestContext.<anonymous> (file:///D:/workspace/go/pantheon-platform/pantheon-ops/scripts/business-overlay/foundation-candidate.test.mjs:226:9)
+      at Test.runInAsyncScope (node:async_hooks:228:14)
+      at Test.run (node:internal/test_runner/test:1118:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:787:18)
+      at Test.postRun (node:internal/test_runner/test:1247:19) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'Error',
+    expected: 'CandidateCleanupError',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at scripts\business-overlay\foundation-candidate.test.mjs:211:5
+✖ cleanup preserves renamed original and real replacement: assembly/assembled (1037.6332ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + 'Error'
+  - 'CandidateCleanupError'
+  
+      at Object.<anonymous> (file:///D:/workspace/go/pantheon-platform/pantheon-ops/scripts/business-overlay/foundation-candidate.test.mjs:201:12)
+      at expectedException (node:assert:578:17)
+      at expectsError (node:assert:703:21)
+      at strict.throws (node:assert:759:3)
+      at assertCleanupRefused (file:///D:/workspace/go/pantheon-platform/pantheon-ops/scripts/business-overlay/foundation-candidate.test.mjs:200:10)
+      at TestContext.<anonymous> (file:///D:/workspace/go/pantheon-platform/pantheon-ops/scripts/business-overlay/foundation-candidate.test.mjs:226:9)
+      at Test.runInAsyncScope (node:async_hooks:228:14)
+      at Test.run (node:internal/test_runner/test:1118:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:787:18)
+      at Test.postRun (node:internal/test_runner/test:1247:19) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'Error',
+    expected: 'CandidateCleanupError',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at scripts\business-overlay\foundation-candidate.test.mjs:256:1
+✖ cleanup refuses an unknown descendant before removing any owned files (1119.0894ms)
+  AssertionError [ERR_ASSERTION]: Missing expected exception.
+      at assertCleanupRefused (file:///D:/workspace/go/pantheon-platform/pantheon-ops/scripts/business-overlay/foundation-candidate.test.mjs:200:10)
+      at TestContext.<anonymous> (file:///D:/workspace/go/pantheon-platform/pantheon-ops/scripts/business-overlay/foundation-candidate.test.mjs:260:3)
+      at Test.runInAsyncScope (node:async_hooks:228:14)
+      at Test.run (node:internal/test_runner/test:1118:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:787:18)
+      at Test.postRun (node:internal/test_runner/test:1247:19)
+      at Test.run (node:internal/test_runner/test:1175:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:787:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    operator: 'throws',
+    diff: 'simple'
+  }

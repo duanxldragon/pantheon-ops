@@ -1,0 +1,21 @@
+{
+  "code": 200,
+  "data": {
+    "status": "ok",
+    "service": "pantheon-platform",
+    "timestamp": "2026-11-08T00:34:03Z",
+    "requestId": "f0eb7890-6138-42b5-a366-226d5e343a81",
+    "dependencies": {
+      "database": {
+        "status": "ok"
+      },
+      "migrations": {
+        "status": "ok"
+      },
+      "redis": {
+        "status": "ok"
+      }
+    }
+  },
+  "message": "success"
+}

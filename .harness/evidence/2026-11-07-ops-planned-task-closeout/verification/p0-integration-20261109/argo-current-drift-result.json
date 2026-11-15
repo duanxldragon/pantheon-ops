@@ -1,0 +1,6 @@
+{
+  "command": "npm.cmd run check:shared-drift -- --root .tmp/p0-argo-current-stage",
+  "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+  "exitCode": 0,
+  "elapsedSeconds": 51.625
+}

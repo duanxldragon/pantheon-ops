@@ -1,0 +1,57 @@
+=== RUN   TestDatasourceHTTPQueryCancellation
+=== RUN   TestDatasourceHTTPQueryCancellation/prometheus
+[GIN-debug] [WARNING] Running in "debug" mode. Switch to "release" mode in production.
+ - using env:	export GIN_MODE=release
+ - using code:	gin.SetMode(gin.ReleaseMode)
+
+[GIN-debug] GET    /datasources/:id/query    --> github.com/duanxldragon/pantheon-base/backend/modules/business/observability.(*ObservabilityHandler).QueryDatasource-fm (1 handlers)
+=== RUN   TestDatasourceHTTPQueryCancellation/victoriametrics
+[GIN-debug] [WARNING] Running in "debug" mode. Switch to "release" mode in production.
+ - using env:	export GIN_MODE=release
+ - using code:	gin.SetMode(gin.ReleaseMode)
+
+[GIN-debug] GET    /datasources/:id/query    --> github.com/duanxldragon/pantheon-base/backend/modules/business/observability.(*ObservabilityHandler).QueryDatasource-fm (1 handlers)
+=== RUN   TestDatasourceHTTPQueryCancellation/tempo
+[GIN-debug] [WARNING] Running in "debug" mode. Switch to "release" mode in production.
+ - using env:	export GIN_MODE=release
+ - using code:	gin.SetMode(gin.ReleaseMode)
+
+[GIN-debug] GET    /datasources/:id/traces   --> github.com/duanxldragon/pantheon-base/backend/modules/business/observability.(*ObservabilityHandler).SearchTraces-fm (1 handlers)
+--- PASS: TestDatasourceHTTPQueryCancellation (0.26s)
+    --- PASS: TestDatasourceHTTPQueryCancellation/prometheus (0.07s)
+    --- PASS: TestDatasourceHTTPQueryCancellation/victoriametrics (0.08s)
+    --- PASS: TestDatasourceHTTPQueryCancellation/tempo (0.11s)
+=== RUN   TestDatasourceQueryContextPreCanceled
+--- PASS: TestDatasourceQueryContextPreCanceled (0.00s)
+=== RUN   TestTempoSearchNormalizesAbsoluteUTCToProviderSeconds
+--- PASS: TestTempoSearchNormalizesAbsoluteUTCToProviderSeconds (0.10s)
+=== RUN   TestDatasourceDefaultCanMoveAndClear
+--- PASS: TestDatasourceDefaultCanMoveAndClear (0.16s)
+=== RUN   TestDatasourceAccessHonorsDepartmentScope
+
+2026/11/09 09:14:52 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/observability/datasource_service.go:212 [35;1mError 1049 (42000): Unknown database 'ops_p0_acceptance_testdatasourcedef_1794186892080066200_2050'
+[0m[33m[30.831ms] [34;1m[rows:0][0m SELECT * FROM `obs_prometheus_datasource` WHERE `obs_prometheus_datasource`.`id` = 2 AND `obs_prometheus_datasource`.`deleted_at` IS NULL ORDER BY `obs_prometheus_datasource`.`id` LIMIT 1
+
+2026/11/09 09:14:52 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/observability/datasource_service.go:411 [35;1mrecord not found
+[0m[33m[1.303ms] [34;1m[rows:0][0m SELECT * FROM `obs_prometheus_datasource` WHERE `obs_prometheus_datasource`.`id` = 2 AND dept_id = 7 AND `obs_prometheus_datasource`.`deleted_at` IS NULL ORDER BY `obs_prometheus_datasource`.`id` LIMIT 1
+--- PASS: TestDatasourceAccessHonorsDepartmentScope (0.09s)
+=== RUN   TestDatasourceDeleteProtectsAlertRuleReference
+--- PASS: TestDatasourceDeleteProtectsAlertRuleReference (0.18s)
+=== RUN   TestDatasourceQueriesLokiAndTempo
+--- PASS: TestDatasourceQueriesLokiAndTempo (0.09s)
+=== RUN   TestLogQueryRangeBudget
+--- PASS: TestLogQueryRangeBudget (0.00s)
+=== RUN   TestLogQueryCancellationAndResponseBudget
+--- PASS: TestLogQueryCancellationAndResponseBudget (0.17s)
+=== RUN   TestEmailRejectsPrivateSMTPBeforeConnecting
+--- PASS: TestEmailRejectsPrivateSMTPBeforeConnecting (0.00s)
+=== RUN   TestSMTPUsesConfiguredPortAndDeliversWithoutChangingWebhookPolicy
+--- PASS: TestSMTPUsesConfiguredPortAndDeliversWithoutChangingWebhookPolicy (0.00s)
+=== RUN   TestNotificationSecretsAreEncryptedAndRedacted
+--- PASS: TestNotificationSecretsAreEncryptedAndRedacted (0.16s)
+=== RUN   TestSeedMenusAndI18nIsIdempotent
+    seed_test.go:93: expected 42 rows in system_i18n, got 54
+--- FAIL: TestSeedMenusAndI18nIsIdempotent (0.61s)
+FAIL
+FAIL	github.com/duanxldragon/pantheon-base/backend/modules/business/observability	1.928s
+FAIL

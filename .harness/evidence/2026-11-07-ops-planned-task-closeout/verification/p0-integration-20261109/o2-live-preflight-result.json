@@ -1,0 +1,8 @@
+{
+  "host": "115.190.251.143",
+  "scope": "pinned read-only SSH; no remote mutation or DB creation",
+  "exitCode": 1,
+  "errorType": "PermissionError",
+  "errno": 13,
+  "remaining": "root execution required; no true VM case attempted"
+}

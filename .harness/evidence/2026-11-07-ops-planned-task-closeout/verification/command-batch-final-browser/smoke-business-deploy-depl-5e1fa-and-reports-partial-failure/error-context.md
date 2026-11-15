@@ -1,0 +1,182 @@
+# Instructions
+
+- Following Playwright test failed.
+- Explain why, be concise, respect Playwright best practices.
+- Provide a snippet of code with the fix, if possible.
+
+# Test info
+
+- Name: smoke\business\deploy\deploy-command.spec.ts >> batch cancel retains failed selection and reports partial failure
+- Location: tests\smoke\business\deploy\deploy-command.spec.ts:57:1
+
+# Error details
+
+```
+Test timeout of 60000ms exceeded.
+```
+
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+    - complementary [ref=e4]:
+        - generic [ref=e5]:
+            - generic [ref=e6]:
+                - generic [ref=e7]: P
+                - generic [ref=e8]: Pantheon Base
+            - menu [ref=e12]:
+                - generic [ref=e13]:
+                    - menuitem [ref=e14] [cursor=pointer]:
+                        - button "工作台" [ref=e15]
+                    - button "CMDB" [ref=e25] [cursor=pointer]
+                    - menuitem [ref=e37] [cursor=pointer]:
+                        - button "业务域" [ref=e38]
+                    - menuitem [ref=e47] [cursor=pointer]:
+                        - button "服务目录" [ref=e48]
+                    - generic [ref=e57]:
+                        - button "安装部署" [ref=e60] [cursor=pointer]
+                        - generic [ref=e69]:
+                            - menuitem [ref=e70] [cursor=pointer]:
+                                - button "软件组件" [ref=e73]
+                            - menuitem [ref=e79] [cursor=pointer]:
+                                - button "任务模板" [ref=e82]
+                            - menuitem [ref=e88] [cursor=pointer]:
+                                - button "部署任务" [ref=e91]
+                    - button "Kubernetes" [ref=e100] [cursor=pointer]
+                    - button "可观测中心" [ref=e112] [cursor=pointer]
+                    - button "访问控制" [ref=e124] [cursor=pointer]
+                    - button "组织架构" [ref=e138] [cursor=pointer]
+                    - button "安全审计" [ref=e153] [cursor=pointer]
+                    - button "低代码平台" [ref=e165] [cursor=pointer]
+                    - button "平台配置" [ref=e177] [cursor=pointer]
+                    - menuitem [ref=e186] [cursor=pointer]:
+                        - button "文件分发" [ref=e187]
+                    - menuitem [ref=e196] [cursor=pointer]:
+                        - button "ArgoCD" [ref=e197]
+    - generic [ref=e203]:
+        - generic [ref=e204]:
+            - generic [ref=e205]:
+                - button "切换导航" [ref=e206] [cursor=pointer]
+                - list [ref=e210]:
+                    - listitem [ref=e211]: 首页
+                    - listitem [ref=e215]: 安装部署
+                    - listitem [ref=e219]: 部署任务
+            - generic [ref=e220]:
+                - button "平台功能台" [ref=e222]:
+                    - generic [ref=e225]: 搜索菜单、页面、功能…
+                    - generic [ref=e226]: Ctrl K
+                - button "通知中心" [ref=e228] [cursor=pointer]
+                - button "平台偏好" [ref=e232] [cursor=pointer]
+                - 'button "用户: Administrator" [ref=e237] [cursor=pointer]':
+                    - generic [ref=e238]: A
+                    - generic [ref=e240]:
+                        - generic [ref=e241]: Administrator
+                        - generic [ref=e242]: admin
+        - tablist "已打开页面" [ref=e243]:
+            - tab "工作台" [ref=e244] [cursor=pointer]
+            - tab "部署任务" [selected] [ref=e248] [cursor=pointer]
+        - main [ref=e250]:
+            - generic [ref=e253]:
+                - generic [ref=e255]:
+                    - generic [ref=e256]:
+                        - generic [ref=e257]: 运维平台 / 部署任务
+                        - generic [ref=e258]: 部署任务
+                    - generic [ref=e263]:
+                        - generic [ref=e264]:
+                            - generic [ref=e265]: 任务总数
+                            - strong [ref=e266]: "2"
+                        - generic [ref=e267]:
+                            - generic [ref=e268]: 执行中
+                            - strong [ref=e269]: "2"
+                        - generic [ref=e270]:
+                            - generic [ref=e271]: 成功
+                            - strong [ref=e272]: "0"
+                    - button "任务治理视角" [ref=e274] [cursor=pointer]
+                - search "筛选" [ref=e281]:
+                    - generic [ref=e283]:
+                        - textbox "关键字" [ref=e290]: command-batch-1794063228330
+                        - combobox [ref=e292] [cursor=pointer]:
+                            - generic [ref=e294]:
+                                - textbox "状态"
+                                - generic [ref=e295]: 状态
+                        - button "清空筛选" [ref=e300] [cursor=pointer]
+                - generic [ref=e305]:
+                    - generic [ref=e306]:
+                        - generic [ref=e308]:
+                            - button "导出" [ref=e311] [cursor=pointer]
+                            - button "新增" [ref=e316] [cursor=pointer]
+                        - generic [ref=e319]: 已选 0 条
+                        - button "清空选择" [disabled] [ref=e320]
+                    - generic [ref=e322]:
+                        - button "取消" [disabled]
+                - generic [ref=e329]:
+                    - table [ref=e333]:
+                        - rowgroup [ref=e345]:
+                            - row "任务名称 任务来源 任务动作 目标来源 业务域 执行方式 状态 主机数 操作" [ref=e346]:
+                                - columnheader [ref=e347]:
+                                    - generic [ref=e349] [cursor=pointer]:
+                                        - checkbox
+                                - columnheader "任务名称" [ref=e352]
+                                - columnheader "任务来源" [ref=e354]
+                                - columnheader "任务动作" [ref=e356]
+                                - columnheader "目标来源" [ref=e358]
+                                - columnheader "业务域" [ref=e360]
+                                - columnheader "执行方式" [ref=e362]
+                                - columnheader "状态" [ref=e364]
+                                - columnheader "主机数" [ref=e366]
+                                - columnheader "操作" [ref=e368]
+                        - rowgroup [ref=e370]:
+                            - row "command-batch-1794063228330-b 软件组件 command-batch-1794063228330 1.0.0 安装 主机 command-batch-1794063228330 手动执行 执行中 1 详情 取消" [ref=e371]:
+                                - cell [ref=e372]:
+                                    - generic [ref=e373] [cursor=pointer]:
+                                        - checkbox [active]
+                                - cell "command-batch-1794063228330-b" [ref=e376]
+                                - cell "软件组件 command-batch-1794063228330 1.0.0" [ref=e378]:
+                                    - generic [ref=e381]:
+                                        - generic [ref=e382]: 软件组件
+                                        - generic [ref=e383]: command-batch-1794063228330 1.0.0
+                                - cell "安装" [ref=e384]
+                                - cell "主机" [ref=e386]
+                                - cell "command-batch-1794063228330" [ref=e388]
+                                - cell "手动执行" [ref=e390]
+                                - cell "执行中" [ref=e392]
+                                - cell "1" [ref=e397]
+                                - cell [ref=e399]:
+                                    - generic [ref=e402]:
+                                        - button "详情" [ref=e404] [cursor=pointer]
+                                        - button "取消" [ref=e409] [cursor=pointer]
+                            - row "command-batch-1794063228330-a 软件组件 command-batch-1794063228330 1.0.0 安装 主机 command-batch-1794063228330 手动执行 执行中 1 详情 取消" [ref=e412]:
+                                - cell [ref=e413]:
+                                    - generic [ref=e414] [cursor=pointer]:
+                                        - checkbox
+                                - cell "command-batch-1794063228330-a" [ref=e417]
+                                - cell "软件组件 command-batch-1794063228330 1.0.0" [ref=e419]:
+                                    - generic [ref=e422]:
+                                        - generic [ref=e423]: 软件组件
+                                        - generic [ref=e424]: command-batch-1794063228330 1.0.0
+                                - cell "安装" [ref=e425]
+                                - cell "主机" [ref=e427]
+                                - cell "command-batch-1794063228330" [ref=e429]
+                                - cell "手动执行" [ref=e431]
+                                - cell "执行中" [ref=e433]
+                                - cell "1" [ref=e438]
+                                - cell [ref=e440]:
+                                    - generic [ref=e443]:
+                                        - button "详情" [ref=e445] [cursor=pointer]
+                                        - button "取消" [ref=e450] [cursor=pointer]
+                    - generic [ref=e456]:
+                        - generic [ref=e458]:
+                            - generic [ref=e459]: 总数
+                            - strong [ref=e460]: "2"
+                        - list [ref=e461]:
+                            - listitem "上一页" [ref=e462]: .
+                            - listitem "第 1 页" [ref=e465] [cursor=pointer]: "1"
+                            - listitem "下一页" [ref=e466]: .
+                        - generic "页码" [ref=e469]:
+                            - combobox [ref=e470] [cursor=pointer]:
+                                - generic "10 条/页" [ref=e471]:
+                                    - generic [ref=e472]:
+                                        - textbox [aria-hidden]
+                                        - generic [ref=e473]: 10 条/页
+        - generic [ref=e478]: Pantheon Platform · Enterprise Admin Foundation
+```

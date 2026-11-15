@@ -1,0 +1,190 @@
+{
+  "phase": "diagnostic",
+  "exitCode": 0,
+  "host": "115.190.251.143",
+  "remoteExecuted": true,
+  "remoteProviderMutation": false,
+  "providerInstalled": false,
+  "backupRestoreVerified": false,
+  "nativeCLI": [
+    "ip",
+    "-j",
+    "-4",
+    "address",
+    "show",
+    "dev",
+    "eth0",
+    "scope",
+    "global"
+  ],
+  "compatibilityMapping": "Actual K3s host has eth0, flannel.1 and cni0. Native dev eth0 selects the observed physical VM interface; overlays are never candidate bind addresses. No IP fallback or provider flag override.",
+  "v2RemoteSHA256": "7b1ba58c52d340a7d121c72e537baa3e20b072c0635289f9f82d97e5761ab7a5",
+  "rootRequestSHA256": "ad0779266d7275da18b4eba24aef9557eb18d0b52c911cdaff09ee176f9a2cce",
+  "uploads": [
+    {
+      "file": "resume-velero-s3-v3-remote.py",
+      "sha256": "7b1ba58c52d340a7d121c72e537baa3e20b072c0635289f9f82d97e5761ab7a5",
+      "bytes": 26081
+    }
+  ],
+  "retransferredArtifactBytes": 0,
+  "originalScriptHashesVerified": 8,
+  "productSourceHashesVerified": 17,
+  "nativeStdout": "[{\"ifindex\":2,\"ifname\":\"eth0\",\"flags\":[\"BROADCAST\",\"MULTICAST\",\"UP\",\"LOWER_UP\"],\"mtu\":1500,\"qdisc\":\"fq_codel\",\"operstate\":\"UP\",\"group\":\"default\",\"txqlen\":1000,\"altnames\":[\"enp3s1\"],\"addr_info\":[{\"family\":\"inet\",\"local\":\"192.168.94.127\",\"prefixlen\":16,\"metric\":100,\"broadcast\":\"192.168.255.255\",\"scope\":\"global\",\"dynamic\":true,\"label\":\"eth0\",\"valid_life_time\":315287227,\"preferred_life_time\":315287227}]}]\n",
+  "nativeStdoutSHA256": "212f8052ba299f8f080d50302af9d0f5efd6431fd436939738782bdf6d9cd2ed",
+  "privateIP": "192.168.94.127",
+  "remoteOriginalFileHashes": {
+    "resume-velero-s3-prep.py": "0b5219ab2fe498a81b5d224c35dc8eaa7827f68467ab4dbee413a45a6445cc02",
+    "resume-velero-s3-remote.py": "6fe70db7027d422a5a03a990039359c3359997c26fc817c89109967f30da21b9",
+    "resume-velero-s3-fixture.py": "c6badc5582f0cd679450050818abd56cdec6518d6a14cd01f69ff0c6d5c0d055",
+    "resume-velero-s3-artifacts.json": "e54e0c8b9596349bcd36c95cba0f022ea65a9d5b8b9e69b3c0974acd893bc22b",
+    "seaweedfs-4.53-release.json": "7908e97ed2a798b18fe07ccf665143a19d5655d98d30ee1b54d93d8c145f7344",
+    "linux_amd64.tar.gz": "d1a7dec9f48d8b33895a0ea8951971defc2dc5312906dcc76fa5a5f74a6ee90d",
+    "velero-v1.17.0-linux-amd64.tar.gz": "f507a956cf8ec00f483f5d7b04901614a9016a10feb32b3ecc968da36b4fc7be",
+    "velero-velero-v1.17.0.oci.tar": "86b8928b6b053f7bb573df6f6492841f7e96ad03647f9ec9857351c4d267bea4",
+    "velero-velero-plugin-for-aws-v1.13.0.oci.tar": "494a8f752943a96c7a08ddfa1f2059eb07291039b37bca1518566eef41df554e",
+    "resume-velero-s3-diagnostic-20261110T004347017585.json": "708ec9d2777d8fe3c12dcbd4bb16ad984b299821b614b05a57971ae8b732ea8c",
+    "resume-velero-s3-v3-remote.py": "7b1ba58c52d340a7d121c72e537baa3e20b072c0635289f9f82d97e5761ab7a5"
+  },
+  "records": [
+    {
+      "phase": "diagnostic",
+      "exitCode": 0,
+      "owner": "velero-s3-seaweed-20261109-v1",
+      "provider": "SeaweedFS 4.53",
+      "privateIP": "192.168.94.127",
+      "ports": [
+        19333,
+        29333,
+        18080,
+        28080,
+        18888,
+        28888,
+        18333
+      ],
+      "memoryBeforeMi": {
+        "MemTotal": 3916,
+        "MemAvailable": 1372
+      },
+      "helpVerified": true,
+      "missingFlags": [],
+      "seaweedVersion": "version 30GB 4.53 4ab66fb76da83700739f5839e62fcaf15fb7d02a linux amd64",
+      "providerInstalled": false,
+      "imagesImported": false,
+      "backupRestoreVerified": false,
+      "binaryHashes": {
+        "weed": "fa936e61bfb11f33c1f823045c4007e7da4b8b38bb6adc3b970f132d832e805b",
+        "velero": "e7e14133f1a13d759d43b2bf188cf1a078ffe36184d25f77ae4005fc7c26e739"
+      }
+    }
+  ],
+  "stderrPresent": false,
+  "remoteCommand": "timeout --signal=TERM --kill-after=5s 600s python3 /opt/pantheon-p0-20261109/velero-s3-seaweed-v1/resume-velero-s3-v3-remote.py diagnostic",
+  "nativeIPReceipt": "resume-velero-s3-v3-root-native-ip-20261110T010815825805.json",
+  "nativeIPReceiptSHA256": "fce45979e02380c74646483a8752982c53ca30ebe9bd4ba2ae21ac66a4e57ab3",
+  "remoteNewDiagnosticFiles": {
+    "resume-velero-s3-diagnostic-20261110T010938338222.json": {
+      "bytes": 739,
+      "sha256": "8d58b6fd6cb34a2aa02f2438e7053b9d7b345459ba77084933c3e4006ae2141e",
+      "value": {
+        "phase": "diagnostic",
+        "exitCode": 0,
+        "owner": "velero-s3-seaweed-20261109-v1",
+        "provider": "SeaweedFS 4.53",
+        "privateIP": "192.168.94.127",
+        "ports": [
+          19333,
+          29333,
+          18080,
+          28080,
+          18888,
+          28888,
+          18333
+        ],
+        "memoryBeforeMi": {
+          "MemTotal": 3916,
+          "MemAvailable": 1372
+        },
+        "helpVerified": true,
+        "missingFlags": [],
+        "seaweedVersion": "version 30GB 4.53 4ab66fb76da83700739f5839e62fcaf15fb7d02a linux amd64",
+        "providerInstalled": false,
+        "imagesImported": false,
+        "backupRestoreVerified": false,
+        "binaryHashes": {
+          "weed": "fa936e61bfb11f33c1f823045c4007e7da4b8b38bb6adc3b970f132d832e805b",
+          "velero": "e7e14133f1a13d759d43b2bf188cf1a078ffe36184d25f77ae4005fc7c26e739"
+        }
+      }
+    },
+    "resume-velero-s3-diagnostic.json": {
+      "bytes": 739,
+      "sha256": "8d58b6fd6cb34a2aa02f2438e7053b9d7b345459ba77084933c3e4006ae2141e",
+      "value": {
+        "phase": "diagnostic",
+        "exitCode": 0,
+        "owner": "velero-s3-seaweed-20261109-v1",
+        "provider": "SeaweedFS 4.53",
+        "privateIP": "192.168.94.127",
+        "ports": [
+          19333,
+          29333,
+          18080,
+          28080,
+          18888,
+          28888,
+          18333
+        ],
+        "memoryBeforeMi": {
+          "MemTotal": 3916,
+          "MemAvailable": 1372
+        },
+        "helpVerified": true,
+        "missingFlags": [],
+        "seaweedVersion": "version 30GB 4.53 4ab66fb76da83700739f5839e62fcaf15fb7d02a linux amd64",
+        "providerInstalled": false,
+        "imagesImported": false,
+        "backupRestoreVerified": false,
+        "binaryHashes": {
+          "weed": "fa936e61bfb11f33c1f823045c4007e7da4b8b38bb6adc3b970f132d832e805b",
+          "velero": "e7e14133f1a13d759d43b2bf188cf1a078ffe36184d25f77ae4005fc7c26e739"
+        }
+      }
+    },
+    "resume-velero-s3-help.json": {
+      "bytes": 17756,
+      "sha256": "b8f38fab05bfa9e66b44f1dccae35c7098b5ba5dc8c2e20152545cc032f8f268",
+      "value": {
+        "version": "version 30GB 4.53 4ab66fb76da83700739f5839e62fcaf15fb7d02a linux amd64",
+        "serverHelp": "Example: weed server -dir=/tmp -volume.max=5 -ip=server_name\nDefault Usage:\n  -cpuprofile string\n    \tcpu profile output file\n  -dataCenter string\n    \tcurrent volume server's data center name\n  -debug\n    \tserves runtime profiling data, e.g., http://localhost:6060/debug/pprof/goroutine?debug=2\n  -debug.port int\n    \thttp port for debugging (default 6060)\n  -dir string\n    \tdirectories to store data files. dir[,dir]... (default \"/tmp\")\n  -disableHttp\n    \tdisable http requests, only gRPC operations are allowed.\n  -filer\n    \twhether to start filer\n  -filer.allowUntrustedRemoteEndpoints\n    \tif true, a read of a remote-only entry accepts arbitrary remote S3 endpoints including loopback / link-local hosts. Default rejects internal / metadata endpoints.\n  -filer.allowedOrigins string\n    \tcomma separated list of allowed origins (default \"*\")\n  -filer.collection string\n    \tall data will be stored in this collection\n  -filer.concurrentFileUploadLimit int\n    \tlimit number of concurrent file uploads, 0 means unlimited\n  -filer.concurrentUploadLimitMB int\n    \tlimit total concurrent upload size, 0 means unlimited\n  -filer.defaultReplicaPlacement string\n    \tdefault replication type. If not specified, use master setting.\n  -filer.dirListLimit int\n    \tlimit sub dir listing size (default 1000)\n  -filer.disableDirListing\n    \tturn off directory listing\n  -filer.disableHttp\n    \tdisable filer HTTP requests, only gRPC operations are allowed\n  -filer.disk string\n    \t[hdd|ssd|<tag>] hard drive or solid state drive or any tag\n  -filer.downloadMaxMBps int\n    \tdownload max speed for each download request, in MB per second\n  -filer.encryptVolumeData\n    \tencrypt data on volume servers\n  -filer.exposeDirectoryData\n    \texpose directory data via filer. If false, filer UI will be inaccessible. (default true)\n  -filer.filerGroup string\n    \tshare metadata with other filers in the same filerGroup\n  -filer.idleTimeout int\n    \tconnection idle seconds (default 10)\n  -filer.localSocket string\n    \tdefault to /tmp/seaweedfs-filer-<port>.sock\n  -filer.maxMB int\n    \tsplit files larger than the limit (default 4)\n  -filer.port int\n    \tfiler server http listen port (default 8888)\n  -filer.port.grpc int\n    \tfiler server grpc listen port\n  -filer.port.public int\n    \tfiler server public http listen port\n  -filer.remoteCacheEvictThreshold float\n    \tevict remote-cached objects (oldest first) when any volume disk exceeds this usage fraction; 0 disables (default 0.9)\n  -filer.saveToFilerLimit int\n    \tSmall files smaller than this limit can be cached in filer store.\n  -filer.tusBasePath string\n    \tTUS resumable upload endpoint base path (e.g., /.tus) (default \"/.tus\")\n  -filer.tusMaxSizeMB int\n    \tmaximum TUS upload size in MB (default 5120)\n  -filer.tusSessionExpiry duration\n    \tincomplete TUS upload sessions are cleaned up after this duration, e.g. \"48h\", \"7h30m\" (default 24h0m0s)\n  -filer.ui.deleteDir\n    \tenable filer UI show delete directory button (default true)\n  -iam\n    \twhether to start IAM service\n  -iam.config string\n    \tpath to the advanced IAM config file for S3. An alias for -s3.iam.config, but with lower priority.\n  -iam.idleTimeout int\n    \tconnection idle seconds (default 10)\n  -iam.port int\n    \tiam server http listen port (default 8111)\n  -idleTimeout int\n    \tconnection idle seconds (default 30)\n  -ip string\n    \tip or server name, also used as identifier (default \"192.168.94.127\")\n  -ip.bind string\n    \tip address to bind to. If empty, default to same as -ip option.\n  -master\n    \twhether to start master server (default true)\n  -master.defaultReplication string\n    \tDefault replication type if not specified.\n  -master.dir string\n    \tdata directory to store meta data, default to same as -dir specified\n  -master.electionTimeout duration\n    \telection timeout of master servers (default 10s)\n  -master.garbageThreshold float\n    \tthreshold to vacuum and reclaim spaces (default 0.3)\n  -master.heartbeatInterval duration\n    \theartbeat interval of master servers, and will be randomly multiplied by [1, 1.25) (default 300ms)\n  -master.maxParallelVacuumPerServer int\n    \tmaximum number of volumes to vacuum in parallel on one volume server; 0 for no limit (deprecated, use master.vacuum.max_parallel_per_server in master.toml) (default 1)\n  -master.metrics.address string\n    \tPrometheus gateway address\n  -master.metrics.intervalSeconds int\n    \tPrometheus push interval in seconds (default 15)\n  -master.peers string\n    \tall master nodes in comma separated ip:masterPort list\n  -master.port int\n    \tmaster server http listen port (default 9333)\n  -master.port.grpc int\n    \tmaster server grpc listen port\n  -master.raftBootstrap\n    \tWhether to bootstrap the Raft cluster\n  -master.raftHashicorp\n    \tuse hashicorp raft\n  -master.resumeState\n    \tresume previous state on start master server (default true)\n  -master.telemetry\n    \treport anonymous cluster statistics to master.telemetry.url, use -master.telemetry=false to opt out (default true)\n  -master.telemetry.url string\n    \ttelemetry server URL to send usage statistics (default \"https://telemetry.seaweedfs.com/api/collect\")\n  -master.vacuumDeleteEmptyAfterSeconds int\n    \tautomatic sweep deletes volume copies that stay empty this many seconds; 0 disables\n  -master.vacuumIntervalSeconds int\n    \tseconds between automatic vacuum sweeps (default 840)\n  -master.volumePreallocate\n    \tPreallocate disk space for volumes.\n  -master.volumeSizeLimitMB uint\n    \tMaster stops directing writes to oversized volumes. (default 30720)\n  -memprofile string\n    \tmemory profile output file\n  -metricsIp string\n    \tmetrics listen ip. If empty, default to same as -ip.bind option.\n  -metricsPort int\n    \tPrometheus metrics listen port\n  -mq.agent\n    \twhether to start message queue agent\n  -mq.agent.brokers string\n    \tcomma-separated message queue brokers (default \"localhost:17777\")\n  -mq.agent.port int\n    \tmessage queue agent gRPC listen port (default 16777)\n  -mq.broker\n    \twhether to start message queue broker\n  -mq.broker.logFlushInterval int\n    \tlog buffer flush interval in seconds (default 5)\n  -mq.broker.port int\n    \tmessage queue broker gRPC listen port (default 17777)\n  -options string\n    \ta file of command line options, each line in optionName=optionValue format\n  -rack string\n    \tcurrent volume server's rack name\n  -s3\n    \twhether to start S3 gateway\n  -s3.allowBackslashInKey\n    \ttreat backslash as a regular object-key character instead of converting it to '/' (aws-compatible; '//' still collapses)\n  -s3.allowDeleteBucketNotEmpty\n    \tallow recursive deleting all entries along with bucket\n  -s3.allowEmptyFolder\n    \tdeprecated, ignored. Empty folder cleanup is now automatic. (default true)\n  -s3.allowUntrustedRemoteEndpoints\n    \tif true, a read of a remote-only entry accepts arbitrary remote S3 endpoints including loopback / link-local hosts. Default rejects internal / metadata endpoints.\n  -s3.allowedOrigins string\n    \tcomma separated list of allowed origins (default \"*\")\n  -s3.auditLogConfig string\n    \tpath to the audit log config file\n  -s3.autoCreateBucket\n    \tcreate the bucket on upload if it does not exist, for admin identities only (default true)\n  -s3.cacert.file string\n    \tpath to the TLS CA certificate file\n  -s3.cacheCapacityMB int\n    \tin-memory chunk cache capacity in MB for S3 GETs shared across requests (0 disables)\n  -s3.cert.file string\n    \tpath to the TLS certificate file\n  -s3.concurrentFileUploadLimit int\n    \tlimit number of concurrent file uploads for S3, 0 means unlimited\n  -s3.concurrentUploadLimitMB int\n    \tlimit total concurrent upload size for S3, 0 means unlimited\n  -s3.config string\n    \tpath to the config file\n  -s3.dataCenter string\n    \tprefer to read and write to volumes in this data center\n  -s3.defaultFileMode string\n    \tdefault file mode for S3 uploaded objects, e.g. 0660, 0644, 0666\n  -s3.domainName string\n    \tsuffix of the host name in comma separated list, {bucket}.{domainName}\n  -s3.encryptVolumeData\n    \tencrypt data on volume servers for S3 uploads; on whenever -filer.encryptVolumeData is\n  -s3.externalUrl string\n    \tthe external URL clients use to connect (e.g. https://api.example.com:9000). Advertised to Iceberg and Lance clients, and tried first when verifying S3 signatures behind a reverse proxy. Falls back to S3_EXTERNAL_URL env var.\n  -s3.iam\n    \tenable embedded IAM API on the same S3 port (default true)\n  -s3.iam.config string\n    \tpath to the advanced IAM config file for S3. Overrides -iam.config if both are provided.\n  -s3.iam.readOnly\n    \tdisable IAM write operations on this server (default true)\n  -s3.iam.selfServiceRequiresGrant\n    \tif true, an identity needs an explicit iam: grant to manage its own access keys (CreateAccessKey, DeleteAccessKey, UpdateAccessKey, ListAccessKeys, GetUser), as on AWS. Default allows it to every authenticated identity.\n  -s3.iceberg.credentialDurationSeconds int\n    \tlifetime of credentials vended by the Iceberg catalog (default 3600)\n  -s3.iceberg.credentialRole string\n    \tIAM role ARN the Iceberg catalog assumes to vend table-scoped credentials (empty disables vending)\n  -s3.idleTimeout int\n    \tconnection idle seconds (default 120)\n  -s3.ip.bind string\n    \tip address to bind to. If empty, default to same as -ip.bind option.\n  -s3.key.file string\n    \tpath to the TLS private key file\n  -s3.localSocket string\n    \tdefault to /tmp/seaweedfs-s3-<port>.sock\n  -s3.port int\n    \ts3 server http listen port (default 8333)\n  -s3.port.grpc int\n    \ts3 server grpc listen port\n  -s3.port.https int\n    \ts3 server https listen port\n  -s3.port.iceberg int\n    \tIceberg REST Catalog server listen port (0 to disable) (default 8181)\n  -s3.port.lance int\n    \tLance Namespace server listen port (0 to disable) (default 9101)\n  -s3.readerCacheSizeMB int\n    \tmemory budget in MiB for downloaded and in-flight reader buffers across all S3 GETs (0 means unlimited)\n  -s3.tlsVerifyClientCert\n    \twhether to verify the client's certificate\n  -sftp\n    \twhether to start Sftp server\n  -sftp.authMethods string\n    \tcomma-separated list of allowed auth methods: password, publickey, certificate (default \"password,publickey\")\n  -sftp.bannerMessage string\n    \tmessage displayed before authentication (default \"SeaweedFS SFTP Server - Unauthorized access is prohibited\")\n  -sftp.clientAliveCountMax int\n    \tmaximum number of missed keep-alive messages before disconnecting (default 3)\n  -sftp.clientAliveInterval duration\n    \tinterval for sending keep-alive messages (default 5s)\n  -sftp.dataCenter string\n    \tprefer to read and write to volumes in this data center\n  -sftp.hostKeysFolder string\n    \tpath to folder containing SSH private key files for host authentication\n  -sftp.idleTimeout int\n    \tconnection idle seconds (default 10)\n  -sftp.localSocket string\n    \tdefault to /tmp/seaweedfs-sftp-<port>.sock\n  -sftp.loginGraceTime duration\n    \ttimeout for authentication (default 2m0s)\n  -sftp.maxAuthTries int\n    \tmaximum number of authentication attempts per connection (default 6)\n  -sftp.port int\n    \tSFTP server listen port (default 2022)\n  -sftp.sshPrivateKey string\n    \tpath to the SSH private key file for host authentication\n  -sftp.trustedUserCAKeysFile string\n    \tpath to a file with trusted user CA public keys (OpenSSH authorized_keys format); required when 'certificate' is in -sftp.authMethods\n  -sftp.userStoreFile string\n    \tpath to JSON file containing user credentials and permissions\n  -volume\n    \twhether to start volume server (default true)\n  -volume.allowUntrustedRemoteEndpoints\n    \tif true, FetchAndWriteNeedle accepts arbitrary remote S3 endpoints including loopback / link-local hosts. Default rejects internal / metadata endpoints.\n  -volume.compactionMBps int\n    \tlimit compaction speed in mega bytes per second\n  -volume.compactionMaxParallelCommits int\n    \tlimit how many vacuum commits run at once on this server; queued commits hold no volume lock. 0 means unlimited\n  -volume.concurrentDownloadLimitMB int\n    \tlimit total concurrent download size, 0 means unlimited\n  -volume.concurrentUploadLimitMB int\n    \tlimit total concurrent upload size, 0 means unlimited\n  -volume.dir.idx string\n    \tdirectory to store .idx files\n  -volume.disk string\n    \t[hdd|ssd|<tag>] hard drive or solid state drive or any tag\n  -volume.fileSizeLimitMB int\n    \tlimit file size to avoid out of memory (default 256)\n  -volume.fsyncBatchWait duration\n    \thow long a below-minimum fsync batch waits for more requests once the queue drains; 0 flushes immediately (default 500\u00b5s)\n  -volume.fsyncMinBatchBytes int\n    \tminimum bytes an fsync batch gathers before a drained queue flushes without waiting (default 1048576)\n  -volume.fsyncMinBatchRequests int\n    \tminimum requests an fsync batch gathers before a drained queue flushes without waiting (default 128)\n  -volume.hasSlowRead\n    \t<experimental> if true, this prevents slow reads from blocking other requests, but large file read P99 latency will increase. (default true)\n  -volume.id string\n    \tvolume server id. If empty, default to ip:port\n  -volume.images.fix.orientation\n    \tAdjust jpg orientation when uploading.\n  -volume.index string\n    \tChoose [memory|leveldb|leveldbMedium|leveldbLarge] mode for memory~performance balance. (default \"memory\")\n  -volume.index.leveldbTimeout int\n    \talive time for leveldb (default to 0). If leveldb of volume is not accessed in ldbTimeout hours, it will be off loaded to reduce opened files and memory consumption.\n  -volume.inflightDownloadDataTimeout duration\n    \tinflight download data wait timeout of volume servers (default 1m0s)\n  -volume.inflightUploadDataTimeout duration\n    \tinflight upload data wait timeout of volume servers (default 1m0s)\n  -volume.maintenanceMBps int\n    \tlimit maintenance (replication / balance) IO rate in MB/s. Unset is 0, no limitation.\n  -volume.max string\n    \tmaximum numbers of volumes, count[,count]... If set to zero, the limit will be auto configured as free disk space divided by volume size. (default \"8\")\n  -volume.minFreeSpace string\n    \tmin free disk space (value<=100 as percentage like 1, other as human readable bytes, like 10GiB). Low disk space will mark all volumes as ReadOnly.\n  -volume.minFreeSpacePercent string\n    \tminimum free disk space (default to 1%). Low disk space will mark all volumes as ReadOnly (deprecated, use minFreeSpace instead). (default \"1\")\n  -volume.port int\n    \tvolume server http listen port (default 8080)\n  -volume.port.grpc int\n    \tvolume server grpc listen port\n  -volume.port.public int\n    \tvolume server public port\n  -volume.pprof\n    \tenable pprof http handlers. precludes -memprofile and -cpuprofile\n  -volume.preStopSeconds int\n    \tnumber of seconds between stop send heartbeats and stop volume server (default 10)\n  -volume.publicUrl string\n    \tpublicly accessible address\n  -volume.readBufferSizeMB int\n    \t<experimental> larger values can optimize query performance but will increase some memory usage,Use with hasSlowRead normally (default 4)\n  -volume.readMode string\n    \t[local|proxy|redirect] how to deal with non-local volume: 'not found|read in remote node|redirect volume location'. (default \"proxy\")\n  -volume.tags string\n    \tcomma-separated tag groups per data dir; each group uses ':' (e.g. fast:ssd,archive)\n  -webdav\n    \twhether to start WebDAV gateway\n  -webdav.cacheCapacityMB int\n    \tlocal cache capacity in MB\n  -webdav.cacheDir string\n    \tlocal cache directory for file chunks (default \"/tmp\")\n  -webdav.cert.file string\n    \tpath to the TLS certificate file\n  -webdav.collection string\n    \tcollection to create the files\n  -webdav.disk string\n    \t[hdd|ssd|<tag>] hard drive or solid state drive or any tag\n  -webdav.filer.path string\n    \tuse this remote path from filer server (default \"/\")\n  -webdav.idleTimeout int\n    \tconnection idle seconds (default 10)\n  -webdav.key.file string\n    \tpath to the TLS private key file\n  -webdav.maxMB int\n    \tsplit files larger than the limit (default 4)\n  -webdav.port int\n    \twebdav server http listen port (default 7333)\n  -webdav.replication string\n    \treplication to create the files\n  -whiteList string\n    \tcomma separated Ip addresses having write permission. No limit if empty.\nDescription:\n  start both a volume server to provide storage spaces\n  and a master server to provide volume=>location mapping service and sequence number of file ids\n\n  This is provided as a convenient way to start both volume server and master server.\n  The servers acts exactly the same as starting them separately.\n  So other volume servers can connect to this master server also.\n\n  Optionally, a filer server can be started.\n  Also optionally, a S3 gateway can be started.\n",
+        "exitCode": 2,
+        "requiredFlags": [
+          "dir",
+          "filer",
+          "filer.port",
+          "filer.port.grpc",
+          "ip",
+          "ip.bind",
+          "master.port",
+          "master.port.grpc",
+          "master.volumeSizeLimitMB",
+          "s3",
+          "s3.config",
+          "s3.port",
+          "volume.max",
+          "volume.port",
+          "volume.port.grpc"
+        ],
+        "missingFlags": []
+      }
+    },
+    "velero": {
+      "bytes": 142581282,
+      "sha256": "e7e14133f1a13d759d43b2bf188cf1a078ffe36184d25f77ae4005fc7c26e739"
+    },
+    "weed": {
+      "bytes": 156401824,
+      "sha256": "fa936e61bfb11f33c1f823045c4007e7da4b8b38bb6adc3b970f132d832e805b"
+    }
+  }
+}

@@ -119,6 +119,8 @@ In other words:
 
 #### `generator`
 
+The V2.0-O4 flat business tenant increment is governed by the [tenant contract section 2.7](./TENANT_CONTRACT_V1.en.md); implementation and official consumption acceptance remain open. Wizard, server scaffold and direct export must enforce the same V2/tenant/relation boundary. Required initialization failure prevents readiness; V1 is retained. The [generator guide](../designs/LOWCODE_GENERATOR_GUIDE.en.md) defines usage and actual exported-runtime acceptance. Successful generation alone does not prove tenant isolation.
+
 - owns business-module skeleton generation, schema validation, generation flow, and controlled registration entry
 
 ### 5.3 Excluded Surfaces

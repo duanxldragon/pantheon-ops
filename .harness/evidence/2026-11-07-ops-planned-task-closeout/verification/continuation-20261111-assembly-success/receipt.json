@@ -1,0 +1,74 @@
+{
+  "date": "2026-11-11",
+  "recordedUTC": "2026-11-11T04:09:23.945175+00:00",
+  "parentTask": "2026-11-07-ops-planned-task-closeout",
+  "predecessorReceipt": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/continuation-20261111-post-config/receipt.json",
+  "predecessorReceiptSHA256": "3c7caf26552a6c8aba3af4bf18c43f409a5ce25f7b5ee85bd33f5cc1bc7695b3",
+  "o4Assembly": {
+    "exitCode": 0,
+    "elapsedSeconds": 1345.703,
+    "attempt": "post-config-r4-20261111-f58af86f62ab",
+    "targetRoot": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.tmp\\foundation-candidate-attempts\\candidate-4315cee606c249a42c8a3372c26dee9a4658a9259229485de85953430c7f439f\\post-config-r4-20261111-f58af86f62ab\\assembled",
+    "logSHA256": "ed928fde4d7d9247732ec3e2441ca256f41ebd875458019d79fe5ea025a52820",
+    "bindingStable": true,
+    "officialConsumption": false,
+    "P0Approved": false,
+    "receiptPath": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.tmp\\foundation-candidate-attempts\\candidate-4315cee606c249a42c8a3372c26dee9a4658a9259229485de85953430c7f439f\\post-config-r4-20261111-f58af86f62ab\\assembled\\.foundation-candidate-receipt.json",
+    "receiptSHA256": "fc1e7da7944fdb57b2b54f1fbdc5712d5f62dcc205383f9e74c858717c073542",
+    "retainedSnapshotRoot": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.tmp\\foundation-candidates\\candidate-4315cee606c249a42c8a3372c26dee9a4658a9259229485de85953430c7f439f\\snapshot",
+    "descriptorPath": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\o4-metadata-bound-current-v2-stable-real\\sealed\\candidate-descriptor.json",
+    "descriptorSHA256": "2f105d76e38c82e8c301d816269ea26669a7a0291a5860be74d6ca71281a9ce6",
+    "artifactPath": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\o4-metadata-bound-current-v2-stable-real\\sealed\\candidate-4315cee606c249a42c8a3372c26dee9a4658a9259229485de85953430c7f439f.tar",
+    "reviewHashes": {
+      ".local\\ops-acceptance\\post-config-reviews\\post-config-o4-r4-code-report.json": "eaa8eaaf1441da3c13e246dfa8d72c7aaa09a6f5d2d7ade8d818f44014168781",
+      ".local\\ops-acceptance\\post-config-reviews\\post-config-o4-r4-arch-report.json": "659d15c679838ea846db2074426e7f176a6fbcd13cca0d2d9556669af2655b12"
+    },
+    "reviewedSourceHashes": {
+      "scripts/business-overlay/foundation-candidate.mjs": "54dcbaf0addebc5523d3ffdfde07839412f2b7bb94d005d9313aac5e13a0d4d8",
+      "scripts/business-overlay/rebuild-from-candidate.mjs": "0d310bdcaffd8f961835737faf8aa6d1db1242bbdfa6ae10147e5e7871ed85c8",
+      "scripts/business-overlay/candidate-retained-evidence.test.mjs": "329730e585a3a8fb8dca716003c86c2a6656bca9407c6a55cd321743ee55b09f",
+      "scripts/business-overlay/candidate-copy-binding.test.mjs": "8e462b763f7588d2062230d7f3828e4e46f91b338c4b0c927f8c71c3a377f382"
+    },
+    "sourceStable": true,
+    "resultPath": ".local/ops-acceptance/continue-o4-reviewed-attempt-result.json",
+    "resultSHA256": "f54bcfab8783e18dddd21a3aeb3c1cef82572f07a021a80843b936938dcd3fce"
+  },
+  "drift": {
+    "sharedCompared": 801,
+    "sharedIdentical": 801,
+    "allowlistedDrift": 0,
+    "canonicalDerivedOutputs": 19,
+    "businessMigrations": 10
+  },
+  "backendCF": {
+    "status": "implementation in progress",
+    "executor": "/root/o4_backend_cf_current",
+    "initialReceiptCertifiesLaterEdits": false
+  },
+  "velero8": {
+    "request": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/continue-velero-alias-v8-request.json",
+    "requestSHA256": "30c929d01d33c80e8419984436802c92af84362a1fbba332fa7a5b226582368b",
+    "validationExecutions": 344,
+    "uniqueTests": 291,
+    "forgeryDenials": 52,
+    "failures": 0,
+    "skips": 0,
+    "pyrightErrors": 0,
+    "pyrightWarnings": 0,
+    "independentReview": "pending final sealed-request verdict",
+    "remoteExecuted": false
+  },
+  "metadataPromotedAfterCompletedAssembly": true,
+  "P0ParentsClosed": 0,
+  "officialConsumption": false,
+  "officialLockChanged": false,
+  "remainingGates": [
+    "C-F current-source implementation and paired runtime",
+    "Velero v8 final dual review and separately bound live phases",
+    "full public identity/tenant/IAM/audit/privacy composition",
+    "CMDB key-only policy",
+    "full current-source verification",
+    "official Base release and consumption",
+    "final functional and visual acceptance"
+  ]
+}

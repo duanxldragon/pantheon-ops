@@ -6,7 +6,7 @@ status: Active
 linked_contracts:
   - docs/contracts/PLATFORM_CONTRACT.md
   - docs/contracts/SYSTEM_IAM_CONTRACT.md
-updated_at: 2026-11-04
+updated_at: 2026-11-11
 ---
 
 # Module Contract Design
@@ -153,6 +153,20 @@ Allowed:
 - explicitly defined capabilities, facades, or query contracts
 
 If module A depends on module B, module B must expose a stable read capability with documented input, output, permission, and scope semantics.
+
+#### 4.4.3 Read-only Business Initialization Preflight
+
+Base's standard `business.InitBusinessModules` entry executes the consumer's composed readiness check before any retired cleanup transaction, business bootstrap, seed, or route registration. The consumer registers one read-only callback through the public API:
+
+```go
+func RegisterBusinessInitializationPreflight(preflight func(*gorm.DB) error) error
+```
+
+The callback receives the original DB handle and checks required consumer capabilities and infrastructure readiness. It performs no DDL, seeds, retirement cleanup, route registration, or pool setters. Base embeds no consumer readiness policy and executes the callback outside the registry mutex and DB transactions. Callback errors reach the entry unchanged and cause `panic(err)` before business effects. Callback panics also propagate unchanged; defer releases the active guard.
+
+Registration accepts one nonnil callback before the first standard entry. Nil, duplicate, and late registration, plus recursive or overlapping preflight execution, return the existing `contracts.ErrBusinessProviders`. The first entry atomically snapshots and seals registration. Every entry still runs the sealed callback again; successful readiness is never cached. There is no production reset/unseal API. Standalone Base without a callback retains its original cleanup and generated-module behavior, while the first entry still seals registration.
+
+This preflight covers the business entry only. It excludes earlier platform/system initialization in main and does not guarantee safe repeated or concurrent execution of complete routers, seeds, or module initialization. After successful preflight, original retirement cleanup still precedes generated-module bootstrap/seeds/routes. The consumer's normal assembler registers the composed callback, and internal module readiness guards remain.
 
 ### 4.5 Backend Seed Contract
 

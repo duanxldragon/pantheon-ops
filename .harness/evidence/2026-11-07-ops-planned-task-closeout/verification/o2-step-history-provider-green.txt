@@ -1,0 +1,22 @@
+=== RUN   TestStepHistoryKeepsPriorAttemptCheckpoint
+--- PASS: TestStepHistoryKeepsPriorAttemptCheckpoint (0.85s)
+=== RUN   TestStepHistoryWriteFailureRollsBackCheckpoint
+
+2026/11/08 10:55:33 [34;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/step_history_test.go:125
+[0m[35m[warn] [0mremoving callback `test:history-failure` from D:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/step_history_test.go:125
+--- PASS: TestStepHistoryWriteFailureRollsBackCheckpoint (0.91s)
+=== RUN   TestStepHistorySerializesConcurrentCheckpointWrites
+--- PASS: TestStepHistorySerializesConcurrentCheckpointWrites (1.00s)
+=== RUN   TestStepHistoryPauseAndLegacyRemainHonest
+--- PASS: TestStepHistoryPauseAndLegacyRemainHonest (1.05s)
+=== RUN   TestStepHistoryVisibleHostAndStepOwnership
+
+2026/11/08 10:55:36 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/step_history.go:66 [35;1mcontext canceled
+[0m[33m[0.000ms] [34;1m[rows:0][0m SELECT history.* FROM biz_deploy_step_history AS history JOIN (SELECT biz_deploy_step_history.step_id, biz_deploy_step_history.attempt_no, MAX(biz_deploy_step_history.state_version) AS state_version FROM `biz_deploy_step_history` JOIN biz_deploy_task_step AS step ON step.id = biz_deploy_step_history.step_id AND step.task_id = biz_deploy_step_history.task_id AND step.task_host_id = biz_deploy_step_history.task_host_id WHERE biz_deploy_step_history.task_id = 1 AND biz_deploy_step_history.task_host_id IN (1) AND biz_deploy_step_history.attempt_no > 0 GROUP BY biz_deploy_step_history.step_id, biz_deploy_step_history.attempt_no) AS latest ON latest.step_id = history.step_id AND latest.attempt_no = history.attempt_no AND latest.state_version = history.state_version WHERE history.task_id = 1 AND history.task_host_id IN (1) ORDER BY history.attempt_no DESC, history.state_version DESC, history.task_host_id ASC, history.step_order ASC, history.step_id ASC LIMIT 501
+--- PASS: TestStepHistoryVisibleHostAndStepOwnership (1.32s)
+=== RUN   TestStepHistoryProjectionBudget
+--- PASS: TestStepHistoryProjectionBudget (1.10s)
+=== RUN   TestStepHistoryMigrationReplayAndRetainedDown
+--- PASS: TestStepHistoryMigrationReplayAndRetainedDown (0.09s)
+PASS
+ok  	github.com/duanxldragon/pantheon-base/backend/modules/business/deploy	7.399s

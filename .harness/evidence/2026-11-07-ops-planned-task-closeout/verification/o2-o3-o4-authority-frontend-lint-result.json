@@ -1,0 +1,12 @@
+{
+  "command": [
+    "npm.cmd",
+    "run",
+    "lint"
+  ],
+  "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\frontend",
+  "exitCode": 0,
+  "elapsedSeconds": 28.375,
+  "artifact": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/o2-o3-o4-authority-frontend-lint.txt",
+  "lane": "frontend"
+}

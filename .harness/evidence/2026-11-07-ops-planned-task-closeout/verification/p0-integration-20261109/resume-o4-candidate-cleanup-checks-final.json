@@ -1,0 +1,30 @@
+[
+  {
+    "exitCode": 0,
+    "command": "node --check scripts/business-overlay/foundation-candidate.mjs"
+  },
+  {
+    "exitCode": 0,
+    "command": "node --check scripts/business-overlay/foundation-candidate.test.mjs"
+  },
+  {
+    "exitCode": 0,
+    "command": "node node_modules/prettier/bin/prettier.cjs --check scripts/business-overlay/foundation-candidate.mjs scripts/business-overlay/foundation-candidate.test.mjs"
+  },
+  {
+    "exitCode": 0,
+    "command": "npm run check:business-overlay"
+  },
+  {
+    "exitCode": 2,
+    "command": "git diff --check"
+  },
+  {
+    "command": "git diff --no-index --check -- source-before foundation-candidate.mjs",
+    "exitCode": 1
+  },
+  {
+    "command": "git diff --no-index --check -- tests-before foundation-candidate.test.mjs",
+    "exitCode": 1
+  }
+]

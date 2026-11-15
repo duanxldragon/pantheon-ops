@@ -1,0 +1,9 @@
+{
+  "phase": "diagnostic",
+  "exitCode": 1,
+  "remoteExecuted": false,
+  "errorType": "JSONDecodeError",
+  "detailsOmitted": true,
+  "P0Approved": false,
+  "backupRestoreVerified": false
+}

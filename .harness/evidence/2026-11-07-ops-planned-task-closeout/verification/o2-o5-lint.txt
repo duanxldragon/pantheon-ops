@@ -1,0 +1,10 @@
+
+> @duanxldragon/pantheon-base-ui@0.11.2 lint
+> eslint .
+
+
+D:\workspace\go\pantheon-platform\pantheon-ops\frontend\src\modules\business\k8s\workload\PodLogViewer.tsx
+  14:17  error  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+
+✖ 1 problem (1 error, 0 warnings)
+

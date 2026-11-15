@@ -1,0 +1,24 @@
+{
+  "startedAt": "2026-11-10T03:54:35.774Z",
+  "completedAt": "2026-11-10T03:54:47.022Z",
+  "executable": "node",
+  "args": [
+    "--test",
+    "tests/scripts/business-overlay/*.test.mjs"
+  ],
+  "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+  "environment": {
+    "GOCACHE": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\metadata-bound-1794282381452-go-cache"
+  },
+  "exitCode": 0,
+  "signal": null,
+  "log": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.harness\\evidence\\2026-11-07-ops-planned-task-closeout\\verification\\p0-integration-20261109\\metadata-bound-1794282381452\\overlay-tests-isolated-cache.log",
+  "counts": {
+    "tests": 62,
+    "pass": 62,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  }
+}

@@ -1,0 +1,9 @@
+
+Running 1 test using 1 worker
+
+(node:8860) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+RENDER_ERRORS []
+  ok 1 .tmp\ops-acceptance\editor-diagnostic.spec.ts:3:1 › capture production editor render errors (24.9s)
+
+  1 passed (26.5s)

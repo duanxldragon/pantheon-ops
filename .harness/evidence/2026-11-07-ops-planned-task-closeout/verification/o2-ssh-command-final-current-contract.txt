@@ -1,0 +1,5 @@
+
+> check:business-overlay
+> node scripts/business-overlay/check-business-overlay.mjs
+
+OK business overlay contract (55 declared paths, rebuilt tree)

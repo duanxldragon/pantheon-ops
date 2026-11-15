@@ -1,0 +1,8 @@
+{
+  "phase": "download-install",
+  "script": ".local/ops-acceptance/velero-resume-install.py",
+  "arguments": [],
+  "dependsOn": "velero-resume-inspect.json",
+  "requiresRootExecution": true,
+  "extraMemoryLimitMi": 512
+}

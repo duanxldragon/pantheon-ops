@@ -1,0 +1,20 @@
+[
+  {
+    "label": "current53",
+    "exitCode": 0,
+    "log": "current53.log",
+    "tail": "riginal_storage_assertions_and_deletes_once (__main__.V3FreshnessRegression.test_valid_path_keeps_original_storage_assertions_and_deletes_once) ... ok\n\n----------------------------------------------------------------------\nRan 53 tests in 5.177s\n\nOK\n"
+  },
+  {
+    "label": "v2-freshness-red",
+    "exitCode": 0,
+    "log": "v2-freshness-red.log",
+    "tail": "^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: 0 != 1\n\n----------------------------------------------------------------------\nRan 2 tests in 0.118s\n\nFAILED (failures=2)\nRED: both per-effect freshness assertions fail on preserved v2; offline only.\n"
+  },
+  {
+    "label": "v1-two-red",
+    "exitCode": 0,
+    "log": "v1-two-red.log",
+    "tail": "^^^^^^^^^^^^^^^^\nAssertionError: False is not true\n\n----------------------------------------------------------------------\nRan 2 tests in 0.029s\n\nFAILED (failures=2)\nRED reproduced: 2 safety assertions fail against unchanged v1; no remote execution.\n"
+  }
+]

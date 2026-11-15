@@ -1,0 +1,15 @@
+=== RUN   TestReviewMixedScopeLogsBeforeCapAndFirstError
+--- PASS: TestReviewMixedScopeLogsBeforeCapAndFirstError (1.33s)
+=== RUN   TestReviewConnectedStreamScopeShrinkAndRevoke
+--- PASS: TestReviewConnectedStreamScopeShrinkAndRevoke (3.22s)
+=== RUN   TestReviewRetryExhaustedPreservesAllFacts
+=== RUN   TestReviewRetryExhaustedPreservesAllFacts/false
+
+2026/11/10 11:37:57 [32mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/deploy_service.go:192 [33mSLOW SQL >= 200ms
+[0m[31;1m[257.287ms] [33m[rows:0][35m CREATE TABLE `biz_deploy_task` (`id` bigint unsigned AUTO_INCREMENT,`name` varchar(128) NOT NULL,`template_id` bigint unsigned,`template_name` varchar(128),`template_version` varchar(64),`package_id` bigint unsigned NOT NULL,`package_name` varchar(128),`package_version` varchar(64),`business_scope_id` bigint unsigned,`business_scope_name` varchar(128),`service_id` bigint unsigned,`service_instance_id` bigint unsigned,`service_name` varchar(255),`service_instance_name` varchar(255),`action` varchar(32) DEFAULT 'install',`target_type` varchar(32) NOT NULL,`target_ids` JSON,`executor_type` varchar(32) DEFAULT 'manual',`execution_mode` varchar(32) DEFAULT 'fixed',`template_params` JSON,`execution_snapshot` JSON,`target_snapshot` JSON,`start_request_key` varchar(128),`credential_ref_id` bigint unsigned,`credential_ref_version` bigint unsigned,`ssh_host_fingerprint` varchar(255),`execution_timeout_seconds` bigint DEFAULT 1800,`status` varchar(32) DEFAULT 'draft',`remark` varchar(512),`external_task_id` varchar(128),`rollback_enabled` boolean DEFAULT false,`rollback_task_id` bigint unsigned,`source_task_id` bigint unsigned,`rollback_strategy` varchar(32),`rollback_snapshot` JSON,`started_at` datetime(3) NULL,`finished_at` datetime(3) NULL,`created_at` datetime(3) NULL,`updated_at` datetime(3) NULL,`created_by` varchar(64),`updated_by` varchar(64),`deleted_at` datetime(3) NULL,PRIMARY KEY (`id`),INDEX `idx_biz_deploy_task_template_id` (`template_id`),INDEX `idx_biz_deploy_task_package_id` (`package_id`),INDEX `idx_biz_deploy_task_business_scope_id` (`business_scope_id`),INDEX `idx_biz_deploy_task_service_id` (`service_id`),INDEX `idx_biz_deploy_task_service_instance_id` (`service_instance_id`),INDEX `idx_biz_deploy_task_action` (`action`),INDEX `idx_biz_deploy_task_target_type` (`target_type`),INDEX `idx_biz_deploy_task_executor_type` (`executor_type`),INDEX `idx_biz_deploy_task_execution_mode` (`execution_mode`),INDEX `idx_biz_deploy_task_credential_ref_id` (`credential_ref_id`),INDEX `idx_biz_deploy_task_status` (`status`),INDEX `idx_biz_deploy_task_rollback_task_id` (`rollback_task_id`),INDEX `idx_biz_deploy_task_source_task_id` (`source_task_id`),INDEX `idx_biz_deploy_task_deleted_at` (`deleted_at`))[0m
+=== RUN   TestReviewRetryExhaustedPreservesAllFacts/true
+--- PASS: TestReviewRetryExhaustedPreservesAllFacts (3.29s)
+    --- PASS: TestReviewRetryExhaustedPreservesAllFacts/false (2.25s)
+    --- PASS: TestReviewRetryExhaustedPreservesAllFacts/true (1.05s)
+PASS
+ok  	github.com/duanxldragon/pantheon-base/backend/modules/business/deploy	8.933s

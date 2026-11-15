@@ -1,0 +1,3 @@
+OK rebuilt clean Ops tree at D:\workspace\go\pantheon-platform\pantheon-ops\.tmp\ops-frozen-plan-reviewed-overlay
+Base commit: 5553bc0e8ddc006cb7a6b99a46968bf8cf907a49
+Declared/generated Ops files: 1827

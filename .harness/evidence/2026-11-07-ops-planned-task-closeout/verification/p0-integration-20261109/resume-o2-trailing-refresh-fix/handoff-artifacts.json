@@ -1,0 +1,109 @@
+{
+  "utc": "2026-11-10T04:15:49.752801+00:00",
+  "files": [
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-trailing-refresh-fix-handoff.md",
+      "sha256": "a67d766daacdbb8b4c4785ae1463f49527d84b4c7403a5df0c184671dc2503e3"
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-engine-ownership-plan-v2.md",
+      "sha256": "a66012823ad03bd889d21da0444b1673187ae19913fedfec7332779d1ff0771d"
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-trailing-refresh-fix/after.json",
+      "sha256": "89716b67e1849d5b3e2bd392faa7d9db8c07402f6f84a43c56e7452a90fde9fa"
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-trailing-refresh-fix/before.json",
+      "sha256": "a0d457cf871e7ebdeeba60b29074616b9848178815abf482fb1fa04386b3339f"
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-trailing-refresh-fix/build-final.txt",
+      "sha256": "c086b5331aa3c299928318030b51afbcc078b4b1fba972932175f177a6221309"
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-trailing-refresh-fix/commands.json",
+      "sha256": "31f24db25678e5e2ba334ceb788a565ad693732a73238fb0371e8beb3cb72ed1"
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-trailing-refresh-fix/deploy-detail-read.test.tsx.diff",
+      "sha256": "bb151b3a9a9130387b68d38252cf787b03303d5c187a76eadad968e3faad7ded"
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-trailing-refresh-fix/deploy-detail-read.test.tsx.new.txt",
+      "sha256": "c0bd5a50f1f1c2c8fb75d32fc8feff625b4b7646b3878b619896e97ce70dfa29"
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-trailing-refresh-fix/deploy-detail-read.test.tsx.old.txt",
+      "sha256": "e592ec396c47a37a757cce82c9c7b234186c508d1f8ad59ce8bb3d4e2109c343"
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-trailing-refresh-fix/deploy-read-revocation.test.tsx.diff",
+      "sha256": "15f857095e1ac871935b3d3322091638495b4b7ffaa46412792e9ab45eaaf06a"
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-trailing-refresh-fix/deploy-read-revocation.test.tsx.new.txt",
+      "sha256": "93af816811cc3bfe2e4133cdee2431eb6abcff3520008118490791e2d865f426"
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-trailing-refresh-fix/deploy-read-revocation.test.tsx.old.txt",
+      "sha256": "49fbe4a4baafb9005326a24ee98e14b75b880dc4cdbb88560a79152952400a2e"
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-trailing-refresh-fix/diff-check-final.txt",
+      "sha256": "bb8ff97691e07e9e55ac08ee6f3a3ad483c604d6f73a8b8c1611f152243d9b4b"
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-trailing-refresh-fix/engine-source-bindings.json",
+      "sha256": "c23d0fc4a829e2950d6e0f7f78a7a2638cfdfca7cabe93e676c95d90637b7846"
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-trailing-refresh-fix/integrity-final.json",
+      "sha256": "dab1c524fd12893fc3a00a6e882b3238dea9ae8095bc6ddbb6a7e6e6140b733b"
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-trailing-refresh-fix/lint-final.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-trailing-refresh-fix/native-ts-diagnostics.mjs",
+      "sha256": "483d531f696c05580c11d1074c6b8d84d977046bf22d4a601086112043e6f38a"
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-trailing-refresh-fix/native-ts-final.json",
+      "sha256": "6b29e19232b36f87682a97daa9b0b8849354ebe4dfc9df31ce89ff093b40d230"
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-trailing-refresh-fix/overlay-final.txt",
+      "sha256": "55ee542cb301d23a24fd6e9278e56ec687d7f91041b98119fb7c4c69aeabf13d"
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-trailing-refresh-fix/units-final.txt",
+      "sha256": "19e1848878e19b0c5eb0781013b69a49c9f0745a373884f01246d77529292063"
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-trailing-refresh-fix/units-green-targeted.txt",
+      "sha256": "4b963bbd6e10c83d070eab2b4955de0d8750c26564339deb4905a31f7c398c18"
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-trailing-refresh-fix/units-red.txt",
+      "sha256": "1348bd6efa4195bd406e63ca97b326fd95d4a20331862432a5790d19467b757c"
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-trailing-refresh-fix/useDeployTaskSnapshot.ts.diff",
+      "sha256": "c1c44522dfa548e851ffc608f0901ba08b8249ce22c9bf4b8f0b240ded24f154"
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-trailing-refresh-fix/useDeployTaskSnapshot.ts.new.txt",
+      "sha256": "7c9cfa7f05f14f2e3e7424a93fb837600f5dd49cae8bcd1a0bcdad12a31e80d2"
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-trailing-refresh-fix/useDeployTaskSnapshot.ts.old.txt",
+      "sha256": "cb1a487107711798af476edfbe5880b09496e75a8ccb0fc361e3ccc1ba9abbdd"
+    }
+  ],
+  "handoffWords": 632,
+  "engineMainWords": 589,
+  "sourceAndProtectedPaths": 219,
+  "allCurrentHashesMatch": true
+}

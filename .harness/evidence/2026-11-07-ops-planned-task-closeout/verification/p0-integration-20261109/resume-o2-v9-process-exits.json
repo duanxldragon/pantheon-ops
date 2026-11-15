@@ -1,0 +1,28 @@
+{
+  "driverMalformedOwnedIdentityExitCode": 1,
+  "driverEvents": [
+    {
+      "operationPhase": "",
+      "panicCategory": "ownership-refused",
+      "phase": "v8-failure-location",
+      "taskId": 0,
+      "verifierConnections": 0
+    },
+    {
+      "error": "operation or deadline; secret details suppressed",
+      "phase": "driver-failure"
+    },
+    {
+      "case": "",
+      "failed": 1,
+      "negativePassed": 0,
+      "phase": "driver-result",
+      "positivePassed": 0
+    }
+  ],
+  "driverSHA256": "817db179039da303fcc657ad36c18e5594830af3600517618603d16dd87ffc4b",
+  "unreviewedRootExecuteExitCode": 1,
+  "rootGuardRejectedBeforeRequestOrCredentials": true,
+  "remoteExecuted": false,
+  "credentialsLoaded": false
+}

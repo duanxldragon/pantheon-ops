@@ -1,0 +1,72 @@
+
+Running 2 tests using 1 worker
+
+(node:25404) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x  1 tests\smoke\business\deploy\deploy-workbench.spec.ts:16:3 › deployment workbench sources, logs, keyboard and mobile (light) (15.8s)
+(node:21324) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x  2 tests\smoke\business\deploy\deploy-workbench.spec.ts:16:3 › deployment workbench sources, logs, keyboard and mobile (dark) (15.5s)
+
+
+  1) tests\smoke\business\deploy\deploy-workbench.spec.ts:16:3 › deployment workbench sources, logs, keyboard and mobile (light) 
+
+    Error: expect(received).toBeLessThanOrEqual(expected)
+
+    Expected: <= 1
+    Received:    473.828125
+
+    Call Log:
+    - Timeout 10000ms exceeded while waiting on the predicate
+
+      85 |       await expect(workbench.getByText('历史步骤检查点', {exact:true})).toBeVisible();
+      86 |       // The app shell can hide overflow; document width alone cannot detect clipped children.
+    > 87 |       await expect.poll(() => workbench.evaluate((element) => Math.max(...Array.from(element.children).map((child) => child.getBoundingClientRect().right - element.getBoundingClientRect().right)))).toBeLessThanOrEqual(1);
+         |                                                                                                                                                                                                       ^
+      88 |       await expect.poll(() => workbench.getByText(/最新记录时间（UTC）/).evaluate((element) => element.scrollWidth - element.clientWidth)).toBeLessThanOrEqual(1);
+      89 |       await page.screenshot({path:testInfo.outputPath(`workbench-${mode}-mobile-history.png`),fullPage:true});
+      90 |       await page.setViewportSize({width:1440,height:900});
+        at D:\workspace\go\pantheon-platform\pantheon-ops\frontend\tests\smoke\business\deploy\deploy-workbench.spec.ts:87:199
+
+    Error Context: ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\o2-step-history-browser-mobile-red\smoke-business-deploy-depl-58206--keyboard-and-mobile-light-\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\o2-step-history-browser-mobile-red\smoke-business-deploy-depl-58206--keyboard-and-mobile-light-\trace.zip
+    Usage:
+
+        npx playwright show-trace ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\o2-step-history-browser-mobile-red\smoke-business-deploy-depl-58206--keyboard-and-mobile-light-\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  2) tests\smoke\business\deploy\deploy-workbench.spec.ts:16:3 › deployment workbench sources, logs, keyboard and mobile (dark) 
+
+    Error: expect(received).toBeLessThanOrEqual(expected)
+
+    Expected: <= 1
+    Received:    473.828125
+
+    Call Log:
+    - Timeout 10000ms exceeded while waiting on the predicate
+
+      85 |       await expect(workbench.getByText('历史步骤检查点', {exact:true})).toBeVisible();
+      86 |       // The app shell can hide overflow; document width alone cannot detect clipped children.
+    > 87 |       await expect.poll(() => workbench.evaluate((element) => Math.max(...Array.from(element.children).map((child) => child.getBoundingClientRect().right - element.getBoundingClientRect().right)))).toBeLessThanOrEqual(1);
+         |                                                                                                                                                                                                       ^
+      88 |       await expect.poll(() => workbench.getByText(/最新记录时间（UTC）/).evaluate((element) => element.scrollWidth - element.clientWidth)).toBeLessThanOrEqual(1);
+      89 |       await page.screenshot({path:testInfo.outputPath(`workbench-${mode}-mobile-history.png`),fullPage:true});
+      90 |       await page.setViewportSize({width:1440,height:900});
+        at D:\workspace\go\pantheon-platform\pantheon-ops\frontend\tests\smoke\business\deploy\deploy-workbench.spec.ts:87:199
+
+    Error Context: ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\o2-step-history-browser-mobile-red\smoke-business-deploy-depl-d16f5-s-keyboard-and-mobile-dark-\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\o2-step-history-browser-mobile-red\smoke-business-deploy-depl-d16f5-s-keyboard-and-mobile-dark-\trace.zip
+    Usage:
+
+        npx playwright show-trace ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\o2-step-history-browser-mobile-red\smoke-business-deploy-depl-d16f5-s-keyboard-and-mobile-dark-\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  2 failed
+    tests\smoke\business\deploy\deploy-workbench.spec.ts:16:3 › deployment workbench sources, logs, keyboard and mobile (light) 
+    tests\smoke\business\deploy\deploy-workbench.spec.ts:16:3 › deployment workbench sources, logs, keyboard and mobile (dark) 

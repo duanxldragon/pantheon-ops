@@ -5,7 +5,7 @@ layer: system/iam
 status: Active
 linked_contracts:
   - docs/contracts/SYSTEM_IAM_CONTRACT.md
-updated_at: 2026-05-05
+updated_at: 2026-11-12
 ---
 
 # 权限工作台治理深化设计
@@ -87,3 +87,13 @@ English version: [PERMISSION_WORKBENCH_GOVERNANCE_DESIGN.en.md](./PERMISSION_WOR
 - 补齐动作生成审计记录。
 - 无权限用户不能执行补齐。
 - 前端不能绕过后端推荐映射提交任意策略。
+
+## 7. Provider-owned business API bindings (source extension, unreleased)
+
+`backend/pkg/permissionroutes` is the shared extension boundary. A business module registers `Binding{Permission, Routes}` with `Register("business:<domain>", bindings)` during startup, before role policy reconciliation and route serving. The module fails startup if registration returns an error. Registrations are trusted compiled provider declarations; no HTTP API accepts route mappings.
+
+A declaration may bind only its own `business:<domain>:` permission prefix and `/api/v1/business/<domain>` paths. Methods are explicit HTTP methods. Wildcards, traversal, malformed Gin parameters and cross-domain paths are rejected. Batches are validated before atomic insertion. Each key's mapping is immutable; an identical replay is harmless and a conflicting replay fails. Snapshots and lookups return copies. The registry is symmetric with the other compiled registries: `Seal()` runs at the startup seal point in `backend/cmd/server/main.go` (after `registerAPIRoutes`, next to `contracts.SealBusinessTenantProviders()` and `auditpolicy.Seal()`), and every `Register` after that point fails closed with `ErrSealed` while `Snapshot`/`Lookup` keep working. Changes require a new process/release; dynamic removal and hot reload are not supported.
+
+Registration creates no role grant. IAM merges provider mappings with required system routes for workbench coverage and normal role policy synchronization. Granting a registered key adds only its exact methods/routes; revoking it removes those desired API grants. Page permissions, DataScope, tenant policy and business resource checks still apply independently. Providers must include related search/preview/resolve routes explicitly in the appropriate action's mapping; keys do not automatically grant other domains or whole router groups.
+
+Registry validation/concurrency/copy tests and role grant/revoke tests are linked from `.harness/evidence/2026-11-07-ops-formal-queue-foundation-gaps/`. Ops must consume an immutable foundation release before importing this package; the existing v0.18.6 consumer cannot yet register its business mappings.

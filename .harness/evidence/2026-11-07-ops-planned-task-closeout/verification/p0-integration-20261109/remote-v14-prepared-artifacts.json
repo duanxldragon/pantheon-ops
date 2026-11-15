@@ -1,0 +1,11 @@
+{
+  "host": "115.190.251.143",
+  "backend": ".tmp\\ops-priority-runtime\\server-p0-linux-argo",
+  "backendSHA256": "3863dd5adf5db6fa3dcff2b3c7e4669d7f9424f85e05cc12ec3b194c9f02232c",
+  "frontend": ".tmp\\ops-priority-runtime\\frontend-p0-v14.zip",
+  "frontendSHA256": "8ff7b695de9ba35aeed91dc99a3d1f0f3000ae4b0e61c83976c4fa7dfb45c61b",
+  "frontendBuiltCurrentSource": true,
+  "deployed": false,
+  "hostKeyPinFromExistingTrustedOwnerRecord": true,
+  "unknownHostKeysRejected": true
+}

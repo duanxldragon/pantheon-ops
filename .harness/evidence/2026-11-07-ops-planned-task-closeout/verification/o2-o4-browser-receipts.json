@@ -1,0 +1,46 @@
+{
+  "fixtureCleanup": [
+    {
+      "path": ".harness\\evidence\\2026-11-07-ops-planned-task-closeout\\verification\\o2-o4-browser-verified\\smoke-business-deploy-depl-58206--keyboard-and-mobile-light-\\fixture-cleanup.json",
+      "data": {
+        "token": "workbench-light-1794098178285",
+        "scopeId": 201,
+        "hostId": 213,
+        "packageId": 219,
+        "taskId": 204,
+        "cleanupErrors": []
+      }
+    },
+    {
+      "path": ".harness\\evidence\\2026-11-07-ops-planned-task-closeout\\verification\\o2-o4-browser-verified\\smoke-business-deploy-depl-d16f5-s-keyboard-and-mobile-dark-\\fixture-cleanup.json",
+      "data": {
+        "token": "workbench-dark-1794098186199",
+        "scopeId": 202,
+        "hostId": 214,
+        "packageId": 220,
+        "taskId": 205,
+        "cleanupErrors": []
+      }
+    }
+  ],
+  "screenshots": [
+    ".harness\\evidence\\2026-11-07-ops-planned-task-closeout\\verification\\o2-o4-browser-verified\\smoke-business-deploy-depl-58206--keyboard-and-mobile-light-\\workbench-light-desktop.png",
+    ".harness\\evidence\\2026-11-07-ops-planned-task-closeout\\verification\\o2-o4-browser-verified\\smoke-business-deploy-depl-58206--keyboard-and-mobile-light-\\workbench-light-first-error.png",
+    ".harness\\evidence\\2026-11-07-ops-planned-task-closeout\\verification\\o2-o4-browser-verified\\smoke-business-deploy-depl-58206--keyboard-and-mobile-light-\\workbench-light-mobile-expanded.png",
+    ".harness\\evidence\\2026-11-07-ops-planned-task-closeout\\verification\\o2-o4-browser-verified\\smoke-business-deploy-depl-58206--keyboard-and-mobile-light-\\workbench-light-mobile-forbidden.png",
+    ".harness\\evidence\\2026-11-07-ops-planned-task-closeout\\verification\\o2-o4-browser-verified\\smoke-business-deploy-depl-d16f5-s-keyboard-and-mobile-dark-\\workbench-dark-desktop.png",
+    ".harness\\evidence\\2026-11-07-ops-planned-task-closeout\\verification\\o2-o4-browser-verified\\smoke-business-deploy-depl-d16f5-s-keyboard-and-mobile-dark-\\workbench-dark-first-error.png",
+    ".harness\\evidence\\2026-11-07-ops-planned-task-closeout\\verification\\o2-o4-browser-verified\\smoke-business-deploy-depl-d16f5-s-keyboard-and-mobile-dark-\\workbench-dark-mobile-expanded.png",
+    ".harness\\evidence\\2026-11-07-ops-planned-task-closeout\\verification\\o2-o4-browser-verified\\smoke-business-deploy-depl-d16f5-s-keyboard-and-mobile-dark-\\workbench-dark-mobile-forbidden.png",
+    ".harness\\evidence\\2026-11-07-ops-planned-task-closeout\\verification\\o2-o4-browser-verified\\smoke-business-observabili-a1888-n-denial-and-recovery-dark-\\loki-dark-desktop.png",
+    ".harness\\evidence\\2026-11-07-ops-planned-task-closeout\\verification\\o2-o4-browser-verified\\smoke-business-observabili-a1888-n-denial-and-recovery-dark-\\loki-dark-fields.png",
+    ".harness\\evidence\\2026-11-07-ops-planned-task-closeout\\verification\\o2-o4-browser-verified\\smoke-business-observabili-a1888-n-denial-and-recovery-dark-\\loki-dark-mobile-forbidden.png",
+    ".harness\\evidence\\2026-11-07-ops-planned-task-closeout\\verification\\o2-o4-browser-verified\\smoke-business-observabili-a1888-n-denial-and-recovery-dark-\\loki-dark-mobile-raw.png",
+    ".harness\\evidence\\2026-11-07-ops-planned-task-closeout\\verification\\o2-o4-browser-verified\\smoke-business-observabili-a1888-n-denial-and-recovery-dark-\\loki-dark-mobile-ready.png",
+    ".harness\\evidence\\2026-11-07-ops-planned-task-closeout\\verification\\o2-o4-browser-verified\\smoke-business-observabili-aaf1f--denial-and-recovery-light-\\loki-light-desktop.png",
+    ".harness\\evidence\\2026-11-07-ops-planned-task-closeout\\verification\\o2-o4-browser-verified\\smoke-business-observabili-aaf1f--denial-and-recovery-light-\\loki-light-fields.png",
+    ".harness\\evidence\\2026-11-07-ops-planned-task-closeout\\verification\\o2-o4-browser-verified\\smoke-business-observabili-aaf1f--denial-and-recovery-light-\\loki-light-mobile-forbidden.png",
+    ".harness\\evidence\\2026-11-07-ops-planned-task-closeout\\verification\\o2-o4-browser-verified\\smoke-business-observabili-aaf1f--denial-and-recovery-light-\\loki-light-mobile-raw.png",
+    ".harness\\evidence\\2026-11-07-ops-planned-task-closeout\\verification\\o2-o4-browser-verified\\smoke-business-observabili-aaf1f--denial-and-recovery-light-\\loki-light-mobile-ready.png"
+  ]
+}

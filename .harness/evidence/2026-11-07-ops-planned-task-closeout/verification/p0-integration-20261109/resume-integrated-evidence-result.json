@@ -1,0 +1,10 @@
+{
+  "fullRaceCurrent": true,
+  "baseEditorExactSourceReviews": "CODE APPROVE / ARCH CLEAR",
+  "networkRemoteScenarios": 15,
+  "networkDeterministicTopLevelCases": 16,
+  "O4TenantExtensionAuthorized": true,
+  "O4Implemented": false,
+  "completeP0": false,
+  "foundationLockChanged": false
+}

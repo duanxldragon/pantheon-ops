@@ -1,0 +1,210 @@
+{
+  "taskId": "2026-11-13-ops-business-menu-ia-refactor",
+  "taskDoc": "docs/harness/tasks/2026-11-13-ops-business-menu-ia-refactor.task.md",
+  "title": "Refactor Pantheon Ops business menu information architecture (bizscope, service catalog, ArgoCD de-brand)",
+  "repo": "pantheon-ops",
+  "primaryLayer": "business/*",
+  "dependencyLayers": [
+    "business/*",
+    "system/iam"
+  ],
+  "status": "in-progress",
+  "priority": "P2",
+  "type": "business-menu-ia-refactor",
+  "created_at": "2026-11-13",
+  "goal": "Restructure the Pantheon Ops business navigation from two thin single pages into two M-directories with six C sub-menus (bizscope: scope list/host bindings/environments with a new biz_business_environment CRUD entity; service catalog: applications/services/instances reusing existing list APIs), retire the two old menu paths through the overlay, and reduce the ArgoCD menu to display-only 'Application Delivery' wording without changing any internal identifier; keep seed, registry, i18n, smoke and overlay contracts green in the same delivery.",
+  "scope": {
+    "in": [
+      "bizscope module: replace the single C menu with an M parent plus three C menus (scope list, host bindings, environment management); existing BizScope CRUD migrates under /business/bizscope/scopes",
+      "New BusinessEnvironment entity: biz_business_environment table (child of business scope, composite unique on business_scope_id+code, soft delete), AutoMigrate, four CRUD endpoints under /business/bizscope/environments, service tests and seed tests",
+      "Host bindings page reuses the existing CMDB host list API with its businessScopeId filter; no new backend endpoint",
+      "Service catalog: replace the three-tab ServiceCatalog monolith with an M parent plus three C menus under /business/service-catalog/{applications,services,instances}; all three pages reuse the existing application/service/instance list APIs and the existing business:service:list permission",
+      "Retire /business/business-scope[/:id], /business/service and component business/service/ServiceCatalog via retired_modules_overlay.go (MenuPaths/ComponentKeys cleanup before module seeding); delete ServiceCatalog.tsx after the three-way split",
+      "ArgoCD de-branding: i18n display values only, zh '应用发布' / en 'Application Delivery', including permission wording; paths, permission keys, component directory, route names and API routes are retained",
+      "Frontend/backend component registry parity, business-overlay.json sync, bilingual i18n seed/resource parity, smoke spec rewrite plus a new bizscope smoke suite, smoke README and package.json script registration",
+      "L2 governance in pantheon-ops: this task packet, plan.md and the evidence/review delivery under .harness"
+    ],
+    "out": [
+      "CI capabilities; the current CD/GitOps behavior stays as-is and the CI half remains unbuilt",
+      "Renaming cicd paths, permission keys, component directories, API routes, constants or type identifiers",
+      "Changing the existing BizScope.Environment enum field or the service-instance free-text environment field",
+      "The legacy e2e-tests manual suite except text-only fixes where a changed display string breaks an assertion",
+      "Renaming BUSINESS_ARGOCD_MODULE_DESIGN.md and other design documents",
+      "Any new dependency, gate weakening, dismissal or suppression; production data and credentials",
+      "Pantheon-base product code under backend/ and frontend/; this packet and its evidence belong to ops; no foundation release is required"
+    ]
+  },
+  "contractAnchors": [
+    "../pantheon-base/docs/harness/TASK_PACKET_SPEC.md",
+    "../pantheon-base/docs/harness/VERIFICATION_EVIDENCE_SPEC.md",
+    "../pantheon-base/docs/harness/REVIEW_LOOP_SPEC.md",
+    "../pantheon-base/docs/harness/VISUAL_QUALITY_PROTOCOL.md"
+  ],
+  "harnessProfile": {
+    "template": "ui-heavy-product",
+    "overlay": "pantheon-ops",
+    "qualityProfile": "ci-workflow",
+    "portableFailureClass": "menu-ia-contract-gap",
+    "ownerLayer": "business-consumer",
+    "ratchetDecision": "sensor-added",
+    "coverageDimensions": [
+      "behaviour",
+      "architecture-fitness",
+      "runtime-quality"
+    ]
+  },
+  "workspaceContext": {
+    "targetRepository": "pantheon-ops",
+    "repositoryRole": "business-consumer",
+    "contextSyncExpectation": "none",
+    "releaseRequirement": "none"
+  },
+  "expectedFiles": {
+    "create": [
+      "docs/harness/tasks/2026-11-13-ops-business-menu-ia-refactor.task.md",
+      ".harness/tasks/2026-11-13-ops-business-menu-ia-refactor/manifest.json",
+      ".harness/tasks/2026-11-13-ops-business-menu-ia-refactor/plan.md",
+      ".harness/evidence/2026-11-13-ops-business-menu-ia-refactor/commands.json",
+      ".harness/evidence/2026-11-13-ops-business-menu-ia-refactor/summary.md",
+      ".harness/evidence/2026-11-13-ops-business-menu-ia-refactor/review.md",
+      "backend/modules/business/bizscope/environment_model.go",
+      "backend/modules/business/bizscope/environment_dto.go",
+      "backend/modules/business/bizscope/environment_service.go",
+      "backend/modules/business/bizscope/environment_handler.go",
+      "backend/modules/business/bizscope/environment_service_test.go",
+      "backend/modules/business/bizscope/seeds_test.go",
+      "backend/modules/business/service/seed_test.go",
+      "frontend/src/modules/business/bizscope/BizScopeHostBindingList.tsx",
+      "frontend/src/modules/business/bizscope/environment/EnvironmentList.tsx",
+      "frontend/src/modules/business/bizscope/environment/api.ts",
+      "frontend/src/modules/business/service/ApplicationList.tsx",
+      "frontend/tests/smoke/business/bizscope/bizscope-pages.spec.ts"
+    ],
+    "modify": [
+      "backend/modules/business/bizscope/module.go",
+      "backend/modules/business/bizscope/bizscope_service.go",
+      "backend/modules/business/service/seed.go",
+      "backend/modules/business/cicd/seed.go",
+      "backend/modules/business/retired_modules_overlay.go",
+      "backend/modules/system/iam/menu/business_overlay_component_registry.go",
+      "frontend/src/modules/business/bizscope/index.ts",
+      "frontend/src/modules/business/bizscope/BizScopeList.tsx",
+      "frontend/src/modules/business/service/index.ts",
+      "frontend/src/modules/business/service/ServiceList.tsx",
+      "frontend/src/modules/business/serviceinstance/ServiceInstanceList.tsx",
+      "frontend/src/core/router/businessOverlayComponentRegistry.ts",
+      "frontend/src/i18n/resources/business/zh-CN.ts",
+      "frontend/src/i18n/resources/business/en-US.ts",
+      "frontend/tests/smoke/business/service/service-pages.spec.ts",
+      "frontend/tests/smoke/README.md",
+      "frontend/package.json",
+      "business-overlay.json"
+    ],
+    "doNotTouch": [
+      "backend/modules/business/service/handler.go (existing API routes and contracts stay unchanged)",
+      "backend/modules/business/bizscope/bizscope_model.go (BizScope.Environment enum retained)",
+      "backend/modules/business/cicd paths, constants, API routes and permission keys (i18n values only)",
+      "frontend/src/modules/business/cicd/argocd/ArgoCDList.tsx (no hardcoded brand string in JSX)",
+      "e2e-tests/ except assertion text broken by the display rename",
+      "foundation-release.lock.json and pantheon-base backend/frontend product code",
+      ".github/workflows gate definitions and any quality threshold"
+    ]
+  },
+  "executionRoles": {
+    "implementerPosture": "Codex executor in pantheon-ops owns every backend/ and frontend/src/ change through 'codex exec -C pantheon-ops', following the five-commit sequence in plan.md; the Claude coordinator never edits product code under the Hard Stop boundary.",
+    "reviewerPosture": [
+      "Claude coordinator reviews diffs against plan.md and runs the mechanical gates, collecting evidence without implementing",
+      "Independent non-author review.md verdict before delivery; maintainer owns the final visual/functional human gate"
+    ]
+  },
+  "verificationPlan": {
+    "commands": [
+      "pantheon-ops backend: go build ./... and go test -race on the bizscope (incl. environment and seeds), service (incl. seed test) and business root packages",
+      "pantheon-ops frontend: tsc -b, eslint and npm run prebuild so check-menu-contract, i18n parity, check-smoke-coverage-contract and overlay checks all run",
+      "pantheon-ops smoke: npm run test:smoke:business:service and the new test:smoke:business:bizscope against a real local stack",
+      "pantheon-ops overlay: npm run check:business-overlay, npm run check:shared-drift, npm run rebuild:from-base -- --target .tmp/business-overlay-rebuild, check:task-packet",
+      "Empty local database boot twice: seed idempotency, no orphan menu rows, retired paths absent and admin menu tree structurally correct",
+      "pantheon-ops governance gates on this packet: check:task-packet-template, check:task-packet, check:docs-frontmatter, check:harness-docs, check:harness-inventory, check:harness-encoding, check:harness-evidence, check:harness-review, check:harness-runtime-evidence, check:harness-visual, check:harness-graph-review, check:harness-adoption, check:structure and check:duplication",
+      "Impeccable visual gate: Playwright rendered evidence at desktop 1440px and mobile 390px for every new and changed page, Source Sans 3 / CSS tokens / radius 4-6-8-12 / no Inter or radial-gradient"
+    ],
+    "runtimeEvidence": [
+      ".harness/evidence/2026-11-14-ops-latest-foundation-and-plans/verification/r5-runtime-smoke-adapted.json",
+      ".harness/evidence/2026-11-14-ops-latest-foundation-and-plans/verification/dashboard-render.json"
+    ],
+    "visualEvidence": {
+      "viewports": [
+        "1440",
+        "390"
+      ],
+      "routes": [
+        "/business/bizscope/scopes",
+        "/business/bizscope/host-bindings",
+        "/business/bizscope/environments",
+        "/business/service-catalog/applications",
+        "/business/service-catalog/services",
+        "/business/service-catalog/instances",
+        "/business/cicd/argocd"
+      ],
+      "states": [
+        "rendered"
+      ]
+    }
+  },
+  "runtimeSensitive": true,
+  "acceptanceCriteria": [
+    "check-menu-contract is green: every frontend C menu has a backend C seed with identical path/titleKey/module/routeName/pagePermission/component, titleKeys exist in both bilingual frontend packs and backend i18n seeds, and component/permission keys are bidirectionally aligned",
+    "check-smoke-coverage-contract is green and both business smoke suites pass a real run with clean console and no raw i18n keys",
+    "Backend build and targeted race tests pass, including the new environment CRUD lifecycle tests and the bizscope/service seed tests",
+    "Frontend type-check, lint and prebuild are green; all four overlay commands pass and the rebuild target is reproducible",
+    "Two consecutive boots on an empty database produce an idempotent M+3C / M+3C menu tree, the retired paths and ServiceCatalog component key are fully removed, and no orphan role_menu rows remain",
+    "Rendered Playwright evidence at 1440px and 390px covers every new/changed page and satisfies the impeccable visual gate",
+    "Release notes record that custom non-admin roles must be re-authorized because retired menu path cleanup removes their system_role_menu links",
+    "Independent review.md is recorded and the maintainer accepts the final visual/functional human gate"
+  ],
+  "humanGates": [
+    "Maintainer approves this planned packet (In/Out/acceptance) before Codex implementation starts; the two clarification rounds already locked the menu shape, naming depth, environment data model and retirement strategy",
+    "Maintainer performs the final visual/functional acceptance on rendered evidence; no gate waiver, red-light exemption or rule change is pre-authorized"
+  ],
+  "evidenceRequired": [
+    ".harness/evidence/2026-11-13-ops-business-menu-ia-refactor/commands.json recording each command, cwd and passed/failed/not-run status per VERIFICATION_EVIDENCE_SPEC, including the overlay and smoke receipts",
+    "Backend test output for the environment service tests and both new seed tests, plus the empty-database double-boot idempotency check",
+    "Playwright screenshots and browserEvidence for desktop 1440px and mobile 390px across the six C pages plus the renamed application-delivery page",
+    "summary.md with the verification readout and explicit known gaps; review.md carrying the machine-readable independent verdict",
+    "No credentials, secrets, production data or auth traces in any tracked evidence artifact"
+  ],
+  "completionChecklist": [
+    "Layer and boundary declared",
+    "Contract anchors read",
+    "Verification run or exception recorded",
+    "Evidence saved or summarized",
+    "Review completed",
+    "Menu contract and smoke coverage contracts green",
+    "Impeccable visual evidence captured at 1440px and 390px",
+    "Retirement and seed idempotency verified on an empty database",
+    "Custom-role re-authorization release note recorded"
+  ],
+  "implementationNotes": [
+    "Hard Stop: all paths under backend/ and frontend/ are pantheon-ops repo-relative and are implemented exclusively by the Codex executor; .harness/ and docs/harness/ paths are also pantheon-ops repo-relative and owned by the Claude coordinator.",
+    "Seed upsert matches by path and overwrites every field including type/component/parent_id, so same-path M/C conversions leave no orphan; only the two retired paths need overlay cleanup, which runs before module seeding.",
+    "The three service-catalog C pages reuse business:service:list as pagePermission; no new service permission keys are introduced. The bizscope host-binding and environment pages introduce six new permission keys total.",
+    "The soft-deleted environment row still occupies the (business_scope_id, code) unique index, matching the existing BizScope convention; document the limit in a code comment.",
+    "ServiceCatalog.tsx is a deletion, not a modification: its application/service/instance logic is split three ways before the file is removed, keeping each replacement below the monolith's cognitive complexity.",
+    "Five suggested reviewable commits: (1) environment entity backend plus tests, (2) seed restructure plus retirement plus seed tests, (3) frontend pages/modules/registries, (4) smoke and contract/overlay sync, (5) bilingual i18n de-branding.",
+    "At execution start flip status to in-progress, create the evidence directory, change linkage.reviewFile from 'none' to the canonical review path, and add verificationPlan.visualEvidence with the 1440px/390px viewports and six routes so check:harness-visual tracks delivery.",
+    "2026-11-14 user authorized planned execution. Formal versioned migration 000038 replaces obsolete AutoMigrate-only assumption; the host-binding page requires its page key and an independently granted CMDB read key because official provider registration forbids cross-domain route grants."
+  ],
+  "linkage": {
+    "taskManifest": ".harness/tasks/2026-11-13-ops-business-menu-ia-refactor/manifest.json",
+    "taskDoc": "docs/harness/tasks/2026-11-13-ops-business-menu-ia-refactor.task.md",
+    "evidenceDir": ".harness/evidence/2026-11-13-ops-business-menu-ia-refactor/",
+    "reviewFile": ".harness/evidence/2026-11-13-ops-business-menu-ia-refactor/review.md",
+    "changeRef": "none",
+    "planRefs": [
+      ".harness/tasks/2026-11-13-ops-business-menu-ia-refactor/plan.md",
+      "docs/harness/tasks/2026-11-13-ops-business-menu-ia-refactor.task.md"
+    ]
+  },
+  "blockers": [
+    "Active release installation denied by Windows directory ACL; complete parent and final human acceptance remain open."
+  ]
+}

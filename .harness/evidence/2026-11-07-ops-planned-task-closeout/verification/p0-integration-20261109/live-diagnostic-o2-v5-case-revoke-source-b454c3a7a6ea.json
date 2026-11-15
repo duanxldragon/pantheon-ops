@@ -1,0 +1,245 @@
+{
+  "case": "revoke-source",
+  "identity": "o2-live-b454c3a7a6ea-revoke-source",
+  "database": "ops_p0_o2_live_b454c3a7a6ea_revoke_source",
+  "databaseRetention": "retained; no drop",
+  "events": [
+    {
+      "credentialId": 1,
+      "packageId": 1,
+      "phase": "task-created",
+      "taskId": 1
+    },
+    {
+      "action": "pause",
+      "errorKey": "",
+      "phase": "control",
+      "taskId": 1
+    },
+    {
+      "case": "revoke-source",
+      "check": "real running command acknowledged paused",
+      "kind": "positive",
+      "passed": true
+    },
+    {
+      "action": "cancel",
+      "errorKey": "business.deploy.task.commandConflict",
+      "phase": "control",
+      "taskId": 1
+    },
+    {
+      "case": "revoke-source",
+      "check": "stale running view conflicts after control",
+      "kind": "negative",
+      "passed": true
+    },
+    {
+      "case": "revoke-source",
+      "check": "independent VM interrupted attempt never wrote completion",
+      "kind": "positive",
+      "passed": true
+    },
+    {
+      "case": "revoke-source",
+      "check": "public current checkpoint and recorded safe history",
+      "kind": "positive",
+      "origin": "fresh-process",
+      "passed": true
+    },
+    {
+      "fieldTypes": {
+        "attemptNo": "float64",
+        "sequence": "float64",
+        "taskHostId": "float64",
+        "taskStepId": "float64"
+      },
+      "httpStatus": 200,
+      "kind": "logs",
+      "origin": "fresh-process",
+      "phase": "public-projection-structure",
+      "responseCode": 200
+    },
+    {
+      "case": "revoke-source",
+      "check": "public log sequence ownership attempts and secret exclusion",
+      "kind": "positive",
+      "origin": "fresh-process",
+      "passed": true
+    },
+    {
+      "case": "revoke-source",
+      "check": "both actual VM streams persisted",
+      "kind": "positive",
+      "origin": "fresh-process",
+      "passed": true
+    },
+    {
+      "fieldTypes": {},
+      "httpStatus": 200,
+      "kind": "logs",
+      "origin": "fresh-process",
+      "phase": "public-projection-structure",
+      "responseCode": 200
+    },
+    {
+      "case": "revoke-source",
+      "check": "log cursor excludes already delivered sequence",
+      "kind": "positive",
+      "origin": "fresh-process",
+      "passed": true
+    },
+    {
+      "fieldTypes": {
+        "attemptNo": "missing",
+        "sequence": "float64",
+        "taskHostId": "missing",
+        "taskStepId": "missing"
+      },
+      "httpStatus": 200,
+      "kind": "events",
+      "origin": "fresh-process",
+      "phase": "public-projection-structure",
+      "responseCode": 200
+    },
+    {
+      "case": "revoke-source",
+      "check": "public event sequence ordered across committed transitions",
+      "kind": "positive",
+      "origin": "fresh-process",
+      "passed": true
+    },
+    {
+      "fieldTypes": {},
+      "httpStatus": 200,
+      "kind": "events",
+      "origin": "fresh-process",
+      "phase": "public-projection-structure",
+      "responseCode": 200
+    },
+    {
+      "case": "revoke-source",
+      "check": "event reconnect cursor no replay at latest sequence",
+      "kind": "positive",
+      "origin": "fresh-process",
+      "passed": true
+    },
+    {
+      "attempts": [
+        {
+          "attemptNo": 1,
+          "leaseReleased": true,
+          "status": "paused"
+        }
+      ],
+      "eventTypes": [
+        "task.started",
+        "step.running",
+        "task.pause_requested",
+        "task.paused"
+      ],
+      "finished": false,
+      "history": [
+        {
+          "attemptNo": 1,
+          "capturedAt": "2026-11-09T16:54:17.497+08:00",
+          "finishedAt": null,
+          "id": 1,
+          "startedAt": "2026-11-09T16:54:11.426+08:00",
+          "stateVersion": 3,
+          "status": "pending",
+          "stepKey": "package_default",
+          "stepOrder": 1,
+          "taskHostId": 1
+        }
+      ],
+      "logCount": 2,
+      "origin": "fresh-process",
+      "phase": "persisted-state",
+      "status": "paused",
+      "steps": [
+        {
+          "attemptNo": 1,
+          "finishedAt": null,
+          "id": 1,
+          "startedAt": "2026-11-09T16:54:11.426+08:00",
+          "stateVersion": 3,
+          "status": "pending",
+          "stepKey": "package_default",
+          "stepOrder": 1,
+          "taskHostId": 1
+        }
+      ],
+      "taskId": 1
+    },
+    {
+      "case": "revoke-source",
+      "failed": 0,
+      "negativePassed": 0,
+      "origin": "fresh-process",
+      "phase": "driver-result",
+      "positivePassed": 6
+    },
+    {
+      "case": "revoke-source",
+      "check": "new OS process inspect uses committed task state",
+      "kind": "positive",
+      "passed": true
+    },
+    {
+      "action": "resume",
+      "errorKey": "",
+      "phase": "control",
+      "taskId": 1
+    },
+    {
+      "case": "revoke-source",
+      "check": "disabled live business scope denies resumed VM side effect",
+      "kind": "negative",
+      "passed": false
+    },
+    {
+      "phase": "source-revocation-observation",
+      "resumeErrorKey": "",
+      "vmCompletionPresent": true
+    },
+    {
+      "case": "revoke-source",
+      "failed": 1,
+      "negativePassed": 1,
+      "phase": "driver-result",
+      "positivePassed": 3
+    }
+  ],
+  "driverExitCode": 1,
+  "stderrPresent": false,
+  "status": "failed",
+  "cleanup": {
+    "phase": "exact-owned-cleanup",
+    "directory": "/opt/pantheon-p0-20261109/o2-live-b454c3a7a6ea-revoke-source",
+    "files": [
+      {
+        "file": "gate",
+        "sha256": "1e7ae812f0ac7bc4d9870439c317b3bca15a10fd474a069bde0ce1b88105fa4b",
+        "bytes": 34
+      },
+      {
+        "file": ".owner",
+        "sha256": "1e7ae812f0ac7bc4d9870439c317b3bca15a10fd474a069bde0ce1b88105fa4b",
+        "bytes": 34
+      },
+      {
+        "file": "done",
+        "sha256": "1e7ae812f0ac7bc4d9870439c317b3bca15a10fd474a069bde0ce1b88105fa4b",
+        "bytes": 34
+      },
+      {
+        "file": "started",
+        "sha256": "1e7ae812f0ac7bc4d9870439c317b3bca15a10fd474a069bde0ce1b88105fa4b",
+        "bytes": 34
+      }
+    ],
+    "absent": true,
+    "processKill": false
+  }
+}

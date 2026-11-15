@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "subject": "O4-copy-binding-r3-retained-evidence",
+  "parentTask": "docs/harness/tasks/2026-11-07-ops-planned-task-closeout.task.md",
+  "previousRequest": "continue-o4-copy-binding-20261110-r2-request.json",
+  "previousRequestSHA256": "deda434467f5ea1da73cd8e7673855e86c6b2143e55f1bd0855c57bcebd1e553",
+  "sourceHashes": {
+    "scripts/business-overlay/foundation-candidate.mjs": "54dcbaf0addebc5523d3ffdfde07839412f2b7bb94d005d9313aac5e13a0d4d8",
+    "scripts/business-overlay/rebuild-from-candidate.mjs": "0d310bdcaffd8f961835737faf8aa6d1db1242bbdfa6ae10147e5e7871ed85c8",
+    "scripts/business-overlay/candidate-copy-binding.test.mjs": "8e462b763f7588d2062230d7f3828e4e46f91b338c4b0c927f8c71c3a377f382",
+    "scripts/business-overlay/candidate-retained-evidence.test.mjs": "067e46b132830be5ea4b9834ecd6d28fe21d76fdb3b47ebe4aa7a1190c15405a"
+  },
+  "sourceScope": "Only inputByteLimit narrow retained source-evidence archive allowance and new regression; consumer and r2 copy tests unchanged",
+  "ordinaryFileLimitBytes": 33554432,
+  "retainedEvidenceArchiveLimitBytes": 536870912,
+  "retainedEvidencePathPolicy": "safe .harness/evidence/<task>/verification/<safe path segments>/exact-source-helper-inputs.tar.gz only, no extraction",
+  "requiredValidation": [
+    "actual >32MiB selected evidence assembly sourceStable",
+    "near-miss and >512MiB refusal",
+    "forged returned bytes/size/hardlink refuses before write",
+    "authenticated original forward/reverse/current byte proof",
+    "TS6 ratchet137 inherited/zero new",
+    "current scoped tests and preserved Windows EPERM plus real Linux symlink receipt"
+  ],
+  "retainedDescriptorSHA256": "2f105d76e38c82e8c301d816269ea26669a7a0291a5860be74d6ca71281a9ce6",
+  "officialLockSHA256": "95de1a87270e15c0d4c672418a5df906818a88652f8a3e6c480f1484ee9fa70c",
+  "actualFailureReceipt": ".local/ops-acceptance/post-config-20261111-2aa25fb70de3/run.json",
+  "linuxSymlinkReceipt": ".local/ops-acceptance/post-config-linux-symlink/run-o4-symlink-20261111-7ab5cff803134202/result.json",
+  "independentCodeArchRequired": true,
+  "officialConsumption": false,
+  "P0Approved": false
+}

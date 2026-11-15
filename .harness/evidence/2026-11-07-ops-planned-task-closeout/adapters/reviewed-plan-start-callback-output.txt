@@ -1,0 +1,11 @@
+**APPROVE** (this bounded change only)
+
+Logic verified:
+- Start and callback are correctly separated: `onStarted` rejection is caught in its own try/catch and cannot reach the stale/forbidden branch; `accepted`/`postStartFailed` start false and are set only on the success path.
+- No retry vector: after accept, `preview` is nulled (entry guard returns), confirm/refresh disabled, `submittingRef` blocks re-entry, and the finally always resets flags.
+- `void | Promise<void>` is safe under `await`.
+- UI conditions address the finding: `!accepted` gates ChangeDiff; accepted renders the success Alert; `postStartFailed` adds only a refresh warning; close relabels to "close" while staying enabled.
+
+Minor (non-blocking): unmount before `onStarted` resolves leaves late `setState` no-ops — harmless in React 18.
+
+Nothing proved at P1/P2.

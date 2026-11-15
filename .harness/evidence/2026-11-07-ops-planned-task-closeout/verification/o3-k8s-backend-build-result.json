@@ -1,0 +1,6 @@
+{
+  "command": "go build -mod=readonly -o D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.tmp\\ops-priority-runtime\\server-o3-k8s-reviewed.exe ./cmd/server",
+  "cwd": "backend",
+  "exitCode": 0,
+  "elapsedSeconds": 7.765999999974156
+}

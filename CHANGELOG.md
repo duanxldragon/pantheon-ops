@@ -14,6 +14,7 @@ This is a significant milestone release that transforms Pantheon-Ops into a comp
 ### Added
 
 #### ArgoCD GitOps Integration
+
 - ArgoCD server management with encrypted credential storage
 - Git repository integration
 - Application lifecycle management (create, sync, delete)
@@ -23,6 +24,7 @@ This is a significant milestone release that transforms Pantheon-Ops into a comp
 - Complete frontend UI
 
 #### Velero Backup & Recovery
+
 - Cluster data backup with Velero CRD support
 - Scheduled backup with cron expressions
 - Backup restoration with namespace mapping
@@ -33,6 +35,7 @@ This is a significant milestone release that transforms Pantheon-Ops into a comp
 - Complete frontend UI
 
 #### Monitoring & Alerting System
+
 - Prometheus datasource management
 - PromQL-based alert rules
 - Automated alert evaluation engine
@@ -47,6 +50,7 @@ This is a significant milestone release that transforms Pantheon-Ops into a comp
 - Complete frontend UI
 
 #### File Distribution System
+
 - File storage management (local/S3)
 - SFTP-based batch file transfer
 - Distribution task scheduling
@@ -57,6 +61,7 @@ This is a significant milestone release that transforms Pantheon-Ops into a comp
 - Complete frontend UI
 
 #### Service Instance Management
+
 - Instance status monitoring
 - Automated health checks
 - Status synchronization with ArgoCD
@@ -136,6 +141,7 @@ This is a significant milestone release that transforms Pantheon-Ops into a comp
 ### Architecture
 
 **Backend**:
+
 - Language: Go 1.19+
 - Framework: Gin
 - ORM: GORM
@@ -143,12 +149,14 @@ This is a significant milestone release that transforms Pantheon-Ops into a comp
 - Encryption: crypto/aes (AES-256-GCM)
 
 **Frontend**:
+
 - Framework: React 18
 - Language: TypeScript 4.9
 - UI: Arco Design
 - State Management: React Query
 
 **Infrastructure**:
+
 - Kubernetes: 1.20+
 - ArgoCD: 2.8.0+
 - Velero: 1.11.0+
@@ -157,11 +165,13 @@ This is a significant milestone release that transforms Pantheon-Ops into a comp
 ### Migration Notes
 
 ⚠️ **Breaking Changes**:
+
 - **Required**: Set `PANTHEON_ENCRYPTION_KEY` environment variable (32 bytes)
 - **Required**: Database migration for new tables
 - **Recommended**: Backup database before upgrade
 
 **Upgrade Steps**:
+
 ```bash
 # 1. Set encryption key
 export PANTHEON_ENCRYPTION_KEY="your-32-byte-encryption-key"
@@ -196,14 +206,14 @@ curl http://localhost:8080/health
 
 ### Quality Metrics
 
-| Metric | Score |
-|--------|-------|
+| Metric          | Score       |
+| --------------- | ----------- |
 | Overall Quality | A+ (96/100) |
-| Code Quality | 98/100 |
-| Security | 92/100 |
-| Maintainability | 95/100 |
-| Test Coverage | 75% |
-| Documentation | 95% |
+| Code Quality    | 98/100      |
+| Security        | 92/100      |
+| Maintainability | 95/100      |
+| Test Coverage   | 75%         |
+| Documentation   | 95%         |
 
 ### Acceptance Test Results
 
@@ -227,11 +237,13 @@ Special thanks to Claude (Opus 5) for technical support!
 ## [1.1.0] - 2026-08-01
 
 ### Added
+
 - Basic cluster management
 - Service catalog
 - Initial API framework
 
 ### Fixed
+
 - Various bug fixes
 
 ---
@@ -239,6 +251,7 @@ Special thanks to Claude (Opus 5) for technical support!
 ## [1.0.0] - 2026-07-01
 
 ### Added
+
 - Initial release
 - Basic platform structure
 - Authentication system
@@ -247,3 +260,7 @@ Special thanks to Claude (Opus 5) for technical support!
 ---
 
 **Note**: For detailed information about each release, see the corresponding release notes file.
+
+### Ops planned menu upgrade — 2026-11-14
+
+Consume official pantheon-base-v0.18.8. Business Scope and Service Catalog now expose three child pages each; environments use versioned migration000038. Application Delivery retains its internal ArgoCD routes and permission keys. Retirement removes old menu rows and their role-menu links: custom non-admin roles must be granted the new menu pages after upgrade. Host Bindings additionally requires the existing CMDB host-view permission. Four bounded recorded-state dashboard summaries use the released operational widget slots.

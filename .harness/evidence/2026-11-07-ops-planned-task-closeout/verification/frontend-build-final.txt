@@ -1,0 +1,235 @@
+
+> @duanxldragon/pantheon-base-ui@0.11.2 prebuild
+> npm run patch:arco-react19 && npm run check:menu-contract && npm run check:i18n-hardcode && npm run check:i18n-generated-scope && npm run check:system-datetime-presentation && npm run check:shell-visual-contract && npm run check:ui-contract && npm run check:password-toggle && npm run check:search-toolbar-contract && npm run check:important-budget && npm run check:system-page-admission && npm run check:smoke-web-base && npm run check:smoke-coverage-contract && npm run check:import-path-case
+
+
+> @duanxldragon/pantheon-base-ui@0.11.2 patch:arco-react19
+> node ./scripts/patch-arco-react19.mjs
+
+[arco-react19] patch already applied
+
+> @duanxldragon/pantheon-base-ui@0.11.2 check:menu-contract
+> node ./scripts/check-menu-contract.mjs
+
+✅ manifest / menu seed 一致性检查通过（40 个菜单，50 条路由，237 个权限，52 个组件键）
+
+> @duanxldragon/pantheon-base-ui@0.11.2 check:i18n-hardcode
+> node ./scripts/check-i18n-hardcode.mjs
+
+✅ 展示型硬编码扫描通过（检查 301 个文件）
+
+> @duanxldragon/pantheon-base-ui@0.11.2 check:i18n-generated-scope
+> node ./scripts/check-i18n-generated-scope.mjs
+
+Generated i18n scope check passed.
+
+> @duanxldragon/pantheon-base-ui@0.11.2 check:system-datetime-presentation
+> node ./scripts/check-system-datetime-presentation.mjs
+
+system datetime presentation check passed for 43 files
+
+> @duanxldragon/pantheon-base-ui@0.11.2 check:shell-visual-contract
+> node ./scripts/check-shell-visual-contract.mjs
+
+Shell visual contract passed.
+
+> @duanxldragon/pantheon-base-ui@0.11.2 check:ui-contract
+> node ./scripts/check-ui-contract.mjs
+
+UI contract check: 0 finding(s) across 356 file(s)
+
+> @duanxldragon/pantheon-base-ui@0.11.2 check:password-toggle
+> node ./scripts/check-password-toggle.mjs
+
+Password toggle contract check: 0 finding(s) across 325 file(s)
+
+> @duanxldragon/pantheon-base-ui@0.11.2 check:search-toolbar-contract
+> node ./scripts/check-search-toolbar-contract.mjs
+
+SearchToolbar contract check: 0 finding(s) across 170 module file(s) + index.css
+
+> @duanxldragon/pantheon-base-ui@0.11.2 check:important-budget
+> node ./scripts/check-important-budget.mjs
+
+
+Total !important: 0 / budget 0
+!important budget check passed.
+
+> @duanxldragon/pantheon-base-ui@0.11.2 check:system-page-admission
+> node ./scripts/check-system-page-admission.mjs
+
+system page admission check passed for 16 entries
+
+> @duanxldragon/pantheon-base-ui@0.11.2 check:smoke-web-base
+> node ./scripts/check-smoke-web-base.mjs
+
+smoke web-base check passed for 106 files
+
+> @duanxldragon/pantheon-base-ui@0.11.2 check:smoke-coverage-contract
+> node ./scripts/check-smoke-coverage-contract.mjs
+
+smoke coverage contract passed for 42 smoke specs and 26 script entries
+
+> @duanxldragon/pantheon-base-ui@0.11.2 check:import-path-case
+> node ./scripts/check-import-path-case.mjs
+
+import path case guard passed for 346 source files
+
+> @duanxldragon/pantheon-base-ui@0.11.2 build
+> tsc -b && vite build
+
+(!) Your Vite config uses features that are unsupported by `configLoader: 'native'`, which is planned to become the default in a future major version of Vite:
+  - `__dirname` (vite.config.ts:32:25). Use `import.meta.dirname` instead
+Set `VITE_CONFIG_NATIVE_IGNORE_WARNING=true` to suppress this warning.
+vite v8.3.5 building client environment for production...
+transforming...
+✓ 1486 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                                    5.75 kB │ gzip:  1.65 kB
+dist/assets/TenantMemberList-BhyTkahi.css          0.15 kB │ gzip:  0.12 kB
+dist/assets/TenantListParts-ruvan8Ng.css           0.20 kB │ gzip:  0.14 kB
+dist/assets/ProfileCenter-BSUvB1zO.css             0.27 kB │ gzip:  0.16 kB
+dist/assets/PasswordInput-BlJGLqd4.css             0.46 kB │ gzip:  0.26 kB
+dist/assets/TenantOverview-CRmJFXi8.css            1.03 kB │ gzip:  0.34 kB
+dist/assets/TenantList-DlCTboVd.css                1.52 kB │ gzip:  0.48 kB
+dist/assets/auth-DBoq3-mG.css                      1.60 kB │ gzip:  0.57 kB
+dist/assets/cmdb-DznIQaWR.css                      1.72 kB │ gzip:  0.60 kB
+dist/assets/deploy-BF_ptoBJ.css                    3.54 kB │ gzip:  0.74 kB
+dist/assets/UserList-CHk0MPuG.css                  4.24 kB │ gzip:  1.01 kB
+dist/assets/ModuleWizard-DKm8peWk.css              4.55 kB │ gzip:  1.16 kB
+dist/assets/App-CqMJ5_jj.css                       7.33 kB │ gzip:  1.60 kB
+dist/assets/i18n-DZgMt5u3.css                      8.21 kB │ gzip:  1.67 kB
+dist/assets/Dashboard-Cr4xQrJd.css                10.40 kB │ gzip:  1.88 kB
+dist/assets/arco-content-DJcz-Sht.css             18.04 kB │ gzip:  2.89 kB
+dist/assets/arco-feedback-CEIA5aNc.css            18.24 kB │ gzip:  3.07 kB
+dist/assets/arco-tree-oha6aC3h.css                20.26 kB │ gzip:  2.79 kB
+dist/assets/arco-vendor-BUBAhW1c.css              21.54 kB │ gzip:  3.18 kB
+dist/assets/arco-shell-Dgo1kR-v.css               31.89 kB │ gzip:  4.11 kB
+dist/assets/list-page-Cxtd7Gbw.css                37.02 kB │ gzip:  5.37 kB
+dist/assets/AppLayout-CdaUJX-v.css                42.07 kB │ gzip:  5.12 kB
+dist/assets/index-sqypM_i4.css                    74.51 kB │ gzip: 11.92 kB
+dist/assets/arco-form-base-C0qhxDiu.css          136.85 kB │ gzip: 12.84 kB
+dist/assets/arco-table-D9G1ui_d.css              177.59 kB │ gzip: 20.75 kB
+dist/assets/en-US-DOwCrGXH.js                      0.03 kB │ gzip:  0.05 kB
+dist/assets/fr-FR-DOwCrGXH.js                      0.03 kB │ gzip:  0.05 kB
+dist/assets/ja-JP-DOwCrGXH.js                      0.03 kB │ gzip:  0.05 kB
+dist/assets/ko-KR-DOwCrGXH.js                      0.03 kB │ gzip:  0.05 kB
+dist/assets/zh-CN-DOwCrGXH.js                      0.03 kB │ gzip:  0.05 kB
+dist/assets/en-US-BOG20mz3.js                      0.04 kB │ gzip:  0.06 kB
+dist/assets/Login-XX_-5gR7.js                      0.05 kB │ gzip:  0.07 kB
+dist/assets/tableAction-BPITAo4Q.js                0.06 kB │ gzip:  0.08 kB
+dist/assets/options-Bls4kUGl.js                    0.17 kB │ gzip:  0.14 kB
+dist/assets/upload-CQbGGWk_.js                     0.24 kB │ gzip:  0.21 kB
+dist/assets/tableColumnPriority-Cu5EGKtB.js        0.24 kB │ gzip:  0.18 kB
+dist/assets/usePermission-D3Uxqfr2.js              0.27 kB │ gzip:  0.21 kB
+dist/assets/tableColumnWidth-BA5YW4l7.js           0.27 kB │ gzip:  0.20 kB
+dist/assets/retentionSetting-Bkp44xZp.js           0.34 kB │ gzip:  0.25 kB
+dist/assets/formValidation-9Y75RJxg.js             0.35 kB │ gzip:  0.24 kB
+dist/assets/governanceCleanupLabels-B9EC1GrX.js    0.49 kB │ gzip:  0.24 kB
+dist/assets/clientInfo-CYKaoFzm.js                 0.54 kB │ gzip:  0.38 kB
+dist/assets/BusinessPageHeader-vt_Rjcdw.js         0.62 kB │ gzip:  0.36 kB
+dist/assets/PasswordInput-lVFRHeeF.js              0.64 kB │ gzip:  0.41 kB
+dist/assets/rolldown-runtime-XKyaHtl9.js           0.72 kB │ gzip:  0.42 kB
+dist/assets/api-DkXIks1h.js                        0.79 kB │ gzip:  0.29 kB
+dist/assets/api-BBHAcL54.js                        0.82 kB │ gzip:  0.30 kB
+dist/assets/api-BjEvFKnI.js                        0.82 kB │ gzip:  0.31 kB
+dist/assets/api-D0wdqAU_.js                        0.85 kB │ gzip:  0.31 kB
+dist/assets/plans-ByQvOnEa.js                      0.89 kB │ gzip:  0.36 kB
+dist/assets/api-h9qUIHiX.js                        1.00 kB │ gzip:  0.38 kB
+dist/assets/api-r52JdilY.js                        1.10 kB │ gzip:  0.35 kB
+dist/assets/UserDetail-m7goLMzh.js                 1.15 kB │ gzip:  0.64 kB
+dist/assets/api-C_PFzTE_.js                        1.15 kB │ gzip:  0.32 kB
+dist/assets/SecondaryVerifyModal-DqYhf3Jt.js       1.20 kB │ gzip:  0.67 kB
+dist/assets/colorMode-DEetTxVb.js                  1.23 kB │ gzip:  0.59 kB
+dist/assets/api-BN--IYmx.js                        1.24 kB │ gzip:  0.38 kB
+dist/assets/index-BfS1eYmq.js                      1.44 kB │ gzip:  0.78 kB
+dist/assets/api-B6URc0Hc.js                        1.63 kB │ gzip:  0.45 kB
+dist/assets/api-BNeskujE.js                        1.68 kB │ gzip:  0.66 kB
+dist/assets/api-D-0Wte-m.js                        1.70 kB │ gzip:  0.54 kB
+dist/assets/publicSettings-BVIWOa-4.js             1.71 kB │ gzip:  0.88 kB
+dist/assets/refreshBus-D8I1PiNP.js                 1.98 kB │ gzip:  0.95 kB
+dist/assets/TenantListParts-l_TFohNV.js            2.10 kB │ gzip:  1.02 kB
+dist/assets/AlertRecordList-CgZhIopn.js            2.19 kB │ gzip:  1.01 kB
+dist/assets/icon-BdqvZuf5.js                       2.22 kB │ gzip:  0.63 kB
+dist/assets/deploy-C4tIsBlF.js                     2.48 kB │ gzip:  0.62 kB
+dist/assets/MetricSourceList-Do_ilYlb.js           2.50 kB │ gzip:  1.15 kB
+dist/assets/SessionDetailModal-BW7DHy4z.js         2.63 kB │ gzip:  0.96 kB
+dist/assets/AlertRuleList-BySYVETy.js              2.76 kB │ gzip:  1.22 kB
+dist/assets/LogExplorer-CVPfvDiF.js                3.37 kB │ gzip:  1.53 kB
+dist/assets/api-C5Hr2hVr.js                        3.58 kB │ gzip:  1.30 kB
+dist/assets/FiledistDetail-CctZjoOG.js             3.71 kB │ gzip:  1.46 kB
+dist/assets/SettingGroupPage-YaUYT3T-.js           3.79 kB │ gzip:  1.44 kB
+dist/assets/TraceExplorer-Ci7wTGxw.js              4.33 kB │ gzip:  1.79 kB
+dist/assets/IngressList-BkUSTGwc.js                4.45 kB │ gzip:  1.72 kB
+dist/assets/api-Dtv5j991.js                        4.55 kB │ gzip:  0.82 kB
+dist/assets/catalog-6lpCti2z.js                    5.00 kB │ gzip:  0.85 kB
+dist/assets/TenantMemberList-BswOppEw.js           5.02 kB │ gzip:  1.91 kB
+dist/assets/FiledistList-D5DPWYSS.js               5.40 kB │ gzip:  1.90 kB
+dist/assets/SettingOverviewPage-B8KfAyDA.js        5.40 kB │ gzip:  1.84 kB
+dist/assets/ProfileCenter-Bvu8msQ3.js              5.43 kB │ gzip:  1.94 kB
+dist/assets/ReleaseList-DVZMRdpF.js                6.49 kB │ gzip:  2.09 kB
+dist/assets/StorageList-QoyDc8ZU.js                6.78 kB │ gzip:  2.05 kB
+dist/assets/ArgoCDList-xu-MaVVS.js                 6.83 kB │ gzip:  1.99 kB
+dist/assets/ServiceList-BvO0R2jB.js                7.03 kB │ gzip:  2.44 kB
+dist/assets/BackupList-D8RNn9YY.js                 7.42 kB │ gzip:  2.23 kB
+dist/assets/BizScopeDetail-Ch1eFrIt.js             7.88 kB │ gzip:  2.38 kB
+dist/assets/LoginLogList-BRRHJEOz.js               7.88 kB │ gzip:  2.86 kB
+dist/assets/CmdbHostDetail-NhSg4Lti.js             7.99 kB │ gzip:  2.26 kB
+dist/assets/MonitoringCenter-C5eHnSEe.js           9.08 kB │ gzip:  2.47 kB
+dist/assets/ClusterList-Byfhan-o.js                9.11 kB │ gzip:  2.98 kB
+dist/assets/WorkloadList-DF1vCKKt.js               9.53 kB │ gzip:  3.22 kB
+dist/assets/BizScopeList-D1_A0sgJ.js               9.75 kB │ gzip:  3.07 kB
+dist/assets/SecurityEventList-DLJh8U1H.js         10.38 kB │ gzip:  3.31 kB
+dist/assets/AlertCenter-CJo7TAja.js               10.50 kB │ gzip:  2.93 kB
+dist/assets/SessionList-CCPb5UeB.js               10.97 kB │ gzip:  3.60 kB
+dist/assets/TenantOverview-Cjxlyjig.js            12.93 kB │ gzip:  3.85 kB
+dist/assets/ko-KR-CX2c4zzt.js                     13.38 kB │ gzip:  3.91 kB
+dist/assets/ModuleManager-BVVYRgOi.js             13.73 kB │ gzip:  3.73 kB
+dist/assets/SecurityCenter-0Qw2rwms.js            13.73 kB │ gzip:  3.77 kB
+dist/assets/ja-JP-DItoaD_c.js                     14.28 kB │ gzip:  4.14 kB
+dist/assets/ClusterDetail-DwOK_o76.js             14.34 kB │ gzip:  3.50 kB
+dist/assets/PostList-DfUBAqsK.js                  14.45 kB │ gzip:  4.72 kB
+dist/assets/fr-FR-DIm-Esy_.js                     14.68 kB │ gzip:  3.98 kB
+dist/assets/ServiceCatalog-CgqzODYI.js            14.88 kB │ gzip:  3.60 kB
+dist/assets/CmdbLabelSchemaList-CNWdvcKd.js       14.93 kB │ gzip:  4.17 kB
+dist/assets/DeployPackageList-CCGp5Gy5.js         15.05 kB │ gzip:  4.13 kB
+dist/assets/SettingGroupWorkspace-9TTeGVbZ.js     15.84 kB │ gzip:  4.86 kB
+dist/assets/CmdbGroupList-pekEz3gk.js             16.25 kB │ gzip:  4.83 kB
+dist/assets/TenantList-DCVfU1em.js                16.80 kB │ gzip:  5.07 kB
+dist/assets/Dashboard-DiZPNk2x.js                 17.35 kB │ gzip:  5.11 kB
+dist/assets/CmdbHostList-4peeEcjk.js              17.52 kB │ gzip:  4.88 kB
+dist/assets/MenuList-CMRqQgno.js                  17.54 kB │ gzip:  4.95 kB
+dist/assets/DeployTaskDetail-YUcp8f7H.js          21.18 kB │ gzip:  5.64 kB
+dist/assets/DeployTemplateList-BN3VMoQq.js        25.18 kB │ gzip:  6.23 kB
+dist/assets/DictPage-ifs_r8Yu.js                  25.51 kB │ gzip:  6.76 kB
+dist/assets/DeployTaskList-BXKVlaqz.js            26.29 kB │ gzip:  7.19 kB
+dist/assets/UserList-CewTg_Rp.js                  27.04 kB │ gzip:  7.95 kB
+dist/assets/OperationLogList-BSz9slhb.js          27.14 kB │ gzip:  7.41 kB
+dist/assets/RoleList-BXN1QaBd.js                  27.75 kB │ gzip:  7.59 kB
+dist/assets/PermissionList-Cm6MdLKg.js            32.53 kB │ gzip:  8.08 kB
+dist/assets/I18nList-BG2c9WtG.js                  34.53 kB │ gzip:  8.49 kB
+dist/assets/DeptList-Bb5hKQGi.js                  35.26 kB │ gzip:  8.92 kB
+dist/assets/AppLayout-6J71ecNg.js                 40.73 kB │ gzip: 11.40 kB
+dist/assets/arco-content-BlnHmMDP.js              49.31 kB │ gzip: 15.25 kB
+dist/assets/arco-tree-D7Sw7GEs.js                 52.78 kB │ gzip: 15.40 kB
+dist/assets/arco-shell-D8f729qp.js                55.53 kB │ gzip: 15.21 kB
+dist/assets/ModuleWizard-Bmn1jRlY.js              58.81 kB │ gzip: 13.82 kB
+dist/assets/App-D89J9K_H.js                       98.96 kB │ gzip: 24.88 kB
+dist/assets/app-vendor-ClctT1jH.js               100.16 kB │ gzip: 34.69 kB
+dist/assets/i18n-9Wso_Y_6.js                     100.51 kB │ gzip: 32.32 kB
+dist/assets/arco-form-base-CjsmlG6A.js           104.69 kB │ gzip: 30.75 kB
+dist/assets/arco-icons-C5dg3KIJ.js               115.70 kB │ gzip: 11.95 kB
+dist/assets/arco-feedback-Dyc6H-vU.js            121.08 kB │ gzip: 41.22 kB
+dist/assets/arco-vendor-DhSWaW6k.js              133.10 kB │ gzip: 38.77 kB
+dist/assets/ko-KR-Cm0MhwNk.js                    189.09 kB │ gzip: 44.96 kB
+dist/assets/fr-FR-DU_C-xnD.js                    195.11 kB │ gzip: 45.19 kB
+dist/assets/ja-JP-CUeTq6jI.js                    203.02 kB │ gzip: 46.48 kB
+dist/assets/react-vendor-DcLrkILy.js             218.76 kB │ gzip: 68.26 kB
+dist/assets/zh-CN-DIAuUAzO.js                    262.76 kB │ gzip: 63.10 kB
+dist/assets/arco-table-CzEVq8a2.js               264.90 kB │ gzip: 78.02 kB
+dist/assets/en-US-xj4WinAQ.js                    274.88 kB │ gzip: 60.21 kB
+
+[INEFFECTIVE_DYNAMIC_IMPORT] src/modules/auth/login/components/Login.tsx is dynamically imported by src/App.tsx but also statically imported by src/modules/auth/index.ts, dynamic import will not move module into another chunk.
+
+✓ built in 1.56s

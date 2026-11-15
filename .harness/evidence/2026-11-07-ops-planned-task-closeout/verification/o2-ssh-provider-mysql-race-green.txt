@@ -1,0 +1,32 @@
+=== RUN   TestDeploySSHTransportScriptAndExitStatus
+=== RUN   TestDeploySSHTransportScriptAndExitStatus/password/exit0
+=== RUN   TestDeploySSHTransportScriptAndExitStatus/password/exit17
+=== RUN   TestDeploySSHTransportScriptAndExitStatus/private_key/exit0
+=== RUN   TestDeploySSHTransportScriptAndExitStatus/private_key/exit17
+--- PASS: TestDeploySSHTransportScriptAndExitStatus (0.09s)
+    --- PASS: TestDeploySSHTransportScriptAndExitStatus/password/exit0 (0.03s)
+    --- PASS: TestDeploySSHTransportScriptAndExitStatus/password/exit17 (0.02s)
+    --- PASS: TestDeploySSHTransportScriptAndExitStatus/private_key/exit0 (0.02s)
+    --- PASS: TestDeploySSHTransportScriptAndExitStatus/private_key/exit17 (0.02s)
+=== RUN   TestDeploySSHTransportRejectsChangedHostKey
+--- PASS: TestDeploySSHTransportRejectsChangedHostKey (0.02s)
+=== RUN   TestDeploySSHTransportCancelDuringSessionOpen
+--- PASS: TestDeploySSHTransportCancelDuringSessionOpen (0.02s)
+=== RUN   TestDeploySSHTransportCancelDuringOutput
+--- PASS: TestDeploySSHTransportCancelDuringOutput (0.02s)
+=== RUN   TestDeploySSHTransportPreCanceledContextDoesNotOpenSession
+--- PASS: TestDeploySSHTransportPreCanceledContextDoesNotOpenSession (0.02s)
+=== RUN   TestDeploySSHTransportBusinessExecution
+=== RUN   TestDeploySSHTransportBusinessExecution/exit0
+
+2026/11/08 10:02:39 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/deploy_service.go:1930 [35;1mrecord not found
+[0m[33m[2.136ms] [34;1m[rows:0][0m SELECT * FROM `biz_deploy_task_step` WHERE task_id = 1 AND task_host_id = 1 AND step_key = 'package_default' ORDER BY `biz_deploy_task_step`.`id` LIMIT 1
+=== RUN   TestDeploySSHTransportBusinessExecution/exit17
+
+2026/11/08 10:02:40 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/deploy_service.go:1930 [35;1mrecord not found
+[0m[33m[0.750ms] [34;1m[rows:0][0m SELECT * FROM `biz_deploy_task_step` WHERE task_id = 1 AND task_host_id = 1 AND step_key = 'package_default' ORDER BY `biz_deploy_task_step`.`id` LIMIT 1
+--- PASS: TestDeploySSHTransportBusinessExecution (2.46s)
+    --- PASS: TestDeploySSHTransportBusinessExecution/exit0 (1.30s)
+    --- PASS: TestDeploySSHTransportBusinessExecution/exit17 (1.16s)
+PASS
+ok  	github.com/duanxldragon/pantheon-base/backend/modules/business/deploy	3.720s

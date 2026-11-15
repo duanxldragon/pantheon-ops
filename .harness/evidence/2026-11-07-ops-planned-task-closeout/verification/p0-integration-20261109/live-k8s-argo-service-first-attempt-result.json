@@ -1,0 +1,40 @@
+{
+  "host": "115.190.251.143",
+  "namespace": "pantheon-p0-live-3c38b2",
+  "database": "ops_p0_live_k8s_3c38b2",
+  "scope": "public ServiceService product integration with isolated MySQL/real public K3s; no HTTP or audit coverage",
+  "buildCommand": "CGO_ENABLED=1 PATH=D:/msys64/mingw64/bin go build -mod=readonly -race -o ../.local/ops-acceptance/live-k8s-argo-service-driver.exe ../.local/ops-acceptance/live-k8s-argo-service-driver.go",
+  "buildExitCode": 0,
+  "driverExitCode": 1,
+  "driverStderrPresent": false,
+  "exitCode": 1,
+  "errorType": "RuntimeError",
+  "cleanupExitCode": 0,
+  "elapsedSeconds": 35.797,
+  "records": [
+    {
+      "phase": "prepared",
+      "identity": {
+        "namespace": "pantheon-p0-live-3c38b2",
+        "uid": "5b3a8d91-b348-4a76-8fc8-f533a8eece99",
+        "ownerLabelChecked": true
+      },
+      "configPath": "/opt/pantheon-p0-20261109/live-k8s-argo-pantheon-p0-live-3c38b2.json",
+      "tokenDuration": "15m",
+      "rbac": "only namespaced Services get/list/create/update/delete",
+      "credentialMode": "0600; never stdout"
+    },
+    {
+      "exitCode": 1,
+      "failedStage": "product create"
+    },
+    {
+      "phase": "owned-namespace-cleanup",
+      "uidChecked": true,
+      "absenceVerified": true,
+      "exitCode": 0
+    }
+  ],
+  "checksPassed": 0,
+  "fixtureDatabaseRetained": true
+}

@@ -1,0 +1,21 @@
+{
+  "command": [
+    "go",
+    "test",
+    "-mod=readonly",
+    "-race",
+    "-count=1",
+    "-v",
+    "-timeout",
+    "3m",
+    "./modules/business/deploy",
+    "-run",
+    "^TestStepHistory"
+  ],
+  "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\backend",
+  "exitCode": 1,
+  "elapsedSeconds": 13.155999999988126,
+  "artifact": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/o2-step-history-provider.txt",
+  "sourceHashesStable": true,
+  "hashedFiles": 699
+}

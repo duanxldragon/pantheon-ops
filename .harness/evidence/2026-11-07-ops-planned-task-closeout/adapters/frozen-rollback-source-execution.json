@@ -1,0 +1,7 @@
+{
+  "status": "completed",
+  "exitCode": 0,
+  "seconds": 267,
+  "characters": 6856,
+  "command": "claude.exe -p --tools \"\" --output-format text; stdin=frozen-rollback-source-prompt.md"
+}

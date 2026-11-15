@@ -18,16 +18,16 @@ English version: [SYSTEM_CONFIG_GOVERNANCE_ACCEPTANCE.en.md](./SYSTEM_CONFIG_GOV
 
 ## 1. 覆盖范围
 
-| 页面 | 子域 | 风险等级 | 固定验收目标 |
-| :--- | :--- | :--- | :--- |
-| `/system/i18n` | `system/config/i18n` | 中 | 翻译资产生命周期、导入导出、缓存刷新 |
+| 页面           | 子域                 | 风险等级 | 固定验收目标                         |
+| :------------- | :------------------- | :------- | :----------------------------------- |
+| `/system/i18n` | `system/config/i18n` | 中       | 翻译资产生命周期、导入导出、缓存刷新 |
 
 相邻低代码工作域页面：
 
-| 页面 | 能力归属 | 工作域归属 | 风险等级 | 固定验收目标 |
-| :--- | :--- | :--- | :--- | :--- |
-| `/system/modules` | `system/dynamicmodule` | `platform.lowcode` | 高 | 动态模块注册、卸载、删除记录、清理 |
-| `/system/generator` | `system/generator` | `platform.lowcode` | 高 | 代码生成、数据源治理、工作台注册开关 |
+| 页面                | 能力归属               | 工作域归属         | 风险等级 | 固定验收目标                         |
+| :------------------ | :--------------------- | :----------------- | :------- | :----------------------------------- |
+| `/system/modules`   | `system/dynamicmodule` | `platform.lowcode` | 高       | 动态模块注册、卸载、删除记录、清理   |
+| `/system/generator` | `system/generator`     | `platform.lowcode` | 高       | 代码生成、数据源治理、工作台注册开关 |
 
 ## 2. 通用验收项
 
@@ -43,14 +43,14 @@ English version: [SYSTEM_CONFIG_GOVERNANCE_ACCEPTANCE.en.md](./SYSTEM_CONFIG_GOV
 
 ### 3.1 权限
 
-| 能力 | 页面/动作权限 | 接口权限 |
-| :--- | :--- | :--- |
-| 查看 | `system:i18n:list` | `GET /api/v1/system/i18n` |
-| 新增 | `system:i18n:create` | `POST /api/v1/system/i18n` |
-| 编辑 | `system:i18n:update` | `PUT /api/v1/system/i18n/:id` |
-| 删除 | `system:i18n:delete` | `DELETE /api/v1/system/i18n/:id` |
-| 导入 | `system:i18n:import` | `POST /api/v1/system/i18n/import` |
-| 导出 | `system:i18n:export` | `POST /api/v1/system/i18n/export` |
+| 能力     | 页面/动作权限         | 接口权限                                 |
+| :------- | :-------------------- | :--------------------------------------- |
+| 查看     | `system:i18n:list`    | `GET /api/v1/system/i18n`                |
+| 新增     | `system:i18n:create`  | `POST /api/v1/system/i18n`               |
+| 编辑     | `system:i18n:update`  | `PUT /api/v1/system/i18n/:id`            |
+| 删除     | `system:i18n:delete`  | `DELETE /api/v1/system/i18n/:id`         |
+| 导入     | `system:i18n:import`  | `POST /api/v1/system/i18n/import`        |
+| 导出     | `system:i18n:export`  | `POST /api/v1/system/i18n/export`        |
 | 刷新缓存 | `system:i18n:refresh` | `POST /api/v1/system/i18n/cache/refresh` |
 
 ### 3.2 验收
@@ -65,13 +65,13 @@ English version: [SYSTEM_CONFIG_GOVERNANCE_ACCEPTANCE.en.md](./SYSTEM_CONFIG_GOV
 
 ### 4.1 权限
 
-| 能力 | 页面/动作权限 | 接口权限 |
-| :--- | :--- | :--- |
-| 查看 | `system:module:list` | `GET /api/v1/system/dynamic-modules` |
-| 注册 | `system:module:register` | `POST /api/v1/system/dynamic-modules` |
-| 卸载 | `system:module:unregister` | `DELETE /api/v1/system/dynamic-modules/:name` |
+| 能力     | 页面/动作权限                 | 接口权限                                             |
+| :------- | :---------------------------- | :--------------------------------------------------- |
+| 查看     | `system:module:list`          | `GET /api/v1/system/dynamic-modules`                 |
+| 注册     | `system:module:register`      | `POST /api/v1/system/dynamic-modules`                |
+| 卸载     | `system:module:unregister`    | `DELETE /api/v1/system/dynamic-modules/:name`        |
 | 删除记录 | `system:module:delete_record` | `DELETE /api/v1/system/dynamic-modules/:name/record` |
-| 清理 | `system:module:purge` | `DELETE /api/v1/system/dynamic-modules/:name/purge` |
+| 清理     | `system:module:purge`         | `DELETE /api/v1/system/dynamic-modules/:name/purge`  |
 
 ### 4.2 验收
 
@@ -82,12 +82,26 @@ English version: [SYSTEM_CONFIG_GOVERNANCE_ACCEPTANCE.en.md](./SYSTEM_CONFIG_GOV
 
 ## 5. `/system/generator`
 
+### V2.0-O4 增量验收（实施中）
+
+本组是 [租户合同 §2.7](../contracts/TENANT_CONTRACT_V1.md) 的生成器验收目标，既有验收通过状态不覆盖本组。父任务 `2026-11-07-ops-formal-queue-foundation-gaps` 记录最终证据和独立结论。
+
+| 边界       | 必需证据                                                                                                             |
+| :--------- | :------------------------------------------------------------------------------------------------------------------- |
+| 入口一致性 | wizard/scaffold/direct export 拒绝 V1 tenant、系统域 tenant、冲突归属字段和未支持关系；旧 V1 可运行                  |
+| 生成运行   | 真实导出的平面 V2 在 MySQL 默认/开发模式完成 A/B CRUD/options、同键隔离、缺失上下文拒绝；关闭 DataScope 仍有租户谓词 |
+| 必需初始化 | bootstrap/schema/migrate/seed 任一失败时零采用路由就绪；真实生成 Init 和旧 V1 runner 分别验证                        |
+| UI/i18n    | 所有支持语言、桌面/手机、浅色/暗色、键盘及校验状态渲染；V2/tenant 选择与 V1 重置明确                                 |
+| 继承       | 最终源码稳定摘要、candidate 配对运行、独立审查及后续正式 release 消费；仅模板字符串测试不放行                        |
+
+执行入口见 [生成器指南](../designs/LOWCODE_GENERATOR_GUIDE.md)。现有 scoped 或 fixture 验证不能替代整个消费产品的真实鉴权、迁移及私人数据验收。
+
 ### 5.1 权限
 
-| 能力 | 页面/动作权限 | 接口权限 |
-| :--- | :--- | :--- |
-| 查看 | `system:generator:use` | 页面权限 |
-| 生成 | `system:module:generate` | `POST /api/v1/system/dynamic-modules/generate` |
+| 能力       | 页面/动作权限                        | 接口权限                                               |
+| :--------- | :----------------------------------- | :----------------------------------------------------- |
+| 查看       | `system:generator:use`               | 页面权限                                               |
+| 生成       | `system:module:generate`             | `POST /api/v1/system/dynamic-modules/generate`         |
 | 数据源管理 | `system:generator:datasource:manage` | `POST/PUT/DELETE /api/v1/system/generator/datasources` |
 
 `system:generator:use` 只能作为短期页面可见兼容权限，不代表长期高敏动作权限。
@@ -127,13 +141,13 @@ English version: [SYSTEM_CONFIG_GOVERNANCE_ACCEPTANCE.en.md](./SYSTEM_CONFIG_GOV
 
 本轮针对 `system/config` 相邻低代码高敏链路，按真实 smoke 日志记录如下：
 
-| 套件/链路 | 当前状态 | 说明 | 证据 |
-| :--- | :--- | :--- | :--- |
-| `platform:full` 覆盖 `/system/modules`、`/system/generator` | 通过 | 稳定后重跑 `57/57` 通过 | `frontend/platform-full-smoke-rerun.log` |
-| `system:pages` 中 `/system/dict` 工作台结构 | 已修复并定向通过 | `dict-page__table-card` 工作面恢复，治理摘要留在工作面外 | `frontend/system-pages-smoke.log`、`frontend/system-pages-smoke-remediation-20260523.log` |
-| `system:governance` 权限工作台真实后端整改 | 已修复并定向通过 | 首次失败是 UI 文案断言漂移，不是整改链路失效 | `frontend/system-governance-smoke.log`、`frontend/system-governance-smoke-remediation-20260523.log` |
-| `business:database-import` | 跳过 | 当前按源表可用性决定是否执行，不应记为失败 | `frontend/business-database-import-smoke.log` |
-| `business:auto-recycle` | 已修复并定向通过 | 修正代理默认端口后，按当前真实契约验证“临时模块 purge 文案 + 自动回收结果”通过 | `frontend/business-auto-recycle-smoke.log`、`frontend/business-auto-recycle-smoke-remediation-20260523.log` |
+| 套件/链路                                                   | 当前状态         | 说明                                                                           | 证据                                                                                                        |
+| :---------------------------------------------------------- | :--------------- | :----------------------------------------------------------------------------- | :---------------------------------------------------------------------------------------------------------- |
+| `platform:full` 覆盖 `/system/modules`、`/system/generator` | 通过             | 稳定后重跑 `57/57` 通过                                                        | `frontend/platform-full-smoke-rerun.log`                                                                    |
+| `system:pages` 中 `/system/dict` 工作台结构                 | 已修复并定向通过 | `dict-page__table-card` 工作面恢复，治理摘要留在工作面外                       | `frontend/system-pages-smoke.log`、`frontend/system-pages-smoke-remediation-20260523.log`                   |
+| `system:governance` 权限工作台真实后端整改                  | 已修复并定向通过 | 首次失败是 UI 文案断言漂移，不是整改链路失效                                   | `frontend/system-governance-smoke.log`、`frontend/system-governance-smoke-remediation-20260523.log`         |
+| `business:database-import`                                  | 跳过             | 当前按源表可用性决定是否执行，不应记为失败                                     | `frontend/business-database-import-smoke.log`                                                               |
+| `business:auto-recycle`                                     | 已修复并定向通过 | 修正代理默认端口后，按当前真实契约验证“临时模块 purge 文案 + 自动回收结果”通过 | `frontend/business-auto-recycle-smoke.log`、`frontend/business-auto-recycle-smoke-remediation-20260523.log` |
 
 说明：
 

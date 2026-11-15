@@ -1,0 +1,28 @@
+
+Running 1 test using 1 worker
+
+(node:3304) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x  1 .tmp\ops-acceptance\cleanup-v6.spec.ts:4:1 › clean exact v6 fixtures with identity checks and verify absence (6.0s)
+
+
+  1) .tmp\ops-acceptance\cleanup-v6.spec.ts:4:1 › clean exact v6 fixtures with identity checks and verify absence 
+
+    Error: expect(received).toBe(expected) // Object.is equality
+
+    Expected: 404
+    Received: 500
+
+      29 |   for(const host of hosts){
+      30 |    expect((await (await request.delete(`${apiBaseUrl}/business/cmdb/hosts/${host.id}`,{headers})).json()).code).toBe(200);
+    > 31 |    expect((await (await request.get(`${apiBaseUrl}/business/cmdb/hosts/${host.id}`,{headers})).json()).code).toBe(404);
+         |                                                                                                              ^
+      32 |    records.push({endpoint:'cmdb/hosts',id:host.id,identityVerified:true,absent:true});
+      33 |   }
+      34 |   for(const [id,endpoint] of [[fixture.templateId,'deploy/templates'],[fixture.packageId,'deploy/packages'],[fixture.scopeId,'bizscope']] as const){
+        at D:\workspace\go\pantheon-platform\pantheon-ops\frontend\.tmp\ops-acceptance\cleanup-v6.spec.ts:31:110
+
+    Error Context: test-results\cleanup-v6-clean-exact-v6--37985-y-checks-and-verify-absence\error-context.md
+
+  1 failed
+    .tmp\ops-acceptance\cleanup-v6.spec.ts:4:1 › clean exact v6 fixtures with identity checks and verify absence 

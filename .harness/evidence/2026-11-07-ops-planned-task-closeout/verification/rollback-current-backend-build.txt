@@ -1,0 +1,7 @@
+{
+  "command": "go build -o ../.tmp/ops-planned-cmdb-services/server-rollback-current.exe ./cmd/server",
+  "cwd": "backend",
+  "exitCode": 0,
+  "stdout": "",
+  "provenance": "Executed in this continuation; tool terminal result bf61e3. The empty Tee pipeline created no file; this JSON records the returned result and is not captured process output."
+}

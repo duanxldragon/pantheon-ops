@@ -1,0 +1,52 @@
+{
+  "createdUTC": "2026-11-10 01:37:07 UTC",
+  "parentTaskPacket": "docs/harness/tasks/2026-11-07-ops-planned-task-closeout.task.md",
+  "tier": "L2",
+  "layer": "business/k8s acceptance tooling",
+  "rootRequestSHA256": "ea4d2d5e406f95cb3e838067f66ed32c40e0e7b02152e117d25e59ad1da4f812",
+  "remoteExecuted": false,
+  "realAcceptance": false,
+  "P0Approved": false,
+  "commands": [
+    {
+      "command": "python -B .local/ops-acceptance/resume-velero-s3-v4-test.py",
+      "chunk_id": "0548e9",
+      "wall_time_seconds": 0.7336129,
+      "exit_code": 0,
+      "original_token_count": 805,
+      "output": "test_actual_v3_failure_extras_private (__main__.BindingTests.test_actual_v3_failure_extras_private) ... ok\r\ntest_exact_eight_private_v4_listeners (__main__.BindingTests.test_exact_eight_private_v4_listeners) ... ok\r\ntest_wildcards_public_unknown_and_missing_denied (__main__.BindingTests.test_wildcards_public_unknown_and_missing_denied) ... ok\r\ntest_actual_help_supports_exact_flags (__main__.DerivationTests.test_actual_help_supports_exact_flags) ... ok\r\ntest_all_python_compile (__main__.DerivationTests.test_all_python_compile) ... ok\r\ntest_exact_ast_provider_delta (__main__.DerivationTests.test_exact_ast_provider_delta) ... ok\r\ntest_fixture_functions_and_every_assertion_preserved (__main__.DerivationTests.test_fixture_functions_and_every_assertion_preserved) ... ok\r\ntest_native_eth0_and_no_fallback (__main__.DerivationTests.test_native_eth0_and_no_fallback) ... ok\r\ntest_original_validation_preserved (__main__.DerivationTests.test_original_validation_preserved) ... ok\r\ntest_diagnostic_then_install_requires_exact_original_budget_and_ports (__main__.RootPhaseTests.test_diagnostic_then_install_requires_exact_original_budget_and_ports) ... ok\r\ntest_inspect_and_cleanup_pass_bound_snapshot_to_native (__main__.RootPhaseTests.test_inspect_and_cleanup_pass_bound_snapshot_to_native) ... ok\r\ntest_request_hash_refused_before_connect (__main__.RootPhaseTests.test_request_hash_refused_before_connect) ... ok\r\ntest_validate_and_cleanup_require_persisted_s3_finite_fixture_cleanup (__main__.RootPhaseTests.test_validate_and_cleanup_require_persisted_s3_finite_fixture_cleanup) ... ok\r\ntest_auth_exact_owner_and_counts_only (__main__.SafetyTests.test_auth_exact_owner_and_counts_only) ... ok\r\ntest_boolean_failed_exit_code_refused (__main__.SafetyTests.test_boolean_failed_exit_code_refused) ... ok\r\ntest_exact_cleanup_only_unmount_unlink_empty_rmdir (__main__.SafetyTests.test_exact_cleanup_only_unmount_unlink_empty_rmdir) ... ok\r\ntest_exact_native_findmnt_losetup (__main__.SafetyTests.test_exact_native_findmnt_losetup) ... ok\r\ntest_foreign_nested_mount_loop_backing_offset_ro_refused (__main__.SafetyTests.test_foreign_nested_mount_loop_backing_offset_ro_refused) ... ok\r\ntest_inspection_drift_blocks_before_unmount (__main__.SafetyTests.test_inspection_drift_blocks_before_unmount) ... ok\r\ntest_kubernetes_absence_from_successful_native_lists (__main__.SafetyTests.test_kubernetes_absence_from_successful_native_lists) ... ok\r\ntest_metadata_symlink_uid_gid_hardlink_mode_refused (__main__.SafetyTests.test_metadata_symlink_uid_gid_hardlink_mode_refused) ... ok\r\ntest_root_upload_exclusive_and_no_original_provision (__main__.SafetyTests.test_root_upload_exclusive_and_no_original_provision) ... ok\r\ntest_stopped_absent_unit_and_foreign_uid_rejection (__main__.SafetyTests.test_stopped_absent_unit_and_foreign_uid_rejection) ... ok\r\ntest_underlying_foreign_file_retained_after_unmount (__main__.SafetyTests.test_underlying_foreign_file_retained_after_unmount) ... ok\r\ntest_unknown_top_level_file_and_failed_shape_refused (__main__.SafetyTests.test_unknown_top_level_file_and_failed_shape_refused) ... ok\r\n\r\n----------------------------------------------------------------------\r\nRan 25 tests in 0.159s\r\n\r\nOK\r\n"
+    },
+    {
+      "command": "python -B .local/ops-acceptance/resume-velero-s3-v4-root.py check-inputs",
+      "chunk_id": "7c4438",
+      "wall_time_seconds": 0.9862818,
+      "exit_code": 0,
+      "original_token_count": 48,
+      "output": "{\"exitCode\": 0, \"remoteExecuted\": false, \"rootRequestSHA256\": \"ea4d2d5e406f95cb3e838067f66ed32c40e0e7b02152e117d25e59ad1da4f812\", \"originalScripts\": 8, \"productSources\": 17, \"v4Scripts\": 6}\r\n"
+    },
+    {
+      "command": "npm run check:docs-frontmatter",
+      "chunk_id": "f058cc",
+      "wall_time_seconds": 1.496579,
+      "exit_code": 0,
+      "original_token_count": 33,
+      "output": "\n> check:docs-frontmatter\n> node scripts/frontmatter-check.mjs\n\nFrontmatter check passed. Checked 462 docs, 301 with frontmatter.\n"
+    },
+    {
+      "command": "npm run check:task-packet-template",
+      "chunk_id": "98ae2d",
+      "wall_time_seconds": 1.1067585,
+      "exit_code": 0,
+      "original_token_count": 34,
+      "output": "\n> check:task-packet-template\n> node scripts/check-task-packet-template.mjs\n\nOK pantheon-ops task-packet template is present and linked\n"
+    },
+    {
+      "command": "python -B .local/ops-acceptance/resume-velero-s3-v4-generate.py request",
+      "chunk_id": "0ff490",
+      "wall_time_seconds": 1.1779841,
+      "exit_code": 0,
+      "original_token_count": 48,
+      "output": "{\"exitCode\": 0, \"remoteExecuted\": false, \"rootRequest\": \"resume-velero-s3-v4-root-request.json\", \"sha256\": \"ea4d2d5e406f95cb3e838067f66ed32c40e0e7b02152e117d25e59ad1da4f812\", \"v4Scripts\": 6}\r\n"
+    }
+  ]
+}

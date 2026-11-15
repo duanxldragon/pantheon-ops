@@ -1,0 +1,13 @@
+{
+  "backend": "local Claude CLI",
+  "status": "timeout",
+  "exitCode": null,
+  "elapsedSeconds": 120.06200000000536,
+  "scope": "supplied O2 SSH transport sections/tests only",
+  "sourceHashes": {
+    "func (c *deploySSHClient) RunScript(": "b7f3160c0c701eec7f24595aa7a5fa8b4fd66513ac0c9666d1f0c53ffe4685b7",
+    "func newDeploySSHRunner(": "2700aa3135f92e4796287fe9236252aa7822a67af6829b5c7e9788749b84aa1b",
+    "backend/modules/business/deploy/deploy_ssh_transport_test.go": "532be7e4f07ef6f93a5cbe4c56d63cc943734e78e12df0b8b6109dfdd9ede6cf"
+  },
+  "artifact": ".omx/artifacts/ask-claude-o2-ssh-context-20261108.md"
+}

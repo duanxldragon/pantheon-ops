@@ -1,0 +1,13 @@
+**APPROVE** (this bounded change only).
+
+Checks against the supplied final behavior:
+
+- Retry click: `setError(null)` unmounts `PageRequestError`, so the button can't be double-fired; `setLoading(true)` gives immediate feedback either via PageLoading (no snapshot) or the "refreshing" label (snapshot retained).
+- Budget intact: `retryKey` only re-runs the load; `nextAllowedAt` is never touched here, so the 1/min cap still gates the request. No reset-to-zero path exists in this code.
+- `stale` fails safe on invalid `updatedAt` (`NaN > maxAgeMs` → false).
+- Empty-snapshot deferred wait shows a plain spinner up to ~60s with no countdown — that's the stated intended design, not a proved defect. Revisit only if users report confusion.
+
+No P1/P2 proved.
+
+---
+Skipped: tool calls (read-only review), test bodies taken on faith. Risk: long spinner during deferred wait is the one UX soft spot.

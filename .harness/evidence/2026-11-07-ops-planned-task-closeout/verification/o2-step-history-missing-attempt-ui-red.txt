@@ -1,0 +1,148 @@
+
+> @duanxldragon/pantheon-base-ui@0.11.2 test:unit
+> vitest run tests/unit/business/operational/deploy-context.test.tsx
+
+(!) Your Vite config uses features that are unsupported by `configLoader: 'native'`, which is planned to become the default in a future major version of Vite:
+  - `__dirname` (vitest.config.ts:10:25). Use `import.meta.dirname` instead
+Set `VITE_CONFIG_NATIVE_IGNORE_WARNING=true` to suppress this warning.
+
+ RUN  v5.0.5 D:/workspace/go/pantheon-platform/pantheon-ops/frontend
+
+ ❯ tests/unit/business/operational/deploy-context.test.tsx (16 tests | 1 failed) 463ms
+   × does not silently replace a valid missing historical attempt with current results 22ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/unit/business/operational/deploy-context.test.tsx > does not silently replace a valid missing historical attempt with current results
+TestingLibraryElementError: Unable to find an element with the text: business.deploy.logs.historicalAttempt. This could be because the text is broken up by multiple elements. In this case, you can provide a function for your text matcher to make your matcher more flexible.
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<section[39m
+      [33maria-label[39m=[32m"business.deploy.logs.context"[39m
+      [33mclass[39m=[32m"deploy-execution-workbench"[39m
+    [36m>[39m
+      [36m<div>[39m
+        [36m<select[39m
+          [33maria-label[39m=[32m"business.deploy.logs.host"[39m
+        [36m>[39m
+          [36m<option[39m
+            [33mvalue[39m=[32m""[39m
+          [36m/>[39m
+          [36m<option[39m
+            [33mvalue[39m=[32m"11"[39m
+          [36m>[39m
+            [0malpha / 10.0.0.1[0m
+          [36m</option>[39m
+          [36m<option[39m
+            [33mvalue[39m=[32m"12"[39m
+          [36m>[39m
+            [0mbeta / 10.0.0.2[0m
+          [36m</option>[39m
+        [36m</select>[39m
+        [36m<select[39m
+          [33maria-label[39m=[32m"business.deploy.logs.attempts"[39m
+        [36m>[39m
+          [36m<option[39m
+            [33mvalue[39m=[32m""[39m
+          [36m/>[39m
+          [36m<option[39m
+            [33mvalue[39m=[32m"all"[39m
+          [36m>[39m
+            [0mbusiness.deploy.logs.allAttempts[0m
+          [36m</option>[39m
+          [36m<option[39m
+            [33mvalue[39m=[32m"2"[39m
+          [36m>[39m
+            [0m#2[0m
+          [36m</option>[39m
+        [36m</select>[39m
+        [36m<button>[39m
+          [0mbusiness.deploy.logs.jumpFailure[0m
+        [36m</button>[39m
+        [36m<button>[39m
+          [0mbusiness.deploy.logs.reconnect[0m
+        [36m</button>[39m
+        [36m<span>[39m
+          [0malpha[0m
+          [0m / [0m
+          [0m10.0.0.1[0m
+        [36m</span>[39m
+      [36m</div>[39m
+      [36m<p[39m
+        [33mrole[39m=[32m"status"[39m
+      [36m>[39m
+        [0mbusiness.deploy.logs.historyLimited[0m
+      [36m</p>[39m
+      [36m<div>[39m
+        [36m<button[39m
+          [33mdata-status[39m=[32m"success"[39m
+        [36m>[39m
+          [0mlatest-check[0m
+        [36m</button>[39m
+        [36m<button[39m
+          [33mdata-status[39m=[32m"failed"[39m
+        [36m>[39m
+          [0mlatest-install[0m
+        [36m</button>[39m
+      [36m</div>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"business-log-panel"[39m
+      [36m>[39m
+        [36m<div>[39m
+          [36m<button[39m
+            [33maria-pressed[39m=[32m"false"[39m
+          [36m>[39m
+            [0mbusiness.deploy.logs.fullscreen[0m
+          [36m</button>[39m
+          [36m<select[39m
+            [33maria-label[39m=[32m"business.deploy.logs.stream"[39m
+          [36m>[39m
+            [36m<option[39m
+              [33mvalue[39m=[32m""[39m
+            [36m/>[39m
+            [36m<option[39m
+              [33mvalue[39m=[32m"stdout"[39m
+            [36m>[39m
+              [0mstdout[0m
+            [36m</option>[39m
+          [36m</select>[39m
+        [36m</div>[39m
+        [36m<div>[39m
+          [36m<button>[39m
+            [0mpause-tail[0m
+          [36m</button>[39m
+          [36m<p>[39m
+            [0mcurrent result must not become historical[0m
+          [36m</p>[39m
+        [36m</div>[39m
+      [36m</div>[39m
+    [36m</section>[39m
+    [36m<output[39m
+      [33mdata-testid[39m=[32m"location"[39m
+    [36m>[39m
+      [0m?host=11&attempt=1[0m
+    [36m</output>[39m
+  [36m</div>[39m
+[36m</body>[39m
+ ❯ Object.getElementError node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ tests/unit/business/operational/deploy-context.test.tsx:176:16
+    174|  const task=buildTask();task.steps=task.steps?.filter((step)=>step.id!…
+    175|  fixture.rows=[log(2,202,'current result must not become historical')]…
+    176|  expect(screen.getByText('business.deploy.logs.historicalAttempt')).to…
+       |                ^
+    177|  expect(screen.queryByText('current result must not become historical'…
+    178| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 15 passed (16)
+   Start at  10:56:25
+   Duration  2.00s (environment 55%, tests 26%, import 12%, transform 6%, worker 1%)
+

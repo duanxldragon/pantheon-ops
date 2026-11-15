@@ -1,0 +1,23 @@
+{
+  "taskId": "2026-11-07-ops-planned-task-closeout",
+  "status": "local-candidate-complete; root true-VM matrix pending",
+  "rootRequest": ".local/ops-acceptance/resume-o2-v9-root-phase-request.json",
+  "rootRequestSHA256": "46aba1c0f2e5c451898e9b0efb54e32206f6e5219b268b27b581bbed037d64e2",
+  "handoffSHA256": "e24e8e6b7512473a0c3fc2b0eaa89c9d3e8b33d7010435648f2b234dd0afb150",
+  "verificationReceipt": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-v9-candidate-verification-1794274678887620900.json",
+  "verifiedCommands": 5,
+  "verifiedGoTopLevelTests": 15,
+  "verifiedPythonRootTests": 4,
+  "sourceCount": 185,
+  "candidateFileCount": 14,
+  "rootCheckExitCode": 0,
+  "guardEnabled": true,
+  "priorArtifactsUnchanged": true,
+  "handoffHashRowsChecked": 14,
+  "productChanged": false,
+  "credentialsLoaded": false,
+  "remoteExecuted": false,
+  "reviewApproval": false,
+  "trueVMAcceptance": "pending root review/reseal and execution",
+  "finalCheckLogSHA256": "81cb747ea7561238fb294e650c4651947014b5d264229413fd3dd1e28a557b87"
+}

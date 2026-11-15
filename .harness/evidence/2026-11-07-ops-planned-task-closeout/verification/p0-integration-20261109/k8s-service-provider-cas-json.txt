@@ -1,0 +1,50 @@
+=== RUN   TestServiceUpdateProviderCAS
+=== RUN   TestServiceUpdateProviderCAS/preserves_unedited_provider_fields_and_named_ports
+=== RUN   TestServiceUpdateProviderCAS/stale_uid_never_mutates
+=== RUN   TestServiceUpdateProviderCAS/stale_version_never_mutates
+=== RUN   TestServiceUpdateProviderCAS/conflict_after_read_is_not_replayed
+=== RUN   TestServiceUpdateProviderCAS/concurrent_updates_have_one_winner
+=== RUN   TestServiceUpdateProviderCAS/raw_provider_errors_are_suppressed
+=== RUN   TestServiceUpdateProviderCAS/provider_revocation_is_classified
+=== RUN   TestServiceUpdateProviderCAS/cancellation_reaches_write
+--- PASS: TestServiceUpdateProviderCAS (0.13s)
+    --- PASS: TestServiceUpdateProviderCAS/preserves_unedited_provider_fields_and_named_ports (0.01s)
+    --- PASS: TestServiceUpdateProviderCAS/stale_uid_never_mutates (0.00s)
+    --- PASS: TestServiceUpdateProviderCAS/stale_version_never_mutates (0.00s)
+    --- PASS: TestServiceUpdateProviderCAS/conflict_after_read_is_not_replayed (0.01s)
+    --- PASS: TestServiceUpdateProviderCAS/concurrent_updates_have_one_winner (0.01s)
+    --- PASS: TestServiceUpdateProviderCAS/raw_provider_errors_are_suppressed (0.01s)
+    --- PASS: TestServiceUpdateProviderCAS/provider_revocation_is_classified (0.01s)
+    --- PASS: TestServiceUpdateProviderCAS/cancellation_reaches_write (0.08s)
+=== RUN   TestServiceDeletionProviderPreconditions
+--- PASS: TestServiceDeletionProviderPreconditions (0.01s)
+=== RUN   TestServiceUpdateRejectsInvalidBeforeProvider
+--- PASS: TestServiceUpdateRejectsInvalidBeforeProvider (0.00s)
+=== RUN   TestServiceVersionContract
+=== RUN   TestServiceVersionContract/update_requires_version
+[GIN-debug] [WARNING] Running in "debug" mode. Switch to "release" mode in production.
+ - using env:	export GIN_MODE=release
+ - using code:	gin.SetMode(gin.ReleaseMode)
+
+[GIN-debug] GET    /clusters/:id/services    --> github.com/duanxldragon/pantheon-base/backend/modules/business/k8s/service.(*ServiceHandler).List-fm (1 handlers)
+[GIN-debug] POST   /clusters/:id/services    --> github.com/duanxldragon/pantheon-base/backend/modules/business/k8s/service.(*ServiceHandler).Create-fm (1 handlers)
+[GIN-debug] GET    /clusters/:id/services/:name --> github.com/duanxldragon/pantheon-base/backend/modules/business/k8s/service.(*ServiceHandler).Get-fm (1 handlers)
+[GIN-debug] PUT    /clusters/:id/services/:name --> github.com/duanxldragon/pantheon-base/backend/modules/business/k8s/service.(*ServiceHandler).Update-fm (1 handlers)
+[GIN-debug] DELETE /clusters/:id/services/:name --> github.com/duanxldragon/pantheon-base/backend/modules/business/k8s/service.(*ServiceHandler).Delete-fm (1 handlers)
+=== RUN   TestServiceVersionContract/delete_requires_version
+[GIN-debug] [WARNING] Running in "debug" mode. Switch to "release" mode in production.
+ - using env:	export GIN_MODE=release
+ - using code:	gin.SetMode(gin.ReleaseMode)
+
+[GIN-debug] GET    /clusters/:id/services    --> github.com/duanxldragon/pantheon-base/backend/modules/business/k8s/service.(*ServiceHandler).List-fm (1 handlers)
+[GIN-debug] POST   /clusters/:id/services    --> github.com/duanxldragon/pantheon-base/backend/modules/business/k8s/service.(*ServiceHandler).Create-fm (1 handlers)
+[GIN-debug] GET    /clusters/:id/services/:name --> github.com/duanxldragon/pantheon-base/backend/modules/business/k8s/service.(*ServiceHandler).Get-fm (1 handlers)
+[GIN-debug] PUT    /clusters/:id/services/:name --> github.com/duanxldragon/pantheon-base/backend/modules/business/k8s/service.(*ServiceHandler).Update-fm (1 handlers)
+[GIN-debug] DELETE /clusters/:id/services/:name --> github.com/duanxldragon/pantheon-base/backend/modules/business/k8s/service.(*ServiceHandler).Delete-fm (1 handlers)
+=== RUN   TestServiceVersionContract/projection_retains_provider_identity_and_named_port
+--- PASS: TestServiceVersionContract (0.00s)
+    --- PASS: TestServiceVersionContract/update_requires_version (0.00s)
+    --- PASS: TestServiceVersionContract/delete_requires_version (0.00s)
+    --- PASS: TestServiceVersionContract/projection_retains_provider_identity_and_named_port (0.00s)
+PASS
+ok  	github.com/duanxldragon/pantheon-base/backend/modules/business/k8s/service	1.303s

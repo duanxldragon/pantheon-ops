@@ -1,0 +1,50 @@
+{
+  "case": "revoke-source",
+  "identity": "o2-live-593d9f0f9442-revoke-source",
+  "database": "ops_p0_o2_live_593d9f0f9442_revoke_source",
+  "databaseRetention": "retained; no drop",
+  "events": [
+    {
+      "credentialId": 1,
+      "packageId": 1,
+      "phase": "task-created",
+      "taskId": 1
+    },
+    {
+      "errorKey": "suppressed",
+      "phase": "operation-error"
+    },
+    {
+      "error": "operation or deadline; secret details suppressed",
+      "phase": "driver-failure"
+    },
+    {
+      "case": "revoke-source",
+      "failed": 1,
+      "negativePassed": 0,
+      "phase": "driver-result",
+      "positivePassed": 0
+    }
+  ],
+  "driverExitCode": 1,
+  "stderrPresent": false,
+  "status": "failed",
+  "cleanup": {
+    "phase": "exact-owned-cleanup",
+    "directory": "/opt/pantheon-p0-20261109/o2-live-593d9f0f9442-revoke-source",
+    "files": [
+      {
+        "file": ".owner",
+        "sha256": "a4e3aba453628a23c0684480b4098572568a422477813ccb209f546ffdf60dcf",
+        "bytes": 34
+      },
+      {
+        "file": "started",
+        "sha256": "a4e3aba453628a23c0684480b4098572568a422477813ccb209f546ffdf60dcf",
+        "bytes": 34
+      }
+    ],
+    "absent": true,
+    "processKill": false
+  }
+}

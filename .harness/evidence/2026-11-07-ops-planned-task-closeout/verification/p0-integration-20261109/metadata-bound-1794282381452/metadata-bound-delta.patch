@@ -1,0 +1,127 @@
+diff --git "a/D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.harness\\evidence\\2026-11-07-ops-planned-task-closeout\\verification\\p0-integration-20261109\\metadata-bound-1794282381452\\before\\Ops\\scripts\\business-overlay\\foundation-candidate.mjs" "b/D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\scripts\\business-overlay\\foundation-candidate.mjs"
+index 77a2db8..5de13d7 100644
+--- "a/D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.harness\\evidence\\2026-11-07-ops-planned-task-closeout\\verification\\p0-integration-20261109\\metadata-bound-1794282381452\\before\\Ops\\scripts\\business-overlay\\foundation-candidate.mjs"
++++ "b/D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\scripts\\business-overlay\\foundation-candidate.mjs"
+@@ -10,6 +10,9 @@ export const LIMITS = Object.freeze({
+   archiveBytes: 512 * 1024 * 1024,
+   descriptorBytes: 16 * 1024 * 1024,
+ });
++// Declared Ops metadata also includes retained official cache/evidence. Its
++// bounded capture is separate from the schema1 candidate archive inventory.
++export const METADATA_LIMITS = Object.freeze({ files: 100000 });
+ export const sha256 = (bytes) =>
+   crypto.createHash("sha256").update(bytes).digest("hex");
+ export const aggregateSha256 = (files) =>
+@@ -639,8 +642,8 @@ export function captureInputs(root, paths) {
+         path: relative,
+         ...captured,
+       });
+-      if (files.size > LIMITS.files)
+-        throw new Error("Candidate input count exceeds limit");
++      if (files.size > METADATA_LIMITS.files)
++        throw new Error("Declared metadata input count exceeds limit");
+     }
+   };
+   for (const relative of paths) visit(relative);
+diff --git "a/D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.harness\\evidence\\2026-11-07-ops-planned-task-closeout\\verification\\p0-integration-20261109\\metadata-bound-1794282381452\\before\\Ops\\scripts\\business-overlay\\foundation-candidate.test.mjs" "b/D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\scripts\\business-overlay\\foundation-candidate.test.mjs"
+index 39bcee4..0b6563b 100644
+--- "a/D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.harness\\evidence\\2026-11-07-ops-planned-task-closeout\\verification\\p0-integration-20261109\\metadata-bound-1794282381452\\before\\Ops\\scripts\\business-overlay\\foundation-candidate.test.mjs"
++++ "b/D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\scripts\\business-overlay\\foundation-candidate.test.mjs"
+@@ -10,6 +10,97 @@ import * as producer from "../../../pantheon-base/scripts/foundation-release/can
+ import * as consumer from "./foundation-candidate.mjs";
+ import { rebuildFromCandidate } from "./rebuild-from-candidate.mjs";
+ 
++test("declared metadata count accepts 100000 unique files and refuses 100001", (t) => {
++  const root = fs.mkdtempSync(path.join(os.tmpdir(), "ops-metadata-count-"));
++  t.after(() => fs.rmSync(root, { recursive: true, force: true }));
++  const directory = path.join(root, ".harness");
++  const seed = path.join(root, "seed.txt");
++  fs.mkdirSync(directory);
++  fs.writeFileSync(seed, "");
++  // Project synthetic leaf names onto one real zero-byte file. The production
++  // traversal, hashing, stamp checks, unique inventory and bounds still run;
++  // the fixture avoids creating 100001 files on the developer filesystem.
++  const ordinary = fs.lstatSync(seed);
++  const bigint = fs.lstatSync(seed, { bigint: true });
++  const fd = fs.openSync(seed, "r");
++  const close = fs.closeSync;
++  const leaf = file => typeof file === "string" &&
++    path.dirname(file) === directory && /^file-\d{6}\.txt$/u.test(path.basename(file));
++  const names = Array.from({ length: 100000 }, (_, index) =>
++    `file-${String(index).padStart(6, "0")}.txt`);
++  const lstat = fs.lstatSync;
++  const readdir = fs.readdirSync;
++  const open = fs.openSync;
++  const fstat = fs.fstatSync;
++  const exists = fs.existsSync;
++  const directoryStats = new Map();
++  const existingDirectories = new Map();
++  const originals = { lstatSync: lstat, readdirSync: readdir, openSync: open,
++    fstatSync: fstat, closeSync: close, existsSync: exists };
++  fs.existsSync = file => {
++    if (leaf(file)) return true;
++    if (!existingDirectories.has(file)) existingDirectories.set(file, exists(file));
++    return existingDirectories.get(file);
++  };
++  fs.lstatSync = (file, options) => {
++    if (leaf(file)) return options?.bigint ? bigint : ordinary;
++    const key = `${file}:${!!options?.bigint}`;
++    if (!directoryStats.has(key)) directoryStats.set(key, lstat(file, options));
++    return directoryStats.get(key);
++  };
++  fs.readdirSync = (file, ...args) => file === directory ? [...names] : readdir(file, ...args);
++  fs.openSync = (file, ...args) => leaf(file) ? fd : open(file, ...args);
++  fs.fstatSync = (file, options) => file === fd ? (options?.bigint ? bigint : ordinary) : fstat(file, options);
++  fs.closeSync = file => { if (file !== fd) close(file); };
++  try {
++    const captured = consumer.captureInputs(root, [".harness", ".harness/file-000000.txt"]);
++    assert.deepEqual(consumer.METADATA_LIMITS, { files: 100000 });
++    assert.ok(Object.isFrozen(consumer.METADATA_LIMITS));
++    assert.equal(consumer.LIMITS.files, 50000);
++    assert.equal(captured.files.length, 100000);
++    assert.equal(captured.stamps.length, 100001);
++    assert.deepEqual(captured.files.map(file => file.path), names.map(name => `.harness/${name}`));
++    const emptySha256 = consumer.sha256("");
++    assert.ok(captured.files.every(file => file.bytes === 0 && file.sha256 === emptySha256));
++    assert.throws(() => consumer.assertInventory(captured.files), /candidate file count/);
++    names.push("file-100000.txt");
++    assert.throws(() => consumer.captureInputs(root, [".harness"]), /Declared metadata input count exceeds limit/);
++  } finally {
++    Object.assign(fs, originals);
++    close(fd);
++  }
++});
++
++test("candidate inventory and tar retain the independent 50000 file boundary", (t) => {
++  const f = fixture(t);
++  const original = producer.verifyCandidateArchive(
++    fs.readFileSync(f.candidate.artifactPath), f.candidate.descriptor);
++  const entries = [...original, ...Array.from({ length: 50000 - original.length }, (_, index) => ({
++    path: `docs/count-${String(index).padStart(6, "0")}.txt`, bytes: Buffer.alloc(0),
++  }))].sort((a, b) => a.path < b.path ? -1 : a.path > b.path ? 1 : 0);
++  const files = entries.map(entry => ({ path: entry.path, bytes: entry.bytes.length,
++    sha256: consumer.sha256(entry.bytes) }));
++  for (const validator of [consumer, producer]) {
++    assert.doesNotThrow(() => validator.assertInventory(files));
++    assert.throws(() => validator.assertInventory([...files, files[0]]), /candidate file count/);
++  }
++  const archive = producer.encodeCandidateArchive(entries);
++  const aggregate = consumer.aggregateSha256(files);
++  const descriptor = { ...f.candidate.descriptor, files, aggregateSha256: aggregate,
++    candidateIdentity: `candidate-${aggregate}`,
++    artifact: { assetName: `candidate-${aggregate}.tar`, sha256: consumer.sha256(archive) } };
++  for (const validator of [consumer, producer])
++    assert.equal(validator.verifyCandidateArchive(archive, descriptor).length, 50000);
++  // Append a valid extra regular header, retaining valid descriptor and archive
++  // pins, to reach the tar count refusal before duplicate/inventory mismatch.
++  const extra = producer.encodeCandidateArchive([{ path: "docs/extra.txt", bytes: Buffer.alloc(0) }]);
++  const overflow = Buffer.concat([archive.subarray(0, -1024), extra]);
++  const overflowDescriptor = { ...descriptor,
++    artifact: { ...descriptor.artifact, sha256: consumer.sha256(overflow) } };
++  for (const validator of [consumer, producer])
++    assert.throws(() => validator.verifyCandidateArchive(overflow, overflowDescriptor), /archive entry count exceeds limit/);
++});
++
+ test("captured retained archives stream within explicit metadata bounds", (t) => {
+   const root = fs.mkdtempSync(path.join(os.tmpdir(), "ops-captured-archive-"));
+   t.after(() => fs.rmSync(root, { recursive: true, force: true }));

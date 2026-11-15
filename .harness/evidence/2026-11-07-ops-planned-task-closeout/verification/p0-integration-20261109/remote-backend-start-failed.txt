@@ -1,0 +1,25 @@
+[0m[31;1m[704.441ms] [33m[rows:1][35m SELECT count(*) FROM `system_setting` WHERE setting_key = 'org.required_for_user' AND tenant_id = 0[0m
+
+2026/11/09 09:47:49 [32mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/system/config/setting/setting_service.go:221 [33mSLOW SQL >= 200ms
+[0m[31;1m[1374.256ms] [33m[rows:1][35m INSERT INTO `system_setting` (`tenant_id`,`setting_key`,`setting_value`,`value_type`,`group_key`,`module`,`is_public`,`is_encrypted`,`remark`,`created_at`,`updated_at`) VALUES (0,'org.required_for_user','false','boolean','platform','system.org',1,0,'system.setting.remark.org.required_for_user','2026-11-09 09:47:48.937','2026-11-09 09:47:48.937')[0m
+
+2026/11/09 09:47:50 [32mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/system/config/setting/setting_service.go:206 [33mSLOW SQL >= 200ms
+[0m[31;1m[738.981ms] [33m[rows:1][35m SELECT count(*) FROM `system_setting` WHERE setting_key = 'security.password_min_length' AND tenant_id = 0[0m
+
+2026/11/09 09:47:52 [32mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/system/config/setting/setting_service.go:221 [33mSLOW SQL >= 200ms
+[0m[31;1m[1438.654ms] [33m[rows:1][35m INSERT INTO `system_setting` (`tenant_id`,`setting_key`,`setting_value`,`value_type`,`group_key`,`module`,`is_public`,`is_encrypted`,`remark`,`created_at`,`updated_at`) VALUES (0,'security.password_min_length','6','number','security','system',0,0,'system.setting.remark.security.password_min_length','2026-11-09 09:47:51.064','2026-11-09 09:47:51.064')[0m
+
+2026/11/09 09:47:52 [32mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/system/config/setting/setting_service.go:206 [33mSLOW SQL >= 200ms
+[0m[31;1m[702.676ms] [33m[rows:1][35m SELECT count(*) FROM `system_setting` WHERE setting_key = 'security.password_require_digit' AND tenant_id = 0[0m
+
+2026/11/09 09:47:54 [32mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/system/config/setting/setting_service.go:221 [33mSLOW SQL >= 200ms
+[0m[31;1m[1347.034ms] [33m[rows:1][35m INSERT INTO `system_setting` (`tenant_id`,`setting_key`,`setting_value`,`value_type`,`group_key`,`module`,`is_public`,`is_encrypted`,`remark`,`created_at`,`updated_at`) VALUES (0,'security.password_require_digit','false','boolean','security','system.auth',0,0,'system.setting.remark.security.password_require_digit','2026-11-09 09:47:53.202','2026-11-09 09:47:53.202')[0m
+
+2026/11/09 09:47:54 [32mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/system/config/setting/setting_service.go:206 [33mSLOW SQL >= 200ms
+[0m[31;1m[685.876ms] [33m[rows:1][35m SELECT count(*) FROM `system_setting` WHERE setting_key = 'security.password_require_uppercase' AND tenant_id = 0[0m
+
+2026/11/09 09:47:56 [32mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/system/config/setting/setting_service.go:221 [33mSLOW SQL >= 200ms
+[0m[31;1m[1334.732ms] [33m[rows:1][35m INSERT INTO `system_setting` (`tenant_id`,`setting_key`,`setting_value`,`value_type`,`group_key`,`module`,`is_public`,`is_encrypted`,`remark`,`created_at`,`updated_at`) VALUES (0,'security.password_require_uppercase','false','boolean','security','system.auth',0,0,'system.setting.remark.security.password_require_uppercase','2026-11-09 09:47:55.224','2026-11-09 09:47:55.224')[0m
+
+2026/11/09 09:47:56 [32mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/system/config/setting/setting_service.go:206 [33mSLOW SQL >= 200ms
+[0m[31;1m[662.341ms] [33m[rows:1][35m SELECT count(*) FROM `system_setting` WHERE setting_key = 'security.password_history_limit' AND tenant_id = 0[0m

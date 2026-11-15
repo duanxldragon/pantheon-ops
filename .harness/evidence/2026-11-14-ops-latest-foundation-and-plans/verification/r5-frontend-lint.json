@@ -1,0 +1,19 @@
+{
+  "name": "r5-frontend-lint",
+  "command": [
+    "npm",
+    "run",
+    "lint"
+  ],
+  "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.tmp\\ops-v0188-final-r5\\frontend",
+  "exitCode": 0,
+  "signal": null,
+  "elapsedSeconds": 80.544,
+  "privateFixtureSHA256": "8796d1a6c2b599e8e5406df8848638287d93827fb4436e6373c271b79cca5f05",
+  "logSHA256": "5818a930434cb0d8d2d2a02064c773ab6a83550e85cc5b74a35fec5534551fa9",
+  "logPrivate": true,
+  "credentialValuesPrinted": false,
+  "passEvents": 0,
+  "skipEvents": 0,
+  "failEvents": 0
+}

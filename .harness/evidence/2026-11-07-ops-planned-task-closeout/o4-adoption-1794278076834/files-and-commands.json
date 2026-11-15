@@ -1,0 +1,144 @@
+{
+  "kind": "o4-backend-generator-prerequisite-handoff",
+  "status": "blocked-at-candidate-pairing",
+  "officialConsumption": false,
+  "backendImplemented": false,
+  "taskId": "2026-11-07-ops-planned-task-closeout",
+  "commands": [
+    {
+      "command": "node --test ../pantheon-base/scripts/foundation-release/candidate-artifact.test.mjs",
+      "exitCode": 0,
+      "tests": 37,
+      "pass": 37,
+      "fail": 0,
+      "skipped": 0,
+      "cancelled": 0,
+      "todo": 0,
+      "log": "base-candidate-tests.log"
+    },
+    {
+      "command": "node --test scripts/business-overlay/foundation-candidate.test.mjs",
+      "exitCode": 0,
+      "tests": 64,
+      "pass": 64,
+      "fail": 0,
+      "skipped": 0,
+      "cancelled": 0,
+      "todo": 0,
+      "log": "ops-candidate-tests.log"
+    },
+    {
+      "command": "npm run test:business-overlay",
+      "exitCode": 0,
+      "tests": 62,
+      "pass": 62,
+      "fail": 0,
+      "skipped": 0,
+      "cancelled": 0,
+      "todo": 0,
+      "log": "overlay-tests.log"
+    },
+    {
+      "command": "$env:O4_ADOPTION_EVIDENCE=(Resolve-Path .harness/evidence/2026-11-07-ops-planned-task-closeout/o4-adoption-1794278076834).Path; node --test .local/ops-acceptance/o4-adoption-prerequisite.test.mjs",
+      "exitCode": 0,
+      "tests": 4,
+      "pass": 4,
+      "fail": 0,
+      "skipped": 0,
+      "cancelled": 0,
+      "todo": 0,
+      "log": "real-input-regressions.log"
+    },
+    {
+      "command": "node --check .local/ops-acceptance/o4-adoption-candidate.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node --check .local/ops-acceptance/o4-adoption-prerequisite.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node .local/ops-acceptance/o4-adoption-candidate.mjs",
+      "exitCode": 1,
+      "producer": "sealed successfully",
+      "consumer": "failed before assembly",
+      "receipt": "failure-receipt.json"
+    },
+    {
+      "command": "npm run check:business-overlay",
+      "exitCode": 0,
+      "log": "overlay-check.log"
+    },
+    {
+      "command": "git diff --check -- backend/modules/business/observability backend/modules/business/opsinit business-overlay.json",
+      "exitCode": 0
+    }
+  ],
+  "files": [
+    {
+      "path": ".local/ops-acceptance/o4-adoption-candidate.mjs",
+      "bytes": 6408,
+      "sha256": "2b66e7dfa7197daf1408fa56d29a324babe616bdacabc0e6eca49f2081dd122a"
+    },
+    {
+      "path": ".local/ops-acceptance/o4-adoption-prerequisite.test.mjs",
+      "bytes": 3826,
+      "sha256": "496ce5466a465eb9a229122aa8b3a3704d578b5e174d69b0328b7713902c88c1"
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-adoption-1794278076834/base-candidate-tests.log",
+      "bytes": 3250,
+      "sha256": "b232dd9da81bca1593e82780c39c105ebeaa0939f6194999020e012eb9559748"
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-adoption-1794278076834/failure-receipt.json",
+      "bytes": 450,
+      "sha256": "443a71b351c6ef31c1b5ab67b2e0177ae66e87ebc159fe86b6389f75cf503cf0"
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-adoption-1794278076834/generator-report.md",
+      "bytes": 9654,
+      "sha256": "b57a7726835d5bc85260100d81f610d737bdcc53f006818f0213120121804232"
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-adoption-1794278076834/input-shape-diagnostics.json",
+      "bytes": 1252,
+      "sha256": "4811a4afb47a54ac0967b44e6bc84cbe623393abc10e49107e1f3a11c49e59d2"
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-adoption-1794278076834/ops-candidate-tests.log",
+      "bytes": 5587,
+      "sha256": "a1623d4b6cb8ae38bceb032e3c5af88594da4336239119d10d23d633a90b132a"
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-adoption-1794278076834/overlay-check.log",
+      "bytes": 154,
+      "sha256": "55ee542cb301d23a24fd6e9278e56ec687d7f91041b98119fb7c4c69aeabf13d"
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-adoption-1794278076834/overlay-tests.log",
+      "bytes": 4806,
+      "sha256": "d71e3974b56cd38286672e09b7b241ce1044d9897924bf2d0b067cb36430c814"
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-adoption-1794278076834/prerequisite-receipt.json",
+      "bytes": 18895,
+      "sha256": "f90e7544d7bed15a22bb47be49dd6a9afc85b2b328fab995fd570938099f4df5"
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-adoption-1794278076834/producer-receipt.json",
+      "bytes": 813,
+      "sha256": "ba3fd0301e5100288d75eb9f1d293d330a15e9632a026497a7de9451014745c5"
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-adoption-1794278076834/real-input-regressions.log",
+      "bytes": 493,
+      "sha256": "095402fec44510fe65f73b05d177d3a3e065c8c0665813c5a7701fbe04a7c833"
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-adoption-1794278076834/source-inventory.json",
+      "bytes": 66098,
+      "sha256": "96d841a52308b1581928693606e66eab462a744710db8ffff7563b2fd95541be"
+    }
+  ]
+}

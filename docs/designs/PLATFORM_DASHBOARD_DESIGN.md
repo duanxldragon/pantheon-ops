@@ -122,3 +122,11 @@ DashboardPage
 - `platform` 层只负责从已注册模块聚合 widget，不再在 `dashboard/widgets.tsx` 中维护静态大列表；
 - `system/*` 与 `business/*` 通过同一注册面接入，但 `business/*` 必须额外声明 `registrationOwner` 与 `remove_with_source_module` 清理策略；
 - widget 可见性仍由导航可达性与权限共同决定，`platform` 不绕过 `system/*` 的权限边界。
+
+## 7. Operational provider rendering contract
+
+Operational registrations may optionally declare `dataSource: {timeoutMs, load({signal, maxItems})}`. The promise returns a safe bounded snapshot with mandatory `updatedAt`, optional range/partial flags and labeled items. Each item may include a value/detail and bounded query parameters for its declared drilldown route. The provider owns permission/DataScope authorization, redaction, semantic labels and query compilation. Base owns bounded transport lifecycle and rendering; it never reaches into a business service. Semantic-only registrations retain their prior behavior.
+
+Dashboard filters permission/menu/plan visibility before mounting any provider. The renderer mounts at most eight operational widgets and orders attention before status, trend and activity on mobile. Per widget: 1–10 second timeout, at most 100 response items/24 rendered items, 30 second minimum refresh, and the stricter declared request budget. A provider ignoring AbortSignal still times out. Unmount discards late responses; explicit denial clears all data and stops polling. Retry respects the same request budget. Snapshot age/range and partial/stale/error states remain independent of the platform summary. Text is escaped by React and drilldown uses the registered route plus URLSearchParams. Trend snapshots are bounded values with timestamps; chart implementations remain provider-specific future work.
+
+Local evidence is in `.harness/evidence/2026-11-07-ops-formal-queue-foundation-gaps/`; this new source contract is not available to Ops until a verified immutable release is consumed.

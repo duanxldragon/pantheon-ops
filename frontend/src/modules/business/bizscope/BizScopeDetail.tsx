@@ -359,7 +359,7 @@ export default function BizScopeDetail() {
                 {t('business.bizscope.bindHosts')}
               </Button>
             ) : null}
-            <Button icon={<IconLeft />} onClick={() => navigate('/business/business-scope')}>
+            <Button icon={<IconLeft />} onClick={() => navigate('/business/bizscope/scopes')}>
               {t('common.back')}
             </Button>
           </Space>

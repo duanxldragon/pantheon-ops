@@ -1,0 +1,56 @@
+{
+  "ops": [
+    {
+      "path": "pantheon-ops\\.harness\\evidence\\2026-11-07-ops-planned-task-closeout\\verification\\frozen-plan-reviewed-browser\\smoke-business-deploy-depl-9c782-irm-conflict-refresh-light-\\preview-plan-light-desktop.png",
+      "width": 830,
+      "height": 414
+    },
+    {
+      "path": "pantheon-ops\\.harness\\evidence\\2026-11-07-ops-planned-task-closeout\\verification\\frozen-plan-reviewed-browser\\smoke-business-deploy-depl-226da-firm-conflict-refresh-dark-\\preview-plan-dark-desktop.png",
+      "width": 830,
+      "height": 414
+    },
+    {
+      "path": "pantheon-ops\\.harness\\evidence\\2026-11-07-ops-planned-task-closeout\\verification\\frozen-plan-reviewed-browser\\smoke-business-deploy-depl-9c782-irm-conflict-refresh-light-\\preview-plan-light-mobile.png",
+      "width": 332,
+      "height": 584
+    },
+    {
+      "path": "pantheon-ops\\.harness\\evidence\\2026-11-07-ops-planned-task-closeout\\verification\\frozen-plan-reviewed-browser\\smoke-business-deploy-depl-226da-firm-conflict-refresh-dark-\\preview-plan-dark-mobile.png",
+      "width": 332,
+      "height": 584
+    },
+    {
+      "path": "pantheon-ops\\.harness\\evidence\\2026-11-07-ops-planned-task-closeout\\verification\\frozen-plan-reviewed-browser\\smoke-business-deploy-depl-9c782-irm-conflict-refresh-light-\\preview-light-desktop-forbidden.png",
+      "width": 1440,
+      "height": 1768
+    },
+    {
+      "path": "pantheon-ops\\.harness\\evidence\\2026-11-07-ops-planned-task-closeout\\verification\\frozen-plan-reviewed-browser\\smoke-business-deploy-depl-226da-firm-conflict-refresh-dark-\\preview-dark-desktop-error.png",
+      "width": 1440,
+      "height": 1768
+    }
+  ],
+  "base": [
+    {
+      "path": "pantheon-base\\.harness\\evidence\\2026-11-07-ops-formal-queue-foundation-gaps\\dashboard-retry-browser\\operational-dashboard-oper-ee16e-rtial-error-isolation-light-desktop-light\\dashboard-light-desktop-retry-waiting.png",
+      "width": 1440,
+      "height": 900
+    },
+    {
+      "path": "pantheon-base\\.harness\\evidence\\2026-11-07-ops-formal-queue-foundation-gaps\\dashboard-retry-browser\\operational-dashboard-oper-5a4a0-artial-error-isolation-dark-desktop-light\\dashboard-dark-desktop-retry-waiting.png",
+      "width": 1440,
+      "height": 900
+    },
+    {
+      "path": "pantheon-base\\.harness\\evidence\\2026-11-07-ops-formal-queue-foundation-gaps\\dashboard-retry-browser\\operational-dashboard-oper-ee16e-rtial-error-isolation-light-desktop-light\\dashboard-light-mobile-retry-waiting.png",
+      "width": 390,
+      "height": 1234
+    },
+    {
+      "path": "pantheon-base\\.harness\\evidence\\2026-11-07-ops-formal-queue-foundation-gaps\\dashboard-retry-browser\\operational-dashboard-oper-5a4a0-artial-error-isolation-dark-desktop-light\\dashboard-dark-mobile-retry-waiting.png",
+      "width": 390,
+      "height": 1234
+    }
+  ]
+}

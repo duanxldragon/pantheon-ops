@@ -18,17 +18,19 @@ import (
 	"github.com/duanxldragon/pantheon-base/backend/modules/platform"
 	"github.com/duanxldragon/pantheon-base/backend/modules/system"
 	"github.com/duanxldragon/pantheon-base/backend/modules/system/iam/user"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/auditpolicy"
 	"github.com/duanxldragon/pantheon-base/backend/pkg/common"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/contracts"
 	"github.com/duanxldragon/pantheon-base/backend/pkg/database"
 	"github.com/duanxldragon/pantheon-base/backend/pkg/logging"
 	"github.com/duanxldragon/pantheon-base/backend/pkg/maintenance"
 	"github.com/duanxldragon/pantheon-base/backend/pkg/metrics"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/permissionroutes"
 	"github.com/duanxldragon/pantheon-base/backend/pkg/telemetry"
 	"github.com/duanxldragon/pantheon-base/backend/pkg/version"
 
 	"github.com/gin-gonic/gin"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
-	"go.opentelemetry.io/contrib/instrumentation/github.com/gin-gonic/gin/otelgin"
 	"go.uber.org/zap"
 )
 
@@ -132,18 +134,36 @@ func buildRouter(env string) *gin.Engine {
 	if isProductionEnv(env) {
 		gin.SetMode(gin.ReleaseMode)
 	}
-	r := gin.Default()
+	r := gin.New()
+	r.Use(middleware.MetadataAwareLogger(), middleware.MetadataAwareRecovery())
 	r.Use(middleware.SecurityHeadersMiddleware())
 	r.Use(middleware.CSPNonceMiddleware()) // Generate nonce before CSP
 	r.Use(middleware.CSPMiddleware())
+	r.Use(middleware.RequestContextMiddleware(), middleware.OperationLogMiddleware(database.DB))
+	r.Use(middleware.BusinessTelemetryMiddleware())
 	r.Use(middleware.BodySizeLimit(middleware.DefaultMaxBodyBytes))
 	r.Use(middleware.CORSMiddleware())
-	r.Use(otelgin.Middleware("pantheon-base"))
+	r.Use(middleware.LegacyTelemetryMiddleware("pantheon-base"))
 	r.Use(middleware.PrometheusMiddleware())
-	r.Use(middleware.RequestContextMiddleware(), middleware.OperationLogMiddleware(database.DB))
 	r.Use(middleware.CSRFMiddleware())
 	registerMetricsRoute(r, env)
 	registerAPIRoutes(r)
+	// Provider-owned permission route bindings are compiled startup
+	// declarations; freeze them at the same seal point as the other registries
+	// so a running process cannot change the IAM desired-state policy set.
+	// Boundary rule: docs/designs/PERMISSION_WORKBENCH_GOVERNANCE_DESIGN.md section 7.
+	if err := permissionroutes.Seal(); err != nil {
+		panic(err)
+	}
+	if err := contracts.SealBusinessTenantProviders(); err != nil {
+		panic(err)
+	}
+	if err := auditpolicy.ValidateRoutes(r.Routes()); err != nil {
+		panic(err)
+	}
+	if err := auditpolicy.Seal(); err != nil {
+		panic(err)
+	}
 	return r
 }
 

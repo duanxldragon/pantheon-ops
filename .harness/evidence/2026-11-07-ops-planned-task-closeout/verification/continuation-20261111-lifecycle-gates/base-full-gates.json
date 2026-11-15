@@ -1,0 +1,50 @@
+{
+  "status": "PASS",
+  "scope": "entire current Base backend ./...",
+  "freshRaceCount": 1,
+  "currentSourceSHA256": "964d996b46689a49ebf9061b96e2fd9ea8155200f8ae4bcbb2e8fdd40e3604ef",
+  "currentFilesCaptured": 529,
+  "allElevenOwnerSourceTestDocHashesStable": true,
+  "allSevenOwnerGoFilesInCurrentInventory": true,
+  "gates": {
+    "race": {
+      "receipt": ".local/continuation-20261111-gates/go-race-workspace-temp-9178b7768f7b/receipt.json",
+      "receiptSHA256": "aef4ba0d542b3f00f4fb45c70bcab13de782b971a5044300f9291418302c9804",
+      "exitCode": 0,
+      "elapsedSeconds": 1238.235,
+      "filesCaptured": 529,
+      "beforeAfterCurrentMatch": true,
+      "sourceBeforeSHA256": "964d996b46689a49ebf9061b96e2fd9ea8155200f8ae4bcbb2e8fdd40e3604ef",
+      "sourceAfterSHA256": "964d996b46689a49ebf9061b96e2fd9ea8155200f8ae4bcbb2e8fdd40e3604ef",
+      "logSHA256": "8b48291016167406e3b89252e9084aa86d0d00e4ccbe0dbb4d4cb839fbc2ca51",
+      "CGO_ENABLED": "1"
+    },
+    "vet": {
+      "receipt": ".local/continuation-20261111-gates/go-vet-4cbf77be16d9/receipt.json",
+      "receiptSHA256": "8688fa1194fdc5909e87306d556c704823ec33f0d6b741b6ecfc75e62c5867a6",
+      "exitCode": 0,
+      "elapsedSeconds": 22.0,
+      "filesCaptured": 529,
+      "beforeAfterCurrentMatch": true,
+      "sourceBeforeSHA256": "964d996b46689a49ebf9061b96e2fd9ea8155200f8ae4bcbb2e8fdd40e3604ef",
+      "sourceAfterSHA256": "964d996b46689a49ebf9061b96e2fd9ea8155200f8ae4bcbb2e8fdd40e3604ef",
+      "logSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "CGO_ENABLED": "1"
+    },
+    "build": {
+      "receipt": ".local/continuation-20261111-gates/go-build-61031128bd14/receipt.json",
+      "receiptSHA256": "416bd96d582d99996f6f9db7767f7482b37864adcc8b064c965a7a20162ecd37",
+      "exitCode": 0,
+      "elapsedSeconds": 18.703,
+      "filesCaptured": 529,
+      "beforeAfterCurrentMatch": true,
+      "sourceBeforeSHA256": "964d996b46689a49ebf9061b96e2fd9ea8155200f8ae4bcbb2e8fdd40e3604ef",
+      "sourceAfterSHA256": "964d996b46689a49ebf9061b96e2fd9ea8155200f8ae4bcbb2e8fdd40e3604ef",
+      "logSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "CGO_ENABLED": "1"
+    }
+  },
+  "runtimeAcceptance": false,
+  "P0Approved": false,
+  "explicitGap": "S3 live test endpoint not configured in this invocation; prior independent S3 evidence remains with Root"
+}

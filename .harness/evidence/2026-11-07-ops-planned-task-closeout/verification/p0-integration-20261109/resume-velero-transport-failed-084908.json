@@ -1,0 +1,40 @@
+{
+  "phase": "local-transport-preparation",
+  "exitCode": 1,
+  "remoteResourcesCreated": 0,
+  "remoteInstallationExecuted": false,
+  "providerReadinessVerified": false,
+  "backupRestoreVerified": false,
+  "extraMemoryLimitMi": 512,
+  "records": [
+    {
+      "stage": "docker-daemon-preflight",
+      "exitCode": 1,
+      "stderrPresent": true,
+      "rawOutputOmitted": true
+    },
+    {
+      "stage": "docker-daemon-preflight",
+      "exitCode": 1,
+      "rawOutputOmitted": true,
+      "fallback": "official-registry-blob-OCI-layout"
+    }
+  ],
+  "images": [],
+  "archive": {
+    "file": "velero-v1.17.0-linux-amd64.tar.gz",
+    "sha256": "f507a956cf8ec00f483f5d7b04901614a9016a10feb32b3ecc968da36b4fc7be",
+    "bytes": 58499469,
+    "origin": "https://github.com/velero-io/velero/releases/download/v1.17.0/velero-v1.17.0-linux-amd64.tar.gz",
+    "checksumOrigin": "https://github.com/velero-io/velero/releases/download/v1.17.0/CHECKSUM"
+  },
+  "dockerDaemonAvailable": false,
+  "failedStage": "official-image-manifest-velero/velero",
+  "errorType": "URLError",
+  "httpStatus": null,
+  "reasonType": "PermissionError",
+  "errno": 13,
+  "winerror": 10013,
+  "rawOutputOmitted": true,
+  "createdUTC": "2026-11-09T08:49:08.564623+00:00"
+}

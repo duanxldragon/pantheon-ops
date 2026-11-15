@@ -1,0 +1,58 @@
+[
+  {
+    "name": "resume-claude-plan-redaction",
+    "promptSha256": "256a2243d80679da4bb4a1b22deb6ef84e3f7cf5538619d7a89f32089c07a003",
+    "outputSha256": "0469125f091c63a7b07babf9de05cedf2fddf65326c9fa4913744dd22a9bca69",
+    "scope": "approved redaction helper excerpt; display-only port/path normalization suggestions declined to preserve frozen intent",
+    "artifact": ".omx/artifacts/ask-claude-resume-claude-plan-redaction-20261107.md"
+  },
+  {
+    "name": "resumed-base-registry",
+    "promptSha256": "9793d6a28010f2340d2c9f0a2e950e93da29834949f26d3a21b009823cd2834a",
+    "outputSha256": "a414c7be51c7e6d26f9a26bca7b2188fedfd3327c54dc7d0881d60a053f18101",
+    "scope": "permissionroutes registry source only; optional diagnostics deferred",
+    "artifact": ".omx/artifacts/ask-claude-resumed-base-registry-20261107.md"
+  },
+  {
+    "name": "resumed-base-dashboard",
+    "promptSha256": "e322fdecbca2b566e230028c05903c507c2889668808df66989c0a1ce516b5cd",
+    "outputSha256": "575d4d10473404320a46f1196f37115f150ba4c00f2127891fe4d74d8e74abe8",
+    "scope": "OperationalDashboardWidgets source; silent-retry finding repaired without bypassing request budgets",
+    "artifact": ".omx/artifacts/ask-claude-resumed-base-dashboard-20261107.md"
+  },
+  {
+    "name": "frozen-plan-projection",
+    "promptSha256": "a71547f527b7d0b9320d4f44f81606fec6f194c84ecd5c33ec1e80e3deacaf17",
+    "outputSha256": "65ea7265e3cc65438e475d693d0205e78d56b1622bf297ddb97c148d8df41a08",
+    "scope": "projection plus secret loader; double-query and duplicate completeness finding repaired",
+    "artifact": ".omx/artifacts/ask-claude-frozen-plan-projection-20261107.md"
+  },
+  {
+    "name": "frozen-plan-ui",
+    "promptSha256": "febaa128a53062f5762b6ca4cd83a3bb03efddfce8b63506f0b15059708879e2",
+    "outputSha256": "84a5a65919a7271bb942896e02d1233840396be2f150d2182e679258280bee65",
+    "scope": "DeployTaskPreview source; post-start refresh failure finding repaired",
+    "artifact": ".omx/artifacts/ask-claude-frozen-plan-ui-20261107.md"
+  },
+  {
+    "name": "reviewed-plan-secret-read",
+    "promptSha256": "a6ff3b4e83ca88765de2c5e0ec87c3a1f26a85239d5bd5c063b24ae54a96fb5e",
+    "outputSha256": "36558e0196521938d48a877dae1dc1b6ef0f7a5be867b8768337758e3b759f75",
+    "scope": "single row-set secret loader and preview completeness forwarding; public projection not supplied in this follow-up",
+    "artifact": ".omx/artifacts/ask-claude-reviewed-plan-secret-read-20261107.md"
+  },
+  {
+    "name": "reviewed-plan-start-callback",
+    "promptSha256": "91103ab99f0f7d4f684d4b7f4f14185d165cbbce3a9cbda356a6f2f5f98dcbb8",
+    "outputSha256": "68c5f966ab99a5ac755f4491fe5e729baf3eccafa1ca4dffbc9914dbd27a80ed",
+    "scope": "start/callback logic and accepted render guards; follow-up APPROVE",
+    "artifact": ".omx/artifacts/ask-claude-reviewed-plan-start-callback-20261107.md"
+  },
+  {
+    "name": "reviewed-base-retry",
+    "promptSha256": "5963ec1141e609db6fe3b327acf42b14c434691ea81d6986f98b489ebc348cff",
+    "outputSha256": "96e4c0ef7189d9b7b4217104c824f205fd7b6d059547b686b04ac2cdf8c05456",
+    "scope": "retry feedback render/handler only; budget tests verified locally",
+    "artifact": ".omx/artifacts/ask-claude-reviewed-base-retry-20261107.md"
+  }
+]

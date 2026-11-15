@@ -1,0 +1,10 @@
+import fs from 'node:fs'; import path from 'node:path'; import {spawnSync} from 'node:child_process'; import {fileURLToPath} from 'node:url';
+const here=path.dirname(fileURLToPath(import.meta.url));
+const pattern='real generated|official v0.18.6|canonical|forged generatedFiles|fresh consumer|cleanup |source verification|schema1 source|requires external|rebuild calls|protects repository|assembly rejects|drift and migration|CLI reports';
+const suites=[
+ ['ownership-suite',['--import',path.join(here,'preserve-new-fixtures.mjs'),'--test','scripts/business-overlay/candidate-ownership.test.mjs']],
+ ['candidate-focused',['--import',path.join(here,'preserve-new-fixtures.mjs'),'--test','--test-name-pattern',pattern,'scripts/business-overlay/foundation-candidate.test.mjs']],
+ ['overlay-focused',['--import',path.join(here,'preserve-new-fixtures.mjs'),'--test','tests/scripts/business-overlay/check-shared-drift.test.mjs','tests/scripts/business-overlay/rebuild-from-base.test.mjs','tests/scripts/business-overlay/normalize-go-dependencies.test.mjs','tests/scripts/business-overlay/consumer-review-projection.test.mjs']],
+];
+const commands=[];
+for(const [name,args] of suites){ const start=new Date().toISOString(); const r=spawnSync(process.execPath,args,{encoding:'utf8',maxBuffer:16*1024*1024,env:{...process.env,GOPROXY:'off',GOSUMDB:'off',GOTOOLCHAIN:'local'}}); fs.writeFileSync(path.join(here,name+'.log'),r.stdout+'\nSTDERR\n'+r.stderr,{flag:'wx'}); commands.push({name,command:['node',...args],startedAt:start,status:r.status,error:r.error?.message}); fs.writeFileSync(path.join(here,'suite-commands.json'),JSON.stringify(commands,null,2)+'\n'); console.log(name, 'exit',r.status, r.stdout.split(/\r?\n/).filter(l=>/^# (tests|pass|fail|skipped|duration)/.test(l)).join(' | ')); if(r.status!==0) process.exitCode=1; }

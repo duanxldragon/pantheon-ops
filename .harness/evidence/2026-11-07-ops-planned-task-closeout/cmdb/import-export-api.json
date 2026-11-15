@@ -1,0 +1,84 @@
+{
+  "status": "passed",
+  "runtime": "isolated MySQL; AutoMigrate=false; migration version 33",
+  "checks": [
+    {
+      "check": "template",
+      "status": "passed",
+      "columns": [
+        "hostname",
+        "ip",
+        "sshPort",
+        "os",
+        "osVersion",
+        "cpuCores",
+        "memoryGb",
+        "diskGb",
+        "labels",
+        "businessScopeCode",
+        "deptId",
+        "owner",
+        "status",
+        "remark"
+      ]
+    },
+    {
+      "check": "create-import",
+      "status": "passed",
+      "result": {
+        "applied": true,
+        "created": 1,
+        "updated": 0,
+        "failed": 0,
+        "errors": []
+      },
+      "hostStateVersion": 1
+    },
+    {
+      "check": "repeat-import-no-duplicate",
+      "status": "passed",
+      "result": {
+        "applied": true,
+        "created": 0,
+        "updated": 1,
+        "failed": 0,
+        "errors": []
+      }
+    },
+    {
+      "check": "scoped-filter-export",
+      "status": "passed",
+      "contentType": "text/csv; charset=utf-8"
+    },
+    {
+      "check": "invalid-batch-no-partial-write",
+      "status": "passed",
+      "result": {
+        "applied": false,
+        "created": 0,
+        "updated": 0,
+        "failed": 1,
+        "errors": [
+          {
+            "row": 3,
+            "field": "hostname",
+            "message": "cmdbhost.hostname_required"
+          }
+        ]
+      }
+    },
+    {
+      "check": "unauthenticated-export-rejected",
+      "status": "passed",
+      "httpStatus": 200,
+      "code": 401
+    },
+    {
+      "check": "fixture-cleanup",
+      "status": "passed"
+    }
+  ],
+  "knownGaps": [
+    "Separate restricted-role export/import matrix remains unverified by this admin flow."
+  ]
+}

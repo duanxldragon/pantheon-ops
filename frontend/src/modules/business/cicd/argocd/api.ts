@@ -132,11 +132,11 @@ export function deleteArgoCDApplication(id: number) {
   return apiRequest<{ deleted: boolean }>({ url: `/business/cicd/argocd/applications/${id}`, method: 'delete' });
 }
 
-export function syncArgoCDApplication(id: number, revision?: string) {
+export function syncArgoCDApplication(id: number, revision: string, intentVersion: string) {
   return apiRequest<{ id: number; status: string }>({
     url: `/business/cicd/argocd/applications/${id}/sync`,
     method: 'post',
-    data: { revision },
+    data: { revision, intentVersion },
   });
 }
 
@@ -144,12 +144,40 @@ export function refreshArgoCDApplication(id: number) {
   return apiRequest<{ refreshed: boolean }>({ url: `/business/cicd/argocd/applications/${id}/refresh`, method: 'post' });
 }
 
-export function rollbackArgoCDApplication(id: number, revision: string) {
+export function rollbackArgoCDApplication(id: number, revision: string, intentVersion: string) {
   return apiRequest<{ id: number; status: string }>({
     url: `/business/cicd/argocd/applications/${id}/rollback`,
     method: 'post',
-    data: { revision },
+    data: { revision, intentVersion },
   });
+}
+
+export interface ArgoCDPreviewRevision {
+  id: number;
+  revision: string;
+  current: boolean;
+  rollbackAvailable: boolean;
+}
+
+export interface ArgoCDPreviewResponse {
+  intentId: string;
+  intentVersion: string;
+  currentVersion: string;
+  currentRevision: string;
+  targetVersion: string;
+  namespace: string;
+  changes: Array<{ group: string; kind: string; namespace: string; name: string; change: 'added' | 'modified' | 'unchanged' | 'retained'; valuesHidden: boolean }>;
+  history: ArgoCDPreviewRevision[];
+  historyTruncated: boolean;
+  riskKeys: string[];
+  targetCount: number;
+  rollbackAvailable: boolean;
+  healthCheckRequired: boolean;
+  expiresAt: string;
+}
+
+export function previewArgoCDApplication(id: number, data: { revision: string; rollback: boolean }, signal?: AbortSignal) {
+  return apiRequest<ArgoCDPreviewResponse>({ url: `/business/cicd/argocd/applications/${id}/preview`, method: 'post', data, signal });
 }
 
 export interface ArgoCDSyncHistoryRow {

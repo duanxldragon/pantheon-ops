@@ -1,0 +1,6 @@
+{
+  "command": "npm.cmd run test:unit -- tests/unit/business/operational",
+  "cwd": "frontend",
+  "exitCode": 0,
+  "elapsedSeconds": 14.578000000001339
+}

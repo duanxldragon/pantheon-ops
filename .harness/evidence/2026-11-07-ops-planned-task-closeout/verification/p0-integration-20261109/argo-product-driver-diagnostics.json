@@ -1,0 +1,15 @@
+{
+  "argo-product-live.py": {
+    "compiled": true,
+    "sha256": "3ec463bd245a3c81fb3f6a6518fe81c61eb58c49f1c40ea914fbc3e38de3742b"
+  },
+  "argo-product-verify.py": {
+    "compiled": true,
+    "sha256": "e2cdf8df059105fee490a578119d1d2cd38bac138ab01cb187b44f71b2d9fa7b"
+  },
+  "argo-product-remote-staged.py": {
+    "compiled": true,
+    "sha256": "f5aa4a23fec611e747730c4c00844cef98ea1119337e33a9d4214ef04eec78b4"
+  },
+  "phaseHashesMatch": true
+}

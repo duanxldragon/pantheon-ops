@@ -1,0 +1,42 @@
+[
+  {
+    "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/o2-immutable-browser-versioned/smoke-business-deploy-depl-58206--keyboard-and-mobile-light-/workbench-light-desktop.png",
+    "width": 1440,
+    "height": 2494
+  },
+  {
+    "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/o2-immutable-browser-versioned/smoke-business-deploy-depl-58206--keyboard-and-mobile-light-/workbench-light-first-error.png",
+    "width": 1440,
+    "height": 2538
+  },
+  {
+    "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/o2-immutable-browser-versioned/smoke-business-deploy-depl-58206--keyboard-and-mobile-light-/workbench-light-mobile-expanded.png",
+    "width": 390,
+    "height": 3498
+  },
+  {
+    "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/o2-immutable-browser-versioned/smoke-business-deploy-depl-58206--keyboard-and-mobile-light-/workbench-light-mobile-forbidden.png",
+    "width": 390,
+    "height": 3724
+  },
+  {
+    "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/o2-immutable-browser-versioned/smoke-business-deploy-depl-d16f5-s-keyboard-and-mobile-dark-/workbench-dark-desktop.png",
+    "width": 1440,
+    "height": 2494
+  },
+  {
+    "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/o2-immutable-browser-versioned/smoke-business-deploy-depl-d16f5-s-keyboard-and-mobile-dark-/workbench-dark-first-error.png",
+    "width": 1440,
+    "height": 2538
+  },
+  {
+    "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/o2-immutable-browser-versioned/smoke-business-deploy-depl-d16f5-s-keyboard-and-mobile-dark-/workbench-dark-mobile-expanded.png",
+    "width": 390,
+    "height": 3498
+  },
+  {
+    "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/o2-immutable-browser-versioned/smoke-business-deploy-depl-d16f5-s-keyboard-and-mobile-dark-/workbench-dark-mobile-forbidden.png",
+    "width": 390,
+    "height": 3724
+  }
+]

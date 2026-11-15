@@ -1,0 +1,69 @@
+{
+  "browserCases": 2,
+  "viewports": [
+    "1440x900",
+    "390x844"
+  ],
+  "themes": [
+    "light",
+    "dark"
+  ],
+  "screenshots": 18,
+  "screenshotPaths": [
+    ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/o4-label-budget-browser-green/smoke-business-observabili-a1888-n-denial-and-recovery-dark-/loki-dark-desktop-stale.png",
+    ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/o4-label-budget-browser-green/smoke-business-observabili-a1888-n-denial-and-recovery-dark-/loki-dark-desktop-wide-labels.png",
+    ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/o4-label-budget-browser-green/smoke-business-observabili-a1888-n-denial-and-recovery-dark-/loki-dark-desktop.png",
+    ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/o4-label-budget-browser-green/smoke-business-observabili-a1888-n-denial-and-recovery-dark-/loki-dark-fields.png",
+    ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/o4-label-budget-browser-green/smoke-business-observabili-a1888-n-denial-and-recovery-dark-/loki-dark-mobile-forbidden.png",
+    ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/o4-label-budget-browser-green/smoke-business-observabili-a1888-n-denial-and-recovery-dark-/loki-dark-mobile-partial.png",
+    ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/o4-label-budget-browser-green/smoke-business-observabili-a1888-n-denial-and-recovery-dark-/loki-dark-mobile-raw.png",
+    ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/o4-label-budget-browser-green/smoke-business-observabili-a1888-n-denial-and-recovery-dark-/loki-dark-mobile-ready.png",
+    ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/o4-label-budget-browser-green/smoke-business-observabili-a1888-n-denial-and-recovery-dark-/loki-dark-mobile-wide-labels.png",
+    ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/o4-label-budget-browser-green/smoke-business-observabili-aaf1f--denial-and-recovery-light-/loki-light-desktop-stale.png",
+    ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/o4-label-budget-browser-green/smoke-business-observabili-aaf1f--denial-and-recovery-light-/loki-light-desktop-wide-labels.png",
+    ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/o4-label-budget-browser-green/smoke-business-observabili-aaf1f--denial-and-recovery-light-/loki-light-desktop.png",
+    ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/o4-label-budget-browser-green/smoke-business-observabili-aaf1f--denial-and-recovery-light-/loki-light-fields.png",
+    ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/o4-label-budget-browser-green/smoke-business-observabili-aaf1f--denial-and-recovery-light-/loki-light-mobile-forbidden.png",
+    ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/o4-label-budget-browser-green/smoke-business-observabili-aaf1f--denial-and-recovery-light-/loki-light-mobile-partial.png",
+    ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/o4-label-budget-browser-green/smoke-business-observabili-aaf1f--denial-and-recovery-light-/loki-light-mobile-raw.png",
+    ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/o4-label-budget-browser-green/smoke-business-observabili-aaf1f--denial-and-recovery-light-/loki-light-mobile-ready.png",
+    ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/o4-label-budget-browser-green/smoke-business-observabili-aaf1f--denial-and-recovery-light-/loki-light-mobile-wide-labels.png"
+  ],
+  "transportReceipts": [
+    {
+      "queryCount": 9,
+      "mode": "dark",
+      "provider": "browser transport fixture",
+      "resultModes": [
+        "logs",
+        "trend",
+        "fields",
+        "raw"
+      ],
+      "storedResults": false,
+      "labelFixtureCount": 500,
+      "renderedLabels": 6,
+      "maxPreviewCharacters": 81
+    },
+    {
+      "queryCount": 9,
+      "mode": "light",
+      "provider": "browser transport fixture",
+      "resultModes": [
+        "logs",
+        "trend",
+        "fields",
+        "raw"
+      ],
+      "storedResults": false,
+      "labelFixtureCount": 500,
+      "renderedLabels": 6,
+      "maxPreviewCharacters": 81
+    }
+  ],
+  "realLocalAuthentication": true,
+  "realExternalDatasource": false,
+  "businessFixtureMutation": false,
+  "rawIncludesOmittedLabel499": true,
+  "cacheRecovery": "Owned Vite restart with --force after observed504 Outdated Optimize Dep; no gate change"
+}

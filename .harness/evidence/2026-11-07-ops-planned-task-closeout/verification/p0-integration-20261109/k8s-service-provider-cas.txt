@@ -1,0 +1,23 @@
+=== RUN   TestServiceUpdateProviderCAS
+=== RUN   TestServiceUpdateProviderCAS/preserves_unedited_provider_fields_and_named_ports
+    service_update_test.go:57: decode update: invalid character 'k' looking for beginning of value
+    service_update_test.go:111: business.k8s.service.resourceVersionConflict
+=== RUN   TestServiceUpdateProviderCAS/stale_uid_never_mutates
+=== RUN   TestServiceUpdateProviderCAS/stale_version_never_mutates
+=== RUN   TestServiceUpdateProviderCAS/conflict_after_read_is_not_replayed
+    service_update_test.go:57: decode update: invalid character 'k' looking for beginning of value
+=== RUN   TestServiceUpdateProviderCAS/concurrent_updates_have_one_winner
+    service_update_test.go:57: decode update: invalid character 'k' looking for beginning of value
+    service_update_test.go:57: decode update: invalid character 'k' looking for beginning of value
+    service_update_test.go:184: success=0 conflict=2
+=== RUN   TestServiceUpdateProviderCAS/raw_provider_errors_are_suppressed
+    service_update_test.go:57: decode update: invalid character 'k' looking for beginning of value
+    service_update_test.go:197: unsafe failure: business.k8s.service.resourceVersionConflict
+=== RUN   TestServiceUpdateProviderCAS/provider_revocation_is_classified
+    service_update_test.go:57: decode update: invalid character 'k' looking for beginning of value
+    service_update_test.go:205: expected denial: business.k8s.service.resourceVersionConflict
+=== RUN   TestServiceUpdateProviderCAS/cancellation_reaches_write
+2026/11/09 10:08:26 httptest.Server blocked in Close after 5 seconds, waiting for connections:
+  *net.TCPConn 0xc000102130 127.0.0.1:63509 in state active
+FAIL	github.com/duanxldragon/pantheon-base/backend/modules/business/k8s/service	210.669s
+FAIL

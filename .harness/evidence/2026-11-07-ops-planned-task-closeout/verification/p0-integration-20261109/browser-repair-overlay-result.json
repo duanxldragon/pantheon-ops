@@ -1,0 +1,6 @@
+{
+  "command": "node scripts/business-overlay/check-business-overlay.mjs --root .tmp/p0-browser-repair-stage",
+  "cwd": ".",
+  "exitCode": 0,
+  "elapsedSeconds": 0.15600000000085856
+}

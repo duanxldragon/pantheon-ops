@@ -1,0 +1,79 @@
+{
+  "commands": [
+    {
+      "command": [
+        "gopls",
+        "check",
+        "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\backend\\modules\\business\\deploy\\task_command.go",
+        "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\backend\\modules\\business\\deploy\\deploy_service.go",
+        "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\backend\\modules\\business\\deploy\\target_selection.go",
+        "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\backend\\modules\\business\\deploy\\task_command_test.go",
+        "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\backend\\modules\\business\\deploy\\resume_scope_revocation_test.go"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 7.328,
+      "log": "resume-o2-v7-diagnostics-final-0.txt",
+      "outputEmpty": false,
+      "preexistingDiagnosticOnly": true,
+      "unexpectedDiagnostics": false
+    },
+    {
+      "command": [
+        "gofmt",
+        "-l",
+        "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\backend\\modules\\business\\deploy\\task_command.go",
+        "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\backend\\modules\\business\\deploy\\deploy_service.go",
+        "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\backend\\modules\\business\\deploy\\target_selection.go",
+        "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\backend\\modules\\business\\deploy\\task_command_test.go",
+        "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\backend\\modules\\business\\deploy\\resume_scope_revocation_test.go"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 0.031,
+      "log": "resume-o2-v7-diagnostics-final-1.txt",
+      "outputEmpty": true,
+      "preexistingDiagnosticOnly": false,
+      "unexpectedDiagnostics": false
+    },
+    {
+      "command": [
+        "git",
+        "diff",
+        "--check",
+        "--",
+        "backend\\modules\\business\\deploy\\task_command.go",
+        "backend\\modules\\business\\deploy\\deploy_service.go",
+        "backend\\modules\\business\\deploy\\target_selection.go",
+        "backend\\modules\\business\\deploy\\task_command_test.go",
+        "backend\\modules\\business\\deploy\\resume_scope_revocation_test.go"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 0.032,
+      "log": "resume-o2-v7-diagnostics-final-2.txt",
+      "outputEmpty": true,
+      "preexistingDiagnosticOnly": false,
+      "unexpectedDiagnostics": false
+    }
+  ],
+  "sourceHashesBefore": {
+    "backend/modules/business/deploy/task_command.go": "e256db4c85400efe8d44cc87e062f486e77221c2daa4e8d8b417b4d3cfc683ac",
+    "backend/modules/business/deploy/deploy_service.go": "8ea2ee60bb99d9a2577bf342ac7e826953670db04e4aa3c8cfb399383f7efedc",
+    "backend/modules/business/deploy/target_selection.go": "239ac4b249da0d105234d74ae65a1ca1dfe03f0407b91ed28415709f0583b889",
+    "backend/modules/business/deploy/task_command_test.go": "7e885249ea4c078af8d158c6be1adb36a52106f8731c0f2b9601036daab5ef8b",
+    "backend/modules/business/deploy/resume_scope_revocation_test.go": "f2f36405292d07b46dec6b641c44d9985adf7c87f8ee3e911fb6f31e2b5feb8e"
+  },
+  "sourceHashesAfter": {
+    "backend/modules/business/deploy/task_command.go": "e256db4c85400efe8d44cc87e062f486e77221c2daa4e8d8b417b4d3cfc683ac",
+    "backend/modules/business/deploy/deploy_service.go": "8ea2ee60bb99d9a2577bf342ac7e826953670db04e4aa3c8cfb399383f7efedc",
+    "backend/modules/business/deploy/target_selection.go": "239ac4b249da0d105234d74ae65a1ca1dfe03f0407b91ed28415709f0583b889",
+    "backend/modules/business/deploy/task_command_test.go": "7e885249ea4c078af8d158c6be1adb36a52106f8731c0f2b9601036daab5ef8b",
+    "backend/modules/business/deploy/resume_scope_revocation_test.go": "f2f36405292d07b46dec6b641c44d9985adf7c87f8ee3e911fb6f31e2b5feb8e"
+  },
+  "sourceStable": true,
+  "preexistingWarning": {
+    "message": "unnecessary use of fmt.Sprintf",
+    "location": "backend/modules/business/deploy/deploy_service.go:4489",
+    "baseline": "HEAD same exact unchanged source snippet",
+    "confirmedInHEAD": true,
+    "scopeDecision": "preserved pre-existing code; no unrelated change"
+  }
+}

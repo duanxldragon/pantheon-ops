@@ -1,0 +1,11 @@
+{
+  "command": [
+    "npm.cmd",
+    "run",
+    "type-check"
+  ],
+  "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\frontend",
+  "exitCode": 0,
+  "elapsedSeconds": 13.625,
+  "artifact": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/o4-label-budget-frontend-typecheck.txt"
+}

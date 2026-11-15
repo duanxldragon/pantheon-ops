@@ -1,0 +1,7 @@
+{
+  "status": "completed",
+  "exitCode": 0,
+  "seconds": 213,
+  "characters": 1779,
+  "command": "claude.exe -p --tools \"\" --output-format text; stdin=reviewed-base-retry-prompt.md"
+}

@@ -1,0 +1,304 @@
+# Instructions
+
+- Following Playwright test failed.
+- Explain why, be concise, respect Playwright best practices.
+- Provide a snippet of code with the fix, if possible.
+
+# Test info
+
+- Name: smoke\business\deploy\deploy-command.spec.ts >> viewed task command conflict refreshes without replay (dark)
+- Location: tests\smoke\business\deploy\deploy-command.spec.ts:10:2
+
+# Error details
+
+```
+Test timeout of 60000ms exceeded.
+```
+
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+    - complementary [ref=e4]:
+        - generic [ref=e5]:
+            - generic [ref=e6]: P
+            - menu [ref=e10]:
+                - generic [ref=e11]:
+                    - menuitem [ref=e12] [cursor=pointer]:
+                        - button "工作台" [ref=e13]
+                    - button "CMDB" [ref=e23] [cursor=pointer]
+                    - menuitem [ref=e35] [cursor=pointer]:
+                        - button "业务域" [ref=e36]
+                    - menuitem [ref=e45] [cursor=pointer]:
+                        - button "服务目录" [ref=e46]
+                    - button "安装部署" [ref=e58] [cursor=pointer]
+                    - button "Kubernetes" [ref=e70] [cursor=pointer]
+                    - button "可观测中心" [ref=e82] [cursor=pointer]
+                    - button "访问控制" [ref=e94] [cursor=pointer]
+                    - button "组织架构" [ref=e108] [cursor=pointer]
+                    - button "安全审计" [ref=e123] [cursor=pointer]
+                    - button "低代码平台" [ref=e135] [cursor=pointer]
+                    - button "平台配置" [ref=e147] [cursor=pointer]
+                    - menuitem [ref=e156] [cursor=pointer]:
+                        - button "文件分发" [ref=e157]
+                    - menuitem [ref=e166] [cursor=pointer]:
+                        - button "ArgoCD" [ref=e167]
+    - button "关闭" [ref=e173] [cursor=pointer]
+    - generic [ref=e174]:
+        - generic [ref=e175]:
+            - generic [ref=e176]:
+                - button "切换导航" [active] [ref=e177] [cursor=pointer]
+                - list [ref=e181]:
+                    - listitem [ref=e182]: 首页
+                    - listitem [ref=e186]: 任务详情
+            - generic [ref=e187]:
+                - button "平台功能台" [ref=e189]:
+                    - generic [ref=e192]: 搜索菜单、页面、功能…
+                - button "通知中心" [ref=e194] [cursor=pointer]
+                - button "平台偏好" [ref=e198] [cursor=pointer]
+                - 'button "用户: Administrator" [ref=e203] [cursor=pointer]':
+                    - generic [ref=e204]: A
+        - tablist "已打开页面" [ref=e206]:
+            - tab "工作台" [ref=e207] [cursor=pointer]
+            - tab "任务详情" [selected] [ref=e211] [cursor=pointer]
+        - main [ref=e213]:
+            - generic [ref=e215]:
+                - generic [ref=e216]:
+                    - generic [ref=e217]:
+                        - heading "command-dark-1794063442718" [level=5] [ref=e219]
+                        - generic [ref=e220]: 任务详情
+                    - button "返回" [ref=e224] [cursor=pointer]
+                - generic [ref=e227]:
+                    - status [ref=e229]:
+                        - generic [ref=e233]: 任务状态已变化，请刷新并确认当前状态后重新操作。
+                    - generic [ref=e237]:
+                        - generic [ref=e238]:
+                            - generic [ref=e239]:
+                                - generic [ref=e240]: 运维平台 / 部署任务
+                                - heading "command-dark-1794063442718" [level=5] [ref=e241]
+                                - generic [ref=e242]: 查看任务摘要、状态流转和每台目标主机的执行结果，便于运维排障与人工收口。
+                            - generic [ref=e243]: 失败
+                        - generic [ref=e245]:
+                            - generic [ref=e246]:
+                                - generic [ref=e247]: 目标主机
+                                - generic [ref=e248]: "1"
+                            - generic [ref=e249]:
+                                - generic [ref=e250]: 成功
+                                - generic [ref=e251]: "0"
+                            - generic [ref=e252]:
+                                - generic [ref=e253]: 失败
+                                - generic [ref=e254]: "1"
+                    - generic [ref=e258]:
+                        - generic [ref=e259]: 任务状态流转
+                        - list "任务状态流转" [ref=e261]:
+                            - listitem [ref=e262]:
+                                - generic [ref=e264]: 草稿
+                            - listitem [ref=e265]:
+                                - generic [ref=e267]: 待执行
+                            - listitem [ref=e268]:
+                                - generic [ref=e270]: 执行中
+                            - listitem [ref=e271]:
+                                - generic [ref=e273]: 成功
+                            - listitem [ref=e274]:
+                                - generic [ref=e276]: 失败
+                            - listitem [ref=e277]:
+                                - generic [ref=e279]: 已取消
+                        - generic [ref=e280]: 任务状态会根据启动、取消和主机结果汇总自动推进。
+                    - generic [ref=e284]:
+                        - generic [ref=e285]: 任务级操作
+                        - generic [ref=e287]:
+                            - generic [ref=e288]:
+                                - generic [ref=e289]: 仅允许在可操作状态执行启动或取消，任务结果会同步汇总到详情页。
+                                - generic [ref=e290]: 任务状态会根据启动、取消和主机结果汇总自动推进。
+                            - generic [ref=e291]:
+                                - button "重试失败步骤" [ref=e293] [cursor=pointer]
+                                - button "删除" [ref=e297] [cursor=pointer]
+                    - table [ref=e305]:
+                        - rowgroup [ref=e306]:
+                            - row [ref=e307]:
+                                - cell "任务来源" [ref=e308]
+                                - cell "软件组件" [ref=e309]
+                                - cell "软件组件" [ref=e310]
+                                - cell "command-dark-1794063442718 1.0.0" [ref=e311]
+                            - row [ref=e312]:
+                                - cell "任务动作" [ref=e313]
+                                - cell "安装" [ref=e314]
+                                - cell "执行模式" [ref=e315]
+                                - cell "固定任务" [ref=e316]
+                            - row [ref=e317]:
+                                - cell "模板参数" [ref=e318]
+                                - cell "-" [ref=e319]
+                                - cell "状态" [ref=e320]
+                                - cell "失败" [ref=e321]
+                            - row [ref=e322]:
+                                - cell "目标来源" [ref=e323]
+                                - cell "主机" [ref=e324]
+                                - cell "业务域" [ref=e325]
+                                - cell "command-dark-1794063442718" [ref=e326]
+                            - row [ref=e327]:
+                                - cell "执行方式" [ref=e328]
+                                - cell "手动执行" [ref=e329]
+                                - cell "外部任务 ID" [ref=e330]
+                                - cell "-" [ref=e331]
+                            - row [ref=e332]:
+                                - cell "开始时间" [ref=e333]
+                                - cell "2026-11-07 22:57" [ref=e334]
+                                - cell "结束时间" [ref=e335]
+                                - cell "2026-11-07 22:57" [ref=e336]
+                            - row [ref=e337]:
+                                - cell "耗时" [ref=e338]
+                                - cell "-" [ref=e339]
+                                - cell "主机数" [ref=e340]
+                                - cell "1" [ref=e341]
+                            - row [ref=e342]:
+                                - cell "成功数" [ref=e343]
+                                - cell "0" [ref=e344]
+                                - cell "失败数" [ref=e345]
+                                - cell "1" [ref=e346]
+                            - row [ref=e347]:
+                                - cell "执行中" [ref=e348]
+                                - cell "0" [ref=e349]
+                                - cell "跳过数" [ref=e350]
+                                - cell "0" [ref=e351]
+                            - row [ref=e352]:
+                                - cell "备注" [ref=e353]
+                                - cell "-" [ref=e354]
+                    - generic [ref=e358]:
+                        - generic [ref=e361]:
+                            - generic [ref=e362]: 主机执行明细
+                            - generic [ref=e363]: 先查看各状态分布，再按主机展开过程日志和标准输出。
+                        - generic [ref=e365]:
+                            - generic [ref=e366]:
+                                - generic [ref=e367]: 待执行
+                                - generic [ref=e368]: "0"
+                            - generic [ref=e369]:
+                                - generic [ref=e370]: 执行中
+                                - generic [ref=e371]: "0"
+                            - generic [ref=e372]:
+                                - generic [ref=e373]: 成功
+                                - generic [ref=e374]: "0"
+                            - generic [ref=e375]:
+                                - generic [ref=e376]: 失败
+                                - generic [ref=e377]: "1"
+                            - generic [ref=e378]:
+                                - generic [ref=e379]: 已跳过
+                                - generic [ref=e380]: "0"
+                        - generic [ref=e382]:
+                            - generic [ref=e383]:
+                                - generic [ref=e384]: 共 1 条
+                                - generic [ref=e385]: 左右滑动查看更多字段
+                            - generic [ref=e388]:
+                                - table [ref=e392]:
+                                    - rowgroup [ref=e402]:
+                                        - row [ref=e403]:
+                                            - columnheader "主机" [ref=e404]
+                                            - columnheader "主机 IP" [ref=e406]
+                                            - columnheader "状态" [ref=e408]
+                                            - columnheader "开始时间" [ref=e410]
+                                            - columnheader "结束时间" [ref=e412]
+                                            - columnheader "耗时" [ref=e414]
+                                            - columnheader "错误信息" [ref=e416]
+                                            - columnheader "操作" [ref=e418]
+                                    - rowgroup [ref=e420]:
+                                        - row [ref=e421]:
+                                            - cell "command-dark-1794063442718" [ref=e422]
+                                            - cell "10.245.111.75" [ref=e424]
+                                            - cell "失败" [ref=e426]
+                                            - cell "2026-11-07 22:57" [ref=e431]
+                                            - cell "2026-11-07 22:57" [ref=e433]
+                                            - cell "-" [ref=e435]
+                                            - cell "command fixture failure" [ref=e437]
+                                            - cell [ref=e439]
+                                - list [ref=e445]:
+                                    - listitem "上一页" [ref=e446]: .
+                                    - listitem "第 1 页" [ref=e449] [cursor=pointer]: "1"
+                                    - listitem "下一页" [ref=e450]: .
+                    - region "日志来源" [ref=e454]:
+                        - generic [ref=e455]:
+                            - combobox "执行目标" [ref=e457] [cursor=pointer]:
+                                - generic "command-dark-1794063442718 / 10.245.111.75" [ref=e458]:
+                                    - generic [ref=e459]:
+                                        - textbox [aria-hidden]
+                                        - generic [ref=e460]: command-dark-1794063442718 / 10.245.111.75
+                            - button "定位首个失败目标" [ref=e466] [cursor=pointer]
+                            - button "重新连接" [ref=e468] [cursor=pointer]
+                            - generic [ref=e469]: command-dark-1794063442718 / 10.245.111.75
+                        - region "执行步骤" [ref=e472]:
+                            - list [ref=e475]:
+                                - listitem [ref=e476]:
+                                    - button "定位步骤 1" [ref=e477]:
+                                        - generic [ref=e479]: package_default
+                                        - generic [ref=e480]: pending
+                        - generic [ref=e483]:
+                            - generic [ref=e484]:
+                                - button "展开日志" [ref=e486] [cursor=pointer]
+                                - combobox "日志流" [ref=e488] [cursor=pointer]:
+                                    - generic [ref=e490]:
+                                        - textbox "日志流"
+                                        - generic [ref=e491]: 日志流
+                            - region "command-dark-1794063442718 / command-dark-1794063442718" [ref=e496]:
+                                - generic [ref=e497]:
+                                    - generic [ref=e498]: command-dark-1794063442718 / command-dark-1794063442718
+                                    - generic [ref=e499]:
+                                        - textbox "搜索已保留日志" [ref=e503]
+                                        - button "暂停追尾" [ref=e507] [cursor=pointer]
+                                        - switch "自动换行" [checked] [ref=e508] [cursor=pointer]
+                                - generic [ref=e510]: 暂无日志
+                        - generic [ref=e515]:
+                            - generic [ref=e517]:
+                                - generic [ref=e518]:
+                                    - generic [ref=e519]: command-dark-1794063442718
+                                    - generic [ref=e520]: 10.245.111.75 / 2026-11-07 22:57
+                                - generic [ref=e522]: 失败
+                            - generic [ref=e525]:
+                                - generic [ref=e526]:
+                                    - generic [ref=e527]: 共 3 条
+                                    - generic [ref=e528]: 左右滑动查看更多字段
+                                - table [ref=e535]:
+                                    - rowgroup [ref=e542]:
+                                        - row [ref=e543]:
+                                            - columnheader "步骤" [ref=e544]
+                                            - columnheader "步骤类型" [ref=e546]
+                                            - columnheader "阶段" [ref=e548]
+                                            - columnheader "开始时间" [ref=e550]
+                                            - columnheader "过程信息" [ref=e552]
+                                    - rowgroup [ref=e554]:
+                                        - row [ref=e555]:
+                                            - cell "- -" [ref=e556]:
+                                                - generic [ref=e559]:
+                                                    - generic [ref=e560]: "-"
+                                                    - generic [ref=e561]: "-"
+                                            - cell "-" [ref=e562]
+                                            - cell "进入执行队列" [ref=e564]
+                                            - cell "2026-11-07 22:57" [ref=e569]
+                                            - cell "Task host queued" [ref=e571]
+                                        - row [ref=e573]:
+                                            - cell "- -" [ref=e574]:
+                                                - generic [ref=e577]:
+                                                    - generic [ref=e578]: "-"
+                                                    - generic [ref=e579]: "-"
+                                            - cell "-" [ref=e580]
+                                            - cell "记录执行结果" [ref=e582]
+                                            - cell "2026-11-07 22:57" [ref=e587]
+                                            - cell "status=failed" [ref=e589]
+                                        - row [ref=e591]:
+                                            - cell "- -" [ref=e592]:
+                                                - generic [ref=e595]:
+                                                    - generic [ref=e596]: "-"
+                                                    - generic [ref=e597]: "-"
+                                            - cell "-" [ref=e598]
+                                            - cell "错误信息" [ref=e600]
+                                            - cell "2026-11-07 22:57" [ref=e605]
+                                            - cell "command fixture failure" [ref=e607]
+                            - generic [ref=e609]:
+                                - separator
+                            - table [ref=e613]:
+                                - rowgroup [ref=e614]:
+                                    - row [ref=e615]:
+                                        - cell "标准输出" [ref=e616]
+                                        - cell "-" [ref=e617]
+                                    - row [ref=e619]:
+                                        - cell "错误输出" [ref=e620]
+                                        - cell "-" [ref=e621]
+        - generic [ref=e623]: Pantheon Platform · Enterprise Admin Foundation
+```

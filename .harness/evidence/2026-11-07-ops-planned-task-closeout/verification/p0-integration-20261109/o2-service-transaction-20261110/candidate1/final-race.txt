@@ -1,0 +1,1146 @@
+?   	github.com/duanxldragon/pantheon-base/backend/modules/business/capability	[no test files]
+=== RUN   TestInstanceRefUsesPublicJSONContract
+--- PASS: TestInstanceRefUsesPublicJSONContract (0.00s)
+=== RUN   TestServiceCatalogDeleteLifecycle
+--- PASS: TestServiceCatalogDeleteLifecycle (0.22s)
+=== RUN   TestServiceInstanceReconciliationMarksStuckTransitionFailed
+--- PASS: TestServiceInstanceReconciliationMarksStuckTransitionFailed (0.31s)
+=== RUN   TestServiceInstanceStateTransitionsUseCASAndRejectIllegalMoves
+--- PASS: TestServiceInstanceStateTransitionsUseCASAndRejectIllegalMoves (0.40s)
+=== RUN   TestServiceInstanceUpgradeRequiresHealthyResult
+--- PASS: TestServiceInstanceUpgradeRequiresHealthyResult (0.49s)
+=== RUN   TestServiceFoundationRejectsDuplicateCodesAndMixedTargets
+--- PASS: TestServiceFoundationRejectsDuplicateCodesAndMixedTargets (0.28s)
+=== RUN   TestServiceFoundationValidatesVMAndK8sTargets
+--- PASS: TestServiceFoundationValidatesVMAndK8sTargets (0.40s)
+=== RUN   TestServiceRuntimeTypeRejectsIncompatibleInstanceTarget
+--- PASS: TestServiceRuntimeTypeRejectsIncompatibleInstanceTarget (0.34s)
+=== RUN   TestServiceUpdatesReturnPersistedValues
+--- PASS: TestServiceUpdatesReturnPersistedValues (0.29s)
+=== RUN   TestStateTransactionValidationRevisionAndLifecycle
+
+2026/11/10 14:54:04 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/service/service.go:607 [35;1mrecord not found
+[0m[33m[3.793ms] [34;1m[rows:0][0m SELECT * FROM `biz_service_instance` WHERE service_id IN (SELECT `id` FROM `biz_service` WHERE application_id IN (SELECT `id` FROM `biz_application` WHERE dept_id = 7 AND `biz_application`.`deleted_at` IS NULL) AND `biz_service`.`deleted_at` IS NULL) AND `biz_service_instance`.`id` = 1 AND `biz_service_instance`.`deleted_at` IS NULL ORDER BY `biz_service_instance`.`id` LIMIT 1
+
+2026/11/10 14:54:04 [34;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/service/state_transaction_test.go:98
+[0m[35m[warn] [0mremoving callback `bound_write` from D:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/service/state_transaction_test.go:98
+
+2026/11/10 14:54:04 [34;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/service/state_transaction_test.go:98
+[0m[35m[warn] [0mremoving callback `bound_read` from D:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/service/state_transaction_test.go:98
+
+2026/11/10 14:54:04 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/service/service.go:607 [35;1msql: transaction has already been committed or rolled back
+[0m[33m[0.000ms] [34;1m[rows:0][0m SELECT * FROM `biz_service_instance` WHERE service_id IN (SELECT `id` FROM `biz_service` WHERE application_id IN (SELECT `id` FROM `biz_application` WHERE `biz_application`.`deleted_at` IS NULL) AND `biz_service`.`deleted_at` IS NULL) AND `biz_service_instance`.`id` = 1 AND `biz_service_instance`.`deleted_at` IS NULL ORDER BY `biz_service_instance`.`id` LIMIT 1
+--- PASS: TestStateTransactionValidationRevisionAndLifecycle (0.45s)
+=== RUN   TestStateTransactionRejectsMissingTransactionAndCanceledContext
+--- PASS: TestStateTransactionRejectsMissingTransactionAndCanceledContext (0.28s)
+=== RUN   TestStateTransactionOptimisticWriteConflictRollsBack
+
+2026/11/10 14:54:05 [34;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/service/state_transaction_test.go:172
+[0m[35m[warn] [0mremoving callback `owner_revision_conflict` from D:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/service/state_transaction_test.go:172
+--- PASS: TestStateTransactionOptimisticWriteConflictRollsBack (0.36s)
+PASS
+ok  	github.com/duanxldragon/pantheon-base/backend/modules/business/service	4.932s
+=== RUN   TestOwnershipCommandRechecksDeadlineAfterScopeRead
+--- PASS: TestOwnershipCommandRechecksDeadlineAfterScopeRead (1.43s)
+=== RUN   TestOwnershipHistoricalComponentHelperCannotBypassLiveOwner
+
+2026/11/10 14:54:03 [32mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/deploy_service.go:197 [33mSLOW SQL >= 200ms
+[0m[31;1m[210.335ms] [33m[rows:0][35m CREATE TABLE `biz_deploy_task` (`id` bigint unsigned AUTO_INCREMENT,`name` varchar(128) NOT NULL,`template_id` bigint unsigned,`template_name` varchar(128),`template_version` varchar(64),`package_id` bigint unsigned NOT NULL,`package_name` varchar(128),`package_version` varchar(64),`business_scope_id` bigint unsigned,`business_scope_name` varchar(128),`service_id` bigint unsigned,`service_instance_id` bigint unsigned,`service_name` varchar(255),`service_instance_name` varchar(255),`action` varchar(32) DEFAULT 'install',`target_type` varchar(32) NOT NULL,`target_ids` JSON,`executor_type` varchar(32) DEFAULT 'manual',`execution_mode` varchar(32) DEFAULT 'fixed',`template_params` JSON,`execution_snapshot` JSON,`target_snapshot` JSON,`start_request_key` varchar(128),`credential_ref_id` bigint unsigned,`credential_ref_version` bigint unsigned,`ssh_host_fingerprint` varchar(255),`execution_timeout_seconds` bigint DEFAULT 1800,`status` varchar(32) DEFAULT 'draft',`remark` varchar(512),`external_task_id` varchar(128),`rollback_enabled` boolean DEFAULT false,`rollback_task_id` bigint unsigned,`source_task_id` bigint unsigned,`rollback_strategy` varchar(32),`rollback_snapshot` JSON,`started_at` datetime(3) NULL,`finished_at` datetime(3) NULL,`created_at` datetime(3) NULL,`updated_at` datetime(3) NULL,`created_by` varchar(64),`updated_by` varchar(64),`deleted_at` datetime(3) NULL,PRIMARY KEY (`id`),INDEX `idx_biz_deploy_task_template_id` (`template_id`),INDEX `idx_biz_deploy_task_package_id` (`package_id`),INDEX `idx_biz_deploy_task_business_scope_id` (`business_scope_id`),INDEX `idx_biz_deploy_task_service_id` (`service_id`),INDEX `idx_biz_deploy_task_service_instance_id` (`service_instance_id`),INDEX `idx_biz_deploy_task_action` (`action`),INDEX `idx_biz_deploy_task_target_type` (`target_type`),INDEX `idx_biz_deploy_task_executor_type` (`executor_type`),INDEX `idx_biz_deploy_task_execution_mode` (`execution_mode`),INDEX `idx_biz_deploy_task_credential_ref_id` (`credential_ref_id`),INDEX `idx_biz_deploy_task_status` (`status`),INDEX `idx_biz_deploy_task_rollback_task_id` (`rollback_task_id`),INDEX `idx_biz_deploy_task_source_task_id` (`source_task_id`),INDEX `idx_biz_deploy_task_deleted_at` (`deleted_at`))[0m
+--- PASS: TestOwnershipHistoricalComponentHelperCannotBypassLiveOwner (1.48s)
+=== RUN   TestOwnershipStartDiscoveryDoesNotLockCMDBBeforeAdmission
+=== RUN   TestOwnershipStartDiscoveryDoesNotLockCMDBBeforeAdmission/legacy
+
+2026/11/10 14:54:06 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/deploy_service.go:1956 [35;1mrecord not found
+[0m[33m[1.629ms] [34;1m[rows:0][0m SELECT * FROM `biz_deploy_task_step` WHERE task_id = 1 AND task_host_id = 1 AND step_key = 'package_default' ORDER BY `biz_deploy_task_step`.`id` LIMIT 1
+=== RUN   TestOwnershipStartDiscoveryDoesNotLockCMDBBeforeAdmission/selected
+
+2026/11/10 14:54:09 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/deploy_service.go:1956 [35;1mrecord not found
+[0m[33m[0.673ms] [34;1m[rows:0][0m SELECT * FROM `biz_deploy_task_step` WHERE task_id = 1 AND task_host_id = 1 AND step_key = 'package_default' ORDER BY `biz_deploy_task_step`.`id` LIMIT 1
+--- PASS: TestOwnershipStartDiscoveryDoesNotLockCMDBBeforeAdmission (4.42s)
+    --- PASS: TestOwnershipStartDiscoveryDoesNotLockCMDBBeforeAdmission/legacy (2.14s)
+    --- PASS: TestOwnershipStartDiscoveryDoesNotLockCMDBBeforeAdmission/selected (2.28s)
+=== RUN   TestOwnershipDualRenewalAndPhysicalContention
+
+2026/11/10 14:54:10 [32mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/deploy_service_test.go:32 [33mSLOW SQL >= 200ms
+[0m[31;1m[235.526ms] [33m[rows:0][35m CREATE TABLE `biz_cmdb_host` (`id` bigint unsigned AUTO_INCREMENT,`hostname` varchar(128) NOT NULL,`ip` varchar(45) NOT NULL,`ssh_port` bigint,`os` varchar(32) NOT NULL,`status` varchar(32) DEFAULT 'pending',`label_values` JSON,`installed_components` JSON,`business_scope_id` bigint unsigned,`business_scope_name` longtext,`dept_id` bigint unsigned,`updated_at` datetime(3) NULL,`updated_by` longtext,`deleted_at` datetime(3) NULL,PRIMARY KEY (`id`),INDEX `idx_biz_cmdb_host_deleted_at` (`deleted_at`))[0m
+--- PASS: TestOwnershipDualRenewalAndPhysicalContention (5.02s)
+=== RUN   TestOwnershipStaleCallbacksCannotChangeAnyTable
+
+2026/11/10 14:54:15 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/attempt_ownership.go:452 [35;1mrecord not found
+[0m[33m[1.744ms] [34;1m[rows:0][0m SELECT * FROM `biz_deploy_host_lease` WHERE host_id = 1 ORDER BY `biz_deploy_host_lease`.`id` LIMIT 1 FOR UPDATE
+=== RUN   TestOwnershipStaleCallbacksCannotChangeAnyTable/log
+2026/11/10 14:54:15 ERROR append deploy task log failed task_id=1 stream=stdout error=business.deploy.taskHost.staleReport
+=== RUN   TestOwnershipStaleCallbacksCannotChangeAnyTable/event
+2026/11/10 14:54:15 ERROR append deploy task event failed task_id=1 event_type=stale error=business.deploy.taskHost.staleReport
+=== RUN   TestOwnershipStaleCallbacksCannotChangeAnyTable/checkpoint/history
+=== RUN   TestOwnershipStaleCallbacksCannotChangeAnyTable/trace
+=== RUN   TestOwnershipStaleCallbacksCannotChangeAnyTable/result/component
+=== RUN   TestOwnershipStaleCallbacksCannotChangeAnyTable/component-helper
+=== RUN   TestOwnershipStaleCallbacksCannotChangeAnyTable/finish/release/requeue
+=== RUN   TestOwnershipStaleCallbacksCannotChangeAnyTable/final-task
+=== RUN   TestOwnershipStaleCallbacksCannotChangeAnyTable/legacy-finish
+--- PASS: TestOwnershipStaleCallbacksCannotChangeAnyTable (1.34s)
+    --- PASS: TestOwnershipStaleCallbacksCannotChangeAnyTable/log (0.02s)
+    --- PASS: TestOwnershipStaleCallbacksCannotChangeAnyTable/event (0.01s)
+    --- PASS: TestOwnershipStaleCallbacksCannotChangeAnyTable/checkpoint/history (0.01s)
+    --- PASS: TestOwnershipStaleCallbacksCannotChangeAnyTable/trace (0.01s)
+    --- PASS: TestOwnershipStaleCallbacksCannotChangeAnyTable/result/component (0.01s)
+    --- PASS: TestOwnershipStaleCallbacksCannotChangeAnyTable/component-helper (0.01s)
+    --- PASS: TestOwnershipStaleCallbacksCannotChangeAnyTable/finish/release/requeue (0.01s)
+    --- PASS: TestOwnershipStaleCallbacksCannotChangeAnyTable/final-task (0.02s)
+    --- PASS: TestOwnershipStaleCallbacksCannotChangeAnyTable/legacy-finish (0.01s)
+=== RUN   TestOwnershipWatchdogDoesNotWaitForDBOrResurrect
+
+2026/11/10 14:54:17 [32mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/attempt_ownership.go:452 [33mSLOW SQL >= 200ms
+[0m[31;1m[476.271ms] [33m[rows:1][35m SELECT * FROM `biz_deploy_host_lease` WHERE host_id = 1 ORDER BY `biz_deploy_host_lease`.`id` LIMIT 1 FOR UPDATE[0m
+
+2026/11/10 14:54:17 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/attempt_ownership.go:310 [35;1mcontext canceled
+[0m[33m[0.000ms] [34;1m[rows:-][0m SELECT CURRENT_TIMESTAMP(6)
+--- PASS: TestOwnershipWatchdogDoesNotWaitForDBOrResurrect (1.93s)
+=== RUN   TestOwnershipFirstReadErrorCancelsVoidWriter
+2026/11/10 14:54:18 ERROR load deploy task step for log failed task_id=1 task_host_id=1 step_key=owned error="owned database read failed"
+
+2026/11/10 14:54:18 [34;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/attempt_ownership_test.go:343
+[0m[35m[warn] [0mremoving callback `ownership_read_error` from D:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/attempt_ownership_test.go:343
+--- PASS: TestOwnershipFirstReadErrorCancelsVoidWriter (1.10s)
+=== RUN   TestOwnershipUnknownOuterTransactionsRejected
+--- PASS: TestOwnershipUnknownOuterTransactionsRejected (1.16s)
+=== RUN   TestOwnershipEveryProjectionEntryBeginsRCBeforeRead
+=== RUN   TestOwnershipEveryProjectionEntryBeginsRCBeforeRead/manual
+=== RUN   TestOwnershipEveryProjectionEntryBeginsRCBeforeRead/component-helper
+=== RUN   TestOwnershipEveryProjectionEntryBeginsRCBeforeRead/owned-finish
+--- PASS: TestOwnershipEveryProjectionEntryBeginsRCBeforeRead (3.32s)
+    --- PASS: TestOwnershipEveryProjectionEntryBeginsRCBeforeRead/manual (1.04s)
+    --- PASS: TestOwnershipEveryProjectionEntryBeginsRCBeforeRead/component-helper (1.07s)
+    --- PASS: TestOwnershipEveryProjectionEntryBeginsRCBeforeRead/owned-finish (1.20s)
+=== RUN   TestOwnershipFinishCommitAndQueuedRenewalHaveOneLifecycle
+--- PASS: TestOwnershipFinishCommitAndQueuedRenewalHaveOneLifecycle (1.35s)
+=== RUN   TestOwnershipCommitErrorCancelsBeforeBlockedRollback
+--- PASS: TestOwnershipCommitErrorCancelsBeforeBlockedRollback (1.23s)
+=== RUN   TestOwnershipCommitFailureCancelsAndRollsBackBothRenewals
+--- PASS: TestOwnershipCommitFailureCancelsAndRollsBackBothRenewals (1.27s)
+=== RUN   TestOwnershipBlockedMySQLLockCancelsBeforeRunnerReturns
+
+2026/11/10 14:54:28 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/attempt_ownership.go:446 [35;1mcontext deadline exceeded
+[0m[33m[199.052ms] [34;1m[rows:0][0m SELECT * FROM `biz_deploy_task_host` WHERE `biz_deploy_task_host`.`id` = 1 ORDER BY `biz_deploy_task_host`.`id` LIMIT 1 FOR UPDATE
+--- PASS: TestOwnershipBlockedMySQLLockCancelsBeforeRunnerReturns (1.42s)
+=== RUN   TestOwnershipRevokedRunnerAndLateExecutorReturn
+--- PASS: TestOwnershipRevokedRunnerAndLateExecutorReturn (1.30s)
+=== RUN   TestOwnershipProjectionRollbackIsAtomic
+
+2026/11/10 14:54:30 [34;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/attempt_ownership_test.go:711
+[0m[35m[warn] [0mremoving callback `ownership_projection_failure` from D:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/attempt_ownership_test.go:711
+--- PASS: TestOwnershipProjectionRollbackIsAtomic (0.95s)
+=== RUN   TestOwnershipCrashBudgetPauseCancelAndHistory
+--- PASS: TestOwnershipCrashBudgetPauseCancelAndHistory (1.06s)
+=== RUN   TestOwnershipReconcileSerializesRenewAndFinish
+=== RUN   TestOwnershipReconcileSerializesRenewAndFinish/renew/owner
+=== RUN   TestOwnershipReconcileSerializesRenewAndFinish/renew/reconcile
+
+2026/11/10 14:54:33 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/attempt_ownership.go:452 [35;1mrecord not found
+[0m[33m[0.517ms] [34;1m[rows:0][0m SELECT * FROM `biz_deploy_host_lease` WHERE host_id = 1 ORDER BY `biz_deploy_host_lease`.`id` LIMIT 1 FOR UPDATE
+=== RUN   TestOwnershipReconcileSerializesRenewAndFinish/finish/owner
+=== RUN   TestOwnershipReconcileSerializesRenewAndFinish/finish/reconcile
+--- PASS: TestOwnershipReconcileSerializesRenewAndFinish (4.45s)
+    --- PASS: TestOwnershipReconcileSerializesRenewAndFinish/renew/owner (0.93s)
+    --- PASS: TestOwnershipReconcileSerializesRenewAndFinish/renew/reconcile (1.07s)
+    --- PASS: TestOwnershipReconcileSerializesRenewAndFinish/finish/owner (1.17s)
+    --- PASS: TestOwnershipReconcileSerializesRenewAndFinish/finish/reconcile (1.27s)
+=== RUN   TestOwnershipExactDBExpiryAndNullLegacy
+=== RUN   TestOwnershipExactDBExpiryAndNullLegacy/attempt
+=== RUN   TestOwnershipExactDBExpiryAndNullLegacy/physical
+=== RUN   TestOwnershipExactDBExpiryAndNullLegacy/null
+--- PASS: TestOwnershipExactDBExpiryAndNullLegacy (1.27s)
+    --- PASS: TestOwnershipExactDBExpiryAndNullLegacy/attempt (0.03s)
+    --- PASS: TestOwnershipExactDBExpiryAndNullLegacy/physical (0.03s)
+    --- PASS: TestOwnershipExactDBExpiryAndNullLegacy/null (0.03s)
+=== RUN   TestOwnershipNullLegacyReconcilesWithoutResettingHistory
+--- PASS: TestOwnershipNullLegacyReconcilesWithoutResettingHistory (1.05s)
+=== RUN   TestOwnershipComponentSnapshot
+--- PASS: TestOwnershipComponentSnapshot (0.98s)
+=== RUN   TestCancellationUnclaimedRecoveryRollsBackAndReplays
+
+2026/11/10 14:54:40 [34;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/cancel_unclaimed_test.go:40
+[0m[35m[warn] [0mremoving callback `cancel_event_failure` from D:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/cancel_unclaimed_test.go:40
+--- PASS: TestCancellationUnclaimedRecoveryRollsBackAndReplays (1.21s)
+=== RUN   TestCancellationUnclaimedRecoveryWaitsForLiveOwner
+--- PASS: TestCancellationUnclaimedRecoveryWaitsForLiveOwner (1.21s)
+=== RUN   TestCredentialReferenceRequestRejectsInlineSecrets
+--- PASS: TestCredentialReferenceRequestRejectsInlineSecrets (0.00s)
+=== RUN   TestRunDeployScriptPropagatesCancellation
+--- PASS: TestRunDeployScriptPropagatesCancellation (0.00s)
+=== RUN   TestNormalizeDeployExecutionTimeoutBounds
+--- PASS: TestNormalizeDeployExecutionTimeoutBounds (0.00s)
+=== RUN   TestDeployPackageImportAndExport
+
+2026/11/10 14:54:42 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/deploy_import_export.go:108 [35;1mrecord not found
+[0m[33m[3.881ms] [34;1m[rows:0][0m SELECT * FROM `biz_deploy_package` WHERE (name = 'demo' AND version = '1.0.0') AND `biz_deploy_package`.`deleted_at` IS NULL ORDER BY `biz_deploy_package`.`id` LIMIT 1
+--- PASS: TestDeployPackageImportAndExport (1.20s)
+=== RUN   TestDeployTaskExportScopesRows
+--- PASS: TestDeployTaskExportScopesRows (1.16s)
+=== RUN   TestDeployLiveVMExecution
+    deploy_live_acceptance_test.go:38: live VM acceptance not requested
+--- SKIP: TestDeployLiveVMExecution (0.00s)
+=== RUN   TestDeployLiveVMCancellation
+    deploy_live_acceptance_test.go:181: live VM acceptance not requested
+--- SKIP: TestDeployLiveVMCancellation (0.00s)
+=== RUN   TestMarkHostResultDefersTerminalTaskUntilActiveAttemptFinishes
+--- PASS: TestMarkHostResultDefersTerminalTaskUntilActiveAttemptFinishes (1.05s)
+=== RUN   TestHasActiveTaskAttemptRejectsLegacyNilOwnership
+--- PASS: TestHasActiveTaskAttemptRejectsLegacyNilOwnership (0.86s)
+=== RUN   TestDeployPackageImmutableAfterTaskReference
+--- PASS: TestDeployPackageImmutableAfterTaskReference (1.20s)
+=== RUN   TestDeployTaskExecutionSnapshotFrozenAgainstLiveMutation
+
+2026/11/10 14:54:48 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/deploy_service.go:1956 [35;1mrecord not found
+[0m[33m[1.873ms] [34;1m[rows:0][0m SELECT * FROM `biz_deploy_task_step` WHERE task_id = 1 AND task_host_id = 1 AND step_key = 'package_default' ORDER BY `biz_deploy_task_step`.`id` LIMIT 1
+--- PASS: TestDeployTaskExecutionSnapshotFrozenAgainstLiveMutation (1.50s)
+=== RUN   TestDeployTaskStartIdempotentReplay
+
+2026/11/10 14:54:49 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/deploy_service.go:1956 [35;1mrecord not found
+[0m[33m[1.255ms] [34;1m[rows:0][0m SELECT * FROM `biz_deploy_task_step` WHERE task_id = 1 AND task_host_id = 1 AND step_key = 'package_default' ORDER BY `biz_deploy_task_step`.`id` LIMIT 1
+--- PASS: TestDeployTaskStartIdempotentReplay (1.21s)
+=== RUN   TestDeployTaskStartDifferentKeyWhileRunningConflict
+
+2026/11/10 14:54:51 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/deploy_service.go:1956 [35;1mrecord not found
+[0m[33m[2.537ms] [34;1m[rows:0][0m SELECT * FROM `biz_deploy_task_step` WHERE task_id = 1 AND task_host_id = 1 AND step_key = 'package_default' ORDER BY `biz_deploy_task_step`.`id` LIMIT 1
+--- PASS: TestDeployTaskStartDifferentKeyWhileRunningConflict (1.23s)
+=== RUN   TestDeployHostLeaseBlocksConcurrentStart
+
+2026/11/10 14:54:52 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/deploy_service.go:1956 [35;1mrecord not found
+[0m[33m[0.549ms] [34;1m[rows:0][0m SELECT * FROM `biz_deploy_task_step` WHERE task_id = 1 AND task_host_id = 1 AND step_key = 'package_default' ORDER BY `biz_deploy_task_step`.`id` LIMIT 1
+--- PASS: TestDeployHostLeaseBlocksConcurrentStart (1.29s)
+=== RUN   TestDeployHostLeaseTakeoverAfterExpiry
+
+2026/11/10 14:54:53 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/deploy_service.go:1956 [35;1mrecord not found
+[0m[33m[0.671ms] [34;1m[rows:0][0m SELECT * FROM `biz_deploy_task_step` WHERE task_id = 1 AND task_host_id = 1 AND step_key = 'package_default' ORDER BY `biz_deploy_task_step`.`id` LIMIT 1
+
+2026/11/10 14:54:53 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/deploy_service.go:1956 [35;1mrecord not found
+[0m[33m[0.692ms] [34;1m[rows:0][0m SELECT * FROM `biz_deploy_task_step` WHERE task_id = 2 AND task_host_id = 2 AND step_key = 'package_default' ORDER BY `biz_deploy_task_step`.`id` LIMIT 1
+--- PASS: TestDeployHostLeaseTakeoverAfterExpiry (1.22s)
+=== RUN   TestDeployTaskHostReportIdempotentAndStaleConflict
+
+2026/11/10 14:54:54 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/deploy_service.go:1956 [35;1mrecord not found
+[0m[33m[1.768ms] [34;1m[rows:0][0m SELECT * FROM `biz_deploy_task_step` WHERE task_id = 1 AND task_host_id = 1 AND step_key = 'package_default' ORDER BY `biz_deploy_task_step`.`id` LIMIT 1
+--- PASS: TestDeployTaskHostReportIdempotentAndStaleConflict (1.22s)
+=== RUN   TestSeedDeployMenusCreatesTemplateActionPermissions
+--- PASS: TestSeedDeployMenusCreatesTemplateActionPermissions (0.64s)
+=== RUN   TestSeedDeployI18nCreatesTemplatePermissionTranslations
+--- PASS: TestSeedDeployI18nCreatesTemplatePermissionTranslations (1.01s)
+=== RUN   TestDeployTaskLifecycleCreatesHostDetailsAndSummarizesResult
+
+2026/11/10 14:54:57 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/deploy_service.go:1956 [35;1mrecord not found
+[0m[33m[0.000ms] [34;1m[rows:0][0m SELECT * FROM `biz_deploy_task_step` WHERE task_id = 1 AND task_host_id = 1 AND step_key = 'package_default' ORDER BY `biz_deploy_task_step`.`id` LIMIT 1
+--- PASS: TestDeployTaskLifecycleCreatesHostDetailsAndSummarizesResult (1.16s)
+=== RUN   TestDeployTaskRoutesServiceInstanceStateThroughTypedCommand
+
+2026/11/10 14:54:58 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/deploy_service.go:1956 [35;1mrecord not found
+[0m[33m[0.505ms] [34;1m[rows:0][0m SELECT * FROM `biz_deploy_task_step` WHERE task_id = 1 AND task_host_id = 1 AND step_key = 'package_default' ORDER BY `biz_deploy_task_step`.`id` LIMIT 1
+--- PASS: TestDeployTaskRoutesServiceInstanceStateThroughTypedCommand (1.06s)
+=== RUN   TestDeployTaskUsesGroupTargets
+
+2026/11/10 14:54:59 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/deploy_service.go:1956 [35;1mrecord not found
+[0m[33m[0.513ms] [34;1m[rows:0][0m SELECT * FROM `biz_deploy_task_step` WHERE task_id = 1 AND task_host_id = 1 AND step_key = 'package_default' ORDER BY `biz_deploy_task_step`.`id` LIMIT 1
+--- PASS: TestDeployTaskUsesGroupTargets (1.12s)
+=== RUN   TestGetPackageReturnsDeploymentStats
+
+2026/11/10 14:55:00 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/deploy_service.go:1956 [35;1mrecord not found
+[0m[33m[0.980ms] [34;1m[rows:0][0m SELECT * FROM `biz_deploy_task_step` WHERE task_id = 1 AND task_host_id = 1 AND step_key = 'package_default' ORDER BY `biz_deploy_task_step`.`id` LIMIT 1
+--- PASS: TestGetPackageReturnsDeploymentStats (1.21s)
+=== RUN   TestDeployTaskGroupTargetInheritsParentConditions
+
+2026/11/10 14:55:02 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/deploy_service.go:1956 [35;1mrecord not found
+[0m[33m[1.717ms] [34;1m[rows:0][0m SELECT * FROM `biz_deploy_task_step` WHERE task_id = 1 AND task_host_id = 1 AND step_key = 'package_default' ORDER BY `biz_deploy_task_step`.`id` LIMIT 1
+--- PASS: TestDeployTaskGroupTargetInheritsParentConditions (1.26s)
+=== RUN   TestDeployTaskSSHExecutorRunsInstallAndWritesBackHostState
+
+2026/11/10 14:55:03 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/deploy_service.go:1956 [35;1mrecord not found
+[0m[33m[1.067ms] [34;1m[rows:0][0m SELECT * FROM `biz_deploy_task_step` WHERE task_id = 1 AND task_host_id = 1 AND step_key = 'package_default' ORDER BY `biz_deploy_task_step`.`id` LIMIT 1
+--- PASS: TestDeployTaskSSHExecutorRunsInstallAndWritesBackHostState (1.36s)
+=== RUN   TestDeployPackageFixedTemplateRoundTrip
+--- PASS: TestDeployPackageFixedTemplateRoundTrip (1.07s)
+=== RUN   TestDeployTaskCreatesWithTemplateParams
+--- PASS: TestDeployTaskCreatesWithTemplateParams (1.11s)
+=== RUN   TestDeployTaskFixedTemplateSSHExecutorRendersScript
+
+2026/11/10 14:55:06 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/deploy_service.go:1956 [35;1mrecord not found
+[0m[33m[1.621ms] [34;1m[rows:0][0m SELECT * FROM `biz_deploy_task_step` WHERE task_id = 1 AND task_host_id = 1 AND step_key = 'package_default' ORDER BY `biz_deploy_task_step`.`id` LIMIT 1
+--- PASS: TestDeployTaskFixedTemplateSSHExecutorRendersScript (1.33s)
+=== RUN   TestDeployTaskFixedTemplateRejectsMissingParams
+--- PASS: TestDeployTaskFixedTemplateRejectsMissingParams (1.05s)
+=== RUN   TestStartDeployTaskReturnsCanonicalSSHValidationErrors
+--- PASS: TestStartDeployTaskReturnsCanonicalSSHValidationErrors (0.96s)
+=== RUN   TestStartDeployTaskReturnsCanonicalExecutionPlanValidationErrors
+
+2026/11/10 14:55:10 [32mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/deploy_service_test.go:32 [33mSLOW SQL >= 200ms
+[0m[31;1m[318.463ms] [33m[rows:0][35m CREATE TABLE `biz_cmdb_host` (`id` bigint unsigned AUTO_INCREMENT,`hostname` varchar(128) NOT NULL,`ip` varchar(45) NOT NULL,`ssh_port` bigint,`os` varchar(32) NOT NULL,`status` varchar(32) DEFAULT 'pending',`label_values` JSON,`installed_components` JSON,`business_scope_id` bigint unsigned,`business_scope_name` longtext,`dept_id` bigint unsigned,`updated_at` datetime(3) NULL,`updated_by` longtext,`deleted_at` datetime(3) NULL,PRIMARY KEY (`id`),INDEX `idx_biz_cmdb_host_deleted_at` (`deleted_at`))[0m
+--- PASS: TestStartDeployTaskReturnsCanonicalExecutionPlanValidationErrors (1.38s)
+=== RUN   TestStartDeployTaskPersistsCanonicalSSHRunnerErrors
+
+2026/11/10 14:55:11 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/deploy_service.go:1956 [35;1mrecord not found
+[0m[33m[0.610ms] [34;1m[rows:0][0m SELECT * FROM `biz_deploy_task_step` WHERE task_id = 1 AND task_host_id = 1 AND step_key = 'package_default' ORDER BY `biz_deploy_task_step`.`id` LIMIT 1
+--- PASS: TestStartDeployTaskPersistsCanonicalSSHRunnerErrors (1.04s)
+=== RUN   TestDeployTaskFixedTemplateUsesUploadedSourceURL
+
+2026/11/10 14:55:12 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/deploy_service.go:1956 [35;1mrecord not found
+[0m[33m[3.123ms] [34;1m[rows:0][0m SELECT * FROM `biz_deploy_task_step` WHERE task_id = 1 AND task_host_id = 1 AND step_key = 'package_default' ORDER BY `biz_deploy_task_step`.`id` LIMIT 1
+--- PASS: TestDeployTaskFixedTemplateUsesUploadedSourceURL (1.49s)
+=== RUN   TestDeployFixedTemplateScriptsRenderForBuiltInComponents
+=== RUN   TestDeployFixedTemplateScriptsRenderForBuiltInComponents/mysql
+=== RUN   TestDeployFixedTemplateScriptsRenderForBuiltInComponents/redis
+=== RUN   TestDeployFixedTemplateScriptsRenderForBuiltInComponents/minio
+=== RUN   TestDeployFixedTemplateScriptsRenderForBuiltInComponents/harbor
+--- PASS: TestDeployFixedTemplateScriptsRenderForBuiltInComponents (0.00s)
+    --- PASS: TestDeployFixedTemplateScriptsRenderForBuiltInComponents/mysql (0.00s)
+    --- PASS: TestDeployFixedTemplateScriptsRenderForBuiltInComponents/redis (0.00s)
+    --- PASS: TestDeployFixedTemplateScriptsRenderForBuiltInComponents/minio (0.00s)
+    --- PASS: TestDeployFixedTemplateScriptsRenderForBuiltInComponents/harbor (0.00s)
+=== RUN   TestDeployFixedTemplateScriptsRequireMandatoryParams
+--- PASS: TestDeployFixedTemplateScriptsRequireMandatoryParams (0.00s)
+=== RUN   TestDeploySourceFetchRejectsShellInjection
+--- PASS: TestDeploySourceFetchRejectsShellInjection (0.00s)
+=== RUN   TestDeployJDKTemplateServiceSemantics
+--- PASS: TestDeployJDKTemplateServiceSemantics (0.00s)
+=== RUN   TestDeployRedisTemplateUsesSignalStopForPasswordProtectedService
+--- PASS: TestDeployRedisTemplateUsesSignalStopForPasswordProtectedService (0.00s)
+=== RUN   TestDeployPrometheusTemplateUsesCustomConfigPath
+--- PASS: TestDeployPrometheusTemplateUsesCustomConfigPath (0.00s)
+=== RUN   TestContinueOnHostFailureMapsToExecutionPolicy
+--- PASS: TestContinueOnHostFailureMapsToExecutionPolicy (0.00s)
+=== RUN   TestDeployTaskTruncatesLargeExecutionLogs
+
+2026/11/10 14:55:14 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/deploy_service.go:1956 [35;1mrecord not found
+[0m[33m[2.270ms] [34;1m[rows:0][0m SELECT * FROM `biz_deploy_task_step` WHERE task_id = 1 AND task_host_id = 1 AND step_key = 'package_default' ORDER BY `biz_deploy_task_step`.`id` LIMIT 1
+--- PASS: TestDeployTaskTruncatesLargeExecutionLogs (1.47s)
+=== RUN   TestDeployTaskUninstallWritebackReturnsHostToAssignedAndRemovesComponent
+
+2026/11/10 14:55:15 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/deploy_service.go:1956 [35;1mrecord not found
+[0m[33m[0.640ms] [34;1m[rows:0][0m SELECT * FROM `biz_deploy_task_step` WHERE task_id = 1 AND task_host_id = 1 AND step_key = 'package_default' ORDER BY `biz_deploy_task_step`.`id` LIMIT 1
+--- PASS: TestDeployTaskUninstallWritebackReturnsHostToAssignedAndRemovesComponent (1.43s)
+=== RUN   TestDeployTaskReinstallAllowsAssignedHost
+--- PASS: TestDeployTaskReinstallAllowsAssignedHost (1.07s)
+=== RUN   TestUpsertHostInstalledComponentHandlesExistingJSONColumn
+--- PASS: TestUpsertHostInstalledComponentHandlesExistingJSONColumn (1.02s)
+=== RUN   TestDeployTaskDerivesPackageAndActionFromTemplate
+--- PASS: TestDeployTaskDerivesPackageAndActionFromTemplate (1.03s)
+=== RUN   TestDeployTaskUpdateRebuildsTemplateSnapshotAndScope
+--- PASS: TestDeployTaskUpdateRebuildsTemplateSnapshotAndScope (1.12s)
+=== RUN   TestDeployTaskUpdateSwitchesToDirectPackageAndTemplateParams
+--- PASS: TestDeployTaskUpdateSwitchesToDirectPackageAndTemplateParams (1.21s)
+=== RUN   TestDeployTemplateTaskSSHExecutorRunsAllTemplateSteps
+
+2026/11/10 14:55:22 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/deploy_service.go:1956 [35;1mrecord not found
+[0m[33m[1.194ms] [34;1m[rows:0][0m SELECT * FROM `biz_deploy_task_step` WHERE task_id = 1 AND task_host_id = 1 AND step_key = 'nginx_install' ORDER BY `biz_deploy_task_step`.`id` LIMIT 1
+
+2026/11/10 14:55:22 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/deploy_service.go:1956 [35;1mrecord not found
+[0m[33m[1.377ms] [34;1m[rows:0][0m SELECT * FROM `biz_deploy_task_step` WHERE task_id = 1 AND task_host_id = 1 AND step_key = 'redis_install' ORDER BY `biz_deploy_task_step`.`id` LIMIT 1
+--- PASS: TestDeployTemplateTaskSSHExecutorRunsAllTemplateSteps (1.36s)
+=== RUN   TestMergeDeployTemplateParamsPrefersTaskOverrides
+--- PASS: TestMergeDeployTemplateParamsPrefersTaskOverrides (0.00s)
+=== RUN   TestDeployTemplateTaskSSHExecutorRunsScriptStepsWithChecks
+
+2026/11/10 14:55:24 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/deploy_service.go:1956 [35;1mrecord not found
+[0m[33m[1.691ms] [34;1m[rows:0][0m SELECT * FROM `biz_deploy_task_step` WHERE task_id = 1 AND task_host_id = 1 AND step_key = 'prepare' ORDER BY `biz_deploy_task_step`.`id` LIMIT 1
+
+2026/11/10 14:55:24 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/deploy_service.go:1956 [35;1mrecord not found
+[0m[33m[1.241ms] [34;1m[rows:0][0m SELECT * FROM `biz_deploy_task_step` WHERE task_id = 1 AND task_host_id = 1 AND step_key = 'install' ORDER BY `biz_deploy_task_step`.`id` LIMIT 1
+--- PASS: TestDeployTemplateTaskSSHExecutorRunsScriptStepsWithChecks (1.80s)
+=== RUN   TestDeployTemplateTaskSSHExecutorFailsOnScriptPrecheck
+
+2026/11/10 14:55:25 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/deploy_service.go:1956 [35;1mrecord not found
+[0m[33m[0.812ms] [34;1m[rows:0][0m SELECT * FROM `biz_deploy_task_step` WHERE task_id = 1 AND task_host_id = 1 AND step_key = 'prepare' ORDER BY `biz_deploy_task_step`.`id` LIMIT 1
+--- PASS: TestDeployTemplateTaskSSHExecutorFailsOnScriptPrecheck (1.20s)
+=== RUN   TestDeployTemplateAllowsScriptOnlyPlaybookAndExplicitOrchestrationFields
+--- PASS: TestDeployTemplateAllowsScriptOnlyPlaybookAndExplicitOrchestrationFields (1.26s)
+=== RUN   TestDeployTaskVisibilityRespectsHostDataScope
+
+2026/11/10 14:55:28 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/deploy_service.go:1956 [35;1mrecord not found
+[0m[33m[1.285ms] [34;1m[rows:0][0m SELECT * FROM `biz_deploy_task_step` WHERE task_id = 1 AND task_host_id = 1 AND step_key = 'package_default' ORDER BY `biz_deploy_task_step`.`id` LIMIT 1
+--- PASS: TestDeployTaskVisibilityRespectsHostDataScope (1.23s)
+=== RUN   TestDeployTaskCreateReturnsCanonicalValidationErrors
+=== RUN   TestDeployTaskCreateReturnsCanonicalValidationErrors/name_required
+=== RUN   TestDeployTaskCreateReturnsCanonicalValidationErrors/target_required
+=== RUN   TestDeployTaskCreateReturnsCanonicalValidationErrors/invalid_target_type
+=== RUN   TestDeployTaskCreateReturnsCanonicalValidationErrors/scope_required
+=== RUN   TestDeployTaskCreateReturnsCanonicalValidationErrors/scope_invalid
+
+2026/11/10 14:55:29 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/bizscope/bizscope_service.go:73 [35;1mrecord not found
+[0m[33m[1.074ms] [34;1m[rows:0][0m SELECT * FROM `biz_business_scope` WHERE (id = 999999 AND status = 'active') AND `biz_business_scope`.`deleted_at` IS NULL ORDER BY `biz_business_scope`.`id` LIMIT 1 FOR UPDATE
+=== RUN   TestDeployTaskCreateReturnsCanonicalValidationErrors/invalid_executor_type
+=== RUN   TestDeployTaskCreateReturnsCanonicalValidationErrors/invalid_action
+=== RUN   TestDeployTaskCreateReturnsCanonicalValidationErrors/package_required
+=== RUN   TestDeployTaskCreateReturnsCanonicalValidationErrors/package_disabled
+--- PASS: TestDeployTaskCreateReturnsCanonicalValidationErrors (1.09s)
+    --- PASS: TestDeployTaskCreateReturnsCanonicalValidationErrors/name_required (0.00s)
+    --- PASS: TestDeployTaskCreateReturnsCanonicalValidationErrors/target_required (0.00s)
+    --- PASS: TestDeployTaskCreateReturnsCanonicalValidationErrors/invalid_target_type (0.00s)
+    --- PASS: TestDeployTaskCreateReturnsCanonicalValidationErrors/scope_required (0.00s)
+    --- PASS: TestDeployTaskCreateReturnsCanonicalValidationErrors/scope_invalid (0.00s)
+    --- PASS: TestDeployTaskCreateReturnsCanonicalValidationErrors/invalid_executor_type (0.00s)
+    --- PASS: TestDeployTaskCreateReturnsCanonicalValidationErrors/invalid_action (0.00s)
+    --- PASS: TestDeployTaskCreateReturnsCanonicalValidationErrors/package_required (0.00s)
+    --- PASS: TestDeployTaskCreateReturnsCanonicalValidationErrors/package_disabled (0.00s)
+=== RUN   TestDeployTaskUpdateReturnsCanonicalValidationErrors
+=== RUN   TestDeployTaskUpdateReturnsCanonicalValidationErrors/invalid_target_type
+=== RUN   TestDeployTaskUpdateReturnsCanonicalValidationErrors/invalid_action
+--- PASS: TestDeployTaskUpdateReturnsCanonicalValidationErrors (1.11s)
+    --- PASS: TestDeployTaskUpdateReturnsCanonicalValidationErrors/invalid_target_type (0.00s)
+    --- PASS: TestDeployTaskUpdateReturnsCanonicalValidationErrors/invalid_action (0.00s)
+=== RUN   TestDraftDeployTaskVisibilityRespectsResolvedTargets
+--- PASS: TestDraftDeployTaskVisibilityRespectsResolvedTargets (1.18s)
+=== RUN   TestListDeployTasksIncludesHostExecutionSummary
+--- PASS: TestListDeployTasksIncludesHostExecutionSummary (1.16s)
+=== RUN   TestDeleteDeployTaskRemovesPendingTaskAndHosts
+
+2026/11/10 14:55:34 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/deploy_service.go:2561 [35;1mrecord not found
+[0m[33m[1.777ms] [34;1m[rows:0][0m SELECT * FROM `biz_deploy_task` WHERE `biz_deploy_task`.`id` = 1 AND `biz_deploy_task`.`deleted_at` IS NULL ORDER BY `biz_deploy_task`.`id` LIMIT 1
+--- PASS: TestDeleteDeployTaskRemovesPendingTaskAndHosts (1.13s)
+=== RUN   TestDeleteDeployTaskRejectsRunningTask
+
+2026/11/10 14:55:35 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/deploy_service.go:1956 [35;1mrecord not found
+[0m[33m[0.622ms] [34;1m[rows:0][0m SELECT * FROM `biz_deploy_task_step` WHERE task_id = 1 AND task_host_id = 1 AND step_key = 'package_default' ORDER BY `biz_deploy_task_step`.`id` LIMIT 1
+--- PASS: TestDeleteDeployTaskRejectsRunningTask (1.27s)
+=== RUN   TestDeleteDeployTaskReconcilesStaleRunningTask
+
+2026/11/10 14:55:36 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/deploy_service.go:1956 [35;1mrecord not found
+[0m[33m[2.608ms] [34;1m[rows:0][0m SELECT * FROM `biz_deploy_task_step` WHERE task_id = 1 AND task_host_id = 1 AND step_key = 'package_default' ORDER BY `biz_deploy_task_step`.`id` LIMIT 1
+
+2026/11/10 14:55:36 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/deploy_service.go:2561 [35;1mrecord not found
+[0m[33m[1.539ms] [34;1m[rows:0][0m SELECT * FROM `biz_deploy_task` WHERE `biz_deploy_task`.`id` = 1 AND `biz_deploy_task`.`deleted_at` IS NULL ORDER BY `biz_deploy_task`.`id` LIMIT 1
+--- PASS: TestDeleteDeployTaskReconcilesStaleRunningTask (1.45s)
+=== RUN   TestDeleteDeployTaskAllowsTerminalTask
+
+2026/11/10 14:55:37 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/deploy_service.go:1956 [35;1mrecord not found
+[0m[33m[1.136ms] [34;1m[rows:0][0m SELECT * FROM `biz_deploy_task_step` WHERE task_id = 1 AND task_host_id = 1 AND step_key = 'package_default' ORDER BY `biz_deploy_task_step`.`id` LIMIT 1
+
+2026/11/10 14:55:37 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/deploy_service.go:2561 [35;1mrecord not found
+[0m[33m[0.905ms] [34;1m[rows:0][0m SELECT * FROM `biz_deploy_task` WHERE `biz_deploy_task`.`id` = 1 AND `biz_deploy_task`.`deleted_at` IS NULL ORDER BY `biz_deploy_task`.`id` LIMIT 1
+--- PASS: TestDeleteDeployTaskAllowsTerminalTask (1.30s)
+=== RUN   TestStartDeployTaskAllowsDraftTask
+
+2026/11/10 14:55:39 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/deploy_service.go:1956 [35;1mrecord not found
+[0m[33m[1.747ms] [34;1m[rows:0][0m SELECT * FROM `biz_deploy_task_step` WHERE task_id = 1 AND task_host_id = 1 AND step_key = 'package_default' ORDER BY `biz_deploy_task_step`.`id` LIMIT 1
+--- PASS: TestStartDeployTaskAllowsDraftTask (1.43s)
+=== RUN   TestCancelDeployTaskRejectsDraftTask
+--- PASS: TestCancelDeployTaskRejectsDraftTask (1.22s)
+=== RUN   TestMarkHostResultRejectsFailedWithoutErrorMessage
+
+2026/11/10 14:55:41 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/deploy_service.go:1956 [35;1mrecord not found
+[0m[33m[1.469ms] [34;1m[rows:0][0m SELECT * FROM `biz_deploy_task_step` WHERE task_id = 1 AND task_host_id = 1 AND step_key = 'package_default' ORDER BY `biz_deploy_task_step`.`id` LIMIT 1
+--- PASS: TestMarkHostResultRejectsFailedWithoutErrorMessage (1.27s)
+=== RUN   TestDeployTaskDetailHandlerReturnsForbiddenAndNotFound
+[GIN-debug] [WARNING] Running in "debug" mode. Switch to "release" mode in production.
+ - using env:	export GIN_MODE=release
+ - using code:	gin.SetMode(gin.ReleaseMode)
+
+[GIN-debug] GET    /tasks/:id                --> github.com/duanxldragon/pantheon-base/backend/modules/business/deploy.TestDeployTaskDetailHandlerReturnsForbiddenAndNotFound.func1 (1 handlers)
+[GIN-debug] [WARNING] Running in "debug" mode. Switch to "release" mode in production.
+ - using env:	export GIN_MODE=release
+ - using code:	gin.SetMode(gin.ReleaseMode)
+
+[GIN-debug] GET    /tasks/:id                --> github.com/duanxldragon/pantheon-base/backend/modules/business/deploy.(*DeployHandler).GetTask-fm (1 handlers)
+
+2026/11/10 14:55:42 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/deploy_service.go:2561 [35;1mrecord not found
+[0m[33m[0.000ms] [34;1m[rows:0][0m SELECT * FROM `biz_deploy_task` WHERE `biz_deploy_task`.`id` = 999999 AND `biz_deploy_task`.`deleted_at` IS NULL ORDER BY `biz_deploy_task`.`id` LIMIT 1
+--- PASS: TestDeployTaskDetailHandlerReturnsForbiddenAndNotFound (1.00s)
+=== RUN   TestDeployTaskActionHandlersReturnCanonicalStatusCodes
+
+2026/11/10 14:55:44 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/deploy_service.go:1956 [35;1mrecord not found
+[0m[33m[1.476ms] [34;1m[rows:0][0m SELECT * FROM `biz_deploy_task_step` WHERE task_id = 1 AND task_host_id = 1 AND step_key = 'package_default' ORDER BY `biz_deploy_task_step`.`id` LIMIT 1
+[GIN-debug] [WARNING] Running in "debug" mode. Switch to "release" mode in production.
+ - using env:	export GIN_MODE=release
+ - using code:	gin.SetMode(gin.ReleaseMode)
+
+[GIN-debug] POST   /tasks/:id/start          --> github.com/duanxldragon/pantheon-base/backend/modules/business/deploy.(*DeployHandler).StartTask-fm (1 handlers)
+[GIN-debug] [WARNING] Running in "debug" mode. Switch to "release" mode in production.
+ - using env:	export GIN_MODE=release
+ - using code:	gin.SetMode(gin.ReleaseMode)
+
+[GIN-debug] POST   /tasks/:id/cancel         --> github.com/duanxldragon/pantheon-base/backend/modules/business/deploy.(*DeployHandler).CancelTask-fm (1 handlers)
+[GIN-debug] [WARNING] Running in "debug" mode. Switch to "release" mode in production.
+ - using env:	export GIN_MODE=release
+ - using code:	gin.SetMode(gin.ReleaseMode)
+
+[GIN-debug] PUT    /tasks/:id                --> github.com/duanxldragon/pantheon-base/backend/modules/business/deploy.(*DeployHandler).UpdateTask-fm (1 handlers)
+[GIN-debug] [WARNING] Running in "debug" mode. Switch to "release" mode in production.
+ - using env:	export GIN_MODE=release
+ - using code:	gin.SetMode(gin.ReleaseMode)
+
+[GIN-debug] DELETE /tasks/:id                --> github.com/duanxldragon/pantheon-base/backend/modules/business/deploy.(*DeployHandler).DeleteTask-fm (1 handlers)
+[GIN-debug] [WARNING] Running in "debug" mode. Switch to "release" mode in production.
+ - using env:	export GIN_MODE=release
+ - using code:	gin.SetMode(gin.ReleaseMode)
+
+[GIN-debug] POST   /task-hosts/:id/result    --> github.com/duanxldragon/pantheon-base/backend/modules/business/deploy.(*DeployHandler).MarkHostResult-fm (1 handlers)
+--- PASS: TestDeployTaskActionHandlersReturnCanonicalStatusCodes (1.36s)
+=== RUN   TestDeployTaskCreateAndUpdateReturnTargetScopeCanonicalErrors
+--- PASS: TestDeployTaskCreateAndUpdateReturnTargetScopeCanonicalErrors (1.23s)
+=== RUN   TestDeployTaskCreateAndUpdateReturnTargetStatusCanonicalError
+--- PASS: TestDeployTaskCreateAndUpdateReturnTargetStatusCanonicalError (1.34s)
+=== RUN   TestDeployTaskMutationHandlersReturnCanonicalValidationErrors
+[GIN-debug] [WARNING] Running in "debug" mode. Switch to "release" mode in production.
+ - using env:	export GIN_MODE=release
+ - using code:	gin.SetMode(gin.ReleaseMode)
+
+[GIN-debug] POST   /tasks                    --> github.com/duanxldragon/pantheon-base/backend/modules/business/deploy.(*DeployHandler).CreateTask-fm (1 handlers)
+[GIN-debug] [WARNING] Running in "debug" mode. Switch to "release" mode in production.
+ - using env:	export GIN_MODE=release
+ - using code:	gin.SetMode(gin.ReleaseMode)
+
+[GIN-debug] PUT    /tasks/:id                --> github.com/duanxldragon/pantheon-base/backend/modules/business/deploy.(*DeployHandler).UpdateTask-fm (1 handlers)
+--- PASS: TestDeployTaskMutationHandlersReturnCanonicalValidationErrors (1.30s)
+=== RUN   TestDeployTaskMutationHandlersReturnCanonicalScopeValidationErrors
+[GIN-debug] [WARNING] Running in "debug" mode. Switch to "release" mode in production.
+ - using env:	export GIN_MODE=release
+ - using code:	gin.SetMode(gin.ReleaseMode)
+
+[GIN-debug] POST   /tasks                    --> github.com/duanxldragon/pantheon-base/backend/modules/business/deploy.(*DeployHandler).CreateTask-fm (1 handlers)
+--- PASS: TestDeployTaskMutationHandlersReturnCanonicalScopeValidationErrors (1.27s)
+=== RUN   TestDeployTaskMutationHandlersReturnCanonicalTargetStatusValidationError
+[GIN-debug] [WARNING] Running in "debug" mode. Switch to "release" mode in production.
+ - using env:	export GIN_MODE=release
+ - using code:	gin.SetMode(gin.ReleaseMode)
+
+[GIN-debug] POST   /tasks                    --> github.com/duanxldragon/pantheon-base/backend/modules/business/deploy.(*DeployHandler).CreateTask-fm (1 handlers)
+--- PASS: TestDeployTaskMutationHandlersReturnCanonicalTargetStatusValidationError (1.19s)
+=== RUN   TestStartDeployTaskHandlerReturnsCanonicalValidationErrors
+[GIN-debug] [WARNING] Running in "debug" mode. Switch to "release" mode in production.
+ - using env:	export GIN_MODE=release
+ - using code:	gin.SetMode(gin.ReleaseMode)
+
+[GIN-debug] POST   /tasks/:id/start          --> github.com/duanxldragon/pantheon-base/backend/modules/business/deploy.(*DeployHandler).StartTask-fm (1 handlers)
+--- PASS: TestStartDeployTaskHandlerReturnsCanonicalValidationErrors (1.21s)
+=== RUN   TestPauseTaskTransition
+--- PASS: TestPauseTaskTransition (1.13s)
+=== RUN   TestAsyncPauseResumeUsesCheckpointAndAccurateAttempts
+
+2026/11/10 14:55:54 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/deploy_service.go:1956 [35;1mrecord not found
+[0m[33m[0.546ms] [34;1m[rows:0][0m SELECT * FROM `biz_deploy_task_step` WHERE task_id = 1 AND task_host_id = 1 AND step_key = 'package_default' ORDER BY `biz_deploy_task_step`.`id` LIMIT 1
+--- PASS: TestAsyncPauseResumeUsesCheckpointAndAccurateAttempts (1.44s)
+=== RUN   TestResumeTaskTransition
+--- PASS: TestResumeTaskTransition (1.21s)
+=== RUN   TestRetryTaskTransition
+--- PASS: TestRetryTaskTransition (1.19s)
+=== RUN   TestCancelTaskCAS
+--- PASS: TestCancelTaskCAS (1.13s)
+=== RUN   TestControlTransitionsRecordEvents
+
+2026/11/10 14:55:59 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/deploy_service.go:1956 [35;1mrecord not found
+[0m[33m[1.522ms] [34;1m[rows:0][0m SELECT * FROM `biz_deploy_task_step` WHERE task_id = 1 AND task_host_id = 1 AND step_key = 'package_default' ORDER BY `biz_deploy_task_step`.`id` LIMIT 1
+
+2026/11/10 14:55:59 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/bizscope/bizscope_service.go:73 [35;1mcontext canceled
+[0m[33m[0.507ms] [34;1m[rows:0][0m SELECT * FROM `biz_business_scope` WHERE (id = 1 AND status = 'active') AND `biz_business_scope`.`deleted_at` IS NULL ORDER BY `biz_business_scope`.`id` LIMIT 1
+--- PASS: TestControlTransitionsRecordEvents (1.63s)
+=== RUN   TestRetryTaskRecordsEvent
+--- PASS: TestRetryTaskRecordsEvent (1.27s)
+=== RUN   TestPauseReconciliation
+--- PASS: TestPauseReconciliation (1.28s)
+=== RUN   TestDeploySSHTransportScriptAndExitStatus
+=== RUN   TestDeploySSHTransportScriptAndExitStatus/password/exit0
+=== RUN   TestDeploySSHTransportScriptAndExitStatus/password/exit17
+=== RUN   TestDeploySSHTransportScriptAndExitStatus/private_key/exit0
+=== RUN   TestDeploySSHTransportScriptAndExitStatus/private_key/exit17
+--- PASS: TestDeploySSHTransportScriptAndExitStatus (0.15s)
+    --- PASS: TestDeploySSHTransportScriptAndExitStatus/password/exit0 (0.04s)
+    --- PASS: TestDeploySSHTransportScriptAndExitStatus/password/exit17 (0.03s)
+    --- PASS: TestDeploySSHTransportScriptAndExitStatus/private_key/exit0 (0.04s)
+    --- PASS: TestDeploySSHTransportScriptAndExitStatus/private_key/exit17 (0.04s)
+=== RUN   TestDeploySSHTransportRejectsChangedHostKey
+--- PASS: TestDeploySSHTransportRejectsChangedHostKey (0.01s)
+=== RUN   TestDeploySSHTransportCancelDuringSessionOpen
+--- PASS: TestDeploySSHTransportCancelDuringSessionOpen (0.02s)
+=== RUN   TestDeploySSHTransportCancelDuringOutput
+--- PASS: TestDeploySSHTransportCancelDuringOutput (0.01s)
+=== RUN   TestDeploySSHTransportPreCanceledContextDoesNotOpenSession
+--- PASS: TestDeploySSHTransportPreCanceledContextDoesNotOpenSession (0.01s)
+=== RUN   TestDeploySSHTransportBusinessExecution
+=== RUN   TestDeploySSHTransportBusinessExecution/exit0
+
+2026/11/10 14:56:03 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/deploy_service.go:1956 [35;1mrecord not found
+[0m[33m[1.330ms] [34;1m[rows:0][0m SELECT * FROM `biz_deploy_task_step` WHERE task_id = 1 AND task_host_id = 1 AND step_key = 'package_default' ORDER BY `biz_deploy_task_step`.`id` LIMIT 1
+=== RUN   TestDeploySSHTransportBusinessExecution/exit17
+
+2026/11/10 14:56:05 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/deploy_service.go:1956 [35;1mrecord not found
+[0m[33m[1.766ms] [34;1m[rows:0][0m SELECT * FROM `biz_deploy_task_step` WHERE task_id = 1 AND task_host_id = 1 AND step_key = 'package_default' ORDER BY `biz_deploy_task_step`.`id` LIMIT 1
+--- PASS: TestDeploySSHTransportBusinessExecution (3.24s)
+    --- PASS: TestDeploySSHTransportBusinessExecution/exit0 (1.61s)
+    --- PASS: TestDeploySSHTransportBusinessExecution/exit17 (1.63s)
+=== RUN   TestDeploySSHTransportCancelDuringHandshake
+--- PASS: TestDeploySSHTransportCancelDuringHandshake (0.00s)
+=== RUN   TestDeploySSHTransportCanceledConnectionPreservesCommand
+=== RUN   TestDeploySSHTransportCanceledConnectionPreservesCommand/pause_requested
+=== RUN   TestDeploySSHTransportCanceledConnectionPreservesCommand/cancel_requested
+--- PASS: TestDeploySSHTransportCanceledConnectionPreservesCommand (2.80s)
+    --- PASS: TestDeploySSHTransportCanceledConnectionPreservesCommand/pause_requested (1.40s)
+    --- PASS: TestDeploySSHTransportCanceledConnectionPreservesCommand/cancel_requested (1.39s)
+=== RUN   TestIndependentO2CancelBeforeFirstClaimSettles
+    independent_o2_regression_test.go:37: after cancel + recovery: task=canceled retained physical leases=0
+--- PASS: TestIndependentO2CancelBeforeFirstClaimSettles (1.19s)
+=== RUN   TestIndependentO2ServiceProjectionRollsBackWithFinish
+
+2026/11/10 14:56:10 [32mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/deploy_service.go:197 [33mSLOW SQL >= 200ms
+[0m[31;1m[304.806ms] [33m[rows:0][35m CREATE TABLE `biz_deploy_task` (`id` bigint unsigned AUTO_INCREMENT,`name` varchar(128) NOT NULL,`template_id` bigint unsigned,`template_name` varchar(128),`template_version` varchar(64),`package_id` bigint unsigned NOT NULL,`package_name` varchar(128),`package_version` varchar(64),`business_scope_id` bigint unsigned,`business_scope_name` varchar(128),`service_id` bigint unsigned,`service_instance_id` bigint unsigned,`service_name` varchar(255),`service_instance_name` varchar(255),`action` varchar(32) DEFAULT 'install',`target_type` varchar(32) NOT NULL,`target_ids` JSON,`executor_type` varchar(32) DEFAULT 'manual',`execution_mode` varchar(32) DEFAULT 'fixed',`template_params` JSON,`execution_snapshot` JSON,`target_snapshot` JSON,`start_request_key` varchar(128),`credential_ref_id` bigint unsigned,`credential_ref_version` bigint unsigned,`ssh_host_fingerprint` varchar(255),`execution_timeout_seconds` bigint DEFAULT 1800,`status` varchar(32) DEFAULT 'draft',`remark` varchar(512),`external_task_id` varchar(128),`rollback_enabled` boolean DEFAULT false,`rollback_task_id` bigint unsigned,`source_task_id` bigint unsigned,`rollback_strategy` varchar(32),`rollback_snapshot` JSON,`started_at` datetime(3) NULL,`finished_at` datetime(3) NULL,`created_at` datetime(3) NULL,`updated_at` datetime(3) NULL,`created_by` varchar(64),`updated_by` varchar(64),`deleted_at` datetime(3) NULL,PRIMARY KEY (`id`),INDEX `idx_biz_deploy_task_template_id` (`template_id`),INDEX `idx_biz_deploy_task_package_id` (`package_id`),INDEX `idx_biz_deploy_task_business_scope_id` (`business_scope_id`),INDEX `idx_biz_deploy_task_service_id` (`service_id`),INDEX `idx_biz_deploy_task_service_instance_id` (`service_instance_id`),INDEX `idx_biz_deploy_task_action` (`action`),INDEX `idx_biz_deploy_task_target_type` (`target_type`),INDEX `idx_biz_deploy_task_executor_type` (`executor_type`),INDEX `idx_biz_deploy_task_execution_mode` (`execution_mode`),INDEX `idx_biz_deploy_task_credential_ref_id` (`credential_ref_id`),INDEX `idx_biz_deploy_task_status` (`status`),INDEX `idx_biz_deploy_task_rollback_task_id` (`rollback_task_id`),INDEX `idx_biz_deploy_task_source_task_id` (`source_task_id`),INDEX `idx_biz_deploy_task_deleted_at` (`deleted_at`))[0m
+    independent_o2_regression_test.go:91: outer finish failed and deploy/CMDB rolled back; actual service instance=installing version= lifecycle=0
+--- PASS: TestIndependentO2ServiceProjectionRollsBackWithFinish (1.67s)
+=== RUN   TestLogAttemptMigrationRetainsLegacyAndReplay
+--- PASS: TestLogAttemptMigrationRetainsLegacyAndReplay (0.08s)
+=== RUN   TestLogSequenceIsUniqueWithinEachTask
+
+2026/11/10 14:56:12 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/log_sequence_test.go:33 [35;1mError 1062 (23000): Duplicate entry '1-1' for key 'biz_deploy_task_log_chunk.uk_deploy_task_log_chunk_seq'
+[0m[33m[4.704ms] [34;1m[rows:0][0m INSERT INTO `biz_deploy_task_log_chunk` (`task_id`,`task_host_id`,`task_step_id`,`attempt_no`,`sequence`,`stream`,`content`,`created_at`) VALUES (1,0,0,0,1,'stdout','duplicate','2026-11-10 14:56:12.425')
+--- PASS: TestLogSequenceIsUniqueWithinEachTask (1.17s)
+=== RUN   TestLogSequenceMigrationPreservesHistory
+--- PASS: TestLogSequenceMigrationPreservesHistory (0.28s)
+=== RUN   TestConcurrentTaskLogSequencesStayScoped
+--- PASS: TestConcurrentTaskLogSequencesStayScoped (1.38s)
+=== RUN   TestReviewMixedScopeLogsBeforeCapAndFirstError
+--- PASS: TestReviewMixedScopeLogsBeforeCapAndFirstError (1.65s)
+=== RUN   TestReviewConnectedStreamScopeShrinkAndRevoke
+--- PASS: TestReviewConnectedStreamScopeShrinkAndRevoke (3.29s)
+=== RUN   TestReviewEventReplayFiltersBeforeBound
+--- PASS: TestReviewEventReplayFiltersBeforeBound (1.12s)
+=== RUN   TestReviewRetryExhaustedPreservesAllFacts
+=== RUN   TestReviewRetryExhaustedPreservesAllFacts/false
+=== RUN   TestReviewRetryExhaustedPreservesAllFacts/true
+--- PASS: TestReviewRetryExhaustedPreservesAllFacts (2.44s)
+    --- PASS: TestReviewRetryExhaustedPreservesAllFacts/false (1.22s)
+    --- PASS: TestReviewRetryExhaustedPreservesAllFacts/true (1.22s)
+=== RUN   TestResumeScopeRevocationAdmission
+=== RUN   TestResumeScopeRevocationAdmission/resume/manual/direct=false
+
+2026/11/10 14:56:24 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/deploy_service.go:1956 [35;1mrecord not found
+[0m[33m[1.193ms] [34;1m[rows:0][0m SELECT * FROM `biz_deploy_task_step` WHERE task_id = 1 AND task_host_id = 1 AND step_key = 'package_default' ORDER BY `biz_deploy_task_step`.`id` LIMIT 1
+
+2026/11/10 14:56:24 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/bizscope/bizscope_service.go:73 [35;1mrecord not found
+[0m[33m[0.511ms] [34;1m[rows:0][0m SELECT * FROM `biz_business_scope` WHERE (id = 1 AND status = 'active') AND `biz_business_scope`.`deleted_at` IS NULL ORDER BY `biz_business_scope`.`id` LIMIT 1
+
+2026/11/10 14:56:24 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/bizscope/bizscope_service.go:73 [35;1mrecord not found
+[0m[33m[0.540ms] [34;1m[rows:0][0m SELECT * FROM `biz_business_scope` WHERE (id = 1 AND status = 'active') AND `biz_business_scope`.`deleted_at` IS NULL ORDER BY `biz_business_scope`.`id` LIMIT 1 FOR UPDATE
+=== RUN   TestResumeScopeRevocationAdmission/resume/manual/direct=true
+
+2026/11/10 14:56:26 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/deploy_service.go:1956 [35;1mrecord not found
+[0m[33m[0.728ms] [34;1m[rows:0][0m SELECT * FROM `biz_deploy_task_step` WHERE task_id = 1 AND task_host_id = 1 AND step_key = 'package_default' ORDER BY `biz_deploy_task_step`.`id` LIMIT 1
+
+2026/11/10 14:56:26 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/bizscope/bizscope_service.go:73 [35;1mrecord not found
+[0m[33m[1.576ms] [34;1m[rows:0][0m SELECT * FROM `biz_business_scope` WHERE (id = 1 AND status = 'active') AND `biz_business_scope`.`deleted_at` IS NULL ORDER BY `biz_business_scope`.`id` LIMIT 1
+
+2026/11/10 14:56:26 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/bizscope/bizscope_service.go:73 [35;1mrecord not found
+[0m[33m[0.606ms] [34;1m[rows:0][0m SELECT * FROM `biz_business_scope` WHERE (id = 1 AND status = 'active') AND `biz_business_scope`.`deleted_at` IS NULL ORDER BY `biz_business_scope`.`id` LIMIT 1
+=== RUN   TestResumeScopeRevocationAdmission/resume/ssh/direct=false
+
+2026/11/10 14:56:28 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/deploy_service.go:1956 [35;1mrecord not found
+[0m[33m[0.647ms] [34;1m[rows:0][0m SELECT * FROM `biz_deploy_task_step` WHERE task_id = 1 AND task_host_id = 1 AND step_key = 'package_default' ORDER BY `biz_deploy_task_step`.`id` LIMIT 1
+
+2026/11/10 14:56:28 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/bizscope/bizscope_service.go:73 [35;1mrecord not found
+[0m[33m[1.060ms] [34;1m[rows:0][0m SELECT * FROM `biz_business_scope` WHERE (id = 1 AND status = 'active') AND `biz_business_scope`.`deleted_at` IS NULL ORDER BY `biz_business_scope`.`id` LIMIT 1
+
+2026/11/10 14:56:28 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/bizscope/bizscope_service.go:73 [35;1mrecord not found
+[0m[33m[1.095ms] [34;1m[rows:0][0m SELECT * FROM `biz_business_scope` WHERE (id = 1 AND status = 'active') AND `biz_business_scope`.`deleted_at` IS NULL ORDER BY `biz_business_scope`.`id` LIMIT 1 FOR UPDATE
+=== RUN   TestResumeScopeRevocationAdmission/resume/ssh/direct=true
+
+2026/11/10 14:56:31 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/deploy_service.go:1956 [35;1mrecord not found
+[0m[33m[1.174ms] [34;1m[rows:0][0m SELECT * FROM `biz_deploy_task_step` WHERE task_id = 1 AND task_host_id = 1 AND step_key = 'package_default' ORDER BY `biz_deploy_task_step`.`id` LIMIT 1
+
+2026/11/10 14:56:31 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/bizscope/bizscope_service.go:73 [35;1mrecord not found
+[0m[33m[0.694ms] [34;1m[rows:0][0m SELECT * FROM `biz_business_scope` WHERE (id = 1 AND status = 'active') AND `biz_business_scope`.`deleted_at` IS NULL ORDER BY `biz_business_scope`.`id` LIMIT 1
+
+2026/11/10 14:56:31 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/bizscope/bizscope_service.go:73 [35;1mrecord not found
+[0m[33m[0.605ms] [34;1m[rows:0][0m SELECT * FROM `biz_business_scope` WHERE (id = 1 AND status = 'active') AND `biz_business_scope`.`deleted_at` IS NULL ORDER BY `biz_business_scope`.`id` LIMIT 1
+=== RUN   TestResumeScopeRevocationAdmission/retry/manual/direct=false
+
+2026/11/10 14:56:33 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/deploy_service.go:1956 [35;1mrecord not found
+[0m[33m[1.812ms] [34;1m[rows:0][0m SELECT * FROM `biz_deploy_task_step` WHERE task_id = 1 AND task_host_id = 1 AND step_key = 'package_default' ORDER BY `biz_deploy_task_step`.`id` LIMIT 1
+
+2026/11/10 14:56:33 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/bizscope/bizscope_service.go:73 [35;1mrecord not found
+[0m[33m[1.191ms] [34;1m[rows:0][0m SELECT * FROM `biz_business_scope` WHERE (id = 1 AND status = 'active') AND `biz_business_scope`.`deleted_at` IS NULL ORDER BY `biz_business_scope`.`id` LIMIT 1
+
+2026/11/10 14:56:33 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/bizscope/bizscope_service.go:73 [35;1mrecord not found
+[0m[33m[0.520ms] [34;1m[rows:0][0m SELECT * FROM `biz_business_scope` WHERE (id = 1 AND status = 'active') AND `biz_business_scope`.`deleted_at` IS NULL ORDER BY `biz_business_scope`.`id` LIMIT 1 FOR UPDATE
+=== RUN   TestResumeScopeRevocationAdmission/retry/manual/direct=true
+
+2026/11/10 14:56:35 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/deploy_service.go:1956 [35;1mrecord not found
+[0m[33m[1.121ms] [34;1m[rows:0][0m SELECT * FROM `biz_deploy_task_step` WHERE task_id = 1 AND task_host_id = 1 AND step_key = 'package_default' ORDER BY `biz_deploy_task_step`.`id` LIMIT 1
+
+2026/11/10 14:56:35 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/bizscope/bizscope_service.go:73 [35;1mrecord not found
+[0m[33m[1.230ms] [34;1m[rows:0][0m SELECT * FROM `biz_business_scope` WHERE (id = 1 AND status = 'active') AND `biz_business_scope`.`deleted_at` IS NULL ORDER BY `biz_business_scope`.`id` LIMIT 1
+
+2026/11/10 14:56:35 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/bizscope/bizscope_service.go:73 [35;1mrecord not found
+[0m[33m[1.097ms] [34;1m[rows:0][0m SELECT * FROM `biz_business_scope` WHERE (id = 1 AND status = 'active') AND `biz_business_scope`.`deleted_at` IS NULL ORDER BY `biz_business_scope`.`id` LIMIT 1 FOR UPDATE
+=== RUN   TestResumeScopeRevocationAdmission/retry/ssh/direct=false
+
+2026/11/10 14:56:37 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/deploy_service.go:1956 [35;1mrecord not found
+[0m[33m[0.730ms] [34;1m[rows:0][0m SELECT * FROM `biz_deploy_task_step` WHERE task_id = 1 AND task_host_id = 1 AND step_key = 'package_default' ORDER BY `biz_deploy_task_step`.`id` LIMIT 1
+
+2026/11/10 14:56:37 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/bizscope/bizscope_service.go:73 [35;1mrecord not found
+[0m[33m[0.000ms] [34;1m[rows:0][0m SELECT * FROM `biz_business_scope` WHERE (id = 1 AND status = 'active') AND `biz_business_scope`.`deleted_at` IS NULL ORDER BY `biz_business_scope`.`id` LIMIT 1
+
+2026/11/10 14:56:38 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/bizscope/bizscope_service.go:73 [35;1mrecord not found
+[0m[33m[0.624ms] [34;1m[rows:0][0m SELECT * FROM `biz_business_scope` WHERE (id = 1 AND status = 'active') AND `biz_business_scope`.`deleted_at` IS NULL ORDER BY `biz_business_scope`.`id` LIMIT 1 FOR UPDATE
+=== RUN   TestResumeScopeRevocationAdmission/retry/ssh/direct=true
+
+2026/11/10 14:56:39 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/deploy_service.go:1956 [35;1mrecord not found
+[0m[33m[1.385ms] [34;1m[rows:0][0m SELECT * FROM `biz_deploy_task_step` WHERE task_id = 1 AND task_host_id = 1 AND step_key = 'package_default' ORDER BY `biz_deploy_task_step`.`id` LIMIT 1
+
+2026/11/10 14:56:39 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/bizscope/bizscope_service.go:73 [35;1mrecord not found
+[0m[33m[1.097ms] [34;1m[rows:0][0m SELECT * FROM `biz_business_scope` WHERE (id = 1 AND status = 'active') AND `biz_business_scope`.`deleted_at` IS NULL ORDER BY `biz_business_scope`.`id` LIMIT 1
+
+2026/11/10 14:56:39 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/bizscope/bizscope_service.go:73 [35;1mrecord not found
+[0m[33m[0.000ms] [34;1m[rows:0][0m SELECT * FROM `biz_business_scope` WHERE (id = 1 AND status = 'active') AND `biz_business_scope`.`deleted_at` IS NULL ORDER BY `biz_business_scope`.`id` LIMIT 1 FOR UPDATE
+--- PASS: TestResumeScopeRevocationAdmission (17.09s)
+    --- PASS: TestResumeScopeRevocationAdmission/resume/manual/direct=false (1.92s)
+    --- PASS: TestResumeScopeRevocationAdmission/resume/manual/direct=true (2.16s)
+    --- PASS: TestResumeScopeRevocationAdmission/resume/ssh/direct=false (2.22s)
+    --- PASS: TestResumeScopeRevocationAdmission/resume/ssh/direct=true (2.38s)
+    --- PASS: TestResumeScopeRevocationAdmission/retry/manual/direct=false (2.20s)
+    --- PASS: TestResumeScopeRevocationAdmission/retry/manual/direct=true (2.32s)
+    --- PASS: TestResumeScopeRevocationAdmission/retry/ssh/direct=false (2.18s)
+    --- PASS: TestResumeScopeRevocationAdmission/retry/ssh/direct=true (1.71s)
+=== RUN   TestResumeScopeRevocationBetweenClaimAndExecute
+
+2026/11/10 14:56:41 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/deploy_service.go:1956 [35;1mrecord not found
+[0m[33m[1.390ms] [34;1m[rows:0][0m SELECT * FROM `biz_deploy_task_step` WHERE task_id = 1 AND task_host_id = 1 AND step_key = 'package_default' ORDER BY `biz_deploy_task_step`.`id` LIMIT 1
+
+2026/11/10 14:56:41 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/bizscope/bizscope_service.go:73 [35;1mrecord not found
+[0m[33m[1.460ms] [34;1m[rows:0][0m SELECT * FROM `biz_business_scope` WHERE (id = 1 AND status = 'active') AND `biz_business_scope`.`deleted_at` IS NULL ORDER BY `biz_business_scope`.`id` LIMIT 1
+--- PASS: TestResumeScopeRevocationBetweenClaimAndExecute (2.26s)
+=== RUN   TestResumeScopeRevocationFailClosed
+
+2026/11/10 14:56:44 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/deploy_service.go:1956 [35;1mrecord not found
+[0m[33m[1.270ms] [34;1m[rows:0][0m SELECT * FROM `biz_deploy_task_step` WHERE task_id = 1 AND task_host_id = 1 AND step_key = 'package_default' ORDER BY `biz_deploy_task_step`.`id` LIMIT 1
+=== RUN   TestResumeScopeRevocationFailClosed/nil-reader
+=== RUN   TestResumeScopeRevocationFailClosed/owner-error
+=== RUN   TestResumeScopeRevocationFailClosed/wrong-owner
+=== RUN   TestResumeScopeRevocationFailClosed/inactive-projection
+=== RUN   TestResumeScopeRevocationFailClosed/canceled-owner
+=== RUN   TestResumeScopeRevocationFailClosed/source-gone
+
+2026/11/10 14:56:44 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/bizscope/bizscope_service.go:73 [35;1mrecord not found
+[0m[33m[0.857ms] [34;1m[rows:0][0m SELECT * FROM `biz_business_scope` WHERE (id = 1 AND status = 'active') AND `biz_business_scope`.`deleted_at` IS NULL ORDER BY `biz_business_scope`.`id` LIMIT 1 FOR UPDATE
+--- PASS: TestResumeScopeRevocationFailClosed (2.39s)
+    --- PASS: TestResumeScopeRevocationFailClosed/nil-reader (0.02s)
+    --- PASS: TestResumeScopeRevocationFailClosed/owner-error (0.02s)
+    --- PASS: TestResumeScopeRevocationFailClosed/wrong-owner (0.02s)
+    --- PASS: TestResumeScopeRevocationFailClosed/inactive-projection (0.03s)
+    --- PASS: TestResumeScopeRevocationFailClosed/canceled-owner (0.02s)
+    --- PASS: TestResumeScopeRevocationFailClosed/source-gone (0.03s)
+=== RUN   TestResumeScopeRevocationCurrentOwnerAndVisibility
+
+2026/11/10 14:56:46 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/deploy_service.go:1956 [35;1mrecord not found
+[0m[33m[0.656ms] [34;1m[rows:0][0m SELECT * FROM `biz_deploy_task_step` WHERE task_id = 1 AND task_host_id = 1 AND step_key = 'package_default' ORDER BY `biz_deploy_task_step`.`id` LIMIT 1
+=== RUN   TestResumeScopeRevocationCurrentOwnerAndVisibility/owner-outside-data-scope
+
+2026/11/10 14:56:46 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/bizscope/bizscope_service.go:73 [35;1mrecord not found
+[0m[33m[0.653ms] [34;1m[rows:0][0m SELECT * FROM `biz_business_scope` WHERE (id = 1 AND status = 'active') AND dept_id IN (1) AND `biz_business_scope`.`deleted_at` IS NULL ORDER BY `biz_business_scope`.`id` LIMIT 1 FOR UPDATE
+=== RUN   TestResumeScopeRevocationCurrentOwnerAndVisibility/host-outside-data-scope
+=== RUN   TestResumeScopeRevocationCurrentOwnerAndVisibility/host-owner-changed
+=== RUN   TestResumeScopeRevocationCurrentOwnerAndVisibility/host-gone
+--- PASS: TestResumeScopeRevocationCurrentOwnerAndVisibility (2.40s)
+    --- PASS: TestResumeScopeRevocationCurrentOwnerAndVisibility/owner-outside-data-scope (0.04s)
+    --- PASS: TestResumeScopeRevocationCurrentOwnerAndVisibility/host-outside-data-scope (0.02s)
+    --- PASS: TestResumeScopeRevocationCurrentOwnerAndVisibility/host-owner-changed (0.04s)
+    --- PASS: TestResumeScopeRevocationCurrentOwnerAndVisibility/host-gone (0.03s)
+=== RUN   TestResumeScopeRevocationStartRefusedWithoutMutation
+
+2026/11/10 14:56:49 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/bizscope/bizscope_service.go:73 [35;1mrecord not found
+[0m[33m[1.709ms] [34;1m[rows:0][0m SELECT * FROM `biz_business_scope` WHERE (id = 1 AND status = 'active') AND `biz_business_scope`.`deleted_at` IS NULL ORDER BY `biz_business_scope`.`id` LIMIT 1
+--- PASS: TestResumeScopeRevocationStartRefusedWithoutMutation (2.41s)
+=== RUN   TestResumeScopeRevocationAfterSSHConnectSendsNoCommand
+
+2026/11/10 14:56:51 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/deploy_service.go:1956 [35;1mrecord not found
+[0m[33m[0.509ms] [34;1m[rows:0][0m SELECT * FROM `biz_deploy_task_step` WHERE task_id = 1 AND task_host_id = 1 AND step_key = 'package_default' ORDER BY `biz_deploy_task_step`.`id` LIMIT 1
+
+2026/11/10 14:56:51 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/bizscope/bizscope_service.go:73 [35;1mrecord not found
+[0m[33m[1.310ms] [34;1m[rows:0][0m SELECT * FROM `biz_business_scope` WHERE (id = 1 AND status = 'active') AND `biz_business_scope`.`deleted_at` IS NULL ORDER BY `biz_business_scope`.`id` LIMIT 1
+--- PASS: TestResumeScopeRevocationAfterSSHConnectSendsNoCommand (2.37s)
+=== RUN   TestResumeScopeRevocationCleanupAndCanceledRequest
+
+2026/11/10 14:56:53 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/deploy_service.go:1956 [35;1mrecord not found
+[0m[33m[0.565ms] [34;1m[rows:0][0m SELECT * FROM `biz_deploy_task_step` WHERE task_id = 1 AND task_host_id = 1 AND step_key = 'package_default' ORDER BY `biz_deploy_task_step`.`id` LIMIT 1
+--- PASS: TestResumeScopeRevocationCleanupAndCanceledRequest (2.33s)
+=== RUN   TestServiceTransactionLinkedCompletionRollback
+=== RUN   TestServiceTransactionLinkedCompletionRollback/owned/commit
+
+2026/11/10 14:56:55 [34;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/service_transaction_test.go:138
+[0m[35m[warn] [0mremoving callback `linked_owner_written` from D:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/service_transaction_test.go:138
+
+2026/11/10 14:56:55 [34;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/service_transaction_test.go:138
+[0m[35m[warn] [0mremoving callback `linked_second_command` from D:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/service_transaction_test.go:138
+=== RUN   TestServiceTransactionLinkedCompletionRollback/owned/uninstall-second-command
+
+2026/11/10 14:56:56 [34;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/service_transaction_test.go:138
+[0m[35m[warn] [0mremoving callback `linked_owner_written` from D:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/service_transaction_test.go:138
+
+2026/11/10 14:56:56 [34;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/service_transaction_test.go:138
+[0m[35m[warn] [0mremoving callback `linked_second_command` from D:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/service_transaction_test.go:138
+=== RUN   TestServiceTransactionLinkedCompletionRollback/owned/after-retire
+
+2026/11/10 14:56:58 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/service/state.go:115 [35;1mlinked owner completion refused
+[0m[33m[1.687ms] [34;1m[rows:1][0m UPDATE `biz_service_instance` SET `current_version`='old',`desired_state`='retired',`desired_version`='1',`health_message`='',`health_observed_at`='2026-11-10 14:56:58.235',`health_revision`='',`health_state`='unknown',`last_transition_at`='2026-11-10 14:56:58.235',`last_transition_id`='deploy:1:retire',`lifecycle_version`=lifecycle_version + 1,`observed_state`='retired',`rollback_version`='',`updated_at`='2026-11-10 14:56:58.235',`updated_by`='test' WHERE id = 1 AND `biz_service_instance`.`deleted_at` IS NULL
+
+2026/11/10 14:56:58 [34;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/service_transaction_test.go:138
+[0m[35m[warn] [0mremoving callback `linked_owner_written` from D:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/service_transaction_test.go:138
+
+2026/11/10 14:56:58 [34;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/service_transaction_test.go:138
+[0m[35m[warn] [0mremoving callback `linked_second_command` from D:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/service_transaction_test.go:138
+=== RUN   TestServiceTransactionLinkedCompletionRollback/owned/owner-refusal
+
+2026/11/10 14:56:59 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/service/service.go:607 [35;1mcontext canceled
+[0m[33m[0.000ms] [34;1m[rows:0][0m SELECT * FROM `biz_service_instance` WHERE service_id IN (SELECT `id` FROM `biz_service` WHERE application_id IN (SELECT `id` FROM `biz_application` WHERE `biz_application`.`deleted_at` IS NULL) AND `biz_service`.`deleted_at` IS NULL) AND `biz_service_instance`.`id` = 1 AND `biz_service_instance`.`deleted_at` IS NULL ORDER BY `biz_service_instance`.`id` LIMIT 1
+
+2026/11/10 14:56:59 [34;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/service_transaction_test.go:138
+[0m[35m[warn] [0mremoving callback `linked_owner_written` from D:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/service_transaction_test.go:138
+
+2026/11/10 14:56:59 [34;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/service_transaction_test.go:138
+[0m[35m[warn] [0mremoving callback `linked_second_command` from D:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/service_transaction_test.go:138
+=== RUN   TestServiceTransactionLinkedCompletionRollback/owned/owner-deadline
+
+2026/11/10 14:57:01 [34;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/service_transaction_test.go:138
+[0m[35m[warn] [0mremoving callback `linked_owner_written` from D:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/service_transaction_test.go:138
+
+2026/11/10 14:57:01 [34;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/service_transaction_test.go:138
+[0m[35m[warn] [0mremoving callback `linked_second_command` from D:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/service_transaction_test.go:138
+=== RUN   TestServiceTransactionLinkedCompletionRollback/manual/commit
+
+2026/11/10 14:57:02 [34;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/service_transaction_test.go:138
+[0m[35m[warn] [0mremoving callback `linked_owner_written` from D:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/service_transaction_test.go:138
+
+2026/11/10 14:57:02 [34;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/service_transaction_test.go:138
+[0m[35m[warn] [0mremoving callback `linked_second_command` from D:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/service_transaction_test.go:138
+=== RUN   TestServiceTransactionLinkedCompletionRollback/manual/uninstall-second-command
+
+2026/11/10 14:57:04 [34;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/service_transaction_test.go:138
+[0m[35m[warn] [0mremoving callback `linked_owner_written` from D:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/service_transaction_test.go:138
+
+2026/11/10 14:57:04 [34;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/service_transaction_test.go:138
+[0m[35m[warn] [0mremoving callback `linked_second_command` from D:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/service_transaction_test.go:138
+=== RUN   TestServiceTransactionLinkedCompletionRollback/manual/after-retire
+
+2026/11/10 14:57:05 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/service/state.go:115 [35;1mlinked owner completion refused
+[0m[33m[1.464ms] [34;1m[rows:1][0m UPDATE `biz_service_instance` SET `current_version`='old',`desired_state`='retired',`desired_version`='1',`health_message`='',`health_observed_at`='2026-11-10 14:57:05.819',`health_revision`='',`health_state`='unknown',`last_transition_at`='2026-11-10 14:57:05.819',`last_transition_id`='deploy:1:retire',`lifecycle_version`=lifecycle_version + 1,`observed_state`='retired',`rollback_version`='',`updated_at`='2026-11-10 14:57:05.819',`updated_by`='test' WHERE id = 1 AND `biz_service_instance`.`deleted_at` IS NULL
+
+2026/11/10 14:57:05 [34;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/service_transaction_test.go:138
+[0m[35m[warn] [0mremoving callback `linked_owner_written` from D:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/service_transaction_test.go:138
+
+2026/11/10 14:57:05 [34;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/service_transaction_test.go:138
+[0m[35m[warn] [0mremoving callback `linked_second_command` from D:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/service_transaction_test.go:138
+--- PASS: TestServiceTransactionLinkedCompletionRollback (12.01s)
+    --- PASS: TestServiceTransactionLinkedCompletionRollback/owned/commit (1.66s)
+    --- PASS: TestServiceTransactionLinkedCompletionRollback/owned/uninstall-second-command (1.40s)
+    --- PASS: TestServiceTransactionLinkedCompletionRollback/owned/after-retire (1.40s)
+    --- PASS: TestServiceTransactionLinkedCompletionRollback/owned/owner-refusal (1.48s)
+    --- PASS: TestServiceTransactionLinkedCompletionRollback/owned/owner-deadline (1.57s)
+    --- PASS: TestServiceTransactionLinkedCompletionRollback/manual/commit (1.31s)
+    --- PASS: TestServiceTransactionLinkedCompletionRollback/manual/uninstall-second-command (1.61s)
+    --- PASS: TestServiceTransactionLinkedCompletionRollback/manual/after-retire (1.58s)
+=== RUN   TestServiceTransactionLinkedCompletionCommit
+=== RUN   TestServiceTransactionLinkedCompletionCommit/owned/install
+=== RUN   TestServiceTransactionLinkedCompletionCommit/owned/uninstall
+=== RUN   TestServiceTransactionLinkedCompletionCommit/manual/install
+=== RUN   TestServiceTransactionLinkedCompletionCommit/manual/uninstall
+--- PASS: TestServiceTransactionLinkedCompletionCommit (6.33s)
+    --- PASS: TestServiceTransactionLinkedCompletionCommit/owned/install (1.63s)
+    --- PASS: TestServiceTransactionLinkedCompletionCommit/owned/uninstall (1.61s)
+    --- PASS: TestServiceTransactionLinkedCompletionCommit/manual/install (1.66s)
+    --- PASS: TestServiceTransactionLinkedCompletionCommit/manual/uninstall (1.42s)
+=== RUN   TestServiceTransactionNilBindingAndLinkCompatibility
+=== RUN   TestServiceTransactionNilBindingAndLinkCompatibility/nil-bound
+=== RUN   TestServiceTransactionNilBindingAndLinkCompatibility/no-link
+=== RUN   TestServiceTransactionNilBindingAndLinkCompatibility/no-owner
+--- PASS: TestServiceTransactionNilBindingAndLinkCompatibility (4.44s)
+    --- PASS: TestServiceTransactionNilBindingAndLinkCompatibility/nil-bound (1.64s)
+    --- PASS: TestServiceTransactionNilBindingAndLinkCompatibility/no-link (1.50s)
+    --- PASS: TestServiceTransactionNilBindingAndLinkCompatibility/no-owner (1.30s)
+=== RUN   TestServiceTransactionNonbindingRefusedBeforeMutation
+=== RUN   TestServiceTransactionNonbindingRefusedBeforeMutation/owned
+=== RUN   TestServiceTransactionNonbindingRefusedBeforeMutation/manual
+--- PASS: TestServiceTransactionNonbindingRefusedBeforeMutation (2.74s)
+    --- PASS: TestServiceTransactionNonbindingRefusedBeforeMutation/owned (1.30s)
+    --- PASS: TestServiceTransactionNonbindingRefusedBeforeMutation/manual (1.44s)
+=== RUN   TestStepHistoryKeepsPriorAttemptCheckpoint
+--- PASS: TestStepHistoryKeepsPriorAttemptCheckpoint (1.01s)
+=== RUN   TestStepHistoryWriteFailureRollsBackCheckpoint
+
+2026/11/10 14:57:21 [34;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/step_history_test.go:125
+[0m[35m[warn] [0mremoving callback `test:history-failure` from D:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/step_history_test.go:125
+--- PASS: TestStepHistoryWriteFailureRollsBackCheckpoint (1.02s)
+=== RUN   TestStepHistorySerializesConcurrentCheckpointWrites
+--- PASS: TestStepHistorySerializesConcurrentCheckpointWrites (1.25s)
+=== RUN   TestStepHistoryPauseAndLegacyRemainHonest
+--- PASS: TestStepHistoryPauseAndLegacyRemainHonest (1.00s)
+=== RUN   TestStepHistoryVisibleHostAndStepOwnership
+
+2026/11/10 14:57:24 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/step_history.go:66 [35;1mcontext canceled
+[0m[33m[0.512ms] [34;1m[rows:0][0m SELECT history.* FROM biz_deploy_step_history AS history JOIN (SELECT biz_deploy_step_history.step_id, biz_deploy_step_history.attempt_no, MAX(biz_deploy_step_history.state_version) AS state_version FROM `biz_deploy_step_history` JOIN biz_deploy_task_step AS step ON step.id = biz_deploy_step_history.step_id AND step.task_id = biz_deploy_step_history.task_id AND step.task_host_id = biz_deploy_step_history.task_host_id WHERE biz_deploy_step_history.task_id = 1 AND biz_deploy_step_history.task_host_id IN (1) AND biz_deploy_step_history.attempt_no > 0 GROUP BY biz_deploy_step_history.step_id, biz_deploy_step_history.attempt_no) AS latest ON latest.step_id = history.step_id AND latest.attempt_no = history.attempt_no AND latest.state_version = history.state_version WHERE history.task_id = 1 AND history.task_host_id IN (1) ORDER BY history.attempt_no DESC, history.state_version DESC, history.task_host_id ASC, history.step_order ASC, history.step_id ASC LIMIT 501
+--- PASS: TestStepHistoryVisibleHostAndStepOwnership (1.24s)
+=== RUN   TestStepHistoryProjectionBudget
+--- PASS: TestStepHistoryProjectionBudget (1.36s)
+=== RUN   TestStepHistoryMigrationReplayAndRetainedDown
+--- PASS: TestStepHistoryMigrationReplayAndRetainedDown (0.12s)
+=== RUN   TestTaskCommandStateMatrix
+=== RUN   TestTaskCommandStateMatrix/pause/draft
+=== RUN   TestTaskCommandStateMatrix/pause/pending
+=== RUN   TestTaskCommandStateMatrix/pause/running
+=== RUN   TestTaskCommandStateMatrix/pause/pause_requested
+=== RUN   TestTaskCommandStateMatrix/pause/paused
+=== RUN   TestTaskCommandStateMatrix/pause/cancel_requested
+=== RUN   TestTaskCommandStateMatrix/pause/canceled
+=== RUN   TestTaskCommandStateMatrix/pause/failed
+=== RUN   TestTaskCommandStateMatrix/pause/success
+=== RUN   TestTaskCommandStateMatrix/resume/draft
+=== RUN   TestTaskCommandStateMatrix/resume/pending
+=== RUN   TestTaskCommandStateMatrix/resume/running
+=== RUN   TestTaskCommandStateMatrix/resume/pause_requested
+=== RUN   TestTaskCommandStateMatrix/resume/paused
+=== RUN   TestTaskCommandStateMatrix/resume/cancel_requested
+=== RUN   TestTaskCommandStateMatrix/resume/canceled
+=== RUN   TestTaskCommandStateMatrix/resume/failed
+=== RUN   TestTaskCommandStateMatrix/resume/success
+=== RUN   TestTaskCommandStateMatrix/retry/draft
+=== RUN   TestTaskCommandStateMatrix/retry/pending
+=== RUN   TestTaskCommandStateMatrix/retry/running
+=== RUN   TestTaskCommandStateMatrix/retry/pause_requested
+=== RUN   TestTaskCommandStateMatrix/retry/paused
+=== RUN   TestTaskCommandStateMatrix/retry/cancel_requested
+=== RUN   TestTaskCommandStateMatrix/retry/canceled
+=== RUN   TestTaskCommandStateMatrix/retry/failed
+=== RUN   TestTaskCommandStateMatrix/retry/success
+=== RUN   TestTaskCommandStateMatrix/cancel/draft
+=== RUN   TestTaskCommandStateMatrix/cancel/pending
+=== RUN   TestTaskCommandStateMatrix/cancel/running
+=== RUN   TestTaskCommandStateMatrix/cancel/pause_requested
+=== RUN   TestTaskCommandStateMatrix/cancel/paused
+=== RUN   TestTaskCommandStateMatrix/cancel/cancel_requested
+=== RUN   TestTaskCommandStateMatrix/cancel/canceled
+=== RUN   TestTaskCommandStateMatrix/cancel/failed
+=== RUN   TestTaskCommandStateMatrix/cancel/success
+--- PASS: TestTaskCommandStateMatrix (2.47s)
+    --- PASS: TestTaskCommandStateMatrix/pause/draft (0.05s)
+    --- PASS: TestTaskCommandStateMatrix/pause/pending (0.03s)
+    --- PASS: TestTaskCommandStateMatrix/pause/running (0.05s)
+    --- PASS: TestTaskCommandStateMatrix/pause/pause_requested (0.05s)
+    --- PASS: TestTaskCommandStateMatrix/pause/paused (0.06s)
+    --- PASS: TestTaskCommandStateMatrix/pause/cancel_requested (0.05s)
+    --- PASS: TestTaskCommandStateMatrix/pause/canceled (0.03s)
+    --- PASS: TestTaskCommandStateMatrix/pause/failed (0.02s)
+    --- PASS: TestTaskCommandStateMatrix/pause/success (0.02s)
+    --- PASS: TestTaskCommandStateMatrix/resume/draft (0.04s)
+    --- PASS: TestTaskCommandStateMatrix/resume/pending (0.04s)
+    --- PASS: TestTaskCommandStateMatrix/resume/running (0.03s)
+    --- PASS: TestTaskCommandStateMatrix/resume/pause_requested (0.03s)
+    --- PASS: TestTaskCommandStateMatrix/resume/paused (0.05s)
+    --- PASS: TestTaskCommandStateMatrix/resume/cancel_requested (0.03s)
+    --- PASS: TestTaskCommandStateMatrix/resume/canceled (0.02s)
+    --- PASS: TestTaskCommandStateMatrix/resume/failed (0.03s)
+    --- PASS: TestTaskCommandStateMatrix/resume/success (0.03s)
+    --- PASS: TestTaskCommandStateMatrix/retry/draft (0.03s)
+    --- PASS: TestTaskCommandStateMatrix/retry/pending (0.03s)
+    --- PASS: TestTaskCommandStateMatrix/retry/running (0.04s)
+    --- PASS: TestTaskCommandStateMatrix/retry/pause_requested (0.03s)
+    --- PASS: TestTaskCommandStateMatrix/retry/paused (0.04s)
+    --- PASS: TestTaskCommandStateMatrix/retry/cancel_requested (0.08s)
+    --- PASS: TestTaskCommandStateMatrix/retry/canceled (0.07s)
+    --- PASS: TestTaskCommandStateMatrix/retry/failed (0.07s)
+    --- PASS: TestTaskCommandStateMatrix/retry/success (0.05s)
+    --- PASS: TestTaskCommandStateMatrix/cancel/draft (0.04s)
+    --- PASS: TestTaskCommandStateMatrix/cancel/pending (0.06s)
+    --- PASS: TestTaskCommandStateMatrix/cancel/running (0.04s)
+    --- PASS: TestTaskCommandStateMatrix/cancel/pause_requested (0.08s)
+    --- PASS: TestTaskCommandStateMatrix/cancel/paused (0.05s)
+    --- PASS: TestTaskCommandStateMatrix/cancel/cancel_requested (0.04s)
+    --- PASS: TestTaskCommandStateMatrix/cancel/canceled (0.02s)
+    --- PASS: TestTaskCommandStateMatrix/cancel/failed (0.04s)
+    --- PASS: TestTaskCommandStateMatrix/cancel/success (0.03s)
+=== RUN   TestTaskCommandConcurrentABAAndLogIsolation
+--- PASS: TestTaskCommandConcurrentABAAndLogIsolation (1.22s)
+=== RUN   TestTaskCommandScopeAndContext
+--- PASS: TestTaskCommandScopeAndContext (1.74s)
+=== RUN   TestTaskCommandFailureRollbackAndPostCommitCancel
+=== RUN   TestTaskCommandFailureRollbackAndPostCommitCancel/event
+2026/11/10 14:57:32 ERROR append deploy task event failed task_id=1 event_type=task.canceled error="injected event"
+
+2026/11/10 14:57:32 [34;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/task_command_test.go:202
+[0m[35m[warn] [0mremoving callback `command-failure-event` from D:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/task_command_test.go:202
+=== RUN   TestTaskCommandFailureRollbackAndPostCommitCancel/host
+
+2026/11/10 14:57:34 [34;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/task_command_test.go:202
+[0m[35m[warn] [0mremoving callback `command-failure-host` from D:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/task_command_test.go:202
+=== RUN   TestTaskCommandFailureRollbackAndPostCommitCancel/after-event
+
+2026/11/10 14:57:34 [32mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/deploy_service.go:197 [33mSLOW SQL >= 200ms
+[0m[31;1m[273.941ms] [33m[rows:0][35m CREATE TABLE `biz_deploy_template_step` (`id` bigint unsigned AUTO_INCREMENT,`template_id` bigint unsigned NOT NULL,`step_code` varchar(64) NOT NULL,`step_name` varchar(128) NOT NULL,`step_type` varchar(32) NOT NULL,`action` varchar(32) DEFAULT 'install',`package_id` bigint unsigned,`package_name` varchar(128),`package_version` varchar(64),`template_code` varchar(64),`template_params` JSON,`step_config` JSON,`continue_on_host_failure` boolean DEFAULT false,`sort` bigint DEFAULT 1,`created_at` datetime(3) NULL,`updated_at` datetime(3) NULL,PRIMARY KEY (`id`),INDEX `idx_biz_deploy_template_step_template_id` (`template_id`),INDEX `idx_biz_deploy_template_step_step_type` (`step_type`),INDEX `idx_biz_deploy_template_step_action` (`action`),INDEX `idx_biz_deploy_template_step_package_id` (`package_id`),INDEX `idx_biz_deploy_template_step_template_code` (`template_code`),INDEX `idx_biz_deploy_template_step_sort` (`sort`))[0m
+
+2026/11/10 14:57:35 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/deploy_service.go:1922 [35;1minjected after-event
+[0m[33m[0.537ms] [34;1m[rows:1][0m INSERT INTO `biz_deploy_task_event` (`task_id`,`task_host_id`,`task_step_id`,`sequence`,`event_type`,`from_status`,`to_status`,`actor`,`request_id`,`reason`,`created_at`) VALUES (1,0,0,1,'task.canceled','running','canceled','1','','','2026-11-10 14:57:35.499')
+2026/11/10 14:57:35 ERROR append deploy task event failed task_id=1 event_type=task.canceled error="injected after-event"
+
+2026/11/10 14:57:35 [34;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/task_command_test.go:202
+[0m[35m[warn] [0mremoving callback `command-failure-after-event` from D:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/task_command_test.go:202
+=== RUN   TestTaskCommandFailureRollbackAndPostCommitCancel/none
+--- PASS: TestTaskCommandFailureRollbackAndPostCommitCancel (4.62s)
+    --- PASS: TestTaskCommandFailureRollbackAndPostCommitCancel/event (1.23s)
+    --- PASS: TestTaskCommandFailureRollbackAndPostCommitCancel/host (1.13s)
+    --- PASS: TestTaskCommandFailureRollbackAndPostCommitCancel/after-event (1.30s)
+    --- PASS: TestTaskCommandFailureRollbackAndPostCommitCancel/none (0.95s)
+=== RUN   TestTaskCommandRetryHostFailureRollsBack
+
+2026/11/10 14:57:37 [34;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/task_command_test.go:226
+[0m[35m[warn] [0mremoving callback `fail-reset` from D:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/task_command_test.go:226
+--- PASS: TestTaskCommandRetryHostFailureRollsBack (1.17s)
+=== RUN   TestTaskCommandHandlersRequireViewedVersion
+=== RUN   TestTaskCommandHandlersRequireViewedVersion/pause
+=== RUN   TestTaskCommandHandlersRequireViewedVersion/resume
+=== RUN   TestTaskCommandHandlersRequireViewedVersion/retry
+=== RUN   TestTaskCommandHandlersRequireViewedVersion/cancel
+--- PASS: TestTaskCommandHandlersRequireViewedVersion (1.26s)
+    --- PASS: TestTaskCommandHandlersRequireViewedVersion/pause (0.09s)
+    --- PASS: TestTaskCommandHandlersRequireViewedVersion/resume (0.07s)
+    --- PASS: TestTaskCommandHandlersRequireViewedVersion/retry (0.09s)
+    --- PASS: TestTaskCommandHandlersRequireViewedVersion/cancel (0.09s)
+=== RUN   TestTaskCommandManualPauseResumeAndRetryDoNotDispatchSSH
+
+2026/11/10 14:57:41 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/deploy_service.go:1956 [35;1mrecord not found
+[0m[33m[1.104ms] [34;1m[rows:0][0m SELECT * FROM `biz_deploy_task_step` WHERE task_id = 1 AND task_host_id = 1 AND step_key = 'package_default' ORDER BY `biz_deploy_task_step`.`id` LIMIT 1
+--- PASS: TestTaskCommandManualPauseResumeAndRetryDoNotDispatchSSH (2.59s)
+=== RUN   TestPreviewTicketRejectsForgeryExpiryAndBudget
+--- PASS: TestPreviewTicketRejectsForgeryExpiryAndBudget (0.00s)
+=== RUN   TestPreviewRequiredValidStartAndReplay
+
+2026/11/10 14:57:43 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/deploy_service.go:1956 [35;1mrecord not found
+[0m[33m[0.697ms] [34;1m[rows:0][0m SELECT * FROM `biz_deploy_task_step` WHERE task_id = 1 AND task_host_id = 2 AND step_key = 'package_default' ORDER BY `biz_deploy_task_step`.`id` LIMIT 1
+--- PASS: TestPreviewRequiredValidStartAndReplay (2.28s)
+=== RUN   TestPreviewRejectsActorRequestAndPersistedDrift
+=== RUN   TestPreviewRejectsActorRequestAndPersistedDrift/actor
+=== RUN   TestPreviewRejectsActorRequestAndPersistedDrift/request
+=== RUN   TestPreviewRejectsActorRequestAndPersistedDrift/task
+=== RUN   TestPreviewRejectsActorRequestAndPersistedDrift/host
+=== RUN   TestPreviewRejectsActorRequestAndPersistedDrift/secret
+=== RUN   TestPreviewRejectsActorRequestAndPersistedDrift/scope
+
+2026/11/10 14:57:55 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/bizscope/bizscope_service.go:73 [35;1mrecord not found
+[0m[33m[0.524ms] [34;1m[rows:0][0m SELECT * FROM `biz_business_scope` WHERE (id = 1 AND status = 'active') AND `biz_business_scope`.`deleted_at` IS NULL ORDER BY `biz_business_scope`.`id` LIMIT 1
+=== RUN   TestPreviewRejectsActorRequestAndPersistedDrift/permission
+
+2026/11/10 14:57:56 [32mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/deploy_service.go:197 [33mSLOW SQL >= 200ms
+[0m[31;1m[725.042ms] [33m[rows:0][35m CREATE TABLE `biz_deploy_template_step` (`id` bigint unsigned AUTO_INCREMENT,`template_id` bigint unsigned NOT NULL,`step_code` varchar(64) NOT NULL,`step_name` varchar(128) NOT NULL,`step_type` varchar(32) NOT NULL,`action` varchar(32) DEFAULT 'install',`package_id` bigint unsigned,`package_name` varchar(128),`package_version` varchar(64),`template_code` varchar(64),`template_params` JSON,`step_config` JSON,`continue_on_host_failure` boolean DEFAULT false,`sort` bigint DEFAULT 1,`created_at` datetime(3) NULL,`updated_at` datetime(3) NULL,PRIMARY KEY (`id`),INDEX `idx_biz_deploy_template_step_template_id` (`template_id`),INDEX `idx_biz_deploy_template_step_step_type` (`step_type`),INDEX `idx_biz_deploy_template_step_action` (`action`),INDEX `idx_biz_deploy_template_step_package_id` (`package_id`),INDEX `idx_biz_deploy_template_step_template_code` (`template_code`),INDEX `idx_biz_deploy_template_step_sort` (`sort`))[0m
+
+2026/11/10 14:57:56 [32mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/deploy_service.go:197 [33mSLOW SQL >= 200ms
+[0m[31;1m[301.784ms] [33m[rows:0][35m CREATE TABLE `biz_deploy_task` (`id` bigint unsigned AUTO_INCREMENT,`name` varchar(128) NOT NULL,`template_id` bigint unsigned,`template_name` varchar(128),`template_version` varchar(64),`package_id` bigint unsigned NOT NULL,`package_name` varchar(128),`package_version` varchar(64),`business_scope_id` bigint unsigned,`business_scope_name` varchar(128),`service_id` bigint unsigned,`service_instance_id` bigint unsigned,`service_name` varchar(255),`service_instance_name` varchar(255),`action` varchar(32) DEFAULT 'install',`target_type` varchar(32) NOT NULL,`target_ids` JSON,`executor_type` varchar(32) DEFAULT 'manual',`execution_mode` varchar(32) DEFAULT 'fixed',`template_params` JSON,`execution_snapshot` JSON,`target_snapshot` JSON,`start_request_key` varchar(128),`credential_ref_id` bigint unsigned,`credential_ref_version` bigint unsigned,`ssh_host_fingerprint` varchar(255),`execution_timeout_seconds` bigint DEFAULT 1800,`status` varchar(32) DEFAULT 'draft',`remark` varchar(512),`external_task_id` varchar(128),`rollback_enabled` boolean DEFAULT false,`rollback_task_id` bigint unsigned,`source_task_id` bigint unsigned,`rollback_strategy` varchar(32),`rollback_snapshot` JSON,`started_at` datetime(3) NULL,`finished_at` datetime(3) NULL,`created_at` datetime(3) NULL,`updated_at` datetime(3) NULL,`created_by` varchar(64),`updated_by` varchar(64),`deleted_at` datetime(3) NULL,PRIMARY KEY (`id`),INDEX `idx_biz_deploy_task_template_id` (`template_id`),INDEX `idx_biz_deploy_task_package_id` (`package_id`),INDEX `idx_biz_deploy_task_business_scope_id` (`business_scope_id`),INDEX `idx_biz_deploy_task_service_id` (`service_id`),INDEX `idx_biz_deploy_task_service_instance_id` (`service_instance_id`),INDEX `idx_biz_deploy_task_action` (`action`),INDEX `idx_biz_deploy_task_target_type` (`target_type`),INDEX `idx_biz_deploy_task_executor_type` (`executor_type`),INDEX `idx_biz_deploy_task_execution_mode` (`execution_mode`),INDEX `idx_biz_deploy_task_credential_ref_id` (`credential_ref_id`),INDEX `idx_biz_deploy_task_status` (`status`),INDEX `idx_biz_deploy_task_rollback_task_id` (`rollback_task_id`),INDEX `idx_biz_deploy_task_source_task_id` (`source_task_id`),INDEX `idx_biz_deploy_task_deleted_at` (`deleted_at`))[0m
+
+2026/11/10 14:57:56 [32mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/deploy_service.go:197 [33mSLOW SQL >= 200ms
+[0m[31;1m[211.778ms] [33m[rows:0][35m CREATE TABLE `biz_deploy_credential_ref` (`id` bigint unsigned AUTO_INCREMENT,`name` varchar(128) NOT NULL,`username` varchar(128) NOT NULL,`auth_mode` varchar(32) NOT NULL,`secret_encrypted` text NOT NULL,`version` bigint unsigned NOT NULL DEFAULT 1,`status` varchar(32) NOT NULL DEFAULT 'active',`created_at` datetime(3) NULL,`updated_at` datetime(3) NULL,`deleted_at` datetime(3) NULL,PRIMARY KEY (`id`),UNIQUE INDEX `uk_deploy_credential_name_deleted` (`name`,`deleted_at`))[0m
+--- PASS: TestPreviewRejectsActorRequestAndPersistedDrift (14.70s)
+    --- PASS: TestPreviewRejectsActorRequestAndPersistedDrift/actor (1.89s)
+    --- PASS: TestPreviewRejectsActorRequestAndPersistedDrift/request (1.89s)
+    --- PASS: TestPreviewRejectsActorRequestAndPersistedDrift/task (1.99s)
+    --- PASS: TestPreviewRejectsActorRequestAndPersistedDrift/host (1.90s)
+    --- PASS: TestPreviewRejectsActorRequestAndPersistedDrift/secret (1.91s)
+    --- PASS: TestPreviewRejectsActorRequestAndPersistedDrift/scope (1.84s)
+    --- PASS: TestPreviewRejectsActorRequestAndPersistedDrift/permission (3.28s)
+=== RUN   TestSelectedCreateRejectsStaleResolution
+
+2026/11/10 14:57:59 [32mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/deploy_service.go:197 [33mSLOW SQL >= 200ms
+[0m[31;1m[201.050ms] [33m[rows:0][35m CREATE TABLE `biz_deploy_task_attempt` (`id` bigint unsigned AUTO_INCREMENT,`task_id` bigint unsigned NOT NULL,`task_host_id` bigint unsigned NOT NULL,`attempt_no` bigint NOT NULL,`status` varchar(32) NOT NULL,`worker_id` varchar(128),`lease_expires_at` datetime(3) NULL,`started_at` datetime(3) NULL,`finished_at` datetime(3) NULL,`error_message` varchar(512),`created_at` datetime(3) NULL,`updated_at` datetime(3) NULL,PRIMARY KEY (`id`),INDEX `idx_biz_deploy_task_attempt_task_id` (`task_id`),INDEX `idx_biz_deploy_task_attempt_task_host_id` (`task_host_id`),INDEX `idx_biz_deploy_task_attempt_status` (`status`),INDEX `idx_biz_deploy_task_attempt_lease_expires_at` (`lease_expires_at`))[0m
+--- PASS: TestSelectedCreateRejectsStaleResolution (2.48s)
+=== RUN   TestPreviewSecretMaterialIsNeverReturned
+--- PASS: TestPreviewSecretMaterialIsNeverReturned (2.40s)
+=== RUN   TestSelectedUpdateKeepsNewProvenanceAndInvalidatesPreview
+
+2026/11/10 14:58:04 [32mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/deploy_service.go:197 [33mSLOW SQL >= 200ms
+[0m[31;1m[491.893ms] [33m[rows:0][35m CREATE TABLE `biz_deploy_task` (`id` bigint unsigned AUTO_INCREMENT,`name` varchar(128) NOT NULL,`template_id` bigint unsigned,`template_name` varchar(128),`template_version` varchar(64),`package_id` bigint unsigned NOT NULL,`package_name` varchar(128),`package_version` varchar(64),`business_scope_id` bigint unsigned,`business_scope_name` varchar(128),`service_id` bigint unsigned,`service_instance_id` bigint unsigned,`service_name` varchar(255),`service_instance_name` varchar(255),`action` varchar(32) DEFAULT 'install',`target_type` varchar(32) NOT NULL,`target_ids` JSON,`executor_type` varchar(32) DEFAULT 'manual',`execution_mode` varchar(32) DEFAULT 'fixed',`template_params` JSON,`execution_snapshot` JSON,`target_snapshot` JSON,`start_request_key` varchar(128),`credential_ref_id` bigint unsigned,`credential_ref_version` bigint unsigned,`ssh_host_fingerprint` varchar(255),`execution_timeout_seconds` bigint DEFAULT 1800,`status` varchar(32) DEFAULT 'draft',`remark` varchar(512),`external_task_id` varchar(128),`rollback_enabled` boolean DEFAULT false,`rollback_task_id` bigint unsigned,`source_task_id` bigint unsigned,`rollback_strategy` varchar(32),`rollback_snapshot` JSON,`started_at` datetime(3) NULL,`finished_at` datetime(3) NULL,`created_at` datetime(3) NULL,`updated_at` datetime(3) NULL,`created_by` varchar(64),`updated_by` varchar(64),`deleted_at` datetime(3) NULL,PRIMARY KEY (`id`),INDEX `idx_biz_deploy_task_template_id` (`template_id`),INDEX `idx_biz_deploy_task_package_id` (`package_id`),INDEX `idx_biz_deploy_task_business_scope_id` (`business_scope_id`),INDEX `idx_biz_deploy_task_service_id` (`service_id`),INDEX `idx_biz_deploy_task_service_instance_id` (`service_instance_id`),INDEX `idx_biz_deploy_task_action` (`action`),INDEX `idx_biz_deploy_task_target_type` (`target_type`),INDEX `idx_biz_deploy_task_executor_type` (`executor_type`),INDEX `idx_biz_deploy_task_execution_mode` (`execution_mode`),INDEX `idx_biz_deploy_task_credential_ref_id` (`credential_ref_id`),INDEX `idx_biz_deploy_task_status` (`status`),INDEX `idx_biz_deploy_task_rollback_task_id` (`rollback_task_id`),INDEX `idx_biz_deploy_task_source_task_id` (`source_task_id`),INDEX `idx_biz_deploy_task_deleted_at` (`deleted_at`))[0m
+--- PASS: TestSelectedUpdateKeepsNewProvenanceAndInvalidatesPreview (2.48s)
+=== RUN   TestPreviewCredentialVersionChangesInvalidate
+--- PASS: TestPreviewCredentialVersionChangesInvalidate (2.26s)
+=== RUN   TestPreviewSigningConfigurationAndRotation
+--- PASS: TestPreviewSigningConfigurationAndRotation (0.00s)
+=== RUN   TestPreviewCorruptSnapshotCannotDowngradeEnforcement
+--- PASS: TestPreviewCorruptSnapshotCannotDowngradeEnforcement (2.49s)
+=== RUN   TestSelectedUpdateCannotMoveInvisibleTaskIntoVisibleScope
+--- PASS: TestSelectedUpdateCannotMoveInvisibleTaskIntoVisibleScope (2.13s)
+=== RUN   TestCanceledSelectionRequestsDoNotMutate
+--- PASS: TestCanceledSelectionRequestsDoNotMutate (1.92s)
+=== RUN   TestPreviewFrozenPlanIgnoresLiveDefinitionsAndRejectsSnapshotDrift
+
+2026/11/10 14:58:16 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/deploy_service.go:1956 [35;1mrecord not found
+[0m[33m[1.060ms] [34;1m[rows:0][0m SELECT * FROM `biz_deploy_task_step` WHERE task_id = 2 AND task_host_id = 2 AND step_key = 'default' ORDER BY `biz_deploy_task_step`.`id` LIMIT 1
+--- PASS: TestPreviewFrozenPlanIgnoresLiveDefinitionsAndRejectsSnapshotDrift (2.05s)
+=== RUN   TestPreviewPlanRedactionAndBudgets
+--- PASS: TestPreviewPlanRedactionAndBudgets (0.02s)
+=== RUN   TestPreviewUnreadableSecretHidesAllNewValues
+--- PASS: TestPreviewUnreadableSecretHidesAllNewValues (1.90s)
+=== RUN   TestPreviewLegacyDuplicateSecretHidesNewValues
+--- PASS: TestPreviewLegacyDuplicateSecretHidesNewValues (2.03s)
+=== RUN   TestFrozenRollbackPreservesDefinitionAndOwnReview
+
+2026/11/10 14:58:22 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/deploy_service.go:1956 [35;1mrecord not found
+[0m[33m[0.521ms] [34;1m[rows:0][0m SELECT * FROM `biz_deploy_task_step` WHERE task_id = 2 AND task_host_id = 2 AND step_key = 'default' ORDER BY `biz_deploy_task_step`.`id` LIMIT 1
+--- PASS: TestFrozenRollbackPreservesDefinitionAndOwnReview (2.17s)
+=== RUN   TestFrozenRollbackRejectsScopeAndCancellationWithoutRows
+--- PASS: TestFrozenRollbackRejectsScopeAndCancellationWithoutRows (2.00s)
+=== RUN   TestFrozenRollbackRejectsUnsupportedAndUnreadablePlans
+=== RUN   TestFrozenRollbackRejectsUnsupportedAndUnreadablePlans/malformed
+=== RUN   TestFrozenRollbackRejectsUnsupportedAndUnreadablePlans/multiple
+=== RUN   TestFrozenRollbackRejectsUnsupportedAndUnreadablePlans/script
+=== RUN   TestFrozenRollbackRejectsUnsupportedAndUnreadablePlans/conditional
+=== RUN   TestFrozenRollbackRejectsUnsupportedAndUnreadablePlans/no-inverse
+
+2026/11/10 14:58:34 [32mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/deploy_service.go:197 [33mSLOW SQL >= 200ms
+[0m[31;1m[206.655ms] [33m[rows:0][35m CREATE TABLE `biz_deploy_package` (`id` bigint unsigned AUTO_INCREMENT,`name` varchar(128) NOT NULL,`version` varchar(64) NOT NULL,`description` varchar(512),`install_command` text,`uninstall_command` text,`execution_mode` varchar(32) DEFAULT 'fixed',`template_code` varchar(64),`template_config` JSON,`source_object_key` varchar(255),`source_file_name` varchar(255),`source_url` varchar(512),`status` varchar(32) DEFAULT 'enabled',`created_at` datetime(3) NULL,`updated_at` datetime(3) NULL,`created_by` varchar(64),`updated_by` varchar(64),`deleted_at` datetime(3) NULL,PRIMARY KEY (`id`),UNIQUE INDEX `uk_deploy_package_name_version_deleted` (`name`,`version`,`deleted_at`),INDEX `idx_biz_deploy_package_execution_mode` (`execution_mode`),INDEX `idx_biz_deploy_package_template_code` (`template_code`),INDEX `idx_biz_deploy_package_status` (`status`))[0m
+=== RUN   TestFrozenRollbackRejectsUnsupportedAndUnreadablePlans/unreadable-secret
+--- PASS: TestFrozenRollbackRejectsUnsupportedAndUnreadablePlans (13.55s)
+    --- PASS: TestFrozenRollbackRejectsUnsupportedAndUnreadablePlans/malformed (1.86s)
+    --- PASS: TestFrozenRollbackRejectsUnsupportedAndUnreadablePlans/multiple (2.02s)
+    --- PASS: TestFrozenRollbackRejectsUnsupportedAndUnreadablePlans/script (2.75s)
+    --- PASS: TestFrozenRollbackRejectsUnsupportedAndUnreadablePlans/conditional (2.15s)
+    --- PASS: TestFrozenRollbackRejectsUnsupportedAndUnreadablePlans/no-inverse (2.44s)
+    --- PASS: TestFrozenRollbackRejectsUnsupportedAndUnreadablePlans/unreadable-secret (2.32s)
+=== RUN   TestFrozenRollbackHandlersPreserveDataScope
+--- PASS: TestFrozenRollbackHandlersPreserveDataScope (1.99s)
+=== RUN   TestExecutionWorkbenchMetadataAndLogPagination
+--- PASS: TestExecutionWorkbenchMetadataAndLogPagination (1.21s)
+=== RUN   TestManualTaskCancellationFinishesWithoutWorker
+=== RUN   TestManualTaskCancellationFinishesWithoutWorker/running
+=== RUN   TestManualTaskCancellationFinishesWithoutWorker/cancel_requested
+--- PASS: TestManualTaskCancellationFinishesWithoutWorker (2.64s)
+    --- PASS: TestManualTaskCancellationFinishesWithoutWorker/running (1.29s)
+    --- PASS: TestManualTaskCancellationFinishesWithoutWorker/cancel_requested (1.34s)
+=== RUN   TestWorkbenchLogSourceIsolationAndFirstError
+=== RUN   TestWorkbenchLogSourceIsolationAndFirstError/host-attempt
+=== RUN   TestWorkbenchLogSourceIsolationAndFirstError/first-error-outside-tail
+=== RUN   TestWorkbenchLogSourceIsolationAndFirstError/sparse-cursor
+=== RUN   TestWorkbenchLogSourceIsolationAndFirstError/foreign-step
+=== RUN   TestWorkbenchLogSourceIsolationAndFirstError/mismatched-host-step
+=== RUN   TestWorkbenchLogSourceIsolationAndFirstError/invalid-hostId=0
+=== RUN   TestWorkbenchLogSourceIsolationAndFirstError/invalid-stepId=-1
+=== RUN   TestWorkbenchLogSourceIsolationAndFirstError/invalid-attemptNo=0
+=== RUN   TestWorkbenchLogSourceIsolationAndFirstError/invalid-attemptNo=2147483648
+=== RUN   TestWorkbenchLogSourceIsolationAndFirstError/invalid-firstError=true
+=== RUN   TestWorkbenchLogSourceIsolationAndFirstError/invalid-after=bad
+=== RUN   TestWorkbenchLogSourceIsolationAndFirstError/invalid-hostId=1&hostId=2
+=== RUN   TestWorkbenchLogSourceIsolationAndFirstError/invalid-firstError=1&after=2
+=== RUN   TestWorkbenchLogSourceIsolationAndFirstError/visibility-before-validation
+=== RUN   TestWorkbenchLogSourceIsolationAndFirstError/request-cancellation
+
+2026/11/10 14:58:45 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/deploy_service.go:2561 [35;1mcontext canceled
+[0m[33m[0.000ms] [34;1m[rows:0][0m SELECT * FROM `biz_deploy_task` WHERE `biz_deploy_task`.`id` = 1 AND `biz_deploy_task`.`deleted_at` IS NULL ORDER BY `biz_deploy_task`.`id` LIMIT 1
+--- PASS: TestWorkbenchLogSourceIsolationAndFirstError (1.33s)
+    --- PASS: TestWorkbenchLogSourceIsolationAndFirstError/host-attempt (0.01s)
+    --- PASS: TestWorkbenchLogSourceIsolationAndFirstError/first-error-outside-tail (0.00s)
+    --- PASS: TestWorkbenchLogSourceIsolationAndFirstError/sparse-cursor (0.00s)
+    --- PASS: TestWorkbenchLogSourceIsolationAndFirstError/foreign-step (0.00s)
+    --- PASS: TestWorkbenchLogSourceIsolationAndFirstError/mismatched-host-step (0.00s)
+    --- PASS: TestWorkbenchLogSourceIsolationAndFirstError/invalid-hostId=0 (0.00s)
+    --- PASS: TestWorkbenchLogSourceIsolationAndFirstError/invalid-stepId=-1 (0.00s)
+    --- PASS: TestWorkbenchLogSourceIsolationAndFirstError/invalid-attemptNo=0 (0.00s)
+    --- PASS: TestWorkbenchLogSourceIsolationAndFirstError/invalid-attemptNo=2147483648 (0.00s)
+    --- PASS: TestWorkbenchLogSourceIsolationAndFirstError/invalid-firstError=true (0.00s)
+    --- PASS: TestWorkbenchLogSourceIsolationAndFirstError/invalid-after=bad (0.00s)
+    --- PASS: TestWorkbenchLogSourceIsolationAndFirstError/invalid-hostId=1&hostId=2 (0.00s)
+    --- PASS: TestWorkbenchLogSourceIsolationAndFirstError/invalid-firstError=1&after=2 (0.00s)
+    --- PASS: TestWorkbenchLogSourceIsolationAndFirstError/visibility-before-validation (0.01s)
+    --- PASS: TestWorkbenchLogSourceIsolationAndFirstError/request-cancellation (0.00s)
+=== RUN   TestWorkbenchLogAttemptSurvivesCheckpointRetry
+--- PASS: TestWorkbenchLogAttemptSurvivesCheckpointRetry (1.29s)
+PASS
+ok  	github.com/duanxldragon/pantheon-base/backend/modules/business/deploy	286.114s
+?   	github.com/duanxldragon/pantheon-base/backend/modules/business/deploy/executor	[no test files]
+?   	github.com/duanxldragon/pantheon-base/backend/modules/business/deploy/orchestrator	[no test files]

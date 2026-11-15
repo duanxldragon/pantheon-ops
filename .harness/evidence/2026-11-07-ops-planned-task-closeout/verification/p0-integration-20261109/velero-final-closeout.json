@@ -1,0 +1,312 @@
+{
+  "taskId": "2026-11-07-ops-planned-task-closeout",
+  "phase": "velero-final",
+  "parentTask": "docs/harness/tasks/2026-11-07-ops-planned-task-closeout.task.md",
+  "tier": "L2",
+  "layer": "business/k8s",
+  "landingSide": "pantheon-ops business-owned code only; Base owns identity/session/action contracts",
+  "resolvedFindings": [
+    "HIGH delayed second Backup GET: fresh cluster/reference/source/attempt/target checks; cluster -> reference -> source -> attempt -> sorted binding row locks held through one 30s-bounded CREATE; revocations yield CREATE0.",
+    "MEDIUM contaminated denials: fresh MySQL database per case, valid source/reference and actual native/dynamic cached clients; exact department/source error asserted. Foreign source uses two existing authorized valid clusters.",
+    "ARCH dual representation: explicit reference is authoritative; revoked/missing/empty/foreign reference fails closed despite inline material. Only reference ID zero uses inline; both native and dynamic credential queries use caller context.",
+    "ARCH restore targets: actual effective mapped/unmapped namespaces require NamespaceBinding matching cluster business scope/environment and RequireWriteWithContext backup:restore. Empty/wildcard namespace sets denied; includeClusterResources=false; RestorePVs=true rejected. No fabricated cluster-admin actor.",
+    "ARCH uncertain submission: Backup/Restore lost response becomes Unknown; explicit provider refusal remains Failed. New/Unknown/InProgress are observed under stable name plus record-id annotation; true accepted-response-timeout and new-reconciler correction tested with CREATE1, never resend.",
+    "Additional safety: live source expiration rechecked after cluster lock wait. Namespace-only false PV intent persisted explicitly despite legacy GORM default:true, using model field and existing DDL."
+  ],
+  "residualFindings": [
+    "Base live actor/session/current-action authorization is not integrated into Velero workers. Copied DataScope is a request snapshot; current role/user/session/BizScope revocation is not proven. Composition root/public Base port required; no business -> system dependency was added.",
+    "Process death after committing New but before dispatch leaves an observable pending record. Reconciler does GET only and never replays CREATE. No durable replay/job engine was introduced. Historical Failed records and legacy unannotated identities are not backfilled or automatically reclassified.",
+    "No established cluster-admin restore authorization exists here. Cluster resources/PV restore is refused; only explicitly bound namespace restore is supported in this repair. Active BizScope re-resolution requires the live authority port; binding model has no active flag.",
+    "No remote Velero/S3/SA/HTTP/audit/cleanup phase executed. Root-owned artifact-fetch/install prerequisites remain external to this repair. Prepared live driver is a direct-service acceptance tool and cannot establish Base session/action/audit/HTTP gates.",
+    "Independent review of final hashes, full-repository CGO=1 MinGW race, business overlay/rebuild and all D1/P0 release gates remain root-owned and open. Unknown state consumer/runtime acceptance also remains open."
+  ],
+  "verification": {
+    "green-closure": {
+      "phase": "green-closure",
+      "commands": [
+        {
+          "command": [
+            "go",
+            "test",
+            "-mod=readonly",
+            "-race",
+            "-count=1",
+            "-timeout=180s",
+            "-v",
+            "./modules/business/k8s/backup",
+            "./modules/business/k8s/cluster"
+          ],
+          "exitCode": 0,
+          "elapsedSeconds": 35.531,
+          "artifact": "velero-final-green-closure-0.txt",
+          "requiredMySQL": true,
+          "CGO_ENABLED": "1",
+          "MinGW": "D:/msys64/mingw64/bin",
+          "skipFound": false
+        },
+        {
+          "command": [
+            "go",
+            "vet",
+            "-mod=readonly",
+            "./modules/business/k8s/backup",
+            "./modules/business/k8s/cluster"
+          ],
+          "exitCode": 0,
+          "elapsedSeconds": 3.359,
+          "artifact": "velero-final-green-closure-1.txt",
+          "requiredMySQL": true,
+          "CGO_ENABLED": "1",
+          "MinGW": "D:/msys64/mingw64/bin",
+          "skipFound": false
+        },
+        {
+          "command": [
+            "go",
+            "build",
+            "-mod=readonly",
+            "./modules/business/k8s/backup",
+            "./modules/business/k8s/cluster"
+          ],
+          "exitCode": 0,
+          "elapsedSeconds": 1.547,
+          "artifact": "velero-final-green-closure-2.txt",
+          "requiredMySQL": true,
+          "CGO_ENABLED": "1",
+          "MinGW": "D:/msys64/mingw64/bin",
+          "skipFound": false
+        }
+      ],
+      "sourceHashesBefore": {
+        ".local/ops-acceptance/velero-final-live-driver.go": "fbfb911f3192a04cb842adaf40036ef8d709fbd643f72b6f3aadb5db9327a250",
+        "backend/modules/business/k8s/backup/backup.go": "bb6162665a7b710351ed6df4f2c204ad3914088aa7119d7cbbaa4a3170b61c8f",
+        "backend/modules/business/k8s/backup/backup_dto.go": "b6d0430c93bb33dada0f1155b2bb3ff17cf403fc619ab687ba141e64616aa7e4",
+        "backend/modules/business/k8s/backup/backup_handler.go": "320bf427300d6cb88038adfbf581600c8c82cd2f760bdfa755dfca4711d99e96",
+        "backend/modules/business/k8s/backup/backup_model.go": "0119686da49fa62c3106ca6a90206592122153eaf5f858ae884a824590c3ea51",
+        "backend/modules/business/k8s/backup/backup_service.go": "1e80d782e8bb7156a9b14f96810533f9e3be2e154fc24798066d6ef17194c604",
+        "backend/modules/business/k8s/backup/drill.go": "0de6e13dc1a2a4f0ea0acb3cd2478d636d2de8ff9a5b07024ba4e18abcddc702",
+        "backend/modules/business/k8s/backup/reconciler.go": "9d0b61f817267058f52a7b53d52c66d157598fcc51abfedfe986ce174aa5b3a7",
+        "backend/modules/business/k8s/backup/restore_authorization_test.go": "9ec9e243cf6d57e12f51023f164d0855eb1cfd022d75649ed0bdfb94fc78deb7",
+        "backend/modules/business/k8s/backup/restore_final_boundary_test.go": "2bf419325e543031afa5dbf1b3a968265ea544e2f0e4f90f94b0c5e80b67f293",
+        "backend/modules/business/k8s/backup/submission.go": "0bfb92cbfae5530a5dcc7330b48a9d0b375a91e84691c4340885c80ffad8f1d9",
+        "backend/modules/business/k8s/backup/velero_client.go": "dc7310ef0801e16b761b6612c9ee494aa3db91fdeb5a3af2a3f13a4b05ea189e",
+        "backend/modules/business/k8s/backup/velero_client_test.go": "0272dd81e1e6dee02185d8fbba9119c8767f796edc7073cfecf31d86fcc0a3d9",
+        "backend/modules/business/k8s/cluster/cluster_service.go": "a7afe5394f13525d15f62501cc61fd0355c0a90166bf347c9dbee4babcc6f64b",
+        "backend/modules/business/k8s/cluster/credential_revocation_test.go": "9356afee25dd1c41ba5fbd25eead7bf3332a53b00447952455caa40f30874420"
+      },
+      "sourceHashesAfter": {
+        ".local/ops-acceptance/velero-final-live-driver.go": "fbfb911f3192a04cb842adaf40036ef8d709fbd643f72b6f3aadb5db9327a250",
+        "backend/modules/business/k8s/backup/backup.go": "bb6162665a7b710351ed6df4f2c204ad3914088aa7119d7cbbaa4a3170b61c8f",
+        "backend/modules/business/k8s/backup/backup_dto.go": "b6d0430c93bb33dada0f1155b2bb3ff17cf403fc619ab687ba141e64616aa7e4",
+        "backend/modules/business/k8s/backup/backup_handler.go": "320bf427300d6cb88038adfbf581600c8c82cd2f760bdfa755dfca4711d99e96",
+        "backend/modules/business/k8s/backup/backup_model.go": "0119686da49fa62c3106ca6a90206592122153eaf5f858ae884a824590c3ea51",
+        "backend/modules/business/k8s/backup/backup_service.go": "1e80d782e8bb7156a9b14f96810533f9e3be2e154fc24798066d6ef17194c604",
+        "backend/modules/business/k8s/backup/drill.go": "0de6e13dc1a2a4f0ea0acb3cd2478d636d2de8ff9a5b07024ba4e18abcddc702",
+        "backend/modules/business/k8s/backup/reconciler.go": "9d0b61f817267058f52a7b53d52c66d157598fcc51abfedfe986ce174aa5b3a7",
+        "backend/modules/business/k8s/backup/restore_authorization_test.go": "9ec9e243cf6d57e12f51023f164d0855eb1cfd022d75649ed0bdfb94fc78deb7",
+        "backend/modules/business/k8s/backup/restore_final_boundary_test.go": "2bf419325e543031afa5dbf1b3a968265ea544e2f0e4f90f94b0c5e80b67f293",
+        "backend/modules/business/k8s/backup/submission.go": "0bfb92cbfae5530a5dcc7330b48a9d0b375a91e84691c4340885c80ffad8f1d9",
+        "backend/modules/business/k8s/backup/velero_client.go": "dc7310ef0801e16b761b6612c9ee494aa3db91fdeb5a3af2a3f13a4b05ea189e",
+        "backend/modules/business/k8s/backup/velero_client_test.go": "0272dd81e1e6dee02185d8fbba9119c8767f796edc7073cfecf31d86fcc0a3d9",
+        "backend/modules/business/k8s/cluster/cluster_service.go": "a7afe5394f13525d15f62501cc61fd0355c0a90166bf347c9dbee4babcc6f64b",
+        "backend/modules/business/k8s/cluster/credential_revocation_test.go": "9356afee25dd1c41ba5fbd25eead7bf3332a53b00447952455caa40f30874420"
+      },
+      "sourceHashesStable": true
+    },
+    "diagnostics-closure": {
+      "phase": "diagnostics-closure",
+      "commands": [
+        {
+          "command": [
+            "gopls",
+            "check",
+            "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\backend\\modules\\business\\k8s\\backup\\backup.go",
+            "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\backend\\modules\\business\\k8s\\backup\\backup_dto.go",
+            "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\backend\\modules\\business\\k8s\\backup\\backup_handler.go",
+            "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\backend\\modules\\business\\k8s\\backup\\backup_model.go",
+            "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\backend\\modules\\business\\k8s\\backup\\backup_service.go",
+            "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\backend\\modules\\business\\k8s\\backup\\drill.go",
+            "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\backend\\modules\\business\\k8s\\backup\\reconciler.go",
+            "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\backend\\modules\\business\\k8s\\backup\\restore_authorization_test.go",
+            "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\backend\\modules\\business\\k8s\\backup\\restore_final_boundary_test.go",
+            "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\backend\\modules\\business\\k8s\\backup\\submission.go",
+            "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\backend\\modules\\business\\k8s\\backup\\velero_client.go",
+            "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\backend\\modules\\business\\k8s\\backup\\velero_client_test.go",
+            "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\backend\\modules\\business\\k8s\\cluster\\cluster_service.go",
+            "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\backend\\modules\\business\\k8s\\cluster\\credential_revocation_test.go"
+          ],
+          "exitCode": 0,
+          "elapsedSeconds": 10.625,
+          "artifact": "velero-final-diagnostics-closure-0.txt",
+          "requiredMySQL": true,
+          "CGO_ENABLED": "1",
+          "MinGW": "D:/msys64/mingw64/bin",
+          "skipFound": false
+        }
+      ],
+      "sourceHashesBefore": {
+        ".local/ops-acceptance/velero-final-live-driver.go": "fbfb911f3192a04cb842adaf40036ef8d709fbd643f72b6f3aadb5db9327a250",
+        "backend/modules/business/k8s/backup/backup.go": "bb6162665a7b710351ed6df4f2c204ad3914088aa7119d7cbbaa4a3170b61c8f",
+        "backend/modules/business/k8s/backup/backup_dto.go": "b6d0430c93bb33dada0f1155b2bb3ff17cf403fc619ab687ba141e64616aa7e4",
+        "backend/modules/business/k8s/backup/backup_handler.go": "320bf427300d6cb88038adfbf581600c8c82cd2f760bdfa755dfca4711d99e96",
+        "backend/modules/business/k8s/backup/backup_model.go": "0119686da49fa62c3106ca6a90206592122153eaf5f858ae884a824590c3ea51",
+        "backend/modules/business/k8s/backup/backup_service.go": "1e80d782e8bb7156a9b14f96810533f9e3be2e154fc24798066d6ef17194c604",
+        "backend/modules/business/k8s/backup/drill.go": "0de6e13dc1a2a4f0ea0acb3cd2478d636d2de8ff9a5b07024ba4e18abcddc702",
+        "backend/modules/business/k8s/backup/reconciler.go": "9d0b61f817267058f52a7b53d52c66d157598fcc51abfedfe986ce174aa5b3a7",
+        "backend/modules/business/k8s/backup/restore_authorization_test.go": "9ec9e243cf6d57e12f51023f164d0855eb1cfd022d75649ed0bdfb94fc78deb7",
+        "backend/modules/business/k8s/backup/restore_final_boundary_test.go": "2bf419325e543031afa5dbf1b3a968265ea544e2f0e4f90f94b0c5e80b67f293",
+        "backend/modules/business/k8s/backup/submission.go": "0bfb92cbfae5530a5dcc7330b48a9d0b375a91e84691c4340885c80ffad8f1d9",
+        "backend/modules/business/k8s/backup/velero_client.go": "dc7310ef0801e16b761b6612c9ee494aa3db91fdeb5a3af2a3f13a4b05ea189e",
+        "backend/modules/business/k8s/backup/velero_client_test.go": "0272dd81e1e6dee02185d8fbba9119c8767f796edc7073cfecf31d86fcc0a3d9",
+        "backend/modules/business/k8s/cluster/cluster_service.go": "a7afe5394f13525d15f62501cc61fd0355c0a90166bf347c9dbee4babcc6f64b",
+        "backend/modules/business/k8s/cluster/credential_revocation_test.go": "9356afee25dd1c41ba5fbd25eead7bf3332a53b00447952455caa40f30874420"
+      },
+      "sourceHashesAfter": {
+        ".local/ops-acceptance/velero-final-live-driver.go": "fbfb911f3192a04cb842adaf40036ef8d709fbd643f72b6f3aadb5db9327a250",
+        "backend/modules/business/k8s/backup/backup.go": "bb6162665a7b710351ed6df4f2c204ad3914088aa7119d7cbbaa4a3170b61c8f",
+        "backend/modules/business/k8s/backup/backup_dto.go": "b6d0430c93bb33dada0f1155b2bb3ff17cf403fc619ab687ba141e64616aa7e4",
+        "backend/modules/business/k8s/backup/backup_handler.go": "320bf427300d6cb88038adfbf581600c8c82cd2f760bdfa755dfca4711d99e96",
+        "backend/modules/business/k8s/backup/backup_model.go": "0119686da49fa62c3106ca6a90206592122153eaf5f858ae884a824590c3ea51",
+        "backend/modules/business/k8s/backup/backup_service.go": "1e80d782e8bb7156a9b14f96810533f9e3be2e154fc24798066d6ef17194c604",
+        "backend/modules/business/k8s/backup/drill.go": "0de6e13dc1a2a4f0ea0acb3cd2478d636d2de8ff9a5b07024ba4e18abcddc702",
+        "backend/modules/business/k8s/backup/reconciler.go": "9d0b61f817267058f52a7b53d52c66d157598fcc51abfedfe986ce174aa5b3a7",
+        "backend/modules/business/k8s/backup/restore_authorization_test.go": "9ec9e243cf6d57e12f51023f164d0855eb1cfd022d75649ed0bdfb94fc78deb7",
+        "backend/modules/business/k8s/backup/restore_final_boundary_test.go": "2bf419325e543031afa5dbf1b3a968265ea544e2f0e4f90f94b0c5e80b67f293",
+        "backend/modules/business/k8s/backup/submission.go": "0bfb92cbfae5530a5dcc7330b48a9d0b375a91e84691c4340885c80ffad8f1d9",
+        "backend/modules/business/k8s/backup/velero_client.go": "dc7310ef0801e16b761b6612c9ee494aa3db91fdeb5a3af2a3f13a4b05ea189e",
+        "backend/modules/business/k8s/backup/velero_client_test.go": "0272dd81e1e6dee02185d8fbba9119c8767f796edc7073cfecf31d86fcc0a3d9",
+        "backend/modules/business/k8s/cluster/cluster_service.go": "a7afe5394f13525d15f62501cc61fd0355c0a90166bf347c9dbee4babcc6f64b",
+        "backend/modules/business/k8s/cluster/credential_revocation_test.go": "9356afee25dd1c41ba5fbd25eead7bf3332a53b00447952455caa40f30874420"
+      },
+      "sourceHashesStable": true
+    },
+    "driver-closure": {
+      "phase": "driver-closure",
+      "commands": [
+        {
+          "command": [
+            "go",
+            "build",
+            "-mod=readonly",
+            "-race",
+            "-o",
+            "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\velero-final-live-driver.exe",
+            "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\velero-final-live-driver.go"
+          ],
+          "exitCode": 0,
+          "elapsedSeconds": 11.656,
+          "artifact": "velero-final-driver-closure-0.txt",
+          "requiredMySQL": true,
+          "CGO_ENABLED": "1",
+          "MinGW": "D:/msys64/mingw64/bin",
+          "skipFound": false
+        },
+        {
+          "command": [
+            "go",
+            "vet",
+            "-mod=readonly",
+            "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\velero-final-live-driver.go"
+          ],
+          "exitCode": 0,
+          "elapsedSeconds": 3.5,
+          "artifact": "velero-final-driver-closure-1.txt",
+          "requiredMySQL": true,
+          "CGO_ENABLED": "1",
+          "MinGW": "D:/msys64/mingw64/bin",
+          "skipFound": false
+        }
+      ],
+      "sourceHashesBefore": {
+        ".local/ops-acceptance/velero-final-live-driver.go": "fbfb911f3192a04cb842adaf40036ef8d709fbd643f72b6f3aadb5db9327a250",
+        "backend/modules/business/k8s/backup/backup.go": "bb6162665a7b710351ed6df4f2c204ad3914088aa7119d7cbbaa4a3170b61c8f",
+        "backend/modules/business/k8s/backup/backup_dto.go": "b6d0430c93bb33dada0f1155b2bb3ff17cf403fc619ab687ba141e64616aa7e4",
+        "backend/modules/business/k8s/backup/backup_handler.go": "320bf427300d6cb88038adfbf581600c8c82cd2f760bdfa755dfca4711d99e96",
+        "backend/modules/business/k8s/backup/backup_model.go": "0119686da49fa62c3106ca6a90206592122153eaf5f858ae884a824590c3ea51",
+        "backend/modules/business/k8s/backup/backup_service.go": "1e80d782e8bb7156a9b14f96810533f9e3be2e154fc24798066d6ef17194c604",
+        "backend/modules/business/k8s/backup/drill.go": "0de6e13dc1a2a4f0ea0acb3cd2478d636d2de8ff9a5b07024ba4e18abcddc702",
+        "backend/modules/business/k8s/backup/reconciler.go": "9d0b61f817267058f52a7b53d52c66d157598fcc51abfedfe986ce174aa5b3a7",
+        "backend/modules/business/k8s/backup/restore_authorization_test.go": "9ec9e243cf6d57e12f51023f164d0855eb1cfd022d75649ed0bdfb94fc78deb7",
+        "backend/modules/business/k8s/backup/restore_final_boundary_test.go": "2bf419325e543031afa5dbf1b3a968265ea544e2f0e4f90f94b0c5e80b67f293",
+        "backend/modules/business/k8s/backup/submission.go": "0bfb92cbfae5530a5dcc7330b48a9d0b375a91e84691c4340885c80ffad8f1d9",
+        "backend/modules/business/k8s/backup/velero_client.go": "dc7310ef0801e16b761b6612c9ee494aa3db91fdeb5a3af2a3f13a4b05ea189e",
+        "backend/modules/business/k8s/backup/velero_client_test.go": "0272dd81e1e6dee02185d8fbba9119c8767f796edc7073cfecf31d86fcc0a3d9",
+        "backend/modules/business/k8s/cluster/cluster_service.go": "a7afe5394f13525d15f62501cc61fd0355c0a90166bf347c9dbee4babcc6f64b",
+        "backend/modules/business/k8s/cluster/credential_revocation_test.go": "9356afee25dd1c41ba5fbd25eead7bf3332a53b00447952455caa40f30874420"
+      },
+      "sourceHashesAfter": {
+        ".local/ops-acceptance/velero-final-live-driver.go": "fbfb911f3192a04cb842adaf40036ef8d709fbd643f72b6f3aadb5db9327a250",
+        "backend/modules/business/k8s/backup/backup.go": "bb6162665a7b710351ed6df4f2c204ad3914088aa7119d7cbbaa4a3170b61c8f",
+        "backend/modules/business/k8s/backup/backup_dto.go": "b6d0430c93bb33dada0f1155b2bb3ff17cf403fc619ab687ba141e64616aa7e4",
+        "backend/modules/business/k8s/backup/backup_handler.go": "320bf427300d6cb88038adfbf581600c8c82cd2f760bdfa755dfca4711d99e96",
+        "backend/modules/business/k8s/backup/backup_model.go": "0119686da49fa62c3106ca6a90206592122153eaf5f858ae884a824590c3ea51",
+        "backend/modules/business/k8s/backup/backup_service.go": "1e80d782e8bb7156a9b14f96810533f9e3be2e154fc24798066d6ef17194c604",
+        "backend/modules/business/k8s/backup/drill.go": "0de6e13dc1a2a4f0ea0acb3cd2478d636d2de8ff9a5b07024ba4e18abcddc702",
+        "backend/modules/business/k8s/backup/reconciler.go": "9d0b61f817267058f52a7b53d52c66d157598fcc51abfedfe986ce174aa5b3a7",
+        "backend/modules/business/k8s/backup/restore_authorization_test.go": "9ec9e243cf6d57e12f51023f164d0855eb1cfd022d75649ed0bdfb94fc78deb7",
+        "backend/modules/business/k8s/backup/restore_final_boundary_test.go": "2bf419325e543031afa5dbf1b3a968265ea544e2f0e4f90f94b0c5e80b67f293",
+        "backend/modules/business/k8s/backup/submission.go": "0bfb92cbfae5530a5dcc7330b48a9d0b375a91e84691c4340885c80ffad8f1d9",
+        "backend/modules/business/k8s/backup/velero_client.go": "dc7310ef0801e16b761b6612c9ee494aa3db91fdeb5a3af2a3f13a4b05ea189e",
+        "backend/modules/business/k8s/backup/velero_client_test.go": "0272dd81e1e6dee02185d8fbba9119c8767f796edc7073cfecf31d86fcc0a3d9",
+        "backend/modules/business/k8s/cluster/cluster_service.go": "a7afe5394f13525d15f62501cc61fd0355c0a90166bf347c9dbee4babcc6f64b",
+        "backend/modules/business/k8s/cluster/credential_revocation_test.go": "9356afee25dd1c41ba5fbd25eead7bf3332a53b00447952455caa40f30874420"
+      },
+      "sourceHashesStable": true
+    }
+  },
+  "passedTestAndSubtestLines": 78,
+  "diffCheck": {
+    "command": [
+      "git",
+      "diff",
+      "--check",
+      "--",
+      "backend/modules/business/k8s/backup",
+      "backend/modules/business/k8s/cluster/cluster_service.go"
+    ],
+    "exitCode": 0,
+    "artifact": "velero-final-diff-check.txt"
+  },
+  "sourceHashes": {
+    ".local/ops-acceptance/velero-final-live-driver.go": "fbfb911f3192a04cb842adaf40036ef8d709fbd643f72b6f3aadb5db9327a250",
+    "backend/modules/business/k8s/backup/backup.go": "bb6162665a7b710351ed6df4f2c204ad3914088aa7119d7cbbaa4a3170b61c8f",
+    "backend/modules/business/k8s/backup/backup_dto.go": "b6d0430c93bb33dada0f1155b2bb3ff17cf403fc619ab687ba141e64616aa7e4",
+    "backend/modules/business/k8s/backup/backup_handler.go": "320bf427300d6cb88038adfbf581600c8c82cd2f760bdfa755dfca4711d99e96",
+    "backend/modules/business/k8s/backup/backup_model.go": "0119686da49fa62c3106ca6a90206592122153eaf5f858ae884a824590c3ea51",
+    "backend/modules/business/k8s/backup/backup_service.go": "1e80d782e8bb7156a9b14f96810533f9e3be2e154fc24798066d6ef17194c604",
+    "backend/modules/business/k8s/backup/drill.go": "0de6e13dc1a2a4f0ea0acb3cd2478d636d2de8ff9a5b07024ba4e18abcddc702",
+    "backend/modules/business/k8s/backup/reconciler.go": "9d0b61f817267058f52a7b53d52c66d157598fcc51abfedfe986ce174aa5b3a7",
+    "backend/modules/business/k8s/backup/restore_authorization_test.go": "9ec9e243cf6d57e12f51023f164d0855eb1cfd022d75649ed0bdfb94fc78deb7",
+    "backend/modules/business/k8s/backup/restore_final_boundary_test.go": "2bf419325e543031afa5dbf1b3a968265ea544e2f0e4f90f94b0c5e80b67f293",
+    "backend/modules/business/k8s/backup/submission.go": "0bfb92cbfae5530a5dcc7330b48a9d0b375a91e84691c4340885c80ffad8f1d9",
+    "backend/modules/business/k8s/backup/velero_client.go": "dc7310ef0801e16b761b6612c9ee494aa3db91fdeb5a3af2a3f13a4b05ea189e",
+    "backend/modules/business/k8s/backup/velero_client_test.go": "0272dd81e1e6dee02185d8fbba9119c8767f796edc7073cfecf31d86fcc0a3d9",
+    "backend/modules/business/k8s/cluster/cluster_service.go": "a7afe5394f13525d15f62501cc61fd0355c0a90166bf347c9dbee4babcc6f64b",
+    "backend/modules/business/k8s/cluster/credential_revocation_test.go": "9356afee25dd1c41ba5fbd25eead7bf3332a53b00447952455caa40f30874420"
+  },
+  "driverBinarySHA256": "f6d5133584751978ee0136ec0bd90c669eb5e2e738c5d9ff53580e798b5de196",
+  "independentReviewStatus": "required_from_root_on_final_hashes",
+  "remotePhasesExecuted": [],
+  "liveAcceptancePassed": false,
+  "D1Passed": false,
+  "P0Approved": false,
+  "schemaMigrationAdded": false,
+  "publicTLSSSRFPolicyChanged": false,
+  "businessSystemDependencyAdded": false,
+  "preservedFailures": [
+    "velero-final-red-0.txt",
+    "velero-final-red-pv-record-0.txt",
+    "velero-final-green-0.txt",
+    "velero-final-green-reviewed-0.txt"
+  ],
+  "failureNotes": {
+    "velero-final-green-0.txt": "Wrong literal SQL column for PV correction; fixed with Update(\"RestorePVs\", false) using model mapping.",
+    "velero-final-green-reviewed-0.txt": "Observer waited for lock callback in binding refusal case, which correctly refused before the lock; fixed completion observation, preserving explicit lock-return wait for already-Failed attempt."
+  },
+  "graphChecks": {
+    "toolAvailability": "No callable CodeGraph in executor tool set; explicit scoped files inspected directly.",
+    "chain": "CreateRestore -> live Backup GET -> final cluster/reference/source/attempt/binding locks -> fresh client -> one CREATE -> classified result -> GET-only reconciler",
+    "newSystemDependency": false
+  },
+  "gateOutcomes": "MySQL red tests caught delayed-GET CREATE, missing target authorization, dual credential fallback, and false PV intent; MySQL caught wrong literal column; test completion observer caught its own early-refusal mismatch."
+}

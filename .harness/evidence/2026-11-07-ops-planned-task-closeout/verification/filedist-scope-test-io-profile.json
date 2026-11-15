@@ -1,0 +1,16 @@
+{
+  "mysqlPid": 23412,
+  "purpose": "Previously used disposable local full-race I/O profile; no performance claim",
+  "originalSettings": [
+    1,
+    1
+  ],
+  "identityVerified": true,
+  "restoreRequired": true,
+  "temporarySettings": [
+    2,
+    0
+  ],
+  "datadir": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.tmp\\ops-planned-cmdb-services\\mysql-data",
+  "listenerPid": 22632
+}

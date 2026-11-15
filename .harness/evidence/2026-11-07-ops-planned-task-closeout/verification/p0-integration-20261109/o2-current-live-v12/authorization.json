@@ -1,0 +1,16 @@
+{
+  "schema": "o2-v12-authorization-v1",
+  "requestSHA256": "eb0a1cf9b56afec530deb0eeea7149389b64ef5bfbe7d26b2da9d6705ae24d9d",
+  "codeReceipt": {
+    "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/o2-current-live-v12/final-code-report.receipt.json",
+    "sha256": "621eafe3062d493988c4544c985b783699b2fa7132f783d3cfdd351f3283893e"
+  },
+  "archReceipt": {
+    "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/o2-current-live-v12/final-arch-report.receipt.json",
+    "sha256": "1fd42c476e35bf28e943ef41ec945111ca37328b5e869d38ae8b2ad4acc9903d"
+  },
+  "dispatcherReceipt": {
+    "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/o2-current-live-v12/dispatcher-authorization.receipt.json",
+    "sha256": "74caa2565a3d19a6151b20f66211f8511be017b30b98b5e4acf7638294ab71ab"
+  }
+}

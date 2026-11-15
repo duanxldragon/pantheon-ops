@@ -1,0 +1,143 @@
+{
+  "exitCode": 0,
+  "scope": "real isolated MySQL; no remote provider",
+  "records": [
+    {
+      "check": "owner lists isolated backup registry fixture",
+      "passed": true
+    },
+    {
+      "check": "foreign department cannot list backup registry",
+      "passed": true
+    },
+    {
+      "check": "foreign department cannot get backup registry",
+      "passed": true
+    },
+    {
+      "check": "foreign department cannot delete backup registry",
+      "passed": true
+    },
+    {
+      "check": "owner lists isolated restore registry fixture",
+      "passed": true
+    },
+    {
+      "check": "foreign department cannot list restore registry",
+      "passed": true
+    },
+    {
+      "check": "foreign department cannot get restore registry",
+      "passed": true
+    },
+    {
+      "check": "foreign department cannot delete restore registry",
+      "passed": true
+    },
+    {
+      "check": "missing backup get returns record-not-found",
+      "passed": true
+    },
+    {
+      "check": "missing backup delete returns backup.not_found",
+      "passed": true
+    },
+    {
+      "check": "missing restore delete returns restore.not_found",
+      "passed": true
+    },
+    {
+      "check": "missing backup restore creates no registry record",
+      "passed": true
+    },
+    {
+      "check": "foreign department backup create denied before persistence",
+      "passed": true
+    },
+    {
+      "check": "missing credential backup create denied before persistence",
+      "passed": true
+    },
+    {
+      "check": "failed provider backup deletion retains registry",
+      "passed": true
+    },
+    {
+      "check": "failed provider restore deletion retains registry",
+      "passed": true
+    },
+    {
+      "check": "department revocation removes backup access",
+      "passed": true
+    },
+    {
+      "check": "department revocation removes restore access",
+      "passed": true
+    },
+    {
+      "check": "pre-canceled backup create creates no registry record",
+      "passed": true
+    },
+    {
+      "check": "expired backup create deadline creates no registry record",
+      "passed": true
+    },
+    {
+      "check": "public origin and explicit TLS server name accepted lazily",
+      "passed": true
+    },
+    {
+      "check": "private or metadata origin rejected: https://127.0.0.1:6443",
+      "passed": true
+    },
+    {
+      "check": "private or metadata origin rejected: https://10.0.0.1:6443",
+      "passed": true
+    },
+    {
+      "check": "private or metadata origin rejected: https://169.254.169.254:6443",
+      "passed": true
+    },
+    {
+      "check": "insecure TLS kubeconfig rejected",
+      "passed": true
+    },
+    {
+      "check": "proxy bypass kubeconfig rejected",
+      "passed": true
+    },
+    {
+      "evidence": {
+        "callerDept": 20,
+        "clusterDept": 10,
+        "recordID": 2,
+        "remoteRequest": false,
+        "returnedStatus": "New"
+      },
+      "finding": "CreateRestore persists unauthorized foreign-cluster request before async scope validation"
+    },
+    {
+      "check": "async unauthorized restore fails before remote request",
+      "passed": true
+    },
+    {
+      "check": "synthetic active reference builds lazy client without remote request",
+      "passed": true
+    },
+    {
+      "check": "revoked reference denies cached client access",
+      "passed": true
+    },
+    {
+      "check": "revoked reference denies product backup create before persistence",
+      "passed": true
+    },
+    {
+      "checksPassed": 30,
+      "findings": 1,
+      "phase": "complete",
+      "remoteRequests": 0,
+      "scope": "offline product Service + isolated MySQL; no successful real backup/restore, provider RBAC, finite SA, S3 or HTTP/audit coverage"
+    }
+  ]
+}

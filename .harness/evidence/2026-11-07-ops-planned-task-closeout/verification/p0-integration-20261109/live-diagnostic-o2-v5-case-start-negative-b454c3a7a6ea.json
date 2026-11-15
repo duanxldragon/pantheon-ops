@@ -1,0 +1,55 @@
+{
+  "case": "start-negative",
+  "identity": "o2-live-b454c3a7a6ea-start-negative",
+  "database": "ops_p0_o2_live_b454c3a7a6ea_start_negative",
+  "databaseRetention": "retained; no drop",
+  "events": [
+    {
+      "credentialId": 1,
+      "packageId": 1,
+      "phase": "task-created",
+      "taskId": 1
+    },
+    {
+      "case": "start-negative",
+      "check": "public reviewed start requires preview",
+      "kind": "negative",
+      "passed": true
+    },
+    {
+      "case": "start-negative",
+      "check": "credential disabled after preview denies actual start",
+      "kind": "negative",
+      "passed": true
+    },
+    {
+      "case": "start-negative",
+      "check": "denied start leaves task unstarted and actual VM untouched",
+      "kind": "negative",
+      "passed": true
+    },
+    {
+      "case": "start-negative",
+      "failed": 0,
+      "negativePassed": 3,
+      "phase": "driver-result",
+      "positivePassed": 0
+    }
+  ],
+  "driverExitCode": 0,
+  "stderrPresent": false,
+  "status": "passed",
+  "cleanup": {
+    "phase": "exact-owned-cleanup",
+    "directory": "/opt/pantheon-p0-20261109/o2-live-b454c3a7a6ea-start-negative",
+    "files": [
+      {
+        "file": ".owner",
+        "sha256": "d1651455ca523989507cfef4f0972f9f334340cd8f10cff03547ae32e81b48fd",
+        "bytes": 35
+      }
+    ],
+    "absent": true,
+    "processKill": false
+  }
+}

@@ -1,0 +1,17 @@
+[
+  {
+    "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/o2-engine-ownership-20261110/verify-local.ps1",
+    "oldSHA256": null,
+    "newSHA256": "ff330cb9753c1a357ee2cc5cc1758307f7b4d8e795adff3785317f2fad284db4"
+  },
+  {
+    "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/o2-engine-ownership-20261110/verify-local-stable-v2.ps1",
+    "oldSHA256": null,
+    "newSHA256": "635c3d4dfe9f17d07afc83ccff374e041c1045c2120ee40cf648fd8755ec5679"
+  },
+  {
+    "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/o2-engine-ownership-20261110/inspect-owned-fixtures.go",
+    "oldSHA256": null,
+    "newSHA256": "19789a5fa3fc93f7db70461655f15dc305896a5a54b3d929fabe0f27ae973d9f"
+  }
+]

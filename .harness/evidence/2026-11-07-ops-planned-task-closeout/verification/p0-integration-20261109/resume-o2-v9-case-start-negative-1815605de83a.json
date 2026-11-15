@@ -1,0 +1,84 @@
+{
+  "case": "start-negative",
+  "identity": "o2-live-1815605de83a-start-negative",
+  "database": "ops_p0_o2_live_1815605de83a_start_negative",
+  "databaseRetention": "retained; no drop",
+  "events": [
+    {
+      "credentialId": 1,
+      "packageId": 1,
+      "phase": "task-created",
+      "taskId": 1
+    },
+    {
+      "case": "start-negative",
+      "check": "public reviewed start requires preview",
+      "kind": "negative",
+      "passed": true
+    },
+    {
+      "case": "start-negative",
+      "check": "credential disabled after preview denies actual start",
+      "kind": "negative",
+      "passed": true
+    },
+    {
+      "operationPhase": "marker-done",
+      "phase": "v8-operation-phase",
+      "taskId": 1
+    },
+    {
+      "operationPhase": "marker-done",
+      "ordinal": 1,
+      "phase": "v9-verifier-connection"
+    },
+    {
+      "deadlineExceeded": false,
+      "phase": "independent-ssh-handshake",
+      "pinCallbacks": 1,
+      "pinChecked": true,
+      "pinMatched": true
+    },
+    {
+      "deadlineExceeded": false,
+      "exitStatus": 0,
+      "passed": true,
+      "phase": "independent-ssh-command"
+    },
+    {
+      "marker": "done",
+      "ownershipChecked": true,
+      "phase": "independent-marker",
+      "present": false
+    },
+    {
+      "case": "start-negative",
+      "check": "denied start leaves task unstarted and actual VM untouched",
+      "kind": "negative",
+      "passed": true
+    },
+    {
+      "case": "start-negative",
+      "failed": 0,
+      "negativePassed": 3,
+      "phase": "driver-result",
+      "positivePassed": 0
+    }
+  ],
+  "driverExitCode": 0,
+  "stderrPresent": false,
+  "status": "passed",
+  "cleanup": {
+    "phase": "exact-owned-cleanup",
+    "directory": "/opt/pantheon-p0-20261109/o2-live-1815605de83a-start-negative",
+    "files": [
+      {
+        "file": ".owner",
+        "sha256": "45dd3b6b36994687e2ae45dc71ec32b67a0cb3b69e39a84569ccffb1922d38f8",
+        "bytes": 35
+      }
+    ],
+    "absent": true,
+    "processKill": false
+  }
+}

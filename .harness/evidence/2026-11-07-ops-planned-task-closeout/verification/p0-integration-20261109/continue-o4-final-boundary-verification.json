@@ -1,0 +1,54 @@
+{
+  "taskId": "2026-11-07-ops-planned-task-closeout",
+  "scope": "two small O4 assembly boundary repairs after independent ARCH WATCH",
+  "currentFiles": {
+    "scripts/business-overlay/foundation-candidate.mjs": "85cb656a5e4923e3df8239450001441397d69e7c6fbfb8b0dc89c9c0c38edd1f",
+    "scripts/business-overlay/rebuild-from-candidate.mjs": "f487f012f25ec652156b99f3765d989f0bf947be91dfef3c6654b2e6762b7ea0",
+    "scripts/business-overlay/rebuild-from-base.mjs": "9bb2a1cb7304df6bcac8293cb48bc6daf44373897f0be609d149433cf9b626df",
+    "scripts/business-overlay/check-shared-drift.mjs": "a6ee2b769c1d27167c7f426ad913981c28b99f462054342e826dc194a1c4302b",
+    "scripts/business-overlay/candidate-ownership.test.mjs": "30f4c185051b232d414b4867c7a9b35601d335405d8477b26dcb236be09f6062",
+    "scripts/business-overlay/foundation-candidate.test.mjs": "e33cd08abe468efb3e513c887a9c73af4075762d1d1bb28aeeef1706fa271fda",
+    "tests/scripts/business-overlay/check-shared-drift.test.mjs": "b79af64de465f3b1e2efda7e14d595fb2ba24ee46bdb36b04f2e79824338be36"
+  },
+  "nativeLanguageDiagnostics": "continue-o4-final-language-diagnostics-1794292586364.json",
+  "nativeLanguageDiagnosticsSHA256": "1615c63ddb928254d5d2fed9ff41ef9164def501a0892d081e82920ea99d26d8",
+  "nativeLanguageDiagnosticsErrors": 0,
+  "checkJs": false,
+  "sourceStableAcrossDiagnosticsAndFocusedSuite": true,
+  "red": {
+    "command": "node --test .local/ops-acceptance/continue-o4-final-boundaries-test.mjs",
+    "exitCode": 1,
+    "failed": 3,
+    "passed": 0,
+    "skipped": 0
+  },
+  "green": {
+    "command": "node --test .local/ops-acceptance/continue-o4-final-boundaries-test.mjs",
+    "exitCode": 0,
+    "failed": 0,
+    "passed": 3,
+    "skipped": 0
+  },
+  "focusedSuite": {
+    "exitCode": 0,
+    "passed": 150,
+    "failed": 0,
+    "skipped": 0,
+    "durationMS": 154170.3357,
+    "files": [
+      "scripts/business-overlay/foundation-candidate.test.mjs",
+      "scripts/business-overlay/candidate-ownership.test.mjs",
+      "tests/scripts/business-overlay/check-shared-drift.test.mjs",
+      "tests/scripts/business-overlay/rebuild-from-base.test.mjs"
+    ],
+    "apparatusNote": "Command also supplied a nonexistent foundation-candidate-extraction.test.mjs literal; Node ignored it. No tests from that name are counted."
+  },
+  "remaining": [
+    "independent final delta CODE and ARCH review",
+    "fresh actual source-stable full candidate attempt",
+    "O4 backend/frontend/tenant runtime adoption",
+    "official consumption"
+  ],
+  "P0Approved": false,
+  "officialConsumption": false
+}

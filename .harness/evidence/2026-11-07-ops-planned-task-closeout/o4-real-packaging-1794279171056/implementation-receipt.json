@@ -1,0 +1,608 @@
+{
+  "timestamp": "2026-11-10T03:34:17.945Z",
+  "role": "Scoped Generator; no independent approval",
+  "parents": [
+    "Base docs/harness/tasks/2026-11-07-ops-formal-queue-foundation-gaps.task.md",
+    "Ops docs/harness/tasks/2026-11-07-ops-planned-task-closeout.task.md"
+  ],
+  "sources": [
+    {
+      "owner": "Base",
+      "path": "scripts/foundation-release/candidate-descriptor.mjs",
+      "originalSha256": "a9b242e4b6d787344f16357b6c7397ab4a7ffda633e21556138e240ccece71a6",
+      "implementationSha256": "d0602231061a28717cae154908ffffa7b31ca10fffd4b6687eab5364ea463666",
+      "liveSha256": "a9b242e4b6d787344f16357b6c7397ab4a7ffda633e21556138e240ccece71a6",
+      "implementationPath": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.harness\\evidence\\2026-11-07-ops-planned-task-closeout\\o4-real-packaging-1794279171056\\proposed-base\\candidate-descriptor.mjs",
+      "livePath": "D:\\workspace\\go\\pantheon-platform\\pantheon-base\\scripts\\foundation-release\\candidate-descriptor.mjs",
+      "bytes": 17824,
+      "changed": true,
+      "applied": false
+    },
+    {
+      "owner": "Base",
+      "path": "scripts/foundation-release/build-candidate-artifact.mjs",
+      "originalSha256": "646e622f2eef3ae30d29aed50272d3f4665dd54d04c2fcb1ffb41777e554d6e3",
+      "implementationSha256": "6df8e50aebfd1bd2b5be2ec80bfd3b51a41279a6c5a3f1b2ba31b3e94d102525",
+      "liveSha256": "646e622f2eef3ae30d29aed50272d3f4665dd54d04c2fcb1ffb41777e554d6e3",
+      "implementationPath": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.harness\\evidence\\2026-11-07-ops-planned-task-closeout\\o4-real-packaging-1794279171056\\proposed-base\\build-candidate-artifact.mjs",
+      "livePath": "D:\\workspace\\go\\pantheon-platform\\pantheon-base\\scripts\\foundation-release\\build-candidate-artifact.mjs",
+      "bytes": 13718,
+      "changed": true,
+      "applied": false
+    },
+    {
+      "owner": "Base",
+      "path": "scripts/foundation-release/candidate-artifact.test.mjs",
+      "originalSha256": "17301133892fe649d7fdd2ec25ed7e0a570c45b47f7a0842ed896b0723dd9b11",
+      "implementationSha256": "f7dfecd2ade669ad264e3aa7a6a26fadec8bad53b83b97dacd0d9ba4bd6907eb",
+      "liveSha256": "17301133892fe649d7fdd2ec25ed7e0a570c45b47f7a0842ed896b0723dd9b11",
+      "implementationPath": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.harness\\evidence\\2026-11-07-ops-planned-task-closeout\\o4-real-packaging-1794279171056\\proposed-base\\candidate-artifact.test.mjs",
+      "livePath": "D:\\workspace\\go\\pantheon-platform\\pantheon-base\\scripts\\foundation-release\\candidate-artifact.test.mjs",
+      "bytes": 34818,
+      "changed": true,
+      "applied": false
+    },
+    {
+      "owner": "Ops",
+      "path": "scripts/business-overlay/foundation-candidate.mjs",
+      "originalSha256": "da8a8eeeb0a9f52514b157353475a75d43675711f264731cd8564398d7610161",
+      "implementationSha256": "e8e3cb25c3c052ab1e8111b60600f803ee4bd5e7b06090c89b391908364a1fd1",
+      "liveSha256": "e8e3cb25c3c052ab1e8111b60600f803ee4bd5e7b06090c89b391908364a1fd1",
+      "implementationPath": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\scripts\\business-overlay\\foundation-candidate.mjs",
+      "livePath": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\scripts\\business-overlay\\foundation-candidate.mjs",
+      "bytes": 31838,
+      "changed": true,
+      "applied": true
+    },
+    {
+      "owner": "Ops",
+      "path": "scripts/business-overlay/rebuild-from-candidate.mjs",
+      "originalSha256": "cbcf32ed8246736eb78469eabffa9d80145c67bfaf96d4a9928d660cabc74e32",
+      "implementationSha256": "cbcf32ed8246736eb78469eabffa9d80145c67bfaf96d4a9928d660cabc74e32",
+      "liveSha256": "cbcf32ed8246736eb78469eabffa9d80145c67bfaf96d4a9928d660cabc74e32",
+      "implementationPath": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\scripts\\business-overlay\\rebuild-from-candidate.mjs",
+      "livePath": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\scripts\\business-overlay\\rebuild-from-candidate.mjs",
+      "bytes": 11477,
+      "changed": false,
+      "applied": true
+    },
+    {
+      "owner": "Ops",
+      "path": "scripts/business-overlay/foundation-candidate.test.mjs",
+      "originalSha256": "4590052710de1c1d283400cf7ef9784cb2095722154a265523360e55e578e32b",
+      "implementationSha256": "9fc65b83d994eb4fe0229a6a7d9428539c36c7f3fbce936775e270802f8d0acf",
+      "liveSha256": "9fc65b83d994eb4fe0229a6a7d9428539c36c7f3fbce936775e270802f8d0acf",
+      "implementationPath": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\scripts\\business-overlay\\foundation-candidate.test.mjs",
+      "livePath": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\scripts\\business-overlay\\foundation-candidate.test.mjs",
+      "bytes": 46301,
+      "changed": true,
+      "applied": true
+    }
+  ],
+  "commands": [
+    {
+      "command": "node --test ../pantheon-base/scripts/foundation-release/candidate-artifact.test.mjs",
+      "nodeExitCode": 0,
+      "log": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.harness\\evidence\\2026-11-07-ops-planned-task-closeout\\o4-real-packaging-1794279171056\\live-base-tests.log",
+      "counts": {
+        "tests": 37,
+        "pass": 37,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      }
+    },
+    {
+      "command": "O4_PACKAGING_RED=base node --import ./.local/ops-acceptance/resume-o4-packaging-red-hooks.mjs --test D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.harness\\evidence\\2026-11-07-ops-planned-task-closeout\\o4-real-packaging-1794279171056/proposed-base/candidate-artifact.test.mjs",
+      "nodeExitCode": 1,
+      "log": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.harness\\evidence\\2026-11-07-ops-planned-task-closeout\\o4-real-packaging-1794279171056\\base-red-tests.log",
+      "counts": {
+        "tests": 38,
+        "pass": 37,
+        "fail": 1,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      }
+    },
+    {
+      "command": "node --test D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.harness\\evidence\\2026-11-07-ops-planned-task-closeout\\o4-real-packaging-1794279171056/proposed-base/candidate-artifact.test.mjs",
+      "nodeExitCode": 0,
+      "log": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.harness\\evidence\\2026-11-07-ops-planned-task-closeout\\o4-real-packaging-1794279171056\\proposed-base-final-tests.log",
+      "counts": {
+        "tests": 38,
+        "pass": 38,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      }
+    },
+    {
+      "command": "O4_PACKAGING_RED=ops node --import ./.local/ops-acceptance/resume-o4-packaging-red-hooks.mjs --test scripts/business-overlay/foundation-candidate.test.mjs",
+      "nodeExitCode": 1,
+      "log": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.harness\\evidence\\2026-11-07-ops-planned-task-closeout\\o4-real-packaging-1794279171056\\ops-red-final-tests.log",
+      "counts": {
+        "tests": 74,
+        "pass": 69,
+        "fail": 5,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      }
+    },
+    {
+      "command": "node --test scripts/business-overlay/foundation-candidate.test.mjs",
+      "nodeExitCode": 0,
+      "log": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.harness\\evidence\\2026-11-07-ops-planned-task-closeout\\o4-real-packaging-1794279171056\\ops-candidate-stable-final-tests.log",
+      "counts": {
+        "tests": 74,
+        "pass": 74,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      }
+    },
+    {
+      "command": "node --test .local/ops-acceptance/resume-o4-real-packaging.test.mjs",
+      "nodeExitCode": 0,
+      "log": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.harness\\evidence\\2026-11-07-ops-planned-task-closeout\\o4-real-packaging-1794279171056\\real-input-final-tests.log",
+      "counts": {
+        "tests": 4,
+        "pass": 4,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      }
+    },
+    {
+      "command": "O4_REAL_RETAINED_ARCHIVE_DIAGNOSTICS=<absolute prior input-shape-diagnostics.json> node --test --test-name-pattern='retained archive fixtures survive' scripts/business-overlay/foundation-candidate.test.mjs",
+      "nodeExitCode": 0,
+      "log": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.harness\\evidence\\2026-11-07-ops-planned-task-closeout\\o4-real-packaging-1794279171056\\real-archive-assembly-final-tests.log",
+      "counts": {
+        "tests": 1,
+        "pass": 1,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      }
+    },
+    {
+      "command": "npm run test:business-overlay",
+      "nodeExitCode": 0,
+      "log": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.harness\\evidence\\2026-11-07-ops-planned-task-closeout\\o4-real-packaging-1794279171056\\overlay-tests.log",
+      "counts": {
+        "tests": 62,
+        "pass": 62,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      }
+    },
+    {
+      "command": "npm run check:business-overlay",
+      "exitCode": 0,
+      "result": "56 declared paths; existing rebuilt tree",
+      "log": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.harness\\evidence\\2026-11-07-ops-planned-task-closeout\\o4-real-packaging-1794279171056\\overlay-check.log"
+    },
+    {
+      "command": "node --check <six candidate files and four new local helpers/tests>",
+      "exitCode": 0,
+      "files": 10
+    },
+    {
+      "command": "TypeScript 6.0.3 LanguageService; allowJs=true checkJs=false noEmit=true ES2022/NodeNext",
+      "exitCode": 0,
+      "files": 6,
+      "artifact": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.harness\\evidence\\2026-11-07-ops-planned-task-closeout\\o4-real-packaging-1794279171056\\language-diagnostics-final.json"
+    },
+    {
+      "command": "git diff --check -- <three owned Ops files>; captured-baseline git diff --no-index --check",
+      "result": "no whitespace diagnostics"
+    },
+    {
+      "command": "git -C ../pantheon-base apply --check D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.harness\\evidence\\2026-11-07-ops-planned-task-closeout\\o4-real-packaging-1794279171056/base-packaging-delta.patch",
+      "exitCode": 0,
+      "applied": false
+    },
+    {
+      "command": "node .local/ops-acceptance/resume-o4-preview-assembly.mjs",
+      "nodeExitCode": 1,
+      "receipt": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.harness\\evidence\\2026-11-07-ops-planned-task-closeout\\o4-real-packaging-1794279171056\\preview-assembly-failure.json",
+      "result": "Candidate input count exceeds limit"
+    }
+  ],
+  "sharedContractByteEquivalent": true,
+  "originalProducerSealAndCleanupUnchanged": true,
+  "originalBaseTestPrefixPreserved": true,
+  "preservation": {
+    "preserved": [
+      {
+        "file": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.harness\\evidence\\2026-11-07-ops-planned-task-closeout\\o4-adoption-1794278076834\\base-candidate-tests.log",
+        "sha256": "b232dd9da81bca1593e82780c39c105ebeaa0939f6194999020e012eb9559748",
+        "expectedSha256": "b232dd9da81bca1593e82780c39c105ebeaa0939f6194999020e012eb9559748",
+        "unchanged": true
+      },
+      {
+        "file": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.harness\\evidence\\2026-11-07-ops-planned-task-closeout\\o4-adoption-1794278076834\\failure-receipt.json",
+        "sha256": "443a71b351c6ef31c1b5ab67b2e0177ae66e87ebc159fe86b6389f75cf503cf0",
+        "expectedSha256": "443a71b351c6ef31c1b5ab67b2e0177ae66e87ebc159fe86b6389f75cf503cf0",
+        "unchanged": true
+      },
+      {
+        "file": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.harness\\evidence\\2026-11-07-ops-planned-task-closeout\\o4-adoption-1794278076834\\files-and-commands.json",
+        "sha256": "c21951c20d87ced4b7a933992872901f84b44fe9c3167ab0524d4b6b3da352ef",
+        "expectedSha256": "c21951c20d87ced4b7a933992872901f84b44fe9c3167ab0524d4b6b3da352ef",
+        "unchanged": true
+      },
+      {
+        "file": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.harness\\evidence\\2026-11-07-ops-planned-task-closeout\\o4-adoption-1794278076834\\generator-report.md",
+        "sha256": "b57a7726835d5bc85260100d81f610d737bdcc53f006818f0213120121804232",
+        "expectedSha256": "b57a7726835d5bc85260100d81f610d737bdcc53f006818f0213120121804232",
+        "unchanged": true
+      },
+      {
+        "file": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.harness\\evidence\\2026-11-07-ops-planned-task-closeout\\o4-adoption-1794278076834\\input-shape-diagnostics.json",
+        "sha256": "4811a4afb47a54ac0967b44e6bc84cbe623393abc10e49107e1f3a11c49e59d2",
+        "expectedSha256": "4811a4afb47a54ac0967b44e6bc84cbe623393abc10e49107e1f3a11c49e59d2",
+        "unchanged": true
+      },
+      {
+        "file": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.harness\\evidence\\2026-11-07-ops-planned-task-closeout\\o4-adoption-1794278076834\\ops-candidate-tests.log",
+        "sha256": "a1623d4b6cb8ae38bceb032e3c5af88594da4336239119d10d23d633a90b132a",
+        "expectedSha256": "a1623d4b6cb8ae38bceb032e3c5af88594da4336239119d10d23d633a90b132a",
+        "unchanged": true
+      },
+      {
+        "file": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.harness\\evidence\\2026-11-07-ops-planned-task-closeout\\o4-adoption-1794278076834\\overlay-check.log",
+        "sha256": "55ee542cb301d23a24fd6e9278e56ec687d7f91041b98119fb7c4c69aeabf13d",
+        "expectedSha256": "55ee542cb301d23a24fd6e9278e56ec687d7f91041b98119fb7c4c69aeabf13d",
+        "unchanged": true
+      },
+      {
+        "file": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.harness\\evidence\\2026-11-07-ops-planned-task-closeout\\o4-adoption-1794278076834\\overlay-tests.log",
+        "sha256": "d71e3974b56cd38286672e09b7b241ce1044d9897924bf2d0b067cb36430c814",
+        "expectedSha256": "d71e3974b56cd38286672e09b7b241ce1044d9897924bf2d0b067cb36430c814",
+        "unchanged": true
+      },
+      {
+        "file": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.harness\\evidence\\2026-11-07-ops-planned-task-closeout\\o4-adoption-1794278076834\\prerequisite-receipt.json",
+        "sha256": "f90e7544d7bed15a22bb47be49dd6a9afc85b2b328fab995fd570938099f4df5",
+        "expectedSha256": "f90e7544d7bed15a22bb47be49dd6a9afc85b2b328fab995fd570938099f4df5",
+        "unchanged": true
+      },
+      {
+        "file": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.harness\\evidence\\2026-11-07-ops-planned-task-closeout\\o4-adoption-1794278076834\\producer-receipt.json",
+        "sha256": "ba3fd0301e5100288d75eb9f1d293d330a15e9632a026497a7de9451014745c5",
+        "expectedSha256": "ba3fd0301e5100288d75eb9f1d293d330a15e9632a026497a7de9451014745c5",
+        "unchanged": true
+      },
+      {
+        "file": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.harness\\evidence\\2026-11-07-ops-planned-task-closeout\\o4-adoption-1794278076834\\real-input-regressions.log",
+        "sha256": "095402fec44510fe65f73b05d177d3a3e065c8c0665813c5a7701fbe04a7c833",
+        "expectedSha256": "095402fec44510fe65f73b05d177d3a3e065c8c0665813c5a7701fbe04a7c833",
+        "unchanged": true
+      },
+      {
+        "file": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.harness\\evidence\\2026-11-07-ops-planned-task-closeout\\o4-adoption-1794278076834\\source-inventory.json",
+        "sha256": "96d841a52308b1581928693606e66eab462a744710db8ffff7563b2fd95541be",
+        "expectedSha256": "96d841a52308b1581928693606e66eab462a744710db8ffff7563b2fd95541be",
+        "unchanged": true
+      },
+      {
+        "file": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\foundation-release.lock.json",
+        "sha256": "95de1a87270e15c0d4c672418a5df906818a88652f8a3e6c480f1484ee9fa70c",
+        "expectedSha256": "95de1a87270e15c0d4c672418a5df906818a88652f8a3e6c480f1484ee9fa70c",
+        "unchanged": true
+      },
+      {
+        "file": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\business-overlay.json",
+        "sha256": "d8fc5a88227d9242f30d71905af4963556e3a1e0d7247a053a4a03fbbd570111",
+        "expectedSha256": "d8fc5a88227d9242f30d71905af4963556e3a1e0d7247a053a4a03fbbd570111",
+        "unchanged": true
+      },
+      {
+        "file": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\scripts\\business-overlay\\rebuild-from-base.mjs",
+        "sha256": "5706de2dcd8d2334b374fa8dd1f621a9c4ddeb4b8b1a075172f4395e4ae2fdbd",
+        "expectedSha256": "5706de2dcd8d2334b374fa8dd1f621a9c4ddeb4b8b1a075172f4395e4ae2fdbd",
+        "unchanged": true
+      },
+      {
+        "file": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\o4-adoption-1794278076834-sealed\\candidate-64cbd8e211df852a17d9bc7a93ac09af300eb40fde4b08db5133a95c436a38de.tar",
+        "sha256": "2d679d5f06d244e91e4c7c14b20118a30d9125f5b1bc01089d7a6eca3c49cb89",
+        "expectedSha256": "2d679d5f06d244e91e4c7c14b20118a30d9125f5b1bc01089d7a6eca3c49cb89",
+        "unchanged": true
+      },
+      {
+        "file": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\o4-adoption-1794278076834-sealed\\candidate-descriptor.json",
+        "sha256": "77faf23ed88c721bfd6e14b2888194a92769de9c3402bce5ebe622093a283f51",
+        "expectedSha256": "77faf23ed88c721bfd6e14b2888194a92769de9c3402bce5ebe622093a283f51",
+        "unchanged": true
+      }
+    ],
+    "priorArtifactsStable": true,
+    "retainedFoundationFiles": 48886,
+    "expectedRetainedFoundationFiles": 48886,
+    "pathSizeDifferences": []
+  },
+  "initialPreview": {
+    "candidateIdentity": "candidate-ae13a9312d91f38bdc1ff80e57e3112bac48636ead73c14c92bfdcb9bfc7dadf",
+    "descriptorPath": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\o4-real-packaging-1794279171056-preview-sealed\\candidate-descriptor.json",
+    "descriptorSha256": "13982e9cd4bf7289b7cc2c172eb44facb52242c25d52bcd670560ad831dd2eab",
+    "artifactPath": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\o4-real-packaging-1794279171056-preview-sealed\\candidate-ae13a9312d91f38bdc1ff80e57e3112bac48636ead73c14c92bfdcb9bfc7dadf.tar",
+    "artifactSha256": "84fd1dc366300a594bb8ee81ae3b92417564ee12816789bec517686ff7922fcf",
+    "sourceStable": true,
+    "publicFiles": [
+      {
+        "path": ".harness/archive/2026-08/evidence/2026-08-31-base-operational-workbench-design/review.md",
+        "bytes": 3899,
+        "sha256": "c927bcab6ed2673b331b733326a90d602c2575c6b689b29e39b5e7bace16ad43"
+      },
+      {
+        "path": ".harness/archive/2026-09/evidence/2026-09-04-readme-v0.11.0-update/review.md",
+        "bytes": 347,
+        "sha256": "c6557930b6c98a5d6961028fb56f08fb0edd45fd0f8c1d3a74b9519b669b915c"
+      },
+      {
+        "path": ".harness/archive/2026-09/evidence/2026-09-10-tenant-canary-slice/review.md",
+        "bytes": 3314,
+        "sha256": "79ec502f299edfe10b85554506c073bb0f1bf54b439205cce313ad8774086248"
+      },
+      {
+        "path": ".harness/archive/2026-09/evidence/2026-09-10-tenant-contract-design/review.md",
+        "bytes": 1588,
+        "sha256": "0b27857520e3598906607808e7e8795236c0487fbc8214ff65e4fd4ecb55ec29"
+      },
+      {
+        "path": ".harness/archive/2026-09/evidence/2026-09-10-tenant-core-auth-iam/review.md",
+        "bytes": 8428,
+        "sha256": "58684bd1b3c1384c938740dea5a53539e13bb3f16fbf6d4d04649bb4c75fb325"
+      },
+      {
+        "path": ".harness/archive/2026-09/evidence/2026-09-10-tenant-migration-runbook/review.md",
+        "bytes": 1881,
+        "sha256": "2acb4f2f35acd75325bd322f30390076bf083e8c6a032276d66f42bdd2edfdc5"
+      },
+      {
+        "path": ".harness/archive/2026-09/evidence/2026-09-10-tenant-ready-guardrails/review.md",
+        "bytes": 2762,
+        "sha256": "e5f63237c46f507222a7f66712d4033bb4713ebb5dd9d39746bfafc7d45b0b29"
+      },
+      {
+        "path": ".harness/archive/2026-09/evidence/2026-09-24-fix-report-residual-closeout/review.md",
+        "bytes": 8681,
+        "sha256": "2ec09bf32677fccb3d833ebac6e798353ec6632c5e5a32a172c8902d41e22b97"
+      },
+      {
+        "path": "config/foundation-consumer-artifacts.json",
+        "bytes": 195,
+        "sha256": "1d3cc1e52d3a5e5fba00a70c2d84467ad8c279ad5d66f3f9f92de238df7f1161"
+      },
+      {
+        "path": "config/review-loop-legacy-artifacts.json",
+        "bytes": 2522,
+        "sha256": "eebd51d839cc3756983a5ba80389907e2d3934206b7766d18bda03416550d7b0"
+      }
+    ],
+    "snapshotRoot": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.harness\\evidence\\2026-11-07-ops-planned-task-closeout\\o4-real-packaging-1794279171056\\.tmp\\foundation-candidates\\candidate-ae13a9312d91f38bdc1ff80e57e3112bac48636ead73c14c92bfdcb9bfc7dadf\\snapshot",
+    "projectionRoot": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.harness\\evidence\\2026-11-07-ops-planned-task-closeout\\o4-real-packaging-1794279171056\\registry-projection",
+    "baseProducerApplied": false,
+    "actualProductAssembly": false,
+    "officialConsumption": false
+  },
+  "latestPreview": {
+    "candidateIdentity": "candidate-ae13a9312d91f38bdc1ff80e57e3112bac48636ead73c14c92bfdcb9bfc7dadf",
+    "descriptorPath": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\real-input-1794281117433-preview-sealed\\candidate-descriptor.json",
+    "descriptorSha256": "70bb1f4bc4b843f5a4a612de09c0a21e51efbb081ffd362e074db7cbb9c1454e",
+    "artifactPath": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\real-input-1794281117433-preview-sealed\\candidate-ae13a9312d91f38bdc1ff80e57e3112bac48636ead73c14c92bfdcb9bfc7dadf.tar",
+    "artifactSha256": "84fd1dc366300a594bb8ee81ae3b92417564ee12816789bec517686ff7922fcf",
+    "sourceStable": true,
+    "publicFiles": [
+      {
+        "path": ".harness/archive/2026-08/evidence/2026-08-31-base-operational-workbench-design/review.md",
+        "bytes": 3899,
+        "sha256": "c927bcab6ed2673b331b733326a90d602c2575c6b689b29e39b5e7bace16ad43"
+      },
+      {
+        "path": ".harness/archive/2026-09/evidence/2026-09-04-readme-v0.11.0-update/review.md",
+        "bytes": 347,
+        "sha256": "c6557930b6c98a5d6961028fb56f08fb0edd45fd0f8c1d3a74b9519b669b915c"
+      },
+      {
+        "path": ".harness/archive/2026-09/evidence/2026-09-10-tenant-canary-slice/review.md",
+        "bytes": 3314,
+        "sha256": "79ec502f299edfe10b85554506c073bb0f1bf54b439205cce313ad8774086248"
+      },
+      {
+        "path": ".harness/archive/2026-09/evidence/2026-09-10-tenant-contract-design/review.md",
+        "bytes": 1588,
+        "sha256": "0b27857520e3598906607808e7e8795236c0487fbc8214ff65e4fd4ecb55ec29"
+      },
+      {
+        "path": ".harness/archive/2026-09/evidence/2026-09-10-tenant-core-auth-iam/review.md",
+        "bytes": 8428,
+        "sha256": "58684bd1b3c1384c938740dea5a53539e13bb3f16fbf6d4d04649bb4c75fb325"
+      },
+      {
+        "path": ".harness/archive/2026-09/evidence/2026-09-10-tenant-migration-runbook/review.md",
+        "bytes": 1881,
+        "sha256": "2acb4f2f35acd75325bd322f30390076bf083e8c6a032276d66f42bdd2edfdc5"
+      },
+      {
+        "path": ".harness/archive/2026-09/evidence/2026-09-10-tenant-ready-guardrails/review.md",
+        "bytes": 2762,
+        "sha256": "e5f63237c46f507222a7f66712d4033bb4713ebb5dd9d39746bfafc7d45b0b29"
+      },
+      {
+        "path": ".harness/archive/2026-09/evidence/2026-09-24-fix-report-residual-closeout/review.md",
+        "bytes": 8681,
+        "sha256": "2ec09bf32677fccb3d833ebac6e798353ec6632c5e5a32a172c8902d41e22b97"
+      },
+      {
+        "path": "config/foundation-consumer-artifacts.json",
+        "bytes": 195,
+        "sha256": "1d3cc1e52d3a5e5fba00a70c2d84467ad8c279ad5d66f3f9f92de238df7f1161"
+      },
+      {
+        "path": "config/review-loop-legacy-artifacts.json",
+        "bytes": 2522,
+        "sha256": "eebd51d839cc3756983a5ba80389907e2d3934206b7766d18bda03416550d7b0"
+      }
+    ],
+    "snapshotRoot": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.harness\\evidence\\2026-11-07-ops-planned-task-closeout\\o4-real-packaging-1794279171056\\real-input-1794281117433\\.tmp\\foundation-candidates\\candidate-ae13a9312d91f38bdc1ff80e57e3112bac48636ead73c14c92bfdcb9bfc7dadf\\snapshot",
+    "projectionRoot": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.harness\\evidence\\2026-11-07-ops-planned-task-closeout\\o4-real-packaging-1794279171056\\real-input-1794281117433\\registry-projection",
+    "baseProducerApplied": false,
+    "actualProductAssembly": false,
+    "officialConsumption": false
+  },
+  "inputCountGap": {
+    "files": 54535,
+    "limit": 50000,
+    "currentRunFiles": 1165,
+    "excludingCurrentRun": 53370,
+    "firstOverLimit": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-real-packaging-1794279171056/.tmp/foundation-candidates/candidate-ae13a9312d91f38bdc1ff80e57e3112bac48636ead73c14c92bfdcb9bfc7dadf/snapshot/backend/pkg/ratelimit/limiter_test.go",
+    "perRoot": {
+      ".agents": 20,
+      ".foundation": 48886,
+      ".githooks": 1,
+      ".github": 11,
+      ".gitignore": 1,
+      ".gitleaks.toml": 1,
+      ".gitmessage": 1,
+      ".harness": 5069,
+      ".sonarcloud.properties": 1,
+      "AGENTS.md": 1,
+      "CHANGELOG.md": 1,
+      "CLAUDE.md": 1,
+      "CONTRIBUTING.en.md": 1,
+      "CONTRIBUTING.md": 1,
+      "DESIGN.en.md": 1,
+      "DESIGN.md": 1,
+      "README.en.md": 1,
+      "README.md": 1,
+      "RELEASE_NOTES_v1.2.0.md": 1,
+      "SECURITY.en.md": 1,
+      "SECURITY.md": 1,
+      "backend/go.sum": 1,
+      "backend/modules/business/bizscope": 8,
+      "backend/modules/business/capability": 1,
+      "backend/modules/business/cicd": 29,
+      "backend/modules/business/cmdb": 34,
+      "backend/modules/business/cmdb/host/migrations/000032_backfill_cmdb_host_state_version.down.sql": 0,
+      "backend/modules/business/cmdb/host/migrations/000032_backfill_cmdb_host_state_version.up.sql": 0,
+      "backend/modules/business/deploy": 42,
+      "backend/modules/business/deploy/migrations/000034_deploy_log_attempt.down.sql": 0,
+      "backend/modules/business/deploy/migrations/000034_deploy_log_attempt.up.sql": 0,
+      "backend/modules/business/deploy/migrations/000035_deploy_step_history.down.sql": 0,
+      "backend/modules/business/deploy/migrations/000035_deploy_step_history.up.sql": 0,
+      "backend/modules/business/deploy/migrations/000036_deploy_log_sequence_scope.down.sql": 0,
+      "backend/modules/business/deploy/migrations/000036_deploy_log_sequence_scope.up.sql": 0,
+      "backend/modules/business/filedist": 13,
+      "backend/modules/business/k8s": 60,
+      "backend/modules/business/metrics": 1,
+      "backend/modules/business/observability": 17,
+      "backend/modules/business/opsinit": 5,
+      "backend/modules/business/opsinit/migrations/000033_core_business_schema.down.sql": 0,
+      "backend/modules/business/opsinit/migrations/000033_core_business_schema.up.sql": 0,
+      "backend/modules/business/retired_modules_overlay.go": 1,
+      "backend/modules/business/secrets": 4,
+      "backend/modules/business/service": 9,
+      "backend/modules/business/shared": 1,
+      "business-overlay.json": 1,
+      "docker-compose.yml": 1,
+      "docs/PROJECT_INHERITANCE.en.md": 1,
+      "docs/PROJECT_INHERITANCE.md": 1,
+      "docs/README.en.md": 1,
+      "docs/README.md": 1,
+      "docs/TASK_PACKET_OPS_TEMPLATE.en.md": 1,
+      "docs/TASK_PACKET_OPS_TEMPLATE.md": 1,
+      "docs/USER_MANUAL.md": 1,
+      "docs/V1.2_DEVELOPMENT_SUMMARY.md": 1,
+      "docs/V1_RELEASE_CHECKLIST.md": 1,
+      "docs/audits": 3,
+      "docs/designs/BUSINESS_ARCHITECTURE_REVIEW.en.md": 1,
+      "docs/designs/BUSINESS_ARCHITECTURE_REVIEW.md": 1,
+      "docs/designs/BUSINESS_ARGOCD_MODULE_DESIGN.md": 1,
+      "docs/designs/BUSINESS_BACKUP_MODULE_DESIGN.md": 1,
+      "docs/designs/BUSINESS_BIZSCOPE_MODULE_DESIGN.en.md": 1,
+      "docs/designs/BUSINESS_BIZSCOPE_MODULE_DESIGN.md": 1,
+      "docs/designs/BUSINESS_CMDB_MODULE_DESIGN.en.md": 1,
+      "docs/designs/BUSINESS_CMDB_MODULE_DESIGN.md": 1,
+      "docs/designs/BUSINESS_DEPLOY_MODULE_DESIGN.en.md": 1,
+      "docs/designs/BUSINESS_DEPLOY_MODULE_DESIGN.md": 1,
+      "docs/designs/BUSINESS_DEVELOPMENT_PLAN.en.md": 1,
+      "docs/designs/BUSINESS_DEVELOPMENT_PLAN.md": 1,
+      "docs/designs/BUSINESS_ERROR_SEMANTICS_APPENDIX.en.md": 1,
+      "docs/designs/BUSINESS_ERROR_SEMANTICS_APPENDIX.md": 1,
+      "docs/designs/BUSINESS_FUNCTIONAL_DESIGN.md": 1,
+      "docs/designs/BUSINESS_K8S_MODULE_DESIGN.en.md": 1,
+      "docs/designs/BUSINESS_K8S_MODULE_DESIGN.md": 1,
+      "docs/designs/BUSINESS_MODULE_LICENSING_DESIGN.md": 1,
+      "docs/designs/BUSINESS_OBSERVABILITY_MODULE_DESIGN.md": 1,
+      "docs/designs/BUSINESS_OPERATIONAL_WORKBENCH_DESIGN.md": 1,
+      "docs/designs/BUSINESS_QA_ACCEPTANCE_PLAN.en.md": 1,
+      "docs/designs/BUSINESS_QA_ACCEPTANCE_PLAN.md": 1,
+      "docs/designs/BUSINESS_SERVICE_MODULE_DESIGN.en.md": 1,
+      "docs/designs/BUSINESS_SERVICE_MODULE_DESIGN.md": 1,
+      "docs/designs/BUSINESS_SMOKE_OVERLAY.md": 1,
+      "docs/designs/BUSINESS_TARGET_ARCHITECTURE_DESIGN.en.md": 1,
+      "docs/designs/BUSINESS_TARGET_ARCHITECTURE_DESIGN.md": 1,
+      "docs/designs/BUSINESS_TEST_PLAN.en.md": 1,
+      "docs/designs/BUSINESS_TEST_PLAN.md": 1,
+      "docs/designs/PLATFORM_SRE_EVOLUTION_PLAN.en.md": 1,
+      "docs/designs/PLATFORM_SRE_EVOLUTION_PLAN.md": 1,
+      "docs/harness/failure-registry.md": 1,
+      "docs/harness/tasks": 75,
+      "docs/migrations/legacy-ops-business-v010x": 23,
+      "e2e-tests": 9,
+      "foundation-release.lock.json": 1,
+      "frontend/README.en.md": 1,
+      "frontend/package.json": 1,
+      "frontend/src/modules/business": 85,
+      "frontend/src/modules/business/filedist": 0,
+      "frontend/src/modules/business/k8s/service": 0,
+      "frontend/src/modules/business/serviceinstance": 0,
+      "frontend/tests/smoke/business/cmdb": 2,
+      "frontend/tests/smoke/business/deploy": 6,
+      "frontend/tests/smoke/business/k8s": 2,
+      "frontend/tests/smoke/business/observability-filedist-pages.spec.ts": 1,
+      "frontend/tests/smoke/business/observability-menu.spec.ts": 1,
+      "frontend/tests/smoke/business/observability-tempo-workbench.spec.ts": 1,
+      "frontend/tests/smoke/business/observability-workbench.spec.ts": 1,
+      "frontend/tests/smoke/business/service": 1,
+      "frontend/tests/unit/business/operational": 11,
+      "package.json": 1,
+      "scripts/address-github-feedback.mjs": 1,
+      "scripts/business-overlay": 9,
+      "scripts/check-business-module-boundaries.mjs": 1,
+      "scripts/check-duplication.mjs": 1,
+      "scripts/check-encoding.mjs": 1,
+      "scripts/check-gorm-sql-literal.mjs": 1,
+      "scripts/check-pr-governance.mjs": 1,
+      "scripts/check-structure-contract.mjs": 1,
+      "scripts/check-task-packet-template.mjs": 1,
+      "scripts/fetch-github-feedback.mjs": 1,
+      "scripts/frontmatter-check.mjs": 1,
+      "scripts/migrate-task-manifests.mjs": 1,
+      "scripts/run-github-feedback-loop.mjs": 1,
+      "sonar-project.properties": 1,
+      "tests/fixtures": 6,
+      "tests/scripts/business-overlay": 5,
+      "tests/scripts/check-business-module-boundaries.test.mjs": 1,
+      "tests/scripts/check-encoding.test.mjs": 1,
+      "tests/scripts/check-gorm-sql-literal.test.mjs": 1,
+      "tests/scripts/check-inheritance-contract.test.mjs": 1,
+      "tests/scripts/workflow-baseline.test.mjs": 1
+    }
+  },
+  "baseProducerApplied": false,
+  "rootIndependentReview": "pending",
+  "authoritativeProductAssembly": false,
+  "fullProductDriftReached": false,
+  "taskComplete": false
+}

@@ -1,0 +1,206 @@
+{
+  "languageServer": "pyright",
+  "version": "1.1.414",
+  "protocol": "LSP stdio JSON-RPC",
+  "settings": {
+    "diagnosticMode": "openFilesOnly",
+    "typeCheckingMode": "basic",
+    "autoSearchPaths": true,
+    "useLibraryCodeForTypes": true,
+    "extraPaths": [
+      "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance"
+    ]
+  },
+  "sourceFiles": [
+    {
+      "path": ".local/ops-acceptance/continue-velero-alias-v2-contract.py",
+      "sha256": "4582eb92ef30ce23e3f8c20e513c0925de5b8ffea9a2d45cfeb8f2671a615a66",
+      "stable": true,
+      "diagnostics": []
+    },
+    {
+      "path": ".local/ops-acceptance/continue-velero-alias-v2-remote.py",
+      "sha256": "41f7c7b2601a5c952bd772abeefba02b690bfe6eaa0f40f7440c055307015485",
+      "stable": true,
+      "diagnostics": [
+        {
+          "range": {
+            "start": {
+              "line": 360,
+              "character": 39
+            },
+            "end": {
+              "line": 360,
+              "character": 44
+            }
+          },
+          "message": "Argument of type \"list[Any | Assign]\" cannot be assigned to parameter \"body\" of type \"list[stmt]\" in function \"__init__\"\n\u00a0\u00a0\"list[Any | Assign]\" is not assignable to \"list[stmt]\"\n\u00a0\u00a0\u00a0\u00a0Type parameter \"_T@list\" is invariant, but \"Any | Assign\" is not the same as \"stmt\"\n\u00a0\u00a0\u00a0\u00a0Consider switching from \"list\" to \"Sequence\" which is covariant",
+          "severity": 1,
+          "code": "reportArgumentType",
+          "source": "Pyright",
+          "codeDescription": {
+            "href": "https://github.com/microsoft/pyright/blob/main/docs/configuration.md#reportArgumentType"
+          }
+        },
+        {
+          "range": {
+            "start": {
+              "line": 433,
+              "character": 70
+            },
+            "end": {
+              "line": 433,
+              "character": 75
+            }
+          },
+          "message": "Object of type \"None\" is not subscriptable",
+          "severity": 1,
+          "code": "reportOptionalSubscript",
+          "source": "Pyright",
+          "codeDescription": {
+            "href": "https://github.com/microsoft/pyright/blob/main/docs/configuration.md#reportOptionalSubscript"
+          }
+        }
+      ]
+    },
+    {
+      "path": ".local/ops-acceptance/continue-velero-alias-v2-root.py",
+      "sha256": "7b83b18eb82a0ab221b32ad0790e0a3f0a0c2097d0e852e5c916c33ff64d37b4",
+      "stable": true,
+      "diagnostics": [
+        {
+          "range": {
+            "start": {
+              "line": 300,
+              "character": 48
+            },
+            "end": {
+              "line": 300,
+              "character": 53
+            }
+          },
+          "message": "Object of type \"None\" is not subscriptable",
+          "severity": 1,
+          "code": "reportOptionalSubscript",
+          "source": "Pyright",
+          "codeDescription": {
+            "href": "https://github.com/microsoft/pyright/blob/main/docs/configuration.md#reportOptionalSubscript"
+          }
+        }
+      ]
+    },
+    {
+      "path": ".local/ops-acceptance/continue-velero-alias-v2-generate.py",
+      "sha256": "d6835a601c43f46a1613194293dea9c1f016e2699504043f1c2b7231d8f8a3ad",
+      "stable": true,
+      "diagnostics": []
+    },
+    {
+      "path": ".local/ops-acceptance/continue-velero-alias-v2-test.py",
+      "sha256": "d2adda8ac43733ecb89bde1ec5ab727bf919b46d6ad63ab552f34c1e6907d734",
+      "stable": true,
+      "diagnostics": [
+        {
+          "range": {
+            "start": {
+              "line": 488,
+              "character": 88
+            },
+            "end": {
+              "line": 488,
+              "character": 92
+            }
+          },
+          "message": "\"mock\" is not a known attribute of module \"unittest\"",
+          "severity": 1,
+          "code": "reportAttributeAccessIssue",
+          "source": "Pyright",
+          "codeDescription": {
+            "href": "https://github.com/microsoft/pyright/blob/main/docs/configuration.md#reportAttributeAccessIssue"
+          }
+        },
+        {
+          "range": {
+            "start": {
+              "line": 488,
+              "character": 117
+            },
+            "end": {
+              "line": 488,
+              "character": 121
+            }
+          },
+          "message": "\"mock\" is not a known attribute of module \"unittest\"",
+          "severity": 1,
+          "code": "reportAttributeAccessIssue",
+          "source": "Pyright",
+          "codeDescription": {
+            "href": "https://github.com/microsoft/pyright/blob/main/docs/configuration.md#reportAttributeAccessIssue"
+          }
+        },
+        {
+          "range": {
+            "start": {
+              "line": 507,
+              "character": 88
+            },
+            "end": {
+              "line": 507,
+              "character": 92
+            }
+          },
+          "message": "\"mock\" is not a known attribute of module \"unittest\"",
+          "severity": 1,
+          "code": "reportAttributeAccessIssue",
+          "source": "Pyright",
+          "codeDescription": {
+            "href": "https://github.com/microsoft/pyright/blob/main/docs/configuration.md#reportAttributeAccessIssue"
+          }
+        },
+        {
+          "range": {
+            "start": {
+              "line": 507,
+              "character": 117
+            },
+            "end": {
+              "line": 507,
+              "character": 121
+            }
+          },
+          "message": "\"mock\" is not a known attribute of module \"unittest\"",
+          "severity": 1,
+          "code": "reportAttributeAccessIssue",
+          "source": "Pyright",
+          "codeDescription": {
+            "href": "https://github.com/microsoft/pyright/blob/main/docs/configuration.md#reportAttributeAccessIssue"
+          }
+        },
+        {
+          "range": {
+            "start": {
+              "line": 634,
+              "character": 46
+            },
+            "end": {
+              "line": 634,
+              "character": 64
+            }
+          },
+          "message": "Operator \"in\" not supported for types \"Literal['v2']\" and \"str | None\"\n\u00a0\u00a0Operator \"in\" not supported for types \"Literal['v2']\" and \"None\"",
+          "severity": 1,
+          "code": "reportOperatorIssue",
+          "source": "Pyright",
+          "codeDescription": {
+            "href": "https://github.com/microsoft/pyright/blob/main/docs/configuration.md#reportOperatorIssue"
+          }
+        }
+      ]
+    }
+  ],
+  "exitCode": 1,
+  "runtimeExecuted": false,
+  "errorCount": 8,
+  "warningCount": 0,
+  "seconds": 5.515
+}

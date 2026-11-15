@@ -1,0 +1,40 @@
+{
+  "command": [
+    "D:/Go/bin/go.exe",
+    "test",
+    "-race",
+    "-p=1",
+    "-count=1",
+    "-buildvcs=false",
+    "-mod=readonly",
+    "-json",
+    "-run",
+    "^TestDatasourceLiveEnvelopeMatchesNativeSuccess$",
+    "./modules/business/observability"
+  ],
+  "exitCode": 1,
+  "failure": null,
+  "elapsedSeconds": 6.188,
+  "sourceStable": true,
+  "changedSources": [],
+  "sourceCount": 842,
+  "fixtureSHA256": "8796d1a6c2b599e8e5406df8848638287d93827fb4436e6373c271b79cca5f05",
+  "stdoutSHA256": "a4d961f5b7e84b4136e30eb643756259428a191dd710e41da462bcfbcafa86ca",
+  "stderrSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "privateLogs": true,
+  "credentialsPrinted": false,
+  "testPasses": 0,
+  "packagePasses": 0,
+  "skipped": [],
+  "failed": [
+    {
+      "Action": "fail",
+      "Package": "github.com/duanxldragon/pantheon-base/backend/modules/business/observability",
+      "Test": "TestDatasourceLiveEnvelopeMatchesNativeSuccess"
+    },
+    {
+      "Action": "fail",
+      "Package": "github.com/duanxldragon/pantheon-base/backend/modules/business/observability"
+    }
+  ]
+}

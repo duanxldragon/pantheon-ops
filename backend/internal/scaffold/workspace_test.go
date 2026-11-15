@@ -103,7 +103,7 @@ func TestValidateRegisterRequestRejectsInvalidGovernanceContract(t *testing.T) {
 		{
 			name: "unsupported template version",
 			mutate: func(req *RegisterGeneratedModuleRequest) {
-				req.Schema.TemplateVersion = "v2"
+				req.Schema.TemplateVersion = "v3"
 			},
 			wantError: "module.generate.invalid_template_version",
 		},
@@ -116,10 +116,7 @@ func TestValidateRegisterRequestRejectsInvalidGovernanceContract(t *testing.T) {
 			wantError: "module.generate.invalid_data_scope",
 		},
 		{
-			// Tenant isolation has no runtime implementation; the generator must
-			// reject the pseudo-capability instead of silently generating a module
-			// whose data scope would never filter anything (task 0 guardrail).
-			name: "tenant data scope mode is not implemented and must be rejected",
+			name: "tenant data scope mode requires explicit v2",
 			mutate: func(req *RegisterGeneratedModuleRequest) {
 				req.Schema.EnableDataScope = true
 				req.Schema.DataScopeMode = "tenant"
@@ -222,6 +219,39 @@ func TestValidateRegisterRequestRejectsInvalidGovernanceContract(t *testing.T) {
 			err := ValidateRegisterRequest(req)
 			if err == nil || common.ErrMessage(err) != tt.wantError {
 				t.Fatalf("expected %s, got %v", tt.wantError, err)
+			}
+		})
+	}
+}
+
+func TestTenantGeneratorContract(t *testing.T) {
+	for _, tc := range []struct {
+		name   string
+		mutate func(*ModuleSchema)
+		valid  bool
+	}{
+		{"flat v2 without DataScope", func(*ModuleSchema) {}, true},
+		{"flat v2 with DataScope", func(s *ModuleSchema) { s.EnableDataScope = true }, true},
+		{"omitted version", func(s *ModuleSchema) { s.TemplateVersion = "" }, false},
+		{"legacy v1", func(s *ModuleSchema) { s.TemplateVersion = "v1" }, false},
+		{"system", func(s *ModuleSchema) { s.Scope = "system" }, false},
+		{"reserved camel field", func(s *ModuleSchema) { s.Model.Fields = []ModuleField{{Name: "tenantId", Type: "int"}} }, false},
+		{"reserved snake field", func(s *ModuleSchema) {
+			s.Model.Fields = []ModuleField{{Name: "tenant_id", Type: "int", VisibleInForm: false}}
+		}, false},
+		{"relation field", func(s *ModuleSchema) { s.Model.Fields = []ModuleField{{Name: "vendorId", Type: "relation"}} }, false},
+		{"lookup", func(s *ModuleSchema) { s.Relations = []ModuleRelation{{Type: "lookup"}} }, false},
+		{"one to many", func(s *ModuleSchema) { s.Relations = []ModuleRelation{{Type: "oneToMany"}} }, false},
+		{"many to many", func(s *ModuleSchema) { s.Relations = []ModuleRelation{{Type: "manyToMany"}} }, false},
+		{"detail metadata", func(s *ModuleSchema) { s.Metadata.TableRole = "detail" }, false},
+		{"relation metadata", func(s *ModuleSchema) { s.Metadata.RelationFromField = "ownerId" }, false},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			schema := ModuleSchema{Name: "asset", Scope: "business", TemplateVersion: "v2", DataScopeMode: "tenant"}
+			tc.mutate(&schema)
+			err := validateTemplateAndDataScope(schema)
+			if (err == nil) != tc.valid {
+				t.Fatalf("valid=%v, err=%v", tc.valid, err)
 			}
 		})
 	}

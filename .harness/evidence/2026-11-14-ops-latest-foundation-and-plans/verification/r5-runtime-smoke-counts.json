@@ -1,0 +1,16 @@
+{
+  "reportSHA256": "de10724325500b59ef66c316a076191491b5e1206d737515d0a72c08b1bb13d6",
+  "stats": {
+    "startTime": "2026-11-13T23:44:03.352Z",
+    "duration": 130654.10800000001,
+    "expected": 24,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  },
+  "reporterErrors": 0,
+  "nativeRunnerPassed": false,
+  "adapter": "1307e245ceb408defeb3d83c71c1b64e3b41d9fe74ec24d60a73f59c5a5eb243",
+  "testAssertionsUnchanged": true,
+  "testRetries": 0
+}

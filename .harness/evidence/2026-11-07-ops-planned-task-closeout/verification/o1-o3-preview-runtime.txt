@@ -1,0 +1,82 @@
+
+Running 2 tests using 1 worker
+
+(node:21592) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x  1 tests\smoke\business\deploy\deploy-selection-preview.spec.ts:11:2 › selection and preview confirm/conflict/refresh (light) (226ms)
+(node:24260) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x  2 tests\smoke\business\deploy\deploy-selection-preview.spec.ts:11:2 › selection and preview confirm/conflict/refresh (dark) (178ms)
+
+
+  1) tests\smoke\business\deploy\deploy-selection-preview.spec.ts:11:2 › selection and preview confirm/conflict/refresh (light) 
+
+    Error: apiRequestContext.post: connect ECONNREFUSED 127.0.0.1:24485
+    Call log:
+      - → POST http://127.0.0.1:24485/api/v1/auth/login
+        - user-agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/156.0.8078.4 Safari/537.36
+        - accept: */*
+        - accept-encoding: gzip,deflate,br
+        - content-type: application/json
+        - content-length: 40
+
+
+       at smoke\helpers\auth.ts:57
+
+      55 | ): Promise<BrowserLoginResult> {
+      56 |   const request = resolveRequestContext(requestLike);
+    > 57 |   const response = await request.post(`${apiBaseUrl}/auth/login`, {
+         |                                  ^
+      58 |     data: credentials,
+      59 |   });
+      60 |   expect(response.ok()).toBeTruthy();
+        at loginByApi (D:\workspace\go\pantheon-platform\pantheon-ops\frontend\tests\smoke\helpers\auth.ts:57:34)
+        at D:\workspace\go\pantheon-platform\pantheon-ops\frontend\tests\smoke\business\deploy\deploy-selection-preview.spec.ts:12:23
+
+    Error Context: ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\o1-o3-preview-runtime\smoke-business-deploy-depl-9c782-irm-conflict-refresh-light-\error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\o1-o3-preview-runtime\smoke-business-deploy-depl-9c782-irm-conflict-refresh-light-\trace.zip
+    Usage:
+
+        npx playwright show-trace ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\o1-o3-preview-runtime\smoke-business-deploy-depl-9c782-irm-conflict-refresh-light-\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  2) tests\smoke\business\deploy\deploy-selection-preview.spec.ts:11:2 › selection and preview confirm/conflict/refresh (dark) 
+
+    Error: apiRequestContext.post: connect ECONNREFUSED 127.0.0.1:24485
+    Call log:
+      - → POST http://127.0.0.1:24485/api/v1/auth/login
+        - user-agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/156.0.8078.4 Safari/537.36
+        - accept: */*
+        - accept-encoding: gzip,deflate,br
+        - content-type: application/json
+        - content-length: 40
+
+
+       at smoke\helpers\auth.ts:57
+
+      55 | ): Promise<BrowserLoginResult> {
+      56 |   const request = resolveRequestContext(requestLike);
+    > 57 |   const response = await request.post(`${apiBaseUrl}/auth/login`, {
+         |                                  ^
+      58 |     data: credentials,
+      59 |   });
+      60 |   expect(response.ok()).toBeTruthy();
+        at loginByApi (D:\workspace\go\pantheon-platform\pantheon-ops\frontend\tests\smoke\helpers\auth.ts:57:34)
+        at D:\workspace\go\pantheon-platform\pantheon-ops\frontend\tests\smoke\business\deploy\deploy-selection-preview.spec.ts:12:23
+
+    Error Context: ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\o1-o3-preview-runtime\smoke-business-deploy-depl-226da-firm-conflict-refresh-dark-\error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\o1-o3-preview-runtime\smoke-business-deploy-depl-226da-firm-conflict-refresh-dark-\trace.zip
+    Usage:
+
+        npx playwright show-trace ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\o1-o3-preview-runtime\smoke-business-deploy-depl-226da-firm-conflict-refresh-dark-\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  2 failed
+    tests\smoke\business\deploy\deploy-selection-preview.spec.ts:11:2 › selection and preview confirm/conflict/refresh (light) 
+    tests\smoke\business\deploy\deploy-selection-preview.spec.ts:11:2 › selection and preview confirm/conflict/refresh (dark) 

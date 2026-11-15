@@ -1,0 +1,209 @@
+{
+  "schemaVersion": 1,
+  "taskId": "2026-11-07-ops-planned-task-closeout",
+  "date": "2026-11-11",
+  "status": "in-progress",
+  "previousReceipt": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/continuation-20261111/receipt.json",
+  "previousReceiptSHA256": "42cadfba15bd6ebb4ae183b6e03f24ef40b4d52a22b9ac36e24420ed1f963664",
+  "independentReview": {
+    "status": "unavailable",
+    "nativeLanes": [
+      {
+        "role": "code-reviewer",
+        "status": 503,
+        "model": "gpt-5.5",
+        "requestId": "202611110908382712752717pjxkGB6A2b1e"
+      },
+      {
+        "role": "architect",
+        "status": 503,
+        "model": "gpt-5.4-mini",
+        "requestId": "202611110909279280195624qkwlHTRG4yH7"
+      }
+    ],
+    "claudeLanes": [
+      {
+        "role": "code-reviewer",
+        "lane": "CODE",
+        "provider": "installed Claude CLI",
+        "exitCode": 1,
+        "timedOut": false,
+        "elapsedSeconds": 173.5,
+        "modelOverride": false,
+        "nativeModelSelectionChanged": false,
+        "tools": [
+          "Read",
+          "Glob",
+          "Grep"
+        ],
+        "hooksEnabled": false,
+        "promptSHA256": "49ef3622a69e3921bd2d9eebfbe7cf190db65357999c321c6e578019a75bdc95",
+        "roleSHA256": "0314b1ec930fee50d190ae563f5ef1d5706c06de1fe861b9fbccb8034b026406",
+        "report": null,
+        "resultCount": 1
+      },
+      {
+        "role": "architect",
+        "lane": "ARCH",
+        "provider": "installed Claude CLI",
+        "exitCode": 1,
+        "timedOut": true,
+        "elapsedSeconds": 180.063,
+        "modelOverride": false,
+        "nativeModelSelectionChanged": false,
+        "tools": [
+          "Read",
+          "Glob",
+          "Grep"
+        ],
+        "hooksEnabled": false,
+        "promptSHA256": "62376861c52430a51fff35bcf01db49613923489ea19a11a2178b2694a95144e",
+        "roleSHA256": "d08f14fa1edf2ef41f219a4bc419f8b8a6498d2f3f9aaa91505da031be32ae3b",
+        "report": null,
+        "resultCount": 0
+      }
+    ],
+    "codeFailure": "ECONNREFUSED; result is_error=true despite subtype=success",
+    "archFailure": "Repeated API retries; exact owned process terminated after 180 seconds",
+    "approval": false,
+    "selfReviewFallback": false
+  },
+  "sourceBindingsVerified": 11,
+  "sourceStable": true,
+  "sourceHashes": {
+    ".harness\\evidence\\2026-11-07-ops-planned-task-closeout\\verification\\p0-integration-20261109\\continue-o4-copy-binding-20261110-r2-request.json": "deda434467f5ea1da73cd8e7673855e86c6b2143e55f1bd0855c57bcebd1e553",
+    ".harness\\evidence\\2026-11-07-ops-planned-task-closeout\\verification\\p0-integration-20261109\\continue-velero-alias-v6-request.json": "b307329e8bd2e41ea4fd1056599a0ca8b5396cfc71138bd719afe41d5abfa0c8",
+    "scripts/business-overlay/foundation-candidate.mjs": "77903fb900fcc676bea4b8246533db5fef8225ecef3a8fb8fdb75a21ed9bc552",
+    "scripts/business-overlay/rebuild-from-candidate.mjs": "0d310bdcaffd8f961835737faf8aa6d1db1242bbdfa6ae10147e5e7871ed85c8",
+    "scripts/business-overlay/candidate-copy-binding.test.mjs": "8e462b763f7588d2062230d7f3828e4e46f91b338c4b0c927f8c71c3a377f382",
+    "foundation-release.lock.json": "95de1a87270e15c0d4c672418a5df906818a88652f8a3e6c480f1484ee9fa70c",
+    ".local/ops-acceptance/continue-velero-alias-v6-contract.py": "2e481f4f4d020c665414ecfb5ab5f646d4d9c3a564a1c3dda6fcfc18028411bd",
+    ".local/ops-acceptance/continue-velero-alias-v6-remote.py": "d2ad1d5230809ec3fdfd8bbbf5083ddae2d80eb5aca27bcd3d08c44dbae7ff64",
+    ".local/ops-acceptance/continue-velero-alias-v6-root.py": "f47efe6a19643c0302c1d92bfcf223861872f0307c80429d8c627dfa0b858c84",
+    ".local/ops-acceptance/continue-velero-alias-v6-generate.py": "dbee7c540c459637375ce8887b626894d34b8dd1d7f7d6d89f02853de33ecbd7",
+    ".local/ops-acceptance/continue-velero-alias-v6-test.py": "14c063937a26b23e93c4cfcbb8f94509085e64074d9e49d2efaf0f146aa384ec"
+  },
+  "linuxContainerPreflight": {
+    "completed": false,
+    "operation": "Read-only inventory of existing Linux Node/Git/container executables",
+    "failure": "PermissionError: [WinError 10013] socket access denied by the current sandbox",
+    "remoteCommandExecuted": false,
+    "remoteMutations": 0,
+    "newRuntimeInstalled": false
+  },
+  "symlinkReplayPreparation": {
+    "syntaxChecked": 10,
+    "sourceFilesVerified": 9,
+    "archiveMembersVerified": 12,
+    "archiveSHA256": "04e04a92248027b5249969f24f96c148d442e0d925cd0f24d50ad62b392f1480",
+    "runtimeTestExecuted": false
+  },
+  "o2": {
+    "exitCode": 0,
+    "cases": 12,
+    "passedCases": 12,
+    "positivePassed": 152,
+    "negativePassed": 31,
+    "failed": 0,
+    "driverFailures": 0,
+    "sourceStable": true,
+    "ownedDirectoriesAbsent": true,
+    "databasesRetained": true
+  },
+  "candidateTests": {
+    "tests": 207,
+    "pass": 206,
+    "fail": 1,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0,
+    "duration_ms": 470756.3848
+  },
+  "actualCompleteCandidateAssemblyPerformed": false,
+  "O4CFImplemented": false,
+  "veleroV6RemoteEffectPerformed": false,
+  "officialLockChanged": false,
+  "P0ParentsClosed": 0,
+  "artifacts": [
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/continuation-20261111-review2/continue-20261111-claude-review-source-before.json",
+      "sha256": "8ea844fdd9cb663b1c0e78cfac0b19f83245cfb28be34e4d5857718b7c4ed9b9",
+      "bytes": 1574
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/continuation-20261111-review2/continue-20261111-claude-review-source-after.json",
+      "sha256": "8ea844fdd9cb663b1c0e78cfac0b19f83245cfb28be34e4d5857718b7c4ed9b9",
+      "bytes": 1574
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/continuation-20261111-review2/continue-20261111-symlink-second-attempt.tap",
+      "sha256": "fcfb6e8f155b7b5d3ff57abbebaa972ece8ccfb7c86746e68ecf4be3f8547b92",
+      "bytes": 1352
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/continuation-20261111-review2/continue-20261111-linux-container-preflight-failure.json",
+      "sha256": "a4c27cf3053dffe3b80ac1904d6da4e8e1ffd33122546737a4db4bbd2870f827",
+      "bytes": 304
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/continuation-20261111-review2/continue-20261111-symlink-replay-a1.tar.gz",
+      "sha256": "04e04a92248027b5249969f24f96c148d442e0d925cd0f24d50ad62b392f1480",
+      "bytes": 62608
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/continuation-20261111-review2/continue-20261111-symlink-replay-build-result.json",
+      "sha256": "75a612b28b5e2b990ac74af54a857263f2f38e18e83cefaaf63482b04d7dd830",
+      "bytes": 372
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/continuation-20261111-review2/continue-20261111-symlink-replay-verification.json",
+      "sha256": "4e7957eb41827ca90efb1619def80721c44019ce0a3b5ff17ce4956c3e66ab8b",
+      "bytes": 212
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/continuation-20261111-review2/continue-20261111-claude-review-adapter.py",
+      "sha256": "33778f3648998ae3052afc83bb6001314e7a97103a74dc77f098c0a31e2de378",
+      "bytes": 4288
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/continuation-20261111-review2/continue-20261111-build-symlink-replay.py",
+      "sha256": "475e82db9e3e5cf4c3ed555fb2247fbf82205231b8fc338d2936925d0180e7a3",
+      "bytes": 3394
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/continuation-20261111-review2/continue-20261111-symlink-replay.mjs",
+      "sha256": "6f3a756e99b5a7fa8efe3e2a421f3a2bde3f367889e0eb55d10bfb032f71b1f2",
+      "bytes": 2918
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/continuation-20261111-review2/continue-20261111-claude-code-a1--receipt.json",
+      "sha256": "17e99dabe90d63ee5cc8e1f2be95f2b77cfb832c5dae27f01899c722acffdfec",
+      "bytes": 523
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/continuation-20261111-review2/continue-20261111-claude-code-a1--events.jsonl",
+      "sha256": "a600c1c75f359e574f6f86a4dd27e92a65bf4c6f003be69cdccb9b54168891c4",
+      "bytes": 6458
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/continuation-20261111-review2/continue-20261111-claude-arch-a1--receipt.json",
+      "sha256": "72a70820217069a7fa60333634b65d85213e32533fdb691cc7cf08c530208fc0",
+      "bytes": 520
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/continuation-20261111-review2/continue-20261111-claude-arch-a1--events.jsonl",
+      "sha256": "c69b0aae1f80657d6840259a11e18451970f36d1ac0b1029212007115e1b5b89",
+      "bytes": 4208
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/continuation-20261111-review2/native-review-unavailable.json",
+      "sha256": "4ce0984418d65736e1b1a0c9694a98551d149a4499fe1f1c76977ce9f59390c3",
+      "bytes": 292
+    }
+  ],
+  "linkage": {
+    "taskManifest": ".harness/tasks/2026-11-07-ops-planned-task-closeout/manifest.json",
+    "taskPacket": "docs/harness/tasks/2026-11-07-ops-planned-task-closeout.task.md",
+    "parentReview": ".harness/evidence/2026-11-07-ops-planned-task-closeout/review.md"
+  }
+}

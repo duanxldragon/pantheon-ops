@@ -1,0 +1,17 @@
+{
+  "host": "115.190.251.143",
+  "ownedProcesses": [
+    {
+      "name": "backend",
+      "pid": 9906,
+      "status": "absent"
+    },
+    {
+      "name": "web",
+      "pid": 9915,
+      "status": "stopped"
+    }
+  ],
+  "ownedRemoteProcessesStopped": true,
+  "forwardingClosed": true
+}

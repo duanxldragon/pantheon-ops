@@ -1,0 +1,8 @@
+# github.com/duanxldragon/pantheon-base/backend/modules/business/cmdb
+modules\business\cmdb\capability.go:387:4: unknown field StateVersion in struct literal of type capability.HostRef
+modules\business\cmdb\capability.go:387:36: unknown field UpdatedAt in struct literal of type capability.HostRef
+modules\business\cmdb\capability.go:387:62: unknown field InstalledComponents in struct literal of type capability.HostRef
+FAIL	github.com/duanxldragon/pantheon-base/backend/modules/business/deploy [build failed]
+FAIL	github.com/duanxldragon/pantheon-base/backend/modules/business/cmdb [build failed]
+ok  	github.com/duanxldragon/pantheon-base/backend/modules/business/bizscope	0.023s [no tests to run]
+FAIL

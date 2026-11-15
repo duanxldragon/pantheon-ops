@@ -1,0 +1,87 @@
+{
+  "parent": "docs/harness/tasks/2026-11-07-ops-planned-task-closeout.task.md",
+  "verdict": "APPROVE",
+  "scope": "current O2 CODE implementation only",
+  "sourceMapCount": 60,
+  "finalChangedCount": 10,
+  "sourceMismatch": 0,
+  "deltaMismatch": 0,
+  "topLevelPasses": 177,
+  "topLevelSkips": [
+    "TestDeployLiveVMExecution",
+    "TestDeployLiveVMCancellation"
+  ],
+  "topLevelFailures": [],
+  "missingFinalInventory": [],
+  "overlayPasses": [
+    "TestIndependentCurrentO2CancellationPhysicalBoundary/no-lease",
+    "TestIndependentCurrentO2CancellationPhysicalBoundary/foreign-lease",
+    "TestIndependentCurrentO2CancellationPhysicalBoundary/delete-error",
+    "TestIndependentCurrentO2CancellationPhysicalBoundary"
+  ],
+  "nativeDiagnostics": {
+    "command": "gopls check (all 10 final changed files)",
+    "exitCode": 0,
+    "files": [
+      "modules/business/capability/capability.go",
+      "modules/business/deploy/attempt_ownership.go",
+      "modules/business/deploy/cancel_unclaimed_test.go",
+      "modules/business/deploy/deploy_service_test.go",
+      "modules/business/deploy/deploy_service.go",
+      "modules/business/deploy/independent_o2_regression_test.go",
+      "modules/business/deploy/service_transaction_test.go",
+      "modules/business/deploy/target_selection.go",
+      "modules/business/service/state_transaction_test.go",
+      "modules/business/service/state.go"
+    ],
+    "goplsVersion": "v0.23.0",
+    "goplsSHA256": "77cea13fe23dcc911604328959dbefe4087edf5e9f858a50b125c76db03272bb",
+    "finishedUTC": "2026-11-10T07:17:20.0531998Z"
+  },
+  "originalIndependentSHA256": "cd71034c036166925f04a540e782023743a8f81a1717d2e8d2e6115f175472e6",
+  "providedEvidencePins": [
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/o2-service-transaction-20261110/final-source-before.json",
+      "sha256": "0f2eafdb206b05703f64e6ee6538f2e3c23591cad78bb4ae4c354dc0b9859093"
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/o2-service-transaction-20261110/final-source-after.json",
+      "sha256": "0f2eafdb206b05703f64e6ee6538f2e3c23591cad78bb4ae4c354dc0b9859093"
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/o2-service-transaction-20261110/source-delta-final.json",
+      "sha256": "c993c3b04231773be4f42d0a3f41ab727ce109b7168019a9a653b4efa8ac5e99"
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/o2-service-transaction-20261110/focused-final-receipt.json",
+      "sha256": "1a9d719fbb0e53f3211918e6656d20d720ca7d465c0093b8c39abec8bb05354a"
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/o2-service-transaction-20261110/test-facts-final.json",
+      "sha256": "c239dc2ac4e3bf4ae7c6ce300caf74b399552af2ac76109ea88eca1e45026583"
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/o2-service-transaction-20261110/red-linked-owner-final.txt",
+      "sha256": "6614cc331d369dac6c70eaedd806aa62c134725cbec9980be32e4977dd4ee251"
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/o2-service-transaction-20261110/final-race.txt",
+      "sha256": "51e649e868c48bc93037e7295429ff19c9f9d9b43068bc5e6c545fb1eef59413"
+    }
+  ],
+  "toolGaps": [
+    "MCP lsp_diagnostics absent; actual native gopls check used",
+    "MCP ast_grep_search and local ast-grep absent; focused literal searches and manual current-source checks used",
+    "CodeGraph MCP/CLI unavailable; scoped current-file reads used"
+  ],
+  "openGates": [
+    "public HTTP",
+    "current Base identity/IAM/audit",
+    "VM",
+    "cold restart",
+    "official consumption",
+    "full Ops race/front-end/rebuild",
+    "all P0"
+  ],
+  "finishedUTC": "2026-11-10T07:20:06.0195945Z"
+}

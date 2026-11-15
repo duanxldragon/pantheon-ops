@@ -1,0 +1,37 @@
+{
+  "scope": "read-only official public asset and image HEAD diagnostics; no credentials retained or provider resources created",
+  "exitCode": 0,
+  "stderrPresent": false,
+  "records": [
+    {
+      "asset": "CHECKSUM",
+      "publicRequestedURL": "https://github.com/velero-io/velero/releases/download/v1.17.0/CHECKSUM",
+      "method": "HEAD",
+      "errorType": "TimeoutError"
+    },
+    {
+      "asset": "velero-v1.17.0-linux-amd64.tar.gz",
+      "publicRequestedURL": "https://github.com/velero-io/velero/releases/download/v1.17.0/velero-v1.17.0-linux-amd64.tar.gz",
+      "method": "HEAD",
+      "errorType": "URLError"
+    },
+    {
+      "registryRepository": "velero/velero",
+      "tag": "v1.17.0",
+      "method": "HEAD",
+      "errorType": "URLError"
+    },
+    {
+      "registryRepository": "velero/velero-plugin-for-aws",
+      "tag": "v1.13.0",
+      "method": "HEAD",
+      "errorType": "URLError"
+    },
+    {
+      "registryRepository": "minio/minio",
+      "tag": "RELEASE.2025-09-07T16-13-09Z",
+      "method": "HEAD",
+      "errorType": "URLError"
+    }
+  ]
+}

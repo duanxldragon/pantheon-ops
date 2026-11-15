@@ -1,0 +1,44 @@
+{
+  "phase": "offline-transport-selfcheck",
+  "exitCode": 0,
+  "remoteResourcesCreated": 0,
+  "providerReadinessVerified": false,
+  "minioManifestVerified": false,
+  "backupRestoreVerified": false,
+  "checks": [
+    {
+      "check": "three-owned-Python-scripts-parse-and-compile",
+      "passed": true
+    },
+    {
+      "check": "real-official-archive-SHA256-size-and-linux-amd64-ELF",
+      "passed": true,
+      "sha256": "f507a956cf8ec00f483f5d7b04901614a9016a10feb32b3ecc968da36b4fc7be"
+    },
+    {
+      "check": "real-cached-official-index-velero-velero",
+      "passed": true,
+      "indexSHA256": "22d17d9a7e9cda10b1ffc63b4baebc35f805a22b203cb5ca65fffee51ddbde92",
+      "selectedLinuxAMD64Digest": "sha256:367a1d2deb5adf3acc8056715aefe398850cd33b8d7a68e5a6f1f13b691a1c58"
+    },
+    {
+      "check": "real-cached-official-index-velero-velero-plugin-for-aws",
+      "passed": true,
+      "indexSHA256": "0b08ec0d150424fa914487e6665d7c84fff0c6a8eca76a23fa6d09e621d36d8a",
+      "selectedLinuxAMD64Digest": "sha256:b6ecf1a86975475d6bf27259ac0c7afbdc6aff2e15dc79f9dc4a0d77f142e558"
+    },
+    {
+      "check": "modified-manifest-and-requested-digest-mismatch-rejected",
+      "passed": true
+    },
+    {
+      "check": "unverified-registry-and-repository-rejected-before-network",
+      "passed": true
+    },
+    {
+      "check": "invalid-blob-path-and-unbounded-size-rejected-before-network",
+      "passed": true
+    }
+  ],
+  "scriptSHA256": "a724b957550278c6f9e84078a35dd65c761394da868f1e4971f9175c89585676"
+}

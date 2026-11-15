@@ -1,0 +1,7 @@
+{
+  "status": "timeout",
+  "exitCode": 1,
+  "seconds": 360,
+  "promptSha256": "d65cacc498f4f5f2d6a15e83f958b2a09e32e601d92d758448499c143743cf93",
+  "command": "claude.exe -p --tools \"\" --output-format text; stdin=final-base-condition-editor-prompt.md"
+}

@@ -1,0 +1,109 @@
+{
+  "result": "pass",
+  "activeUpgradeComplete": true,
+  "activeRelease": "pantheon-base-v0.18.8",
+  "activeCommit": "34428814a9efc997fd93d4434406a53df6460323",
+  "freshGitHubLookup": true,
+  "standardFetcher": true,
+  "standardAssembler": true,
+  "reportSHA256": "82fabe5c39653f7d4119b3f905e6acea18faac350454a713bdbc86444d0fd4c6",
+  "planSHA256": "5bcadc03c3c75255f94b131f4f6cc81a89c5d5c1798f07a4e966d2843c25e5bc",
+  "rollbackArchiveSHA256": "4c61e95569471045c994fbb245412e91703a27b81192488437331f4b1bea5d3a",
+  "writes": 165,
+  "deletes": 0,
+  "gitIndexUnchanged": true,
+  "gitIndexSHA256": "8157740e3b08e50096041b0645adf518440611028fcf9c8a5748d5cff3d6bf84",
+  "sourceInputFilesCompared": 1487,
+  "sourceInputMismatches": 0,
+  "frontendUnitTestsPassed": 414,
+  "frontendUnitFilesPassed": 57,
+  "overlayTestsPassed": 66,
+  "sharedFilesCompared": 857,
+  "sharedFilesIdentical": 856,
+  "existingAllowedDrift": 1,
+  "businessFilesSkipped": 288,
+  "pairedMigrationFilesVerified": 14,
+  "backendRaceEvidence": "r5-backend-race-retry.json",
+  "backendRaceEvidenceReusedBySourceHash": true,
+  "freshActiveRaceClaimed": false,
+  "browserEvidence": "r5-runtime-smoke-adapted.json",
+  "browserEvidenceReusedBySourceHash": true,
+  "freshActiveSmokeClaimed": false,
+  "nativeRunnerPassed": false,
+  "externalTestsSkipped": 6,
+  "wholeTaskComplete": false,
+  "priorFailureEvidencePreserved": true,
+  "localBaseGitComparison": false,
+  "sharedSourceHandCopied": false,
+  "userAuthorizedElevation": true,
+  "elevatedProcessUsed": false,
+  "aclChanged": false,
+  "logs": [
+    {
+      "name": "candidate-overlay",
+      "file": "overlay-r7.log",
+      "exitCode": 0,
+      "sha256": "fb8b18603495ebedfe41eb5dd15a35ebe0322713aaf6d3a5a8eea42490c7ea43"
+    },
+    {
+      "name": "candidate-shared-drift-cli",
+      "file": "shared-drift-r7.log",
+      "exitCode": 1,
+      "sha256": "2e914948e2300e8b3c8d33267344ff1a8e08fd1451b0d1666f77922f93defafc"
+    },
+    {
+      "name": "candidate-shared-drift-verified-snapshot",
+      "file": "shared-drift-snapshot-r7.log",
+      "exitCode": 0,
+      "sha256": "ce6aad3849fe41d2aa0f0cb2dcd2ecbe1f02dafd391be1908fe15eeeff305edd"
+    },
+    {
+      "name": "overlay-tests",
+      "file": "overlay-tests-r7.log",
+      "exitCode": 0,
+      "sha256": "18276acc9befd0bbe193860e0dcfc184c432cd30f2868ca24c981aef626fb504"
+    },
+    {
+      "name": "installation",
+      "file": "apply-r7.log",
+      "exitCode": 0,
+      "sha256": "2d85d5ef67c150ff3f74dc298ab313d8210213d85d6cec058f21f2ffae800c6d"
+    },
+    {
+      "name": "active-shared-drift",
+      "file": "active-shared-drift-r7.log",
+      "exitCode": 0,
+      "sha256": "386d492d7fd50a7495241a24943623dc89780d21fcf6751ec9c7a15142a45f9d"
+    },
+    {
+      "name": "active-overlay",
+      "file": "active-overlay-r7.log",
+      "exitCode": 0,
+      "sha256": "615aff030b893b0f903c1fd5255f2ecd3927828da14d655cfb9e1f4155ad21bf"
+    },
+    {
+      "name": "active-go-readonly-deps",
+      "file": "active-go-list-r7.log",
+      "exitCode": 0,
+      "sha256": "5ad83349494f8a0da867194224f00b36f43b71ffb3a1792b1b247859027e8957"
+    },
+    {
+      "name": "active-frontend-lint",
+      "file": "active-frontend-lint-r7.log",
+      "exitCode": 0,
+      "sha256": "5f62e7cf7cdd69c014ca18d1c493431139fcbda108704552679bc84c360fd025"
+    },
+    {
+      "name": "active-frontend-build",
+      "file": "active-frontend-build-r7.log",
+      "exitCode": 0,
+      "sha256": "566b0585630fa126a7eb864780df1a81c0eadf1b68bf48266471ab0ccd54b6c2"
+    },
+    {
+      "name": "active-frontend-units",
+      "file": "active-frontend-units-r7.log",
+      "exitCode": 0,
+      "sha256": "45acfca8f1fece157006f44ac9ff39a799811e6da284ba81e97385166e902f08"
+    }
+  ]
+}

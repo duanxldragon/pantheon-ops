@@ -1,0 +1,15 @@
+# Tempo stable-frame verification
+
+## Live follow-up and tenant implementation work — 2026-11-09
+
+Maintainer-authorized Base business tenancy + O4 actor/tenant-isolated history/saved views is now in independent pre-implementation CODE/ARCH review. The new plan is a proposal, not implementation or consumer approval. Ops shared middleware overrides and candidate integration against an immutable old lock are explicit review questions. No repeated scope decision is needed. All P0 parents O2/O3/O4/D1/D2/D3 remain open.
+
+Real Argo provider v7 passes28 authentication/RBAC/sync/terminal/provider-history rollback and revocation checks. Service selector state was independently checked in real K3s; temporary Application/AppProject/namespace and Git fixture cleanup are UID/identity/absence checked; core provider retained. This remains PROVIDER-ONLY, excludes Ops ArgoCDService/HTTP/audit/current actor authorization. The product lane now owns only its Argo module and separate argo-product evidence, preserving prior uncertain outcome repairs.
+
+Tempo v17 repeats only2 existing light/dark browser cases, both pass32.9s. Ten screenshots, six selected exact-hash images inspected in rendered-v17-tempo-contact-sheet.png. Mobile sidebar is stably collapsed, source-change stale warning and revoked empty view render; dark detail drawer renders. Keyboard/zoom/screen-reader and all O4 tenant/history/view states remain unverified. Reused checksum-verified v16 backend predates final Argo delta, unchanged v14 frontend archive and retained v16 DB; no fresh database/migration, Argo or tenant coverage claim. Owned backend22108/web22119 stopped and forwarding closed. Original v16 unstable frames and launcher Unicode failure retained.
+
+Velero SSH preflight now passes with explicit tool escalation: memory total3916Mi/available1381Mi, no installed Velero CRDs/namespace. The original errno13 preflight is retained as velero-live-preflight-restricted.json; it was local permission, not server failure. Confirmed foreign-department CreateRestore registry admission defect is assigned to its owning business backup Generator. Bounded real fixture installation is preparation, not successful backup or restore; previous30 offline cases and zero live backup successes remain accurately recorded. New Velero memory ceiling512Mi; O2 real action/restart lane adds at most128Mi and cannot modify provider cores.
+
+Previously complete CGO race544.578s/715 hashes is historical for that source. Argo and backup fixes in progress will require new scoped and final full checks; no old green receipt certifies new source. Official Base release/consumer transition, final review and final visual/function gates remain open. No commit/push/publication/lock/baseline replacement or waiver.
+
+Gate Outcomes: mobile rendered transition check repaired | SSH restriction distinguished from provider health | foreign restore admission defect identified for owning-lane repair | independent tenant plan review required before source execution.

@@ -1,0 +1,1335 @@
+{
+  "utc": "2026-11-10T04:13:39.637103+00:00",
+  "changedFiles": [
+    {
+      "path": "frontend/src/modules/business/deploy/task/useDeployTaskSnapshot.ts",
+      "beforeSHA256": "cb1a487107711798af476edfbe5880b09496e75a8ccb0fc361e3ccc1ba9abbdd",
+      "sha256": "7c9cfa7f05f14f2e3e7424a93fb837600f5dd49cae8bcd1a0bcdad12a31e80d2",
+      "old": "useDeployTaskSnapshot.ts.old.txt",
+      "new": "useDeployTaskSnapshot.ts.new.txt",
+      "diff": "useDeployTaskSnapshot.ts.diff"
+    },
+    {
+      "path": "frontend/tests/unit/business/operational/deploy-detail-read.test.tsx",
+      "beforeSHA256": "e592ec396c47a37a757cce82c9c7b234186c508d1f8ad59ce8bb3d4e2109c343",
+      "sha256": "c0bd5a50f1f1c2c8fb75d32fc8feff625b4b7646b3878b619896e97ce70dfa29",
+      "old": "deploy-detail-read.test.tsx.old.txt",
+      "new": "deploy-detail-read.test.tsx.new.txt",
+      "diff": "deploy-detail-read.test.tsx.diff"
+    },
+    {
+      "path": "frontend/tests/unit/business/operational/deploy-read-revocation.test.tsx",
+      "beforeSHA256": "49fbe4a4baafb9005326a24ee98e14b75b880dc4cdbb88560a79152952400a2e",
+      "sha256": "93af816811cc3bfe2e4133cdee2431eb6abcff3520008118490791e2d865f426",
+      "old": "deploy-read-revocation.test.tsx.old.txt",
+      "new": "deploy-read-revocation.test.tsx.new.txt",
+      "diff": "deploy-read-revocation.test.tsx.diff"
+    }
+  ],
+  "untouchedReviewedFiles": 13,
+  "unchangedOwnedPaths": 43,
+  "protectedPaths": [
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-engine-ownership-plan.md",
+      "beforeSHA256": "a8acfef81ca4a33c6c0681e02f026807a6394a7e8dd570d813af47ace18a3649",
+      "sha256": "a8acfef81ca4a33c6c0681e02f026807a6394a7e8dd570d813af47ace18a3649",
+      "matches": true
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-final-arch-20261110-report.md",
+      "beforeSHA256": "ac49891ffedf3f96cc52e6bd9e1eff923ef224240601cc62c73794780d754ec9",
+      "sha256": "ac49891ffedf3f96cc52e6bd9e1eff923ef224240601cc62c73794780d754ec9",
+      "matches": true
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-final-arch-20261110-report.receipt.json",
+      "beforeSHA256": "60a1a30ae90d00981f8069f3e0fec042ba03c94e9132e50dc4758962aa7be0e4",
+      "sha256": "60a1a30ae90d00981f8069f3e0fec042ba03c94e9132e50dc4758962aa7be0e4",
+      "matches": true
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-final-code-20261110-report.md",
+      "beforeSHA256": "02f6cc6377aaa0d09529d7ddc6573c7f38231320ef9ad76ec89eeaa42e0aa07b",
+      "sha256": "02f6cc6377aaa0d09529d7ddc6573c7f38231320ef9ad76ec89eeaa42e0aa07b",
+      "matches": true
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-final-code-20261110-report.receipt.json",
+      "beforeSHA256": "5ab6b54d0c5e04f0f247aa6646c9fc4418ac2c2ef371c7418def16c332833445",
+      "sha256": "5ab6b54d0c5e04f0f247aa6646c9fc4418ac2c2ef371c7418def16c332833445",
+      "matches": true
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-fix-build-final-current.txt",
+      "beforeSHA256": "6c22d2993a3038d121d201fa176746ce63f783e068ac2b06c206090bec4eeba4",
+      "sha256": "6c22d2993a3038d121d201fa176746ce63f783e068ac2b06c206090bec4eeba4",
+      "matches": true
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-fix-build-final.txt",
+      "beforeSHA256": "90a8f5e008eb345813339475e5c41a7ab0d616b13a1a073fcd21b40bbd16f2d2",
+      "sha256": "90a8f5e008eb345813339475e5c41a7ab0d616b13a1a073fcd21b40bbd16f2d2",
+      "matches": true
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-fix-build.txt",
+      "beforeSHA256": "480ce3bf3a1836bfa3ad2385742a7eef5fc3c7cbac20fa49c5795e7e4cd82b04",
+      "sha256": "480ce3bf3a1836bfa3ad2385742a7eef5fc3c7cbac20fa49c5795e7e4cd82b04",
+      "matches": true
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-fix-context-red.txt",
+      "beforeSHA256": "20ec8e59573aa8c819798b729f4af789795b143d3a1bc2d6a7962a7ebf1fc1b6",
+      "sha256": "20ec8e59573aa8c819798b729f4af789795b143d3a1bc2d6a7962a7ebf1fc1b6",
+      "matches": true
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-fix-detail-unit-first.txt",
+      "beforeSHA256": "64ed6ce4015f42a8f3c934218d013f7f51a404b5d86d3d763d06472ea0d99ce1",
+      "sha256": "64ed6ce4015f42a8f3c934218d013f7f51a404b5d86d3d763d06472ea0d99ce1",
+      "matches": true
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-fix-detail-unit-second.txt",
+      "beforeSHA256": "cb7abd3988f3d0ad49a8923a7aa3ee235946d71e1ceadc211288fa87df3c606d",
+      "sha256": "cb7abd3988f3d0ad49a8923a7aa3ee235946d71e1ceadc211288fa87df3c606d",
+      "matches": true
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-fix-diff-check.txt",
+      "beforeSHA256": "2fe62d1b036b9064d82287f0bb72f28cff1b23af01d6fc0783d1f50c269dd8c5",
+      "sha256": "2fe62d1b036b9064d82287f0bb72f28cff1b23af01d6fc0783d1f50c269dd8c5",
+      "matches": true
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-fix-go-build.txt",
+      "beforeSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "matches": true
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-fix-go-initial.txt",
+      "beforeSHA256": "890f565924c0a5fc2f98188199486979bbbd6c2bf7bea9b07515d0c87c3b7c12",
+      "sha256": "890f565924c0a5fc2f98188199486979bbbd6c2bf7bea9b07515d0c87c3b7c12",
+      "matches": true
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-fix-go-mysql-first.txt",
+      "beforeSHA256": "05e8ea8bae859b72c90b2f98e50b6107956196edc6980223e305c0b98916b16d",
+      "sha256": "05e8ea8bae859b72c90b2f98e50b6107956196edc6980223e305c0b98916b16d",
+      "matches": true
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-fix-go-red.txt",
+      "beforeSHA256": "44d5c571f989cddd0b505a8bb878dbca78131ea4f291b016b59e89ad80e63d21",
+      "sha256": "44d5c571f989cddd0b505a8bb878dbca78131ea4f291b016b59e89ad80e63d21",
+      "matches": true
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-fix-go-vet-final.txt",
+      "beforeSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "matches": true
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-fix-go-vet.txt",
+      "beforeSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "matches": true
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-fix-lint-final-current.txt",
+      "beforeSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "matches": true
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-fix-lint-final.txt",
+      "beforeSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "matches": true
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-fix-lint-first.txt",
+      "beforeSHA256": "1f7de9ea5db9677bc7a992e15cfaa23957b9fe52b9a311d46f46b93970ad1724",
+      "sha256": "1f7de9ea5db9677bc7a992e15cfaa23957b9fe52b9a311d46f46b93970ad1724",
+      "matches": true
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-fix-lint.txt",
+      "beforeSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "matches": true
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-fix-overlay-check.txt",
+      "beforeSHA256": "55ee542cb301d23a24fd6e9278e56ec687d7f91041b98119fb7c4c69aeabf13d",
+      "sha256": "55ee542cb301d23a24fd6e9278e56ec687d7f91041b98119fb7c4c69aeabf13d",
+      "matches": true
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-fix-red-deploy_service.go.txt",
+      "beforeSHA256": "72b874afd74f312ecaf5542414db46c318ca9f297d9f058b6fe8045520183f6c",
+      "sha256": "72b874afd74f312ecaf5542414db46c318ca9f297d9f058b6fe8045520183f6c",
+      "matches": true
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-fix-red-overlay.json",
+      "beforeSHA256": "b8ddd2a67463bfeed5e5463043f27572c1ea798f9f8ac5fc9ecc1337edda206d",
+      "sha256": "b8ddd2a67463bfeed5e5463043f27572c1ea798f9f8ac5fc9ecc1337edda206d",
+      "matches": true
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-fix-red-read_scope.go.txt",
+      "beforeSHA256": "a613a958afc34ccbc1e654433d39b14360df593aad6bce8b5d30c31d5a4c1309",
+      "sha256": "a613a958afc34ccbc1e654433d39b14360df593aad6bce8b5d30c31d5a4c1309",
+      "matches": true
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-fix-review-code-report.md",
+      "beforeSHA256": "259f6f4c3b61616df1d2c664c16e8e4f654f1d1affbf222789a1fd20c5d620fd",
+      "sha256": "259f6f4c3b61616df1d2c664c16e8e4f654f1d1affbf222789a1fd20c5d620fd",
+      "matches": true
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-fix-review-code-report.receipt.json",
+      "beforeSHA256": "753515e5cb4788c292951d78bc8f7f62a5687d8a410e268b1405b454e42e1714",
+      "sha256": "753515e5cb4788c292951d78bc8f7f62a5687d8a410e268b1405b454e42e1714",
+      "matches": true
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-fix-review-engine-arch-report.md",
+      "beforeSHA256": "bed9a128642a1177824195879a2f7140eb66ab351eb342ca0c74f475210a0f5f",
+      "sha256": "bed9a128642a1177824195879a2f7140eb66ab351eb342ca0c74f475210a0f5f",
+      "matches": true
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-fix-review-engine-arch-report.receipt.json",
+      "beforeSHA256": "4af3076a093ed6ef82698cec6efd9f318e1202705e99693288c8ce1e75ed47fe",
+      "sha256": "4af3076a093ed6ef82698cec6efd9f318e1202705e99693288c8ce1e75ed47fe",
+      "matches": true
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-fix-revocation-green.txt",
+      "beforeSHA256": "d5f33849da7d516da584ec089d1d80f361f0316007af6f5b99f40afc5926f55c",
+      "sha256": "d5f33849da7d516da584ec089d1d80f361f0316007af6f5b99f40afc5926f55c",
+      "matches": true
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-fix-scoped-race.txt",
+      "beforeSHA256": "c525b7c5c23b6288000534013044d6f68c8cc1589bdc41523c8ed217aa09ce1f",
+      "sha256": "c525b7c5c23b6288000534013044d6f68c8cc1589bdc41523c8ed217aa09ce1f",
+      "matches": true
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-fix-scoped-target-initial.txt",
+      "beforeSHA256": "109e6b0efa9f73844929b7993a66858fa6932c9e0efbbe18f89081ebf7ef5961",
+      "sha256": "109e6b0efa9f73844929b7993a66858fa6932c9e0efbbe18f89081ebf7ef5961",
+      "matches": true
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-fix-target-race-final.txt",
+      "beforeSHA256": "0f58f1c05c9ef46881c0c5ad6a7be40dcf345cfa5b9500d446852f230aabca92",
+      "sha256": "0f58f1c05c9ef46881c0c5ad6a7be40dcf345cfa5b9500d446852f230aabca92",
+      "matches": true
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-fix-test-types-final-current.txt",
+      "beforeSHA256": "c9ac2573258177b8cd86fe21b5c06547ab3ddfee52bb3b08e669ef2d9dea9404",
+      "sha256": "c9ac2573258177b8cd86fe21b5c06547ab3ddfee52bb3b08e669ef2d9dea9404",
+      "matches": true
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-fix-test-types-final.txt",
+      "beforeSHA256": "c9ac2573258177b8cd86fe21b5c06547ab3ddfee52bb3b08e669ef2d9dea9404",
+      "sha256": "c9ac2573258177b8cd86fe21b5c06547ab3ddfee52bb3b08e669ef2d9dea9404",
+      "matches": true
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-fix-test-types.txt",
+      "beforeSHA256": "7d59d38a390b3ffeb995063dab88499816a6b5347afc62380463c7d9473765f2",
+      "sha256": "7d59d38a390b3ffeb995063dab88499816a6b5347afc62380463c7d9473765f2",
+      "matches": true
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-fix-typecheck.txt",
+      "beforeSHA256": "94d7e0ba308969aef5be19127663f1eb2c0b1e8d9e4f8781561cc44a964b7281",
+      "sha256": "94d7e0ba308969aef5be19127663f1eb2c0b1e8d9e4f8781561cc44a964b7281",
+      "matches": true
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-fix-units-final-current.txt",
+      "beforeSHA256": "542c8a8a91ee6e0406b736d7b86dbbd5302e0779e41dc7d09772a8a4ca239a19",
+      "sha256": "542c8a8a91ee6e0406b736d7b86dbbd5302e0779e41dc7d09772a8a4ca239a19",
+      "matches": true
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-fix-units-final.txt",
+      "beforeSHA256": "4beef1d232f1b6ed645f761e08daff0dc6ac3efad5955f7dcb262953a82f3e4b",
+      "sha256": "4beef1d232f1b6ed645f761e08daff0dc6ac3efad5955f7dcb262953a82f3e4b",
+      "matches": true
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-fix-units-first.txt",
+      "beforeSHA256": "fc8dd7730998bde8c54285f5537bfe4f614c41a9efaea74ef179088bdb024cef",
+      "sha256": "fc8dd7730998bde8c54285f5537bfe4f614c41a9efaea74ef179088bdb024cef",
+      "matches": true
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-fix-units-green.txt",
+      "beforeSHA256": "902ad23bc135a108a3dbc2801a52cf62a780d1c27c743e437199da4ec562bd27",
+      "sha256": "902ad23bc135a108a3dbc2801a52cf62a780d1c27c743e437199da4ec562bd27",
+      "matches": true
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-review-blockers-before.json",
+      "beforeSHA256": "db2ae5391e8a7fbb3af0fb31b49d25ed66ef70123499209cedf2a8b8811441a4",
+      "sha256": "db2ae5391e8a7fbb3af0fb31b49d25ed66ef70123499209cedf2a8b8811441a4",
+      "matches": true
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-review-blockers-fix-handoff.md",
+      "beforeSHA256": "a1b499f52b664576ccbf72f4ad2a6a69d1051889d9ad7dc0e2dc8966b34436c7",
+      "sha256": "a1b499f52b664576ccbf72f4ad2a6a69d1051889d9ad7dc0e2dc8966b34436c7",
+      "matches": true
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-review-blockers-fix-hashes.json",
+      "beforeSHA256": "2478846b345e336369a5890645f5a42b898713e9b2ebc01089e89175fc49af25",
+      "sha256": "2478846b345e336369a5890645f5a42b898713e9b2ebc01089e89175fc49af25",
+      "matches": true
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-review-blockers-fix-report.md",
+      "beforeSHA256": "0b5e8dd813c79cd50f9553c03970f5e78d353f612f82138fe9ed17e241a45009",
+      "sha256": "0b5e8dd813c79cd50f9553c03970f5e78d353f612f82138fe9ed17e241a45009",
+      "matches": true
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-review-blockers-fix-report.receipt.json",
+      "beforeSHA256": "198c0fdbad7753ab9204d14b19bb40eb6984c3337ef2edd4b42a8d5e2da3de40",
+      "sha256": "198c0fdbad7753ab9204d14b19bb40eb6984c3337ef2edd4b42a8d5e2da3de40",
+      "matches": true
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-scope-fix-generator-report.md",
+      "beforeSHA256": "f840a4ddf0b84fd01c81526e26e3c4d3aa338aed836bfd14391e611959f08f6d",
+      "sha256": "f840a4ddf0b84fd01c81526e26e3c4d3aa338aed836bfd14391e611959f08f6d",
+      "matches": true
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-scope-fix-generator-report.receipt.json",
+      "beforeSHA256": "de2d51a3d2212d82cf0bcaf52401c3b3d5a9c514953c0d78e28cea17111e350e",
+      "sha256": "de2d51a3d2212d82cf0bcaf52401c3b3d5a9c514953c0d78e28cea17111e350e",
+      "matches": true
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-server-readiness-20261110T005425837948.json",
+      "beforeSHA256": "d195de12e9178b76eda2de2aae66ec65a87713f34e3041f1f51404c99271612c",
+      "sha256": "d195de12e9178b76eda2de2aae66ec65a87713f34e3041f1f51404c99271612c",
+      "matches": true
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-v6-generator-report.md",
+      "beforeSHA256": "d556e30ff76e99da237feb66d1fef6689e14ba2b9fa8d5ca921720e8b0ecb4bc",
+      "sha256": "d556e30ff76e99da237feb66d1fef6689e14ba2b9fa8d5ca921720e8b0ecb4bc",
+      "matches": true
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-v6-generator-report.receipt.json",
+      "beforeSHA256": "cbe18ba30ad53b460dee9a66bd62ffd8cc7d1302cf4a3b20a1195ac8cfbe3c2a",
+      "sha256": "cbe18ba30ad53b460dee9a66bd62ffd8cc7d1302cf4a3b20a1195ac8cfbe3c2a",
+      "matches": true
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-v6-phase-request.json",
+      "beforeSHA256": "1c0c0e3b8a71730d43d9f26f62e6cf323b7b8c6949026aacf433f0f05d5f41e9",
+      "sha256": "1c0c0e3b8a71730d43d9f26f62e6cf323b7b8c6949026aacf433f0f05d5f41e9",
+      "matches": true
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-v6-readiness.json",
+      "beforeSHA256": "8ba3479b2da474745f93a1dce97c566c0a5da478d967e01b02006f1c13e17923",
+      "sha256": "8ba3479b2da474745f93a1dce97c566c0a5da478d967e01b02006f1c13e17923",
+      "matches": true
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-v6-readiness.md",
+      "beforeSHA256": "673056decea41df8d0bb25d736abeed22d0c47eb673b60d2c53b9f1eb50fa941",
+      "sha256": "673056decea41df8d0bb25d736abeed22d0c47eb673b60d2c53b9f1eb50fa941",
+      "matches": true
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-v6-v5-failure-analysis.json",
+      "beforeSHA256": "b96d4aea277502727b9bf68372423245ce540d73dea177e696db36d530d3e3b3",
+      "sha256": "b96d4aea277502727b9bf68372423245ce540d73dea177e696db36d530d3e3b3",
+      "matches": true
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-v7-artifact-contract.json",
+      "beforeSHA256": "789c0fa7fc7009d34a9c1b0732fbd3160feb24a6a78670feffa6f27148bec688",
+      "sha256": "789c0fa7fc7009d34a9c1b0732fbd3160feb24a6a78670feffa6f27148bec688",
+      "matches": true
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-v7-diagnostics-0.txt",
+      "beforeSHA256": "fb5cf50490c755d1ae2dc1e6bfbd9c62fe46dcd968b764cd03f61fb61c8eb9f6",
+      "sha256": "fb5cf50490c755d1ae2dc1e6bfbd9c62fe46dcd968b764cd03f61fb61c8eb9f6",
+      "matches": true
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-v7-diagnostics-1.txt",
+      "beforeSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "matches": true
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-v7-diagnostics-2.txt",
+      "beforeSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "matches": true
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-v7-diagnostics-final-0.txt",
+      "beforeSHA256": "fb5cf50490c755d1ae2dc1e6bfbd9c62fe46dcd968b764cd03f61fb61c8eb9f6",
+      "sha256": "fb5cf50490c755d1ae2dc1e6bfbd9c62fe46dcd968b764cd03f61fb61c8eb9f6",
+      "matches": true
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-v7-diagnostics-final-1.txt",
+      "beforeSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "matches": true
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-v7-diagnostics-final-2.txt",
+      "beforeSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "matches": true
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-v7-diagnostics-final.json",
+      "beforeSHA256": "119aa469e465c013096f8c846be1a6f27a6963b60d383bf764c6ba86c13d0a51",
+      "sha256": "119aa469e465c013096f8c846be1a6f27a6963b60d383bf764c6ba86c13d0a51",
+      "matches": true
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-v7-diagnostics.json",
+      "beforeSHA256": "64cbe58df81dc36e89105d772add2d9727a8a4dd47b306b8bc69c11245842dd3",
+      "sha256": "64cbe58df81dc36e89105d772add2d9727a8a4dd47b306b8bc69c11245842dd3",
+      "matches": true
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-v7-generator-report.md",
+      "beforeSHA256": "1f56ba8afafd771a7c3053b9f4c80dbd60265af909de81d02518b07a9164a496",
+      "sha256": "1f56ba8afafd771a7c3053b9f4c80dbd60265af909de81d02518b07a9164a496",
+      "matches": true
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-v7-generator-report.receipt.json",
+      "beforeSHA256": "066b2aa7324cdadc2bdb34bca19c582e764f26611bfe6a92d048fdebe570bec1",
+      "sha256": "066b2aa7324cdadc2bdb34bca19c582e764f26611bfe6a92d048fdebe570bec1",
+      "matches": true
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-v7-green-final-0.txt",
+      "beforeSHA256": "cbfa0d9acac9820872568750c873faa992d13c5228a73edb908224924bdb3f7d",
+      "sha256": "cbfa0d9acac9820872568750c873faa992d13c5228a73edb908224924bdb3f7d",
+      "matches": true
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-v7-green-final-1.txt",
+      "beforeSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "matches": true
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-v7-green-final-2.txt",
+      "beforeSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "matches": true
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-v7-green-final.json",
+      "beforeSHA256": "779767a7e1dcafb222cb5a80fb07873317e0cd7fe667c8a236e76bd8c0c77a9f",
+      "sha256": "779767a7e1dcafb222cb5a80fb07873317e0cd7fe667c8a236e76bd8c0c77a9f",
+      "matches": true
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-v7-green1-0.txt",
+      "beforeSHA256": "ea13ac2015108f56121d9e10c0656ffa9925a07f61ab5770c468f14ae1ea9fe1",
+      "sha256": "ea13ac2015108f56121d9e10c0656ffa9925a07f61ab5770c468f14ae1ea9fe1",
+      "matches": true
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-v7-green1-1.txt",
+      "beforeSHA256": "a762f35505a9367879bfda7d456c87de51b813b9cfa0475325eec2952dfba098",
+      "sha256": "a762f35505a9367879bfda7d456c87de51b813b9cfa0475325eec2952dfba098",
+      "matches": true
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-v7-green1-2.txt",
+      "beforeSHA256": "a762f35505a9367879bfda7d456c87de51b813b9cfa0475325eec2952dfba098",
+      "sha256": "a762f35505a9367879bfda7d456c87de51b813b9cfa0475325eec2952dfba098",
+      "matches": true
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-v7-green1.json",
+      "beforeSHA256": "9b1b35228a47deddca1633ceb97baf2c0881f10e27f7889cb156dcfe122b4b59",
+      "sha256": "9b1b35228a47deddca1633ceb97baf2c0881f10e27f7889cb156dcfe122b4b59",
+      "matches": true
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-v7-phase-request.json",
+      "beforeSHA256": "5e73aad55cf142607027c5c8f883e03e3c8b3e6e7e78ea7608356c8ae41620d4",
+      "sha256": "5e73aad55cf142607027c5c8f883e03e3c8b3e6e7e78ea7608356c8ae41620d4",
+      "matches": true
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-v7-prior-hashes.json",
+      "beforeSHA256": "a2e4e55ec503e2e27404e49f44cc71e6e669d9501db919c31c7a1ccff9b00ff8",
+      "sha256": "a2e4e55ec503e2e27404e49f44cc71e6e669d9501db919c31c7a1ccff9b00ff8",
+      "matches": true
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-v7-readiness.json",
+      "beforeSHA256": "c10b6c935500c919adca443669fef78d9cfc47ff4f02fdf0b6840a3539781fcf",
+      "sha256": "c10b6c935500c919adca443669fef78d9cfc47ff4f02fdf0b6840a3539781fcf",
+      "matches": true
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-v7-red-0.txt",
+      "beforeSHA256": "a31b6d68895446ff905a1dfc4c8266b2db392d268d9717d1c23585bd5af05225",
+      "sha256": "a31b6d68895446ff905a1dfc4c8266b2db392d268d9717d1c23585bd5af05225",
+      "matches": true
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-v7-red-analysis.json",
+      "beforeSHA256": "28f97693b7db948d5b29481a822b548dbc06fd95c9356d6dce39504cd5a2cee9",
+      "sha256": "28f97693b7db948d5b29481a822b548dbc06fd95c9356d6dce39504cd5a2cee9",
+      "matches": true
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-v7-red.json",
+      "beforeSHA256": "ec2fa2e8ef8d4abeaac99c69e1054ca48593a389e98a99cabf6357d4ec69e899",
+      "sha256": "ec2fa2e8ef8d4abeaac99c69e1054ca48593a389e98a99cabf6357d4ec69e899",
+      "matches": true
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-v8-build-ready-result.json",
+      "beforeSHA256": "fc64bb31f35eff8b808868fb6701f43130ecc5caa19071008de8fd3302393ac5",
+      "sha256": "fc64bb31f35eff8b808868fb6701f43130ecc5caa19071008de8fd3302393ac5",
+      "matches": true
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-v8-build-ready-source-after.json",
+      "beforeSHA256": "17b4af459b818ecfd697f35ce8faedf8a86cf57856bc40d462eafc06c6d73483",
+      "sha256": "17b4af459b818ecfd697f35ce8faedf8a86cf57856bc40d462eafc06c6d73483",
+      "matches": true
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-v8-candidate-offline-final.json",
+      "beforeSHA256": "b027cd5d16e183881521dea1caa1def83004c6942d8f0e09e2e11670c62a0d00",
+      "sha256": "b027cd5d16e183881521dea1caa1def83004c6942d8f0e09e2e11670c62a0d00",
+      "matches": true
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-v8-candidate-verification.json",
+      "beforeSHA256": "a940d9f673e231aa479a94adcc506cce85deab900422577489d73389668db756",
+      "sha256": "a940d9f673e231aa479a94adcc506cce85deab900422577489d73389668db756",
+      "matches": true
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-v8-candidate-verify-0.txt",
+      "beforeSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "matches": true
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-v8-candidate-verify-1.txt",
+      "beforeSHA256": "873ea6572460b97f0eac58ec30103ec62e695de5b7090d5566c1dec88e59c036",
+      "sha256": "873ea6572460b97f0eac58ec30103ec62e695de5b7090d5566c1dec88e59c036",
+      "matches": true
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-v8-candidate-verify-2.txt",
+      "beforeSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "matches": true
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-v8-candidate-verify-3.txt",
+      "beforeSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "matches": true
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-v8-case-cancel-0e2ebc53350e.json",
+      "beforeSHA256": "349b38968c3f8c9ffc809a226f06127a060626f78d87d1f78dd24cccf874367c",
+      "sha256": "349b38968c3f8c9ffc809a226f06127a060626f78d87d1f78dd24cccf874367c",
+      "matches": true
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-v8-case-cold-restart-0e2ebc53350e.json",
+      "beforeSHA256": "08317a31f1370034d175e6bd49cab1d4be784307686b81ba44ac4487d8a4ae81",
+      "sha256": "08317a31f1370034d175e6bd49cab1d4be784307686b81ba44ac4487d8a4ae81",
+      "matches": true
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-v8-case-concurrent-0e2ebc53350e.json",
+      "beforeSHA256": "2b2eae0dad11b930f2b85c939e3869a7f2b8d6c4e80481265a8e13cfb867097d",
+      "sha256": "2b2eae0dad11b930f2b85c939e3869a7f2b8d6c4e80481265a8e13cfb867097d",
+      "matches": true
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-v8-case-failure-retry-0e2ebc53350e.json",
+      "beforeSHA256": "7dce0d74249311dc2755df7a693deb9c72c3cd63e41560811ab9d58db9d7addb",
+      "sha256": "7dce0d74249311dc2755df7a693deb9c72c3cd63e41560811ab9d58db9d7addb",
+      "matches": true
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-v8-case-hostkey-negative-0e2ebc53350e.json",
+      "beforeSHA256": "e59e25713de885eee246295532a0a61c4e71ec99658907a10d6e3951ae3f11ca",
+      "sha256": "e59e25713de885eee246295532a0a61c4e71ec99658907a10d6e3951ae3f11ca",
+      "matches": true
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-v8-case-pause-resume-0e2ebc53350e.json",
+      "beforeSHA256": "5f7a2af950fe83eed3c129980d8938922b9abffc1d29d0f0c23ca93c68e74b07",
+      "sha256": "5f7a2af950fe83eed3c129980d8938922b9abffc1d29d0f0c23ca93c68e74b07",
+      "matches": true
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-v8-case-revoke-credential-0e2ebc53350e.json",
+      "beforeSHA256": "67ba9adc70610ec418a3d59f6beb1eb967ab2caa2ce1d710732e747b59f3dbc3",
+      "sha256": "67ba9adc70610ec418a3d59f6beb1eb967ab2caa2ce1d710732e747b59f3dbc3",
+      "matches": true
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-v8-case-revoke-host-0e2ebc53350e.json",
+      "beforeSHA256": "8e30d4aec5b0154dbe9c86c889bda5ef1d87d7ef7db4e9ebf06d165c6ef677d3",
+      "sha256": "8e30d4aec5b0154dbe9c86c889bda5ef1d87d7ef7db4e9ebf06d165c6ef677d3",
+      "matches": true
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-v8-case-revoke-rotation-0e2ebc53350e.json",
+      "beforeSHA256": "bc3e17a747f33780899b32b8e8dcd39f816c44f57126698292df01c1682f2b26",
+      "sha256": "bc3e17a747f33780899b32b8e8dcd39f816c44f57126698292df01c1682f2b26",
+      "matches": true
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-v8-case-revoke-source-0e2ebc53350e.json",
+      "beforeSHA256": "68ef326dcc878c1f92b177e89759a89f3ea30e197ab62d4abdfab27cc75116a8",
+      "sha256": "68ef326dcc878c1f92b177e89759a89f3ea30e197ab62d4abdfab27cc75116a8",
+      "matches": true
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-v8-case-start-negative-0e2ebc53350e.json",
+      "beforeSHA256": "a99ea6ab6a653569563e5aad68630e3096fa082d6df429927030b58e8c458a5c",
+      "sha256": "a99ea6ab6a653569563e5aad68630e3096fa082d6df429927030b58e8c458a5c",
+      "matches": true
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-v8-case-success-0e2ebc53350e.json",
+      "beforeSHA256": "18a88647898a7c97dddcaf21b0adb31941a9c990bc302a86caa608356119c602",
+      "sha256": "18a88647898a7c97dddcaf21b0adb31941a9c990bc302a86caa608356119c602",
+      "matches": true
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-v8-diagnosis-closeout.json",
+      "beforeSHA256": "74c5619cec8ec51c798fff3cacb846a9f9ae00761dc94fedd6f2820a07ec28f5",
+      "sha256": "74c5619cec8ec51c798fff3cacb846a9f9ae00761dc94fedd6f2820a07ec28f5",
+      "matches": true
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-v8-diagnosis-handoff.md",
+      "beforeSHA256": "77637e2b9335824908d194250af84ee4b417fc1739f5ee1aa64d614ad14da0e0",
+      "sha256": "77637e2b9335824908d194250af84ee4b417fc1739f5ee1aa64d614ad14da0e0",
+      "matches": true
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-v8-diagnosis-report.md",
+      "beforeSHA256": "db97d97da2228d981d05aad23c1028aa51095cbba041e5a99a7eef3fc87c5d78",
+      "sha256": "db97d97da2228d981d05aad23c1028aa51095cbba041e5a99a7eef3fc87c5d78",
+      "matches": true
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-v8-diagnosis-report.receipt.json",
+      "beforeSHA256": "3a9a71e6b3d91d9e36e52107743c87053760818d09f8f7b01a128df2a303a2cf",
+      "sha256": "3a9a71e6b3d91d9e36e52107743c87053760818d09f8f7b01a128df2a303a2cf",
+      "matches": true
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-v8-matrix-result-0e2ebc53350e.json",
+      "beforeSHA256": "ddfeee2257574cd831ec2758aea9731b1f89a53c85753d8967c3b1517db3bba8",
+      "sha256": "ddfeee2257574cd831ec2758aea9731b1f89a53c85753d8967c3b1517db3bba8",
+      "matches": true
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-v8-receipt-analysis.json",
+      "beforeSHA256": "5fb2742c5ffa4f9fb9c3c1eb536deb3e8fcc6d629ba571faacf916309fff7710",
+      "sha256": "5fb2742c5ffa4f9fb9c3c1eb536deb3e8fcc6d629ba571faacf916309fff7710",
+      "matches": true
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-v8-retained-db-diagnosis.json",
+      "beforeSHA256": "0a830e699a41822e71914f729f3dcb64748555713f897a3949423a28c872935a",
+      "sha256": "0a830e699a41822e71914f729f3dcb64748555713f897a3949423a28c872935a",
+      "matches": true
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-v8-root-phase-request.json",
+      "beforeSHA256": "a72322b49e83ed9d5c347f477e34d0c7e005a499bd4f47b23dede5c420f181b4",
+      "sha256": "a72322b49e83ed9d5c347f477e34d0c7e005a499bd4f47b23dede5c420f181b4",
+      "matches": true
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-v9-build-ready-result.json",
+      "beforeSHA256": "9ba376368fb8b2838c5e4d0a1e2e6fc4a55a4d45f339e67c3e1e65a1307acf1f",
+      "sha256": "9ba376368fb8b2838c5e4d0a1e2e6fc4a55a4d45f339e67c3e1e65a1307acf1f",
+      "matches": true
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-v9-build-ready-source-after.json",
+      "beforeSHA256": "73d338a0a3bf52781d21aa02bfc6d40205cca4b1fde7a357d480853ee63e8c80",
+      "sha256": "73d338a0a3bf52781d21aa02bfc6d40205cca4b1fde7a357d480853ee63e8c80",
+      "matches": true
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-v9-build-ready-source-before.json",
+      "beforeSHA256": "73d338a0a3bf52781d21aa02bfc6d40205cca4b1fde7a357d480853ee63e8c80",
+      "sha256": "73d338a0a3bf52781d21aa02bfc6d40205cca4b1fde7a357d480853ee63e8c80",
+      "matches": true
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-v9-candidate-offline-final.json",
+      "beforeSHA256": "84191e4bcac9101d8890f02a29c962d08ac910a5a5c932d2a24451ae29e23e14",
+      "sha256": "84191e4bcac9101d8890f02a29c962d08ac910a5a5c932d2a24451ae29e23e14",
+      "matches": true
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-v9-candidate-verification-1794274678887620900.json",
+      "beforeSHA256": "e533e5427624357cf0385d395344f842b61aca83980c145a00fa9e466873d34b",
+      "sha256": "e533e5427624357cf0385d395344f842b61aca83980c145a00fa9e466873d34b",
+      "matches": true
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-v9-candidate-verification.json",
+      "beforeSHA256": "8dfab370e97bbca9280012c10c39abe1d57de7e6e0d4af7b4f90b12f493db39a",
+      "sha256": "8dfab370e97bbca9280012c10c39abe1d57de7e6e0d4af7b4f90b12f493db39a",
+      "matches": true
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-v9-candidate.diff",
+      "beforeSHA256": "694f389fd9eb83bbfaab026c3223ca169c6136217dacb7afdfe42b1a37d80346",
+      "sha256": "694f389fd9eb83bbfaab026c3223ca169c6136217dacb7afdfe42b1a37d80346",
+      "matches": true
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-v9-case-cancel-1815605de83a.json",
+      "beforeSHA256": "e587802d2b4e0f7e6ba196ca168c640509d5a320db4082aa617f12028d999096",
+      "sha256": "e587802d2b4e0f7e6ba196ca168c640509d5a320db4082aa617f12028d999096",
+      "matches": true
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-v9-case-cold-restart-1815605de83a.json",
+      "beforeSHA256": "f167cc4d4a75aef6606bebb285c57c3f650a3b1bace3ebdbc74c4e60c9ee7e76",
+      "sha256": "f167cc4d4a75aef6606bebb285c57c3f650a3b1bace3ebdbc74c4e60c9ee7e76",
+      "matches": true
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-v9-case-concurrent-1815605de83a.json",
+      "beforeSHA256": "fa55e49bc5d76d5f18010acbe836d646231e867f149463c69a91f8f45950a47c",
+      "sha256": "fa55e49bc5d76d5f18010acbe836d646231e867f149463c69a91f8f45950a47c",
+      "matches": true
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-v9-case-failure-retry-1815605de83a.json",
+      "beforeSHA256": "78bdd566e766757e4d346cfa2d54a431a574b053d7bccd8f3516742876b3e06c",
+      "sha256": "78bdd566e766757e4d346cfa2d54a431a574b053d7bccd8f3516742876b3e06c",
+      "matches": true
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-v9-case-hostkey-negative-1815605de83a.json",
+      "beforeSHA256": "90bf84efe511dc89a172de38e4ffb6d856dbceb6c092d7fc58a2efd38bd1768f",
+      "sha256": "90bf84efe511dc89a172de38e4ffb6d856dbceb6c092d7fc58a2efd38bd1768f",
+      "matches": true
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-v9-case-pause-resume-1815605de83a.json",
+      "beforeSHA256": "28a9ad8642f9b0076e90598246f4028af6cdf86243586d449b73022ae904bf75",
+      "sha256": "28a9ad8642f9b0076e90598246f4028af6cdf86243586d449b73022ae904bf75",
+      "matches": true
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-v9-case-revoke-credential-1815605de83a.json",
+      "beforeSHA256": "bad3c92d65538bb374eddf2a905b850510a78dd7cff98ea84b82ee5b10fb65f8",
+      "sha256": "bad3c92d65538bb374eddf2a905b850510a78dd7cff98ea84b82ee5b10fb65f8",
+      "matches": true
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-v9-case-revoke-host-1815605de83a.json",
+      "beforeSHA256": "351bf2bd5620f4e2b203f69e511af42f2d2e00b6715f967606fe4e5ec62e9c13",
+      "sha256": "351bf2bd5620f4e2b203f69e511af42f2d2e00b6715f967606fe4e5ec62e9c13",
+      "matches": true
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-v9-case-revoke-rotation-1815605de83a.json",
+      "beforeSHA256": "ec36ed7a920b3d0960b663d49dc5ebbef6c2e7d7b1a015993356bc5a4cb55515",
+      "sha256": "ec36ed7a920b3d0960b663d49dc5ebbef6c2e7d7b1a015993356bc5a4cb55515",
+      "matches": true
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-v9-case-revoke-source-1815605de83a.json",
+      "beforeSHA256": "3a88abd6d36a57e509239a87575e9b9b5373f5622ee01996486a999feab08bcb",
+      "sha256": "3a88abd6d36a57e509239a87575e9b9b5373f5622ee01996486a999feab08bcb",
+      "matches": true
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-v9-case-start-negative-1815605de83a.json",
+      "beforeSHA256": "48d64968016210dcdfa77b0dc412d5bdd868053e271aa05ac1c5650dd3d8fbcc",
+      "sha256": "48d64968016210dcdfa77b0dc412d5bdd868053e271aa05ac1c5650dd3d8fbcc",
+      "matches": true
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-v9-case-success-1815605de83a.json",
+      "beforeSHA256": "461392c005b66e2f313942896a28ac2eec6b0fce587caeaa42427e2422caef25",
+      "sha256": "461392c005b66e2f313942896a28ac2eec6b0fce587caeaa42427e2422caef25",
+      "matches": true
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-v9-continuation-preserved-before.json",
+      "beforeSHA256": "cdbe5fef9d2ff368019e103587efa7f33766910b40858c368d4d42fa9a3fb67a",
+      "sha256": "cdbe5fef9d2ff368019e103587efa7f33766910b40858c368d4d42fa9a3fb67a",
+      "matches": true
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-v9-failed-verification-1794273737440186200.json",
+      "beforeSHA256": "66dab6e8863e789d5aed1139e7fb56091f3986aa28c723c644021038cbd3391c",
+      "sha256": "66dab6e8863e789d5aed1139e7fb56091f3986aa28c723c644021038cbd3391c",
+      "matches": true
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-v9-failed-verification-1794273852572054400.json",
+      "beforeSHA256": "8338e17f9da467209c35379e98efd52d40ed59b988fb0f659432cdb50d0d04d5",
+      "sha256": "8338e17f9da467209c35379e98efd52d40ed59b988fb0f659432cdb50d0d04d5",
+      "matches": true
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-v9-failed-verification-1794273871455159300.json",
+      "beforeSHA256": "ae68f3a57707d77f124061544cad768691288558677230d7d0054108b0bd83e2",
+      "sha256": "ae68f3a57707d77f124061544cad768691288558677230d7d0054108b0bd83e2",
+      "matches": true
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-v9-final-root-check.txt",
+      "beforeSHA256": "81cb747ea7561238fb294e650c4651947014b5d264229413fd3dd1e28a557b87",
+      "sha256": "81cb747ea7561238fb294e650c4651947014b5d264229413fd3dd1e28a557b87",
+      "matches": true
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-v9-generator-report.md",
+      "beforeSHA256": "6207ab1eb44a1462b2c6b54811a1b7c727921d3b6c3dfd8f6f92d85e883ffd3e",
+      "sha256": "6207ab1eb44a1462b2c6b54811a1b7c727921d3b6c3dfd8f6f92d85e883ffd3e",
+      "matches": true
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-v9-generator-report.receipt.json",
+      "beforeSHA256": "a544e0d33cea2ee0887d20738fbb097de6a1b5f25ec7263adcb21788f53e4187",
+      "sha256": "a544e0d33cea2ee0887d20738fbb097de6a1b5f25ec7263adcb21788f53e4187",
+      "matches": true
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-v9-handoff.md",
+      "beforeSHA256": "e24e8e6b7512473a0c3fc2b0eaa89c9d3e8b33d7010435648f2b234dd0afb150",
+      "sha256": "e24e8e6b7512473a0c3fc2b0eaa89c9d3e8b33d7010435648f2b234dd0afb150",
+      "matches": true
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-v9-local-closeout.json",
+      "beforeSHA256": "7b96f7d7254288e3e3c14d079d3235352781c5601ca7bac10ca379cc8121d88f",
+      "sha256": "7b96f7d7254288e3e3c14d079d3235352781c5601ca7bac10ca379cc8121d88f",
+      "matches": true
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-v9-matrix-result-1815605de83a.json",
+      "beforeSHA256": "c3d169b12e82f0e6a60952393a104522be4d92e9d9138c7a08f7951ab529d043",
+      "sha256": "c3d169b12e82f0e6a60952393a104522be4d92e9d9138c7a08f7951ab529d043",
+      "matches": true
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-v9-preservation-generator-report.md",
+      "beforeSHA256": "a52ee0f3b6b2dd6530200aa900be5fa9013261d233050ec1c01eab5e12598ef5",
+      "sha256": "a52ee0f3b6b2dd6530200aa900be5fa9013261d233050ec1c01eab5e12598ef5",
+      "matches": true
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-v9-preservation-generator-report.receipt.json",
+      "beforeSHA256": "6f0160a0040ab16dd18128f1562ecc8c5bab215ae2f8ed386b3fd94236a4f9de",
+      "sha256": "6f0160a0040ab16dd18128f1562ecc8c5bab215ae2f8ed386b3fd94236a4f9de",
+      "matches": true
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-v9-preservation-handoff.md",
+      "beforeSHA256": "c2b870fb1c8395b929b9c118acbc6e0f9f5b0f65d242ac82b4b8dd49b55f16b9",
+      "sha256": "c2b870fb1c8395b929b9c118acbc6e0f9f5b0f65d242ac82b4b8dd49b55f16b9",
+      "matches": true
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-v9-preserved-before.json",
+      "beforeSHA256": "070c6238fea4470395f1b30c6e78ec8067e4764d3f45267ad7ef06c364b2f177",
+      "sha256": "070c6238fea4470395f1b30c6e78ec8067e4764d3f45267ad7ef06c364b2f177",
+      "matches": true
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-v9-process-exits.json",
+      "beforeSHA256": "66bb7f91af93491aebeda965485d128e72caecf5ea1bc6b364a111053a6d65b7",
+      "sha256": "66bb7f91af93491aebeda965485d128e72caecf5ea1bc6b364a111053a6d65b7",
+      "matches": true
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-v9-root-candidate-check.txt",
+      "beforeSHA256": "81cb747ea7561238fb294e650c4651947014b5d264229413fd3dd1e28a557b87",
+      "sha256": "81cb747ea7561238fb294e650c4651947014b5d264229413fd3dd1e28a557b87",
+      "matches": true
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-v9-root-phase-request.json",
+      "beforeSHA256": "46aba1c0f2e5c451898e9b0efb54e32206f6e5219b268b27b581bbed037d64e2",
+      "sha256": "46aba1c0f2e5c451898e9b0efb54e32206f6e5219b268b27b581bbed037d64e2",
+      "matches": true
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-v9-root-reviewed-check.txt",
+      "beforeSHA256": "d64aec83b45ea75726e0f3d629b21462309f5093c334f4961b8526bd1a03a2f3",
+      "sha256": "d64aec83b45ea75726e0f3d629b21462309f5093c334f4961b8526bd1a03a2f3",
+      "matches": true
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-v9-root-reviewed-phase-request.json",
+      "beforeSHA256": "807c967f6ce2993366c5cf76573e939bff43dd2e1c6bdcc438035e18e215eada",
+      "sha256": "807c967f6ce2993366c5cf76573e939bff43dd2e1c6bdcc438035e18e215eada",
+      "matches": true
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-v9-verify-1794273737440186200-0.txt",
+      "beforeSHA256": "9b37cc5d7b2bb624ff5896d4bedede5f1c55f52ec62b6feab9926bf3be64af4e",
+      "sha256": "9b37cc5d7b2bb624ff5896d4bedede5f1c55f52ec62b6feab9926bf3be64af4e",
+      "matches": true
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-v9-verify-1794273852572054400-0.txt",
+      "beforeSHA256": "719a3d9a80108d6f7767ab9cc9f48163c8b32ce924b583d76f4de662a8939285",
+      "sha256": "719a3d9a80108d6f7767ab9cc9f48163c8b32ce924b583d76f4de662a8939285",
+      "matches": true
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-v9-verify-1794273871455159300-0.txt",
+      "beforeSHA256": "ebd408c950a3f89659fd4a7c4a2caac69252759919e26362f1389f9322630579",
+      "sha256": "ebd408c950a3f89659fd4a7c4a2caac69252759919e26362f1389f9322630579",
+      "matches": true
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-v9-verify-1794274208029252500-0.txt",
+      "beforeSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "matches": true
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-v9-verify-1794274208029252500-1.txt",
+      "beforeSHA256": "21eb04b41d8b6027c1217a37f13ed6fe418fc616b76362113dd18ae5fa6919e4",
+      "sha256": "21eb04b41d8b6027c1217a37f13ed6fe418fc616b76362113dd18ae5fa6919e4",
+      "matches": true
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-v9-verify-1794274208029252500-2.txt",
+      "beforeSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "matches": true
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-v9-verify-1794274208029252500-3.txt",
+      "beforeSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "matches": true
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-v9-verify-1794274678887620900-0.txt",
+      "beforeSHA256": "4f78d31f22eee2b2dbc4b8d543b14077a17ac68a6faefbd871b27426e9d6bff7",
+      "sha256": "4f78d31f22eee2b2dbc4b8d543b14077a17ac68a6faefbd871b27426e9d6bff7",
+      "matches": true
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-v9-verify-1794274678887620900-1.txt",
+      "beforeSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "matches": true
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-v9-verify-1794274678887620900-2.txt",
+      "beforeSHA256": "c3a7ce6893b7714be9d50372a5266898387d4b11a5aeae0e7f99dc3a345c87e6",
+      "sha256": "c3a7ce6893b7714be9d50372a5266898387d4b11a5aeae0e7f99dc3a345c87e6",
+      "matches": true
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-v9-verify-1794274678887620900-3.txt",
+      "beforeSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "matches": true
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-v9-verify-1794274678887620900-4.txt",
+      "beforeSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "matches": true
+    },
+    {
+      "path": ".local/ops-acceptance/resume-o2-v9-root-reviewed-phase-request.json",
+      "beforeSHA256": "807c967f6ce2993366c5cf76573e939bff43dd2e1c6bdcc438035e18e215eada",
+      "sha256": "807c967f6ce2993366c5cf76573e939bff43dd2e1c6bdcc438035e18e215eada",
+      "matches": true
+    },
+    {
+      "path": "backend/modules/business/deploy/deploy.go",
+      "beforeSHA256": "2496bbe833477eb317d1cd999120cf7bbdf29fbe4db32e7a3965eb74efb66ce7",
+      "sha256": "2496bbe833477eb317d1cd999120cf7bbdf29fbe4db32e7a3965eb74efb66ce7",
+      "matches": true
+    },
+    {
+      "path": "backend/modules/business/deploy/deploy_credential.go",
+      "beforeSHA256": "bdcf448935fd8aab487539d6dbb29d818419e59c99fc6e51b08c8e2bc843a540",
+      "sha256": "bdcf448935fd8aab487539d6dbb29d818419e59c99fc6e51b08c8e2bc843a540",
+      "matches": true
+    },
+    {
+      "path": "backend/modules/business/deploy/deploy_dto.go",
+      "beforeSHA256": "eababd208f853cfcbd92be84a89633104dcf30ebf34c2152ee2ad480d2880a58",
+      "sha256": "eababd208f853cfcbd92be84a89633104dcf30ebf34c2152ee2ad480d2880a58",
+      "matches": true
+    },
+    {
+      "path": "backend/modules/business/deploy/deploy_executor_test.go",
+      "beforeSHA256": "9e26f4638b57384d26d65cde9771f99ca915bd91da693153a1fa5c35e3841194",
+      "sha256": "9e26f4638b57384d26d65cde9771f99ca915bd91da693153a1fa5c35e3841194",
+      "matches": true
+    },
+    {
+      "path": "backend/modules/business/deploy/deploy_fixed_templates.go",
+      "beforeSHA256": "e934086958e0c25f1d2844876df4bbc0985e0927dd83b2a7b76c0e6255d4caa0",
+      "sha256": "e934086958e0c25f1d2844876df4bbc0985e0927dd83b2a7b76c0e6255d4caa0",
+      "matches": true
+    },
+    {
+      "path": "backend/modules/business/deploy/deploy_handler.go",
+      "beforeSHA256": "bb77f28047edf2913da7326472ca1c6a838196b0c3541487fd802688fc844f11",
+      "sha256": "bb77f28047edf2913da7326472ca1c6a838196b0c3541487fd802688fc844f11",
+      "matches": true
+    },
+    {
+      "path": "backend/modules/business/deploy/deploy_helpers.go",
+      "beforeSHA256": "5b0388796b15e221202b94a5e0c686b10551764b5fe6c6166cf3e6e6f023e00f",
+      "sha256": "5b0388796b15e221202b94a5e0c686b10551764b5fe6c6166cf3e6e6f023e00f",
+      "matches": true
+    },
+    {
+      "path": "backend/modules/business/deploy/deploy_import_export.go",
+      "beforeSHA256": "df28382a892080138f09d0aa056e5495399d4f18316ed0bea454bbd34f258da8",
+      "sha256": "df28382a892080138f09d0aa056e5495399d4f18316ed0bea454bbd34f258da8",
+      "matches": true
+    },
+    {
+      "path": "backend/modules/business/deploy/deploy_import_export_test.go",
+      "beforeSHA256": "d18f8312b1c118023eaa1f81460e1a740435bf2fffab5c29b8bb54507f2154e4",
+      "sha256": "d18f8312b1c118023eaa1f81460e1a740435bf2fffab5c29b8bb54507f2154e4",
+      "matches": true
+    },
+    {
+      "path": "backend/modules/business/deploy/deploy_live_acceptance_test.go",
+      "beforeSHA256": "20f650c74d5ae83fde928ab6ad669990513086baab37132b526faa748f03a99f",
+      "sha256": "20f650c74d5ae83fde928ab6ad669990513086baab37132b526faa748f03a99f",
+      "matches": true
+    },
+    {
+      "path": "backend/modules/business/deploy/deploy_metrics.go",
+      "beforeSHA256": "70745280bdab9d6c19c4f8167f2f89e1846a3cf9ccbf5c22f62338c9555688f3",
+      "sha256": "70745280bdab9d6c19c4f8167f2f89e1846a3cf9ccbf5c22f62338c9555688f3",
+      "matches": true
+    },
+    {
+      "path": "backend/modules/business/deploy/deploy_model.go",
+      "beforeSHA256": "5ab24f9e9674f809328d3a128a53c24d7dd4d1e19c2ddd9baf80f8ab08e22530",
+      "sha256": "5ab24f9e9674f809328d3a128a53c24d7dd4d1e19c2ddd9baf80f8ab08e22530",
+      "matches": true
+    },
+    {
+      "path": "backend/modules/business/deploy/deploy_reliability_test.go",
+      "beforeSHA256": "58ff415824ee9810596302b61e593d148b2b2fd52ae405be8dbe9c2bd6612c63",
+      "sha256": "58ff415824ee9810596302b61e593d148b2b2fd52ae405be8dbe9c2bd6612c63",
+      "matches": true
+    },
+    {
+      "path": "backend/modules/business/deploy/deploy_rollback.go",
+      "beforeSHA256": "cb054c1930b8afa125d24f6ca78c1cb323dbc72e0d5c59eb487e4a9bd306d3e3",
+      "sha256": "cb054c1930b8afa125d24f6ca78c1cb323dbc72e0d5c59eb487e4a9bd306d3e3",
+      "matches": true
+    },
+    {
+      "path": "backend/modules/business/deploy/deploy_seed.go",
+      "beforeSHA256": "ffdb7563872fe1789b2f02591b198b5d6c5aaa842b1deb9291479df4b3ecec65",
+      "sha256": "ffdb7563872fe1789b2f02591b198b5d6c5aaa842b1deb9291479df4b3ecec65",
+      "matches": true
+    },
+    {
+      "path": "backend/modules/business/deploy/deploy_seed_test.go",
+      "beforeSHA256": "1f865ee21c4d2ea98a7bbfa727e6d98857bd699543da674dc9bd0dfaa6318c8c",
+      "sha256": "1f865ee21c4d2ea98a7bbfa727e6d98857bd699543da674dc9bd0dfaa6318c8c",
+      "matches": true
+    },
+    {
+      "path": "backend/modules/business/deploy/deploy_service.go",
+      "beforeSHA256": "7b4695ff601636e905ef3f6903df15b48d1f23fd4c5f2a33282c6c281670b9a7",
+      "sha256": "7b4695ff601636e905ef3f6903df15b48d1f23fd4c5f2a33282c6c281670b9a7",
+      "matches": true
+    },
+    {
+      "path": "backend/modules/business/deploy/deploy_service_test.go",
+      "beforeSHA256": "62eb9dab66526067912e160f08f4058fae6f46011cf87252303e8f4943db2106",
+      "sha256": "62eb9dab66526067912e160f08f4058fae6f46011cf87252303e8f4943db2106",
+      "matches": true
+    },
+    {
+      "path": "backend/modules/business/deploy/deploy_ssh_transport_test.go",
+      "beforeSHA256": "18d28e745fe711a40e02d213abbcf9d7fdd5ed89403fe1c1faefbb0de8df0302",
+      "sha256": "18d28e745fe711a40e02d213abbcf9d7fdd5ed89403fe1c1faefbb0de8df0302",
+      "matches": true
+    },
+    {
+      "path": "backend/modules/business/deploy/deploy_template_service.go",
+      "beforeSHA256": "b530734655773f22d66e4e653e89bb10bedc21077d50e7f635e6becfef3235ce",
+      "sha256": "b530734655773f22d66e4e653e89bb10bedc21077d50e7f635e6becfef3235ce",
+      "matches": true
+    },
+    {
+      "path": "backend/modules/business/deploy/executor/executor.go",
+      "beforeSHA256": "54da900e8ed41783a961cab745b0779bfc473e5e886db009de2993439f9052df",
+      "sha256": "54da900e8ed41783a961cab745b0779bfc473e5e886db009de2993439f9052df",
+      "matches": true
+    },
+    {
+      "path": "backend/modules/business/deploy/log_attempt_migration_test.go",
+      "beforeSHA256": "da6e67c00bf545e1a60b0a5b7fdc3fcba28f51993be18b511b53f54a50c3c0cb",
+      "sha256": "da6e67c00bf545e1a60b0a5b7fdc3fcba28f51993be18b511b53f54a50c3c0cb",
+      "matches": true
+    },
+    {
+      "path": "backend/modules/business/deploy/log_sequence_test.go",
+      "beforeSHA256": "a01a8bf86a2e3dd4639b7c3dedec3dbba5099fb06e5d3a9d2f03ca784200080f",
+      "sha256": "a01a8bf86a2e3dd4639b7c3dedec3dbba5099fb06e5d3a9d2f03ca784200080f",
+      "matches": true
+    },
+    {
+      "path": "backend/modules/business/deploy/migrations/000034_deploy_log_attempt.down.sql",
+      "beforeSHA256": "79edb509a17da7461697d2567803b77dd08ad2ba139c1055d05da4f336590a37",
+      "sha256": "79edb509a17da7461697d2567803b77dd08ad2ba139c1055d05da4f336590a37",
+      "matches": true
+    },
+    {
+      "path": "backend/modules/business/deploy/migrations/000034_deploy_log_attempt.up.sql",
+      "beforeSHA256": "f175e065722f1ce721afa2cd7203ca8a71fde7dbebb46c5cca0fd19abd3d9342",
+      "sha256": "f175e065722f1ce721afa2cd7203ca8a71fde7dbebb46c5cca0fd19abd3d9342",
+      "matches": true
+    },
+    {
+      "path": "backend/modules/business/deploy/migrations/000035_deploy_step_history.down.sql",
+      "beforeSHA256": "6aeb009b5826e53e0d8b063c09fa0e5c65f9c3d04947375348ade9809c618840",
+      "sha256": "6aeb009b5826e53e0d8b063c09fa0e5c65f9c3d04947375348ade9809c618840",
+      "matches": true
+    },
+    {
+      "path": "backend/modules/business/deploy/migrations/000035_deploy_step_history.up.sql",
+      "beforeSHA256": "1abf23eb1549d5929adc732bc1a35865c81494693efa468f6ef5d9b64b411cfa",
+      "sha256": "1abf23eb1549d5929adc732bc1a35865c81494693efa468f6ef5d9b64b411cfa",
+      "matches": true
+    },
+    {
+      "path": "backend/modules/business/deploy/migrations/000036_deploy_log_sequence_scope.down.sql",
+      "beforeSHA256": "5cc784a06605b9abb174dedbd812fddbdf575b8347635db9bccff52a44952545",
+      "sha256": "5cc784a06605b9abb174dedbd812fddbdf575b8347635db9bccff52a44952545",
+      "matches": true
+    },
+    {
+      "path": "backend/modules/business/deploy/migrations/000036_deploy_log_sequence_scope.up.sql",
+      "beforeSHA256": "98d94b65a5cd060010498b8b78277f34851561b9ee8bc25cdafd960bae52c569",
+      "sha256": "98d94b65a5cd060010498b8b78277f34851561b9ee8bc25cdafd960bae52c569",
+      "matches": true
+    },
+    {
+      "path": "backend/modules/business/deploy/orchestrator/orchestrator.go",
+      "beforeSHA256": "05fc364a0e978eee7a83a9ce12b0dfce0639fac458e5173b2ddac042bc08c0fe",
+      "sha256": "05fc364a0e978eee7a83a9ce12b0dfce0639fac458e5173b2ddac042bc08c0fe",
+      "matches": true
+    },
+    {
+      "path": "backend/modules/business/deploy/read_scope.go",
+      "beforeSHA256": "7e03927b4f301131fba9674135ea3dc383e87715b41f12fa56c9a24c5284debc",
+      "sha256": "7e03927b4f301131fba9674135ea3dc383e87715b41f12fa56c9a24c5284debc",
+      "matches": true
+    },
+    {
+      "path": "backend/modules/business/deploy/read_scope_test.go",
+      "beforeSHA256": "2c11f916fd519e76354425472ce185894d24b17272810bc371c53ec06ab60055",
+      "sha256": "2c11f916fd519e76354425472ce185894d24b17272810bc371c53ec06ab60055",
+      "matches": true
+    },
+    {
+      "path": "backend/modules/business/deploy/resume_scope_revocation_test.go",
+      "beforeSHA256": "f2f36405292d07b46dec6b641c44d9985adf7c87f8ee3e911fb6f31e2b5feb8e",
+      "sha256": "f2f36405292d07b46dec6b641c44d9985adf7c87f8ee3e911fb6f31e2b5feb8e",
+      "matches": true
+    },
+    {
+      "path": "backend/modules/business/deploy/step_history.go",
+      "beforeSHA256": "6bbfbc6249f2afef10e7f2e3ba6bb333b318921ab2af390ccdbec7772a2dc441",
+      "sha256": "6bbfbc6249f2afef10e7f2e3ba6bb333b318921ab2af390ccdbec7772a2dc441",
+      "matches": true
+    },
+    {
+      "path": "backend/modules/business/deploy/step_history_test.go",
+      "beforeSHA256": "2059e33519344e3a691d6275056f67fc1ced8d7304d4ce2fb14e0b0e431e50b8",
+      "sha256": "2059e33519344e3a691d6275056f67fc1ced8d7304d4ce2fb14e0b0e431e50b8",
+      "matches": true
+    },
+    {
+      "path": "backend/modules/business/deploy/target_selection.go",
+      "beforeSHA256": "239ac4b249da0d105234d74ae65a1ca1dfe03f0407b91ed28415709f0583b889",
+      "sha256": "239ac4b249da0d105234d74ae65a1ca1dfe03f0407b91ed28415709f0583b889",
+      "matches": true
+    },
+    {
+      "path": "backend/modules/business/deploy/task_command.go",
+      "beforeSHA256": "e256db4c85400efe8d44cc87e062f486e77221c2daa4e8d8b417b4d3cfc683ac",
+      "sha256": "e256db4c85400efe8d44cc87e062f486e77221c2daa4e8d8b417b4d3cfc683ac",
+      "matches": true
+    },
+    {
+      "path": "backend/modules/business/deploy/task_command_test.go",
+      "beforeSHA256": "7e885249ea4c078af8d158c6be1adb36a52106f8731c0f2b9601036daab5ef8b",
+      "sha256": "7e885249ea4c078af8d158c6be1adb36a52106f8731c0f2b9601036daab5ef8b",
+      "matches": true
+    },
+    {
+      "path": "backend/modules/business/deploy/task_preview.go",
+      "beforeSHA256": "656255301998f2bbea30041f493d71f50622bbcde74de644eb74f5d06d067c15",
+      "sha256": "656255301998f2bbea30041f493d71f50622bbcde74de644eb74f5d06d067c15",
+      "matches": true
+    },
+    {
+      "path": "backend/modules/business/deploy/task_preview_plan.go",
+      "beforeSHA256": "94839e26c1c4b87f71097fd8127e95f79248c45ee18165ee486bfae76e650195",
+      "sha256": "94839e26c1c4b87f71097fd8127e95f79248c45ee18165ee486bfae76e650195",
+      "matches": true
+    },
+    {
+      "path": "backend/modules/business/deploy/task_preview_test.go",
+      "beforeSHA256": "78288f6914f16b531db798a63534053385c5462e6b2efa341771088d7756a2d0",
+      "sha256": "78288f6914f16b531db798a63534053385c5462e6b2efa341771088d7756a2d0",
+      "matches": true
+    },
+    {
+      "path": "backend/modules/business/deploy/task_rollback_snapshot.go",
+      "beforeSHA256": "3d0a60fa0c9f388ab4faccd742bd443cc838bd8386fcce0475a14745a15deb87",
+      "sha256": "3d0a60fa0c9f388ab4faccd742bd443cc838bd8386fcce0475a14745a15deb87",
+      "matches": true
+    },
+    {
+      "path": "backend/modules/business/deploy/task_rollback_snapshot_test.go",
+      "beforeSHA256": "df3c8671e98998777ba6aaf7dabcb3c0765258d78fed93a3f71ccc89d5942767",
+      "sha256": "df3c8671e98998777ba6aaf7dabcb3c0765258d78fed93a3f71ccc89d5942767",
+      "matches": true
+    },
+    {
+      "path": "backend/modules/business/deploy/workbench_test.go",
+      "beforeSHA256": "38ac2ef1ec9ae8b8108faa69cce2189cee4ec6e062c1672b9f16aeee0aa7b77b",
+      "sha256": "38ac2ef1ec9ae8b8108faa69cce2189cee4ec6e062c1672b9f16aeee0aa7b77b",
+      "matches": true
+    },
+    {
+      "path": "frontend/src/modules/business/deploy/locales/en-US.json",
+      "beforeSHA256": "1023ba943bb98869a03701a0d80d372bca4ebaf38f0786937b7bf1f354f65130",
+      "sha256": "1023ba943bb98869a03701a0d80d372bca4ebaf38f0786937b7bf1f354f65130",
+      "matches": true
+    },
+    {
+      "path": "frontend/src/modules/business/deploy/locales/zh-CN.json",
+      "beforeSHA256": "de7c1bc5f6cffa239ae861399a91fa0e220a0c89db43509aef1ee1c3b93d7089",
+      "sha256": "de7c1bc5f6cffa239ae861399a91fa0e220a0c89db43509aef1ee1c3b93d7089",
+      "matches": true
+    },
+    {
+      "path": "frontend/src/modules/business/deploy/task/DeployExecutionWorkbench.tsx",
+      "beforeSHA256": "a6575f14e436730137e9c23d17cab6b5edc33f4247da60946327b036adb8b999",
+      "sha256": "a6575f14e436730137e9c23d17cab6b5edc33f4247da60946327b036adb8b999",
+      "matches": true
+    },
+    {
+      "path": "frontend/src/modules/business/deploy/task/DeployTargetSelector.tsx",
+      "beforeSHA256": "71a81be72f8ad145d8cadfde97082afe2fa5440336d58d88f2c8197a50d5b131",
+      "sha256": "71a81be72f8ad145d8cadfde97082afe2fa5440336d58d88f2c8197a50d5b131",
+      "matches": true
+    },
+    {
+      "path": "frontend/src/modules/business/deploy/task/DeployTaskDetail.tsx",
+      "beforeSHA256": "6de99548ea4a1e37e4e1443392e4d045cc0a4ca61801fd9e118d21958b89c5c4",
+      "sha256": "6de99548ea4a1e37e4e1443392e4d045cc0a4ca61801fd9e118d21958b89c5c4",
+      "matches": true
+    },
+    {
+      "path": "frontend/src/modules/business/deploy/task/DeployTaskList.tsx",
+      "beforeSHA256": "ec62431d4b3bb76f10d8188690ee12f3074c9a0fede2ec60fad1a1cf8ab29faa",
+      "sha256": "ec62431d4b3bb76f10d8188690ee12f3074c9a0fede2ec60fad1a1cf8ab29faa",
+      "matches": true
+    },
+    {
+      "path": "frontend/src/modules/business/deploy/task/DeployTaskPreview.tsx",
+      "beforeSHA256": "906e357bfbd62a25554778caef66671a3346f1f6e3ecb4774e06e6b3a7b37c8b",
+      "sha256": "906e357bfbd62a25554778caef66671a3346f1f6e3ecb4774e06e6b3a7b37c8b",
+      "matches": true
+    },
+    {
+      "path": "frontend/src/modules/business/deploy/task/useDeployTaskLogs.ts",
+      "beforeSHA256": "9fc4b84175c54cd43a98dae50784eb23c59a6af87549ba8531f79811908da957",
+      "sha256": "9fc4b84175c54cd43a98dae50784eb23c59a6af87549ba8531f79811908da957",
+      "matches": true
+    },
+    {
+      "path": "frontend/src/modules/business/deploy/task/useDeployTaskStream.ts",
+      "beforeSHA256": "95744cde6cc5d2e9a118cbae9173d6ec3bf0dcb205966e67718a83685ec58f5c",
+      "sha256": "95744cde6cc5d2e9a118cbae9173d6ec3bf0dcb205966e67718a83685ec58f5c",
+      "matches": true
+    },
+    {
+      "path": "frontend/tests/smoke/business/deploy/deploy-pages.spec.ts",
+      "beforeSHA256": "9bf8c567e9ef2dbcb2c04da5450bbf63897cc1ee619de8bf27e3febc72591af6",
+      "sha256": "9bf8c567e9ef2dbcb2c04da5450bbf63897cc1ee619de8bf27e3febc72591af6",
+      "matches": true
+    },
+    {
+      "path": "frontend/tests/unit/business/operational/deploy-context.test.tsx",
+      "beforeSHA256": "1faaeb1fa68ce2048ecc42233fc8c804f5db1328fc88b765de0e89c1300b227b",
+      "sha256": "1faaeb1fa68ce2048ecc42233fc8c804f5db1328fc88b765de0e89c1300b227b",
+      "matches": true
+    },
+    {
+      "path": "frontend/tests/unit/business/operational/deploy-log-cursor.test.tsx",
+      "beforeSHA256": "b0f7db9cdf4f57cc9cdd341c42f3a2fa0461373e1728851753cd11fbbbbbd43c",
+      "sha256": "b0f7db9cdf4f57cc9cdd341c42f3a2fa0461373e1728851753cd11fbbbbbd43c",
+      "matches": true
+    }
+  ],
+  "engineProposal": {
+    "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-engine-ownership-plan-v2.md",
+    "sha256": "a66012823ad03bd889d21da0444b1673187ae19913fedfec7332779d1ff0771d",
+    "mainWordCount": 589
+  },
+  "notes": "Generator handoff only; original reviewed hashes remain historical. Root owns independent approval and runtime/final gates."
+}

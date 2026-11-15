@@ -1,0 +1,72 @@
+
+Running 2 tests using 1 worker
+
+(node:5268) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x  1 tests\smoke\business\k8s\release-preview.spec.ts:7:2 › K8s image preview conflict, same-request retry, rollback and mobile (light) (7.6s)
+(node:2332) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x  2 tests\smoke\business\k8s\release-preview.spec.ts:7:2 › K8s image preview conflict, same-request retry, rollback and mobile (dark) (6.9s)
+
+
+  1) tests\smoke\business\k8s\release-preview.spec.ts:7:2 › K8s image preview conflict, same-request retry, rollback and mobile (light) 
+
+    Error: locator.click: Error: strict mode violation: getByRole('dialog').getByRole('button', { name: '取消', exact: true }) resolved to 2 elements:
+        1) <button type="button" class="arco-btn arco-btn-secondary arco-btn-size-default arco-btn-shape-square">…</button> aka locator('form').getByRole('button', { name: '取消' })
+        2) <button type="button" class="arco-btn arco-btn-secondary arco-btn-size-default arco-btn-shape-square">…</button> aka getByRole('button', { name: '取消' }).nth(1)
+
+    Call log:
+      - waiting for getByRole('dialog').getByRole('button', { name: '取消', exact: true })
+
+
+      59 |   await dialog.getByRole('button', { name: '预览发布变更', exact: true }).click();
+      60 |   await expect(page.getByRole('dialog').getByText('image:v3', { exact: true })).toBeVisible();
+    > 61 |   await page.getByRole('dialog').getByRole('button', { name: '取消', exact: true }).click();
+         |                                                                                   ^
+      62 |   await expect(page.getByRole('dialog').getByPlaceholder('请输入发布名称')).toHaveValue('create-image-fixture');
+      63 |   await page.getByRole('dialog').getByRole('button', { name: '取消', exact: true }).click();
+      64 |   stage = 'forbidden'; await page.getByRole('button', { name: '回滚', exact: true }).click();
+        at D:\workspace\go\pantheon-platform\pantheon-ops\frontend\tests\smoke\business\k8s\release-preview.spec.ts:61:83
+
+    Error Context: ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\o3-k8s-preview-browser-initial\smoke-business-k8s-release-6e84c--rollback-and-mobile-light-\error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\o3-k8s-preview-browser-initial\smoke-business-k8s-release-6e84c--rollback-and-mobile-light-\trace.zip
+    Usage:
+
+        npx playwright show-trace ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\o3-k8s-preview-browser-initial\smoke-business-k8s-release-6e84c--rollback-and-mobile-light-\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  2) tests\smoke\business\k8s\release-preview.spec.ts:7:2 › K8s image preview conflict, same-request retry, rollback and mobile (dark) 
+
+    Error: locator.click: Error: strict mode violation: getByRole('dialog').getByRole('button', { name: '取消', exact: true }) resolved to 2 elements:
+        1) <button type="button" class="arco-btn arco-btn-secondary arco-btn-size-default arco-btn-shape-square">…</button> aka locator('form').getByRole('button', { name: '取消' })
+        2) <button type="button" class="arco-btn arco-btn-secondary arco-btn-size-default arco-btn-shape-square">…</button> aka getByRole('button', { name: '取消' }).nth(1)
+
+    Call log:
+      - waiting for getByRole('dialog').getByRole('button', { name: '取消', exact: true })
+
+
+      59 |   await dialog.getByRole('button', { name: '预览发布变更', exact: true }).click();
+      60 |   await expect(page.getByRole('dialog').getByText('image:v3', { exact: true })).toBeVisible();
+    > 61 |   await page.getByRole('dialog').getByRole('button', { name: '取消', exact: true }).click();
+         |                                                                                   ^
+      62 |   await expect(page.getByRole('dialog').getByPlaceholder('请输入发布名称')).toHaveValue('create-image-fixture');
+      63 |   await page.getByRole('dialog').getByRole('button', { name: '取消', exact: true }).click();
+      64 |   stage = 'forbidden'; await page.getByRole('button', { name: '回滚', exact: true }).click();
+        at D:\workspace\go\pantheon-platform\pantheon-ops\frontend\tests\smoke\business\k8s\release-preview.spec.ts:61:83
+
+    Error Context: ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\o3-k8s-preview-browser-initial\smoke-business-k8s-release-47a17-y-rollback-and-mobile-dark-\error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\o3-k8s-preview-browser-initial\smoke-business-k8s-release-47a17-y-rollback-and-mobile-dark-\trace.zip
+    Usage:
+
+        npx playwright show-trace ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\o3-k8s-preview-browser-initial\smoke-business-k8s-release-47a17-y-rollback-and-mobile-dark-\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  2 failed
+    tests\smoke\business\k8s\release-preview.spec.ts:7:2 › K8s image preview conflict, same-request retry, rollback and mobile (light) 
+    tests\smoke\business\k8s\release-preview.spec.ts:7:2 › K8s image preview conflict, same-request retry, rollback and mobile (dark) 

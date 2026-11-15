@@ -1,0 +1,12 @@
+{
+  "credentialsLoaded": false,
+  "handoffSHA256": "f78ba54da567f95f6e4c2b9c06d6912ba48e65bc4c8108929e2f04e369c61415",
+  "handoffWords": 607,
+  "newHelpersUnchangedSinceVerification": true,
+  "noFinalBinariesOrAuthorization": true,
+  "oldPinsUnchanged": true,
+  "publicBaseIdentityAuditAcceptanceImplemented": false,
+  "remoteExecuted": false,
+  "runtimeCasesExecuted": 0,
+  "state": "UNSEALED"
+}

@@ -1,0 +1,19 @@
+{
+  "status": "local-generator-verified-root-handoff-ready",
+  "report": "resume-o2-v7-generator-report.md",
+  "phaseRequest": "resume-o2-v7-phase-request.json",
+  "ownedSourceHashes": {
+    "backend/modules/business/deploy/task_command.go": "e256db4c85400efe8d44cc87e062f486e77221c2daa4e8d8b417b4d3cfc683ac",
+    "backend/modules/business/deploy/deploy_service.go": "8ea2ee60bb99d9a2577bf342ac7e826953670db04e4aa3c8cfb399383f7efedc",
+    "backend/modules/business/deploy/target_selection.go": "239ac4b249da0d105234d74ae65a1ca1dfe03f0407b91ed28415709f0583b889",
+    "backend/modules/business/deploy/task_command_test.go": "7e885249ea4c078af8d158c6be1adb36a52106f8731c0f2b9601036daab5ef8b",
+    "backend/modules/business/deploy/resume_scope_revocation_test.go": "f2f36405292d07b46dec6b641c44d9985adf7c87f8ee3e911fb6f31e2b5feb8e"
+  },
+  "scopedRacePassedItems": 248,
+  "sourceStable": true,
+  "externalCompiledModulesSealed": true,
+  "priorV6Preserved": true,
+  "trueVMMatrixExecuted": false,
+  "independentApproval": false,
+  "P0Complete": false
+}

@@ -1,0 +1,150 @@
+{
+  "screenshots": [
+    ".harness\\evidence\\2026-11-07-ops-planned-task-closeout\\verification\\o2-o3-o4-browser-current\\smoke-business-deploy-depl-58206--keyboard-and-mobile-light-\\workbench-light-desktop.png",
+    ".harness\\evidence\\2026-11-07-ops-planned-task-closeout\\verification\\o2-o3-o4-browser-current\\smoke-business-deploy-depl-58206--keyboard-and-mobile-light-\\workbench-light-first-error.png",
+    ".harness\\evidence\\2026-11-07-ops-planned-task-closeout\\verification\\o2-o3-o4-browser-current\\smoke-business-deploy-depl-58206--keyboard-and-mobile-light-\\workbench-light-mobile-expanded.png",
+    ".harness\\evidence\\2026-11-07-ops-planned-task-closeout\\verification\\o2-o3-o4-browser-current\\smoke-business-deploy-depl-58206--keyboard-and-mobile-light-\\workbench-light-mobile-forbidden.png",
+    ".harness\\evidence\\2026-11-07-ops-planned-task-closeout\\verification\\o2-o3-o4-browser-current\\smoke-business-deploy-depl-d16f5-s-keyboard-and-mobile-dark-\\workbench-dark-desktop.png",
+    ".harness\\evidence\\2026-11-07-ops-planned-task-closeout\\verification\\o2-o3-o4-browser-current\\smoke-business-deploy-depl-d16f5-s-keyboard-and-mobile-dark-\\workbench-dark-first-error.png",
+    ".harness\\evidence\\2026-11-07-ops-planned-task-closeout\\verification\\o2-o3-o4-browser-current\\smoke-business-deploy-depl-d16f5-s-keyboard-and-mobile-dark-\\workbench-dark-mobile-expanded.png",
+    ".harness\\evidence\\2026-11-07-ops-planned-task-closeout\\verification\\o2-o3-o4-browser-current\\smoke-business-deploy-depl-d16f5-s-keyboard-and-mobile-dark-\\workbench-dark-mobile-forbidden.png",
+    ".harness\\evidence\\2026-11-07-ops-planned-task-closeout\\verification\\o2-o3-o4-browser-current\\smoke-business-k8s-release-47a17-y-rollback-and-mobile-dark-\\k8s-dark-desktop-review.png",
+    ".harness\\evidence\\2026-11-07-ops-planned-task-closeout\\verification\\o2-o3-o4-browser-current\\smoke-business-k8s-release-47a17-y-rollback-and-mobile-dark-\\k8s-dark-mobile-conflict.png",
+    ".harness\\evidence\\2026-11-07-ops-planned-task-closeout\\verification\\o2-o3-o4-browser-current\\smoke-business-k8s-release-47a17-y-rollback-and-mobile-dark-\\k8s-dark-mobile-review.png",
+    ".harness\\evidence\\2026-11-07-ops-planned-task-closeout\\verification\\o2-o3-o4-browser-current\\smoke-business-k8s-release-6e84c--rollback-and-mobile-light-\\k8s-light-desktop-review.png",
+    ".harness\\evidence\\2026-11-07-ops-planned-task-closeout\\verification\\o2-o3-o4-browser-current\\smoke-business-k8s-release-6e84c--rollback-and-mobile-light-\\k8s-light-mobile-conflict.png",
+    ".harness\\evidence\\2026-11-07-ops-planned-task-closeout\\verification\\o2-o3-o4-browser-current\\smoke-business-k8s-release-6e84c--rollback-and-mobile-light-\\k8s-light-mobile-review.png",
+    ".harness\\evidence\\2026-11-07-ops-planned-task-closeout\\verification\\o2-o3-o4-browser-current\\smoke-business-observabili-a1888-n-denial-and-recovery-dark-\\loki-dark-desktop.png",
+    ".harness\\evidence\\2026-11-07-ops-planned-task-closeout\\verification\\o2-o3-o4-browser-current\\smoke-business-observabili-a1888-n-denial-and-recovery-dark-\\loki-dark-fields.png",
+    ".harness\\evidence\\2026-11-07-ops-planned-task-closeout\\verification\\o2-o3-o4-browser-current\\smoke-business-observabili-a1888-n-denial-and-recovery-dark-\\loki-dark-mobile-forbidden.png",
+    ".harness\\evidence\\2026-11-07-ops-planned-task-closeout\\verification\\o2-o3-o4-browser-current\\smoke-business-observabili-a1888-n-denial-and-recovery-dark-\\loki-dark-mobile-raw.png",
+    ".harness\\evidence\\2026-11-07-ops-planned-task-closeout\\verification\\o2-o3-o4-browser-current\\smoke-business-observabili-a1888-n-denial-and-recovery-dark-\\loki-dark-mobile-ready.png",
+    ".harness\\evidence\\2026-11-07-ops-planned-task-closeout\\verification\\o2-o3-o4-browser-current\\smoke-business-observabili-aaf1f--denial-and-recovery-light-\\loki-light-desktop.png",
+    ".harness\\evidence\\2026-11-07-ops-planned-task-closeout\\verification\\o2-o3-o4-browser-current\\smoke-business-observabili-aaf1f--denial-and-recovery-light-\\loki-light-fields.png",
+    ".harness\\evidence\\2026-11-07-ops-planned-task-closeout\\verification\\o2-o3-o4-browser-current\\smoke-business-observabili-aaf1f--denial-and-recovery-light-\\loki-light-mobile-forbidden.png",
+    ".harness\\evidence\\2026-11-07-ops-planned-task-closeout\\verification\\o2-o3-o4-browser-current\\smoke-business-observabili-aaf1f--denial-and-recovery-light-\\loki-light-mobile-raw.png",
+    ".harness\\evidence\\2026-11-07-ops-planned-task-closeout\\verification\\o2-o3-o4-browser-current\\smoke-business-observabili-aaf1f--denial-and-recovery-light-\\loki-light-mobile-ready.png"
+  ],
+  "fixtureCleanup": [
+    {
+      "path": ".harness\\evidence\\2026-11-07-ops-planned-task-closeout\\verification\\o2-o3-o4-browser-current\\smoke-business-deploy-depl-58206--keyboard-and-mobile-light-\\fixture-cleanup.json",
+      "receipt": {
+        "token": "workbench-light-1794099612587",
+        "scopeId": 203,
+        "hostId": 215,
+        "packageId": 221,
+        "taskId": 206,
+        "cleanupErrors": []
+      }
+    },
+    {
+      "path": ".harness\\evidence\\2026-11-07-ops-planned-task-closeout\\verification\\o2-o3-o4-browser-current\\smoke-business-deploy-depl-d16f5-s-keyboard-and-mobile-dark-\\fixture-cleanup.json",
+      "receipt": {
+        "token": "workbench-dark-1794099623283",
+        "scopeId": 204,
+        "hostId": 216,
+        "packageId": 222,
+        "taskId": 207,
+        "cleanupErrors": []
+      }
+    }
+  ],
+  "k8sTransport": [
+    {
+      "path": ".harness\\evidence\\2026-11-07-ops-planned-task-closeout\\verification\\o2-o3-o4-browser-current\\smoke-business-k8s-release-47a17-y-rollback-and-mobile-dark-\\release-preview-transport.json",
+      "receipt": {
+        "provider": "browser transport fixture",
+        "realLocalAuth": true,
+        "realK8sMutation": false,
+        "ownedBusinessFixtures": 0,
+        "requests": [
+          {
+            "operation": "/api/v1/business/k8s/releases/77/rollback/preview",
+            "idempotencyKey": "c62276f2-4b56-4879-9eca-4dc425aa62ff"
+          },
+          {
+            "operation": "/api/v1/business/k8s/releases/77/rollback",
+            "idempotencyKey": "c62276f2-4b56-4879-9eca-4dc425aa62ff",
+            "intentVersion": "ticket-c62276f2-4b56-4879-9eca-4dc425aa62ff"
+          },
+          {
+            "operation": "/api/v1/business/k8s/releases/77/rollback/preview",
+            "idempotencyKey": "5e30bbe5-09dc-4f18-96e4-7af0fcf42e47"
+          },
+          {
+            "operation": "/api/v1/business/k8s/releases/77/rollback",
+            "idempotencyKey": "5e30bbe5-09dc-4f18-96e4-7af0fcf42e47",
+            "intentVersion": "ticket-5e30bbe5-09dc-4f18-96e4-7af0fcf42e47"
+          },
+          {
+            "operation": "/api/v1/business/k8s/releases/77/rollback",
+            "idempotencyKey": "5e30bbe5-09dc-4f18-96e4-7af0fcf42e47",
+            "intentVersion": "ticket-5e30bbe5-09dc-4f18-96e4-7af0fcf42e47"
+          },
+          {
+            "operation": "/api/v1/business/k8s/releases/preview",
+            "name": "create-image-fixture",
+            "clusterId": 901,
+            "namespace": "default",
+            "workloadType": "deployment",
+            "workloadName": "api",
+            "image": "image:v3",
+            "idempotencyKey": "bfa45c60-9d33-4d64-9410-f8cb68d2b0d9"
+          },
+          {
+            "operation": "/api/v1/business/k8s/releases/77/rollback/preview",
+            "idempotencyKey": "2b872b27-db17-4b51-ae6b-86ddf0573203"
+          }
+        ]
+      }
+    },
+    {
+      "path": ".harness\\evidence\\2026-11-07-ops-planned-task-closeout\\verification\\o2-o3-o4-browser-current\\smoke-business-k8s-release-6e84c--rollback-and-mobile-light-\\release-preview-transport.json",
+      "receipt": {
+        "provider": "browser transport fixture",
+        "realLocalAuth": true,
+        "realK8sMutation": false,
+        "ownedBusinessFixtures": 0,
+        "requests": [
+          {
+            "operation": "/api/v1/business/k8s/releases/77/rollback/preview",
+            "idempotencyKey": "95f456d8-9b57-40c2-a32f-938d8db2fce1"
+          },
+          {
+            "operation": "/api/v1/business/k8s/releases/77/rollback",
+            "idempotencyKey": "95f456d8-9b57-40c2-a32f-938d8db2fce1",
+            "intentVersion": "ticket-95f456d8-9b57-40c2-a32f-938d8db2fce1"
+          },
+          {
+            "operation": "/api/v1/business/k8s/releases/77/rollback/preview",
+            "idempotencyKey": "40f334ac-2419-44ee-a987-f55a763058bc"
+          },
+          {
+            "operation": "/api/v1/business/k8s/releases/77/rollback",
+            "idempotencyKey": "40f334ac-2419-44ee-a987-f55a763058bc",
+            "intentVersion": "ticket-40f334ac-2419-44ee-a987-f55a763058bc"
+          },
+          {
+            "operation": "/api/v1/business/k8s/releases/77/rollback",
+            "idempotencyKey": "40f334ac-2419-44ee-a987-f55a763058bc",
+            "intentVersion": "ticket-40f334ac-2419-44ee-a987-f55a763058bc"
+          },
+          {
+            "operation": "/api/v1/business/k8s/releases/preview",
+            "name": "create-image-fixture",
+            "clusterId": 901,
+            "namespace": "default",
+            "workloadType": "deployment",
+            "workloadName": "api",
+            "image": "image:v3",
+            "idempotencyKey": "db892a44-a0ea-483d-8f57-04f923a6be42"
+          },
+          {
+            "operation": "/api/v1/business/k8s/releases/77/rollback/preview",
+            "idempotencyKey": "5c1231f8-f54f-42fc-bbbd-446b291ee300"
+          }
+        ]
+      }
+    }
+  ]
+}

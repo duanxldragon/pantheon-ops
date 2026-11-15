@@ -1,0 +1,46 @@
+{
+  "phase": "inspect-failed",
+  "exitCode": 0,
+  "inspectionStatus": "COMPLETE",
+  "continuationPermitted": false,
+  "rootRequestSHA256": "5ee1048e44d101cf78b84b300dc773d2c7314333e55733f3d274c2a2d0fcd4ba",
+  "failedPhase": "diagnostic",
+  "failedReceiptSHA256": "340e77f69305bdf29672cae59e392ab1fbff29a4f19a656f61fb7f3c677cf73a",
+  "inspectionOnly": true,
+  "replayPermitted": false,
+  "P0Approved": false,
+  "remoteExecuted": true,
+  "scriptHashes": {
+    ".local/ops-acceptance/continue-velero-alias-v9-contract.py": "4d0cafc45a28a062c9522e1d037c8223751ab6d6f8be8275547a7375eae081cb",
+    ".local/ops-acceptance/continue-velero-alias-v9-remote.py": "9808a19641723be60ae77fe8f4613ded2d55c71e2cebf70e11befba4a2a939ae",
+    ".local/ops-acceptance/continue-velero-alias-v9-root.py": "58724bdd924161dc41a37eed98917c64b748e4213fcc88507d9ba27063a2623e",
+    ".local/ops-acceptance/continue-velero-alias-v9-generate.py": "696288f7d6bf4bb865e5e116b2dcb19dc8627ba6493f6823aafedc404d0d841d",
+    ".local/ops-acceptance/continue-velero-alias-v9-test.py": "1b0410b652b27714332e689111e2c69f870eea19c685346fb99a1ed4349f2c6f"
+  },
+  "failureSHA256": "f27d06fcc7160e534d3a2d8dde304367620bc7bf1f4e66148476d3b405de2601",
+  "independentReviewHashes": {
+    "continue-velero-alias-v9-independent-code-report.md": "f3acab7a49ee40279a99b5e2e9d3d7ff88c7a3292f79825704813a26bfbb7258",
+    "continue-velero-alias-v9-independent-arch-report.md": "20cd01c7a0125a13488ce9ea4d08f944f23927c6ff746123343153aff38505c2"
+  },
+  "partialHelperFiles": {
+    "continue-velero-alias-v9-contract.py": {
+      "bytes": 63967,
+      "sha256": "4d0cafc45a28a062c9522e1d037c8223751ab6d6f8be8275547a7375eae081cb",
+      "mode": 384,
+      "uid": 0,
+      "gid": 0,
+      "links": 1
+    },
+    "continue-velero-alias-v9-remote.py": {
+      "bytes": 50634,
+      "sha256": "9808a19641723be60ae77fe8f4613ded2d55c71e2cebf70e11befba4a2a939ae",
+      "mode": 384,
+      "uid": 0,
+      "gid": 0,
+      "links": 1
+    }
+  },
+  "unknownEntriesPreserved": true,
+  "unknownEntryCount": 0,
+  "finishedAt": "2026-11-11T04:55:07.081804+00:00"
+}

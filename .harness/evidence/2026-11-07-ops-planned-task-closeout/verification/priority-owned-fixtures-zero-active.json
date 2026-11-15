@@ -1,0 +1,58 @@
+{
+  "database": "ops_planned_final_versioned",
+  "mysqlDurability": [
+    1,
+    1
+  ],
+  "fixtureRuns": 8,
+  "ownedIds": {
+    "taskId": [
+      206,
+      207,
+      208,
+      209,
+      210,
+      211,
+      212,
+      213
+    ],
+    "hostId": [
+      215,
+      216,
+      217,
+      218,
+      219,
+      220,
+      221,
+      222
+    ],
+    "scopeId": [
+      203,
+      204,
+      205,
+      206,
+      207,
+      208,
+      209,
+      210
+    ],
+    "packageId": [
+      221,
+      222,
+      223,
+      224,
+      225,
+      226,
+      227,
+      228
+    ]
+  },
+  "activeCounts": {
+    "taskId": 0,
+    "hostId": 0,
+    "scopeId": 0,
+    "packageId": 0
+  },
+  "readOnlyValidation": true,
+  "dataDirectoriesRetained": true
+}

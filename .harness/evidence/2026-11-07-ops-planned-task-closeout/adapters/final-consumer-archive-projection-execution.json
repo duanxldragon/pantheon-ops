@@ -1,0 +1,7 @@
+{
+  "status": "completed",
+  "exitCode": 0,
+  "seconds": 224,
+  "promptSha256": "6d35de444afd5c6b8a3af5adb33df6817f32089545ecc6977974405e35029855",
+  "command": "claude.exe -p --tools \"\" --output-format text; stdin=final-consumer-archive-projection-prompt.md"
+}

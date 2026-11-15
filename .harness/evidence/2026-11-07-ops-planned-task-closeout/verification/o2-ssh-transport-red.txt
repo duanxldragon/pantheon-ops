@@ -1,0 +1,295 @@
+--- FAIL: TestDeploySSHTransportCancelDuringSessionOpen (1.01s)
+    deploy_ssh_transport_test.go:246: SSH cancellation did not finish within one second
+    deploy_ssh_transport_test.go:248: cancel error = ssh: unexpected packet in response to channel open: <nil>
+==================
+WARNING: DATA RACE
+Read at 0x00c0001e8c78 by goroutine 153:
+  bytes.(*Buffer).String()
+      D:/cache/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.10.windows-amd64/src/bytes/buffer.go:77 +0x55b
+  github.com/duanxldragon/pantheon-base/backend/modules/business/deploy.(*deploySSHClient).RunScript()
+      D:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/deploy_service.go:2939 +0x522
+  github.com/duanxldragon/pantheon-base/backend/modules/business/deploy.(*deploySSHClient).RunScript()
+      D:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/deploy_service.go:2909 +0x94
+  github.com/duanxldragon/pantheon-base/backend/modules/business/deploy.TestDeploySSHTransportCancelDuringOutput.func2()
+      D:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/deploy_ssh_transport_test.go:296 +0x79
+
+Previous write at 0x00c0001e8c78 by goroutine 158:
+  bytes.(*Buffer).grow()
+      D:/cache/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.10.windows-amd64/src/bytes/buffer.go:172 +0x3b1
+  bytes.(*Buffer).ReadFrom()
+      D:/cache/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.10.windows-amd64/src/bytes/buffer.go:227 +0x5e
+  io.copyBuffer()
+      D:/cache/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.10.windows-amd64/src/io/io.go:415 +0x20e
+  io.Copy()
+      D:/cache/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.10.windows-amd64/src/io/io.go:388 +0x96
+  golang.org/x/crypto/ssh.(*Session).stdout.func1()
+      D:/cache/go/pkg/mod/golang.org/x/crypto@v0.57.0/ssh/session.go:514 +0x25
+  golang.org/x/crypto/ssh.(*Session).start.func1()
+      D:/cache/go/pkg/mod/golang.org/x/crypto@v0.57.0/ssh/session.go:383 +0x2f
+  golang.org/x/crypto/ssh.(*Session).start.gowrap1()
+      D:/cache/go/pkg/mod/golang.org/x/crypto@v0.57.0/ssh/session.go:384 +0x38
+
+Goroutine 153 (running) created at:
+  github.com/duanxldragon/pantheon-base/backend/modules/business/deploy.TestDeploySSHTransportCancelDuringOutput()
+      D:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/deploy_ssh_transport_test.go:295 +0x714
+  testing.tRunner()
+      D:/cache/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.10.windows-amd64/src/testing/testing.go:2036 +0x1ca
+  testing.(*T).Run.gowrap1()
+      D:/cache/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.10.windows-amd64/src/testing/testing.go:2101 +0x38
+
+Goroutine 158 (running) created at:
+  golang.org/x/crypto/ssh.(*Session).start()
+      D:/cache/go/pkg/mod/golang.org/x/crypto@v0.57.0/ssh/session.go:382 +0x17d
+  golang.org/x/crypto/ssh.(*Session).Start()
+      D:/cache/go/pkg/mod/golang.org/x/crypto@v0.57.0/ssh/session.go:293 +0x2c5
+  golang.org/x/crypto/ssh.(*Session).Run()
+      D:/cache/go/pkg/mod/golang.org/x/crypto@v0.57.0/ssh/session.go:310 +0x3e
+  github.com/duanxldragon/pantheon-base/backend/modules/business/deploy.(*deploySSHClient).RunScript.func2()
+      D:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/deploy_service.go:2931 +0x8e
+==================
+==================
+WARNING: DATA RACE
+Read at 0x00c0001e8c60 by goroutine 153:
+  bytes.(*Buffer).String()
+      D:/cache/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.10.windows-amd64/src/bytes/buffer.go:77 +0x571
+  github.com/duanxldragon/pantheon-base/backend/modules/business/deploy.(*deploySSHClient).RunScript()
+      D:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/deploy_service.go:2939 +0x522
+  github.com/duanxldragon/pantheon-base/backend/modules/business/deploy.(*deploySSHClient).RunScript()
+      D:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/deploy_service.go:2909 +0x94
+  github.com/duanxldragon/pantheon-base/backend/modules/business/deploy.TestDeploySSHTransportCancelDuringOutput.func2()
+      D:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/deploy_ssh_transport_test.go:296 +0x79
+
+Previous write at 0x00c0001e8c60 by goroutine 158:
+  bytes.(*Buffer).ReadFrom()
+      D:/cache/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.10.windows-amd64/src/bytes/buffer.go:234 +0x158
+  io.copyBuffer()
+      D:/cache/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.10.windows-amd64/src/io/io.go:415 +0x20e
+  io.Copy()
+      D:/cache/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.10.windows-amd64/src/io/io.go:388 +0x96
+  golang.org/x/crypto/ssh.(*Session).stdout.func1()
+      D:/cache/go/pkg/mod/golang.org/x/crypto@v0.57.0/ssh/session.go:514 +0x25
+  golang.org/x/crypto/ssh.(*Session).start.func1()
+      D:/cache/go/pkg/mod/golang.org/x/crypto@v0.57.0/ssh/session.go:383 +0x2f
+  golang.org/x/crypto/ssh.(*Session).start.gowrap1()
+      D:/cache/go/pkg/mod/golang.org/x/crypto@v0.57.0/ssh/session.go:384 +0x38
+
+Goroutine 153 (running) created at:
+  github.com/duanxldragon/pantheon-base/backend/modules/business/deploy.TestDeploySSHTransportCancelDuringOutput()
+      D:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/deploy_ssh_transport_test.go:295 +0x714
+  testing.tRunner()
+      D:/cache/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.10.windows-amd64/src/testing/testing.go:2036 +0x1ca
+  testing.(*T).Run.gowrap1()
+      D:/cache/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.10.windows-amd64/src/testing/testing.go:2101 +0x38
+
+Goroutine 158 (running) created at:
+  golang.org/x/crypto/ssh.(*Session).start()
+      D:/cache/go/pkg/mod/golang.org/x/crypto@v0.57.0/ssh/session.go:382 +0x17d
+  golang.org/x/crypto/ssh.(*Session).Start()
+      D:/cache/go/pkg/mod/golang.org/x/crypto@v0.57.0/ssh/session.go:293 +0x2c5
+  golang.org/x/crypto/ssh.(*Session).Run()
+      D:/cache/go/pkg/mod/golang.org/x/crypto@v0.57.0/ssh/session.go:310 +0x3e
+  github.com/duanxldragon/pantheon-base/backend/modules/business/deploy.(*deploySSHClient).RunScript.func2()
+      D:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/deploy_service.go:2931 +0x8e
+==================
+==================
+WARNING: DATA RACE
+Read at 0x00c0000bb800 by goroutine 153:
+  runtime.slicebytetostring()
+      D:/cache/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.10.windows-amd64/src/runtime/string.go:139 +0x0
+  bytes.(*Buffer).String()
+      D:/cache/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.10.windows-amd64/src/bytes/buffer.go:77 +0x5b0
+  github.com/duanxldragon/pantheon-base/backend/modules/business/deploy.(*deploySSHClient).RunScript()
+      D:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/deploy_service.go:2939 +0x522
+  github.com/duanxldragon/pantheon-base/backend/modules/business/deploy.(*deploySSHClient).RunScript()
+      D:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/deploy_service.go:2909 +0x94
+  github.com/duanxldragon/pantheon-base/backend/modules/business/deploy.TestDeploySSHTransportCancelDuringOutput.func2()
+      D:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/deploy_ssh_transport_test.go:296 +0x79
+
+Previous write at 0x00c0000bb800 by goroutine 158:
+  runtime.slicecopy()
+      D:/cache/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.10.windows-amd64/src/runtime/slice.go:392 +0x0
+  bytes.growSlice()
+      D:/cache/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.10.windows-amd64/src/bytes/buffer.go:268 +0x16b
+  bytes.(*Buffer).grow()
+      D:/cache/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.10.windows-amd64/src/bytes/buffer.go:169 +0x2b0
+  bytes.(*Buffer).ReadFrom()
+      D:/cache/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.10.windows-amd64/src/bytes/buffer.go:227 +0x5e
+  io.copyBuffer()
+      D:/cache/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.10.windows-amd64/src/io/io.go:415 +0x20e
+  io.Copy()
+      D:/cache/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.10.windows-amd64/src/io/io.go:388 +0x96
+  golang.org/x/crypto/ssh.(*Session).stdout.func1()
+      D:/cache/go/pkg/mod/golang.org/x/crypto@v0.57.0/ssh/session.go:514 +0x25
+  golang.org/x/crypto/ssh.(*Session).start.func1()
+      D:/cache/go/pkg/mod/golang.org/x/crypto@v0.57.0/ssh/session.go:383 +0x2f
+  golang.org/x/crypto/ssh.(*Session).start.gowrap1()
+      D:/cache/go/pkg/mod/golang.org/x/crypto@v0.57.0/ssh/session.go:384 +0x38
+
+Goroutine 153 (running) created at:
+  github.com/duanxldragon/pantheon-base/backend/modules/business/deploy.TestDeploySSHTransportCancelDuringOutput()
+      D:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/deploy_ssh_transport_test.go:295 +0x714
+  testing.tRunner()
+      D:/cache/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.10.windows-amd64/src/testing/testing.go:2036 +0x1ca
+  testing.(*T).Run.gowrap1()
+      D:/cache/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.10.windows-amd64/src/testing/testing.go:2101 +0x38
+
+Goroutine 158 (running) created at:
+  golang.org/x/crypto/ssh.(*Session).start()
+      D:/cache/go/pkg/mod/golang.org/x/crypto@v0.57.0/ssh/session.go:382 +0x17d
+  golang.org/x/crypto/ssh.(*Session).Start()
+      D:/cache/go/pkg/mod/golang.org/x/crypto@v0.57.0/ssh/session.go:293 +0x2c5
+  golang.org/x/crypto/ssh.(*Session).Run()
+      D:/cache/go/pkg/mod/golang.org/x/crypto@v0.57.0/ssh/session.go:310 +0x3e
+  github.com/duanxldragon/pantheon-base/backend/modules/business/deploy.(*deploySSHClient).RunScript.func2()
+      D:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/deploy_service.go:2931 +0x8e
+==================
+==================
+WARNING: DATA RACE
+Read at 0x00c0001e8cd8 by goroutine 153:
+  bytes.(*Buffer).String()
+      D:/cache/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.10.windows-amd64/src/bytes/buffer.go:77 +0x5f1
+  github.com/duanxldragon/pantheon-base/backend/modules/business/deploy.(*deploySSHClient).RunScript()
+      D:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/deploy_service.go:2939 +0x522
+  github.com/duanxldragon/pantheon-base/backend/modules/business/deploy.(*deploySSHClient).RunScript()
+      D:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/deploy_service.go:2909 +0x94
+  github.com/duanxldragon/pantheon-base/backend/modules/business/deploy.TestDeploySSHTransportCancelDuringOutput.func2()
+      D:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/deploy_ssh_transport_test.go:296 +0x79
+
+Previous write at 0x00c0001e8cd8 by goroutine 159:
+  bytes.(*Buffer).grow()
+      D:/cache/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.10.windows-amd64/src/bytes/buffer.go:172 +0x3b1
+  bytes.(*Buffer).ReadFrom()
+      D:/cache/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.10.windows-amd64/src/bytes/buffer.go:227 +0x5e
+  io.copyBuffer()
+      D:/cache/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.10.windows-amd64/src/io/io.go:415 +0x20e
+  io.Copy()
+      D:/cache/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.10.windows-amd64/src/io/io.go:388 +0xaa
+  golang.org/x/crypto/ssh.(*Session).stderr.func1()
+      D:/cache/go/pkg/mod/golang.org/x/crypto@v0.57.0/ssh/session.go:527 +0x28
+  golang.org/x/crypto/ssh.(*Session).start.func1()
+      D:/cache/go/pkg/mod/golang.org/x/crypto@v0.57.0/ssh/session.go:383 +0x2f
+  golang.org/x/crypto/ssh.(*Session).start.gowrap1()
+      D:/cache/go/pkg/mod/golang.org/x/crypto@v0.57.0/ssh/session.go:384 +0x38
+
+Goroutine 153 (running) created at:
+  github.com/duanxldragon/pantheon-base/backend/modules/business/deploy.TestDeploySSHTransportCancelDuringOutput()
+      D:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/deploy_ssh_transport_test.go:295 +0x714
+  testing.tRunner()
+      D:/cache/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.10.windows-amd64/src/testing/testing.go:2036 +0x1ca
+  testing.(*T).Run.gowrap1()
+      D:/cache/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.10.windows-amd64/src/testing/testing.go:2101 +0x38
+
+Goroutine 159 (running) created at:
+  golang.org/x/crypto/ssh.(*Session).start()
+      D:/cache/go/pkg/mod/golang.org/x/crypto@v0.57.0/ssh/session.go:382 +0x17d
+  golang.org/x/crypto/ssh.(*Session).Start()
+      D:/cache/go/pkg/mod/golang.org/x/crypto@v0.57.0/ssh/session.go:293 +0x2c5
+  golang.org/x/crypto/ssh.(*Session).Run()
+      D:/cache/go/pkg/mod/golang.org/x/crypto@v0.57.0/ssh/session.go:310 +0x3e
+  github.com/duanxldragon/pantheon-base/backend/modules/business/deploy.(*deploySSHClient).RunScript.func2()
+      D:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/deploy_service.go:2931 +0x8e
+==================
+==================
+WARNING: DATA RACE
+Read at 0x00c0001e8cc0 by goroutine 153:
+  bytes.(*Buffer).String()
+      D:/cache/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.10.windows-amd64/src/bytes/buffer.go:77 +0x607
+  github.com/duanxldragon/pantheon-base/backend/modules/business/deploy.(*deploySSHClient).RunScript()
+      D:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/deploy_service.go:2939 +0x522
+  github.com/duanxldragon/pantheon-base/backend/modules/business/deploy.(*deploySSHClient).RunScript()
+      D:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/deploy_service.go:2909 +0x94
+  github.com/duanxldragon/pantheon-base/backend/modules/business/deploy.TestDeploySSHTransportCancelDuringOutput.func2()
+      D:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/deploy_ssh_transport_test.go:296 +0x79
+
+Previous write at 0x00c0001e8cc0 by goroutine 159:
+  bytes.(*Buffer).ReadFrom()
+      D:/cache/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.10.windows-amd64/src/bytes/buffer.go:234 +0x158
+  io.copyBuffer()
+      D:/cache/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.10.windows-amd64/src/io/io.go:415 +0x20e
+  io.Copy()
+      D:/cache/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.10.windows-amd64/src/io/io.go:388 +0xaa
+  golang.org/x/crypto/ssh.(*Session).stderr.func1()
+      D:/cache/go/pkg/mod/golang.org/x/crypto@v0.57.0/ssh/session.go:527 +0x28
+  golang.org/x/crypto/ssh.(*Session).start.func1()
+      D:/cache/go/pkg/mod/golang.org/x/crypto@v0.57.0/ssh/session.go:383 +0x2f
+  golang.org/x/crypto/ssh.(*Session).start.gowrap1()
+      D:/cache/go/pkg/mod/golang.org/x/crypto@v0.57.0/ssh/session.go:384 +0x38
+
+Goroutine 153 (running) created at:
+  github.com/duanxldragon/pantheon-base/backend/modules/business/deploy.TestDeploySSHTransportCancelDuringOutput()
+      D:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/deploy_ssh_transport_test.go:295 +0x714
+  testing.tRunner()
+      D:/cache/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.10.windows-amd64/src/testing/testing.go:2036 +0x1ca
+  testing.(*T).Run.gowrap1()
+      D:/cache/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.10.windows-amd64/src/testing/testing.go:2101 +0x38
+
+Goroutine 159 (running) created at:
+  golang.org/x/crypto/ssh.(*Session).start()
+      D:/cache/go/pkg/mod/golang.org/x/crypto@v0.57.0/ssh/session.go:382 +0x17d
+  golang.org/x/crypto/ssh.(*Session).Start()
+      D:/cache/go/pkg/mod/golang.org/x/crypto@v0.57.0/ssh/session.go:293 +0x2c5
+  golang.org/x/crypto/ssh.(*Session).Run()
+      D:/cache/go/pkg/mod/golang.org/x/crypto@v0.57.0/ssh/session.go:310 +0x3e
+  github.com/duanxldragon/pantheon-base/backend/modules/business/deploy.(*deploySSHClient).RunScript.func2()
+      D:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/deploy_service.go:2931 +0x8e
+==================
+==================
+WARNING: DATA RACE
+Read at 0x00c000372400 by goroutine 153:
+  runtime.slicebytetostring()
+      D:/cache/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.10.windows-amd64/src/runtime/string.go:139 +0x0
+  bytes.(*Buffer).String()
+      D:/cache/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.10.windows-amd64/src/bytes/buffer.go:77 +0x64d
+  github.com/duanxldragon/pantheon-base/backend/modules/business/deploy.(*deploySSHClient).RunScript()
+      D:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/deploy_service.go:2939 +0x522
+  github.com/duanxldragon/pantheon-base/backend/modules/business/deploy.(*deploySSHClient).RunScript()
+      D:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/deploy_service.go:2909 +0x94
+  github.com/duanxldragon/pantheon-base/backend/modules/business/deploy.TestDeploySSHTransportCancelDuringOutput.func2()
+      D:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/deploy_ssh_transport_test.go:296 +0x79
+
+Previous write at 0x00c000372400 by goroutine 159:
+  runtime.slicecopy()
+      D:/cache/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.10.windows-amd64/src/runtime/slice.go:392 +0x0
+  bytes.growSlice()
+      D:/cache/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.10.windows-amd64/src/bytes/buffer.go:268 +0x16b
+  bytes.(*Buffer).grow()
+      D:/cache/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.10.windows-amd64/src/bytes/buffer.go:169 +0x2b0
+  bytes.(*Buffer).ReadFrom()
+      D:/cache/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.10.windows-amd64/src/bytes/buffer.go:227 +0x5e
+  io.copyBuffer()
+      D:/cache/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.10.windows-amd64/src/io/io.go:415 +0x20e
+  io.Copy()
+      D:/cache/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.10.windows-amd64/src/io/io.go:388 +0xaa
+  golang.org/x/crypto/ssh.(*Session).stderr.func1()
+      D:/cache/go/pkg/mod/golang.org/x/crypto@v0.57.0/ssh/session.go:527 +0x28
+  golang.org/x/crypto/ssh.(*Session).start.func1()
+      D:/cache/go/pkg/mod/golang.org/x/crypto@v0.57.0/ssh/session.go:383 +0x2f
+  golang.org/x/crypto/ssh.(*Session).start.gowrap1()
+      D:/cache/go/pkg/mod/golang.org/x/crypto@v0.57.0/ssh/session.go:384 +0x38
+
+Goroutine 153 (running) created at:
+  github.com/duanxldragon/pantheon-base/backend/modules/business/deploy.TestDeploySSHTransportCancelDuringOutput()
+      D:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/deploy_ssh_transport_test.go:295 +0x714
+  testing.tRunner()
+      D:/cache/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.10.windows-amd64/src/testing/testing.go:2036 +0x1ca
+  testing.(*T).Run.gowrap1()
+      D:/cache/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.10.windows-amd64/src/testing/testing.go:2101 +0x38
+
+Goroutine 159 (running) created at:
+  golang.org/x/crypto/ssh.(*Session).start()
+      D:/cache/go/pkg/mod/golang.org/x/crypto@v0.57.0/ssh/session.go:382 +0x17d
+  golang.org/x/crypto/ssh.(*Session).Start()
+      D:/cache/go/pkg/mod/golang.org/x/crypto@v0.57.0/ssh/session.go:293 +0x2c5
+  golang.org/x/crypto/ssh.(*Session).Run()
+      D:/cache/go/pkg/mod/golang.org/x/crypto@v0.57.0/ssh/session.go:310 +0x3e
+  github.com/duanxldragon/pantheon-base/backend/modules/business/deploy.(*deploySSHClient).RunScript.func2()
+      D:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/deploy_service.go:2931 +0x8e
+==================
+--- FAIL: TestDeploySSHTransportCancelDuringOutput (0.02s)
+    testing.go:1712: race detected during execution of test
+--- FAIL: TestDeploySSHTransportPreCanceledContextDoesNotOpenSession (0.02s)
+    deploy_ssh_transport_test.go:328: cancel error = ssh: rejected: administratively prohibited ("pre-canceled fixture")
+    deploy_ssh_transport_test.go:332: pre-canceled context opened a remote session
+FAIL
+FAIL	github.com/duanxldragon/pantheon-base/backend/modules/business/deploy	1.187s
+FAIL

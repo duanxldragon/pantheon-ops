@@ -1,0 +1,58 @@
+{
+  "commands": [
+    {
+      "command": [
+        "go",
+        "vet",
+        "-mod=readonly",
+        "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\live-diagnostic-o2-v4.go"
+      ],
+      "CGO_ENABLED": "1",
+      "GOOS": "windows",
+      "exitCode": 0,
+      "seconds": 1.109,
+      "log": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.harness\\evidence\\2026-11-07-ops-planned-task-closeout\\verification\\p0-integration-20261109\\live-diagnostic-o2-v4-build-0.txt"
+    },
+    {
+      "command": [
+        "go",
+        "build",
+        "-mod=readonly",
+        "-race",
+        "-o",
+        "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\live-diagnostic-o2-v4-driver.exe",
+        "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\live-diagnostic-o2-v4.go"
+      ],
+      "CGO_ENABLED": "1",
+      "GOOS": "windows",
+      "exitCode": 0,
+      "seconds": 4.219,
+      "log": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.harness\\evidence\\2026-11-07-ops-planned-task-closeout\\verification\\p0-integration-20261109\\live-diagnostic-o2-v4-build-1.txt"
+    },
+    {
+      "command": [
+        "go",
+        "build",
+        "-mod=readonly",
+        "-o",
+        "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\live-diagnostic-o2-v4-driver-linux",
+        "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\live-diagnostic-o2-v4.go"
+      ],
+      "CGO_ENABLED": "0",
+      "GOOS": "linux",
+      "exitCode": 0,
+      "seconds": 2.828,
+      "log": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.harness\\evidence\\2026-11-07-ops-planned-task-closeout\\verification\\p0-integration-20261109\\live-diagnostic-o2-v4-build-2.txt"
+    }
+  ],
+  "sourceCount": 185,
+  "sourceStable": true,
+  "changedFiles": [],
+  "artifacts": {
+    "live-diagnostic-o2-v4.go": "4309612277ee5e29ce6c85127887bf44e2d193ee2f062590bfafaa646c130009",
+    "live-diagnostic-o2-v4-runner.py": "a9d7f501d7efa5a2f5e35c463e0d3e0fd4b18f7cc4e59c131e7f82b68f76ba5f",
+    "live-diagnostic-o2-v4-driver.exe": "825500f72fb7f5e1183a9da31d6298ed47b30946b1f34cc9b4d8f0f406e36f8a",
+    "live-diagnostic-o2-v4-driver-linux": "00db4a33534eb25ff3d20378c02d25c6589625a0dcfff58d1bd0aa610f206eba"
+  },
+  "exitCode": 0
+}

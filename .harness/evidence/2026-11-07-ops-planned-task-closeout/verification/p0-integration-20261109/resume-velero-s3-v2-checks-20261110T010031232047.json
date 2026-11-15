@@ -1,0 +1,439 @@
+{
+  "phase": "v2-local-administrative-verification",
+  "exitCode": 1,
+  "checks": [
+    {
+      "check": "byte-exact outside private_ip replacement",
+      "passed": true
+    },
+    {
+      "check": "every other function AST unchanged",
+      "passed": true
+    },
+    {
+      "check": "syntax resume-velero-s3-v2-check.py",
+      "passed": true
+    },
+    {
+      "check": "syntax resume-velero-s3-v2-generate.py",
+      "passed": true
+    },
+    {
+      "check": "syntax resume-velero-s3-v2-remote.py",
+      "passed": true
+    },
+    {
+      "check": "syntax resume-velero-s3-v2-root.py",
+      "passed": true
+    },
+    {
+      "check": "missing-family real-shaped native -4 JSON accepted",
+      "passed": true
+    },
+    {
+      "check": "original private_ip reproduces missing-family KeyError on same fixture",
+      "passed": true
+    },
+    {
+      "check": "explicit inet family accepted",
+      "passed": true
+    },
+    {
+      "check": "unique RFC1918 10.0.0.1",
+      "passed": true
+    },
+    {
+      "check": "unique RFC1918 172.16.0.1",
+      "passed": true
+    },
+    {
+      "check": "unique RFC1918 172.31.255.254",
+      "passed": true
+    },
+    {
+      "check": "unique RFC1918 192.168.1.1",
+      "passed": true
+    },
+    {
+      "check": "approved interface eth12",
+      "passed": true
+    },
+    {
+      "check": "approved interface ens3",
+      "passed": true
+    },
+    {
+      "check": "approved interface enp0s3",
+      "passed": true
+    },
+    {
+      "check": "approved interface enxabcdef012345",
+      "passed": true
+    },
+    {
+      "check": "reject top-level-object",
+      "passed": true
+    },
+    {
+      "check": "reject top-level-null",
+      "passed": true
+    },
+    {
+      "check": "reject top-level-string",
+      "passed": true
+    },
+    {
+      "check": "reject empty-list",
+      "passed": true
+    },
+    {
+      "check": "reject interface-not-object",
+      "passed": true
+    },
+    {
+      "check": "reject missing-ifname",
+      "passed": true
+    },
+    {
+      "check": "reject ifname-not-string",
+      "passed": true
+    },
+    {
+      "check": "reject missing-addr_info",
+      "passed": true
+    },
+    {
+      "check": "reject addr_info-not-list",
+      "passed": true
+    },
+    {
+      "check": "reject address-not-object",
+      "passed": true
+    },
+    {
+      "check": "reject missing-local",
+      "passed": true
+    },
+    {
+      "check": "reject local None",
+      "passed": true
+    },
+    {
+      "check": "reject local 123",
+      "passed": true
+    },
+    {
+      "check": "reject local True",
+      "passed": true
+    },
+    {
+      "check": "reject local []",
+      "passed": true
+    },
+    {
+      "check": "reject local {}",
+      "passed": true
+    },
+    {
+      "check": "reject local ''",
+      "passed": true
+    },
+    {
+      "check": "reject local 'not-an-address'",
+      "passed": true
+    },
+    {
+      "check": "reject local '010.0.0.1'",
+      "passed": true
+    },
+    {
+      "check": "reject local '10.0.0.1/24'",
+      "passed": true
+    },
+    {
+      "check": "reject local ' 10.0.0.1'",
+      "passed": true
+    },
+    {
+      "check": "reject local '10.0.0.1 '",
+      "passed": true
+    },
+    {
+      "check": "reject local '256.0.0.1'",
+      "passed": true
+    },
+    {
+      "check": "reject local '2001:db8::1'",
+      "passed": true
+    },
+    {
+      "check": "reject local '::ffff:10.0.0.1'",
+      "passed": true
+    },
+    {
+      "check": "reject local '8.8.8.8'",
+      "passed": true
+    },
+    {
+      "check": "reject local '115.190.251.143'",
+      "passed": true
+    },
+    {
+      "check": "reject local '127.0.0.1'",
+      "passed": true
+    },
+    {
+      "check": "reject local '0.0.0.0'",
+      "passed": true
+    },
+    {
+      "check": "reject local '169.254.1.1'",
+      "passed": true
+    },
+    {
+      "check": "reject local '100.64.0.1'",
+      "passed": true
+    },
+    {
+      "check": "reject local '172.15.255.254'",
+      "passed": true
+    },
+    {
+      "check": "reject local '172.32.0.1'",
+      "passed": true
+    },
+    {
+      "check": "reject local '192.0.2.1'",
+      "passed": true
+    },
+    {
+      "check": "reject local '224.0.0.1'",
+      "passed": true
+    },
+    {
+      "check": "reject unexpected interface lo",
+      "passed": true
+    },
+    {
+      "check": "reject unexpected interface docker0",
+      "passed": true
+    },
+    {
+      "check": "reject unexpected interface cni0",
+      "passed": true
+    },
+    {
+      "check": "reject unexpected interface veth1",
+      "passed": true
+    },
+    {
+      "check": "reject unexpected interface tun0",
+      "passed": true
+    },
+    {
+      "check": "reject unexpected interface wlan0",
+      "passed": true
+    },
+    {
+      "check": "reject unexpected interface eth",
+      "passed": true
+    },
+    {
+      "check": "reject unexpected interface en",
+      "passed": true
+    },
+    {
+      "check": "reject unexpected interface eth0@if2",
+      "passed": true
+    },
+    {
+      "check": "reject unexpected interface ../eth0",
+      "passed": true
+    },
+    {
+      "check": "reject present family 'inet6'",
+      "passed": true
+    },
+    {
+      "check": "reject present family None",
+      "passed": true
+    },
+    {
+      "check": "reject present family 4",
+      "passed": true
+    },
+    {
+      "check": "reject present family 'ipv4'",
+      "passed": true
+    },
+    {
+      "check": "reject scope 'host'",
+      "passed": true
+    },
+    {
+      "check": "reject scope 'link'",
+      "passed": true
+    },
+    {
+      "check": "reject scope None",
+      "passed": true
+    },
+    {
+      "check": "reject two different candidate addresses",
+      "passed": true
+    },
+    {
+      "check": "reject duplicate candidate address",
+      "passed": true
+    },
+    {
+      "check": "reject two approved candidate interfaces",
+      "passed": true
+    },
+    {
+      "check": "reject duplicate interface identity",
+      "passed": true
+    },
+    {
+      "check": "reject private candidate mixed with public address",
+      "passed": true
+    },
+    {
+      "check": "reject malformed/duplicate/bounded JSON 12",
+      "passed": true
+    },
+    {
+      "check": "reject malformed/duplicate/bounded JSON 1",
+      "passed": true
+    },
+    {
+      "check": "reject malformed/duplicate/bounded JSON 50",
+      "passed": true
+    },
+    {
+      "check": "reject malformed/duplicate/bounded JSON 73",
+      "passed": true
+    },
+    {
+      "check": "reject malformed/duplicate/bounded JSON 65537",
+      "passed": true
+    },
+    {
+      "check": "exact original reviewed root 8 scripts and 17 sources",
+      "passed": true
+    },
+    {
+      "check": "actual original nine files and exact typed failed receipt allowed",
+      "passed": true
+    },
+    {
+      "check": "exact partial directory administrative fixture accepted",
+      "passed": true
+    },
+    {
+      "check": "refuse unknown entry without deletion",
+      "passed": true
+    },
+    {
+      "check": "refuse missing original without deletion",
+      "passed": true
+    },
+    {
+      "check": "refuse duplicate entry without deletion",
+      "passed": true
+    },
+    {
+      "check": "refuse symlink file without deletion",
+      "passed": true
+    },
+    {
+      "check": "refuse foreign file owner without deletion",
+      "passed": true
+    },
+    {
+      "check": "refuse world-readable file without deletion",
+      "passed": true
+    },
+    {
+      "check": "refuse wrong file size without deletion",
+      "passed": true
+    },
+    {
+      "check": "refuse foreign directory without deletion",
+      "passed": true
+    },
+    {
+      "check": "refuse symlink directory without deletion",
+      "passed": true
+    },
+    {
+      "check": "refuse writable directory without deletion",
+      "passed": true
+    },
+    {
+      "check": "exclusive upload adds only v2 script",
+      "passed": true
+    },
+    {
+      "check": "upload exclusively wx then chmod 0600",
+      "passed": true
+    },
+    {
+      "check": "existing v2 is never overwritten",
+      "passed": true
+    },
+    {
+      "check": "in-place hashes accept exact reviewed remote file mapping",
+      "passed": true
+    },
+    {
+      "check": "in-place hash CLI retains finite budgets",
+      "passed": true
+    },
+    {
+      "check": "refuse hardlinked remote file before hashing",
+      "passed": true
+    },
+    {
+      "check": "reject modified hash",
+      "passed": true
+    },
+    {
+      "check": "reject missing hash",
+      "passed": true
+    },
+    {
+      "check": "reject failed hash",
+      "passed": true
+    },
+    {
+      "check": "reject hash stderr",
+      "passed": true
+    },
+    {
+      "check": "reject oversized hash output",
+      "passed": true
+    },
+    {
+      "check": "bounded executor rejects excess stdout",
+      "passed": true
+    },
+    {
+      "check": "bounded executor rejects excess stderr",
+      "passed": true
+    },
+    {
+      "check": "single newly observed typed diagnostic receipt accepted",
+      "passed": true
+    }
+  ],
+  "parentTaskPacket": "docs/harness/tasks/2026-11-07-ops-planned-task-closeout.task.md",
+  "remoteExecuted": false,
+  "providerSimulated": false,
+  "providerAcceptanceVerified": false,
+  "fixtureKind": "Administrative parser and file metadata only; no provider fixtures",
+  "backupRestoreVerified": false,
+  "errorType": "TypeError",
+  "failedAfterChecks": 106,
+  "error": "cannot pickle 'module' object"
+}

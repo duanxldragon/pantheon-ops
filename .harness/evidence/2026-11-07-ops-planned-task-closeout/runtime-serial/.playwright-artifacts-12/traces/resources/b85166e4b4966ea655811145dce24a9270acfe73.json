@@ -1,0 +1,1 @@
+{"hostname":"service-smoke-1794042207655-host","ip":"10.251.104.152","sshPort":22,"os":"linux","osVersion":"Ubuntu 24.04","cpuCores":2,"memoryGb":4,"diskGb":40,"labels":[{"key":"service","val":"service-smoke-1794042207655"}],"owner":"service-smoke","remark":"service-smoke-1794042207655"}

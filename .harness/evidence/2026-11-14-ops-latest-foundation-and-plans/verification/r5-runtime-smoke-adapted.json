@@ -1,0 +1,27 @@
+{
+  "name": "r5-runtime-smoke-adapted",
+  "exitCode": 0,
+  "elapsedSeconds": 131.61439299583435,
+  "command": [
+    "playwright",
+    "test",
+    "bizscope/service/cmdb",
+    "--workers=1"
+  ],
+  "runnerAdaptation": "authenticated localhost JSON IPC and external real Chromium CDP",
+  "nativeRunnerPassed": false,
+  "unchangedSpecFiles": true,
+  "webPort": 18215,
+  "apiPort": 18214,
+  "isolatedSQL": true,
+  "isolatedRedis": true,
+  "logPrivate": true,
+  "logSHA256": "0065b6788d2c4ae8f400de3fdece2921130b60f1e982398eb14857855d728e9a",
+  "adapterSHA256": "1307e245ceb408defeb3d83c71c1b64e3b41d9fe74ec24d60a73f59c5a5eb243",
+  "specSHA256": {
+    "tests/smoke/business/bizscope/bizscope-pages.spec.ts": "a0adce75692ecc9209702b4d2f4f5ff482618ffac04d1d16ace78c1a2c0cd73f",
+    "tests/smoke/business/service/service-pages.spec.ts": "4a12986d49e1efa0704ae337224f2c0493d6ecaa8b57521fc9fdbe106d5a9f18",
+    "tests/smoke/business/cmdb/cmdb-import-export-permissions.spec.ts": "6eb1c9ecd8da1338400b909dfcf4652de706bbf762a90ac72366e0f289c9e091"
+  },
+  "sourceStable": true
+}

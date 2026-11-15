@@ -2,7 +2,7 @@
 
 - Priority: `P1`
 - Layer: `business/bizscope + business/cmdb`
-- Status: `blocked`
+- Status: `Deploy resolve/create/update and UI verified locally; other consumers and formal acceptance open`
 - Base Dependency: B3 `ContextSelector` in immutable foundation release
 - Consumers: Deploy, K8s release, file distribution, bulk operations
 
@@ -54,3 +54,28 @@
 
 - Base lock、跨模块 typed capability、新 API/schema 和共享组件 drift。
 - 外部生产资源不在本包内创建或修改。
+
+## Reconciliation 2026-11-07
+
+The required Base primitive is present in official v0.18.6. This resolves the prior component-release dependency only; all implementation and acceptance criteria above remain open. See the parent EXECUTION_QUEUE.md and current execution evidence.
+
+## Current implementation evidence
+
+See `.harness/evidence/2026-11-07-ops-planned-task-closeout/summary.md` for implemented Deploy scope, exact verification and remaining gaps. The packet remains in-progress.
+
+## File distribution consumer finding
+
+New file distribution task snapshots no longer duplicate plaintext credentials; encrypted execution rows and caller-owned input are preserved and covered by real MySQL persistence regression. This bounded integrity repair does not add the missing DataScope/stable-ID provider/selection binding to file distribution. Historical plaintext snapshots and credential cleanup require a separate reviewed migration; no historical data is mutated.
+
+## FileDist unsupported-scope containment
+
+All public FileDist routes in both aliases now require an explicitly IAM-resolved all scope or the trusted IAM administrator flag. Missing, empty, unknown, self, department, department-with-children and custom scopes return permission.denied before FileDist handler parsing/I/O/dispatch. FileDist is intentionally unavailable to restricted-scope roles until ownership integration is reviewed and implemented; do not widen role policies to work around this. Trusted internal worker/service methods are unchanged.
+
+The route-wide denial matrix, explicit all/admin admission, sibling-route isolation and actual Gin/MySQL scheduled-create/read/denied-mutation persistence checks pass. JWT/Casbin/IAM-resolution, live revocation, browser forbidden recovery and complete O1 target-selection acceptance remain separate gaps. The supplied-source reviewer timed out and has not approved this delta.
+
+### Next implementation prerequisites
+
+1. Review additive, preserving business migrations for numeric task/file owners, department/BizScope ownership and stable CMDB target IDs. Resolve shared/default storage administration separately from file ownership. Do not map string usernames to numeric owner IDs or automatically grant access to legacy records; retain unknown legacy ownership for an explicit migration assessment.
+2. Inject the existing provider-owned TargetSelectionCapability through business assembly and transaction binding. Consumers must not query CMDB/BizScope tables or copy provider logic. Decide how execution credentials and verified SSH endpoints are bound to the selected stable IDs without trusting client addresses.
+3. Create/start/retry must re-resolve selection, DataScope, state and scopeVersion inside the committing transaction, validate source-file access, save credential-free source/exclusion/time/count facts, and dispatch only after commit. Scheduled execution and live permission revocation need an authoritative actor-policy resolution contract, not a captured creation-time scope treated as current authority.
+4. Verify scope/owner changes, unknown legacy records, source-file denial, target/address/version drift, failed transactions and zero worker effects before adding the UI consumer. Full O1 remains in-progress.

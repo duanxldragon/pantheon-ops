@@ -1,0 +1,9 @@
+FAIL	github.com/duanxldragon/pantheon-base/backend/modules/business/deploy [build failed]
+# github.com/duanxldragon/pantheon-base/backend/modules/business/deploy [github.com/duanxldragon/pantheon-base/backend/modules/business/deploy.test]
+modules\business\deploy\deploy_dto.go:195:21: undefined: cmdb
+modules\business\deploy\deploy_dto.go:305:19: undefined: cmdb
+modules\business\deploy\deploy_handler.go:896:58: undefined: common.BusinessRead
+modules\business\deploy\deploy_handler.go:910:58: undefined: common.BusinessRead
+ok  	github.com/duanxldragon/pantheon-base/backend/modules/business/cmdb	0.032s [no tests to run]
+ok  	github.com/duanxldragon/pantheon-base/backend/modules/business/bizscope	(cached) [no tests to run]
+FAIL

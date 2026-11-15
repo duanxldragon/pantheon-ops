@@ -1,0 +1,7 @@
+
+> check:ui-quality-gate
+> node scripts/harness/check-ui-quality-gate.mjs --root . --strict
+
+UI quality gate (strict): 0 finding(s)
+
+no findings

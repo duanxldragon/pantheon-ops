@@ -1,0 +1,189 @@
+=== RUN   TestCreateRestoreRejectsBeforePersistence
+=== RUN   TestCreateRestoreRejectsBeforePersistence/foreign_department_guessing_source_and_cluster
+=== RUN   TestCreateRestoreRejectsBeforePersistence/own_department_without_credential
+=== RUN   TestCreateRestoreRejectsBeforePersistence/canceled_request
+=== RUN   TestCreateRestoreRejectsBeforePersistence/expired_request
+=== RUN   TestCreateRestoreRejectsBeforePersistence/source_in_another_cluster
+=== RUN   TestCreateRestoreRejectsBeforePersistence/revoked_source
+=== RUN   TestCreateRestoreRejectsBeforePersistence/revoked_credential_with_cached_client
+=== RUN   TestCreateRestoreRejectsBeforePersistence/revoked_cluster_department_with_cached_client
+--- PASS: TestCreateRestoreRejectsBeforePersistence (0.44s)
+    --- PASS: TestCreateRestoreRejectsBeforePersistence/foreign_department_guessing_source_and_cluster (0.00s)
+    --- PASS: TestCreateRestoreRejectsBeforePersistence/own_department_without_credential (0.00s)
+    --- PASS: TestCreateRestoreRejectsBeforePersistence/canceled_request (0.00s)
+    --- PASS: TestCreateRestoreRejectsBeforePersistence/expired_request (0.00s)
+    --- PASS: TestCreateRestoreRejectsBeforePersistence/source_in_another_cluster (0.00s)
+    --- PASS: TestCreateRestoreRejectsBeforePersistence/revoked_source (0.01s)
+    --- PASS: TestCreateRestoreRejectsBeforePersistence/revoked_credential_with_cached_client (0.01s)
+    --- PASS: TestCreateRestoreRejectsBeforePersistence/revoked_cluster_department_with_cached_client (0.00s)
+=== RUN   TestCreateRestoreEligibleSourceAndEnqueue
+=== RUN   TestCreateRestoreEligibleSourceAndEnqueue/revoked_registry_source_with_authorized_cached_client
+=== RUN   TestCreateRestoreEligibleSourceAndEnqueue/registry_New
+=== RUN   TestCreateRestoreEligibleSourceAndEnqueue/registry_InProgress
+=== RUN   TestCreateRestoreEligibleSourceAndEnqueue/registry_Failed
+=== RUN   TestCreateRestoreEligibleSourceAndEnqueue/expired_registry
+=== RUN   TestCreateRestoreEligibleSourceAndEnqueue/live_
+=== RUN   TestCreateRestoreEligibleSourceAndEnqueue/live_New
+=== RUN   TestCreateRestoreEligibleSourceAndEnqueue/live_InProgress
+=== RUN   TestCreateRestoreEligibleSourceAndEnqueue/live_Failed
+=== RUN   TestCreateRestoreEligibleSourceAndEnqueue/live_PartiallyFailed
+=== RUN   TestCreateRestoreEligibleSourceAndEnqueue/live_Deleting
+=== RUN   TestCreateRestoreEligibleSourceAndEnqueue/deleted_live_source
+=== RUN   TestCreateRestoreEligibleSourceAndEnqueue/live_expiration_2026-11-09T07:31:08Z
+=== RUN   TestCreateRestoreEligibleSourceAndEnqueue/live_expiration_malformed
+=== RUN   TestCreateRestoreEligibleSourceAndEnqueue/cancel_during_source_inspection
+=== RUN   TestCreateRestoreEligibleSourceAndEnqueue/revoked_during_live_inspection_department
+=== RUN   TestCreateRestoreEligibleSourceAndEnqueue/revoked_during_live_inspection_credential
+=== RUN   TestCreateRestoreEligibleSourceAndEnqueue/revoked_during_live_inspection_source
+=== RUN   TestCreateRestoreEligibleSourceAndEnqueue/worker_rechecks_live_source
+=== RUN   TestCreateRestoreEligibleSourceAndEnqueue/authorized_successful_enqueue
+
+2026/11/09 16:31:08 [34;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/k8s/backup/restore_authorization_test.go:381
+[0m[35m[warn] [0mremoving callback `restore_auth_assert_locks` from D:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/k8s/backup/restore_authorization_test.go:381
+--- PASS: TestCreateRestoreEligibleSourceAndEnqueue (0.85s)
+    --- PASS: TestCreateRestoreEligibleSourceAndEnqueue/revoked_registry_source_with_authorized_cached_client (0.02s)
+    --- PASS: TestCreateRestoreEligibleSourceAndEnqueue/registry_New (0.01s)
+    --- PASS: TestCreateRestoreEligibleSourceAndEnqueue/registry_InProgress (0.02s)
+    --- PASS: TestCreateRestoreEligibleSourceAndEnqueue/registry_Failed (0.01s)
+    --- PASS: TestCreateRestoreEligibleSourceAndEnqueue/expired_registry (0.02s)
+    --- PASS: TestCreateRestoreEligibleSourceAndEnqueue/live_ (0.01s)
+    --- PASS: TestCreateRestoreEligibleSourceAndEnqueue/live_New (0.01s)
+    --- PASS: TestCreateRestoreEligibleSourceAndEnqueue/live_InProgress (0.00s)
+    --- PASS: TestCreateRestoreEligibleSourceAndEnqueue/live_Failed (0.00s)
+    --- PASS: TestCreateRestoreEligibleSourceAndEnqueue/live_PartiallyFailed (0.01s)
+    --- PASS: TestCreateRestoreEligibleSourceAndEnqueue/live_Deleting (0.01s)
+    --- PASS: TestCreateRestoreEligibleSourceAndEnqueue/deleted_live_source (0.00s)
+    --- PASS: TestCreateRestoreEligibleSourceAndEnqueue/live_expiration_2026-11-09T07:31:08Z (0.00s)
+    --- PASS: TestCreateRestoreEligibleSourceAndEnqueue/live_expiration_malformed (0.00s)
+    --- PASS: TestCreateRestoreEligibleSourceAndEnqueue/cancel_during_source_inspection (0.00s)
+    --- PASS: TestCreateRestoreEligibleSourceAndEnqueue/revoked_during_live_inspection_department (0.02s)
+    --- PASS: TestCreateRestoreEligibleSourceAndEnqueue/revoked_during_live_inspection_credential (0.03s)
+    --- PASS: TestCreateRestoreEligibleSourceAndEnqueue/revoked_during_live_inspection_source (0.03s)
+    --- PASS: TestCreateRestoreEligibleSourceAndEnqueue/worker_rechecks_live_source (0.06s)
+    --- PASS: TestCreateRestoreEligibleSourceAndEnqueue/authorized_successful_enqueue (0.05s)
+=== RUN   TestRestoreFinalIndependentDenials
+=== RUN   TestRestoreFinalIndependentDenials/foreign_department
+=== RUN   TestRestoreFinalIndependentDenials/department_revoked_cached
+=== RUN   TestRestoreFinalIndependentDenials/foreign_source
+--- PASS: TestRestoreFinalIndependentDenials (1.52s)
+    --- PASS: TestRestoreFinalIndependentDenials/foreign_department (0.50s)
+    --- PASS: TestRestoreFinalIndependentDenials/department_revoked_cached (0.46s)
+    --- PASS: TestRestoreFinalIndependentDenials/foreign_source (0.55s)
+=== RUN   TestRestoreFinalSecondGETRevocation
+=== RUN   TestRestoreFinalSecondGETRevocation/department
+    restore_final_boundary_test.go:221: revoked request submitted Restore after second GET
+=== RUN   TestRestoreFinalSecondGETRevocation/credential
+    restore_final_boundary_test.go:221: revoked request submitted Restore after second GET
+=== RUN   TestRestoreFinalSecondGETRevocation/source
+    restore_final_boundary_test.go:221: revoked request submitted Restore after second GET
+=== RUN   TestRestoreFinalSecondGETRevocation/binding
+    restore_final_boundary_test.go:221: revoked request submitted Restore after second GET
+=== RUN   TestRestoreFinalSecondGETRevocation/attempt
+    restore_final_boundary_test.go:229: revoked request submitted Restore after second GET
+--- FAIL: TestRestoreFinalSecondGETRevocation (2.76s)
+    --- FAIL: TestRestoreFinalSecondGETRevocation/department (0.46s)
+    --- FAIL: TestRestoreFinalSecondGETRevocation/credential (0.56s)
+    --- FAIL: TestRestoreFinalSecondGETRevocation/source (0.53s)
+    --- FAIL: TestRestoreFinalSecondGETRevocation/binding (0.51s)
+    --- FAIL: TestRestoreFinalSecondGETRevocation/attempt (0.70s)
+=== RUN   TestRestoreFinalTargetDenials
+=== RUN   TestRestoreFinalTargetDenials/unbound_remap
+    restore_final_boundary_test.go:268: want denial "k8s.namespace.binding_required", got response=&{1 final-restore 1 source map[owned-source:foreign-target] [owned-source] [] [configmaps] [] true New  <nil> <nil> 0 0 2026-11-09 16:31:13.708 +0800 CST owner} error=<nil>
+=== RUN   TestRestoreFinalTargetDenials/unmapped_source
+    restore_final_boundary_test.go:268: want denial "k8s.namespace.binding_required", got response=&{1 final-restore 1 source map[] [owned-source] [] [configmaps] [] true New  <nil> <nil> 0 0 2026-11-09 16:31:14.104 +0800 CST owner} error=<nil>
+=== RUN   TestRestoreFinalTargetDenials/no_action
+    restore_final_boundary_test.go:268: want denial "k8s.namespace.action_forbidden", got response=&{1 final-restore 1 source map[owned-source:owned-target] [owned-source] [] [configmaps] [] true New  <nil> <nil> 0 0 2026-11-09 16:31:14.513 +0800 CST owner} error=<nil>
+=== RUN   TestRestoreFinalTargetDenials/cross_scope
+    restore_final_boundary_test.go:268: want denial "k8s.namespace.binding_required", got response=&{1 final-restore 1 source map[owned-source:owned-target] [owned-source] [] [configmaps] [] true New  <nil> <nil> 0 0 2026-11-09 16:31:14.99 +0800 CST owner} error=<nil>
+=== RUN   TestRestoreFinalTargetDenials/wrong_environment
+    restore_final_boundary_test.go:268: want denial "k8s.namespace.binding_required", got response=&{1 final-restore 1 source map[owned-source:owned-target] [owned-source] [] [configmaps] [] true New  <nil> <nil> 0 0 2026-11-09 16:31:15.444 +0800 CST owner} error=<nil>
+=== RUN   TestRestoreFinalTargetDenials/wildcard
+    restore_final_boundary_test.go:268: want denial "k8s.namespace.binding_required", got response=&{1 final-restore 1 source map[owned-source:owned-target] [*] [] [configmaps] [] true New  <nil> <nil> 0 0 2026-11-09 16:31:16.003 +0800 CST owner} error=<nil>
+=== RUN   TestRestoreFinalTargetDenials/all_namespaces
+    restore_final_boundary_test.go:268: want denial "k8s.namespace.binding_required", got response=&{1 final-restore 1 source map[owned-source:owned-target] [] [] [configmaps] [] true New  <nil> <nil> 0 0 2026-11-09 16:31:16.498 +0800 CST owner} error=<nil>
+=== RUN   TestRestoreFinalTargetDenials/pv_cluster_resource
+    restore_final_boundary_test.go:268: want denial "k8s.backup.restore_create_failed", got response=&{1 final-restore 1 source map[owned-source:owned-target] [owned-source] [] [configmaps] [] true New  <nil> <nil> 0 0 2026-11-09 16:31:17.032 +0800 CST owner} error=<nil>
+--- FAIL: TestRestoreFinalTargetDenials (3.76s)
+    --- FAIL: TestRestoreFinalTargetDenials/unbound_remap (0.42s)
+    --- FAIL: TestRestoreFinalTargetDenials/unmapped_source (0.38s)
+    --- FAIL: TestRestoreFinalTargetDenials/no_action (0.43s)
+    --- FAIL: TestRestoreFinalTargetDenials/cross_scope (0.45s)
+    --- FAIL: TestRestoreFinalTargetDenials/wrong_environment (0.50s)
+    --- FAIL: TestRestoreFinalTargetDenials/wildcard (0.52s)
+    --- FAIL: TestRestoreFinalTargetDenials/all_namespaces (0.51s)
+    --- FAIL: TestRestoreFinalTargetDenials/pv_cluster_resource (0.53s)
+=== RUN   TestRestoreFinalAcceptedResponseTimeout
+    restore_final_boundary_test.go:289: want Unknown, got Failed
+--- FAIL: TestRestoreFinalAcceptedResponseTimeout (5.60s)
+=== RUN   TestRestoreFinalDeterministicProviderRefusal
+--- PASS: TestRestoreFinalDeterministicProviderRefusal (0.37s)
+=== RUN   TestVeleroClient_IsInstalled
+=== RUN   TestVeleroClient_IsInstalled/velero_installed
+=== RUN   TestVeleroClient_IsInstalled/velero_not_installed
+--- PASS: TestVeleroClient_IsInstalled (0.00s)
+    --- PASS: TestVeleroClient_IsInstalled/velero_installed (0.00s)
+    --- PASS: TestVeleroClient_IsInstalled/velero_not_installed (0.00s)
+=== RUN   TestVeleroClient_CreateBackup
+--- PASS: TestVeleroClient_CreateBackup (0.00s)
+=== RUN   TestVeleroClient_CreateSchedule
+--- PASS: TestVeleroClient_CreateSchedule (0.00s)
+=== RUN   TestVeleroClient_CreateRestore
+--- PASS: TestVeleroClient_CreateRestore (0.00s)
+=== RUN   TestVeleroClient_DeleteBackup
+--- PASS: TestVeleroClient_DeleteBackup (0.00s)
+=== RUN   TestVeleroClient_GetRunningPods
+--- PASS: TestVeleroClient_GetRunningPods (0.00s)
+FAIL
+FAIL	github.com/duanxldragon/pantheon-base/backend/modules/business/k8s/backup	15.436s
+=== RUN   TestQuantityToCores
+--- PASS: TestQuantityToCores (0.00s)
+=== RUN   TestQuantityToGB
+--- PASS: TestQuantityToGB (0.00s)
+=== RUN   TestIsNodeReady
+--- PASS: TestIsNodeReady (0.00s)
+=== RUN   TestToResponse
+--- PASS: TestToResponse (0.02s)
+=== RUN   TestToNodeSnapshot
+--- PASS: TestToNodeSnapshot (0.00s)
+=== RUN   TestClusterUpdateRejectsConcurrentStaleScopeMutation
+
+2026/11/09 16:31:07 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/k8s/cluster/cluster_service.go:328 [35;1mrecord not found
+[0m[33m[0.820ms] [34;1m[rows:0][0m SELECT * FROM `biz_k8s_cluster` WHERE id = 1 AND dept_id = 10 AND `biz_k8s_cluster`.`deleted_at` IS NULL ORDER BY `biz_k8s_cluster`.`id` LIMIT 1 FOR UPDATE
+--- PASS: TestClusterUpdateRejectsConcurrentStaleScopeMutation (0.10s)
+=== RUN   TestCredentialReferenceFailsClosedWithInline
+=== RUN   TestCredentialReferenceFailsClosedWithInline/revoked_lazy
+    credential_revocation_test.go:65: native client fell back to inline after explicit reference failure
+    credential_revocation_test.go:68: dynamic client fell back to inline after explicit reference failure
+=== RUN   TestCredentialReferenceFailsClosedWithInline/missing_lazy
+    credential_revocation_test.go:65: native client fell back to inline after explicit reference failure
+    credential_revocation_test.go:68: dynamic client fell back to inline after explicit reference failure
+=== RUN   TestCredentialReferenceFailsClosedWithInline/empty_lazy
+    credential_revocation_test.go:65: native client fell back to inline after explicit reference failure
+    credential_revocation_test.go:68: dynamic client fell back to inline after explicit reference failure
+=== RUN   TestCredentialReferenceFailsClosedWithInline/foreign_lazy
+    credential_revocation_test.go:65: native client fell back to inline after explicit reference failure
+    credential_revocation_test.go:68: dynamic client fell back to inline after explicit reference failure
+=== RUN   TestCredentialReferenceFailsClosedWithInline/revoked_cached
+    credential_revocation_test.go:65: native client fell back to inline after explicit reference failure
+    credential_revocation_test.go:68: dynamic client fell back to inline after explicit reference failure
+=== RUN   TestCredentialReferenceFailsClosedWithInline/missing_cached
+    credential_revocation_test.go:65: native client fell back to inline after explicit reference failure
+    credential_revocation_test.go:68: dynamic client fell back to inline after explicit reference failure
+=== RUN   TestCredentialReferenceFailsClosedWithInline/empty_cached
+    credential_revocation_test.go:65: native client fell back to inline after explicit reference failure
+    credential_revocation_test.go:68: dynamic client fell back to inline after explicit reference failure
+=== RUN   TestCredentialReferenceFailsClosedWithInline/foreign_cached
+    credential_revocation_test.go:65: native client fell back to inline after explicit reference failure
+    credential_revocation_test.go:68: dynamic client fell back to inline after explicit reference failure
+--- FAIL: TestCredentialReferenceFailsClosedWithInline (1.66s)
+    --- FAIL: TestCredentialReferenceFailsClosedWithInline/revoked_lazy (0.16s)
+    --- FAIL: TestCredentialReferenceFailsClosedWithInline/missing_lazy (0.17s)
+    --- FAIL: TestCredentialReferenceFailsClosedWithInline/empty_lazy (0.26s)
+    --- FAIL: TestCredentialReferenceFailsClosedWithInline/foreign_lazy (0.22s)
+    --- FAIL: TestCredentialReferenceFailsClosedWithInline/revoked_cached (0.19s)
+    --- FAIL: TestCredentialReferenceFailsClosedWithInline/missing_cached (0.25s)
+    --- FAIL: TestCredentialReferenceFailsClosedWithInline/empty_cached (0.20s)
+    --- FAIL: TestCredentialReferenceFailsClosedWithInline/foreign_cached (0.22s)
+FAIL
+FAIL	github.com/duanxldragon/pantheon-base/backend/modules/business/k8s/cluster	1.896s
+FAIL

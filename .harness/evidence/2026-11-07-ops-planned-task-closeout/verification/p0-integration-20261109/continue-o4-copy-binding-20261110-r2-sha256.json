@@ -1,0 +1,14 @@
+{
+  "request": {
+    "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/continue-o4-copy-binding-20261110-r2-request.json",
+    "sha256": "deda434467f5ea1da73cd8e7673855e86c6b2143e55f1bd0855c57bcebd1e553"
+  },
+  "evidence": {
+    "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/continue-o4-copy-binding-20261110-r2-evidence.json",
+    "sha256": "d036a85ef025101b4c599fc4fc258b7803c02de14ce7262567e107cbb296e57e"
+  },
+  "handoff": {
+    "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/continue-o4-copy-binding-20261110-r2-handoff.md",
+    "sha256": "1b4dcea77065fb24946d2cf9aba57db8f43eb75aca71bfcc16a793c82e955a81"
+  }
+}

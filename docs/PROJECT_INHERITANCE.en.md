@@ -33,8 +33,9 @@ Run these commands from the Ops repository root:
 ```powershell
 # Query GitHub for the latest stable official Base release, download four assets,
 # verify SHA256, manifest and immutable tag, then update the Ops lock.
-# With no version argument this selects latest; this handoff pins v0.18.6.
-npm run fetch:base-release -- --release pantheon-base-v0.18.6
+# With no version argument this selects latest; the example fetches v0.18.8.
+# The active installation consumes official v0.18.8; prior rollback evidence is retained.
+npm run fetch:base-release -- --release pantheon-base-v0.18.8
 
 # Rebuild and verify a temporary consumer from the pinned official release.
 npm run rebuild:from-base -- --target .tmp/clean-base-overlay
@@ -67,3 +68,34 @@ Business ownership cannot claim `backend/pkg/database` or arbitrary destinations
 After adding `goDependencies` to the official Base snapshot, reconstruction loads the complete package and test dependency graph before hashing the output report. The normalized `backend/go.mod` and `go.sum` are generated files; missing packages, checksums or loading errors abort reconstruction without a success report.
 
 Validate the emitted tree directly with `go list -buildvcs=false -mod=readonly -deps -test ./...` and applicable builds/tests. Do not repair module files with `-mod=mod` during acceptance. Verified release assets and the root lock identify archive provenance; enclosing-repository VCS stamping is disabled. Insufficient offline caches must be populated before rebuilding, rather than skipping dependency validation. Official release and full race/business-smoke gates still apply.
+
+## 10. Current business fresh-install baseline
+
+Business migration `000033_core_business_schema` fills 29 missing CMDB, BizScope, Deploy, Service and K8s core tables with AutoMigrate disabled. Its source is owned by `business/opsinit/migrations` and is assembled into the official Base chain alongside `000032`; do not edit shared target migration files by hand.
+
+CREATE TABLE IF NOT EXISTS preserves existing schema/data; down also retains tables/data. This baseline does not upgrade incompatible legacy columns or authorize production or tenant migrations. Those require separate review, backup and rehearsal. Local fresh-install, 32-to-33, replay and retained-data down evidence is in `.harness/evidence/2026-11-07-ops-planned-task-closeout/summary.md`.
+
+The fresh baseline uses generated active-row keys to enforce active natural-key uniqueness while permitting soft-deleted identities to be reused. Existing incompatible tables are still preserved, so legacy index corrections require a separate upgrade migration.
+
+## 11. Deployment log attempt metadata
+
+Business migration `000034_deploy_log_attempt` adds `attempt_no` to the existing `000033` log table. New chunks persist the step attempt at write time; later checkpoint updates do not reassign old output. Legacy chunks retain0 (unattributed) and are included only in an explicit all-attempt view. The guarded additive migration supports replay and retained down without rewriting output or guessing history. The business manifest assembles it into the formal migration chain; shared target source is not edited manually. Production upgrades retain their separate review, backup and rehearsal gates.
+
+## 12. Deployment checkpoint history
+
+Business migration `000035_deploy_step_history` adds append-only observations containing only identity, step attempt, status, version and times. Existing checkpoint updates and observations commit together without changing engine retry/lease/recovery policies. The history view uses the last recorded state in each step attempt; legacy checkpoints are not backfilled. This is not a complete execution timeline or a terminal-state guarantee. Existing task detail filters hosts, steps, log attempts and history through CMDB visibility; history is capped at500 with explicit truncation. No new public route, secret/configuration/raw-error exposure or shared-source override. The paired business migration is assembled formally and retains history on down. Production upgrade, independent review and final acceptance remain open.
+
+Business migration `000036_deploy_log_sequence_scope` corrects log uniqueness from global `sequence` to `(task_id, sequence)`, matching the existing task-local sequence allocator. The legacy index discarded later tasks' same-numbered chunks. Upgrade accepts only the known legacy index shape, fails on unknown shapes, skips an absent table, and replays an already-correct index safely. Down retains the corrected index and all history. The business manifest assembles both directions; shared generated targets are not edited manually. Real MySQL tests cover cross-task retention, within-task deduplication, concurrent writes, legacy upgrade/replay and retained down; real VM inverse execution verifies the second task's output too. These checks do not replace full P0 acceptance or production migration gates.
+
+## Earlier r5 checkpoint (historical; superseded by the installation below)
+
+Official GitHub latest stable v0.18.8 and its four immutable assets were acquired and verified. The fully assembled candidate is `.tmp/ops-v0188-final-r5`; its lock/report target commit `34428814a9efc997fd93d4434406a53df6460323`. A working-tree install was denied by Windows directory permissions at `backend/modules/system/iam/tenant/tenant_owner_lifecycle_test.go`. All 158 install preimages were restored; the active lock/report remain v0.18.6. Candidate validation does not establish active adoption. No local Base/Ops Git comparison or shared-source copying was used. Later asset replays record `freshGitHubLookup:false`.
+
+Business menu/environment migration000038, bounded recorded-state Dashboard adapters and CMDB permission-key registration are implemented. The candidate passes frontend lint/type-check/build, 414 unit tests and 24 actual browser tests via an isolated IPC/CDP adapter (`nativeRunnerPassed:false`). Dashboard renders cover four empty-state widgets in light/dark at 1440/390; full provider/state acceptance remains open. Six P0 parent packets remain open, as do final visual/functional acceptance and production gates. See [current execution evidence](../.harness/evidence/2026-11-14-ops-latest-foundation-and-plans/summary.md).
+
+## v0.18.8 installation continuation
+
+- Base repository: `../pantheon-base`
+- Base version: `pantheon-base-v0.18.8` (`34428814a9efc997fd93d4434406a53df6460323`)
+
+The active installation now consumes official `pantheon-base-v0.18.8`, commit `34428814a9efc997fd93d4434406a53df6460323`, assembled from verified GitHub release assets and the current declared business overlay. Prior denied-installation records describe the earlier attempt and are preserved. The new installation uses fresh preimages; six P0 parents, external-provider acceptance and final visual/functional acceptance remain open. See [current evidence](../.harness/evidence/2026-11-14-ops-latest-foundation-and-plans/summary.md).

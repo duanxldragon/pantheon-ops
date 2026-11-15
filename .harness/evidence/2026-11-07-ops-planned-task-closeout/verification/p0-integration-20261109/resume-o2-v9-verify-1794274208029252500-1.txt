@@ -1,0 +1,79 @@
+=== RUN   TestColdProbeTracksCrashedClaimAfterEarlierFailure
+=== RUN   TestColdProbeTracksCrashedClaimAfterEarlierFailure/new_claim_is_rejected
+=== RUN   TestColdProbeTracksCrashedClaimAfterEarlierFailure/rewritten_lease_is_rejected
+=== RUN   TestColdProbeTracksCrashedClaimAfterEarlierFailure/different_same-length_claim_is_rejected
+=== RUN   TestColdProbeTracksCrashedClaimAfterEarlierFailure/expired_claim_is_rejected
+=== RUN   TestColdProbeTracksCrashedClaimAfterEarlierFailure/released_claim_is_rejected
+--- PASS: TestColdProbeTracksCrashedClaimAfterEarlierFailure (0.00s)
+    --- PASS: TestColdProbeTracksCrashedClaimAfterEarlierFailure/new_claim_is_rejected (0.00s)
+    --- PASS: TestColdProbeTracksCrashedClaimAfterEarlierFailure/rewritten_lease_is_rejected (0.00s)
+    --- PASS: TestColdProbeTracksCrashedClaimAfterEarlierFailure/different_same-length_claim_is_rejected (0.00s)
+    --- PASS: TestColdProbeTracksCrashedClaimAfterEarlierFailure/expired_claim_is_rejected (0.00s)
+    --- PASS: TestColdProbeTracksCrashedClaimAfterEarlierFailure/released_claim_is_rejected (0.00s)
+=== RUN   TestTypedDiagnosticsExcludeSensitiveMessages
+--- PASS: TestTypedDiagnosticsExcludeSensitiveMessages (0.00s)
+=== RUN   TestActualVerifierMarkerShellAndUninstallSemantics
+--- PASS: TestActualVerifierMarkerShellAndUninstallSemantics (0.52s)
+=== RUN   TestV8CategoriesDoNotEchoUnknownPayloads
+--- PASS: TestV8CategoriesDoNotEchoUnknownPayloads (0.00s)
+=== RUN   TestVerifierReusesOneAuthenticatedTransportAndExactPinOnce
+--- PASS: TestVerifierReusesOneAuthenticatedTransportAndExactPinOnce (0.35s)
+=== RUN   TestVerifierChangedPinRejectedWithoutAuthenticationOrRetry
+{"operationPhase":"","ordinal":1,"phase":"v9-verifier-connection"}
+{"deadlineExceeded":false,"phase":"independent-ssh-handshake","pinChecked":true,"pinMatched":false}
+{"authenticationFailed":false,"deadlineExceeded":false,"errorChainTypes":["*fmt.wrapError","*errors.errorString"],"errorType":"*fmt.wrapError","phase":"independent-ssh-error","pinMismatch":true,"stage":"handshake-auth","unexpectedEOF":false}
+--- PASS: TestVerifierChangedPinRejectedWithoutAuthenticationOrRetry (0.01s)
+=== RUN   TestVerifierFirstHandshakeEOFIsFinal
+{"operationPhase":"","ordinal":1,"phase":"v9-verifier-connection"}
+{"deadlineExceeded":false,"phase":"independent-ssh-handshake","pinChecked":false,"pinMatched":false}
+{"authenticationFailed":false,"deadlineExceeded":false,"errorChainTypes":["*fmt.wrapError","*net.OpError","*os.SyscallError","syscall.Errno"],"errorType":"*fmt.wrapError","netOperation":"read","phase":"independent-ssh-error","pinMismatch":false,"stage":"handshake-auth","timeout":false,"unexpectedEOF":false}
+--- PASS: TestVerifierFirstHandshakeEOFIsFinal (0.00s)
+=== RUN   TestVerifierSessionRefusalNeverReconnects
+{"operationPhase":"","ordinal":1,"phase":"v9-verifier-connection"}
+{"deadlineExceeded":false,"phase":"independent-ssh-handshake","pinChecked":true,"pinMatched":true}
+{"authenticationFailed":false,"channelReason":1,"deadlineExceeded":false,"errorChainTypes":["*ssh.OpenChannelError"],"errorType":"*ssh.OpenChannelError","phase":"independent-ssh-error","pinMismatch":false,"stage":"channel","unexpectedEOF":false}
+{"authenticationFailed":false,"channelReason":1,"deadlineExceeded":false,"errorChainTypes":["*ssh.OpenChannelError"],"errorType":"*ssh.OpenChannelError","phase":"independent-ssh-error","pinMismatch":false,"stage":"channel","unexpectedEOF":false}
+--- PASS: TestVerifierSessionRefusalNeverReconnects (0.01s)
+=== RUN   TestVerifierCommandExit17PreservedWithoutReplay
+{"operationPhase":"","ordinal":1,"phase":"v9-verifier-connection"}
+{"deadlineExceeded":false,"phase":"independent-ssh-handshake","pinChecked":true,"pinMatched":true}
+{"deadlineExceeded":false,"exitStatus":17,"passed":false,"phase":"independent-ssh-command"}
+{"authenticationFailed":false,"deadlineExceeded":false,"errorChainTypes":["*ssh.ExitError"],"errorType":"*ssh.ExitError","exitStatus":17,"phase":"independent-ssh-error","pinMismatch":false,"stage":"command","unexpectedEOF":false}
+{"deadlineExceeded":false,"exitStatus":0,"passed":true,"phase":"independent-ssh-command"}
+--- PASS: TestVerifierCommandExit17PreservedWithoutReplay (0.02s)
+=== RUN   TestVerifierTimeoutBoundsHandshakeChannelAndCommand
+=== RUN   TestVerifierTimeoutBoundsHandshakeChannelAndCommand/handshake-stall
+{"operationPhase":"","ordinal":1,"phase":"v9-verifier-connection"}
+{"deadlineExceeded":true,"phase":"independent-ssh-handshake","pinChecked":false,"pinMatched":false}
+{"authenticationFailed":false,"deadlineExceeded":true,"errorChainTypes":["context.deadlineExceededError"],"errorType":"context.deadlineExceededError","phase":"independent-ssh-error","pinMismatch":false,"stage":"handshake-auth","unexpectedEOF":false}
+=== RUN   TestVerifierTimeoutBoundsHandshakeChannelAndCommand/stall-open
+{"operationPhase":"","ordinal":1,"phase":"v9-verifier-connection"}
+{"deadlineExceeded":false,"phase":"independent-ssh-handshake","pinChecked":true,"pinMatched":true}
+{"authenticationFailed":false,"deadlineExceeded":true,"errorChainTypes":["context.deadlineExceededError"],"errorType":"context.deadlineExceededError","phase":"independent-ssh-error","pinMismatch":false,"stage":"channel","unexpectedEOF":false}
+=== RUN   TestVerifierTimeoutBoundsHandshakeChannelAndCommand/stall-run
+{"operationPhase":"","ordinal":1,"phase":"v9-verifier-connection"}
+{"deadlineExceeded":false,"phase":"independent-ssh-handshake","pinChecked":true,"pinMatched":true}
+{"deadlineExceeded":true,"passed":false,"phase":"independent-ssh-command"}
+{"authenticationFailed":false,"deadlineExceeded":true,"errorChainTypes":["context.deadlineExceededError"],"errorType":"context.deadlineExceededError","phase":"independent-ssh-error","pinMismatch":false,"stage":"command","unexpectedEOF":false}
+--- PASS: TestVerifierTimeoutBoundsHandshakeChannelAndCommand (0.46s)
+    --- PASS: TestVerifierTimeoutBoundsHandshakeChannelAndCommand/handshake-stall (0.15s)
+    --- PASS: TestVerifierTimeoutBoundsHandshakeChannelAndCommand/stall-open (0.15s)
+    --- PASS: TestVerifierTimeoutBoundsHandshakeChannelAndCommand/stall-run (0.15s)
+=== RUN   TestVerifierCancellationAndShutdownInterruptActiveCommand
+=== RUN   TestVerifierCancellationAndShutdownInterruptActiveCommand/cancel
+{"operationPhase":"","ordinal":1,"phase":"v9-verifier-connection"}
+{"deadlineExceeded":false,"phase":"independent-ssh-handshake","pinChecked":true,"pinMatched":true}
+{"deadlineExceeded":false,"passed":false,"phase":"independent-ssh-command"}
+{"authenticationFailed":false,"deadlineExceeded":false,"errorChainTypes":["*errors.errorString"],"errorType":"*errors.errorString","phase":"independent-ssh-error","pinMismatch":false,"stage":"command","unexpectedEOF":false}
+=== RUN   TestVerifierCancellationAndShutdownInterruptActiveCommand/shutdown
+{"operationPhase":"","ordinal":1,"phase":"v9-verifier-connection"}
+{"deadlineExceeded":false,"phase":"independent-ssh-handshake","pinChecked":true,"pinMatched":true}
+{"deadlineExceeded":false,"passed":false,"phase":"independent-ssh-command"}
+{"authenticationFailed":false,"deadlineExceeded":false,"errorChainTypes":["*ssh.ExitMissingError"],"errorType":"*ssh.ExitMissingError","phase":"independent-ssh-error","pinMismatch":false,"stage":"command","unexpectedEOF":false}
+--- PASS: TestVerifierCancellationAndShutdownInterruptActiveCommand (0.03s)
+    --- PASS: TestVerifierCancellationAndShutdownInterruptActiveCommand/cancel (0.02s)
+    --- PASS: TestVerifierCancellationAndShutdownInterruptActiveCommand/shutdown (0.01s)
+=== RUN   TestVerifierShutdownBeforeUseNeverDials
+--- PASS: TestVerifierShutdownBeforeUseNeverDials (0.00s)
+PASS
+ok  	command-line-arguments	2.500s

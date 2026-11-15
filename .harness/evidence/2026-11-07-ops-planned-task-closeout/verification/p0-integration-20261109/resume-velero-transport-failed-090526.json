@@ -1,0 +1,73 @@
+{
+  "phase": "local-transport-preparation",
+  "exitCode": 1,
+  "remoteResourcesCreated": 0,
+  "remoteInstallationExecuted": false,
+  "providerReadinessVerified": false,
+  "backupRestoreVerified": false,
+  "extraMemoryLimitMi": 512,
+  "records": [
+    {
+      "stage": "docker-daemon-preflight",
+      "exitCode": 1,
+      "stderrPresent": true,
+      "rawOutputOmitted": true
+    },
+    {
+      "stage": "docker-daemon-preflight",
+      "exitCode": 1,
+      "rawOutputOmitted": true,
+      "fallback": "official-registry-blob-OCI-layout"
+    },
+    {
+      "stage": "official-minio-release-RELEASE.2024-12-18T13-15-44Z",
+      "exitCode": 1,
+      "stderrPresent": true,
+      "rawOutputOmitted": true
+    },
+    {
+      "stage": "official-minio-release-RELEASE.2024-12-18T13-15-44Z",
+      "errorType": "RuntimeError",
+      "rawOutputOmitted": true
+    },
+    {
+      "stage": "official-minio-release-RELEASE.2024-10-13T13-34-11Z",
+      "exitCode": 1,
+      "stderrPresent": true,
+      "rawOutputOmitted": true
+    },
+    {
+      "stage": "official-minio-release-RELEASE.2024-10-13T13-34-11Z",
+      "errorType": "RuntimeError",
+      "rawOutputOmitted": true
+    },
+    {
+      "stage": "official-minio-release-RELEASE.2023-09-04T19-57-37Z",
+      "exitCode": 1,
+      "stderrPresent": true,
+      "rawOutputOmitted": true
+    },
+    {
+      "stage": "official-minio-release-RELEASE.2023-09-04T19-57-37Z",
+      "errorType": "RuntimeError",
+      "rawOutputOmitted": true
+    }
+  ],
+  "images": [],
+  "archive": {
+    "file": "velero-v1.17.0-linux-amd64.tar.gz",
+    "sha256": "f507a956cf8ec00f483f5d7b04901614a9016a10feb32b3ecc968da36b4fc7be",
+    "bytes": 58499469,
+    "origin": "https://github.com/velero-io/velero/releases/download/v1.17.0/velero-v1.17.0-linux-amd64.tar.gz",
+    "checksumOrigin": "https://github.com/velero-io/velero/releases/download/v1.17.0/CHECKSUM"
+  },
+  "dockerDaemonAvailable": false,
+  "failedStage": "official-minio-release-RELEASE.2023-09-04T19-57-37Z",
+  "errorType": "RuntimeError",
+  "httpStatus": null,
+  "reasonType": "NoneType",
+  "errno": null,
+  "winerror": null,
+  "rawOutputOmitted": true,
+  "createdUTC": "2026-11-09T09:05:26.078265+00:00"
+}

@@ -1,0 +1,86 @@
+# internal/goos
+compile: version "go1.26.5" does not match go tool version "go1.26.10"
+# internal/godebugs
+compile: version "go1.26.5" does not match go tool version "go1.26.10"
+# internal/byteorder
+compile: version "go1.26.5" does not match go tool version "go1.26.10"
+# internal/coverage/rtcov
+compile: version "go1.26.5" does not match go tool version "go1.26.10"
+# internal/unsafeheader
+compile: version "go1.26.5" does not match go tool version "go1.26.10"
+# internal/asan
+compile: version "go1.26.5" does not match go tool version "go1.26.10"
+# internal/msan
+compile: version "go1.26.5" does not match go tool version "go1.26.10"
+# internal/profilerecord
+compile: version "go1.26.5" does not match go tool version "go1.26.10"
+# internal/goarch
+compile: version "go1.26.5" does not match go tool version "go1.26.10"
+# internal/goexperiment
+compile: version "go1.26.5" does not match go tool version "go1.26.10"
+# internal/runtime/pprof/label
+compile: version "go1.26.5" does not match go tool version "go1.26.10"
+# internal/trace/tracev2
+compile: version "go1.26.5" does not match go tool version "go1.26.10"
+# math/bits
+compile: version "go1.26.5" does not match go tool version "go1.26.10"
+# structs
+compile: version "go1.26.5" does not match go tool version "go1.26.10"
+# unicode/utf16
+compile: version "go1.26.5" does not match go tool version "go1.26.10"
+# encoding
+compile: version "go1.26.5" does not match go tool version "go1.26.10"
+# cmp
+compile: version "go1.26.5" does not match go tool version "go1.26.10"
+# unicode/utf8
+compile: version "go1.26.5" does not match go tool version "go1.26.10"
+# crypto/internal/fips140/alias
+compile: version "go1.26.5" does not match go tool version "go1.26.10"
+# unicode
+compile: version "go1.26.5" does not match go tool version "go1.26.10"
+# internal/syscall/windows/sysdll
+compile: version "go1.26.5" does not match go tool version "go1.26.10"
+# crypto/internal/constanttime
+compile: version "go1.26.5" does not match go tool version "go1.26.10"
+# github.com/leodido/go-urn/scim/schema
+compile: version "go1.26.5" does not match go tool version "go1.26.10"
+# vendor/golang.org/x/crypto/internal/alias
+compile: version "go1.26.5" does not match go tool version "go1.26.10"
+# vendor/golang.org/x/crypto/cryptobyte/asn1
+compile: version "go1.26.5" does not match go tool version "go1.26.10"
+# log/internal
+compile: version "go1.26.5" does not match go tool version "go1.26.10"
+# container/list
+compile: version "go1.26.5" does not match go tool version "go1.26.10"
+# runtime/race/internal/amd64v1
+compile: version "go1.26.5" does not match go tool version "go1.26.10"
+# internal/nettrace
+compile: version "go1.26.5" does not match go tool version "go1.26.10"
+# github.com/go-playground/locales/currency
+compile: version "go1.26.5" does not match go tool version "go1.26.10"
+# github.com/gin-gonic/gin/internal/bytesconv
+compile: version "go1.26.5" does not match go tool version "go1.26.10"
+# go.mongodb.org/mongo-driver/v2/internal/bsoncoreutil
+compile: version "go1.26.5" does not match go tool version "go1.26.10"
+# github.com/quic-go/quic-go/internal/utils/ringbuffer
+compile: version "go1.26.5" does not match go tool version "go1.26.10"
+# github.com/redis/go-redis/v9/auth
+compile: version "go1.26.5" does not match go tool version "go1.26.10"
+# log/slog/internal
+compile: version "go1.26.5" does not match go tool version "go1.26.10"
+# github.com/casbin/casbin/v2/constant
+compile: version "go1.26.5" does not match go tool version "go1.26.10"
+# golang.org/x/crypto/internal/alias
+compile: version "go1.26.5" does not match go tool version "go1.26.10"
+# golang.org/x/crypto/cryptobyte/asn1
+compile: version "go1.26.5" does not match go tool version "go1.26.10"
+# google.golang.org/protobuf/internal/flags
+compile: version "go1.26.5" does not match go tool version "go1.26.10"
+# crypto/internal/boring/sig
+compile: version "go1.26.5" does not match go tool version "go1.26.10"
+# internal/cpu
+compile: version "go1.26.5" does not match go tool version "go1.26.10"
+# sync/atomic
+compile: version "go1.26.5" does not match go tool version "go1.26.10"
+FAIL	github.com/duanxldragon/pantheon-base/backend/modules/business/deploy [build failed]
+FAIL

@@ -1,0 +1,186 @@
+{
+  "taskId": "argo-adoption-20261110",
+  "parentTask": "2026-11-07-ops-planned-task-closeout",
+  "verificationReceipt": "final3-verification.json",
+  "artifactSealSHA256": "08ba8f44013b10f92c533a1f96ed55a7346b0f6e17a968b8c313fdf1ab4d79ec",
+  "commands": [
+    {
+      "name": "race",
+      "command": [
+        "go",
+        "test",
+        "-mod=readonly",
+        "-race",
+        "-p",
+        "2",
+        "-count=1",
+        "-json",
+        "-timeout",
+        "4m",
+        "./modules/business/cicd/argocd"
+      ],
+      "cwd": "backend",
+      "exitCode": 0,
+      "elapsedSeconds": 43.797,
+      "log": ".harness/evidence/argo-adoption-20261110/final3-race.log",
+      "logSHA256": "d4ba5103991ba3d3a189e1da25198bf883aede4098e0a654d7739778e46ebe1c",
+      "passedTestEvents": 203,
+      "failedTests": [],
+      "skippedTests": [
+        "TestArgoFinalProductLive",
+        "TestArgoProductLive"
+      ],
+      "packagePassed": true
+    },
+    {
+      "name": "vet",
+      "command": [
+        "go",
+        "vet",
+        "-mod=readonly",
+        "./modules/business/cicd/argocd"
+      ],
+      "cwd": "backend",
+      "exitCode": 0,
+      "elapsedSeconds": 0.578,
+      "log": ".harness/evidence/argo-adoption-20261110/final3-vet.log",
+      "logSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "build",
+      "command": [
+        "go",
+        "build",
+        "-mod=readonly",
+        "./modules/business/cicd/argocd"
+      ],
+      "cwd": "backend",
+      "exitCode": 0,
+      "elapsedSeconds": 0.391,
+      "log": ".harness/evidence/argo-adoption-20261110/final3-build.log",
+      "logSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "diagnostics",
+      "command": [
+        "gopls",
+        "check",
+        "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\backend\\modules\\business\\cicd\\argocd\\argocd_action.go",
+        "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\backend\\modules\\business\\cicd\\argocd\\argocd_action_test.go",
+        "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\backend\\modules\\business\\cicd\\argocd\\argocd_adoption_test.go",
+        "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\backend\\modules\\business\\cicd\\argocd\\argocd_authorization.go",
+        "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\backend\\modules\\business\\cicd\\argocd\\argocd_client.go",
+        "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\backend\\modules\\business\\cicd\\argocd\\argocd_client_test.go",
+        "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\backend\\modules\\business\\cicd\\argocd\\argocd_dto.go",
+        "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\backend\\modules\\business\\cicd\\argocd\\argocd_encryption.go",
+        "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\backend\\modules\\business\\cicd\\argocd\\argocd_encryption_test.go",
+        "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\backend\\modules\\business\\cicd\\argocd\\argocd_final_live_test.go",
+        "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\backend\\modules\\business\\cicd\\argocd\\argocd_final_test.go",
+        "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\backend\\modules\\business\\cicd\\argocd\\argocd_handler.go",
+        "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\backend\\modules\\business\\cicd\\argocd\\argocd_handler_authorization.go",
+        "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\backend\\modules\\business\\cicd\\argocd\\argocd_manifest_response_test.go",
+        "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\backend\\modules\\business\\cicd\\argocd\\argocd_model.go",
+        "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\backend\\modules\\business\\cicd\\argocd\\argocd_preview.go",
+        "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\backend\\modules\\business\\cicd\\argocd\\argocd_product_live_test.go",
+        "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\backend\\modules\\business\\cicd\\argocd\\argocd_product_test.go",
+        "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\backend\\modules\\business\\cicd\\argocd\\argocd_reconciler.go",
+        "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\backend\\modules\\business\\cicd\\argocd\\argocd_reviewed_protocol.go",
+        "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\backend\\modules\\business\\cicd\\argocd\\argocd_service.go",
+        "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\backend\\modules\\business\\cicd\\argocd\\argocd_submit_confirmation_test.go",
+        "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\backend\\modules\\business\\cicd\\argocd\\argocd_webhook.go",
+        "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\backend\\modules\\business\\cicd\\argocd\\argocd_webhook_test.go",
+        "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\backend\\modules\\business\\cicd\\argocd\\timeout.go"
+      ],
+      "cwd": "backend",
+      "exitCode": 0,
+      "elapsedSeconds": 4.625,
+      "log": ".harness/evidence/argo-adoption-20261110/final3-diagnostics.log",
+      "logSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "format",
+      "command": [
+        "gofmt",
+        "-l",
+        "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\backend\\modules\\business\\cicd\\argocd\\argocd_action.go",
+        "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\backend\\modules\\business\\cicd\\argocd\\argocd_action_test.go",
+        "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\backend\\modules\\business\\cicd\\argocd\\argocd_adoption_test.go",
+        "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\backend\\modules\\business\\cicd\\argocd\\argocd_authorization.go",
+        "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\backend\\modules\\business\\cicd\\argocd\\argocd_client.go",
+        "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\backend\\modules\\business\\cicd\\argocd\\argocd_client_test.go",
+        "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\backend\\modules\\business\\cicd\\argocd\\argocd_dto.go",
+        "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\backend\\modules\\business\\cicd\\argocd\\argocd_encryption.go",
+        "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\backend\\modules\\business\\cicd\\argocd\\argocd_encryption_test.go",
+        "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\backend\\modules\\business\\cicd\\argocd\\argocd_final_live_test.go",
+        "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\backend\\modules\\business\\cicd\\argocd\\argocd_final_test.go",
+        "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\backend\\modules\\business\\cicd\\argocd\\argocd_handler.go",
+        "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\backend\\modules\\business\\cicd\\argocd\\argocd_handler_authorization.go",
+        "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\backend\\modules\\business\\cicd\\argocd\\argocd_manifest_response_test.go",
+        "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\backend\\modules\\business\\cicd\\argocd\\argocd_model.go",
+        "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\backend\\modules\\business\\cicd\\argocd\\argocd_preview.go",
+        "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\backend\\modules\\business\\cicd\\argocd\\argocd_product_live_test.go",
+        "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\backend\\modules\\business\\cicd\\argocd\\argocd_product_test.go",
+        "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\backend\\modules\\business\\cicd\\argocd\\argocd_reconciler.go",
+        "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\backend\\modules\\business\\cicd\\argocd\\argocd_reviewed_protocol.go",
+        "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\backend\\modules\\business\\cicd\\argocd\\argocd_service.go",
+        "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\backend\\modules\\business\\cicd\\argocd\\argocd_submit_confirmation_test.go",
+        "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\backend\\modules\\business\\cicd\\argocd\\argocd_webhook.go",
+        "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\backend\\modules\\business\\cicd\\argocd\\argocd_webhook_test.go",
+        "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\backend\\modules\\business\\cicd\\argocd\\timeout.go"
+      ],
+      "cwd": "backend",
+      "exitCode": 0,
+      "elapsedSeconds": 0.031,
+      "log": ".harness/evidence/argo-adoption-20261110/final3-format.log",
+      "logSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "diff",
+      "command": [
+        "git",
+        "diff",
+        "--check",
+        "--",
+        "modules/business/cicd/argocd"
+      ],
+      "cwd": "backend",
+      "exitCode": 0,
+      "elapsedSeconds": 0.016,
+      "log": ".harness/evidence/argo-adoption-20261110/final3-diff.log",
+      "logSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "deployOffline",
+      "command": [
+        "python",
+        "-B",
+        "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\argo-adoption-deploy-test.py"
+      ],
+      "cwd": "backend",
+      "exitCode": 0,
+      "elapsedSeconds": 0.172,
+      "log": ".harness/evidence/argo-adoption-20261110/final3-deployOffline.log",
+      "logSHA256": "2debe722d5804e54cfb397d02ed03707f449f8c5096e021cf5a6ee1175c9df7f"
+    },
+    {
+      "name": "helperSyntax",
+      "command": [
+        "python",
+        "-B",
+        "-c",
+        "import ast,pathlib,sys; [ast.parse(pathlib.Path(p).read_text(encoding=\"utf-8\"),filename=p) for p in sys.argv[1:]]",
+        "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\argo-adoption-deploy-test.py",
+        "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\argo-adoption-deploy.py",
+        "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\argo-adoption-root-run.py",
+        "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\argo-adoption-verify.py"
+      ],
+      "cwd": "backend",
+      "exitCode": 0,
+      "elapsedSeconds": 0.047,
+      "log": ".harness/evidence/argo-adoption-20261110/final3-helperSyntax.log",
+      "logSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "remoteExecuted": false,
+  "P0Approved": false
+}

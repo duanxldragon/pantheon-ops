@@ -1,0 +1,39 @@
+=== RUN   TestExecutionWorkbenchMetadataAndLogPagination
+--- PASS: TestExecutionWorkbenchMetadataAndLogPagination (1.14s)
+=== RUN   TestWorkbenchLogSourceIsolationAndFirstError
+=== RUN   TestWorkbenchLogSourceIsolationAndFirstError/host-attempt
+=== RUN   TestWorkbenchLogSourceIsolationAndFirstError/first-error-outside-tail
+=== RUN   TestWorkbenchLogSourceIsolationAndFirstError/sparse-cursor
+=== RUN   TestWorkbenchLogSourceIsolationAndFirstError/foreign-step
+=== RUN   TestWorkbenchLogSourceIsolationAndFirstError/mismatched-host-step
+=== RUN   TestWorkbenchLogSourceIsolationAndFirstError/invalid-hostId=0
+=== RUN   TestWorkbenchLogSourceIsolationAndFirstError/invalid-stepId=-1
+=== RUN   TestWorkbenchLogSourceIsolationAndFirstError/invalid-attemptNo=0
+=== RUN   TestWorkbenchLogSourceIsolationAndFirstError/invalid-attemptNo=2147483648
+=== RUN   TestWorkbenchLogSourceIsolationAndFirstError/invalid-firstError=true
+=== RUN   TestWorkbenchLogSourceIsolationAndFirstError/invalid-after=bad
+=== RUN   TestWorkbenchLogSourceIsolationAndFirstError/invalid-hostId=1&hostId=2
+=== RUN   TestWorkbenchLogSourceIsolationAndFirstError/invalid-firstError=1&after=2
+=== RUN   TestWorkbenchLogSourceIsolationAndFirstError/visibility-before-validation
+=== RUN   TestWorkbenchLogSourceIsolationAndFirstError/request-cancellation
+
+2026/11/08 08:12:26 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/deploy_service.go:2475 [35;1mcontext canceled
+[0m[33m[0.000ms] [34;1m[rows:0][0m SELECT * FROM `biz_deploy_task` WHERE `biz_deploy_task`.`id` = 1 AND `biz_deploy_task`.`deleted_at` IS NULL ORDER BY `biz_deploy_task`.`id` LIMIT 1
+--- PASS: TestWorkbenchLogSourceIsolationAndFirstError (1.04s)
+    --- PASS: TestWorkbenchLogSourceIsolationAndFirstError/host-attempt (0.00s)
+    --- PASS: TestWorkbenchLogSourceIsolationAndFirstError/first-error-outside-tail (0.00s)
+    --- PASS: TestWorkbenchLogSourceIsolationAndFirstError/sparse-cursor (0.00s)
+    --- PASS: TestWorkbenchLogSourceIsolationAndFirstError/foreign-step (0.00s)
+    --- PASS: TestWorkbenchLogSourceIsolationAndFirstError/mismatched-host-step (0.00s)
+    --- PASS: TestWorkbenchLogSourceIsolationAndFirstError/invalid-hostId=0 (0.00s)
+    --- PASS: TestWorkbenchLogSourceIsolationAndFirstError/invalid-stepId=-1 (0.00s)
+    --- PASS: TestWorkbenchLogSourceIsolationAndFirstError/invalid-attemptNo=0 (0.00s)
+    --- PASS: TestWorkbenchLogSourceIsolationAndFirstError/invalid-attemptNo=2147483648 (0.00s)
+    --- PASS: TestWorkbenchLogSourceIsolationAndFirstError/invalid-firstError=true (0.00s)
+    --- PASS: TestWorkbenchLogSourceIsolationAndFirstError/invalid-after=bad (0.00s)
+    --- PASS: TestWorkbenchLogSourceIsolationAndFirstError/invalid-hostId=1&hostId=2 (0.00s)
+    --- PASS: TestWorkbenchLogSourceIsolationAndFirstError/invalid-firstError=1&after=2 (0.00s)
+    --- PASS: TestWorkbenchLogSourceIsolationAndFirstError/visibility-before-validation (0.01s)
+    --- PASS: TestWorkbenchLogSourceIsolationAndFirstError/request-cancellation (0.00s)
+PASS
+ok  	github.com/duanxldragon/pantheon-base/backend/modules/business/deploy	3.271s

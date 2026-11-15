@@ -1,0 +1,37 @@
+{
+  "action": "install",
+  "artifactSealSHA256": "6f3174aa85fd8a7dd6369e3aef289363a36c327655f497e2d65148a5853868a3",
+  "startedAt": "20261110T043028231946",
+  "exitCode": 0,
+  "transportConnected": true,
+  "preflightPassed": true,
+  "remoteMutationUnknown": false,
+  "automaticRetry": false,
+  "P0Approved": false,
+  "stderrPresent": false,
+  "record": {
+    "phase": "install",
+    "receiptSHA256": "562341e77b9062fb145c6d0ee445c5780d3aa0c905ede2f6d8c578cd36695138",
+    "owner": "ops-p0-20261109",
+    "namespace": "pantheon-p0-argocd-20261109",
+    "namespaceUID": "e6821e41-3e59-477f-af84-11ba32627360",
+    "deploymentUID": "dfb553ee-bec1-4f7e-b12f-ba96594684f0",
+    "inspectedResourceVersion": "1969595",
+    "preResourceVersion": "1969595",
+    "postResourceVersion": "2005138",
+    "preSpecSHA256": "5b38ce82391b455691355b3361cd5066b84d4ac6def249d0d8dbd4af5aaa82af",
+    "postSpecSHA256": "984a24b18a9a8cabfb4b1f5619ab202d68513de63af6128bed3375c84819d653",
+    "binarySHA256": "cd68356983230edfa0c013235eccba4381a5fbe00d7076f47b7d4b7b8578138b",
+    "binarySize": 206041319,
+    "ownerPath": "/opt/pantheon-p0-20261109/argo-reviewed-v6-cd6835698323",
+    "artifacts": {
+      "before-deployment.json": "9a4df64d9bb16e11a297836cbd5a0b57ebcf553c9a142407c7c8cddc6516f7ee",
+      "planned-deployment.json": "0ad8df5714516be94e48ce804cb6bcd10e0764d90b2fa58071dd5bb024d31291",
+      "accepted-deployment.json": "0b047485ba74a16cd0e65d8b5cda790b9f426a7d2edb183ffa3bc050413dbc4d"
+    },
+    "nativeUpdateAccepted": true,
+    "controllerReadyProven": false,
+    "providerAcceptanceProven": false,
+    "P0Approved": false
+  }
+}

@@ -1,0 +1,54 @@
+{
+  "phase": "s3-transport-v1",
+  "exitCode": 1,
+  "provider": "SeaweedFS 4.53",
+  "remoteExecuted": false,
+  "providerReadinessVerified": false,
+  "backupRestoreVerified": false,
+  "minioRetried": false,
+  "images": [],
+  "veleroArchive": {
+    "file": "velero-v1.17.0-linux-amd64.tar.gz",
+    "sha256": "f507a956cf8ec00f483f5d7b04901614a9016a10feb32b3ecc968da36b4fc7be",
+    "bytes": 58499469,
+    "origin": "https://github.com/velero-io/velero/releases/download/v1.17.0/velero-v1.17.0-linux-amd64.tar.gz",
+    "checksumOrigin": "https://github.com/velero-io/velero/releases/download/v1.17.0/CHECKSUM"
+  },
+  "veleroBinary": {
+    "bytes": 142581282,
+    "sha256": "e7e14133f1a13d759d43b2bf188cf1a078ffe36184d25f77ae4005fc7c26e739",
+    "format": "ELF64-little-endian-amd64"
+  },
+  "failures": [
+    {
+      "failedStage": "official-seaweed-release-metadata",
+      "errorType": "URLError",
+      "httpStatus": null,
+      "reasonType": "PermissionError",
+      "errno": 13,
+      "winerror": 10013,
+      "rawOutputOmitted": true
+    },
+    {
+      "failedStage": "official-image-manifest-velero/velero",
+      "errorType": "URLError",
+      "httpStatus": null,
+      "reasonType": "PermissionError",
+      "errno": 13,
+      "winerror": 10013,
+      "rawOutputOmitted": true
+    },
+    {
+      "failedStage": "official-image-manifest-velero/velero-plugin-for-aws",
+      "errorType": "URLError",
+      "httpStatus": null,
+      "reasonType": "PermissionError",
+      "errno": 13,
+      "winerror": 10013,
+      "rawOutputOmitted": true
+    }
+  ],
+  "transportReuseSHA256": "1c2b41d64b18643833b4ed42af60f86226b1a6e95d9bb67c151362b09f451b2c",
+  "failedStage": "official-seaweed-release-metadata",
+  "createdUTC": "2026-11-09T09:58:31.841676+00:00"
+}

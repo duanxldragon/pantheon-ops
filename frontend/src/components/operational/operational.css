@@ -175,6 +175,13 @@
 }
 
 .execution-step-rail__step {
+  appearance: none;
+  color: var(--text-primary);
+  background: var(--panel-bg-solid);
+  border: 0;
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
   display: grid;
   grid-template-columns: 24px minmax(0, 1fr) auto;
   gap: var(--space-sm);
@@ -219,4 +226,13 @@
   .execution-step-rail__step {
     grid-template-columns: 1fr;
   }
+}
+
+.execution-step-rail__step:hover,
+.execution-step-rail__step[aria-current='step'] {
+  background: var(--panel-muted);
+}
+.execution-step-rail__step:focus-visible {
+  outline: 2px solid var(--brand-primary);
+  outline-offset: -2px;
 }

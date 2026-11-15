@@ -1,0 +1,1152 @@
+
+> @duanxldragon/pantheon-base-ui@0.11.2 test:unit
+> vitest run tests/unit/business/operational/loki-query-state.test.tsx
+
+(!) Your Vite config uses features that are unsupported by `configLoader: 'native'`, which is planned to become the default in a future major version of Vite:
+  - `__dirname` (vitest.config.ts:10:25). Use `import.meta.dirname` instead
+Set `VITE_CONFIG_NATIVE_IGNORE_WARNING=true` to suppress this warning.
+
+ RUN  v5.0.5 D:/workspace/go/pantheon-platform/pantheon-ops/frontend
+
+stderr | tests/unit/business/operational/loki-query-state.test.tsx > Loki completed-result authority > marks the previous result stale when expression or absolute bounds change
+An update to LogExplorer inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to LogExplorer inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+stderr | tests/unit/business/operational/loki-query-state.test.tsx > Loki completed-result authority > marks provider warnings without displaying their potentially sensitive text
+An update to LogExplorer inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to LogExplorer inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+stderr | tests/unit/business/operational/loki-query-state.test.tsx > Loki completed-result authority > does not present an upstream failure as empty or successful log data
+An update to LogExplorer inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to LogExplorer inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+stderr | tests/unit/business/operational/loki-query-state.test.tsx > Loki completed-result authority > rejects an unexpected result type rather than calling it empty logs
+An update to LogExplorer inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to LogExplorer inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+stderr | tests/unit/business/operational/loki-query-state.test.tsx > Loki completed-result authority > selects the newest rows across streams before applying the display limit
+An update to LogExplorer inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to LogExplorer inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+ ❯ tests/unit/business/operational/loki-query-state.test.tsx (5 tests | 5 failed) 3368ms
+   ❯ Loki completed-result authority (5)
+     × marks the previous result stale when expression or absolute bounds change 193ms
+     × marks provider warnings without displaying their potentially sensitive text 41ms
+     × does not present an upstream failure as empty or successful log data 1048ms
+     × rejects an unexpected result type rather than calling it empty logs 1028ms
+     × selects the newest rows across streams before applying the display limit 1055ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 5 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/unit/business/operational/loki-query-state.test.tsx > Loki completed-result authority > marks the previous result stale when expression or absolute bounds change
+TestingLibraryElementError: Unable to find an element with the text: business.observability.logs.inputsChanged. This could be because the text is broken up by multiple elements. In this case, you can provide a function for your text matcher to make your matcher more flexible.
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<div>[39m
+      [36m<div>[39m
+        [36m<div>[39m
+          [36m<input[39m
+            [33maria-label[39m=[32m"expression"[39m
+            [33mvalue[39m=[32m"{app=\"other\"}"[39m
+          [36m/>[39m
+          [36m<select>[39m
+            [36m<option[39m
+              [33mvalue[39m=[32m"1"[39m
+            [36m>[39m
+              [0mLoki[0m
+            [36m</option>[39m
+          [36m</select>[39m
+          [36m<div>[39m
+            [36m<button>[39m
+              [0mcommon.search[0m
+            [36m</button>[39m
+            [36m<button[39m
+              [33mdisabled[39m=[32m""[39m
+            [36m>[39m
+              [0mbusiness.observability.logs.stop[0m
+            [36m</button>[39m
+          [36m</div>[39m
+        [36m</div>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"observability-log-range"[39m
+        [36m>[39m
+          [36m<label>[39m
+            [0mbusiness.observability.logs.startUTC[0m
+            [36m<input[39m
+              [33mtype[39m=[32m"datetime-local"[39m
+              [33mvalue[39m=[32m"2026-11-08T00:57"[39m
+            [36m/>[39m
+          [36m</label>[39m
+          [36m<label>[39m
+            [0mbusiness.observability.logs.endUTC[0m
+            [36m<input[39m
+              [33mtype[39m=[32m"datetime-local"[39m
+              [33mvalue[39m=[32m"2026-11-08T01:12"[39m
+            [36m/>[39m
+          [36m</label>[39m
+          [36m<label>[39m
+            [0mbusiness.observability.logs.limit[0m
+            [36m<select>[39m
+              [36m<option[39m
+                [33mvalue[39m=[32m"100"[39m
+              [36m>[39m
+                [0m100[0m
+              [36m</option>[39m
+              [36m<option[39m
+                [33mvalue[39m=[32m"500"[39m
+              [36m>[39m
+                [0m500[0m
+              [36m</option>[39m
+              [36m<option[39m
+                [33mvalue[39m=[32m"1000"[39m
+              [36m>[39m
+                [0m1000[0m
+              [36m</option>[39m
+            [36m</select>[39m
+          [36m</label>[39m
+          [36m<span>[39m
+            [0mbusiness.observability.logs.budget[0m
+          [36m</span>[39m
+        [36m</div>[39m
+        [36m<div>[39m
+          [36m<div>[39m
+            [36m<p>[39m
+              [0mfirst-result[0m
+            [36m</p>[39m
+          [36m</div>[39m
+        [36m</div>[39m
+      [36m</div>[39m
+    [36m</div>[39m
+  [36m</div>[39m
+[36m</body>[39m
+ ❯ Object.getElementError node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ tests/unit/business/operational/loki-query-state.test.tsx:33:17
+     31|   provider.query.mockResolvedValue(response()); await query(); await s…
+     32|   fireEvent.change(screen.getByLabelText('expression'), {target: {valu…
+     33|   expect(screen.getByText('business.observability.logs.inputsChanged')…
+       |                 ^
+     34|   expect(screen.getByText('first-result')).toBeTruthy();
+     35|  });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/5]⎯
+
+ FAIL  tests/unit/business/operational/loki-query-state.test.tsx > Loki completed-result authority > marks provider warnings without displaying their potentially sensitive text
+TestingLibraryElementError: Unable to find an element with the text: business.observability.logs.providerWarnings. This could be because the text is broken up by multiple elements. In this case, you can provide a function for your text matcher to make your matcher more flexible.
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<div>[39m
+      [36m<div>[39m
+        [36m<div>[39m
+          [36m<input[39m
+            [33maria-label[39m=[32m"expression"[39m
+            [33mvalue[39m=[32m"{app=~\".+\"}"[39m
+          [36m/>[39m
+          [36m<select>[39m
+            [36m<option[39m
+              [33mvalue[39m=[32m"1"[39m
+            [36m>[39m
+              [0mLoki[0m
+            [36m</option>[39m
+          [36m</select>[39m
+          [36m<div>[39m
+            [36m<button>[39m
+              [0mcommon.search[0m
+            [36m</button>[39m
+            [36m<button[39m
+              [33mdisabled[39m=[32m""[39m
+            [36m>[39m
+              [0mbusiness.observability.logs.stop[0m
+            [36m</button>[39m
+          [36m</div>[39m
+        [36m</div>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"observability-log-range"[39m
+        [36m>[39m
+          [36m<label>[39m
+            [0mbusiness.observability.logs.startUTC[0m
+            [36m<input[39m
+              [33mtype[39m=[32m"datetime-local"[39m
+              [33mvalue[39m=[32m"2026-11-08T00:57"[39m
+            [36m/>[39m
+          [36m</label>[39m
+          [36m<label>[39m
+            [0mbusiness.observability.logs.endUTC[0m
+            [36m<input[39m
+              [33mtype[39m=[32m"datetime-local"[39m
+              [33mvalue[39m=[32m"2026-11-08T01:12"[39m
+            [36m/>[39m
+          [36m</label>[39m
+          [36m<label>[39m
+            [0mbusiness.observability.logs.limit[0m
+            [36m<select>[39m
+              [36m<option[39m
+                [33mvalue[39m=[32m"100"[39m
+              [36m>[39m
+                [0m100[0m
+              [36m</option>[39m
+              [36m<option[39m
+                [33mvalue[39m=[32m"500"[39m
+              [36m>[39m
+                [0m500[0m
+              [36m</option>[39m
+              [36m<option[39m
+                [33mvalue[39m=[32m"1000"[39m
+              [36m>[39m
+                [0m1000[0m
+              [36m</option>[39m
+            [36m</select>[39m
+          [36m</label>[39m
+          [36m<span>[39m
+            [0mbusiness.observability.logs.budget[0m
+          [36m</span>[39m
+        [36m</div>[39m
+        [36m<div>[39m
+          [36m<div>[39m
+            [36m<p>[39m
+              [0mfirst-result[0m
+            [36m</p>[39m
+          [36m</div>[39m
+        [36m</div>[39m
+      [36m</div>[39m
+    [36m</div>[39m
+  [36m</div>[39m
+[36m</body>[39m
+ ❯ Object.getElementError node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ tests/unit/business/operational/loki-query-state.test.tsx:38:17
+     36|  it('marks provider warnings without displaying their potentially sens…
+     37|   provider.query.mockResolvedValue({...response(), warnings: ['token=p…
+     38|   expect(screen.getByText('business.observability.logs.providerWarning…
+       |                 ^
+     39|   expect(screen.queryByText(/private-warning/)).toBeNull();
+     40|  });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/5]⎯
+
+ FAIL  tests/unit/business/operational/loki-query-state.test.tsx > Loki completed-result authority > does not present an upstream failure as empty or successful log data
+TestingLibraryElementError: Unable to find an element with the text: query-error. This could be because the text is broken up by multiple elements. In this case, you can provide a function for your text matcher to make your matcher more flexible.
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<div>[39m
+      [36m<div>[39m
+        [36m<div>[39m
+          [36m<input[39m
+            [33maria-label[39m=[32m"expression"[39m
+            [33mvalue[39m=[32m"{app=~\".+\"}"[39m
+          [36m/>[39m
+          [36m<select>[39m
+            [36m<option[39m
+              [33mvalue[39m=[32m"1"[39m
+            [36m>[39m
+              [0mLoki[0m
+            [36m</option>[39m
+          [36m</select>[39m
+          [36m<div>[39m
+            [36m<button>[39m
+              [0mcommon.search[0m
+            [36m</button>[39m
+            [36m<button[39m
+              [33mdisabled[39m=[32m""[39m
+            [36m>[39m
+              [0mbusiness.observability.logs.stop[0m
+            [36m</button>[39m
+          [36m</div>[39m
+        [36m</div>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"observability-log-range"[39m
+        [36m>[39m
+          [36m<label>[39m
+            [0mbusiness.observability.logs.startUTC[0m
+            [36m<input[39m
+              [33mtype[39m=[32m"datetime-local"[39m
+              [33mvalue[39m=[32m"2026-11-08T00:57"[39m
+            [36m/>[39m
+          [36m</label>[39m
+          [36m<label>[39m
+            [0mbusiness.observability.logs.endUTC[0m
+            [36m<input[39m
+              [33mtype[39m=[32m"datetime-local"[39m
+              [33mvalue[39m=[32m"2026-11-08T01:12"[39m
+            [36m/>[39m
+          [36m</label>[39m
+          [36m<label>[39m
+            [0mbusiness.observability.logs.limit[0m
+            [36m<select>[39m
+              [36m<option[39m
+                [33mvalue[39m=[32m"100"[39m
+              [36m>[39m
+                [0m100[0m
+              [36m</option>[39m
+              [36m<option[39m
+                [33mvalue[39m=[32m"500"[39m
+              [36m>[39m
+                [0m500[0m
+              [36m</option>[39m
+              [36m<option[39m
+                [33mvalue[39m=[32m"1000"[39m
+              [36m>[39m
+                [0m1000[0m
+              [36m</option>[39m
+            [36m</select>[39m
+          [36m</label>[39m
+          [36m<span>[39m
+            [0mbusiness.observability.logs.budget[0m
+          [36m</span>[39m
+        [36m</div>[39m
+        [36m<div>[39m
+          [36m<div>[39m
+            [36m<p>[39m
+              [0munsafe-failed-data[0m
+            [36m</p>[39m
+          [36m</div>[39m
+        [36m</div>[39m
+      [36m</div>[39m
+    [36m</div>[39m
+  [36m</div>[39m
+[36m</body>[39m
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<div>[39m
+      [36m<div>[39m
+        [36m<div>[39m
+          [36m<input[39m
+            [33maria-label[39m=[32m"expression"[39m
+            [33mvalue[39m=[32m"{app=~\".+\"}"[39m
+          [36m/>[39m
+          [36m<select>[39m
+            [36m<option[39m
+              [33mvalue[39m=[32m"1"[39m
+            [36m>[39m
+              [0mLoki[0m
+            [36m</option>[39m
+          [36m</select>[39m
+          [36m<div>[39m
+            [36m<button>[39m
+              [0mcommon.search[0m
+            [36m</button>[39m
+            [36m<button[39m
+              [33mdisabled[39m=[32m""[39m
+            [36m>[39m
+              [0mbusiness.observability.logs.stop[0m
+            [36m</button>[39m
+          [36m</div>[39m
+        [36m</div>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"observability-log-range"[39m
+        [36m>[39m
+          [36m<label>[39m
+            [0mbusiness.observability.logs.startUTC[0m
+            [36m<input[39m
+              [33mtype[39m=[32m"datetime-local"[39m
+              [33mvalue[39m=[32m"2026-11-08T00:57"[39m
+            [36m/>[39m
+          [36m</label>[39m
+          [36m<label>[39m
+            [0mbusiness.observability.logs.endUTC[0m
+            [36m<input[39m
+              [33mtype[39m=[32m"datetime-local"[39m
+              [33mvalue[39m=[32m"2026-11-08T01:12"[39m
+            [36m/>[39m
+          [36m</label>[39m
+          [36m<label>[39m
+            [0mbusiness.observability.logs.limit[0m
+            [36m<select>[39m
+              [36m<option[39m
+                [33mvalue[39m=[32m"100"[39m
+              [36m>[39m
+                [0m100[0m
+              [36m</option>[39m
+              [36m<option[39m
+                [33mvalue[39m=[32m"500"[39m
+              [36m>[39m
+                [0m500[0m
+              [36m</option>[39m
+              [36m<option[39m
+                [33mvalue[39m=[32m"1000"[39m
+              [36m>[39m
+                [0m1000[0m
+              [36m</option>[39m
+            [36m</select>[39m
+          [36m</label>[39m
+          [36m<span>[39m
+            [0mbusiness.observability.logs.budget[0m
+          [36m</span>[39m
+        [36m</div>[39m
+        [36m<div>[39m
+          [36m<div>[39m
+            [36m<p>[39m
+              [0munsafe-failed-data[0m
+            [36m</p>[39m
+          [36m</div>[39m
+        [36m</div>[39m
+      [36m</div>[39m
+    [36m</div>[39m
+  [36m</div>[39m
+[36m</body>[39m
+ ❯ waitForWrapper node_modules/@testing-library/dom/dist/wait-for.js:163:27
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:86:33
+ ❯ tests/unit/business/operational/loki-query-state.test.tsx:43:16
+     41|  it('does not present an upstream failure as empty or successful log d…
+     42|   provider.query.mockResolvedValue({...response('unsafe-failed-data'),…
+     43|   await screen.findByText('query-error'); expect(screen.queryByText('u…
+       |                ^
+     44|  });
+     45|  it('rejects an unexpected result type rather than calling it empty lo…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/5]⎯
+
+ FAIL  tests/unit/business/operational/loki-query-state.test.tsx > Loki completed-result authority > rejects an unexpected result type rather than calling it empty logs
+TestingLibraryElementError: Unable to find an element with the text: query-error. This could be because the text is broken up by multiple elements. In this case, you can provide a function for your text matcher to make your matcher more flexible.
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<div>[39m
+      [36m<div>[39m
+        [36m<div>[39m
+          [36m<input[39m
+            [33maria-label[39m=[32m"expression"[39m
+            [33mvalue[39m=[32m"{app=~\".+\"}"[39m
+          [36m/>[39m
+          [36m<select>[39m
+            [36m<option[39m
+              [33mvalue[39m=[32m"1"[39m
+            [36m>[39m
+              [0mLoki[0m
+            [36m</option>[39m
+          [36m</select>[39m
+          [36m<div>[39m
+            [36m<button>[39m
+              [0mcommon.search[0m
+            [36m</button>[39m
+            [36m<button[39m
+              [33mdisabled[39m=[32m""[39m
+            [36m>[39m
+              [0mbusiness.observability.logs.stop[0m
+            [36m</button>[39m
+          [36m</div>[39m
+        [36m</div>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"observability-log-range"[39m
+        [36m>[39m
+          [36m<label>[39m
+            [0mbusiness.observability.logs.startUTC[0m
+            [36m<input[39m
+              [33mtype[39m=[32m"datetime-local"[39m
+              [33mvalue[39m=[32m"2026-11-08T00:57"[39m
+            [36m/>[39m
+          [36m</label>[39m
+          [36m<label>[39m
+            [0mbusiness.observability.logs.endUTC[0m
+            [36m<input[39m
+              [33mtype[39m=[32m"datetime-local"[39m
+              [33mvalue[39m=[32m"2026-11-08T01:12"[39m
+            [36m/>[39m
+          [36m</label>[39m
+          [36m<label>[39m
+            [0mbusiness.observability.logs.limit[0m
+            [36m<select>[39m
+              [36m<option[39m
+                [33mvalue[39m=[32m"100"[39m
+              [36m>[39m
+                [0m100[0m
+              [36m</option>[39m
+              [36m<option[39m
+                [33mvalue[39m=[32m"500"[39m
+              [36m>[39m
+                [0m500[0m
+              [36m</option>[39m
+              [36m<option[39m
+                [33mvalue[39m=[32m"1000"[39m
+              [36m>[39m
+                [0m1000[0m
+              [36m</option>[39m
+            [36m</select>[39m
+          [36m</label>[39m
+          [36m<span>[39m
+            [0mbusiness.observability.logs.budget[0m
+          [36m</span>[39m
+        [36m</div>[39m
+        [36m<div>[39m
+          [36m<p>[39m
+            [0mbusiness.observability.logs.empty[0m
+          [36m</p>[39m
+        [36m</div>[39m
+      [36m</div>[39m
+    [36m</div>[39m
+  [36m</div>[39m
+[36m</body>[39m
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<div>[39m
+      [36m<div>[39m
+        [36m<div>[39m
+          [36m<input[39m
+            [33maria-label[39m=[32m"expression"[39m
+            [33mvalue[39m=[32m"{app=~\".+\"}"[39m
+          [36m/>[39m
+          [36m<select>[39m
+            [36m<option[39m
+              [33mvalue[39m=[32m"1"[39m
+            [36m>[39m
+              [0mLoki[0m
+            [36m</option>[39m
+          [36m</select>[39m
+          [36m<div>[39m
+            [36m<button>[39m
+              [0mcommon.search[0m
+            [36m</button>[39m
+            [36m<button[39m
+              [33mdisabled[39m=[32m""[39m
+            [36m>[39m
+              [0mbusiness.observability.logs.stop[0m
+            [36m</button>[39m
+          [36m</div>[39m
+        [36m</div>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"observability-log-range"[39m
+        [36m>[39m
+          [36m<label>[39m
+            [0mbusiness.observability.logs.startUTC[0m
+            [36m<input[39m
+              [33mtype[39m=[32m"datetime-local"[39m
+              [33mvalue[39m=[32m"2026-11-08T00:57"[39m
+            [36m/>[39m
+          [36m</label>[39m
+          [36m<label>[39m
+            [0mbusiness.observability.logs.endUTC[0m
+            [36m<input[39m
+              [33mtype[39m=[32m"datetime-local"[39m
+              [33mvalue[39m=[32m"2026-11-08T01:12"[39m
+            [36m/>[39m
+          [36m</label>[39m
+          [36m<label>[39m
+            [0mbusiness.observability.logs.limit[0m
+            [36m<select>[39m
+              [36m<option[39m
+                [33mvalue[39m=[32m"100"[39m
+              [36m>[39m
+                [0m100[0m
+              [36m</option>[39m
+              [36m<option[39m
+                [33mvalue[39m=[32m"500"[39m
+              [36m>[39m
+                [0m500[0m
+              [36m</option>[39m
+              [36m<option[39m
+                [33mvalue[39m=[32m"1000"[39m
+              [36m>[39m
+                [0m1000[0m
+              [36m</option>[39m
+            [36m</select>[39m
+          [36m</label>[39m
+          [36m<span>[39m
+            [0mbusiness.observability.logs.budget[0m
+          [36m</span>[39m
+        [36m</div>[39m
+        [36m<div>[39m
+          [36m<p>[39m
+            [0mbusiness.observability.logs.empty[0m
+          [36m</p>[39m
+        [36m</div>[39m
+      [36m</div>[39m
+    [36m</div>[39m
+  [36m</div>[39m
+[36m</body>[39m
+ ❯ waitForWrapper node_modules/@testing-library/dom/dist/wait-for.js:163:27
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:86:33
+ ❯ tests/unit/business/operational/loki-query-state.test.tsx:47:16
+     45|  it('rejects an unexpected result type rather than calling it empty lo…
+     46|   provider.query.mockResolvedValue({status: 'success', data: {resultTy…
+     47|   await screen.findByText('query-error'); expect(screen.queryByText('b…
+       |                ^
+     48|  });
+     49|  it('selects the newest rows across streams before applying the displa…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/5]⎯
+
+ FAIL  tests/unit/business/operational/loki-query-state.test.tsx > Loki completed-result authority > selects the newest rows across streams before applying the display limit
+TestingLibraryElementError: Unable to find an element with the text: newest-across-streams. This could be because the text is broken up by multiple elements. In this case, you can provide a function for your text matcher to make your matcher more flexible.
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<div>[39m
+      [36m<div>[39m
+        [36m<div>[39m
+          [36m<input[39m
+            [33maria-label[39m=[32m"expression"[39m
+            [33mvalue[39m=[32m"{app=~\".+\"}"[39m
+          [36m/>[39m
+          [36m<select>[39m
+            [36m<option[39m
+              [33mvalue[39m=[32m"1"[39m
+            [36m>[39m
+              [0mLoki[0m
+            [36m</option>[39m
+          [36m</select>[39m
+          [36m<div>[39m
+            [36m<button>[39m
+              [0mcommon.search[0m
+            [36m</button>[39m
+            [36m<button[39m
+              [33mdisabled[39m=[32m""[39m
+            [36m>[39m
+              [0mbusiness.observability.logs.stop[0m
+            [36m</button>[39m
+          [36m</div>[39m
+        [36m</div>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"observability-log-range"[39m
+        [36m>[39m
+          [36m<label>[39m
+            [0mbusiness.observability.logs.startUTC[0m
+            [36m<input[39m
+              [33mtype[39m=[32m"datetime-local"[39m
+              [33mvalue[39m=[32m"2026-11-08T00:57"[39m
+            [36m/>[39m
+          [36m</label>[39m
+          [36m<label>[39m
+            [0mbusiness.observability.logs.endUTC[0m
+            [36m<input[39m
+              [33mtype[39m=[32m"datetime-local"[39m
+              [33mvalue[39m=[32m"2026-11-08T01:12"[39m
+            [36m/>[39m
+          [36m</label>[39m
+          [36m<label>[39m
+            [0mbusiness.observability.logs.limit[0m
+            [36m<select>[39m
+              [36m<option[39m
+                [33mvalue[39m=[32m"100"[39m
+              [36m>[39m
+                [0m100[0m
+              [36m</option>[39m
+              [36m<option[39m
+                [33mvalue[39m=[32m"500"[39m
+              [36m>[39m
+                [0m500[0m
+              [36m</option>[39m
+              [36m<option[39m
+                [33mvalue[39m=[32m"1000"[39m
+              [36m>[39m
+                [0m1000[0m
+              [36m</option>[39m
+            [36m</select>[39m
+          [36m</label>[39m
+          [36m<span>[39m
+            [0mbusiness.observability.logs.budget[0m
+          [36m</span>[39m
+        [36m</div>[39m
+        [36m<div>[39m
+          [36m<div>[39m
+            [36m<p>[39m
+              [0molder-0[0m
+            [36m</p>[39m
+            [36m<p>[39m
+              [0molder-1[0m
+            [36m</p>[39m
+            [36m<p>[39m
+              [0molder-2[0m
+            [36m</p>[39m
+            [36m<p>[39m
+              [0molder-3[0m
+            [36m</p>[39m
+            [36m<p>[39m
+              [0molder-4[0m
+            [36m</p>[39m
+            [36m<p>[39m
+              [0molder-5[0m
+            [36m</p>[39m
+            [36m<p>[39m
+              [0molder-6[0m
+            [36m</p>[39m
+            [36m<p>[39m
+              [0molder-7[0m
+            [36m</p>[39m
+            [36m<p>[39m
+              [0molder-8[0m
+            [36m</p>[39m
+            [36m<p>[39m
+              [0molder-9[0m
+            [36m</p>[39m
+            [36m<p>[39m
+              [0molder-10[0m
+            [36m</p>[39m
+            [36m<p>[39m
+              [0molder-11[0m
+            [36m</p>[39m
+            [36m<p>[39m
+              [0molder-12[0m
+            [36m</p>[39m
+            [36m<p>[39m
+              [0molder-13[0m
+            [36m</p>[39m
+            [36m<p>[39m
+              [0molder-14[0m
+            [36m</p>[39m
+            [36m<p>[39m
+              [0molder-15[0m
+            [36m</p>[39m
+            [36m<p>[39m
+              [0molder-16[0m
+            [36m</p>[39m
+            [36m<p>[39m
+              [0molder-17[0m
+            [36m</p>[39m
+            [36m<p>[39m
+              [0molder-18[0m
+            [36m</p>[39m
+            [36m<p>[39m
+              [0molder-19[0m
+            [36m</p>[39m
+            [36m<p>[39m
+              [0molder-20[0m
+            [36m</p>[39m
+            [36m<p>[39m
+              [0molder-21[0m
+            [36m</p>[39m
+            [36m<p>[39m
+              [0molder-22[0m
+            [36m</p>[39m
+            [36m<p>[39m
+              [0molder-23[0m
+            [36m</p>[39m
+            [36m<p>[39m
+              [0molder-24[0m
+            [36m</p>[39m
+            [36m<p>[39m
+              [0molder-25[0m
+            [36m</p>[39m
+            [36m<p>[39m
+              [0molder-26[0m
+            [36m</p>[39m
+            [36m<p>[39m
+              [0molder-27[0m
+            [36m</p>[39m
+            [36m<p>[39m
+              [0molder-28[0m
+            [36m</p>[39m
+            [36m<p>[39m
+              [0molder-29[0m
+            [36m</p>[39m
+            [36m<p>[39m
+              [0molder-30[0m
+            [36m</p>[39m
+            [36m<p>[39m
+              [0molder-31[0m
+            [36m</p>[39m
+            [36m<p>[39m
+              [0molder-32[0m
+            [36m</p>[39m
+            [36m<p>[39m
+              [0molder-33[0m
+            [36m</p>[39m
+            [36m<p>[39m
+              [0molder-34[0m
+            [36m</p>[39m
+            [36m<p>[39m
+              [0molder-35[0m
+            [36m</p>[39m
+            [36m<p>[39m
+              [0molder-36[0m
+            [36m</p>[39m
+            [36m<p>[39m
+              [0molder-37[0m
+            [36m</p>[39m
+            [36m<p>[39m
+              [0molder-38[0m
+            [36m</p>[39m
+            [36m<p>[39m
+              [0molder-39[0m
+            [36m</p>[39m
+            [36m<p>[39m
+              [0molder-40[0m
+            [36m</p>[39m
+            [36m<p>[39m
+              [0molder-41[0m
+            [36m</p>[39m
+            [36m<p>[39m
+              [0molder-42[0m
+            [36m</p>[39m
+            [36m<p>[39m
+              [0molder-43[0m
+            [36m</p>[39m
+            [36m<p>[39m
+              [0molder-44[0m
+            [36m</p>[39m
+            [36m<p>[39m
+              [0molder-45[0m
+            [36m</p>[39m
+            [36m<p>[39m
+              [0molder-46[0m
+            [36m</p>[39m
+            [36m<p>[39m
+              [0molder-47[0m
+            [36m</p>[39m
+            [36m<p>[39m
+              [0molder-48[0m
+            [36m</p>[39m
+            [36m<p>[39m
+              [0molder-49[0m
+            [36m</p>[39m
+            [36m<p>[39m
+              [0molder-50[0m
+            [36m</p>[39m
+            [36m<p>[39m
+              [0molder-51[0m
+            [36m</p>[39m
+            [36m<p>[39m
+              [0molder-52[0m
+            [36m</p>[39m
+            [36m<p>[39m
+              [0molder-53[0m
+            [36m</p>[39m
+            [36m<p>[39m
+              [0molder-54[0m
+            [36m</p>[39m
+            [3...
+
+Ignored nodes: comments, script, style
+[36m<html>[39m
+  [36m<head />[39m
+  [36m<body>[39m
+    [36m<div>[39m
+      [36m<div>[39m
+        [36m<div>[39m
+          [36m<div>[39m
+            [36m<input[39m
+              [33maria-label[39m=[32m"expression"[39m
+              [33mvalue[39m=[32m"{app=~\".+\"}"[39m
+            [36m/>[39m
+            [36m<select>[39m
+              [36m<option[39m
+                [33mvalue[39m=[32m"1"[39m
+              [36m>[39m
+                [0mLoki[0m
+              [36m</option>[39m
+            [36m</select>[39m
+            [36m<div>[39m
+              [36m<button>[39m
+                [0mcommon.search[0m
+              [36m</button>[39m
+              [36m<button[39m
+                [33mdisabled[39m=[32m""[39m
+              [36m>[39m
+                [0mbusiness.observability.logs.stop[0m
+              [36m</button>[39m
+            [36m</div>[39m
+          [36m</div>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"observability-log-range"[39m
+          [36m>[39m
+            [36m<label>[39m
+              [0mbusiness.observability.logs.startUTC[0m
+              [36m<input[39m
+                [33mtype[39m=[32m"datetime-local"[39m
+                [33mvalue[39m=[32m"2026-11-08T00:57"[39m
+              [36m/>[39m
+            [36m</label>[39m
+            [36m<label>[39m
+              [0mbusiness.observability.logs.endUTC[0m
+              [36m<input[39m
+                [33mtype[39m=[32m"datetime-local"[39m
+                [33mvalue[39m=[32m"2026-11-08T01:12"[39m
+              [36m/>[39m
+            [36m</label>[39m
+            [36m<label>[39m
+              [0mbusiness.observability.logs.limit[0m
+              [36m<select>[39m
+                [36m<option[39m
+                  [33mvalue[39m=[32m"100"[39m
+                [36m>[39m
+                  [0m100[0m
+                [36m</option>[39m
+                [36m<option[39m
+                  [33mvalue[39m=[32m"500"[39m
+                [36m>[39m
+                  [0m500[0m
+                [36m</option>[39m
+                [36m<option[39m
+                  [33mvalue[39m=[32m"1000"[39m
+                [36m>[39m
+                  [0m1000[0m
+                [36m</option>[39m
+              [36m</select>[39m
+            [36m</label>[39m
+            [36m<span>[39m
+              [0mbusiness.observability.logs.budget[0m
+            [36m</span>[39m
+          [36m</div>[39m
+          [36m<div>[39m
+            [36m<div>[39m
+              [36m<p>[39m
+                [0molder-0[0m
+              [36m</p>[39m
+              [36m<p>[39m
+                [0molder-1[0m
+              [36m</p>[39m
+              [36m<p>[39m
+                [0molder-2[0m
+              [36m</p>[39m
+              [36m<p>[39m
+                [0molder-3[0m
+              [36m</p>[39m
+              [36m<p>[39m
+                [0molder-4[0m
+              [36m</p>[39m
+              [36m<p>[39m
+                [0molder-5[0m
+              [36m</p>[39m
+              [36m<p>[39m
+                [0molder-6[0m
+              [36m</p>[39m
+              [36m<p>[39m
+                [0molder-7[0m
+              [36m</p>[39m
+              [36m<p>[39m
+                [0molder-8[0m
+              [36m</p>[39m
+              [36m<p>[39m
+                [0molder-9[0m
+              [36m</p>[39m
+              [36m<p>[39m
+                [0molder-10[0m
+              [36m</p>[39m
+              [36m<p>[39m
+                [0molder-11[0m
+              [36m</p>[39m
+              [36m<p>[39m
+                [0molder-12[0m
+              [36m</p>[39m
+              [36m<p>[39m
+                [0molder-13[0m
+              [36m</p>[39m
+              [36m<p>[39m
+                [0molder-14[0m
+              [36m</p>[39m
+              [36m<p>[39m
+                [0molder-15[0m
+              [36m</p>[39m
+              [36m<p>[39m
+                [0molder-16[0m
+              [36m</p>[39m
+              [36m<p>[39m
+                [0molder-17[0m
+              [36m</p>[39m
+              [36m<p>[39m
+                [0molder-18[0m
+              [36m</p>[39m
+              [36m<p>[39m
+                [0molder-19[0m
+              [36m</p>[39m
+              [36m<p>[39m
+                [0molder-20[0m
+              [36m</p>[39m
+              [36m<p>[39m
+                [0molder-21[0m
+              [36m</p>[39m
+              [36m<p>[39m
+                [0molder-22[0m
+              [36m</p>[39m
+              [36m<p>[39m
+                [0molder-23[0m
+              [36m</p>[39m
+              [36m<p>[39m
+                [0molder-24[0m
+              [36m</p>[39m
+              [36m<p>[39m
+                [0molder-25[0m
+              [36m</p>[39m
+              [36m<p>[39m
+                [0molder-26[0m
+              [36m</p>[39m
+              [36m<p>[39m
+                [0molder-27[0m
+              [36m</p>[39m
+              [36m<p>[39m
+                [0molder-28[0m
+              [36m</p>[39m
+              [36m<p>[39m
+                [0molder-29[0m
+              [36m</p>[39m
+              [36m<p>[39m
+                [0molder-30[0m
+              [36m</p>[39m
+              [36m<p>[39m
+                [0molder-31[0m
+              [36m</p>[39m
+              [36m<p>[39m
+                [0molder-32[0m
+              [36m</p>[39m
+              [36m<p>[39m
+                [0molder-33[0m
+              [36m</p>[39m
+              [36m<p>[39m
+                [0molder-34[0m
+              [36m</p>[39m
+              [36m<p>[39m
+                [0molder-35[0m
+              [36m</p>[39m
+              [36m<p>[39m
+                [0molder-36[0m
+              [36m</p>[39m
+              [36m<p>[39m
+                [0molder-37[0m
+              [36m</p>[39m
+              [36m<p>[39m
+                [0molder-38[0m
+              [36m</p>[39m
+              [36m<p>[39m
+                [0molder-39[0m
+              [36m</p>[39m
+              [36m<p>[39m
+                [0molder-40[0m
+              [36m</p>[39m
+              [36m<p>[39m
+                [0molder-41[0m
+              [36m</p>[39m
+              [36m<p>[39m
+                [0molder-42[0m
+              [36m</p>[39m
+              [36m<p>[39m
+                [0molder-43[0m
+              [36m</p>[39m
+              [36m<p>[39m
+                [0molder-44[0m
+              [36m</p>[39m
+              [36m<p>[39m
+                [0molder-45[0m
+              [36m</p>[39m
+              [36m<p>[39m
+                [0molder-46[0m
+              [36m</p>[39m
+              [36m<p>[39m
+                [0molder-47[0m
+              [36m</p>[39m
+              [36m<p>[39m
+                [0molder-48[0m
+              [36m</p>[39m
+              [36m<p>[39m
+                [0...
+ ❯ Proxy.waitForWrapper node_modules/@testing-library/dom/dist/wait-for.js:163:27
+ ❯ tests/unit/business/operational/loki-query-state.test.tsx:52:24
+     50|   const old=Array.from({length:500},(_,i)=>['1794009600000000000', `ol…
+     51|   provider.query.mockResolvedValue({status: 'success', data: {resultTy…
+     52|   await query(); await waitFor(() => expect(screen.getByText('newest-a…
+       |                        ^
+     53|   expect(screen.getByText('business.observability.logs.rowsOmitted')).…
+     54|   expect(screen.queryByText('older-499')).toBeNull();
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/5]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  5 failed (5)
+   Start at  09:12:05
+   Duration  5.49s (tests 63%, import 19%, environment 16%, transform 2%)
+

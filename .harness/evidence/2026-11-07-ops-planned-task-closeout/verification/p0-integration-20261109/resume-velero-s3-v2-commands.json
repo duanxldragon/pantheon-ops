@@ -1,0 +1,40 @@
+{
+  "parentTaskPacket": "docs/harness/tasks/2026-11-07-ops-planned-task-closeout.task.md",
+  "tier": "L2",
+  "scope": "New ignored v2 local scripts and matching evidence only",
+  "commands": [
+    {
+      "command": "python -B .local/ops-acceptance/resume-velero-s3-v2-generate.py",
+      "exitCode": 0,
+      "evidence": "resume-velero-s3-v2-derivation.json"
+    },
+    {
+      "command": "python -B .local/ops-acceptance/resume-velero-s3-v2-check.py",
+      "exitCode": 0,
+      "checksPassed": 115,
+      "evidence": "resume-velero-s3-v2-checks-20261110T010047205450.json"
+    },
+    {
+      "command": "npm run check:docs-frontmatter",
+      "exitCode": 0,
+      "result": "462 docs checked, 301 with frontmatter"
+    },
+    {
+      "command": "npm run check:task-packet-template",
+      "exitCode": 0,
+      "result": "Ops template present and linked"
+    },
+    {
+      "command": "git check-ignore <four new v2 scripts>",
+      "exitCode": 0,
+      "result": "All four ignored by existing .local/ rule"
+    },
+    {
+      "command": "git diff --no-index --check -- NUL <v2-root/v2-check scripts>",
+      "exitCode": 1,
+      "result": "No whitespace diagnostics; exit 1 indicates new-file difference from NUL"
+    }
+  ],
+  "remoteOperationsExecuted": false,
+  "providerAcceptanceVerified": false
+}

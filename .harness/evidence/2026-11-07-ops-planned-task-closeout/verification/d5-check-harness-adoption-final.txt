@@ -1,0 +1,7 @@
+
+> check:harness-adoption
+> node scripts/harness/check-adoption.mjs --root . --strict
+
+Adoption check (strict): 0 finding(s), 0 warning(s)
+
+no findings

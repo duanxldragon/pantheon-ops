@@ -1,0 +1,9 @@
+
+Running 2 tests using 1 worker
+
+(node:20784) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok 1 tests\smoke\business\k8s\release-preview.spec.ts:7:2 › K8s image preview conflict, same-request retry, rollback and mobile (light) (8.0s)
+  ok 2 tests\smoke\business\k8s\release-preview.spec.ts:7:2 › K8s image preview conflict, same-request retry, rollback and mobile (dark) (6.5s)
+
+  2 passed (16.3s)

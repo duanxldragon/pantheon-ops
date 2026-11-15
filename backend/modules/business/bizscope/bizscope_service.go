@@ -11,6 +11,7 @@ import (
 	"github.com/duanxldragon/pantheon-base/backend/pkg/database"
 
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 const (
@@ -23,6 +24,7 @@ const (
 // Service owns business-scope persistence and cross-module capability calls.
 type Service struct {
 	db               *gorm.DB
+	selectionLock    bool
 	hostReader       bizcap.CMDBHostReader
 	ownershipCommand bizcap.CMDBOwnershipCommand
 }
@@ -47,7 +49,12 @@ func (s *Service) Migrate() error {
 	if s.db == nil {
 		return errors.New("database.not_initialized")
 	}
-	return s.db.AutoMigrate(&BizScope{})
+	return s.db.AutoMigrate(&BizScope{}, &BusinessEnvironment{})
+}
+
+// WithBizScopeTransaction keeps owner reads and row locks in the caller transaction.
+func (s *Service) WithBizScopeTransaction(tx *gorm.DB) bizcap.BizScopeReader {
+	return &Service{db: tx, hostReader: s.hostReader, ownershipCommand: s.ownershipCommand, selectionLock: true}
 }
 
 // GetActive returns one active business scope through the capability projection.
@@ -59,7 +66,11 @@ func (s *Service) GetActive(ctx context.Context, id uint64, dataScope *common.Da
 		return bizcap.BizScopeRef{}, errors.New(bizScopeNotFoundKey)
 	}
 	var row BizScope
-	if err := s.db.WithContext(ctx).Model(&BizScope{}).Scopes(database.WithDataScope(dataScope)).Where("id = ? AND status = ?", id, "active").First(&row).Error; err != nil {
+	query := s.db.WithContext(ctx).Model(&BizScope{}).Scopes(database.WithDataScope(dataScope)).Where("id = ? AND status = ?", id, "active")
+	if s.selectionLock {
+		query = query.Clauses(clause.Locking{Strength: "UPDATE"})
+	}
+	if err := query.First(&row).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return bizcap.BizScopeRef{}, errors.New(bizScopeNotFoundKey)
 		}
@@ -305,50 +316,53 @@ func (s *Service) Delete(id uint64, dataScopes ...*common.DataScopeReq) error {
 		dataScope = dataScopes[0]
 	}
 	return s.cmdbOwnership().WithBusinessScopeOwnershipLock(context.Background(), id, func() error {
-		var scope BizScope
-		if err := s.db.Model(&BizScope{}).Scopes(database.WithDataScope(dataScope)).First(&scope, id).Error; err != nil {
-			if errors.Is(err, gorm.ErrRecordNotFound) {
-				return errors.New(bizScopeNotFoundKey)
-			}
-			return err
-		}
-		hasReferences, err := s.cmdbHosts().HasBusinessScopeReferences(context.Background(), id)
-		if err != nil {
-			return err
-		}
-		if hasReferences {
-			return errors.New(bizScopeInUseKey)
-		}
-		// References beyond CMDB hosts: applications, Kubernetes clusters and
-		// deploy tasks (including drafts) must also block deletion, otherwise
-		// those resources would dangle with a deleted business scope.
-		for _, resource := range []struct {
-			table string
-			label string
-		}{
-			{"biz_application", "application"},
-			{"biz_k8s_cluster", "k8s_cluster"},
-			{"biz_deploy_task", "deploy_task"},
-		} {
-			var refCount int64
-			// gorm-sql-literal:allow resource.table 只取自上方内联切片里的三个字面量表名（biz_application/biz_k8s_cluster/biz_deploy_task），循环不接受任何请求输入
-			if err := s.db.Table(resource.table).
-				Where("business_scope_id = ? AND deleted_at IS NULL", id).
-				Count(&refCount).Error; err != nil {
+		return s.db.Transaction(func(tx *gorm.DB) error {
+			var scope BizScope
+			if err := tx.Model(&BizScope{}).Scopes(database.WithDataScope(dataScope)).Clauses(clause.Locking{Strength: "UPDATE"}).First(&scope, id).Error; err != nil {
+				if errors.Is(err, gorm.ErrRecordNotFound) {
+					return errors.New(bizScopeNotFoundKey)
+				}
 				return err
 			}
-			if refCount > 0 {
+			hasReferences, err := s.cmdbHosts().HasBusinessScopeReferences(context.Background(), id)
+			if err != nil {
+				return err
+			}
+			if hasReferences {
 				return errors.New(bizScopeInUseKey)
 			}
-		}
-		result := s.db.Delete(&BizScope{}, id)
-		if result.Error != nil {
-			return result.Error
-		}
-		if result.RowsAffected == 0 {
-			return errors.New(bizScopeNotFoundKey)
-		}
-		return nil
+			// References beyond CMDB hosts: applications, Kubernetes clusters and
+			// deploy tasks (including drafts) must also block deletion, otherwise
+			// those resources would dangle with a deleted business scope.
+			for _, resource := range []struct {
+				table string
+				label string
+			}{
+				{"biz_business_environment", "environment"},
+				{"biz_application", "application"},
+				{"biz_k8s_cluster", "k8s_cluster"},
+				{"biz_deploy_task", "deploy_task"},
+			} {
+				var refCount int64
+				// gorm-sql-literal:allow resource.table 只取自上方内联切片里的四个字面量表名，循环不接受任何请求输入
+				if err := tx.Table(resource.table).
+					Where("business_scope_id = ? AND deleted_at IS NULL", id).
+					Count(&refCount).Error; err != nil {
+					return err
+				}
+				if refCount > 0 {
+					return errors.New(bizScopeInUseKey)
+				}
+			}
+			result := tx.Delete(&BizScope{}, id)
+			if result.Error != nil {
+				return result.Error
+			}
+			if result.RowsAffected == 0 {
+				return errors.New(bizScopeNotFoundKey)
+			}
+			return nil
+		})
 	})
 }
 

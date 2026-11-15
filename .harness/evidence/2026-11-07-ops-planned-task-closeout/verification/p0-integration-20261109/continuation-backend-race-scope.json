@@ -1,0 +1,14 @@
+{
+  "priorFullRaceHashedFiles": 709,
+  "currentHashedFiles": 713,
+  "changedSincePriorFullRace": [
+    "backend/modules/business/k8s/k8s_seed.go",
+    "backend/modules/business/k8s/service/handler.go",
+    "backend/modules/business/k8s/service/service_authorization_test.go",
+    "backend/modules/business/k8s/service/service_update_test.go",
+    "backend/modules/business/k8s/service/service_update.go",
+    "backend/modules/business/k8s/service/service_version_contract_test.go",
+    "backend/modules/business/k8s/service/service.go"
+  ],
+  "finalSourceFullRaceStillRequired": true
+}

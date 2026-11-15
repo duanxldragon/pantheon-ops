@@ -1,0 +1,6 @@
+{
+  "command": "npm.cmd run rebuild:from-base -- --target .tmp/p0-browser-repair-stage",
+  "cwd": ".",
+  "exitCode": 0,
+  "elapsedSeconds": 25.84399999999914
+}

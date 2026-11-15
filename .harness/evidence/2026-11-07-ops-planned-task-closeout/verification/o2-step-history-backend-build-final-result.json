@@ -1,0 +1,16 @@
+{
+  "command": [
+    "go",
+    "build",
+    "-mod=readonly",
+    "-o",
+    "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.tmp\\ops-priority-runtime\\server-step-history.exe",
+    "./cmd/server"
+  ],
+  "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\backend",
+  "exitCode": 0,
+  "elapsedSeconds": 6.9060000000172295,
+  "artifact": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/o2-step-history-backend-build-final.txt",
+  "sourceHashesStable": true,
+  "hashedFiles": 701
+}

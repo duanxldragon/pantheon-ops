@@ -1,0 +1,5 @@
+
+> check:structure
+> node scripts/harness/check-structure-contract.mjs --root . --strict
+
+Structure contract check (strict): 0 finding(s) across 2508 tracked file(s)

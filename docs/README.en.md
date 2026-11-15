@@ -1,5 +1,15 @@
 # pantheon-ops Documentation Index
 
+## Current task entry points (2026-11-14)
+
+- [Inheritance](./PROJECT_INHERITANCE.en.md): active Base is the official v0.18.8 release; the prior denied installation and rollback evidence remain preserved, and remaining acceptance stays open.
+- [Current progress and remaining work](../.harness/tasks/2026-11-07-ops-planned-task-closeout/remaining-priorities.md): six P0 parents remain open, Velero remains last and O7 is deferred.
+- [Business workbench design](./designs/BUSINESS_OPERATIONAL_WORKBENCH_DESIGN.md): design is completed; O1–O6 implementation/acceptance remains open; O7 deferred.
+- [Delivery task status](../.harness/tasks/2026-09-28-ops-delivery-readiness-gap-closure/STATUS.md): external/policy gates, the business permission extension and inherited documentation links remain open.
+- [Current execution evidence](../.harness/evidence/2026-11-14-ops-latest-foundation-and-plans/summary.md): menu/environment migration, bounded recorded-state Dashboard, CMDB key registration and official candidate validation with explicit installation/acceptance gaps.
+
+The version navigation below is historical; its completion labels do not prove current production acceptance or workbench implementation.
+
 Chinese version: [README.md](./README.md)
 
 `pantheon-ops` is the operations-domain business repository built on top of `pantheon-base`. It inherits the base architecture, contracts, and acceptance standards from `pantheon-base`.

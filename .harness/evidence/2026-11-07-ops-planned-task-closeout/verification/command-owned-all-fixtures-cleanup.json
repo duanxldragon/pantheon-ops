@@ -1,0 +1,14 @@
+{
+  "ownership": "Only exact fixture tokens recorded in this command workflow failed Playwright trace attachments",
+  "tokens": [
+    "command-batch-1794063068726",
+    "command-light-1794063613740",
+    "command-dark-1794063615059",
+    "command-light-1794063381418",
+    "command-light-1794062871424",
+    "command-dark-1794062884564"
+  ],
+  "deleted": [],
+  "remaining": [],
+  "errors": []
+}

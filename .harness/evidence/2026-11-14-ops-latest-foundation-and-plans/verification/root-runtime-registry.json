@@ -1,0 +1,259 @@
+{
+  "checkerSHA256": "bf806be24b9dd80da8f7f0c8e02e0e9ba05db2e7a23820fee4b082de6651021c",
+  "command": [
+    "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.tmp\\node24\\node.exe",
+    "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.tmp\\ops-v0188-final-r5\\scripts\\harness\\check-runtime-evidence.mjs",
+    "--json",
+    "--strict",
+    "--root",
+    "D:\\workspace\\go\\pantheon-platform\\pantheon-ops"
+  ],
+  "exitCode": 1,
+  "executionStdioAdaptation": "Previously reviewed task-private regular-file stdio for nested Windows pipe EPERM; same checker source/arguments/output",
+  "mode": "strict",
+  "fileCount": 47,
+  "legacySkipped": 0,
+  "errorCount": 2,
+  "warningCount": 0,
+  "results": [
+    {
+      "file": ".harness/evidence/2026-06-17-github-governance-followup/commands.json",
+      "warnings": [],
+      "errors": []
+    },
+    {
+      "file": ".harness/evidence/2026-06-18-branch-hygiene-fallback/commands.json",
+      "warnings": [],
+      "errors": []
+    },
+    {
+      "file": ".harness/evidence/2026-06-18-branch-hygiene-slash-path-fix/commands.json",
+      "warnings": [],
+      "errors": []
+    },
+    {
+      "file": ".harness/evidence/2026-06-18-pr-branch-cleanup-automation/commands.json",
+      "warnings": [],
+      "errors": []
+    },
+    {
+      "file": ".harness/evidence/2026-06-21-business-deploy-task-main-flow-closeout/commands.json",
+      "warnings": [],
+      "errors": []
+    },
+    {
+      "file": ".harness/evidence/2026-08-07-foundation-upgrade-base-v0-10-3/commands.json",
+      "warnings": [],
+      "errors": []
+    },
+    {
+      "file": ".harness/evidence/2026-08-08-foundation-upgrade-base-v0-10-5/commands.json",
+      "warnings": [],
+      "errors": []
+    },
+    {
+      "file": ".harness/evidence/2026-08-10-security-csrf-closeout/commands.json",
+      "warnings": [],
+      "errors": []
+    },
+    {
+      "file": ".harness/evidence/2026-08-11-foundation-consumer-certification/commands.json",
+      "warnings": [],
+      "errors": []
+    },
+    {
+      "file": ".harness/evidence/2026-08-11-sonarcloud-ops-remediation/commands.json",
+      "warnings": [],
+      "errors": []
+    },
+    {
+      "file": ".harness/evidence/2026-08-12-foundation-v0-10-14-clean-consumer/commands.json",
+      "warnings": [],
+      "errors": []
+    },
+    {
+      "file": ".harness/evidence/2026-08-13-clean-base-business-overlay-rebuild/commands.json",
+      "warnings": [],
+      "errors": []
+    },
+    {
+      "file": ".harness/evidence/2026-08-17-ops-foundation-hardening/commands.json",
+      "warnings": [],
+      "errors": []
+    },
+    {
+      "file": ".harness/evidence/2026-08-19-ops-v1-backlog-closeout/commands.json",
+      "warnings": [],
+      "errors": []
+    },
+    {
+      "file": ".harness/evidence/2026-08-31-ops-operational-workbench-design/commands.json",
+      "warnings": [],
+      "errors": []
+    },
+    {
+      "file": ".harness/evidence/2026-09-01-ops-foundation-upgrade-v0-10-25/commands.json",
+      "warnings": [],
+      "errors": []
+    },
+    {
+      "file": ".harness/evidence/2026-09-28-ops-delivery-readiness-gap-closure/commands.json",
+      "warnings": [],
+      "errors": []
+    },
+    {
+      "file": ".harness/evidence/2026-10-12-foundation-upgrade-base-v0-16-1/commands.json",
+      "warnings": [],
+      "errors": []
+    },
+    {
+      "file": ".harness/evidence/2026-10-27-foundation-upgrade-base-v0-17-6/commands.json",
+      "warnings": [],
+      "errors": []
+    },
+    {
+      "file": ".harness/evidence/2026-10-27-foundation-upgrade-base-v0-17-7/commands.json",
+      "warnings": [],
+      "errors": []
+    },
+    {
+      "file": ".harness/evidence/2026-10-29-foundation-upgrade-base-v0-18-1/commands.json",
+      "warnings": [],
+      "errors": []
+    },
+    {
+      "file": ".harness/evidence/2026-10-29-sonar-ci-analysis-restore/commands.json",
+      "warnings": [],
+      "errors": []
+    },
+    {
+      "file": ".harness/evidence/2026-10-30-sonar-findings-remediation/commands.json",
+      "warnings": [],
+      "errors": []
+    },
+    {
+      "file": ".harness/evidence/2026-10-31-foundation-upgrade-base-v0-18-2/commands.json",
+      "warnings": [],
+      "errors": []
+    },
+    {
+      "file": ".harness/evidence/2026-10-31-frontend-follow-redirects-audit/commands.json",
+      "warnings": [],
+      "errors": []
+    },
+    {
+      "file": ".harness/evidence/2026-11-05-base-v0183-consumption/commands.json",
+      "warnings": [],
+      "errors": []
+    },
+    {
+      "file": ".harness/evidence/2026-11-07-base-v0186-consumption/commands.json",
+      "warnings": [],
+      "errors": []
+    },
+    {
+      "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/commands.json",
+      "warnings": [],
+      "errors": []
+    },
+    {
+      "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-generator-code-safety-repair-20261110-01/commands.json",
+      "warnings": [],
+      "errors": []
+    },
+    {
+      "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-generator-integration-repair/commands.json",
+      "warnings": [],
+      "errors": []
+    },
+    {
+      "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/commands.json",
+      "warnings": [],
+      "errors": []
+    },
+    {
+      "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-trailing-refresh-fix/commands.json",
+      "warnings": [],
+      "errors": []
+    },
+    {
+      "file": ".harness/evidence/2026-11-13-ops-business-menu-ia-refactor/commands.json",
+      "warnings": [],
+      "errors": []
+    },
+    {
+      "file": ".harness/evidence/2026-11-14-ops-latest-foundation-and-plans/commands.json",
+      "warnings": [],
+      "errors": []
+    },
+    {
+      "file": ".harness/evidence/argo-adoption-20261110/commands.json",
+      "warnings": [],
+      "errors": []
+    },
+    {
+      "file": ".harness/evidence/cmdb-host-import-export/commands.json",
+      "warnings": [],
+      "errors": []
+    },
+    {
+      "file": ".harness/evidence/k8s-recovery/commands.json",
+      "warnings": [],
+      "errors": []
+    },
+    {
+      "file": ".harness/evidence/ops-architecture-quality-gates/commands.json",
+      "warnings": [],
+      "errors": []
+    },
+    {
+      "file": ".harness/evidence/ops-bizscope-datascope-ownership/commands.json",
+      "warnings": [],
+      "errors": []
+    },
+    {
+      "file": ".harness/evidence/ops-business-versioned-migrations/commands.json",
+      "warnings": [],
+      "errors": []
+    },
+    {
+      "file": ".harness/evidence/ops-cross-module-capability-boundaries/commands.json",
+      "warnings": [],
+      "errors": []
+    },
+    {
+      "file": ".harness/evidence/ops-deploy-immutability-idempotency/commands.json",
+      "warnings": [],
+      "errors": []
+    },
+    {
+      "file": ".harness/evidence/ops-k8s-release-reliability/commands.json",
+      "warnings": [],
+      "errors": []
+    },
+    {
+      "file": ".harness/evidence/ops-resource-service-state-machines/commands.json",
+      "warnings": [],
+      "errors": []
+    },
+    {
+      "file": ".harness/evidence/ops-service-instance-foundation/commands.json",
+      "warnings": [],
+      "errors": []
+    },
+    {
+      "file": ".harness/archive/2026-09/evidence/2026-09-01-release-gate-sonar-cleanup/commands.json",
+      "errors": [
+        "stale legacy runtime-evidence allowlist entry: the artifact no longer exists"
+      ],
+      "warnings": []
+    },
+    {
+      "file": ".harness/archive/2026-10/evidence/2026-10-27-s2-batch-and-envelope/commands.json",
+      "errors": [
+        "stale legacy runtime-evidence allowlist entry: the artifact no longer exists"
+      ],
+      "warnings": []
+    }
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "backend": "local Claude CLI",
+  "status": "timeout",
+  "exitCode": null,
+  "elapsedSeconds": 120.09400000001187,
+  "sourceHashes": {
+    "frontend/src/modules/business/observability/LogExplorer.tsx": "8fecc2bc6ae5d077a0e80011045eecf2f023c0d40662256e8c247ec4cb05e287",
+    "frontend/src/modules/business/observability/log-results.ts": "1f99f38ff12e81ec1c297e738b6e48c30f292996561bde7afc52bfbed9eb0dce"
+  },
+  "scope": "supplied O4 result-authority sources only",
+  "artifact": ".omx/artifacts/ask-claude-o4-result-authority-20261108.md",
+  "approval": false
+}

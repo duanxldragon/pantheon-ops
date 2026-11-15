@@ -1,0 +1,9 @@
+{
+  "deletedPaths": [],
+  "vitePid": 3936,
+  "completedUtc": "2026-11-08T02:21:09.5654291Z",
+  "checkedExecutableHashPidPort": true,
+  "backendPid": 17388,
+  "remainingWebListeners": [],
+  "mysqlRedisRetainedForFinalRace": true
+}

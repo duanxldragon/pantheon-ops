@@ -1,0 +1,5 @@
+
+> check:encoding
+> node scripts/check-encoding.mjs --strict
+
+Encoding check (strict): 0 finding(s) across 2292 scanned file(s)

@@ -1,0 +1,219 @@
+{
+  "case": "cancel",
+  "identity": "o2-live-b454c3a7a6ea-cancel",
+  "database": "ops_p0_o2_live_b454c3a7a6ea_cancel",
+  "databaseRetention": "retained; no drop",
+  "events": [
+    {
+      "credentialId": 1,
+      "packageId": 1,
+      "phase": "task-created",
+      "taskId": 1
+    },
+    {
+      "action": "cancel",
+      "errorKey": "",
+      "phase": "control",
+      "taskId": 1
+    },
+    {
+      "case": "cancel",
+      "check": "real running command acknowledged canceled",
+      "kind": "positive",
+      "passed": true
+    },
+    {
+      "action": "cancel",
+      "errorKey": "business.deploy.task.commandConflict",
+      "phase": "control",
+      "taskId": 1
+    },
+    {
+      "case": "cancel",
+      "check": "stale running view conflicts after control",
+      "kind": "negative",
+      "passed": true
+    },
+    {
+      "case": "cancel",
+      "check": "independent VM interrupted attempt never wrote completion",
+      "kind": "positive",
+      "passed": true
+    },
+    {
+      "case": "cancel",
+      "check": "public current checkpoint and recorded safe history",
+      "kind": "positive",
+      "origin": "fresh-process",
+      "passed": true
+    },
+    {
+      "fieldTypes": {
+        "attemptNo": "float64",
+        "sequence": "float64",
+        "taskHostId": "float64",
+        "taskStepId": "float64"
+      },
+      "httpStatus": 200,
+      "kind": "logs",
+      "origin": "fresh-process",
+      "phase": "public-projection-structure",
+      "responseCode": 200
+    },
+    {
+      "case": "cancel",
+      "check": "public log sequence ownership attempts and secret exclusion",
+      "kind": "positive",
+      "origin": "fresh-process",
+      "passed": true
+    },
+    {
+      "case": "cancel",
+      "check": "both actual VM streams persisted",
+      "kind": "positive",
+      "origin": "fresh-process",
+      "passed": true
+    },
+    {
+      "fieldTypes": {},
+      "httpStatus": 200,
+      "kind": "logs",
+      "origin": "fresh-process",
+      "phase": "public-projection-structure",
+      "responseCode": 200
+    },
+    {
+      "case": "cancel",
+      "check": "log cursor excludes already delivered sequence",
+      "kind": "positive",
+      "origin": "fresh-process",
+      "passed": true
+    },
+    {
+      "fieldTypes": {
+        "attemptNo": "missing",
+        "sequence": "float64",
+        "taskHostId": "missing",
+        "taskStepId": "missing"
+      },
+      "httpStatus": 200,
+      "kind": "events",
+      "origin": "fresh-process",
+      "phase": "public-projection-structure",
+      "responseCode": 200
+    },
+    {
+      "case": "cancel",
+      "check": "public event sequence ordered across committed transitions",
+      "kind": "positive",
+      "origin": "fresh-process",
+      "passed": true
+    },
+    {
+      "fieldTypes": {},
+      "httpStatus": 200,
+      "kind": "events",
+      "origin": "fresh-process",
+      "phase": "public-projection-structure",
+      "responseCode": 200
+    },
+    {
+      "case": "cancel",
+      "check": "event reconnect cursor no replay at latest sequence",
+      "kind": "positive",
+      "origin": "fresh-process",
+      "passed": true
+    },
+    {
+      "attempts": [
+        {
+          "attemptNo": 1,
+          "leaseReleased": true,
+          "status": "canceled"
+        }
+      ],
+      "eventTypes": [
+        "task.started",
+        "step.running",
+        "task.cancel_requested",
+        "step.canceled",
+        "task.canceled"
+      ],
+      "finished": true,
+      "history": [
+        {
+          "attemptNo": 1,
+          "capturedAt": "2026-11-09T16:51:52.232+08:00",
+          "finishedAt": "2026-11-09T16:51:52.229+08:00",
+          "id": 1,
+          "startedAt": "2026-11-09T16:51:46.638+08:00",
+          "stateVersion": 3,
+          "status": "canceled",
+          "stepKey": "package_default",
+          "stepOrder": 1,
+          "taskHostId": 1
+        }
+      ],
+      "logCount": 2,
+      "origin": "fresh-process",
+      "phase": "persisted-state",
+      "status": "canceled",
+      "steps": [
+        {
+          "attemptNo": 1,
+          "finishedAt": "2026-11-09T16:51:52.229+08:00",
+          "id": 1,
+          "startedAt": "2026-11-09T16:51:46.638+08:00",
+          "stateVersion": 3,
+          "status": "canceled",
+          "stepKey": "package_default",
+          "stepOrder": 1,
+          "taskHostId": 1
+        }
+      ],
+      "taskId": 1
+    },
+    {
+      "case": "cancel",
+      "failed": 0,
+      "negativePassed": 0,
+      "origin": "fresh-process",
+      "phase": "driver-result",
+      "positivePassed": 6
+    },
+    {
+      "case": "cancel",
+      "check": "new OS process inspect uses committed task state",
+      "kind": "positive",
+      "passed": true
+    },
+    {
+      "case": "cancel",
+      "failed": 0,
+      "negativePassed": 1,
+      "phase": "driver-result",
+      "positivePassed": 3
+    }
+  ],
+  "driverExitCode": 0,
+  "stderrPresent": false,
+  "status": "passed",
+  "cleanup": {
+    "phase": "exact-owned-cleanup",
+    "directory": "/opt/pantheon-p0-20261109/o2-live-b454c3a7a6ea-cancel",
+    "files": [
+      {
+        "file": ".owner",
+        "sha256": "7c17e7a58b02062136241343bb29f95c8b609ab866c5c0b16e3f9eb9f2e28487",
+        "bytes": 27
+      },
+      {
+        "file": "started",
+        "sha256": "7c17e7a58b02062136241343bb29f95c8b609ab866c5c0b16e3f9eb9f2e28487",
+        "bytes": 27
+      }
+    ],
+    "absent": true,
+    "processKill": false
+  }
+}

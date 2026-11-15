@@ -3,7 +3,7 @@ title: Tenant Contract V1 (Shared-Schema MVP)
 doc_type: Contract
 layer: platform / system/auth / system/iam / system/org / system/config
 status: Approved
-updated_at: 2026-10-31
+updated_at: 2026-11-09
 ---
 
 # Tenant Contract V1 (Shared-Schema MVP)
@@ -57,6 +57,7 @@ tenants
 ```
 
 Invariants:
+
 - `code` is immutable after creation; matches `^[a-z][a-z0-9-]{1,62}$`
 - Status transitions: `active ↔ suspended`, and `active|suspended → archived`; `archived` is terminal
 - `archived` tenants must not log in, must not receive new tokens, must not produce new business writes
@@ -73,6 +74,11 @@ Invariants:
 - The delete marker is `status = 'deleted'`, **not** `deleted_at`: that column exists in the schema but
   the current implementation neither writes nor filters on it. Two markers would let "is this deleted?"
   have two answers that can disagree.
+- Updates and deletion read and validate the current status under a `FOR UPDATE` transaction lock on
+  the same tenant row, then commit all field writes. Delayed updates cannot overwrite an intervening
+  archive/delete or apply an invalid transition from stale state. Valid no-op updates succeed, field
+  failures roll back together, and existing best-effort session revocation remains after status commit
+  (2026-11-11 concurrency guard).
 
 ### 2.2 TenantMembership
 
@@ -88,21 +94,23 @@ tenant_memberships
 ```
 
 Invariants:
+
 - A user may belong to multiple tenants; `(tenant_id, user_id)` is unique
 - Every non-archived tenant has at least one `owner`; owner transfer is an explicit API action
 - Membership removal is **split by path** (V1.5 clarification, verified line by line against the
   implementation; the previous wording "always soft-disable, never a physical delete, to keep the audit
   chain intact" did not match the code):
 
-  | Path | Actual behaviour | Code |
-  |---|---|---|
-  | Tenant deletion | Soft-disable: inside one transaction the tenant's remaining `active` memberships become `status = disabled`, committed together with `status = 'deleted'` and the released `code` (§2.1) | `tenant_service.go:608-615` |
-  | User deletion | Soft-disable: `status = disabled`; a tenant-scoped caller only touches its own rows, a platform-scoped caller clears the user's memberships everywhere (§2.3.1 rule 2) | `user/user_membership.go:78-88`, regression `user_membership_test.go:152-200` |
-  | Explicit member removal | **Physical delete** (the only exception today): `ensureNotLastOwner` first, then delete by `(tenant_id, user_id)` regardless of `status` (the model has no `deleted_at` column, `tenant_model.go:25-33`); `RowsAffected == 0` → `ErrMembershipNotFound`; the member's sessions are then revoked best effort | `tenant_service.go:914-940` |
-  | Re-join / re-created user | **Revives the old row**: an existing `(tenant_id, user_id)` row is updated to the requested role + `active` instead of inserting a second row | `tenant_service.go:869-888`, `user_membership.go:45-51` |
+  | Path                      | Actual behaviour                                                                                                                                                                                                                                                                                            | Code                                                                          |
+  | ------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
+  | Tenant deletion           | Soft-disable: inside one transaction the tenant's remaining `active` memberships become `status = disabled`, committed together with `status = 'deleted'` and the released `code` (§2.1)                                                                                                                    | `tenant_service.go:608-615`                                                   |
+  | User deletion             | Soft-disable: `status = disabled`; a tenant-scoped caller only touches its own rows, a platform-scoped caller clears the user's memberships everywhere (§2.3.1 rule 2)                                                                                                                                      | `user/user_membership.go:78-88`, regression `user_membership_test.go:152-200` |
+  | Explicit member removal   | **Physical delete** (the only exception today): `ensureNotLastOwner` first, then delete by `(tenant_id, user_id)` regardless of `status` (the model has no `deleted_at` column, `tenant_model.go:25-33`); `RowsAffected == 0` → `ErrMembershipNotFound`; the member's sessions are then revoked best effort | `tenant_service.go:914-940`                                                   |
+  | Re-join / re-created user | **Revives the old row**: an existing `(tenant_id, user_id)` row is updated to the requested role + `active` instead of inserting a second row                                                                                                                                                               | `tenant_service.go:869-888`, `user_membership.go:45-51`                       |
 
   Soft-disable is the default direction; the physical delete is the exception that still needs
   converging. The reason for keeping rows is stated in the next bullet.
+
 - Why the rows are kept at all: a membership is the record that "this person once belonged to this
   tenant", and the login gate already treats anything but `active` as a denial
   (`pkg/tenant.GateSessionIssuance`), so disabling is sufficient to cut access. For the physical-delete
@@ -155,10 +163,10 @@ reviewer when rejecting a change.
 
 **The only two permitted scopes** (matching the two cross-tenant paths of §3.3):
 
-| Scope | May read/write | Does thereby gain |
-|---|---|---|
+| Scope                                                                                         | May read/write                       | Does thereby gain                                          |
+| --------------------------------------------------------------------------------------------- | ------------------------------------ | ---------------------------------------------------------- |
 | Platform scope (`ctx.tenant_id = 0`, requires the §3.4 declaration + the platform capability) | the global rows with `tenant_id = 0` | no power to operate on **tenant-private rows** by bare key |
-| Tenant scope (`ctx.tenant_id > 0`) | its own share | no rows of any other tenant, including "same-named" ones |
+| Tenant scope (`ctx.tenant_id > 0`)                                                            | its own share                        | no rows of any other tenant, including "same-named" ones   |
 
 When the context is missing and the mode is not compat → reject per §3.2; the fallback must **never** be
 "read everything". When a policy or configuration read fails, the default is fail-closed, not a retreat to
@@ -198,7 +206,7 @@ Invariants:
 1. **A platform-global table with no `tenant_id` column** — same shape as `tenants` itself. Tenant
    confinement in this module is applied by explicit `WithTenantScope` calls in the services that need
    it, not by a global GORM plugin, so adding `tenant_id` here would filter the platform console's own
-   reads into nothingness (§2.3 constrains tables that *carry* the column; it does not require every
+   reads into nothingness (§2.3 constrains tables that _carry_ the column; it does not require every
    table to carry it).
 2. **`-1` means unlimited (`tenant.UnlimitedQuota`); `0` is not a legal value** and the write path
    rejects it. Every consumer distinguishes "no ceiling" from "ceiling reached", and allowing `0` would
@@ -259,12 +267,12 @@ Invariants:
 
 ### 2.5 Platform-side tenant-operations read paths (new in V1.4, 2026-10-25)
 
-| Route | Permission key | Nature |
-|---|---|---|
-| `GET /api/v1/system/tenant-ops/overview` | `system:tenant:overview` | cross-tenant aggregate read |
-| `GET /api/v1/system/tenant-ops/member` | `system:tenant:member-list` | cross-tenant member read |
-| `GET /api/v1/system/tenant-ops/plan/list` | `system:tenant:plan:list` | platform-global read |
-| `POST /api/v1/system/tenant-ops/plan` | `system:tenant:plan:create` | platform-global write, audited |
+| Route                                      | Permission key              | Nature                         |
+| ------------------------------------------ | --------------------------- | ------------------------------ |
+| `GET /api/v1/system/tenant-ops/overview`   | `system:tenant:overview`    | cross-tenant aggregate read    |
+| `GET /api/v1/system/tenant-ops/member`     | `system:tenant:member-list` | cross-tenant member read       |
+| `GET /api/v1/system/tenant-ops/plan/list`  | `system:tenant:plan:list`   | platform-global read           |
+| `POST /api/v1/system/tenant-ops/plan`      | `system:tenant:plan:create` | platform-global write, audited |
 | `PUT /api/v1/system/tenant-ops/plan/:code` | `system:tenant:plan:update` | platform-global write, audited |
 
 Rules (each independently citable by a reviewer):
@@ -340,6 +348,20 @@ Four independent facts (readings from `2026-10-31-audit-p1-business-route-tenant
 
 ---
 
+### 2.7 V2.0-O4 Opt-In Business Tenant Contract (implementation in progress, 2026-11-09)
+
+The maintainer explicitly authorized extending the Base business tenant contract and delivering actor/tenant isolation in the same batch. Independent CODE/ARCH approved the implementation plan; this clause defines the delivery target and **does not assert implementation acceptance or official release**. Released V1.10 and legacy helpers retain §2.6 behavior. An adopted module may claim V2 isolation only after all four prerequisites and official paired consumption pass. The [O4 plan](../../.harness/tasks/2026-11-07-ops-formal-queue-foundation-gaps/o4-tenant-implementation-plan.md) and its parent are the implementation/evidence entry.
+
+- Base provides explicit `TenantScopedBusinessGroup` and a read-only current identity/action authorization port. Existing helper defaults and system semantics remain. Missing/failed/unknown mode, DB/Redis/authorization dependencies or context deny without falling back to compat.
+- Revalidate current subject, session, user, roles, membership, tenant lifecycle and resolution provenance at entry, before provider access and before releasing results. Body fields and arbitrary headers cannot select actor/tenant. Platform overrides retain §3 capability checks; tenant0 accesses global rows only, and administrators cannot bypass actor ownership of private records.
+- Initial adoption is limited to Ops `obs_prometheus_datasource`, `obs_query_history`, `obs_saved_view`, `obs_query_owner_budget` and `obs_schema_capability`, registered in the resource matrix. Other business modules, alerts/channels and targets retain legacy single-tenant behavior; alerts may reference tenant0 sources only.
+- History/views belong to `(tenant_id,actor_id)` with immutable source/tenant/actor on update. Store only server-reviewed catalog IDs/enums and bounded safe metadata, never raw expressions, arbitrary names/label values, results, provider warnings/errors or tokens. Raw queries yield metadata-only history with unavailable expressions. Restore reauthorizes and never executes; Run requires separate permission and user action.
+- Adopted queries use POST with paired product caller changes. Deprecated expression-bearing GET aliases return an upgrade response without executing and are excluded from product links. Exact method/template metadata-only audit selection precedes body/CSRF/auth denial; adopted correlation IDs are server generated. Unmatched audit defaults remain.
+- Verified flat tenant CRUD generator V2 emits ownership, predicates, tenant-leading indices and required bootstrap. Bootstrap failure prevents readiness; legacy V1 keeps its runner. Actual migration37, dirty refusal/exclusive shape-verified recovery, retained down and stopped-old-process/supported-start transitions require runtime proof; AutoMigrate or version stamping cannot substitute.
+- Keep legacy helpers and V1 output, with no invented removal date. Each legacy module adoption requires registration, verification and official paired foundation consumption; removal needs a separate contract change. Dedicated candidate sealing/assembly supports isolated pre-release testing and does not replace immutable official releases, lock identity or consumption acceptance.
+
+Acceptance includes same-department/same-name multi-actor/two-tenant narrow-role cases, source/session/membership revocation, aliases/foreign IDs/cursors, audit/storage sentinels, actual generator/migrations, real Prometheus/VM/Loki/Tempo, restore-without-run and desktop/mobile light/dark. Missing evidence keeps implementation in progress; scoped green tests do not complete the four prerequisites.
+
 ## 3. Tenant Context (frozen)
 
 ### 3.1 Resolution priority (high → low)
@@ -391,14 +413,14 @@ Four independent facts (readings from `2026-10-31-audit-p1-business-route-tenant
 
 ## 5. Error Codes (frozen)
 
-| Scenario | HTTP | code |
-|----------|------|------|
-| Header names a tenant but subject lacks platform permission | 403 | `TENANT_FORBIDDEN` |
-| Subject has no membership, or membership disabled | 403 | `TENANT_FORBIDDEN` |
-| Login or write against a suspended / archived tenant | 403 | `TENANT_SUSPENDED` / `TENANT_ARCHIVED` |
-| Missing context (non-compat) | 500 | `TENANT_CONTEXT_MISSING` (configuration error, alert) |
-| Resource not in current tenant (query returns empty; no existence leak) | 200/404 | no new code: empty set or 404; "not found" vs "other tenant" is not distinguished |
-| Deleting a tenant that is not archived (member count does not matter, V1.6) | 400 | `tenant.not_archived` |
+| Scenario                                                                    | HTTP    | code                                                                              |
+| --------------------------------------------------------------------------- | ------- | --------------------------------------------------------------------------------- |
+| Header names a tenant but subject lacks platform permission                 | 403     | `TENANT_FORBIDDEN`                                                                |
+| Subject has no membership, or membership disabled                           | 403     | `TENANT_FORBIDDEN`                                                                |
+| Login or write against a suspended / archived tenant                        | 403     | `TENANT_SUSPENDED` / `TENANT_ARCHIVED`                                            |
+| Missing context (non-compat)                                                | 500     | `TENANT_CONTEXT_MISSING` (configuration error, alert)                             |
+| Resource not in current tenant (query returns empty; no existence leak)     | 200/404 | no new code: empty set or 404; "not found" vs "other tenant" is not distinguished |
+| Deleting a tenant that is not archived (member count does not matter, V1.6) | 400     | `tenant.not_archived`                                                             |
 
 ---
 
@@ -417,15 +439,15 @@ Four independent facts (readings from `2026-10-31-audit-p1-business-route-tenant
 
 ## 7. Ownership Boundaries (frozen)
 
-| Concern | Owning domain | Forbidden |
-|---------|---------------|-----------|
-| tenants CRUD, lifecycle | `system/org` (a tenant is an org entity) | auth/iam/business writing the tenants table directly |
-| Membership management | `system/org` provides capability; `system/iam` consumes it (at login) | iam maintaining the memberships table |
-| Login-time tenant resolution & claims issuance | `system/auth` | auth querying the tenants table directly (go through org's read interface) |
-| Casbin domain rules | `system/iam` | auth or business modules defining their own domain rules |
-| Feature flag `tenant.mode` | `system/config` | modules inventing their own switches |
-| tenant_id scope helper | `platform` | domains copy-pasting private implementations |
-| Business resource tenancy | `business/*` — not applicable in V1 (business domains do not participate in tenant isolation; see §2.6) | business defining its own isolation mechanism, or claiming it is already isolated |
+| Concern                                        | Owning domain                                                                                           | Forbidden                                                                         |
+| ---------------------------------------------- | ------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------- |
+| tenants CRUD, lifecycle                        | `system/org` (a tenant is an org entity)                                                                | auth/iam/business writing the tenants table directly                              |
+| Membership management                          | `system/org` provides capability; `system/iam` consumes it (at login)                                   | iam maintaining the memberships table                                             |
+| Login-time tenant resolution & claims issuance | `system/auth`                                                                                           | auth querying the tenants table directly (go through org's read interface)        |
+| Casbin domain rules                            | `system/iam`                                                                                            | auth or business modules defining their own domain rules                          |
+| Feature flag `tenant.mode`                     | `system/config`                                                                                         | modules inventing their own switches                                              |
+| tenant_id scope helper                         | `platform`                                                                                              | domains copy-pasting private implementations                                      |
+| Business resource tenancy                      | `business/*` — not applicable in V1 (business domains do not participate in tenant isolation; see §2.6) | business defining its own isolation mechanism, or claiming it is already isolated |
 
 ---
 
@@ -439,15 +461,16 @@ Four independent facts (readings from `2026-10-31-audit-p1-business-route-tenant
 
 ## 9. Change Log
 
-| Version | Date | Change | Nature |
-|---------|------|--------|--------|
-| V1.1 | 2026-10-13 | §3.1 gains a new item 3 "platform-scope fallback" (the former item 3 becomes item 4 with unchanged meaning); new §3.4 "platform-scope declaration"; §3.2 notes the scope of the reject rule; §6 notes "multi is a superset of compat" | Clarification |
-| V1.2 | 2026-10-19 | New §2.3.1 "read and write duties": reads must carry the tenant predicate, writes must take the tenant from the context (conflict keys must include it), bare-key existence/ownership checks count as reads; the only two permitted scopes; fail-closed default | Clarification |
-| V1.3 | 2026-10-23 | §2.1 adds the fourth value: `deleted` is a tombstone rather than a lifecycle state, not a valid input, addressing it by id or code is "not found"; the delete marker is `status`, not the reserved `deleted_at`; deleting an archived tenant disables its memberships in the same transaction (§2.2's owner requirement constrains non-archived tenants only) | Clarification |
-| V1.4 | 2026-10-25 | New §2.4 "Plan definitions and quota semantics" (`tenant_plans`, platform-global, `-1` unlimited / `0` illegal, unknown codes fall back to the compiled table, retirement instead of deletion, idempotent seed, 5-second read-through cache) and §2.4.1 "a quota is a measurement, not a gate" (no write path rejects on quota; `QuotaEnforcer`/`MetricsCollector` are unwired); new §2.5 "Platform-side tenant-operations read paths" (the five `/system/tenant-ops/*` routes: declared platform scope, `system:tenant:` prefix, one shared predicate set, bounded paging, unknown plans shown as-is, frozen core metric set, permission↔route probe gate); §1 In/Out restates the plan/quota ownership boundary; §2.1's `plan` column comment changes from "not consumed in V1" to "resolves to §2.4 thresholds" | Extension |
-| V1.5 | 2026-10-26 | §2.2's "membership removal = `status=disabled`, never a physical delete" is restated as a **four-row per-path table** (tenant deletion / user deletion = soft-disable, explicit member removal = physical delete, re-join = row revival), and "audit chain" is re-attributed from row retention to the global operation log; §2.4 gains invariant 8, moving the **plan assignment surface** that V1.4 registered as a residual gap into the In set and wiring it in the frontend (backend `AssignableCodes` deleted); this English file is brought up to date with §2.3.1 (V1.2) and its change log. Write-side enforcement behaviour unchanged; "make member removal a soft-disable too" is registered as a future contract-change candidate with its prerequisites | Clarification (§2.2) + Extension (§2.4 invariant 8) |
-| V1.6 | 2026-10-27 | §5 registers the delete-guard error code `tenant.not_archived` (400). The implementation refused deletion on "member count > 0 and not archived", which contradicts §2.1's "deletion only for `archived` tenants": deleting every user drove the active member count to zero and let a live tenant be tombstoned without archiving. The guard is now the §2.1 rule verbatim (the status, not the member count); both the platform and the legacy handler register the code, and the console disables the delete action on non-archived rows; §2.1 and §2.2 wording unchanged | Clarification + Extension (§5 error code) |
-| V1.10 | 2026-10-31 | New §2.6 "Business-domain tenant semantics" (option C, maintainer decision 2026-10-31): business domains do not participate in tenant isolation in V1; the clause records the four facts and the four V2 preconditions. §1 Out registers the boundary; the §7 "business resource tenancy" row changes from "registered in the matrix" to "not applicable in V1" and states that the `biz_*` row in §3 of `TENANT_RESOURCE_SCOPE_MATRIX` is a V2 entry point, not a current registration requirement. Same batch: doc comments on all three exported helpers in `backend/pkg/contracts/route_groups.go`, new `backend/pkg/contracts/route_groups_test.go` chain assertion (negatively verified), `docs/designs/MODULE_CONTRACT.md` §10 and `README.md:31` aligned. §3 resolution priority, §4 Casbin dimension, §5 error codes and every write-side behaviour are unchanged | Clarification |
+| Version               | Date       | Change                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     | Nature                                              |
+| --------------------- | ---------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------- |
+| V1.1                  | 2026-10-13 | §3.1 gains a new item 3 "platform-scope fallback" (the former item 3 becomes item 4 with unchanged meaning); new §3.4 "platform-scope declaration"; §3.2 notes the scope of the reject rule; §6 notes "multi is a superset of compat"                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      | Clarification                                       |
+| V1.2                  | 2026-10-19 | New §2.3.1 "read and write duties": reads must carry the tenant predicate, writes must take the tenant from the context (conflict keys must include it), bare-key existence/ownership checks count as reads; the only two permitted scopes; fail-closed default                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            | Clarification                                       |
+| V1.3                  | 2026-10-23 | §2.1 adds the fourth value: `deleted` is a tombstone rather than a lifecycle state, not a valid input, addressing it by id or code is "not found"; the delete marker is `status`, not the reserved `deleted_at`; deleting an archived tenant disables its memberships in the same transaction (§2.2's owner requirement constrains non-archived tenants only)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              | Clarification                                       |
+| V1.4                  | 2026-10-25 | New §2.4 "Plan definitions and quota semantics" (`tenant_plans`, platform-global, `-1` unlimited / `0` illegal, unknown codes fall back to the compiled table, retirement instead of deletion, idempotent seed, 5-second read-through cache) and §2.4.1 "a quota is a measurement, not a gate" (no write path rejects on quota; `QuotaEnforcer`/`MetricsCollector` are unwired); new §2.5 "Platform-side tenant-operations read paths" (the five `/system/tenant-ops/*` routes: declared platform scope, `system:tenant:` prefix, one shared predicate set, bounded paging, unknown plans shown as-is, frozen core metric set, permission↔route probe gate); §1 In/Out restates the plan/quota ownership boundary; §2.1's `plan` column comment changes from "not consumed in V1" to "resolves to §2.4 thresholds"                                                         | Extension                                           |
+| V1.5                  | 2026-10-26 | §2.2's "membership removal = `status=disabled`, never a physical delete" is restated as a **four-row per-path table** (tenant deletion / user deletion = soft-disable, explicit member removal = physical delete, re-join = row revival), and "audit chain" is re-attributed from row retention to the global operation log; §2.4 gains invariant 8, moving the **plan assignment surface** that V1.4 registered as a residual gap into the In set and wiring it in the frontend (backend `AssignableCodes` deleted); this English file is brought up to date with §2.3.1 (V1.2) and its change log. Write-side enforcement behaviour unchanged; "make member removal a soft-disable too" is registered as a future contract-change candidate with its prerequisites                                                                                                       | Clarification (§2.2) + Extension (§2.4 invariant 8) |
+| V1.6                  | 2026-10-27 | §5 registers the delete-guard error code `tenant.not_archived` (400). The implementation refused deletion on "member count > 0 and not archived", which contradicts §2.1's "deletion only for `archived` tenants": deleting every user drove the active member count to zero and let a live tenant be tombstoned without archiving. The guard is now the §2.1 rule verbatim (the status, not the member count); both the platform and the legacy handler register the code, and the console disables the delete action on non-archived rows; §2.1 and §2.2 wording unchanged                                                                                                                                                                                                                                                                                               | Clarification + Extension (§5 error code)           |
+| V1.10                 | 2026-10-31 | New §2.6 "Business-domain tenant semantics" (option C, maintainer decision 2026-10-31): business domains do not participate in tenant isolation in V1; the clause records the four facts and the four V2 preconditions. §1 Out registers the boundary; the §7 "business resource tenancy" row changes from "registered in the matrix" to "not applicable in V1" and states that the `biz_*` row in §3 of `TENANT_RESOURCE_SCOPE_MATRIX` is a V2 entry point, not a current registration requirement. Same batch: doc comments on all three exported helpers in `backend/pkg/contracts/route_groups.go`, new `backend/pkg/contracts/route_groups_test.go` chain assertion (negatively verified), `docs/designs/MODULE_CONTRACT.md` §10 and `README.md:31` aligned. §3 resolution priority, §4 Casbin dimension, §5 error codes and every write-side behaviour are unchanged | Clarification                                       |
+| V2.0-O4 (in progress) | 2026-11-09 | §2.7 opt-in business tenancy, fresh authorization/audit, private history/views, actual generator/migrations and all four paired-release prerequisites; V1 retained, official consumption/acceptance open                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   | Paired contract evolution target                    |
 
 **Trigger and scope of V1.5**
 
@@ -465,7 +488,7 @@ Four independent facts (readings from `2026-10-31-audit-p1-business-route-tenant
   as a normative clause. §2.1, §2.3, §2.3.1, §2.5, §3-§7 are semantically untouched, and write-side
   enforcement still sits behind §2.4.1's contract-change gate.
 - **Provenance and cost (stated plainly, not glossed over)**: "soft-disable, no physical delete" was not
-  loose wording — it was a *Frozen* decision of the 2026-09-10 contract freeze, justified as "audit chain
+  loose wording — it was a _Frozen_ decision of the 2026-09-10 contract freeze, justified as "audit chain
   integrity (audit reviewer requirement)"
   (`.harness/archive/2026-09/evidence/2026-09-10-tenant-contract-design/summary.md:24`). Rewriting the
   contract to ratify the implementation therefore **acknowledges that a frozen requirement is unimplemented
@@ -518,7 +541,7 @@ Four independent facts (readings from `2026-10-31-audit-p1-business-route-tenant
 
 **Residual gaps of V1.4 (explicit)**
 
-- Plan *selling* (ordering, upgrades/downgrades, billing periods) stays Out per §1. `max_api_keys` and
+- Plan _selling_ (ordering, upgrades/downgrades, billing periods) stays Out per §1. `max_api_keys` and
   `max_storage_mb` are defined and persisted but not reported by the overview, because §2.5 rule 6's
   core metric set does not include them.
 - **Assignment surface is not wired.** `PlanStore.AssignableCodes` (`tenant_plan_store.go:175`) exists

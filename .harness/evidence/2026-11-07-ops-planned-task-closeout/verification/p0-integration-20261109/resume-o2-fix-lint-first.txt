@@ -1,0 +1,39 @@
+
+D:\workspace\go\pantheon-platform\pantheon-ops\frontend\src\modules\business\deploy\task\DeployTaskDetail.tsx
+  927:7  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+D:\workspace\go\pantheon-platform\pantheon-ops\frontend\src\modules\business\deploy\task\DeployTaskDetail.tsx:927:7
+  925 |     // Clear modal copies and selections whenever the task generation loses access.
+  926 |     if (!task) {
+> 927 |       closeResultModal(); closeStartModal(); setPreviewRequest(null); setCredentials([]);
+      |       ^^^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  928 |     } else if (selectedHost && !task.hosts?.some((host) => host.id === selectedHost.id)) {
+  929 |       closeResultModal();
+  930 |     }  react-hooks/set-state-in-effect
+
+D:\workspace\go\pantheon-platform\pantheon-ops\frontend\src\modules\business\deploy\task\useDeployTaskSnapshot.ts
+  45:10  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+D:\workspace\go\pantheon-platform\pantheon-ops\frontend\src\modules\business\deploy\task\useDeployTaskSnapshot.ts:45:10
+  43 |     const session = { id, disposed: false, request: 0 };
+  44 |     generation.current = session;
+> 45 |     void loadData();
+     |          ^^^^^^^^ Avoid calling setState() directly within an effect
+  46 |     return () => { session.disposed = true; };
+  47 |   }, [id, loadData]);
+  48 |   const current = snapshot.id === id ? snapshot : { task: null, error: null, loading: true, stale: false };  react-hooks/set-state-in-effect
+
+✖ 2 problems (2 errors, 0 warnings)
+

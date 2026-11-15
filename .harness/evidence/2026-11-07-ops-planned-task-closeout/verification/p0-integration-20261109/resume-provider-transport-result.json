@@ -1,0 +1,15 @@
+{
+  "host": "115.190.251.143",
+  "operation": "authenticated SSH direct TCP provider health reads; no shell or writes",
+  "authenticated": true,
+  "providers": [
+    {
+      "provider": "prometheus",
+      "port": 9090,
+      "directChannelOpened": false,
+      "errorType": "SSHException",
+      "channelTimeout": true
+    }
+  ],
+  "elapsedSeconds": 36.5
+}

@@ -1,0 +1,45 @@
+{
+  "checkerSHA256": "eeb90893890cb4a0174d40f4147b8a2f7384e3ded6947e7bfde4bfb193803c69",
+  "command": [
+    "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.tmp\\node24\\node.exe",
+    "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.tmp\\ops-v0188-final-r5\\scripts\\harness\\check-task-packet.mjs",
+    "--json",
+    "--root",
+    "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+    "docs/harness/tasks/2026-11-14-ops-latest-foundation-and-plans.task.md",
+    "docs/harness/tasks/2026-11-13-ops-business-menu-ia-refactor.task.md"
+  ],
+  "exitCode": 1,
+  "results": [
+    {
+      "file": "docs/harness/tasks/2026-11-14-ops-latest-foundation-and-plans.task.md",
+      "errors": [
+        "Section \"## Harness Profile\" must include \"- Coverage Dimensions:\" with nested list items.",
+        "Subsection \"### In\" under \"## Scope\" must include at least one list item.",
+        "Subsection \"### Out\" under \"## Scope\" must include at least one list item.",
+        "Section \"## Verification Plan\" must include at least one command or explicit none item.",
+        "taskManifest.goal must be a non-empty string.",
+        "Section \"## Completion Checklist\" must include checkbox items."
+      ],
+      "warnings": [
+        "Contract anchors should be listed as backticked file paths.",
+        "Section \"## Linkage\" is missing recommended item: OpenSpec Change.",
+        "Linked review file does not exist: .harness/evidence/2026-11-14-ops-latest-foundation-and-plans/review.md"
+      ]
+    },
+    {
+      "file": "docs/harness/tasks/2026-11-13-ops-business-menu-ia-refactor.task.md",
+      "errors": [],
+      "warnings": [
+        "Contract anchor does not exist: ../pantheon-base/docs/harness/TASK_PACKET_SPEC.md",
+        "Contract anchor does not exist: ../pantheon-base/docs/harness/VERIFICATION_EVIDENCE_SPEC.md",
+        "Contract anchor does not exist: ../pantheon-base/docs/harness/REVIEW_LOOP_SPEC.md",
+        "Contract anchor does not exist: ../pantheon-base/docs/harness/VISUAL_QUALITY_PROTOCOL.md"
+      ]
+    }
+  ],
+  "errorCount": 6,
+  "warningCount": 7,
+  "legacySkippedCount": 0,
+  "legacyConfig": null
+}

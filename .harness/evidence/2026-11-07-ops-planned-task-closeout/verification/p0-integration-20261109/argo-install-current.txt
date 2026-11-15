@@ -1,0 +1,21 @@
+ 12:57:44 up 1 min,  3 users,  load average: 0.89, 0.33, 0.12
+               total        used        free      shared  buff/cache   available
+Mem:            3916        1855         165           4        2181        2061
+Swap:              0           0           0
+Filesystem      Size  Used Avail Use% Mounted on
+/dev/vda2        40G   12G   26G  32% /
+Unable to connect to the server: net/http: TLS handshake timeout
+Unable to connect to the server: net/http: TLS handshake timeout
+Unable to connect to the server: net/http: TLS handshake timeout
+Unable to connect to the server: http2: client connection lost
+Unable to connect to the server: net/http: TLS handshake timeout
+Unable to connect to the server: net/http: TLS handshake timeout
+Unable to connect to the server: net/http: TLS handshake timeout
+Unable to connect to the server: net/http: TLS handshake timeout
+Unable to connect to the server: net/http: TLS handshake timeout
+Unable to connect to the server: net/http: TLS handshake timeout
+Unable to connect to the server: net/http: TLS handshake timeout
+Unable to connect to the server: net/http: TLS handshake timeout
+Unable to connect to the server: net/http: TLS handshake timeout
+Unable to connect to the server: net/http: TLS handshake timeout
+No resources found in pantheon-p0-argocd-20261109 namespace.

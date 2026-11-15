@@ -1,0 +1,3 @@
+{"kind": "owned-applications", "apps": []}
+{"kind": "provider-log-classification", "deployment": "argocd-server", "exitCode": 0, "counts": {"timeout": 0, "deadline": 0, "certificate": 1, "x509": 0, "failed": 0, "error": 2, "git fetch": 0, "git ls-remote": 0, "github.com/argoproj/argocd-example-apps": 2, "permission denied": 0}, "linesExamined": 76}
+{"kind": "provider-log-classification", "deployment": "argocd-repo-server", "exitCode": 0, "counts": {"timeout": 1, "deadline": 78, "certificate": 0, "x509": 0, "failed": 1, "error": 1, "git fetch": 0, "git ls-remote": 0, "github.com/argoproj/argocd-example-apps": 1, "permission denied": 0}, "linesExamined": 80}

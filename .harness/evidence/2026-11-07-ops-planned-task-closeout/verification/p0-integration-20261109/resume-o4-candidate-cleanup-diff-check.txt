@@ -1,0 +1,62 @@
+warning: in the working copy of '.gitignore', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of '.harness/tasks/2026-08-31-ops-operational-workbench-design/HANDOFF.md', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of '.harness/tasks/2026-08-31-ops-operational-workbench-design/STATUS.md', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of '.harness/tasks/2026-08-31-ops-operational-workbench-design/manifest.json', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of '.harness/tasks/2026-08-31-ops-operational-workbench-design/packets/O1-context-and-target-selector.md', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of '.harness/tasks/2026-08-31-ops-operational-workbench-design/packets/O2-deployment-execution-workbench.md', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of '.harness/tasks/2026-08-31-ops-operational-workbench-design/packets/O3-change-preview-and-risk.md', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of '.harness/tasks/2026-08-31-ops-operational-workbench-design/packets/O4-observability-query-workbench.md', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of '.harness/tasks/2026-08-31-ops-operational-workbench-design/packets/O5-task-and-pod-log-experience.md', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of '.harness/tasks/2026-09-28-ops-delivery-readiness-gap-closure/EXECUTION_QUEUE.md', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of '.harness/tasks/2026-09-28-ops-delivery-readiness-gap-closure/STATUS.md', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of '.harness/tasks/2026-09-28-ops-delivery-readiness-gap-closure/manifest.json', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of '.harness/tasks/cmdb-host-import-export/STATUS.md', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of '.harness/tasks/cmdb-host-import-export/manifest.json', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'business-overlay.json', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'docs/PROJECT_INHERITANCE.en.md', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'docs/PROJECT_INHERITANCE.md', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'docs/README.en.md', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'docs/README.md', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'docs/designs/BUSINESS_ERROR_SEMANTICS_APPENDIX.en.md', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'docs/designs/BUSINESS_ERROR_SEMANTICS_APPENDIX.md', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'docs/harness/tasks/2026-08-31-ops-operational-workbench-design.task.md', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'frontend/src/modules/business/cmdb/host/api.ts', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'frontend/src/modules/business/cmdb/locales/en-US.json', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'frontend/src/modules/business/cmdb/locales/zh-CN.json', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'frontend/src/modules/business/deploy/deploy.css', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'frontend/src/modules/business/deploy/task/DeployTaskDetail.tsx', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'frontend/src/modules/business/deploy/task/DeployTaskList.tsx', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'frontend/src/modules/business/k8s/api.ts', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'frontend/src/modules/business/k8s/release/ReleaseList.tsx', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'frontend/src/modules/business/k8s/workload/PodLogViewer.tsx', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'frontend/src/modules/business/observability/LogExplorer.tsx', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'frontend/src/modules/business/observability/TraceExplorer.tsx', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'frontend/src/modules/business/observability/api.ts', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'frontend/src/modules/business/v12locales/en-US.json', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'frontend/src/modules/business/v12locales/zh-CN.json', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'frontend/tests/smoke/README.md', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'frontend/tests/smoke/business/deploy/deploy-api.spec.ts', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'frontend/tests/smoke/business/deploy/deploy-pages.spec.ts', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'scripts/business-overlay/rebuild-from-base.mjs', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'backend/modules/business/opsinit/migrations/000033_core_business_schema.down.sql', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'backend/modules/business/opsinit/migrations/000033_core_business_schema.up.sql', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'backend/pkg/database/migrations/000033_core_business_schema.down.sql', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'backend/pkg/database/migrations/000033_core_business_schema.up.sql', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'frontend/src/modules/business/deploy/task/DeployTargetSelector.tsx', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'frontend/src/modules/business/deploy/task/DeployTaskPreview.tsx', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'frontend/src/modules/business/deploy/task/useDeployTaskLogs.ts', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'frontend/src/modules/business/deploy/task/useDeployTaskStream.ts', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'frontend/src/modules/business/shared/OperationalLogPanel.tsx', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'frontend/src/modules/business/shared/operational-log.css', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'frontend/tests/smoke/business/deploy/deploy-selection-preview.spec.ts', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'frontend/tests/smoke/business/deploy/deploy-workbench.spec.ts', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'frontend/tests/smoke/business/deploy/reviewed-start.ts', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'frontend/tests/smoke/business/observability-workbench.spec.ts', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'frontend/tests/unit/business/operational/deploy-preview.test.tsx', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'frontend/tests/unit/business/operational/deploy-selection.test.tsx', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'frontend/tests/unit/business/operational/log-lifecycle.test.tsx', CRLF will be replaced by LF the next time Git touches it
+.harness/tasks/2026-08-31-ops-operational-workbench-design/packets/O2-deployment-execution-workbench.md:114: new blank line at EOF.
+docs/designs/BUSINESS_ERROR_SEMANTICS_APPENDIX.en.md:215: new blank line at EOF.
+docs/designs/BUSINESS_ERROR_SEMANTICS_APPENDIX.md:278: new blank line at EOF.
+frontend/src/modules/business/k8s/api.ts:845: new blank line at EOF.
+frontend/src/modules/business/k8s/service/ServiceList.tsx:469: new blank line at EOF.

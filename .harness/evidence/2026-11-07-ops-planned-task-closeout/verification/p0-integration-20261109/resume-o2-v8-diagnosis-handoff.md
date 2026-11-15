@@ -1,0 +1,75 @@
+# O2 v8 diagnosis handoff
+
+Task: `2026-11-07-ops-planned-task-closeout`. Parent: `docs/harness/tasks/2026-11-07-ops-planned-task-closeout.task.md:197`. Tier: L2. Role: business/deploy Generator/debugger adapter. Review path: root reviews this handoff and `resume-o2-v8-root-phase-request.json`; this is a generator self-check, not independent acceptance. This file is distinct from any CLI `-o` report.
+
+## Result
+
+The unchanged true-VM v7 run `67fc9fadd215` completed all 12 cases in 312.266 seconds, with 5 passed cases and 7 unsuccessful cases. It recorded 79 positive passes, 20 negative passes, one failed assertion and five retained driver failures; the cold-start child failure was discarded before driver-failure accounting. The seven unsuccessful cases do not establish seven product defects.
+
+One acceptance-harness defect is established and minimally repaired in a NEW candidate: cold-start validation discards the initial child's diagnostic events when exit75/crash-ready is missing. Five other cases abort in the independent verifier's SSH handshake, before the host-key callback and before the remaining product assertions. The actual remote cause of the EOF-bearing handshake failures remains unproved. The host-key negative case records a product SSH connection failure, not acceptance of an incorrect pin. No product change is justified by these v7 results alone.
+
+All 185 sealed product dependency files and all sealed v7 driver/runner/test/binary artifacts match their original hashes. Only new ignored `resume-o2-v8-*` local files and new corresponding evidence were written. No remote execution, credential lookup/decryption, backend/SQL edit, schema/state/lease write, ledger/lock change, commit, push or release occurred in this lane. The local inspection used read-only transactions in the 12 retained isolated MySQL schemas.
+
+## Reproduction and primary evidence
+
+Use the retained reproduction first; no new VM attempt was made in this leaf. The original root invocation was `.local/ops-acceptance/live-diagnostic-o2-v7-runner.py --phase execute`, using its sealed build/source identity, current public DeployService/default SSH, per-case isolated schema and owned VM directory. The complete receipt is `verification/p0-integration-20261109/live-diagnostic-o2-v7-matrix-result-67fc9fadd215.json` under the parent evidence directory.
+
+`resume-o2-v8-receipt-analysis.json` checks that every per-case receipt equals the corresponding matrix row and records each receipt SHA256. `resume-o2-v8-retained-db-diagnosis.json` contains only state/identity/count metadata and static error categories. Error messages were classified in memory; credentials, command/config/snapshot/log/trace/result contents and event reasons were never selected or output. The DB inspection proves retained state at inspection time; it does not reconstruct missing child stdout or prove lease state at an earlier instant.
+
+| Case              | Precise observed stopping point                                                                | Retained DB / independent evidence                                                                          | Assessment                                                                           |
+| ----------------- | ---------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
+| pause-resume      | `waitFile("started")`; second independent handshake fails before pin callback                  | started marker was eventually present at exact-owned cleanup; task/step/attempt running                     | Product pause/resume not exercised; verifier prerequisite failed                     |
+| concurrent        | First independent started-marker handshake, before any concurrent ControlTask calls            | task/attempt running, step pending                                                                          | Concurrency assertions not reached                                                   |
+| revoke-credential | First independent started-marker handshake                                                     | task/attempt running, step pending                                                                          | Credential revocation not reached                                                    |
+| revoke-host       | First independent started-marker handshake                                                     | task/attempt running, step pending                                                                          | Host ownership update not reached                                                    |
+| revoke-source     | Independent `done` absence check after pause acknowledgment and stale-view conflict            | task paused; source still active; pause events present, resume absent                                       | Source update and inactive-source resume not reached                                 |
+| hostkey-negative  | Synchronous public StartTask with incorrect pin; exact mismatch assertion fails                | failed task/host; host category `business.deploy.task.sshConnectFailed`; step pending; no completion marker | Wrong-pin rejection prerequisite not established on this VM attempt; no bypass shown |
+| cold-restart      | Root runner rejects initial exit1 / missing unique crash-ready event, before preserving stdout | no retained child events; task/step/attempt running; started marker present at cleanup                      | Harness evidence-loss defect; child's exact failing phase unavailable                |
+
+The passed cases are success, failure-retry, cancel, revoke-rotation and start-negative. Their retained positives do not promote the unsuccessful cases to passes.
+
+DB evidence anchors: `resume-o2-v8-retained-db-diagnosis.json:177` pause-resume; `:304` concurrent; `:355` credential; `:490` source; `:556` host; `:630` wrong pin; `:677` cold-start. All paths in this handoff beginning with `resume-o2-v8-` evidence names resolve under `.harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/` unless explicitly prefixed `.local/`.
+
+## Proven failure path and limits
+
+The complete retained typed error records for the five verifier failures say stage `handshake-auth`, `pinChecked=false`, `pinMatched=false`, `authenticationFailed=false`, `deadlineExceeded=false`, `pinMismatch=false`, and error-chain types `*fmt.wrapError` / `*errors.errorString`. The diagnostic field `unexpectedEOF=true` is implemented by a substring check for `EOF` at `.local/ops-acceptance/live-diagnostic-o2-v7.go:739`; it does not identify the exact EOF sentinel or a server rejection reason. Raw sensitive error strings were deliberately not retained and cannot be reconstructed.
+
+The call path is `.local/ops-acceptance/live-diagnostic-o2-v7.go:153` (`ssh.NewClientConn`) → `:195` (`exists` calls `must`) → `:205` (`waitFile`) → `:539` (before controls). For revoke-source it is `:153` → `:195` → `:582`, the interrupted-attempt completion absence check. Its source revocation begins only at `:609`, after the point of failure. The two retained assertions are pause acknowledgment and stale command conflict, not inactive-source assertions. Source active state and absence of resume events independently agree with that trace.
+
+The verifier opens a fresh TCP/SSH connection for every `remote` call at `.local/ops-acceptance/live-diagnostic-o2-v7.go:119`; `waitFile` polls at `:202`. This connection pattern is a concrete readiness investigation target. MaxStartups, rate limiting, network closure or server pressure are NOT findings without server-side evidence. Do not add a dial retry, replay a local wrapper, or increase product retries to turn these cases green. Failure before the host-key callback also does not establish bad credentials or a pin mismatch.
+
+For the product wrong-pin case, `backend/modules/business/deploy/deploy_service.go:2999` rejects a mismatched key; `:3067` preserves the mismatch key, while `:3070` maps other connection errors to `sshConnectFailed`. Connection failure is recorded by `:3346` and returned from the synchronous host failure path at `:3115`. The retained host category is therefore a failed connection observation, not a successful untrusted SSH session. Existing sealed local regression `TestDeploySSHTransportRejectsChangedHostKey` at `backend/modules/business/deploy/deploy_ssh_transport_test.go:211` passed in `resume-o2-v7-green-final-0.txt:550`; it was not rerun as a VM test in this turn.
+
+## Minimal repair and candidate
+
+The proven harness defect originates at `.local/ops-acceptance/live-diagnostic-o2-v7-runner.py:277`: initial child events have been parsed, but exit75/unique-ready validation throws before the common event-retention loop at `:312`. The case catch at `:340` retains only the generic runner exception type. Minimal repair: retain those already parsed safe initial events before rejecting crash readiness. The candidate does exactly that at `.local/ops-acceptance/resume-o2-v8-runner.py:283`; the readiness requirement, failed result and cleanup remain intact.
+
+New driver diagnostics add operation phase, task ID, finite verifier connection ordinal, static panic category and a strict product-start error category at `.local/ops-acceptance/resume-o2-v8-driver.go:122`, `:263`, `:657`, `:682`, `:795`. Unknown error/panic payloads are suppressed. These additions do not change the execution provider, controls, assertions or recovery algorithm.
+
+All 45 literal assertion call sites are preserved verbatim; repeated/dynamic child assertions still run in their original cases. All 12 cases remain in the original order. Exact-owned cleanup, independent pin verification, finite loops and actual five-minute lease handling are unchanged. No remote transport retry or product behavior substitute was added. Ordinary case budget remains 130 seconds; cold execution 380 seconds with 40 seconds reserved inside 420 seconds; actual unmodified lease wait bound 305 seconds; remote command bound 18 seconds.
+
+The candidate CLI execute entry is guarded at `.local/ops-acceptance/resume-o2-v8-runner.py:221`. Root may review, enable its own entry and reseal the changed runner identity before execution, using the existing user authorization without asking the user again. Do not execute a changed runner against an older hash request. The reviewed root execution body is `root_execute_after_review`; this leaf did not invoke it against real resources.
+
+## Verification
+
+`python .local/ops-acceptance/resume-o2-v8-diagnosis.py --phase analyze` exited 0: all 12 receipts reconciled, five pre-pin EOF observations, seven unsuccessful cases, seal intact.
+
+`python .local/ops-acceptance/resume-o2-v8-diagnosis.py --phase inspect-db` exited 0: all 12 retained schemas read under READ ONLY / consistent snapshot, followed by rollback; no credential tables or config/result/log contents selected; seal intact.
+
+`python .local/ops-acceptance/resume-o2-v8-verify.py` exited 0. Go vet, named-file Go race tests, Windows race executable build and Linux executable build all exited 0 with `-mod=readonly`. Windows PATH explicitly starts with `D:/msys64/mingw64/bin` and CGO is 1; Linux cross-build uses CGO 0. Logs are `resume-o2-v8-candidate-verify-0.txt` through `-3.txt`; receipt is `resume-o2-v8-candidate-verification.json`. The initial check label said 60, while its actual recorded assertionCallCount is 45; the final offline check corrects the label and reconfirms 45. No assertion was omitted.
+
+`python .local/ops-acceptance/resume-o2-v8-seal.py` exited 0: 19 final Python/offline checks passed, actual compiled 185-file product inventory equals v7, candidate/source identities recorded. `resume-o2-v8-candidate-offline-final.json` verifies the exact cold-failure branch using an in-memory process/transport fixture, preserves failure status and safe events, checks readiness output suppression, and checks all 12 cases and unchanged cleanup/remote-command/pin ASTs. The fixture makes no VM or DB acceptance claim.
+
+Similar-pattern check: `.local/ops-acceptance/live-diagnostic-o2-v6-runner.py:275` has the same pre-retention crash-ready validation. Its artifacts were left intact. The fresh-connection verifier pattern is common to all v7 `remote` users; no other product null-check, retry or state-machine repair is proposed.
+
+## Root-owned next action
+
+Review `.local/ops-acceptance/resume-o2-v8-root-phase-request.json` and its identical evidence copy. They bind every new candidate script/driver binary to SHA256 and carry the actual product source hashes, all 12 cases, 45 assertion sites and finite budgets. Candidate build identity is in `resume-o2-v8-build-ready-result.json` / `resume-o2-v8-build-ready-source-after.json`.
+
+First obtain read-only server readiness evidence through the existing root-owned, authenticated, pinned SSH client. `.local/ops-acceptance/resume-o2-v8-readiness.py:38` provides `observe_pinned_client(client)`; it performs one finite command, opens no new connection, loads no credentials and changes no remote files or state. The command inspects the v7 UTC window and returns only static journal-category counters/booleans. Journal records remain in remote memory. Counts in a shared window require correlation and do not alone establish which client's handshake failed. Missing/rotated/empty journal remains an explicit gap, not a successful readiness check.
+
+Then decide the readiness repair from evidence. If a driver-side connection-management repair is indicated, make that one change in a new candidate, demonstrate its effect without replaying product behavior, and rerun all 12 assertions/cases after root review/reseal. If product failure persists with independent SSH readiness established, retain its precise phase/category and propose one product change in the correct business ownership boundary. No product or transport repair is authorized to this leaf. The existing source revocation guard remains at `backend/modules/business/deploy/task_command.go:31` and `:122`; these v7 failures did not reach its inactive-source acceptance checks.
+
+Stop condition: exact v7 failure phases are grounded where events exist; one confirmed harness evidence-loss defect has a tested minimal candidate. Remote EOF origin and original cold-child failure remain open evidence gaps for root. No full-tree verification, P0 closeout, full IAM/session/role grant reconstruction, browser/SSE transport acceptance or independent acceptance is claimed. Root retains those responsibilities.
+
+Gate Outcomes: retained typed receipts caught verifier pre-pin failure before product controls | read-only state inspection ruled out reached source revocation in v7 | offline cold-failure regression caught discarded child evidence | v7 source/artifact seals stayed unchanged | remote readiness and full P0 acceptance remain open.

@@ -1,0 +1,6 @@
+{"ImportPath":"./modules/business/cicd/argocd","Action":"build-output","Output":"# ./modules/business/cicd/argocd\n"}
+{"ImportPath":"./modules/business/cicd/argocd","Action":"build-output","Output":"open D:\\cache\\go\\build\\a3\\a340620e7855ff3d4c4af0fd94713a41b5b05c83dd5a1cb1e56858d11ce75830-d: Access is denied.\n"}
+{"ImportPath":"./modules/business/cicd/argocd","Action":"build-fail"}
+{"Time":"2026-11-09T16:45:17.8717028+08:00","Action":"start","Package":"./modules/business/cicd/argocd"}
+{"Time":"2026-11-09T16:45:17.8717028+08:00","Action":"output","Package":"./modules/business/cicd/argocd","Output":"FAIL\t./modules/business/cicd/argocd [setup failed]\n"}
+{"Time":"2026-11-09T16:45:17.8722807+08:00","Action":"fail","Package":"./modules/business/cicd/argocd","Elapsed":0.001,"FailedBuild":"./modules/business/cicd/argocd"}

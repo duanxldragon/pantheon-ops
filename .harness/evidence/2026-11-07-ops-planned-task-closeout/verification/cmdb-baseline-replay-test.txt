@@ -1,0 +1,26 @@
+=== RUN   TestBusinessBaselineFreshReplayAndRetainedRollback
+--- PASS: TestBusinessBaselineFreshReplayAndRetainedRollback (1.99s)
+PASS
+ok  	github.com/duanxldragon/pantheon-base/backend/modules/business/opsinit	3.097s
+=== RUN   TestKubeconfigUsesCheckedDial
+--- PASS: TestKubeconfigUsesCheckedDial (0.00s)
+=== RUN   TestKubeconfigRejectsProxyAndPrivateRedirect
+--- PASS: TestKubeconfigRejectsProxyAndPrivateRedirect (0.00s)
+=== RUN   TestKubeconfigRejectsLocalCredentialSourcesAndInsecureTLS
+--- PASS: TestKubeconfigRejectsLocalCredentialSourcesAndInsecureTLS (0.00s)
+=== RUN   TestKubeconfigDoesNotForwardCredentialsToPublicRedirectOrigin
+--- PASS: TestKubeconfigDoesNotForwardCredentialsToPublicRedirectOrigin (0.00s)
+=== RUN   TestEncryptDecryptRoundTrip
+--- PASS: TestEncryptDecryptRoundTrip (0.00s)
+=== RUN   TestEncryptUsesRandomNonce
+--- PASS: TestEncryptUsesRandomNonce (0.00s)
+=== RUN   TestDecryptRejectsWrongKey
+--- PASS: TestDecryptRejectsWrongKey (0.00s)
+=== RUN   TestDecryptRejectsMalformed
+--- PASS: TestDecryptRejectsMalformed (0.00s)
+=== RUN   TestEncryptRejectsMissingKey
+--- PASS: TestEncryptRejectsMissingKey (0.00s)
+=== RUN   TestEncryptRejectsInvalidKeyLength
+--- PASS: TestEncryptRejectsInvalidKeyLength (0.00s)
+PASS
+ok  	github.com/duanxldragon/pantheon-base/backend/modules/business/k8s/pkg	1.089s

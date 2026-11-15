@@ -11,15 +11,18 @@ import (
 )
 
 const (
-	bizScopeModuleKey         = "business.bizscope"
-	operationsBizScopeMenuKey = "operations.bizscope.menu"
-	bizScopePermViewKey       = "business.bizscope.permission.view"
-	bizScopePermCreateKey     = "business.bizscope.permission.create"
-	bizScopePermUpdateKey     = "business.bizscope.permission.update"
-	bizScopePermDeleteKey     = "business.bizscope.permission.delete"
-	bizScopePermExportKey     = "business.bizscope.permission.export"
-	bizScopePermImportKey     = "business.bizscope.permission.import"
-	menuPathWhereClause       = "path = ?"
+	bizScopeModuleKey          = "business.bizscope"
+	operationsBizScopeMenuKey  = "operations.bizscope.menu"
+	bizScopePermViewKey        = "business.bizscope.permission.view"
+	bizScopePermCreateKey      = "business.bizscope.permission.create"
+	bizScopePermUpdateKey      = "business.bizscope.permission.update"
+	bizScopePermDeleteKey      = "business.bizscope.permission.delete"
+	bizScopePermExportKey      = "business.bizscope.permission.export"
+	bizScopePermImportKey      = "business.bizscope.permission.import"
+	menuPathWhereClause        = "path = ?"
+	bizScopeListMenuKey        = "operations.bizscope.scope.menu"
+	bizScopeHostMenuKey        = "operations.bizscope.hostBinding.menu"
+	bizScopeEnvironmentMenuKey = "operations.bizscope.environment.menu"
 )
 
 type menuSeed struct {
@@ -43,18 +46,25 @@ var seeds = []menuSeed{
 		Key:        "bizscope",
 		ParentPath: "",
 		TitleKey:   operationsBizScopeMenuKey,
-		Path:       "/business/business-scope",
-		Component:  "business/bizscope/BizScopeList",
-		PagePerm:   "business:bizscope:list",
-		Type:       "C",
+		Path:       "/business/bizscope",
+		Type:       "M",
 		Icon:       "apps",
-		RouteName:  "bizscope-list",
+		RouteName:  "bizscope",
 		Module:     bizScopeModuleKey,
 		Sort:       2,
 	},
+	{Key: "bizscope-scopes", ParentKey: "bizscope", TitleKey: bizScopeListMenuKey, Path: "/business/bizscope/scopes", Component: "business/bizscope/BizScopeList", PagePerm: "business:bizscope:list", Type: "C", RouteName: "bizscope-list", Module: bizScopeModuleKey, Sort: 1},
+	{Key: "bizscope-host-bindings", ParentKey: "bizscope", TitleKey: bizScopeHostMenuKey, Path: "/business/bizscope/host-bindings", Component: "business/bizscope/BizScopeHostBindingList", PagePerm: "business:bizscope:host:view", Type: "C", RouteName: "bizscope-host-bindings", Module: bizScopeModuleKey, Sort: 2},
+	{Key: "bizscope-environments", ParentKey: "bizscope", TitleKey: bizScopeEnvironmentMenuKey, Path: "/business/bizscope/environments", Component: "business/bizscope/EnvironmentList", PagePerm: "business:bizscope:environment:list", Type: "C", RouteName: "bizscope-environments", Module: bizScopeModuleKey, Sort: 3},
+	{Key: "bizscope-host-view", ParentKey: "bizscope-host-bindings", TitleKey: "business.bizscope.permission.hostView", Perms: "business:bizscope:host:view", Type: "F", Module: bizScopeModuleKey, Sort: 1},
+	{Key: "bizscope-environment-list", ParentKey: "bizscope-environments", TitleKey: "business.bizscope.environment.permission.list", Perms: "business:bizscope:environment:list", Type: "F", Module: bizScopeModuleKey, Sort: 1},
+	{Key: "bizscope-environment-view", ParentKey: "bizscope-environments", TitleKey: "business.bizscope.environment.permission.view", Perms: "business:bizscope:environment:view", Type: "F", Module: bizScopeModuleKey, Sort: 2},
+	{Key: "bizscope-environment-create", ParentKey: "bizscope-environments", TitleKey: "business.bizscope.environment.permission.create", Perms: "business:bizscope:environment:create", Type: "F", Module: bizScopeModuleKey, Sort: 3},
+	{Key: "bizscope-environment-update", ParentKey: "bizscope-environments", TitleKey: "business.bizscope.environment.permission.update", Perms: "business:bizscope:environment:update", Type: "F", Module: bizScopeModuleKey, Sort: 4},
+	{Key: "bizscope-environment-delete", ParentKey: "bizscope-environments", TitleKey: "business.bizscope.environment.permission.delete", Perms: "business:bizscope:environment:delete", Type: "F", Module: bizScopeModuleKey, Sort: 5},
 	{
 		Key:       "bizscope-view",
-		ParentKey: "bizscope",
+		ParentKey: "bizscope-scopes",
 		TitleKey:  bizScopePermViewKey,
 		Perms:     "business:bizscope:view",
 		Type:      "F",
@@ -63,7 +73,7 @@ var seeds = []menuSeed{
 	},
 	{
 		Key:       "bizscope-create",
-		ParentKey: "bizscope",
+		ParentKey: "bizscope-scopes",
 		TitleKey:  bizScopePermCreateKey,
 		Perms:     "business:bizscope:create",
 		Type:      "F",
@@ -72,7 +82,7 @@ var seeds = []menuSeed{
 	},
 	{
 		Key:       "bizscope-update",
-		ParentKey: "bizscope",
+		ParentKey: "bizscope-scopes",
 		TitleKey:  bizScopePermUpdateKey,
 		Perms:     "business:bizscope:update",
 		Type:      "F",
@@ -81,7 +91,7 @@ var seeds = []menuSeed{
 	},
 	{
 		Key:       "bizscope-delete",
-		ParentKey: "bizscope",
+		ParentKey: "bizscope-scopes",
 		TitleKey:  bizScopePermDeleteKey,
 		Perms:     "business:bizscope:delete",
 		Type:      "F",
@@ -90,7 +100,7 @@ var seeds = []menuSeed{
 	},
 	{
 		Key:       "bizscope-export",
-		ParentKey: "bizscope",
+		ParentKey: "bizscope-scopes",
 		TitleKey:  bizScopePermExportKey,
 		Perms:     "business:bizscope:export",
 		Type:      "F",
@@ -99,7 +109,7 @@ var seeds = []menuSeed{
 	},
 	{
 		Key:       "bizscope-import",
-		ParentKey: "bizscope",
+		ParentKey: "bizscope-scopes",
 		TitleKey:  bizScopePermImportKey,
 		Perms:     "business:bizscope:import",
 		Type:      "F",
@@ -219,6 +229,9 @@ var legacyBizScopeI18nKeys = []string{
 
 // InitBizScopeModule registers the business-scope module and returns its owner service.
 func InitBizScopeModule(r *gin.RouterGroup, db *gorm.DB, dependencies ...ServiceDependencies) *Service {
+	if err := registerBizScopePermissionRoutes(); err != nil {
+		panic(err)
+	}
 	service := NewService(db, dependencies...)
 	handler := NewHandler(service)
 
@@ -230,6 +243,11 @@ func InitBizScopeModule(r *gin.RouterGroup, db *gorm.DB, dependencies ...Service
 		Register: func(r *gin.RouterGroup) {
 			protected := contracts.DataScopedGroup(r, "/business/bizscope", db)
 			{
+				protected.GET("/environments", handler.ListEnvironments)
+				protected.GET("/environments/:id", handler.GetEnvironment)
+				protected.POST("/environments", handler.CreateEnvironment)
+				protected.PUT("/environments/:id", handler.UpdateEnvironment)
+				protected.DELETE("/environments/:id", handler.DeleteEnvironment)
 				protected.GET("/list", handler.List)
 				protected.GET("/options", handler.Options)
 				protected.GET("/:id", handler.Detail)
@@ -409,7 +427,7 @@ func seedI18n(db *gorm.DB) error {
 			return err
 		}
 
-		for _, seed := range i18nSeeds {
+		for _, seed := range append(append([]i18nSeed{}, i18nSeeds...), environmentI18nSeeds...) {
 			var count int64
 			if err := tx.Table("system_i18n").Where("module = ? AND locale = ? AND `key` = ?", seed.Module, seed.Locale, seed.Key).Count(&count).Error; err != nil {
 				return err

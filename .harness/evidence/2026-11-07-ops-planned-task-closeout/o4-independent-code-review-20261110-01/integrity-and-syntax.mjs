@@ -1,0 +1,17 @@
+import fs from 'node:fs';
+import path from 'node:path';
+import crypto from 'node:crypto';
+import { spawnSync } from 'node:child_process';
+const sha = file => crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex');
+const receiptRoot='.harness/evidence/2026-11-07-ops-planned-task-closeout/o4-generator-integration-repair';
+const pins=JSON.parse(fs.readFileSync(path.join(receiptRoot,'source-hashes.json')));
+const sources=pins.map(p=>({path:p.path,expected:p.newSha256,after:sha(p.path),baseline:sha(p.baselineSource),baselineExpected:p.oldSha256,syntaxCheck:spawnSync(process.execPath,['--check',p.path],{encoding:'utf8'}).status}));
+const original='.tmp/foundation-candidates/candidate-4315cee606c249a42c8a3372c26dee9a4658a9259229485de85953430c7f439f';
+const descriptor=JSON.parse(fs.readFileSync('.local/ops-acceptance/o4-metadata-bound-current-v2-stable-real/sealed/candidate-descriptor.json'));
+const snapshotMismatch=descriptor.files.filter(f=>sha(path.join(original,'snapshot',f.path))!==f.sha256).map(f=>f.path);
+const reportPath=path.join(original,'assembled/.business-overlay-report.json');const report=JSON.parse(fs.readFileSync(reportPath));
+const reportMismatch=report.ownedFiles.filter(f=>sha(path.join(original,'assembled',f.path))!==f.sha256).map(f=>f.path);
+const metadata=['foundation-release.lock.json','business-overlay.json','.foundation/allowed-drift.json'].map(p=>({path:p,sha256:sha(p)}));
+const result={sources,metadata,retainedSnapshot:{files:descriptor.files.length,mismatches:snapshotMismatch},retainedReport:{files:report.ownedFiles.length,mismatches:reportMismatch,sha256:sha(reportPath)},lspDiagnostics:'Unavailable: no callable tool in this session. Node syntax checks are not LSP/type diagnostics.',astGrep:'Unavailable: no callable tool in this session. Literal scan and complete source reading used.',note:'Before-review source hashes were observed matching all six generator newSha256 receipts and all six baseline oldSha256 receipts. No product mutations performed.'};
+fs.writeFileSync(new URL('./integrity-and-syntax.json',import.meta.url),JSON.stringify(result,null,2)+'\n',{flag:'wx'});
+console.log(JSON.stringify({sourceHashMatches:sources.filter(s=>s.expected===s.after && s.baseline===s.baselineExpected).length,syntaxPass:sources.filter(s=>s.syntaxCheck===0).length,snapshotFiles:descriptor.files.length,snapshotMismatch:snapshotMismatch.length,ownedReportFiles:report.ownedFiles.length,ownedReportMismatch:reportMismatch.length,retainedReportSha256:sha(reportPath)},null,2));

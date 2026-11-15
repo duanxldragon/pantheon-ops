@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "contract": "docs/harness/REVIEW_LOOP_SPEC.md",
+  "description": "Consumer projection of the Base archive registry. Excluded Base artifacts stay recorded below; all current consumer reviews remain subject to strict review validation.",
+  "entries": [],
+  "projection": {
+    "sourceOwner": "pantheon-base",
+    "baseCommit": "135730fd6f63ad73cf40f6e4b321fdd9f69ea932",
+    "sourceConfigSha256": "eebd51d839cc3756983a5ba80389907e2d3934206b7766d18bda03416550d7b0",
+    "externalBaseArtifacts": [
+      ".harness/archive/2026-09/evidence/2026-09-04-readme-v0.11.0-update/review.md",
+      ".harness/archive/2026-09/evidence/2026-09-10-tenant-canary-slice/review.md",
+      ".harness/archive/2026-09/evidence/2026-09-10-tenant-contract-design/review.md",
+      ".harness/archive/2026-09/evidence/2026-09-10-tenant-core-auth-iam/review.md",
+      ".harness/archive/2026-09/evidence/2026-09-10-tenant-migration-runbook/review.md",
+      ".harness/archive/2026-09/evidence/2026-09-10-tenant-ready-guardrails/review.md",
+      ".harness/archive/2026-08/evidence/2026-08-31-base-operational-workbench-design/review.md",
+      ".harness/archive/2026-09/evidence/2026-09-24-fix-report-residual-closeout/review.md"
+    ]
+  }
+}

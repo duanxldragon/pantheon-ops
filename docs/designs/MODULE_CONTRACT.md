@@ -6,7 +6,7 @@ status: Active
 linked_contracts:
   - docs/contracts/PLATFORM_CONTRACT.md
   - docs/contracts/SYSTEM_IAM_CONTRACT.md
-updated_at: 2026-11-04
+updated_at: 2026-11-11
 ---
 
 # 模块契约设计
@@ -43,10 +43,10 @@ Pantheon Base 中的“模块”指一个可独立注册、可独立演进、可
 
 模块分两类：
 
-| 类型 | 说明 | 示例 |
-| :--- | :--- | :--- |
-| `system` | 底座公共模块 | `auth`、`user`、`role`、`menu`、`permission`、`dept`、`post` |
-| `business` | 业务模块 | `order`、`project`、`ticket` |
+| 类型       | 说明         | 示例                                                         |
+| :--------- | :----------- | :----------------------------------------------------------- |
+| `system`   | 底座公共模块 | `auth`、`user`、`role`、`menu`、`permission`、`dept`、`post` |
+| `business` | 业务模块     | `order`、`project`、`ticket`                                 |
 
 ## 3. 模块契约的核心原则
 
@@ -137,11 +137,11 @@ type BackendModule interface {
 
 `Migrate` 已落地（旧文"如果后续需要数据库迁移，再扩展"不再成立）。装配执行时机（`RegisterBackendModules`）：
 
-| 阶段 | 何时执行 | 受 `PANTHEON_AUTO_MIGRATE` 控制 |
-| --- | --- | --- |
-| `Migrate()` | 仅 `true`（开发）时执行；`false`（默认/生产）跳过，schema 走 `backend/pkg/database/migrations/` 版本化迁移 | 是 |
-| `Bootstrap()` | 可选接口，`false` 分支恒执行 | 否——**不在 AutoMigrate 禁令覆盖范围内** |
-| `SeedMenus` / `SeedPerms` / `SeedI18n` / `RegisterRoutes` | 恒执行 | 否 |
+| 阶段                                                      | 何时执行                                                                                                   | 受 `PANTHEON_AUTO_MIGRATE` 控制         |
+| --------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- | --------------------------------------- |
+| `Migrate()`                                               | 仅 `true`（开发）时执行；`false`（默认/生产）跳过，schema 走 `backend/pkg/database/migrations/` 版本化迁移 | 是                                      |
+| `Bootstrap()`                                             | 可选接口，`false` 分支恒执行                                                                               | 否——**不在 AutoMigrate 禁令覆盖范围内** |
+| `SeedMenus` / `SeedPerms` / `SeedI18n` / `RegisterRoutes` | 恒执行                                                                                                     | 否                                      |
 
 `FuncModule.BootstrapFunc` 的用途与边界：低代码生成的业务模块把 `BootstrapFunc` 指向 `service.Migrate()`（内部 GORM `AutoMigrate`），使运行时才有 schema 的生成表在启动时自动建表/补列。
 这是 `docs/DEPLOYMENT_GUIDE.md` §3 显式记录并被否决过两个替代方案的例外，代价（需要 DDL 权限、列只增不减）见该节；平台表（`system_*` / `platform_*`）不得借此例外走 AutoMigrate。
@@ -197,6 +197,20 @@ type BackendModule interface {
 - `business/*` 不允许直接读取另一个 `business/*` 的数据库表、repository、service
 - 若模块 A 需要消费模块 B 的数据，模块 B 必须作为拥有方暴露只读 capability / facade / query contract
 - 该 capability 的输入、输出、权限与数据范围语义必须进入设计文档或 `pkg/contracts`，不能只靠实现层默契
+
+### 4.4.3 业务初始化的只读前置检查
+
+Base 的标准业务入口 `business.InitBusinessModules` 在任何退役清理事务、业务 bootstrap、seed 或路由注册之前执行消费者的组合就绪检查。消费者通过公开 API 注册一个只读 callback：
+
+```go
+func RegisterBusinessInitializationPreflight(preflight func(*gorm.DB) error) error
+```
+
+callback 接收原始 DB handle，负责检查消费者所需能力和基础设施就绪状态，不执行 DDL、seed、退役清理、路由注册或 pool setter。Base 不内置消费者的业务就绪规则，也不在 registry mutex 或 DB 事务内执行 callback。callback 返回的错误原样向入口传播，入口在发生业务副作用前 `panic(err)`；callback panic 也原样传播，并通过 defer 释放 active guard。
+
+注册只接受第一次标准业务初始化之前的一个非 nil callback；nil、重复、late 注册以及递归或重叠的前置检查执行返回既有 `contracts.ErrBusinessProviders`。第一次入口调用原子 snapshot/seal，之后每次入口调用仍重新执行已注册的 callback，不缓存成功结果。没有生产 reset/unseal API。独立 Base 没有 callback 时保留原有清理和生成模块初始化行为，但第一次入口调用仍封存注册。
+
+此前置检查只约束业务初始化入口；不覆盖 main 中更早的平台/系统初始化，也不保证完整 router、seed 或模块初始化的重复及并发调用安全。通过检查后，原有退役清理先于生成模块 bootstrap/seed/routes 的顺序保持不变。消费者由其标准 assembler 注册组合 callback，独立模块的内部就绪检查仍保留。
 
 ## 4.5 后端 seed 契约
 
@@ -283,11 +297,11 @@ frontend/src/modules/{system|business}/{module}/
 
 前端要明确区分：
 
-| 概念 | 说明 |
-| :--- | :--- |
-| `route` | 页面访问路径 |
-| `menu` | 导航与信息架构元数据 |
-| `permission` | 操作授权能力 |
+| 概念         | 说明                 |
+| :----------- | :------------------- |
+| `route`      | 页面访问路径         |
+| `menu`       | 导航与信息架构元数据 |
+| `permission` | 操作授权能力         |
 
 三者相关，但不是同一个东西。
 

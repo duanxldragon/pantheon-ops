@@ -1,0 +1,11 @@
+✔ excluded Base history is recorded, while an invalid active consumer review still fails (107.99ms)
+✔ retained archives remain listed and missing retained artifacts fail (15.6545ms)
+✔ current or traversal entries cannot be projected away (12.8079ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 353.1348

@@ -1,0 +1,42 @@
+
+Running 3 tests using 1 worker
+
+(node:19524) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok 1 tests\smoke\business\deploy\deploy-selection-preview.spec.ts:12:2 › selection and preview confirm/conflict/refresh (light) (10.5s)
+  ok 2 tests\smoke\business\deploy\deploy-selection-preview.spec.ts:12:2 › selection and preview confirm/conflict/refresh (dark) (11.1s)
+  x  3 tests\smoke\business\deploy\deploy-selection-preview.spec.ts:134:1 › rollback draft uses frozen definition and its own reviewed start (635ms)
+
+
+  1) tests\smoke\business\deploy\deploy-selection-preview.spec.ts:134:1 › rollback draft uses frozen definition and its own reviewed start 
+
+    Error: business.deploy.template.immutable
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 200
+    Received: 500
+
+       6 |  const body = await response.json();
+       7 |  expect(response.ok(), `HTTP ${response.status()} ${body.message}`).toBeTruthy();
+    >  8 |  expect(body.code, body.message).toBe(200);
+         |                                  ^
+       9 |  return body.data as T;
+      10 | }
+      11 | for (const mode of ['light', 'dark'] as const) {
+        at success (D:\workspace\go\pantheon-platform\pantheon-ops\frontend\tests\smoke\business\deploy\deploy-selection-preview.spec.ts:8:34)
+        at D:\workspace\go\pantheon-platform\pantheon-ops\frontend\tests\smoke\business\deploy\deploy-selection-preview.spec.ts:148:3
+
+    Error Context: ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\frozen-rollback-browser\smoke-business-deploy-depl-09d9a--and-its-own-reviewed-start\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\frozen-rollback-browser\smoke-business-deploy-depl-09d9a--and-its-own-reviewed-start\trace.zip
+    Usage:
+
+        npx playwright show-trace ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\frozen-rollback-browser\smoke-business-deploy-depl-09d9a--and-its-own-reviewed-start\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  1 failed
+    tests\smoke\business\deploy\deploy-selection-preview.spec.ts:134:1 › rollback draft uses frozen definition and its own reviewed start 
+  2 passed (23.4s)

@@ -1,14 +1,16 @@
 package observability
 
 import (
+	"context"
 	"net/http"
 	"strconv"
-	"strings"
+	"time"
 
 	"github.com/duanxldragon/pantheon-base/backend/pkg/common"
 	"github.com/duanxldragon/pantheon-base/backend/pkg/database"
 
 	"github.com/gin-gonic/gin"
+	"github.com/gin-gonic/gin/binding"
 )
 
 // ObservabilityHandler handles observability API endpoints.
@@ -47,6 +49,11 @@ func (h *ObservabilityHandler) RegisterRoutes(canonical, alias gin.IRoutes) {
 }
 
 func (h *ObservabilityHandler) registerRoutes(obs gin.IRoutes) {
+	h.RegisterDatasourceRoutes(obs)
+	h.RegisterLegacyRoutes(obs)
+}
+
+func (h *ObservabilityHandler) RegisterDatasourceRoutes(obs gin.IRoutes) {
 	// Datasources
 	obs.POST("/datasources", h.CreateDatasource)
 	obs.GET("/datasources", h.ListDatasources)
@@ -54,11 +61,31 @@ func (h *ObservabilityHandler) registerRoutes(obs gin.IRoutes) {
 	obs.PUT("/datasources/:id", h.UpdateDatasource)
 	obs.DELETE("/datasources/:id", h.DeleteDatasource)
 	obs.POST("/datasources/:id/test", h.TestDatasourceConnection)
-	obs.GET("/datasources/:id/query", h.QueryDatasource)
-	obs.GET("/datasources/:id/logs", h.QueryLogs)
-	obs.GET("/datasources/:id/traces", h.SearchTraces)
+	obs.POST("/datasources/:id/query", h.RunQuery)
+	obs.POST("/datasources/:id/logs", h.RunQuery)
+	obs.POST("/datasources/:id/traces", h.RunQuery)
+	obs.GET("/datasources/:id/query", h.DeprecatedQuery)
+	obs.GET("/datasources/:id/logs", h.DeprecatedQuery)
+	obs.GET("/datasources/:id/traces", h.DeprecatedQuery)
+	obs.GET("/datasources/:id/query-fields", h.QueryFields)
 	obs.GET("/datasources/:id/traces/:traceId", h.GetTrace)
+}
 
+func (h *ObservabilityHandler) RegisterWorkspaceRoutes(obs gin.IRoutes) {
+	obs.GET("/query-history", h.QueryHistory)
+	obs.GET("/query-history/:id", h.QueryHistory)
+	obs.DELETE("/query-history", h.DeleteHistory)
+	obs.DELETE("/query-history/:id", h.DeleteHistory)
+	obs.POST("/query-history/:id/restore", h.QueryHistory)
+	obs.GET("/saved-views", h.SavedViews)
+	obs.GET("/saved-views/:id", h.SavedViews)
+	obs.POST("/saved-views", h.SaveView)
+	obs.PUT("/saved-views/:id", h.SaveView)
+	obs.DELETE("/saved-views/:id", h.DeleteView)
+	obs.POST("/saved-views/:id/restore", h.SavedViews)
+}
+
+func (h *ObservabilityHandler) RegisterLegacyRoutes(obs gin.IRoutes) {
 	// Alert Rules
 	obs.POST("/alert-rules", h.CreateAlertRule)
 	obs.GET("/alert-rules", h.ListAlertRules)
@@ -83,155 +110,212 @@ func (h *ObservabilityHandler) registerRoutes(obs gin.IRoutes) {
 
 // CreateDatasource registers a Prometheus datasource from the request body.
 func (h *ObservabilityHandler) CreateDatasource(c *gin.Context) {
+	state, bindErr := h.bindQueryRequest(c)
+	if bindErr != nil {
+		queryFailure(c, bindErr)
+		return
+	}
 	common.SetAuditMetadata(c, "observability.datasource.audit.create", common.BusinessInsert)
 	var dto DatasourceDTO
-	if err := c.ShouldBindJSON(&dto); err != nil {
+	if err := strictQueryJSON(c.Request.Body, &dto); err != nil {
 		common.FailWithCode(c, http.StatusBadRequest, "invalid_request")
 		return
 	}
+	if binding.Validator.ValidateStruct(dto) != nil {
+		queryFailure(c, ErrQueryIntent)
+		return
+	}
 
-	createdBy := c.GetString("username")
-	resp, err := h.datasourceService.Create(dto, createdBy, common.GetDataScope(c))
+	createdBy := strconv.FormatUint(state.owner.ActorID, 10)
+	resp, err := state.datasource.Create(dto, createdBy, common.GetDataScope(c))
 	if err != nil {
 		common.FailWithCode(c, http.StatusInternalServerError, "create_failed")
 		return
 	}
 
+	if err := state.refresh(); err != nil {
+		queryFailure(c, err)
+		return
+	}
 	common.Success(c, resp)
 }
 
 // ListDatasources returns the configured Prometheus datasources.
 func (h *ObservabilityHandler) ListDatasources(c *gin.Context) {
-	resp, err := h.datasourceService.List(common.GetDataScope(c))
+	state, bindErr := h.bindQueryRequest(c)
+	if bindErr != nil {
+		queryFailure(c, bindErr)
+		return
+	}
+	if c.Query("dashboard") == "true" {
+		h.dashboardSummary(state)
+		return
+	}
+	resp, err := state.datasource.List(common.GetDataScope(c))
 	if err != nil {
 		common.FailWithCode(c, http.StatusInternalServerError, "list_failed")
 		return
 	}
 
+	if err := state.refresh(); err != nil {
+		queryFailure(c, err)
+		return
+	}
+	// A fresh DataScope may have changed during the first read.
+	resp, err = state.datasource.List(common.GetDataScope(c))
+	if err != nil {
+		queryFailure(c, ErrWorkspaceDenied)
+		return
+	}
 	common.Success(c, resp)
 }
 
 // GetDatasource returns one Prometheus datasource by id.
 func (h *ObservabilityHandler) GetDatasource(c *gin.Context) {
+	state, bindErr := h.bindQueryRequest(c)
+	if bindErr != nil {
+		queryFailure(c, bindErr)
+		return
+	}
 	id, _ := strconv.ParseUint(c.Param("id"), 10, 64)
 
-	resp, err := h.datasourceService.GetByID(id, common.GetDataScope(c))
+	resp, err := state.datasource.GetByID(id, common.GetDataScope(c))
 	if err != nil {
 		common.FailWithCode(c, http.StatusNotFound, "not_found")
 		return
 	}
 
+	if err := state.refresh(); err != nil {
+		queryFailure(c, err)
+		return
+	}
+	resp, err = state.datasource.GetByID(id, common.GetDataScope(c))
+	if err != nil {
+		queryFailure(c, ErrWorkspaceDenied)
+		return
+	}
 	common.Success(c, resp)
 }
 
 // UpdateDatasource applies the request body to the datasource identified by the path id.
 func (h *ObservabilityHandler) UpdateDatasource(c *gin.Context) {
+	state, bindErr := h.bindQueryRequest(c)
+	if bindErr != nil {
+		queryFailure(c, bindErr)
+		return
+	}
 	common.SetAuditMetadata(c, "observability.datasource.audit.update", common.BusinessUpdate)
 	id, _ := strconv.ParseUint(c.Param("id"), 10, 64)
 
 	var dto DatasourceDTO
-	if err := c.ShouldBindJSON(&dto); err != nil {
+	if err := strictQueryJSON(c.Request.Body, &dto); err != nil {
 		common.FailWithCode(c, http.StatusBadRequest, "invalid_request")
 		return
 	}
+	if binding.Validator.ValidateStruct(dto) != nil {
+		queryFailure(c, ErrQueryIntent)
+		return
+	}
 
-	if err := h.datasourceService.Update(id, dto, common.GetDataScope(c)); err != nil {
+	if err := state.datasource.Update(id, dto, common.GetDataScope(c)); err != nil {
 		common.FailWithCode(c, http.StatusInternalServerError, "update_failed")
 		return
 	}
 
+	if err := state.refresh(); err != nil {
+		queryFailure(c, err)
+		return
+	}
 	common.Success(c, gin.H{"message": "updated"})
 }
 
 // DeleteDatasource removes the datasource identified by the path id.
 func (h *ObservabilityHandler) DeleteDatasource(c *gin.Context) {
+	state, bindErr := h.bindQueryRequest(c)
+	if bindErr != nil {
+		queryFailure(c, bindErr)
+		return
+	}
 	common.SetAuditMetadata(c, "observability.datasource.audit.delete", common.BusinessDelete)
 	id, _ := strconv.ParseUint(c.Param("id"), 10, 64)
 
-	if err := h.datasourceService.Delete(id, common.GetDataScope(c)); err != nil {
+	if err := state.datasource.Delete(id, common.GetDataScope(c)); err != nil {
 		common.FailWithCode(c, http.StatusInternalServerError, "delete_failed")
 		return
 	}
 
+	if err := state.refresh(); err != nil {
+		queryFailure(c, err)
+		return
+	}
 	common.Success(c, gin.H{"message": "deleted"})
 }
 
 // TestDatasourceConnection probes the datasource identified by the path id.
 func (h *ObservabilityHandler) TestDatasourceConnection(c *gin.Context) {
+	ctx, cancel := context.WithTimeout(c.Request.Context(), 30*time.Second)
+	defer cancel()
+	c.Request = c.Request.WithContext(ctx)
+	state, bindErr := h.bindQueryRequest(c)
+	if bindErr != nil {
+		queryFailure(c, bindErr)
+		return
+	}
 	common.SetAuditMetadata(c, "observability.datasource.audit.test", common.BusinessUpdate)
 	id, _ := strconv.ParseUint(c.Param("id"), 10, 64)
 
-	healthy, err := h.datasourceService.TestConnection(id, common.GetDataScope(c))
+	healthy, err := state.datasource.TestConnection(id, common.GetDataScope(c))
 	if err != nil {
 		common.FailWithCode(c, http.StatusInternalServerError, "test_failed")
 		return
 	}
 
+	if err := state.refresh(); err != nil {
+		queryFailure(c, err)
+		return
+	}
 	common.Success(c, gin.H{"healthy": healthy})
 }
 
 // QueryDatasource proxies a PromQL instant query to the data source.
 func (h *ObservabilityHandler) QueryDatasource(c *gin.Context) {
-	id, _ := strconv.ParseUint(c.Param("id"), 10, 64)
-	query := c.Query("query")
-	if query == "" {
-		common.FailWithCode(c, http.StatusBadRequest, "invalid_request")
-		return
-	}
-
-	result, err := h.datasourceService.Query(id, query, common.GetDataScope(c))
-	if err != nil {
-		common.FailWithCode(c, http.StatusInternalServerError, "query_failed")
-		return
-	}
-
-	common.Success(c, result)
+	h.DeprecatedQuery(c)
 }
 
 // QueryLogs proxies a Loki LogQL range query.
 func (h *ObservabilityHandler) QueryLogs(c *gin.Context) {
-	id, _ := strconv.ParseUint(c.Param("id"), 10, 64)
-	query := strings.TrimSpace(c.Query("query"))
-	if id == 0 || query == "" {
-		common.FailWithCode(c, http.StatusBadRequest, "invalid_request")
-		return
-	}
-	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "500"))
-	result, err := h.datasourceService.QueryLogs(id, query, c.Query("start"), c.Query("end"), limit, common.GetDataScope(c))
-	if err != nil {
-		common.FailWithCode(c, http.StatusBadGateway, "query_failed")
-		return
-	}
-	common.Success(c, result)
+	h.DeprecatedQuery(c)
 }
 
 // SearchTraces proxies a Tempo TraceQL search.
 func (h *ObservabilityHandler) SearchTraces(c *gin.Context) {
-	id, _ := strconv.ParseUint(c.Param("id"), 10, 64)
-	query := strings.TrimSpace(c.Query("query"))
-	if id == 0 || query == "" {
-		common.FailWithCode(c, http.StatusBadRequest, "invalid_request")
-		return
-	}
-	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "100"))
-	result, err := h.datasourceService.SearchTraces(id, query, c.Query("start"), c.Query("end"), limit, common.GetDataScope(c))
-	if err != nil {
-		common.FailWithCode(c, http.StatusBadGateway, "query_failed")
-		return
-	}
-	common.Success(c, result)
+	h.DeprecatedQuery(c)
 }
 
 // GetTrace proxies one Tempo trace lookup.
 func (h *ObservabilityHandler) GetTrace(c *gin.Context) {
+	state, bindErr := h.bindQueryRequest(c)
+	if bindErr != nil {
+		queryFailure(c, bindErr)
+		return
+	}
 	id, _ := strconv.ParseUint(c.Param("id"), 10, 64)
 	if id == 0 {
 		common.FailWithCode(c, http.StatusBadRequest, "invalid_request")
 		return
 	}
-	result, err := h.datasourceService.GetTrace(id, c.Param("traceId"), common.GetDataScope(c))
+	source, checkErr := state.source(id)
+	if checkErr != nil {
+		queryFailure(c, checkErr)
+		return
+	}
+	result, err := state.datasource.GetTraceContext(c.Request.Context(), id, c.Param("traceId"), common.GetDataScope(c))
 	if err != nil {
 		common.FailWithCode(c, http.StatusBadGateway, "query_failed")
+		return
+	}
+	if checkErr = state.checkSource(source); checkErr != nil {
+		queryFailure(c, checkErr)
 		return
 	}
 	common.Success(c, result)
@@ -266,6 +350,10 @@ func (h *ObservabilityHandler) CreateAlertRule(c *gin.Context) {
 
 // ListAlertRules returns alert rules matching the query.
 func (h *ObservabilityHandler) ListAlertRules(c *gin.Context) {
+	if c.Query("dashboard") == "true" {
+		h.dashboardAlertRules(c)
+		return
+	}
 	var query AlertRuleListQuery
 	if err := c.ShouldBindQuery(&query); err != nil {
 		common.FailWithCode(c, http.StatusBadRequest, "invalid_request")

@@ -1,0 +1,35 @@
+
+> @duanxldragon/pantheon-base-ui@0.11.2 test:smoke:business:deploy
+> node scripts/run-smoke-suite.mjs --host 127.0.0.1 --port 5173 --config playwright.config.ts -- tests/smoke/business/deploy/deploy-pages.spec.ts tests/smoke/business/deploy/deploy-workbench.spec.ts tests/smoke/business/deploy/deploy-selection-preview.spec.ts tests/smoke/business/deploy/deploy-command.spec.ts --workers=1 --workers=1 --output=D:\workspace\go\pantheon-platform\pantheon-ops\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\o2-step-history-deploy-smoke
+
+[smoke-suite] API base http://127.0.0.1:24485/api/v1
+[generated-modules] cleanup complete
+{
+  "modules": 0,
+  "schemas": 1,
+  "registries": 4,
+  "i18n": 5
+}
+(!) Your Vite config uses features that are unsupported by `configLoader: 'native'`, which is planned to become the default in a future major version of Vite:
+  - `__dirname` (vite.config.ts:32:25). Use `import.meta.dirname` instead
+Set `VITE_CONFIG_NATIVE_IGNORE_WARNING=true` to suppress this warning.
+Error: Port 5173 is already in use
+    at httpServerStart (file:///D:/workspace/go/pantheon-platform/pantheon-ops/frontend/node_modules/vite/dist/node/chunks/node.js:14661:10)
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at async startServer (file:///D:/workspace/go/pantheon-platform/pantheon-ops/frontend/node_modules/vite/dist/node/chunks/node.js:25127:30)
+    at async Object.listen (file:///D:/workspace/go/pantheon-platform/pantheon-ops/frontend/node_modules/vite/dist/node/chunks/node.js:24933:4)
+    at async file:///D:/workspace/go/pantheon-platform/pantheon-ops/frontend/scripts/start-smoke-vite.mjs:85:1
+Error: Smoke server exited before ready signal for http://127.0.0.1:5173 (code 1)
+    at file:///D:/workspace/go/pantheon-platform/pantheon-ops/frontend/scripts/run-smoke-suite.mjs:133:16
+    at finalize (file:///D:/workspace/go/pantheon-platform/pantheon-ops/frontend/scripts/run-smoke-suite.mjs:109:7)
+    at ChildProcess.<anonymous> (file:///D:/workspace/go/pantheon-platform/pantheon-ops/frontend/scripts/run-smoke-suite.mjs:132:7)
+    at Object.onceWrapper (node:events:623:26)
+    at ChildProcess.emit (node:events:508:28)
+    at ChildProcess._handle.onexit (node:internal/child_process:294:12)
+[generated-modules] cleanup complete
+{
+  "modules": 0,
+  "schemas": 1,
+  "registries": 4,
+  "i18n": 5
+}

@@ -1,0 +1,12 @@
+{
+  "queryCount": 8,
+  "mode": "light",
+  "provider": "browser transport fixture",
+  "resultModes": [
+    "logs",
+    "trend",
+    "fields",
+    "raw"
+  ],
+  "storedResults": false
+}

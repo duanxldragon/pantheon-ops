@@ -6,7 +6,6 @@ import {
   Form,
   Input,
   Message,
-  Popconfirm,
   Select,
   Space,
   Tag,
@@ -28,22 +27,26 @@ import {
 } from '../../../../components';
 import { usePermission } from '../../../../hooks/usePermission';
 import {
-  createK8sRelease,
   getK8sClusterList,
   getK8sReleaseList,
-  rollbackK8sRelease,
   type K8sClusterRow,
   type K8sReleaseListQuery,
   type K8sReleaseRow,
+  type K8sReleasePayload,
 } from '../api';
 import '../../../../assets/list-page.css';
+
+import ReleasePreview from './ReleasePreview';
 
 const FormItem = Form.Item;
 
 const statusColor: Record<string, string> = {
+  succeeded: 'green',
   success: 'green',
   failed: 'red',
   pending: 'orange',
+  applying: 'arcoblue',
+  timed_out: 'orange',
   rollback_success: 'cyan',
 };
 
@@ -59,6 +62,7 @@ export default function ReleaseList() {
   const [clusters, setClusters] = useState<K8sClusterRow[]>([]);
   const [visible, setVisible] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [reviewIntent, setReviewIntent] = useState<{ operation: 'create'; payload: K8sReleasePayload } | { operation: 'rollback'; releaseId: number } | null>(null);
   const [form] = Form.useForm();
 
   const canCreate = hasPerm('business:k8s:release:create');
@@ -106,7 +110,7 @@ export default function ReleaseList() {
       {
         key: 'success',
         label: t('business.k8s.release.hero.success'),
-        value: data.filter((item) => item.status === 'success').length,
+        value: data.filter((item) => item.status === 'succeeded').length,
       },
       {
         key: 'failed',
@@ -121,24 +125,12 @@ export default function ReleaseList() {
     setSubmitting(true);
     try {
       const values = await form.validate();
-      await createK8sRelease(values as {
-        name: string;
-        clusterId: number;
-        namespace: string;
-        workloadType: string;
-        workloadName: string;
-        containerName?: string;
-        image: string;
-        strategy?: string;
-      });
-      Message.success(t('common.createSuccess'));
+      setReviewIntent({ operation: 'create', payload: { ...values } as K8sReleasePayload });
       setVisible(false);
-      form.resetFields();
-      await loadData(query);
     } finally {
       setSubmitting(false);
     }
-  }, [form, loadData, query, t]);
+  }, [form]);
 
   const columns = useMemo<ColumnProps<K8sReleaseRow>[]>(
     () => [
@@ -174,25 +166,16 @@ export default function ReleaseList() {
         fixed: 'right',
         render: (_: unknown, row) => (
           <Space className="system-list__actions">
-            {canRollback && row.status === 'success' && row.imageBefore ? (
-              <Popconfirm
-                title={t('business.k8s.release.rollbackConfirm')}
-                onOk={async () => {
-                  await rollbackK8sRelease(row.id);
-                  Message.success(t('business.k8s.release.rollbackSuccess'));
-                  await loadData(query);
-                }}
-              >
-                <Button type="text" size="small" icon={<IconUndo />}>
-                  {t('business.k8s.release.rollback')}
-                </Button>
-              </Popconfirm>
+            {canRollback && row.status === 'succeeded' && row.imageBefore ? (
+              <Button type="text" size="small" icon={<IconUndo />} onClick={() => setReviewIntent({ operation: 'rollback', releaseId: row.id })}>
+                {t('business.k8s.release.rollback')}
+              </Button>
             ) : null}
           </Space>
         ),
       },
     ],
-    [canRollback, loadData, query, t],
+    [canRollback, t],
   );
 
   return (
@@ -261,6 +244,13 @@ export default function ReleaseList() {
           ) : null}
         </Card>
       </Space>
+      {reviewIntent && <ReleasePreview intent={reviewIntent} onClose={(returnToForm) => {
+        if (returnToForm && reviewIntent.operation === 'create') setVisible(true);
+        setReviewIntent(null);
+      }} onAccepted={async () => {
+        form.resetFields();
+        await loadData(query);
+      }} />}
       <AppModal
         visible={visible}
         footer={null}
@@ -306,7 +296,7 @@ export default function ReleaseList() {
               setVisible(false);
               form.resetFields();
             }}
-            submitText={t('common.create')}
+            submitText={t('business.k8s.release.preview.title')}
             onSubmit={handleSubmit}
           />
         </Form>

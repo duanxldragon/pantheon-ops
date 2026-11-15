@@ -1,0 +1,247 @@
+{
+  "phase": "reviewed-argo-provider-read-only-inspect",
+  "exitCode": 0,
+  "providerDeployed": false,
+  "P0Approved": false,
+  "record": {
+    "namespaceUID": "e6821e41-3e59-477f-af84-11ba32627360",
+    "deploymentUID": "dfb553ee-bec1-4f7e-b12f-ba96594684f0",
+    "resourceVersion": "1969595",
+    "namespaceOwnerChecked": true,
+    "deploymentLabels": {
+      "app.kubernetes.io/component": "server",
+      "app.kubernetes.io/name": "argocd-server",
+      "app.kubernetes.io/part-of": "argocd"
+    },
+    "replicas": 1,
+    "specSHA256": "5b38ce82391b455691355b3361cd5066b84d4ac6def249d0d8dbd4af5aaa82af",
+    "container": [
+      {
+        "name": "argocd-server",
+        "image": "quay.io/argoproj/argocd:v3.2.0",
+        "command": null,
+        "args": [
+          "/usr/local/bin/argocd-server"
+        ],
+        "resources": {
+          "limits": {
+            "cpu": "500m",
+            "memory": "192Mi"
+          },
+          "requests": {
+            "cpu": "50m",
+            "memory": "64Mi"
+          }
+        },
+        "volumeMounts": [
+          {
+            "mountPath": "/app/config/ssh",
+            "name": "ssh-known-hosts"
+          },
+          {
+            "mountPath": "/app/config/tls",
+            "name": "tls-certs"
+          },
+          {
+            "mountPath": "/app/config/server/tls",
+            "name": "argocd-repo-server-tls"
+          },
+          {
+            "mountPath": "/app/config/dex/tls",
+            "name": "argocd-dex-server-tls"
+          },
+          {
+            "mountPath": "/home/argocd",
+            "name": "plugins-home"
+          },
+          {
+            "mountPath": "/tmp",
+            "name": "tmp"
+          },
+          {
+            "mountPath": "/home/argocd/params",
+            "name": "argocd-cmd-params-cm"
+          }
+        ],
+        "envNames": [
+          "REDIS_PASSWORD",
+          "ARGOCD_SERVER_INSECURE",
+          "ARGOCD_SERVER_BASEHREF",
+          "ARGOCD_SERVER_ROOTPATH",
+          "ARGOCD_SERVER_LOGFORMAT",
+          "ARGOCD_SERVER_LOG_LEVEL",
+          "ARGOCD_SERVER_REPO_SERVER",
+          "ARGOCD_SERVER_DEX_SERVER",
+          "ARGOCD_SERVER_DISABLE_AUTH",
+          "ARGOCD_SERVER_ENABLE_GZIP",
+          "ARGOCD_SERVER_REPO_SERVER_TIMEOUT_SECONDS",
+          "ARGOCD_SERVER_X_FRAME_OPTIONS",
+          "ARGOCD_SERVER_CONTENT_SECURITY_POLICY",
+          "ARGOCD_SERVER_REPO_SERVER_PLAINTEXT",
+          "ARGOCD_SERVER_REPO_SERVER_STRICT_TLS",
+          "ARGOCD_SERVER_DEX_SERVER_PLAINTEXT",
+          "ARGOCD_SERVER_DEX_SERVER_STRICT_TLS",
+          "ARGOCD_TLS_MIN_VERSION",
+          "ARGOCD_TLS_MAX_VERSION",
+          "ARGOCD_TLS_CIPHERS",
+          "ARGOCD_SERVER_CONNECTION_STATUS_CACHE_EXPIRATION",
+          "ARGOCD_SERVER_OIDC_CACHE_EXPIRATION",
+          "ARGOCD_SERVER_STATIC_ASSETS",
+          "ARGOCD_APP_STATE_CACHE_EXPIRATION",
+          "REDIS_SERVER",
+          "REDIS_COMPRESSION",
+          "REDISDB",
+          "ARGOCD_DEFAULT_CACHE_EXPIRATION",
+          "ARGOCD_MAX_COOKIE_NUMBER",
+          "ARGOCD_SERVER_LISTEN_ADDRESS",
+          "ARGOCD_SERVER_METRICS_LISTEN_ADDRESS",
+          "ARGOCD_SERVER_OTLP_ADDRESS",
+          "ARGOCD_SERVER_OTLP_INSECURE",
+          "ARGOCD_SERVER_OTLP_HEADERS",
+          "ARGOCD_SERVER_OTLP_ATTRS",
+          "ARGOCD_APPLICATION_NAMESPACES",
+          "ARGOCD_SERVER_ENABLE_PROXY_EXTENSION",
+          "ARGOCD_K8SCLIENT_RETRY_MAX",
+          "ARGOCD_K8SCLIENT_RETRY_BASE_BACKOFF",
+          "ARGOCD_API_CONTENT_TYPES",
+          "ARGOCD_SERVER_WEBHOOK_PARALLELISM_LIMIT",
+          "ARGOCD_APPLICATIONSET_CONTROLLER_ENABLE_NEW_GIT_FILE_GLOBBING",
+          "ARGOCD_APPLICATIONSET_CONTROLLER_SCM_ROOT_CA_PATH",
+          "ARGOCD_APPLICATIONSET_CONTROLLER_ALLOWED_SCM_PROVIDERS",
+          "ARGOCD_APPLICATIONSET_CONTROLLER_ENABLE_SCM_PROVIDERS",
+          "ARGOCD_APPLICATIONSET_CONTROLLER_ENABLE_GITHUB_API_METRICS",
+          "ARGOCD_HYDRATOR_ENABLED",
+          "ARGOCD_SYNC_WITH_REPLACE_ALLOWED"
+        ]
+      }
+    ],
+    "volumes": [
+      {
+        "emptyDir": {},
+        "name": "plugins-home"
+      },
+      {
+        "emptyDir": {},
+        "name": "tmp"
+      },
+      {
+        "configMap": {
+          "defaultMode": 420,
+          "name": "argocd-ssh-known-hosts-cm"
+        },
+        "name": "ssh-known-hosts"
+      },
+      {
+        "configMap": {
+          "defaultMode": 420,
+          "name": "argocd-tls-certs-cm"
+        },
+        "name": "tls-certs"
+      },
+      {
+        "name": "argocd-repo-server-tls",
+        "secret": {
+          "defaultMode": 420,
+          "items": [
+            {
+              "key": "tls.crt",
+              "path": "tls.crt"
+            },
+            {
+              "key": "tls.key",
+              "path": "tls.key"
+            },
+            {
+              "key": "ca.crt",
+              "path": "ca.crt"
+            }
+          ],
+          "optional": true,
+          "secretName": "argocd-repo-server-tls"
+        }
+      },
+      {
+        "name": "argocd-dex-server-tls",
+        "secret": {
+          "defaultMode": 420,
+          "items": [
+            {
+              "key": "tls.crt",
+              "path": "tls.crt"
+            },
+            {
+              "key": "ca.crt",
+              "path": "ca.crt"
+            }
+          ],
+          "optional": true,
+          "secretName": "argocd-dex-server-tls"
+        }
+      },
+      {
+        "configMap": {
+          "defaultMode": 420,
+          "items": [
+            {
+              "key": "server.profile.enabled",
+              "path": "profiler.enabled"
+            }
+          ],
+          "name": "argocd-cmd-params-cm",
+          "optional": true
+        },
+        "name": "argocd-cmd-params-cm"
+      }
+    ],
+    "nodeSelector": {
+      "kubernetes.io/os": "linux"
+    },
+    "status": {
+      "readyReplicas": 1,
+      "availableReplicas": 1
+    },
+    "pods": [
+      {
+        "name": "argocd-server-56dd54ddf9-jd5m9",
+        "uid": "721828f6-53c6-4b23-b4ff-7bc0ff523f1d",
+        "node": "iv-yedenmmwhsqc6iu4z5p6",
+        "phase": "Running",
+        "containers": [
+          {
+            "name": "argocd-server",
+            "imageID": "quay.io/argoproj/argocd@sha256:3c9b3b33a7e6c9c56a9d8417af1845afc516f714941962208b125017bbc1e4b1",
+            "ready": true,
+            "restartCount": 0
+          }
+        ]
+      }
+    ],
+    "hostDirectories": [
+      {
+        "path": "/opt",
+        "device": 64770,
+        "inode": 2210817,
+        "mode": 493
+      },
+      {
+        "path": "/opt/pantheon-p0-20261109",
+        "device": 64770,
+        "inode": 2210818,
+        "mode": 493
+      }
+    ],
+    "nodeNames": [
+      "iv-yedenmmwhsqc6iu4z5p6"
+    ],
+    "targetAbsent": true,
+    "remoteMutation": false
+  },
+  "stderrPresent": false,
+  "sourceFilesVerified": 4828,
+  "reviewHashes": {
+    "resume-argo-v6-independent-code-report.md": "248c77d14baf9792aa3b2a91749ec06c10ad2cae7ff44a2a35f8878b8491cc08",
+    "resume-argo-v6-independent-arch-report.md": "598f7ff46633649c866944d8b30fd851721fa1556c3cc3ac3c6f007b2dc04941"
+  },
+  "sourceStable": true,
+  "seconds": 5.703
+}

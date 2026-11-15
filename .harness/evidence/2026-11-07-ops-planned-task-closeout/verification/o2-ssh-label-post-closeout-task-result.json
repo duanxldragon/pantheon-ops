@@ -1,0 +1,14 @@
+{
+  "command": [
+    "node",
+    "scripts/harness/check-task-packet.mjs",
+    "--root",
+    ".",
+    "--json",
+    "docs/harness/tasks/2026-11-07-ops-planned-task-closeout.task.md"
+  ],
+  "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+  "exitCode": 0,
+  "elapsedSeconds": 0.11000000001513399,
+  "artifact": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/o2-ssh-label-post-closeout-task.txt"
+}

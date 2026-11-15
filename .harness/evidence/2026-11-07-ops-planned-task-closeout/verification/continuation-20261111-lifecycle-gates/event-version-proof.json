@@ -1,0 +1,92 @@
+{
+  "status": "PASS",
+  "actualReceiptSHA256": "5b23a60ff6e5e322ed848562c99448bbe60509cf43f825a9595b1cc5baa1db1e",
+  "actualServerVersion": "v1.36.3+k3s1",
+  "officialUpstreamVersion": "v1.36.3",
+  "versionMatchEstablishedByNewReferenceProof": true,
+  "manualGeneratedAndGroupedAPIBytesExactlyEqual": [
+    {
+      "old": "upstream-events-conversion-v1.34.1.go",
+      "new": "events-conversion.go",
+      "bytesExactlyEqual": true,
+      "sha256": "43ba95483cefd84ef1ce17a72ac3034ac888907afe880180a6325f003b7afefa"
+    },
+    {
+      "old": "upstream-events-generated-conversion-v1.34.1.go",
+      "new": "events-generated-conversion.go",
+      "bytesExactlyEqual": true,
+      "sha256": "af5205a0dd8757f98114047409ae5e3d07038d1255c4b9436616c132122117de"
+    },
+    {
+      "old": "upstream-events-api-v1.34.1.go",
+      "new": "events-api.go",
+      "bytesExactlyEqual": true,
+      "sha256": "9cdf7c0d778bf006ec1c5269d60a5c0c6cca025df40452d06f09168ae23d6c2e"
+    }
+  ],
+  "coreRelevantTypes": {
+    "Event": {
+      "completeSourceExactlyEqual": true,
+      "sha256": "5c3d35c64124c84cce800d0bbffd5d983271e9218449a8d49eb48869965239cb"
+    },
+    "EventSeries": {
+      "completeSourceExactlyEqual": true,
+      "sha256": "09f2337840ab4e3ee66d2e79e97cd8922ed987ccd1de926193405c3787623d5f"
+    },
+    "ObjectReference": {
+      "completeSourceExactlyEqual": true,
+      "sha256": "ddfe8cab0e3378c7fc5019a7d6741c83971cde1697966b02bc8cc21ecb794214"
+    },
+    "EventSource": {
+      "completeSourceExactlyEqual": true,
+      "sha256": "3d3310612f11f748535395ade7d329b032ea9c73bb813d35b47cf8ea6bbad0b6"
+    }
+  },
+  "core14JSONFields": [
+    "action",
+    "count",
+    "eventTime",
+    "firstTimestamp",
+    "involvedObject",
+    "lastTimestamp",
+    "message",
+    "reason",
+    "related",
+    "reportingComponent",
+    "reportingInstance",
+    "series",
+    "source",
+    "type"
+  ],
+  "grouped14JSONFields": [
+    "action",
+    "deprecatedCount",
+    "deprecatedFirstTimestamp",
+    "deprecatedLastTimestamp",
+    "deprecatedSource",
+    "eventTime",
+    "note",
+    "reason",
+    "regarding",
+    "related",
+    "reportingController",
+    "reportingInstance",
+    "series",
+    "type"
+  ],
+  "coreFullReferenceByteChangesOutsideTheseFourTypes": true,
+  "coreFullDiffSHA256": "8117daf58f45d87ced5b86b2e21a407e64e379a362fb93397289f804f54acdb2",
+  "currentReferenceHashes": {
+    "events-conversion.go": "43ba95483cefd84ef1ce17a72ac3034ac888907afe880180a6325f003b7afefa",
+    "events-generated-conversion.go": "af5205a0dd8757f98114047409ae5e3d07038d1255c4b9436616c132122117de",
+    "events-api.go": "9cdf7c0d778bf006ec1c5269d60a5c0c6cca025df40452d06f09168ae23d6c2e",
+    "core-api.go": "335f6d034eb92b6751e9fc3833e5c027aa0da8138de44acaaadf62c5cf25183a"
+  },
+  "previousActualTwoPairFullMappingAndMetadataEvidenceReused": true,
+  "consumedReceiptModified": false,
+  "remoteControlReplayed": false,
+  "remoteExecuted": false,
+  "ownershipGateStillRefuses": true,
+  "continuationPermitted": false,
+  "P0Approved": false
+}

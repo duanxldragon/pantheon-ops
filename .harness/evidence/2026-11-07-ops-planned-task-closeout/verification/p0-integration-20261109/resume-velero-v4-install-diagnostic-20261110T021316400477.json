@@ -1,0 +1,35 @@
+{
+  "phase": "read-only-v4-install-command-diagnostic",
+  "exitCode": 0,
+  "host": "115.190.251.143",
+  "record": {
+    "commandArgs": [
+      "/opt/pantheon-p0-20261109/velero-s3-seaweed-v1/velero",
+      "install",
+      "--provider",
+      "aws",
+      "--plugins",
+      "docker.io/velero/velero-plugin-for-aws@sha256:b6ecf1a86975475d6bf27259ac0c7afbdc6aff2e15dc79f9dc4a0d77f142e558",
+      "--image",
+      "docker.io/velero/velero@sha256:367a1d2deb5adf3acc8056715aefe398850cd33b8d7a68e5a6f1f13b691a1c58",
+      "--bucket",
+      "velero-s3-seaweed-v1",
+      "--namespace",
+      "velero",
+      "--no-secret",
+      "--use-volume-snapshots=false",
+      "--backup-location-config",
+      "region=us-east-1,s3ForcePathStyle=true,s3Url=http://seaweedfs-s3.pantheon-p0-seaweed-velero-s3-v1.svc:18333",
+      "--dry-run",
+      "-o",
+      "json"
+    ],
+    "exitCode": 1,
+    "stderr": "An error occurred: fail to create go-client error finding Kubernetes API server config in --kubeconfig, $KUBECONFIG, or in-cluster configuration: invalid configuration: no configuration has been provided, try setting KUBERNETES_MASTER environment variable\n",
+    "stdoutBytes": 0,
+    "remoteMutation": false,
+    "secretRead": false
+  },
+  "stderrPresent": false,
+  "seconds": 4.078
+}

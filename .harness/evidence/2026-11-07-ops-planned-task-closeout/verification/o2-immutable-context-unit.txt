@@ -1,0 +1,12 @@
+(!) Your Vite config uses features that are unsupported by `configLoader: 'native'`, which is planned to become the default in a future major version of Vite:
+  - `__dirname` (vitest.config.ts:10:25). Use `import.meta.dirname` instead
+Set `VITE_CONFIG_NATIVE_IGNORE_WARNING=true` to suppress this warning.
+
+ RUN  v5.0.5 D:/workspace/go/pantheon-platform/pantheon-ops/frontend
+
+
+ Test Files  3 passed (3)
+      Tests  22 passed (22)
+   Start at  08:18:22
+   Duration  4.44s (environment 44%, import 33%, tests 17%, transform 5%, worker 1%)
+

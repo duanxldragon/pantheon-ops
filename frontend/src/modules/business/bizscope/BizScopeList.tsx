@@ -266,7 +266,7 @@ export default function BizScopeList() {
                 type="text"
                 size="small"
                 icon={<IconEye />}
-                onClick={() => navigate(`/business/business-scope/${row.id}`)}
+                onClick={() => navigate(`/business/bizscope/scopes/${row.id}`)}
               >
                 {t('common.detail')}
               </Button>
@@ -310,7 +310,7 @@ export default function BizScopeList() {
       <Space direction="vertical" size={16} className="system-page-template">
         <GovernanceSummaryBar
           eyebrow={t('business.bizscope.hero.eyebrow')}
-          title={t('operations.bizscope.menu')}
+          title={t('operations.bizscope.scope.menu')}
           description={t('business.bizscope.hero.title')}
           metrics={heroMetrics}
           action={(

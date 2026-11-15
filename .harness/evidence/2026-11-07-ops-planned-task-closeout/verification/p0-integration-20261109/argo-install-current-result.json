@@ -1,0 +1,8 @@
+{
+  "connected": true,
+  "host": "115.190.251.143",
+  "exitCode": 0,
+  "operation": "read-only installer/host status",
+  "authTimeoutSeconds": 45,
+  "elapsedSeconds": 3.328
+}

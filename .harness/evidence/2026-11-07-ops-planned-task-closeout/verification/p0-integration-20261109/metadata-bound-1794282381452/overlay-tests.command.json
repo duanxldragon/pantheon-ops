@@ -1,0 +1,21 @@
+{
+  "startedAt": "2026-11-10T03:53:26.713Z",
+  "completedAt": "2026-11-10T03:53:34.845Z",
+  "executable": "node",
+  "args": [
+    "--test",
+    "tests/scripts/business-overlay/*.test.mjs"
+  ],
+  "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+  "exitCode": 1,
+  "signal": null,
+  "log": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.harness\\evidence\\2026-11-07-ops-planned-task-closeout\\verification\\p0-integration-20261109\\metadata-bound-1794282381452\\overlay-tests.log",
+  "counts": {
+    "tests": 62,
+    "pass": 61,
+    "fail": 1,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  }
+}

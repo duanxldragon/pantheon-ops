@@ -1,0 +1,8 @@
+{
+  "connected": false,
+  "host": "115.190.251.143",
+  "errorType": "SSHException",
+  "operation": "read-only installer/host status",
+  "authTimeoutSeconds": 45,
+  "elapsedSeconds": 61.078
+}

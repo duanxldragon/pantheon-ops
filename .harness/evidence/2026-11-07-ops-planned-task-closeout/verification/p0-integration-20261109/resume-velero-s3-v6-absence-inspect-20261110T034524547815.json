@@ -1,0 +1,12 @@
+{
+  "phase": "sealed-velero-absence-read-only",
+  "remoteMutation": false,
+  "exitCode": 1,
+  "providerInstalled": false,
+  "P0Approved": false,
+  "v6DiagnosticSHA256": "4a486df4fa7f3b35f5a5c7596dd0045e76bfdd18fe1facb2a806af3d769b305e",
+  "stderrPresent": true,
+  "errorType": "AssertionError",
+  "detailsOmitted": true,
+  "seconds": 10.89
+}

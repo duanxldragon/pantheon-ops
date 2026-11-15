@@ -1,0 +1,7 @@
+**Verdict: APPROVE, with one P2.**
+
+**P2 — Manual retry is silently deferred by the rate limiter.** `onRetry` bumps `retryKey`, the effect re-runs, but `load()` hits `now < nextAllowedAt.current` and reschedules itself up to `refresh` (≥30s) later while the error stays on screen — the button appears to do nothing. Minimal fix: in the retry handler set `nextAllowedAt.current = 0` before `setRetryKey` (user retries are click-rate-bounded; polling stays limited since `load` re-arms the ref at start).
+
+Everything else checks out: the StrictMode microtask guard prevents double budget spend and first-mount deferral; abort/timeout race is cleaned up (no orphan timers, no unhandled rejections since `Promise.race` subscribes to both); forbidden stops polling; staleness timer caps at 2³¹−1 and stale/partial render correctly; validation bounds ids, labels, values, and query keys; background errors retain the prior snapshot, which reads as intentional combined display.
+
+**Scope limits:** single supplied file, read-only; no type definitions, provider configs (`timeoutMs`, `maxRequestsPerMinute`), CSS, or runtime verification; `widget.metadata!` assumed valid per router types; unknown `slot` would NaN-sort but is type-constrained. Not a release or production approval.

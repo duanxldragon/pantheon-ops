@@ -1,0 +1,137 @@
+
+> @duanxldragon/pantheon-base-ui@0.11.2 test:unit
+> vitest run tests/unit/business/operational/k8s-service-version.test.tsx
+
+(!) Your Vite config uses features that are unsupported by `configLoader: 'native'`, which is planned to become the default in a future major version of Vite:
+  - `__dirname` (vitest.config.ts:10:25). Use `import.meta.dirname` instead
+Set `VITE_CONFIG_NATIVE_IGNORE_WARNING=true` to suppress this warning.
+
+ RUN  v5.0.5 D:/workspace/go/pantheon-platform/pantheon-ops/frontend
+
+ ❯ tests/unit/business/operational/k8s-service-version.test.tsx (8 tests | 2 failed) 824ms
+   ❯ Kubernetes Service version authority (8)
+     × ignores a revoked update outcome from a previously selected cluster 122ms
+     × ignores a revoked deletion outcome from a previously selected cluster 85ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/unit/business/operational/k8s-service-version.test.tsx > Kubernetes Service version authority > ignores a revoked update outcome from a previously selected cluster
+TestingLibraryElementError: Unable to find an element with the text: service-b. This could be because the text is broken up by multiple elements. In this case, you can provide a function for your text matcher to make your matcher more flexible.
+
+Ignored nodes: comments, script, style
+<body>
+  <div>
+    <div>
+      <div>
+        <div>
+          <select
+            aria-label="business.k8s.service.field.cluster"
+          >
+            <option
+              value="1"
+            >
+              Cluster A
+            </option>
+            <option
+              value="2"
+            >
+              Cluster B
+            </option>
+          </select>
+          <input
+            placeholder="business.k8s.service.field.namespace"
+            style="width: 180px;"
+            value=""
+          />
+        </div>
+        <div>
+          <button>
+            business.k8s.service.add
+          </button>
+        </div>
+        <div>
+          <p>
+            request-error
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+ ❯ Object.getElementError node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ tests/unit/business/operational/k8s-service-version.test.tsx:63:19
+     61|     await screen.findByText('service-b');
+     62|     await act(async () => pending.reject(new RequestError({ kind: 'for…
+     63|     expect(screen.getByText('service-b')).toBeTruthy();
+       |                   ^
+     64|     expect(screen.queryByText('request-error')).toBeNull();
+     65|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  tests/unit/business/operational/k8s-service-version.test.tsx > Kubernetes Service version authority > ignores a revoked deletion outcome from a previously selected cluster
+TestingLibraryElementError: Unable to find an element with the text: service-b. This could be because the text is broken up by multiple elements. In this case, you can provide a function for your text matcher to make your matcher more flexible.
+
+Ignored nodes: comments, script, style
+<body>
+  <div>
+    <div>
+      <div>
+        <div>
+          <select
+            aria-label="business.k8s.service.field.cluster"
+          >
+            <option
+              value="1"
+            >
+              Cluster A
+            </option>
+            <option
+              value="2"
+            >
+              Cluster B
+            </option>
+          </select>
+          <input
+            placeholder="business.k8s.service.field.namespace"
+            style="width: 180px;"
+            value=""
+          />
+        </div>
+        <div>
+          <button>
+            business.k8s.service.add
+          </button>
+        </div>
+        <div>
+          <p>
+            request-error
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+ ❯ Object.getElementError node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ tests/unit/business/operational/k8s-service-version.test.tsx:74:19
+     72|     await screen.findByText('service-b');
+     73|     await act(async () => pending.reject(new RequestError({ kind: 'for…
+     74|     expect(screen.getByText('service-b')).toBeTruthy();
+       |                   ^
+     75|     expect(screen.queryByText('request-error')).toBeNull();
+     76|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  2 failed | 6 passed (8)
+   Start at  10:25:31
+   Duration  3.16s (import 37%, environment 28%, tests 28%, transform 6%)
+

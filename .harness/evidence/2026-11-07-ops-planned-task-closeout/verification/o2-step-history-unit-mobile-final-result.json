@@ -1,0 +1,15 @@
+{
+  "command": [
+    "npm.cmd",
+    "run",
+    "test:unit",
+    "--",
+    "tests/unit/business/operational"
+  ],
+  "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\frontend",
+  "exitCode": 0,
+  "elapsedSeconds": 7.062000000005355,
+  "artifact": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/o2-step-history-unit-mobile-final.txt",
+  "sourceHashesStable": true,
+  "hashedFiles": 382
+}

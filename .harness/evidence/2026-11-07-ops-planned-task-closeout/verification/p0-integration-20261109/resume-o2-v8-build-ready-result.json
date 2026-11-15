@@ -1,0 +1,76 @@
+{
+  "sourceStable": true,
+  "artifacts": {
+    "resume-o2-v8-driver.go": "4d5c2c14169613d49f7b523284e9dcf9a254fc06b7f276c9e4de3a096b2f2ea6",
+    "resume-o2-v8-runner.py": "f92a571d771512fa43d95a037a365601dc51bc1513e95812bfc158d99a87ff82",
+    "resume-o2-v8-driver_test.go": "8745e573837eeaac85154b85fafb66ec0cfe939b4764fef5cfa81e9b197ad4f1",
+    "resume-o2-v8-verify.py": "31a8c01e7d131e9ac78b8dd21eee976023d10ad704ee1be2258a1bc15c1c7c80",
+    "remote.py": "37acccd12ba3b30e38182f11101821f110355ed660c4cf559d91cc1c638e1b5e",
+    "known_hosts": "45a3379d7e5d75b57e4d47c37ea424b611ddc56ee6d2a70fdc89c05c1ae8213e",
+    "resume-o2-v8-driver.exe": "2d300d0b9604c3bb213884ad1a88cf04542a6cd7c9a3eaadf20b24e6fe1ab53d",
+    "resume-o2-v8-driver-linux": "7d6a53670bc096a17debc01f75ca81bdc109dc92945590cec84ae46a0dd6f6d8"
+  },
+  "commands": [
+    {
+      "command": [
+        "go",
+        "vet",
+        "-mod=readonly",
+        "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\resume-o2-v8-driver.go"
+      ],
+      "exitCode": 0,
+      "CGO_ENABLED": "1",
+      "GOOS": "windows",
+      "seconds": 69.0,
+      "log": "resume-o2-v8-candidate-verify-0.txt"
+    },
+    {
+      "command": [
+        "go",
+        "test",
+        "-mod=readonly",
+        "-race",
+        "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\resume-o2-v8-driver.go",
+        "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\resume-o2-v8-driver_test.go"
+      ],
+      "exitCode": 0,
+      "CGO_ENABLED": "1",
+      "GOOS": "windows",
+      "seconds": 103.687,
+      "log": "resume-o2-v8-candidate-verify-1.txt"
+    },
+    {
+      "command": [
+        "go",
+        "build",
+        "-mod=readonly",
+        "-race",
+        "-o",
+        "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\resume-o2-v8-driver.exe",
+        "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\resume-o2-v8-driver.go"
+      ],
+      "exitCode": 0,
+      "CGO_ENABLED": "1",
+      "GOOS": "windows",
+      "seconds": 4.594,
+      "log": "resume-o2-v8-candidate-verify-2.txt"
+    },
+    {
+      "command": [
+        "go",
+        "build",
+        "-mod=readonly",
+        "-o",
+        "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\resume-o2-v8-driver-linux",
+        "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\resume-o2-v8-driver.go"
+      ],
+      "exitCode": 0,
+      "CGO_ENABLED": "0",
+      "GOOS": "linux",
+      "seconds": 59.031,
+      "log": "resume-o2-v8-candidate-verify-3.txt"
+    }
+  ],
+  "exitCode": 0,
+  "scope": "diagnostic candidate, CLI execute guarded; root review/reseal required"
+}

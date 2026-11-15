@@ -1,0 +1,89 @@
+{
+  "exactHistoryWorkbenchRuns": 10,
+  "runs": [
+    {
+      "artifact": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/o2-step-history-browser/smoke-business-deploy-depl-58206--keyboard-and-mobile-light-/fixture-cleanup.json",
+      "token": "workbench-light-1794106970869",
+      "taskId": 214,
+      "hostId": 223,
+      "scopeId": 211,
+      "packageId": 229
+    },
+    {
+      "artifact": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/o2-step-history-browser/smoke-business-deploy-depl-d16f5-s-keyboard-and-mobile-dark-/fixture-cleanup.json",
+      "token": "workbench-dark-1794106981536",
+      "taskId": 215,
+      "hostId": 224,
+      "scopeId": 212,
+      "packageId": 230
+    },
+    {
+      "artifact": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/o2-step-history-browser-mobile-green/smoke-business-deploy-depl-58206--keyboard-and-mobile-light-/fixture-cleanup.json",
+      "token": "workbench-light-1794107159812",
+      "taskId": 218,
+      "hostId": 227,
+      "scopeId": 215,
+      "packageId": 233
+    },
+    {
+      "artifact": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/o2-step-history-browser-mobile-green/smoke-business-deploy-depl-d16f5-s-keyboard-and-mobile-dark-/fixture-cleanup.json",
+      "token": "workbench-dark-1794107172192",
+      "taskId": 219,
+      "hostId": 228,
+      "scopeId": 216,
+      "packageId": 234
+    },
+    {
+      "artifact": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/o2-step-history-browser-mobile-red/smoke-business-deploy-depl-58206--keyboard-and-mobile-light-/fixture-cleanup.json",
+      "token": "workbench-light-1794107098315",
+      "taskId": 216,
+      "hostId": 225,
+      "scopeId": 213,
+      "packageId": 231
+    },
+    {
+      "artifact": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/o2-step-history-browser-mobile-red/smoke-business-deploy-depl-d16f5-s-keyboard-and-mobile-dark-/fixture-cleanup.json",
+      "token": "workbench-dark-1794107115399",
+      "taskId": 217,
+      "hostId": 226,
+      "scopeId": 214,
+      "packageId": 232
+    },
+    {
+      "artifact": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/o2-step-history-deploy-smoke-green/smoke-business-deploy-depl-58206--keyboard-and-mobile-light-/fixture-cleanup.json",
+      "token": "workbench-light-1794107514667",
+      "taskId": 234,
+      "hostId": 242,
+      "scopeId": 229,
+      "packageId": 249
+    },
+    {
+      "artifact": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/o2-step-history-deploy-smoke-green/smoke-business-deploy-depl-d16f5-s-keyboard-and-mobile-dark-/fixture-cleanup.json",
+      "token": "workbench-dark-1794107527544",
+      "taskId": 235,
+      "hostId": 243,
+      "scopeId": 230,
+      "packageId": 250
+    },
+    {
+      "artifact": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/o2-step-history-deploy-smoke-proxy-fixed/smoke-business-deploy-depl-58206--keyboard-and-mobile-light-/fixture-cleanup.json",
+      "token": "workbench-light-1794107678134",
+      "taskId": 250,
+      "hostId": 257,
+      "scopeId": 243,
+      "packageId": 265
+    },
+    {
+      "artifact": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/o2-step-history-deploy-smoke-proxy-fixed/smoke-business-deploy-depl-d16f5-s-keyboard-and-mobile-dark-/fixture-cleanup.json",
+      "token": "workbench-dark-1794107688289",
+      "taskId": 251,
+      "hostId": 258,
+      "scopeId": 244,
+      "packageId": 266
+    }
+  ],
+  "activeCountsVerifiedZero": true,
+  "database": "ops_planned_final_versioned",
+  "mutation": false,
+  "olderLegacySuiteFixtures": "not inferred cleaned; original legacy tests retain some task/upload artifacts"
+}

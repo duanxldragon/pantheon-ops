@@ -1,0 +1,292 @@
+ok  	github.com/duanxldragon/pantheon-base/backend/cmd/server	1.179s
+ok  	github.com/duanxldragon/pantheon-base/backend/cmd/tenantmatrixdb	(cached)
+?   	github.com/duanxldragon/pantheon-base/backend/cmd/tenantmigration	[no test files]
+ok  	github.com/duanxldragon/pantheon-base/backend/cmd/tenantsizing	(cached)
+ok  	github.com/duanxldragon/pantheon-base/backend/internal/middleware	(cached)
+ok  	github.com/duanxldragon/pantheon-base/backend/internal/scaffold	(cached)
+?   	github.com/duanxldragon/pantheon-base/backend/modules/auth	[no test files]
+ok  	github.com/duanxldragon/pantheon-base/backend/modules/auth/login	(cached)
+ok  	github.com/duanxldragon/pantheon-base/backend/modules/auth/mfa	(cached)
+ok  	github.com/duanxldragon/pantheon-base/backend/modules/auth/security	(cached)
+ok  	github.com/duanxldragon/pantheon-base/backend/modules/auth/session	(cached)
+ok  	github.com/duanxldragon/pantheon-base/backend/modules/business	1.597s
+ok  	github.com/duanxldragon/pantheon-base/backend/modules/business/bizscope	(cached)
+?   	github.com/duanxldragon/pantheon-base/backend/modules/business/capability	[no test files]
+?   	github.com/duanxldragon/pantheon-base/backend/modules/business/cicd	[no test files]
+ok  	github.com/duanxldragon/pantheon-base/backend/modules/business/cicd/argocd	(cached)
+ok  	github.com/duanxldragon/pantheon-base/backend/modules/business/cmdb	(cached)
+ok  	github.com/duanxldragon/pantheon-base/backend/modules/business/cmdb/group	(cached)
+ok  	github.com/duanxldragon/pantheon-base/backend/modules/business/cmdb/host	(cached)
+ok  	github.com/duanxldragon/pantheon-base/backend/modules/business/cmdb/label	(cached)
+
+2026/11/07 22:50:22 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/deploy_import_export.go:108 [35;1mrecord not found
+[0m[33m[1.511ms] [34;1m[rows:0][0m SELECT * FROM `biz_deploy_package` WHERE (name = 'demo' AND version = '1.0.0') AND `biz_deploy_package`.`deleted_at` IS NULL ORDER BY `biz_deploy_package`.`id` LIMIT 1
+
+2026/11/07 22:50:25 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/deploy_service.go:1919 [35;1mrecord not found
+[0m[33m[1.269ms] [34;1m[rows:0][0m SELECT * FROM `biz_deploy_task_step` WHERE task_id = 1 AND task_host_id = 1 AND step_key = 'package_default' ORDER BY `biz_deploy_task_step`.`id` LIMIT 1
+
+2026/11/07 22:50:26 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/deploy_service.go:1919 [35;1mrecord not found
+[0m[33m[1.172ms] [34;1m[rows:0][0m SELECT * FROM `biz_deploy_task_step` WHERE task_id = 1 AND task_host_id = 1 AND step_key = 'package_default' ORDER BY `biz_deploy_task_step`.`id` LIMIT 1
+
+2026/11/07 22:50:27 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/deploy_service.go:1919 [35;1mrecord not found
+[0m[33m[0.621ms] [34;1m[rows:0][0m SELECT * FROM `biz_deploy_task_step` WHERE task_id = 1 AND task_host_id = 1 AND step_key = 'package_default' ORDER BY `biz_deploy_task_step`.`id` LIMIT 1
+
+2026/11/07 22:50:28 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/deploy_service.go:1919 [35;1mrecord not found
+[0m[33m[0.535ms] [34;1m[rows:0][0m SELECT * FROM `biz_deploy_task_step` WHERE task_id = 1 AND task_host_id = 1 AND step_key = 'package_default' ORDER BY `biz_deploy_task_step`.`id` LIMIT 1
+
+2026/11/07 22:50:28 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/deploy_service.go:2821 [35;1mError 1062 (23000): Duplicate entry '1' for key 'biz_deploy_host_lease.uk_deploy_host_lease_host'
+[0m[33m[0.599ms] [34;1m[rows:0][0m INSERT INTO `biz_deploy_host_lease` (`host_id`,`task_id`,`owner`,`expires_at`,`created_at`,`updated_at`) VALUES (1,2,'task:2','2026-11-07 23:20:28.013','2026-11-07 22:50:28.013','2026-11-07 22:50:28.013')
+
+2026/11/07 22:50:28 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/deploy_service.go:1919 [35;1mrecord not found
+[0m[33m[0.625ms] [34;1m[rows:0][0m SELECT * FROM `biz_deploy_task_step` WHERE task_id = 1 AND task_host_id = 1 AND step_key = 'package_default' ORDER BY `biz_deploy_task_step`.`id` LIMIT 1
+
+2026/11/07 22:50:28 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/deploy_service.go:2821 [35;1mError 1062 (23000): Duplicate entry '1' for key 'biz_deploy_host_lease.uk_deploy_host_lease_host'
+[0m[33m[0.505ms] [34;1m[rows:0][0m INSERT INTO `biz_deploy_host_lease` (`host_id`,`task_id`,`owner`,`expires_at`,`created_at`,`updated_at`) VALUES (1,2,'task:2','2026-11-07 23:20:28.592','2026-11-07 22:50:28.592','2026-11-07 22:50:28.592')
+
+2026/11/07 22:50:28 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/deploy_service.go:1919 [35;1mrecord not found
+[0m[33m[0.546ms] [34;1m[rows:0][0m SELECT * FROM `biz_deploy_task_step` WHERE task_id = 2 AND task_host_id = 2 AND step_key = 'package_default' ORDER BY `biz_deploy_task_step`.`id` LIMIT 1
+
+2026/11/07 22:50:29 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/deploy_service.go:1919 [35;1mrecord not found
+[0m[33m[0.550ms] [34;1m[rows:0][0m SELECT * FROM `biz_deploy_task_step` WHERE task_id = 1 AND task_host_id = 1 AND step_key = 'package_default' ORDER BY `biz_deploy_task_step`.`id` LIMIT 1
+
+2026/11/07 22:50:30 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/deploy_service.go:1919 [35;1mrecord not found
+[0m[33m[0.565ms] [34;1m[rows:0][0m SELECT * FROM `biz_deploy_task_step` WHERE task_id = 1 AND task_host_id = 1 AND step_key = 'package_default' ORDER BY `biz_deploy_task_step`.`id` LIMIT 1
+
+2026/11/07 22:50:31 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/deploy_service.go:1919 [35;1mrecord not found
+[0m[33m[1.610ms] [34;1m[rows:0][0m SELECT * FROM `biz_deploy_task_step` WHERE task_id = 1 AND task_host_id = 1 AND step_key = 'package_default' ORDER BY `biz_deploy_task_step`.`id` LIMIT 1
+
+2026/11/07 22:50:31 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/deploy_service.go:1919 [35;1mrecord not found
+[0m[33m[0.643ms] [34;1m[rows:0][0m SELECT * FROM `biz_deploy_task_step` WHERE task_id = 1 AND task_host_id = 1 AND step_key = 'package_default' ORDER BY `biz_deploy_task_step`.`id` LIMIT 1
+
+2026/11/07 22:50:32 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/deploy_service.go:1919 [35;1mrecord not found
+[0m[33m[1.030ms] [34;1m[rows:0][0m SELECT * FROM `biz_deploy_task_step` WHERE task_id = 1 AND task_host_id = 1 AND step_key = 'package_default' ORDER BY `biz_deploy_task_step`.`id` LIMIT 1
+
+2026/11/07 22:50:32 [32mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/deploy_service.go:192 [33mSLOW SQL >= 200ms
+[0m[31;1m[237.070ms] [33m[rows:0][35m CREATE TABLE `biz_deploy_package` (`id` bigint unsigned AUTO_INCREMENT,`name` varchar(128) NOT NULL,`version` varchar(64) NOT NULL,`description` varchar(512),`install_command` text,`uninstall_command` text,`execution_mode` varchar(32) DEFAULT 'fixed',`template_code` varchar(64),`template_config` JSON,`source_object_key` varchar(255),`source_file_name` varchar(255),`source_url` varchar(512),`status` varchar(32) DEFAULT 'enabled',`created_at` datetime(3) NULL,`updated_at` datetime(3) NULL,`created_by` varchar(64),`updated_by` varchar(64),`deleted_at` datetime(3) NULL,PRIMARY KEY (`id`),UNIQUE INDEX `uk_deploy_package_name_version_deleted` (`name`,`version`,`deleted_at`),INDEX `idx_biz_deploy_package_execution_mode` (`execution_mode`),INDEX `idx_biz_deploy_package_template_code` (`template_code`),INDEX `idx_biz_deploy_package_status` (`status`))[0m
+
+2026/11/07 22:50:33 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/deploy_service.go:1919 [35;1mrecord not found
+[0m[33m[0.595ms] [34;1m[rows:0][0m SELECT * FROM `biz_deploy_task_step` WHERE task_id = 1 AND task_host_id = 1 AND step_key = 'package_default' ORDER BY `biz_deploy_task_step`.`id` LIMIT 1
+
+2026/11/07 22:50:33 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/deploy_service.go:1919 [35;1mrecord not found
+[0m[33m[1.192ms] [34;1m[rows:0][0m SELECT * FROM `biz_deploy_task_step` WHERE task_id = 1 AND task_host_id = 1 AND step_key = 'package_default' ORDER BY `biz_deploy_task_step`.`id` LIMIT 1
+
+2026/11/07 22:50:35 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/deploy_service.go:1919 [35;1mrecord not found
+[0m[33m[1.089ms] [34;1m[rows:0][0m SELECT * FROM `biz_deploy_task_step` WHERE task_id = 1 AND task_host_id = 1 AND step_key = 'package_default' ORDER BY `biz_deploy_task_step`.`id` LIMIT 1
+
+2026/11/07 22:50:37 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/deploy_service.go:1919 [35;1mrecord not found
+[0m[33m[0.657ms] [34;1m[rows:0][0m SELECT * FROM `biz_deploy_task_step` WHERE task_id = 1 AND task_host_id = 1 AND step_key = 'package_default' ORDER BY `biz_deploy_task_step`.`id` LIMIT 1
+
+2026/11/07 22:50:38 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/deploy_service.go:1919 [35;1mrecord not found
+[0m[33m[1.078ms] [34;1m[rows:0][0m SELECT * FROM `biz_deploy_task_step` WHERE task_id = 1 AND task_host_id = 1 AND step_key = 'package_default' ORDER BY `biz_deploy_task_step`.`id` LIMIT 1
+
+2026/11/07 22:50:38 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/deploy_service.go:1919 [35;1mrecord not found
+[0m[33m[0.526ms] [34;1m[rows:0][0m SELECT * FROM `biz_deploy_task_step` WHERE task_id = 1 AND task_host_id = 1 AND step_key = 'package_default' ORDER BY `biz_deploy_task_step`.`id` LIMIT 1
+
+2026/11/07 22:50:39 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/deploy_service.go:1919 [35;1mrecord not found
+[0m[33m[0.525ms] [34;1m[rows:0][0m SELECT * FROM `biz_deploy_task_step` WHERE task_id = 1 AND task_host_id = 1 AND step_key = 'package_default' ORDER BY `biz_deploy_task_step`.`id` LIMIT 1
+
+2026/11/07 22:50:42 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/deploy_service.go:1919 [35;1mrecord not found
+[0m[33m[0.520ms] [34;1m[rows:0][0m SELECT * FROM `biz_deploy_task_step` WHERE task_id = 1 AND task_host_id = 1 AND step_key = 'nginx_install' ORDER BY `biz_deploy_task_step`.`id` LIMIT 1
+
+2026/11/07 22:50:42 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/deploy_service.go:1919 [35;1mrecord not found
+[0m[33m[0.505ms] [34;1m[rows:0][0m SELECT * FROM `biz_deploy_task_step` WHERE task_id = 1 AND task_host_id = 1 AND step_key = 'redis_install' ORDER BY `biz_deploy_task_step`.`id` LIMIT 1
+
+2026/11/07 22:50:43 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/deploy_service.go:1919 [35;1mrecord not found
+[0m[33m[0.533ms] [34;1m[rows:0][0m SELECT * FROM `biz_deploy_task_step` WHERE task_id = 1 AND task_host_id = 1 AND step_key = 'prepare' ORDER BY `biz_deploy_task_step`.`id` LIMIT 1
+
+2026/11/07 22:50:43 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/deploy_service.go:1919 [35;1mrecord not found
+[0m[33m[0.536ms] [34;1m[rows:0][0m SELECT * FROM `biz_deploy_task_step` WHERE task_id = 1 AND task_host_id = 1 AND step_key = 'install' ORDER BY `biz_deploy_task_step`.`id` LIMIT 1
+
+2026/11/07 22:50:44 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/deploy_service.go:1919 [35;1mrecord not found
+[0m[33m[0.555ms] [34;1m[rows:0][0m SELECT * FROM `biz_deploy_task_step` WHERE task_id = 1 AND task_host_id = 1 AND step_key = 'prepare' ORDER BY `biz_deploy_task_step`.`id` LIMIT 1
+
+2026/11/07 22:50:45 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/deploy_service.go:1919 [35;1mrecord not found
+[0m[33m[0.524ms] [34;1m[rows:0][0m SELECT * FROM `biz_deploy_task_step` WHERE task_id = 1 AND task_host_id = 1 AND step_key = 'package_default' ORDER BY `biz_deploy_task_step`.`id` LIMIT 1
+
+2026/11/07 22:50:45 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/bizscope/bizscope_service.go:73 [35;1mrecord not found
+[0m[33m[0.545ms] [34;1m[rows:0][0m SELECT * FROM `biz_business_scope` WHERE (id = 999999 AND status = 'active') AND `biz_business_scope`.`deleted_at` IS NULL ORDER BY `biz_business_scope`.`id` LIMIT 1 FOR UPDATE
+
+2026/11/07 22:50:48 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/deploy_service.go:2441 [35;1mrecord not found
+[0m[33m[0.506ms] [34;1m[rows:0][0m SELECT * FROM `biz_deploy_task` WHERE `biz_deploy_task`.`id` = 1 AND `biz_deploy_task`.`deleted_at` IS NULL ORDER BY `biz_deploy_task`.`id` LIMIT 1
+
+2026/11/07 22:50:48 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/deploy_service.go:1919 [35;1mrecord not found
+[0m[33m[1.415ms] [34;1m[rows:0][0m SELECT * FROM `biz_deploy_task_step` WHERE task_id = 1 AND task_host_id = 1 AND step_key = 'package_default' ORDER BY `biz_deploy_task_step`.`id` LIMIT 1
+
+2026/11/07 22:50:49 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/deploy_service.go:1919 [35;1mrecord not found
+[0m[33m[0.549ms] [34;1m[rows:0][0m SELECT * FROM `biz_deploy_task_step` WHERE task_id = 1 AND task_host_id = 1 AND step_key = 'package_default' ORDER BY `biz_deploy_task_step`.`id` LIMIT 1
+
+2026/11/07 22:50:49 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/deploy_service.go:2441 [35;1mrecord not found
+[0m[33m[0.000ms] [34;1m[rows:0][0m SELECT * FROM `biz_deploy_task` WHERE `biz_deploy_task`.`id` = 1 AND `biz_deploy_task`.`deleted_at` IS NULL ORDER BY `biz_deploy_task`.`id` LIMIT 1
+
+2026/11/07 22:50:49 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/deploy_service.go:1919 [35;1mrecord not found
+[0m[33m[0.513ms] [34;1m[rows:0][0m SELECT * FROM `biz_deploy_task_step` WHERE task_id = 1 AND task_host_id = 1 AND step_key = 'package_default' ORDER BY `biz_deploy_task_step`.`id` LIMIT 1
+
+2026/11/07 22:50:49 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/deploy_service.go:2441 [35;1mrecord not found
+[0m[33m[1.077ms] [34;1m[rows:0][0m SELECT * FROM `biz_deploy_task` WHERE `biz_deploy_task`.`id` = 1 AND `biz_deploy_task`.`deleted_at` IS NULL ORDER BY `biz_deploy_task`.`id` LIMIT 1
+
+2026/11/07 22:50:50 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/deploy_service.go:1919 [35;1mrecord not found
+[0m[33m[0.605ms] [34;1m[rows:0][0m SELECT * FROM `biz_deploy_task_step` WHERE task_id = 1 AND task_host_id = 1 AND step_key = 'package_default' ORDER BY `biz_deploy_task_step`.`id` LIMIT 1
+
+2026/11/07 22:50:51 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/deploy_service.go:1919 [35;1mrecord not found
+[0m[33m[0.519ms] [34;1m[rows:0][0m SELECT * FROM `biz_deploy_task_step` WHERE task_id = 1 AND task_host_id = 1 AND step_key = 'package_default' ORDER BY `biz_deploy_task_step`.`id` LIMIT 1
+[GIN-debug] [WARNING] Running in "debug" mode. Switch to "release" mode in production.
+ - using env:	export GIN_MODE=release
+ - using code:	gin.SetMode(gin.ReleaseMode)
+
+[GIN-debug] GET    /tasks/:id                --> github.com/duanxldragon/pantheon-base/backend/modules/business/deploy.TestDeployTaskDetailHandlerReturnsForbiddenAndNotFound.func1 (1 handlers)
+[GIN-debug] [WARNING] Running in "debug" mode. Switch to "release" mode in production.
+ - using env:	export GIN_MODE=release
+ - using code:	gin.SetMode(gin.ReleaseMode)
+
+[GIN-debug] GET    /tasks/:id                --> github.com/duanxldragon/pantheon-base/backend/modules/business/deploy.(*DeployHandler).GetTask-fm (1 handlers)
+
+2026/11/07 22:50:52 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/deploy_service.go:2441 [35;1mrecord not found
+[0m[33m[0.522ms] [34;1m[rows:0][0m SELECT * FROM `biz_deploy_task` WHERE `biz_deploy_task`.`id` = 999999 AND `biz_deploy_task`.`deleted_at` IS NULL ORDER BY `biz_deploy_task`.`id` LIMIT 1
+
+2026/11/07 22:50:52 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/deploy_service.go:1919 [35;1mrecord not found
+[0m[33m[0.607ms] [34;1m[rows:0][0m SELECT * FROM `biz_deploy_task_step` WHERE task_id = 1 AND task_host_id = 1 AND step_key = 'package_default' ORDER BY `biz_deploy_task_step`.`id` LIMIT 1
+[GIN-debug] [WARNING] Running in "debug" mode. Switch to "release" mode in production.
+ - using env:	export GIN_MODE=release
+ - using code:	gin.SetMode(gin.ReleaseMode)
+
+[GIN-debug] POST   /tasks/:id/start          --> github.com/duanxldragon/pantheon-base/backend/modules/business/deploy.(*DeployHandler).StartTask-fm (1 handlers)
+[GIN-debug] [WARNING] Running in "debug" mode. Switch to "release" mode in production.
+ - using env:	export GIN_MODE=release
+ - using code:	gin.SetMode(gin.ReleaseMode)
+
+[GIN-debug] POST   /tasks/:id/cancel         --> github.com/duanxldragon/pantheon-base/backend/modules/business/deploy.(*DeployHandler).CancelTask-fm (1 handlers)
+--- FAIL: TestDeployTaskActionHandlersReturnCanonicalStatusCodes (0.56s)
+    deploy_service_test.go:3350: expected cancel conflict status, got 400
+[GIN-debug] [WARNING] Running in "debug" mode. Switch to "release" mode in production.
+ - using env:	export GIN_MODE=release
+ - using code:	gin.SetMode(gin.ReleaseMode)
+
+[GIN-debug] POST   /tasks                    --> github.com/duanxldragon/pantheon-base/backend/modules/business/deploy.(*DeployHandler).CreateTask-fm (1 handlers)
+[GIN-debug] [WARNING] Running in "debug" mode. Switch to "release" mode in production.
+ - using env:	export GIN_MODE=release
+ - using code:	gin.SetMode(gin.ReleaseMode)
+
+[GIN-debug] PUT    /tasks/:id                --> github.com/duanxldragon/pantheon-base/backend/modules/business/deploy.(*DeployHandler).UpdateTask-fm (1 handlers)
+[GIN-debug] [WARNING] Running in "debug" mode. Switch to "release" mode in production.
+ - using env:	export GIN_MODE=release
+ - using code:	gin.SetMode(gin.ReleaseMode)
+
+[GIN-debug] POST   /tasks                    --> github.com/duanxldragon/pantheon-base/backend/modules/business/deploy.(*DeployHandler).CreateTask-fm (1 handlers)
+[GIN-debug] [WARNING] Running in "debug" mode. Switch to "release" mode in production.
+ - using env:	export GIN_MODE=release
+ - using code:	gin.SetMode(gin.ReleaseMode)
+
+[GIN-debug] POST   /tasks                    --> github.com/duanxldragon/pantheon-base/backend/modules/business/deploy.(*DeployHandler).CreateTask-fm (1 handlers)
+[GIN-debug] [WARNING] Running in "debug" mode. Switch to "release" mode in production.
+ - using env:	export GIN_MODE=release
+ - using code:	gin.SetMode(gin.ReleaseMode)
+
+[GIN-debug] POST   /tasks/:id/start          --> github.com/duanxldragon/pantheon-base/backend/modules/business/deploy.(*DeployHandler).StartTask-fm (1 handlers)
+
+2026/11/07 22:50:57 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/deploy_service.go:1919 [35;1mrecord not found
+[0m[33m[0.592ms] [34;1m[rows:0][0m SELECT * FROM `biz_deploy_task_step` WHERE task_id = 1 AND task_host_id = 1 AND step_key = 'package_default' ORDER BY `biz_deploy_task_step`.`id` LIMIT 1
+
+2026/11/07 22:50:57 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/deploy_service.go:2821 [35;1mError 1062 (23000): Duplicate entry '1' for key 'biz_deploy_host_lease.uk_deploy_host_lease_host'
+[0m[33m[0.503ms] [34;1m[rows:0][0m INSERT INTO `biz_deploy_host_lease` (`host_id`,`task_id`,`owner`,`expires_at`,`created_at`,`updated_at`) VALUES (1,1,'task:1','2026-11-07 23:20:57.246','2026-11-07 22:50:57.246','2026-11-07 22:50:57.246')
+
+2026/11/07 22:50:59 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/deploy_service.go:1919 [35;1mrecord not found
+[0m[33m[0.556ms] [34;1m[rows:0][0m SELECT * FROM `biz_deploy_task_step` WHERE task_id = 1 AND task_host_id = 1 AND step_key = 'package_default' ORDER BY `biz_deploy_task_step`.`id` LIMIT 1
+
+2026/11/07 22:50:59 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/deploy_service.go:2821 [35;1mError 1062 (23000): Duplicate entry '1' for key 'biz_deploy_host_lease.uk_deploy_host_lease_host'
+[0m[33m[0.543ms] [34;1m[rows:0][0m INSERT INTO `biz_deploy_host_lease` (`host_id`,`task_id`,`owner`,`expires_at`,`created_at`,`updated_at`) VALUES (1,1,'task:1','2026-11-07 23:20:59.802','2026-11-07 22:50:59.802','2026-11-07 22:50:59.802')
+2026/11/07 22:51:04 ERROR append deploy task event failed task_id=1 event_type=task.canceled error="injected event"
+
+2026/11/07 22:51:04 [34;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/task_command_test.go:201
+[0m[35m[warn] [0mremoving callback `command-failure-event` from D:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/task_command_test.go:201
+
+2026/11/07 22:51:04 [34;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/task_command_test.go:201
+[0m[35m[warn] [0mremoving callback `command-failure-host` from D:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/task_command_test.go:201
+
+2026/11/07 22:51:05 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/deploy_service.go:1881 [35;1minjected after-event
+[0m[33m[1.075ms] [34;1m[rows:1][0m INSERT INTO `biz_deploy_task_event` (`task_id`,`task_host_id`,`task_step_id`,`sequence`,`event_type`,`from_status`,`to_status`,`actor`,`request_id`,`reason`,`created_at`) VALUES (1,0,0,1,'task.canceled','running','canceled','1','','','2026-11-07 22:51:05.236')
+2026/11/07 22:51:05 ERROR append deploy task event failed task_id=1 event_type=task.canceled error="injected after-event"
+
+2026/11/07 22:51:05 [34;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/task_command_test.go:201
+[0m[35m[warn] [0mremoving callback `command-failure-after-event` from D:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/task_command_test.go:201
+
+2026/11/07 22:51:06 [34;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/task_command_test.go:225
+[0m[35m[warn] [0mremoving callback `fail-reset` from D:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/task_command_test.go:225
+
+2026/11/07 22:51:08 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/deploy_service.go:1919 [35;1mrecord not found
+[0m[33m[0.510ms] [34;1m[rows:0][0m SELECT * FROM `biz_deploy_task_step` WHERE task_id = 1 AND task_host_id = 1 AND step_key = 'package_default' ORDER BY `biz_deploy_task_step`.`id` LIMIT 1
+
+2026/11/07 22:51:14 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/bizscope/bizscope_service.go:73 [35;1mrecord not found
+[0m[33m[0.618ms] [34;1m[rows:0][0m SELECT * FROM `biz_business_scope` WHERE (id = 1 AND status = 'active') AND `biz_business_scope`.`deleted_at` IS NULL ORDER BY `biz_business_scope`.`id` LIMIT 1 FOR UPDATE
+
+2026/11/07 22:51:23 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/deploy_service.go:1919 [35;1mrecord not found
+[0m[33m[0.000ms] [34;1m[rows:0][0m SELECT * FROM `biz_deploy_task_step` WHERE task_id = 2 AND task_host_id = 1 AND step_key = 'default' ORDER BY `biz_deploy_task_step`.`id` LIMIT 1
+
+2026/11/07 22:51:26 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/deploy_service.go:1919 [35;1mrecord not found
+[0m[33m[0.505ms] [34;1m[rows:0][0m SELECT * FROM `biz_deploy_task_step` WHERE task_id = 2 AND task_host_id = 1 AND step_key = 'default' ORDER BY `biz_deploy_task_step`.`id` LIMIT 1
+FAIL
+FAIL	github.com/duanxldragon/pantheon-base/backend/modules/business/deploy	74.635s
+?   	github.com/duanxldragon/pantheon-base/backend/modules/business/deploy/executor	[no test files]
+?   	github.com/duanxldragon/pantheon-base/backend/modules/business/deploy/orchestrator	[no test files]
+ok  	github.com/duanxldragon/pantheon-base/backend/modules/business/filedist	(cached)
+?   	github.com/duanxldragon/pantheon-base/backend/modules/business/k8s	[no test files]
+ok  	github.com/duanxldragon/pantheon-base/backend/modules/business/k8s/backup	(cached)
+ok  	github.com/duanxldragon/pantheon-base/backend/modules/business/k8s/cluster	(cached)
+?   	github.com/duanxldragon/pantheon-base/backend/modules/business/k8s/configmap	[no test files]
+?   	github.com/duanxldragon/pantheon-base/backend/modules/business/k8s/helm	[no test files]
+?   	github.com/duanxldragon/pantheon-base/backend/modules/business/k8s/ingress	[no test files]
+?   	github.com/duanxldragon/pantheon-base/backend/modules/business/k8s/install	[no test files]
+ok  	github.com/duanxldragon/pantheon-base/backend/modules/business/k8s/namespace	(cached)
+ok  	github.com/duanxldragon/pantheon-base/backend/modules/business/k8s/pkg	(cached)
+?   	github.com/duanxldragon/pantheon-base/backend/modules/business/k8s/rbac	[no test files]
+ok  	github.com/duanxldragon/pantheon-base/backend/modules/business/k8s/release	(cached)
+?   	github.com/duanxldragon/pantheon-base/backend/modules/business/k8s/secret	[no test files]
+?   	github.com/duanxldragon/pantheon-base/backend/modules/business/k8s/service	[no test files]
+?   	github.com/duanxldragon/pantheon-base/backend/modules/business/k8s/storage	[no test files]
+ok  	github.com/duanxldragon/pantheon-base/backend/modules/business/k8s/workload	(cached)
+?   	github.com/duanxldragon/pantheon-base/backend/modules/business/metrics	[no test files]
+ok  	github.com/duanxldragon/pantheon-base/backend/modules/business/observability	(cached)
+ok  	github.com/duanxldragon/pantheon-base/backend/modules/business/opsinit	2.587s
+ok  	github.com/duanxldragon/pantheon-base/backend/modules/business/secrets	(cached)
+ok  	github.com/duanxldragon/pantheon-base/backend/modules/business/service	(cached)
+?   	github.com/duanxldragon/pantheon-base/backend/modules/business/shared	[no test files]
+?   	github.com/duanxldragon/pantheon-base/backend/modules/lowcode	[no test files]
+ok  	github.com/duanxldragon/pantheon-base/backend/modules/lowcode/dynamicmodule	(cached)
+ok  	github.com/duanxldragon/pantheon-base/backend/modules/lowcode/generator	(cached)
+ok  	github.com/duanxldragon/pantheon-base/backend/modules/platform	(cached)
+ok  	github.com/duanxldragon/pantheon-base/backend/modules/system	(cached)
+ok  	github.com/duanxldragon/pantheon-base/backend/modules/system/audit	(cached)
+ok  	github.com/duanxldragon/pantheon-base/backend/modules/system/config/dict	(cached)
+ok  	github.com/duanxldragon/pantheon-base/backend/modules/system/config/setting	(cached)
+ok  	github.com/duanxldragon/pantheon-base/backend/modules/system/i18n	100.971s
+ok  	github.com/duanxldragon/pantheon-base/backend/modules/system/iam	(cached)
+ok  	github.com/duanxldragon/pantheon-base/backend/modules/system/iam/menu	(cached)
+ok  	github.com/duanxldragon/pantheon-base/backend/modules/system/iam/permission	(cached)
+ok  	github.com/duanxldragon/pantheon-base/backend/modules/system/iam/role	(cached)
+ok  	github.com/duanxldragon/pantheon-base/backend/modules/system/iam/tenant	(cached)
+ok  	github.com/duanxldragon/pantheon-base/backend/modules/system/iam/user	(cached)
+ok  	github.com/duanxldragon/pantheon-base/backend/modules/system/org/dept	(cached)
+ok  	github.com/duanxldragon/pantheon-base/backend/modules/system/org/post	(cached)
+ok  	github.com/duanxldragon/pantheon-base/backend/pkg/authsession	(cached)
+ok  	github.com/duanxldragon/pantheon-base/backend/pkg/authtoken	(cached)
+ok  	github.com/duanxldragon/pantheon-base/backend/pkg/capability	(cached)
+ok  	github.com/duanxldragon/pantheon-base/backend/pkg/common	(cached)
+ok  	github.com/duanxldragon/pantheon-base/backend/pkg/common/http	(cached)
+ok  	github.com/duanxldragon/pantheon-base/backend/pkg/common/security	(cached)
+ok  	github.com/duanxldragon/pantheon-base/backend/pkg/contracts	(cached)
+?   	github.com/duanxldragon/pantheon-base/backend/pkg/contracts/authuser	[no test files]
+ok  	github.com/duanxldragon/pantheon-base/backend/pkg/database	(cached)
+ok  	github.com/duanxldragon/pantheon-base/backend/pkg/impexp	(cached)
+ok  	github.com/duanxldragon/pantheon-base/backend/pkg/logging	(cached)
+ok  	github.com/duanxldragon/pantheon-base/backend/pkg/maintenance	(cached)
+ok  	github.com/duanxldragon/pantheon-base/backend/pkg/metrics	(cached)
+ok  	github.com/duanxldragon/pantheon-base/backend/pkg/platformprefs	(cached)
+ok  	github.com/duanxldragon/pantheon-base/backend/pkg/ratelimit	(cached)
+ok  	github.com/duanxldragon/pantheon-base/backend/pkg/rbacbind	(cached)
+ok  	github.com/duanxldragon/pantheon-base/backend/pkg/security/ssrf	(cached)
+ok  	github.com/duanxldragon/pantheon-base/backend/pkg/telemetry	(cached)
+ok  	github.com/duanxldragon/pantheon-base/backend/pkg/tenant	(cached)
+ok  	github.com/duanxldragon/pantheon-base/backend/pkg/testmysql	(cached)
+ok  	github.com/duanxldragon/pantheon-base/backend/pkg/testredis	(cached)
+ok  	github.com/duanxldragon/pantheon-base/backend/pkg/upload	(cached)
+?   	github.com/duanxldragon/pantheon-base/backend/pkg/version	[no test files]
+FAIL

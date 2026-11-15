@@ -1,0 +1,19 @@
+{
+  "remainingListeners": [],
+  "verifiedZero": true,
+  "vite": [
+    {
+      "repo": "pantheon-ops",
+      "commandLine": "\"node\"   \"D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\frontend\\node_modules\\.bin\\\\..\\vite\\bin\\vite.js\" --host 127.0.0.1 --port 5173 --strictPort",
+      "pid": 10416,
+      "port": 5173
+    }
+  ],
+  "ports": [
+    24485,
+    26316,
+    33316,
+    5173,
+    5175
+  ]
+}

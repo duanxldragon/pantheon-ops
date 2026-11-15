@@ -1,0 +1,212 @@
+{
+  "sourceHashesBeforeFinalVerification": [
+    {
+      "path": "scripts/business-overlay/foundation-candidate.mjs",
+      "bytes": 22879,
+      "sha256": "ac208accefe202987dbb597a41e428ddfe82bc1b63e37447beca77a1688b7ede",
+      "exports": [
+        "LIMITS",
+        "sha256",
+        "aggregateSha256",
+        "CAPABILITY_EXPORTS",
+        "assertCandidatePath",
+        "assertRealPath",
+        "assertInventory",
+        "candidateExports",
+        "validateCandidateDescriptor",
+        "readCandidateDescriptor",
+        "verifyCandidateArchive",
+        "verifyCandidateExecutable",
+        "readStableFile",
+        "assertRelativeInput",
+        "captureInputs",
+        "resolveCandidateArtifact",
+        "removeCandidateStage"
+      ]
+    },
+    {
+      "path": "scripts/business-overlay/rebuild-from-candidate.mjs",
+      "bytes": 11386,
+      "sha256": "1a05b6247bfb4d9d460e928ba53fb4ca4805fd440f093a0440b2a32cfd186828",
+      "exports": [
+        "rebuildFromCandidate"
+      ]
+    },
+    {
+      "path": "scripts/business-overlay/foundation-candidate.test.mjs",
+      "bytes": 28662,
+      "sha256": "14b97ab842bbd5eeb727b9960cb9027f790e72b4554d96c7a0d10a18c469d775",
+      "exports": []
+    }
+  ],
+  "protectedBeforeAfter": [
+    {
+      "path": "foundation-release.lock.json",
+      "sha256": "95de1a87270e15c0d4c672418a5df906818a88652f8a3e6c480f1484ee9fa70c",
+      "afterSha256": "95de1a87270e15c0d4c672418a5df906818a88652f8a3e6c480f1484ee9fa70c",
+      "unchanged": true
+    },
+    {
+      "path": "scripts/business-overlay/foundation-release.mjs",
+      "sha256": "e6a9de8d5afcbcfbfb949f8cdb6da78395cb33b0e88ea158443062608b99175b",
+      "afterSha256": "e6a9de8d5afcbcfbfb949f8cdb6da78395cb33b0e88ea158443062608b99175b",
+      "unchanged": true
+    },
+    {
+      "path": "scripts/business-overlay/rebuild-from-base.mjs",
+      "sha256": "5706de2dcd8d2334b374fa8dd1f621a9c4ddeb4b8b1a075172f4395e4ae2fdbd",
+      "afterSha256": "5706de2dcd8d2334b374fa8dd1f621a9c4ddeb4b8b1a075172f4395e4ae2fdbd",
+      "unchanged": true
+    },
+    {
+      "path": "scripts/business-overlay/check-shared-drift.mjs",
+      "sha256": "b60ceb39cb309761d928252da22442e4c05ee507f85f199cc7a17b92b469c085",
+      "afterSha256": "b60ceb39cb309761d928252da22442e4c05ee507f85f199cc7a17b92b469c085",
+      "unchanged": true
+    },
+    {
+      "path": ".business-overlay-report.json",
+      "sha256": "f1063c8ef4865a27ca1ada6cd3d05a45762792e704b90b3d3bc4a3d1a6901a58",
+      "afterSha256": "f1063c8ef4865a27ca1ada6cd3d05a45762792e704b90b3d3bc4a3d1a6901a58",
+      "unchanged": true
+    },
+    {
+      "path": "business-overlay.json",
+      "sha256": "d8fc5a88227d9242f30d71905af4963556e3a1e0d7247a053a4a03fbbd570111",
+      "afterSha256": "d8fc5a88227d9242f30d71905af4963556e3a1e0d7247a053a4a03fbbd570111",
+      "unchanged": true
+    },
+    {
+      "path": ".foundation/allowed-drift.json",
+      "sha256": "c165b37783be77622fba0479ab1e346d3c0bea3713ebafbfe7e72ebb3fd41d8e",
+      "afterSha256": "c165b37783be77622fba0479ab1e346d3c0bea3713ebafbfe7e72ebb3fd41d8e",
+      "unchanged": true
+    },
+    {
+      "path": "../pantheon-base/scripts/foundation-release/candidate-descriptor.mjs",
+      "sha256": "a9b242e4b6d787344f16357b6c7397ab4a7ffda633e21556138e240ccece71a6",
+      "afterSha256": "a9b242e4b6d787344f16357b6c7397ab4a7ffda633e21556138e240ccece71a6",
+      "unchanged": true
+    },
+    {
+      "path": "../pantheon-base/scripts/foundation-release/build-candidate-artifact.mjs",
+      "sha256": "2485c4da242967777d2c0b1d352f82684dbfa65343b6be229cb440b9322bb55f",
+      "afterSha256": "2485c4da242967777d2c0b1d352f82684dbfa65343b6be229cb440b9322bb55f",
+      "unchanged": true
+    },
+    {
+      "path": "../pantheon-base/scripts/foundation-release/candidate-artifact.test.mjs",
+      "sha256": "ceaddf4deb94ef6b16bcaac28bee4525fbdeec8dbc76e3dc7a61440782e02417",
+      "afterSha256": "ceaddf4deb94ef6b16bcaac28bee4525fbdeec8dbc76e3dc7a61440782e02417",
+      "unchanged": true
+    },
+    {
+      "path": "../pantheon-base/scripts/foundation-release/build-release-bundle.mjs",
+      "sha256": "3715c789337cc1b9ed8764fcc469e8ce7869e391ac67d50fe83341f5da8c8207",
+      "afterSha256": "3715c789337cc1b9ed8764fcc469e8ce7869e391ac67d50fe83341f5da8c8207",
+      "unchanged": true
+    },
+    {
+      "path": "../pantheon-base/scripts/foundation-release/build-release-manifest.mjs",
+      "sha256": "abd1ca92f4d6d0f8fc7a40ce2dbe708dca13fee84804c86a0fa46c50331aafa2",
+      "afterSha256": "abd1ca92f4d6d0f8fc7a40ce2dbe708dca13fee84804c86a0fa46c50331aafa2",
+      "unchanged": true
+    },
+    {
+      "path": ".harness\\evidence\\2026-11-07-ops-planned-task-closeout\\verification\\p0-integration-20261109\\argo-current-drift-result.json",
+      "sha256": "4d4ad997e73430b7b86f055954bdfbba2e95d7aa01715598ddd420237989bcb2",
+      "afterSha256": "4d4ad997e73430b7b86f055954bdfbba2e95d7aa01715598ddd420237989bcb2",
+      "unchanged": true
+    },
+    {
+      "path": ".harness\\evidence\\2026-11-07-ops-planned-task-closeout\\verification\\p0-integration-20261109\\argo-current-drift.txt",
+      "sha256": "12ff223ac59ad48128e3930321df3de79461cef4f2117ce8d2d10403f9cfc81e",
+      "afterSha256": "12ff223ac59ad48128e3930321df3de79461cef4f2117ce8d2d10403f9cfc81e",
+      "unchanged": true
+    },
+    {
+      "path": ".harness\\evidence\\2026-11-07-ops-planned-task-closeout\\verification\\p0-integration-20261109\\browser-repair-drift-result.json",
+      "sha256": "417f45a3513f493ce5b838898794fc1023162167847f21ff8cbba7e5f5d373f5",
+      "afterSha256": "417f45a3513f493ce5b838898794fc1023162167847f21ff8cbba7e5f5d373f5",
+      "unchanged": true
+    },
+    {
+      "path": ".harness\\evidence\\2026-11-07-ops-planned-task-closeout\\verification\\p0-integration-20261109\\browser-repair-drift.txt",
+      "sha256": "22613e27a06ac77b9158a029f7b808d600b9a01105822c572108370b8d1c1809",
+      "afterSha256": "22613e27a06ac77b9158a029f7b808d600b9a01105822c572108370b8d1c1809",
+      "unchanged": true
+    },
+    {
+      "path": ".harness\\evidence\\2026-11-07-ops-planned-task-closeout\\verification\\p0-integration-20261109\\follow-staged-drift.txt",
+      "sha256": "e7f31566d6b4e745352fd9866c990551ad7ca294bab25394beb9d5eb3dbb6a42",
+      "afterSha256": "e7f31566d6b4e745352fd9866c990551ad7ca294bab25394beb9d5eb3dbb6a42",
+      "unchanged": true
+    },
+    {
+      "path": ".harness\\evidence\\2026-11-07-ops-planned-task-closeout\\verification\\p0-integration-20261109\\resume-drift-result.json",
+      "sha256": "dd61bcc6db4e0bf3ed61740be11082bbd59471601c55224e4efac64af41fc5ba",
+      "afterSha256": "dd61bcc6db4e0bf3ed61740be11082bbd59471601c55224e4efac64af41fc5ba",
+      "unchanged": true
+    },
+    {
+      "path": ".harness\\evidence\\2026-11-07-ops-planned-task-closeout\\verification\\p0-integration-20261109\\resume-drift.txt",
+      "sha256": "d852f6177742a320d8a1415b5ac2f76924391de07d4b86569ef73a795b08fab7",
+      "afterSha256": "d852f6177742a320d8a1415b5ac2f76924391de07d4b86569ef73a795b08fab7",
+      "unchanged": true
+    },
+    {
+      "path": ".harness\\evidence\\2026-11-07-ops-planned-task-closeout\\verification\\p0-integration-20261109\\stage-drift-continuation-final.txt",
+      "sha256": "f54553aac047ff746833c1ca11e4341ddf749d4b952e3d7f0a858c0258867e6b",
+      "afterSha256": "f54553aac047ff746833c1ca11e4341ddf749d4b952e3d7f0a858c0258867e6b",
+      "unchanged": true
+    },
+    {
+      "path": ".harness\\evidence\\2026-11-07-ops-planned-task-closeout\\verification\\p0-integration-20261109\\stage-shared-drift.txt",
+      "sha256": "9f2bd3dc4d46606589b51c12e2c29fcc1ecb192d21d22434e8310db550ca071f",
+      "afterSha256": "9f2bd3dc4d46606589b51c12e2c29fcc1ecb192d21d22434e8310db550ca071f",
+      "unchanged": true
+    }
+  ],
+  "allProtectedUnchanged": true,
+  "sourceHashesAfterFinalVerification": [
+    {
+      "path": "scripts/business-overlay/foundation-candidate.mjs",
+      "bytes": 22879,
+      "sha256": "ac208accefe202987dbb597a41e428ddfe82bc1b63e37447beca77a1688b7ede",
+      "exports": [
+        "LIMITS",
+        "sha256",
+        "aggregateSha256",
+        "CAPABILITY_EXPORTS",
+        "assertCandidatePath",
+        "assertRealPath",
+        "assertInventory",
+        "candidateExports",
+        "validateCandidateDescriptor",
+        "readCandidateDescriptor",
+        "verifyCandidateArchive",
+        "verifyCandidateExecutable",
+        "readStableFile",
+        "assertRelativeInput",
+        "captureInputs",
+        "resolveCandidateArtifact",
+        "removeCandidateStage"
+      ]
+    },
+    {
+      "path": "scripts/business-overlay/rebuild-from-candidate.mjs",
+      "bytes": 11386,
+      "sha256": "1a05b6247bfb4d9d460e928ba53fb4ca4805fd440f093a0440b2a32cfd186828",
+      "exports": [
+        "rebuildFromCandidate"
+      ]
+    },
+    {
+      "path": "scripts/business-overlay/foundation-candidate.test.mjs",
+      "bytes": 28662,
+      "sha256": "14b97ab842bbd5eeb727b9960cb9027f790e72b4554d96c7a0d10a18c469d775",
+      "exports": []
+    }
+  ],
+  "verifiedSourceBytesStable": true
+}

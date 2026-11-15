@@ -1,0 +1,27 @@
+=== RUN   TestDeployLiveVMExecution
+=== RUN   TestDeployLiveVMExecution/success
+
+2026/11/09 09:25:14 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/deploy_service.go:1942 [35;1mrecord not found
+[0m[33m[0.559ms] [34;1m[rows:0][0m SELECT * FROM `biz_deploy_task_step` WHERE task_id = 1 AND task_host_id = 1 AND step_key = 'package_default' ORDER BY `biz_deploy_task_step`.`id` LIMIT 1
+
+2026/11/09 09:25:23 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/deploy_service.go:1942 [35;1mrecord not found
+[0m[33m[1.388ms] [34;1m[rows:0][0m SELECT * FROM `biz_deploy_task_step` WHERE task_id = 2 AND task_host_id = 2 AND step_key = 'package_default' ORDER BY `biz_deploy_task_step`.`id` LIMIT 1
+
+2026/11/09 09:25:27 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/deploy_service.go:2010 [35;1mError 1062 (23000): Duplicate entry '1' for key 'biz_deploy_task_log_chunk.uk_deploy_task_log_chunk_seq'
+[0m[33m[3.584ms] [34;1m[rows:0][0m INSERT INTO `biz_deploy_task_log_chunk` (`task_id`,`task_host_id`,`task_step_id`,`attempt_no`,`sequence`,`stream`,`content`,`created_at`) VALUES (2,2,2,1,1,'stdout','=== [1] p0-vm-component (uninstall) / script ===
+p0-live-uninstall','2026-11-09 09:25:27.781')
+2026/11/09 09:25:27 ERROR append deploy task log failed task_id=2 stream=stdout error="Error 1062 (23000): Duplicate entry '1' for key 'biz_deploy_task_log_chunk.uk_deploy_task_log_chunk_seq'"
+    deploy_live_acceptance_test.go:155: actual VM exit/streams/frozen input/package inverse/history/scope/cleanup verified at 2026-11-09T01:25:28Z
+=== RUN   TestDeployLiveVMExecution/failure
+
+2026/11/09 09:25:34 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/deploy_service.go:1942 [35;1mrecord not found
+[0m[33m[1.897ms] [34;1m[rows:0][0m SELECT * FROM `biz_deploy_task_step` WHERE task_id = 1 AND task_host_id = 1 AND step_key = 'package_default' ORDER BY `biz_deploy_task_step`.`id` LIMIT 1
+    deploy_live_acceptance_test.go:142: business.deploy.task.targetStatusMismatch
+--- FAIL: TestDeployLiveVMExecution (33.28s)
+    --- PASS: TestDeployLiveVMExecution/success (19.60s)
+    --- FAIL: TestDeployLiveVMExecution/failure (13.68s)
+=== RUN   TestDeployLiveVMCancellation
+--- PASS: TestDeployLiveVMCancellation (3.70s)
+FAIL
+FAIL	github.com/duanxldragon/pantheon-base/backend/modules/business/deploy	37.100s
+FAIL

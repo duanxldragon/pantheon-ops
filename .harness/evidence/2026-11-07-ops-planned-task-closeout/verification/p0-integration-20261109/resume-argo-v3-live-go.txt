@@ -1,0 +1,8 @@
+=== RUN   TestArgoFinalProductLive
+    argocd_final_live_test.go:109: PRODUCT_CHECK real provider preview contains added Service and no literal values
+    argocd_final_live_test.go:112: PRODUCT_CHECK product persists acceptance separately from terminal
+    argocd_final_live_test.go:113: exact product action did not reach terminal within bounded window
+--- FAIL: TestArgoFinalProductLive (79.29s)
+FAIL
+FAIL	github.com/duanxldragon/pantheon-base/backend/modules/business/cicd/argocd	79.388s
+FAIL

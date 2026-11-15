@@ -1,0 +1,43 @@
+{
+  "checks": [
+    {
+      "check": ".go assertions and algorithms unchanged except version names",
+      "passed": true
+    },
+    {
+      "check": "_test.go assertions and algorithms unchanged except version names",
+      "passed": true
+    },
+    {
+      "check": "-local-verify.py assertions and algorithms unchanged except version names",
+      "passed": true
+    },
+    {
+      "check": "cleanup code unchanged except version names",
+      "passed": true
+    },
+    {
+      "check": "execute code unchanged except version names",
+      "passed": true
+    },
+    {
+      "check": "remote_command code unchanged except version names",
+      "passed": true
+    },
+    {
+      "check": "pin code unchanged except version names",
+      "passed": true
+    },
+    {
+      "check": "same complete 12 cases",
+      "passed": true
+    },
+    {
+      "check": "all prior v6 files unchanged",
+      "passed": true,
+      "files": 40
+    }
+  ],
+  "failed": 0,
+  "noRemoteExecution": true
+}

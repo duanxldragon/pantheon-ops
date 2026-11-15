@@ -1,0 +1,78 @@
+[
+  {
+    "token": "selection-preview-dark-1794194219211",
+    "taskId": 6,
+    "hostId": 9,
+    "scopeId": 5,
+    "packageId": 5,
+    "templateId": 2,
+    "errors": []
+  },
+  {
+    "token": "command-light-1794194089752",
+    "taskId": 1,
+    "hostId": 4,
+    "scopeId": 1,
+    "packageId": 1,
+    "cleanupErrors": [
+      "cmdb/hosts/4: Error: apiRequestContext.delete: Test timeout of 30000ms exceeded.",
+      "bizscope/1: Error: apiRequestContext.delete: Test timeout of 30000ms exceeded.",
+      "deploy/packages/1: Error: apiRequestContext.delete: Test timeout of 30000ms exceeded."
+    ]
+  },
+  {
+    "token": "workbench-light-1794194256818",
+    "scopeId": 7,
+    "hostId": 11,
+    "packageId": 7,
+    "taskId": 9,
+    "cleanupErrors": [
+      "operation verification: apiRequestContext.post: Test timeout of 30000ms exceeded."
+    ]
+  },
+  {
+    "token": "command-batch-1794194154196",
+    "taskIds": [
+      3,
+      4
+    ],
+    "hostId": 7,
+    "scopeId": 3,
+    "packageId": 3,
+    "errors": [
+      "Error: apiRequestContext.post: Test timeout of 30000ms exceeded."
+    ]
+  },
+  {
+    "token": "command-dark-1794194121784",
+    "taskId": 2,
+    "hostId": 5,
+    "scopeId": 2,
+    "packageId": 2,
+    "cleanupErrors": [
+      "bizscope/2: Error: apiResponse.json: Response has been disposed",
+      "deploy/packages/2: Error: apiRequestContext.delete: Test timeout of 30000ms exceeded."
+    ]
+  },
+  {
+    "token": "selection-preview-light-1794194187090",
+    "taskId": 5,
+    "hostId": 8,
+    "scopeId": 4,
+    "packageId": 4,
+    "templateId": 1,
+    "errors": [
+      "Error: apiRequestContext.post: Test timeout of 30000ms exceeded."
+    ]
+  },
+  {
+    "token": "workbench-dark-1794194289432",
+    "scopeId": 8,
+    "hostId": 12,
+    "packageId": 8,
+    "taskId": 10,
+    "cleanupErrors": [
+      "operation verification: apiRequestContext.post: Test timeout of 30000ms exceeded."
+    ]
+  }
+]

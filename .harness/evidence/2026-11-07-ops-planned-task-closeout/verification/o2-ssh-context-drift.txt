@@ -1,0 +1,15 @@
+
+> check:shared-drift
+> node scripts/business-overlay/check-shared-drift.mjs --root .tmp/ops-priority-ssh-stage
+
+ALLOWED_DRIFT backend/modules/business/business.go — overlay hook: initOverlayBusinessModules call is the ops business-module extension point reserved by base
+ALLOWED_DRIFT backend/modules/system/iam/menu/component_registry.go — overlay hook: mergeMenuComponentKeys with businessOverlayMenuComponentKeys, extension point reserved by base
+ALLOWED_DRIFT frontend/package.json — overlay scripts: business smoke suites (test:smoke:business:*) declared by ops only
+ALLOWED_DRIFT frontend/scripts/cleanup-generated-modules.mjs — overlay: preserve business-overlay-owned files during generated-module cleanup
+ALLOWED_DRIFT frontend/src/core/router/componentRegistry.ts — overlay hook: businessOverlayComponentRegistry import/merge, extension point reserved by base
+ALLOWED_DRIFT frontend/src/core/router/modules.ts — overlay hook: overlayBusinessModules import, extension point reserved by base
+ALLOWED_DRIFT frontend/tests/smoke/README.md — overlay docs: ops business smoke suite index appended below base content
+ALLOWED_DRIFT backend/modules/business/business_overlay_registry.go — ops-only overlay registry file required by the business-overlay contract
+ALLOWED_DRIFT backend/modules/system/iam/menu/business_overlay_component_registry.go — ops-only overlay registry file required by the business-overlay contract
+ALLOWED_DRIFT frontend/src/core/router/businessOverlayComponentRegistry.ts — ops-only overlay registry file required by the business-overlay contract
+OK shared drift check: 826 shared files compared, 816 identical to base, 10 allowlisted drift, 191 business-overlay files skipped, 6 derived business migrations verified (base=D:\workspace\go\pantheon-platform\pantheon-ops\.tmp\ops-priority-ssh-stage\.foundation\releases\pantheon-base-v0.18.6\repo)

@@ -1,0 +1,6 @@
+{
+  "command": "npm.cmd run check:shared-drift -- --root .tmp/p0-browser-repair-stage",
+  "cwd": ".",
+  "exitCode": 0,
+  "elapsedSeconds": 60.29699999999866
+}

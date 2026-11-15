@@ -1,0 +1,43 @@
+
+> check:harness-docs
+> node scripts/harness/check-doc-links.mjs --root . --strict
+
+Docs link check (strict): 19 finding(s)
+finding: docs/designs/TENANT_RESOURCE_SCOPE_MATRIX.md
+  reason: missing internal link target: ../../.harness/archive/2026-09/tasks/2026-09-10-tenant-contract-design/task.md
+finding: docs/release-notes/RELEASE_NOTES_v0.18.3.md
+  reason: missing internal link target: ../../.harness/evidence/2026-11-05-base-freeze-release/summary.md
+finding: docs/release-notes/RELEASE_NOTES_v0.18.3.md
+  reason: missing internal link target: ../../.harness/evidence/2026-11-05-base-freeze-release/functionality-matrix.md
+finding: docs/release-notes/RELEASE_NOTES_v0.18.3.md
+  reason: missing internal link target: ../../.harness/evidence/2026-11-05-base-freeze-release/hosted-validation.json
+finding: docs/reviews/ENTERPRISE_RELEASE_READINESS_REVIEW_2026-10-07.md
+  reason: missing internal link target: ../../.github/workflows/release-gate.yml#L205
+finding: docs/reviews/ENTERPRISE_RELEASE_READINESS_REVIEW_2026-10-07.md
+  reason: missing internal link target: ../harness/tasks/2026-10-07-release-readiness-remediation.task.md
+finding: docs/reviews/PANTHEON_BASE_FINAL_ACCEPTANCE_REVIEW_2026-10-21.md
+  reason: missing internal link target: ../../.harness/evidence/2026-10-22-release-and-residual-closeout/summary.md
+finding: docs/reviews/PANTHEON_BASE_GLOBAL_AUDIT_2026-11-04_FULL.md
+  reason: missing internal link target: ../../.harness/evidence/2026-11-05-base-freeze-release/audit-screenshots/login-desktop.png
+finding: docs/reviews/PANTHEON_BASE_GLOBAL_AUDIT_2026-11-04_FULL.md
+  reason: missing internal link target: ../../.harness/evidence/2026-11-05-base-freeze-release/audit-screenshots/login-mobile.png
+finding: docs/reviews/PANTHEON_BASE_ISSUES_AND_REMEDIATION_2026-10-21.md
+  reason: missing internal link target: ../../.harness/evidence/2026-10-22-release-and-residual-closeout/summary.md
+finding: docs/reviews/PANTHEON_BASE_MAINTENANCE_FREEZE_DECLARATION.md
+  reason: missing internal link target: ../harness/tasks/2026-11-05-base-freeze-release.task.md
+finding: docs/reviews/PANTHEON_BASE_MAINTENANCE_FREEZE_DECLARATION.md
+  reason: missing internal link target: ../../.harness/evidence/2026-11-05-base-freeze-release/summary.md
+finding: docs/reviews/PANTHEON_BASE_TEST_AND_ACCEPTANCE_REPORT_2026-10-21.md
+  reason: missing internal link target: ../../.harness/evidence/2026-10-22-release-and-residual-closeout/summary.md
+finding: docs/reviews/TENANT_MULTI_MEMBERSHIP_DECISION_2026-10-27.md
+  reason: missing internal link target: ../harness/tasks/2026-10-27-tenant-completeness-remediation.task.md
+finding: docs/reviews/TENANT_PLAN_LADDER_DECISION_2026-10-28.md
+  reason: missing internal link target: ../harness/tasks/2026-10-27-tenant-completeness-remediation.task.md
+finding: docs/runbooks/TENANT_MIGRATION_RUNBOOK.md
+  reason: missing internal link target: ../../.harness/archive/2026-09/evidence/2026-09-10-tenant-migration-runbook/rehearsal-log.md
+finding: docs/runbooks/TENANT_MIGRATION_RUNBOOK.md
+  reason: missing internal link target: ../../.harness/archive/2026-09/evidence/2026-09-10-tenant-migration-runbook/rehearsal-log.md
+finding: docs/TENANT_INITIALIZATION_GUIDE.md
+  reason: missing internal link target: ../.harness/evidence/2026-11-05-base-freeze-release/functionality-matrix.md
+finding: docs/testing-quick-start.md
+  reason: missing internal link target: ../.github/workflows/smoke-core.yml

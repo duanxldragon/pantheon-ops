@@ -1,0 +1,44 @@
+(!) Your Vite config uses features that are unsupported by `configLoader: 'native'`, which is planned to become the default in a future major version of Vite:
+  - `__dirname` (vitest.config.ts:10:25). Use `import.meta.dirname` instead
+Set `VITE_CONFIG_NATIVE_IGNORE_WARNING=true` to suppress this warning.
+
+ RUN  v5.0.5 D:/workspace/go/pantheon-platform/pantheon-ops/frontend
+
+ ❯ tests/unit/business/operational/deploy-detail-read.test.tsx (7 tests | 7 failed) 465ms
+   ❯ rendered deployment detail controls and read freshness (7)
+     × exposes supported manual cancellation in paused 263ms
+     × exposes supported manual cancellation in pause_requested 39ms
+     × exposes supported manual cancellation in cancel_requested 41ms
+     × does not expose controls without permission and offers rollback draft only on supported terminal states 24ms
+     × shows forbidden and removes task/log content when a connected stream is denied 36ms
+     × marks a connected silent refresh stale and resumes recoverable polling 27ms
+     × clears the task on silent detail denial 25ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 7 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/unit/business/operational/deploy-detail-read.test.tsx > rendered deployment detail controls and read freshness > exposes supported manual cancellation in paused
+ FAIL  tests/unit/business/operational/deploy-detail-read.test.tsx > rendered deployment detail controls and read freshness > exposes supported manual cancellation in pause_requested
+ FAIL  tests/unit/business/operational/deploy-detail-read.test.tsx > rendered deployment detail controls and read freshness > exposes supported manual cancellation in cancel_requested
+ FAIL  tests/unit/business/operational/deploy-detail-read.test.tsx > rendered deployment detail controls and read freshness > does not expose controls without permission and offers rollback draft only on supported terminal states
+ FAIL  tests/unit/business/operational/deploy-detail-read.test.tsx > rendered deployment detail controls and read freshness > shows forbidden and removes task/log content when a connected stream is denied
+ FAIL  tests/unit/business/operational/deploy-detail-read.test.tsx > rendered deployment detail controls and read freshness > marks a connected silent refresh stale and resumes recoverable polling
+ FAIL  tests/unit/business/operational/deploy-detail-read.test.tsx > rendered deployment detail controls and read freshness > clears the task on silent detail denial
+TypeError: window.matchMedia is not a function
+ ❯ node_modules/@arco-design/web-react/lib/_util/responsiveObserve.js:78:30
+ ❯ Object.register node_modules/@arco-design/web-react/lib/_util/responsiveObserve.js:71:44
+ ❯ Object.subscribe node_modules/@arco-design/web-react/lib/_util/responsiveObserve.js:43:18
+ ❯ node_modules/@arco-design/web-react/lib/Descriptions/index.js:75:63
+ ❯ Object.react_stack_bottom_frame node_modules/react-dom/cjs/react-dom-client.development.js:28656:20
+ ❯ runWithFiberInDEV node_modules/react-dom/cjs/react-dom-client.development.js:1048:13
+ ❯ commitHookEffectListMount node_modules/react-dom/cjs/react-dom-client.development.js:13748:29
+ ❯ commitHookPassiveMountEffects node_modules/react-dom/cjs/react-dom-client.development.js:13835:11
+ ❯ commitPassiveMountOnFiber node_modules/react-dom/cjs/react-dom-client.development.js:16906:13
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/7]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  7 failed (7)
+   Start at  11:41:46
+   Duration  6.89s (import 45%, environment 28%, transform 19%, tests 7%)
+

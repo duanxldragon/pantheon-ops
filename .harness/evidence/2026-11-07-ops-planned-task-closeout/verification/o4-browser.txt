@@ -1,0 +1,99 @@
+[smoke-suite] API base http://127.0.0.1:24484/api/v1
+[generated-modules] cleanup complete
+{
+  "modules": 0,
+  "schemas": 1,
+  "registries": 4,
+  "i18n": 5
+}
+(!) Your Vite config uses features that are unsupported by `configLoader: 'native'`, which is planned to become the default in a future major version of Vite:
+  - `__dirname` (vite.config.ts:32:25). Use `import.meta.dirname` instead
+Set `VITE_CONFIG_NATIVE_IGNORE_WARNING=true` to suppress this warning.
+Smoke Vite ready at http://127.0.0.1:24587/
+
+Running 2 tests using 1 worker
+
+(node:13272) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x  1 tests\smoke\business\observability-workbench.spec.ts:7:3 › Loki UTC range, cancellation, denial and recovery (light) (14.4s)
+(node:8324) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x  2 tests\smoke\business\observability-workbench.spec.ts:7:3 › Loki UTC range, cancellation, denial and recovery (dark) (16.3s)
+
+
+  1) tests\smoke\business\observability-workbench.spec.ts:7:3 › Loki UTC range, cancellation, denial and recovery (light) 
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator: getByText('没有匹配到日志。', { exact: true })
+    Expected: visible
+    Timeout: 10000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toBeVisible" getByText('没有匹配到日志。', { exact: true }) with timeout 10000ms
+      - waiting for getByText('没有匹配到日志。', { exact: true })
+
+
+      52 |     state = 'empty';
+      53 |     await page.getByRole('button', { name: '搜索', exact: true }).click();
+    > 54 |     await expect(page.getByText('没有匹配到日志。', { exact: true })).toBeVisible();
+         |                                                               ^
+      55 |     state = 'error';
+      56 |     await page.getByRole('button', { name: '搜索', exact: true }).click();
+      57 |     await expect(page.locator('.page-error')).toBeVisible();
+        at D:\workspace\go\pantheon-platform\pantheon-ops\frontend\tests\smoke\business\observability-workbench.spec.ts:54:63
+
+    Error Context: ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\o4-browser\smoke-business-observabili-aaf1f--denial-and-recovery-light-\error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\o4-browser\smoke-business-observabili-aaf1f--denial-and-recovery-light-\trace.zip
+    Usage:
+
+        npx playwright show-trace ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\o4-browser\smoke-business-observabili-aaf1f--denial-and-recovery-light-\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  2) tests\smoke\business\observability-workbench.spec.ts:7:3 › Loki UTC range, cancellation, denial and recovery (dark) 
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator: getByText('没有匹配到日志。', { exact: true })
+    Expected: visible
+    Timeout: 10000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toBeVisible" getByText('没有匹配到日志。', { exact: true }) with timeout 10000ms
+      - waiting for getByText('没有匹配到日志。', { exact: true })
+
+
+      52 |     state = 'empty';
+      53 |     await page.getByRole('button', { name: '搜索', exact: true }).click();
+    > 54 |     await expect(page.getByText('没有匹配到日志。', { exact: true })).toBeVisible();
+         |                                                               ^
+      55 |     state = 'error';
+      56 |     await page.getByRole('button', { name: '搜索', exact: true }).click();
+      57 |     await expect(page.locator('.page-error')).toBeVisible();
+        at D:\workspace\go\pantheon-platform\pantheon-ops\frontend\tests\smoke\business\observability-workbench.spec.ts:54:63
+
+    Error Context: ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\o4-browser\smoke-business-observabili-a1888-n-denial-and-recovery-dark-\error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\o4-browser\smoke-business-observabili-a1888-n-denial-and-recovery-dark-\trace.zip
+    Usage:
+
+        npx playwright show-trace ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\o4-browser\smoke-business-observabili-a1888-n-denial-and-recovery-dark-\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  2 failed
+    tests\smoke\business\observability-workbench.spec.ts:7:3 › Loki UTC range, cancellation, denial and recovery (light) 
+    tests\smoke\business\observability-workbench.spec.ts:7:3 › Loki UTC range, cancellation, denial and recovery (dark) 
+[generated-modules] cleanup complete
+{
+  "modules": 0,
+  "schemas": 1,
+  "registries": 4,
+  "i18n": 5
+}

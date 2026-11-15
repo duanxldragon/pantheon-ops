@@ -1,0 +1,27 @@
+{
+  "taskId": "2026-11-07-ops-planned-task-closeout",
+  "parentTaskPacket": "docs/harness/tasks/2026-11-07-ops-planned-task-closeout.task.md",
+  "scope": "Offline cached-component integrity reconstruction only",
+  "commands": [
+    {"command": "python -B .local/ops-acceptance/resume-velero-s3-cached-check.py", "exitCode": 0, "checksPassed": 34, "evidence": "resume-velero-s3-cached-checks-20261110T003119069459.json", "note": "Initial passing version before adding a pre-publication input hash recheck"},
+    {"command": "python -B .local/ops-acceptance/resume-velero-s3-cached-check.py", "exitCode": 0, "checksPassed": 34, "evidence": "resume-velero-s3-cached-checks-20261110T003216480740.json", "note": "Final completion script version; actual bytes reverified without publication, network forbidden"},
+    {"command": "python -B .local/ops-acceptance/resume-velero-s3-cached-completion.py", "exitCode": 0, "evidence": "resume-velero-s3-cached-completion-20261110T003228969327.json", "stagedArtifactBytes": 229386389, "scriptSHA256": "44433c1a81406988c758ddf0ae2a46d5e2af60b173e8d005d4a365ca84deffc6"},
+    {"command": "Read-only AST extraction of original reviewed() and load_artifacts() against the local cache directory", "exitCode": 1, "note": "Original reviewed() passed 8 scripts and 17 product source hashes. load_artifacts() could not find the prep script beside cache payloads; source-location mapping fixed this inspection without modifying or copying the original prep."},
+    {"command": "python -B .local/ops-acceptance/resume-velero-s3-cached-loader-check.py", "exitCode": 0, "checksPassed": 3, "evidence": "resume-velero-s3-cached-loader-check-20261110T003340924706.json", "note": "Exact original hash/loader functions; actual local bytes; source-location-only path mapping; network forbidden"},
+    {"command": "Python compile(source, path, 'exec') for each of the three new cached scripts", "exitCode": 0, "result": "PASS; no bytecode output"},
+    {"command": "git diff --no-index --check -- NUL .local/ops-acceptance/resume-velero-s3-cached-completion.py", "exitCode": 1, "result": "No whitespace diagnostics; exit 1 is the no-index difference indicator for a new file"},
+    {"command": "git diff --no-index --check -- NUL .local/ops-acceptance/resume-velero-s3-cached-check.py", "exitCode": 1, "result": "No whitespace diagnostics; exit 1 is the no-index difference indicator for a new file"},
+    {"command": "git diff --no-index --check -- NUL .local/ops-acceptance/resume-velero-s3-cached-loader-check.py", "exitCode": 1, "result": "No whitespace diagnostics; exit 1 is the no-index difference indicator for a new file"},
+    {"command": "git check-ignore .local/ops-acceptance/resume-velero-s3-cached-completion.py .local/ops-acceptance/resume-velero-s3-cached-check.py .local/ops-acceptance/resume-velero-s3-cached-loader-check.py", "exitCode": 0, "result": "All three scripts remain ignored"},
+    {"command": "npm run check:docs-frontmatter", "exitCode": 0, "result": "462 docs checked, 301 with frontmatter"},
+    {"command": "npm run check:task-packet-template", "exitCode": 0, "result": "Ops task-packet template is present and linked"},
+    {"command": "Owned disposable fixture and publication temporary-file inspection", "exitCode": 0, "result": "No leftovers"}
+  ],
+  "review": "resume-velero-s3-cached-review.json",
+  "summary": "resume-velero-s3-cached-handoff.md",
+  "remoteExecuted": false,
+  "fullBackendTestsRun": false,
+  "providerTestsRun": false,
+  "D1Closed": false,
+  "formalP0Closed": false
+}

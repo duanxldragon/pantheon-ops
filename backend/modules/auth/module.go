@@ -30,6 +30,9 @@ func InitAuthModule(r *gin.RouterGroup, db *gorm.DB, userRepo authuser.Repositor
 		return tenant.FeatureFlagSettingKeyReader(db)
 	}, int64(5*time.Second))
 	authSvc := login.NewRuntime(db, userRepo)
+	if err := contracts.RegisterBusinessAuthorizationReader(login.NewBusinessAuthorizationReader(authSvc, database.RDB, contracts.RegisteredBusinessTenantModeReader())); err != nil {
+		panic(err)
+	}
 	authHandler := login.NewAuthHandler(authSvc, middleware.InvalidateTokenAuthCache)
 	loginRateLimiter := middleware.RateLimiter(middleware.RateLimiterConfig{
 		MaxRequests: publicAuthRateLimitMax(5, 120),

@@ -1,5 +1,15 @@
 # Pantheon-Ops 文档目录
 
+## 当前任务入口（2026-11-14）
+
+- [继承说明](./PROJECT_INHERITANCE.md)：活动底座已升级至正式 v0.18.8；此前权限失败和回滚证据保留，剩余验收仍开放。
+- [当前进度与剩余任务](../.harness/tasks/2026-11-07-ops-planned-task-closeout/remaining-priorities.md)：六个 P0 父任务仍开放，Velero 后置、O7 deferred。
+- [业务工作台设计](./designs/BUSINESS_OPERATIONAL_WORKBENCH_DESIGN.md)：设计完成，O1–O6 实现/验收仍有余项。
+- [生产交付任务状态](../.harness/tasks/2026-09-28-ops-delivery-readiness-gap-closure/STATUS.md)：外部、策略、生产与继承包装门禁。
+- [当前执行证据](../.harness/evidence/2026-11-14-ops-latest-foundation-and-plans/summary.md)：菜单、环境迁移、Dashboard、CMDB 权限与正式候选验证。
+
+以下版本导航为历史归档，不能据其完成标记判断当前生产验收或工作台实现状态。
+
 本目录包含 Pantheon-Ops 项目的所有文档。
 
 ---
@@ -35,21 +45,22 @@ docs/
 
 ### 核心文档
 
-| 文档 | 描述 | 状态 |
-|------|------|------|
-| [V1_RELEASE_CHECKLIST.md](./V1_RELEASE_CHECKLIST.md) | V1.0 发布检查表 | ✅ 最新 |
-| [PROJECT_INHERITANCE.md](./PROJECT_INHERITANCE.md) | 项目继承说明 | ✅ 最新 |
+| 文档                                                         | 描述                                        | 状态    |
+| ------------------------------------------------------------ | ------------------------------------------- | ------- |
+| [V1_RELEASE_CHECKLIST.md](./V1_RELEASE_CHECKLIST.md)         | V1.0 发布检查表                             | ✅ 最新 |
+| [PROJECT_INHERITANCE.md](./PROJECT_INHERITANCE.md)           | 项目继承说明                                | ✅ 最新 |
 | [TASK_PACKET_OPS_TEMPLATE.md](./TASK_PACKET_OPS_TEMPLATE.md) | 任务包模板（业务任务与 `base -> ops` 同步） | ✅ 最新 |
 
 ### V1.2 设计文档
 
-| 文档 | 描述 | 状态 |
-|------|------|------|
-| [designs/V1.2_COMPLETE_DESIGN.md](../.harness/v1.2-docs/V1.2_COMPLETE_DESIGN.md) | V1.2 完整设计（第1部分）| ✅ 已完成 |
-| [designs/V1.2_COMPLETE_DESIGN_PART2.md](../.harness/v1.2-docs/V1.2_COMPLETE_DESIGN_PART2.md) | V1.2 完整设计（第2部分）| ✅ 已完成 |
-| [designs/V1.2_COMPLETE_DESIGN_PART3.md](../.harness/v1.2-docs/V1.2_COMPLETE_DESIGN_PART3.md) | V1.2 完整设计（第3部分）| ✅ 已完成 |
+| 文档                                                                                         | 描述                     | 状态      |
+| -------------------------------------------------------------------------------------------- | ------------------------ | --------- |
+| [designs/V1.2_COMPLETE_DESIGN.md](../.harness/v1.2-docs/V1.2_COMPLETE_DESIGN.md)             | V1.2 完整设计（第1部分） | ✅ 已完成 |
+| [designs/V1.2_COMPLETE_DESIGN_PART2.md](../.harness/v1.2-docs/V1.2_COMPLETE_DESIGN_PART2.md) | V1.2 完整设计（第2部分） | ✅ 已完成 |
+| [designs/V1.2_COMPLETE_DESIGN_PART3.md](../.harness/v1.2-docs/V1.2_COMPLETE_DESIGN_PART3.md) | V1.2 完整设计（第3部分） | ✅ 已完成 |
 
 **V1.2 核心模块**:
+
 - ArgoCD GitOps 集成
 - Velero 备份恢复
 - 告警规则引擎
@@ -57,25 +68,25 @@ docs/
 
 ### V1.0 审计报告
 
-| 文档 | 描述 | 日期 |
-|------|------|------|
-| [audits/v1.0/pantheon-ops_v1.0冻结前综合评审报告.md](./audits/v1.0/pantheon-ops_v1.0冻结前综合评审报告.md) | V1.0 综合评审报告 | 2026-08-28 |
-| [audits/v1.0/pantheon-ops_v1.0业务模块关联性与闭环检查报告.md](./audits/v1.0/pantheon-ops_v1.0业务模块关联性与闭环检查报告.md) | 业务模块闭环检查 | 2026-08-28 |
+| 文档                                                                                                                           | 描述              | 日期       |
+| ------------------------------------------------------------------------------------------------------------------------------ | ----------------- | ---------- |
+| [audits/v1.0/pantheon-ops_v1.0冻结前综合评审报告.md](./audits/v1.0/pantheon-ops_v1.0冻结前综合评审报告.md)                     | V1.0 综合评审报告 | 2026-08-28 |
+| [audits/v1.0/pantheon-ops_v1.0业务模块关联性与闭环检查报告.md](./audits/v1.0/pantheon-ops_v1.0业务模块关联性与闭环检查报告.md) | 业务模块闭环检查  | 2026-08-28 |
 
 ### Harness 方法与合同
 
-| 文档 | 用途 |
-|------|------|
-| [HARNESS_ENGINEERING_CONTRACT.md](./harness/HARNESS_ENGINEERING_CONTRACT.md) | 本仓库 Harness 执行合同 |
-| [HARNESS_METHOD_PLAYBOOK.md](./harness/HARNESS_METHOD_PLAYBOOK.md) | 任务执行顺序与证据要求 |
-| [Harness patterns README](https://github.com/duanxldragon/pantheon-harness/blob/main/patterns/README.md) | 上游方法资产入口 |
-| [Harness core model](https://github.com/duanxldragon/pantheon-harness/blob/main/patterns/harness-core-model.md) | 方法核心模型 |
-| [Harness coverage model](https://github.com/duanxldragon/pantheon-harness/blob/main/patterns/harness-coverage-model.md) | 方法覆盖检查模型 |
-| [Harness template taxonomy](https://github.com/duanxldragon/pantheon-harness/blob/main/patterns/harness-template-taxonomy.md) | 模板分类 |
-| [Tool adapter matrix](https://github.com/duanxldragon/pantheon-harness/blob/main/patterns/tool-adapter-matrix.md) | 工具适配能力矩阵 |
-| [Method playbook](https://github.com/duanxldragon/pantheon-harness/blob/main/patterns/method-playbook.md) | 上游执行手册 |
-| [Execution guardrails](https://github.com/duanxldragon/pantheon-harness/blob/main/patterns/execution-guardrails.md) | 执行安全边界 |
-| [Context engineering protocol](https://github.com/duanxldragon/pantheon-harness/blob/main/patterns/context-engineering-protocol.md) | 上下文读取与隐私边界 |
+| 文档                                                                                                                                | 用途                    |
+| ----------------------------------------------------------------------------------------------------------------------------------- | ----------------------- |
+| [HARNESS_ENGINEERING_CONTRACT.md](./harness/HARNESS_ENGINEERING_CONTRACT.md)                                                        | 本仓库 Harness 执行合同 |
+| [HARNESS_METHOD_PLAYBOOK.md](./harness/HARNESS_METHOD_PLAYBOOK.md)                                                                  | 任务执行顺序与证据要求  |
+| [Harness patterns README](https://github.com/duanxldragon/pantheon-harness/blob/main/patterns/README.md)                            | 上游方法资产入口        |
+| [Harness core model](https://github.com/duanxldragon/pantheon-harness/blob/main/patterns/harness-core-model.md)                     | 方法核心模型            |
+| [Harness coverage model](https://github.com/duanxldragon/pantheon-harness/blob/main/patterns/harness-coverage-model.md)             | 方法覆盖检查模型        |
+| [Harness template taxonomy](https://github.com/duanxldragon/pantheon-harness/blob/main/patterns/harness-template-taxonomy.md)       | 模板分类                |
+| [Tool adapter matrix](https://github.com/duanxldragon/pantheon-harness/blob/main/patterns/tool-adapter-matrix.md)                   | 工具适配能力矩阵        |
+| [Method playbook](https://github.com/duanxldragon/pantheon-harness/blob/main/patterns/method-playbook.md)                           | 上游执行手册            |
+| [Execution guardrails](https://github.com/duanxldragon/pantheon-harness/blob/main/patterns/execution-guardrails.md)                 | 执行安全边界            |
+| [Context engineering protocol](https://github.com/duanxldragon/pantheon-harness/blob/main/patterns/context-engineering-protocol.md) | 上下文读取与隐私边界    |
 
 > 上游方法资产属于 `pantheon-harness` 仓库，ops 不复制副本；workspace 里它们是兄弟目录，CI 中不存在，所以这里用远端链接。
 
@@ -84,23 +95,27 @@ docs/
 ## 🎯 按版本查看
 
 ### V1.0 (Current)
+
 - ✅ 核心闭环完成
 - ✅ CMDB + 部署 + K8s
 - ⚠️ 服务实例/监控骨架存在
 - ❌ ArgoCD/Velero 已下架
 
 **相关文档**:
+
 - [V1.0 发布检查表](./V1_RELEASE_CHECKLIST.md)
 - [V1.0 综合评审报告](./audits/v1.0/pantheon-ops_v1.0冻结前综合评审报告.md)
 - [V1.0 闭环检查报告](./audits/v1.0/pantheon-ops_v1.0业务模块关联性与闭环检查报告.md)
 
 ### V1.2 (Planning)
+
 - 📐 ArgoCD 真实集成
 - 📐 Velero 真实集成
 - 📐 告警规则引擎
 - 📐 文件分发系统
 
 **相关文档**:
+
 - [V1.2 完整设计方案](../.harness/v1.2-docs/V1.2_COMPLETE_DESIGN.md)
 
 ---
@@ -108,12 +123,15 @@ docs/
 ## 📝 文档类型说明
 
 ### 设计文档 (designs/)
+
 包含系统架构、模块设计、API 设计等技术规格文档。
 
 ### 审计报告 (audits/)
+
 包含版本审计、评审报告、修复记录等质量保证文档。
 
 ### 评审文档 (reviews/)
+
 包含代码评审、设计评审等过程记录文档。
 
 ---
@@ -121,11 +139,13 @@ docs/
 ## 🔍 搜索指南
 
 ### 查找特定主题
+
 - **部署相关**: `grep -r "部署" docs/`
 - **K8s相关**: `grep -r "kubernetes\|k8s" docs/`
 - **告警相关**: `grep -r "告警\|alert" docs/`
 
 ### 查找特定版本
+
 - **V1.0 文档**: `docs/audits/v1.0/`
 - **V1.2 文档**: `docs/designs/V1.2*`
 
@@ -134,16 +154,19 @@ docs/
 ## 📌 维护说明
 
 ### 添加新文档
+
 1. 确定文档类型（设计/审计/评审）
 2. 放入对应目录
 3. 更新本索引文件
 
 ### 归档旧文档
+
 1. 按版本创建归档目录
 2. 移动过时文档到归档目录
 3. 更新索引中的状态标记
 
 ### 文档命名规范
+
 - 设计文档: `模块名_DESIGN.md`
 - 审计报告: `项目名_版本_审计类型.md`
 - 评审记录: `评审日期_评审主题.md`

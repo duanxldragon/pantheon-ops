@@ -1,0 +1,9 @@
+{
+  "business.deploy.logs.copy": "표시된 로그 복사",
+  "business.deploy.logs.copied": "로그를 복사했습니다",
+  "business.deploy.logs.copyFailed": "로그를 복사할 수 없습니다",
+  "business.deploy.logs.download": "로그 스냅샷 다운로드",
+  "business.deploy.logs.downloadFailed": "로그를 다운로드할 수 없습니다",
+  "business.deploy.logs.downloadLimited": "로그 제한에 도달하여 일부 기록만 포함되어 있습니다.",
+  "business.deploy.logs.knownRedaction": "알려진 작업 비밀은 가려집니다. 다른 민감한 애플리케이션 출력이 남아 있을 수 있습니다."
+}

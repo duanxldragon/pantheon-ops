@@ -1,0 +1,200 @@
+{
+  "taskId": "2026-11-07-ops-planned-task-closeout",
+  "tier": "L2",
+  "role": "Generator/executor",
+  "commands": [
+    {
+      "command": "node --import './.harness/evidence/2026-11-07-ops-planned-task-closeout/o4-generator-code-safety-repair-20261110-01/preserve-fixtures.mjs' --test scripts/business-overlay/candidate-ownership.test.mjs",
+      "exitCode": 1,
+      "log": "red.log",
+      "tests": 9,
+      "passed": 2,
+      "failed": 7,
+      "skipped": 0,
+      "sha256": "4a3ed2bba546dc53ea97e3f1f770afd0cfdd510af3baf6e36cdb5022be24799c",
+      "note": "Four confirmed independent defects reproduced before implementation; original imported modules loaded from six matching before pins."
+    },
+    {
+      "command": "node --import './.harness/evidence/2026-11-07-ops-planned-task-closeout/o4-generator-code-safety-repair-20261110-01/preserve-fixtures-v2.mjs' --test scripts/business-overlay/foundation-candidate.test.mjs scripts/business-overlay/candidate-ownership.test.mjs tests/scripts/business-overlay/*.test.mjs",
+      "exitCode": 0,
+      "log": "all-suites-final-v2.log",
+      "tests": 171,
+      "passed": 171,
+      "failed": 0,
+      "skipped": 0,
+      "sha256": "e6b24fb1b3e85425d36fbae4bcfb2e8c8d526bbaf316235fd8df123c875973fc",
+      "durationMs": 178365.7997,
+      "note": "All 155 existing candidate/overlay cases and 16 ownership cases. Includes real small-fixture assembly, actual local Go modfile normalization, immutable fresh --attempt replay and all canonical/tamper/allowlist/official-lock contracts."
+    },
+    {
+      "command": "node scripts/business-overlay/check-business-overlay.mjs",
+      "exitCode": 0,
+      "log": "check-business-overlay.log",
+      "result": "OK business overlay contract (56 declared paths, rebuilt tree)"
+    },
+    {
+      "command": "node --check <each of the six original scoped source/test files and candidate-ownership.test.mjs>",
+      "exitCode": 0,
+      "checks": [
+        {
+          "file": "scripts/business-overlay/rebuild-from-base.mjs",
+          "status": 0,
+          "stderr": ""
+        },
+        {
+          "file": "scripts/business-overlay/rebuild-from-candidate.mjs",
+          "status": 0,
+          "stderr": ""
+        },
+        {
+          "file": "scripts/business-overlay/check-shared-drift.mjs",
+          "status": 0,
+          "stderr": ""
+        },
+        {
+          "file": "scripts/business-overlay/foundation-candidate.mjs",
+          "status": 0,
+          "stderr": ""
+        },
+        {
+          "file": "scripts/business-overlay/foundation-candidate.test.mjs",
+          "status": 0,
+          "stderr": ""
+        },
+        {
+          "file": "tests/scripts/business-overlay/check-shared-drift.test.mjs",
+          "status": 0,
+          "stderr": ""
+        },
+        {
+          "file": "scripts/business-overlay/candidate-ownership.test.mjs",
+          "status": 0,
+          "stderr": ""
+        }
+      ],
+      "result": "7 native syntax checks pass; LSP unavailable"
+    },
+    {
+      "command": "node .harness/evidence/2026-11-07-ops-planned-task-closeout/o4-generator-code-safety-repair-20261110-01/integrity.mjs",
+      "exitCode": 0,
+      "result": "6 old/new baseline pins; 35 protected files, 1141 snapshot files, 4634 report-owned files unchanged; NEW repair-only.patch"
+    },
+    {
+      "command": "node .harness/evidence/2026-11-07-ops-planned-task-closeout/o4-generator-code-safety-repair-20261110-01/retained-canonical-check.mjs",
+      "exitCode": 0,
+      "result": "Read-only original failed tree: 19 canonical outputs, 801/801 shared bytes, 10 migrations; no assembly/runtime success"
+    },
+    {
+      "command": "node .harness/evidence/2026-11-07-ops-planned-task-closeout/o4-generator-code-safety-repair-20261110-01/retain-initial-fixtures.mjs",
+      "exitCode": 0,
+      "result": "30904 NEW initial fixture file/directory instances retained with unchanged identities outside .harness metadata; 0 deleted; initial-fixture-retention.json gives exact prefix mapping"
+    },
+    {
+      "command": "node scripts/business-overlay/rebuild-from-candidate.mjs --help",
+      "exitCode": 0,
+      "result": "CLI help succeeds; full CLI consumption/assembly not run"
+    },
+    {
+      "command": "git diff --check -- scripts/business-overlay/rebuild-from-base.mjs scripts/business-overlay/check-shared-drift.mjs tests/scripts/business-overlay/check-shared-drift.test.mjs",
+      "exitCode": 0,
+      "result": "No whitespace errors; untracked repaired files separately covered by native syntax and NEW before/current diff"
+    }
+  ],
+  "iterations": [
+    {
+      "log": "green-v1.log",
+      "tests": 9,
+      "passed": 7,
+      "failed": 2,
+      "skipped": 0,
+      "sha256": "fc75d44078f46580237990c76d21445ee6b087da465ab165ed098c86fd81f8d7"
+    },
+    {
+      "log": "green-v2.log",
+      "tests": 9,
+      "passed": 9,
+      "failed": 0,
+      "skipped": 0,
+      "sha256": "967c8eb3de2c2e5ea7944a3708b2632f0402d445df67ffce4eb9b4e476490e1f"
+    },
+    {
+      "log": "green-v3.log",
+      "tests": 14,
+      "passed": 13,
+      "failed": 1,
+      "skipped": 0,
+      "sha256": "7524f3c5a69fab59377cc8245b5d1534e6d58ee04fc460a6497b0e40c3767ddb"
+    },
+    {
+      "log": "green-v4.log",
+      "tests": 14,
+      "passed": 14,
+      "failed": 0,
+      "skipped": 0,
+      "sha256": "de4ec6c264ed1b3b804fee6a500828f0d67d0d03970d8e03864d3c415dc4cd50"
+    },
+    {
+      "log": "green-final-v1.log",
+      "tests": 15,
+      "passed": 15,
+      "failed": 0,
+      "skipped": 0,
+      "sha256": "9528976e26077172622838c7e6f92a5769e4a270e485c77f49486a1ce311404f"
+    },
+    {
+      "log": "candidate-full-v1.log",
+      "tests": 92,
+      "passed": 77,
+      "failed": 15,
+      "skipped": 0,
+      "sha256": "98e7e2773e6598a5c51ee21f8d0fb3405f3b916f962b309245ac9122fe3a67c7"
+    },
+    {
+      "log": "candidate-focused-v2.log",
+      "tests": 23,
+      "passed": 23,
+      "failed": 0,
+      "skipped": 0,
+      "sha256": "2f2c558603e16a06a851a8e77d6d286a3dcf649f640968693e9143ec9f2fd825"
+    },
+    {
+      "log": "overlay-full-v1.log",
+      "tests": 63,
+      "passed": 55,
+      "failed": 8,
+      "skipped": 0,
+      "sha256": "612f8bc70e9f4aff10ea0c06a6ca272d852977cb0170088938f9af1fdb973c40"
+    },
+    {
+      "log": "overlay-full-v2.log",
+      "tests": 63,
+      "passed": 63,
+      "failed": 0,
+      "skipped": 0,
+      "sha256": "bc15aef75536d0c20dfe3db74edf3d802c3e0e160cac292e61ed6b9716628077"
+    },
+    {
+      "log": "all-suites-final-v1.log",
+      "tests": 169,
+      "passed": 169,
+      "failed": 0,
+      "skipped": 0,
+      "sha256": "5033b5bfa8bd05adeda4c1ff40fdd4cb87311fcf657985513a3713c26f23d27c"
+    }
+  ],
+  "boundaries": {
+    "directoryCreationAuthority": "unproven; root/snapshot/assembler/work directories retained, never deletion-authorized by post-mkdir lstat",
+    "namespaceAtomicity": "Node/Windows checks and mkdir/open/unlink/subprocess/receipt are separate syscalls; hostile interference within last-check/syscall windows is unsupported; empty mkdir replacement cannot be authenticated by path inspection",
+    "fileWrites": "O_EXCL creation + fstat identity; existing-file open without O_TRUNC, recheck before descriptor mutation and after close; unknown/replaced files refused",
+    "cleanup": "Entire-tree preflight rejects unknown ordinary files and directories before deletion. Whole-stage cleanup always throws deferred-unproven with the original cause. Individual file removal requires recorded creation identity and full preflight; unlink remains a non-atomic namespace operation.",
+    "go": "Alternate modfile workspace outside assembled, observed-chain and target checks before/after Go. Go-written workspace outputs have no deletion authority; stable reads import through owned target descriptors. No atomic Go provenance guarantee.",
+    "testRetention": "Disposable official cache/reassembly fixtures use bounded single rename instead of recursive deletion, with retained-moves-v2.jsonl; fixture roots/identities retained. No original/protected-stage mutation.",
+    "reviews": "Independent CODE and ARCH required before root fresh full attempt. No self-approval, actual full-source assembly, P0/runtime/release acceptance."
+  },
+  "gaps": [
+    "CodeGraph/LSP/ast-grep not callable",
+    "No full candidate-source assembly",
+    "No semantic frontend build/typecheck, CGO race or paired runtime in this owned script-only scope",
+    "No remote/credentials/release/lock/waiver/Base/backend/frontend/src changes"
+  ]
+}

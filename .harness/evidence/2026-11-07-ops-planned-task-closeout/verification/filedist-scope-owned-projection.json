@@ -1,0 +1,14 @@
+{
+  "baseCommit": "5553bc0e8ddc006cb7a6b99a46968bf8cf907a49",
+  "source": "verified immutable formal assembly business ownership projection only",
+  "checkedBusinessFiles": 267,
+  "addedBusinessOwnedFiles": [
+    "backend/modules/business/filedist/data_scope_test.go"
+  ],
+  "sharedAndGeneratedFilesUnchanged": true,
+  "generatedProjectionSourceDifferences": [
+    "frontend/package.json",
+    "frontend/tests/smoke/README.md"
+  ],
+  "fullReportReplaced": false
+}

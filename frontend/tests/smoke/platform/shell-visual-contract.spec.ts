@@ -1216,7 +1216,8 @@ test('core system dialogs share modal spacing section and input contracts', asyn
       expect(dialogContract.footer.paddingLeft, entry.path).toBe('24px');
     }
     if (dialogContract.submitBar) {
-      expect(dialogContract.submitBar.justifyContent, entry.path).toBe('flex-end');
+      // Chromium 158 serializes legacy flex-end as flow-end.
+      expect(dialogContract.submitBar.justifyContent, entry.path).toMatch(/^(?:flex|flow)-end$/);
     }
     if (dialogContract.formSectionTitle) {
       expect(dialogContract.formSectionTitle.fontSize, entry.path).toBe('14px');
@@ -1777,7 +1778,7 @@ test('dict management keeps both tabs on the shared list rhythm', async ({ page 
     Number.parseInt(cssVariables['--shell-filter-control-min-height'], 10),
   );
   expect(typeTabContract.listActions?.justifyContent).toBe('space-between');
-  expect(typeTabContract.listActionsPrimary?.justifyContent).toBe('flex-end');
+  expect(typeTabContract.listActionsPrimary?.justifyContent).toMatch(/^(?:flex|flow)-end$/);
   expect(typeTabContract.batchBar?.display).toBe('grid');
   expect(typeTabContract.tableContainer?.borderTopLeftRadius).toBe('0px');
 
@@ -1799,7 +1800,7 @@ test('dict management keeps both tabs on the shared list rhythm', async ({ page 
     Number.parseInt(cssVariables['--shell-filter-control-min-height'], 10),
   );
   expect(itemTabContract.listActions?.justifyContent).toBe('space-between');
-  expect(itemTabContract.listActionsPrimary?.justifyContent).toBe('flex-end');
+  expect(itemTabContract.listActionsPrimary?.justifyContent).toMatch(/^(?:flex|flow)-end$/);
   if (itemTabContract.hasVisibleTable) {
     expect(itemTabContract.batchBar?.display).toBe('grid');
     expect(itemTabContract.tableContainer?.borderTopLeftRadius).toBe('0px');
@@ -1909,7 +1910,9 @@ test('table heads actions and pagination keep one shared operational rhythm', as
     }
 
     if (contract.paginationShell) {
-      expect(contract.paginationShell.justifyContent, `${path} pagination justify`).toBe('flex-end');
+      expect(contract.paginationShell.justifyContent, `${path} pagination justify`).toMatch(
+        /^(?:flex|flow)-end$/,
+      );
       expect(contract.paginationShell.borderTopWidth, `${path} pagination divider`).toBe('1px');
       expect(contract.paginationShell.borderTopStyle, `${path} pagination divider style`).toBe(
         'solid',

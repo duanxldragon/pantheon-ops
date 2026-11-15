@@ -1,0 +1,7 @@
+{
+  "status": "completed",
+  "exitCode": 0,
+  "seconds": 456,
+  "characters": 7359,
+  "command": "claude.exe -p --tools \"\" --output-format text; stdin=resumed-base-dashboard-prompt.md"
+}

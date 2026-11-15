@@ -1,0 +1,133 @@
+{
+  "case": "revoke-source",
+  "identity": "o2-live-67fc9fadd215-revoke-source",
+  "database": "ops_p0_o2_live_67fc9fadd215_revoke_source",
+  "databaseRetention": "retained; no drop",
+  "events": [
+    {
+      "credentialId": 1,
+      "packageId": 1,
+      "phase": "task-created",
+      "taskId": 1
+    },
+    {
+      "deadlineExceeded": false,
+      "phase": "independent-ssh-handshake",
+      "pinChecked": true,
+      "pinMatched": true
+    },
+    {
+      "deadlineExceeded": false,
+      "exitStatus": 0,
+      "passed": true,
+      "phase": "independent-ssh-command"
+    },
+    {
+      "marker": "started",
+      "ownershipChecked": true,
+      "phase": "independent-marker",
+      "present": true
+    },
+    {
+      "action": "pause",
+      "errorKey": "",
+      "phase": "control",
+      "taskId": 1
+    },
+    {
+      "case": "revoke-source",
+      "check": "real running command acknowledged paused",
+      "kind": "positive",
+      "passed": true
+    },
+    {
+      "action": "cancel",
+      "errorKey": "business.deploy.task.commandConflict",
+      "phase": "control",
+      "taskId": 1
+    },
+    {
+      "case": "revoke-source",
+      "check": "stale running view conflicts after control",
+      "kind": "negative",
+      "passed": true
+    },
+    {
+      "deadlineExceeded": false,
+      "phase": "independent-ssh-handshake",
+      "pinChecked": false,
+      "pinMatched": false
+    },
+    {
+      "authenticationFailed": false,
+      "deadlineExceeded": false,
+      "errorChainTypes": [
+        "*fmt.wrapError",
+        "*errors.errorString"
+      ],
+      "errorType": "*fmt.wrapError",
+      "phase": "independent-ssh-error",
+      "pinMismatch": false,
+      "stage": "handshake-auth",
+      "unexpectedEOF": true
+    },
+    {
+      "contextCanceled": false,
+      "deadlineExceeded": false,
+      "driverFrames": [
+        {
+          "file": "live-diagnostic-o2-v7.go",
+          "line": 83
+        },
+        {
+          "file": "live-diagnostic-o2-v7.go",
+          "line": 195
+        },
+        {
+          "file": "live-diagnostic-o2-v7.go",
+          "line": 582
+        },
+        {
+          "file": "live-diagnostic-o2-v7.go",
+          "line": 698
+        }
+      ],
+      "errorKey": "suppressed",
+      "errorType": "*fmt.wrapError",
+      "phase": "operation-error"
+    },
+    {
+      "error": "operation or deadline; secret details suppressed",
+      "phase": "driver-failure"
+    },
+    {
+      "case": "revoke-source",
+      "failed": 1,
+      "negativePassed": 1,
+      "phase": "driver-result",
+      "positivePassed": 1
+    }
+  ],
+  "driverExitCode": 1,
+  "stderrPresent": false,
+  "missingOrFailedDriverSummary": true,
+  "status": "failed",
+  "cleanup": {
+    "phase": "exact-owned-cleanup",
+    "directory": "/opt/pantheon-p0-20261109/o2-live-67fc9fadd215-revoke-source",
+    "files": [
+      {
+        "file": ".owner",
+        "sha256": "0720195398d19238cc602446c5a02cc62a003e16c98aa90645224f5f05436259",
+        "bytes": 34
+      },
+      {
+        "file": "started",
+        "sha256": "0720195398d19238cc602446c5a02cc62a003e16c98aa90645224f5f05436259",
+        "bytes": 34
+      }
+    ],
+    "absent": true,
+    "processKill": false
+  }
+}

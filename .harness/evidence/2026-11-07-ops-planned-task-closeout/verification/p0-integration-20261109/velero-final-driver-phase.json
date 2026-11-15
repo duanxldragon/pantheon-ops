@@ -1,0 +1,9 @@
+{
+  "phase": "velero-final",
+  "sourceDriver": ".local/ops-acceptance/velero-resume-live-driver.go",
+  "sourceDriverSHA256": "6bb83acc9f68022401fb03186d4dd70276c60d2bb02d75de1e70e8670d34f876",
+  "finalDriver": ".local/ops-acceptance/velero-final-live-driver.go",
+  "finalDriverSHA256BeforeFormat": "52008f29a8385b2b6d04c3f7de9cf77b1b9470790bea8d10bcd0c78654ea052b",
+  "remoteExecuted": false,
+  "requires": "Root-provisioned real Velero/S3 and two finite SAs, isolated MySQL, exact owned source/target namespaces. stdin only; no SSH/install in this task. Direct service runtime is not Base actor/session/HTTP/audit acceptance."
+}

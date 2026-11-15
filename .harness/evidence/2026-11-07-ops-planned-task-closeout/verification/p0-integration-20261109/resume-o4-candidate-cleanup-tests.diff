@@ -1,0 +1,253 @@
+diff --git "a/.harness\\evidence\\2026-11-07-ops-planned-task-closeout\\verification\\p0-integration-20261109\\resume-o4-candidate-cleanup-tests-before.txt" b/scripts/business-overlay/foundation-candidate.test.mjs
+index 55720b3..8040509 100644
+--- "a/.harness\\evidence\\2026-11-07-ops-planned-task-closeout\\verification\\p0-integration-20261109\\resume-o4-candidate-cleanup-tests-before.txt"
++++ b/scripts/business-overlay/foundation-candidate.test.mjs
+@@ -196,6 +196,183 @@ function interceptCopy(action, run) {
+   }
+ }
+ 
++function assertCleanupRefused(run, causeMessage) {
++  assert.throws(run, (error) => {
++    assert.equal(error.name, "CandidateCleanupError");
++    assert.equal(error.code, "ERR_CANDIDATE_CLEANUP_OWNERSHIP");
++    assert.match(error.message, /cleanup.*(identity|ownership)/i);
++    if (causeMessage) assert.match(error.cause?.message ?? "", causeMessage);
++    return true;
++  });
++}
++
++for (const phase of ["extraction", "assembly"]) {
++  for (const directory of [
++    "stage",
++    "snapshot",
++    "nested",
++    "ancestor",
++    ...(phase === "assembly" ? ["assembled"] : []),
++  ]) {
++    test(`cleanup preserves renamed original and real replacement: ${phase}/${directory}`, (t) => {
++      const f = fixture(t);
++      let attacked;
++      const retained = path.join(f.temp, "retained-original");
++      const replace = () => {
++        attacked =
++          directory === "stage"
++            ? f.cacheRoot
++            : directory === "ancestor"
++              ? path.dirname(f.cacheRoot)
++              : directory === "nested"
++                ? path.join(f.cacheRoot, "snapshot/backend")
++                : path.join(f.cacheRoot, directory);
++        fs.renameSync(attacked, retained);
++        fs.mkdirSync(attacked);
++        write(attacked, "foreign.txt", "preserve foreign replacement");
++        throw new Error("injected directory replacement failure");
++      };
++      if (phase === "assembly") {
++        assertCleanupRefused(() => interceptCopy(replace, f.rebuild));
++      } else {
++        const originalWrite = fs.writeFileSync;
++        let fired = false;
++        fs.writeFileSync = (file, ...args) => {
++          const result = originalWrite(file, ...args);
++          if (
++            !fired &&
++            String(file).includes(`${path.sep}snapshot${path.sep}`)
++          ) {
++            fired = true;
++            replace();
++          }
++          return result;
++        };
++        try {
++          assertCleanupRefused(
++            f.resolve,
++            /injected directory replacement failure/,
++          );
++        } finally {
++          fs.writeFileSync = originalWrite;
++        }
++      }
++      assert.ok(attacked, "the real failure hook ran");
++      assert.equal(
++        fs.readFileSync(path.join(attacked, "foreign.txt"), "utf8"),
++        "preserve foreign replacement",
++      );
++      assert.equal(fs.lstatSync(retained).isDirectory(), true);
++      const retainedFile =
++        directory === "stage"
++          ? "snapshot/backend/go.mod"
++          : directory === "ancestor"
++            ? `${path.basename(f.cacheRoot)}/snapshot/backend/go.mod`
++            : directory === "snapshot"
++              ? "backend/go.mod"
++              : directory === "nested"
++                ? "go.mod"
++                : "backend/go.mod";
++      assert.equal(
++        fs.readFileSync(path.join(retained, retainedFile), "utf8"),
++        "module pantheon-base\n\ngo 1.24.0\n",
++      );
++    });
++  }
++}
++
++test("cleanup refuses an unknown descendant before removing any owned files", (t) => {
++  const f = fixture(t);
++  const snapshot = f.resolve();
++  write(f.cacheRoot, "unknown/foreign.txt", "preserve");
++  assertCleanupRefused(() => consumer.removeCandidateStage(f.cacheRoot));
++  assert.equal(
++    fs.readFileSync(path.join(f.cacheRoot, "unknown/foreign.txt"), "utf8"),
++    "preserve",
++  );
++  assert.equal(
++    fs.existsSync(path.join(snapshot.baseRoot, "backend/go.mod")),
++    true,
++  );
++});
++
++test("cleanup removes an unchanged extracted directory instance", (t) => {
++  const f = fixture(t);
++  f.resolve();
++  consumer.removeCandidateStage(f.cacheRoot);
++  assert.equal(fs.existsSync(f.cacheRoot), false);
++});
++
++for (const identity of ["missing", "zero"]) {
++  test(`cleanup fails closed when created directory identity is ${identity}`, (t) => {
++    const f = fixture(t);
++    const originalLstat = fs.lstatSync;
++    fs.lstatSync = (file, options) => {
++      const stat = originalLstat(file, options);
++      if (file === f.cacheRoot && options?.bigint) {
++        stat.ino = identity === "missing" ? undefined : 0n;
++      }
++      return stat;
++    };
++    try {
++      assertCleanupRefused(f.resolve, /Unavailable real directory identity/);
++    } finally {
++      fs.lstatSync = originalLstat;
++    }
++    assert.equal(fs.lstatSync(f.cacheRoot).isDirectory(), true);
++    assertCleanupRefused(() => consumer.removeCandidateStage(f.cacheRoot));
++  });
++}
++
++test("source verification refuses an unchanged snapshot moved into a replacement stage", (t) => {
++  const f = fixture(t);
++  const snapshot = f.resolve();
++  const retained = path.join(f.temp, "retained-stage");
++  fs.renameSync(f.cacheRoot, retained);
++  fs.mkdirSync(f.cacheRoot);
++  fs.renameSync(path.join(retained, "snapshot"), snapshot.baseRoot);
++  assert.throws(snapshot.verify, /Replaced directory identity/);
++  assertCleanupRefused(() => consumer.removeCandidateStage(f.cacheRoot));
++  assert.equal(
++    fs.existsSync(path.join(snapshot.baseRoot, "backend/go.mod")),
++    true,
++  );
++  assert.equal(fs.lstatSync(retained).isDirectory(), true);
++});
++
++test("cleanup refuses a replaced ancestor observed during individual file deletion", (t) => {
++  const f = fixture(t);
++  f.resolve();
++  const retained = path.join(f.temp, "retained-stage");
++  const originalUnlink = fs.unlinkSync;
++  let fired = false;
++  fs.unlinkSync = (file) => {
++    const result = originalUnlink(file);
++    if (!fired) {
++      fired = true;
++      fs.renameSync(f.cacheRoot, retained);
++      fs.mkdirSync(f.cacheRoot);
++      write(f.cacheRoot, "foreign.txt", "preserve");
++    }
++    return result;
++  };
++  try {
++    assertCleanupRefused(() => consumer.removeCandidateStage(f.cacheRoot));
++  } finally {
++    fs.unlinkSync = originalUnlink;
++  }
++  assert.equal(fired, true);
++  assert.equal(
++    fs.readFileSync(path.join(f.cacheRoot, "foreign.txt"), "utf8"),
++    "preserve",
++  );
++  // One owned file was already deleted: this test makes no atomicity claim.
++  assert.equal(
++    fs.existsSync(path.join(retained, "snapshot/backend/go.sum")),
++    true,
++  );
++});
++
+ test("schema1 source-interface mapping matches the producer and rejects contradictory metadata", (t) => {
+   const f = fixture(t);
+   assert.deepEqual(consumer.CAPABILITY_EXPORTS, producer.CAPABILITY_EXPORTS);
+@@ -666,7 +843,7 @@ test("rejects junction ancestors and hard-linked artifact/declared source withou
+   assert.throws(f.rebuild, /hard links/);
+ });
+ 
+-test("assembly rejects snapshot/artifact and declared Ops mutations including edit/revert; failure cleans owned stage only", async (t) => {
++test("assembly rejects snapshot/artifact and declared Ops mutations including edit/revert; unknown assembled ownership retains stage", async (t) => {
+   for (const mode of [
+     "snapshot",
+     "artifact",
+@@ -718,8 +895,19 @@ test("assembly rejects snapshot/artifact and declared Ops mutations including ed
+           fs.utimesSync(file, new Date(), new Date(Date.now() + 2000));
+         }
+       };
+-      assert.throws(() => interceptCopy(action, f.rebuild), /changed/);
+-      assert.equal(fs.existsSync(f.cacheRoot), false);
++      // The unchanged assembler has no directory creation receipt. Its output
++      // must be retained when cleanup cannot prove the directory instances.
++      assertCleanupRefused(() => interceptCopy(action, f.rebuild));
++      assert.equal(fs.existsSync(f.cacheRoot), true);
++      assert.equal(
++        fs.existsSync(
++          path.join(
++            f.cacheRoot,
++            "assembled/.foundation-candidate-receipt.json",
++          ),
++        ),
++        false,
++      );
+       assert.equal(fs.existsSync(f.ops), true);
+     });
+ });
+@@ -728,8 +916,14 @@ test("drift and migration conflicts refuse candidate publication", async (t) =>
+   await t.test("unallowlisted shared modification", (st) => {
+     const f = fixture(st);
+     write(f.ops, ".foundation/allowed-drift.json", "{}");
+-    assert.throws(f.rebuild, /shared drift/);
+-    assert.equal(fs.existsSync(f.cacheRoot), false);
++    assertCleanupRefused(f.rebuild);
++    assert.equal(fs.existsSync(f.cacheRoot), true);
++    assert.equal(
++      fs.existsSync(
++        path.join(f.cacheRoot, "assembled/.foundation-candidate-receipt.json"),
++      ),
++      false,
++    );
+   });
+   await t.test("Base migration conflict", (st) => {
+     const f = fixture(st);
+@@ -751,8 +945,14 @@ test("drift and migration conflicts refuse candidate publication", async (t) =>
+       "SELECT 0;",
+     );
+     write(f.ops, "business-overlay.json", JSON.stringify(manifest));
+-    assert.throws(f.rebuild, /conflict/);
+-    assert.equal(fs.existsSync(f.cacheRoot), false);
++    assertCleanupRefused(f.rebuild);
++    assert.equal(fs.existsSync(f.cacheRoot), true);
++    assert.equal(
++      fs.existsSync(
++        path.join(f.cacheRoot, "assembled/.foundation-candidate-receipt.json"),
++      ),
++      false,
++    );
+   });
+ });
+ 

@@ -1,0 +1,116 @@
+(!) Your Vite config uses features that are unsupported by `configLoader: 'native'`, which is planned to become the default in a future major version of Vite:
+  - `__dirname` (vitest.config.ts:10:25). Use `import.meta.dirname` instead
+Set `VITE_CONFIG_NATIVE_IGNORE_WARNING=true` to suppress this warning.
+
+ RUN  v5.0.5 D:/workspace/go/pantheon-platform/pantheon-ops/frontend
+
+ ❯ tests/unit/business/operational/loki-query-state.test.tsx (15 tests | 1 failed) 1968ms
+   ❯ Loki bounded polling lifecycle (8)
+     × stops and clears retained output on denied 90ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/unit/business/operational/loki-query-state.test.tsx > Loki bounded polling lifecycle > stops and clears retained output on denied
+TestingLibraryElementError: Unable to find an element with the text: business.observability.logs.forbidden. This could be because the text is broken up by multiple elements. In this case, you can provide a function for your text matcher to make your matcher more flexible.
+
+Ignored nodes: comments, script, style
+<body>
+  <div>
+    <div>
+      <div>
+        <div>
+          <input
+            aria-label="expression"
+            value="{app=~\".+\"}"
+          />
+          <select>
+            <option
+              value="1"
+            >
+              Loki
+            </option>
+          </select>
+          <div>
+            <button>
+              common.search
+            </button>
+            <button>
+              business.observability.logs.follow
+            </button>
+            <button
+              disabled=""
+            >
+              business.observability.logs.stop
+            </button>
+          </div>
+        </div>
+        <div
+          class="observability-log-range"
+        >
+          <label>
+            business.observability.logs.startUTC
+            <input
+              type="datetime-local"
+              value="2026-11-09T02:32"
+            />
+          </label>
+          <label>
+            business.observability.logs.endUTC
+            <input
+              type="datetime-local"
+              value="2026-11-09T02:47"
+            />
+          </label>
+          <label>
+            business.observability.logs.limit
+            <select>
+              <option
+                value="100"
+              >
+                100
+              </option>
+              <option
+                value="500"
+              >
+                500
+              </option>
+              <option
+                value="1000"
+              >
+                1000
+              </option>
+            </select>
+          </label>
+          <span>
+            business.observability.logs.budget
+          </span>
+        </div>
+        <div>
+          <p>
+            query-error
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+ ❯ Object.getElementError node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ tests/unit/business/operational/loki-query-state.test.tsx:134:17
+    132|   await act(async () => { await vi.advanceTimersByTimeAsync(20_000); }…
+    133|   expect(provider.query).toHaveBeenCalledTimes(2);
+    134|   expect(screen.getByText(kind === 'denied' ? 'business.observability.…
+       |                 ^
+    135|  });
+    136|  it('clears the pending timer on unmount', async () => {
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 14 passed (15)
+   Start at  10:47:37
+   Duration  4.50s (tests 46%, import 28%, environment 22%, transform 4%)
+

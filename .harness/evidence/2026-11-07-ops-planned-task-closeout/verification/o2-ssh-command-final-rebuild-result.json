@@ -1,0 +1,16 @@
+{
+  "command": [
+    "npm.cmd",
+    "run",
+    "rebuild:from-base",
+    "--",
+    "--target",
+    ".tmp/ops-priority-ssh-command-final-stage"
+  ],
+  "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+  "exitCode": 0,
+  "elapsedSeconds": 13.577999999979511,
+  "artifact": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/o2-ssh-command-final-rebuild.txt",
+  "sourceHashesStable": true,
+  "hashedFiles": 695
+}

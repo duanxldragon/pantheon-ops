@@ -1,0 +1,12 @@
+{
+  "fixtureInventoryStable": true,
+  "beforeCount": 2,
+  "afterCount": 2,
+  "newFixtureCleanup": "testmysql exact-name Cleanup callbacks; zero task fixtures remain",
+  "historicalDatabases": "both pre-existing databases retained",
+  "manualDeletion": "none",
+  "localReadOnlyInspection": "existing inspect-owned-fixtures.go invoked without cleanup arguments",
+  "formatCommand": "gofmt -l backend/modules/business/capability/capability.go backend/modules/business/deploy/attempt_ownership.go backend/modules/business/deploy/cancel_unclaimed_test.go backend/modules/business/deploy/deploy_service_test.go backend/modules/business/deploy/deploy_service.go backend/modules/business/deploy/independent_o2_regression_test.go backend/modules/business/deploy/service_transaction_test.go backend/modules/business/deploy/target_selection.go backend/modules/business/service/state_transaction_test.go backend/modules/business/service/state.go",
+  "formatExit": 0,
+  "formatOutput": "empty"
+}

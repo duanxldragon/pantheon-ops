@@ -1,0 +1,40 @@
+--- resume-velero-s3-v3-remote.py
++++ resume-velero-s3-v4-remote.py
+@@ -9,7 +9,7 @@
+ UNIT = 'pantheon-p0-velero-s3-seaweed-v1'
+ BUCKET = 'velero-s3-seaweed-v1'
+ LABEL = {'pantheon-p0-owner': OWNER, 'app.kubernetes.io/component': 'seaweedfs-s3'}
+-PORTS = [19333, 29333, 18080, 28080, 18888, 28888, 18333]
++PORTS = [19333, 29333, 18080, 28080, 18888, 28888, 18333, 28333]
+ APPLIED = []
+ INVENTORY = 'resume-velero-s3-partial-owned.json'
+ PHASE = 'preflight'
+@@ -220,7 +220,8 @@
+         'volume.port', 'volume.max', 'filer', 'filer.port', 's3', 's3.port', 's3.config'}
+     # Explicit gRPC overrides are optional only if help confirms actual defaults;
+     # installation currently requires all three, to avoid guessing any listener.
+-    required |= {'master.port.grpc', 'volume.port.grpc', 'filer.port.grpc'}
++    required |= {'master.port.grpc', 'volume.port.grpc', 'filer.port.grpc',
++        's3.port.iceberg', 's3.port.lance', 's3.port.grpc'}
+     persist('resume-velero-s3-help.json', {'version': version, 'serverHelp': help_text,
+         'exitCode': result.returncode, 'requiredFlags': sorted(required), 'missingFlags': sorted(required - available)})
+     receipt = {'phase': 'diagnostic', 'exitCode': 0 if required <= available else 1, 'owner': OWNER,
+@@ -314,6 +315,7 @@
+         '-master.port=19333', '-master.port.grpc=29333', '-master.volumeSizeLimitMB=64',
+         '-volume.port=18080', '-volume.port.grpc=28080', '-volume.max=1',
+         '-filer', '-filer.port=18888', '-filer.port.grpc=28888', '-s3', '-s3.port=18333',
++        '-s3.port.iceberg=0', '-s3.port.lance=0', '-s3.port.grpc=28333',
+         '-s3.config=' + str(HOME_DIR / 's3-auth.json')])
+     until = time.monotonic() + 60
+     endpoint = 'http://' + ip + ':18333'
+--- resume-velero-s3-fixture.py
++++ resume-velero-s3-v4-fixture.py
+@@ -3,7 +3,7 @@
+ import base64, datetime, hashlib, importlib.util, json, os, secrets, sys
+ import xml.etree.ElementTree as ET
+ sys.dont_write_bytecode = True
+-spec = importlib.util.spec_from_file_location('seaweed_provider', Path(__file__).with_name('resume-velero-s3-remote.py'))
++spec = importlib.util.spec_from_file_location('seaweed_provider', Path(__file__).with_name('resume-velero-s3-v4-remote.py'))
+ provider = importlib.util.module_from_spec(spec)
+ spec.loader.exec_module(provider)
+ HOME_DIR = provider.HOME_DIR

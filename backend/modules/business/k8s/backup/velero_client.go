@@ -23,6 +23,12 @@ func normalizeUnstructuredJSONValue(value interface{}) interface{} {
 		return nil
 	}
 	switch typed := value.(type) {
+	case map[string]string:
+		result := make(map[string]interface{}, len(typed))
+		for key, item := range typed {
+			result[key] = item
+		}
+		return result
 	case map[string]interface{}:
 		result := make(map[string]interface{}, len(typed))
 		for key, item := range typed {
@@ -150,6 +156,10 @@ func (c *VeleroClient) GetRunningPods(ctx context.Context) (int, error) {
 
 // CreateBackup creates a Velero Backup CRD.
 func (c *VeleroClient) CreateBackup(ctx context.Context, name string, spec map[string]interface{}) error {
+	return c.createBackupWithIdentity(ctx, name, spec, 0)
+}
+
+func (c *VeleroClient) createBackupWithIdentity(ctx context.Context, name string, spec map[string]interface{}, recordID uint64) error {
 	if c.dynamicClient == nil {
 		return fmt.Errorf("dynamic client is nil")
 	}
@@ -166,6 +176,9 @@ func (c *VeleroClient) CreateBackup(ctx context.Context, name string, spec map[s
 		},
 	}
 
+	if recordID > 0 {
+		backup.SetAnnotations(map[string]string{recordIdentityAnnotation: fmt.Sprint(recordID)})
+	}
 	_, err := c.dynamicClient.Resource(backupGVR).Namespace(veleroNamespace).Create(ctx, backup, metav1.CreateOptions{})
 	return err
 }
@@ -234,6 +247,10 @@ func (c *VeleroClient) DeleteSchedule(ctx context.Context, name string) error {
 
 // CreateRestore creates a Velero Restore CRD.
 func (c *VeleroClient) CreateRestore(ctx context.Context, name string, spec map[string]interface{}) error {
+	return c.createRestoreWithIdentity(ctx, name, spec, 0)
+}
+
+func (c *VeleroClient) createRestoreWithIdentity(ctx context.Context, name string, spec map[string]interface{}, recordID uint64) error {
 	if c.dynamicClient == nil {
 		return fmt.Errorf("dynamic client is nil")
 	}
@@ -250,6 +267,9 @@ func (c *VeleroClient) CreateRestore(ctx context.Context, name string, spec map[
 		},
 	}
 
+	if recordID > 0 {
+		restore.SetAnnotations(map[string]string{recordIdentityAnnotation: fmt.Sprint(recordID)})
+	}
 	_, err := c.dynamicClient.Resource(restoreGVR).Namespace(veleroNamespace).Create(ctx, restore, metav1.CreateOptions{})
 	return err
 }

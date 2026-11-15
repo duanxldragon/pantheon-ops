@@ -47,6 +47,13 @@ func init() {
 	})
 	retiredBusinessModules = append(retiredBusinessModules,
 		retiredModuleSpec{
+			MenuPaths: []string{"/business/business-scope", "/business/business-scope/:id"},
+		},
+		retiredModuleSpec{
+			MenuPaths:     []string{"/business/service"},
+			ComponentKeys: []string{"business/service/ServiceCatalog"},
+		},
+		retiredModuleSpec{
 			MenuPaths: []string{
 				"/operations/business-scope",
 				"/operations/business-scope/:id",

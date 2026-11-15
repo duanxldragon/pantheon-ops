@@ -1,0 +1,155 @@
+[smoke-suite] API base http://127.0.0.1:24484/api/v1
+[generated-modules] cleanup complete
+{
+  "modules": 0,
+  "schemas": 1,
+  "registries": 4,
+  "i18n": 5
+}
+(!) Your Vite config uses features that are unsupported by `configLoader: 'native'`, which is planned to become the default in a future major version of Vite:
+  - `__dirname` (vite.config.ts:32:25). Use `import.meta.dirname` instead
+Set `VITE_CONFIG_NATIVE_IGNORE_WARNING=true` to suppress this warning.
+Smoke Vite ready at http://127.0.0.1:24585/
+
+Running 12 tests using 1 worker
+
+(node:21416) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok  1 tests\smoke\business\deploy\deploy-pages.spec.ts:67:3 › Deploy business module smoke › deploy pages load under operations platform (7.8s)
+  ok  2 tests\smoke\business\deploy\deploy-pages.spec.ts:110:3 › Deploy business module smoke › deploy task detail action opens a modal without leaving the list page (4.0s)
+  ok  3 tests\smoke\business\deploy\deploy-pages.spec.ts:205:3 › Deploy business module smoke › deploy package detail action opens a modal without leaving the list page (3.5s)
+  ok  4 tests\smoke\business\deploy\deploy-pages.spec.ts:245:3 › Deploy business module smoke › deploy template detail action opens a modal without leaving the list page (3.5s)
+  ok  5 tests\smoke\business\deploy\deploy-pages.spec.ts:327:3 › Deploy business module smoke › deploy detail page loads with summary and host table (3.9s)
+  ok  6 tests\smoke\business\deploy\deploy-pages.spec.ts:402:3 › Deploy business module smoke › deploy detail requires a reason when marking host failure (3.3s)
+  ok  7 tests\smoke\business\deploy\deploy-pages.spec.ts:486:3 › Deploy business module smoke › deploy template supports script steps and task params render in detail (6.2s)
+  ok  8 tests\smoke\business\deploy\deploy-pages.spec.ts:608:3 › Deploy business module smoke › deploy detail edit action routes back to list and opens edit modal (5.6s)
+  x   9 tests\smoke\business\deploy\deploy-pages.spec.ts:694:3 › Deploy business module smoke › targeted smoke closes cmdb, bizscope, deploy with uploaded source package and visible task trace (3.8s)
+(node:23596) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok 10 tests\smoke\business\deploy\deploy-pages.spec.ts:846:3 › Deploy business module smoke › deploy pages stay within a phone viewport (7.0s)
+  x  11 tests\smoke\business\deploy\deploy-workbench.spec.ts:14:3 › deployment workbench sources, logs, keyboard and mobile (light) (14.4s)
+(node:11676) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x  12 tests\smoke\business\deploy\deploy-workbench.spec.ts:14:3 › deployment workbench sources, logs, keyboard and mobile (dark) (15.1s)
+
+
+  1) tests\smoke\business\deploy\deploy-pages.spec.ts:694:3 › Deploy business module smoke › targeted smoke closes cmdb, bizscope, deploy with uploaded source package and visible task trace 
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator: locator('.page-container')
+    Expected: visible
+    Error: strict mode violation: locator('.page-container') resolved to 2 elements:
+        1) <div data-testid="route-content-fallback" class="page-container route-content-fallback">…</div> aka getByTestId('route-content-fallback').first()
+        2) <div data-testid="route-content-fallback" class="page-container route-content-fallback">…</div> aka getByTestId('route-content-fallback').nth(1)
+
+    Call log:
+      - Expect "toBeVisible" locator('.page-container') with timeout 10000ms
+      - waiting for locator('.page-container')
+
+
+      822 |
+      823 |     await page.goto(`/business/deploy/task/${task.id}`, { waitUntil: 'domcontentloaded' });
+    > 824 |     await expect(page.locator('.page-container')).toBeVisible();
+          |                                                   ^
+      825 |     await expect(page.locator('.system-page-hero')).toContainText('目标主机');
+      826 |     await expect(page.getByRole('cell', { name: '业务域' })).toBeVisible();
+      827 |     await expect(page.getByText('installRoot', { exact: true })).toBeVisible();
+        at D:\workspace\go\pantheon-platform\pantheon-ops\frontend\tests\smoke\business\deploy\deploy-pages.spec.ts:824:51
+
+    Error Context: ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\workbench-browser-final\smoke-business-deploy-depl-43b2c-kage-and-visible-task-trace\error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\workbench-browser-final\smoke-business-deploy-depl-43b2c-kage-and-visible-task-trace\trace.zip
+    Usage:
+
+        npx playwright show-trace ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\workbench-browser-final\smoke-business-deploy-depl-43b2c-kage-and-visible-task-trace\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  2) tests\smoke\business\deploy\deploy-workbench.spec.ts:14:3 › deployment workbench sources, logs, keyboard and mobile (light) 
+
+    Error: expect(locator).toBeHidden() failed
+
+    Locator:  getByRole('dialog')
+    Expected: hidden
+    Received: visible
+    Timeout:  10000ms
+
+    Call log:
+      - Expect "toBeHidden" getByRole('dialog') with timeout 10000ms
+      - waiting for getByRole('dialog')
+        3 × locator resolved to <div role="dialog" aria-modal="true" aria-labelledby="arco-dialog-5" class="arco-modal app-dialog business-log-dialog zoomModal-appear zoomModal-appear-active">…</div>
+          - unexpected value "visible"
+        20 × locator resolved to <div role="dialog" aria-modal="true" aria-labelledby="arco-dialog-5" class="arco-modal app-dialog business-log-dialog zoomModal-appear-done zoomModal-enter-done">…</div>
+           - unexpected value "visible"
+
+
+      71 |       await page.screenshot({ path: testInfo.outputPath(`workbench-${mode}-mobile-expanded.png`), fullPage: true });
+      72 |       await page.keyboard.press('Escape');
+    > 73 |       await expect(dialog).toBeHidden();
+         |                            ^
+      74 |       denied = true;
+      75 |       await page.reload();
+      76 |       await expect(page.getByText('没有日志查看权限', { exact: true }).first()).toBeVisible();
+        at D:\workspace\go\pantheon-platform\pantheon-ops\frontend\tests\smoke\business\deploy\deploy-workbench.spec.ts:73:28
+
+    Error Context: ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\workbench-browser-final\smoke-business-deploy-depl-58206--keyboard-and-mobile-light-\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\workbench-browser-final\smoke-business-deploy-depl-58206--keyboard-and-mobile-light-\trace.zip
+    Usage:
+
+        npx playwright show-trace ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\workbench-browser-final\smoke-business-deploy-depl-58206--keyboard-and-mobile-light-\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  3) tests\smoke\business\deploy\deploy-workbench.spec.ts:14:3 › deployment workbench sources, logs, keyboard and mobile (dark) 
+
+    Error: expect(locator).toBeHidden() failed
+
+    Locator:  getByRole('dialog')
+    Expected: hidden
+    Received: visible
+    Timeout:  10000ms
+
+    Call log:
+      - Expect "toBeHidden" getByRole('dialog') with timeout 10000ms
+      - waiting for getByRole('dialog')
+        3 × locator resolved to <div role="dialog" aria-modal="true" aria-labelledby="arco-dialog-5" class="arco-modal app-dialog business-log-dialog zoomModal-appear zoomModal-appear-active">…</div>
+          - unexpected value "visible"
+        20 × locator resolved to <div role="dialog" aria-modal="true" aria-labelledby="arco-dialog-5" class="arco-modal app-dialog business-log-dialog zoomModal-appear-done zoomModal-enter-done">…</div>
+           - unexpected value "visible"
+
+
+      71 |       await page.screenshot({ path: testInfo.outputPath(`workbench-${mode}-mobile-expanded.png`), fullPage: true });
+      72 |       await page.keyboard.press('Escape');
+    > 73 |       await expect(dialog).toBeHidden();
+         |                            ^
+      74 |       denied = true;
+      75 |       await page.reload();
+      76 |       await expect(page.getByText('没有日志查看权限', { exact: true }).first()).toBeVisible();
+        at D:\workspace\go\pantheon-platform\pantheon-ops\frontend\tests\smoke\business\deploy\deploy-workbench.spec.ts:73:28
+
+    Error Context: ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\workbench-browser-final\smoke-business-deploy-depl-d16f5-s-keyboard-and-mobile-dark-\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\workbench-browser-final\smoke-business-deploy-depl-d16f5-s-keyboard-and-mobile-dark-\trace.zip
+    Usage:
+
+        npx playwright show-trace ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\workbench-browser-final\smoke-business-deploy-depl-d16f5-s-keyboard-and-mobile-dark-\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  3 failed
+    tests\smoke\business\deploy\deploy-pages.spec.ts:694:3 › Deploy business module smoke › targeted smoke closes cmdb, bizscope, deploy with uploaded source package and visible task trace 
+    tests\smoke\business\deploy\deploy-workbench.spec.ts:14:3 › deployment workbench sources, logs, keyboard and mobile (light) 
+    tests\smoke\business\deploy\deploy-workbench.spec.ts:14:3 › deployment workbench sources, logs, keyboard and mobile (dark) 
+  9 passed (1.4m)
+[generated-modules] cleanup complete
+{
+  "modules": 0,
+  "schemas": 1,
+  "registries": 4,
+  "i18n": 5
+}

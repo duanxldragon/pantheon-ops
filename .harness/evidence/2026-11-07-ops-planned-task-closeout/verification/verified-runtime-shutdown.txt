@@ -1,0 +1,31 @@
+{
+  "ownedProcesses": [
+    {
+      "pid": 20140,
+      "verified": true,
+      "executable": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.tmp\\ops-planned-cmdb-services\\server-final.exe"
+    },
+    {
+      "pid": 12940,
+      "verified": true,
+      "executable": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.tmp\\ops-planned-cmdb-services\\server-closeout.exe"
+    },
+    {
+      "pid": 4536,
+      "verified": true,
+      "executable": "D:\\MySQL\\mysql\\bin\\mysqld.exe"
+    },
+    {
+      "pid": 15320,
+      "verified": true,
+      "executable": "D:\\Redis\\redis-server.exe"
+    }
+  ],
+  "restoredMySQL": "innodb_flush_log_at_trx_commit=1; sync_binlog=1",
+  "fixtureEvidence": "cmdb/workbench-fixtures-cleanup-verified.json",
+  "otherWorkspaceServices": "untouched",
+  "remainingProcesses": [],
+  "remainingPorts": [],
+  "dataRetained": true,
+  "shutdownVerification": "Second observation: graceful MySQL shutdown completed after the initial 1-second observation; no additional stop command needed."
+}

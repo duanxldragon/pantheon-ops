@@ -1,0 +1,21 @@
+=== RUN   TestStepHistoryKeepsPriorAttemptCheckpoint
+--- PASS: TestStepHistoryKeepsPriorAttemptCheckpoint (0.87s)
+=== RUN   TestStepHistoryWriteFailureRollsBackCheckpoint
+
+2026/11/08 10:53:41 [34;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/step_history_test.go:125
+[0m[35m[warn] [0mremoving callback `test:history-failure` from D:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/step_history_test.go:125
+--- PASS: TestStepHistoryWriteFailureRollsBackCheckpoint (0.94s)
+=== RUN   TestStepHistorySerializesConcurrentCheckpointWrites
+--- PASS: TestStepHistorySerializesConcurrentCheckpointWrites (1.07s)
+=== RUN   TestStepHistoryPauseAndLegacyRemainHonest
+--- PASS: TestStepHistoryPauseAndLegacyRemainHonest (0.99s)
+=== RUN   TestStepHistoryVisibleHostAndStepOwnership
+    step_history_test.go:235: history scope leak: [{TaskStepResponse:{ID:1 TaskHostID:1 StepKey:install StepOrder:1 Status:running AttemptNo:1 StateVersion:2 StartedAt:2026-11-08 10:53:44.516 +0800 CST FinishedAt:<nil>} CapturedAt:2026-11-08 10:53:44.519 +0800 CST} {TaskStepResponse:{ID:2 TaskHostID:2 StepKey:private-host-step StepOrder:1 Status:running AttemptNo:1 StateVersion:2 StartedAt:2026-11-08 10:53:44.528 +0800 CST FinishedAt:<nil>} CapturedAt:2026-11-08 10:53:44.53 +0800 CST}]
+--- FAIL: TestStepHistoryVisibleHostAndStepOwnership (0.98s)
+=== RUN   TestStepHistoryProjectionBudget
+--- PASS: TestStepHistoryProjectionBudget (1.05s)
+=== RUN   TestStepHistoryMigrationReplayAndRetainedDown
+--- PASS: TestStepHistoryMigrationReplayAndRetainedDown (0.12s)
+FAIL
+FAIL	github.com/duanxldragon/pantheon-base/backend/modules/business/deploy	6.112s
+FAIL

@@ -1,0 +1,179 @@
+diff --git "a/.harness\\evidence\\2026-11-07-ops-planned-task-closeout\\verification\\p0-integration-20261109\\resume-o4-candidate-cleanup-source-before.txt" b/scripts/business-overlay/foundation-candidate.mjs
+index ab5d7f6..f87b8b7 100644
+--- "a/.harness\\evidence\\2026-11-07-ops-planned-task-closeout\\verification\\p0-integration-20261109\\resume-o4-candidate-cleanup-source-before.txt"
++++ b/scripts/business-overlay/foundation-candidate.mjs
+@@ -456,7 +456,67 @@ const stamp = (stat) => [
+   stat.nlink,
+ ];
+ const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
+-const ownedStages = new Set();
++const ownedStages = new Map();
++
++export class CandidateCleanupError extends Error {
++  constructor(root, reason, cause) {
++    super(
++      `Candidate cleanup ownership/identity refused: ${reason}; retained stage ${root}${cause ? `; original failure: ${cause.message}` : ""}`,
++      { cause },
++    );
++    this.name = "CandidateCleanupError";
++    this.code = "ERR_CANDIDATE_CLEANUP_OWNERSHIP";
++  }
++}
++
++function directoryIdentity(absolute) {
++  // Windows file IDs can exceed Number.MAX_SAFE_INTEGER. Never round them or
++  // substitute timestamps/markers when the filesystem cannot supply an ID.
++  const stat = fs.lstatSync(absolute, { bigint: true });
++  if (
++    !stat.isDirectory() ||
++    stat.isSymbolicLink() ||
++    typeof stat.dev !== "bigint" ||
++    stat.dev < 0n ||
++    typeof stat.ino !== "bigint" ||
++    stat.ino <= 0n
++  )
++    throw new Error(`Unavailable real directory identity: ${absolute}`);
++  return [stat.dev, stat.ino];
++}
++
++function directoryChain(absolute) {
++  const chain = [];
++  for (let current = absolute; ; current = path.dirname(current)) {
++    chain.unshift(current);
++    if (current === path.dirname(current)) return chain;
++  }
++}
++
++function assertDirectoryIdentity(absolute, identities) {
++  const expected = identities.get(absolute);
++  if (!expected) throw new Error(`Unknown directory ownership: ${absolute}`);
++  const current = directoryIdentity(absolute);
++  if (current[0] !== expected[0] || current[1] !== expected[1])
++    throw new Error(`Replaced directory identity: ${absolute}`);
++}
++
++function assertOwnedChain(absolute, identities) {
++  for (const directory of directoryChain(absolute))
++    assertDirectoryIdentity(directory, identities);
++}
++
++function createStageDirectory(absolute, identities) {
++  assertOwnedChain(path.dirname(absolute), identities);
++  if (identities.has(absolute)) {
++    assertDirectoryIdentity(absolute, identities);
++    return;
++  }
++  // mkdir is exclusive; capture immediately rather than enrolling a directory
++  // found later by a recursive scan. Node provides no atomic mkdir+identity API.
++  fs.mkdirSync(absolute);
++  identities.set(absolute, directoryIdentity(absolute));
++}
+ const freeze = (value) => {
+   if (value && typeof value === "object") {
+     for (const child of Object.values(value)) freeze(child);
+@@ -624,23 +684,43 @@ export function resolveCandidateArtifact({
+   assertExports(entries, descriptor.requiredExports);
+   fs.mkdirSync(path.dirname(root), { recursive: true });
+   assertRealPath(path.dirname(root), { directory: true });
+-  fs.mkdirSync(root);
+-  ownedStages.add(root);
++  const identities = new Map(
++    directoryChain(path.dirname(root)).map((directory) => [
++      directory,
++      directoryIdentity(directory),
++    ]),
++  );
++  // Keep unknown identity failures fail-closed even if creation already happened.
++  ownedStages.set(root, identities);
+   const baseRoot = path.join(root, "snapshot");
+   try {
+-    fs.mkdirSync(baseRoot);
++    createStageDirectory(root, identities);
++    createStageDirectory(baseRoot, identities);
+     for (const entry of entries) {
+       const target = path.join(baseRoot, entry.path);
+-      fs.mkdirSync(path.dirname(target), { recursive: true });
++      let directory = baseRoot;
++      for (const part of entry.path.split("/").slice(0, -1)) {
++        directory = path.join(directory, part);
++        createStageDirectory(directory, identities);
++      }
+       assertRealPath(target, { missing: true });
+       fs.writeFileSync(target, entry.bytes, { flag: "wx", mode: 0o644 });
+     }
++    const verifyDirectoryIdentities = () => {
++      assertOwnedChain(baseRoot, identities);
++      for (const directory of identities.keys()) {
++        if (directory.startsWith(baseRoot + path.sep))
++          assertOwnedChain(directory, identities);
++      }
++    };
++    verifyDirectoryIdentities();
+     const paths = fs.readdirSync(baseRoot).sort();
+     const captured = captureInputs(baseRoot, paths);
+     const rootStamp = stamp(fs.lstatSync(baseRoot));
+     if (!same(captured.files, descriptor.files))
+       throw new Error("Extracted candidate inventory mismatch");
+     const verify = () => {
++      verifyDirectoryIdentities();
+       const current = captureInputs(baseRoot, fs.readdirSync(baseRoot).sort());
+       if (
+         !same(current, captured) ||
+@@ -674,12 +754,12 @@ export function resolveCandidateArtifact({
+       verify,
+     };
+   } catch (error) {
+-    removeCandidateStage(root);
++    removeCandidateStage(root, { cause: error });
+     throw error;
+   }
+ }
+ 
+-export function removeCandidateStage(root) {
++export function removeCandidateStage(root, { cause } = {}) {
+   // Never delete through a changed junction or remove arbitrary caller paths.
+   if (
+     !ownedStages.has(root) ||
+@@ -688,7 +768,40 @@ export function removeCandidateStage(root) {
+     path.basename(path.dirname(path.dirname(root))) !== ".tmp"
+   )
+     throw new Error("Unsafe candidate cleanup target");
+-  assertRealPath(root, { directory: true });
+-  fs.rmSync(root, { recursive: true });
++  const identities = ownedStages.get(root);
++  try {
++    const visit = (directory, remove) => {
++      assertOwnedChain(directory, identities);
++      for (const name of fs.readdirSync(directory)) {
++        assertOwnedChain(directory, identities);
++        const absolute = path.join(directory, name);
++        const stat = fs.lstatSync(absolute);
++        if (stat.isDirectory() && !stat.isSymbolicLink()) {
++          visit(absolute, remove);
++        } else if (stat.isFile()) {
++          if (remove) {
++            assertOwnedChain(directory, identities);
++            fs.unlinkSync(absolute);
++          }
++        } else {
++          throw new Error(`Unsupported cleanup entry: ${absolute}`);
++        }
++      }
++      if (remove) {
++        assertOwnedChain(directory, identities);
++        fs.rmdirSync(directory);
++      }
++    };
++    // Guard the complete subtree first so a known foreign directory preserves
++    // the stage intact. Assembler-created directories lack a creation receipt
++    // in this consumer and remain unknown; never infer ownership from location.
++    visit(root, false);
++    // Path checks and deletion are separate syscalls, not an atomic namespace
++    // lock. Recheck every ancestor before each unlink/rmdir, and never hand a
++    // recursively deleting primitive a path that could be replaced afterward.
++    visit(root, true);
++  } catch (error) {
++    throw new CandidateCleanupError(root, error.message, cause ?? error);
++  }
+   ownedStages.delete(root);
+ }

@@ -1,0 +1,59 @@
+{
+  "scope": "only exact driver-owned remote Git fixtures and consumed credential-file absence; no provider changes",
+  "exitCode": 0,
+  "records": [
+    {
+      "directory": "/opt/pantheon-p0-20261109/live-k8s-argo-repo-efcf2b",
+      "ownedPathAndCommitAndOwnerLabelsChecked": true,
+      "serverAbsent": true,
+      "absenceVerified": true,
+      "exitCode": 0
+    },
+    {
+      "directory": "/opt/pantheon-p0-20261109/live-k8s-argo-repo-fc365a",
+      "ownedPathAndCommitAndOwnerLabelsChecked": true,
+      "serverAbsent": true,
+      "absenceVerified": true,
+      "exitCode": 0
+    },
+    {
+      "directory": "/opt/pantheon-p0-20261109/live-k8s-argo-repo-409fe7",
+      "ownedPathAndCommitAndOwnerLabelsChecked": true,
+      "serverAbsent": true,
+      "absenceVerified": true,
+      "exitCode": 0
+    },
+    {
+      "directory": "/opt/pantheon-p0-20261109/live-k8s-argo-repo-bacf73",
+      "ownedPathAndCommitAndOwnerLabelsChecked": true,
+      "serverAbsent": true,
+      "absenceVerified": true,
+      "exitCode": 0
+    },
+    {
+      "directory": "/opt/pantheon-p0-20261109/live-k8s-argo-repo-a9e3b9",
+      "ownedPathAndCommitAndOwnerLabelsChecked": true,
+      "serverAbsent": true,
+      "absenceVerified": true,
+      "exitCode": 0
+    },
+    {
+      "directory": "/opt/pantheon-p0-20261109/live-k8s-argo-repo-dc5eb4",
+      "ownedPathAndCommitAndOwnerLabelsChecked": true,
+      "serverAbsent": true,
+      "absenceVerified": true,
+      "exitCode": 0
+    },
+    {
+      "credentialFile": "live-k8s-argo-pantheon-p0-live-3c38b2.json",
+      "absenceVerified": true,
+      "exitCode": 0
+    },
+    {
+      "credentialFile": "live-k8s-argo-pantheon-p0-live-929033.json",
+      "absenceVerified": true,
+      "exitCode": 0
+    }
+  ],
+  "stderrPresent": false
+}

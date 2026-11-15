@@ -1,0 +1,24 @@
+{
+  "name": "r4-backend-race",
+  "command": [
+    "go",
+    "test",
+    "-race",
+    "-p=1",
+    "-buildvcs=false",
+    "-mod=readonly",
+    "-json",
+    "./..."
+  ],
+  "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.tmp\\ops-v0188-final-r4\\backend",
+  "exitCode": 1,
+  "signal": null,
+  "elapsedSeconds": 942.796,
+  "privateFixtureSHA256": "8796d1a6c2b599e8e5406df8848638287d93827fb4436e6373c271b79cca5f05",
+  "logSHA256": "fa78dfc3bb7890a6c8747d91381fd903ad12a32bd7f04cb9f507db7abf91f953",
+  "logPrivate": true,
+  "credentialValuesPrinted": false,
+  "passEvents": 1296,
+  "skipEvents": 23,
+  "failEvents": 53
+}

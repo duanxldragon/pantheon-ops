@@ -1,0 +1,75 @@
+{
+  "recordedUTC": "2026-11-11T07:06:04.334351+00:00",
+  "parentTask": "2026-11-07-ops-planned-task-closeout",
+  "predecessorCheckpoint": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/continuation-20261111-runtime-findings/checkpoint.md",
+  "artifacts": {
+    "base-code": {
+      "path": "pantheon-base/.local/post-config-reviews/base-owner-lifecycle-code-20261111/review.md",
+      "sha256": "3188b57f7aa2bd4b3e9bbd0659c7cc8e55bcc0480e665370ab448b6d81942f1a"
+    },
+    "base-arch": {
+      "path": "pantheon-base/.local/post-config-reviews/base-owner-lifecycle-arch-20261111/review.md",
+      "sha256": "da9bd6eec97d17623639942263caf69c59b7bbd6a6af132f48859bf43756f95d"
+    },
+    "base-full-gates": {
+      "path": "pantheon-base/.local/o4-owner-lifecycle-20261111/full-gates/current-validation.json",
+      "sha256": "b52871ba1460e0e33514f1a220587fdd085b5a690e20ed9bd2adc3ef4b2d767b"
+    },
+    "guard-v1-code": {
+      "path": "pantheon-base/.local/post-config-reviews/base-lifecycle-candidate-guard-code-20261111-v1/review.md",
+      "sha256": "982dae858f775a1c83c813d3f7bf8c937e1b2a0e5e7c8572e435c864d6197da2"
+    },
+    "guard-v1-arch": {
+      "path": "pantheon-base/.local/post-config-reviews/base-lifecycle-candidate-guard-arch-20261111-v1/review.md",
+      "sha256": "104ca0e70b1e631d7cc418667ef7b3254b87d3db1ea60d9fea5faf06197cda97"
+    },
+    "o4-consumer-design-arch": {
+      "path": "pantheon-ops/.local/post-config-reviews/o4-lifecycle-r2-arch-20261111/review.md",
+      "sha256": "c894c2105612afc9b83653a87d7ba1f13a40589c1c5ebc8ba0b19fa6807fad00"
+    },
+    "event-version-correlation": {
+      "path": "pantheon-ops/.local/ops-acceptance/post-config-velero-v11/event-correlation-v1/observed-20261111T063401059530.json",
+      "sha256": "5b23a60ff6e5e322ed848562c99448bbe60509cf43f825a9595b1cc5baa1db1e"
+    },
+    "event-seven-read": {
+      "path": "pantheon-ops/.local/ops-acceptance/post-config-velero-v11/event-ownership-v2/observed-20261111T065334829460.json",
+      "sha256": "3ac56841e3e7e0dbaedfe055ecaefa1e4e756cd8f0fb9b8e7b6a8a126e29519b"
+    },
+    "event-version-proof": {
+      "path": "pantheon-ops/.local/ops-acceptance/post-config-velero-v11/event-ownership-v2/version-matched-provenance-v2.json",
+      "sha256": "df7950d0f7a1dfb3b7e441a2a42d6ac5e710170e59f8ae7f41324708c729021d"
+    },
+    "browser-readonly-probe": {
+      "path": "pantheon-ops/.local/ops-acceptance/browser-capability-observed-20261111T065954735468.json",
+      "sha256": "aa36ccf18f36a02d13833e7a8c8c8c5b33cec4c15450e4c0a91230b04dd99437"
+    }
+  },
+  "baseSourceReview": "CODE APPROVE / ARCH CLEAR",
+  "baseCurrentBackendGates": "PASS",
+  "baseSourceFiles": 529,
+  "baseRaceSeconds": 1238.235,
+  "S3LiveEndpointSkipExplicit": true,
+  "candidateGuardV1Synthesis": "REQUEST CHANGES",
+  "candidateGuardV2": "output confinement repaired; fresh dual review pending",
+  "consumerDesignR2": "ARCH APPROVE / CLEAR; implementation requires reviewed Base candidate",
+  "veleroReadCount": 7,
+  "veleroLocalPins": 533,
+  "veleroRemoteBaselineFiles": 45,
+  "veleroRemoteMutations": 0,
+  "veleroEventCount": 2,
+  "veleroEventConversionVersionMatched": true,
+  "veleroControllerChainMetadataMatched": true,
+  "veleroEventsActivelyRenewed": true,
+  "veleroSafeContainerStates": [
+    "PodInitializing",
+    "CreateContainerError"
+  ],
+  "veleroEventOwnershipOrRecoveryApproved": false,
+  "frontend": "58 focused tests, five locales and scoped lint/build reported; Windows browser spawn/IPC blocked; new remote rendering preparation active",
+  "assemblyStatus": "HOLD; no complete source freeze",
+  "P0ParentsClosed": 0,
+  "P0Approved": false,
+  "officialLockChanged": false,
+  "officialConsumption": false,
+  "consumedPhaseReplayPermitted": false
+}

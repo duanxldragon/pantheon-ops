@@ -1,0 +1,44 @@
+{
+  "archivedMembersMatched": 5532,
+  "attemptsReserved": 0,
+  "commands": [
+    {
+      "command": [
+        "D:\\Python\\Python312\\python.exe",
+        "-B",
+        "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\continue-o2-live-v11-root-execute.py",
+        "--phase",
+        "check",
+        "--request",
+        "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.harness\\evidence\\2026-11-07-ops-planned-task-closeout\\verification\\p0-integration-20261109\\o2-current-live-v11\\sealed-candidate-request.json"
+      ],
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "log": ".local/ops-acceptance/continue-o2-live-v11-request-gate-check.txt",
+      "logSHA256": "fa7d1484c7bd7eeaf5d1ebdea12cfb2f91d8d59e62b029c6d1b27510bb2cddd9"
+    },
+    {
+      "command": [
+        "D:\\Python\\Python312\\python.exe",
+        "-B",
+        "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\continue-o2-live-v11-root-execute.py",
+        "--phase",
+        "execute",
+        "--request",
+        "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.harness\\evidence\\2026-11-07-ops-planned-task-closeout\\verification\\p0-integration-20261109\\o2-current-live-v11\\sealed-candidate-request.json"
+      ],
+      "exitCode": 1,
+      "expectedExitCode": 1,
+      "log": ".local/ops-acceptance/continue-o2-live-v11-request-gate-execute.txt",
+      "logSHA256": "f97ccffe0abdf6fdeac7594411f9e7e28837cafd74a1d39759dff913f692fa1b"
+    }
+  ],
+  "credentialsLoaded": false,
+  "oldOwnerReceiptCannotAuthorizeNewRequest": true,
+  "protectedOldCount": 232,
+  "pythonASTFilesPassed": 8,
+  "remoteExecuted": false,
+  "requestSHA256": "ffbc6666c896de2b00ec2eb799aa96e41e9b4d3bb0e5a9417d049db361649e51",
+  "runtimeCasesExecuted": 0,
+  "selfApproval": false
+}

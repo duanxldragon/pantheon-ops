@@ -1,0 +1,7 @@
+{
+  "status": "timeout",
+  "exitCode": 1,
+  "seconds": 360,
+  "promptSha256": "0b7555fb20fd01cda55097cbbc8ee3fa13f2eb3e703d494c9ae43e9be4e9185f",
+  "command": "claude.exe -p --tools \"\" --output-format text; stdin=final-base-iam-consumers-prompt.md"
+}

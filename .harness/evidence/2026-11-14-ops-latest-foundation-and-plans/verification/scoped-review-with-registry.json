@@ -1,0 +1,86 @@
+{
+  "checkerSHA256": "371460abea149db6a46a7418e6d96e86432507d6b4f8569607c723b69fb7e017",
+  "command": [
+    "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.tmp\\node24\\node.exe",
+    "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.tmp\\ops-v0188-final-r5\\scripts\\harness\\check-review.mjs",
+    "--json",
+    "--strict",
+    "--root",
+    "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+    ".harness/evidence/2026-11-14-ops-latest-foundation-and-plans/review.md",
+    ".harness/evidence/2026-11-13-ops-business-menu-ia-refactor/review.md"
+  ],
+  "exitCode": 1,
+  "executionStdioAdaptation": "Previously reviewed task-private regular-file stdio for nested Windows pipe EPERM; same checker source/arguments/output",
+  "mode": "strict",
+  "fileCount": 10,
+  "errorCount": 8,
+  "results": [
+    {
+      "file": ".harness/evidence/2026-11-14-ops-latest-foundation-and-plans/review.md",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "file": ".harness/evidence/2026-11-13-ops-business-menu-ia-refactor/review.md",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "file": ".harness/archive/2026-09/evidence/2026-09-04-readme-v0.11.0-update/review.md",
+      "errors": [
+        "stale legacy review allowlist entry: the artifact no longer exists"
+      ],
+      "warnings": []
+    },
+    {
+      "file": ".harness/archive/2026-09/evidence/2026-09-10-tenant-canary-slice/review.md",
+      "errors": [
+        "stale legacy review allowlist entry: the artifact no longer exists"
+      ],
+      "warnings": []
+    },
+    {
+      "file": ".harness/archive/2026-09/evidence/2026-09-10-tenant-contract-design/review.md",
+      "errors": [
+        "stale legacy review allowlist entry: the artifact no longer exists"
+      ],
+      "warnings": []
+    },
+    {
+      "file": ".harness/archive/2026-09/evidence/2026-09-10-tenant-core-auth-iam/review.md",
+      "errors": [
+        "stale legacy review allowlist entry: the artifact no longer exists"
+      ],
+      "warnings": []
+    },
+    {
+      "file": ".harness/archive/2026-09/evidence/2026-09-10-tenant-migration-runbook/review.md",
+      "errors": [
+        "stale legacy review allowlist entry: the artifact no longer exists"
+      ],
+      "warnings": []
+    },
+    {
+      "file": ".harness/archive/2026-09/evidence/2026-09-10-tenant-ready-guardrails/review.md",
+      "errors": [
+        "stale legacy review allowlist entry: the artifact no longer exists"
+      ],
+      "warnings": []
+    },
+    {
+      "file": ".harness/archive/2026-08/evidence/2026-08-31-base-operational-workbench-design/review.md",
+      "errors": [
+        "stale legacy review allowlist entry: the artifact no longer exists"
+      ],
+      "warnings": []
+    },
+    {
+      "file": ".harness/archive/2026-09/evidence/2026-09-24-fix-report-residual-closeout/review.md",
+      "errors": [
+        "stale legacy review allowlist entry: the artifact no longer exists"
+      ],
+      "warnings": []
+    }
+  ]
+}

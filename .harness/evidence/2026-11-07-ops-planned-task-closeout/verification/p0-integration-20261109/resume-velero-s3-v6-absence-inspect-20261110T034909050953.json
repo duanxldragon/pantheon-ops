@@ -1,0 +1,146 @@
+{
+  "phase": "sealed-velero-absence-read-only",
+  "remoteMutation": false,
+  "exitCode": 0,
+  "providerInstalled": false,
+  "P0Approved": false,
+  "v6DiagnosticSHA256": "4a486df4fa7f3b35f5a5c7596dd0045e76bfdd18fe1facb2a806af3d769b305e",
+  "stderrPresent": false,
+  "record": {
+    "phase": "sealed-velero-absence-read-only",
+    "remoteMutation": false,
+    "officialManifestSHA256": "65e25156d194c147a43757d347cd070949ffd3fd99d7261cf3e226bd70de3c24",
+    "objectCount": 18,
+    "objects": [
+      {
+        "kind": "CustomResourceDefinition",
+        "name": "backuprepositories.velero.io",
+        "namespace": null,
+        "exitCode": 1,
+        "status": "NotFound"
+      },
+      {
+        "kind": "CustomResourceDefinition",
+        "name": "backups.velero.io",
+        "namespace": null,
+        "exitCode": 1,
+        "status": "NotFound"
+      },
+      {
+        "kind": "CustomResourceDefinition",
+        "name": "backupstoragelocations.velero.io",
+        "namespace": null,
+        "exitCode": 1,
+        "status": "NotFound"
+      },
+      {
+        "kind": "CustomResourceDefinition",
+        "name": "deletebackuprequests.velero.io",
+        "namespace": null,
+        "exitCode": 1,
+        "status": "NotFound"
+      },
+      {
+        "kind": "CustomResourceDefinition",
+        "name": "downloadrequests.velero.io",
+        "namespace": null,
+        "exitCode": 1,
+        "status": "NotFound"
+      },
+      {
+        "kind": "CustomResourceDefinition",
+        "name": "podvolumebackups.velero.io",
+        "namespace": null,
+        "exitCode": 1,
+        "status": "NotFound"
+      },
+      {
+        "kind": "CustomResourceDefinition",
+        "name": "podvolumerestores.velero.io",
+        "namespace": null,
+        "exitCode": 1,
+        "status": "NotFound"
+      },
+      {
+        "kind": "CustomResourceDefinition",
+        "name": "restores.velero.io",
+        "namespace": null,
+        "exitCode": 1,
+        "status": "NotFound"
+      },
+      {
+        "kind": "CustomResourceDefinition",
+        "name": "schedules.velero.io",
+        "namespace": null,
+        "exitCode": 1,
+        "status": "NotFound"
+      },
+      {
+        "kind": "CustomResourceDefinition",
+        "name": "serverstatusrequests.velero.io",
+        "namespace": null,
+        "exitCode": 1,
+        "status": "NotFound"
+      },
+      {
+        "kind": "CustomResourceDefinition",
+        "name": "volumesnapshotlocations.velero.io",
+        "namespace": null,
+        "exitCode": 1,
+        "status": "NotFound"
+      },
+      {
+        "kind": "CustomResourceDefinition",
+        "name": "datadownloads.velero.io",
+        "namespace": null,
+        "exitCode": 1,
+        "status": "NotFound"
+      },
+      {
+        "kind": "CustomResourceDefinition",
+        "name": "datauploads.velero.io",
+        "namespace": null,
+        "exitCode": 1,
+        "status": "NotFound"
+      },
+      {
+        "kind": "Namespace",
+        "name": "velero",
+        "namespace": null,
+        "exitCode": 0,
+        "status": "present"
+      },
+      {
+        "kind": "ClusterRoleBinding",
+        "name": "velero",
+        "namespace": null,
+        "exitCode": 1,
+        "status": "NotFound"
+      },
+      {
+        "kind": "ServiceAccount",
+        "name": "velero",
+        "namespace": "velero",
+        "exitCode": 1,
+        "status": "NotFound"
+      },
+      {
+        "kind": "BackupStorageLocation",
+        "name": "default",
+        "namespace": "velero",
+        "exitCode": 1,
+        "status": "unregistered-kind"
+      },
+      {
+        "kind": "Deployment",
+        "name": "velero",
+        "namespace": "velero",
+        "exitCode": 1,
+        "status": "NotFound"
+      }
+    ],
+    "veleroCRDs": [],
+    "veleroGroupAdvertised": false
+  },
+  "seconds": 10.469
+}

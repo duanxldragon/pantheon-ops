@@ -1,0 +1,7 @@
+{
+  "mysqlPid": 4536,
+  "redisPid": 15320,
+  "mysqlPort": 33316,
+  "redisPort": 26316,
+  "dataRoot": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.tmp\\ops-planned-cmdb-services"
+}

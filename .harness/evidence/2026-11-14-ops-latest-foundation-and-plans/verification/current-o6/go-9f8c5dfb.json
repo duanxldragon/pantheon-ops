@@ -1,0 +1,82 @@
+{
+  "command": [
+    "go",
+    "test",
+    "-race",
+    "-p=1",
+    "-mod=readonly",
+    "-count=1",
+    "-json",
+    "-run",
+    "Dashboard",
+    "./modules/business/deploy",
+    "./modules/business/k8s/cluster",
+    "./modules/business/k8s/workload",
+    "./modules/business/observability",
+    "./modules/business/shared/dashboard"
+  ],
+  "exitCode": 1,
+  "elapsedSeconds": 42.11,
+  "fixtureSHA256": "8796d1a6c2b599e8e5406df8848638287d93827fb4436e6373c271b79cca5f05",
+  "credentialsPrinted": false,
+  "sourceStable": false,
+  "changedSources": [
+    "backend/modules/business/k8s/k8s_seed.go",
+    "backend/modules/business/deploy/log_download_test.go"
+  ],
+  "testEvents": [
+    {
+      "Action": "pass",
+      "Package": "github.com/duanxldragon/pantheon-base/backend/modules/business/deploy",
+      "Test": "TestDeployDashboardSummaryBoundScopeAndCancellation"
+    },
+    {
+      "Action": "pass",
+      "Package": "github.com/duanxldragon/pantheon-base/backend/modules/business/deploy",
+      "Test": "TestDeployDashboardTimeWindowAndDrilldown"
+    },
+    {
+      "Action": "pass",
+      "Package": "github.com/duanxldragon/pantheon-base/backend/modules/business/deploy"
+    },
+    {
+      "Action": "pass",
+      "Package": "github.com/duanxldragon/pantheon-base/backend/modules/business/k8s/cluster",
+      "Test": "TestClusterDashboardSummaryNoCredentialLoadsAndScopedBound"
+    },
+    {
+      "Action": "pass",
+      "Package": "github.com/duanxldragon/pantheon-base/backend/modules/business/k8s/cluster"
+    },
+    {
+      "Action": "fail",
+      "Package": "github.com/duanxldragon/pantheon-base/backend/modules/business/k8s/workload",
+      "Test": "TestWorkloadDashboardBoundedSingleClusterProviderAndCancellation"
+    },
+    {
+      "Action": "fail",
+      "Package": "github.com/duanxldragon/pantheon-base/backend/modules/business/k8s/workload"
+    },
+    {
+      "Action": "pass",
+      "Package": "github.com/duanxldragon/pantheon-base/backend/modules/business/observability",
+      "Test": "TestDatasourceDashboardSummaryTenantScopeBoundAndSecrets"
+    },
+    {
+      "Action": "pass",
+      "Package": "github.com/duanxldragon/pantheon-base/backend/modules/business/observability",
+      "Test": "TestAlertRuleDashboardRecordedErrorsScopeAndProjection"
+    },
+    {
+      "Action": "pass",
+      "Package": "github.com/duanxldragon/pantheon-base/backend/modules/business/observability"
+    },
+    {
+      "Action": "pass",
+      "Package": "github.com/duanxldragon/pantheon-base/backend/modules/business/shared/dashboard"
+    }
+  ],
+  "stdoutSHA256": "4ac27ef982b7db4dabb467d9ad9c75d841d7682a3bb0ef667c7aaaa3f933fd3f",
+  "stderrSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "privateLogPath": ".harness/evidence/2026-11-14-ops-latest-foundation-and-plans/verification/current-o6/go-9f8c5dfb"
+}

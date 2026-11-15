@@ -1,0 +1,65 @@
+{
+  "candidateIdentity": "candidate-ae13a9312d91f38bdc1ff80e57e3112bac48636ead73c14c92bfdcb9bfc7dadf",
+  "descriptorPath": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\o4-real-packaging-1794279171056-preview-sealed\\candidate-descriptor.json",
+  "descriptorSha256": "13982e9cd4bf7289b7cc2c172eb44facb52242c25d52bcd670560ad831dd2eab",
+  "artifactPath": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\o4-real-packaging-1794279171056-preview-sealed\\candidate-ae13a9312d91f38bdc1ff80e57e3112bac48636ead73c14c92bfdcb9bfc7dadf.tar",
+  "artifactSha256": "84fd1dc366300a594bb8ee81ae3b92417564ee12816789bec517686ff7922fcf",
+  "sourceStable": true,
+  "publicFiles": [
+    {
+      "path": ".harness/archive/2026-08/evidence/2026-08-31-base-operational-workbench-design/review.md",
+      "bytes": 3899,
+      "sha256": "c927bcab6ed2673b331b733326a90d602c2575c6b689b29e39b5e7bace16ad43"
+    },
+    {
+      "path": ".harness/archive/2026-09/evidence/2026-09-04-readme-v0.11.0-update/review.md",
+      "bytes": 347,
+      "sha256": "c6557930b6c98a5d6961028fb56f08fb0edd45fd0f8c1d3a74b9519b669b915c"
+    },
+    {
+      "path": ".harness/archive/2026-09/evidence/2026-09-10-tenant-canary-slice/review.md",
+      "bytes": 3314,
+      "sha256": "79ec502f299edfe10b85554506c073bb0f1bf54b439205cce313ad8774086248"
+    },
+    {
+      "path": ".harness/archive/2026-09/evidence/2026-09-10-tenant-contract-design/review.md",
+      "bytes": 1588,
+      "sha256": "0b27857520e3598906607808e7e8795236c0487fbc8214ff65e4fd4ecb55ec29"
+    },
+    {
+      "path": ".harness/archive/2026-09/evidence/2026-09-10-tenant-core-auth-iam/review.md",
+      "bytes": 8428,
+      "sha256": "58684bd1b3c1384c938740dea5a53539e13bb3f16fbf6d4d04649bb4c75fb325"
+    },
+    {
+      "path": ".harness/archive/2026-09/evidence/2026-09-10-tenant-migration-runbook/review.md",
+      "bytes": 1881,
+      "sha256": "2acb4f2f35acd75325bd322f30390076bf083e8c6a032276d66f42bdd2edfdc5"
+    },
+    {
+      "path": ".harness/archive/2026-09/evidence/2026-09-10-tenant-ready-guardrails/review.md",
+      "bytes": 2762,
+      "sha256": "e5f63237c46f507222a7f66712d4033bb4713ebb5dd9d39746bfafc7d45b0b29"
+    },
+    {
+      "path": ".harness/archive/2026-09/evidence/2026-09-24-fix-report-residual-closeout/review.md",
+      "bytes": 8681,
+      "sha256": "2ec09bf32677fccb3d833ebac6e798353ec6632c5e5a32a172c8902d41e22b97"
+    },
+    {
+      "path": "config/foundation-consumer-artifacts.json",
+      "bytes": 195,
+      "sha256": "1d3cc1e52d3a5e5fba00a70c2d84467ad8c279ad5d66f3f9f92de238df7f1161"
+    },
+    {
+      "path": "config/review-loop-legacy-artifacts.json",
+      "bytes": 2522,
+      "sha256": "eebd51d839cc3756983a5ba80389907e2d3934206b7766d18bda03416550d7b0"
+    }
+  ],
+  "snapshotRoot": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.harness\\evidence\\2026-11-07-ops-planned-task-closeout\\o4-real-packaging-1794279171056\\.tmp\\foundation-candidates\\candidate-ae13a9312d91f38bdc1ff80e57e3112bac48636ead73c14c92bfdcb9bfc7dadf\\snapshot",
+  "projectionRoot": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.harness\\evidence\\2026-11-07-ops-planned-task-closeout\\o4-real-packaging-1794279171056\\registry-projection",
+  "baseProducerApplied": false,
+  "actualProductAssembly": false,
+  "officialConsumption": false
+}

@@ -1,0 +1,12 @@
+# github.com/duanxldragon/pantheon-base/backend/modules/business/deploy [github.com/duanxldragon/pantheon-base/backend/modules/business/deploy.test]
+modules\business\deploy\service_transaction_test.go:121:95: not enough arguments in call to s.MarkHostResult
+	have (uint64, MarkHostResultRequest, string)
+	want (uint64, MarkHostResultRequest, string, *"github.com/duanxldragon/pantheon-base/backend/pkg/common".DataScopeReq)
+modules\business\deploy\service_transaction_test.go:160:99: not enough arguments in call to s.MarkHostResult
+	have (uint64, MarkHostResultRequest, string)
+	want (uint64, MarkHostResultRequest, string, *"github.com/duanxldragon/pantheon-base/backend/pkg/common".DataScopeReq)
+modules\business\deploy\service_transaction_test.go:214:94: not enough arguments in call to s.MarkHostResult
+	have (uint64, MarkHostResultRequest, string)
+	want (uint64, MarkHostResultRequest, string, *"github.com/duanxldragon/pantheon-base/backend/pkg/common".DataScopeReq)
+FAIL	github.com/duanxldragon/pantheon-base/backend/modules/business/deploy [build failed]
+FAIL

@@ -1,0 +1,31 @@
+## Summary
+
+**Current delta: `CLEAR`. Engine v2: `IMPLEMENTATION READY` as a design.** No concrete blocker remains in the scoped three-file refresh repair or proposed ownership design. The existing engine HIGH remains unresolved until implementation and verification; this review does not close O2/P0 ([handoff:5](D:/workspace/go/pantheon-platform/pantheon-ops/.harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-trailing-refresh-fix-handoff.md:5)).
+
+## Analysis
+
+- **Refresh serialization is correct.** In-flight requests set one pending bit; settlement starts one silent trailing request. Pending resets before that request, preventing self-generated retries. Denial blocks new reads, clears pending and invalidates successful replies; disposal and generation identity prevent departed work from starting another read ([useDeployTaskSnapshot.ts:19](D:/workspace/go/pantheon-platform/pantheon-ops/frontend/src/modules/business/deploy/task/useDeployTaskSnapshot.ts:19), [settlement:37](D:/workspace/go/pantheon-platform/pantheon-ops/frontend/src/modules/business/deploy/task/useDeployTaskSnapshot.ts:37), [denial/disposal:45](D:/workspace/go/pantheon-platform/pantheon-ops/frontend/src/modules/business/deploy/task/useDeployTaskSnapshot.ts:45)).
+
+- **The terminal-event regression exercises the actual failure.** An older request returns `running` after the final connected SSE event; the trailing read returns `success` and closes the stream without advancing polling timers. Separate regressions cover coalescing, stable request counts, forbidden responses, navigation and disposal ([deploy-detail-read.test.tsx:72](D:/workspace/go/pantheon-platform/pantheon-ops/frontend/tests/unit/business/operational/deploy-detail-read.test.tsx:72), [deploy-read-revocation.test.tsx:78](D:/workspace/go/pantheon-platform/pantheon-ops/frontend/tests/unit/business/operational/deploy-read-revocation.test.tsx:78)).
+
+- **Preservation independently verified.** All three captured text diffs match their old/new copies; current bytes match the authoritative `after.json`. The prior 16 hashes bind to `before.json`; the remaining 13 reviewed files plus 43 owned paths compose the 56 unchanged source paths. All 216 protected paths, including v9/history/reviews, and seven engine bindings match. Authoritative pins are [prior hashes](D:/workspace/go/pantheon-platform/pantheon-ops/.harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-review-blockers-fix-hashes.json) and [after.json:6](D:/workspace/go/pantheon-platform/pantheon-ops/.harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-trailing-refresh-fix/after.json:6), which records hook `cb1a4871… → 7c9cfa7f…`.
+
+- **Engine v2 addresses the previous design deficiencies.** Latest-attempt/worker/current physical-owner fencing, task-first lock ordering, renewal never acquiring a later task lock, admission inversion correction, atomic five-minute/thirty-minute renewal, consistent database expiry predicates, five-second DB deadlines, independent conservative watchdog and cancellation on first failure are explicit ([plan-v2:9](D:/workspace/go/pantheon-platform/pantheon-ops/.harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-engine-ownership-plan-v2.md:9)). The required CMDB capability exists: transaction binding retains `tx`, and the resolver acquires sorted host locks ([target_selection.go:64](D:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/cmdb/target_selection.go:64), [capability.go:462](D:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/cmdb/capability.go:462)).
+
+## Root Cause
+
+The old hook discarded refresh intent whenever `session.running` was true ([old hook:19](D:/workspace/go/pantheon-platform/pantheon-ops/.harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-trailing-refresh-fix/useDeployTaskSnapshot.ts.old.txt:19)). The engine separately creates an expiring attempt without threading ownership into execution, while completion checks only attempt ID/worker ([deploy_service.go:1622](D:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/deploy_service.go:1622), [completion:1706](D:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/deploy_service.go:1706)).
+
+## Recommendations
+
+1. **Accept the refresh delta — low effort.** No additional repair is required.
+2. **Proceed with deploy-local engine implementation — high effort.** Preserve budgets, pause/cancel, crash recovery and legacy reporting. Require the proposed two-service, cross-task, stale-callback, DB-block and race protocols before implementation acceptance ([plan-v2:19](D:/workspace/go/pantheon-platform/pantheon-ops/.harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-engine-ownership-plan-v2.md:19)).
+
+## Trade-offs
+
+| Choice                              | Benefit                     | Cost                                                                  |
+| ----------------------------------- | --------------------------- | --------------------------------------------------------------------- |
+| Pending-bit coalescing              | Serialized eventual refresh | Loses individual refresh counts                                       |
+| Conservative ownership cancellation | Limits stale execution      | Transient DB failures interrupt work; remote effects remain ambiguous |
+
+Validation used hash-verified receipts: 51 units, native TypeScript zero diagnostics, lint/build pass; these were not rerun ([commands.json:23](D:/workspace/go/pantheon-platform/pantheon-ops/.harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-trailing-refresh-fix/commands.json:23)). Future engine tests have **not** run. Current-source VM/browser/render, full race, tenant/currentSession/IAM/audit and formal Base consumption remain root gates ([plan-v2:42](D:/workspace/go/pantheon-platform/pantheon-ops/.harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-o2-engine-ownership-plan-v2.md:42)).

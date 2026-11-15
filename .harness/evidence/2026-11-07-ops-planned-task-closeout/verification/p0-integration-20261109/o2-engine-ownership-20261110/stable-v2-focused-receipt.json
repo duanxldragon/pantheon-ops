@@ -1,0 +1,42 @@
+{
+  "parent": "2026-11-07-ops-planned-task-closeout",
+  "scope": "backend/modules/business/deploy/**",
+  "startedUTC": "2026-11-10T06:14:08.1717901Z",
+  "finishedUTC": "2026-11-10T06:18:48.4759685Z",
+  "sourceStable": true,
+  "fileCount": 46,
+  "cgo": "1",
+  "toolchain": "D:\\cache\\go\\pkg\\mod\\golang.org\\toolchain@v0.0.1-go1.26.10.windows-amd64",
+  "cache": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\o2-engine-gocache",
+  "requiredMySQL": "1",
+  "results": [
+    {
+      "name": "race",
+      "command": "go test -mod=readonly -race -count=1 -timeout=25m ./modules/business/deploy/... -v",
+      "exitCode": 0
+    },
+    {
+      "name": "vet",
+      "command": "go vet -mod=readonly ./modules/business/deploy/...",
+      "exitCode": 0
+    },
+    {
+      "name": "build",
+      "command": "go build -mod=readonly ./modules/business/deploy/...",
+      "exitCode": 0
+    },
+    {
+      "name": "native-diagnostics",
+      "command": "gopls check modules/business/deploy/attempt_ownership.go modules/business/deploy/attempt_ownership_test.go modules/business/deploy/deploy_service.go modules/business/deploy/deploy_reliability_test.go modules/business/deploy/deploy_ssh_transport_test.go modules/business/deploy/deploy_rollback.go modules/business/deploy/resume_scope_revocation_test.go modules/business/deploy/task_command.go modules/business/deploy/task_preview.go modules/business/deploy/target_selection.go",
+      "exitCode": 0
+    },
+    {
+      "name": "diff-check",
+      "command": "git diff --check -- modules/business/deploy",
+      "exitCode": 0
+    }
+  ],
+  "fullTreeGate": "Dispatcher/root final gate; not executed by this Generator",
+  "independentReview": "pending implementation CODE/ARCH; no self-approval",
+  "acceptance": "O2/P0 remains open"
+}

@@ -1,0 +1,24 @@
+
+> rebuild:from-base
+> node scripts/business-overlay/rebuild-from-base.mjs --target .tmp/ops-planned-delivery-overlay
+
+node:fs:1221
+  return binding.rmSync(getValidatedPath(path), opts.maxRetries, opts.recursive, opts.retryDelay);
+                 ^
+
+Error: EPERM, Permission denied: \\?\D:\workspace\go\pantheon-platform\pantheon-ops\.tmp\ops-planned-delivery-overlay '\\?\D:\workspace\go\pantheon-platform\pantheon-ops\.tmp\ops-planned-delivery-overlay'
+    at Object.rmSync (node:fs:1221:18)
+    at assembleConsumerTree (file:///D:/workspace/go/pantheon-platform/pantheon-ops/scripts/business-overlay/rebuild-from-base.mjs:579:6)
+    at rebuildFromBase (file:///D:/workspace/go/pantheon-platform/pantheon-ops/scripts/business-overlay/rebuild-from-base.mjs:616:10)
+    at file:///D:/workspace/go/pantheon-platform/pantheon-ops/scripts/business-overlay/rebuild-from-base.mjs:626:18
+    at ModuleJob.run (node:internal/modules/esm/module_job:430:25)
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:661:26)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:101:5) {
+  errno: 1,
+  code: 'EPERM',
+  path: '\\\\?\\D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.tmp\\ops-planned-delivery-overlay',
+  syscall: 'rm'
+}
+
+Node.js v24.14.0

@@ -1,0 +1,499 @@
+{
+  "checkerSHA256": "371460abea149db6a46a7418e6d96e86432507d6b4f8569607c723b69fb7e017",
+  "command": [
+    "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.tmp\\node24\\node.exe",
+    "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.tmp\\ops-v0188-final-r5\\scripts\\harness\\check-review.mjs",
+    "--json",
+    "--strict",
+    "--root",
+    "D:\\workspace\\go\\pantheon-platform\\pantheon-ops"
+  ],
+  "exitCode": 1,
+  "executionStdioAdaptation": "Previously reviewed task-private regular-file stdio for nested Windows pipe EPERM; same checker source/arguments/output",
+  "mode": "strict",
+  "fileCount": 67,
+  "errorCount": 93,
+  "results": [
+    {
+      "file": ".harness/evidence/2026-06-17-github-governance-followup/review.md",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "file": ".harness/evidence/2026-06-18-branch-hygiene-fallback/review.md",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "file": ".harness/evidence/2026-06-18-branch-hygiene-slash-path-fix/review.md",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "file": ".harness/evidence/2026-06-18-pr-branch-cleanup-automation/review.md",
+      "errors": [
+        "missing ## Machine Readable JSON block"
+      ],
+      "warnings": []
+    },
+    {
+      "file": ".harness/evidence/2026-06-21-business-deploy-task-main-flow-closeout/review.md",
+      "errors": [
+        "missing ## Machine Readable JSON block"
+      ],
+      "warnings": []
+    },
+    {
+      "file": ".harness/evidence/2026-08-07-foundation-upgrade-base-v0-10-3/review.md",
+      "errors": [
+        "missing ## Machine Readable JSON block"
+      ],
+      "warnings": []
+    },
+    {
+      "file": ".harness/evidence/2026-08-08-foundation-upgrade-base-v0-10-5/review.md",
+      "errors": [
+        "root.verdict must be one of: approved, changes requested, blocked, approved with documented P2 follow-up.",
+        "root.structuralReview.checks[0] must be one of: cycle, hub, call-depth, sensitive-flow.",
+        "root.structuralReview.checks[1] must be one of: cycle, hub, call-depth, sensitive-flow.",
+        "root.structuralReview.checks[2] must be one of: cycle, hub, call-depth, sensitive-flow.",
+        "root.linkage.changeRef must be a non-empty string.",
+        "root.linkage.planRefs must be an array."
+      ],
+      "warnings": []
+    },
+    {
+      "file": ".harness/evidence/2026-08-10-security-csrf-closeout/review.md",
+      "errors": [
+        "root.verdict must be one of: approved, changes requested, blocked, approved with documented P2 follow-up.",
+        "root.structuralReview.checks[0] must be one of: cycle, hub, call-depth, sensitive-flow.",
+        "root.structuralReview.checks[1] must be one of: cycle, hub, call-depth, sensitive-flow.",
+        "root.structuralReview.checks[2] must be one of: cycle, hub, call-depth, sensitive-flow.",
+        "root.structuralReview.checks[3] must be one of: cycle, hub, call-depth, sensitive-flow.",
+        "root.linkage.changeRef must be a non-empty string.",
+        "root.linkage.planRefs must be an array."
+      ],
+      "warnings": []
+    },
+    {
+      "file": ".harness/evidence/2026-08-11-foundation-consumer-certification/review.md",
+      "errors": [
+        "missing ## Machine Readable JSON block"
+      ],
+      "warnings": []
+    },
+    {
+      "file": ".harness/evidence/2026-08-11-sonarcloud-ops-remediation/review.md",
+      "errors": [
+        "missing ## Machine Readable JSON block"
+      ],
+      "warnings": []
+    },
+    {
+      "file": ".harness/evidence/2026-08-12-foundation-v0-10-14-clean-consumer/review.md",
+      "errors": [
+        "missing ## Machine Readable JSON block"
+      ],
+      "warnings": []
+    },
+    {
+      "file": ".harness/evidence/2026-08-13-clean-base-business-overlay-rebuild/review.md",
+      "errors": [
+        "root.verdict must be a non-empty string.",
+        "root.linkage must be an object."
+      ],
+      "warnings": []
+    },
+    {
+      "file": ".harness/evidence/2026-08-17-ops-foundation-hardening/review.md",
+      "errors": [
+        "root.verdict must be one of: approved, changes requested, blocked, approved with documented P2 follow-up.",
+        "root.linkage must be an object."
+      ],
+      "warnings": []
+    },
+    {
+      "file": ".harness/evidence/2026-08-19-ops-v1-backlog-closeout/review.md",
+      "errors": [
+        "taskManifest.status must be one of: planned, in-progress, completed, abandoned (got \"complete-with-explicit-gates\")."
+      ],
+      "warnings": []
+    },
+    {
+      "file": ".harness/evidence/2026-08-31-ops-operational-workbench-design/review.md",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "file": ".harness/evidence/2026-09-28-ops-delivery-readiness-gap-closure/review.md",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "file": ".harness/evidence/2026-10-12-foundation-upgrade-base-v0-16-1/review.md",
+      "errors": [
+        "missing ## Machine Readable JSON block"
+      ],
+      "warnings": []
+    },
+    {
+      "file": ".harness/evidence/2026-10-27-foundation-upgrade-base-v0-17-6/review.md",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "file": ".harness/evidence/2026-10-27-foundation-upgrade-base-v0-17-7/review.md",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "file": ".harness/evidence/2026-10-29-foundation-upgrade-base-v0-18-1/review.md",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "file": ".harness/evidence/2026-10-29-sonar-ci-analysis-restore/review.md",
+      "errors": [
+        "root.taskId must be a non-empty string.",
+        "root.taskId must match evidence directory name \"2026-10-29-sonar-ci-analysis-restore\"."
+      ],
+      "warnings": []
+    },
+    {
+      "file": ".harness/evidence/2026-10-30-sonar-findings-remediation/review.md",
+      "errors": [
+        "missing ## Machine Readable JSON block"
+      ],
+      "warnings": []
+    },
+    {
+      "file": ".harness/evidence/2026-10-31-foundation-upgrade-base-v0-18-2/review.md",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "file": ".harness/evidence/2026-10-31-frontend-follow-redirects-audit/review.md",
+      "errors": [
+        "root.verdict must be one of: approved, changes requested, blocked, approved with documented P2 follow-up.",
+        "root.linkage must be an object."
+      ],
+      "warnings": []
+    },
+    {
+      "file": ".harness/evidence/2026-11-05-base-v0183-consumption/review.md",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "file": ".harness/evidence/2026-11-07-base-v0186-consumption/review.md",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/continue-o4-safety-independent-code-20261110-01/review.md",
+      "errors": [
+        "root.verdict must be one of: approved, changes requested, blocked, approved with documented P2 follow-up.",
+        "root.linkage must be an object."
+      ],
+      "warnings": []
+    },
+    {
+      "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/review.md",
+      "errors": [
+        "root.verdict must be one of: approved, changes requested, blocked, approved with documented P2 follow-up.",
+        "root.linkage must be an object."
+      ],
+      "warnings": []
+    },
+    {
+      "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-real-packaging-1794279171056/.tmp/foundation-candidates/candidate-ae13a9312d91f38bdc1ff80e57e3112bac48636ead73c14c92bfdcb9bfc7dadf/snapshot/.harness/archive/2026-08/evidence/2026-08-31-base-operational-workbench-design/review.md",
+      "errors": [
+        "root.verdict must be one of: approved, changes requested, blocked, approved with documented P2 follow-up.",
+        "root.structuralReview.checks[0] must be one of: cycle, hub, call-depth, sensitive-flow.",
+        "root.structuralReview.checks[1] must be one of: cycle, hub, call-depth, sensitive-flow.",
+        "root.structuralReview.checks[2] must be one of: cycle, hub, call-depth, sensitive-flow.",
+        "root.structuralReview.checks[3] must be one of: cycle, hub, call-depth, sensitive-flow.",
+        "linked plan missing: .harness/tasks/2026-08-31-base-operational-workbench-design/EXECUTION_QUEUE.md",
+        "task manifest does not exist: .harness/tasks/2026-08-31-base-operational-workbench-design/manifest.json",
+        "linked evidence missing: .harness/evidence/2026-08-31-base-operational-workbench-design/commands.json"
+      ],
+      "warnings": []
+    },
+    {
+      "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-real-packaging-1794279171056/.tmp/foundation-candidates/candidate-ae13a9312d91f38bdc1ff80e57e3112bac48636ead73c14c92bfdcb9bfc7dadf/snapshot/.harness/archive/2026-09/evidence/2026-09-04-readme-v0.11.0-update/review.md",
+      "errors": [
+        "missing ## Machine Readable JSON block"
+      ],
+      "warnings": []
+    },
+    {
+      "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-real-packaging-1794279171056/.tmp/foundation-candidates/candidate-ae13a9312d91f38bdc1ff80e57e3112bac48636ead73c14c92bfdcb9bfc7dadf/snapshot/.harness/archive/2026-09/evidence/2026-09-10-tenant-canary-slice/review.md",
+      "errors": [
+        "missing ## Machine Readable JSON block"
+      ],
+      "warnings": []
+    },
+    {
+      "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-real-packaging-1794279171056/.tmp/foundation-candidates/candidate-ae13a9312d91f38bdc1ff80e57e3112bac48636ead73c14c92bfdcb9bfc7dadf/snapshot/.harness/archive/2026-09/evidence/2026-09-10-tenant-contract-design/review.md",
+      "errors": [
+        "missing ## Machine Readable JSON block"
+      ],
+      "warnings": []
+    },
+    {
+      "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-real-packaging-1794279171056/.tmp/foundation-candidates/candidate-ae13a9312d91f38bdc1ff80e57e3112bac48636ead73c14c92bfdcb9bfc7dadf/snapshot/.harness/archive/2026-09/evidence/2026-09-10-tenant-core-auth-iam/review.md",
+      "errors": [
+        "missing ## Machine Readable JSON block"
+      ],
+      "warnings": []
+    },
+    {
+      "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-real-packaging-1794279171056/.tmp/foundation-candidates/candidate-ae13a9312d91f38bdc1ff80e57e3112bac48636ead73c14c92bfdcb9bfc7dadf/snapshot/.harness/archive/2026-09/evidence/2026-09-10-tenant-migration-runbook/review.md",
+      "errors": [
+        "missing ## Machine Readable JSON block"
+      ],
+      "warnings": []
+    },
+    {
+      "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-real-packaging-1794279171056/.tmp/foundation-candidates/candidate-ae13a9312d91f38bdc1ff80e57e3112bac48636ead73c14c92bfdcb9bfc7dadf/snapshot/.harness/archive/2026-09/evidence/2026-09-10-tenant-ready-guardrails/review.md",
+      "errors": [
+        "missing ## Machine Readable JSON block"
+      ],
+      "warnings": []
+    },
+    {
+      "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-real-packaging-1794279171056/.tmp/foundation-candidates/candidate-ae13a9312d91f38bdc1ff80e57e3112bac48636ead73c14c92bfdcb9bfc7dadf/snapshot/.harness/archive/2026-09/evidence/2026-09-24-fix-report-residual-closeout/review.md",
+      "errors": [
+        "linked plan missing: .harness/NAMING_AND_BOUNDARIES_REMEDIATION_PLAN_2026-09-22.md",
+        "linked plan missing: fix-report.md",
+        "task manifest does not exist: .harness/tasks/2026-09-24-fix-report-residual-closeout/manifest.json",
+        "linked evidence missing: .harness/evidence/2026-09-24-fix-report-residual-closeout/commands.json"
+      ],
+      "warnings": []
+    },
+    {
+      "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-real-packaging-1794279171056/real-input-1794281117433/.tmp/foundation-candidates/candidate-ae13a9312d91f38bdc1ff80e57e3112bac48636ead73c14c92bfdcb9bfc7dadf/snapshot/.harness/archive/2026-08/evidence/2026-08-31-base-operational-workbench-design/review.md",
+      "errors": [
+        "root.verdict must be one of: approved, changes requested, blocked, approved with documented P2 follow-up.",
+        "root.structuralReview.checks[0] must be one of: cycle, hub, call-depth, sensitive-flow.",
+        "root.structuralReview.checks[1] must be one of: cycle, hub, call-depth, sensitive-flow.",
+        "root.structuralReview.checks[2] must be one of: cycle, hub, call-depth, sensitive-flow.",
+        "root.structuralReview.checks[3] must be one of: cycle, hub, call-depth, sensitive-flow.",
+        "linked plan missing: .harness/tasks/2026-08-31-base-operational-workbench-design/EXECUTION_QUEUE.md",
+        "task manifest does not exist: .harness/tasks/2026-08-31-base-operational-workbench-design/manifest.json",
+        "linked evidence missing: .harness/evidence/2026-08-31-base-operational-workbench-design/commands.json"
+      ],
+      "warnings": []
+    },
+    {
+      "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-real-packaging-1794279171056/real-input-1794281117433/.tmp/foundation-candidates/candidate-ae13a9312d91f38bdc1ff80e57e3112bac48636ead73c14c92bfdcb9bfc7dadf/snapshot/.harness/archive/2026-09/evidence/2026-09-04-readme-v0.11.0-update/review.md",
+      "errors": [
+        "missing ## Machine Readable JSON block"
+      ],
+      "warnings": []
+    },
+    {
+      "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-real-packaging-1794279171056/real-input-1794281117433/.tmp/foundation-candidates/candidate-ae13a9312d91f38bdc1ff80e57e3112bac48636ead73c14c92bfdcb9bfc7dadf/snapshot/.harness/archive/2026-09/evidence/2026-09-10-tenant-canary-slice/review.md",
+      "errors": [
+        "missing ## Machine Readable JSON block"
+      ],
+      "warnings": []
+    },
+    {
+      "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-real-packaging-1794279171056/real-input-1794281117433/.tmp/foundation-candidates/candidate-ae13a9312d91f38bdc1ff80e57e3112bac48636ead73c14c92bfdcb9bfc7dadf/snapshot/.harness/archive/2026-09/evidence/2026-09-10-tenant-contract-design/review.md",
+      "errors": [
+        "missing ## Machine Readable JSON block"
+      ],
+      "warnings": []
+    },
+    {
+      "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-real-packaging-1794279171056/real-input-1794281117433/.tmp/foundation-candidates/candidate-ae13a9312d91f38bdc1ff80e57e3112bac48636ead73c14c92bfdcb9bfc7dadf/snapshot/.harness/archive/2026-09/evidence/2026-09-10-tenant-core-auth-iam/review.md",
+      "errors": [
+        "missing ## Machine Readable JSON block"
+      ],
+      "warnings": []
+    },
+    {
+      "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-real-packaging-1794279171056/real-input-1794281117433/.tmp/foundation-candidates/candidate-ae13a9312d91f38bdc1ff80e57e3112bac48636ead73c14c92bfdcb9bfc7dadf/snapshot/.harness/archive/2026-09/evidence/2026-09-10-tenant-migration-runbook/review.md",
+      "errors": [
+        "missing ## Machine Readable JSON block"
+      ],
+      "warnings": []
+    },
+    {
+      "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-real-packaging-1794279171056/real-input-1794281117433/.tmp/foundation-candidates/candidate-ae13a9312d91f38bdc1ff80e57e3112bac48636ead73c14c92bfdcb9bfc7dadf/snapshot/.harness/archive/2026-09/evidence/2026-09-10-tenant-ready-guardrails/review.md",
+      "errors": [
+        "missing ## Machine Readable JSON block"
+      ],
+      "warnings": []
+    },
+    {
+      "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-real-packaging-1794279171056/real-input-1794281117433/.tmp/foundation-candidates/candidate-ae13a9312d91f38bdc1ff80e57e3112bac48636ead73c14c92bfdcb9bfc7dadf/snapshot/.harness/archive/2026-09/evidence/2026-09-24-fix-report-residual-closeout/review.md",
+      "errors": [
+        "linked plan missing: .harness/NAMING_AND_BOUNDARIES_REMEDIATION_PLAN_2026-09-22.md",
+        "linked plan missing: fix-report.md",
+        "task manifest does not exist: .harness/tasks/2026-09-24-fix-report-residual-closeout/manifest.json",
+        "linked evidence missing: .harness/evidence/2026-09-24-fix-report-residual-closeout/commands.json"
+      ],
+      "warnings": []
+    },
+    {
+      "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/review.md",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/continue-o4-selected-input-independent-code-final-1794299079856/review.md",
+      "errors": [
+        "missing ## Machine Readable JSON block"
+      ],
+      "warnings": []
+    },
+    {
+      "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/o2-current-code-review-20261110/review.md",
+      "errors": [
+        "missing ## Machine Readable JSON block"
+      ],
+      "warnings": []
+    },
+    {
+      "file": ".harness/evidence/2026-11-13-ops-business-menu-ia-refactor/review.md",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "file": ".harness/evidence/2026-11-14-ops-latest-foundation-and-plans/review.md",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "file": ".harness/evidence/argo-adoption-20261110/review.md",
+      "errors": [
+        "root.verdict must be a non-empty string.",
+        "root.linkage must be an object."
+      ],
+      "warnings": []
+    },
+    {
+      "file": ".harness/evidence/cmdb-host-import-export/review.md",
+      "errors": [
+        "root.verdict must be a non-empty string.",
+        "root.linkage must be an object."
+      ],
+      "warnings": []
+    },
+    {
+      "file": ".harness/evidence/ops-architecture-quality-gates/review.md",
+      "errors": [
+        "missing ## Machine Readable JSON block"
+      ],
+      "warnings": []
+    },
+    {
+      "file": ".harness/evidence/ops-bizscope-datascope-ownership/review.md",
+      "errors": [
+        "missing ## Machine Readable JSON block"
+      ],
+      "warnings": []
+    },
+    {
+      "file": ".harness/evidence/ops-business-versioned-migrations/review.md",
+      "errors": [
+        "missing ## Machine Readable JSON block"
+      ],
+      "warnings": []
+    },
+    {
+      "file": ".harness/evidence/ops-cross-module-capability-boundaries/review.md",
+      "errors": [
+        "missing ## Machine Readable JSON block"
+      ],
+      "warnings": []
+    },
+    {
+      "file": ".harness/evidence/ops-deploy-immutability-idempotency/review.md",
+      "errors": [
+        "missing ## Machine Readable JSON block"
+      ],
+      "warnings": []
+    },
+    {
+      "file": ".harness/evidence/ops-k8s-release-reliability/review.md",
+      "errors": [
+        "root.verdict must be a non-empty string.",
+        "root.linkage must be an object."
+      ],
+      "warnings": []
+    },
+    {
+      "file": ".harness/evidence/ops-resource-service-state-machines/review.md",
+      "errors": [
+        "missing ## Machine Readable JSON block"
+      ],
+      "warnings": []
+    },
+    {
+      "file": ".harness/evidence/ops-service-instance-foundation/review.md",
+      "errors": [
+        "missing ## Machine Readable JSON block"
+      ],
+      "warnings": []
+    },
+    {
+      "file": ".harness/archive/2026-09/evidence/2026-09-04-readme-v0.11.0-update/review.md",
+      "errors": [
+        "stale legacy review allowlist entry: the artifact no longer exists"
+      ],
+      "warnings": []
+    },
+    {
+      "file": ".harness/archive/2026-09/evidence/2026-09-10-tenant-canary-slice/review.md",
+      "errors": [
+        "stale legacy review allowlist entry: the artifact no longer exists"
+      ],
+      "warnings": []
+    },
+    {
+      "file": ".harness/archive/2026-09/evidence/2026-09-10-tenant-contract-design/review.md",
+      "errors": [
+        "stale legacy review allowlist entry: the artifact no longer exists"
+      ],
+      "warnings": []
+    },
+    {
+      "file": ".harness/archive/2026-09/evidence/2026-09-10-tenant-core-auth-iam/review.md",
+      "errors": [
+        "stale legacy review allowlist entry: the artifact no longer exists"
+      ],
+      "warnings": []
+    },
+    {
+      "file": ".harness/archive/2026-09/evidence/2026-09-10-tenant-migration-runbook/review.md",
+      "errors": [
+        "stale legacy review allowlist entry: the artifact no longer exists"
+      ],
+      "warnings": []
+    },
+    {
+      "file": ".harness/archive/2026-09/evidence/2026-09-10-tenant-ready-guardrails/review.md",
+      "errors": [
+        "stale legacy review allowlist entry: the artifact no longer exists"
+      ],
+      "warnings": []
+    },
+    {
+      "file": ".harness/archive/2026-08/evidence/2026-08-31-base-operational-workbench-design/review.md",
+      "errors": [
+        "stale legacy review allowlist entry: the artifact no longer exists"
+      ],
+      "warnings": []
+    },
+    {
+      "file": ".harness/archive/2026-09/evidence/2026-09-24-fix-report-residual-closeout/review.md",
+      "errors": [
+        "stale legacy review allowlist entry: the artifact no longer exists"
+      ],
+      "warnings": []
+    }
+  ]
+}

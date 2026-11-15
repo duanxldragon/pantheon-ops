@@ -15,11 +15,13 @@ type CreateReleaseRequest struct {
 	Image               string `json:"image" binding:"required"`
 	Strategy            string `json:"strategy"`
 	IdempotencyKey      string `json:"idempotencyKey"`
+	IntentVersion       string `json:"intentVersion"`
 }
 
 // RollbackReleaseRequest requests a release rollback.
 type RollbackReleaseRequest struct {
 	IdempotencyKey string `json:"idempotencyKey"`
+	IntentVersion  string `json:"intentVersion"`
 }
 
 // ReleaseListQuery filters and paginates Kubernetes releases.

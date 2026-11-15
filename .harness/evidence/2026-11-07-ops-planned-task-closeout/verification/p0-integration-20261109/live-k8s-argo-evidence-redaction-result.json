@@ -1,0 +1,8 @@
+{
+  "scope": "owned live-k8s-argo text/json/markdown evidence only",
+  "filesScanned": 30,
+  "jwtPrivateKeyCredentialValueMatches": 0,
+  "exitCode": 0,
+  "pythonCompileExitCode": 0,
+  "notes": "pattern check supplements driver-only in-memory credentials; not a general secret audit"
+}

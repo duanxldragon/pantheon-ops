@@ -1,0 +1,8 @@
+{
+  "phase": "Ops candidate assembly",
+  "message": "Candidate input must be a bounded regular file without hard links",
+  "candidateIdentity": "candidate-64cbd8e211df852a17d9bc7a93ac09af300eb40fde4b08db5133a95c436a38de",
+  "officialLockSha256Before": "95de1a87270e15c0d4c672418a5df906818a88652f8a3e6c480f1484ee9fa70c",
+  "officialLockSha256After": "95de1a87270e15c0d4c672418a5df906818a88652f8a3e6c480f1484ee9fa70c",
+  "officialConsumption": false
+}

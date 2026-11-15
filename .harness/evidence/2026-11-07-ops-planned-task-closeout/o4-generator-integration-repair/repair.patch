@@ -1,0 +1,1094 @@
+--- a/scripts/business-overlay/rebuild-from-base.mjs
++++ b/scripts/business-overlay/rebuild-from-base.mjs
+@@ -76,20 +76,20 @@
+   return results.sort();
+ }
+ 
+-function copyFile(sourceRoot, targetRoot, relativePath) {
++function copyFile(sourceRoot, targetRoot, relativePath, io = fs) {
+   const source = path.join(sourceRoot, relativePath);
+   const target = path.join(targetRoot, relativePath);
+-  fs.mkdirSync(path.dirname(target), { recursive: true });
+-  fs.copyFileSync(source, target);
+-}
+-
+-function copyDeclaredPath(sourceRoot, targetRoot, declaredPath, sourceTracked) {
++  io.mkdirSync(path.dirname(target), { recursive: true });
++  io.copyFileSync(source, target);
++}
++
++function copyDeclaredPath(sourceRoot, targetRoot, declaredPath, sourceTracked, io = fs) {
+   const normalized = repoPath(declaredPath);
+   const files = sourceTracked.filter((file) => isWithin(file, normalized));
+-  if (files.length === 0 && !fs.existsSync(path.join(sourceRoot, normalized))) {
++  if (files.length === 0 && !io.existsSync(path.join(sourceRoot, normalized))) {
+     throw new Error(`Declared overlay path does not exist: ${normalized}`);
+   }
+-  for (const file of files) copyFile(sourceRoot, targetRoot, file);
++  for (const file of files) copyFile(sourceRoot, targetRoot, file, io);
+   return files;
+ }
+ 
+@@ -159,20 +159,20 @@
+   return plans;
+ }
+ 
+-function assembleBusinessMigrations(opsRoot, targetRoot, manifest) {
++function assembleBusinessMigrations(opsRoot, targetRoot, manifest, io = fs) {
+   const plans = planBusinessMigrations(manifest);
+   const targetDirectory = path.join(targetRoot, 'backend/pkg/database/migrations');
+-  const baseVersions = new Set((fs.existsSync(targetDirectory) ? fs.readdirSync(targetDirectory) : [])
++  const baseVersions = new Set((io.existsSync(targetDirectory) ? io.readdirSync(targetDirectory) : [])
+     .map((name) => /^(\d+)_.*\.(up|down)\.sql$/u.exec(name)?.[1]).filter(Boolean).map(Number));
+   // Validate every input and collision before copying either half of a pair.
+   for (const plan of plans) {
+     if (baseVersions.has(Number(plan.version))) throw new Error(`Business migration version conflicts with Base: ${plan.version}`);
+     const source = path.join(opsRoot, plan.source);
+-    if (!fs.existsSync(source) || !fs.lstatSync(source).isFile()) throw new Error(`Business migration source must be a regular file: ${plan.source}`);
++    if (!io.existsSync(source) || !io.lstatSync(source).isFile()) throw new Error(`Business migration source must be a regular file: ${plan.source}`);
+   }
+   for (const plan of plans) {
+-    fs.mkdirSync(path.dirname(path.join(targetRoot, plan.target)), { recursive: true });
+-    fs.copyFileSync(path.join(opsRoot, plan.source), path.join(targetRoot, plan.target));
++    io.mkdirSync(path.dirname(path.join(targetRoot, plan.target)), { recursive: true });
++    io.copyFileSync(path.join(opsRoot, plan.source), path.join(targetRoot, plan.target));
+   }
+   return plans.map((plan) => plan.target);
+ }
+@@ -201,13 +201,13 @@
+   }
+ }
+ 
+-function pruneBaseRepositoryOverlay(targetRoot, manifest) {
++function pruneBaseRepositoryOverlay(targetRoot, manifest, io = fs) {
+   for (const entry of [...(manifest.replaceRoots ?? []), ...(manifest.baseExcludedPaths ?? [])]) {
+     const normalized = repoPath(entry);
+     if (!normalized || normalized === '.' || normalized.startsWith('../')) {
+       throw new Error(`Unsafe Base exclusion path: ${entry}`);
+     }
+-    fs.rmSync(path.join(targetRoot, normalized), { recursive: true, force: true });
++    io.rmSync(path.join(targetRoot, normalized), { recursive: true, force: true });
+   }
+ }
+ 
+@@ -266,7 +266,7 @@
+   return null;
+ }
+ 
+-function generateRegistries(targetRoot, manifest, targetModule) {
++function generateRegistries(targetRoot, manifest, targetModule, io = fs) {
+   const imports = manifest.backendModules
+     .map((entry) => `\t${entry.alias} "${entry.importPath.replace(/^pantheon-base\//u, `${targetModule}/`)}"`)
+     .join('\n');
+@@ -305,13 +305,13 @@
+   ]);
+   for (const [relativePath, content] of outputs) {
+     const target = path.join(targetRoot, relativePath);
+-    fs.mkdirSync(path.dirname(target), { recursive: true });
+-    fs.writeFileSync(target, content, 'utf8');
++    io.mkdirSync(path.dirname(target), { recursive: true });
++    io.writeFileSync(target, content, 'utf8');
+   }
+   return [...outputs.keys()];
+ }
+ 
+-function wireBusinessRegistries(targetRoot) {
++function wireBusinessRegistries(targetRoot, io = fs) {
+   const patches = [
+     {
+       path: 'backend/modules/business/business.go',
+@@ -347,34 +347,34 @@
+   const changed = new Set();
+   for (const patch of patches) {
+     const target = path.join(targetRoot, patch.path);
+-    const content = fs.readFileSync(target, 'utf8');
++    const content = io.readFileSync(target, 'utf8');
+     const matches = content.split(patch.anchor).length - 1;
+     if (matches !== 1) throw new Error(`Base assembly contract changed: ${patch.path}`);
+-    fs.writeFileSync(target, content.replace(patch.anchor, patch.replacement), 'utf8');
++    io.writeFileSync(target, content.replace(patch.anchor, patch.replacement), 'utf8');
+     changed.add(patch.path);
+   }
+   return [...changed];
+ }
+ 
+-function generateBusinessFallbacks(targetRoot) {
+-  const businessRoot = path.join(targetRoot, 'frontend', 'src', 'modules', 'business');
++function generateBusinessFallbacks(targetRoot, io = fs, businessSourceRoot = targetRoot) {
++  const businessRoot = path.join(businessSourceRoot, 'frontend', 'src', 'modules', 'business');
+   const outputRoot = path.join(targetRoot, 'frontend', 'src', 'i18n', 'resources', 'business');
+   const locales = ['zh-CN', 'en-US', 'ja-JP', 'ko-KR', 'fr-FR'];
+-  fs.mkdirSync(outputRoot, { recursive: true });
++  io.mkdirSync(outputRoot, { recursive: true });
+   for (const locale of locales) {
+     const resources = {};
+-    if (fs.existsSync(businessRoot)) {
++    if (io.existsSync(businessRoot)) {
+       const visit = (directory) => {
+-        for (const entry of fs.readdirSync(directory, { withFileTypes: true })) {
++        for (const entry of io.readdirSync(directory, { withFileTypes: true })) {
+           const absolute = path.join(directory, entry.name);
+           if (entry.isDirectory()) visit(absolute);
+-          else if (entry.name === `${locale}.json`) Object.assign(resources, JSON.parse(fs.readFileSync(absolute, 'utf8')));
++          else if (entry.name === `${locale}.json`) Object.assign(resources, JSON.parse(io.readFileSync(absolute, 'utf8')));
+         }
+       };
+       visit(businessRoot);
+     }
+     const identifier = `generated${locale.replace(/[^A-Za-z0-9]/gu, '')}Fallback`;
+-    fs.writeFileSync(
++    io.writeFileSync(
+       path.join(outputRoot, `${locale}.ts`),
+       `const ${identifier} = ${JSON.stringify(resources, null, 2)};\n\nexport default ${identifier};\n`,
+       'utf8',
+@@ -382,24 +382,24 @@
+   }
+ }
+ 
+-function wireBusinessFallbacks(targetRoot) {
++function wireBusinessFallbacks(targetRoot, io = fs) {
+   const outputs = [];
+   for (const locale of ['zh-CN', 'en-US']) {
+     const target = path.join(targetRoot, 'frontend', 'src', 'i18n', 'resources', `${locale}.ts`);
+-    let content = fs.readFileSync(target, 'utf8');
++    let content = io.readFileSync(target, 'utf8');
+     const objectAnchor = /const\s+[A-Za-z0-9_$]+Fallback\s*=\s*\{/u;
+     if (!objectAnchor.test(content)) throw new Error(`Base ${locale} fallback contract changed`);
+     content = `import businessFallback from './business/${locale}';\n${content}`;
+     content = content.replace(objectAnchor, (match) => `${match}\n  ...businessFallback,`);
+-    fs.writeFileSync(target, content, 'utf8');
++    io.writeFileSync(target, content, 'utf8');
+     outputs.push(`frontend/src/i18n/resources/${locale}.ts`);
+   }
+   return outputs;
+ }
+ 
+-function mergePackages(baseRoot, opsRoot, targetRoot, manifest) {
+-  const basePackage = JSON.parse(fs.readFileSync(path.join(baseRoot, 'package.json'), 'utf8'));
+-  const opsPackage = JSON.parse(fs.readFileSync(path.join(opsRoot, 'package.json'), 'utf8'));
++function mergePackages(baseRoot, opsRoot, targetRoot, manifest, io = fs) {
++  const basePackage = JSON.parse(io.readFileSync(path.join(baseRoot, 'package.json'), 'utf8'));
++  const opsPackage = JSON.parse(io.readFileSync(path.join(opsRoot, 'package.json'), 'utf8'));
+   basePackage.scripts = {
+     ...basePackage.scripts,
+     'fetch:base-release': 'node scripts/business-overlay/foundation-release.mjs',
+@@ -429,10 +429,10 @@
+       delete basePackage.scripts[scriptName];
+     }
+   }
+-  fs.writeFileSync(path.join(targetRoot, 'package.json'), `${JSON.stringify(basePackage, null, 2)}\n`, 'utf8');
+-
+-  const baseFrontend = JSON.parse(fs.readFileSync(path.join(baseRoot, 'frontend', 'package.json'), 'utf8'));
+-  const opsFrontend = JSON.parse(fs.readFileSync(path.join(opsRoot, 'frontend', 'package.json'), 'utf8'));
++  io.writeFileSync(path.join(targetRoot, 'package.json'), `${JSON.stringify(basePackage, null, 2)}\n`, 'utf8');
++
++  const baseFrontend = JSON.parse(io.readFileSync(path.join(baseRoot, 'frontend', 'package.json'), 'utf8'));
++  const opsFrontend = JSON.parse(io.readFileSync(path.join(opsRoot, 'frontend', 'package.json'), 'utf8'));
+   for (const scriptName of manifest.businessSmokeScripts) {
+     if (!opsFrontend.scripts[scriptName]) throw new Error(`Missing business smoke script: ${scriptName}`);
+     baseFrontend.scripts[scriptName] = opsFrontend.scripts[scriptName];
+@@ -452,11 +452,11 @@
+   if (!baseFrontend.exports && opsFrontend.exports) {
+     baseFrontend.exports = opsFrontend.exports;
+   }
+-  fs.writeFileSync(path.join(targetRoot, 'frontend', 'package.json'), `${JSON.stringify(baseFrontend, null, 2)}\n`, 'utf8');
+-}
+-
+-function wireBusinessSmokeCoverage(opsRoot, targetRoot, manifest) {
+-  const opsFrontend = JSON.parse(fs.readFileSync(path.join(opsRoot, 'frontend', 'package.json'), 'utf8'));
++  io.writeFileSync(path.join(targetRoot, 'frontend', 'package.json'), `${JSON.stringify(baseFrontend, null, 2)}\n`, 'utf8');
++}
++
++function wireBusinessSmokeCoverage(opsRoot, targetRoot, manifest, io = fs) {
++  const opsFrontend = JSON.parse(io.readFileSync(path.join(opsRoot, 'frontend', 'package.json'), 'utf8'));
+   const rows = [];
+   for (const scriptName of manifest.businessSmokeScripts) {
+     const command = String(opsFrontend.scripts?.[scriptName] || '');
+@@ -468,18 +468,18 @@
+   }
+   const readme = path.join(targetRoot, 'frontend', 'tests', 'smoke', 'README.md');
+   const marker = '## Ops Business Overlay';
+-  let content = fs.readFileSync(readme, 'utf8').trimEnd();
++  let content = io.readFileSync(readme, 'utf8').trimEnd();
+   const markerIndex = content.indexOf(marker);
+   if (markerIndex >= 0) content = content.slice(0, markerIndex).trimEnd();
+   if (rows.length > 0) content += `\n\n${marker}\n\n${rows.join('\n')}\n`;
+   else content += '\n';
+-  fs.writeFileSync(readme, content, 'utf8');
++  io.writeFileSync(readme, content, 'utf8');
+   return ['frontend/tests/smoke/README.md'];
+ }
+ 
+-function protectBusinessOverlayFromGeneratedCleanup(targetRoot, manifest) {
++function protectBusinessOverlayFromGeneratedCleanup(targetRoot, manifest, io = fs) {
+   const cleanupPath = path.join(targetRoot, 'frontend', 'scripts', 'cleanup-generated-modules.mjs');
+-  let content = fs.readFileSync(cleanupPath, 'utf8');
++  let content = io.readFileSync(cleanupPath, 'utf8');
+   const injection = [
+     '',
+     "const BUSINESS_OVERLAY_REPORT = path.join(repoRoot, '.business-overlay-report.json');",
+@@ -504,7 +504,7 @@
+     "if (hasTrackedDescendant(targetPath, repoBase, trackedFiles)) {",
+     "if (hasBusinessOverlayOwnedDescendant(targetPath) || hasTrackedDescendant(targetPath, repoBase, trackedFiles)) {",
+   );
+-  fs.writeFileSync(cleanupPath, content, 'utf8');
++  io.writeFileSync(cleanupPath, content, 'utf8');
+   return ['frontend/scripts/cleanup-generated-modules.mjs'];
+ }
+ 
+@@ -565,10 +565,10 @@
+ 
+ // Base publishes this packaging contract. Only excluded Base archive entries
+ // can leave the consumer allowlist; current consumer reviews are always checked.
+-export function projectConsumerReviewRegistry(baseRoot, targetRoot, manifest, baseCommit) {
++export function projectConsumerReviewRegistry(baseRoot, targetRoot, manifest, baseCommit, io = fs) {
+   const descriptorPath = path.join(baseRoot, 'config/foundation-consumer-artifacts.json');
+-  if (!fs.existsSync(descriptorPath)) return [];
+-  const descriptor = JSON.parse(fs.readFileSync(descriptorPath, 'utf8'));
++  if (!io.existsSync(descriptorPath)) return [];
++  const descriptor = JSON.parse(io.readFileSync(descriptorPath, 'utf8'));
+   const contract = descriptor.reviewLegacyRegistry;
+   if (descriptor.schemaVersion !== 1 || descriptor.sourceOwner !== 'pantheon-base' ||
+       contract?.path !== 'config/review-loop-legacy-artifacts.json' ||
+@@ -576,7 +576,7 @@
+     throw new Error('Invalid Base consumer review packaging contract');
+   }
+   const sourcePath = path.join(baseRoot, contract.path);
+-  const sourceBytes = fs.readFileSync(sourcePath);
++  const sourceBytes = io.readFileSync(sourcePath);
+   const source = JSON.parse(sourceBytes.toString('utf8'));
+   if (!Array.isArray(source.entries)) throw new Error('Base legacy review entries must be an array');
+   const excluded = [...(manifest.replaceRoots ?? []), ...(manifest.baseExcludedPaths ?? [])].map(repoPath);
+@@ -587,10 +587,10 @@
+         entry.includes('..') || entry.includes('\\') || !entry.endsWith('/review.md')) {
+       throw new Error('Base legacy entry must be a canonical archive review');
+     }
+-    if (!fs.existsSync(path.join(baseRoot, entry))) throw new Error(`Stale Base legacy entry: ${entry}`);
++    if (!io.existsSync(path.join(baseRoot, entry))) throw new Error(`Stale Base legacy entry: ${entry}`);
+     if (excluded.some((root) => isWithin(entry, root))) external.push(entry);
+     else {
+-      if (!fs.existsSync(path.join(targetRoot, entry))) throw new Error(`Missing retained Base review: ${entry}`);
++      if (!io.existsSync(path.join(targetRoot, entry))) throw new Error(`Missing retained Base review: ${entry}`);
+       retained.push(entry);
+     }
+   }
+@@ -604,12 +604,12 @@
+       sourceConfigSha256: crypto.createHash('sha256').update(sourceBytes).digest('hex'),
+       externalBaseArtifacts: external },
+   };
+-  fs.mkdirSync(path.dirname(targetPath), { recursive: true });
+-  fs.writeFileSync(targetPath, `${JSON.stringify(projection, null, 2)}\n`, 'utf8');
++  io.mkdirSync(path.dirname(targetPath), { recursive: true });
++  io.writeFileSync(targetPath, `${JSON.stringify(projection, null, 2)}\n`, 'utf8');
+   return [contract.path];
+ }
+ 
+-export function assembleConsumerTree({ opsRoot = defaultOpsRoot, snapshot, targetRoot, manifestPath } = {}) {
++export function assembleConsumerTree({ opsRoot = defaultOpsRoot, snapshot, targetRoot, manifestPath, fileSystem = fs } = {}) {
+   const resolvedManifest = manifestPath ?? path.join(opsRoot, 'business-overlay.json');
+   const manifest = JSON.parse(fs.readFileSync(resolvedManifest, 'utf8'));
+   assertSafeManifest(manifest);
+@@ -622,35 +622,35 @@
+   if (targetContainsSource || targetInsideBase || resolvedTarget === path.parse(resolvedTarget).root || path.basename(resolvedTarget) === '.git' || (fs.existsSync(resolvedTarget) && fs.lstatSync(resolvedTarget).isSymbolicLink())) {
+     throw new Error('Refusing to rebuild over a source repository');
+   }
+-  fs.rmSync(resolvedTarget, { recursive: true, force: true });
+-  fs.mkdirSync(resolvedTarget, { recursive: true });
++  fileSystem.rmSync(resolvedTarget, { recursive: true, force: true });
++  fileSystem.mkdirSync(resolvedTarget, { recursive: true });
+ 
+   const baseTracked = snapshotFiles(resolvedBase);
+   const baseCommit = snapshot.baseCommit;
+-  for (const file of baseTracked) copyFile(resolvedBase, resolvedTarget, file);
+-  pruneBaseRepositoryOverlay(resolvedTarget, manifest);
++  for (const file of baseTracked) copyFile(resolvedBase, resolvedTarget, file, fileSystem);
++  pruneBaseRepositoryOverlay(resolvedTarget, manifest, fileSystem);
+   assertBusinessPathsDoNotOverwriteBase(opsRoot, resolvedBase, baseTracked, manifest.businessPaths ?? []);
+   const opsTracked = trackedFiles(opsRoot);
+-  const copiedBusiness = manifest.businessPaths.flatMap((entry) => copyDeclaredPath(opsRoot, resolvedTarget, entry, opsTracked));
+-  const copiedRepository = manifest.repositoryOverlayPaths.flatMap((entry) => copyDeclaredPath(opsRoot, resolvedTarget, entry, opsTracked));
+-  copyFile(opsRoot, resolvedTarget, 'business-overlay.json');
++  const copiedBusiness = manifest.businessPaths.flatMap((entry) => copyDeclaredPath(opsRoot, resolvedTarget, entry, opsTracked, fileSystem));
++  const copiedRepository = manifest.repositoryOverlayPaths.flatMap((entry) => copyDeclaredPath(opsRoot, resolvedTarget, entry, opsTracked, fileSystem));
++  copyFile(opsRoot, resolvedTarget, 'business-overlay.json', fileSystem);
+   copiedRepository.push('business-overlay.json');
+ 
+   const targetModule = readGoModule(resolvedTarget);
+   const rewritten = rewriteBusinessGoImports(resolvedTarget, manifest.sourceModule, targetModule);
+-  const generated = generateRegistries(resolvedTarget, manifest, targetModule);
+-  generated.push(...projectConsumerReviewRegistry(resolvedBase, resolvedTarget, manifest, baseCommit));
+-  generated.push(...assembleBusinessMigrations(opsRoot, resolvedTarget, manifest));
++  const generated = generateRegistries(resolvedTarget, manifest, targetModule, fileSystem);
++  generated.push(...projectConsumerReviewRegistry(resolvedBase, resolvedTarget, manifest, baseCommit, fileSystem));
++  generated.push(...assembleBusinessMigrations(opsRoot, resolvedTarget, manifest, fileSystem));
+   rewritten.push(...rewriteBusinessGoImports(resolvedTarget, manifest.sourceModule, targetModule));
+-  generated.push(...wireBusinessRegistries(resolvedTarget));
++  generated.push(...wireBusinessRegistries(resolvedTarget, fileSystem));
+   generated.push(...mergeGoDependencies(opsRoot, resolvedTarget, manifest));
+-  generateBusinessFallbacks(resolvedTarget);
+-  generated.push(...wireBusinessFallbacks(resolvedTarget));
++  generateBusinessFallbacks(resolvedTarget, fileSystem);
++  generated.push(...wireBusinessFallbacks(resolvedTarget, fileSystem));
+   generated.push(...['frontend/src/i18n/resources/business/zh-CN.ts', 'frontend/src/i18n/resources/business/en-US.ts', 'frontend/src/i18n/resources/business/ja-JP.ts', 'frontend/src/i18n/resources/business/ko-KR.ts', 'frontend/src/i18n/resources/business/fr-FR.ts']);
+-  mergePackages(resolvedBase, opsRoot, resolvedTarget, manifest);
++  mergePackages(resolvedBase, opsRoot, resolvedTarget, manifest, fileSystem);
+   generated.push('package.json', 'frontend/package.json');
+-  generated.push(...wireBusinessSmokeCoverage(opsRoot, resolvedTarget, manifest));
+-  generated.push(...protectBusinessOverlayFromGeneratedCleanup(resolvedTarget, manifest));
++  generated.push(...wireBusinessSmokeCoverage(opsRoot, resolvedTarget, manifest, fileSystem));
++  generated.push(...protectBusinessOverlayFromGeneratedCleanup(resolvedTarget, manifest, fileSystem));
+   if (Object.keys(manifest.goDependencies ?? {}).length > 0) {
+     generated.push(...normalizeGoDependencies(resolvedTarget));
+   }
+@@ -661,6 +661,78 @@
+ export function rebuildFromBase({ opsRoot = defaultOpsRoot, baseRoot, targetRoot, manifestPath } = {}) {
+   if (baseRoot) throw new Error('Local Base sources are not supported; fetch the official GitHub release');
+   return assembleConsumerTree({ opsRoot, targetRoot, manifestPath, snapshot: resolveBaseFromLock(opsRoot) });
++}
++
++// Replay only the fixed business integration seams in memory. The report is
++// evidence of assembly, never permission to exempt arbitrary generatedFiles.
++export function verifyBusinessDerivedOutputs({ root, snapshot, manifest, sourceRoot }) {
++  if (!Array.isArray(manifest.backendModules) || !Array.isArray(manifest.frontendModules) ||
++      !Array.isArray(manifest.components) || !Array.isArray(manifest.businessSmokeScripts) ||
++      !snapshot.baseCommit) return new Set();
++  const report = JSON.parse(fs.readFileSync(path.join(root, '.business-overlay-report.json'), 'utf8'));
++  if (report.schemaVersion !== 1 || report.baseCommit !== snapshot.baseCommit ||
++      !Array.isArray(report.ownedFiles) || !Array.isArray(report.generatedFiles))
++    throw new Error('Invalid business assembly report identity');
++  const owned = new Map(report.ownedFiles.map(entry => [entry.path, entry.sha256]));
++  if (owned.size !== report.ownedFiles.length || owned.get('business-overlay.json') !== fileHash(path.join(root, 'business-overlay.json')))
++    throw new Error('Business assembly manifest/report hash mismatch');
++  const declared = relative => (manifest.businessPaths ?? []).some(entry => isWithin(relative, repoPath(entry)));
++  const identifier = /^[A-Za-z_][A-Za-z0-9_]*$/u;
++  for (const entry of manifest.backendModules) {
++    const relative = 'backend/' + entry.importPath.replace(/^pantheon-base\//u, '');
++    if (!/^pantheon-base\/modules\/business\/[a-z0-9_/]+$/u.test(entry.importPath) ||
++        !identifier.test(entry.alias) || !identifier.test(entry.init) || !declared(relative))
++      throw new Error('Business registry import must have declared business ownership');
++  }
++  for (const [entries, directory] of [[manifest.frontendModules, 'frontend/src/modules'], [manifest.components, 'frontend/src/core/router']]) {
++    for (const entry of entries) {
++      const relative = path.posix.normalize(path.posix.join(directory, entry.importPath));
++      if (!/^\.{1,2}\/[A-Za-z0-9_./-]+$/u.test(entry.importPath) ||
++          !relative.startsWith('frontend/src/modules/business/') || !declared(relative) ||
++          (entry.export !== undefined && !identifier.test(entry.export)) ||
++          (entry.key !== undefined && !/^business\/[A-Za-z0-9_/-]+$/u.test(entry.key)))
++        throw new Error('Business registry import must have declared business ownership');
++    }
++  }
++  const base = snapshot.baseRoot;
++  const sources = sourceRoot ?? root;
++  const outputs = new Map();
++  const io = {
++    ...fs,
++    mkdirSync() {},
++    writeFileSync(file, bytes) { outputs.set(file, Buffer.from(bytes)); },
++    readFileSync(file, encoding) {
++      let bytes = outputs.get(file);
++      if (!bytes) {
++        bytes = fs.readFileSync(file);
++        const relative = repoPath(path.relative(sources, file));
++        if (relative.startsWith('frontend/src/modules/business/') &&
++            (!declared(relative) || owned.get(relative) !== crypto.createHash('sha256').update(bytes).digest('hex')))
++          throw new Error('Business derivation source/report hash mismatch: ' + relative);
++      }
++      return encoding ? bytes.toString(encoding) : bytes;
++    },
++  };
++  generateRegistries(base, manifest, readGoModule(base), io);
++  wireBusinessRegistries(base, io);
++  generateBusinessFallbacks(base, io, sources);
++  wireBusinessFallbacks(base, io);
++  protectBusinessOverlayFromGeneratedCleanup(base, manifest, io);
++  wireBusinessSmokeCoverage(sources, base, manifest, io);
++  // Candidate verification has the frozen original package inputs. The official
++  // standalone CLI retains its legacy package allowlist contract.
++  if (sourceRoot) mergePackages(base, sources, base, manifest, io);
++  const verified = new Set();
++  for (const [absolute, bytes] of outputs) {
++    const relative = repoPath(path.relative(base, absolute));
++    const actual = path.join(root, relative);
++    if (!report.generatedFiles.includes(relative) || !fs.existsSync(actual) ||
++        !fs.lstatSync(actual).isFile() || !fs.readFileSync(actual).equals(bytes))
++      throw new Error('Derived business output differs from canonical assembler: ' + relative);
++    if (owned.get(relative) !== fileHash(actual)) throw new Error('Business output/report hash mismatch: ' + relative);
++    verified.add(relative);
++  }
++  return verified;
+ }
+ 
+ function argument(name) {
+--- a/scripts/business-overlay/rebuild-from-candidate.mjs
++++ b/scripts/business-overlay/rebuild-from-candidate.mjs
+@@ -12,6 +12,7 @@
+   assertRealPath,
+   assertRelativeInput,
+   captureInputs,
++  candidateAssemblyFileSystem,
+   LIMITS,
+   readCandidateDescriptor,
+   readStableFile,
+@@ -57,6 +58,7 @@
+   expectedDescriptorSha256,
+   targetRoot,
+   manifestPath,
++  attempt,
+ } = {}) {
+   opsRoot = path.resolve(opsRoot);
+   assertRealPath(opsRoot, { directory: true });
+@@ -120,15 +122,19 @@
+     descriptorPath,
+     expectedDescriptorSha256,
+   );
+-  const cacheRoot = path.join(
++  if (attempt !== undefined && (typeof attempt !== "string" || !/^[a-z0-9][a-z0-9-]{0,63}$/u.test(attempt)))
++    throw new Error("Candidate attempt must be a bounded lowercase local test identifier");
++  const originalRoot = path.join(
+     opsRoot,
+     ".tmp/foundation-candidates",
+     descriptor.candidateIdentity,
+   );
++  const cacheRoot = attempt === undefined ? originalRoot : path.join(opsRoot,
++    ".tmp/foundation-candidate-attempts", descriptor.candidateIdentity, attempt);
+   const assembled = path.join(cacheRoot, "assembled");
+   if (targetRoot && path.resolve(opsRoot, targetRoot) !== assembled)
+     throw new Error(
+-      "Candidate target must be .tmp/foundation-candidates/<candidateId>/assembled",
++      "Candidate target must be the exclusive candidate stage assembled directory",
+     );
+   assertRealPath(cacheRoot, { directory: true, missing: true });
+   if (fs.existsSync(cacheRoot))
+@@ -140,6 +146,7 @@
+     descriptorPath,
+     expectedDescriptorSha256,
+     cacheRoot,
++    retainedSnapshotRoot: attempt === undefined ? undefined : path.join(originalRoot, "snapshot"),
+   });
+   try {
+     const verifySources = () => {
+@@ -166,13 +173,14 @@
+       snapshot,
+       targetRoot: assembled,
+       manifestPath: resolvedManifest,
++      fileSystem: candidateAssemblyFileSystem(cacheRoot),
+     });
+     const after = verifySources();
+     const assembledInputs = captureInputs(
+       assembled,
+       fs.readdirSync(assembled).sort(),
+     );
+-    const driftExitCode = checkSharedDrift({ root: assembled, snapshot });
++    const driftExitCode = checkSharedDrift({ root: assembled, snapshot, sourceRoot: opsRoot });
+     verifySources();
+     if (driftExitCode !== 0)
+       throw new Error("Candidate shared drift check failed");
+@@ -206,6 +214,7 @@
+       schemaVersion: 1,
+       kind: "pantheon-ops-candidate-assembly",
+       consumerMode: "candidate-staging",
++      ...(attempt === undefined ? {} : { consumerAttempt: attempt, retainedSnapshotRoot: snapshot.baseRoot }),
+       candidateIdentity: descriptor.candidateIdentity,
+       descriptorSha256: expectedDescriptorSha256,
+       artifact: descriptor.artifact,
+@@ -268,13 +277,13 @@
+     const args = process.argv.slice(2);
+     if (args.length === 1 && args[0] === "--help") {
+       console.log(
+-        "Usage: node scripts/business-overlay/rebuild-from-candidate.mjs --descriptor <candidate-descriptor.json> --descriptor-sha256 <reviewed-64-hex-digest> --artifact <candidate.tar> [--ops-root <Ops-root>] [--target <.tmp/foundation-candidates/candidate-aggregate/assembled>]",
++        "Usage: node scripts/business-overlay/rebuild-from-candidate.mjs --descriptor <candidate-descriptor.json> --descriptor-sha256 <reviewed-64-hex-digest> --artifact <candidate.tar> [--ops-root <Ops-root>] [--target <.tmp/foundation-candidates/candidate-aggregate/assembled>] [--attempt <fresh-local-test-id>]",
+       );
+       console.log(
+         "Example: node scripts/business-overlay/rebuild-from-candidate.mjs --descriptor ../pantheon-base/.tmp/foundation-candidates/reviewed/candidate-descriptor.json --descriptor-sha256 <digest-from-independent-review> --artifact ../pantheon-base/.tmp/foundation-candidates/reviewed/candidate-<aggregateSha256>.tar",
+       );
+       console.log(
+-        "Only a new candidate stage is accepted. This does not build/start a product or change the official release lock.",
++        "Only a new candidate stage is accepted. --attempt re-verifies the original immutable snapshot and writes a fresh .tmp/foundation-candidate-attempts/<candidateId>/<attempt>/assembled. This does not build/start a product or change the official release lock.",
+       );
+     } else {
+       const allowed = new Set([
+@@ -283,6 +292,7 @@
+         "--artifact",
+         "--ops-root",
+         "--target",
++        "--attempt",
+       ]);
+       const options = new Map();
+       for (let index = 0; index < args.length; index += 2) {
+@@ -311,6 +321,7 @@
+         expectedDescriptorSha256: options.get("--descriptor-sha256"),
+         artifactPath: options.get("--artifact"),
+         targetRoot: options.get("--target"),
++        attempt: options.get("--attempt"),
+       });
+       console.log(
+         JSON.stringify(
+--- a/scripts/business-overlay/check-shared-drift.mjs
++++ b/scripts/business-overlay/check-shared-drift.mjs
+@@ -3,7 +3,7 @@
+ import path from 'node:path';
+ import process from 'node:process';
+ import { fileURLToPath } from 'node:url';
+-import { assertSafeManifest, planBusinessMigrations } from './rebuild-from-base.mjs';
++import { assertSafeManifest, planBusinessMigrations, verifyBusinessDerivedOutputs } from './rebuild-from-base.mjs';
+ import { resolveBaseFromLock } from './foundation-release.mjs';
+ 
+ // Compare consumer bytes to the verified, locked official GitHub snapshot.
+@@ -11,7 +11,7 @@
+ 
+ const defaultRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
+ 
+-export function checkSharedDrift({ root, snapshot, group = 'all' }) {
++export function checkSharedDrift({ root, snapshot, group = 'all', sourceRoot }) {
+   const base = snapshot.baseRoot;
+   const lock = snapshot.manifest;
+   const sharedPaths = lock.sharedPaths ?? {};
+@@ -89,6 +89,9 @@
+ 
+   if (group !== 'all' && !Object.hasOwn(sharedPaths, group)) throw new Error('Unknown shared path group: ' + group);
+   const groups = group === 'all' ? Object.keys(sharedPaths) : [group];
++  const comparedRoots = groups.flatMap(g => sharedPaths[g] ?? []);
++  const covered = file => comparedRoots.some(entry => file === entry || file.startsWith(entry + '/'));
++  const derivedOutputs = verifyBusinessDerivedOutputs({ root, snapshot, manifest, sourceRoot });
+   const opsFiles = new Set();
+   for (const g of groups) {
+     for (const sharedPath of sharedPaths[g] ?? []) {
+@@ -100,11 +103,17 @@
+   const modified = [];
+   const missingInBase = [];
+   const matchedAllowlist = new Set();
++  const supersededAllowlist = new Set();
+   let comparedFiles = 0;
+   let skippedBusinessFiles = 0;
+ 
+   for (const relative of [...opsFiles].sort()) {
+     if (derivedMigrations.has(relative)) continue;
++    if (derivedOutputs.has(relative)) {
++      if (Object.hasOwn(allowedDrift, relative) && hashBaseFile(base, relative) !== sha256File(path.join(root, relative)))
++        supersededAllowlist.add(relative);
++      continue;
++    }
+     if (isBusinessPath(relative)) {
+       skippedBusinessFiles += 1;
+       continue;
+@@ -132,7 +141,15 @@
+   }
+   const staleAllowlist = Object.keys(allowedDrift)
+     .filter((file) => !file.startsWith('$'))
++    .filter(covered)
++    .filter((file) => !supersededAllowlist.has(file))
+     .filter((file) => !matchedAllowlist.has(file));
++
++  for (const file of Object.keys(allowedDrift).filter(file => !file.startsWith('$') && !covered(file)))
++    console.log(`ALLOWLIST_NOT_COMPARED ${file} (outside selected shared path coverage; no equality claim)`);
++  console.log(`DERIVED_BUSINESS_VERIFIED ${derivedOutputs.size} canonical assembler outputs (report hashes checked)`);
++  for (const file of supersededAllowlist)
++    console.log(`LEGACY_ALLOWLIST_SUPERSEDED ${file} (canonical assembly verified; entry grants no exemption)`);
+ 
+   for (const file of unexpectedModified) console.error(`DRIFT_MODIFIED ${file}`);
+   for (const file of unexpectedMissing) console.error(`DRIFT_MISSING_IN_BASE ${file}`);
+--- a/scripts/business-overlay/foundation-candidate.mjs
++++ b/scripts/business-overlay/foundation-candidate.mjs
+@@ -714,6 +714,7 @@
+   descriptorPath,
+   expectedDescriptorSha256,
+   cacheRoot,
++  retainedSnapshotRoot,
+ } = {}) {
+   const inputStamps = [descriptorPath, artifactPath].map((file) => {
+     assertRealPath(file);
+@@ -737,11 +738,7 @@
+   );
+   if (!cacheRoot) throw new Error("A bounded candidate cacheRoot is required");
+   const root = path.resolve(cacheRoot);
+-  if (
+-    path.basename(root) !== descriptor.candidateIdentity ||
+-    path.basename(path.dirname(root)) !== "foundation-candidates" ||
+-    path.basename(path.dirname(path.dirname(root))) !== ".tmp"
+-  )
++  if (!isCandidateStageRoot(root, descriptor.candidateIdentity))
+     throw new Error(
+       "Candidate cache must be .tmp/foundation-candidates/<candidateId>",
+     );
+@@ -762,6 +759,14 @@
+     descriptor,
+   );
+   assertExports(entries, descriptor.requiredExports);
++  if (retainedSnapshotRoot) {
++    const expected = path.join(path.dirname(path.dirname(path.dirname(root))),
++      "foundation-candidates", descriptor.candidateIdentity, "snapshot");
++    if (path.basename(path.dirname(path.dirname(root))) !== "foundation-candidate-attempts" ||
++        path.resolve(retainedSnapshotRoot) !== expected)
++      throw new Error("Retained candidate snapshot must be the original immutable identity snapshot");
++    assertRealPath(expected, { directory: true });
++  }
+   fs.mkdirSync(path.dirname(root), { recursive: true });
+   assertRealPath(path.dirname(root), { directory: true });
+   const identities = new Map(
+@@ -772,11 +777,28 @@
+   );
+   // Keep unknown identity failures fail-closed even if creation already happened.
+   ownedStages.set(root, identities);
+-  const baseRoot = path.join(root, "snapshot");
++  const baseRoot = retainedSnapshotRoot ? path.resolve(retainedSnapshotRoot) : path.join(root, "snapshot");
++  // Existing source directories are identity pins for reads, never deletion ownership.
++  const sourceIdentities = retainedSnapshotRoot ? new Map() : identities;
+   try {
+     createStageDirectory(root, identities);
+-    createStageDirectory(baseRoot, identities);
+-    for (const entry of entries) {
++    if (retainedSnapshotRoot) {
++      for (const directory of directoryChain(baseRoot))
++        sourceIdentities.set(directory, directoryIdentity(directory));
++      const visit = (directory) => {
++        for (const entry of fs.readdirSync(directory, { withFileTypes: true })) {
++          if (entry.isDirectory()) {
++            const child = path.join(directory, entry.name);
++            sourceIdentities.set(child, directoryIdentity(child));
++            visit(child);
++          }
++        }
++      };
++      visit(baseRoot);
++    } else {
++      createStageDirectory(baseRoot, identities);
++    }
++    for (const entry of retainedSnapshotRoot ? [] : entries) {
+       const target = path.join(baseRoot, entry.path);
+       let directory = baseRoot;
+       for (const part of entry.path.split("/").slice(0, -1)) {
+@@ -787,10 +809,11 @@
+       fs.writeFileSync(target, entry.bytes, { flag: "wx", mode: 0o644 });
+     }
+     const verifyDirectoryIdentities = () => {
+-      assertOwnedChain(baseRoot, identities);
+-      for (const directory of identities.keys()) {
++      assertOwnedChain(root, identities);
++      assertOwnedChain(baseRoot, sourceIdentities);
++      for (const directory of sourceIdentities.keys()) {
+         if (directory.startsWith(baseRoot + path.sep))
+-          assertOwnedChain(directory, identities);
++          assertOwnedChain(directory, sourceIdentities);
+       }
+     };
+     verifyDirectoryIdentities();
+@@ -839,47 +862,85 @@
+   }
+ }
+ 
++function isCandidateStageRoot(root, identity) {
++  const candidate = /^candidate-[a-f0-9]{64}$/u;
++  return (candidate.test(path.basename(root)) && (!identity || path.basename(root) === identity) &&
++    path.basename(path.dirname(root)) === "foundation-candidates" &&
++    path.basename(path.dirname(path.dirname(root))) === ".tmp") ||
++    (/^[a-z0-9][a-z0-9-]{0,63}$/u.test(path.basename(root)) &&
++      candidate.test(path.basename(path.dirname(root))) && (!identity || path.basename(path.dirname(root)) === identity) &&
++      path.basename(path.dirname(path.dirname(root))) === "foundation-candidate-attempts" &&
++      path.basename(path.dirname(path.dirname(path.dirname(root)))) === ".tmp");
++}
++
++function removeOwnedDirectory(root, identities) {
++  const visit = (directory, remove) => {
++    assertOwnedChain(directory, identities);
++    for (const name of fs.readdirSync(directory)) {
++      assertOwnedChain(directory, identities);
++      const absolute = path.join(directory, name);
++      const stat = fs.lstatSync(absolute);
++      if (stat.isDirectory() && !stat.isSymbolicLink()) visit(absolute, remove);
++      else if (stat.isFile() && !stat.isSymbolicLink()) {
++        if (remove) {
++          assertOwnedChain(directory, identities);
++          fs.unlinkSync(absolute);
++        }
++      } else throw new Error(`Unsupported cleanup entry: ${absolute}`);
++    }
++    if (remove) {
++      assertOwnedChain(directory, identities);
++      fs.rmdirSync(directory);
++    }
++  };
++  // Preflight the entire subtree before deleting anything. No location-based
++  // enrollment and no recursively deleting path primitive.
++  visit(root, false);
++  visit(root, true);
++  for (const directory of identities.keys())
++    if (directory === root || directory.startsWith(root + path.sep)) identities.delete(directory);
++}
++
++export function candidateAssemblyFileSystem(root) {
++  const identities = ownedStages.get(root);
++  if (!identities || !isCandidateStageRoot(root)) throw new Error("Unknown candidate stage ownership");
++  const assembled = path.join(root, "assembled");
++  const bounded = (file) => {
++    const absolute = path.resolve(file);
++    if (absolute !== assembled && !absolute.startsWith(assembled + path.sep))
++      throw new Error("Candidate assembler directory mutation outside owned target");
++    return absolute;
++  };
++  return {
++    ...fs,
++    mkdirSync(file) {
++      const absolute = bounded(file);
++      let current = root;
++      assertOwnedChain(current, identities);
++      for (const part of path.relative(root, absolute).split(path.sep)) {
++        current = path.join(current, part);
++        createStageDirectory(current, identities);
++      }
++    },
++    rmSync(file) {
++      const absolute = bounded(file);
++      assertOwnedChain(path.dirname(absolute), identities);
++      if (!fs.existsSync(absolute)) return;
++      removeOwnedDirectory(absolute, identities);
++    },
++  };
++}
++
+ export function removeCandidateStage(root, { cause } = {}) {
+   // Never delete through a changed junction or remove arbitrary caller paths.
+   if (
+     !ownedStages.has(root) ||
+-    !/^candidate-[a-f0-9]{64}$/u.test(path.basename(root)) ||
+-    path.basename(path.dirname(root)) !== "foundation-candidates" ||
+-    path.basename(path.dirname(path.dirname(root))) !== ".tmp"
++    !isCandidateStageRoot(root)
+   )
+     throw new Error("Unsafe candidate cleanup target");
+   const identities = ownedStages.get(root);
+   try {
+-    const visit = (directory, remove) => {
+-      assertOwnedChain(directory, identities);
+-      for (const name of fs.readdirSync(directory)) {
+-        assertOwnedChain(directory, identities);
+-        const absolute = path.join(directory, name);
+-        const stat = fs.lstatSync(absolute);
+-        if (stat.isDirectory() && !stat.isSymbolicLink()) {
+-          visit(absolute, remove);
+-        } else if (stat.isFile()) {
+-          if (remove) {
+-            assertOwnedChain(directory, identities);
+-            fs.unlinkSync(absolute);
+-          }
+-        } else {
+-          throw new Error(`Unsupported cleanup entry: ${absolute}`);
+-        }
+-      }
+-      if (remove) {
+-        assertOwnedChain(directory, identities);
+-        fs.rmdirSync(directory);
+-      }
+-    };
+-    // Guard the complete subtree first so a known foreign directory preserves
+-    // the stage intact. Assembler-created directories lack a creation receipt
+-    // in this consumer and remain unknown; never infer ownership from location.
+-    visit(root, false);
+-    // Path checks and deletion are separate syscalls, not an atomic namespace
+-    // lock. Recheck every ancestor before each unlink/rmdir, and never hand a
+-    // recursively deleting primitive a path that could be replaced afterward.
+-    visit(root, true);
++    removeOwnedDirectory(root, identities);
+   } catch (error) {
+     throw new CandidateCleanupError(root, error.message, cause ?? error);
+   }
+--- a/scripts/business-overlay/foundation-candidate.test.mjs
++++ b/scripts/business-overlay/foundation-candidate.test.mjs
+@@ -4,7 +4,7 @@
+ import path from "node:path";
+ import { spawnSync } from "node:child_process";
+ import test from "node:test";
+-import { fileURLToPath } from "node:url";
++import { fileURLToPath, pathToFileURL } from "node:url";
+ import { buildCandidateArtifact } from "../../../pantheon-base/scripts/foundation-release/build-candidate-artifact.mjs";
+ import * as producer from "../../../pantheon-base/scripts/foundation-release/candidate-descriptor.mjs";
+ import * as consumer from "./foundation-candidate.mjs";
+@@ -431,6 +431,124 @@
+   );
+ }
+ 
++function generatedFixture(t, sharedPaths = { backend: ["backend/pkg", "backend/modules"], frontend: ["frontend/src"] }) {
++  const f = fixture(t);
++  for (const locale of ["en-US", "zh-CN", "fr-FR", "ja-JP", "ko-KR"])
++    write(f.ops, `frontend/src/modules/business/cmdb/locales/${locale}.json`, JSON.stringify({ "business.cmdb.title": locale }));
++  f.manifest.businessSmokeScripts = ["test:smoke:business:cmdb"];
++  write(f.ops, "business-overlay.json", JSON.stringify(f.manifest));
++  write(f.ops, "frontend/package.json", JSON.stringify({ scripts: {
++    "test:smoke:business:cmdb": "playwright test tests/smoke/business/cmdb/pages.spec.ts",
++  } }));
++  write(f.ops, ".foundation/allowed-drift.json", fs.readFileSync(".foundation/allowed-drift.json"));
++  const candidate = buildCandidateArtifact({ root: f.base, baseCommit: f.candidate.descriptor.baseCommit,
++    sourcePaths: ["backend", "frontend", "docs", "package.json"], sharedPaths,
++    evidenceIds: ["fixture-source-evidence"], reviewIds: ["fixture-independent-review"],
++    capabilities: ["required-business-bootstrap-v1"], outputRoot: path.join(f.temp, "wide-artifact") });
++  f.options.artifactPath = candidate.artifactPath;
++  f.options.descriptorPath = candidate.descriptorPath;
++  f.options.expectedDescriptorSha256 = candidate.descriptorSha256;
++  f.cacheRoot = path.join(f.ops, ".tmp/foundation-candidates", candidate.descriptor.candidateIdentity);
++  return f;
++}
++
++test("real generated i18n, import and registry output passes without broadening legacy allowances", (t) => {
++  const f = generatedFixture(t);
++  const result = f.rebuild();
++  assert.equal(result.receipt.sourceStable, true);
++  assert.equal(result.receipt.officialConsumption, false);
++  for (const locale of ["en-US", "zh-CN", "fr-FR", "ja-JP", "ko-KR"])
++    assert.match(fs.readFileSync(path.join(result.targetRoot, `frontend/src/i18n/resources/business/${locale}.ts`), "utf8"), /business.cmdb.title/);
++  assert.deepEqual(JSON.parse(fs.readFileSync(path.join(result.targetRoot, ".foundation/allowed-drift.json"))), JSON.parse(fs.readFileSync(".foundation/allowed-drift.json")));
++});
++
++test("official v0.18.6 frontend coverage retains package, cleanup and smoke contract compatibility", (t) => {
++  const f = generatedFixture(t, { backend: ["backend/pkg", "backend/modules"], frontend: [
++    "frontend/src", "frontend/package.json", "frontend/scripts/cleanup-generated-modules.mjs", "frontend/tests/smoke/README.md",
++  ] });
++  const result = f.rebuild();
++  assert.equal(result.receipt.sourceStable, true);
++  assert.ok(result.receipt.officialLockSha256Before === result.receipt.officialLockSha256After);
++});
++
++test("canonical assembly does not hide a genuinely stale in-coverage legacy allowance", (t) => {
++  const f = generatedFixture(t, { backend: ["backend/pkg", "backend/modules"], frontend: [
++    "frontend/src", "frontend/package.json", "frontend/scripts/cleanup-generated-modules.mjs", "frontend/tests/smoke/README.md",
++  ] });
++  f.manifest.businessSmokeScripts = [];
++  write(f.ops, "business-overlay.json", JSON.stringify(f.manifest));
++  assert.throws(f.rebuild, /Candidate shared drift check failed/);
++  assert.equal(fs.existsSync(f.cacheRoot), false);
++});
++
++test("canonical generated bytes cannot be forged by editing the report or legacy allowlist", async (t) => {
++  for (const file of ["frontend/src/i18n/resources/en-US.ts", "frontend/src/i18n/resources/business/fr-FR.ts", "frontend/src/core/router/modules.ts", "frontend/src/modules/businessOverlay.ts", "backend/modules/business/business.go", "frontend/package.json", "frontend/scripts/cleanup-generated-modules.mjs", "frontend/tests/smoke/README.md"])
++    await t.test(file, (st) => {
++      const f = generatedFixture(st);
++      const original = fs.writeFileSync;
++      st.mock.method(fs, "writeFileSync", function (target, ...args) {
++        const result = original.call(this, target, ...args);
++        if (String(target).endsWith("assembled/.business-overlay-report.json".replaceAll("/", path.sep))) {
++          const changed = path.join(f.cacheRoot, "assembled", file);
++          fs.appendFileSync(changed, "\n// shared byte tamper\n");
++          const report = JSON.parse(fs.readFileSync(target));
++          report.ownedFiles.find(entry => entry.path === file).sha256 = consumer.sha256(fs.readFileSync(changed));
++          original.call(this, target, JSON.stringify(report));
++        }
++        return result;
++      });
++      assert.throws(f.rebuild, /Derived business output differs|Canonical business output/);
++      assert.equal(fs.existsSync(f.cacheRoot), false, "proven owned assembly was cleaned");
++    });
++});
++
++test("forged generatedFiles cannot exempt actual shared Base bytes", (t) => {
++  const f = generatedFixture(t);
++  const original = fs.writeFileSync;
++  t.mock.method(fs, "writeFileSync", function (target, ...args) {
++    const result = original.call(this, target, ...args);
++    if (String(target).endsWith(path.join("assembled", ".business-overlay-report.json"))) {
++      const file = "backend/pkg/contracts/module.go";
++      const absolute = path.join(f.cacheRoot, "assembled", file);
++      fs.appendFileSync(absolute, "\n// shared byte tamper\n");
++      const report = JSON.parse(fs.readFileSync(target));
++      report.generatedFiles.push(file);
++      report.ownedFiles.push({ path: file, sha256: consumer.sha256(fs.readFileSync(absolute)) });
++      original.call(this, target, JSON.stringify(report));
++    }
++    return result;
++  });
++  assert.throws(f.rebuild, /Candidate shared drift check failed/);
++  assert.equal(fs.existsSync(f.cacheRoot), false);
++});
++
++test("fresh consumer attempt reuses verified immutable snapshot without touching retained failure", (t) => {
++  const f = generatedFixture(t);
++  const first = f.rebuild();
++  const retained = consumer.captureInputs(first.targetRoot, fs.readdirSync(first.targetRoot).sort());
++  assert.throws(f.rebuild, /stage already exists/);
++  const second = f.rebuild({ attempt: "fixture-retry" });
++  assert.notEqual(second.targetRoot, first.targetRoot);
++  assert.equal(second.snapshot.baseRoot, first.snapshot.baseRoot);
++  assert.deepEqual(consumer.captureInputs(first.targetRoot, fs.readdirSync(first.targetRoot).sort()), retained);
++  assert.throws(() => f.rebuild({ attempt: "fixture-retry" }), /already exists/);
++  assert.throws(() => f.rebuild({ attempt: "../escape" }), /attempt/);
++  consumer.removeCandidateStage(second.snapshot.cacheRoot);
++  assert.equal(fs.existsSync(first.snapshot.baseRoot), true);
++  assert.deepEqual(consumer.captureInputs(first.targetRoot, fs.readdirSync(first.targetRoot).sort()), retained);
++});
++
++test("fresh consumer attempts reject tampered retained snapshot and preserve the original", (t) => {
++  const f = generatedFixture(t);
++  const first = f.rebuild();
++  const file = path.join(first.snapshot.baseRoot, "docs/base.md");
++  fs.appendFileSync(file, "tamper");
++  assert.throws(() => f.rebuild({ attempt: "rejected-snapshot" }), /inventory mismatch/);
++  assert.match(fs.readFileSync(file, "utf8"), /tamper$/);
++  assert.equal(fs.existsSync(first.targetRoot), true);
++  assert.equal(fs.existsSync(path.join(f.ops, '.tmp/foundation-candidate-attempts', first.receipt.candidateIdentity, 'rejected-snapshot')), false);
++});
++
+ function checksum(archive) {
+   archive.fill(32, 148, 156);
+   const sum = [...archive.subarray(0, 512)].reduce(
+@@ -474,7 +592,7 @@
+     "snapshot",
+     "nested",
+     "ancestor",
+-    ...(phase === "assembly" ? ["assembled"] : []),
++    ...(phase === "assembly" ? ["assembled", "assembled-nested"] : []),
+   ]) {
+     test(`cleanup preserves renamed original and real replacement: ${phase}/${directory}`, (t) => {
+       const f = fixture(t);
+@@ -488,6 +606,8 @@
+               ? path.dirname(f.cacheRoot)
+               : directory === "nested"
+                 ? path.join(f.cacheRoot, "snapshot/backend")
++                : directory === "assembled-nested"
++                  ? path.join(f.cacheRoot, "assembled/backend")
+                 : path.join(f.cacheRoot, directory);
+         fs.renameSync(attacked, retained);
+         fs.mkdirSync(attacked);
+@@ -535,7 +655,7 @@
+             ? `${path.basename(f.cacheRoot)}/snapshot/backend/go.mod`
+             : directory === "snapshot"
+               ? "backend/go.mod"
+-              : directory === "nested"
++              : directory === "nested" || directory === "assembled-nested"
+                 ? "go.mod"
+                 : "backend/go.mod";
+       assert.equal(
+@@ -1108,7 +1228,7 @@
+   assert.throws(f.rebuild, /hard links/);
+ });
+ 
+-test("assembly rejects snapshot/artifact and declared Ops mutations including edit/revert; unknown assembled ownership retains stage", async (t) => {
++test("assembly rejects snapshot/artifact and declared Ops mutations including edit/revert and cleans proven owned output", async (t) => {
+   for (const mode of [
+     "snapshot",
+     "artifact",
+@@ -1160,16 +1280,14 @@
+           fs.utimesSync(file, new Date(), new Date(Date.now() + 2000));
+         }
+       };
+-      // The unchanged assembler has no directory creation receipt. Its output
+-      // must be retained when cleanup cannot prove the directory instances.
+       const causeMessage =
+         mode === "snapshot"
+           ? /Candidate snapshot changed during assembly/
+           : mode === "artifact"
+             ? /Candidate artifact inputs changed during assembly/
+             : /Declared Ops source\/manifest\/lock changed during candidate assembly/;
+-      assertCleanupRefused(() => interceptCopy(action, f.rebuild), causeMessage);
+-      assert.equal(fs.existsSync(f.cacheRoot), true);
++      assert.throws(() => interceptCopy(action, f.rebuild), causeMessage);
++      assert.equal(fs.existsSync(f.cacheRoot), false);
+       assert.equal(
+         fs.existsSync(
+           path.join(
+@@ -1187,8 +1305,14 @@
+   await t.test("unallowlisted shared modification", (st) => {
+     const f = fixture(st);
+     write(f.ops, ".foundation/allowed-drift.json", "{}");
+-    assertCleanupRefused(f.rebuild, /Candidate shared drift check failed/);
+-    assert.equal(fs.existsSync(f.cacheRoot), true);
++    const copy = fs.copyFileSync;
++    st.mock.method(fs, "copyFileSync", function (source, target, ...args) {
++      const result = copy.call(this, source, target, ...args);
++      if (String(target).endsWith(path.join("assembled", "docs", "base.md"))) fs.appendFileSync(target, "shared tamper");
++      return result;
++    });
++    assert.throws(f.rebuild, /Candidate shared drift check failed/);
++    assert.equal(fs.existsSync(f.cacheRoot), false);
+     assert.equal(
+       fs.existsSync(
+         path.join(f.cacheRoot, "assembled/.foundation-candidate-receipt.json"),
+@@ -1216,11 +1340,11 @@
+       "SELECT 0;",
+     );
+     write(f.ops, "business-overlay.json", JSON.stringify(manifest));
+-    assertCleanupRefused(
++    assert.throws(
+       f.rebuild,
+       /Business migration version conflicts with Base: 000031/,
+     );
+-    assert.equal(fs.existsSync(f.cacheRoot), true);
++    assert.equal(fs.existsSync(f.cacheRoot), false);
+     assert.equal(
+       fs.existsSync(
+         path.join(f.cacheRoot, "assembled/.foundation-candidate-receipt.json"),
+@@ -1333,13 +1457,23 @@
+ 
+ test("CLI reports the assembly cause together with safe cleanup refusal", (t) => {
+   const f = fixture(t);
+-  write(f.ops, ".foundation/allowed-drift.json", "{}");
++  const preload = path.join(f.temp, "inject-foreign.mjs");
++  fs.writeFileSync(preload, `import fs from 'node:fs'; import path from 'node:path';
++    const copy = fs.copyFileSync; fs.copyFileSync = (source, target, ...args) => {
++      const result = copy(source, target, ...args);
++      if (target.endsWith(path.join('assembled', 'docs', 'base.md'))) {
++        const unknown = path.join(path.dirname(target), 'foreign');
++        fs.mkdirSync(unknown); fs.writeFileSync(path.join(unknown, 'keep.txt'), 'preserve');
++        throw new Error('injected primary shared drift failure');
++      } return result;
++    };`);
+   const entry = fileURLToPath(
+     new URL("./rebuild-from-candidate.mjs", import.meta.url),
+   );
+   const result = spawnSync(
+     process.execPath,
+     [
++      "--import", pathToFileURL(preload).href,
+       entry,
+       "--descriptor",
+       f.options.descriptorPath,
+@@ -1354,8 +1488,9 @@
+   );
+   assert.equal(result.status, 1, result.stderr);
+   assert.match(result.stderr, /cleanup.*(identity|ownership)/i);
+-  assert.match(result.stderr, /Caused by: Candidate shared drift check failed/);
++  assert.match(result.stderr, /Caused by: injected primary shared drift failure/);
+   assert.equal(fs.existsSync(f.cacheRoot), true);
++  assert.equal(fs.readFileSync(path.join(f.cacheRoot, 'assembled/docs/foreign/keep.txt'), 'utf8'), 'preserve');
+   assert.equal(
+     fs.existsSync(
+       path.join(f.cacheRoot, "assembled/.foundation-candidate-receipt.json"),
+--- a/tests/scripts/business-overlay/check-shared-drift.test.mjs
++++ b/tests/scripts/business-overlay/check-shared-drift.test.mjs
+@@ -6,11 +6,11 @@
+ import test from 'node:test';
+ import { pathToFileURL } from 'node:url';
+ 
+-function runDriftCheck(root, base) {
++function runDriftCheck(root, base, group = 'all') {
+   const moduleURL = pathToFileURL(path.resolve('scripts/business-overlay/check-shared-drift.mjs')).href;
+   const script = `import { checkSharedDrift } from ${JSON.stringify(moduleURL)}; import fs from 'node:fs'; import path from 'node:path';
+-    process.exitCode = checkSharedDrift({root:process.argv[1],snapshot:{baseRoot:process.argv[2],manifest:JSON.parse(fs.readFileSync(path.join(process.argv[1],'foundation-release.lock.json'),'utf8'))}});`;
+-  return spawnSync(process.execPath, ['--input-type=module', '-e', script, root, base], { encoding: 'utf8' });
++    process.exitCode = checkSharedDrift({root:process.argv[1],group:process.argv[3],snapshot:{baseRoot:process.argv[2],manifest:JSON.parse(fs.readFileSync(path.join(process.argv[1],'foundation-release.lock.json'),'utf8'))}});`;
++  return spawnSync(process.execPath, ['--input-type=module', '-e', script, root, base, group], { encoding: 'utf8' });
+ }
+ 
+ function initGitRepo(root, files) {
+@@ -132,6 +132,25 @@
+   const result = runDriftCheck(opsRoot, baseRoot);
+   assert.equal(result.status, 1);
+   assert.match(result.stderr, /STALE_ALLOWLIST backend\/pkg\/gone\.go/);
++});
++
++test('group selection does not claim unexamined allowlist entries are stale or equal', (t) => {
++  const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'pantheon-drift-coverage-'));
++  t.after(() => fs.rmSync(temp, { recursive: true, force: true }));
++  const baseRoot = path.join(temp, 'base');
++  const opsRoot = path.join(temp, 'ops');
++  const files = { 'backend/pkg/shared.go': 'package shared\n', 'frontend/package.json': '{}\n' };
++  initGitRepo(baseRoot, files);
++  fixtureLock(opsRoot, { backend: ['backend/pkg'], frontend: ['frontend/package.json'] });
++  for (const [file, content] of Object.entries(files)) write(opsRoot, file, content);
++  write(opsRoot, '.foundation/allowed-drift.json', JSON.stringify({ 'frontend/package.json': 'legacy allowance' }));
++  const selected = runDriftCheck(opsRoot, baseRoot, 'backend');
++  assert.equal(selected.status, 0, selected.stderr);
++  assert.match(selected.stdout, /ALLOWLIST_NOT_COMPARED frontend\/package.json/);
++  assert.doesNotMatch(selected.stderr, /STALE_ALLOWLIST/);
++  const all = runDriftCheck(opsRoot, baseRoot);
++  assert.equal(all.status, 1);
++  assert.match(all.stderr, /STALE_ALLOWLIST frontend\/package.json/);
+ });
+ 
+ 

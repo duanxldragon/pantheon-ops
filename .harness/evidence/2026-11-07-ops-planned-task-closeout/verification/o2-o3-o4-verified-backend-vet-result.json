@@ -1,0 +1,13 @@
+{
+  "command": [
+    "go",
+    "vet",
+    "-mod=readonly",
+    "./..."
+  ],
+  "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\backend",
+  "exitCode": 0,
+  "elapsedSeconds": 8.172000000020489,
+  "artifact": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/o2-o3-o4-verified-backend-vet.txt",
+  "lane": "backend"
+}

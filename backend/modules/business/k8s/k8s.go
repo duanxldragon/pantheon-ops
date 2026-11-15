@@ -17,6 +17,8 @@ import (
 	"github.com/duanxldragon/pantheon-base/backend/modules/business/k8s/storage"
 	"github.com/duanxldragon/pantheon-base/backend/modules/business/k8s/workload"
 	"github.com/duanxldragon/pantheon-base/backend/pkg/contracts"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/database"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/permissionroutes"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -91,6 +93,9 @@ const k8sRoutePath = "/business/k8s"
 
 // InitK8sModule registers Kubernetes business modules and returns target capabilities.
 func InitK8sModule(r *gin.RouterGroup, db *gorm.DB, hostService *host.HostService, readers ...bizcap.BizScopeReader) bizcap.K8sTargetReader {
+	if err := permissionroutes.Register("business:k8s", []permissionroutes.Binding{{Permission: "business:k8s:workload:logs", Routes: []permissionroutes.Route{{Method: "GET", Path: "/api/v1/business/k8s/clusters/:id/pods/:namespace/:podName/logs"}}}}); err != nil {
+		panic(err)
+	}
 	clusterSvc := cluster.NewClusterService(db, readers...)
 	clusterHandler := cluster.NewClusterHandler(clusterSvc)
 	namespaceSvc := namespace.NewNamespaceService(clusterSvc, db)
@@ -138,7 +143,12 @@ func InitK8sModule(r *gin.RouterGroup, db *gorm.DB, hostService *host.HostServic
 			k8s := contracts.DataScopedGroup(r, k8sRoutePath, db)
 			clusterHandler.RegisterRoutes(k8s)
 			namespaceHandler.RegisterRoutes(k8s)
-			workloadHandler.RegisterRoutes(k8s)
+			workloadHandler.RegisterResourceRoutes(k8s)
+			logRoutes, err := contracts.TenantScopedBusinessGroup(r, k8sRoutePath, contracts.BusinessTenantGroupOptions{DB: db, RDB: database.RDB, DataScope: true, PlatformScope: true})
+			if err != nil {
+				panic(err)
+			}
+			workloadHandler.RegisterLogRoutes(logRoutes)
 			releaseHandler.RegisterRoutes(k8s)
 			configMapHandler.RegisterRoutes(k8s)
 			secretHandler.RegisterRoutes(k8s)

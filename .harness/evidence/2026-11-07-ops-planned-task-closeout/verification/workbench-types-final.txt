@@ -1,0 +1,4 @@
+
+> @duanxldragon/pantheon-base-ui@0.11.2 type-check
+> tsc -b
+

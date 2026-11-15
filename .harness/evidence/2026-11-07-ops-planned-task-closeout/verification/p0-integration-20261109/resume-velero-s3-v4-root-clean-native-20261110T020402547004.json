@@ -1,0 +1,134 @@
+{
+  "phase": "clean-native",
+  "exitCode": 1,
+  "remoteExecuted": true,
+  "rootRequestSHA256": "ea4d2d5e406f95cb3e838067f66ed32c40e0e7b02152e117d25e59ad1da4f812",
+  "v4ScriptHashes": {
+    ".local/ops-acceptance/resume-velero-s3-v4-fixture.py": "e32b5ceb96e68edf0a3af76b3dbde6362b0679387460e1e748f95c2e7ee93910",
+    ".local/ops-acceptance/resume-velero-s3-v4-generate.py": "45b9a273106739f87639130ae9bb93039fbf51209a94af4b60f8fc805badaf19",
+    ".local/ops-acceptance/resume-velero-s3-v4-native.py": "f116a423d4f5c207db032829fc22b4bb3b8179eec41624bb0d9d14f0c4be402a",
+    ".local/ops-acceptance/resume-velero-s3-v4-remote.py": "63b2e9a90fb7b54fc522e6190ff6ad0cb353f199752dd7fea76b7d93cb47183a",
+    ".local/ops-acceptance/resume-velero-s3-v4-root.py": "20209264b26af232a1b8c68e93943b5496e37ff93098f100928b81df5b186898",
+    ".local/ops-acceptance/resume-velero-s3-v4-test.py": "3fb7373b6903ffd3f805e2c48378a58f1ce63573377dc1c5b9b8dab49cb27da0"
+  },
+  "originalScriptHashesVerified": 8,
+  "productSourceHashesVerified": 17,
+  "driverBinarySHA256": "7204fc7cabbfe4ed9b73c4edf83fedd9f917c2f614b943f287baab8da0d5244e",
+  "providerInstalled": false,
+  "backupRestoreVerified": false,
+  "P0Approved": false,
+  "records": [
+    {
+      "phase": "cleanup",
+      "exitCode": 1,
+      "errorType": "ValueError",
+      "errorKey": "native-inspection-drift",
+      "detailsOmitted": true,
+      "retainPartialResources": true,
+      "backupRestoreVerified": false
+    }
+  ],
+  "remoteFiles": {
+    "resume-velero-s3-prep.py": {
+      "sha256": "0b5219ab2fe498a81b5d224c35dc8eaa7827f68467ab4dbee413a45a6445cc02",
+      "bytes": 10139,
+      "mode": 384
+    },
+    "resume-velero-s3-remote.py": {
+      "sha256": "6fe70db7027d422a5a03a990039359c3359997c26fc817c89109967f30da21b9",
+      "bytes": 24070,
+      "mode": 384
+    },
+    "resume-velero-s3-fixture.py": {
+      "sha256": "c6badc5582f0cd679450050818abd56cdec6518d6a14cd01f69ff0c6d5c0d055",
+      "bytes": 13090,
+      "mode": 384
+    },
+    "resume-velero-s3-artifacts.json": {
+      "sha256": "e54e0c8b9596349bcd36c95cba0f022ea65a9d5b8b9e69b3c0974acd893bc22b",
+      "bytes": 15246,
+      "mode": 384
+    },
+    "seaweedfs-4.53-release.json": {
+      "sha256": "7908e97ed2a798b18fe07ccf665143a19d5655d98d30ee1b54d93d8c145f7344",
+      "bytes": 152008,
+      "mode": 384
+    },
+    "linux_amd64.tar.gz": {
+      "sha256": "d1a7dec9f48d8b33895a0ea8951971defc2dc5312906dcc76fa5a5f74a6ee90d",
+      "bytes": 48457480,
+      "mode": 384
+    },
+    "velero-v1.17.0-linux-amd64.tar.gz": {
+      "sha256": "f507a956cf8ec00f483f5d7b04901614a9016a10feb32b3ecc968da36b4fc7be",
+      "bytes": 58499469,
+      "mode": 384
+    },
+    "velero-velero-v1.17.0.oci.tar": {
+      "sha256": "86b8928b6b053f7bb573df6f6492841f7e96ad03647f9ec9857351c4d267bea4",
+      "bytes": 80906240,
+      "mode": 384
+    },
+    "velero-velero-plugin-for-aws-v1.13.0.oci.tar": {
+      "sha256": "494a8f752943a96c7a08ddfa1f2059eb07291039b37bca1518566eef41df554e",
+      "bytes": 41523200,
+      "mode": 384
+    },
+    "resume-velero-s3-diagnostic-20261110T004347017585.json": {
+      "sha256": "708ec9d2777d8fe3c12dcbd4bb16ad984b299821b614b05a57971ae8b732ea8c",
+      "bytes": 266,
+      "mode": 384
+    },
+    "resume-velero-s3-v3-remote.py": {
+      "sha256": "7b1ba58c52d340a7d121c72e537baa3e20b072c0635289f9f82d97e5761ab7a5",
+      "bytes": 26081,
+      "mode": 384
+    },
+    "resume-velero-s3-diagnostic-20261110T010938338222.json": {
+      "sha256": "8d58b6fd6cb34a2aa02f2438e7053b9d7b345459ba77084933c3e4006ae2141e",
+      "bytes": 739,
+      "mode": 384
+    },
+    "resume-velero-s3-diagnostic.json": {
+      "sha256": "8d58b6fd6cb34a2aa02f2438e7053b9d7b345459ba77084933c3e4006ae2141e",
+      "bytes": 739,
+      "mode": 384
+    },
+    "resume-velero-s3-help.json": {
+      "sha256": "b8f38fab05bfa9e66b44f1dccae35c7098b5ba5dc8c2e20152545cc032f8f268",
+      "bytes": 17756,
+      "mode": 384
+    },
+    "velero": {
+      "sha256": "e7e14133f1a13d759d43b2bf188cf1a078ffe36184d25f77ae4005fc7c26e739",
+      "bytes": 142581282,
+      "mode": 448
+    },
+    "weed": {
+      "sha256": "fa936e61bfb11f33c1f823045c4007e7da4b8b38bb6adc3b970f132d832e805b",
+      "bytes": 156401824,
+      "mode": 448
+    },
+    "resume-velero-s3-install-20261110T011213809221.json": {
+      "sha256": "863d7d71749d569a5317d27998b9b4cf6a59415c70ce2d9b96d0966653506cdd",
+      "bytes": 277,
+      "mode": 384
+    },
+    "resume-velero-s3-v4-remote.py": {
+      "sha256": "63b2e9a90fb7b54fc522e6190ff6ad0cb353f199752dd7fea76b7d93cb47183a",
+      "bytes": 26221,
+      "mode": 384
+    },
+    "resume-velero-s3-v4-fixture.py": {
+      "sha256": "e32b5ceb96e68edf0a3af76b3dbde6362b0679387460e1e748f95c2e7ee93910",
+      "bytes": 13093,
+      "mode": 384
+    },
+    "resume-velero-s3-v4-native.py": {
+      "sha256": "f116a423d4f5c207db032829fc22b4bb3b8179eec41624bb0d9d14f0c4be402a",
+      "bytes": 12736,
+      "mode": 384
+    }
+  },
+  "sourceHashesStable": true
+}

@@ -1,0 +1,83 @@
+{
+  "languageServer": "pyright",
+  "version": "1.1.414",
+  "protocol": "LSP stdio JSON-RPC",
+  "settings": {
+    "diagnosticMode": "openFilesOnly",
+    "typeCheckingMode": "basic",
+    "autoSearchPaths": true,
+    "useLibraryCodeForTypes": true,
+    "extraPaths": [
+      "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance"
+    ]
+  },
+  "sourceFiles": [
+    {
+      "path": ".local/ops-acceptance/resume-velero-s3-v8-fixture.py",
+      "sha256": "bfa759618ce411b4b6d388741ca4ae26100631424c1e9aa7b2c50b071a029171",
+      "stable": true,
+      "diagnostics": []
+    },
+    {
+      "path": ".local/ops-acceptance/resume-velero-s3-v8-generate.py",
+      "sha256": "599f4d083d19706b36d35ec1394e69908ed20fd95b98ba2a62e248338f4cf415",
+      "stable": true,
+      "diagnostics": []
+    },
+    {
+      "path": ".local/ops-acceptance/resume-velero-s3-v8-native.py",
+      "sha256": "1c1996958e180e7ff260822e0c959fc979ea858539678fd0c522a581c72e4e0e",
+      "stable": true,
+      "diagnostics": []
+    },
+    {
+      "path": ".local/ops-acceptance/resume-velero-s3-v8-remote.py",
+      "sha256": "f085c45f0be7a5131d5cbc9b89b9d4487844f4a57e29b74aa3a05ddcc57e42fc",
+      "stable": true,
+      "diagnostics": [
+        {
+          "range": {
+            "start": {
+              "line": 203,
+              "character": 15
+            },
+            "end": {
+              "line": 204,
+              "character": 164
+            }
+          },
+          "message": "No overloads for \"__init__\" match the provided arguments\n\u00a0\u00a0Argument types: (Literal['prepare_original_policy'], arguments, list[stmt], list[Unknown])",
+          "severity": 1,
+          "code": "reportCallIssue",
+          "source": "Pyright",
+          "codeDescription": {
+            "href": "https://github.com/microsoft/pyright/blob/main/docs/configuration.md#reportCallIssue"
+          }
+        }
+      ]
+    },
+    {
+      "path": ".local/ops-acceptance/resume-velero-s3-v8-root.py",
+      "sha256": "8fca589ffb581e539e9477553ee3ce933825429b216979676cc666698917e863",
+      "stable": true,
+      "diagnostics": []
+    },
+    {
+      "path": ".local/ops-acceptance/resume-velero-s3-v8-seals.py",
+      "sha256": "bc5ca792c5b4108fbac6133d428ae5f60db52ca70b7972d24c0433868c62662c",
+      "stable": true,
+      "diagnostics": []
+    },
+    {
+      "path": ".local/ops-acceptance/resume-velero-s3-v8-test.py",
+      "sha256": "e75d254f43046edda1051684771307ee26b160e8f946d8e2a60da9d77177a4cb",
+      "stable": true,
+      "diagnostics": []
+    }
+  ],
+  "exitCode": 1,
+  "runtimeExecuted": false,
+  "errorCount": 1,
+  "warningCount": 0,
+  "seconds": 4.391
+}

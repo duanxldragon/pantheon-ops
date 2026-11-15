@@ -1,0 +1,10 @@
+=== RUN   TestLogSequenceIsUniqueWithinEachTask
+
+2026/11/09 09:27:31 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/deploy_service.go:2010 [35;1mError 1062 (23000): Duplicate entry '1' for key 'biz_deploy_task_log_chunk.uk_deploy_task_log_chunk_seq'
+[0m[33m[1.221ms] [34;1m[rows:0][0m INSERT INTO `biz_deploy_task_log_chunk` (`task_id`,`task_host_id`,`task_step_id`,`attempt_no`,`sequence`,`stream`,`content`,`created_at`) VALUES (2,0,0,1,1,'stdout','second-task-output','2026-11-09 09:27:31.581')
+2026/11/09 09:27:31 ERROR append deploy task log failed task_id=2 stream=stdout error="Error 1062 (23000): Duplicate entry '1' for key 'biz_deploy_task_log_chunk.uk_deploy_task_log_chunk_seq'"
+    log_sequence_test.go:23: cross-task output was lost: [{ID:1 TaskID:1 TaskHostID:0 TaskStepID:0 AttemptNo:1 Sequence:1 Stream:stdout Content:first-task-output CreatedAt:2026-11-09 09:27:31.572 +0800 CST}]
+--- FAIL: TestLogSequenceIsUniqueWithinEachTask (1.19s)
+FAIL
+FAIL	github.com/duanxldragon/pantheon-base/backend/modules/business/deploy	1.310s
+FAIL

@@ -1,0 +1,141 @@
+--- a/scripts/foundation-release/candidate-descriptor.mjs
++++ b/scripts/foundation-release/candidate-descriptor.mjs
+@@ -24,6 +24,45 @@
+   'permission-route-registration-v1': [['backend/pkg/permissionroutes/registry.go', 'Register']],
+ });
+ 
++// Curated PUBLIC review leaves required by the existing consumer-artifact
++// contract. Keep this block byte-equivalent in both schema1 validators. This
++// permits no recursive selection or other private .harness payload.
++export const PUBLIC_REVIEW_ARCHIVE_PATHS = Object.freeze([
++  ".harness/archive/2026-08/evidence/2026-08-31-base-operational-workbench-design/review.md",
++  ".harness/archive/2026-09/evidence/2026-09-04-readme-v0.11.0-update/review.md",
++  ".harness/archive/2026-09/evidence/2026-09-10-tenant-canary-slice/review.md",
++  ".harness/archive/2026-09/evidence/2026-09-10-tenant-contract-design/review.md",
++  ".harness/archive/2026-09/evidence/2026-09-10-tenant-core-auth-iam/review.md",
++  ".harness/archive/2026-09/evidence/2026-09-10-tenant-migration-runbook/review.md",
++  ".harness/archive/2026-09/evidence/2026-09-10-tenant-ready-guardrails/review.md",
++  ".harness/archive/2026-09/evidence/2026-09-24-fix-report-residual-closeout/review.md"
++]);
++
++export function assertPublicReviewPackaging(entries) {
++  const payload = new Map(entries.map(entry => [entry.path, entry.bytes]));
++  const configPath = 'config/foundation-consumer-artifacts.json';
++  const registryPath = 'config/review-loop-legacy-artifacts.json';
++  const archival = entries.filter(entry => entry.path.startsWith('.harness/'));
++  if (!payload.has(configPath) && !payload.has(registryPath) && !archival.length) return;
++  if (!payload.has(configPath) || !payload.has(registryPath))
++    throw new Error('Public review packaging requires both original registry configurations');
++  const parse = file => JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(payload.get(file)));
++  const config = parse(configPath);
++  if (config.schemaVersion !== 1 || config.sourceOwner !== 'pantheon-base' ||
++      config.reviewLegacyRegistry?.path !== registryPath ||
++      config.reviewLegacyRegistry?.artifactRoot !== '.harness/archive')
++    throw new Error('Invalid Base consumer review packaging contract');
++  const registry = parse(registryPath);
++  const refs = registry.entries;
++  if (registry.schemaVersion !== 1 || !Array.isArray(refs) ||
++      refs.length > PUBLIC_REVIEW_ARCHIVE_PATHS.length || new Set(refs).size !== refs.length ||
++      refs.some(ref => !PUBLIC_REVIEW_ARCHIVE_PATHS.includes(ref)))
++    throw new Error('Registry must reference only curated public review leaves');
++  if (refs.some(ref => !payload.has(ref)) ||
++      archival.some(entry => !refs.includes(entry.path)))
++    throw new Error('Public review archive payload must exactly match registry references');
++}
++
+ export function assertCandidatePath(value) {
+   if (typeof value !== 'string' || !value || value.length > 240 || value !== value.normalize('NFC') ||
+       /[\\:<>"|?*\x00-\x1f\x7f]/u.test(value) || value.startsWith('/') ||
+@@ -31,6 +70,7 @@
+         /^(?:con|prn|aux|nul|com[0-9¹²³]|lpt[0-9¹²³])(?:\.|$)/iu.test(part))) {
+     throw new Error(`Unsafe candidate path: ${value}`);
+   }
++  if (PUBLIC_REVIEW_ARCHIVE_PATHS.includes(value)) return value;
+   const parts = value.toLowerCase().split('/');
+   if (parts.some((part) => ['.git', '.omx', '.harness', '.aws', '.ssh', '.codex', '.claude', '.tmp', 'node_modules', 'dist', 'build', 'coverage', 'uploads', 'cache', 'caches'].includes(part) ||
+       part.startsWith('.env') || /^(?:credentials|secrets?)(?:\.|$)/u.test(part) || /\.(?:pem|key|p12|pfx)$/u.test(part))) {
+@@ -205,6 +245,7 @@
+   const files = entries.map((entry) => ({ path: entry.path, bytes: entry.bytes.length, sha256: sha256(entry.bytes) }));
+   assertInventory(files);
+   if (JSON.stringify(files) !== JSON.stringify(descriptor.files)) throw new Error('Candidate archive inventory mismatch');
++  assertPublicReviewPackaging(entries);
+   return entries;
+ }
+ 
+--- a/scripts/foundation-release/build-candidate-artifact.mjs
++++ b/scripts/foundation-release/build-candidate-artifact.mjs
+@@ -3,7 +3,7 @@
+ import process from 'node:process';
+ import { spawnSync } from 'node:child_process';
+ import { fileURLToPath } from 'node:url';
+-import { aggregateSha256, assertCandidatePath, assertInventory, assertRealPath, candidateExports, encodeCandidateArchive, LIMITS, sha256, validateCandidateDescriptor, verifyCandidateArchive } from './candidate-descriptor.mjs';
++import { aggregateSha256, assertPublicReviewPackaging, assertCandidatePath, assertInventory, assertRealPath, candidateExports, encodeCandidateArchive, LIMITS, sha256, validateCandidateDescriptor, verifyCandidateArchive } from './candidate-descriptor.mjs';
+ 
+ const within = (child, parent) => {
+   const relative = path.relative(parent, child);
+@@ -30,6 +30,7 @@
+     const stat = fs.lstatSync(absolute);
+     stamps.set(relative, stamp(stat));
+     if (stat.isDirectory()) {
++      if (relative.startsWith('.harness/')) throw new Error('Public review sources must be explicitly selected regular leaves');
+       if (relative === 'config' || relative.endsWith('/config')) throw new Error('Candidate config inputs must be explicitly declared files');
+       for (const name of fs.readdirSync(absolute).sort()) visit(`${relative}/${name}`);
+     } else {
+@@ -52,6 +53,7 @@
+   const captured = [...entries.values()].sort((a, b) => a.path < b.path ? -1 : a.path > b.path ? 1 : 0);
+   const files = captured.map((entry) => ({ path: entry.path, bytes: entry.bytes.length, sha256: sha256(entry.bytes) }));
+   assertInventory(files);
++  assertPublicReviewPackaging(captured);
+   return { entries: captured, files, stamps: [...stamps.entries()].sort(([a], [b]) => a < b ? -1 : a > b ? 1 : 0) };
+ }
+ 
+--- a/scripts/foundation-release/candidate-artifact.test.mjs
++++ b/scripts/foundation-release/candidate-artifact.test.mjs
+@@ -517,3 +517,47 @@
+     assert.equal(fs.existsSync(stage), false);
+   });
+ });
++
++
++test('curated public archive leaves survive sealed packaging; registry mismatches refuse', (t) => {
++  const f = fixture(t);
++  const refs = [
++    '.harness/archive/2026-08/evidence/2026-08-31-base-operational-workbench-design/review.md',
++    '.harness/archive/2026-09/evidence/2026-09-04-readme-v0.11.0-update/review.md',
++    '.harness/archive/2026-09/evidence/2026-09-10-tenant-canary-slice/review.md',
++    '.harness/archive/2026-09/evidence/2026-09-10-tenant-contract-design/review.md',
++    '.harness/archive/2026-09/evidence/2026-09-10-tenant-core-auth-iam/review.md',
++    '.harness/archive/2026-09/evidence/2026-09-10-tenant-migration-runbook/review.md',
++    '.harness/archive/2026-09/evidence/2026-09-10-tenant-ready-guardrails/review.md',
++    '.harness/archive/2026-09/evidence/2026-09-24-fix-report-residual-closeout/review.md',
++  ];
++  const config = 'config/foundation-consumer-artifacts.json';
++  const registry = 'config/review-loop-legacy-artifacts.json';
++  f.write(config, JSON.stringify({ schemaVersion: 1, sourceOwner: 'pantheon-base',
++    reviewLegacyRegistry: { path: registry, artifactRoot: '.harness/archive' } }));
++  const original = JSON.stringify({ schemaVersion: 1, entries: refs });
++  f.write(registry, original);
++  for (const ref of refs) f.write(ref, '# Historical fixture review\n');
++  const sourcePaths = [...f.options.sourcePaths, config, registry, ...refs];
++  const result = f.build({ sourcePaths });
++  const entries = verifyCandidateArchive(fs.readFileSync(result.artifactPath), result.descriptor);
++  for (const ref of [config, registry, ...refs])
++    assert.deepEqual(entries.find(entry => entry.path === ref).bytes, fs.readFileSync(path.join(f.root, ref)));
++  const rejected = paths => f.build({ sourcePaths: paths, outputRoot: path.join(f.temporary, 'refused') });
++  for (const ref of ['.harness', '.harness/archive', path.dirname(refs[0]),
++    refs[0].toUpperCase(), refs[0].replace('/review.md', '/../review.md'),
++    '.harness/archive/private/review.md', '.harness/archive/.aws/credentials'])
++    assert.throws(() => rejected([...f.options.sourcePaths, ref]));
++  for (const missing of [config, registry, refs[0]])
++    assert.throws(() => rejected(sourcePaths.filter(ref => ref !== missing)), /packaging|payload/);
++  f.write(registry, JSON.stringify({ schemaVersion: 1, entries: refs.slice(1) }));
++  assert.throws(() => rejected(sourcePaths), /payload/);
++  f.write(registry, JSON.stringify({ schemaVersion: 1, entries: [...refs, refs[0]] }));
++  assert.throws(() => rejected(sourcePaths), /curated/);
++  f.write(registry, original);
++  fs.unlinkSync(path.join(f.root, refs[0]));
++  assert.throws(() => rejected(sourcePaths), /ENOENT/);
++  fs.mkdirSync(path.join(f.root, refs[0]));
++  assert.throws(() => rejected(sourcePaths), /regular leaves/);
++  assert.equal(fs.existsSync(path.join(f.temporary, 'refused')), false);
++});

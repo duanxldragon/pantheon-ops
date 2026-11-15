@@ -1,0 +1,90 @@
+(!) Your Vite config uses features that are unsupported by `configLoader: 'native'`, which is planned to become the default in a future major version of Vite:
+  - `__dirname` (vitest.config.ts:10:25). Use `import.meta.dirname` instead
+Set `VITE_CONFIG_NATIVE_IGNORE_WARNING=true` to suppress this warning.
+
+ RUN  v5.0.5 D:/workspace/go/pantheon-platform/pantheon-ops/frontend
+
+ ❯ tests/unit/business/operational/deploy-read-revocation.test.tsx (9 tests | 3 failed) 52ms
+   ❯ task read revocation and generations (5)
+     × fences in-flight success and pending refreshes after stream denial 10ms
+   × coalesces multiple in-flight refreshes into one trailing request without a busy loop 2ms
+   × clears pending refreshes on detail forbidden and prevents later loads in the denied generation 2ms
+ ❯ tests/unit/business/operational/deploy-detail-read.test.tsx (8 tests | 1 failed) 576ms
+   ❯ rendered deployment detail controls and read freshness (8)
+     × reads the terminal result when the last connected SSE event arrives during an older running request 56ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 4 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/unit/business/operational/deploy-detail-read.test.tsx > rendered deployment detail controls and read freshness > reads the terminal result when the last connected SSE event arrives during an older running request
+AssertionError: expected "vi.fn()" to be called 3 times, but got 2 times
+ ❯ tests/unit/business/operational/deploy-detail-read.test.tsx:86:33
+     84|     expect(getDeployTaskDetail).toHaveBeenCalledTimes(2);
+     85|     await act(async () => { resolveRunning?.(capturedRunning); }); awa…
+     86|     expect(getDeployTaskDetail).toHaveBeenCalledTimes(3);
+       |                                 ^
+     87|     expect(screen.getByText('business.deploy.task.status.success')).to…
+     88|     expect(screen.queryByText('business.deploy.task.refreshStale')).to…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/4]⎯
+
+ FAIL  tests/unit/business/operational/deploy-read-revocation.test.tsx > task read revocation and generations > fences in-flight success and pending refreshes after stream denial
+AssertionError: expected { id: 7, name: 'task-7', …(2) } to be null
+
+- Expected:
+null
+
++ Received:
+{
+  "hosts": [],
+  "id": 7,
+  "name": "task-7",
+  "status": "running",
+}
+
+ ❯ tests/unit/business/operational/deploy-read-revocation.test.tsx:41:33
+     39|     await act(async () => { resolve?.(task(7)); await pending; });
+     40|     await act(async () => { await result.current.loadData({ silent: tr…
+     41|     expect(result.current.task).toBeNull(); expect(result.current.erro…
+       |                                 ^
+     42|     expect(getDeployTaskDetail).toHaveBeenCalledTimes(2);
+     43|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/4]⎯
+
+ FAIL  tests/unit/business/operational/deploy-read-revocation.test.tsx > coalesces multiple in-flight refreshes into one trailing request without a busy loop
+AssertionError: expected "vi.fn()" to be called 2 times, but got 1 times
+ ❯ tests/unit/business/operational/deploy-read-revocation.test.tsx:89:31
+     87|   await act(async () => { resolveFirst?.(task(7)); });
+     88|   expect(result.current.task?.status).toBe('running');
+     89|   expect(getDeployTaskDetail).toHaveBeenCalledTimes(2);
+       |                               ^
+     90|   await act(async () => { resolveTrailing?.({ ...task(7), status: 'suc…
+     91|   await flush();
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/4]⎯
+
+ FAIL  tests/unit/business/operational/deploy-read-revocation.test.tsx > clears pending refreshes on detail forbidden and prevents later loads in the denied generation
+AssertionError: expected undefined to be null
+
+- Expected:
+null
+
++ Received:
+undefined
+
+ ❯ tests/unit/business/operational/deploy-read-revocation.test.tsx:103:31
+    101|   await act(async () => { reject?.(new RequestError({ kind: 'forbidden…
+    102|   await act(async () => { await result.current.loadData({ silent: true…
+    103|   expect(result.current.task).toBeNull(); expect(result.current.error)…
+       |                               ^
+    104|   expect(getDeployTaskDetail).toHaveBeenCalledOnce();
+    105| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/4]⎯
+
+
+ Test Files  2 failed (2)
+      Tests  4 failed | 13 passed (17)
+   Start at  12:07:47
+   Duration  4.05s (import 55%, environment 26%, transform 10%, tests 9%)
+

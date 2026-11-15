@@ -1,0 +1,49 @@
+{
+  "requestSHA256": "30c929d01d33c80e8419984436802c92af84362a1fbba332fa7a5b226582368b",
+  "schemaVersion": 9,
+  "exitCode": 0,
+  "fullPostsealMatrix": {
+    "originalRegressions": 238,
+    "currentTests": 106,
+    "newUniqueTests": 53,
+    "fullUniqueRegressions": 291,
+    "testsRun": 344,
+    "failures": 0,
+    "errors": 0,
+    "forgeryCases": 52,
+    "inheritedV5UniqueTests": 260,
+    "newV6UniqueTests": 13,
+    "inheritedV6UniqueTests": 273,
+    "newV7UniqueTests": 5,
+    "inheritedV7UniqueTests": 278,
+    "newV8UniqueTests": 13,
+    "skips": 0,
+    "oldGeneratorsExecuted": false,
+    "runtimeExecuted": false
+  },
+  "fullReceipt": "continue-velero-alias-v8-postseal-full.json",
+  "fullReceiptSHA256": "4330aa078cd06669ca4ffbc4cedd6a072cd2058901d54a8c47fa0c65cd3c2ec4",
+  "fullLogSHA256": "0f2216d03c18ec4eb965274ce7101116e4ff5f7cd7d8c1f33c6be45b4dc3115c",
+  "scriptHashes": {
+    ".local/ops-acceptance/continue-velero-alias-v8-contract.py": "dfb05b10db25a85f80a54f0426e603288ff147ba7b972cb98479799461912a31",
+    ".local/ops-acceptance/continue-velero-alias-v8-remote.py": "19b9d25d67eb32589b8a2b8c8aa9db59a8246f16e5a97fe34f89ab1c8733d026",
+    ".local/ops-acceptance/continue-velero-alias-v8-root.py": "77088fd9d3d56b7a5abdd6c0dcf20411d753fc9cc8f5c4b0883d470ec556f21e",
+    ".local/ops-acceptance/continue-velero-alias-v8-generate.py": "e38d428cdd78711707257ec958afeddbaa0c98166e110808e881aca6b9ebb3e0",
+    ".local/ops-acceptance/continue-velero-alias-v8-test.py": "f4bbd8ad6d18019a748d5f8693c6ae1eeb2bd39c7d330b80fb43cbcff87ea214"
+  },
+  "sourceHashesStable": true,
+  "protectedAssets": 367,
+  "allProtectedHashesStable": true,
+  "remoteBaselineFiles": 39,
+  "selected": {
+    "exitCode": 0,
+    "remoteExecuted": false,
+    "rootRequestSHA256": "30c929d01d33c80e8419984436802c92af84362a1fbba332fa7a5b226582368b",
+    "helpers": 5,
+    "ownedObjects": 22,
+    "P0Approved": false
+  },
+  "remoteExecuted": false,
+  "oldGeneratorsExecuted": false,
+  "P0Approved": false
+}

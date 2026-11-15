@@ -1,0 +1,1009 @@
+{
+  "recordedUTC": "2026-11-11T05:24:21.848712+00:00",
+  "parentTask": "2026-11-07-ops-planned-task-closeout",
+  "predecessorCheckpoint": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/continuation-20261111-assembly-success/checkpoint.md",
+  "artifacts": {
+    "base-current-race": {
+      "path": "pantheon-base\\.local\\continuation-20261111-gates\\go-race-workspace-temp-31946609f2e0\\receipt.json",
+      "sha256": "2d8696c55279cfbaa2319f4b468730cf9db6d28c9443f3c6ce5ef7b5d966b60f",
+      "result": {
+        "command": [
+          "go",
+          "test",
+          "-mod=readonly",
+          "-race",
+          "-p",
+          "1",
+          "./..."
+        ],
+        "exitCode": 0,
+        "elapsedSeconds": 199.906,
+        "sourceStable": true,
+        "filesCaptured": 526,
+        "sourceBeforeSHA256": "3c35be447bc240742aa999abb70d3d9ab52c72f5ed7895f953ac18402a21a4aa",
+        "sourceAfterSHA256": "3c35be447bc240742aa999abb70d3d9ab52c72f5ed7895f953ac18402a21a4aa",
+        "logSHA256": "38896e9e4c757830ef0164fe56795c8f7c82a8281e65ef04d95a4daf1db51a2a",
+        "cgoEnabled": "1",
+        "temporaryDirectory": "D:\\workspace\\go\\pantheon-platform\\pantheon-base\\.local\\continuation-20261111-gates\\go-race-workspace-temp-31946609f2e0\\temp",
+        "environmentScope": "this subprocess only",
+        "optionalViteLookupAdapter": null,
+        "adapterAndViteHashes": {},
+        "adapterAndViteStable": true,
+        "runtimeAcceptance": false,
+        "P0Approved": false
+      }
+    },
+    "base-current-vet": {
+      "path": "pantheon-base\\.local\\continuation-20261111-gates\\go-vet-e719ce5b36f5\\receipt.json",
+      "sha256": "118605ccb23a748c7b93ac145f1d49e6965ca73252b137ba883dda3a86bfd79e",
+      "result": {
+        "command": [
+          "go",
+          "vet",
+          "-mod=readonly",
+          "./..."
+        ],
+        "exitCode": 0,
+        "elapsedSeconds": 7.797,
+        "sourceStable": true,
+        "filesCaptured": 526,
+        "sourceBeforeSHA256": "3c35be447bc240742aa999abb70d3d9ab52c72f5ed7895f953ac18402a21a4aa",
+        "sourceAfterSHA256": "3c35be447bc240742aa999abb70d3d9ab52c72f5ed7895f953ac18402a21a4aa",
+        "logSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "cgoEnabled": "1",
+        "temporaryDirectory": "D:\\workspace\\go\\pantheon-platform\\pantheon-base\\.local\\continuation-20261111-gates\\go-vet-e719ce5b36f5\\temp",
+        "environmentScope": "this subprocess only",
+        "optionalViteLookupAdapter": null,
+        "adapterAndViteHashes": {},
+        "adapterAndViteStable": true,
+        "runtimeAcceptance": false,
+        "P0Approved": false
+      }
+    },
+    "base-current-build": {
+      "path": "pantheon-base\\.local\\continuation-20261111-gates\\go-build-c507992ce3c1\\receipt.json",
+      "sha256": "bfdcb59910e29ec71208bfbb2ede1be328f50d04a4dbb4c64f4b02e8361b9b52",
+      "result": {
+        "command": [
+          "go",
+          "build",
+          "-mod=readonly",
+          "./..."
+        ],
+        "exitCode": 0,
+        "elapsedSeconds": 11.016,
+        "sourceStable": true,
+        "filesCaptured": 526,
+        "sourceBeforeSHA256": "3c35be447bc240742aa999abb70d3d9ab52c72f5ed7895f953ac18402a21a4aa",
+        "sourceAfterSHA256": "3c35be447bc240742aa999abb70d3d9ab52c72f5ed7895f953ac18402a21a4aa",
+        "logSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "cgoEnabled": "1",
+        "temporaryDirectory": "D:\\workspace\\go\\pantheon-platform\\pantheon-base\\.local\\continuation-20261111-gates\\go-build-c507992ce3c1\\temp",
+        "environmentScope": "this subprocess only",
+        "optionalViteLookupAdapter": null,
+        "adapterAndViteHashes": {},
+        "adapterAndViteStable": true,
+        "runtimeAcceptance": false,
+        "P0Approved": false
+      }
+    },
+    "base-frontend-lint": {
+      "path": "pantheon-base\\.local\\continuation-20261111-gates\\frontend-lint-6a9ff4cdd7f2\\receipt.json",
+      "sha256": "93aba6c2aabef147a852e6e3226f3cd15d3c00d25e6066e3473bbd438456153b",
+      "result": {
+        "command": [
+          "npm.cmd",
+          "run",
+          "lint"
+        ],
+        "exitCode": 0,
+        "elapsedSeconds": 108.516,
+        "sourceStable": true,
+        "filesCaptured": 461,
+        "sourceBeforeSHA256": "45571fce0c811135a3841d37304bc9ab5235e21275d60abaa5f2f92e7484235d",
+        "sourceAfterSHA256": "45571fce0c811135a3841d37304bc9ab5235e21275d60abaa5f2f92e7484235d",
+        "logSHA256": "5818a930434cb0d8d2d2a02064c773ab6a83550e85cc5b74a35fec5534551fa9",
+        "cgoEnabled": null,
+        "runtimeAcceptance": false,
+        "P0Approved": false
+      }
+    },
+    "base-frontend-type-check": {
+      "path": "pantheon-base\\.local\\continuation-20261111-gates\\frontend-type-check-3d5afdf81733\\receipt.json",
+      "sha256": "176dbaaf76e336a9b4ba578b3d124f746872089904a220759cd18acc5dfeb3b3",
+      "result": {
+        "command": [
+          "npm.cmd",
+          "run",
+          "type-check"
+        ],
+        "exitCode": 0,
+        "elapsedSeconds": 52.515,
+        "sourceStable": true,
+        "filesCaptured": 461,
+        "sourceBeforeSHA256": "45571fce0c811135a3841d37304bc9ab5235e21275d60abaa5f2f92e7484235d",
+        "sourceAfterSHA256": "45571fce0c811135a3841d37304bc9ab5235e21275d60abaa5f2f92e7484235d",
+        "logSHA256": "5ebf47247dc14a635484b800d11596f249d0cdf4008716d724fcc464f81f9d1e",
+        "cgoEnabled": null,
+        "runtimeAcceptance": false,
+        "P0Approved": false
+      }
+    },
+    "base-frontend-build-v2": {
+      "path": "pantheon-base\\.local\\continuation-20261111-gates\\frontend-build-net-use-fallback-v2-0c69c3f0ae8a\\receipt.json",
+      "sha256": "6714443ee63450e651ec29fdb8d9051fe15bd6792c75f0b55cc1aaadf8d9eadc",
+      "result": {
+        "command": [
+          "npm.cmd",
+          "run",
+          "build"
+        ],
+        "exitCode": 0,
+        "elapsedSeconds": 28.766,
+        "sourceStable": true,
+        "filesCaptured": 461,
+        "sourceBeforeSHA256": "45571fce0c811135a3841d37304bc9ab5235e21275d60abaa5f2f92e7484235d",
+        "sourceAfterSHA256": "45571fce0c811135a3841d37304bc9ab5235e21275d60abaa5f2f92e7484235d",
+        "logSHA256": "86459f0b44a9a75381fcac60a5eb8665ef730060b8f656f41da08532b0eabbde",
+        "adapterAndDependencyHashes": {
+          ".local/continuation-20261111-gates/vite-net-use-fallback.cjs": "db6164260bffb69761631b9d03aa95c3cf6dce2c4acd28adad7c5ff2cf99da88",
+          ".local/continuation-20261111-gates/vite-net-use-fallback-v2.cjs": "a75f801805611a559c2c945e539005d9ee9c594c29a07de51d50fbe3bfca6da9",
+          ".local/continuation-20261111-gates/run.py": "ae0492b3eb7af53f977b346fec9de76b4daa6b43765e8288b77ceb12baebaaf4",
+          ".local/continuation-20261111-gates/run-vite-net-use-fallback-v2.py": "3854d0aa45a0385116e6f10dc962222d99fbe54f24dce29e72acec7766b58563",
+          "frontend/node_modules/vite/dist/node/chunks/node.js": "5d40302b2d86ff8f3501df6503a69908dce2c2eab4ce03c154cd8745c0bec5f2",
+          "frontend/node_modules/vite/package.json": "c9586ac07b42763a8a7f6aac6b4a805d70f057bd8c67c43da81c0cc4e5da8293",
+          "frontend/node_modules/typescript/lib/typescript.js": "569177652966bd528c319171c7dd22860dbf72bde116cbc4f644f1d02bb12e39",
+          "frontend/node_modules/@types/node/child_process.d.ts": "7fb21326854faaa31ef02c9d51629fb6acedacb9396e74bf22ff8409441ea9ae"
+        },
+        "adapterAndDependenciesStable": true,
+        "environmentScope": "this subprocess tree only",
+        "parentEnvironmentUnchanged": true,
+        "runtimeAcceptance": false,
+        "P0Approved": false
+      }
+    },
+    "new-base-candidate": {
+      "path": "pantheon-base\\.local\\base-permission-legacy-key-20261111\\candidate-successor-c6477861a46b\\receipt.json",
+      "sha256": "c6f0ada21bca8c51b8856fe9b3d77ae881a2a4ec2ca741c6c860d5b0aa2ddede",
+      "result": {
+        "command": [
+          "node",
+          "scripts/foundation-release/build-candidate-artifact.mjs",
+          "--inventory",
+          "D:\\workspace\\go\\pantheon-platform\\pantheon-base\\.local\\base-permission-legacy-key-20261111\\candidate-successor-c6477861a46b\\input.json",
+          "--output",
+          "D:\\workspace\\go\\pantheon-platform\\pantheon-base\\.tmp\\foundation-candidates\\permission-tail-successor-4215d10fdfc8498b80a8c6658f2102a1"
+        ],
+        "exitCode": 0,
+        "sourceStable": true,
+        "originalDescriptorSHA256": "2f105d76e38c82e8c301d816269ea26669a7a0291a5860be74d6ca71281a9ce6",
+        "changedFiles": {
+          "backend/pkg/permissionroutes/registry.go": {
+            "before": "0c07c2a03dabbe924c22d246b7623a4f96b74d208f3b9b311a1dfb86fd5299c1",
+            "current": "18d5714e63a0a3630de2e8649000a9bbcfb9634c03b991238388b6c8b7b262fb"
+          },
+          "backend/pkg/permissionroutes/registry_test.go": {
+            "before": "7aee0c318ad365288e950f3df2da303bdc0b3653fc4e6bf2ca453b5a07a843e5",
+            "current": "a966a5922fbca3f86cbfb588e87252b597554d798d80a2966bdd02944466cb56"
+          }
+        },
+        "sourceFileCount": 1141,
+        "reviewHashes": {
+          "CODE": "20be08b385f376f85be605d4f1f7fad02b285c70ee44c37d89a0c36293be34c2",
+          "ARCH": "fc759ebc0d7552aa41f098342fd153ba260ac087f9989b786d9c7bba8f6ee2c5"
+        },
+        "producerLogSHA256": "c2d97c47b6f6df5f1eb7f30a7ca2e654c67e89cec285ad83bab56f192051e79b",
+        "outputRoot": "D:\\workspace\\go\\pantheon-platform\\pantheon-base\\.tmp\\foundation-candidates\\permission-tail-successor-4215d10fdfc8498b80a8c6658f2102a1",
+        "officialConsumption": false,
+        "officialLockChanged": false,
+        "P0Approved": false,
+        "descriptorPath": "D:\\workspace\\go\\pantheon-platform\\pantheon-base\\.tmp\\foundation-candidates\\permission-tail-successor-4215d10fdfc8498b80a8c6658f2102a1\\candidate-descriptor.json",
+        "descriptorSHA256": "ecc49316f92a22c30b893f63a118fa08b572fbb116cd56926e54aa78a8e4327d",
+        "artifactPath": "D:\\workspace\\go\\pantheon-platform\\pantheon-base\\.tmp\\foundation-candidates\\permission-tail-successor-4215d10fdfc8498b80a8c6658f2102a1\\candidate-12718df8652cadf756932feba559fb4012a5dc270e60906bad9df9d189ac4ef0.tar",
+        "artifactSHA256": "246f71ab94586c653278ca0d7c808264099694000371698e345de5c8d01244eb",
+        "candidateIdentity": "candidate-12718df8652cadf756932feba559fb4012a5dc270e60906bad9df9d189ac4ef0"
+      }
+    },
+    "velero9-failed-diagnostic": {
+      "path": "pantheon-ops\\.harness\\evidence\\2026-11-07-ops-planned-task-closeout\\verification\\p0-integration-20261109\\continue-velero-alias-v9-root-diagnostic-20261111T045052059775.json",
+      "sha256": "340e77f69305bdf29672cae59e392ab1fbff29a4f19a656f61fb7f3c677cf73a",
+      "result": {
+        "phase": "diagnostic",
+        "exitCode": 1,
+        "remoteExecuted": true,
+        "rootRequestSHA256": "5ee1048e44d101cf78b84b300dc773d2c7314333e55733f3d274c2a2d0fcd4ba",
+        "scriptHashes": {
+          ".local/ops-acceptance/continue-velero-alias-v9-contract.py": "4d0cafc45a28a062c9522e1d037c8223751ab6d6f8be8275547a7375eae081cb",
+          ".local/ops-acceptance/continue-velero-alias-v9-remote.py": "9808a19641723be60ae77fe8f4613ded2d55c71e2cebf70e11befba4a2a939ae",
+          ".local/ops-acceptance/continue-velero-alias-v9-root.py": "58724bdd924161dc41a37eed98917c64b748e4213fcc88507d9ba27063a2623e",
+          ".local/ops-acceptance/continue-velero-alias-v9-generate.py": "696288f7d6bf4bb865e5e116b2dcb19dc8627ba6493f6823aafedc404d0d841d",
+          ".local/ops-acceptance/continue-velero-alias-v9-test.py": "1b0410b652b27714332e689111e2c69f870eea19c685346fb99a1ed4349f2c6f"
+        },
+        "failureSHA256": "f27d06fcc7160e534d3a2d8dde304367620bc7bf1f4e66148476d3b405de2601",
+        "independentReviewHashes": {
+          "continue-velero-alias-v9-independent-code-report.md": "f3acab7a49ee40279a99b5e2e9d3d7ff88c7a3292f79825704813a26bfbb7258",
+          "continue-velero-alias-v9-independent-arch-report.md": "20cd01c7a0125a13488ce9ea4d08f944f23927c6ff746123343153aff38505c2"
+        },
+        "providerInstalled": false,
+        "backupRestoreVerified": false,
+        "P0Approved": false,
+        "operationID": "20261111t043731393694",
+        "predecessor": null,
+        "predecessorSHA256": null,
+        "remoteFilesBeforePhase": {
+          "resume-velero-s3-prep.py": {
+            "sha256": "0b5219ab2fe498a81b5d224c35dc8eaa7827f68467ab4dbee413a45a6445cc02",
+            "bytes": 10139,
+            "mode": 384
+          },
+          "resume-velero-s3-remote.py": {
+            "sha256": "6fe70db7027d422a5a03a990039359c3359997c26fc817c89109967f30da21b9",
+            "bytes": 24070,
+            "mode": 384
+          },
+          "resume-velero-s3-fixture.py": {
+            "sha256": "c6badc5582f0cd679450050818abd56cdec6518d6a14cd01f69ff0c6d5c0d055",
+            "bytes": 13090,
+            "mode": 384
+          },
+          "resume-velero-s3-artifacts.json": {
+            "sha256": "e54e0c8b9596349bcd36c95cba0f022ea65a9d5b8b9e69b3c0974acd893bc22b",
+            "bytes": 15246,
+            "mode": 384
+          },
+          "seaweedfs-4.53-release.json": {
+            "sha256": "7908e97ed2a798b18fe07ccf665143a19d5655d98d30ee1b54d93d8c145f7344",
+            "bytes": 152008,
+            "mode": 384
+          },
+          "linux_amd64.tar.gz": {
+            "sha256": "d1a7dec9f48d8b33895a0ea8951971defc2dc5312906dcc76fa5a5f74a6ee90d",
+            "bytes": 48457480,
+            "mode": 384
+          },
+          "velero-v1.17.0-linux-amd64.tar.gz": {
+            "sha256": "f507a956cf8ec00f483f5d7b04901614a9016a10feb32b3ecc968da36b4fc7be",
+            "bytes": 58499469,
+            "mode": 384
+          },
+          "velero-velero-v1.17.0.oci.tar": {
+            "sha256": "86b8928b6b053f7bb573df6f6492841f7e96ad03647f9ec9857351c4d267bea4",
+            "bytes": 80906240,
+            "mode": 384
+          },
+          "velero-velero-plugin-for-aws-v1.13.0.oci.tar": {
+            "sha256": "494a8f752943a96c7a08ddfa1f2059eb07291039b37bca1518566eef41df554e",
+            "bytes": 41523200,
+            "mode": 384
+          },
+          "resume-velero-s3-diagnostic-20261110T004347017585.json": {
+            "sha256": "708ec9d2777d8fe3c12dcbd4bb16ad984b299821b614b05a57971ae8b732ea8c",
+            "bytes": 266,
+            "mode": 384
+          },
+          "resume-velero-s3-v3-remote.py": {
+            "sha256": "7b1ba58c52d340a7d121c72e537baa3e20b072c0635289f9f82d97e5761ab7a5",
+            "bytes": 26081,
+            "mode": 384
+          },
+          "resume-velero-s3-diagnostic-20261110T010938338222.json": {
+            "sha256": "8d58b6fd6cb34a2aa02f2438e7053b9d7b345459ba77084933c3e4006ae2141e",
+            "bytes": 739,
+            "mode": 384
+          },
+          "velero": {
+            "sha256": "e7e14133f1a13d759d43b2bf188cf1a078ffe36184d25f77ae4005fc7c26e739",
+            "bytes": 142581282,
+            "mode": 448
+          },
+          "weed": {
+            "sha256": "fa936e61bfb11f33c1f823045c4007e7da4b8b38bb6adc3b970f132d832e805b",
+            "bytes": 156401824,
+            "mode": 448
+          },
+          "resume-velero-s3-v4-remote.py": {
+            "bytes": 26221,
+            "sha256": "63b2e9a90fb7b54fc522e6190ff6ad0cb353f199752dd7fea76b7d93cb47183a",
+            "mode": 384
+          },
+          "resume-velero-s3-v4-fixture.py": {
+            "bytes": 13093,
+            "sha256": "e32b5ceb96e68edf0a3af76b3dbde6362b0679387460e1e748f95c2e7ee93910",
+            "mode": 384
+          },
+          "resume-velero-s3-v4-native.py": {
+            "bytes": 12736,
+            "sha256": "f116a423d4f5c207db032829fc22b4bb3b8179eec41624bb0d9d14f0c4be402a",
+            "mode": 384
+          },
+          "resume-velero-s3-install-20261110T011213809221.json": {
+            "sha256": "863d7d71749d569a5317d27998b9b4cf6a59415c70ce2d9b96d0966653506cdd",
+            "bytes": 277,
+            "mode": 384
+          },
+          "resume-velero-s3-diagnostic-20261110T020930238788.json": {
+            "bytes": 750,
+            "sha256": "80fd2c538a82b91a0667e87a5887c28585e11bcc283b94e169ea563d2a09b4d7",
+            "mode": 384
+          },
+          "resume-velero-s3-diagnostic.json": {
+            "bytes": 750,
+            "sha256": "80fd2c538a82b91a0667e87a5887c28585e11bcc283b94e169ea563d2a09b4d7",
+            "mode": 384
+          },
+          "resume-velero-s3-help.json": {
+            "bytes": 17820,
+            "sha256": "e6c866ad5fe6598bd5b01c1c7cbe21bafc32a6ae355fcb9d971f3ae70c08458c",
+            "mode": 384
+          },
+          "resume-velero-s3-partial-owned.json": {
+            "bytes": 4448,
+            "sha256": "7df5ecc38be0d2fa060c888be00ecf482667bb90ca229aaf9fa69b724d09501a",
+            "mode": 384
+          },
+          "resume-velero-s3-install-20261110T021156210245.json": {
+            "bytes": 1337,
+            "sha256": "3904bb56d051519743880d1cc252847031aff4be2b7372840fc26b7ad58ebe63",
+            "mode": 384
+          },
+          "resume-velero-s3-v5-remote.py": {
+            "bytes": 12502,
+            "sha256": "b558d5809f671100c240f8648812819d92052ee0fa0571fd77723d770cc62029",
+            "mode": 384
+          },
+          "resume-velero-s3-v5-native.py": {
+            "bytes": 12681,
+            "sha256": "540ca34b11dcabfebb3c1554142c83fb2b22ae2728d1ca3bb7672c1bfa9192d2",
+            "mode": 384
+          },
+          "resume-velero-s3-v5-fixture.py": {
+            "bytes": 13093,
+            "sha256": "e32b5ceb96e68edf0a3af76b3dbde6362b0679387460e1e748f95c2e7ee93910",
+            "mode": 384
+          },
+          "resume-velero-s3-v6-remote.py": {
+            "bytes": 12907,
+            "sha256": "5f54ba6f6229793d072588733eb522810607e25fdcd3a37f4665d895c68d8bc7",
+            "mode": 384
+          },
+          "resume-velero-s3-v6-native.py": {
+            "bytes": 21432,
+            "sha256": "14f9ca3cc471bbf754da27fcdb71b2e22bd01153eefb02088dc43bb543527081",
+            "mode": 384
+          },
+          "resume-velero-s3-v6-fixture.py": {
+            "bytes": 16481,
+            "sha256": "e53facea2f9b9822855de75f19aeab8210f9b4debe6da5f76b2fb84803d86fa3",
+            "mode": 384
+          },
+          "resume-velero-s3-v8-remote.py": {
+            "bytes": 21184,
+            "sha256": "1b62fb5bb33aadeaa1a36403197871bb9404e3ed4bbac5227380ba773d850392",
+            "mode": 384
+          },
+          "resume-velero-s3-v8-seals.py": {
+            "bytes": 6327,
+            "sha256": "bc5ca792c5b4108fbac6133d428ae5f60db52ca70b7972d24c0433868c62662c",
+            "mode": 384
+          },
+          "resume-velero-s3-v8-fixture.py": {
+            "bytes": 1032,
+            "sha256": "bfa759618ce411b4b6d388741ca4ae26100631424c1e9aa7b2c50b071a029171",
+            "mode": 384
+          },
+          "resume-velero-s3-v8-complete-20261110T052525438509.json": {
+            "bytes": 19863,
+            "sha256": "d3580d83cbc4f7ed677b0d3915ba809829a44dae4fb406828b07281749779aa5",
+            "mode": 384
+          },
+          "resume-velero-s3-v8-migration.json": {
+            "bytes": 2276,
+            "sha256": "0216cacd27bfd174eeee0471afe50134213b24b49d1539815d810732143666b4",
+            "mode": 384
+          },
+          "resume-velero-s3-v8-original-partial-owned.json": {
+            "bytes": 986,
+            "sha256": "7640f7541fbdb28bdb0b28e67e0957968a989c4c31559a0fa1318f27c0c2d43b",
+            "mode": 384
+          },
+          "continue-velero-alias-v5-contract.py": {
+            "bytes": 35015,
+            "sha256": "dd5979f9159e33ab63c0e56e98912cb0b8dff041c2ab95372ee120ba7aaf87a3",
+            "mode": 384
+          },
+          "continue-velero-alias-v5-remote.py": {
+            "bytes": 46699,
+            "sha256": "80c6780c5f71ac8b37cc8300c70112ec6673a953b784f5806bcd95c0917e6ff1",
+            "mode": 384
+          },
+          "continue-velero-alias-v7-contract.py": {
+            "bytes": 46320,
+            "sha256": "c33a31f6d6af824a9fdff7560433a6f4a6a2e617ae4f93cc33fa12c7b9e5a2f5",
+            "mode": 384
+          },
+          "continue-velero-alias-v7-remote.py": {
+            "bytes": 50064,
+            "sha256": "637368b547c41c0e11f234873998defe297435513aa2cccef17fddf1d82dfb71",
+            "mode": 384
+          },
+          "continue-velero-alias-v8-contract.py": {
+            "bytes": 54693,
+            "sha256": "dfb05b10db25a85f80a54f0426e603288ff147ba7b972cb98479799461912a31",
+            "mode": 384
+          },
+          "continue-velero-alias-v8-remote.py": {
+            "bytes": 50322,
+            "sha256": "19b9d25d67eb32589b8a2b8c8aa9db59a8246f16e5a97fe34f89ab1c8733d026",
+            "mode": 384
+          }
+        },
+        "records": [
+          {
+            "phase": "diagnostic",
+            "exitCode": 1,
+            "owner": "velero-s3-seaweed-20261109-v1",
+            "rootRequestSHA256": "5ee1048e44d101cf78b84b300dc773d2c7314333e55733f3d274c2a2d0fcd4ba",
+            "errorType": "ValueError",
+            "errorKey": "bounded-native-api-failed",
+            "detailsOmitted": true,
+            "addedAliases": [],
+            "partialMutationMayRemain": false,
+            "s3ProbePath": null,
+            "s3Probe": null,
+            "inspectionOnly": true,
+            "replayPermitted": false,
+            "runtimeState": null,
+            "providerInstalled": false,
+            "backupRestoreVerified": false
+          }
+        ],
+        "remoteFiles": {
+          "resume-velero-s3-prep.py": {
+            "sha256": "0b5219ab2fe498a81b5d224c35dc8eaa7827f68467ab4dbee413a45a6445cc02",
+            "bytes": 10139,
+            "mode": 384
+          },
+          "resume-velero-s3-remote.py": {
+            "sha256": "6fe70db7027d422a5a03a990039359c3359997c26fc817c89109967f30da21b9",
+            "bytes": 24070,
+            "mode": 384
+          },
+          "resume-velero-s3-fixture.py": {
+            "sha256": "c6badc5582f0cd679450050818abd56cdec6518d6a14cd01f69ff0c6d5c0d055",
+            "bytes": 13090,
+            "mode": 384
+          },
+          "resume-velero-s3-artifacts.json": {
+            "sha256": "e54e0c8b9596349bcd36c95cba0f022ea65a9d5b8b9e69b3c0974acd893bc22b",
+            "bytes": 15246,
+            "mode": 384
+          },
+          "seaweedfs-4.53-release.json": {
+            "sha256": "7908e97ed2a798b18fe07ccf665143a19d5655d98d30ee1b54d93d8c145f7344",
+            "bytes": 152008,
+            "mode": 384
+          },
+          "linux_amd64.tar.gz": {
+            "sha256": "d1a7dec9f48d8b33895a0ea8951971defc2dc5312906dcc76fa5a5f74a6ee90d",
+            "bytes": 48457480,
+            "mode": 384
+          },
+          "velero-v1.17.0-linux-amd64.tar.gz": {
+            "sha256": "f507a956cf8ec00f483f5d7b04901614a9016a10feb32b3ecc968da36b4fc7be",
+            "bytes": 58499469,
+            "mode": 384
+          },
+          "velero-velero-v1.17.0.oci.tar": {
+            "sha256": "86b8928b6b053f7bb573df6f6492841f7e96ad03647f9ec9857351c4d267bea4",
+            "bytes": 80906240,
+            "mode": 384
+          },
+          "velero-velero-plugin-for-aws-v1.13.0.oci.tar": {
+            "sha256": "494a8f752943a96c7a08ddfa1f2059eb07291039b37bca1518566eef41df554e",
+            "bytes": 41523200,
+            "mode": 384
+          },
+          "resume-velero-s3-diagnostic-20261110T004347017585.json": {
+            "sha256": "708ec9d2777d8fe3c12dcbd4bb16ad984b299821b614b05a57971ae8b732ea8c",
+            "bytes": 266,
+            "mode": 384
+          },
+          "resume-velero-s3-v3-remote.py": {
+            "sha256": "7b1ba58c52d340a7d121c72e537baa3e20b072c0635289f9f82d97e5761ab7a5",
+            "bytes": 26081,
+            "mode": 384
+          },
+          "resume-velero-s3-diagnostic-20261110T010938338222.json": {
+            "sha256": "8d58b6fd6cb34a2aa02f2438e7053b9d7b345459ba77084933c3e4006ae2141e",
+            "bytes": 739,
+            "mode": 384
+          },
+          "velero": {
+            "sha256": "e7e14133f1a13d759d43b2bf188cf1a078ffe36184d25f77ae4005fc7c26e739",
+            "bytes": 142581282,
+            "mode": 448
+          },
+          "weed": {
+            "sha256": "fa936e61bfb11f33c1f823045c4007e7da4b8b38bb6adc3b970f132d832e805b",
+            "bytes": 156401824,
+            "mode": 448
+          },
+          "resume-velero-s3-v4-remote.py": {
+            "bytes": 26221,
+            "sha256": "63b2e9a90fb7b54fc522e6190ff6ad0cb353f199752dd7fea76b7d93cb47183a",
+            "mode": 384
+          },
+          "resume-velero-s3-v4-fixture.py": {
+            "bytes": 13093,
+            "sha256": "e32b5ceb96e68edf0a3af76b3dbde6362b0679387460e1e748f95c2e7ee93910",
+            "mode": 384
+          },
+          "resume-velero-s3-v4-native.py": {
+            "bytes": 12736,
+            "sha256": "f116a423d4f5c207db032829fc22b4bb3b8179eec41624bb0d9d14f0c4be402a",
+            "mode": 384
+          },
+          "resume-velero-s3-install-20261110T011213809221.json": {
+            "sha256": "863d7d71749d569a5317d27998b9b4cf6a59415c70ce2d9b96d0966653506cdd",
+            "bytes": 277,
+            "mode": 384
+          },
+          "resume-velero-s3-diagnostic-20261110T020930238788.json": {
+            "bytes": 750,
+            "sha256": "80fd2c538a82b91a0667e87a5887c28585e11bcc283b94e169ea563d2a09b4d7",
+            "mode": 384
+          },
+          "resume-velero-s3-diagnostic.json": {
+            "bytes": 750,
+            "sha256": "80fd2c538a82b91a0667e87a5887c28585e11bcc283b94e169ea563d2a09b4d7",
+            "mode": 384
+          },
+          "resume-velero-s3-help.json": {
+            "bytes": 17820,
+            "sha256": "e6c866ad5fe6598bd5b01c1c7cbe21bafc32a6ae355fcb9d971f3ae70c08458c",
+            "mode": 384
+          },
+          "resume-velero-s3-partial-owned.json": {
+            "bytes": 4448,
+            "sha256": "7df5ecc38be0d2fa060c888be00ecf482667bb90ca229aaf9fa69b724d09501a",
+            "mode": 384
+          },
+          "resume-velero-s3-install-20261110T021156210245.json": {
+            "bytes": 1337,
+            "sha256": "3904bb56d051519743880d1cc252847031aff4be2b7372840fc26b7ad58ebe63",
+            "mode": 384
+          },
+          "resume-velero-s3-v5-remote.py": {
+            "bytes": 12502,
+            "sha256": "b558d5809f671100c240f8648812819d92052ee0fa0571fd77723d770cc62029",
+            "mode": 384
+          },
+          "resume-velero-s3-v5-native.py": {
+            "bytes": 12681,
+            "sha256": "540ca34b11dcabfebb3c1554142c83fb2b22ae2728d1ca3bb7672c1bfa9192d2",
+            "mode": 384
+          },
+          "resume-velero-s3-v5-fixture.py": {
+            "bytes": 13093,
+            "sha256": "e32b5ceb96e68edf0a3af76b3dbde6362b0679387460e1e748f95c2e7ee93910",
+            "mode": 384
+          },
+          "resume-velero-s3-v6-remote.py": {
+            "bytes": 12907,
+            "sha256": "5f54ba6f6229793d072588733eb522810607e25fdcd3a37f4665d895c68d8bc7",
+            "mode": 384
+          },
+          "resume-velero-s3-v6-native.py": {
+            "bytes": 21432,
+            "sha256": "14f9ca3cc471bbf754da27fcdb71b2e22bd01153eefb02088dc43bb543527081",
+            "mode": 384
+          },
+          "resume-velero-s3-v6-fixture.py": {
+            "bytes": 16481,
+            "sha256": "e53facea2f9b9822855de75f19aeab8210f9b4debe6da5f76b2fb84803d86fa3",
+            "mode": 384
+          },
+          "resume-velero-s3-v8-remote.py": {
+            "bytes": 21184,
+            "sha256": "1b62fb5bb33aadeaa1a36403197871bb9404e3ed4bbac5227380ba773d850392",
+            "mode": 384
+          },
+          "resume-velero-s3-v8-seals.py": {
+            "bytes": 6327,
+            "sha256": "bc5ca792c5b4108fbac6133d428ae5f60db52ca70b7972d24c0433868c62662c",
+            "mode": 384
+          },
+          "resume-velero-s3-v8-fixture.py": {
+            "bytes": 1032,
+            "sha256": "bfa759618ce411b4b6d388741ca4ae26100631424c1e9aa7b2c50b071a029171",
+            "mode": 384
+          },
+          "resume-velero-s3-v8-complete-20261110T052525438509.json": {
+            "bytes": 19863,
+            "sha256": "d3580d83cbc4f7ed677b0d3915ba809829a44dae4fb406828b07281749779aa5",
+            "mode": 384
+          },
+          "resume-velero-s3-v8-migration.json": {
+            "bytes": 2276,
+            "sha256": "0216cacd27bfd174eeee0471afe50134213b24b49d1539815d810732143666b4",
+            "mode": 384
+          },
+          "resume-velero-s3-v8-original-partial-owned.json": {
+            "bytes": 986,
+            "sha256": "7640f7541fbdb28bdb0b28e67e0957968a989c4c31559a0fa1318f27c0c2d43b",
+            "mode": 384
+          },
+          "continue-velero-alias-v5-contract.py": {
+            "bytes": 35015,
+            "sha256": "dd5979f9159e33ab63c0e56e98912cb0b8dff041c2ab95372ee120ba7aaf87a3",
+            "mode": 384
+          },
+          "continue-velero-alias-v5-remote.py": {
+            "bytes": 46699,
+            "sha256": "80c6780c5f71ac8b37cc8300c70112ec6673a953b784f5806bcd95c0917e6ff1",
+            "mode": 384
+          },
+          "continue-velero-alias-v7-contract.py": {
+            "bytes": 46320,
+            "sha256": "c33a31f6d6af824a9fdff7560433a6f4a6a2e617ae4f93cc33fa12c7b9e5a2f5",
+            "mode": 384
+          },
+          "continue-velero-alias-v7-remote.py": {
+            "bytes": 50064,
+            "sha256": "637368b547c41c0e11f234873998defe297435513aa2cccef17fddf1d82dfb71",
+            "mode": 384
+          },
+          "continue-velero-alias-v8-contract.py": {
+            "bytes": 54693,
+            "sha256": "dfb05b10db25a85f80a54f0426e603288ff147ba7b972cb98479799461912a31",
+            "mode": 384
+          },
+          "continue-velero-alias-v8-remote.py": {
+            "bytes": 50322,
+            "sha256": "19b9d25d67eb32589b8a2b8c8aa9db59a8246f16e5a97fe34f89ab1c8733d026",
+            "mode": 384
+          },
+          "continue-velero-alias-v9-contract.py": {
+            "bytes": 63967,
+            "sha256": "4d0cafc45a28a062c9522e1d037c8223751ab6d6f8be8275547a7375eae081cb",
+            "mode": 384
+          },
+          "continue-velero-alias-v9-remote.py": {
+            "bytes": 50634,
+            "sha256": "9808a19641723be60ae77fe8f4613ded2d55c71e2cebf70e11befba4a2a939ae",
+            "mode": 384
+          }
+        },
+        "sourceHashesStable": true,
+        "helperUploads": [
+          {
+            "name": "continue-velero-alias-v9-contract.py",
+            "expectedSHA256": "4d0cafc45a28a062c9522e1d037c8223751ab6d6f8be8275547a7375eae081cb",
+            "expectedBytes": 63967,
+            "intent": true,
+            "completed": true,
+            "uncertain": false
+          },
+          {
+            "name": "continue-velero-alias-v9-remote.py",
+            "expectedSHA256": "9808a19641723be60ae77fe8f4613ded2d55c71e2cebf70e11befba4a2a939ae",
+            "expectedBytes": 50634,
+            "intent": true,
+            "completed": true,
+            "uncertain": false
+          }
+        ],
+        "partialMutationMayRemain": true,
+        "predecessorInspectionRequired": true,
+        "finishedAt": "2026-11-11T04:50:52.058775+00:00"
+      }
+    },
+    "velero9-complete-inspection": {
+      "path": "pantheon-ops\\.harness\\evidence\\2026-11-07-ops-planned-task-closeout\\verification\\p0-integration-20261109\\continue-velero-alias-v9-root-inspect-failed-20261111T045507081804.json",
+      "sha256": "410fe8ffe08e9da7d5b4beb956d8632b88acb3eca467849e9716cd5dda249ee9",
+      "result": {
+        "phase": "inspect-failed",
+        "exitCode": 0,
+        "inspectionStatus": "COMPLETE",
+        "continuationPermitted": false,
+        "rootRequestSHA256": "5ee1048e44d101cf78b84b300dc773d2c7314333e55733f3d274c2a2d0fcd4ba",
+        "failedPhase": "diagnostic",
+        "failedReceiptSHA256": "340e77f69305bdf29672cae59e392ab1fbff29a4f19a656f61fb7f3c677cf73a",
+        "inspectionOnly": true,
+        "replayPermitted": false,
+        "P0Approved": false,
+        "remoteExecuted": true,
+        "scriptHashes": {
+          ".local/ops-acceptance/continue-velero-alias-v9-contract.py": "4d0cafc45a28a062c9522e1d037c8223751ab6d6f8be8275547a7375eae081cb",
+          ".local/ops-acceptance/continue-velero-alias-v9-remote.py": "9808a19641723be60ae77fe8f4613ded2d55c71e2cebf70e11befba4a2a939ae",
+          ".local/ops-acceptance/continue-velero-alias-v9-root.py": "58724bdd924161dc41a37eed98917c64b748e4213fcc88507d9ba27063a2623e",
+          ".local/ops-acceptance/continue-velero-alias-v9-generate.py": "696288f7d6bf4bb865e5e116b2dcb19dc8627ba6493f6823aafedc404d0d841d",
+          ".local/ops-acceptance/continue-velero-alias-v9-test.py": "1b0410b652b27714332e689111e2c69f870eea19c685346fb99a1ed4349f2c6f"
+        },
+        "failureSHA256": "f27d06fcc7160e534d3a2d8dde304367620bc7bf1f4e66148476d3b405de2601",
+        "independentReviewHashes": {
+          "continue-velero-alias-v9-independent-code-report.md": "f3acab7a49ee40279a99b5e2e9d3d7ff88c7a3292f79825704813a26bfbb7258",
+          "continue-velero-alias-v9-independent-arch-report.md": "20cd01c7a0125a13488ce9ea4d08f944f23927c6ff746123343153aff38505c2"
+        },
+        "partialHelperFiles": {
+          "continue-velero-alias-v9-contract.py": {
+            "bytes": 63967,
+            "sha256": "4d0cafc45a28a062c9522e1d037c8223751ab6d6f8be8275547a7375eae081cb",
+            "mode": 384,
+            "uid": 0,
+            "gid": 0,
+            "links": 1
+          },
+          "continue-velero-alias-v9-remote.py": {
+            "bytes": 50634,
+            "sha256": "9808a19641723be60ae77fe8f4613ded2d55c71e2cebf70e11befba4a2a939ae",
+            "mode": 384,
+            "uid": 0,
+            "gid": 0,
+            "links": 1
+          }
+        },
+        "unknownEntriesPreserved": true,
+        "unknownEntryCount": 0,
+        "finishedAt": "2026-11-11T04:55:07.081804+00:00"
+      }
+    },
+    "velero10-readonly-status": {
+      "path": "pantheon-ops\\.local\\ops-acceptance\\post-config-velero-v10\\observed-20261111T050504427240.json",
+      "sha256": "1e4dc89f83fb528e0b517ce0a5b33635c5c50e3cc8532d92c81cb5e192acfc2a",
+      "result": {
+        "exitCode": 0,
+        "remoteExecuted": true,
+        "remoteMutations": 0,
+        "preparedEnvelopeSHA256": "8718f8d839df86d3f93d713c841352b722837f4aa729b68411e8cf54f0ebf342",
+        "requestSHA256": "5ee1048e44d101cf78b84b300dc773d2c7314333e55733f3d274c2a2d0fcd4ba",
+        "failedReceiptSHA256": "340e77f69305bdf29672cae59e392ab1fbff29a4f19a656f61fb7f3c677cf73a",
+        "inspectionSHA256": "410fe8ffe08e9da7d5b4beb956d8632b88acb3eca467849e9716cd5dda249ee9",
+        "continuationPermitted": false,
+        "replayPermitted": false,
+        "P0Approved": false,
+        "observed": {
+          "exitCode": 0,
+          "readOnly": true,
+          "remoteMutations": 0,
+          "requestSHA256": "5ee1048e44d101cf78b84b300dc773d2c7314333e55733f3d274c2a2d0fcd4ba",
+          "failedReceiptSHA256": "340e77f69305bdf29672cae59e392ab1fbff29a4f19a656f61fb7f3c677cf73a",
+          "inspectionSHA256": "410fe8ffe08e9da7d5b4beb956d8632b88acb3eca467849e9716cd5dda249ee9",
+          "remoteSourceHashesStable": true,
+          "exactGetCount": 3,
+          "exactDryRunCount": 0,
+          "commandResults": [
+            {
+              "category": "provider-crd-inventory",
+              "exitCode": 0,
+              "processTimedOut": false,
+              "processTimeoutSeconds": 30,
+              "requestTimeoutSeconds": 20,
+              "elapsedMilliseconds": 1508,
+              "stdoutBytes": 6540046,
+              "stderrBytes": 0,
+              "stdoutSHA256": "3ab490446f767895bd7e5426b3a972f059b949fefc339c0522fb37aef641bd49",
+              "stderrSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+              "stderrClass": "none",
+              "originalOutputBoundBytes": 4194304,
+              "stdoutWithinOriginalBound": false,
+              "stderrAcceptedByOriginalGate": true,
+              "originalGateWouldPass": false,
+              "rawOutputRetained": false
+            },
+            {
+              "category": "cluster-role-inventory",
+              "exitCode": 0,
+              "processTimedOut": false,
+              "processTimeoutSeconds": 30,
+              "requestTimeoutSeconds": 20,
+              "elapsedMilliseconds": 195,
+              "stdoutBytes": 238933,
+              "stderrBytes": 0,
+              "stdoutSHA256": "18e6ae3941e28df14a103b74c24d506ca25141264f261aa436369f408fdc596a",
+              "stderrSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+              "stderrClass": "none",
+              "originalOutputBoundBytes": 4194304,
+              "stdoutWithinOriginalBound": true,
+              "stderrAcceptedByOriginalGate": true,
+              "originalGateWouldPass": true,
+              "rawOutputRetained": false
+            },
+            {
+              "category": "cluster-binding-inventory",
+              "exitCode": 0,
+              "processTimedOut": false,
+              "processTimeoutSeconds": 30,
+              "requestTimeoutSeconds": 20,
+              "elapsedMilliseconds": 358,
+              "stdoutBytes": 77935,
+              "stderrBytes": 0,
+              "stdoutSHA256": "3640378816bf91e3439008dce45dec08a1397f9854831d152c77197cfc5f65b0",
+              "stderrSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+              "stderrClass": "none",
+              "originalOutputBoundBytes": 4194304,
+              "stdoutWithinOriginalBound": true,
+              "stderrAcceptedByOriginalGate": true,
+              "originalGateWouldPass": true,
+              "rawOutputRetained": false
+            }
+          ],
+          "productionBudgetChanged": false,
+          "failedPhaseExecuted": false,
+          "rawOutputRetained": false,
+          "continuationPermitted": false,
+          "replayPermitted": false,
+          "P0Approved": false
+        },
+        "localSourceHashesStable": true
+      }
+    },
+    "velero10-readonly-projection": {
+      "path": "pantheon-ops\\.local\\ops-acceptance\\post-config-velero-v10\\projection-observed-20261111T052012737733.json",
+      "sha256": "51c357a0024718f09e95411b4da2de9fde768ad145c053a68851894fbad10714",
+      "result": {
+        "exitCode": 0,
+        "remoteExecuted": true,
+        "remoteMutations": 0,
+        "preparedEnvelopeSHA256": "ef0ec9afc9f32b585c5714dc077b5d2feedb704c403ad61a31661b98ad600420",
+        "requestSHA256": "5ee1048e44d101cf78b84b300dc773d2c7314333e55733f3d274c2a2d0fcd4ba",
+        "failedReceiptSHA256": "340e77f69305bdf29672cae59e392ab1fbff29a4f19a656f61fb7f3c677cf73a",
+        "inspectionSHA256": "410fe8ffe08e9da7d5b4beb956d8632b88acb3eca467849e9716cd5dda249ee9",
+        "statusObservationSHA256": "1e4dc89f83fb528e0b517ce0a5b33635c5c50e3cc8532d92c81cb5e192acfc2a",
+        "continuationPermitted": false,
+        "replayPermitted": false,
+        "P0Approved": false,
+        "observed": {
+          "exitCode": 0,
+          "readOnly": true,
+          "remoteMutations": 0,
+          "requestSHA256": "5ee1048e44d101cf78b84b300dc773d2c7314333e55733f3d274c2a2d0fcd4ba",
+          "failedReceiptSHA256": "340e77f69305bdf29672cae59e392ab1fbff29a4f19a656f61fb7f3c677cf73a",
+          "inspectionSHA256": "410fe8ffe08e9da7d5b4beb956d8632b88acb3eca467849e9716cd5dda249ee9",
+          "statusObservationSHA256": "1e4dc89f83fb528e0b517ce0a5b33635c5c50e3cc8532d92c81cb5e192acfc2a",
+          "remoteSourceHashesStable": true,
+          "exactGetCount": 2,
+          "exactDryRunCount": 0,
+          "commandResults": [
+            {
+              "category": "full-crd-memory-control",
+              "exitCode": 0,
+              "processTimedOut": false,
+              "processTimeoutSeconds": 30,
+              "requestTimeoutSeconds": 20,
+              "elapsedMilliseconds": 595,
+              "stdoutBytes": 6540046,
+              "stderrBytes": 0,
+              "stdoutSHA256": "3ab490446f767895bd7e5426b3a972f059b949fefc339c0522fb37aef641bd49",
+              "stderrSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+              "stderrClass": "none",
+              "originalOutputBoundBytes": 4194304,
+              "stdoutWithinOriginalBound": false,
+              "stderrAcceptedByOriginalGate": true,
+              "originalGateWouldPass": false,
+              "rawOutputRetained": false
+            },
+            {
+              "category": "native-typed-crd-projection",
+              "exitCode": 0,
+              "processTimedOut": false,
+              "processTimeoutSeconds": 30,
+              "requestTimeoutSeconds": 20,
+              "elapsedMilliseconds": 507,
+              "stdoutBytes": 12765,
+              "stderrBytes": 0,
+              "stdoutSHA256": "7e46d025f5d43d5f073d1b4bf9660c17c0cf09a4dbe5fea53c6e5dc63779e767",
+              "stderrSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+              "stderrClass": "none",
+              "originalOutputBoundBytes": 4194304,
+              "stdoutWithinOriginalBound": true,
+              "stderrAcceptedByOriginalGate": true,
+              "originalGateWouldPass": true,
+              "rawOutputRetained": false
+            }
+          ],
+          "comparison": {
+            "completeTypedMetadataEqual": true,
+            "allNamesUIDsGroupsLabelsAndAbsenceEqual": true,
+            "completeOrderedUIDCoverageEqual": true,
+            "resourceVersionAndAbsenceEqual": true,
+            "totalRows": 53,
+            "ownedRows": 13,
+            "exactOwnedNamesUIDsGroupAndOwner": true
+          },
+          "productionBudgetChanged": false,
+          "fullResponseDiagnosticMemoryOnly": true,
+          "failedPhaseExecuted": false,
+          "rawOutputRetained": false,
+          "continuationPermitted": false,
+          "replayPermitted": false,
+          "P0Approved": false
+        },
+        "localSourceHashesStable": true
+      }
+    }
+  },
+  "independentReviews": {
+    "base-code": {
+      "path": "pantheon-base\\.local\\post-config-reviews\\base-legacy-code-mwbmqu80\\review.md",
+      "sha256": "20be08b385f376f85be605d4f1f7fad02b285c70ee44c37d89a0c36293be34c2"
+    },
+    "base-arch": {
+      "path": "pantheon-base\\.local\\base-permission-legacy-key-20261111\\review-arch-20261111T044112Z.md",
+      "sha256": "fc759ebc0d7552aa41f098342fd153ba260ac087f9989b786d9c7bba8f6ee2c5"
+    },
+    "old-helper-arch-correction": {
+      "path": "pantheon-base\\.local\\base-permission-legacy-key-20261111\\review-arch-helper-supplement-20261111T044543Z.md",
+      "sha256": "d7781aa00aabba7d615bfbbf24ab4c2d948e27100a7460d7f68f6025ef7378e9"
+    },
+    "helper-v2-code": {
+      "path": "pantheon-base\\.local\\post-config-reviews\\vite-v2-code-mwbnaujy\\review.md",
+      "sha256": "dfba5c2439ed49b60486de01c912f5e2193ac06794b7cdd1180329d1f83baf10"
+    },
+    "helper-v2-arch": {
+      "path": "pantheon-base\\.local\\continuation-20261111-gates\\vite-net-use-fallback-v2-evidence-e8914ee42300\\review-arch-20261111T045525Z.md",
+      "sha256": "03ef9ddcc328775a46ebe6b22f9340bc9d2b6002035a09a4f8d7555bcf642c9c"
+    },
+    "velero9-code": {
+      "path": "pantheon-ops\\.harness\\evidence\\2026-11-07-ops-planned-task-closeout\\verification\\p0-integration-20261109\\continue-velero-alias-v9-independent-code-report.md",
+      "sha256": "f3acab7a49ee40279a99b5e2e9d3d7ff88c7a3292f79825704813a26bfbb7258"
+    },
+    "velero9-arch": {
+      "path": "pantheon-ops\\.harness\\evidence\\2026-11-07-ops-planned-task-closeout\\verification\\p0-integration-20261109\\continue-velero-alias-v9-independent-arch-report.md",
+      "sha256": "20cd01c7a0125a13488ce9ea4d08f944f23927c6ff746123343153aff38505c2"
+    }
+  },
+  "o4IntermediateAssembly": {
+    "resultPath": "pantheon-ops\\.local\\ops-acceptance\\o4-backend-cf-current\\successor-stage-result.json",
+    "resultSHA256": "aec255b1ecd5d46f0afe6574db553f4f4a84ad2156d1f2b7f5cb21fafe88b1f7",
+    "receiptPath": "pantheon-ops\\.tmp\\foundation-candidates\\candidate-12718df8652cadf756932feba559fb4012a5dc270e60906bad9df9d189ac4ef0\\assembled\\.foundation-candidate-receipt.json",
+    "receiptSHA256": "8276af1217f9cb30e4368ed6e5e00903b61ed8119962782d7b826188cabcca16",
+    "exitCode": 0,
+    "elapsedSeconds": 1309.501,
+    "descriptorSHA256": "ecc49316f92a22c30b893f63a118fa08b572fbb116cd56926e54aa78a8e4327d",
+    "sourceStable": true,
+    "sourceFiles": 5351,
+    "assembledSourceFiles": 6478,
+    "capabilities": [
+      "business-tenant-v2",
+      "required-business-bootstrap-v1",
+      "audit-metadata-only-v1",
+      "permission-route-registration-v1"
+    ],
+    "checks": [
+      {
+        "operation": "assembleConsumerTree",
+        "result": "passed"
+      },
+      {
+        "operation": "checkSharedDrift",
+        "exitCode": 0
+      },
+      {
+        "operation": "source-stability-before-and-after",
+        "result": "passed"
+      }
+    ],
+    "generatedBusinessMigrations": 12,
+    "officialConsumption": false,
+    "P0Approved": false,
+    "checkpointOnly": true,
+    "finalChangedSourceAssemblyStillRequired": true
+  },
+  "originalHelperApprovalWithdrawn": true,
+  "helperV2DualReviewAndActualBuildPassed": true,
+  "velero9ConsumedNoReplay": true,
+  "velero10RecoveryNotYetCertified": true,
+  "P0ParentsClosed": 0,
+  "officialLockChanged": false,
+  "officialConsumption": false,
+  "remainingGates": [
+    "current O4 C-F paired source/runtime",
+    "Velero new successor and actual phases",
+    "full public auth/tenant/IAM/audit/privacy composition",
+    "CMDB key-only policy",
+    "current Ops full-source gates",
+    "official Base publication/consumption",
+    "final functional/visual acceptance"
+  ]
+}

@@ -1,0 +1,5 @@
+{
+  "operationError": "Error: Cannot normalize consumer Go dependencies: pattern ./...: open D:\\cache\\go\\build\\38\\385cc3ee9b6b1b2ad9d787efa15bffad83a7a15d591b0db4ba9c3b9b5a28a678-d: Access is denied.",
+  "restorationErrors": [],
+  "result": "fail"
+}

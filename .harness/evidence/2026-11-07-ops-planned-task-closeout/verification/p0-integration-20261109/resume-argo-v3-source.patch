@@ -1,0 +1,176 @@
+--- a/backend/modules/business/cicd/argocd/argocd_preview.go
++++ b/backend/modules/business/cicd/argocd/argocd_preview.go
+@@ -181,7 +181,13 @@
+ 	if err := plan.client.readProvider(ctx, "/api/v1/applications/"+url.PathEscape(plan.app.Name)+"/manifests?revision="+url.QueryEscape(revision), &target); err != nil {
+ 		return nil, safeApplicationActionError(ctx, req.Rollback)
+ 	}
+-	if !gitRevision.MatchString(target.Revision) || (req.Rollback && target.Revision != revision) {
++	// Argo may omit the resolved revision in its manifests response. A full
++	// Git hash already pins the render request; a mutable ref still requires
++	// an explicit provider-resolved hash and must never be guessed locally.
++	if target.Revision == "" && gitRevision.MatchString(revision) {
++		target.Revision = revision
++	}
++	if !gitRevision.MatchString(target.Revision) || ((req.Rollback || gitRevision.MatchString(revision)) && target.Revision != revision) {
+ 		return nil, errors.New("cicd.argocd.app_sync_failed")
+ 	}
+ 	plan.operation.Sync.Revision = target.Revision
+--- /dev/null
++++ b/backend/modules/business/cicd/argocd/argocd_manifest_response_test.go
+@@ -0,0 +1,156 @@
++package argocd
++
++import (
++	"bytes"
++	"context"
++	"encoding/json"
++	"errors"
++	"io"
++	"net/http"
++	"strings"
++	"sync/atomic"
++	"testing"
++
++	"github.com/duanxldragon/pantheon-base/backend/pkg/common"
++	"github.com/stretchr/testify/require"
++)
++
++// The real v2 manifests response contains manifests but omits revision and
++// metadata.namespace. Keep this provider shape separate from fixtures that
++// supply a resolved revision for a mutable reference.
++func manifestResponseFixture(t *testing.T, responseRevision string, manifest *atomic.Value, mutations *atomic.Int32) (*ArgoCDService, uint64, *atomic.Bool) {
++	t.Helper()
++	s, id := actionService(t, func(w http.ResponseWriter, r *http.Request) {
++		mutations.Add(1)
++		_, _ = w.Write([]byte(`{}`))
++	})
++	managedRead := &atomic.Bool{}
++	factory := s.clientFactory
++	s.clientFactory = func(endpoint, token, ca string) (*ArgoCDClient, error) {
++		client, err := factory(endpoint, token, ca)
++		if err != nil {
++			return nil, err
++		}
++		base := client.httpClient.Transport
++		client.httpClient.Transport = finalTransport(func(r *http.Request) (*http.Response, error) {
++			if strings.HasSuffix(r.URL.Path, "/manifests") {
++				body := map[string]interface{}{"manifests": []string{manifest.Load().(string)}}
++				if responseRevision != "" {
++					body["revision"] = responseRevision
++				}
++				data, _ := json.Marshal(body)
++				return &http.Response{StatusCode: http.StatusOK, Body: io.NopCloser(bytes.NewReader(data)), Header: make(http.Header), Request: r}, nil
++			}
++			if strings.HasSuffix(r.URL.Path, "/managed-resources") {
++				managedRead.Store(true)
++			}
++			return base.RoundTrip(r)
++		})
++		return client, nil
++	}
++	return s, id, managedRead
++}
++
++const manifestDefaultNamespace = `{"apiVersion":"v1","kind":"Service","metadata":{"name":"routing","annotations":{"private":"private-fixture"}},"spec":{"selector":{"revision":"private-fixture"}}}`
++
++func TestArgoManifestResponseRevision(t *testing.T) {
++	for _, tc := range []struct {
++		name, requested, returned, expected string
++		rollback, allowed                   bool
++	}{
++		{"immutable-without-response-revision", fixtureRevision, "", fixtureRevision, false, true},
++		{"source-immutable-without-response-revision", "", "", fixtureRevision, false, true},
++		{"sha256-without-response-revision", strings.Repeat("c", 64), "", strings.Repeat("c", 64), false, true},
++		{"rollback-without-response-revision", fixtureOldRevision, "", fixtureOldRevision, true, true},
++		{"resolved-mutable-reference", "main", fixtureRevision, fixtureRevision, false, true},
++		{"unresolved-mutable-reference", "main", "", "", false, false},
++		{"unresolved-short-reference", "aaaaaaa", "", "", false, false},
++		{"malformed-response-revision", fixtureRevision, "private-fixture", "", false, false},
++		{"different-immutable-response", fixtureRevision, fixtureOldRevision, "", false, false},
++		{"different-rollback-response", fixtureOldRevision, fixtureRevision, "", true, false},
++	} {
++		t.Run(tc.name, func(t *testing.T) {
++			var manifest atomic.Value
++			manifest.Store(manifestDefaultNamespace)
++			var mutations atomic.Int32
++			s, id, managedRead := manifestResponseFixture(t, tc.returned, &manifest, &mutations)
++			preview, err := s.PreviewApplicationContext(context.Background(), id, ApplicationPreviewRequest{Revision: tc.requested, Rollback: tc.rollback}, productActor())
++			if !tc.allowed {
++				require.Error(t, err)
++				require.Nil(t, preview)
++				require.False(t, managedRead.Load(), "reject unpinned revisions before live reads")
++				require.NotContains(t, err.Error(), "private-fixture")
++			} else {
++				require.NoError(t, err, "the real provider shape must permit a pinned revision")
++				require.True(t, managedRead.Load())
++				require.Equal(t, tc.expected, preview.TargetVersion)
++				require.Equal(t, []ApplicationPreviewChange{{Kind: "Service", Namespace: "test", Name: "routing", Change: "added", ValuesHidden: true}}, preview.Changes)
++				data, err := json.Marshal(preview)
++				require.NoError(t, err)
++				require.NotContains(t, string(data), "private-fixture")
++				plain, err := DecryptSecret(preview.IntentVersion)
++				require.NoError(t, err)
++				var review applicationReview
++				require.NoError(t, json.Unmarshal([]byte(plain), &review))
++				require.Equal(t, tc.expected, review.Revision)
++				require.Equal(t, tc.requested, review.RequestedRevision)
++				require.Equal(t, uint64(1), review.Actor)
++			}
++			require.Zero(t, mutations.Load(), "preview cannot submit an operation")
++		})
++	}
++}
++
++func TestArgoManifestResponseNamespaceBoundary(t *testing.T) {
++	for _, resource := range []string{
++		`{"apiVersion":"v1","kind":"Service","metadata":{"name":"routing","namespace":"other"}}`,
++		`{"apiVersion":"hostile.example/v1","kind":"Service","metadata":{"name":"routing"}}`,
++		`{"apiVersion":"v1","kind":"Namespace","metadata":{"name":"routing"}}`,
++	} {
++		var manifest atomic.Value
++		manifest.Store(resource)
++		var mutations atomic.Int32
++		s, id, _ := manifestResponseFixture(t, "", &manifest, &mutations)
++		_, err := s.PreviewApplicationContext(context.Background(), id, ApplicationPreviewRequest{Revision: fixtureRevision}, productActor())
++		require.Error(t, err, "a pinned revision cannot bypass resource scope")
++		require.Zero(t, mutations.Load())
++	}
++}
++
++func TestArgoManifestResponseReviewGuards(t *testing.T) {
++	for _, change := range []string{"manifest", "actor", "authority", "repository", "namespace", "unchanged"} {
++		t.Run(change, func(t *testing.T) {
++			var manifest atomic.Value
++			manifest.Store(manifestDefaultNamespace)
++			var mutations atomic.Int32
++			s, id, _ := manifestResponseFixture(t, "", &manifest, &mutations)
++			actor := productActor()
++			preview, err := s.PreviewApplicationContext(context.Background(), id, ApplicationPreviewRequest{Revision: fixtureRevision}, actor)
++			require.NoError(t, err)
++			actor.IntentVersion = preview.IntentVersion
++			switch change {
++			case "manifest":
++				manifest.Store(strings.ReplaceAll(manifestDefaultNamespace, "private-fixture", "changed-fixture"))
++			case "actor":
++				actor.ID = 2
++				actor.DataScope = &common.DataScopeReq{UserID: 2, IsAdmin: true}
++			case "authority":
++				s.authorizer = fixtureAuthority(func(context.Context, ActionAuthorization) error { return common.NewForbidden("common.forbidden") })
++			case "repository":
++				require.NoError(t, s.db.Model(&ArgoCDRepository{}).Where("server_id = ?", 1).Update("username", "changed-fixture").Error)
++			case "namespace":
++				require.NoError(t, s.db.Model(&ArgoCDApplication{}).Where("id = ?", id).Update("destination_ns", "other").Error)
++			}
++			result, err := s.SyncApplicationContext(context.Background(), id, fixtureRevision, actor)
++			if change == "unchanged" {
++				require.NoError(t, err)
++				require.Equal(t, fixtureRevision, result.Revision)
++				require.Equal(t, int32(1), mutations.Load())
++				return
++			}
++			require.True(t, errors.Is(err, common.ErrConflict) || errors.Is(err, common.ErrForbidden))
++			require.Nil(t, result)
++			require.Zero(t, mutations.Load())
++		})
++	}
++}

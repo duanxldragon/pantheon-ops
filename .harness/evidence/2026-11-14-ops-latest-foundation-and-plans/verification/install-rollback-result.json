@@ -1,0 +1,14 @@
+{
+  "status": "partial-install-rolled-back",
+  "restoredLeaves": 52,
+  "all158PreimagesRestored": true,
+  "originalDirtyBusinessEditsPreserved": true,
+  "blockedLeaf": "backend/modules/system/iam/tenant/tenant_owner_lifecycle_test.go",
+  "blockedReason": "Windows directory denies file creation; shell and apply_patch both refused",
+  "validatedCandidate": ".tmp/ops-v0188-final-r5",
+  "activeReleaseUpgradeComplete": false,
+  "stagedEntriesUnchanged": true,
+  "changedStagedPaths": 0,
+  "gitIndexByteIdentityClaimed": false,
+  "note": "Git status/diff refreshed index stat metadata after rollback; staged mode/blob/path/flags are unchanged."
+}

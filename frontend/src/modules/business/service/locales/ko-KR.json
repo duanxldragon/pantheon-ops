@@ -1,0 +1,17 @@
+{
+  "operations.service.application.menu": "애플리케이션",
+  "operations.service.service.menu": "서비스",
+  "operations.service.instance.menu": "서비스 인스턴스",
+  "business.service.catalog.editApplication": "애플리케이션 편집",
+  "business.service.catalog.editService": "서비스 편집",
+  "business.service.catalog.applicationKeyword": "애플리케이션 코드 또는 이름 검색",
+  "business.service.catalog.host": "CMDB 호스트",
+  "business.service.catalog.hostBinding": "호스트 #{{id}}",
+  "business.service.catalog.runtime.vm": "가상 머신",
+  "business.service.catalog.runtime.k8s": "Kubernetes",
+  "business.service.catalog.runtime.hybrid": "하이브리드",
+  "business.service.instance.empty": "서비스 인스턴스가 없습니다",
+  "business.service.instance.total": "일치하는 인스턴스",
+  "business.service.catalog.operationFailed": "서비스 카탈로그 작업에 실패했습니다",
+  "business.service.catalog.field.remark": "비고"
+}

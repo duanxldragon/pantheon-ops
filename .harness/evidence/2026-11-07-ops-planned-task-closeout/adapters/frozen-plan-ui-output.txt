@@ -1,0 +1,11 @@
+**Scope limits:** Supplied file only. No access to `ChangeDiff`/`AppModal` internals, API types (`DeployTaskPreviewResponse`, `DeployTaskPreviewPlan`), translation catalogs, or the parent that mounts this. No build/type-check or runtime run. Per instruction, `crypto.randomUUID`, request helpers, and i18n keys are assumed functional; missing helpers not inferred defective.
+
+**Findings:**
+
+**P2 — `confirm()` conflates `onStarted()` failure with start failure.** If `startDeployTask` succeeds but the awaited `onStarted()` rejects (its type is `Promise<void>`), the shared catch nulls `preview` and forces `stale`/`forbidden` — a false failure signal after a successful start. No double-start (confirm is disabled in non-ready states), but the user must refresh and re-preview. Minimal fix: put the `startDeployTask` call in its own try/catch that sets the failure state and returns; await `onStarted()` after it, with its own catch (so `void confirm()` can't yield an unhandled rejection).
+
+Abort/expiry/concurrency handling (generation remount, `AbortController`, expiry timer, `submittingRef`, `requestKey` rotation, pagination reset) check out.
+
+**Verdict: APPROVE** (P2 non-blocking). Not a release, production, or project-completion approval.
+
+Skipped: type-check, parents, i18n catalogs. Risk: the P2 only manifests if the parent's `onStarted` rejects.

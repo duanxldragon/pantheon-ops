@@ -1,0 +1,4 @@
+# ./modules/business/cicd/argocd
+open D:\cache\go\build\ca\ca1181101c76881725d71a61af1272dcd2bb57f6f4fe270491cffb17233f76dc-d: Access is denied.
+FAIL	./modules/business/cicd/argocd [setup failed]
+FAIL

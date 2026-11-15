@@ -1,0 +1,66 @@
+ALLOWED_DRIFT backend/modules/business/business.go — fixture overlay hook
+ALLOWED_DRIFT frontend/src/core/router/modules.ts — fixture overlay hook
+OK shared drift check: 5 shared files compared, 3 identical to base, 2 allowlisted drift, 0 business-overlay files skipped, 2 derived business migrations verified (base=C:\Users\xiaolong\AppData\Local\Temp\ops-candidate-lb2gLw\ops\.tmp\foundation-candidates\candidate-5e4757c4069b55bdacd523289dd85f7d9786ce939f06f5ece1610f7bf627fad1\snapshot)
+DRIFT_MODIFIED backend/modules/business/business.go
+DRIFT_MODIFIED frontend/src/core/router/modules.ts
+FAIL shared drift check: 2 modified, 0 missing in base, 0 stale allowlist (5 shared files compared, 0 business-overlay files skipped, 2 derived business migrations verified, base=C:\Users\xiaolong\AppData\Local\Temp\ops-candidate-Y6nWGn\ops\.tmp\foundation-candidates\candidate-5e4757c4069b55bdacd523289dd85f7d9786ce939f06f5ece1610f7bf627fad1\snapshot)
+✔ schema1 source-interface mapping matches the producer and rejects contradictory metadata (1605.2079ms)
+✔ requires external descriptor pin and rejects descriptor/archive tamper before staging (1416.6017ms)
+✔ rejects descriptor edit/revert during extraction and bounded input overflow (1652.7705ms)
+▶ rejects hostile regular tar paths, aliases, config and extension/link/special types with valid archive pins
+  ✔ ../escape (1201.8831ms)
+  ✔ /absolute (1409.0087ms)
+  ✔ C:/outside (1447.6867ms)
+  ✔ //host/share (1572.2004ms)
+  ✔ dir\file (1687.2332ms)
+  ✔ x:y (1614.7761ms)
+  ✔ .env.local (1393.5766ms)
+  ✔ config/secrets.json (1417.4ms)
+  ✔ .aws/credentials (1612.8047ms)
+  ✔ aux.txt (1475.7211ms)
+  ✔ file. (1517.1902ms)
+  ✔ a//b (1211.9153ms)
+  ✔ tar type 1 (1360.2145ms)
+  ✔ tar type 2 (1351.1845ms)
+  ✔ tar type 3 (1544.9929ms)
+  ✔ tar type 5 (1594.7096ms)
+  ✔ tar type x (1503.3925ms)
+  ✔ tar type g (1622.2989ms)
+  ✔ tar type L (2177.4833ms)
+  ✔ tar type K (1984.1077ms)
+✔ rejects hostile regular tar paths, aliases, config and extension/link/special types with valid archive pins (30705.5495ms)
+✔ rejects duplicate/case/directory collisions, missing entries, wrong file hashes and corrupt tar framing (1619.8001ms)
+✔ false capability comments cannot replace real declarations even when all digests are consistent (1378.8621ms)
+▶ fresh extraction is sealed; mutations, additions, edit/revert and snapshot reuse refuse
+  ✔ write (2007.1828ms)
+  ✔ addition (1851.3836ms)
+  ✔ revert (1646.8514ms)
+  ✔ root-revert (1648.6182ms)
+✔ fresh extraction is sealed; mutations, additions, edit/revert and snapshot reuse refuse (7155.5749ms)
+✔ rebuild calls real assembly/drift seams, derives only declared migrations, preserves exact locks and never reads current Base sources (3035.4066ms)
+✔ protects repository/foreign/existing targets and rejects alternative manifest ownership (3835.2393ms)
+✔ rejects junction ancestors and hard-linked artifact/declared source without touching foreign bytes (1629.066ms)
+▶ assembly rejects snapshot/artifact and declared Ops mutations including edit/revert; failure cleans owned stage only
+  ✔ snapshot (1850.3134ms)
+  ✔ artifact (1814.0124ms)
+  ✔ business (1876.1173ms)
+  ✔ manifest (1811.6762ms)
+  ✔ lock (1684.2974ms)
+  ✔ revert (1966.7104ms)
+  ✔ addition (1801.3483ms)
+  ✔ git-selection (1780.8208ms)
+✔ assembly rejects snapshot/artifact and declared Ops mutations including edit/revert; failure cleans owned stage only (14587.2309ms)
+▶ drift and migration conflicts refuse candidate publication
+  ✔ unallowlisted shared modification (2117.4655ms)
+  ✔ Base migration conflict (1872.1714ms)
+✔ drift and migration conflicts refuse candidate publication (3990.2286ms)
+✔ independently pinned build receipt binds source capability identity and exact executable bytes (1209.1251ms)
+✔ CLI help is precise; unsupported, duplicate, unpinned and formal-source options refuse (489.0514ms)
+ℹ tests 48
+ℹ suites 0
+ℹ pass 48
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 74508.8491

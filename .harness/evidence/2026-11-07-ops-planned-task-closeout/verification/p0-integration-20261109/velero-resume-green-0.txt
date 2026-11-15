@@ -1,0 +1,81 @@
+=== RUN   TestCreateRestoreRejectsBeforePersistence
+=== RUN   TestCreateRestoreRejectsBeforePersistence/foreign_department_guessing_source_and_cluster
+=== RUN   TestCreateRestoreRejectsBeforePersistence/own_department_without_credential
+=== RUN   TestCreateRestoreRejectsBeforePersistence/canceled_request
+=== RUN   TestCreateRestoreRejectsBeforePersistence/expired_request
+=== RUN   TestCreateRestoreRejectsBeforePersistence/source_in_another_cluster
+=== RUN   TestCreateRestoreRejectsBeforePersistence/revoked_source
+=== RUN   TestCreateRestoreRejectsBeforePersistence/revoked_credential_with_cached_client
+=== RUN   TestCreateRestoreRejectsBeforePersistence/revoked_cluster_department_with_cached_client
+--- PASS: TestCreateRestoreRejectsBeforePersistence (0.46s)
+    --- PASS: TestCreateRestoreRejectsBeforePersistence/foreign_department_guessing_source_and_cluster (0.01s)
+    --- PASS: TestCreateRestoreRejectsBeforePersistence/own_department_without_credential (0.00s)
+    --- PASS: TestCreateRestoreRejectsBeforePersistence/canceled_request (0.00s)
+    --- PASS: TestCreateRestoreRejectsBeforePersistence/expired_request (0.00s)
+    --- PASS: TestCreateRestoreRejectsBeforePersistence/source_in_another_cluster (0.00s)
+    --- PASS: TestCreateRestoreRejectsBeforePersistence/revoked_source (0.02s)
+    --- PASS: TestCreateRestoreRejectsBeforePersistence/revoked_credential_with_cached_client (0.01s)
+    --- PASS: TestCreateRestoreRejectsBeforePersistence/revoked_cluster_department_with_cached_client (0.01s)
+=== RUN   TestCreateRestoreEligibleSourceAndEnqueue
+=== RUN   TestCreateRestoreEligibleSourceAndEnqueue/revoked_registry_source_with_authorized_cached_client
+=== RUN   TestCreateRestoreEligibleSourceAndEnqueue/registry_New
+=== RUN   TestCreateRestoreEligibleSourceAndEnqueue/registry_InProgress
+=== RUN   TestCreateRestoreEligibleSourceAndEnqueue/registry_Failed
+=== RUN   TestCreateRestoreEligibleSourceAndEnqueue/expired_registry
+=== RUN   TestCreateRestoreEligibleSourceAndEnqueue/live_
+=== RUN   TestCreateRestoreEligibleSourceAndEnqueue/live_New
+=== RUN   TestCreateRestoreEligibleSourceAndEnqueue/live_InProgress
+=== RUN   TestCreateRestoreEligibleSourceAndEnqueue/live_Failed
+=== RUN   TestCreateRestoreEligibleSourceAndEnqueue/live_PartiallyFailed
+=== RUN   TestCreateRestoreEligibleSourceAndEnqueue/live_Deleting
+=== RUN   TestCreateRestoreEligibleSourceAndEnqueue/deleted_live_source
+=== RUN   TestCreateRestoreEligibleSourceAndEnqueue/live_expiration_2026-11-09T06:41:32Z
+=== RUN   TestCreateRestoreEligibleSourceAndEnqueue/live_expiration_malformed
+=== RUN   TestCreateRestoreEligibleSourceAndEnqueue/cancel_during_source_inspection
+=== RUN   TestCreateRestoreEligibleSourceAndEnqueue/revoked_during_live_inspection_department
+=== RUN   TestCreateRestoreEligibleSourceAndEnqueue/revoked_during_live_inspection_credential
+=== RUN   TestCreateRestoreEligibleSourceAndEnqueue/revoked_during_live_inspection_source
+=== RUN   TestCreateRestoreEligibleSourceAndEnqueue/worker_rechecks_live_source
+=== RUN   TestCreateRestoreEligibleSourceAndEnqueue/authorized_successful_enqueue
+
+2026/11/09 15:41:33 [34;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/k8s/backup/restore_authorization_test.go:381
+[0m[35m[warn] [0mremoving callback `restore_auth_assert_locks` from D:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/k8s/backup/restore_authorization_test.go:381
+--- PASS: TestCreateRestoreEligibleSourceAndEnqueue (0.69s)
+    --- PASS: TestCreateRestoreEligibleSourceAndEnqueue/revoked_registry_source_with_authorized_cached_client (0.02s)
+    --- PASS: TestCreateRestoreEligibleSourceAndEnqueue/registry_New (0.02s)
+    --- PASS: TestCreateRestoreEligibleSourceAndEnqueue/registry_InProgress (0.02s)
+    --- PASS: TestCreateRestoreEligibleSourceAndEnqueue/registry_Failed (0.02s)
+    --- PASS: TestCreateRestoreEligibleSourceAndEnqueue/expired_registry (0.01s)
+    --- PASS: TestCreateRestoreEligibleSourceAndEnqueue/live_ (0.01s)
+    --- PASS: TestCreateRestoreEligibleSourceAndEnqueue/live_New (0.01s)
+    --- PASS: TestCreateRestoreEligibleSourceAndEnqueue/live_InProgress (0.01s)
+    --- PASS: TestCreateRestoreEligibleSourceAndEnqueue/live_Failed (0.01s)
+    --- PASS: TestCreateRestoreEligibleSourceAndEnqueue/live_PartiallyFailed (0.01s)
+    --- PASS: TestCreateRestoreEligibleSourceAndEnqueue/live_Deleting (0.01s)
+    --- PASS: TestCreateRestoreEligibleSourceAndEnqueue/deleted_live_source (0.01s)
+    --- PASS: TestCreateRestoreEligibleSourceAndEnqueue/live_expiration_2026-11-09T06:41:32Z (0.01s)
+    --- PASS: TestCreateRestoreEligibleSourceAndEnqueue/live_expiration_malformed (0.01s)
+    --- PASS: TestCreateRestoreEligibleSourceAndEnqueue/cancel_during_source_inspection (0.01s)
+    --- PASS: TestCreateRestoreEligibleSourceAndEnqueue/revoked_during_live_inspection_department (0.02s)
+    --- PASS: TestCreateRestoreEligibleSourceAndEnqueue/revoked_during_live_inspection_credential (0.03s)
+    --- PASS: TestCreateRestoreEligibleSourceAndEnqueue/revoked_during_live_inspection_source (0.03s)
+    --- PASS: TestCreateRestoreEligibleSourceAndEnqueue/worker_rechecks_live_source (0.03s)
+    --- PASS: TestCreateRestoreEligibleSourceAndEnqueue/authorized_successful_enqueue (0.04s)
+=== RUN   TestVeleroClient_IsInstalled
+=== RUN   TestVeleroClient_IsInstalled/velero_installed
+=== RUN   TestVeleroClient_IsInstalled/velero_not_installed
+--- PASS: TestVeleroClient_IsInstalled (0.00s)
+    --- PASS: TestVeleroClient_IsInstalled/velero_installed (0.00s)
+    --- PASS: TestVeleroClient_IsInstalled/velero_not_installed (0.00s)
+=== RUN   TestVeleroClient_CreateBackup
+--- PASS: TestVeleroClient_CreateBackup (0.00s)
+=== RUN   TestVeleroClient_CreateSchedule
+--- PASS: TestVeleroClient_CreateSchedule (0.00s)
+=== RUN   TestVeleroClient_CreateRestore
+--- PASS: TestVeleroClient_CreateRestore (0.00s)
+=== RUN   TestVeleroClient_DeleteBackup
+--- PASS: TestVeleroClient_DeleteBackup (0.00s)
+=== RUN   TestVeleroClient_GetRunningPods
+--- PASS: TestVeleroClient_GetRunningPods (0.00s)
+PASS
+ok  	github.com/duanxldragon/pantheon-base/backend/modules/business/k8s/backup	2.273s

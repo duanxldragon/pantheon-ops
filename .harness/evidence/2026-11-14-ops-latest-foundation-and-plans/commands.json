@@ -1,0 +1,771 @@
+{
+  "taskId": "2026-11-14-ops-latest-foundation-and-plans",
+  "repo": "pantheon-ops",
+  "agent": {
+    "tool": "codex",
+    "adapter": "task-private IPC/CDP for Windows runtime; normal spec/assertions"
+  },
+  "commands": [
+    {
+      "command": "npm run lint",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.tmp\\ops-v0188-final-r5\\frontend",
+      "status": "passed",
+      "durationMs": 80544,
+      "notes": "See verification/r5-frontend-lint.json. Raw logs remain private and hash-linked; prior failures are preserved."
+    },
+    {
+      "command": "npm run build",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.tmp\\ops-v0188-final-r5\\frontend",
+      "status": "passed",
+      "durationMs": 44318,
+      "notes": "See verification/r5-frontend-build.json. Raw logs remain private and hash-linked; prior failures are preserved."
+    },
+    {
+      "command": "npm run test:unit -- --run --maxWorkers=2",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.tmp\\ops-v0188-final-r5\\frontend",
+      "status": "passed",
+      "durationMs": 65758,
+      "notes": "See verification/r5-frontend-units.json. Raw logs remain private and hash-linked; prior failures are preserved."
+    },
+    {
+      "command": "playwright test bizscope/service/cmdb --workers=1",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.tmp\\ops-v0188-final-r5",
+      "status": "passed",
+      "durationMs": 131614,
+      "notes": "See verification/r5-runtime-smoke-adapted.json. Raw logs remain private and hash-linked; prior failures are preserved."
+    },
+    {
+      "command": "go build -buildvcs=false -mod=readonly -o ../../ops-20261114-backup/runtime/pantheon-ops.exe ./cmd/server",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.tmp\\ops-v0188-final-r4\\backend",
+      "status": "passed",
+      "durationMs": 23155,
+      "notes": "See verification/r4-backend-build-stable.json. Raw logs remain private and hash-linked; prior failures are preserved."
+    },
+    {
+      "command": "go test -race -p=1 -buildvcs=false -mod=readonly -json ./...",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.tmp\\ops-v0188-final-r4\\backend",
+      "status": "failed",
+      "durationMs": 942796,
+      "notes": "See verification/r4-backend-race.json. Raw logs remain private and hash-linked; prior failures are preserved."
+    },
+    {
+      "command": "node scripts/harness/check-doc-links.mjs --root . --strict",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.tmp\\ops-v0188-final-r4",
+      "status": "failed",
+      "durationMs": 156,
+      "notes": "See verification/r4-doc-links.json. Raw logs remain private and hash-linked; prior failures are preserved."
+    },
+    {
+      "command": "node scripts/harness/check-review.mjs --root . --strict",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.tmp\\ops-v0188-final-r4",
+      "status": "failed",
+      "durationMs": 158,
+      "notes": "See verification/r4-review-registry.json. Raw logs remain private and hash-linked; prior failures are preserved."
+    },
+    {
+      "command": "node --test --test-isolation=none tests/scripts/business-overlay/*.test.mjs",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+      "status": "failed",
+      "durationMs": 592,
+      "notes": "See verification/overlay-tests-inprocess.json. Raw logs remain private and hash-linked; prior failures are preserved."
+    },
+    {
+      "command": "go test -race -buildvcs=false -mod=readonly -json ./modules/business/bizscope ./modules/business/service",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.tmp\\ops-v0188-initial\\backend",
+      "status": "passed",
+      "durationMs": 23760,
+      "notes": "See verification/menu-backend-test.json. Raw logs remain private and hash-linked; prior failures are preserved."
+    },
+    {
+      "command": "go test -race -p=1 -buildvcs=false -mod=readonly -json ./...",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.tmp\\ops-v0188-final-r5\\backend",
+      "status": "failed",
+      "durationMs": 2159989,
+      "notes": "See verification/r5-backend-race-verified.json. Raw logs remain private and hash-linked; prior failures are preserved."
+    },
+    {
+      "command": "go test -race -p=1 -buildvcs=false -mod=readonly -json ./...",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.tmp\\ops-v0188-final-r5\\backend",
+      "status": "passed",
+      "durationMs": 707390,
+      "notes": "See verification/r5-backend-race-retry.json. Raw logs remain private and hash-linked; prior failures are preserved."
+    },
+    {
+      "command": "verify-seed-double-boot.py using new isolated schema/API18216/Redis26325",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+      "status": "failed",
+      "notes": "Both fresh attempts failed at Redis Cygwin shared-memory startup; zero backend boots. RedisRequired retained, failed schemas/logs retained. verification/seed-double-boot.json."
+    },
+    {
+      "command": "node --test tests/scripts/business-overlay/*.test.mjs",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+      "status": "passed",
+      "notes": "66/66 tests,0failed/skip; deletion-selector-verification.json retains source pins and original successful receipt."
+    },
+    {
+      "command": "Task-private rebuild-r5.mjs using validated official assets and standard assembleConsumerTree",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+      "status": "passed",
+      "notes": "5515 owned/generated records; freshGitHubLookup:false; reportSHA25636c803cd5f09c09cf4b3d870898026d068facf976c8d3be3a38ba9448fb737ce."
+    },
+    {
+      "command": "Task-private verify-r5.mjs: official asset validation and standard checkSharedDrift",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.tmp\\ops-v0188-final-r5",
+      "status": "passed",
+      "notes": "857 shared,856 identical,1 permitted existing package scripts difference;288 business;14 generated migrations."
+    },
+    {
+      "command": "Task-private apply-r5.py followed by rollback-partial-install.py",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+      "status": "failed",
+      "notes": "Installation denied after52 writes; rollback verifies all158 preimages. This is not active upgrade success."
+    },
+    {
+      "command": "render-dashboard.mjs: actual Chromium CDP light/dark1440/390 screenshots",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+      "status": "passed",
+      "notes": "Four widgets all empty samples, no root overflow or pageErrors; full states open."
+    },
+    {
+      "command": "node scripts/harness/check-task-packet.mjs --json --root D:\\workspace\\go\\pantheon-platform\\pantheon-ops docs/harness/tasks/2026-11-14-ops-latest-foundation-and-plans.task.md docs/harness/tasks/2026-11-13-ops-business-menu-ia-refactor.task.md",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+      "status": "passed",
+      "notes": "verification/scoped-task-packets.json; uses the official candidate checker against the active repository. Scope is recorded in the receipt."
+    },
+    {
+      "command": "node scripts/harness/check-evidence.mjs --json --strict --root D:\\workspace\\go\\pantheon-platform\\pantheon-ops .harness/evidence/2026-11-14-ops-latest-foundation-and-plans/commands.json .harness/evidence/2026-11-13-ops-business-menu-ia-refactor/commands.json",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+      "status": "passed",
+      "notes": "verification/scoped-evidence.json; uses the official candidate checker against the active repository. Scope is recorded in the receipt."
+    },
+    {
+      "command": "node scripts/harness/check-review.mjs --json --strict --root D:\\workspace\\go\\pantheon-platform\\pantheon-ops .harness/evidence/2026-11-14-ops-latest-foundation-and-plans/review.md .harness/evidence/2026-11-13-ops-business-menu-ia-refactor/review.md",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+      "status": "failed",
+      "notes": "verification/scoped-review-with-registry.json; uses the official candidate checker against the active repository. Scope is recorded in the receipt."
+    },
+    {
+      "command": "node scripts/harness/check-runtime-evidence.mjs --json --strict --root D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+      "status": "failed",
+      "notes": "verification/root-runtime-registry.json; uses the official candidate checker against the active repository. Scope is recorded in the receipt."
+    },
+    {
+      "command": "node scripts/harness/check-visual-evidence.mjs --json --strict --root D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+      "status": "failed",
+      "notes": "verification/root-visual-registry.json; uses the official candidate checker against the active repository. Scope is recorded in the receipt."
+    },
+    {
+      "command": "node scripts/harness/check-doc-links.mjs --json --strict --root D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+      "status": "failed",
+      "notes": "verification/root-doc-links.json; uses the official candidate checker against the active repository. Scope is recorded in the receipt."
+    },
+    {
+      "command": "node scripts/harness/check-review.mjs --json --strict --root D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+      "status": "failed",
+      "notes": "verification/root-review-registry.json; uses the official candidate checker against the active repository. Scope is recorded in the receipt."
+    },
+    {
+      "command": "node --import ./.tmp/ops-20261114-backup/file-stdio.mjs .tmp/ops-20261114-resume/rebuild-r6.mjs",
+      "status": "failed",
+      "exitCode": 1,
+      "notes": "Default external Go cache AccessDenied; all7 temporary source inputs restored. See verification/rebuild-r6-failure.json.",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops"
+    },
+    {
+      "command": "node --import ./.tmp/ops-20261114-backup/file-stdio.mjs .tmp/ops-20261114-resume/rebuild-r6-retry.mjs",
+      "status": "passed",
+      "exitCode": 0,
+      "notes": "Explicit workspace-private GOCACHE/GOTMPDIR; standard GitHub fetch/asset verification/assembler and dependency normalization pass. No ACL change; first failure retained.",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops"
+    },
+    {
+      "command": "node --import ./.tmp/ops-20261114-backup/file-stdio.mjs .tmp/ops-20261114-resume/verify-r6.mjs",
+      "status": "passed",
+      "exitCode": 0,
+      "notes": "857 shared files/856 identical/1 existing declared package-script allowance;288 business files and14 paired migrations. Official acquired assets only.",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops"
+    },
+    {
+      "command": "node scripts/business-overlay/check-business-overlay.mjs --root .tmp/ops-v0188-install-r6",
+      "status": "passed",
+      "exitCode": 0,
+      "notes": "60 declared paths; rebuilt-tree contract passes.",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops"
+    },
+    {
+      "command": "python .tmp/ops-20261114-resume/apply-r6.py --apply",
+      "status": "failed",
+      "exitCode": 1,
+      "notes": "Exact tenant_owner_lifecycle_test.go PermissionDenied after60 attempted writes;165 preimages and index restored/verified. New rollbackZIP retained; active18.6.",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops"
+    },
+    {
+      "command": "Official latest query, fetchFoundationRelease + assembleConsumerTree (r7)",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+      "status": "passed",
+      "exitCode": 0,
+      "notes": "r7 active-adoption continuation; raw rebuild-r7.log SHA256 0b70f36958f73043af8623f52071923f394603ea852cf6a03aae0a0f8c43a846. Candidate CLI failure is retained separately; no tests or allowlist were weakened."
+    },
+    {
+      "command": "node scripts/business-overlay/check-business-overlay.mjs --root <r7 staging>",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+      "status": "passed",
+      "exitCode": 0,
+      "notes": "r7 active-adoption continuation; raw overlay-r7.log SHA256 fb8b18603495ebedfe41eb5dd15a35ebe0322713aaf6d3a5a8eea42490c7ea43. Candidate CLI failure is retained separately; no tests or allowlist were weakened."
+    },
+    {
+      "command": "node scripts/business-overlay/check-shared-drift.mjs --root <r7 staging>",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+      "status": "failed",
+      "exitCode": 1,
+      "notes": "r7 active-adoption continuation; raw shared-drift-r7.log SHA256 2e914948e2300e8b3c8d33267344ff1a8e08fd1451b0d1666f77922f93defafc. Candidate CLI failure is retained separately; no tests or allowlist were weakened."
+    },
+    {
+      "command": "node .tmp/ops-20261114-adoption-r7/verify-r7.mjs",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+      "status": "passed",
+      "exitCode": 0,
+      "notes": "r7 active-adoption continuation; raw shared-drift-snapshot-r7.log SHA256 ce6aad3849fe41d2aa0f0cb2dcd2ecbe1f02dafd391be1908fe15eeeff305edd. Candidate CLI failure is retained separately; no tests or allowlist were weakened."
+    },
+    {
+      "command": "npm run test:business-overlay",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+      "status": "passed",
+      "exitCode": 0,
+      "notes": "r7 active-adoption continuation; raw overlay-tests-r7.log SHA256 18276acc9befd0bbe193860e0dcfc184c432cd30f2868ca24c981aef626fb504. Candidate CLI failure is retained separately; no tests or allowlist were weakened."
+    },
+    {
+      "command": "python .tmp/ops-20261114-adoption-r7/apply-r7.py --apply",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+      "status": "passed",
+      "exitCode": 0,
+      "notes": "r7 active-adoption continuation; raw apply-r7.log SHA256 2d85d5ef67c150ff3f74dc298ab313d8210213d85d6cec058f21f2ffae800c6d. Candidate CLI failure is retained separately; no tests or allowlist were weakened."
+    },
+    {
+      "command": "npm run check:shared-drift",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+      "status": "passed",
+      "exitCode": 0,
+      "notes": "r7 active-adoption continuation; raw active-shared-drift-r7.log SHA256 386d492d7fd50a7495241a24943623dc89780d21fcf6751ec9c7a15142a45f9d. Candidate CLI failure is retained separately; no tests or allowlist were weakened."
+    },
+    {
+      "command": "npm run check:business-overlay",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+      "status": "passed",
+      "exitCode": 0,
+      "notes": "r7 active-adoption continuation; raw active-overlay-r7.log SHA256 615aff030b893b0f903c1fd5255f2ecd3927828da14d655cfb9e1f4155ad21bf. Candidate CLI failure is retained separately; no tests or allowlist were weakened."
+    },
+    {
+      "command": "go list -buildvcs=false -mod=readonly -deps -test ./...",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\backend",
+      "status": "passed",
+      "exitCode": 0,
+      "notes": "r7 active-adoption continuation; raw active-go-list-r7.log SHA256 5ad83349494f8a0da867194224f00b36f43b71ffb3a1792b1b247859027e8957. Candidate CLI failure is retained separately; no tests or allowlist were weakened."
+    },
+    {
+      "command": "npm run lint",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\frontend",
+      "status": "passed",
+      "exitCode": 0,
+      "notes": "r7 active-adoption continuation; raw active-frontend-lint-r7.log SHA256 5f62e7cf7cdd69c014ca18d1c493431139fcbda108704552679bc84c360fd025. Candidate CLI failure is retained separately; no tests or allowlist were weakened."
+    },
+    {
+      "command": "npm run build",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\frontend",
+      "status": "passed",
+      "exitCode": 0,
+      "notes": "r7 active-adoption continuation; raw active-frontend-build-r7.log SHA256 566b0585630fa126a7eb864780df1a81c0eadf1b68bf48266471ab0ccd54b6c2. Candidate CLI failure is retained separately; no tests or allowlist were weakened."
+    },
+    {
+      "command": "npm run test:unit -- --run --maxWorkers=2",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\frontend",
+      "status": "passed",
+      "exitCode": 0,
+      "notes": "r7 active-adoption continuation; raw active-frontend-units-r7.log SHA256 45acfca8f1fece157006f44ac9ff39a799811e6da284ba81e97385166e902f08. Candidate CLI failure is retained separately; no tests or allowlist were weakened."
+    },
+    {
+      "command": "node scripts/harness/check-task-packet.mjs --json <task>",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+      "status": "passed",
+      "exitCode": 0,
+      "notes": "Final adoption closeout; raw gate-task-packet.log SHA256 103a884763564b31d17c0ef039695dc6476ea8dd2aa6de573a9d3a53fed3d2c1. Earlier cwd misuse and obsolete consumer checker failure are retained; later standard checks pass."
+    },
+    {
+      "command": "node scripts/harness/check-evidence.mjs --json --strict <commands.json>",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+      "status": "passed",
+      "exitCode": 0,
+      "notes": "Final adoption closeout; raw gate-evidence.log SHA256 29786771e9e80d4b2dd7c18a742cf48da78c4924b7cfb221b1b9a044b0218055. Earlier cwd misuse and obsolete consumer checker failure are retained; later standard checks pass."
+    },
+    {
+      "command": "node scripts/harness/check-review.mjs --json --strict <review.md>",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+      "status": "passed",
+      "exitCode": 0,
+      "notes": "Final adoption closeout; raw gate-review.log SHA256 bd1f346bdb897b2490289af01466062132a13089bb7abdbd6261d61a13631a09. Earlier cwd misuse and obsolete consumer checker failure are retained; later standard checks pass."
+    },
+    {
+      "command": "node scripts/harness/check-inheritance-contract.mjs --json --strict",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+      "status": "failed",
+      "exitCode": 1,
+      "notes": "Final adoption closeout; raw gate-inheritance.log SHA256 8e512ef0a175061e20778caa22c01bc3faf999ea0f13696739cc56cb7aa135fc. Earlier cwd misuse and obsolete consumer checker failure are retained; later standard checks pass."
+    },
+    {
+      "command": "node scripts/harness/check-inheritance-contract.mjs --root .. --json --strict",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+      "status": "passed",
+      "exitCode": 0,
+      "notes": "Final adoption closeout; raw gate-inheritance-workspace.log SHA256 1a1ee8a16fd6eae4641d82403623dcaf20cdcbf65a24a3df2ea3cd7c832bb407. Earlier cwd misuse and obsolete consumer checker failure are retained; later standard checks pass."
+    },
+    {
+      "command": "npm run check:docs-frontmatter (before obsolete overlay removal)",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+      "status": "failed",
+      "exitCode": 1,
+      "notes": "Final adoption closeout; raw gate-frontmatter.log SHA256 2bd579eac1e1bbb4eca323713eae20f146a2650eb898409c084007d389318204. Earlier cwd misuse and obsolete consumer checker failure are retained; later standard checks pass."
+    },
+    {
+      "command": "resolveBaseFromLock + assembleConsumerTree (final documented overlay)",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+      "status": "passed",
+      "exitCode": 0,
+      "notes": "Final adoption closeout; raw rebuild-final.log SHA256 fce366967d79f938bf6a5f42d519faa0c97dfb22045213a65ab595842a8b8976. Earlier cwd misuse and obsolete consumer checker failure are retained; later standard checks pass."
+    },
+    {
+      "command": "python .tmp/ops-20261114-adoption-final/apply-final.py --apply",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+      "status": "passed",
+      "exitCode": 0,
+      "notes": "Final adoption closeout; raw apply-final.log SHA256 f9c1529b97db1c9cc66f560c61437beabbb13c44c8709e8c78ec7ffcb43df457. Earlier cwd misuse and obsolete consumer checker failure are retained; later standard checks pass."
+    },
+    {
+      "command": "npm run check:docs-frontmatter",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+      "status": "passed",
+      "exitCode": 0,
+      "notes": "Final adoption closeout; raw frontmatter-final.log SHA256 074197abb33ff28fa08861b876e050c1b585bd125b50e3e5600e616b55d7e2c0. Earlier cwd misuse and obsolete consumer checker failure are retained; later standard checks pass."
+    },
+    {
+      "command": "node --test tests/docs/frontmatter-check.test.mjs",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+      "status": "passed",
+      "exitCode": 0,
+      "notes": "Final adoption closeout; raw frontmatter-tests-final.log SHA256 5c785cbe16c99787e7b0a05937a8094ec727b0e7b4370b40018a5d5d8226bfda. Earlier cwd misuse and obsolete consumer checker failure are retained; later standard checks pass."
+    },
+    {
+      "command": "npm run check:business-overlay",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+      "status": "passed",
+      "exitCode": 0,
+      "notes": "Final adoption closeout; raw overlay-final.log SHA256 615aff030b893b0f903c1fd5255f2ecd3927828da14d655cfb9e1f4155ad21bf. Earlier cwd misuse and obsolete consumer checker failure are retained; later standard checks pass."
+    },
+    {
+      "command": "npm run test:business-overlay",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+      "status": "passed",
+      "exitCode": 0,
+      "notes": "Final adoption closeout; raw overlay-tests-final.log SHA256 42b2dc19b4709f0182ffdc63e9d705b845ab836a9184d83fd4cbbb3762c7c5cc. Earlier cwd misuse and obsolete consumer checker failure are retained; later standard checks pass."
+    },
+    {
+      "command": "npm run check:shared-drift",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+      "status": "passed",
+      "exitCode": 0,
+      "notes": "Final adoption closeout; raw shared-drift-final.log SHA256 386d492d7fd50a7495241a24943623dc89780d21fcf6751ec9c7a15142a45f9d. Earlier cwd misuse and obsolete consumer checker failure are retained; later standard checks pass."
+    }
+  ],
+  "knownGaps": [
+    "Historical r5 installation was denied and restored; the current active v0.18.8 installation and fresh official inherited-file verification pass. Final business-source assembly binding follows the current continuation source freeze.",
+    "Final visual/functional human acceptance remains open. Application Delivery screenshots show permission/loading failure and repeated toasts; only display rename is evidenced.",
+    "Native Playwright runner failed Windows spawn EPERM. Actual24-test success uses task-private authenticated localhost IPC and real external Chromium CDP; nativeRunnerPassed:false.",
+    "Dashboard renders cover four empty samples at light/dark1440/390 only; populated/loading/error/revocation/time-range/live-provider states and full O6 acceptance remain open.",
+    "Menu mobile renders mostly cover empty lists; Application/Instance right columns need table scrolling. No complete responsive/full-state matrix approval.",
+    "Six P0 parents O2/O3/O4/D1/D2/D3 remain open; O1 FileDist owner/stable target/scheduling, O5 audited download/redaction/live-source, D4 production signatures and O6 full matrix remain open. Velero last; O7 deferred.",
+    "CMDB host/group detail key-only grants remain disabled pending an upstream released safe static matcher.",
+    "Historical candidate scans have9 document-link findings and49 review errors across41 files. Current continuation scans have8 links and85 review errors across59 entries; current D5 declaration repair and final fresh scan are pending. No shared-doc override, forged approval or waiver.",
+    "Asset replay uses previously acquired immutable official archives and records freshGitHubLookup:false. No fresh online lookup is claimed for r5.",
+    "Prior failed runtime/race and wrong-theme attempt evidence remain preserved privately; no historical fixture replay or user-cache deletion.",
+    "file-stdio output byte bound is enforced after process completion; an equivalent in-flight bound is not established.",
+    "Real empty-database double-boot idempotency and complete Application Delivery page functionality are not established by this scoped runtime run.",
+    "The first full r5 race command exited1:7 package build failures from disk exhaustion,3105 test passes and no assertion failures. Final standard retry passes with63 cached/7 freshly executed packages; the failed run remains independently preserved.",
+    "The final race retry skips6 external tests (Argo2,DeployVM2,observability1,realS3 1); full external/provider acceptance is not established by cached or fresh unit/race results.",
+    "Active whole-repository docs/review registry counts differ from the pre-closeout v0.18.8 candidate scan; see governance-readout.json. Whole registry failures are not scoped schema approval or waivers."
+  ],
+  "runtimeSensitive": true,
+  "runtimeLogs": [
+    ".harness/evidence/2026-11-14-ops-latest-foundation-and-plans/verification/r5-runtime-smoke-adapted.json"
+  ],
+  "runtimeMetrics": [
+    ".harness/evidence/2026-11-14-ops-latest-foundation-and-plans/verification/r5-runtime-smoke-counts.json"
+  ],
+  "browserEvidence": [
+    {
+      "viewport": "1440",
+      "url": "http://127.0.0.1:18215/dashboard",
+      "screenshot": ".harness/evidence/2026-11-14-ops-latest-foundation-and-plans/visual/dashboard-light-1440.png",
+      "consoleErrors": [],
+      "checkedStates": [
+        "empty",
+        "light"
+      ],
+      "visualGap": "pageErrors were observed empty; console-error event stream and populated/loading/error/provider states were not certified."
+    },
+    {
+      "viewport": "390",
+      "url": "http://127.0.0.1:18215/dashboard",
+      "screenshot": ".harness/evidence/2026-11-14-ops-latest-foundation-and-plans/visual/dashboard-light-390.png",
+      "consoleErrors": [],
+      "checkedStates": [
+        "empty",
+        "light"
+      ],
+      "visualGap": "pageErrors were observed empty; console-error event stream and populated/loading/error/provider states were not certified."
+    },
+    {
+      "viewport": "1440",
+      "url": "http://127.0.0.1:18215/dashboard",
+      "screenshot": ".harness/evidence/2026-11-14-ops-latest-foundation-and-plans/visual/dashboard-dark-1440.png",
+      "consoleErrors": [],
+      "checkedStates": [
+        "empty",
+        "dark"
+      ],
+      "visualGap": "pageErrors were observed empty; console-error event stream and populated/loading/error/provider states were not certified."
+    },
+    {
+      "viewport": "390",
+      "url": "http://127.0.0.1:18215/dashboard",
+      "screenshot": ".harness/evidence/2026-11-14-ops-latest-foundation-and-plans/visual/dashboard-dark-390.png",
+      "consoleErrors": [],
+      "checkedStates": [
+        "empty",
+        "dark"
+      ],
+      "visualGap": "pageErrors were observed empty; console-error event stream and populated/loading/error/provider states were not certified."
+    },
+    {
+      "viewport": "1440",
+      "url": "http://127.0.0.1:18215/business/cicd/argocd",
+      "screenshot": ".harness/evidence/2026-11-13-ops-business-menu-ia-refactor/visual/application-delivery-desktop.png",
+      "consoleErrors": [],
+      "checkedStates": [
+        "rendered",
+        "error"
+      ],
+      "visualGap": "Application Delivery permission/loading and repeated-toast failure; full page acceptance open."
+    },
+    {
+      "viewport": "390",
+      "url": "http://127.0.0.1:18215/business/cicd/argocd",
+      "screenshot": ".harness/evidence/2026-11-13-ops-business-menu-ia-refactor/visual/application-delivery-mobile.png",
+      "consoleErrors": [],
+      "checkedStates": [
+        "rendered",
+        "error"
+      ],
+      "visualGap": "Application Delivery permission/loading and repeated-toast failure; full page acceptance open."
+    },
+    {
+      "viewport": "1440",
+      "url": "http://127.0.0.1:18215/business/bizscope/environments",
+      "screenshot": ".harness/evidence/2026-11-13-ops-business-menu-ia-refactor/visual/bizscope-environments-desktop.png",
+      "consoleErrors": [],
+      "checkedStates": [
+        "rendered"
+      ],
+      "visualGap": "Mostly empty mobile sample; complete data/interaction/theme matrix and console errors not certified."
+    },
+    {
+      "viewport": "390",
+      "url": "http://127.0.0.1:18215/business/bizscope/environments",
+      "screenshot": ".harness/evidence/2026-11-13-ops-business-menu-ia-refactor/visual/bizscope-environments-mobile.png",
+      "consoleErrors": [],
+      "checkedStates": [
+        "rendered"
+      ],
+      "visualGap": "Mostly empty mobile sample; complete data/interaction/theme matrix and console errors not certified."
+    },
+    {
+      "viewport": "1440",
+      "url": "http://127.0.0.1:18215/business/bizscope/host-bindings",
+      "screenshot": ".harness/evidence/2026-11-13-ops-business-menu-ia-refactor/visual/bizscope-host-bindings-desktop.png",
+      "consoleErrors": [],
+      "checkedStates": [
+        "rendered"
+      ],
+      "visualGap": "Mostly empty mobile sample; complete data/interaction/theme matrix and console errors not certified."
+    },
+    {
+      "viewport": "390",
+      "url": "http://127.0.0.1:18215/business/bizscope/host-bindings",
+      "screenshot": ".harness/evidence/2026-11-13-ops-business-menu-ia-refactor/visual/bizscope-host-bindings-mobile.png",
+      "consoleErrors": [],
+      "checkedStates": [
+        "rendered"
+      ],
+      "visualGap": "Mostly empty mobile sample; complete data/interaction/theme matrix and console errors not certified."
+    },
+    {
+      "viewport": "1440",
+      "url": "http://127.0.0.1:18215/business/bizscope/scopes",
+      "screenshot": ".harness/evidence/2026-11-13-ops-business-menu-ia-refactor/visual/bizscope-scopes-desktop.png",
+      "consoleErrors": [],
+      "checkedStates": [
+        "rendered"
+      ],
+      "visualGap": "Mostly empty mobile sample; complete data/interaction/theme matrix and console errors not certified."
+    },
+    {
+      "viewport": "390",
+      "url": "http://127.0.0.1:18215/business/bizscope/scopes",
+      "screenshot": ".harness/evidence/2026-11-13-ops-business-menu-ia-refactor/visual/bizscope-scopes-mobile.png",
+      "consoleErrors": [],
+      "checkedStates": [
+        "rendered"
+      ],
+      "visualGap": "Mostly empty mobile sample; complete data/interaction/theme matrix and console errors not certified."
+    },
+    {
+      "viewport": "1440",
+      "url": "http://127.0.0.1:18215/business/service-catalog/applications",
+      "screenshot": ".harness/evidence/2026-11-13-ops-business-menu-ia-refactor/visual/service-applications-desktop.png",
+      "consoleErrors": [],
+      "checkedStates": [
+        "rendered"
+      ],
+      "visualGap": "Mostly empty mobile sample; complete data/interaction/theme matrix and console errors not certified."
+    },
+    {
+      "viewport": "390",
+      "url": "http://127.0.0.1:18215/business/service-catalog/applications",
+      "screenshot": ".harness/evidence/2026-11-13-ops-business-menu-ia-refactor/visual/service-applications-mobile.png",
+      "consoleErrors": [],
+      "checkedStates": [
+        "rendered"
+      ],
+      "visualGap": "Mostly empty mobile sample; complete data/interaction/theme matrix and console errors not certified."
+    },
+    {
+      "viewport": "1440",
+      "url": "http://127.0.0.1:18215/business/service-catalog/instances",
+      "screenshot": ".harness/evidence/2026-11-13-ops-business-menu-ia-refactor/visual/service-instances-desktop.png",
+      "consoleErrors": [],
+      "checkedStates": [
+        "rendered"
+      ],
+      "visualGap": "Mostly empty mobile sample; complete data/interaction/theme matrix and console errors not certified."
+    },
+    {
+      "viewport": "390",
+      "url": "http://127.0.0.1:18215/business/service-catalog/instances",
+      "screenshot": ".harness/evidence/2026-11-13-ops-business-menu-ia-refactor/visual/service-instances-mobile.png",
+      "consoleErrors": [],
+      "checkedStates": [
+        "rendered"
+      ],
+      "visualGap": "Mostly empty mobile sample; complete data/interaction/theme matrix and console errors not certified."
+    },
+    {
+      "viewport": "1440",
+      "url": "http://127.0.0.1:18215/business/service-catalog/services",
+      "screenshot": ".harness/evidence/2026-11-13-ops-business-menu-ia-refactor/visual/service-services-desktop.png",
+      "consoleErrors": [],
+      "checkedStates": [
+        "rendered"
+      ],
+      "visualGap": "Mostly empty mobile sample; complete data/interaction/theme matrix and console errors not certified."
+    },
+    {
+      "viewport": "390",
+      "url": "http://127.0.0.1:18215/business/service-catalog/services",
+      "screenshot": ".harness/evidence/2026-11-13-ops-business-menu-ia-refactor/visual/service-services-mobile.png",
+      "consoleErrors": [],
+      "checkedStates": [
+        "rendered"
+      ],
+      "visualGap": "Mostly empty mobile sample; complete data/interaction/theme matrix and console errors not certified."
+    }
+  ],
+  "linkage": {
+    "taskManifest": ".harness/tasks/2026-11-14-ops-latest-foundation-and-plans/manifest.json",
+    "evidenceDir": ".harness/evidence/2026-11-14-ops-latest-foundation-and-plans/",
+    "summaryFile": ".harness/evidence/2026-11-14-ops-latest-foundation-and-plans/summary.md",
+    "reviewFile": ".harness/evidence/2026-11-14-ops-latest-foundation-and-plans/review.md",
+    "changeRef": "none",
+    "planRefs": [
+      ".harness/tasks/2026-11-13-ops-business-menu-ia-refactor/plan.md",
+      ".harness/tasks/2026-11-07-ops-planned-task-closeout/remaining-priorities.md"
+    ]
+  },
+  "r6Continuation": {
+    "activeRelease": "pantheon-base-v0.18.6",
+    "activeCommit": "5553bc0e8ddc006cb7a6b99a46968bf8cf907a49",
+    "candidateRelease": "pantheon-base-v0.18.8",
+    "candidateCommit": "34428814a9efc997fd93d4434406a53df6460323",
+    "candidatePath": ".tmp/ops-v0188-install-r6",
+    "reportSHA256": "e092b077c6d06609c74681198f68bb82089392a2f14958e713dc2c23015cf8c5",
+    "plannedWrites": 165,
+    "plannedDeletes": 0,
+    "attemptedWrites": 60,
+    "all165PreimagesReverified": true,
+    "indexSHA256Unchanged": true,
+    "rollbackArchiveSHA256": "d198d3849da9d108e13ca0e3a4e0a917dda4f2d356c3e27261db2bc313066bec",
+    "planSHA256": "fe0ec035867abf50018bacd7b720dc06142bc869144ab1b84aa18be504a8f80f",
+    "independentReview": "blocked; scope COMMENT",
+    "backend836AndFrontend165MatchValidatedR5": true,
+    "userAuthorizedElevation": true,
+    "elevatedProcessUsed": false,
+    "aclChanged": false,
+    "toolApprovalPolicy": "never",
+    "activeUpgradeComplete": false
+  },
+  "r7Adoption": {
+    "result": "pass",
+    "activeUpgradeComplete": true,
+    "activeRelease": "pantheon-base-v0.18.8",
+    "activeCommit": "34428814a9efc997fd93d4434406a53df6460323",
+    "freshGitHubLookup": true,
+    "standardFetcher": true,
+    "standardAssembler": true,
+    "reportSHA256": "82fabe5c39653f7d4119b3f905e6acea18faac350454a713bdbc86444d0fd4c6",
+    "planSHA256": "5bcadc03c3c75255f94b131f4f6cc81a89c5d5c1798f07a4e966d2843c25e5bc",
+    "rollbackArchiveSHA256": "4c61e95569471045c994fbb245412e91703a27b81192488437331f4b1bea5d3a",
+    "writes": 165,
+    "deletes": 0,
+    "gitIndexUnchanged": true,
+    "gitIndexSHA256": "8157740e3b08e50096041b0645adf518440611028fcf9c8a5748d5cff3d6bf84",
+    "sourceInputFilesCompared": 1487,
+    "sourceInputMismatches": 0,
+    "frontendUnitTestsPassed": 414,
+    "frontendUnitFilesPassed": 57,
+    "overlayTestsPassed": 66,
+    "sharedFilesCompared": 857,
+    "sharedFilesIdentical": 856,
+    "existingAllowedDrift": 1,
+    "businessFilesSkipped": 288,
+    "pairedMigrationFilesVerified": 14,
+    "backendRaceEvidence": "r5-backend-race-retry.json",
+    "backendRaceEvidenceReusedBySourceHash": true,
+    "freshActiveRaceClaimed": false,
+    "browserEvidence": "r5-runtime-smoke-adapted.json",
+    "browserEvidenceReusedBySourceHash": true,
+    "freshActiveSmokeClaimed": false,
+    "nativeRunnerPassed": false,
+    "externalTestsSkipped": 6,
+    "wholeTaskComplete": false,
+    "priorFailureEvidencePreserved": true,
+    "localBaseGitComparison": false,
+    "sharedSourceHandCopied": false,
+    "userAuthorizedElevation": true,
+    "elevatedProcessUsed": false,
+    "aclChanged": false,
+    "logs": [
+      {
+        "name": "candidate-overlay",
+        "file": "overlay-r7.log",
+        "exitCode": 0,
+        "sha256": "fb8b18603495ebedfe41eb5dd15a35ebe0322713aaf6d3a5a8eea42490c7ea43"
+      },
+      {
+        "name": "candidate-shared-drift-cli",
+        "file": "shared-drift-r7.log",
+        "exitCode": 1,
+        "sha256": "2e914948e2300e8b3c8d33267344ff1a8e08fd1451b0d1666f77922f93defafc"
+      },
+      {
+        "name": "candidate-shared-drift-verified-snapshot",
+        "file": "shared-drift-snapshot-r7.log",
+        "exitCode": 0,
+        "sha256": "ce6aad3849fe41d2aa0f0cb2dcd2ecbe1f02dafd391be1908fe15eeeff305edd"
+      },
+      {
+        "name": "overlay-tests",
+        "file": "overlay-tests-r7.log",
+        "exitCode": 0,
+        "sha256": "18276acc9befd0bbe193860e0dcfc184c432cd30f2868ca24c981aef626fb504"
+      },
+      {
+        "name": "installation",
+        "file": "apply-r7.log",
+        "exitCode": 0,
+        "sha256": "2d85d5ef67c150ff3f74dc298ab313d8210213d85d6cec058f21f2ffae800c6d"
+      },
+      {
+        "name": "active-shared-drift",
+        "file": "active-shared-drift-r7.log",
+        "exitCode": 0,
+        "sha256": "386d492d7fd50a7495241a24943623dc89780d21fcf6751ec9c7a15142a45f9d"
+      },
+      {
+        "name": "active-overlay",
+        "file": "active-overlay-r7.log",
+        "exitCode": 0,
+        "sha256": "615aff030b893b0f903c1fd5255f2ecd3927828da14d655cfb9e1f4155ad21bf"
+      },
+      {
+        "name": "active-go-readonly-deps",
+        "file": "active-go-list-r7.log",
+        "exitCode": 0,
+        "sha256": "5ad83349494f8a0da867194224f00b36f43b71ffb3a1792b1b247859027e8957"
+      },
+      {
+        "name": "active-frontend-lint",
+        "file": "active-frontend-lint-r7.log",
+        "exitCode": 0,
+        "sha256": "5f62e7cf7cdd69c014ca18d1c493431139fcbda108704552679bc84c360fd025"
+      },
+      {
+        "name": "active-frontend-build",
+        "file": "active-frontend-build-r7.log",
+        "exitCode": 0,
+        "sha256": "566b0585630fa126a7eb864780df1a81c0eadf1b68bf48266471ab0ccd54b6c2"
+      },
+      {
+        "name": "active-frontend-units",
+        "file": "active-frontend-units-r7.log",
+        "exitCode": 0,
+        "sha256": "45acfca8f1fece157006f44ac9ff39a799811e6da284ba81e97385166e902f08"
+      }
+    ]
+  },
+  "r7FinalAdoption": {
+    "result": "pass",
+    "activeRelease": "pantheon-base-v0.18.8",
+    "baseCommit": "34428814a9efc997fd93d4434406a53df6460323",
+    "initialReportSHA256": "82fabe5c39653f7d4119b3f905e6acea18faac350454a713bdbc86444d0fd4c6",
+    "finalReportSHA256": "240bb969f9a7a11f92a4252577eb325edd4fd68c79c84dc4a12e8f9ab71ed238",
+    "finalPlanSHA256": "697f65b8baec3518eb30547b503bfe52aab3928fafe5f9fc99666859357956fc",
+    "initialInstallationWrites": 165,
+    "finalMetadataWrites": 2,
+    "obsoleteSharedDeletes": 0,
+    "initialRollbackArchiveSHA256": "4c61e95569471045c994fbb245412e91703a27b81192488437331f4b1bea5d3a",
+    "finalRollbackArchiveSHA256": "be0d5547a13616a6bc3ed6082a3caa11996eafca61d3dfa16aa118ab56a851a1",
+    "gitIndexUnchanged": true,
+    "gitIndexSHA256": "8157740e3b08e50096041b0645adf518440611028fcf9c8a5748d5cff3d6bf84",
+    "frontmatterCompatibilityFix": "Removed only scripts/frontmatter-check.mjs from repositoryOverlayPaths; canonical standard assembler inherited the published Base checker",
+    "finalCheckerSHA256": "b744e0573ad20ccbd259011bdb8a0e8655bbf3e30b869e9146a57bfc93173f54",
+    "frontmatterDocumentsChecked": 466,
+    "frontmatterTestsPassed": 15,
+    "businessOverlayTestsPassed": 66,
+    "frontendUnitTestsPassed": 414,
+    "frontendLintTypecheckBuildPassed": true,
+    "goReadonlyDependenciesPassed": true,
+    "sourceInputsCompared": 1487,
+    "sourceMismatches": 0,
+    "freshActiveRaceClaimed": false,
+    "priorRacePackages": 70,
+    "priorRaceTests": 3583,
+    "externalTestsSkipped": 6,
+    "nativeRunnerPassed": false,
+    "upgradeSubtaskComplete": true,
+    "wholePlanningTaskComplete": false,
+    "priorFailedLogsAndBackupsPreserved": true,
+    "localBaseOpsGitComparison": false,
+    "sharedSourceCopiedFromLocalBase": false
+  }
+}

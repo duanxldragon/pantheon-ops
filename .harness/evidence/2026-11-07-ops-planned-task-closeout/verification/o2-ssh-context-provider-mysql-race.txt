@@ -1,0 +1,6 @@
+FAIL	github.com/duanxldragon/pantheon-base/backend/modules/business/deploy [build failed]
+# github.com/duanxldragon/pantheon-base/backend/modules/business/deploy [github.com/duanxldragon/pantheon-base/backend/modules/business/deploy.test]
+modules\business\deploy\deploy_service_test.go:4041:25: cannot use func(cmdbHostSnapshot, StartTaskRequest) (deploySSHRunner, error) {…} (value of type func(cmdbHostSnapshot, StartTaskRequest) (deploySSHRunner, error)) as func(ctx context.Context, host cmdbHostSnapshot, req StartTaskRequest) (deploySSHRunner, error) value in assignment
+modules\business\deploy\deploy_service_test.go:4092:25: cannot use func(cmdbHostSnapshot, StartTaskRequest) (deploySSHRunner, error) {…} (value of type func(cmdbHostSnapshot, StartTaskRequest) (deploySSHRunner, error)) as func(ctx context.Context, host cmdbHostSnapshot, req StartTaskRequest) (deploySSHRunner, error) value in assignment
+modules\business\deploy\deploy_service_test.go:4282:25: cannot use func(cmdbHostSnapshot, StartTaskRequest) (deploySSHRunner, error) {…} (value of type func(cmdbHostSnapshot, StartTaskRequest) (deploySSHRunner, error)) as func(ctx context.Context, host cmdbHostSnapshot, req StartTaskRequest) (deploySSHRunner, error) value in assignment
+FAIL

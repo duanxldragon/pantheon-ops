@@ -1,0 +1,6 @@
+
+> @duanxldragon/pantheon-base-ui@0.11.2 type-check
+> tsc -b
+
+src/modules/business/deploy/task/DeployTargetSelector.tsx(73,40): error TS2322: Type '{ children: Element[]; mode: "multiple"; allowClear: true; allowSearch: true; value: number[]; placeholder: string; "aria-label": string; onChange: (ids: number[]) => void; }' is not assignable to type 'IntrinsicAttributes & SelectProps & RefAttributes<SelectHandle>'.
+  Property 'allowSearch' does not exist on type 'IntrinsicAttributes & SelectProps & RefAttributes<SelectHandle>'.

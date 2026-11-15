@@ -1,0 +1,28 @@
+{
+  "phase": "argo-product-true-provider-run-required",
+  "host": "115.190.251.143",
+  "namespace": "pantheon-p0-argocd-20261109",
+  "script": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\argo-product-live.py",
+  "args": [
+    "--phase",
+    "run"
+  ],
+  "remoteScript": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\argo-product-remote-staged.py",
+  "remoteScriptSHA256": "f5aa4a23fec611e747730c4c00844cef98ea1119337e33a9d4214ef04eec78b4",
+  "localScriptSHA256": "3ec463bd245a3c81fb3f6a6518fe81c61eb58c49f1c40ea914fbc3e38de3742b",
+  "command": [
+    "python",
+    "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\argo-product-live.py",
+    "--phase",
+    "run"
+  ],
+  "approvalReason": "Known local SSH permission errno13 must be handled by the coordinating root tool approval; this leaf does not bypass or retry it",
+  "credentials": "Existing authorized host adapter; Kubernetes Secret references resolved only in remote memory; finite 900-second exact application project token; no credential configuration output",
+  "bounds": {
+    "timeoutSeconds": 500,
+    "retainedCoreMemoryMi": 960,
+    "workloadPods": 0,
+    "cleanup": "exact owned UID/labels; provider retained"
+  },
+  "scope": "New product service/reconciler/provider tests; old provider-only28 not relabeled; current identity authority is fixture-only"
+}

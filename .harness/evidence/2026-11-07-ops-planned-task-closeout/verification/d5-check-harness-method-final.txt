@@ -1,0 +1,10 @@
+
+> check:harness-method
+> node scripts/harness/check-method-health.mjs --root . --strict
+
+Method health check (strict): 0 finding(s), 1 warning(s)
+method kit version: 1.4.0
+repo shell version: 1.4.0
+
+warning: openspec
+  reason: OpenSpec skeleton directory is missing

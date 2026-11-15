@@ -1,0 +1,11 @@
+33	0
+80
+biz_application
+biz_business_scope
+biz_cmdb_host
+biz_cmdb_label_schema
+biz_deploy_credential_ref
+biz_deploy_package
+biz_deploy_template
+biz_k8s_cluster
+biz_service

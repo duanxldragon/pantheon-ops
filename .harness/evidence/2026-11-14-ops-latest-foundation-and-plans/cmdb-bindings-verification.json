@@ -1,0 +1,53 @@
+{
+  "taskId": "2026-11-14-ops-latest-foundation-and-plans",
+  "scope": "CMDB safe permission route bindings",
+  "officialRelease": "pantheon-base-v0.18.8",
+  "baseCommit": "34428814a9efc997fd93d4434406a53df6460323",
+  "verifiedAt": "2026-11-13T22:39:43.954Z",
+  "bindings": {
+    "safeExistingKeys": 20,
+    "pendingGetDetailKeys": [
+      "business:cmdb:host:detail",
+      "business:cmdb:group:detail"
+    ],
+    "pendingReason": "Official Base lacks planned shared static-route guard and coverage classifier; keyMatch2 detail GET policy matches CSV endpoints"
+  },
+  "commands": [
+    {
+      "command": "go test -race -buildvcs=false -mod=readonly ./modules/business/cmdb -run TestHostPermission|TestCMDBRegistered|TestCMDBDetailBinding -count=1",
+      "cwd": ".tmp/ops-v0188-initial/backend",
+      "status": "passed",
+      "packageSeconds": 2.564,
+      "CGO_ENABLED": "1",
+      "mingwPath": "D:/msys64/mingw64/bin"
+    },
+    {
+      "command": "go vet -buildvcs=false -mod=readonly ./modules/business/cmdb",
+      "cwd": ".tmp/ops-v0188-initial/backend",
+      "status": "passed"
+    },
+    {
+      "command": "go build -buildvcs=false -mod=readonly ./modules/business/cmdb/...",
+      "cwd": ".tmp/ops-v0188-initial/backend",
+      "status": "passed"
+    }
+  ],
+  "sourcePins": [
+    {
+      "path": "backend/modules/business/cmdb/permission_routes.go",
+      "sha256": "e3665d0058166d79b7bf892e054c3ade349c9ecb795a60d27e2012906a4ecd08"
+    },
+    {
+      "path": "backend/modules/business/cmdb/permission_routes_test.go",
+      "sha256": "5aafea7ee1aadfb48454730191b0c4eecaf0c77f807268d24ca9f10f55514bb3"
+    },
+    {
+      "path": "backend/modules/business/cmdb/permission_route_actions_test.go",
+      "sha256": "d0d47d143ab6a6a0267b1ca73351f4e7e8942d7696374a19798b8644040ca215"
+    }
+  ],
+  "fullSuite": false,
+  "runtimeAcceptance": false,
+  "remoteMutation": false,
+  "parentTaskClosed": false
+}

@@ -1,0 +1,38 @@
+{
+  "parent": "2026-11-07-ops-planned-task-closeout",
+  "redCommand": "go test -mod=readonly -race -count=1 -timeout=10m ./modules/business/deploy -run '^(TestServiceTransaction|TestIndependentO2)' -v",
+  "redExit": 1,
+  "redPasses": [
+    "TestServiceTransactionLinkedCompletionCommit"
+  ],
+  "redFailures": [
+    "TestIndependentO2CancelBeforeFirstClaimSettles",
+    "TestIndependentO2ServiceProjectionRollsBackWithFinish",
+    "TestServiceTransactionLinkedCompletionRollback",
+    "TestServiceTransactionNonbindingRefusedBeforeMutation"
+  ],
+  "redSkips": [],
+  "redProductionBindings": "source-before.json, matching 46/46 prior stable deploy source files",
+  "historicalPreflight": {
+    "correctedFile": "red-linked-owner-actual.txt",
+    "file": "red-linked-owner.txt",
+    "result": "compile failure: missing nil DataScope arguments; not meaningful RED",
+    "result2": "actual owner rollback failures plus two incorrect manual reservation-row assertions; retained historical artifact"
+  },
+  "finalRed": "red-linked-owner-final.txt: actual owner/unknown capability failures, both independent HIGH reproductions, normal commit control passes",
+  "preflightGreenCommand": "go test -mod=readonly -race -count=1 -timeout=10m ./modules/business/capability ./modules/business/service ./modules/business/deploy -run '^(TestServiceTransaction|TestStateTransaction|TestIndependentO2|TestCancellationUnclaimed|TestDeployTaskRoutesServiceInstance)' -v",
+  "preflightGreenExit": 0,
+  "preflightGreenLog": "preflight-complete.txt",
+  "reviewInputs": [
+    "continue-o2-final-code-report.md",
+    "continue-o2-final-arch-report.md",
+    "o2-engine-ownership-20261110/handoff.md",
+    "o2-engine-ownership-20261110/stable-v2-focused-receipt.json",
+    "o2-engine-ownership-20261110/source-delta-final.json"
+  ],
+  "repairFindings": [
+    "CODE HIGH/ARCH HIGH: actual Service owner escaped outer transaction",
+    "CODE HIGH: cancellation before first claim never settled or released lease"
+  ],
+  "independentApproval": "pending re-review, not source self-approval"
+}

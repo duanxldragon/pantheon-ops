@@ -6,7 +6,7 @@ status: Active
 linked_contracts:
   - docs/contracts/PLATFORM_CONTRACT.md
   - docs/contracts/SYSTEM_CONFIG_CONTRACT.md
-updated_at: 2026-10-31
+updated_at: 2026-11-09
 ---
 
 # Tenant Resource Scope Matrix Template and Global Unique-Key Registry
@@ -28,12 +28,12 @@ design task.
 
 Every resource (table, config, cache, file, async job) must be classified as one of:
 
-| Class | Definition | Tenant filter | Tenant-local unique | Examples |
-| :--- | :--- | :--- | :--- | :--- |
-| `platform-global` | Platform-wide, never split per tenant | never | n/a | platform menus, platform dicts, global settings, platform admins |
-| `tenant-owned` | Rows belong to exactly one tenant | required | default | business documents, tenant config overrides |
-| `tenant-overridable` | Platform default, tenant may override | conditional | composite key | tenant-level setting overrides |
-| `derived` | Aggregates/derivatives inherit source scope | follows source | n/a | aggregates, export files, report caches |
+| Class                | Definition                                  | Tenant filter  | Tenant-local unique | Examples                                                         |
+| :------------------- | :------------------------------------------ | :------------- | :------------------ | :--------------------------------------------------------------- |
+| `platform-global`    | Platform-wide, never split per tenant       | never          | n/a                 | platform menus, platform dicts, global settings, platform admins |
+| `tenant-owned`       | Rows belong to exactly one tenant           | required       | default             | business documents, tenant config overrides                      |
+| `tenant-overridable` | Platform default, tenant may override       | conditional    | composite key       | tenant-level setting overrides                                   |
+| `derived`            | Aggregates/derivatives inherit source scope | follows source | n/a                 | aggregates, export files, report caches                          |
 
 Rules:
 
@@ -43,26 +43,26 @@ Rules:
 
 ## 2. Initial Inventory
 
-| Resource | Current class | Notes |
-| :--- | :--- | :--- |
-| `system_user` | pending contract freeze | membership cardinality undecided |
-| `system_role` / `system_menu` / `system_permission` | pending contract freeze | tenant-local replication undecided |
-| `system_dept` / `system_post` | `tenant-owned` | corrected 2026-10-31 (AUD-009): the previous `platform-global` (leaning) verdict contradicts the code — both tables carry `tenant_id`, services embed `tenant.Scoper` (`backend/modules/system/org/dept/dept_service.go:28`, `backend/modules/system/org/post/post_service.go:26`), stamp `TenantID: s.TenantOwnerID()` on create (`dept_service.go:88`, `post_service.go:144`) and read via `s.Scoped(...)` (`dept_service.go:112/170/190/234`) |
-| system settings | `tenant-overridable` candidate | canary preferred domain (`system/config`) |
-| dictionaries | `tenant-overridable` candidate | platform default + tenant override |
-| audit logs | `derived` (follows write source) | must keep a splittable dimension |
-| export/upload objects | `derived` (follows source) | key must allow a tenant segment |
-| cache keys | `derived` (follows source) | key design must allow a tenant segment |
-| async jobs | `derived` (follows target) | context propagation frozen by contract |
+| Resource                                            | Current class                    | Notes                                                                                                                                                                                                                                                                                                                                                                                                                                            |
+| :-------------------------------------------------- | :------------------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `system_user`                                       | pending contract freeze          | membership cardinality undecided                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| `system_role` / `system_menu` / `system_permission` | pending contract freeze          | tenant-local replication undecided                                                                                                                                                                                                                                                                                                                                                                                                               |
+| `system_dept` / `system_post`                       | `tenant-owned`                   | corrected 2026-10-31 (AUD-009): the previous `platform-global` (leaning) verdict contradicts the code — both tables carry `tenant_id`, services embed `tenant.Scoper` (`backend/modules/system/org/dept/dept_service.go:28`, `backend/modules/system/org/post/post_service.go:26`), stamp `TenantID: s.TenantOwnerID()` on create (`dept_service.go:88`, `post_service.go:144`) and read via `s.Scoped(...)` (`dept_service.go:112/170/190/234`) |
+| system settings                                     | `tenant-overridable` candidate   | canary preferred domain (`system/config`)                                                                                                                                                                                                                                                                                                                                                                                                        |
+| dictionaries                                        | `tenant-overridable` candidate   | platform default + tenant override                                                                                                                                                                                                                                                                                                                                                                                                               |
+| audit logs                                          | `derived` (follows write source) | must keep a splittable dimension                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| export/upload objects                               | `derived` (follows source)       | key must allow a tenant segment                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| cache keys                                          | `derived` (follows source)       | key design must allow a tenant segment                                                                                                                                                                                                                                                                                                                                                                                                           |
+| async jobs                                          | `derived` (follows target)       | context propagation frozen by contract                                                                                                                                                                                                                                                                                                                                                                                                           |
 
 ## 3. Global Unique-Key Registry
 
-| Table | Unique key | Current scope | Target scope | Conflict policy |
-| :--- | :--- | :--- | :--- | :--- |
-| `system_user` | username | platform-global | pending freeze | — |
-| `system_role` | role_key | platform-global | pending freeze | — |
-| `system_setting` | key (or key+scope composite) | platform-global | `tenant-overridable`: composite candidate | freeze at contract |
-| business `biz_*` tables | register per DDL review (**V2 reserved**: as of contract V1.10 no business table is registered and no business table carries `tenant_id`, per `TENANT_CONTRACT_V1.md` §2.6) | per review | per review | per review |
+| Table                   | Unique key                                                                                                                                                                  | Current scope   | Target scope                              | Conflict policy    |
+| :---------------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :-------------- | :---------------------------------------- | :----------------- |
+| `system_user`           | username                                                                                                                                                                    | platform-global | pending freeze                            | —                  |
+| `system_role`           | role_key                                                                                                                                                                    | platform-global | pending freeze                            | —                  |
+| `system_setting`        | key (or key+scope composite)                                                                                                                                                | platform-global | `tenant-overridable`: composite candidate | freeze at contract |
+| business `biz_*` tables | register per DDL review (**V2 reserved**: as of contract V1.10 no business table is registered and no business table carries `tenant_id`, per `TENANT_CONTRACT_V1.md` §2.6) | per review      | per review                                | per review         |
 
 Rules:
 
@@ -94,8 +94,22 @@ claims are implemented and frozen by the tenant contract.
 
 ## 5. Ownership
 
-| Item | Owner task |
-| :--- | :--- |
-| Final resource classification freeze | `2026-09-10-tenant-contract-design` |
-| Unique-key conflict policy and migration order | `2026-09-10-tenant-migration-runbook` |
-| First canary resource selection | `2026-09-10-tenant-canary-slice` (approved by contract reviewer) |
+| Item                                           | Owner task                                                       |
+| :--------------------------------------------- | :--------------------------------------------------------------- |
+| Final resource classification freeze           | `2026-09-10-tenant-contract-design`                              |
+| Unique-key conflict policy and migration order | `2026-09-10-tenant-migration-runbook`                            |
+| First canary resource selection                | `2026-09-10-tenant-canary-slice` (approved by contract reviewer) |
+
+## 4. V2.0-O4 Initial Business Resource Registration (in progress)
+
+This is the authorized target matrix. Migration37, runtime and official paired consumption remain unaccepted; these are not shipped V1 resources. Existing rows remain tenant0 without inferring ownership from department/username; system resource classifications remain.
+
+| Table                       | Scope / indices                                                                                                             | Content and retention                                                                                                              |
+| :-------------------------- | :-------------------------------------------------------------------------------------------------------------------------- | :--------------------------------------------------------------------------------------------------------------------------------- |
+| `obs_prometheus_datasource` | tenant-owned; non-null default0 tenant_id, UNIQUE `(tenant_id,name)`, `(tenant_id,is_default,deleted_at)`, `(tenant_id,id)` | Preserve encrypted config/IDs; reauthorize reads/writes/queries; legacy alerts reference0 only                                     |
+| `obs_query_history`         | tenant+actor-owned; `(tenant_id,actor_id,created_at,id)`, `(tenant_id,datasource_id)`, `(expires_at,id)`                    | Safe metadata/optional server recipe;30days/newest500/2MiB perowner; hard deletion including inaccessible-source owner cleanup     |
+| `obs_saved_view`            | tenant+actor-owned; `(tenant_id,actor_id,updated_at,id)`, `(tenant_id,datasource_id)`                                       | Immutable source, safe recipes/time/limit enums, revision/generated ordinal;50/256KiB perowner, no arbitrary name/automatic expiry |
+| `obs_query_owner_budget`    | tenant+actor-owned; composite PK `(tenant_id,actor_id)`                                                                     | Identity/safe timestamps only; retain empty guards, no request reclamation; consistent owner→datasource→record lock order          |
+| `obs_schema_capability`     | derived; capability PK                                                                                                      | Write only after exact shape validation; retain on down; supported startup also validates actual schema                            |
+
+New private metadata retention/deletion does not authorize legacy data destruction. Source purge serializes with alert reference creation and covers attached private records/budgets without exposing other actors. User/tenant removal uses bounded orphan cleanup; denial is not proof of physical purge. Tenant contract §2.7 and the O4 plan define complete permission/migration/generator/official-consumption gates.

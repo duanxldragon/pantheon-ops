@@ -1,0 +1,37 @@
+(!) Your Vite config uses features that are unsupported by `configLoader: 'native'`, which is planned to become the default in a future major version of Vite:
+  - `__dirname` (vitest.config.ts:10:25). Use `import.meta.dirname` instead
+Set `VITE_CONFIG_NATIVE_IGNORE_WARNING=true` to suppress this warning.
+
+ RUN  v5.0.5 D:/workspace/go/pantheon-platform/pantheon-ops/frontend
+
+ ❯ tests/unit/business/operational/deploy-read-revocation.test.tsx (4 tests | 1 failed) 38ms
+   ❯ task read revocation and generations (4)
+     × ignores old generation forbidden response and callback after task navigation 8ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/unit/business/operational/deploy-read-revocation.test.tsx > task read revocation and generations > ignores old generation forbidden response and callback after task navigation
+AssertionError: expected undefined to be 8 // Object.is equality
+
+- Expected:
+8
+
++ Received:
+undefined
+
+ ❯ tests/unit/business/operational/deploy-read-revocation.test.tsx:53:37
+     51|     rerender({ id: 8 }); await flush();
+     52|     await act(async () => { reject?.({ status: 403 }); oldDeny(); });
+     53|     expect(result.current.task?.id).toBe(8); expect(result.current.err…
+       |                                     ^
+     54|   });
+     55|   it('closes denied stream and ignores departed generation events', ()…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 3 passed (4)
+   Start at  11:37:01
+   Duration  3.80s (import 62%, environment 29%, transform 7%, tests 1%)
+

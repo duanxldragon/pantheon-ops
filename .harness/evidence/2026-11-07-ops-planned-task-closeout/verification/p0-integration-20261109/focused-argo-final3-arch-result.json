@@ -1,0 +1,17 @@
+{
+  "lane": "arch",
+  "role": "architect",
+  "exitCode": 0,
+  "timedOut": false,
+  "elapsedSeconds": 80.656,
+  "report": ".harness\\evidence\\2026-11-07-ops-planned-task-closeout\\verification\\p0-integration-20261109\\focused-argo-final3-arch-review.md",
+  "reviewedHashes": {
+    "backend/modules/business/cicd/argocd/argocd_action.go": "6e0b863b436be6b578e14403af0f6d4248eb1cd0625d676fee5417b9c7c242d2",
+    "backend/modules/business/cicd/argocd/argocd_client.go": "f961df97fbe668d714edb2623962f45a75d81577882f3bf23d369a73a6d2c0fa",
+    "backend/modules/business/cicd/argocd/argocd_action_test.go": "02b26b5180b99d5058f97345c1f56e2b51299c3c26e7153371fff396ef75f4f5",
+    "backend/modules/business/cicd/argocd/argocd_client_test.go": "bcde3d50692dcb201e0993c4ce46f560df2f1a6fdb656b7b1becfccacc15c330"
+  },
+  "modelOverride": false,
+  "authorFallback": false,
+  "scope": "Argo error body redaction and uncertain submission outcome only"
+}

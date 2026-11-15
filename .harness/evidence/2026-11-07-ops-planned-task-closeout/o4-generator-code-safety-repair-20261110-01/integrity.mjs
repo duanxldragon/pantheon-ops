@@ -1,0 +1,33 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import path from 'node:path';
+import crypto from 'node:crypto';
+import { fileURLToPath } from 'node:url';
+import { spawnSync } from 'node:child_process';
+const here = path.dirname(fileURLToPath(import.meta.url));
+const sha = file => crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex');
+const before = JSON.parse(fs.readFileSync(path.join(here, 'before-hashes.json')));
+const original = '.tmp/foundation-candidates/candidate-4315cee606c249a42c8a3372c26dee9a4658a9259229485de85953430c7f439f';
+const descriptor = JSON.parse(fs.readFileSync('.local/ops-acceptance/o4-metadata-bound-current-v2-stable-real/sealed/candidate-descriptor.json'));
+const reportPath = path.join(original, 'assembled/.business-overlay-report.json');
+const report = JSON.parse(fs.readFileSync(reportPath));
+const sources = before.sources.map(p => ({ ...p, afterSha256:sha(p.path), retainedBaselineSha256:sha(p.baselineSource) }));
+const protectedMismatches = before.protectedFiles.filter(p => sha(p.path) !== p.sha256);
+const snapshotMismatches = descriptor.files.filter(p => sha(path.join(original, 'snapshot', p.path)) !== p.sha256);
+const reportMismatches = report.ownedFiles.filter(p => sha(path.join(original, 'assembled', p.path)) !== p.sha256);
+const extra = ['scripts/business-overlay/candidate-ownership.test.mjs'];
+const syntax = [...sources.map(p=>p.path), ...extra].map(file=>({file,...spawnSync(process.execPath,['--check',file],{encoding:'utf8'})}));
+assert.equal(protectedMismatches.length,0); assert.equal(snapshotMismatches.length,0); assert.equal(reportMismatches.length,0);
+assert.ok(sources.every(p=>p.retainedBaselineSha256===p.oldSha256 && p.beforeSha256===p.newSha256));
+assert.ok(syntax.every(p=>p.status===0));
+const patches = [];
+for (const file of [...sources.map(p=>p.path), ...extra]) {
+  const previous = sources.some(p=>p.path===file) ? path.join(here, 'before', file) : 'NUL';
+  const result = spawnSync('git',['diff','--no-index','--no-ext-diff','--',previous,file],{encoding:'utf8'});
+  assert.ok([0,1].includes(result.status),result.stderr);
+  patches.push(result.stdout);
+}
+const output = {taskId:'2026-11-07-ops-planned-task-closeout',sources,extra:extra.map(file=>({path:file,sha256:sha(file)})),protectedFiles:before.protectedFiles.length,protectedMismatches,snapshotFiles:descriptor.files.length,snapshotMismatches,reportFiles:report.ownedFiles.length,reportMismatches,reportSha256:sha(reportPath),syntax:syntax.map(({file,status,stderr})=>({file,status,stderr})),codegraph:'not callable',lsp:'not callable',approval:'Generator evidence only; independent CODE/ARCH required'};
+fs.writeFileSync(path.join(here,'integrity.json'),JSON.stringify(output,null,2)+'\n',{flag:'wx'});
+fs.writeFileSync(path.join(here,'repair-only.patch'),patches.join(''),{flag:'wx'});
+console.log(JSON.stringify({originalSixPins:true,protectedFiles:output.protectedFiles,snapshotFiles:output.snapshotFiles,reportFiles:output.reportFiles,syntaxPassed:syntax.length,allMismatches:0},null,2));

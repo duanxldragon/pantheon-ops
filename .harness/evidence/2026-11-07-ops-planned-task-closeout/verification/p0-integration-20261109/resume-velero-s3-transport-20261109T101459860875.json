@@ -1,0 +1,75 @@
+{
+  "phase": "s3-transport-v1",
+  "exitCode": 1,
+  "provider": "SeaweedFS 4.53",
+  "remoteExecuted": false,
+  "providerReadinessVerified": false,
+  "backupRestoreVerified": false,
+  "minioRetried": false,
+  "images": [
+    {
+      "tag": "docker.io/velero/velero:v1.17.0",
+      "image": "docker.io/velero/velero@sha256:367a1d2deb5adf3acc8056715aefe398850cd33b8d7a68e5a6f1f13b691a1c58",
+      "digest": "sha256:367a1d2deb5adf3acc8056715aefe398850cd33b8d7a68e5a6f1f13b691a1c58",
+      "indexDigest": "sha256:22d17d9a7e9cda10b1ffc63b4baebc35f805a22b203cb5ca65fffee51ddbde92",
+      "registryManifestVerified": true,
+      "platform": "linux/amd64",
+      "configDigest": "sha256:d97ed3c80e05489432fd0e2ae33dd149ca3e3b09b7e07925b16e75bda6a608fd",
+      "compressedBlobBytes": 80877499,
+      "officialBlobsVerified": true,
+      "uncompressedLayerDigestsVerified": true,
+      "cachedArchive": {
+        "file": "velero-velero-v1.17.0.oci.tar",
+        "bytes": 80906240,
+        "sha256": "86b8928b6b053f7bb573df6f6492841f7e96ad03647f9ec9857351c4d267bea4",
+        "format": "oci-image-layout-tar"
+      },
+      "imageVersionSmokeVerified": false
+    },
+    {
+      "tag": "docker.io/velero/velero-plugin-for-aws:v1.13.0",
+      "image": "docker.io/velero/velero-plugin-for-aws@sha256:b6ecf1a86975475d6bf27259ac0c7afbdc6aff2e15dc79f9dc4a0d77f142e558",
+      "digest": "sha256:b6ecf1a86975475d6bf27259ac0c7afbdc6aff2e15dc79f9dc4a0d77f142e558",
+      "indexDigest": "sha256:0b08ec0d150424fa914487e6665d7c84fff0c6a8eca76a23fa6d09e621d36d8a",
+      "registryManifestVerified": true,
+      "platform": "linux/amd64",
+      "configDigest": "sha256:1a2a8fe1e034947415f347630091a3ae8867a8cfd55a806724f38a0b1c772f8d",
+      "compressedBlobBytes": 41501199,
+      "officialBlobsVerified": true,
+      "uncompressedLayerDigestsVerified": true,
+      "cachedArchive": {
+        "file": "velero-velero-plugin-for-aws-v1.13.0.oci.tar",
+        "bytes": 41523200,
+        "sha256": "494a8f752943a96c7a08ddfa1f2059eb07291039b37bca1518566eef41df554e",
+        "format": "oci-image-layout-tar"
+      },
+      "imageVersionSmokeVerified": false
+    }
+  ],
+  "veleroArchive": {
+    "file": "velero-v1.17.0-linux-amd64.tar.gz",
+    "sha256": "f507a956cf8ec00f483f5d7b04901614a9016a10feb32b3ecc968da36b4fc7be",
+    "bytes": 58499469,
+    "origin": "https://github.com/velero-io/velero/releases/download/v1.17.0/velero-v1.17.0-linux-amd64.tar.gz",
+    "checksumOrigin": "https://github.com/velero-io/velero/releases/download/v1.17.0/CHECKSUM"
+  },
+  "veleroBinary": {
+    "bytes": 142581282,
+    "sha256": "e7e14133f1a13d759d43b2bf188cf1a078ffe36184d25f77ae4005fc7c26e739",
+    "format": "ELF64-little-endian-amd64"
+  },
+  "failures": [
+    {
+      "failedStage": "official-seaweed-release-metadata",
+      "errorType": "HTTPError",
+      "httpStatus": 403,
+      "reasonType": "str",
+      "errno": null,
+      "winerror": null,
+      "rawOutputOmitted": true
+    }
+  ],
+  "transportReuseSHA256": "1c2b41d64b18643833b4ed42af60f86226b1a6e95d9bb67c151362b09f451b2c",
+  "failedStage": "official-seaweed-release-metadata",
+  "createdUTC": "2026-11-09T10:14:59.860875+00:00"
+}

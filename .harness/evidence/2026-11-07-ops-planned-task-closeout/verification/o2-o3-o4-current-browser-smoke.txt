@@ -1,0 +1,13 @@
+
+Running 6 tests using 1 worker
+
+(node:9484) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok 1 tests\smoke\business\deploy\deploy-workbench.spec.ts:16:3 › deployment workbench sources, logs, keyboard and mobile (light) (8.4s)
+  ok 2 tests\smoke\business\deploy\deploy-workbench.spec.ts:16:3 › deployment workbench sources, logs, keyboard and mobile (dark) (9.1s)
+  ok 3 tests\smoke\business\k8s\release-preview.spec.ts:7:2 › K8s image preview conflict, same-request retry, rollback and mobile (light) (6.3s)
+  ok 4 tests\smoke\business\k8s\release-preview.spec.ts:7:2 › K8s image preview conflict, same-request retry, rollback and mobile (dark) (6.1s)
+  ok 5 tests\smoke\business\observability-workbench.spec.ts:8:3 › Loki UTC range, cancellation, denial and recovery (light) (6.7s)
+  ok 6 tests\smoke\business\observability-workbench.spec.ts:8:3 › Loki UTC range, cancellation, denial and recovery (dark) (6.4s)
+
+  6 passed (44.0s)

@@ -1,0 +1,6 @@
+# github.com/duanxldragon/pantheon-base/backend/modules/business/k8s/release [github.com/duanxldragon/pantheon-base/backend/modules/business/k8s/release.test]
+modules\business\k8s\release\release_preview_test.go:147:34: unknown field ScopeType in struct literal of type "github.com/duanxldragon/pantheon-base/backend/pkg/common".DataScopeReq
+FAIL	github.com/duanxldragon/pantheon-base/backend/modules/business/k8s/release [build failed]
+ok  	github.com/duanxldragon/pantheon-base/backend/modules/business/k8s/cluster	1.248s
+ok  	github.com/duanxldragon/pantheon-base/backend/modules/business/k8s/pkg	1.104s
+FAIL

@@ -1,0 +1,68 @@
+{
+  "case": "hostkey-negative",
+  "identity": "o2-live-67fc9fadd215-hostkey-negative",
+  "database": "ops_p0_o2_live_67fc9fadd215_hostkey_negative",
+  "databaseRetention": "retained; no drop",
+  "events": [
+    {
+      "credentialId": 1,
+      "packageId": 1,
+      "phase": "task-created",
+      "taskId": 1
+    },
+    {
+      "case": "hostkey-negative",
+      "check": "actual VM host-key mismatch denied by product SSH",
+      "kind": "negative",
+      "passed": false
+    },
+    {
+      "deadlineExceeded": false,
+      "phase": "independent-ssh-handshake",
+      "pinChecked": true,
+      "pinMatched": true
+    },
+    {
+      "deadlineExceeded": false,
+      "exitStatus": 0,
+      "passed": true,
+      "phase": "independent-ssh-command"
+    },
+    {
+      "marker": "done",
+      "ownershipChecked": true,
+      "phase": "independent-marker",
+      "present": false
+    },
+    {
+      "case": "hostkey-negative",
+      "check": "untrusted host never executes marker script",
+      "kind": "negative",
+      "passed": true
+    },
+    {
+      "case": "hostkey-negative",
+      "failed": 1,
+      "negativePassed": 1,
+      "phase": "driver-result",
+      "positivePassed": 0
+    }
+  ],
+  "driverExitCode": 1,
+  "stderrPresent": false,
+  "missingOrFailedDriverSummary": true,
+  "status": "failed",
+  "cleanup": {
+    "phase": "exact-owned-cleanup",
+    "directory": "/opt/pantheon-p0-20261109/o2-live-67fc9fadd215-hostkey-negative",
+    "files": [
+      {
+        "file": ".owner",
+        "sha256": "b263e90db21fdf8f70ef57f4982f89320a06abdb1e2588972bc2a08fb449e91a",
+        "bytes": 37
+      }
+    ],
+    "absent": true,
+    "processKill": false
+  }
+}

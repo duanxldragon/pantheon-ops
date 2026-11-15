@@ -1,0 +1,42 @@
+{
+  "checkerSHA256": "af00ef9be2163371db7ef5773166a0ebd722a850047ab0e9b38faa6416734f5d",
+  "command": [
+    "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.tmp\\node24\\node.exe",
+    "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.tmp\\ops-v0188-final-r5\\scripts\\harness\\check-evidence.mjs",
+    "--json",
+    "--strict",
+    "--root",
+    "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+    ".harness/evidence/2026-11-14-ops-latest-foundation-and-plans/commands.json",
+    ".harness/evidence/2026-11-13-ops-business-menu-ia-refactor/commands.json"
+  ],
+  "exitCode": 1,
+  "mode": "strict",
+  "fileCount": 2,
+  "errorCount": 6,
+  "warningCount": 0,
+  "historicalErrorCount": 0,
+  "currentSchemaFrom": "2026-10-26",
+  "results": [
+    {
+      "file": ".harness/evidence/2026-11-14-ops-latest-foundation-and-plans/commands.json",
+      "errors": [
+        "root.runtimeMetrics must be a string or an array of strings when present.",
+        "taskManifest.goal must be a non-empty string.",
+        "root.linkage.reviewFile does not exist: .harness/evidence/2026-11-14-ops-latest-foundation-and-plans/review.md"
+      ],
+      "warnings": [],
+      "historicalErrors": []
+    },
+    {
+      "file": ".harness/evidence/2026-11-13-ops-business-menu-ia-refactor/commands.json",
+      "errors": [
+        "root.runtimeMetrics must be a string or an array of strings when present.",
+        "root.linkage.reviewFile does not exist: .harness/evidence/2026-11-13-ops-business-menu-ia-refactor/review.md",
+        "root.linkage.summaryFile does not exist: .harness/evidence/2026-11-13-ops-business-menu-ia-refactor/summary.md"
+      ],
+      "warnings": [],
+      "historicalErrors": []
+    }
+  ]
+}

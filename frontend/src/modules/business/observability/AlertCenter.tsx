@@ -1,6 +1,7 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Button, Card, Form, Input, InputNumber, Message, Popconfirm, Select, Space, Switch, Tabs, Tag } from '@arco-design/web-react';
+import { useSearchParams } from 'react-router-dom';
+import { Alert, Button, Card, Form, Input, InputNumber, Message, Popconfirm, Select, Space, Switch, Tabs, Tag } from '@arco-design/web-react';
 import { IconDelete, IconPlus } from '@arco-design/web-react/icon';
 import type { ColumnProps } from '@arco-design/web-react/es/Table/interface';
 import type { FormInstance } from '@arco-design/web-react/es/Form';
@@ -107,6 +108,10 @@ function buildChannelColumns(options: {
 export default function AlertCenter() {
   const { t } = useTranslation();
   const { hasPerm } = usePermission();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const generation = useRef(0);
+  const statusFilter = searchParams.get('status') === 'error' ? 'error' : undefined;
+  const keywordFilter = searchParams.get('keyword')?.slice(0, 128);
   const [rules, setRules] = useState<AlertRuleRow[]>([]);
   const [events, setEvents] = useState<AlertEventRow[]>([]);
   const [channels, setChannels] = useState<NotificationChannelRow[]>([]);
@@ -123,30 +128,35 @@ export default function AlertCenter() {
   const canUpdateRule = hasPerm('business:observability:alert_rule:update');
   const canDeleteRule = hasPerm('business:observability:alert_rule:delete');
   const canManageChannels = hasPerm('business:observability:notification:update');
+  const canViewDatasources = hasPerm('business:observability:metric_source:view');
 
   const load = useCallback(async () => {
+    const current = ++generation.current;
     setLoading(true);
     setError(null);
     try {
       const [ruleResponse, eventResponse, channelResponse, datasourceResponse] = await Promise.all([
-        getAlertRuleList({ page: 1, pageSize: 100 }),
+        getAlertRuleList({ page: 1, pageSize: 100, status: statusFilter, keyword: keywordFilter }),
         getAlertEventList({ page: 1, pageSize: 100 }),
         getNotificationChannelList(),
-        getDatasourceList(),
+        canViewDatasources ? getDatasourceList() : Promise.resolve({ items: [] }),
       ]);
+      if (current !== generation.current) return;
       setRules(ruleResponse.items);
       setEvents(eventResponse.items);
       setChannels(channelResponse.items);
       setDatasources(datasourceResponse.items.filter((item) => item.type === 'prometheus' || item.type === 'victoriametrics'));
     } catch (requestError) {
+      if (current !== generation.current) return;
       setError(requestError);
     } finally {
-      setLoading(false);
+      if (current === generation.current) setLoading(false);
     }
-  }, []);
+  }, [statusFilter, keywordFilter, canViewDatasources]);
 
   useEffect(() => {
     queueMicrotask(() => void load());
+    return () => { generation.current++; };
   }, [load]);
 
   const submitRule = useCallback(async () => {
@@ -182,14 +192,14 @@ export default function AlertCenter() {
     }
   }, [channelForm, load, t]);
 
-  const ruleColumns = useMemo<ColumnProps<AlertRuleRow>[]>(
+  const ruleColumns = useMemo<ColumnProps<AlertRuleRow>[]>( // eslint-disable-next-line react-hooks/refs -- load reads a ref only in event handlers (onChange/onOk); never during render
     () => buildRuleColumns({ t, canDeleteRule, canUpdateRule, load }),
     [canDeleteRule, canUpdateRule, load, t],
   );
 
   const eventColumns = useMemo<ColumnProps<AlertEventRow>[]>(() => buildEventColumns(t), [t]);
 
-  const channelColumns = useMemo<ColumnProps<NotificationChannelRow>[]>(
+  const channelColumns = useMemo<ColumnProps<NotificationChannelRow>[]>( // eslint-disable-next-line react-hooks/refs -- load reads a ref only in event handlers (onChange/onOk); never during render
     () => buildChannelColumns({ t, canManageChannels, load }),
     [canManageChannels, load, t],
   );
@@ -203,6 +213,10 @@ export default function AlertCenter() {
           { key: 'firing', label: t('business.observability.alertCenter.hero.firing'), value: events.filter((item) => item.status === 'firing').length },
           { key: 'channels', label: t('business.observability.alertCenter.hero.channels'), value: channels.length },
         ]} />
+        {statusFilter || keywordFilter ? <Alert type="info" content={t('business.dashboard.alertFilter', { name: keywordFilter ?? '' })} closable onClose={() => {
+          const next = new URLSearchParams(searchParams);
+          next.delete('status'); next.delete('keyword'); setSearchParams(next);
+        }} /> : null}
         {loading && rules.length === 0 && events.length === 0 ? <PageLoading /> : null}
         {error && rules.length === 0 && events.length === 0 ? <PageError onRetry={() => void load()} /> : null}
         {!error ? <AlertTabs t={t} loading={loading} rules={rules} events={events} channels={channels} datasources={datasources} ruleColumns={ruleColumns} eventColumns={eventColumns} channelColumns={channelColumns} canCreateRule={canCreateRule} canManageChannels={canManageChannels} onAddRule={() => setRuleVisible(true)} onAddChannel={() => setChannelVisible(true)} /> : null}

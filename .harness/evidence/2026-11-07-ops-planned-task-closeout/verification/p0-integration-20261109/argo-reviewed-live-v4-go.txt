@@ -1,0 +1,21 @@
+=== RUN   TestArgoFinalProductLive
+    argocd_final_live_test.go:122: PRODUCT_CHECK real provider preview contains added Service and no literal values
+    argocd_final_live_test.go:125: PRODUCT_CHECK product persists acceptance separately from terminal
+    argocd_final_live_test.go:127: PRODUCT_CHECK product exact terminal first revision matches actual Service
+    argocd_final_live_test.go:129: PRODUCT_CHECK real provider diff identifies routing change without selector literal
+    argocd_final_live_test.go:131: PRODUCT_CHECK previous review cannot execute another target
+    argocd_final_live_test.go:135: PRODUCT_CHECK product second terminal matches actual Service
+    argocd_final_live_test.go:137: PRODUCT_CHECK real history rollback preview is reviewed
+    argocd_final_live_test.go:141: PRODUCT_CHECK product historical source rollback restores actual Service
+    argocd_final_live_test.go:145: PRODUCT_CHECK current authority revocation overrides stale caller IsAdmin/all
+    argocd_final_live_test.go:158: PRODUCT_CHECK actual provider acceptance plus lost response remains durable Unknown
+    argocd_final_live_test.go:162: PRODUCT_CHECK same review recovers exact durable Unknown without redispatch
+    argocd_final_live_test.go:166: PRODUCT_CHECK same review recovers exact provider terminal without redispatch
+    argocd_final_live_test.go:167: PRODUCT_CHECK new reconciler recovers original unknown action to exact terminal
+    argocd_final_live_test.go:172: PRODUCT_CHECK history has one row per submitted action and no private marker
+    argocd_final_live_test.go:185: PRODUCT_CHECK provider received exactly four mutations including uncertain submission
+    argocd_final_live_test.go:193: PRODUCT_CHECK real provider credential revocation prevents product preview and mutation
+    argocd_final_live_test.go:194: PRODUCT_SCOPE real ArgoCDService/preview/action/reconciler + real provider; current identity authority is an explicit test fixture; full Base auth/HTTP/audit/public origin are not covered
+--- PASS: TestArgoFinalProductLive (29.95s)
+PASS
+ok  	github.com/duanxldragon/pantheon-base/backend/modules/business/cicd/argocd	31.032s

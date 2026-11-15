@@ -7,12 +7,19 @@ import { spawnSync } from 'node:child_process';
 import test from 'node:test';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
-import { rebuildFromBase, assembleConsumerTree, assertSafeManifest } from '../../../scripts/business-overlay/rebuild-from-base.mjs';
+import { rebuildFromBase, assembleConsumerTree, assertSafeManifest, verifyBusinessDerivedOutputs, selectOverlayInputs } from '../../../scripts/business-overlay/rebuild-from-base.mjs';
+import { captureSelectedInputs } from '../../../scripts/business-overlay/foundation-candidate.mjs';
 
 const rebuildModulePath = pathToFileURL(
   path.resolve('scripts/business-overlay/rebuild-from-base.mjs'),
 ).href;
 const { validateReleaseBundleChecksum } = await import(rebuildModulePath);
+
+const retainedBaseDocuments = [
+  '.harness/tasks/2026-11-07-ops-formal-queue-foundation-gaps/o4-tenant-implementation-plan.md',
+  '.harness/evidence/2026-11-13-v0188-release-preparation/summary.md',
+  '.harness/evidence/2026-11-13-v0188-release-preparation/smoke-empty-readiness/summary.md',
+];
 
 function git(root, args) {
   const result = spawnSync('git', args, { cwd: root, encoding: 'utf8' });
@@ -48,13 +55,113 @@ function rebuildFixture({ baseRoot, ...options }) {
   return assembleConsumerTree({ ...options, snapshot: { baseRoot, baseCommit: commit } });
 }
 
+test('overlay selection preserves tracked worktree deletion without changing the index', () => {
+  const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'pantheon-overlay-deleted-'));
+  const opsRoot = path.join(temp, 'ops');
+  const obsolete = 'frontend/src/modules/business/service/ServiceCatalog.tsx';
+  const retained = 'frontend/src/modules/business/service/ServiceList.tsx';
+  const manifest = {
+    schemaVersion: 1, businessPaths: ['frontend/src/modules/business/service'],
+    repositoryOverlayPaths: [], backendModules: [], frontendModules: [], components: [], businessSmokeScripts: [],
+  };
+  try {
+    fixtureRepository(opsRoot, {
+      [obsolete]: 'export default function ServiceCatalog() {}\n',
+      [retained]: 'export default function ServiceList() {}\n',
+      'business-overlay.json': JSON.stringify(manifest), 'foundation-release.lock.json': '{}\n',
+      'package.json': '{"scripts":{}}\n', 'frontend/package.json': '{"scripts":{}}\n',
+    });
+    const indexBefore = fs.readFileSync(path.join(opsRoot, '.git/index'));
+    fs.unlinkSync(path.join(opsRoot, obsolete));
+    const deleted = selectOverlayInputs(opsRoot, manifest);
+    assert.deepEqual(deleted.gitFiles, [retained]);
+    assert.equal(deleted.files.includes(obsolete), false);
+    const deletion = deleted.gitEntries.find(entry => entry.path === obsolete);
+    assert.equal(deletion.deleted, true);
+    assert.match(deletion.index, /^100644 [a-f0-9]{40,64} 0$/u);
+    assert.doesNotThrow(() => captureSelectedInputs(opsRoot, deleted));
+    assert.deepEqual(fs.readFileSync(path.join(opsRoot, '.git/index')), indexBefore);
+
+    write(opsRoot, obsolete, 'export default function RestoredCatalog() {}\n');
+    const restored = selectOverlayInputs(opsRoot, manifest);
+    assert.equal(restored.gitFiles.includes(obsolete), true);
+    assert.equal(restored.gitEntries.find(entry => entry.path === obsolete).deleted, undefined);
+    assert.notDeepEqual(restored, deleted, 'candidate selection must detect reappearance');
+
+    fs.rmSync(path.join(opsRoot, manifest.businessPaths[0]), { recursive: true });
+    const missingRoot = selectOverlayInputs(opsRoot, manifest);
+    assert.throws(() => captureSelectedInputs(opsRoot, missingRoot), { code: 'ENOENT' });
+    const baseRoot = path.join(temp, 'base');
+    fs.mkdirSync(baseRoot);
+    assert.throws(() => assembleConsumerTree({ opsRoot, targetRoot: path.join(temp, 'target'),
+      snapshot: { baseRoot, baseCommit: 'fixture' } }), /Declared overlay path does not exist/u);
+  } finally {
+    fs.rmSync(temp, { recursive: true, force: true });
+  }
+});
+
+test('tracked dangling links are rejected rather than treated as worktree deletions', t => {
+  const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'pantheon-overlay-deleted-link-'));
+  const file = 'frontend/src/modules/business/service/ServiceCatalog.tsx';
+  const manifest = { businessPaths: ['frontend/src/modules/business/service'], repositoryOverlayPaths: [] };
+  try {
+    fixtureRepository(temp, { [file]: 'export default function Catalog() {}\n' });
+    fs.unlinkSync(path.join(temp, file));
+    try {
+      fs.symlinkSync(path.join(temp, 'nonexistent-target'), path.join(temp, file),
+        process.platform === 'win32' ? 'junction' : 'file');
+    } catch (error) {
+      if (process.platform === 'win32' && ['EPERM', 'EACCES'].includes(error.code)) {
+        t.skip('Windows link capability is unavailable');
+        return;
+      }
+      throw error;
+    }
+    assert.throws(() => selectOverlayInputs(temp, manifest), /real directories and regular files/u);
+  } finally {
+    fs.rmSync(temp, { recursive: true, force: true });
+  }
+});
+
+test('optional preflight identifiers are validated before normal assembly and canonical replay', () => {
+  const manifest = {
+    schemaVersion: 1,
+    businessPaths: ['backend/modules/business/opsinit'],
+    backendModules: [{ alias: 'opsinit', importPath: 'pantheon-base/modules/business/opsinit', init: 'Init' }],
+    frontendModules: [], components: [], businessSmokeScripts: [],
+  };
+  assert.doesNotThrow(() => assertSafeManifest(manifest));
+  assert.doesNotThrow(() => assertSafeManifest({ ...manifest, backendModules: [{ ...manifest.backendModules[0], preflight: 'Preflight' }] }));
+  for (const preflight of [undefined, null, false, 12, {}, [], '', ' ', 'Readiness()', 'foo.bar', 'x;panic(1)', '../Preflight']) {
+    const invalid = { ...manifest, backendModules: [{ ...manifest.backendModules[0], preflight }] };
+    assert.throws(() => assertSafeManifest(invalid), /preflight must be a nonempty identifier/u);
+    assert.throws(() => verifyBusinessDerivedOutputs({ root: 'unused', snapshot: { baseCommit: 'fixture' }, manifest: invalid }), /preflight must be a nonempty identifier/u);
+  }
+  const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'pantheon-preflight-invalid-'));
+  try {
+    const manifestPath = path.join(temp, 'business-overlay.json');
+    const targetRoot = path.join(temp, 'target');
+    write(temp, 'business-overlay.json', JSON.stringify({ ...manifest, backendModules: [{ ...manifest.backendModules[0], preflight: null }] }));
+    assert.throws(() => assembleConsumerTree({ opsRoot: temp, targetRoot, manifestPath }), /preflight must be a nonempty identifier/u);
+    assert.equal(fs.existsSync(targetRoot), false);
+  } finally {
+    fs.rmSync(temp, { recursive: true, force: true });
+  }
+});
+
 test('rebuilds a deterministic Base snapshot with generated business registries', () => {
   const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'pantheon-overlay-'));
   const baseRoot = path.join(temp, 'base');
   const opsRoot = path.join(temp, 'ops');
   const targetRoot = path.join(temp, 'target');
+  const currentManifest = JSON.parse(fs.readFileSync(path.resolve('business-overlay.json'), 'utf8'));
   try {
     fixtureRepository(baseRoot, {
+      ...Object.fromEntries(retainedBaseDocuments.map(file => [file, 'official Base documentation dependency\n'])),
+      '.harness/archive/2026-09/evidence/unrelated/review.md': 'unrelated Base archive\n',
+      '.harness/evidence/2026-11-13-v0188-release-preparation/review.md': 'unrelated Base review\n',
+      '.harness/tasks/2026-11-07-ops-formal-queue-foundation-gaps/manifest.json': '{}\n',
+      '.harness/state/local.json': '{}\n',
       'package.json': '{"scripts":{}}\n',
       'frontend/package.json': '{"scripts":{}}\n',
       'frontend/tests/smoke/README.md': '# Smoke\n',
@@ -102,16 +209,19 @@ test('rebuilds a deterministic Base snapshot with generated business registries'
       sourceModule: 'pantheon-ops/backend',
       goDependencies: { 'gorm.io/datatypes': 'v1.2.7' },
       replaceRoots: ['docs'],
-      baseExcludedPaths: ['scripts/foundation-release'],
+      baseExcludedPaths: ['scripts/foundation-release', ...currentManifest.baseExcludedPaths.filter(file => file.startsWith('.harness/'))],
       businessPaths: ['backend/modules/business/cmdb', 'frontend/src/modules/business/cmdb'],
       businessMigrations: ['backend/modules/business/cmdb/host/migrations/000032_backfill.up.sql', 'backend/modules/business/cmdb/host/migrations/000032_backfill.down.sql'],
-      repositoryOverlayPaths: ['scripts/business-overlay'],
+      repositoryOverlayPaths: ['scripts/business-overlay', '.harness', '.gitignore'],
       backendModules: [{ alias: 'cmdb', importPath: 'pantheon-base/modules/business/cmdb', init: 'InitCmdbModule' }],
       frontendModules: [{ export: 'CmdbModule', importPath: './business/cmdb' }],
       components: [{ key: 'business/cmdb/CmdbList', importPath: '../../modules/business/cmdb/CmdbList' }],
       businessSmokeScripts: ['test:smoke:business:cmdb'],
     };
     fixtureRepository(opsRoot, {
+      '.gitignore': retainedBaseDocuments.map(file => '/' + file).join('\n') + '\n',
+      '.harness/evidence/current-ops/summary.md': 'current Ops evidence\n',
+      ...Object.fromEntries(retainedBaseDocuments.map(file => [file, 'stale local input must not override Base\n'])),
       'business-overlay.json': `${JSON.stringify(manifest)}\n`,
       'package.json': '{"scripts":{}}\n',
       'backend/go.sum': 'gorm.io/datatypes v1.2.7 h1:test\ngorm.io/datatypes v1.2.7/go.mod h1:testmod\n',
@@ -129,8 +239,23 @@ test('rebuilds a deterministic Base snapshot with generated business registries'
       'scripts/business-overlay/rebuild-from-base.mjs': '// fixture\n',
     });
 
+    write(opsRoot, 'business-overlay.json', JSON.stringify({ ...manifest, replaceRoots: [...manifest.replaceRoots, '.harness'] }));
+    rebuildFixture({ opsRoot, baseRoot, targetRoot });
+    assert.equal(retainedBaseDocuments.filter(file => !fs.existsSync(path.join(targetRoot, file))).length, 3, 'the previous broad replacement loses all three linked Base dependencies');
+    write(opsRoot, 'business-overlay.json', JSON.stringify(manifest));
     const first = rebuildFixture({ opsRoot, baseRoot, targetRoot });
     const firstReport = fs.readFileSync(path.join(targetRoot, '.business-overlay-report.json'), 'utf8');
+    for (const file of retainedBaseDocuments) {
+      assert.equal(fs.readFileSync(path.join(targetRoot, file), 'utf8'), 'official Base documentation dependency\n');
+      assert.equal(first.report.ownedFiles.some(entry => entry.path === file), false, 'inherited documentation is not Ops-owned');
+    }
+    fixtureRepository(targetRoot, {});
+    const consumerSelection = selectOverlayInputs(targetRoot, manifest);
+    assert.equal(retainedBaseDocuments.some(file => consumerSelection.gitFiles.includes(file)), false, 'a rebuilt consumer cannot select inherited Base dependencies as Ops inputs');
+    assert.equal(fs.readFileSync(path.join(targetRoot, '.harness/evidence/current-ops/summary.md'), 'utf8'), 'current Ops evidence\n');
+    for (const file of ['.harness/archive/2026-09/evidence/unrelated/review.md', '.harness/evidence/2026-11-13-v0188-release-preparation/review.md', '.harness/tasks/2026-11-07-ops-formal-queue-foundation-gaps/manifest.json', '.harness/state/local.json']) {
+      assert.equal(fs.existsSync(path.join(targetRoot, file)), false, 'unrelated Base governance is not imported');
+    }
     assert.equal(fs.readFileSync(path.join(targetRoot, 'backend/pkg/database/migrations/000031_foundation.up.sql'), 'utf8'), 'SELECT 31;\n');
     for (const direction of ['up', 'down']) {
       const target = `backend/pkg/database/migrations/000032_backfill.${direction}.sql`;
@@ -164,6 +289,7 @@ test('rebuilds a deterministic Base snapshot with generated business registries'
     assert.match(fs.readFileSync(path.join(targetRoot, 'frontend/src/core/router/componentRegistry.ts'), 'utf8'), /\.\.\.businessOverlayComponentRegistry/u);
     assert.match(fs.readFileSync(path.join(targetRoot, 'backend/modules/system/iam/menu/component_registry.go'), 'utf8'), /businessOverlayMenuComponentKeys/u);
     const overlayRegistry = fs.readFileSync(path.join(targetRoot, 'backend/modules/business/business_overlay_registry.go'), 'utf8');
+    assert.doesNotMatch(overlayRegistry, /RegisterBusinessInitializationPreflight|preflightOverlayBusinessModules/u);
     write(targetRoot, 'backend/modules/business/generated_registry.go', 'package business\n// temporary orderqa registry\n');
     assert.equal(fs.readFileSync(path.join(targetRoot, 'backend/modules/business/business_overlay_registry.go'), 'utf8'), overlayRegistry);
     write(targetRoot, 'backend/modules/business/generated_registry.go', 'package business\nfunc InitGeneratedBusinessModules(r any, db any) {}\n');
@@ -172,7 +298,9 @@ test('rebuilds a deterministic Base snapshot with generated business registries'
     assert.equal(fs.existsSync(path.join(targetRoot, 'scripts/foundation-release/publish.mjs')), false);
     assert.equal(checkOverlay(opsRoot).status, 0, checkOverlay(opsRoot).stderr);
     assert.equal(checkOverlay(targetRoot).status, 0, checkOverlay(targetRoot).stderr);
+    write(baseRoot, retainedBaseDocuments[0], 'new official Base documentation dependency\n');
     const second = rebuildFixture({ opsRoot, baseRoot, targetRoot });
+    assert.equal(fs.readFileSync(path.join(targetRoot, retainedBaseDocuments[0]), 'utf8'), 'new official Base documentation dependency\n', 'new official bytes replace stale ignored local inputs');
     assert.equal(fs.readFileSync(path.join(targetRoot, '.business-overlay-report.json'), 'utf8'), firstReport);
     assert.deepEqual(second.report, first.report);
     write(targetRoot, 'foundation-release.lock.json', JSON.stringify({ sharedPaths: { backend: ['backend/pkg/database/migrations'] } }));
@@ -181,6 +309,64 @@ test('rebuilds a deterministic Base snapshot with generated business registries'
     ], { encoding: 'utf8' });
     assert.equal(drift.status, 0, drift.stderr);
     assert.match(drift.stdout, /2 derived business migrations verified/u);
+
+    // Compile and execute the normal generator output against a small public
+    // hook fixture. The actual Base hook/retired SQL is verified separately in
+    // Base tests and in the fresh candidate's real standard-entry MySQL probe.
+    const preflightBusiness = [
+      'package business',
+      'import ("github.com/gin-gonic/gin"; "gorm.io/gorm"; "pantheon-base/pkg/fixturestate")',
+      'var fixturePreflight func(*gorm.DB) error',
+      'func RegisterBusinessInitializationPreflight(fn func(*gorm.DB) error) error { fixturestate.Registrations++; fixturePreflight = fn; return nil }',
+      'func InitBusinessModules(r *gin.RouterGroup, db *gorm.DB) {',
+      ' if fixturePreflight != nil { if err := fixturePreflight(db); err != nil { panic(err) } }',
+      ' fixturestate.Events = append(fixturestate.Events, "cleanup")',
+      '\tInitGeneratedBusinessModules(r, db)',
+      '}',
+    ].join('\n');
+    write(baseRoot, 'backend/modules/business/business.go', preflightBusiness);
+    write(baseRoot, 'backend/pkg/fixturestate/state.go', 'package fixturestate\nimport "errors"\nvar Events []string\nvar Fail string\nvar Registrations int\nvar ErrRejected = errors.New("fixture.preflight_rejected")\n');
+    const moduleSource = name => [
+      `package ${name}`,
+      'import ("github.com/gin-gonic/gin"; "gorm.io/gorm"; "pantheon-ops/backend/pkg/fixturestate")',
+      `func Preflight(*gorm.DB) error { fixturestate.Events = append(fixturestate.Events, "${name}.preflight"); if fixturestate.Fail == "${name}" { return fixturestate.ErrRejected }; return nil }`,
+      `func InitModule(*gin.RouterGroup, *gorm.DB) { fixturestate.Events = append(fixturestate.Events, "${name}.init") }`,
+    ].join('\n');
+    write(opsRoot, 'backend/modules/business/cmdb/module.go', moduleSource('cmdb'));
+    write(opsRoot, 'backend/modules/business/other/module.go', moduleSource('other'));
+    manifest.businessPaths.push('backend/modules/business/other');
+    manifest.backendModules = [
+      { alias: 'cmdb', importPath: 'pantheon-base/modules/business/cmdb', init: 'InitModule', preflight: 'Preflight' },
+      { alias: 'other', importPath: 'pantheon-base/modules/business/other', init: 'InitModule', preflight: 'Preflight' },
+    ];
+    write(opsRoot, 'business-overlay.json', JSON.stringify(manifest));
+    write(baseRoot, 'backend/cmd/fixture/main.go', [
+      'package main',
+      'import ("encoding/json"; "errors"; "fmt"; "os"; "pantheon-base/modules/business"; "pantheon-base/pkg/fixturestate")',
+      'func main() { fixturestate.Fail = os.Args[1]; var caught any; func() { defer func(){caught=recover()}(); business.InitBusinessModules(nil,nil) }(); cause,_:=caught.(error); body,_:=json.Marshal(map[string]any{"events":fixturestate.Events,"registrations":fixturestate.Registrations,"rejected":errors.Is(cause,fixturestate.ErrRejected)}); fmt.Println(string(body)) }',
+    ].join('\n'));
+    rebuildFixture({ opsRoot, baseRoot, targetRoot });
+    const registered = fs.readFileSync(path.join(targetRoot, 'backend/modules/business/business_overlay_registry.go'), 'utf8');
+    assert.equal(registered.match(/RegisterBusinessInitializationPreflight\(/gu)?.length, 1);
+    assert.ok(registered.indexOf('cmdb.Preflight(db)') < registered.indexOf('other.Preflight(db)'));
+    const expected = {
+      cmdb: { events: ['cmdb.preflight'], registrations: 1, rejected: true },
+      other: { events: ['cmdb.preflight', 'other.preflight'], registrations: 1, rejected: true },
+      healthy: { events: ['cmdb.preflight', 'other.preflight', 'cleanup', 'cmdb.init', 'other.init'], registrations: 1, rejected: false },
+    };
+    for (const [mode, result] of Object.entries(expected)) {
+      const executed = spawnSync('go', ['run', '-buildvcs=false', '-mod=readonly', './cmd/fixture', mode], { cwd: path.join(targetRoot, 'backend'), encoding: 'utf8' });
+      assert.equal(executed.status, 0, executed.stderr);
+      assert.deepEqual(JSON.parse(executed.stdout), result);
+    }
+    // go list does not typecheck function references. An actual compile must
+    // refuse an older candidate lacking the public hook; never fall back.
+    write(baseRoot, 'backend/modules/business/business.go', 'package business\nimport ("github.com/gin-gonic/gin"; "gorm.io/gorm")\nfunc InitBusinessModules(r *gin.RouterGroup, db *gorm.DB) {\n\tInitGeneratedBusinessModules(r, db)\n}\n');
+    rebuildFixture({ opsRoot, baseRoot, targetRoot });
+    const incompatible = spawnSync('go', ['build', '-buildvcs=false', '-mod=readonly', './cmd/fixture'], { cwd: path.join(targetRoot, 'backend'), encoding: 'utf8' });
+    assert.notEqual(incompatible.status, 0);
+    assert.match(incompatible.stderr, /undefined: RegisterBusinessInitializationPreflight/u);
+
     write(opsRoot, 'backend/modules/business/cmdb/broken.go', 'package cmdb\nimport _ "gorm.io/datatypes/missing"\n');
     assert.throws(() => rebuildFixture({ opsRoot, baseRoot, targetRoot }), /Cannot normalize consumer Go dependencies/u);
     assert.equal(fs.existsSync(path.join(targetRoot, '.business-overlay-report.json')), false);

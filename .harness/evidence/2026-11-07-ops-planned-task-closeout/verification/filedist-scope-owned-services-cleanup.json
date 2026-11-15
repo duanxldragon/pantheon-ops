@@ -1,0 +1,15 @@
+{
+  "stoppedPids": [
+    23412,
+    22632
+  ],
+  "identityVerified": true,
+  "raceExitCode": 0,
+  "dataRetained": true,
+  "sourceUnchanged": true,
+  "method": "Exact binary/parent/listener/datadir verification, durable1/1 restore, graceful shutdown, no deletion",
+  "settingsRestored": [
+    1,
+    1
+  ]
+}

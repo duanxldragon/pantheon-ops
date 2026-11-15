@@ -1,0 +1,1420 @@
+TAP version 13
+# DERIVED_BUSINESS_VERIFIED 19 canonical assembler outputs (report hashes checked)
+# LEGACY_ALLOWLIST_SUPERSEDED backend/modules/business/business.go (canonical assembly verified; entry grants no exemption)
+# LEGACY_ALLOWLIST_SUPERSEDED frontend/src/core/router/modules.ts (canonical assembly verified; entry grants no exemption)
+# OK shared drift check: 3 shared files compared, 3 identical to base, 0 allowlisted drift, 0 business-overlay files skipped, 2 derived business migrations verified (base=D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\continue-20261111-copy-binding-tmp\\ops-candidate-v7ANuC\\ops\\.tmp\\foundation-candidates\\candidate-5e4757c4069b55bdacd523289dd85f7d9786ce939f06f5ece1610f7bf627fad1\\snapshot)
+# Subtest: copy inlet authenticates same-length returned Base bytes before writing
+ok 1 - copy inlet authenticates same-length returned Base bytes before writing
+  ---
+  duration_ms: 2457.3048
+  type: 'test'
+  ...
+# Subtest: copy inlet authenticates same-length returned Ops bytes before writing
+ok 2 - copy inlet authenticates same-length returned Ops bytes before writing
+  ---
+  duration_ms: 4656.0555
+  type: 'test'
+  ...
+# Subtest: copy inlet authenticates same-length returned metadata bytes before writing
+ok 3 - copy inlet authenticates same-length returned metadata bytes before writing
+  ---
+  duration_ms: 4502.863
+  type: 'test'
+  ...
+# Subtest: assembler source reads authenticate Base, Ops and metadata and reject unknown inputs
+    # Subtest: ops\\.tmp\\foundation-candidates\\candidate-5e4757c4069b55bdacd523289dd85f7d9786ce939f06f5ece1610f7bf627fad1\\snapshot\\package.json
+    ok 1 - ops\\.tmp\\foundation-candidates\\candidate-5e4757c4069b55bdacd523289dd85f7d9786ce939f06f5ece1610f7bf627fad1\\snapshot\\package.json
+      ---
+      duration_ms: 41.4382
+      type: 'test'
+      ...
+    # Subtest: ops\\package.json
+    ok 2 - ops\\package.json
+      ---
+      duration_ms: 24.0437
+      type: 'test'
+      ...
+    # Subtest: ops\\.harness\\report.md
+    ok 3 - ops\\.harness\\report.md
+      ---
+      duration_ms: 29.0511
+      type: 'test'
+      ...
+    1..3
+ok 4 - assembler source reads authenticate Base, Ops and metadata and reject unknown inputs
+  ---
+  duration_ms: 2067.1132
+  type: 'test'
+  ...
+# Subtest: frozen archive reads keep exact retained-release bounds and verify returned size
+ok 5 - frozen archive reads keep exact retained-release bounds and verify returned size
+  ---
+  duration_ms: 275.6304
+  type: 'test'
+  ...
+# Subtest: authenticated copy preserves import rewrite, metadata and all five locale fallbacks
+ok 6 - authenticated copy preserves import rewrite, metadata and all five locale fallbacks
+  ---
+  duration_ms: 9701.0159
+  type: 'test'
+  ...
+# DERIVED_BUSINESS_VERIFIED 19 canonical assembler outputs (report hashes checked)
+# ALLOWED_DRIFT docs/base.md — fixture deliberate exclusion
+# OK shared drift check: 3 shared files compared, 2 identical to base, 1 allowlisted drift, 0 business-overlay files skipped, 2 derived business migrations verified (base=D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\continue-20261111-copy-binding-tmp\\ops-candidate-1rJXPv\\ops\\.tmp\\foundation-candidates\\candidate-5e4757c4069b55bdacd523289dd85f7d9786ce939f06f5ece1610f7bf627fad1\\snapshot)
+# DERIVED_BUSINESS_VERIFIED 19 canonical assembler outputs (report hashes checked)
+# ALLOWED_DRIFT docs/base.md — fixture deliberate exclusion
+# OK shared drift check: 3 shared files compared, 2 identical to base, 1 allowlisted drift, 0 business-overlay files skipped, 2 derived business migrations verified (base=D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\continue-20261111-copy-binding-tmp\\ops-candidate-lx3fAC\\ops\\.tmp\\foundation-candidates\\candidate-5e4757c4069b55bdacd523289dd85f7d9786ce939f06f5ece1610f7bf627fad1\\snapshot)
+# DERIVED_BUSINESS_VERIFIED 19 canonical assembler outputs (report hashes checked)
+# LEGACY_ALLOWLIST_SUPERSEDED backend/modules/business/business.go (canonical assembly verified; entry grants no exemption)
+# LEGACY_ALLOWLIST_SUPERSEDED frontend/src/core/router/modules.ts (canonical assembly verified; entry grants no exemption)
+# OK shared drift check: 3 shared files compared, 3 identical to base, 0 allowlisted drift, 0 business-overlay files skipped, 2 derived business migrations verified (base=D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\continue-20261111-copy-binding-tmp\\ops-candidate-kJJmpO\\ops\\.tmp\\foundation-candidates\\candidate-5e4757c4069b55bdacd523289dd85f7d9786ce939f06f5ece1610f7bf627fad1\\snapshot)
+# Subtest: independent HIGH1: observed directory replacement refuses copy and preserves foreign bytes
+ok 7 - independent HIGH1: observed directory replacement refuses copy and preserves foreign bytes
+  ---
+  duration_ms: 1294.3107
+  type: 'test'
+  ...
+# Subtest: independent HIGH1: replacement at native copy/open cannot clobber or emit fixture success receipt
+ok 8 - independent HIGH1: replacement at native copy/open cannot clobber or emit fixture success receipt
+  ---
+  duration_ms: 2214.9091
+  type: 'test'
+  ...
+# Subtest: independent HIGH2: mkdir interception never authorizes foreign directory deletion
+ok 9 - independent HIGH2: mkdir interception never authorizes foreign directory deletion
+  ---
+  duration_ms: 1680.9107
+  type: 'test'
+  ...
+# Subtest: independent HIGH3: unknown ordinary sibling rejects whole cleanup preflight before any deletion
+ok 10 - independent HIGH3: unknown ordinary sibling rejects whole cleanup preflight before any deletion
+  ---
+  duration_ms: 1656.8401
+  type: 'test'
+  ...
+# Subtest: independent MEDIUM4: docs/base.md exclusion preserves drift validation and produces fixture receipt
+ok 11 - independent MEDIUM4: docs/base.md exclusion preserves drift validation and produces fixture receipt
+  ---
+  duration_ms: 8030.59
+  type: 'test'
+  ...
+# Subtest: independent MEDIUM4: docs exclusion preserves drift validation and produces fixture receipt
+ok 12 - independent MEDIUM4: docs exclusion preserves drift validation and produces fixture receipt
+  ---
+  duration_ms: 8066.0799
+  type: 'test'
+  ...
+# Subtest: file exclusions require recorded exclusive-created identity; replacement and unknown file remain
+ok 13 - file exclusions require recorded exclusive-created identity; replacement and unknown file remain
+  ---
+  duration_ms: 1803.9516
+  type: 'test'
+  ...
+# Subtest: root and assembler directory cleanup is explicitly deferred with no mutation or success
+ok 14 - root and assembler directory cleanup is explicitly deferred with no mutation or success
+  ---
+  duration_ms: 1449.5302
+  type: 'test'
+  ...
+# Subtest: receipt open rechecks every ancestor and never writes into a replacement target
+ok 15 - receipt open rechecks every ancestor and never writes into a replacement target
+  ---
+  duration_ms: 7322.4307
+  type: 'test'
+  ...
+# Subtest: existing-file open never truncates a replaced regular file
+ok 16 - existing-file open never truncates a replaced regular file
+  ---
+  duration_ms: 1280.1878
+  type: 'test'
+  ...
+# Subtest: replacement during descriptor write preserves foreign file and rejects publication
+ok 17 - replacement during descriptor write preserves foreign file and rejects publication
+  ---
+  duration_ms: 1456.8858
+  type: 'test'
+  ...
+# Subtest: unknown sibling blocks known file exclusion before first unlink
+ok 18 - unknown sibling blocks known file exclusion before first unlink
+  ---
+  duration_ms: 1652.0398
+  type: 'test'
+  ...
+# Subtest: final target validation refuses a recorded file or directory removed from the observed tree
+ok 19 - final target validation refuses a recorded file or directory removed from the observed tree
+  ---
+  duration_ms: 1655.0496
+  type: 'test'
+  ...
+# Subtest: Go normalization uses alternate modfiles and imports through owned descriptors
+ok 20 - Go normalization uses alternate modfiles and imports through owned descriptors
+  ---
+  duration_ms: 1925.295
+  type: 'test'
+  ...
+# Subtest: Go boundary rejects observed ancestor replacement before import and preserves primary failure
+ok 21 - Go boundary rejects observed ancestor replacement before import and preserves primary failure
+  ---
+  duration_ms: 1831.6727
+  type: 'test'
+  ...
+# Subtest: throwing Go primary object and nested cause survive identity validation
+ok 22 - throwing Go primary object and nested cause survive identity validation
+  ---
+  duration_ms: 1653.9076
+  type: 'test'
+  ...
+# DERIVED_BUSINESS_VERIFIED 19 canonical assembler outputs (report hashes checked)
+# LEGACY_ALLOWLIST_SUPERSEDED backend/modules/business/business.go (canonical assembly verified; entry grants no exemption)
+# LEGACY_ALLOWLIST_SUPERSEDED frontend/src/core/router/modules.ts (canonical assembly verified; entry grants no exemption)
+# OK shared drift check: 3 shared files compared, 3 identical to base, 0 allowlisted drift, 0 business-overlay files skipped, 2 derived business migrations verified (base=D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\continue-20261111-copy-binding-tmp\\ops-candidate-pBDDLY\\ops\\.tmp\\foundation-candidates\\candidate-5e4757c4069b55bdacd523289dd85f7d9786ce939f06f5ece1610f7bf627fad1\\snapshot)
+# DERIVED_BUSINESS_VERIFIED 19 canonical assembler outputs (report hashes checked)
+# LEGACY_ALLOWLIST_SUPERSEDED backend/modules/business/business.go (canonical assembly verified; entry grants no exemption)
+# LEGACY_ALLOWLIST_SUPERSEDED frontend/src/core/router/modules.ts (canonical assembly verified; entry grants no exemption)
+# OK shared drift check: 3 shared files compared, 3 identical to base, 0 allowlisted drift, 0 business-overlay files skipped, 2 derived business migrations verified (base=D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\continue-20261111-copy-binding-tmp\\ops-candidate-9oe1Ik\\ops\\.tmp\\foundation-candidates\\candidate-5e4757c4069b55bdacd523289dd85f7d9786ce939f06f5ece1610f7bf627fad1\\snapshot)
+# DERIVED_BUSINESS_VERIFIED 19 canonical assembler outputs (report hashes checked)
+# LEGACY_ALLOWLIST_SUPERSEDED backend/modules/business/business.go (canonical assembly verified; entry grants no exemption)
+# LEGACY_ALLOWLIST_SUPERSEDED frontend/src/core/router/modules.ts (canonical assembly verified; entry grants no exemption)
+# OK shared drift check: 3 shared files compared, 3 identical to base, 0 allowlisted drift, 0 business-overlay files skipped, 2 derived business migrations verified (base=D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\continue-20261111-copy-binding-tmp\\ops-candidate-nRz2m7\\ops\\.tmp\\foundation-candidates\\candidate-5e4757c4069b55bdacd523289dd85f7d9786ce939f06f5ece1610f7bf627fad1\\snapshot)
+# DERIVED_BUSINESS_VERIFIED 19 canonical assembler outputs (report hashes checked)
+# LEGACY_ALLOWLIST_SUPERSEDED backend/modules/business/business.go (canonical assembly verified; entry grants no exemption)
+# LEGACY_ALLOWLIST_SUPERSEDED frontend/src/core/router/modules.ts (canonical assembly verified; entry grants no exemption)
+# OK shared drift check: 3 shared files compared, 3 identical to base, 0 allowlisted drift, 0 business-overlay files skipped, 2 derived business migrations verified (base=D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\continue-20261111-copy-binding-tmp\\ops-candidate-c70yLs\\ops\\.tmp\\foundation-candidates\\candidate-5e4757c4069b55bdacd523289dd85f7d9786ce939f06f5ece1610f7bf627fad1\\snapshot)
+# DERIVED_BUSINESS_VERIFIED 19 canonical assembler outputs (report hashes checked)
+# LEGACY_ALLOWLIST_SUPERSEDED backend/modules/business/business.go (canonical assembly verified; entry grants no exemption)
+# LEGACY_ALLOWLIST_SUPERSEDED frontend/src/core/router/modules.ts (canonical assembly verified; entry grants no exemption)
+# OK shared drift check: 3 shared files compared, 3 identical to base, 0 allowlisted drift, 0 business-overlay files skipped, 2 derived business migrations verified (base=D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\continue-20261111-copy-binding-tmp\\ops-candidate-e4W425\\ops\\.tmp\\foundation-candidates\\candidate-5e4757c4069b55bdacd523289dd85f7d9786ce939f06f5ece1610f7bf627fad1\\snapshot)
+# DERIVED_BUSINESS_VERIFIED 19 canonical assembler outputs (report hashes checked)
+# LEGACY_ALLOWLIST_SUPERSEDED backend/modules/business/business.go (canonical assembly verified; entry grants no exemption)
+# LEGACY_ALLOWLIST_SUPERSEDED frontend/src/core/router/modules.ts (canonical assembly verified; entry grants no exemption)
+# OK shared drift check: 3 shared files compared, 3 identical to base, 0 allowlisted drift, 0 business-overlay files skipped, 2 derived business migrations verified (base=D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\continue-20261111-copy-binding-tmp\\ops-candidate-MDm40w\\ops\\.tmp\\foundation-candidates\\candidate-5e4757c4069b55bdacd523289dd85f7d9786ce939f06f5ece1610f7bf627fad1\\snapshot)
+# DERIVED_BUSINESS_VERIFIED 19 canonical assembler outputs (report hashes checked)
+# LEGACY_ALLOWLIST_SUPERSEDED backend/modules/business/business.go (canonical assembly verified; entry grants no exemption)
+# LEGACY_ALLOWLIST_SUPERSEDED frontend/src/core/router/modules.ts (canonical assembly verified; entry grants no exemption)
+# OK shared drift check: 3 shared files compared, 3 identical to base, 0 allowlisted drift, 0 business-overlay files skipped, 2 derived business migrations verified (base=D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\continue-20261111-copy-binding-tmp\\ops-candidate-HdHr0E\\ops\\.tmp\\foundation-candidates\\candidate-50d60d2703f5b55ca0303a0e587fe290a8b37f6770bff10665b8aa7574a1b410\\snapshot)
+# DERIVED_BUSINESS_VERIFIED 19 canonical assembler outputs (report hashes checked)
+# LEGACY_ALLOWLIST_SUPERSEDED backend/modules/business/business.go (canonical assembly verified; entry grants no exemption)
+# LEGACY_ALLOWLIST_SUPERSEDED frontend/src/core/router/modules.ts (canonical assembly verified; entry grants no exemption)
+# OK shared drift check: 3 shared files compared, 3 identical to base, 0 allowlisted drift, 0 business-overlay files skipped, 2 derived business migrations verified (base=D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\continue-20261111-copy-binding-tmp\\ops-candidate-grDY3E\\ops\\.tmp\\foundation-candidates\\candidate-5e4757c4069b55bdacd523289dd85f7d9786ce939f06f5ece1610f7bf627fad1\\snapshot)
+# DERIVED_BUSINESS_VERIFIED 19 canonical assembler outputs (report hashes checked)
+# LEGACY_ALLOWLIST_SUPERSEDED backend/modules/business/business.go (canonical assembly verified; entry grants no exemption)
+# LEGACY_ALLOWLIST_SUPERSEDED frontend/src/core/router/modules.ts (canonical assembly verified; entry grants no exemption)
+# OK shared drift check: 3 shared files compared, 3 identical to base, 0 allowlisted drift, 0 business-overlay files skipped, 2 derived business migrations verified (base=D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\continue-20261111-copy-binding-tmp\\ops-candidate-ZEtL4Z\\ops\\.tmp\\foundation-candidates\\candidate-5e4757c4069b55bdacd523289dd85f7d9786ce939f06f5ece1610f7bf627fad1\\snapshot)
+# ALLOWLIST_NOT_COMPARED frontend/package.json (outside selected shared path coverage; no equality claim)
+# ALLOWLIST_NOT_COMPARED frontend/scripts/cleanup-generated-modules.mjs (outside selected shared path coverage; no equality claim)
+# ALLOWLIST_NOT_COMPARED frontend/tests/smoke/README.md (outside selected shared path coverage; no equality claim)
+# DERIVED_BUSINESS_VERIFIED 19 canonical assembler outputs (report hashes checked)
+# LEGACY_ALLOWLIST_SUPERSEDED backend/modules/business/business.go (canonical assembly verified; entry grants no exemption)
+# LEGACY_ALLOWLIST_SUPERSEDED backend/modules/business/business_overlay_registry.go (canonical assembly verified; entry grants no exemption)
+# LEGACY_ALLOWLIST_SUPERSEDED backend/modules/system/iam/menu/business_overlay_component_registry.go (canonical assembly verified; entry grants no exemption)
+# LEGACY_ALLOWLIST_SUPERSEDED backend/modules/system/iam/menu/component_registry.go (canonical assembly verified; entry grants no exemption)
+# LEGACY_ALLOWLIST_SUPERSEDED frontend/src/core/router/businessOverlayComponentRegistry.ts (canonical assembly verified; entry grants no exemption)
+# LEGACY_ALLOWLIST_SUPERSEDED frontend/src/core/router/componentRegistry.ts (canonical assembly verified; entry grants no exemption)
+# LEGACY_ALLOWLIST_SUPERSEDED frontend/src/core/router/modules.ts (canonical assembly verified; entry grants no exemption)
+# OK shared drift check: 3 shared files compared, 3 identical to base, 0 allowlisted drift, 9 business-overlay files skipped, 2 derived business migrations verified (base=D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\continue-20261111-copy-binding-tmp\\ops-candidate-yRCKyB\\ops\\.tmp\\foundation-candidates\\candidate-5e4757c4069b55bdacd523289dd85f7d9786ce939f06f5ece1610f7bf627fad1\\snapshot)
+# DERIVED_BUSINESS_VERIFIED 19 canonical assembler outputs (report hashes checked)
+# LEGACY_ALLOWLIST_SUPERSEDED backend/modules/business/business.go (canonical assembly verified; entry grants no exemption)
+# LEGACY_ALLOWLIST_SUPERSEDED backend/modules/business/business_overlay_registry.go (canonical assembly verified; entry grants no exemption)
+# LEGACY_ALLOWLIST_SUPERSEDED backend/modules/system/iam/menu/business_overlay_component_registry.go (canonical assembly verified; entry grants no exemption)
+# LEGACY_ALLOWLIST_SUPERSEDED backend/modules/system/iam/menu/component_registry.go (canonical assembly verified; entry grants no exemption)
+# LEGACY_ALLOWLIST_SUPERSEDED frontend/package.json (canonical assembly verified; entry grants no exemption)
+# LEGACY_ALLOWLIST_SUPERSEDED frontend/scripts/cleanup-generated-modules.mjs (canonical assembly verified; entry grants no exemption)
+# LEGACY_ALLOWLIST_SUPERSEDED frontend/src/core/router/businessOverlayComponentRegistry.ts (canonical assembly verified; entry grants no exemption)
+# LEGACY_ALLOWLIST_SUPERSEDED frontend/src/core/router/componentRegistry.ts (canonical assembly verified; entry grants no exemption)
+# LEGACY_ALLOWLIST_SUPERSEDED frontend/src/core/router/modules.ts (canonical assembly verified; entry grants no exemption)
+# LEGACY_ALLOWLIST_SUPERSEDED frontend/tests/smoke/README.md (canonical assembly verified; entry grants no exemption)
+# OK shared drift check: 3 shared files compared, 3 identical to base, 0 allowlisted drift, 9 business-overlay files skipped, 2 derived business migrations verified (base=D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\continue-20261111-copy-binding-tmp\\ops-candidate-H94lKq\\ops\\.tmp\\foundation-candidates\\candidate-5e4757c4069b55bdacd523289dd85f7d9786ce939f06f5ece1610f7bf627fad1\\snapshot)
+# DERIVED_BUSINESS_VERIFIED 19 canonical assembler outputs (report hashes checked)
+# LEGACY_ALLOWLIST_SUPERSEDED backend/modules/business/business.go (canonical assembly verified; entry grants no exemption)
+# LEGACY_ALLOWLIST_SUPERSEDED backend/modules/business/business_overlay_registry.go (canonical assembly verified; entry grants no exemption)
+# LEGACY_ALLOWLIST_SUPERSEDED backend/modules/system/iam/menu/business_overlay_component_registry.go (canonical assembly verified; entry grants no exemption)
+# LEGACY_ALLOWLIST_SUPERSEDED backend/modules/system/iam/menu/component_registry.go (canonical assembly verified; entry grants no exemption)
+# LEGACY_ALLOWLIST_SUPERSEDED frontend/package.json (canonical assembly verified; entry grants no exemption)
+# LEGACY_ALLOWLIST_SUPERSEDED frontend/scripts/cleanup-generated-modules.mjs (canonical assembly verified; entry grants no exemption)
+# LEGACY_ALLOWLIST_SUPERSEDED frontend/src/core/router/businessOverlayComponentRegistry.ts (canonical assembly verified; entry grants no exemption)
+# LEGACY_ALLOWLIST_SUPERSEDED frontend/src/core/router/componentRegistry.ts (canonical assembly verified; entry grants no exemption)
+# LEGACY_ALLOWLIST_SUPERSEDED frontend/src/core/router/modules.ts (canonical assembly verified; entry grants no exemption)
+# STALE_ALLOWLIST frontend/tests/smoke/README.md (no longer drifted; remove from .foundation/allowed-drift.json)
+# FAIL shared drift check: 0 modified, 0 missing in base, 1 stale allowlist (3 shared files compared, 9 business-overlay files skipped, 2 derived business migrations verified, base=D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\continue-20261111-copy-binding-tmp\\ops-candidate-AjvqrK\\ops\\.tmp\\foundation-candidates\\candidate-5e4757c4069b55bdacd523289dd85f7d9786ce939f06f5ece1610f7bf627fad1\\snapshot)
+# ALLOWLIST_NOT_COMPARED frontend/package.json (outside selected shared path coverage; no equality claim)
+# ALLOWLIST_NOT_COMPARED frontend/scripts/cleanup-generated-modules.mjs (outside selected shared path coverage; no equality claim)
+# ALLOWLIST_NOT_COMPARED frontend/tests/smoke/README.md (outside selected shared path coverage; no equality claim)
+# DERIVED_BUSINESS_VERIFIED 19 canonical assembler outputs (report hashes checked)
+# LEGACY_ALLOWLIST_SUPERSEDED backend/modules/business/business.go (canonical assembly verified; entry grants no exemption)
+# LEGACY_ALLOWLIST_SUPERSEDED backend/modules/business/business_overlay_registry.go (canonical assembly verified; entry grants no exemption)
+# LEGACY_ALLOWLIST_SUPERSEDED backend/modules/system/iam/menu/business_overlay_component_registry.go (canonical assembly verified; entry grants no exemption)
+# LEGACY_ALLOWLIST_SUPERSEDED backend/modules/system/iam/menu/component_registry.go (canonical assembly verified; entry grants no exemption)
+# LEGACY_ALLOWLIST_SUPERSEDED frontend/src/core/router/businessOverlayComponentRegistry.ts (canonical assembly verified; entry grants no exemption)
+# DRIFT_MODIFIED backend/pkg/contracts/module.go
+# FAIL shared drift check: 1 modified, 0 missing in base, 0 stale allowlist (3 shared files compared, 9 business-overlay files skipped, 2 derived business migrations verified, base=D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\continue-20261111-copy-binding-tmp\\ops-candidate-syxXIz\\ops\\.tmp\\foundation-candidates\\candidate-5e4757c4069b55bdacd523289dd85f7d9786ce939f06f5ece1610f7bf627fad1\\snapshot)
+# LEGACY_ALLOWLIST_SUPERSEDED frontend/src/core/router/componentRegistry.ts (canonical assembly verified; entry grants no exemption)
+# LEGACY_ALLOWLIST_SUPERSEDED frontend/src/core/router/modules.ts (canonical assembly verified; entry grants no exemption)
+# ALLOWLIST_NOT_COMPARED frontend/package.json (outside selected shared path coverage; no equality claim)
+# ALLOWLIST_NOT_COMPARED frontend/scripts/cleanup-generated-modules.mjs (outside selected shared path coverage; no equality claim)
+# ALLOWLIST_NOT_COMPARED frontend/tests/smoke/README.md (outside selected shared path coverage; no equality claim)
+# DERIVED_BUSINESS_VERIFIED 19 canonical assembler outputs (report hashes checked)
+# LEGACY_ALLOWLIST_SUPERSEDED backend/modules/business/business.go (canonical assembly verified; entry grants no exemption)
+# LEGACY_ALLOWLIST_SUPERSEDED backend/modules/business/business_overlay_registry.go (canonical assembly verified; entry grants no exemption)
+# LEGACY_ALLOWLIST_SUPERSEDED backend/modules/system/iam/menu/business_overlay_component_registry.go (canonical assembly verified; entry grants no exemption)
+# LEGACY_ALLOWLIST_SUPERSEDED backend/modules/system/iam/menu/component_registry.go (canonical assembly verified; entry grants no exemption)
+# LEGACY_ALLOWLIST_SUPERSEDED frontend/src/core/router/businessOverlayComponentRegistry.ts (canonical assembly verified; entry grants no exemption)
+# LEGACY_ALLOWLIST_SUPERSEDED frontend/src/core/router/componentRegistry.ts (canonical assembly verified; entry grants no exemption)
+# LEGACY_ALLOWLIST_SUPERSEDED frontend/src/core/router/modules.ts (canonical assembly verified; entry grants no exemption)
+# OK shared drift check: 3 shared files compared, 3 identical to base, 0 allowlisted drift, 9 business-overlay files skipped, 2 derived business migrations verified (base=D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\continue-20261111-copy-binding-tmp\\ops-candidate-TDDP0b\\ops\\.tmp\\foundation-candidates\\candidate-5e4757c4069b55bdacd523289dd85f7d9786ce939f06f5ece1610f7bf627fad1\\snapshot)
+# ALLOWLIST_NOT_COMPARED frontend/package.json (outside selected shared path coverage; no equality claim)
+# ALLOWLIST_NOT_COMPARED frontend/scripts/cleanup-generated-modules.mjs (outside selected shared path coverage; no equality claim)
+# ALLOWLIST_NOT_COMPARED frontend/tests/smoke/README.md (outside selected shared path coverage; no equality claim)
+# DERIVED_BUSINESS_VERIFIED 19 canonical assembler outputs (report hashes checked)
+# LEGACY_ALLOWLIST_SUPERSEDED backend/modules/business/business.go (canonical assembly verified; entry grants no exemption)
+# LEGACY_ALLOWLIST_SUPERSEDED backend/modules/business/business_overlay_registry.go (canonical assembly verified; entry grants no exemption)
+# LEGACY_ALLOWLIST_SUPERSEDED backend/modules/system/iam/menu/business_overlay_component_registry.go (canonical assembly verified; entry grants no exemption)
+# LEGACY_ALLOWLIST_SUPERSEDED backend/modules/system/iam/menu/component_registry.go (canonical assembly verified; entry grants no exemption)
+# LEGACY_ALLOWLIST_SUPERSEDED frontend/src/core/router/businessOverlayComponentRegistry.ts (canonical assembly verified; entry grants no exemption)
+# LEGACY_ALLOWLIST_SUPERSEDED frontend/src/core/router/componentRegistry.ts (canonical assembly verified; entry grants no exemption)
+# LEGACY_ALLOWLIST_SUPERSEDED frontend/src/core/router/modules.ts (canonical assembly verified; entry grants no exemption)
+# OK shared drift check: 3 shared files compared, 3 identical to base, 0 allowlisted drift, 9 business-overlay files skipped, 2 derived business migrations verified (base=D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\continue-20261111-copy-binding-tmp\\ops-candidate-TDDP0b\\ops\\.tmp\\foundation-candidates\\candidate-5e4757c4069b55bdacd523289dd85f7d9786ce939f06f5ece1610f7bf627fad1\\snapshot)
+# ALLOWLIST_NOT_COMPARED frontend/package.json (outside selected shared path coverage; no equality claim)
+# ALLOWLIST_NOT_COMPARED frontend/scripts/cleanup-generated-modules.mjs (outside selected shared path coverage; no equality claim)
+# ALLOWLIST_NOT_COMPARED frontend/tests/smoke/README.md (outside selected shared path coverage; no equality claim)
+# DERIVED_BUSINESS_VERIFIED 19 canonical assembler outputs (report hashes checked)
+# LEGACY_ALLOWLIST_SUPERSEDED backend/modules/business/business.go (canonical assembly verified; entry grants no exemption)
+# LEGACY_ALLOWLIST_SUPERSEDED backend/modules/business/business_overlay_registry.go (canonical assembly verified; entry grants no exemption)
+# LEGACY_ALLOWLIST_SUPERSEDED backend/modules/system/iam/menu/business_overlay_component_registry.go (canonical assembly verified; entry grants no exemption)
+# LEGACY_ALLOWLIST_SUPERSEDED backend/modules/system/iam/menu/component_registry.go (canonical assembly verified; entry grants no exemption)
+# LEGACY_ALLOWLIST_SUPERSEDED frontend/src/core/router/businessOverlayComponentRegistry.ts (canonical assembly verified; entry grants no exemption)
+# LEGACY_ALLOWLIST_SUPERSEDED frontend/src/core/router/componentRegistry.ts (canonical assembly verified; entry grants no exemption)
+# LEGACY_ALLOWLIST_SUPERSEDED frontend/src/core/router/modules.ts (canonical assembly verified; entry grants no exemption)
+# OK shared drift check: 3 shared files compared, 3 identical to base, 0 allowlisted drift, 9 business-overlay files skipped, 2 derived business migrations verified (base=D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\continue-20261111-copy-binding-tmp\\ops-candidate-iaHjaV\\ops\\.tmp\\foundation-candidates\\candidate-5e4757c4069b55bdacd523289dd85f7d9786ce939f06f5ece1610f7bf627fad1\\snapshot)
+# DERIVED_BUSINESS_VERIFIED 19 canonical assembler outputs (report hashes checked)
+# LEGACY_ALLOWLIST_SUPERSEDED backend/modules/business/business.go (canonical assembly verified; entry grants no exemption)
+# LEGACY_ALLOWLIST_SUPERSEDED frontend/src/core/router/modules.ts (canonical assembly verified; entry grants no exemption)
+# OK shared drift check: 3 shared files compared, 3 identical to base, 0 allowlisted drift, 0 business-overlay files skipped, 2 derived business migrations verified (base=D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\continue-20261111-copy-binding-tmp\\ops-candidate-1BDKms\\ops\\.tmp\\foundation-candidates\\candidate-5e4757c4069b55bdacd523289dd85f7d9786ce939f06f5ece1610f7bf627fad1\\snapshot)
+# DERIVED_BUSINESS_VERIFIED 19 canonical assembler outputs (report hashes checked)
+# DRIFT_MODIFIED docs/base.md
+# FAIL shared drift check: 1 modified, 0 missing in base, 0 stale allowlist (3 shared files compared, 0 business-overlay files skipped, 2 derived business migrations verified, base=D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\continue-20261111-copy-binding-tmp\\ops-candidate-PcxOLy\\ops\\.tmp\\foundation-candidates\\candidate-5e4757c4069b55bdacd523289dd85f7d9786ce939f06f5ece1610f7bf627fad1\\snapshot)
+# Subtest: declared metadata count accepts 100000 unique files and refuses 100001
+ok 23 - declared metadata count accepts 100000 unique files and refuses 100001
+  ---
+  duration_ms: 63407.3459
+  type: 'test'
+  ...
+# Subtest: candidate inventory and tar retain the independent 50000 file boundary
+ok 24 - candidate inventory and tar retain the independent 50000 file boundary
+  ---
+  duration_ms: 21905.1552
+  type: 'test'
+  ...
+# Subtest: captured retained archives stream within explicit metadata bounds
+ok 25 - captured retained archives stream within explicit metadata bounds
+  ---
+  duration_ms: 335.86
+  type: 'test'
+  ...
+# Subtest: chunked capture rejects actual file changes while reading
+    # Subtest: truncate
+    ok 1 - truncate
+      ---
+      duration_ms: 16.1002
+      type: 'test'
+      ...
+    # Subtest: grow
+    ok 2 - grow
+      ---
+      duration_ms: 16.5666
+      type: 'test'
+      ...
+    # Subtest: mutate
+    ok 3 - mutate
+      ---
+      duration_ms: 17.4756
+      type: 'test'
+      ...
+    # Subtest: replace
+    ok 4 - replace
+      ---
+      duration_ms: 30.2309
+      type: 'test'
+      ...
+    # Subtest: short-read
+    ok 5 - short-read
+      ---
+      duration_ms: 16.9249
+      type: 'test'
+      ...
+    # Subtest: open-replace
+    ok 6 - open-replace
+      ---
+      duration_ms: 15.3967
+      type: 'test'
+      ...
+    1..6
+ok 26 - chunked capture rejects actual file changes while reading
+  ---
+  duration_ms: 115.6235
+  type: 'test'
+  ...
+# Subtest: public archive contract accepts only exact registry-backed review leaves
+ok 27 - public archive contract accepts only exact registry-backed review leaves
+  ---
+  duration_ms: 3.0571
+  type: 'test'
+  ...
+# Subtest: retained archive fixtures survive assembly and both capture paths
+ok 28 - retained archive fixtures survive assembly and both capture paths
+  ---
+  duration_ms: 11822.1638
+  type: 'test'
+  ...
+# Subtest: review HIGH1: nested metadata Git records expand to selected leaves and preserve ignored tracked reports
+ok 29 - review HIGH1: nested metadata Git records expand to selected leaves and preserve ignored tracked reports
+  ---
+  duration_ms: 8996.6995
+  type: 'test'
+  ...
+# Subtest: review HIGH1: nested product, foreign junction, gitlink and overlong leaves explicitly refuse
+ok 30 - review HIGH1: nested product, foreign junction, gitlink and overlong leaves explicitly refuse
+  ---
+  duration_ms: 698.4385
+  type: 'test'
+  ...
+# Subtest: review HIGH1: Git directory above a declared metadata leaf selects only that leaf
+ok 31 - review HIGH1: Git directory above a declared metadata leaf selects only that leaf
+  ---
+  duration_ms: 7970.4699
+  type: 'test'
+  ...
+# Subtest: review HIGH2: frozen package returned bytes mismatch refuses receipt
+ok 32 - review HIGH2: frozen package returned bytes mismatch refuses receipt
+  ---
+  duration_ms: 4382.5395
+  type: 'test'
+  ...
+# Subtest: review HIGH2: frozen frontend-package returned bytes mismatch refuses receipt
+ok 33 - review HIGH2: frozen frontend-package returned bytes mismatch refuses receipt
+  ---
+  duration_ms: 4480.9455
+  type: 'test'
+  ...
+# Subtest: review HIGH2: frozen locale returned bytes mismatch refuses receipt
+ok 34 - review HIGH2: frozen locale returned bytes mismatch refuses receipt
+  ---
+  duration_ms: 4073.0482
+  type: 'test'
+  ...
+# Subtest: review MEDIUM3: prefix locales and a/Z order agree, overlap=false
+ok 35 - review MEDIUM3: prefix locales and a/Z order agree, overlap=false
+  ---
+  duration_ms: 8803.3667
+  type: 'test'
+  ...
+# Subtest: review MEDIUM3: prefix locales and a/Z order agree, overlap=true
+ok 36 - review MEDIUM3: prefix locales and a/Z order agree, overlap=true
+  ---
+  duration_ms: 9099.6521
+  type: 'test'
+  ...
+# Subtest: review MEDIUM3: undeclared locale stays excluded from chosen fallback leaves
+ok 37 - review MEDIUM3: undeclared locale stays excluded from chosen fallback leaves
+  ---
+  duration_ms: 7724.522
+  type: 'test'
+  ...
+# Subtest: review read contract: unselected input and changed stamps refuse before returning bytes
+ok 38 - review read contract: unselected input and changed stamps refuse before returning bytes
+  ---
+  duration_ms: 978.465
+  type: 'test'
+  ...
+# Subtest: review locale plan: retained Base leaves and Ops overrides agree in both replay modes
+ok 39 - review locale plan: retained Base leaves and Ops overrides agree in both replay modes
+  ---
+  duration_ms: 10502.078
+  type: 'test'
+  ...
+# Subtest: selected inputs: ignored oversized cache and actual hardlinks survive capture and real fixture assembly
+ok 40 - selected inputs: ignored oversized cache and actual hardlinks survive capture and real fixture assembly
+  ---
+  duration_ms: 8182.4455
+  type: 'test'
+  ...
+# Subtest: selected inputs: tracked ignored evidence and Unicode paths are frozen and copied
+ok 41 - selected inputs: tracked ignored evidence and Unicode paths are frozen and copied
+  ---
+  duration_ms: 8384.8593
+  type: 'test'
+  ...
+# Subtest: selected inputs: new mutation rejects publication
+ok 42 - selected inputs: new mutation rejects publication
+  ---
+  duration_ms: 5690.6829
+  type: 'test'
+  ...
+# Subtest: selected inputs: remove mutation rejects publication
+ok 43 - selected inputs: remove mutation rejects publication
+  ---
+  duration_ms: 4504.7689
+  type: 'test'
+  ...
+# Subtest: selected inputs: index mutation rejects publication
+ok 44 - selected inputs: index mutation rejects publication
+  ---
+  duration_ms: 5671.2111
+  type: 'test'
+  ...
+# Subtest: selected inputs: ignore mutation rejects publication
+ok 45 - selected inputs: ignore mutation rejects publication
+  ---
+  duration_ms: 5545.6897
+  type: 'test'
+  ...
+# Subtest: selected inputs: package mutation rejects publication
+ok 46 - selected inputs: package mutation rejects publication
+  ---
+  duration_ms: 5026.0598
+  type: 'test'
+  ...
+# Subtest: selected inputs: frontend-package mutation rejects publication
+ok 47 - selected inputs: frontend-package mutation rejects publication
+  ---
+  duration_ms: 5056.5978
+  type: 'test'
+  ...
+# Subtest: selected inputs: migration mutation rejects publication
+ok 48 - selected inputs: migration mutation rejects publication
+  ---
+  duration_ms: 3998.3327
+  type: 'test'
+  ...
+# Subtest: selected inputs: ancestor mutation rejects publication
+ok 49 - selected inputs: ancestor mutation rejects publication
+  ---
+  duration_ms: 4328.1669
+  type: 'test'
+  ...
+# Subtest: selected inputs: implicit-locale mutation rejects publication
+ok 50 - selected inputs: implicit-locale mutation rejects publication
+  ---
+  duration_ms: 3903.4695
+  type: 'test'
+  ...
+# Subtest: selected inputs: selected hardlink still refuses before stage creation
+ok 51 - selected inputs: selected hardlink still refuses before stage creation
+  ---
+  duration_ms: 952.7222
+  type: 'test'
+  ...
+# Subtest: selected inputs: selected symlink still refuses before stage creation
+not ok 52 - selected inputs: selected symlink still refuses before stage creation
+  ---
+  duration_ms: 912.0351
+  type: 'test'
+  location: 'D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\scripts\\business-overlay\\foundation-candidate.test.mjs:634:3'
+  failureType: 'testCodeFailure'
+  error: "EPERM: operation not permitted, symlink 'D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\continue-20261111-copy-binding-tmp\\ops-candidate-hx1e9p\\ops\\package.json' -> 'D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\continue-20261111-copy-binding-tmp\\ops-candidate-hx1e9p\\ops\\.harness\\report.md'"
+  code: 'EPERM'
+  stack: |-
+    Object.symlinkSync (node:fs:1868:11)
+    TestContext.<anonymous> (file:///D:/workspace/go/pantheon-platform/pantheon-ops/scripts/business-overlay/foundation-candidate.test.mjs:641:10)
+    Test.runInAsyncScope (node:async_hooks:228:14)
+    Test.run (node:internal/test_runner/test:1118:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:787:18)
+    Test.postRun (node:internal/test_runner/test:1247:19)
+    Test.run (node:internal/test_runner/test:1175:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:787:7)
+  ...
+# Subtest: selected inputs: selected oversize still refuses before stage creation
+ok 53 - selected inputs: selected oversize still refuses before stage creation
+  ---
+  duration_ms: 1178.9492
+  type: 'test'
+  ...
+# Subtest: selected inputs: declaration existence and empty directory identity remain protected
+ok 54 - selected inputs: declaration existence and empty directory identity remain protected
+  ---
+  duration_ms: 5549.4289
+  type: 'test'
+  ...
+# Subtest: selected inputs: Git NUL paths refuse controls and quotes consistently
+ok 55 - selected inputs: Git NUL paths refuse controls and quotes consistently
+  ---
+  duration_ms: 0.7852
+  type: 'test'
+  ...
+# Subtest: real generated i18n, import and registry output passes without broadening legacy allowances
+ok 56 - real generated i18n, import and registry output passes without broadening legacy allowances
+  ---
+  duration_ms: 9186.6552
+  type: 'test'
+  ...
+# Subtest: official v0.18.6 frontend coverage retains package, cleanup and smoke contract compatibility
+ok 57 - official v0.18.6 frontend coverage retains package, cleanup and smoke contract compatibility
+  ---
+  duration_ms: 9153.3897
+  type: 'test'
+  ...
+# Subtest: canonical assembly does not hide a genuinely stale in-coverage legacy allowance
+ok 58 - canonical assembly does not hide a genuinely stale in-coverage legacy allowance
+  ---
+  duration_ms: 8221.1057
+  type: 'test'
+  ...
+# Subtest: canonical generated bytes cannot be forged by editing the report or legacy allowlist
+    # Subtest: frontend/src/i18n/resources/en-US.ts
+    ok 1 - frontend/src/i18n/resources/en-US.ts
+      ---
+      duration_ms: 7806.321
+      type: 'test'
+      ...
+    # Subtest: frontend/src/i18n/resources/business/fr-FR.ts
+    ok 2 - frontend/src/i18n/resources/business/fr-FR.ts
+      ---
+      duration_ms: 7892.5869
+      type: 'test'
+      ...
+    # Subtest: frontend/src/core/router/modules.ts
+    ok 3 - frontend/src/core/router/modules.ts
+      ---
+      duration_ms: 7680.2191
+      type: 'test'
+      ...
+    # Subtest: frontend/src/modules/businessOverlay.ts
+    ok 4 - frontend/src/modules/businessOverlay.ts
+      ---
+      duration_ms: 7129.8557
+      type: 'test'
+      ...
+    # Subtest: backend/modules/business/business.go
+    ok 5 - backend/modules/business/business.go
+      ---
+      duration_ms: 7547.2738
+      type: 'test'
+      ...
+    # Subtest: frontend/package.json
+    ok 6 - frontend/package.json
+      ---
+      duration_ms: 7667.4185
+      type: 'test'
+      ...
+    # Subtest: frontend/scripts/cleanup-generated-modules.mjs
+    ok 7 - frontend/scripts/cleanup-generated-modules.mjs
+      ---
+      duration_ms: 7435.7665
+      type: 'test'
+      ...
+    # Subtest: frontend/tests/smoke/README.md
+    ok 8 - frontend/tests/smoke/README.md
+      ---
+      duration_ms: 7702.6151
+      type: 'test'
+      ...
+    1..8
+ok 59 - canonical generated bytes cannot be forged by editing the report or legacy allowlist
+  ---
+  duration_ms: 60865.132
+  type: 'test'
+  ...
+# Subtest: forged generatedFiles cannot exempt actual shared Base bytes
+ok 60 - forged generatedFiles cannot exempt actual shared Base bytes
+  ---
+  duration_ms: 8119.3564
+  type: 'test'
+  ...
+# Subtest: fresh consumer attempt reuses verified immutable snapshot without touching retained failure
+ok 61 - fresh consumer attempt reuses verified immutable snapshot without touching retained failure
+  ---
+  duration_ms: 18780.3477
+  type: 'test'
+  ...
+# Subtest: fresh consumer attempts reject tampered retained snapshot and preserve the original
+ok 62 - fresh consumer attempts reject tampered retained snapshot and preserve the original
+  ---
+  duration_ms: 9259.0174
+  type: 'test'
+  ...
+# Subtest: cleanup preserves renamed original and real replacement: extraction/stage
+ok 63 - cleanup preserves renamed original and real replacement: extraction/stage
+  ---
+  duration_ms: 692.2067
+  type: 'test'
+  ...
+# Subtest: cleanup preserves renamed original and real replacement: extraction/snapshot
+ok 64 - cleanup preserves renamed original and real replacement: extraction/snapshot
+  ---
+  duration_ms: 922.2295
+  type: 'test'
+  ...
+# Subtest: cleanup preserves renamed original and real replacement: extraction/nested
+ok 65 - cleanup preserves renamed original and real replacement: extraction/nested
+  ---
+  duration_ms: 880.1385
+  type: 'test'
+  ...
+# Subtest: cleanup preserves renamed original and real replacement: extraction/ancestor
+ok 66 - cleanup preserves renamed original and real replacement: extraction/ancestor
+  ---
+  duration_ms: 1282.3089
+  type: 'test'
+  ...
+# Subtest: cleanup preserves renamed original and real replacement: assembly/stage
+ok 67 - cleanup preserves renamed original and real replacement: assembly/stage
+  ---
+  duration_ms: 2105.6545
+  type: 'test'
+  ...
+# Subtest: cleanup preserves renamed original and real replacement: assembly/snapshot
+ok 68 - cleanup preserves renamed original and real replacement: assembly/snapshot
+  ---
+  duration_ms: 1973.6765
+  type: 'test'
+  ...
+# Subtest: cleanup preserves renamed original and real replacement: assembly/nested
+ok 69 - cleanup preserves renamed original and real replacement: assembly/nested
+  ---
+  duration_ms: 1877.1162
+  type: 'test'
+  ...
+# Subtest: cleanup preserves renamed original and real replacement: assembly/ancestor
+ok 70 - cleanup preserves renamed original and real replacement: assembly/ancestor
+  ---
+  duration_ms: 1992.3998
+  type: 'test'
+  ...
+# Subtest: cleanup preserves renamed original and real replacement: assembly/assembled
+ok 71 - cleanup preserves renamed original and real replacement: assembly/assembled
+  ---
+  duration_ms: 2033.9686
+  type: 'test'
+  ...
+# Subtest: cleanup preserves renamed original and real replacement: assembly/assembled-nested
+ok 72 - cleanup preserves renamed original and real replacement: assembly/assembled-nested
+  ---
+  duration_ms: 1912.8092
+  type: 'test'
+  ...
+# Subtest: cleanup refuses an unknown descendant before removing any owned files
+ok 73 - cleanup refuses an unknown descendant before removing any owned files
+  ---
+  duration_ms: 1337.3152
+  type: 'test'
+  ...
+# Subtest: cleanup retains an unchanged extracted directory instance when mkdir ownership is unproven
+ok 74 - cleanup retains an unchanged extracted directory instance when mkdir ownership is unproven
+  ---
+  duration_ms: 1777.2419
+  type: 'test'
+  ...
+# Subtest: cleanup fails closed when created directory identity is missing
+ok 75 - cleanup fails closed when created directory identity is missing
+  ---
+  duration_ms: 1017.0617
+  type: 'test'
+  ...
+# Subtest: cleanup fails closed when created directory identity is zero
+ok 76 - cleanup fails closed when created directory identity is zero
+  ---
+  duration_ms: 707.1414
+  type: 'test'
+  ...
+# Subtest: source verification refuses an unchanged snapshot moved into a replacement stage
+ok 77 - source verification refuses an unchanged snapshot moved into a replacement stage
+  ---
+  duration_ms: 1734.195
+  type: 'test'
+  ...
+# Subtest: cleanup preflight refuses a replaced ancestor before any file deletion
+ok 78 - cleanup preflight refuses a replaced ancestor before any file deletion
+  ---
+  duration_ms: 1486.6014
+  type: 'test'
+  ...
+# Subtest: schema1 source-interface mapping matches the producer and rejects contradictory metadata
+ok 79 - schema1 source-interface mapping matches the producer and rejects contradictory metadata
+  ---
+  duration_ms: 730.1367
+  type: 'test'
+  ...
+# Subtest: requires external descriptor pin and rejects descriptor/archive tamper before staging
+ok 80 - requires external descriptor pin and rejects descriptor/archive tamper before staging
+  ---
+  duration_ms: 826.9158
+  type: 'test'
+  ...
+# Subtest: rejects descriptor edit/revert during extraction and bounded input overflow
+ok 81 - rejects descriptor edit/revert during extraction and bounded input overflow
+  ---
+  duration_ms: 1472.6766
+  type: 'test'
+  ...
+# Subtest: rejects hostile regular tar paths, aliases, config and extension/link/special types with valid archive pins
+    # Subtest: ../escape
+    ok 1 - ../escape
+      ---
+      duration_ms: 659.3206
+      type: 'test'
+      ...
+    # Subtest: /absolute
+    ok 2 - /absolute
+      ---
+      duration_ms: 1023.9218
+      type: 'test'
+      ...
+    # Subtest: C:/outside
+    ok 3 - C:/outside
+      ---
+      duration_ms: 1163.3328
+      type: 'test'
+      ...
+    # Subtest: //host/share
+    ok 4 - //host/share
+      ---
+      duration_ms: 1012.0659
+      type: 'test'
+      ...
+    # Subtest: dir\\file
+    ok 5 - dir\\file
+      ---
+      duration_ms: 992.4346
+      type: 'test'
+      ...
+    # Subtest: x:y
+    ok 6 - x:y
+      ---
+      duration_ms: 1047.7225
+      type: 'test'
+      ...
+    # Subtest: .env.local
+    ok 7 - .env.local
+      ---
+      duration_ms: 1021.9114
+      type: 'test'
+      ...
+    # Subtest: config/secrets.json
+    ok 8 - config/secrets.json
+      ---
+      duration_ms: 989.8053
+      type: 'test'
+      ...
+    # Subtest: .aws/credentials
+    ok 9 - .aws/credentials
+      ---
+      duration_ms: 563.3011
+      type: 'test'
+      ...
+    # Subtest: aux.txt
+    ok 10 - aux.txt
+      ---
+      duration_ms: 921.1986
+      type: 'test'
+      ...
+    # Subtest: file.
+    ok 11 - file.
+      ---
+      duration_ms: 884.2086
+      type: 'test'
+      ...
+    # Subtest: a//b
+    ok 12 - a//b
+      ---
+      duration_ms: 610.9979
+      type: 'test'
+      ...
+    # Subtest: tar type 1
+    ok 13 - tar type 1
+      ---
+      duration_ms: 604.491
+      type: 'test'
+      ...
+    # Subtest: tar type 2
+    ok 14 - tar type 2
+      ---
+      duration_ms: 920.3662
+      type: 'test'
+      ...
+    # Subtest: tar type 3
+    ok 15 - tar type 3
+      ---
+      duration_ms: 1105.8838
+      type: 'test'
+      ...
+    # Subtest: tar type 5
+    ok 16 - tar type 5
+      ---
+      duration_ms: 1176.314
+      type: 'test'
+      ...
+    # Subtest: tar type x
+    ok 17 - tar type x
+      ---
+      duration_ms: 1171.3813
+      type: 'test'
+      ...
+    # Subtest: tar type g
+    ok 18 - tar type g
+      ---
+      duration_ms: 1120.3501
+      type: 'test'
+      ...
+    # Subtest: tar type L
+    ok 19 - tar type L
+      ---
+      duration_ms: 905.8522
+      type: 'test'
+      ...
+    # Subtest: tar type K
+    ok 20 - tar type K
+      ---
+      duration_ms: 1209.5212
+      type: 'test'
+      ...
+    1..20
+ok 82 - rejects hostile regular tar paths, aliases, config and extension/link/special types with valid archive pins
+  ---
+  duration_ms: 19111.3412
+  type: 'test'
+  ...
+# Subtest: rejects duplicate/case/directory collisions, missing entries, wrong file hashes and corrupt tar framing
+ok 83 - rejects duplicate/case/directory collisions, missing entries, wrong file hashes and corrupt tar framing
+  ---
+  duration_ms: 1925.4592
+  type: 'test'
+  ...
+# Subtest: false capability comments cannot replace real declarations even when all digests are consistent
+ok 84 - false capability comments cannot replace real declarations even when all digests are consistent
+  ---
+  duration_ms: 685.3007
+  type: 'test'
+  ...
+# Subtest: fresh extraction is sealed; mutations, additions, edit/revert and snapshot reuse refuse
+    # Subtest: write
+    ok 1 - write
+      ---
+      duration_ms: 1545.6573
+      type: 'test'
+      ...
+    # Subtest: addition
+    ok 2 - addition
+      ---
+      duration_ms: 1503.5581
+      type: 'test'
+      ...
+    # Subtest: revert
+    ok 3 - revert
+      ---
+      duration_ms: 1835.8165
+      type: 'test'
+      ...
+    # Subtest: root-revert
+    ok 4 - root-revert
+      ---
+      duration_ms: 1834.9895
+      type: 'test'
+      ...
+    1..4
+ok 85 - fresh extraction is sealed; mutations, additions, edit/revert and snapshot reuse refuse
+  ---
+  duration_ms: 6721.8429
+  type: 'test'
+  ...
+# Subtest: rebuild calls real assembly/drift seams, derives only declared migrations, preserves exact locks and never reads current Base sources
+ok 86 - rebuild calls real assembly/drift seams, derives only declared migrations, preserves exact locks and never reads current Base sources
+  ---
+  duration_ms: 6690.1393
+  type: 'test'
+  ...
+# Subtest: protects repository/foreign/existing targets and rejects alternative manifest ownership
+ok 87 - protects repository/foreign/existing targets and rejects alternative manifest ownership
+  ---
+  duration_ms: 2078.6037
+  type: 'test'
+  ...
+# Subtest: rejects junction ancestors and hard-linked artifact/declared source without touching foreign bytes
+ok 88 - rejects junction ancestors and hard-linked artifact/declared source without touching foreign bytes
+  ---
+  duration_ms: 1035.5914
+  type: 'test'
+  ...
+# Subtest: assembly rejects snapshot/artifact and declared Ops mutations including edit/revert and retains unproven directories
+    # Subtest: snapshot
+    ok 1 - snapshot
+      ---
+      duration_ms: 4519.2082
+      type: 'test'
+      ...
+    # Subtest: artifact
+    ok 2 - artifact
+      ---
+      duration_ms: 4321.2052
+      type: 'test'
+      ...
+    # Subtest: business
+    ok 3 - business
+      ---
+      duration_ms: 3702.5288
+      type: 'test'
+      ...
+    # Subtest: manifest
+    ok 4 - manifest
+      ---
+      duration_ms: 3729.332
+      type: 'test'
+      ...
+    # Subtest: lock
+    ok 5 - lock
+      ---
+      duration_ms: 3326.2429
+      type: 'test'
+      ...
+    # Subtest: revert
+    ok 6 - revert
+      ---
+      duration_ms: 3533.792
+      type: 'test'
+      ...
+    # Subtest: addition
+    ok 7 - addition
+      ---
+      duration_ms: 4538.5177
+      type: 'test'
+      ...
+    # Subtest: git-selection
+    ok 8 - git-selection
+      ---
+      duration_ms: 5653.6994
+      type: 'test'
+      ...
+    1..8
+ok 89 - assembly rejects snapshot/artifact and declared Ops mutations including edit/revert and retains unproven directories
+  ---
+  duration_ms: 33327.3626
+  type: 'test'
+  ...
+# Subtest: drift and migration conflicts refuse candidate publication
+    # Subtest: unallowlisted shared modification
+    ok 1 - unallowlisted shared modification
+      ---
+      duration_ms: 6852.8409
+      type: 'test'
+      ...
+    # Subtest: Base migration conflict
+    ok 2 - Base migration conflict
+      ---
+      duration_ms: 3588.2379
+      type: 'test'
+      ...
+    1..2
+ok 90 - drift and migration conflicts refuse candidate publication
+  ---
+  duration_ms: 10442.2565
+  type: 'test'
+  ...
+# Subtest: independently pinned build receipt binds source capability identity and exact executable bytes
+ok 91 - independently pinned build receipt binds source capability identity and exact executable bytes
+  ---
+  duration_ms: 1115.9197
+  type: 'test'
+  ...
+# Subtest: CLI help is precise; unsupported, duplicate, unpinned and formal-source options refuse
+ok 92 - CLI help is precise; unsupported, duplicate, unpinned and formal-source options refuse
+  ---
+  duration_ms: 653.1452
+  type: 'test'
+  ...
+# Subtest: CLI reports the assembly cause together with safe cleanup refusal
+ok 93 - CLI reports the assembly cause together with safe cleanup refusal
+  ---
+  duration_ms: 2060.8611
+  type: 'test'
+  ...
+# Subtest: passes when all shared files match snapshot bytes
+ok 94 - passes when all shared files match snapshot bytes
+  ---
+  duration_ms: 468.0674
+  type: 'test'
+  ...
+# Subtest: fails on drifted shared file and passes once allowlisted
+ok 95 - fails on drifted shared file and passes once allowlisted
+  ---
+  duration_ms: 549.0199
+  type: 'test'
+  ...
+# Subtest: excludes business overlay paths from comparison
+ok 96 - excludes business overlay paths from comparison
+  ---
+  duration_ms: 429.4706
+  type: 'test'
+  ...
+# Subtest: fails loudly when the lock declares no sharedPaths
+ok 97 - fails loudly when the lock declares no sharedPaths
+  ---
+  duration_ms: 412.8348
+  type: 'test'
+  ...
+# Subtest: reports stale allowlist entries
+ok 98 - reports stale allowlist entries
+  ---
+  duration_ms: 385.2438
+  type: 'test'
+  ...
+# Subtest: group selection does not claim unexamined allowlist entries are stale or equal
+ok 99 - group selection does not claim unexamined allowlist entries are stale or equal
+  ---
+  duration_ms: 535.2584
+  type: 'test'
+  ...
+# Subtest: accepts only byte-identical derived business migration targets
+ok 100 - accepts only byte-identical derived business migration targets
+  ---
+  duration_ms: 726.4389
+  type: 'test'
+  ...
+# Subtest: rejects tampered migration bytes even when the target is allowlisted
+    # Subtest: up
+    ok 1 - up
+      ---
+      duration_ms: 491.3957
+      type: 'test'
+      ...
+    # Subtest: down
+    ok 2 - down
+      ---
+      duration_ms: 455.5846
+      type: 'test'
+      ...
+    1..2
+ok 101 - rejects tampered migration bytes even when the target is allowlisted
+  ---
+  duration_ms: 948.9834
+  type: 'test'
+  ...
+# Subtest: rejects undeclared targets even when the report calls them generated
+ok 102 - rejects undeclared targets even when the report calls them generated
+  ---
+  duration_ms: 641.705
+  type: 'test'
+  ...
+# Subtest: continues to protect Base migrations listed in generatedFiles
+ok 103 - continues to protect Base migrations listed in generatedFiles
+  ---
+  duration_ms: 508.9361
+  type: 'test'
+  ...
+# Subtest: requires regular canonical migration source files
+    # Subtest: up missing
+    ok 1 - up missing
+      ---
+      duration_ms: 526.8059
+      type: 'test'
+      ...
+    # Subtest: up directory
+    ok 2 - up directory
+      ---
+      duration_ms: 577.895
+      type: 'test'
+      ...
+    # Subtest: down missing
+    ok 3 - down missing
+      ---
+      duration_ms: 476.762
+      type: 'test'
+      ...
+    # Subtest: down directory
+    ok 4 - down directory
+      ---
+      duration_ms: 410.5097
+      type: 'test'
+      ...
+    1..4
+ok 104 - requires regular canonical migration source files
+  ---
+  duration_ms: 1993.6752
+  type: 'test'
+  ...
+# Subtest: rejects a missing derived target
+ok 105 - rejects a missing derived target
+  ---
+  duration_ms: 494.6719
+  type: 'test'
+  ...
+# Subtest: rejects Base version collisions in the snapshot
+    # Subtest: 000032_backfill.up.sql
+    ok 1 - 000032_backfill.up.sql
+      ---
+      duration_ms: 587.3687
+      type: 'test'
+      ...
+    # Subtest: 32_future_base.down.sql
+    ok 2 - 32_future_base.down.sql
+      ---
+      duration_ms: 425.8101
+      type: 'test'
+      ...
+    1..2
+ok 106 - rejects Base version collisions in the snapshot
+  ---
+  duration_ms: 1014.354
+  type: 'test'
+  ...
+# Subtest: cannot exempt generic product paths through migration declarations
+    # Subtest: businessPaths
+    ok 1 - businessPaths
+      ---
+      duration_ms: 445.6786
+      type: 'test'
+      ...
+    # Subtest: repositoryOverlayPaths
+    ok 2 - repositoryOverlayPaths
+      ---
+      duration_ms: 694.4965
+      type: 'test'
+      ...
+    1..2
+ok 107 - cannot exempt generic product paths through migration declarations
+  ---
+  duration_ms: 1141.3644
+  type: 'test'
+  ...
+# Subtest: uses snapshot bytes and migration inventory nested inside a differing Ops HEAD
+ok 108 - uses snapshot bytes and migration inventory nested inside a differing Ops HEAD
+  ---
+  duration_ms: 769.3715
+  type: 'test'
+  ...
+# Subtest: detects shared files deleted from the consumer
+ok 109 - detects shared files deleted from the consumer
+  ---
+  duration_ms: 728.8645
+  type: 'test'
+  ...
+# Subtest: production drift command refuses local Base arguments
+ok 110 - production drift command refuses local Base arguments
+  ---
+  duration_ms: 108.3526
+  type: 'test'
+  ...
+# Subtest: excluded Base history is recorded, while an invalid active consumer review still fails
+ok 111 - excluded Base history is recorded, while an invalid active consumer review still fails
+  ---
+  duration_ms: 147.4445
+  type: 'test'
+  ...
+# Subtest: retained archives remain listed and missing retained artifacts fail
+ok 112 - retained archives remain listed and missing retained artifacts fail
+  ---
+  duration_ms: 15.0201
+  type: 'test'
+  ...
+# Subtest: current or traversal entries cannot be projected away
+ok 113 - current or traversal entries cannot be projected away
+  ---
+  duration_ms: 12.7236
+  type: 'test'
+  ...
+# Subtest: selects latest stable GitHub release, validates four assets and atomically pins it
+ok 114 - selects latest stable GitHub release, validates four assets and atomically pins it
+  ---
+  duration_ms: 595.8534
+  type: 'test'
+  ...
+# Subtest: rebuild source is re-extracted from verified archive after cache tampering
+ok 115 - rebuild source is re-extracted from verified archive after cache tampering
+  ---
+  duration_ms: 688.9685
+  type: 'test'
+  ...
+# Subtest: missing asset, prerelease, wrong tag and altered GitHub digest preserve prior lock
+    # Subtest: missing
+    ok 1 - missing
+      ---
+      duration_ms: 437.2717
+      type: 'test'
+      ...
+    # Subtest: prerelease
+    ok 2 - prerelease
+      ---
+      duration_ms: 405.9792
+      type: 'test'
+      ...
+    # Subtest: wrong-tag
+    ok 3 - wrong-tag
+      ---
+      duration_ms: 434.7819
+      type: 'test'
+      ...
+    # Subtest: digest
+    ok 4 - digest
+      ---
+      duration_ms: 519.259
+      type: 'test'
+      ...
+    1..4
+ok 116 - missing asset, prerelease, wrong tag and altered GitHub digest preserve prior lock
+  ---
+  duration_ms: 1799.2422
+  type: 'test'
+  ...
+# Subtest: pinned archive corruption is rejected before extraction or network access
+ok 117 - pinned archive corruption is rejected before extraction or network access
+  ---
+  duration_ms: 802.8933
+  type: 'test'
+  ...
+# Subtest: repo.tar commit and pinned GitHub tag must agree
+ok 118 - repo.tar commit and pinned GitHub tag must agree
+  ---
+  duration_ms: 746.476
+  type: 'test'
+  ...
+# Subtest: network failure and unsafe lock cache path cannot change the lock
+ok 119 - network failure and unsafe lock cache path cannot change the lock
+  ---
+  duration_ms: 738.8153
+  type: 'test'
+  ...
+# Subtest: rejects archive traversal, Git metadata and Windows drive paths
+ok 120 - rejects archive traversal, Git metadata and Windows drive paths
+  ---
+  duration_ms: 1.1745
+  type: 'test'
+  ...
+# Subtest: git-archive commit is checked even when checksum and manifest assets look valid
+ok 121 - git-archive commit is checked even when checksum and manifest assets look valid
+  ---
+  duration_ms: 872.4285
+  type: 'test'
+  ...
+# Subtest: cache junction cannot redirect official assets outside Ops
+ok 122 - cache junction cannot redirect official assets outside Ops
+  ---
+  duration_ms: 580.7596
+  type: 'test'
+  ...
+# Subtest: explicit v0.18.4 consumption fetches the requested GitHub tag instead of latest
+ok 123 - explicit v0.18.4 consumption fetches the requested GitHub tag instead of latest
+  ---
+  duration_ms: 550.3809
+  type: 'test'
+  ...
+# Subtest: wrong requested release leaves existing lock untouched
+ok 124 - wrong requested release leaves existing lock untouched
+  ---
+  duration_ms: 478.9557
+  type: 'test'
+  ...
+# Subtest: invalid explicit release cannot trigger GitHub access or local consumption
+ok 125 - invalid explicit release cannot trigger GitHub access or local consumption
+  ---
+  duration_ms: 633.544
+  type: 'test'
+  ...
+# Subtest: normalizes transitive and test-only imports before readonly loading without further module changes
+ok 126 - normalizes transitive and test-only imports before readonly loading without further module changes
+  ---
+  duration_ms: 1859.9343
+  type: 'test'
+  ...
+# Subtest: fails on an unresolved dependency instead of reporting a complete graph
+ok 127 - fails on an unresolved dependency instead of reporting a complete graph
+  ---
+  duration_ms: 3555.8196
+  type: 'test'
+  ...
+# Subtest: rebuilds a deterministic Base snapshot with generated business registries
+ok 128 - rebuilds a deterministic Base snapshot with generated business registries
+  ---
+  duration_ms: 3952.4866
+  type: 'test'
+  ...
+# Subtest: rejects a business path that overwrites a Base hook file
+ok 129 - rejects a business path that overwrites a Base hook file
+  ---
+  duration_ms: 776.2839
+  type: 'test'
+  ...
+# Subtest: rejects a manifest that claims a generic product path
+ok 130 - rejects a manifest that claims a generic product path
+  ---
+  duration_ms: 774.7262
+  type: 'test'
+  ...
+# Subtest: validateReleaseBundleChecksum accepts a matching checksum
+ok 131 - validateReleaseBundleChecksum accepts a matching checksum
+  ---
+  duration_ms: 2.7057
+  type: 'test'
+  ...
+# Subtest: validateReleaseBundleChecksum rejects a mismatched checksum
+ok 132 - validateReleaseBundleChecksum rejects a mismatched checksum
+  ---
+  duration_ms: 3.1131
+  type: 'test'
+  ...
+# Subtest: validateReleaseBundleChecksum rejects missing checksums
+ok 133 - validateReleaseBundleChecksum rejects missing checksums
+  ---
+  duration_ms: 2.7469
+  type: 'test'
+  ...
+# Subtest: release bundle checksum validation rejects tampered bundles via lock file path
+ok 134 - release bundle checksum validation rejects tampered bundles via lock file path
+  ---
+  duration_ms: 1089.7795
+  type: 'test'
+  ...
+# Subtest: refuses to consume a live base tree when no lock snapshot is present
+ok 135 - refuses to consume a live base tree when no lock snapshot is present
+  ---
+  duration_ms: 345.801
+  type: 'test'
+  ...
+# Subtest: migration assembly requires module-owned, paired and unique inputs
+ok 136 - migration assembly requires module-owned, paired and unique inputs
+  ---
+  duration_ms: 2.1117
+  type: 'test'
+  ...
+# Subtest: migration assembly rejects missing or non-file sources before copying either half
+    # Subtest: up missing
+    ok 1 - up missing
+      ---
+      duration_ms: 727.3408
+      type: 'test'
+      ...
+    # Subtest: up directory
+    ok 2 - up directory
+      ---
+      duration_ms: 835.6595
+      type: 'test'
+      ...
+    # Subtest: down missing
+    ok 3 - down missing
+      ---
+      duration_ms: 764.2947
+      type: 'test'
+      ...
+    # Subtest: down directory
+    ok 4 - down directory
+      ---
+      duration_ms: 1019.8186
+      type: 'test'
+      ...
+    1..4
+ok 137 - migration assembly rejects missing or non-file sources before copying either half
+  ---
+  duration_ms: 3349.7512
+  type: 'test'
+  ...
+# Subtest: production rebuild refuses local Base arguments
+ok 138 - production rebuild refuses local Base arguments
+  ---
+  duration_ms: 135.4268
+  type: 'test'
+  ...
+1..138
+# tests 207
+# suites 0
+# pass 206
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 470756.3848

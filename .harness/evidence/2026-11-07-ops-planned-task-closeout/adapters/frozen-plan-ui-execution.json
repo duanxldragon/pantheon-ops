@@ -1,0 +1,7 @@
+{
+  "status": "completed",
+  "exitCode": 0,
+  "seconds": 324,
+  "characters": 9440,
+  "command": "claude.exe -p --tools \"\" --output-format text; stdin=frozen-plan-ui-prompt.md"
+}

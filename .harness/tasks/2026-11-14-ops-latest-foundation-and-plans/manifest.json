@@ -1,0 +1,277 @@
+{
+  "schemaVersion": 1,
+  "taskId": "2026-11-14-ops-latest-foundation-and-plans",
+  "title": "Consume latest official Base and execute remaining Ops plans",
+  "status": "in-progress",
+  "deliveryTier": "L2",
+  "primaryLayer": "business/*",
+  "runtimeSensitive": true,
+  "taskDoc": "docs/harness/tasks/2026-11-14-ops-latest-foundation-and-plans.task.md",
+  "qualityProfiles": [
+    "runtime-quality",
+    "architecture-fitness",
+    "frontend-ui-l2"
+  ],
+  "scope": {
+    "in": [
+      "GitHub latest immutable release acquisition, checksum verification and standard full-tree overlay rebuild",
+      "Execute planned business-menu IA and O6 dashboard integration",
+      "Verify existing O2/O3/O4 and D2 business implementation against the released contracts",
+      "Update current status and inherited documentation/review packaging validation",
+      "Current continuation: finish active O1-O6 and D1-D3/D5 implementation and executable acceptance; retain explicit O7 and production/final acceptance gates"
+    ],
+    "out": [
+      "Production mutation or release publication",
+      "Local Base/Ops Git comparison or shared-source copying",
+      "Replay or deletion of previous failed acceptance fixtures",
+      "Gate weakening, legacy credential migration or O7 deferral reversal"
+    ]
+  },
+  "linkage": {
+    "taskManifest": ".harness/tasks/2026-11-14-ops-latest-foundation-and-plans/manifest.json",
+    "taskDoc": "docs/harness/tasks/2026-11-14-ops-latest-foundation-and-plans.task.md",
+    "evidenceDir": ".harness/evidence/2026-11-14-ops-latest-foundation-and-plans/",
+    "reviewFile": ".harness/evidence/2026-11-14-ops-latest-foundation-and-plans/review.md",
+    "changeRef": "none",
+    "planRefs": [
+      ".harness/tasks/2026-11-13-ops-business-menu-ia-refactor/plan.md",
+      ".harness/tasks/2026-11-07-ops-planned-task-closeout/remaining-priorities.md",
+      ".harness/tasks/2026-11-14-ops-latest-foundation-and-plans/current-execution-plan.md"
+    ]
+  },
+  "acceptanceCriteria": [
+    "Official latest lock and product/report identity match",
+    "Rebuild, business overlay tests and authoritative asset drift pass",
+    "Stable-source complete Windows CGO race and frontend lint/type-check/build pass",
+    "Fresh isolated startup, menu/CRUD smoke and desktop/mobile rendering verified",
+    "Independent review and explicit parent task and human acceptance gaps"
+  ],
+  "verificationPlan": {
+    "commands": [
+      "npm run test:business-overlay",
+      "npm run check:business-overlay",
+      "npm run check:shared-drift",
+      "CGO_ENABLED=1 go test -race -mod=readonly ./...",
+      "frontend lint/type-check/build/unit/smoke",
+      "scoped inheritance docs/review checks"
+    ],
+    "runtimeEvidence": [
+      ".harness/evidence/2026-11-14-ops-latest-foundation-and-plans/verification/r5-runtime-smoke-adapted.json",
+      ".harness/evidence/2026-11-14-ops-latest-foundation-and-plans/verification/dashboard-render.json"
+    ],
+    "visualEvidence": {
+      "viewports": [
+        "1440x900",
+        "390x844"
+      ],
+      "themes": [
+        "dark",
+        "light"
+      ],
+      "routes": [
+        "/dashboard"
+      ],
+      "states": [
+        "empty",
+        "error",
+        "forbidden",
+        "loading",
+        "partial-failure",
+        "stale"
+      ],
+      "accessibility": [
+        "keyboard-path",
+        "non-color-status",
+        "reduced-motion",
+        "screen-reader-name",
+        "visible-focus",
+        "zoom-200"
+      ]
+    }
+  },
+  "humanGates": [
+    "Final visual/functional acceptance belongs to the maintainer; production policy/signature is not inferred from the current request"
+  ],
+  "workspaceContext": {
+    "targetRepository": "pantheon-ops",
+    "repositoryRole": "business-consumer",
+    "contextSyncExpectation": "required",
+    "releaseRequirement": "consumer-lock-update"
+  },
+  "executionRoles": {
+    "implementerPosture": "Independent executor agents own the business implementation; root owns integration and evidence.",
+    "reviewerPosture": [
+      "Independent code-reviewer checks source and validation evidence; maintainer owns final visual/functional acceptance."
+    ]
+  },
+  "blockers": [
+    "Six P0 parents, provider/state matrix, empty-schema double boot and final acceptance remain open."
+  ],
+  "goal": "Consume the latest official immutable foundation release and execute planned business changes with verified evidence and explicit remaining gates.",
+  "r6Continuation": {
+    "activeRelease": "pantheon-base-v0.18.6",
+    "activeCommit": "5553bc0e8ddc006cb7a6b99a46968bf8cf907a49",
+    "candidateRelease": "pantheon-base-v0.18.8",
+    "candidateCommit": "34428814a9efc997fd93d4434406a53df6460323",
+    "candidatePath": ".tmp/ops-v0188-install-r6",
+    "reportSHA256": "e092b077c6d06609c74681198f68bb82089392a2f14958e713dc2c23015cf8c5",
+    "plannedWrites": 165,
+    "plannedDeletes": 0,
+    "attemptedWrites": 60,
+    "all165PreimagesReverified": true,
+    "indexSHA256Unchanged": true,
+    "rollbackArchiveSHA256": "d198d3849da9d108e13ca0e3a4e0a917dda4f2d356c3e27261db2bc313066bec",
+    "planSHA256": "fe0ec035867abf50018bacd7b720dc06142bc869144ab1b84aa18be504a8f80f",
+    "independentReview": "blocked; scope COMMENT",
+    "backend836AndFrontend165MatchValidatedR5": true,
+    "userAuthorizedElevation": true,
+    "elevatedProcessUsed": false,
+    "aclChanged": false,
+    "toolApprovalPolicy": "never",
+    "activeUpgradeComplete": false
+  },
+  "r7Adoption": {
+    "result": "pass",
+    "activeUpgradeComplete": true,
+    "activeRelease": "pantheon-base-v0.18.8",
+    "activeCommit": "34428814a9efc997fd93d4434406a53df6460323",
+    "freshGitHubLookup": true,
+    "standardFetcher": true,
+    "standardAssembler": true,
+    "reportSHA256": "82fabe5c39653f7d4119b3f905e6acea18faac350454a713bdbc86444d0fd4c6",
+    "planSHA256": "5bcadc03c3c75255f94b131f4f6cc81a89c5d5c1798f07a4e966d2843c25e5bc",
+    "rollbackArchiveSHA256": "4c61e95569471045c994fbb245412e91703a27b81192488437331f4b1bea5d3a",
+    "writes": 165,
+    "deletes": 0,
+    "gitIndexUnchanged": true,
+    "gitIndexSHA256": "8157740e3b08e50096041b0645adf518440611028fcf9c8a5748d5cff3d6bf84",
+    "sourceInputFilesCompared": 1487,
+    "sourceInputMismatches": 0,
+    "frontendUnitTestsPassed": 414,
+    "frontendUnitFilesPassed": 57,
+    "overlayTestsPassed": 66,
+    "sharedFilesCompared": 857,
+    "sharedFilesIdentical": 856,
+    "existingAllowedDrift": 1,
+    "businessFilesSkipped": 288,
+    "pairedMigrationFilesVerified": 14,
+    "backendRaceEvidence": "r5-backend-race-retry.json",
+    "backendRaceEvidenceReusedBySourceHash": true,
+    "freshActiveRaceClaimed": false,
+    "browserEvidence": "r5-runtime-smoke-adapted.json",
+    "browserEvidenceReusedBySourceHash": true,
+    "freshActiveSmokeClaimed": false,
+    "nativeRunnerPassed": false,
+    "externalTestsSkipped": 6,
+    "wholeTaskComplete": false,
+    "priorFailureEvidencePreserved": true,
+    "localBaseGitComparison": false,
+    "sharedSourceHandCopied": false,
+    "userAuthorizedElevation": true,
+    "elevatedProcessUsed": false,
+    "aclChanged": false,
+    "logs": [
+      {
+        "name": "candidate-overlay",
+        "file": "overlay-r7.log",
+        "exitCode": 0,
+        "sha256": "fb8b18603495ebedfe41eb5dd15a35ebe0322713aaf6d3a5a8eea42490c7ea43"
+      },
+      {
+        "name": "candidate-shared-drift-cli",
+        "file": "shared-drift-r7.log",
+        "exitCode": 1,
+        "sha256": "2e914948e2300e8b3c8d33267344ff1a8e08fd1451b0d1666f77922f93defafc"
+      },
+      {
+        "name": "candidate-shared-drift-verified-snapshot",
+        "file": "shared-drift-snapshot-r7.log",
+        "exitCode": 0,
+        "sha256": "ce6aad3849fe41d2aa0f0cb2dcd2ecbe1f02dafd391be1908fe15eeeff305edd"
+      },
+      {
+        "name": "overlay-tests",
+        "file": "overlay-tests-r7.log",
+        "exitCode": 0,
+        "sha256": "18276acc9befd0bbe193860e0dcfc184c432cd30f2868ca24c981aef626fb504"
+      },
+      {
+        "name": "installation",
+        "file": "apply-r7.log",
+        "exitCode": 0,
+        "sha256": "2d85d5ef67c150ff3f74dc298ab313d8210213d85d6cec058f21f2ffae800c6d"
+      },
+      {
+        "name": "active-shared-drift",
+        "file": "active-shared-drift-r7.log",
+        "exitCode": 0,
+        "sha256": "386d492d7fd50a7495241a24943623dc89780d21fcf6751ec9c7a15142a45f9d"
+      },
+      {
+        "name": "active-overlay",
+        "file": "active-overlay-r7.log",
+        "exitCode": 0,
+        "sha256": "615aff030b893b0f903c1fd5255f2ecd3927828da14d655cfb9e1f4155ad21bf"
+      },
+      {
+        "name": "active-go-readonly-deps",
+        "file": "active-go-list-r7.log",
+        "exitCode": 0,
+        "sha256": "5ad83349494f8a0da867194224f00b36f43b71ffb3a1792b1b247859027e8957"
+      },
+      {
+        "name": "active-frontend-lint",
+        "file": "active-frontend-lint-r7.log",
+        "exitCode": 0,
+        "sha256": "5f62e7cf7cdd69c014ca18d1c493431139fcbda108704552679bc84c360fd025"
+      },
+      {
+        "name": "active-frontend-build",
+        "file": "active-frontend-build-r7.log",
+        "exitCode": 0,
+        "sha256": "566b0585630fa126a7eb864780df1a81c0eadf1b68bf48266471ab0ccd54b6c2"
+      },
+      {
+        "name": "active-frontend-units",
+        "file": "active-frontend-units-r7.log",
+        "exitCode": 0,
+        "sha256": "45acfca8f1fece157006f44ac9ff39a799811e6da284ba81e97385166e902f08"
+      }
+    ]
+  },
+  "r7FinalAdoption": {
+    "result": "pass",
+    "activeRelease": "pantheon-base-v0.18.8",
+    "baseCommit": "34428814a9efc997fd93d4434406a53df6460323",
+    "initialReportSHA256": "82fabe5c39653f7d4119b3f905e6acea18faac350454a713bdbc86444d0fd4c6",
+    "finalReportSHA256": "240bb969f9a7a11f92a4252577eb325edd4fd68c79c84dc4a12e8f9ab71ed238",
+    "finalPlanSHA256": "697f65b8baec3518eb30547b503bfe52aab3928fafe5f9fc99666859357956fc",
+    "initialInstallationWrites": 165,
+    "finalMetadataWrites": 2,
+    "obsoleteSharedDeletes": 0,
+    "initialRollbackArchiveSHA256": "4c61e95569471045c994fbb245412e91703a27b81192488437331f4b1bea5d3a",
+    "finalRollbackArchiveSHA256": "be0d5547a13616a6bc3ed6082a3caa11996eafca61d3dfa16aa118ab56a851a1",
+    "gitIndexUnchanged": true,
+    "gitIndexSHA256": "8157740e3b08e50096041b0645adf518440611028fcf9c8a5748d5cff3d6bf84",
+    "frontmatterCompatibilityFix": "Removed only scripts/frontmatter-check.mjs from repositoryOverlayPaths; canonical standard assembler inherited the published Base checker",
+    "finalCheckerSHA256": "b744e0573ad20ccbd259011bdb8a0e8655bbf3e30b869e9146a57bfc93173f54",
+    "frontmatterDocumentsChecked": 466,
+    "frontmatterTestsPassed": 15,
+    "businessOverlayTestsPassed": 66,
+    "frontendUnitTestsPassed": 414,
+    "frontendLintTypecheckBuildPassed": true,
+    "goReadonlyDependenciesPassed": true,
+    "sourceInputsCompared": 1487,
+    "sourceMismatches": 0,
+    "freshActiveRaceClaimed": false,
+    "priorRacePackages": 70,
+    "priorRaceTests": 3583,
+    "externalTestsSkipped": 6,
+    "nativeRunnerPassed": false,
+    "upgradeSubtaskComplete": true,
+    "wholePlanningTaskComplete": false,
+    "priorFailedLogsAndBackupsPreserved": true,
+    "localBaseOpsGitComparison": false,
+    "sharedSourceCopiedFromLocalBase": false
+  }
+}

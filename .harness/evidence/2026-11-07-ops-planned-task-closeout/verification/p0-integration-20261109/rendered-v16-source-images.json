@@ -1,0 +1,146 @@
+[
+  {
+    "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/remote-p0-browser-v16/smoke-business-observabili-aaf1f--denial-and-recovery-light-/loki-light-desktop.png",
+    "sha256": "4dadeff8a560d28fc93e9c5c6064a60c805a8cd3791f0a6991ce08a2db58ab57",
+    "dimensions": [
+      1440,
+      1024
+    ]
+  },
+  {
+    "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/remote-p0-browser-v16/smoke-business-observabili-a1888-n-denial-and-recovery-dark-/loki-dark-desktop.png",
+    "sha256": "a83639953f4ade05570d586cd7f5465c78873c4acadc1293e2f9e6acd4da8f29",
+    "dimensions": [
+      1440,
+      1024
+    ]
+  },
+  {
+    "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/remote-p0-browser-v16/smoke-business-observabili-aaf1f--denial-and-recovery-light-/loki-light-mobile-partial.png",
+    "sha256": "d05ce82505bcbcdd615ef96ad5ff664ecffa3b2bc0e5d772d1b8c346f7f9bb62",
+    "dimensions": [
+      390,
+      1330
+    ]
+  },
+  {
+    "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/remote-p0-browser-v16/smoke-business-observabili-a1888-n-denial-and-recovery-dark-/loki-dark-mobile-following.png",
+    "sha256": "42adb59189733b57e194d8476ff38e45da9ce9ac5bceb44bba1e92faab5d4bb6",
+    "dimensions": [
+      390,
+      1394
+    ]
+  },
+  {
+    "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/remote-p0-browser-v16/smoke-business-observabili-a1888-n-denial-and-recovery-dark-/loki-dark-mobile-forbidden.png",
+    "sha256": "32f504fc99ffe4429b47d01c17f54744bb9e328922baf63e411a3cc10af874b4",
+    "dimensions": [
+      390,
+      1112
+    ]
+  },
+  {
+    "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/remote-p0-browser-v16/smoke-business-observabili-a1888-n-denial-and-recovery-dark-/loki-dark-mobile-wide-labels.png",
+    "sha256": "5e84b7659bbf12f04234c5f12e10ee5ca7d30a2098fa9d4027427286e8b1b24a",
+    "dimensions": [
+      390,
+      1421
+    ]
+  },
+  {
+    "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/remote-p0-browser-v16/smoke-business-observabili-724a5-ation-and-revocation-light-/tempo-light-desktop.png",
+    "sha256": "986136cc2a8e6614770c91a7251b8d790d113d1239513d2afee771d327733ef1",
+    "dimensions": [
+      1440,
+      1024
+    ]
+  },
+  {
+    "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/remote-p0-browser-v16/smoke-business-observabili-fe48d-lation-and-revocation-dark-/tempo-dark-desktop.png",
+    "sha256": "6d63b9cb7e334951385acfd86bfc8855d3a36034d1f68b0d0fa5b5f2ba945d25",
+    "dimensions": [
+      1440,
+      1024
+    ]
+  },
+  {
+    "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/remote-p0-browser-v16/smoke-business-observabili-724a5-ation-and-revocation-light-/tempo-light-mobile.png",
+    "sha256": "f77caeffa03f4dd097b8140c52cbc7423971c04a7865f070d9305901ab57863c",
+    "dimensions": [
+      390,
+      1185
+    ]
+  },
+  {
+    "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/remote-p0-browser-v16/smoke-business-observabili-fe48d-lation-and-revocation-dark-/tempo-dark-mobile.png",
+    "sha256": "81daa9b080077317eb4c5814f2cad1a13a08feb76116d172d3afc225d2216bde",
+    "dimensions": [
+      390,
+      1185
+    ]
+  },
+  {
+    "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/remote-p0-browser-v16/smoke-business-observabili-fe48d-lation-and-revocation-dark-/tempo-dark-mobile-forbidden.png",
+    "sha256": "3624dcd4430ce08b853cb8c45b2ae578881c849c014444d17d09fe9d59a10f99",
+    "dimensions": [
+      390,
+      995
+    ]
+  },
+  {
+    "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/remote-p0-browser-v16/smoke-business-observabili-fe48d-lation-and-revocation-dark-/tempo-dark-detail.png",
+    "sha256": "c8baf55b3267b72039f917c230606821bc0799f89b43ed1e23c8453873c7a081",
+    "dimensions": [
+      1440,
+      1024
+    ]
+  },
+  {
+    "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/remote-p0-browser-v16/smoke-business-deploy-depl-58206--keyboard-and-mobile-light-/workbench-light-desktop-history.png",
+    "sha256": "ac052e99b9defd8f65ba837874e09a8cce638752065867c2026df42c62575607",
+    "dimensions": [
+      1440,
+      2535
+    ]
+  },
+  {
+    "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/remote-p0-browser-v16/smoke-business-deploy-depl-d16f5-s-keyboard-and-mobile-dark-/workbench-dark-desktop-history.png",
+    "sha256": "8128a1a6e3536134c45ddee7cfd2977fff6870e9bab16167b9a7356c06c91a27",
+    "dimensions": [
+      1440,
+      2535
+    ]
+  },
+  {
+    "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/remote-p0-browser-v16/smoke-business-deploy-depl-58206--keyboard-and-mobile-light-/workbench-light-mobile-history.png",
+    "sha256": "4808966059f625d3914b7bb115ce653205c8af2b6554f512a564e5da17b28b86",
+    "dimensions": [
+      390,
+      3934
+    ]
+  },
+  {
+    "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/remote-p0-browser-v16/smoke-business-deploy-depl-d16f5-s-keyboard-and-mobile-dark-/workbench-dark-mobile-history.png",
+    "sha256": "59cf949f801681d9e4f8b7d3942d43ade4fd5b2a450d62e2e644353f6b789255",
+    "dimensions": [
+      390,
+      3934
+    ]
+  },
+  {
+    "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/remote-p0-browser-v16/smoke-business-k8s-release-47a17-y-rollback-and-mobile-dark-/k8s-dark-mobile-review.png",
+    "sha256": "df89fdfd21bf74087c931f8fd468e3cbb6c93d49558e205adc4e4041af050de1",
+    "dimensions": [
+      390,
+      895
+    ]
+  },
+  {
+    "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/remote-p0-browser-v16/smoke-business-deploy-depl-8790f-reshes-without-replay-dark-/command-conflict-dark-mobile.png",
+    "sha256": "85945ff7346d22a452edffeb1021918aa65be95c13e62ff44b3e1dc2e5756e3f",
+    "dimensions": [
+      390,
+      3801
+    ]
+  }
+]

@@ -1,0 +1,21 @@
+{
+  "artifacts": {
+    "continue-o2-live-v12-contract.py": "2a7f7f067f4c9a5a85a085c1c1c679fe6cae7c71b911383cc1ace30a410d6b0e",
+    "continue-o2-live-v12-contract_test.py": "277fabb8d7921866d66ff09d60e59eb76990a964ab6bde890437f80102d8e74b",
+    "continue-o2-live-v12-driver-linux": "8b8f44e852120c653aeaef47c551b2dad510808771fd5c084e2ee1b6a7692a05",
+    "continue-o2-live-v12-driver.exe": "df5963eca841c183d9c9d82e69ccbd17554c092082c68070e2f8a61b7af6b6a8",
+    "continue-o2-live-v12-driver.go": "d58c03543f65416ed641fe53949bed70aca59b2a37226502aa18c9b090bd6433",
+    "continue-o2-live-v12-driver_test.go": "e4e541a0756de3854ad16d1022a87a7e65afb0f3708094f5b82cf8841f48a76f",
+    "continue-o2-live-v12-native.py": "dadee9fac55647ddac2f558703c1cb475a1214a3fb49436d7b1ca9a7a5b01ef1",
+    "continue-o2-live-v12-prepare.py": "1b8c22c6296624c20c78e20b8bc556da02147739f9d7fa752fb428763ed29d16",
+    "continue-o2-live-v12-root-execute.py": "9eb7cf193bc4a3990244c3a23c46dbf4117100ca3e86a380c01b5b2ba831dd70",
+    "continue-o2-live-v12-runner.py": "e1322bb41cf2bef7ac9a66950175e9a0e791fd9143364ae19152d6e57371f669",
+    "continue-o2-live-v12-seal.py": "c53f2d134fe889266ebec6562763c1f5a0e7aae37c43fa7d2ae88c9ecf2e6c67",
+    "continue-o2-live-v12-transport_test.go": "c05a5e8dcfaee1a4d4fb58c853ddac089832efb562bbebdfd0e98eedd744f5fe",
+    "continue-o2-live-v12-verify.py": "6a76e8b16848e2c01531230b0782ab505b3bbaba14822d69a45a7283eec587fc"
+  },
+  "credentialsLoaded": false,
+  "remoteExecuted": false,
+  "sourceStable": true,
+  "verificationReceipt": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/o2-current-live-v12/local-verification-1794303434945656000/receipt.json"
+}

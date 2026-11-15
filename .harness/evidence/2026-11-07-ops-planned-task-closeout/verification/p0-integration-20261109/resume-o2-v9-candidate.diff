@@ -1,0 +1,512 @@
+--- resume-o2-v8-driver.go
++++ resume-o2-v9-driver.go
+@@ -51,9 +51,18 @@
+ 	diagnosticPhase            string
+ 	diagnosticTaskID           uint64
+ 	verifierConnections        int
++	verifierCommandMu          sync.Mutex
++	verifierMu                 sync.Mutex
++	verifierClient             *ssh.Client
++	verifierRaw                net.Conn
++	verifierAttempted          bool
++	verifierClosed             bool
++	verifierError              error
++	verifierCancel             context.CancelFunc
+ }
+ 
+ var errVerifierPinMismatch = errors.New("independent verifier pin mismatch")
++var errVerifierClosed = errors.New("independent verifier closed")
+ 
+ func emit(v any) { _ = json.NewEncoder(os.Stdout).Encode(v) }
+ func safeDiagnosticError(e error) map[string]any {
+@@ -71,7 +80,7 @@
+ 	iterator := runtime.CallersFrames(pcs[:count])
+ 	for {
+ 		frame, more := iterator.Next()
+-		if filepath.Base(frame.File) == "resume-o2-v8-driver.go" {
++		if filepath.Base(frame.File) == "resume-o2-v9-driver.go" {
+ 			frames = append(frames, map[string]any{"file": filepath.Base(frame.File), "line": frame.Line})
+ 		}
+ 		if !more {
+@@ -120,10 +129,46 @@
+ 	return "suppressed"
+ }
+ func (r *driver) remote(script string) (string, error) {
+-	r.verifierConnections++
+-	emit(map[string]any{"phase": "v8-verifier-connection", "ordinal": r.verifierConnections, "operationPhase": r.diagnosticPhase})
+ 	ctx, cancel := context.WithTimeout(context.Background(), 18*time.Second)
+ 	defer cancel()
++	return r.remoteContext(ctx, "115.190.251.143:22", script)
++}
++
++// One independently pinned authenticated connection per process. Commands are
++// serialized because the socket deadline covers channel open as well as Run.
++// A failed first handshake is cached; no command reconnects or replays.
++func (r *driver) verifier(ctx context.Context, address string) (*ssh.Client, net.Conn, error) {
++	r.verifierMu.Lock()
++	if r.verifierClosed {
++		r.verifierMu.Unlock()
++		return nil, nil, errVerifierClosed
++	}
++	if r.verifierAttempted {
++		defer r.verifierMu.Unlock()
++		return r.verifierClient, r.verifierRaw, r.verifierError
++	}
++	r.verifierAttempted = true
++	r.verifierConnections++
++	ctx, cancel := context.WithCancel(ctx)
++	r.verifierCancel = cancel
++	r.verifierMu.Unlock()
++	defer cancel()
++	emit(map[string]any{"phase": "v9-verifier-connection", "ordinal": r.verifierConnections, "operationPhase": r.diagnosticPhase})
++	client, raw, err := r.connectVerifier(ctx, address)
++	r.verifierMu.Lock()
++	defer r.verifierMu.Unlock()
++	r.verifierCancel = nil
++	if r.verifierClosed {
++		if client != nil {
++			_ = client.Close()
++		}
++		return nil, nil, errVerifierClosed
++	}
++	r.verifierClient, r.verifierRaw, r.verifierError = client, raw, err
++	return client, raw, err
++}
++
++func (r *driver) connectVerifier(ctx context.Context, address string) (*ssh.Client, net.Conn, error) {
+ 	var auth ssh.AuthMethod
+ 	if r.c.AuthMode == "password" {
+ 		auth = ssh.Password(r.c.Secret)
+@@ -131,12 +176,14 @@
+ 		signer, e := ssh.ParsePrivateKey([]byte(r.c.Secret))
+ 		if e != nil {
+ 			emitVerifierError("private-key-parse", e)
+-			return "", e
++			return nil, nil, e
+ 		}
+ 		auth = ssh.PublicKeys(signer)
+ 	}
+ 	pinChecked, pinMatched := false, false
++	pinCallbacks := 0
+ 	cfg := &ssh.ClientConfig{User: r.c.User, Auth: []ssh.AuthMethod{auth}, HostKeyCallback: func(_ string, _ net.Addr, k ssh.PublicKey) error {
++		pinCallbacks++
+ 		pinChecked = true
+ 		pinMatched = ssh.FingerprintSHA256(k) == r.c.Fingerprint
+ 		if !pinMatched {
+@@ -144,26 +191,107 @@
+ 		}
+ 		return nil
+ 	}}
+-	raw, e := (&net.Dialer{Timeout: 8 * time.Second}).DialContext(ctx, "tcp", "115.190.251.143:22")
++	raw, e := (&net.Dialer{Timeout: 8 * time.Second}).DialContext(ctx, "tcp", address)
+ 	if e != nil {
+ 		emitVerifierError("tcp-dial", e)
+-		return "", e
+-	}
+-	defer raw.Close()
++		return nil, nil, e
++	}
++	owned := false
++	defer func() {
++		if !owned {
++			_ = raw.Close()
++		}
++	}()
+ 	deadline, _ := ctx.Deadline()
+-	must(raw.SetDeadline(deadline))
+-	stop := context.AfterFunc(ctx, func() { _ = raw.Close() })
++	if e = raw.SetDeadline(deadline); e != nil {
++		return nil, nil, e
++	}
++	stop := watchVerifierCancellation(ctx, raw)
+ 	defer stop()
+-	connection, channels, requests, e := ssh.NewClientConn(raw, "115.190.251.143:22", cfg)
+-	emit(map[string]any{"phase": "independent-ssh-handshake", "pinChecked": pinChecked, "pinMatched": pinMatched, "deadlineExceeded": errors.Is(ctx.Err(), context.DeadlineExceeded)})
++	connection, channels, requests, e := ssh.NewClientConn(raw, address, cfg)
++	stop()
++	emit(map[string]any{"phase": "independent-ssh-handshake", "pinChecked": pinChecked, "pinMatched": pinMatched, "pinCallbacks": pinCallbacks, "deadlineExceeded": errors.Is(verifierContextError(ctx), context.DeadlineExceeded)})
++	if contextError := verifierContextError(ctx); contextError != nil {
++		e = contextError
++	}
+ 	if e != nil {
+ 		emitVerifierError("handshake-auth", e)
++		return nil, nil, e
++	}
++	client := ssh.NewClient(connection, channels, requests)
++	if e = raw.SetDeadline(time.Time{}); e != nil {
++		_ = client.Close()
++		return nil, nil, e
++	}
++	owned = true
++	return client, raw, nil
++}
++
++func (r *driver) closeVerifier() {
++	r.verifierMu.Lock()
++	r.verifierClosed = true
++	client, cancel := r.verifierClient, r.verifierCancel
++	r.verifierMu.Unlock()
++	if cancel != nil {
++		cancel()
++	}
++	if client != nil {
++		_ = client.Close()
++	}
++}
++
++// Wait for an already-running callback before reusing the transport. A prior
++// command's cancellation must never close a later command's session.
++func watchVerifierCancellation(ctx context.Context, raw net.Conn) func() {
++	done := make(chan struct{})
++	stop := context.AfterFunc(ctx, func() { _ = raw.Close(); close(done) })
++	var once sync.Once
++	return func() {
++		once.Do(func() {
++			if !stop() {
++				<-done
++			}
++		})
++	}
++}
++
++func verifierContextError(ctx context.Context) error {
++	if err := ctx.Err(); err != nil {
++		return err
++	}
++	// The socket can report its deadline before the context timer is scheduled.
++	if deadline, ok := ctx.Deadline(); ok && !time.Now().Before(deadline) {
++		return context.DeadlineExceeded
++	}
++	return nil
++}
++
++func (r *driver) remoteContext(ctx context.Context, address, script string) (string, error) {
++	ctx, cancel := context.WithTimeout(ctx, 18*time.Second)
++	defer cancel()
++	r.verifierCommandMu.Lock()
++	defer r.verifierCommandMu.Unlock()
++	if e := ctx.Err(); e != nil {
+ 		return "", e
+ 	}
+-	client := ssh.NewClient(connection, channels, requests)
+-	defer client.Close()
++	client, raw, e := r.verifier(ctx, address)
++	if e != nil {
++		return "", e
++	}
++	deadline, _ := ctx.Deadline()
++	if e = raw.SetDeadline(deadline); e != nil {
++		return "", e
++	}
++	defer raw.SetDeadline(time.Time{})
++	// Closing the transport bounds stalled channel opens and session I/O too.
++	// Cancellation is terminal for this connection, never a retry trigger.
++	stop := watchVerifierCancellation(ctx, raw)
++	defer stop()
+ 	session, e := client.NewSession()
+ 	if e != nil {
++		if contextError := verifierContextError(ctx); contextError != nil {
++			e = contextError
++		}
+ 		emitVerifierError("channel", e)
+ 		return "", e
+ 	}
+@@ -172,8 +300,9 @@
+ 	var out bytes.Buffer
+ 	session.Stdout = &out
+ 	e = session.Run("/bin/bash -se")
+-	if ctx.Err() != nil {
+-		e = ctx.Err()
++	stop()
++	if contextError := verifierContextError(ctx); contextError != nil {
++		e = contextError
+ 	}
+ 	event := map[string]any{"phase": "independent-ssh-command", "passed": e == nil, "deadlineExceeded": errors.Is(e, context.DeadlineExceeded)}
+ 	var exit *ssh.ExitError
+@@ -491,6 +620,7 @@
+ 		emit(map[string]any{"phase": "actual-process-crash-ready", "taskId": t.ID, "attemptId": attempt.ID, "attemptNo": attempt.AttemptNo, "leaseExpiresUnix": attempt.LeaseExpiresAt.Unix(), "taskStatus": r.get(t.ID).Status})
+ 		// Deliberate abrupt process exit preserves the real durable lease.
+ 		// Earlier failed attempts are retained; the probe follows this exact claim.
++		r.closeVerifier()
+ 		os.Exit(75)
+ 	}
+ 	switch r.c.Case {
+@@ -678,6 +808,7 @@
+ func main() {
+ 	r := &driver{}
+ 	defer func() {
++		r.closeVerifier()
+ 		if failure := recover(); failure != nil {
+ 			emit(map[string]any{"phase": "v8-failure-location", "operationPhase": r.diagnosticPhase, "taskId": r.diagnosticTaskID, "panicCategory": v8PanicCategory(failure), "verifierConnections": r.verifierConnections})
+ 			r.failed++
+--- resume-o2-v8-driver_test.go
++++ resume-o2-v9-driver_test.go
+@@ -1,14 +1,21 @@
+ package main
+ 
+ import (
++	"bytes"
+ 	"context"
+ 	"encoding/json"
+ 	"errors"
+ 	"fmt"
++	"go/ast"
++	"go/format"
++	"go/parser"
++	"go/scanner"
++	"go/token"
+ 	"io"
+ 	"os"
+ 	"os/exec"
+ 	"path/filepath"
++	"runtime"
+ 	"strings"
+ 	"testing"
+ 	"time"
+@@ -16,6 +23,77 @@
+ 	d "github.com/duanxldragon/pantheon-base/backend/modules/business/deploy"
+ 	mysqlconfig "github.com/go-sql-driver/mysql"
+ )
++
++func TestOriginalAcceptanceFunctionBodiesPreservedExceptVerifierRelease(t *testing.T) {
++	// Parse the original and candidate, then compare every pre-existing function
++	// except remote. Only the two explicit verifier-release calls may differ.
++	set := token.NewFileSet()
++	read := func(name string, candidate bool) map[string]string {
++		file, err := parser.ParseFile(set, filepath.Join(filepath.Dir(driverSourcePath(t)), name), nil, 0)
++		if err != nil {
++			t.Fatal(err)
++		}
++		functions := make(map[string]string)
++		for _, declaration := range file.Decls {
++			fn, ok := declaration.(*ast.FuncDecl)
++			if !ok || fn.Name.Name == "remote" {
++				continue
++			}
++			if candidate && (fn.Name.Name == "run" || fn.Name.Name == "main") {
++				ast.Inspect(fn.Body, func(node ast.Node) bool {
++					if block, ok := node.(*ast.BlockStmt); ok {
++						kept := block.List[:0]
++						for _, statement := range block.List {
++							if expression, ok := statement.(*ast.ExprStmt); ok {
++								if call, ok := expression.X.(*ast.CallExpr); ok {
++									if selector, ok := call.Fun.(*ast.SelectorExpr); ok && selector.Sel.Name == "closeVerifier" {
++										continue
++									}
++								}
++							}
++							kept = append(kept, statement)
++						}
++						block.List = kept
++					}
++					return true
++				})
++			}
++			var output bytes.Buffer
++			if err := format.Node(&output, set, fn); err != nil {
++				t.Fatal(err)
++			}
++			text := strings.ReplaceAll(output.String(), "resume-o2-v8", "resume-o2-v9")
++			var tokens scanner.Scanner
++			tokens.Init(set.AddFile("function", -1, len(text)), []byte(text), nil, 0)
++			var normalized strings.Builder
++			for {
++				_, kind, literal := tokens.Scan()
++				if kind == token.EOF {
++					break
++				}
++				fmt.Fprintf(&normalized, "%s:%q;", kind, literal)
++			}
++			functions[fn.Name.Name] = normalized.String()
++		}
++		return functions
++	}
++	original, candidate := read("resume-o2-v8-driver.go", false), read("resume-o2-v9-driver.go", true)
++	for name, body := range original {
++		if candidate[name] != body {
++			t.Errorf("original acceptance function %s changed beyond verifier release", name)
++		}
++	}
++}
++
++func driverSourcePath(t *testing.T) string {
++	t.Helper()
++	// Named-file tests retain this absolute source location in their call frames.
++	_, file, _, ok := runtime.Caller(0)
++	if !ok {
++		t.Fatal("named-file source location unavailable")
++	}
++	return file
++}
+ 
+ func TestColdProbeTracksCrashedClaimAfterEarlierFailure(t *testing.T) {
+ 	// Local deterministic test data only; no DB, VM, or persisted lease mutation.
+--- resume-o2-v8-runner.py
++++ resume-o2-v9-runner.py
+@@ -1,6 +1,6 @@
+ """O2 owned acceptance phases; credentials/DSN are injected through stdin only.
+ 
+-Root may run --phase execute after reviewing resume-o2-v8-phase-request.json.
++Root owns execution after reviewing/resealing resume-o2-v9-root-phase-request.json.
+ This script never installs a provider or touches production namespaces/services.
+ """
+ from pathlib import Path
+@@ -21,11 +21,11 @@
+ EVIDENCE = ROOT / '.harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109'
+ CASES = ('success', 'failure-retry', 'pause-resume', 'cancel', 'concurrent',
+          'revoke-credential', 'revoke-rotation', 'revoke-source', 'revoke-host', 'start-negative', 'hostkey-negative', 'cold-restart')
+-REQUEST = LOCAL / 'resume-o2-v8-phase-request.json'
++REQUEST = LOCAL / 'resume-o2-v9-phase-request.json'
+ 
+ 
+ def write(name, value):
+-    path = EVIDENCE / ('resume-o2-v8-' + name + '.json')
++    path = EVIDENCE / ('resume-o2-v9-' + name + '.json')
+     path.open('x', encoding='utf-8').write(json.dumps(value, ensure_ascii=False, indent=2) + '\n')
+     return path
+ 
+@@ -37,9 +37,11 @@
+     for platform, cgo in (('windows', '1'), ('linux', '0')):
+         env=os.environ.copy()
+         env.update(GOOS=platform, GOARCH='amd64', CGO_ENABLED=cgo)
+-        env['GOCACHE']=str(LOCAL/'resume-o2-v8-gocache')
+-        env['PATH']='D:/msys64/mingw64/bin;' + env['PATH']
+-        result = subprocess.run(['go','list','-mod=readonly','-deps','-json',str(LOCAL/'resume-o2-v8-driver.go')],cwd=ROOT/'backend',env=env,capture_output=True,text=True,encoding='utf-8',timeout=90)
++        env['GOCACHE']=str(LOCAL/'resume-o2-v9-gocache')
++        toolchain=Path('D:/cache/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.10.windows-amd64/bin')
++        env.update(PATH='D:/msys64/mingw64/bin;' + str(toolchain) + ';' + env['PATH'],
++                   GOROOT=str(toolchain.parent), GOTOOLCHAIN='local', GOMAXPROCS='2')
++        result = subprocess.run([str(toolchain/'go.exe'),'list','-mod=readonly','-deps','-json',str(LOCAL/'resume-o2-v9-driver.go')],cwd=ROOT/'backend',env=env,capture_output=True,text=True,encoding='utf-8',timeout=90)
+         if result.returncode:
+             raise RuntimeError('compiled dependency inventory unavailable')
+         decoder=json.JSONDecoder(); remaining=result.stdout
+@@ -54,13 +56,16 @@
+ 
+ 
+ def artifacts():
+-    names = ('resume-o2-v8-driver.go', 'resume-o2-v8-runner.py', 'resume-o2-v8-driver_test.go', 'resume-o2-v8-verify.py', 'remote.py', 'known_hosts', 'resume-o2-v8-driver.exe', 'resume-o2-v8-driver-linux')
++    names = ('resume-o2-v9-driver.go', 'resume-o2-v9-runner.py', 'resume-o2-v9-driver_test.go',
++             'resume-o2-v9-transport_test.go', 'resume-o2-v9-verify.py', 'resume-o2-v9-build.py',
++             'resume-o2-v9-seal.py', 'resume-o2-v9-prepare.py', 'resume-o2-v9-root-entry_test.py', 'remote.py', 'known_hosts',
++             'resume-o2-v9-driver.exe', 'resume-o2-v9-driver-linux')
+     return {n: hashlib.sha256((LOCAL / n).read_bytes()).hexdigest() for n in names if (LOCAL / n).is_file()}
+ 
+ 
+ def request(phase='execute', dependencies=None):
+     value = {'taskId': '2026-11-07-ops-planned-task-closeout', 'lane': 'O2 real VM generator/acceptance',
+-             'scriptPath': str(LOCAL / 'resume-o2-v8-runner.py'), 'args': ['--phase', phase],
++             'scriptPath': str(LOCAL / 'resume-o2-v9-runner.py'), 'args': ['--phase', phase],
+              'host': '115.190.251.143', 'scope': list(CASES), 'dependencies': dependencies or [],
+              'authority': 'User authorized scoped SSH VM; root must use its approved execution tool if sandbox SSH returns errno13',
+              'remoteOwnership': '/opt/pantheon-p0-20261109/o2-live-<random-run>-<case>',
+@@ -84,10 +89,10 @@
+              'artifactHashes': artifacts(), 'rootReviewRequiredBeforeExecute': True,
+              'readiness': 'prepared-for-root-review; remote matrix not executed',
+              'parentTaskPacket': 'docs/harness/tasks/2026-11-07-ops-planned-task-closeout.task.md',
+-             'buildReceipt': str(EVIDENCE/'resume-o2-v8-build-ready-result.json'),
+-             'localVerificationReceipt': str(EVIDENCE/'resume-o2-v8-local-verification-ready.json'),
+-             'failureAnalysis': str(EVIDENCE/'resume-o2-v7-red-analysis.json')}
+-    preflight_path = EVIDENCE / 'resume-o2-v8-preflight-result.json'
++             'buildReceipt': str(EVIDENCE/'resume-o2-v9-build-ready-result.json'),
++             'localVerificationReceipt': str(EVIDENCE/'resume-o2-v9-build-ready-result.json'),
++             'failureAnalysis': str(EVIDENCE/'resume-o2-v8-diagnosis-handoff.md')}
++    preflight_path = EVIDENCE / 'resume-o2-v9-preflight-result.json'
+     if preflight_path.is_file():
+         previous = json.loads(preflight_path.read_text(encoding='utf-8'))
+         value['preflightReceipt'] = str(preflight_path)
+@@ -99,41 +104,11 @@
+ 
+ 
+ def build():
+-    before = source_hashes()
+-    write('build-ready-source-before', before)
+-    env = os.environ.copy()
+-    env['PATH'] = 'D:/msys64/mingw64/bin;' + env['PATH']
+-    env['CGO_ENABLED'] = '1'
+-    env['GOCACHE'] = str(LOCAL/'resume-o2-v8-gocache')
+-    gofile = str(LOCAL / 'resume-o2-v8-driver.go')
+-    commands = [(['go', 'vet', '-mod=readonly', gofile], env),
+-                (['go', 'build', '-mod=readonly', '-race', '-o', str(LOCAL / 'resume-o2-v8-driver.exe'), gofile], env)]
+-    linux = env.copy()
+-    linux.update(GOOS='linux', GOARCH='amd64', CGO_ENABLED='0')
+-    commands.append((['go', 'build', '-mod=readonly', '-o', str(LOCAL / 'resume-o2-v8-driver-linux'), gofile], linux))
+-    commands.append((['go', 'test', '-mod=readonly', '-race', gofile, str(LOCAL / 'resume-o2-v8-driver_test.go')], env))
+-    rows = []
+-    for index, (command, config) in enumerate(commands):
+-        started = time.monotonic()
+-        result = subprocess.run(command, cwd=ROOT / 'backend', env=config, capture_output=True, timeout=240)
+-        # Compiler diagnostics reference source files only. No runtime config.
+-        log = EVIDENCE / f'resume-o2-v8-build-ready-{index}.txt'
+-        log.open('xb').write(result.stdout + result.stderr)
+-        rows.append({'command': command, 'CGO_ENABLED': config['CGO_ENABLED'], 'GOOS': config.get('GOOS', 'windows'),
+-                     'exitCode': result.returncode, 'seconds': round(time.monotonic() - started, 3), 'log': str(log)})
+-        if result.returncode:
+-            break
+-    after = source_hashes()
+-    write('build-ready-source-after', after)
+-    changed = [p for p in sorted(set(before) | set(after)) if before.get(p) != after.get(p)]
+-    receipt = {'commands': rows, 'sourceCount': len(after), 'sourceStable': not changed,
+-               'changedFiles': changed, 'artifacts': artifacts(), 'exitCode': 0 if len(rows) == 4 and all(r['exitCode'] == 0 for r in rows) and not changed else 1}
+-    write('build-ready-result', receipt)
+-    request(dependencies=['Existing local isolated MySQL33316 reachable', 'Pinned known_hosts and credentialref1 active',
+-                          'Build receipt sourceStable=true; source hashes match before execution'])
+-    print(json.dumps({'phase': 'build', 'exitCode': receipt['exitCode'], 'sourceStable': not changed,
+-                      'sourceCount': len(after), 'requestPath': str(REQUEST)}))
+-    return receipt['exitCode']
++    from importlib.util import spec_from_file_location, module_from_spec
++    spec = spec_from_file_location('v9_local_build', LOCAL / 'resume-o2-v9-build.py')
++    module = module_from_spec(spec)
++    spec.loader.exec_module(module)
++    return module.main()
+ 
+ 
+ def remote_command(client, script, timeout=18):
+@@ -200,6 +175,10 @@
+ 
+ 
+ def preflight():
++    raise RuntimeError("v9 remote preflight remains root-owned; review and reseal before enabling this entry")
++
++
++def root_preflight_after_review():
+     from remote import connect
+     receipt = {'host': '115.190.251.143', 'scope': 'pinned read-only SSH; no remote mutation or DB creation'}
+     try:
+@@ -231,8 +210,8 @@
+     client = None
+     started = time.monotonic()
+     try:
+-        prior = json.loads((EVIDENCE / 'resume-o2-v8-build-ready-result.json').read_text())
+-        expected = json.loads((EVIDENCE / 'resume-o2-v8-build-ready-source-after.json').read_text())
++        prior = json.loads((EVIDENCE / 'resume-o2-v9-build-ready-result.json').read_text())
++        expected = json.loads((EVIDENCE / 'resume-o2-v9-build-ready-source-after.json').read_text())
+         if not prior['sourceStable'] or source_hashes() != expected or artifacts() != prior['artifacts']:
+             raise RuntimeError('build/source identity changed; rebuild required')
+         client = connect()
+@@ -271,7 +250,7 @@
+                 cfg = {'DSN': 'root@tcp(127.0.0.1:33316)/' + database + '?parseTime=true&loc=Local',
+                        'Key': key, 'User': row['username'], 'AuthMode': row['auth_mode'], 'Secret': secret,
+                        'Fingerprint': fingerprint, 'Identity': identity, 'Case': case, 'Mode': 'crash-start' if case == 'cold-restart' else 'matrix'}
+-                process = subprocess.Popen([str(LOCAL / 'resume-o2-v8-driver.exe')], stdin=subprocess.PIPE,
++                process = subprocess.Popen([str(LOCAL / 'resume-o2-v9-driver.exe')], stdin=subprocess.PIPE,
+                                            stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, encoding='utf-8')
+                 output, errors = process.communicate(json.dumps(cfg) + '\n', timeout=remaining_budget(130))
+                 current.update(driverExitCode=process.returncode, stderrPresent=bool(errors))
+@@ -290,7 +269,7 @@
+                     cfg['AttemptNo'] = ready[0]['attemptNo']
+                     cfg['LeaseExpiresUnix'] = ready[0]['leaseExpiresUnix']
+                     cfg['Mode'] = 'queue-probe'
+-                    process = subprocess.Popen([str(LOCAL / 'resume-o2-v8-driver.exe')], stdin=subprocess.PIPE,
++                    process = subprocess.Popen([str(LOCAL / 'resume-o2-v9-driver.exe')], stdin=subprocess.PIPE,
+                                                stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, encoding='utf-8')
+                     probe, probe_errors = process.communicate(json.dumps(cfg) + '\n', timeout=remaining_budget(35))
+                     current['activeLeaseProbeExitCode'] = process.returncode
+@@ -307,7 +286,7 @@
+                         print(json.dumps({'phase': 'actual-lease-wait', 'case': case, 'remainingSeconds': round(remaining)}), flush=True)
+                         time.sleep(min(30, remaining, remaining_budget(30)))
+                     cfg['Mode'] = 'recover'
+-                    process = subprocess.Popen([str(LOCAL / 'resume-o2-v8-driver.exe')], stdin=subprocess.PIPE,
++                    process = subprocess.Popen([str(LOCAL / 'resume-o2-v9-driver.exe')], stdin=subprocess.PIPE,
+                                                stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, encoding='utf-8')
+                     recovered, recovered_errors = process.communicate(json.dumps(cfg) + '\n', timeout=remaining_budget(65))
+                     output += recovered

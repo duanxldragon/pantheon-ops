@@ -1,0 +1,9 @@
+
+Running 2 tests using 1 worker
+
+(node:24856) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok 1 tests\smoke\business\deploy\deploy-workbench.spec.ts:16:3 › deployment workbench sources, logs, keyboard and mobile (light) (12.1s)
+  ok 2 tests\smoke\business\deploy\deploy-workbench.spec.ts:16:3 › deployment workbench sources, logs, keyboard and mobile (dark) (11.9s)
+
+  2 passed (25.2s)

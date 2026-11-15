@@ -1,0 +1,33 @@
+--- FAIL: TestProductUnrelatedTerminalCannotCompleteSubmittedAction (0.25s)
+    argocd_product_test.go:27: 
+        	Error Trace:	D:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/cicd/argocd/argocd_product_test.go:27
+        	Error:      	Not equal: 
+        	            	expected: "Unknown"
+        	            	actual  : "Succeeded"
+        	            	
+        	            	Diff:
+        	            	--- Expected
+        	            	+++ Actual
+        	            	@@ -1 +1 @@
+        	            	-Unknown
+        	            	+Succeeded
+        	Test:       	TestProductUnrelatedTerminalCannotCompleteSubmittedAction
+        	Messages:   	previous/unrelated provider terminal must not masquerade as submitted success
+
+2026/11/09 15:23:31 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/cicd/argocd/argocd_reconciler.go:148 [35;1mError 1406 (22001): Data too long for column 'sync_status' at row 1
+[0m[33m[2.083ms] [34;1m[rows:0][0m UPDATE `biz_argocd_application` SET `health_status`='private-fixture',`last_error`='',`last_synced_at`='2026-11-09 15:23:31.667',`status`='private-fixture',`sync_status`='repository-password=private-fixture',`updated_at`='2026-11-09 15:23:31.668' WHERE `biz_argocd_application`.`deleted_at` IS NULL AND `id` = 1
+--- FAIL: TestProductProviderStatusLiteralsAreNotPersisted (0.19s)
+    argocd_product_test.go:45: 
+        	Error Trace:	D:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/cicd/argocd/argocd_product_test.go:45
+        	Error:      	Received unexpected error:
+        	            	Error 1406 (22001): Data too long for column 'sync_status' at row 1
+        	Test:       	TestProductProviderStatusLiteralsAreNotPersisted
+--- FAIL: TestProductUnknownActionCannotBeResentAfterRestart (0.20s)
+    argocd_product_test.go:62: 
+        	Error Trace:	D:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/cicd/argocd/argocd_product_test.go:62
+        	Error:      	Should be zero, but was 1
+        	Test:       	TestProductUnknownActionCannotBeResentAfterRestart
+        	Messages:   	restart must not resend an unresolved submission
+FAIL
+FAIL	github.com/duanxldragon/pantheon-base/backend/modules/business/cicd/argocd	0.714s
+FAIL

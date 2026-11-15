@@ -2,7 +2,7 @@
 
 - Priority: `P0`
 - Layer: `business/deploy + business/k8s + business/cicd`
-- Status: `blocked`
+- Status: `Deploy signed preview/start, frozen configuration and browser conflict flow verified locally; other domain previews and formal acceptance open`
 - Base Dependency: B3 `ChangeDiff`
 - Business Dependency: immutable intent/current-target version contracts
 
@@ -49,3 +49,29 @@
 ## Gates
 
 - 新 schema/public API、外部 production mutation、风险策略影响发布权限、Base lock。
+
+## Reconciliation 2026-11-07
+
+The required Base primitive is present in official v0.18.6. This resolves the prior component-release dependency only; all implementation and acceptance criteria above remain open. See the parent EXECUTION_QUEUE.md and current execution evidence.
+
+## Current implementation evidence
+
+See `.harness/evidence/2026-11-07-ops-planned-task-closeout/summary.md` for implemented Deploy scope, exact verification and remaining gaps. The packet remains in-progress.
+
+## Frozen Deploy configuration continuation
+
+The provider now projects the saved execution snapshot beside the host package diff: frozen template/package identities, effective step action/failure policy and bounded parameters. Current parameters are explicitly unknown. Only approved structural parameter values are returned; secrets/sentinels, freeform/nested values, unreadable-secret cases and oversized values are hidden server-side. Commands, URLs, conditions and StepConfig are excluded. Truncation is explicit at 100 steps / 200 parameters. This is proposed intent, not a measured parameter diff or a new execution policy.
+
+Real MySQL race verifies live-definition independence, old-ticket rejection after frozen parameter drift, redaction and bounds. UI tests and rendered light/dark desktop/mobile flows cover safe/hidden values, search, keyboard collapse and conflict/refresh. Source review and the additional failure/motion/zoom matrix are tracked in the linked current evidence. K8s/Argo/rollback, native browser zoom, real external sources and final formal acceptance remain open.
+
+## Scoped rollback integrity
+
+Deploy rollback create/read now propagate request DataScope. A supported single-package uninstall inverse is created atomically from the frozen definition and secret set as a draft; its own public start requires a new signed preview. Real MySQL and HTTP handler denial tests pass; real local API verifies disabled live definitions, frozen versions, signed start and owned cleanup. Scripted/conditional/multi-step and prior-version restoration contracts remain open rather than replaying forward commands. Evidence stays in the current closeout packet.
+
+## K8s image review continuation 2026-11-08
+
+Provider-owned expiring authenticated review now binds public create/rollback to actor, immutable request/key, Cluster configuration/credential version and workload UID/resourceVersion. The guard is private persisted JSON and is checked on the exact updated Kubernetes object; drift conflicts409. A separate reviewed rollback restores the recorded image. Expired authenticated tickets can recover a matching scoped actor-owned persisted result only, preventing ambiguous retries from creating another release. No new schema/root credential or raw manifests/configuration exposure. Required MySQL CGO race passes for the K8s packages, operational frontend49/49, vet/build and official assembly pass; final browser/hash-stable full race and independent review are pending. Image-only scope does not close manifest/config/resource, Argo, real cluster or final acceptance. Permission-route registry consumption still requires the formal Base release.
+
+## Final local priority checkpoint 2026-11-08
+
+Current scoped source passes complete hash-stable CGO race, backend vet/build, operational54/54 units, frontend lint/type-check/build and final combined browser6/6 with28 inspected desktop/mobile light/dark screenshots. The final browser waits for mobile shell transitions. O4 now labels completed result source/range/limit, stale inputs and safe warning counts; upstream errors/result-type mismatch cannot become false empty/success and cross-stream limits keep newer rows. Official locked assembly/contract/drift and62 overlay tests pass. This supersedes prior pending local verification notes, while independent approval and every omitted formal criterion remain open. See current closeout summary.

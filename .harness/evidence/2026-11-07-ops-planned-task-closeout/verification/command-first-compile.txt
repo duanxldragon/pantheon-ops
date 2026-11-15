@@ -1,0 +1,4 @@
+FAIL	github.com/duanxldragon/pantheon-base/backend/modules/business/deploy [build failed]
+# github.com/duanxldragon/pantheon-base/backend/modules/business/deploy [github.com/duanxldragon/pantheon-base/backend/modules/business/deploy.test]
+modules\business\deploy\task_command.go:83:19: inner.ensureTaskVisible undefined (type *DeployService has no field or method ensureTaskVisible)
+FAIL

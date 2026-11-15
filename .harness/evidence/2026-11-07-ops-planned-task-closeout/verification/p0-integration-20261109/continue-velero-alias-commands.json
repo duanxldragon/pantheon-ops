@@ -1,0 +1,120 @@
+{
+  "schemaVersion": 1,
+  "linkage": {
+    "taskId": "2026-11-07-ops-planned-task-closeout",
+    "taskPacket": "docs/harness/tasks/2026-11-07-ops-planned-task-closeout.task.md"
+  },
+  "scope": "new acceptance tooling only; remote execution and independent review reserved to Root",
+  "remoteExecuted": false,
+  "rootRequestSHA256": "f053fb6dda5d44af557eabdee4ad04b676da47591d7add0e210a442425a81d70",
+  "originalRegressions": [
+    {
+      "version": "v8",
+      "tests": 55,
+      "result": {
+        "status": "fulfilled",
+        "value": {
+          "chunk_id": "2c1696",
+          "wall_time_seconds": 2.6005888,
+          "exit_code": 0,
+          "original_token_count": 1558,
+          "output": "Warning: truncated output (original token count: 1558)\nTotal output lines: 60\n\ntest_bounded_stdout_stderr (__main__.AbsenceSafety.test_bounded_stdout_stderr) ... ok\r\ntest_cluster_scoped_crd (__main__.AbsenceSafety.test_cluster_scoped_crd) ... ok\r\ntest_corresponding_crd_forbidden_timeout_auth_and_mixed_errors (__main__.AbsenceSafety.test_corresponding_crd_forbidden_timeout_auth_and_mixed_errors) ... ok\r\ntest_cr_forbidden_auth_network_timeout_and_notfound_errors (__main__.AbsenceSafety.test_cr_forbidden_auth_network_timeout_and_notfound_errors) ... ok\r\ntest_crd_wrong_or_unserved_version (__main__.AbsenceSafety.test_crd_wrong_or_unserved_version) ... ok\r\ntest_discovery_403_timeout_badjson_and_wrong_schema (__main__.AbsenceSafety.test_discovery_403_timeout_badjson_and_wrong_schema) ... ok\r\ntest_duplicate_discovery_groups (__main__.AbsenceSafety.test_duplicate_discovery_groups) ... ok\r\ntest_duplicate_manifest_crd (__main__.AbsenceSafety.test_duplicate_manifest_crd) ... ok\r\ntest_exact_unregistered_bsl_accepts_with_three_proofs (__main__.AbsenceSafety.test_exact_unregistered_bsl_accepts_with_three_proofs) ... ok\r\ntest_existing_corresponding_crd (__main__.AbsenceSafety.test_existing_corresponding_crd) ... ok\r\ntest_existing_cr (__main__.AbsenceSafety.test_existing_cr) ... ok\r\ntest_extra_manifest_object (__main__.AbsenceSafety.test_extra_manifest_object) ... ok\r\ntest_malformed_discovery_group_and_version (__main__.AbsenceSafety.test_malformed_discovery_group_and_version) ... ok\r\ntest_missing_corresponding_crd (__main__.AbsenceSafety.test_missing_corresponding_crd) ... ok\r\ntest_missing_crd_version_or_names (__main__.AbsenceSafety.test_missing_crd_version_or_names) ... ok\r\ntest_normal_notfound_remains_absent (__main__.AbsenceSafety.test_normal_notfound_remains_absent) ... ok\r\ntest_ordinary_forbidden_and_mixed_notfound_errors (__main__.AbsenceSafety.test_ordin…658 tokens truncated…_crd_create_waits_established_before_cr_create (__main__.SealSafety.test_crd_create_waits_established_before_cr_create) ... ok\r\ntest_failed_established_wait_stops_before_cr (__main__.SealSafety.test_failed_established_wait_stops_before_cr) ... ok\r\ntest_failed_v6_receipt_cannot_be_successful_predecessor (__main__.SealSafety.test_failed_v6_receipt_cannot_be_successful_predecessor) ... ok\r\ntest_helper_command_consumes_only_approved_captured_bytes (__main__.SealSafety.test_helper_command_consumes_only_approved_captured_bytes) ... ok\r\ntest_loader_executes_approved_captured_bytes (__main__.SealSafety.test_loader_executes_approved_captured_bytes) ... ok\r\ntest_loader_refuses_unapproved_helper (__main__.SealSafety.test_loader_refuses_unapproved_helper) ... ok\r\ntest_native_and_mirror_identities_remain_exact (__main__.SealSafety.test_native_and_mirror_identities_remain_exact) ... ok\r\ntest_original_tail_and_validation_body_preserved (__main__.SealSafety.test_original_tail_and_validation_body_preserved) ... ok\r\ntest_remote_source_hash_change_refuses (__main__.SealSafety.test_remote_source_hash_change_refuses) ... ok\r\ntest_root_input_check_never_connects_and_keeps_all_original_pins (__main__.SealSafety.test_root_input_check_never_connects_and_keeps_all_original_pins) ... ok\r\ntest_successful_predecessor_exact_chain_hash_phase_required (__main__.SealSafety.test_successful_predecessor_exact_chain_hash_phase_required) ... ok\r\ntest_unknown_remote_entry_and_changed_progress_bytes_refuse (__main__.SealSafety.test_unknown_remote_entry_and_changed_progress_bytes_refuse) ... ok\r\ntest_wrong_request_refuses_before_connect (__main__.SealSafety.test_wrong_request_refuses_before_connect) ... ok\r\n\r\n----------------------------------------------------------------------\r\nRan 55 tests in 1.646s\r\n\r\nOK\r\n"
+        }
+      }
+    },
+    {
+      "version": "v6",
+      "tests": 46,
+      "result": {
+        "status": "fulfilled",
+        "value": {
+          "chunk_id": "45b71c",
+          "wall_time_seconds": 5.5231243,
+          "exit_code": 0,
+          "original_token_count": 1528,
+          "output": "Warning: truncated output (original token count: 1528)\nTotal output lines: 51\n\ntest_discovery_failures_missing_types_and_duplicate_objects_refuse (__main__.CleanupSafety.test_discovery_failures_missing_types_and_duplicate_objects_refuse) ... ok\r\ntest_exact_owned_gc_route_and_unknown_object_refusal (__main__.CleanupSafety.test_exact_owned_gc_route_and_unknown_object_refusal) ... ok\r\ntest_foreign_fixture_object_refuses_before_delete (__main__.CleanupSafety.test_foreign_fixture_object_refuses_before_delete) ... ok\r\ntest_no_direct_mirror_or_foreign_cleanup_entry (__main__.CleanupSafety.test_no_direct_mirror_or_foreign_cleanup_entry) ... ok\r\ntest_restored_configmap_exact_content_and_finite_velero_labels (__main__.CleanupSafety.test_restored_configmap_exact_content_and_finite_velero_labels) ... ok\r\ntest_all_v6_parse_compile (__main__.Derivation.test_all_v6_parse_compile) ... ok\r\ntest_exact_caps_and_pinned_images_reused (__main__.Derivation.test_exact_caps_and_pinned_images_reused) ... ok\r\ntest_official_argv_only_adds_config_and_never_calls_real_install (__main__.Derivation.test_official_argv_only_adds_config_and_never_calls_real_install) ... ok\r\ntest_original_fixture_functions_preserved (__main__.Derivation.test_original_fixture_functions_preserved) ... ok\r\ntest_original_remaining_body_exact (__main__.Derivation.test_original_remaining_body_exact) ... ok\r\ntest_original_validation_and_fixture_adapter_ast (__main__.Derivation.test_original_validation_and_fixture_adapter_ast) ... ok\r\ntest_remaining_body_cannot_replay_native_or_first_five (__main__.Derivation.test_remaining_body_cannot_replay_native_or_first_five) ... ok\r\ntest_unpinned_image_refuses_before_create (__main__.Derivation.test_unpinned_image_refuses_before_create) ... ok\r\ntest_changed_uid_owner_and_owner_reference_refuse (__main__.FiveGuard.test_changed_uid_owner_and_owner_reference_refuse) ... …628 tokens truncated…ccess) ... ok\r\ntest_failure_directory_discovery_exact_hashes_only (__main__.RecoveryGuard.test_failure_directory_discovery_exact_hashes_only) ... ok\r\ntest_mirror_drift_in_last_preflight_refuses_without_migration_or_create (__main__.RecoveryGuard.test_mirror_drift_in_last_preflight_refuses_without_migration_or_create) ... ok\r\ntest_predecessor_success_exact_hash_and_phase_required (__main__.RecoveryGuard.test_predecessor_success_exact_hash_and_phase_required) ... ok\r\ntest_private_native_kubeconfig_required (__main__.RecoveryGuard.test_private_native_kubeconfig_required) ... ok\r\ntest_root_input_check_never_connects (__main__.RecoveryGuard.test_root_input_check_never_connects) ... ok\r\ntest_root_refuses_wrong_request_before_connect (__main__.RecoveryGuard.test_root_refuses_wrong_request_before_connect) ... ok\r\ntest_source_hash_change_refuses_without_connect (__main__.RecoveryGuard.test_source_hash_change_refuses_without_connect) ... ok\r\ntest_stale_diagnostic_refuses_without_any_write (__main__.RecoveryGuard.test_stale_diagnostic_refuses_without_any_write) ... ok\r\ntest_unknown_native_entry_refuses_before_config_or_source_reads (__main__.RecoveryGuard.test_unknown_native_entry_refuses_before_config_or_source_reads) ... ok\r\ntest_exact_optional_v5_files_and_idempotent_v6_helpers_only (__main__.RetainedFileSafety.test_exact_optional_v5_files_and_idempotent_v6_helpers_only) ... ok\r\ntest_native_extra_source_bytes_and_unknown_paths_refuse (__main__.RetainedFileSafety.test_native_extra_source_bytes_and_unknown_paths_refuse) ... ok\r\ntest_semantically_equal_failure_with_extra_bytes_refuses (__main__.RetainedFileSafety.test_semantically_equal_failure_with_extra_bytes_refuses) ... ok\r\n\r\n----------------------------------------------------------------------\r\nRan 46 tests in 4.665s\r\n\r\nOK\r\n"
+        }
+      }
+    },
+    {
+      "version": "v5",
+      "tests": 32,
+      "result": {
+        "status": "fulfilled",
+        "value": {
+          "chunk_id": "b261a5",
+          "wall_time_seconds": 2.9929427,
+          "exit_code": 0,
+          "original_token_count": 1005,
+          "output": "Warning: truncated output (original token count: 1005)\nTotal output lines: 37\n\ntest_all_v5_parse_compile (__main__.Derivation.test_all_v5_parse_compile) ... ok\r\ntest_exact_caps_and_pinned_images_reused (__main__.Derivation.test_exact_caps_and_pinned_images_reused) ... ok\r\ntest_fixture_is_byte_identical (__main__.Derivation.test_fixture_is_byte_identical) ... ok\r\ntest_official_argv_only_adds_config_and_never_calls_real_install (__main__.Derivation.test_official_argv_only_adds_config_and_never_calls_real_install) ... ok\r\ntest_original_remaining_body_exact (__main__.Derivation.test_original_remaining_body_exact) ... ok\r\ntest_original_validation_and_fixture_adapter_ast (__main__.Derivation.test_original_validation_and_fixture_adapter_ast) ... ok\r\ntest_remaining_body_cannot_replay_native_or_first_five (__main__.Derivation.test_remaining_body_cannot_replay_native_or_first_five) ... ok\r\ntest_unpinned_image_refuses_before_create (__main__.Derivation.test_unpinned_image_refuses_before_create) ... ok\r\ntest_changed_uid_owner_and_owner_reference_refuse (__main__.FiveGuard.test_changed_uid_owner_and_owner_reference_refuse) ... ok\r\ntest_credential_mismatch_refuses (__main__.FiveGuard.test_credential_mismatch_refuses) ... ok\r\ntest_diagnostic_refusal_retains_only_safe_official_shape (__main__.FiveGuard.test_diagnostic_refusal_retains_only_safe_official_shape) ... ok\r\ntest_exact_live_five_and_in_memory_credential_match (__main__.FiveGuard.test_exact_live_five_and_in_memory_credential_match) ... ok\r\ntest_extra_pod_refuses (__main__.FiveGuard.test_extra_pod_refuses) ... ok\r\ntest_foreign_service_or_endpoint_refuses (__main__.FiveGuard.test_foreign_service_or_endpoint_refuses) ... ok\r\ntest_mirrored_or_arbitrary_endpoint_slice_not_adopted (__main__.FiveGuard.test_mirrored_or_arbitrary_endpoint_slice_not_adopted) ... ok\r\ntest_only_kubernetes_defaults_excluded_from_adopt…105 tokens truncated…fuses) ... ok\r\ntest_trailing_junk_duplicate_json_and_bound_refuse (__main__.ManifestSafety.test_trailing_junk_duplicate_json_and_bound_refuse) ... ok\r\ntest_unknown_namespace_schema_duplicates_refuse (__main__.ManifestSafety.test_unknown_namespace_schema_duplicates_refuse) ... ok\r\ntest_bounded_complete_keeps_original_five_and_migration (__main__.RecoveryGuard.test_bounded_complete_keeps_original_five_and_migration) ... ok\r\ntest_changed_manifest_refuses_without_any_write (__main__.RecoveryGuard.test_changed_manifest_refuses_without_any_write) ... ok\r\ntest_exclusive_writes_cannot_replace_failure (__main__.RecoveryGuard.test_exclusive_writes_cannot_replace_failure) ... ok\r\ntest_failed_predecessor_cannot_be_success (__main__.RecoveryGuard.test_failed_predecessor_cannot_be_success) ... ok\r\ntest_failure_directory_discovery_exact_hashes_only (__main__.RecoveryGuard.test_failure_directory_discovery_exact_hashes_only) ... ok\r\ntest_private_native_kubeconfig_required (__main__.RecoveryGuard.test_private_native_kubeconfig_required) ... ok\r\ntest_root_input_check_never_connects (__main__.RecoveryGuard.test_root_input_check_never_connects) ... ok\r\ntest_root_refuses_wrong_request_before_connect (__main__.RecoveryGuard.test_root_refuses_wrong_request_before_connect) ... ok\r\ntest_source_hash_change_refuses_without_connect (__main__.RecoveryGuard.test_source_hash_change_refuses_without_connect) ... ok\r\ntest_stale_diagnostic_refuses_without_any_write (__main__.RecoveryGuard.test_stale_diagnostic_refuses_without_any_write) ... ok\r\ntest_unknown_native_entry_refuses_before_config_or_source_reads (__main__.RecoveryGuard.test_unknown_native_entry_refuses_before_config_or_source_reads) ... ok\r\n\r\n----------------------------------------------------------------------\r\nRan 32 tests in 2.217s\r\n\r\nOK\r\n"
+        }
+      }
+    },
+    {
+      "version": "v4",
+      "tests": 25,
+      "result": {
+        "status": "fulfilled",
+        "value": {
+          "chunk_id": "589003",
+          "wall_time_seconds": 1.143899,
+          "exit_code": 0,
+          "original_token_count": 805,
+          "output": "test_actual_v3_failure_extras_private (__main__.BindingTests.test_actual_v3_failure_extras_private) ... ok\r\ntest_exact_eight_private_v4_listeners (__main__.BindingTests.test_exact_eight_private_v4_listeners) ... ok\r\ntest_wildcards_public_unknown_and_missing_denied (__main__.BindingTests.test_wildcards_public_unknown_and_missing_denied) ... ok\r\ntest_actual_help_supports_exact_flags (__main__.DerivationTests.test_actual_help_supports_exact_flags) ... ok\r\ntest_all_python_compile (__main__.DerivationTests.test_all_python_compile) ... ok\r\ntest_exact_ast_provider_delta (__main__.DerivationTests.test_exact_ast_provider_delta) ... ok\r\ntest_fixture_functions_and_every_assertion_preserved (__main__.DerivationTests.test_fixture_functions_and_every_assertion_preserved) ... ok\r\ntest_native_eth0_and_no_fallback (__main__.DerivationTests.test_native_eth0_and_no_fallback) ... ok\r\ntest_original_validation_preserved (__main__.DerivationTests.test_original_validation_preserved) ... ok\r\ntest_diagnostic_then_install_requires_exact_original_budget_and_ports (__main__.RootPhaseTests.test_diagnostic_then_install_requires_exact_original_budget_and_ports) ... ok\r\ntest_inspect_and_cleanup_pass_bound_snapshot_to_native (__main__.RootPhaseTests.test_inspect_and_cleanup_pass_bound_snapshot_to_native) ... ok\r\ntest_request_hash_refused_before_connect (__main__.RootPhaseTests.test_request_hash_refused_before_connect) ... ok\r\ntest_validate_and_cleanup_require_persisted_s3_finite_fixture_cleanup (__main__.RootPhaseTests.test_validate_and_cleanup_require_persisted_s3_finite_fixture_cleanup) ... ok\r\ntest_auth_exact_owner_and_counts_only (__main__.SafetyTests.test_auth_exact_owner_and_counts_only) ... ok\r\ntest_boolean_failed_exit_code_refused (__main__.SafetyTests.test_boolean_failed_exit_code_refused) ... ok\r\ntest_exact_cleanup_only_unmount_unlink_empty_rmdir (__main__.SafetyTests.test_exact_cleanup_only_unmount_unlink_empty_rmdir) ... ok\r\ntest_exact_native_findmnt_losetup (__main__.SafetyTests.test_exact_native_findmnt_losetup) ... ok\r\ntest_foreign_nested_mount_loop_backing_offset_ro_refused (__main__.SafetyTests.test_foreign_nested_mount_loop_backing_offset_ro_refused) ... ok\r\ntest_inspection_drift_blocks_before_unmount (__main__.SafetyTests.test_inspection_drift_blocks_before_unmount) ... ok\r\ntest_kubernetes_absence_from_successful_native_lists (__main__.SafetyTests.test_kubernetes_absence_from_successful_native_lists) ... ok\r\ntest_metadata_symlink_uid_gid_hardlink_mode_refused (__main__.SafetyTests.test_metadata_symlink_uid_gid_hardlink_mode_refused) ... ok\r\ntest_root_upload_exclusive_and_no_original_provision (__main__.SafetyTests.test_root_upload_exclusive_and_no_original_provision) ... ok\r\ntest_stopped_absent_unit_and_foreign_uid_rejection (__main__.SafetyTests.test_stopped_absent_unit_and_foreign_uid_rejection) ... ok\r\ntest_underlying_foreign_file_retained_after_unmount (__main__.SafetyTests.test_underlying_foreign_file_retained_after_unmount) ... ok\r\ntest_unknown_top_level_file_and_failed_shape_refused (__main__.SafetyTests.test_unknown_top_level_file_and_failed_shape_refused) ... ok\r\n\r\n----------------------------------------------------------------------\r\nRan 25 tests in 0.246s\r\n\r\nOK\r\n"
+        }
+      }
+    }
+  ],
+  "baselineRed": {
+    "expectedExitCode": 1,
+    "result": {
+      "status": "fulfilled",
+      "value": {
+        "chunk_id": "17cfe4",
+        "wall_time_seconds": 0.715887,
+        "exit_code": 1,
+        "original_token_count": 78,
+        "output": "{\"normalizationMismatchReproduced\": true, \"missingAliases\": [\"docker.io/library/import-2026-11-10@sha256:af344e0c699aea10cabe2568b463806b2bfc8223067d4e3e34a7de83dc600cfc\", \"docker.io/library/import-2026-11-10@sha256:39ac717f889faf9c91dd674044e6da6950b58f988ff19660692f0e0cb4be57a0\"], \"remoteExecuted\": false}\r\n"
+      }
+    }
+  },
+  "compiled": {
+    "status": "fulfilled",
+    "value": {
+      "chunk_id": "02308f",
+      "wall_time_seconds": 0.7917845,
+      "exit_code": 0,
+      "original_token_count": 148,
+      "output": "{\"compiled\": 5, \"sourceHashes\": {\"continue-velero-alias-contract.py\": \"a18eaa2cac4b5e2358090b3c9aebe3eaa4cdb1450d22a0c3a1d2f80f890cdef6\", \"continue-velero-alias-generate.py\": \"d8b8582cc0e227e1445845d12b63b71161b7e1868684b4a2e3a801931634958a\", \"continue-velero-alias-remote.py\": \"906f24a70436eefc53245d5251c831b3828e5227edc8ffe8dcac3fb2f78dbfb6\", \"continue-velero-alias-root.py\": \"fd02f3dc08438891241d3c775dcb06124badb791fd9622c0a0b0358eb24f1e0d\", \"continue-velero-alias-test.py\": \"46ad82310bb2de04e83a3c77ff20f1b7378b1b6c57027d2b03f435a7da6febc2\"}, \"exitCode\": 0, \"remoteExecuted\": false}\r\n"
+    }
+  },
+  "actualLsp": {
+    "status": "fulfilled",
+    "value": {
+      "chunk_id": "2e6837",
+      "wall_time_seconds": 6.45449,
+      "exit_code": 0,
+      "original_token_count": 59,
+      "output": "{\"artifact\": \"python-lsp-continue-velero-alias-sealed-20261110T055622323439.json\", \"sha256\": \"0e232c55179b1f0870148a5aec240c49997054097f577d8dfa43a0ae6369e44b\", \"files\": 5, \"errors\": 0, \"warnings\": 0, \"exitCode\": 0, \"errorType\": null}\r\n"
+    }
+  },
+  "postSealTests": {
+    "chunk_id": "4ac043",
+    "wall_time_seconds": 4.5654246,
+    "exit_code": 0,
+    "original_token_count": 53,
+    "output": "{\"artifact\": \"continue-velero-alias-verification.json\", \"sha256\": \"a8ab24072d2fb1d7e052d607068591602831a82081c677fe069beed02d7df1a0\", \"exitCode\": 0, \"tests\": 27, \"compiled\": 5, \"lspErrors\": 0, \"lspWarnings\": 0}\r\n"
+  },
+  "checkInputs": {
+    "chunk_id": "db42b8",
+    "wall_time_seconds": 2.0845817,
+    "exit_code": 0,
+    "original_token_count": 47,
+    "output": "{\"exitCode\": 0, \"remoteExecuted\": false, \"rootRequestSHA256\": \"f053fb6dda5d44af557eabdee4ad04b676da47591d7add0e210a442425a81d70\", \"helpers\": 5, \"ownedObjects\": 22, \"P0Approved\": false}\r\n"
+  },
+  "testsPassed": 185,
+  "skipped": 0,
+  "independentCodeArchReview": "pending Root",
+  "runtimeAcceptance": "pending Root",
+  "P0Approved": false
+}

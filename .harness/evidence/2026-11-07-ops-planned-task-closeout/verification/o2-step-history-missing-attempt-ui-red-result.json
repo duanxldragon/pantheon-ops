@@ -1,0 +1,13 @@
+{
+  "command": [
+    "npm.cmd",
+    "run",
+    "test:unit",
+    "--",
+    "tests/unit/business/operational/deploy-context.test.tsx"
+  ],
+  "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\frontend",
+  "exitCode": 1,
+  "elapsedSeconds": 2.7810000000172295,
+  "artifact": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/o2-step-history-missing-attempt-ui-red.txt"
+}

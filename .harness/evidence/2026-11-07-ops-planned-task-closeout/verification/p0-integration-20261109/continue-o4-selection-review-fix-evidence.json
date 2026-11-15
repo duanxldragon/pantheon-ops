@@ -1,0 +1,320 @@
+{
+  "taskId": "2026-11-07-ops-planned-task-closeout",
+  "parent": "docs/harness/tasks/2026-11-07-ops-planned-task-closeout.task.md",
+  "tier": "L2",
+  "role": "Generator/executor",
+  "historicalRequestSHA256": "8a866ac9c1d608558ee3d1e04805cd7f8a5e0a444b8fab2fc1dfe8ac7bd84a82",
+  "sourceHashes": [
+    {
+      "path": ".gitignore",
+      "sha256": "04b7bb31311f121d90dbd72fdf8cff3ce6127ee73b6b77469bbcf147a7e7df12",
+      "before": "04b7bb31311f121d90dbd72fdf8cff3ce6127ee73b6b77469bbcf147a7e7df12",
+      "after": "053c2f12d5dfb20b171a6f0b17ec9c2694b67fdf2bc67cda13aecf3544cffd78"
+    },
+    {
+      "path": "scripts/business-overlay/foundation-candidate.mjs",
+      "sha256": "02deaf187133b267622359e5756100262f99c48b031f76db47716157c8c974f1",
+      "before": "02deaf187133b267622359e5756100262f99c48b031f76db47716157c8c974f1",
+      "after": "17687364e7cc0420164707a9d92b33971f83d755efe57d61ace7e166a7105033"
+    },
+    {
+      "path": "scripts/business-overlay/rebuild-from-candidate.mjs",
+      "sha256": "b06fa5a04595f9a245920814f3ba0e31b5f3a9009061c249c62ef69fd8030f06",
+      "before": "b06fa5a04595f9a245920814f3ba0e31b5f3a9009061c249c62ef69fd8030f06",
+      "after": "d92eb077c1b67cb3a0b291be24958db0533ecfac8c3c586930f0d9ce2468f104"
+    },
+    {
+      "path": "scripts/business-overlay/rebuild-from-base.mjs",
+      "sha256": "24e7e834622d7e61d240a25aedfd5c914cee86ea9780dc7280a31ce55ee06c76",
+      "before": "24e7e834622d7e61d240a25aedfd5c914cee86ea9780dc7280a31ce55ee06c76",
+      "after": "94ce67fc97fd358200835dc81df769d9dcbe7865e32b74981dc84ecdb5004e4f"
+    },
+    {
+      "path": "scripts/business-overlay/foundation-candidate.test.mjs",
+      "sha256": "6f2cb9a366de1fdb71838ccc89ccfc76af39d68570aafde06cbe660dfd9b8894",
+      "before": "6f2cb9a366de1fdb71838ccc89ccfc76af39d68570aafde06cbe660dfd9b8894",
+      "after": "c9be950b627e86c92a6e0e42d1ef1886119c4bf050fe62aa3f1b894dd8d76ff2"
+    },
+    {
+      "path": "scripts/business-overlay/candidate-ownership.test.mjs",
+      "sha256": "30f4c185051b232d414b4867c7a9b35601d335405d8477b26dcb236be09f6062",
+      "before": "30f4c185051b232d414b4867c7a9b35601d335405d8477b26dcb236be09f6062",
+      "after": "30f4c185051b232d414b4867c7a9b35601d335405d8477b26dcb236be09f6062"
+    },
+    {
+      "path": "scripts/business-overlay/check-shared-drift.mjs",
+      "sha256": "a6ee2b769c1d27167c7f426ad913981c28b99f462054342e826dc194a1c4302b",
+      "before": "a6ee2b769c1d27167c7f426ad913981c28b99f462054342e826dc194a1c4302b",
+      "after": "a6ee2b769c1d27167c7f426ad913981c28b99f462054342e826dc194a1c4302b"
+    },
+    {
+      "path": "tests/scripts/business-overlay/check-shared-drift.test.mjs",
+      "sha256": "b79af64de465f3b1e2efda7e14d595fb2ba24ee46bdb36b04f2e79824338be36",
+      "before": "b79af64de465f3b1e2efda7e14d595fb2ba24ee46bdb36b04f2e79824338be36",
+      "after": "b79af64de465f3b1e2efda7e14d595fb2ba24ee46bdb36b04f2e79824338be36"
+    }
+  ],
+  "red": {
+    "command": "node --import ./.local/ops-acceptance/continue-o4-selection-review-fix-preload.mjs --test --test-reporter=tap --test-name-pattern=\"review HIGH|review MEDIUM\" scripts/business-overlay/foundation-candidate.test.mjs",
+    "tests": 8,
+    "passed": 0,
+    "failed": 8,
+    "skipped": 0,
+    "log": ".local/ops-acceptance/continue-o4-selection-review-fix/red-exact.log",
+    "logSHA256": "f2dfdba4bda4ba65e44bf2ffcd384883468208d7bb4fe00e4f01abecd1dad154",
+    "productionSourceBefore": [
+      {
+        "path": ".gitignore",
+        "sha256": "04b7bb31311f121d90dbd72fdf8cff3ce6127ee73b6b77469bbcf147a7e7df12"
+      },
+      {
+        "path": "scripts/business-overlay/foundation-candidate.mjs",
+        "sha256": "02deaf187133b267622359e5756100262f99c48b031f76db47716157c8c974f1"
+      },
+      {
+        "path": "scripts/business-overlay/rebuild-from-candidate.mjs",
+        "sha256": "b06fa5a04595f9a245920814f3ba0e31b5f3a9009061c249c62ef69fd8030f06"
+      },
+      {
+        "path": "scripts/business-overlay/rebuild-from-base.mjs",
+        "sha256": "24e7e834622d7e61d240a25aedfd5c914cee86ea9780dc7280a31ce55ee06c76"
+      },
+      {
+        "path": "scripts/business-overlay/check-shared-drift.mjs",
+        "sha256": "a6ee2b769c1d27167c7f426ad913981c28b99f462054342e826dc194a1c4302b"
+      }
+    ]
+  },
+  "green": {
+    "command": "node --import ./.local/ops-acceptance/continue-o4-selection-review-fix-preload.mjs --test --test-reporter=tap scripts/business-overlay/foundation-candidate.test.mjs scripts/business-overlay/candidate-ownership.test.mjs tests/scripts/business-overlay/*.test.mjs",
+    "tests": 198,
+    "passed": 198,
+    "failed": 0,
+    "skipped": 0,
+    "log": ".local/ops-acceptance/continue-o4-selection-review-fix/final-current.log",
+    "logSHA256": "37ceedf2049a90b2d18b1ead2c5d2c21cf953dfe1091f023e249519b5f7cd15d"
+  },
+  "priorRuns": [
+    {
+      "tests": 8,
+      "passed": 8,
+      "failed": 0,
+      "skipped": 0,
+      "log": ".local/ops-acceptance/continue-o4-selection-review-fix/green-targeted-v2.log",
+      "logSHA256": "20c15c000cd14d2f6086dd21470cc46f306cb2005c2e84c39bd2776a7636fa3e"
+    },
+    {
+      "tests": 132,
+      "passed": 132,
+      "failed": 0,
+      "skipped": 0,
+      "log": ".local/ops-acceptance/continue-o4-selection-review-fix/candidate-ownership.log",
+      "logSHA256": "1a6592614a35ad8ffe30c552acc449f873c42716693d80093d4fe5da9c380e08"
+    },
+    {
+      "tests": 63,
+      "passed": 63,
+      "failed": 0,
+      "skipped": 0,
+      "log": ".local/ops-acceptance/continue-o4-selection-review-fix/overlay-drift.log",
+      "logSHA256": "84da4e67acc3d77dbdac3a8a4d4b1e70bfab1a9b57f16eb335bdad247b85714a"
+    },
+    {
+      "tests": 197,
+      "passed": 197,
+      "failed": 0,
+      "skipped": 0,
+      "log": ".local/ops-acceptance/continue-o4-selection-review-fix/final-all.log",
+      "logSHA256": "91080d1d963cc2c9312ab5db5d700f9e5c2dfabf911a1b71535bbe831f936601"
+    },
+    {
+      "tests": 11,
+      "passed": 11,
+      "failed": 0,
+      "skipped": 0,
+      "log": ".local/ops-acceptance/continue-o4-selection-review-fix/green-final-targeted.log",
+      "logSHA256": "5e32dc9eb6ad09129f42249fac608e8c2727962ffb8b56ca7f2ead9e255d4592"
+    }
+  ],
+  "environment": {
+    "GIT_CONFIG_COUNT": "1",
+    "GIT_CONFIG_KEY_0": "core.longpaths",
+    "GIT_CONFIG_VALUE_0": "true",
+    "GOCACHE": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\continue-o4-selection-review-fix\\gocache",
+    "GOPATH": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\continue-o4-selection-review-fix\\gopath",
+    "GOMODCACHE": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\continue-o4-selection-review-fix\\gomodcache",
+    "GOPROXY": "off",
+    "GOSUMDB": "off",
+    "TMP": ".local/ops-acceptance/continue-o4-selection-review-fix/tmp",
+    "preload": "os.tmpdir overridden to the new .local root in each Node test process"
+  },
+  "checks": [
+    {
+      "command": "node --check scripts/business-overlay/foundation-candidate.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node --check scripts/business-overlay/rebuild-from-candidate.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node --check scripts/business-overlay/rebuild-from-base.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node --check scripts/business-overlay/foundation-candidate.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node --check scripts/business-overlay/candidate-ownership.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node --check scripts/business-overlay/check-shared-drift.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node --check tests/scripts/business-overlay/check-shared-drift.test.mjs",
+      "exitCode": 0
+    }
+  ],
+  "languageDiagnostics": {
+    "tool": "native TypeScript LanguageService",
+    "version": "6.0.3",
+    "files": 7,
+    "checkJs": false,
+    "skipLibCheck": false,
+    "suppressions": false,
+    "fullTypeSafetyClaim": false,
+    "errors": 0,
+    "diagnostics": [
+      {
+        "file": "scripts\\business-overlay\\foundation-candidate.mjs",
+        "diagnostics": []
+      },
+      {
+        "file": "scripts\\business-overlay\\rebuild-from-candidate.mjs",
+        "diagnostics": []
+      },
+      {
+        "file": "scripts\\business-overlay\\rebuild-from-base.mjs",
+        "diagnostics": []
+      },
+      {
+        "file": "scripts\\business-overlay\\foundation-candidate.test.mjs",
+        "diagnostics": []
+      },
+      {
+        "file": "scripts\\business-overlay\\candidate-ownership.test.mjs",
+        "diagnostics": []
+      },
+      {
+        "file": "scripts\\business-overlay\\foundation-release.mjs",
+        "diagnostics": []
+      },
+      {
+        "file": "scripts\\business-overlay\\check-shared-drift.mjs",
+        "diagnostics": []
+      }
+    ]
+  },
+  "contract": {
+    "command": "npm run check:business-overlay",
+    "result": "passed (56 declared paths)",
+    "log": ".local/ops-acceptance/continue-o4-selection-review-fix/contract.log"
+  },
+  "selectedAssetClassification": {
+    "newTransientRoots": [
+      ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/fixtures"
+    ],
+    "provenanceRecords": 175,
+    "over240": 13,
+    "reportsRetained": true,
+    "physicalMoveOrDeletion": false,
+    "existingTwoIgnoresPreserved": true,
+    "noBlanketEvidenceOrFixtureIgnore": true,
+    "limitsUnchanged": true
+  },
+  "actualSelector": {
+    "success": true,
+    "files": 5104,
+    "gitFiles": 5099,
+    "entries": 5103,
+    "excludedFixtures": [],
+    "retainedReports": [
+      ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/adversarial-checks-v2.mjs",
+      ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/adversarial-checks.mjs",
+      ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/adversarial-results.json",
+      ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/commands.json",
+      ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/final-source-hashes.json",
+      ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/integrity-and-syntax.json",
+      ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/integrity-and-syntax.mjs",
+      ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/preserve-fixtures.mjs",
+      ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/replacement-assembly-check.mjs",
+      ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/replacement-assembly-results.json",
+      ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/retained-canonical-check.json",
+      ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/retained-canonical-check.mjs",
+      ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/review.md"
+    ]
+  },
+  "actualFreeze": {
+    "success": true,
+    "selectedFiles": 5107,
+    "capturedFiles": 5107,
+    "allLeavesAgree": true
+  },
+  "actualFinalSelection": {
+    "command": "node .local/ops-acceptance/continue-o4-selection-review-fix/actual-final-selection.mjs",
+    "observedAt": "2026-11-10T09:05:46.588Z",
+    "success": true,
+    "selectorFiles": 5112,
+    "capturedFiles": 5112,
+    "allLeavesAgree": true,
+    "gitSelectionStable": true,
+    "excludedRoots": [],
+    "retainedCodeReports": [
+      ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/adversarial-checks-v2.mjs",
+      ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/adversarial-checks.mjs",
+      ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/adversarial-results.json",
+      ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/commands.json",
+      ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/final-source-hashes.json",
+      ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/integrity-and-syntax.json",
+      ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/integrity-and-syntax.mjs",
+      ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/preserve-fixtures.mjs",
+      ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/replacement-assembly-check.mjs",
+      ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/replacement-assembly-results.json",
+      ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/retained-canonical-check.json",
+      ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/retained-canonical-check.mjs",
+      ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/review.md"
+    ]
+  },
+  "preservation": {
+    "entries": 30598,
+    "files": 19069,
+    "allHashesAndInodeNlinkSizeModeMtimeCtimeEqual": true,
+    "before": ".local/ops-acceptance/continue-o4-selection-review-fix/preservation-before.json",
+    "after": ".local/ops-acceptance/continue-o4-selection-review-fix/preservation-after.json",
+    "originalTreeBefore": ".local/ops-acceptance/continue-o4-selection-review-fix/original-tree-before.json",
+    "originalTreeAfter": ".local/ops-acceptance/continue-o4-selection-review-fix/original-tree-after.json",
+    "snapshotFiles": 1141,
+    "reportFiles": 4634,
+    "deviceComparison": "Current Node before/after matches; no equality claim to the historical full-width device representation"
+  },
+  "independentAttackRerun": {
+    "groups": 6,
+    "allCorrectedExpectationsPassed": true,
+    "originalsUnmodified": true,
+    "result": ".local/ops-acceptance/continue-o4-selection-review-fix/independent-attacks-rerun/adversarial-results.json",
+    "command": "node .local/ops-acceptance/continue-o4-selection-review-fix/independent-attacks-rerun/adversarial-checks.mjs; node .local/ops-acceptance/continue-o4-selection-review-fix/assert-attacks.mjs"
+  },
+  "verificationToolCorrections": [
+    "Diagnostics import path initially had one excess parent segment; corrected and native LanguageService rerun passed.",
+    "Original-tree comparison initially compared compact JSON to pretty JSON; corrected to parsed structural equality. Both historical hash inventories and physical metadata compare equal."
+  ],
+  "independentRereview": "pending",
+  "actualCompleteAssembly": "pending; Dispatcher-owned, not executed",
+  "officialConsumption": false,
+  "P0Closed": false,
+  "selfApproval": false,
+  "runtimeEvidence": "not collected in this scoped source-tool repair"
+}

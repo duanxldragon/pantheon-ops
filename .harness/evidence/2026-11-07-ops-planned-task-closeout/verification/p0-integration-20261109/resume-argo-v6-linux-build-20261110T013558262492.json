@@ -1,0 +1,29 @@
+{
+  "phase": "reviewed-Argo-linux-binary-build",
+  "exitCode": 0,
+  "seconds": 352.063,
+  "command": [
+    "go",
+    "build",
+    "-mod=readonly",
+    "-trimpath",
+    "-p",
+    "2",
+    "-o",
+    "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\resume-argo-v6-reviewed-linux",
+    "./cmd"
+  ],
+  "GOOS": "linux",
+  "CGO_ENABLED": "0",
+  "sourceFilesVerified": 4828,
+  "sourceStable": true,
+  "providerDeployed": false,
+  "independentApproval": false,
+  "logSHA256": "8802a8463a365289bfaca4aa5a11249c07a5bfdf293f4923985e35ee736e7ebc",
+  "logBytes": 4100,
+  "binary": {
+    "name": "resume-argo-v6-reviewed-linux",
+    "sha256": "cd68356983230edfa0c013235eccba4381a5fbe00d7076f47b7d4b7b8578138b",
+    "bytes": 206041319
+  }
+}

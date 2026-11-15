@@ -3,6 +3,9 @@ package pkg
 import (
 	"errors"
 	"fmt"
+	"net/http"
+	"net/url"
+	"time"
 
 	"github.com/duanxldragon/pantheon-base/backend/pkg/security/ssrf"
 
@@ -18,19 +21,9 @@ var errKubeconfigInvalid = errors.New("k8s.kubeconfig_invalid")
 // payload. The clientset is created lazily; no connection is established until
 // the first request.
 func NewClientFromKubeconfig(kubeconfig string) (*kubernetes.Clientset, error) {
-	if kubeconfig == "" {
-		return nil, errKubeconfigInvalid
-	}
-	restConfig, err := clientcmd.RESTConfigFromKubeConfig([]byte(kubeconfig))
+	restConfig, err := RESTConfigFromKubeconfig(kubeconfig)
 	if err != nil {
-		return nil, errKubeconfigInvalid
-	}
-
-	// Validate API server URL against SSRF attacks
-	validator := ssrf.DefaultValidator()
-	validator.AllowedPorts = []int{443, 6443, 8443, 16443}
-	if err := validator.ValidateURL(restConfig.Host); err != nil {
-		return nil, fmt.Errorf("k8s.apiserver_invalid_url: %w", err)
+		return nil, err
 	}
 
 	clientset, err := kubernetes.NewForConfig(restConfig)
@@ -98,5 +91,40 @@ func RESTConfigFromKubeconfig(kubeconfig string) (*rest.Config, error) {
 		return nil, fmt.Errorf("k8s.apiserver_invalid_url: %w", err)
 	}
 
+	// A kubeconfig proxy can route through another network and bypass the checked
+	// target dial. Uploaded kubeconfigs must also never invoke local credential
+	// plugins, read local secret files or disable server certificate verification.
+	// This consumer supports direct API connections with inline credentials only.
+	if restConfig.Proxy != nil || restConfig.ExecProvider != nil || restConfig.AuthProvider != nil ||
+		restConfig.BearerTokenFile != "" || restConfig.TLSClientConfig.CAFile != "" ||
+		restConfig.TLSClientConfig.CertFile != "" || restConfig.TLSClientConfig.KeyFile != "" || restConfig.TLSClientConfig.Insecure {
+		return nil, errKubeconfigInvalid
+	}
+	restConfig.Timeout = 30 * time.Second
+	checkedClient := validator.CreateHTTPClient(restConfig.Timeout)
+	restConfig.Dial = checkedClient.Transport.(*http.Transport).DialContext
+	restConfig.Proxy = func(*http.Request) (*url.URL, error) { return nil, nil }
+	restConfig.WrapTransport = func(transport http.RoundTripper) http.RoundTripper {
+		return &checkedKubernetesTransport{validator: validator, transport: transport, origin: restConfig.Host}
+	}
+
 	return restConfig, nil
+}
+
+// Validate each request as well as each dial, including redirected requests.
+type checkedKubernetesTransport struct {
+	validator *ssrf.Validator
+	transport http.RoundTripper
+	origin    string
+}
+
+func (t *checkedKubernetesTransport) RoundTrip(request *http.Request) (*http.Response, error) {
+	origin, err := url.Parse(t.origin)
+	if err != nil || request.URL.Scheme != origin.Scheme || request.URL.Host != origin.Host {
+		return nil, errKubeconfigInvalid
+	}
+	if err := t.validator.ValidateURL(request.URL.String()); err != nil {
+		return nil, err
+	}
+	return t.transport.RoundTrip(request)
 }

@@ -1,0 +1,28 @@
+{"phase": "prepared", "identity": {"namespace": "pantheon-p0-live-929033", "uid": "d66ffb6e-b7cb-4672-84bb-678624476eb1", "ownerLabelChecked": true}, "configPath": "/opt/pantheon-p0-20261109/live-k8s-argo-pantheon-p0-live-929033.json", "tokenDuration": "15m", "tlsServerName": "kubernetes", "tlsVerification": "trusted server CA from pinned SSH; verified certificate DNS SAN; public origin unchanged", "rbac": "only namespaced Services get/list/create/update/delete", "credentialMode": "0600; never stdout"}
+{"check": "public create returns provider UID/version", "passed": true}
+{"check": "live update preserves clusterIP/named port/annotation and changes routing", "passed": true}
+{"check": "stale update conflicts", "passed": true}
+{"check": "stale delete conflicts", "passed": true}
+{"check": "stale requests preserve actual version", "passed": true}
+{"check": "two concurrent reviewed updates have exactly one winner", "passed": true}
+{"check": "department revocation denies cached-client update", "passed": true}
+{"check": "department revocation denies delete", "passed": true}
+{"check": "department revocation denies read", "passed": true}
+{"check": "namespace action revocation denies update", "passed": true}
+{"check": "namespace action revocation denies delete", "passed": true}
+{"check": "removed namespace binding denies update", "passed": true}
+{"check": "credential reference revocation denies cached client", "passed": true}
+{"check": "all product revocation denials preserve live version", "passed": true}
+{"check": "pre-canceled request remains canceled", "passed": true}
+{"check": "same-name recreated Service has new UID", "passed": true}
+{"check": "ABA old update rejected", "passed": true}
+{"check": "ABA old delete rejected", "passed": true}
+{"check": "ABA denials preserve replacement UID/version/routing", "passed": true}
+{"namespace": "pantheon-p0-live-929033", "phase": "rbac-revoke-request", "resourceVersion": "1970921", "serviceUID": "94d4319d-d1b2-4fb2-8585-f1440c627969"}
+{"phase": "provider-rbac-revoked", "exitCode": 0, "allowedVerbs": ["get", "list"]}
+{"check": "real provider RBAC denied update maps to permission-denied", "passed": true}
+{"check": "real provider RBAC denied delete maps to permission-denied", "passed": true}
+{"check": "provider denials preserve replacement version/routing", "passed": true}
+{"checksPassed": 22, "phase": "complete", "scope": "product public ServiceService + isolated MySQL + real public K3s; excludes HTTP auth/audit/browser"}
+{"phase": "independent-kubectl-final-state", "uid": "94d4319d-d1b2-4fb2-8585-f1440c627969", "resourceVersion": "1970921", "selector": {"app": "replacement"}, "clusterIP": "10.43.135.107"}
+{"phase": "owned-namespace-cleanup", "uidChecked": true, "absenceVerified": true, "exitCode": 0}

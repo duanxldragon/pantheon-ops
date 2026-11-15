@@ -1,0 +1,36 @@
+{
+  "exitCode": 1,
+  "errorType": "AssertionError",
+  "detailsOmitted": true,
+  "checks": [
+    {
+      "check": "all-new-Python-scripts-parse-and-compile-without-bytecode",
+      "passed": true
+    },
+    {
+      "check": "actual-official-Velero-SHA256-and-regular-amd64-ELF",
+      "passed": true
+    },
+    {
+      "check": "actual-cached-official-image-indices-have-unique-linux-amd64-manifests",
+      "passed": true
+    },
+    {
+      "check": "release-digest-size-origin-version-and-publication-tampering-denied",
+      "passed": true
+    },
+    {
+      "check": "path-traversal-absolute-Windows-links-duplicates-and-wrong-ELF-denied-before-extract",
+      "passed": true
+    },
+    {
+      "check": "cleanup-foreign-owner-and-recreated-UID-denied",
+      "passed": true
+    },
+    {
+      "check": "existing-SSH-helper-rejects-unknown-host-keys",
+      "passed": true
+    }
+  ],
+  "remoteExecuted": false
+}

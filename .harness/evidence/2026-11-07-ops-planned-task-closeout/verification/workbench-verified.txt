@@ -1,0 +1,30 @@
+[smoke-suite] API base http://127.0.0.1:24484/api/v1
+[generated-modules] cleanup complete
+{
+  "modules": 0,
+  "schemas": 1,
+  "registries": 4,
+  "i18n": 5
+}
+(!) Your Vite config uses features that are unsupported by `configLoader: 'native'`, which is planned to become the default in a future major version of Vite:
+  - `__dirname` (vite.config.ts:32:25). Use `import.meta.dirname` instead
+Set `VITE_CONFIG_NATIVE_IGNORE_WARNING=true` to suppress this warning.
+Smoke Vite ready at http://127.0.0.1:24589/
+
+Running 4 tests using 1 worker
+
+(node:12168) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok 1 tests\smoke\business\deploy\deploy-workbench.spec.ts:14:3 › deployment workbench sources, logs, keyboard and mobile (light) (6.1s)
+  ok 2 tests\smoke\business\deploy\deploy-workbench.spec.ts:14:3 › deployment workbench sources, logs, keyboard and mobile (dark) (5.8s)
+  ok 3 tests\smoke\business\observability-workbench.spec.ts:7:3 › Loki UTC range, cancellation, denial and recovery (light) (3.7s)
+  ok 4 tests\smoke\business\observability-workbench.spec.ts:7:3 › Loki UTC range, cancellation, denial and recovery (dark) (4.2s)
+
+  4 passed (21.0s)
+[generated-modules] cleanup complete
+{
+  "modules": 0,
+  "schemas": 1,
+  "registries": 4,
+  "i18n": 5
+}

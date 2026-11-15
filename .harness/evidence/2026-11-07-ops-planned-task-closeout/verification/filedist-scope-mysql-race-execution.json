@@ -1,0 +1,7 @@
+{
+  "exitCode": 0,
+  "cgoEnabled": true,
+  "seconds": 5.27045,
+  "realMysqlRequired": true,
+  "command": "go test -mod=readonly -race -count=1 -v ./modules/business/filedist"
+}

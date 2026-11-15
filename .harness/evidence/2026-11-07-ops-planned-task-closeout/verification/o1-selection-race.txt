@@ -1,0 +1,6 @@
+=== RUN   TestTargetSelectionVersionsExclusionsAndUnavailable
+--- PASS: TestTargetSelectionVersionsExclusionsAndUnavailable (0.16s)
+=== RUN   TestTargetSelectionContextBudgetAndGroupChanges
+--- PASS: TestTargetSelectionContextBudgetAndGroupChanges (0.19s)
+PASS
+ok  	github.com/duanxldragon/pantheon-base/backend/modules/business/cmdb	1.411s

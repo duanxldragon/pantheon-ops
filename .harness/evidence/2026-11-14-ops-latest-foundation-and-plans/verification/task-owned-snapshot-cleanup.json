@@ -1,0 +1,10 @@
+{
+  "removed": "pantheon-ops/.foundation/releases/pantheon-base-v0.18.8/repo",
+  "reason": "Task-owned re-extraction after verified final assembly/drift; free disk for full race",
+  "resolvedAbsolutePathChecked": true,
+  "allAncestorsAndContentsNoReparsePoints": true,
+  "officialArchivesAndSidecarsRetained": true,
+  "finalCandidateUnchanged": true,
+  "historicalDataAndUserCachesPreserved": true,
+  "bytesInFiles": 69206797
+}

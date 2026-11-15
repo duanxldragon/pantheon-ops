@@ -21,6 +21,7 @@ updated_at: 2026-04-30
 English version: [PLATFORM_CONTRACT.en.md](./PLATFORM_CONTRACT.en.md)
 
 关联设计：
+
 - `PLATFORM_DASHBOARD_DESIGN.md`
 - `FRONTEND_UI_SPEC.md`
 - `FRONTEND_PAGE_TEMPLATES.md`
@@ -28,6 +29,7 @@ English version: [PLATFORM_CONTRACT.en.md](./PLATFORM_CONTRACT.en.md)
 - `P2_SCALE_ROADMAP.md`
 
 关联验收：
+
 - `ACCEPTANCE_CHECKLIST.md`
 - `PLATFORM_ACCEPTANCE_MATRIX_20260430_UI_MIGRATION.md`
 - `PLATFORM_SHELL_DUAL_MODE_ACCEPTANCE_TEMPLATE.md`
@@ -248,7 +250,7 @@ Pantheon 当前已经不再是“只有登录 + 菜单 + CRUD”的后台壳。
 - [PLATFORM_SHELL_DUAL_MODE_ACCEPTANCE_TEMPLATE.md](../acceptances/PLATFORM_SHELL_DUAL_MODE_ACCEPTANCE_TEMPLATE.md)
 
 ## 变更日志
-| 日期 | 版本 | 变更内容 | 原因 |
-|------|------|---------|------|
-| 2026-06-25 | v1.0 | 初始版本 | 评估审计添加 |
 
+| 日期       | 版本 | 变更内容 | 原因         |
+| ---------- | ---- | -------- | ------------ |
+| 2026-06-25 | v1.0 | 初始版本 | 评估审计添加 |

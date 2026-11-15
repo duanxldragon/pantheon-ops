@@ -1,0 +1,8 @@
+
+Running 1 test using 1 worker
+
+(node:14876) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok 1 .tmp\ops-acceptance\cleanup-v6.spec.ts:4:1 › clean exact v6 fixtures with identity checks and verify absence (28.8s)
+
+  1 passed (29.6s)

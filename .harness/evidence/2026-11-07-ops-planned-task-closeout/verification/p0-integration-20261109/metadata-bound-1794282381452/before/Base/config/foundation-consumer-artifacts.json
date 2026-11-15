@@ -1,0 +1,8 @@
+{
+  "schemaVersion": 1,
+  "sourceOwner": "pantheon-base",
+  "reviewLegacyRegistry": {
+    "path": "config/review-loop-legacy-artifacts.json",
+    "artifactRoot": ".harness/archive"
+  }
+}

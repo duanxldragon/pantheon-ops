@@ -1,0 +1,6 @@
+{
+  "error": "[Errno 13] Permission denied: 'D:\\\\workspace\\\\go\\\\pantheon-platform\\\\pantheon-ops\\\\backend\\\\modules\\\\system\\\\iam\\\\tenant\\\\tenant_owner_lifecycle_test.go'",
+  "attemptedWrites": 60,
+  "rollbackFailures": [],
+  "preimagesVerified": true
+}

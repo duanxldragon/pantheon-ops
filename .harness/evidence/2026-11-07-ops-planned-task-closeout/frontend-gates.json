@@ -1,0 +1,17 @@
+[
+  {
+    "name": "lint",
+    "exitCode": 0,
+    "durationSeconds": 49.065741
+  },
+  {
+    "name": "type-check",
+    "exitCode": 0,
+    "durationSeconds": 24.8214785
+  },
+  {
+    "name": "build",
+    "exitCode": 0,
+    "durationSeconds": 29.0911795
+  }
+]

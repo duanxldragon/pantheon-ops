@@ -1,0 +1,7 @@
+=== RUN   TestLogSequenceIsUniqueWithinEachTask
+
+2026/11/09 09:28:19 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/log_sequence_test.go:26 [35;1mError 1062 (23000): Duplicate entry '1-1' for key 'biz_deploy_task_log_chunk.uk_deploy_task_log_chunk_seq'
+[0m[33m[4.000ms] [34;1m[rows:0][0m INSERT INTO `biz_deploy_task_log_chunk` (`task_id`,`task_host_id`,`task_step_id`,`attempt_no`,`sequence`,`stream`,`content`,`created_at`) VALUES (1,0,0,0,1,'stdout','duplicate','2026-11-09 09:28:19.236')
+--- PASS: TestLogSequenceIsUniqueWithinEachTask (1.20s)
+PASS
+ok  	github.com/duanxldragon/pantheon-base/backend/modules/business/deploy	2.372s

@@ -30,13 +30,13 @@ Pantheon smoke tests are grouped by ownership boundary.
 Smoke runs in tiers so a change only pays for the depth it can actually affect. The tier is chosen
 from the **changed paths**, not from a manual label.
 
-| Tier | Command | Scope | Gate |
-| :--- | :--- | :--- | :--- |
-| L0 static | `npm run test:smoke:l0` | Smoke wiring contracts only (`check:smoke-coverage-contract`, `check:smoke-web-base`, `check:system-page-admission`). No browser, no server. | part of `npm run prebuild` |
-| L1 critical path | `npm run test:smoke:l1` | `platform:contracts` + `system:routes` — shell/pagination contract plus every system route reachable. | **blocking on every PR** |
-| L2 module | `npm run test:smoke:module:<module>` | One business module suite. `<module>` is `iam`, `config`, `i18n`, `audit`, `org` or `platform`. | **blocking, but only for touched modules** |
-| L2 all | `npm run test:smoke:l2` | Every module suite plus platform surfaces and business flows. | manual / pre-release |
-| L3 full | `npm run test:smoke:all` | Everything, including the PC/tablet/phone viewport matrix (`platform:full`). | report-only / pre-release |
+| Tier             | Command                              | Scope                                                                                                                                        | Gate                                       |
+| :--------------- | :----------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------- | :----------------------------------------- |
+| L0 static        | `npm run test:smoke:l0`              | Smoke wiring contracts only (`check:smoke-coverage-contract`, `check:smoke-web-base`, `check:system-page-admission`). No browser, no server. | part of `npm run prebuild`                 |
+| L1 critical path | `npm run test:smoke:l1`              | `platform:contracts` + `system:routes` — shell/pagination contract plus every system route reachable.                                        | **blocking on every PR**                   |
+| L2 module        | `npm run test:smoke:module:<module>` | One business module suite. `<module>` is `iam`, `config`, `i18n`, `audit`, `org` or `platform`.                                              | **blocking, but only for touched modules** |
+| L2 all           | `npm run test:smoke:l2`              | Every module suite plus platform surfaces and business flows.                                                                                | manual / pre-release                       |
+| L3 full          | `npm run test:smoke:all`             | Everything, including the PC/tablet/phone viewport matrix (`platform:full`).                                                                 | report-only / pre-release                  |
 
 Path-driven module selection lives in `scripts/resolve-smoke-modules.mjs`. The Quality Gates
 workflow maps a PR's changed files to module suites and runs only those. **Any change that is not
@@ -136,9 +136,10 @@ Delete a smoke test only when its ownership is retired or another active smoke t
 
 ## Ops Business Overlay
 
-- `test:smoke:business:cmdb` -> `business/cmdb/cmdb-pages.spec.ts`
-- `test:smoke:business:deploy` -> `business/deploy/deploy-pages.spec.ts`
+- `test:smoke:business:cmdb` -> `business/cmdb/cmdb-pages.spec.ts`, `business/cmdb/cmdb-import-export-permissions.spec.ts`
+- `test:smoke:business:deploy` -> `business/deploy/deploy-pages.spec.ts`, `business/deploy/deploy-workbench.spec.ts`, `business/deploy/deploy-selection-preview.spec.ts`, `business/deploy/deploy-command.spec.ts`
 - `test:smoke:business:deploy:api` -> `business/deploy/deploy-api.spec.ts`
-- `test:smoke:business:observability` -> `business/observability-filedist-pages.spec.ts`, `business/observability-menu.spec.ts`
+- `test:smoke:business:observability` -> `business/observability-filedist-pages.spec.ts`, `business/observability-menu.spec.ts`, `business/observability-workbench.spec.ts`, `business/observability-tempo-workbench.spec.ts`, `business/observability-query-workspace.spec.ts`
 - `test:smoke:business:service` -> `business/service/service-pages.spec.ts`
-- `test:smoke:business:k8s` -> `business/k8s/k8s-pages.spec.ts`
+- `test:smoke:business:k8s` -> `business/k8s/k8s-pages.spec.ts`, `business/k8s/release-preview.spec.ts`
+- `test:smoke:business:bizscope` -> `business/bizscope/bizscope-pages.spec.ts`

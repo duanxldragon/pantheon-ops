@@ -1,0 +1,12 @@
+{
+  "command": "go test -mod=readonly -race -p 2 -timeout 30m ./...",
+  "CGO_ENABLED": "1",
+  "MinGW": "D:/msys64/mingw64/bin",
+  "exitCode": 0,
+  "elapsedSeconds": 1796.641,
+  "sourceHashesStable": true,
+  "hashedFiles": 709,
+  "requiredMySQL": 33316,
+  "requiredRedis": 26316,
+  "migrationDSNConfigured": true
+}

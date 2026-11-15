@@ -1,0 +1,47 @@
+{
+  "taskId": "2026-11-07-ops-planned-task-closeout",
+  "parentTaskPacket": "docs/harness/tasks/2026-11-07-ops-planned-task-closeout.task.md",
+  "tier": "L2",
+  "ownerLayer": "business/k8s acceptance fixture only",
+  "status": "blocked-before-official-image-download",
+  "phase": "local-transport-preparation",
+  "requiresRootExecution": true,
+  "script": ".local/ops-acceptance/resume-velero-transport-prep.py",
+  "scriptSHA256": "1c2b41d64b18643833b4ed42af60f86226b1a6e95d9bb67c151362b09f451b2c",
+  "command": ["python", ".local/ops-acceptance/resume-velero-transport-prep.py"],
+  "arguments": [],
+  "executionPrerequisite": "Existing authorized execution path with working official HTTPS egress; this lane has WinError 10013 and cannot obtain any official network response. No network, firewall, proxy, TLS or permission changes are proposed.",
+  "remoteInstallRequestedByThisPhase": false,
+  "remoteResourcesCreated": 0,
+  "currentPhaseAddedRemoteMemoryMi": 0,
+  "laterFixtureAddedRemoteMemoryCeilingMi": 512,
+  "localFreeDiskRequiredBytes": 3221225472,
+  "maxCombinedCompressedImageBytes": 838860800,
+  "maxTransferArtifactBytes": 2147483648,
+  "cachedArchive": {
+    "file": ".local/ops-acceptance/resume-velero-transport-cache/velero-v1.17.0-linux-amd64.tar.gz",
+    "bytes": 58499469,
+    "sha256": "f507a956cf8ec00f483f5d7b04901614a9016a10feb32b3ecc968da36b4fc7be",
+    "verified": true
+  },
+  "minioOlderCandidates": ["RELEASE.2024-12-18T13-15-44Z", "RELEASE.2024-10-13T13-34-11Z", "RELEASE.2023-09-04T19-57-37Z"],
+  "minioCandidateReleaseAndManifestVerified": false,
+  "imagePayloadsCached": false,
+  "transportEndToEndVerified": false,
+  "successRequires": [
+    "Official MinIO release metadata and README registry authority verified before manifest selection",
+    "Official registry manifest response byte SHA256 matches Docker-Content-Digest and selected linux/amd64 digest",
+    "All three images cached from verified digests, with archive SHA256, byte count and no unverified mirror",
+    "Docker pull/save preferred when daemon is already available; daemon-independent OCI archive from verified official blobs otherwise",
+    "Receipt exitCode 0 with all three cachedArchive records before any root remote transfer/install phase"
+  ],
+  "nextAfterSuccessfulPreparation": "Root schedules its separate serialized remote transfer/import/install phase after a fresh namespace/CRD/capacity preflight. This receipt is not a remote installation readiness or backup success receipt.",
+  "evidence": [
+    "resume-velero-transport-failed-084908.json",
+    "resume-velero-network-diagnostic-084628.json",
+    "resume-velero-transport-selfcheck-084910.json",
+    "resume-velero-transport-handoff.md"
+  ],
+  "providerReadinessVerified": false,
+  "backupRestoreVerified": false
+}

@@ -5,7 +5,7 @@ layer: business/*
 status: Active
 linked_contracts:
   - docs/PROJECT_INHERITANCE.md
-updated_at: 2026-07-18
+updated_at: 2026-11-07
 ---
 
 # 运维域业务错误语义附录
@@ -60,13 +60,13 @@ business.<module>.<resource>.<reason>
 
 ### 1.3 HTTP 语义建议
 
-| 场景 | 建议 HTTP | 错误 key 语义 |
-| :--- | :--- | :--- |
-| 参数缺失 / 格式错误 | `400` | `*.nameRequired`、`*.invalidLabel` |
-| 权限不足 | `403` | `permission.denied` 或业务明确 `*.forbidden` |
-| 资源不存在 | `404` | `*.notFound` |
-| 唯一键冲突 / 状态冲突 | `409` | `*.ipExists`、`*.nameVersionConflict`、`*.invalidStartState` |
-| 外部依赖失败 / 执行失败 | `422` 或 `500` | `*.sshAuthFailed`、`*.executionFailed` |
+| 场景                    | 建议 HTTP      | 错误 key 语义                                                |
+| :---------------------- | :------------- | :----------------------------------------------------------- |
+| 参数缺失 / 格式错误     | `400`          | `*.nameRequired`、`*.invalidLabel`                           |
+| 权限不足                | `403`          | `permission.denied` 或业务明确 `*.forbidden`                 |
+| 资源不存在              | `404`          | `*.notFound`                                                 |
+| 唯一键冲突 / 状态冲突   | `409`          | `*.ipExists`、`*.nameVersionConflict`、`*.invalidStartState` |
+| 外部依赖失败 / 执行失败 | `422` 或 `500` | `*.sshAuthFailed`、`*.executionFailed`                       |
 
 说明：
 
@@ -83,36 +83,36 @@ business.<module>.<resource>.<reason>
 
 ### 2.1 Host
 
-| Key | 说明 |
-| :--- | :--- |
-| `business.cmdb.host.notFound` | 主机不存在 |
-| `business.cmdb.host.ipExists` | IP 已存在 |
-| `business.cmdb.host.invalidLabel` | 标签格式无效 |
+| Key                                | 说明             |
+| :--------------------------------- | :--------------- |
+| `business.cmdb.host.notFound`      | 主机不存在       |
+| `business.cmdb.host.ipExists`      | IP 已存在        |
+| `business.cmdb.host.invalidLabel`  | 标签格式无效     |
 | `business.cmdb.host.unsupportedOs` | 不支持的操作系统 |
 
 ### 2.2 Collect
 
-| Key | 说明 |
-| :--- | :--- |
-| `business.cmdb.collect.sshConnectFailed` | SSH 连接失败 |
-| `business.cmdb.collect.sshAuthFailed` | SSH 认证失败 |
-| `business.cmdb.collect.executionFailed` | 配置采集执行失败 |
+| Key                                      | 说明             |
+| :--------------------------------------- | :--------------- |
+| `business.cmdb.collect.sshConnectFailed` | SSH 连接失败     |
+| `business.cmdb.collect.sshAuthFailed`    | SSH 认证失败     |
+| `business.cmdb.collect.executionFailed`  | 配置采集执行失败 |
 
 ### 2.3 Group
 
-| Key | 说明 |
-| :--- | :--- |
-| `business.cmdb.group.notFound` | 分组不存在 |
+| Key                                     | 说明               |
+| :-------------------------------------- | :----------------- |
+| `business.cmdb.group.notFound`          | 分组不存在         |
 | `business.cmdb.group.invalidConditions` | 过滤条件表达式无效 |
 
 ### 2.4 Label
 
-| Key | 说明 |
-| :--- | :--- |
-| `business.cmdb.label.keyExists` | 标签键已存在 |
-| `business.cmdb.label.invalid` | 标签规范配置无效 |
-| `business.cmdb.label.inUse` | 标签已被主机或分组引用 |
-| `business.cmdb.label.notFound` | 标签规范不存在 |
+| Key                             | 说明                   |
+| :------------------------------ | :--------------------- |
+| `business.cmdb.label.keyExists` | 标签键已存在           |
+| `business.cmdb.label.invalid`   | 标签规范配置无效       |
+| `business.cmdb.label.inUse`     | 标签已被主机或分组引用 |
+| `business.cmdb.label.notFound`  | 标签规范不存在         |
 
 ---
 
@@ -124,57 +124,61 @@ business.<module>.<resource>.<reason>
 
 ### 3.1 Package
 
-| Key | 说明 |
-| :--- | :--- |
-| `business.deploy.package.nameRequired` | 组件名称必填 |
-| `business.deploy.package.versionRequired` | 组件版本必填 |
+| Key                                           | 说明                 |
+| :-------------------------------------------- | :------------------- |
+| `business.deploy.package.nameRequired`        | 组件名称必填         |
+| `business.deploy.package.versionRequired`     | 组件版本必填         |
 | `business.deploy.package.nameVersionConflict` | 组件名与版本组合冲突 |
-| `business.deploy.package.commandTooLong` | 命令模板超长 |
+| `business.deploy.package.commandTooLong`      | 命令模板超长         |
 
 ### 3.2 Task
 
-| Key | 说明 |
-| :--- | :--- |
-| `business.deploy.task.notFound` | 部署任务不存在 |
-| `business.deploy.task.forbidden` | 当前用户无权查看或操作该任务 |
-| `business.deploy.task.nameRequired` | 任务名称必填 |
-| `business.deploy.task.packageRequired` | 组件必选 |
-| `business.deploy.task.packageDisabled` | 组件已禁用，不能用于新任务 |
-| `business.deploy.task.scopeRequired` | 主机部署必须选择业务域 |
-| `business.deploy.task.scopeInvalid` | 所选业务域不存在或不可用 |
-| `business.deploy.task.targetRequired` | 目标主机或分组必填 |
-| `business.deploy.task.invalidTargetType` | 目标类型无效 |
-| `business.deploy.task.targetOutOfScope` | 目标不在当前数据范围内 |
-| `business.deploy.task.invalidExecutorType` | 执行方式无效 |
-| `business.deploy.task.invalidAction` | 任务动作无效 |
-| `business.deploy.task.targetStatusMismatch` | 目标当前状态不支持所选动作 |
-| `business.deploy.task.templateNotFound` | 任务引用的模板不存在 |
-| `business.deploy.task.templateDisabled` | 任务引用的模板已停用 |
-| `business.deploy.task.packageNotFound` | 任务引用的组件不存在 |
-| `business.deploy.task.invalidStartState` | 当前状态不允许启动 |
-| `business.deploy.task.invalidUpdateState` | 当前状态不允许编辑 |
-| `business.deploy.task.invalidDeleteState` | 当前状态不允许删除 |
-| `business.deploy.task.emptyResolvedTargets` | 解析后无可执行目标 |
-| `business.deploy.task.invalidCancelState` | 当前状态不允许取消 |
-| `business.deploy.task.templateParamsInvalid` | 启动或保存时模板参数不完整或模板变量无法解析 |
-| `business.deploy.task.templateInvalid` | 启动时固定模板定义无效 |
-| `business.deploy.task.installCommandRequired` | 启动安装类任务时组件缺少安装命令 |
-| `business.deploy.task.uninstallCommandRequired` | 启动卸载类任务时组件缺少卸载命令 |
-| `business.deploy.task.packageSourceMissing` | 启动固定模板任务时缺少可下载的软件包来源 |
-| `business.deploy.task.sshHostKeyRequired` | SSH 启动缺少主机指纹 |
-| `business.deploy.task.sshHostKeyMismatch` | SSH 主机指纹校验失败 |
-| `business.deploy.task.sshUserRequired` | SSH 启动缺少用户名 |
-| `business.deploy.task.sshPasswordRequired` | SSH 密码认证模式缺少密码 |
-| `business.deploy.task.sshPrivateKeyRequired` | SSH 私钥认证模式缺少私钥 |
-| `business.deploy.task.sshAuthFailed` | SSH 认证失败 |
-| `business.deploy.task.sshConnectFailed` | SSH 连接失败 |
+| Key                                             | 说明                                                     |
+| :---------------------------------------------- | :------------------------------------------------------- |
+| `business.deploy.task.notFound`                 | 部署任务不存在                                           |
+| `business.deploy.task.forbidden`                | 当前用户无权查看或操作该任务                             |
+| `business.deploy.task.nameRequired`             | 任务名称必填                                             |
+| `business.deploy.task.packageRequired`          | 组件必选                                                 |
+| `business.deploy.task.packageDisabled`          | 组件已禁用，不能用于新任务                               |
+| `business.deploy.task.scopeRequired`            | 主机部署必须选择业务域                                   |
+| `business.deploy.task.scopeInvalid`             | 所选业务域不存在或不可用                                 |
+| `business.deploy.task.targetRequired`           | 目标主机或分组必填                                       |
+| `business.deploy.task.invalidTargetType`        | 目标类型无效                                             |
+| `business.deploy.task.targetOutOfScope`         | 目标不在当前数据范围内                                   |
+| `business.deploy.task.invalidExecutorType`      | 执行方式无效                                             |
+| `business.deploy.task.invalidAction`            | 任务动作无效                                             |
+| `business.deploy.task.targetStatusMismatch`     | 目标当前状态不支持所选动作                               |
+| `business.deploy.task.templateNotFound`         | 任务引用的模板不存在                                     |
+| `business.deploy.task.templateDisabled`         | 任务引用的模板已停用                                     |
+| `business.deploy.task.packageNotFound`          | 任务引用的组件不存在                                     |
+| `business.deploy.task.invalidStartState`        | 当前状态不允许启动                                       |
+| `business.deploy.task.invalidUpdateState`       | 当前状态不允许编辑                                       |
+| `business.deploy.task.invalidDeleteState`       | 当前状态不允许删除                                       |
+| `business.deploy.task.emptyResolvedTargets`     | 解析后无可执行目标                                       |
+| `business.deploy.task.invalidCancelState`       | 当前状态不允许取消                                       |
+| `business.deploy.task.templateParamsInvalid`    | 启动或保存时模板参数不完整或模板变量无法解析             |
+| `business.deploy.task.templateInvalid`          | 启动时固定模板定义无效                                   |
+| `business.deploy.task.installCommandRequired`   | 启动安装类任务时组件缺少安装命令                         |
+| `business.deploy.task.uninstallCommandRequired` | 启动卸载类任务时组件缺少卸载命令                         |
+| `business.deploy.task.packageSourceMissing`     | 启动固定模板任务时缺少可下载的软件包来源                 |
+| `business.deploy.task.sshHostKeyRequired`       | SSH 启动缺少主机指纹                                     |
+| `business.deploy.task.sshHostKeyMismatch`       | SSH 主机指纹校验失败                                     |
+| `business.deploy.task.sshUserRequired`          | SSH 启动缺少用户名                                       |
+| `business.deploy.task.sshPasswordRequired`      | SSH 密码认证模式缺少密码                                 |
+| `business.deploy.task.sshPrivateKeyRequired`    | SSH 私钥认证模式缺少私钥                                 |
+| `business.deploy.task.sshAuthFailed`            | SSH 认证失败                                             |
+| `business.deploy.task.sshConnectFailed`         | SSH 连接失败                                             |
+| `business.deploy.task.rollbackNotSupported`     | 冻结计划没有可安全执行的回退操作，请使用经确认的回退预案 |
+| `business.deploy.task.rollbackInvalidState`     | 仅已成功或失败的任务可以创建回退任务                     |
+| `business.deploy.task.rollbackFailed`           | 创建回退任务失败                                         |
+| `business.deploy.task.rollbackLookupFailed`     | 读取回退任务失败                                         |
 
 ### 3.3 TaskHost
 
-| Key | 说明 |
-| :--- | :--- |
-| `business.deploy.taskHost.notFound` | 主机执行明细不存在 |
-| `business.deploy.taskHost.invalidResultState` | 当前状态不允许标记结果 |
+| Key                                                  | 说明                       |
+| :--------------------------------------------------- | :------------------------- |
+| `business.deploy.taskHost.notFound`                  | 主机执行明细不存在         |
+| `business.deploy.taskHost.invalidResultState`        | 当前状态不允许标记结果     |
 | `business.deploy.taskHost.markFailed.reasonRequired` | 标记失败时必须填写错误原因 |
 
 ### 3.4 Template
@@ -191,30 +195,30 @@ Deploy Template CRUD 已上线，但当前尚未定义 Template 资源的 canoni
 
 ### 4.1 canonical 清单
 
-| Key | 说明 | 来源 |
-| :--- | :--- | :--- |
-| `business.bizscope.codeExists` | 业务域编码重复 | Create / Update 业务唯一性校验 |
-| `business.bizscope.inUse` | 业务域仍绑定主机，不能删除 | Delete 引用保护 |
-| `business.bizscope.notFound` | 业务域、绑定目标或作用域内主机不存在 | Detail / Hosts / Bind / Unbind / Update / Delete |
-| `param.invalid` | 请求参数无效 | base 通用参数错误 key |
-| `request.failed` | 非业务语义的查询、数据库或框架失败 | base 通用请求失败 key |
+| Key                            | 说明                                 | 来源                                             |
+| :----------------------------- | :----------------------------------- | :----------------------------------------------- |
+| `business.bizscope.codeExists` | 业务域编码重复                       | Create / Update 业务唯一性校验                   |
+| `business.bizscope.inUse`      | 业务域仍绑定主机，不能删除           | Delete 引用保护                                  |
+| `business.bizscope.notFound`   | 业务域、绑定目标或作用域内主机不存在 | Detail / Hosts / Bind / Unbind / Update / Delete |
+| `param.invalid`                | 请求参数无效                         | base 通用参数错误 key                            |
+| `request.failed`               | 非业务语义的查询、数据库或框架失败   | base 通用请求失败 key                            |
 
 `backend/modules/business/bizscope` 已不再返回 `bizscope.code_exists`、`bizscope.in_use`、`bizscope.not_found`。
 
 ### 4.2 handler 流水 key 迁移结果
 
-| 旧 handler Key | 已迁移处理 |
-| :--- | :--- |
-| `bizscope.list.error` | 无独立业务语义；回落 `request.failed` |
-| `bizscope.options.error` | 无独立业务语义；回落 `request.failed` |
-| `bizscope.detail.error` | 资源不存在时返回 `business.bizscope.notFound`；其他失败回落 `request.failed` |
-| `bizscope.hosts.error` | 业务域不存在时返回 `business.bizscope.notFound`；其他失败回落 `request.failed` |
-| `bizscope.availableHosts.error` | 业务域不存在时返回 `business.bizscope.notFound`；其他失败回落 `request.failed` |
-| `bizscope.bindHosts.error` | 业务域/作用域内主机不存在时返回 `business.bizscope.notFound`，空 hostIds 返回 `param.invalid`；其他失败回落 `request.failed` |
-| `bizscope.unbindHost.error` | 业务域、主机或绑定关系不存在时返回 `business.bizscope.notFound`；其他失败回落 `request.failed` |
-| `bizscope.create.error` | 编码冲突返回 `business.bizscope.codeExists`；其他失败回落 `request.failed` |
-| `bizscope.update.error` | 资源不存在返回 `business.bizscope.notFound`，编码冲突返回 `business.bizscope.codeExists`；其他失败回落 `request.failed` |
-| `bizscope.delete.error` | 仍被主机引用返回 `business.bizscope.inUse`，资源不存在返回 `business.bizscope.notFound`；其他失败回落 `request.failed` |
+| 旧 handler Key                  | 已迁移处理                                                                                                                   |
+| :------------------------------ | :--------------------------------------------------------------------------------------------------------------------------- |
+| `bizscope.list.error`           | 无独立业务语义；回落 `request.failed`                                                                                        |
+| `bizscope.options.error`        | 无独立业务语义；回落 `request.failed`                                                                                        |
+| `bizscope.detail.error`         | 资源不存在时返回 `business.bizscope.notFound`；其他失败回落 `request.failed`                                                 |
+| `bizscope.hosts.error`          | 业务域不存在时返回 `business.bizscope.notFound`；其他失败回落 `request.failed`                                               |
+| `bizscope.availableHosts.error` | 业务域不存在时返回 `business.bizscope.notFound`；其他失败回落 `request.failed`                                               |
+| `bizscope.bindHosts.error`      | 业务域/作用域内主机不存在时返回 `business.bizscope.notFound`，空 hostIds 返回 `param.invalid`；其他失败回落 `request.failed` |
+| `bizscope.unbindHost.error`     | 业务域、主机或绑定关系不存在时返回 `business.bizscope.notFound`；其他失败回落 `request.failed`                               |
+| `bizscope.create.error`         | 编码冲突返回 `business.bizscope.codeExists`；其他失败回落 `request.failed`                                                   |
+| `bizscope.update.error`         | 资源不存在返回 `business.bizscope.notFound`，编码冲突返回 `business.bizscope.codeExists`；其他失败回落 `request.failed`      |
+| `bizscope.delete.error`         | 仍被主机引用返回 `business.bizscope.inUse`，资源不存在返回 `business.bizscope.notFound`；其他失败回落 `request.failed`       |
 
 ### 4.3 旧 key fallback 决策
 
@@ -244,3 +248,33 @@ Deploy Template CRUD 已上线，但当前尚未定义 Template 资源的 canoni
 - 新增、重命名、废弃业务错误 key 时，优先修改本文，再同步回业务模块设计文档
 - 业务模块设计文档中的错误章节是模块局部说明，**本文是 ops 仓库级 canonical 附录**
 - 若与 `pantheon-base/docs/designs/ERROR_CODE_AND_I18N.md` 冲突，以 base 的通用规则为上位约束，以本文的业务清单为 ops 层具体落点
+
+## 2026-11-07 目标选择与执行预览
+
+| Key                                | HTTP | 语义                                               |
+| ---------------------------------- | ---- | -------------------------------------------------- |
+| `business.cmdb.selection.invalid`  | 400  | 选择输入无效、范围不可用、目标状态不允许或超过预算 |
+| `business.cmdb.selection.conflict` | 409  | 服务端重新解析的 scopeVersion 与已核对版本不同     |
+| `business.deploy.preview.required` | 400  | 公开启动接口缺少已确认的预览票据                   |
+| `business.deploy.preview.conflict` | 409  | 预览过期、被篡改、操作者不匹配或执行事实变化       |
+
+不可用目标只返回合并计数，不区分不存在与无权限。预览只展示安全版本变化，不展示命令、密文或秘密参数。
+
+## Version-bound deployment controls
+
+Public pause/resume/retry/cancel require `{stateVersion}` from the viewed list/detail. `business.deploy.task.commandVersionRequired` is a parameter error for missing/malformed versions; `business.deploy.task.commandConflict` is HTTP/business 409 for changed task facts. Visibility is checked before revealing the version outcome. Task/host/event writes are transactional, and worker cancellation/dispatch occurs only after commit. The UI refreshes on 409 without replay; batch cancellation reports partial failure and retains unsuccessful selections. The precondition is not an idempotency guarantee. Step/log events do not advance this command version.
+
+### K8s release review continuation
+
+| Key                            | Semantics                                                                                   | Envelope                    |
+| ------------------------------ | ------------------------------------------------------------------------------------------- | --------------------------- |
+| `k8s.release.preview_conflict` | Missing/expired/tampered/changed actor, intent, cluster or workload review; no new mutation | 409                         |
+| `k8s.release.preview_failed`   | Bounded read preview unavailable                                                            | classified provider failure |
+
+Authenticated expired reviews may retrieve a matching scoped persisted result to resolve an ambiguous transport failure; they cannot create or dispatch a new intent. Image-only review excludes raw manifest/config/credential fields. New public previews inherit authentication/Casbin/DataScope and currently share the formal business permission-route registry release gap.
+
+Kubernetes Service 更新错误 `business.k8s.service.resourceVersionConflict` 返回 HTTP/业务 409：已核对的 UID 或 resourceVersion 改变，或 API server 拒绝并发更新/删除。`business.k8s.service.updateFailed` 是遮蔽 provider 原文的失败 key。更新只改可变路由字段，未传字段保留；不修改 ClusterIP、服务类型、注解或凭证。公开删除同时要求 UID 与 resourceVersion。冲突不得自动换版本或重放；界面明确刷新并重新核对。
+
+## Business environment (2026-11-14)
+
+New environment CRUD uses `business.bizscope.environment.*` with the canonical reasons `notFound`, `codeExists`, `codeRequired`, `nameRequired`, `scopeRequired`, `envTypeInvalid` and `statusInvalid`. Scope access failures reuse `permission.denied`; missing parents reuse `business.bizscope.notFound`. Deleted codes remain reserved within their original scope.

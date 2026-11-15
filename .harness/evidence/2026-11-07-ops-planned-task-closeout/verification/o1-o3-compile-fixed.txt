@@ -1,0 +1,3 @@
+ok  	github.com/duanxldragon/pantheon-base/backend/modules/business/deploy	0.029s [no tests to run]
+ok  	github.com/duanxldragon/pantheon-base/backend/modules/business/cmdb	(cached) [no tests to run]
+ok  	github.com/duanxldragon/pantheon-base/backend/modules/business/bizscope	(cached) [no tests to run]

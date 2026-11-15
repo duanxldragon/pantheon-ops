@@ -1,0 +1,5 @@
+
+> check:business-boundaries
+> node scripts/check-business-module-boundaries.mjs
+
+business module boundary check passed

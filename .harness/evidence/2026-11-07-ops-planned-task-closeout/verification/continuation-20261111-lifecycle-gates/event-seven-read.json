@@ -1,0 +1,458 @@
+{
+  "exitCode": 0,
+  "remoteExecuted": true,
+  "remoteMutations": 0,
+  "preparedEnvelopeSHA256": "a52474154b42db73af0684142903d165d81f7ed45aeb60a44b3e2a3a85fbfaa7",
+  "observedCorrelationReceiptSHA256": "5b23a60ff6e5e322ed848562c99448bbe60509cf43f825a9595b1cc5baa1db1e",
+  "continuationPermitted": false,
+  "replayPermitted": false,
+  "P0Approved": false,
+  "observed": {
+    "exitCode": 0,
+    "readOnly": true,
+    "remoteMutations": 0,
+    "serverGitVersion": "v1.36.3+k3s1",
+    "observedIdentityReceiptSHA256": "5b23a60ff6e5e322ed848562c99448bbe60509cf43f825a9595b1cc5baa1db1e",
+    "readCount": 7,
+    "commandResults": [
+      {
+        "readIndex": 0,
+        "category": "version",
+        "exitCode": 0,
+        "stdoutBytes": 777,
+        "stderrBytes": 0,
+        "rawOutputRetained": false,
+        "outputValuesHashed": false,
+        "elapsedMilliseconds": 201,
+        "requestTimeoutSeconds": 20,
+        "processTimeoutSeconds": 30,
+        "outputBoundBytes": 4194304
+      },
+      {
+        "readIndex": 1,
+        "category": "core-events",
+        "exitCode": 0,
+        "stdoutBytes": 3167,
+        "stderrBytes": 0,
+        "rawOutputRetained": false,
+        "outputValuesHashed": false,
+        "elapsedMilliseconds": 181,
+        "requestTimeoutSeconds": 20,
+        "processTimeoutSeconds": 30,
+        "outputBoundBytes": 4194304
+      },
+      {
+        "readIndex": 2,
+        "category": "grouped-events",
+        "exitCode": 0,
+        "stdoutBytes": 3261,
+        "stderrBytes": 0,
+        "rawOutputRetained": false,
+        "outputValuesHashed": false,
+        "elapsedMilliseconds": 195,
+        "requestTimeoutSeconds": 20,
+        "processTimeoutSeconds": 30,
+        "outputBoundBytes": 4194304
+      },
+      {
+        "readIndex": 3,
+        "category": "provider-pod",
+        "exitCode": 0,
+        "stdoutBytes": 13561,
+        "stderrBytes": 0,
+        "rawOutputRetained": false,
+        "outputValuesHashed": false,
+        "elapsedMilliseconds": 177,
+        "requestTimeoutSeconds": 20,
+        "processTimeoutSeconds": 30,
+        "outputBoundBytes": 4194304
+      },
+      {
+        "readIndex": 4,
+        "category": "replica-sets",
+        "exitCode": 0,
+        "stdoutBytes": 9638,
+        "stderrBytes": 0,
+        "rawOutputRetained": false,
+        "outputValuesHashed": false,
+        "elapsedMilliseconds": 193,
+        "requestTimeoutSeconds": 20,
+        "processTimeoutSeconds": 30,
+        "outputBoundBytes": 4194304
+      },
+      {
+        "readIndex": 5,
+        "category": "owned-deployment",
+        "exitCode": 0,
+        "stdoutBytes": 8149,
+        "stderrBytes": 0,
+        "rawOutputRetained": false,
+        "outputValuesHashed": false,
+        "elapsedMilliseconds": 186,
+        "requestTimeoutSeconds": 20,
+        "processTimeoutSeconds": 30,
+        "outputBoundBytes": 4194304
+      },
+      {
+        "readIndex": 6,
+        "category": "core-events",
+        "exitCode": 0,
+        "stdoutBytes": 3167,
+        "stderrBytes": 0,
+        "rawOutputRetained": false,
+        "outputValuesHashed": false,
+        "elapsedMilliseconds": 193,
+        "requestTimeoutSeconds": 20,
+        "processTimeoutSeconds": 30,
+        "outputBoundBytes": 4194304
+      }
+    ],
+    "all45RemoteFilesBeforeAndAfterStable": true,
+    "remoteSourceHashesStable": true,
+    "correlation": {
+      "eventPairs": [
+        {
+          "identitySHA256": "881ed3e41013e7b9458def1a5bb70714d45dbd79d2a568b1979462330fe899f0",
+          "metadataExactlyEqual": true,
+          "objectResourceVersionEqual": true,
+          "labelsAndPresenceEqual": true,
+          "ownerReferencesAndPresenceEqual": true,
+          "ownerLabelMatches": false,
+          "all14MappedFieldsExactlyEqual": true,
+          "fields": [
+            {
+              "field": "involvedObject",
+              "presentInCore": true,
+              "presentInGrouped": true,
+              "presenceEqual": true,
+              "valueExactlyEqual": true,
+              "presenceAndValueExactlyEqual": true
+            },
+            {
+              "field": "message",
+              "presentInCore": true,
+              "presentInGrouped": true,
+              "presenceEqual": true,
+              "valueExactlyEqual": true,
+              "presenceAndValueExactlyEqual": true
+            },
+            {
+              "field": "source",
+              "presentInCore": true,
+              "presentInGrouped": true,
+              "presenceEqual": true,
+              "valueExactlyEqual": true,
+              "presenceAndValueExactlyEqual": true
+            },
+            {
+              "field": "firstTimestamp",
+              "presentInCore": true,
+              "presentInGrouped": true,
+              "presenceEqual": true,
+              "valueExactlyEqual": true,
+              "presenceAndValueExactlyEqual": true
+            },
+            {
+              "field": "lastTimestamp",
+              "presentInCore": true,
+              "presentInGrouped": true,
+              "presenceEqual": true,
+              "valueExactlyEqual": true,
+              "presenceAndValueExactlyEqual": true
+            },
+            {
+              "field": "count",
+              "presentInCore": true,
+              "presentInGrouped": true,
+              "presenceEqual": true,
+              "valueExactlyEqual": true,
+              "presenceAndValueExactlyEqual": true
+            },
+            {
+              "field": "reportingComponent",
+              "presentInCore": true,
+              "presentInGrouped": true,
+              "presenceEqual": true,
+              "valueExactlyEqual": true,
+              "presenceAndValueExactlyEqual": true
+            },
+            {
+              "field": "type",
+              "presentInCore": true,
+              "presentInGrouped": true,
+              "presenceEqual": true,
+              "valueExactlyEqual": true,
+              "presenceAndValueExactlyEqual": true
+            },
+            {
+              "field": "series",
+              "presentInCore": false,
+              "presentInGrouped": false,
+              "presenceEqual": true,
+              "valueExactlyEqual": true,
+              "presenceAndValueExactlyEqual": true
+            },
+            {
+              "field": "action",
+              "presentInCore": false,
+              "presentInGrouped": false,
+              "presenceEqual": true,
+              "valueExactlyEqual": true,
+              "presenceAndValueExactlyEqual": true
+            },
+            {
+              "field": "related",
+              "presentInCore": false,
+              "presentInGrouped": false,
+              "presenceEqual": true,
+              "valueExactlyEqual": true,
+              "presenceAndValueExactlyEqual": true
+            },
+            {
+              "field": "reportingInstance",
+              "presentInCore": true,
+              "presentInGrouped": true,
+              "presenceEqual": true,
+              "valueExactlyEqual": true,
+              "presenceAndValueExactlyEqual": true
+            },
+            {
+              "field": "reason",
+              "presentInCore": true,
+              "presentInGrouped": true,
+              "presenceEqual": true,
+              "valueExactlyEqual": true,
+              "presenceAndValueExactlyEqual": true
+            },
+            {
+              "field": "eventTime",
+              "presentInCore": true,
+              "presentInGrouped": true,
+              "presenceEqual": true,
+              "valueExactlyEqual": true,
+              "presenceAndValueExactlyEqual": true
+            }
+          ]
+        },
+        {
+          "identitySHA256": "67ec82d4c3cffb8aa4d0765f1f620dec37a5cd59c0e262f52d2aa2e0c93f581f",
+          "metadataExactlyEqual": true,
+          "objectResourceVersionEqual": true,
+          "labelsAndPresenceEqual": true,
+          "ownerReferencesAndPresenceEqual": true,
+          "ownerLabelMatches": false,
+          "all14MappedFieldsExactlyEqual": true,
+          "fields": [
+            {
+              "field": "involvedObject",
+              "presentInCore": true,
+              "presentInGrouped": true,
+              "presenceEqual": true,
+              "valueExactlyEqual": true,
+              "presenceAndValueExactlyEqual": true
+            },
+            {
+              "field": "message",
+              "presentInCore": true,
+              "presentInGrouped": true,
+              "presenceEqual": true,
+              "valueExactlyEqual": true,
+              "presenceAndValueExactlyEqual": true
+            },
+            {
+              "field": "source",
+              "presentInCore": true,
+              "presentInGrouped": true,
+              "presenceEqual": true,
+              "valueExactlyEqual": true,
+              "presenceAndValueExactlyEqual": true
+            },
+            {
+              "field": "firstTimestamp",
+              "presentInCore": true,
+              "presentInGrouped": true,
+              "presenceEqual": true,
+              "valueExactlyEqual": true,
+              "presenceAndValueExactlyEqual": true
+            },
+            {
+              "field": "lastTimestamp",
+              "presentInCore": true,
+              "presentInGrouped": true,
+              "presenceEqual": true,
+              "valueExactlyEqual": true,
+              "presenceAndValueExactlyEqual": true
+            },
+            {
+              "field": "count",
+              "presentInCore": true,
+              "presentInGrouped": true,
+              "presenceEqual": true,
+              "valueExactlyEqual": true,
+              "presenceAndValueExactlyEqual": true
+            },
+            {
+              "field": "reportingComponent",
+              "presentInCore": true,
+              "presentInGrouped": true,
+              "presenceEqual": true,
+              "valueExactlyEqual": true,
+              "presenceAndValueExactlyEqual": true
+            },
+            {
+              "field": "type",
+              "presentInCore": true,
+              "presentInGrouped": true,
+              "presenceEqual": true,
+              "valueExactlyEqual": true,
+              "presenceAndValueExactlyEqual": true
+            },
+            {
+              "field": "series",
+              "presentInCore": false,
+              "presentInGrouped": false,
+              "presenceEqual": true,
+              "valueExactlyEqual": true,
+              "presenceAndValueExactlyEqual": true
+            },
+            {
+              "field": "action",
+              "presentInCore": false,
+              "presentInGrouped": false,
+              "presenceEqual": true,
+              "valueExactlyEqual": true,
+              "presenceAndValueExactlyEqual": true
+            },
+            {
+              "field": "related",
+              "presentInCore": false,
+              "presentInGrouped": false,
+              "presenceEqual": true,
+              "valueExactlyEqual": true,
+              "presenceAndValueExactlyEqual": true
+            },
+            {
+              "field": "reportingInstance",
+              "presentInCore": true,
+              "presentInGrouped": true,
+              "presenceEqual": true,
+              "valueExactlyEqual": true,
+              "presenceAndValueExactlyEqual": true
+            },
+            {
+              "field": "reason",
+              "presentInCore": true,
+              "presentInGrouped": true,
+              "presenceEqual": true,
+              "valueExactlyEqual": true,
+              "presenceAndValueExactlyEqual": true
+            },
+            {
+              "field": "eventTime",
+              "presentInCore": true,
+              "presentInGrouped": true,
+              "presenceEqual": true,
+              "valueExactlyEqual": true,
+              "presenceAndValueExactlyEqual": true
+            }
+          ]
+        }
+      ],
+      "completeOneToOneEventMembership": true,
+      "firstLastCoreCompleteListStable": true,
+      "allPairsCompleteMappedEquality": true,
+      "eventCount": 2,
+      "events": [
+        {
+          "identitySHA256": "881ed3e41013e7b9458def1a5bb70714d45dbd79d2a568b1979462330fe899f0",
+          "safeTimestampsUTC": {
+            "creationTimestamp": "2026-11-10T05:22:27Z",
+            "eventTime": null,
+            "firstTimestamp": "2026-11-10T05:22:27Z",
+            "lastTimestamp": "2026-11-11T06:52:34Z",
+            "seriesLastObservedTime": null
+          },
+          "lastObservedActivityAgeSeconds": 68,
+          "atLeastOneHourSinceLastObservedActivity": false,
+          "count": 7053,
+          "seriesCount": null,
+          "reasonEnum": "Pulled",
+          "typeEnum": "Normal",
+          "actionEnum": "ABSENT",
+          "reportingControllerEnum": "kubelet",
+          "deprecatedSourceControllerEnum": "kubelet",
+          "reportingInstanceMatchesCurrentPodNode": true,
+          "deprecatedSourceHostMatchesCurrentPodNode": true,
+          "involvedObjectIsExactDeclaredOwnedIdentity": false,
+          "involvedObjectIsExactPinnedProviderPod": true,
+          "involvedObjectIsExactCurrentProviderReplicaSet": false,
+          "involvedObjectIsExactDeclaredProviderDeployment": false,
+          "involvedObjectResourceVersionMatchesCurrentPod": false,
+          "fieldPathIsApprovedProviderContainer": true,
+          "relatedReferenceAbsentOrNull": true,
+          "ownerLabelMatches": false,
+          "ownerReferencesAbsentOrEmpty": true,
+          "deletionTimestampAbsentOrNull": true
+        },
+        {
+          "identitySHA256": "67ec82d4c3cffb8aa4d0765f1f620dec37a5cd59c0e262f52d2aa2e0c93f581f",
+          "safeTimestampsUTC": {
+            "creationTimestamp": "2026-11-10T05:22:27Z",
+            "eventTime": null,
+            "firstTimestamp": "2026-11-10T05:22:27Z",
+            "lastTimestamp": "2026-11-11T06:52:34Z",
+            "seriesLastObservedTime": null
+          },
+          "lastObservedActivityAgeSeconds": 68,
+          "atLeastOneHourSinceLastObservedActivity": false,
+          "count": 7053,
+          "seriesCount": null,
+          "reasonEnum": "Failed",
+          "typeEnum": "Warning",
+          "actionEnum": "ABSENT",
+          "reportingControllerEnum": "kubelet",
+          "deprecatedSourceControllerEnum": "kubelet",
+          "reportingInstanceMatchesCurrentPodNode": true,
+          "deprecatedSourceHostMatchesCurrentPodNode": true,
+          "involvedObjectIsExactDeclaredOwnedIdentity": false,
+          "involvedObjectIsExactPinnedProviderPod": true,
+          "involvedObjectIsExactCurrentProviderReplicaSet": false,
+          "involvedObjectIsExactDeclaredProviderDeployment": false,
+          "involvedObjectResourceVersionMatchesCurrentPod": false,
+          "fieldPathIsApprovedProviderContainer": true,
+          "relatedReferenceAbsentOrNull": true,
+          "ownerLabelMatches": false,
+          "ownerReferencesAbsentOrEmpty": true,
+          "deletionTimestampAbsentOrNull": true
+        }
+      ],
+      "actualServerVersionMatchesPinnedUpstream": true,
+      "podIdentityMatchesImmutablePin": true,
+      "deploymentIdentityMatchesDeclaredOwnedPin": true,
+      "providerControllerChainMetadataMatchesPins": true,
+      "fullNativePodAndTemplateGatesExecuted": false,
+      "safeContainerWaitingReasonEnums": [
+        "PodInitializing",
+        "CreateContainerError"
+      ],
+      "imagePullFailureWaitingStateObserved": false,
+      "actualEventTTLConfirmed": false,
+      "naturalExpiryGuaranteed": false,
+      "controllerWriterIdentityAuthenticated": false,
+      "derivedEventOwnershipPolicyApproved": false,
+      "nativeOwnershipGateStillRefusesLogicalEvents": true,
+      "eventsAdmittedOrDeleted": false,
+      "messageOrArbitraryBodyRetainedOrHashed": false,
+      "continuationPermitted": false,
+      "replayPermitted": false,
+      "P0Approved": false
+    },
+    "productionPolicyChanged": false,
+    "TTLChanged": false,
+    "eventsDeleted": false,
+    "continuationPermitted": false,
+    "replayPermitted": false,
+    "P0Approved": false
+  },
+  "localSourceHashesStable": true
+}

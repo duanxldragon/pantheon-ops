@@ -1,0 +1,114 @@
+=== RUN   TestIndependentO2CancelBeforeFirstClaimSettles
+    independent_o2_regression_test.go:37: after cancel + recovery: task=cancel_requested retained physical leases=1
+    independent_o2_regression_test.go:39: cancellation with no worker claim never settles/releases: task=cancel_requested leases=1
+--- FAIL: TestIndependentO2CancelBeforeFirstClaimSettles (1.14s)
+=== RUN   TestIndependentO2ServiceProjectionRollsBackWithFinish
+    independent_o2_regression_test.go:91: outer finish failed and deploy/CMDB rolled back; actual service instance=stopped version=1 lifecycle=1
+    independent_o2_regression_test.go:93: service instance survived failed finish: observed=stopped version=1 lifecycle=1
+--- FAIL: TestIndependentO2ServiceProjectionRollsBackWithFinish (1.46s)
+=== RUN   TestServiceTransactionLinkedCompletionRollback
+=== RUN   TestServiceTransactionLinkedCompletionRollback/owned/commit
+    service_transaction_test.go:133: ServiceInstance state/version/retire and Deploy/CMDB projections did not roll back together
+
+2026/11/10 14:45:43 [34;1mD:/cache/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.10.windows-amd64/src/runtime/panic.go:694
+[0m[35m[warn] [0mremoving callback `linked_owner_written` from D:/cache/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.10.windows-amd64/src/runtime/panic.go:694
+
+2026/11/10 14:45:43 [34;1mD:/cache/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.10.windows-amd64/src/runtime/panic.go:694
+[0m[35m[warn] [0mremoving callback `linked_second_command` from D:/cache/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.10.windows-amd64/src/runtime/panic.go:694
+=== RUN   TestServiceTransactionLinkedCompletionRollback/owned/uninstall-second-command
+    service_transaction_test.go:133: ServiceInstance state/version/retire and Deploy/CMDB projections did not roll back together
+
+2026/11/10 14:45:45 [34;1mD:/cache/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.10.windows-amd64/src/runtime/panic.go:694
+[0m[35m[warn] [0mremoving callback `linked_owner_written` from D:/cache/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.10.windows-amd64/src/runtime/panic.go:694
+
+2026/11/10 14:45:45 [34;1mD:/cache/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.10.windows-amd64/src/runtime/panic.go:694
+[0m[35m[warn] [0mremoving callback `linked_second_command` from D:/cache/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.10.windows-amd64/src/runtime/panic.go:694
+=== RUN   TestServiceTransactionLinkedCompletionRollback/owned/after-retire
+
+2026/11/10 14:45:46 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/service/state.go:79 [35;1mlinked owner completion refused
+[0m[33m[3.736ms] [34;1m[rows:1][0m UPDATE `biz_service_instance` SET `current_version`='old',`desired_state`='retired',`desired_version`='1',`health_message`='',`health_observed_at`='2026-11-10 14:45:46.87',`health_revision`='',`health_state`='unknown',`last_transition_at`='2026-11-10 14:45:46.87',`last_transition_id`='deploy:1:retire',`lifecycle_version`=lifecycle_version + 1,`observed_state`='retired',`rollback_version`='',`updated_at`='2026-11-10 14:45:46.87',`updated_by`='test' WHERE id = 1 AND `biz_service_instance`.`deleted_at` IS NULL
+    service_transaction_test.go:133: ServiceInstance state/version/retire and Deploy/CMDB projections did not roll back together
+
+2026/11/10 14:45:46 [34;1mD:/cache/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.10.windows-amd64/src/runtime/panic.go:694
+[0m[35m[warn] [0mremoving callback `linked_owner_written` from D:/cache/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.10.windows-amd64/src/runtime/panic.go:694
+
+2026/11/10 14:45:46 [34;1mD:/cache/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.10.windows-amd64/src/runtime/panic.go:694
+[0m[35m[warn] [0mremoving callback `linked_second_command` from D:/cache/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.10.windows-amd64/src/runtime/panic.go:694
+=== RUN   TestServiceTransactionLinkedCompletionRollback/owned/owner-refusal
+
+2026/11/10 14:45:48 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/service/service.go:299 [35;1mcontext canceled
+[0m[33m[0.000ms] [34;1m[rows:0][0m SELECT * FROM `biz_service` WHERE application_id IN (SELECT `id` FROM `biz_application` WHERE `biz_application`.`deleted_at` IS NULL) AND `biz_service`.`id` = 1 AND `biz_service`.`deleted_at` IS NULL ORDER BY `biz_service`.`id` LIMIT 1
+    service_transaction_test.go:133: ServiceInstance state/version/retire and Deploy/CMDB projections did not roll back together
+
+2026/11/10 14:45:48 [34;1mD:/cache/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.10.windows-amd64/src/runtime/panic.go:694
+[0m[35m[warn] [0mremoving callback `linked_owner_written` from D:/cache/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.10.windows-amd64/src/runtime/panic.go:694
+
+2026/11/10 14:45:48 [34;1mD:/cache/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.10.windows-amd64/src/runtime/panic.go:694
+[0m[35m[warn] [0mremoving callback `linked_second_command` from D:/cache/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.10.windows-amd64/src/runtime/panic.go:694
+=== RUN   TestServiceTransactionLinkedCompletionRollback/owned/owner-deadline
+    service_transaction_test.go:133: ServiceInstance state/version/retire and Deploy/CMDB projections did not roll back together
+
+2026/11/10 14:45:49 [34;1mD:/cache/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.10.windows-amd64/src/runtime/panic.go:694
+[0m[35m[warn] [0mremoving callback `linked_owner_written` from D:/cache/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.10.windows-amd64/src/runtime/panic.go:694
+
+2026/11/10 14:45:49 [34;1mD:/cache/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.10.windows-amd64/src/runtime/panic.go:694
+[0m[35m[warn] [0mremoving callback `linked_second_command` from D:/cache/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.10.windows-amd64/src/runtime/panic.go:694
+=== RUN   TestServiceTransactionLinkedCompletionRollback/manual/commit
+    service_transaction_test.go:133: ServiceInstance state/version/retire and Deploy/CMDB projections did not roll back together
+
+2026/11/10 14:45:50 [34;1mD:/cache/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.10.windows-amd64/src/runtime/panic.go:694
+[0m[35m[warn] [0mremoving callback `linked_owner_written` from D:/cache/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.10.windows-amd64/src/runtime/panic.go:694
+
+2026/11/10 14:45:50 [34;1mD:/cache/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.10.windows-amd64/src/runtime/panic.go:694
+[0m[35m[warn] [0mremoving callback `linked_second_command` from D:/cache/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.10.windows-amd64/src/runtime/panic.go:694
+=== RUN   TestServiceTransactionLinkedCompletionRollback/manual/uninstall-second-command
+    service_transaction_test.go:133: ServiceInstance state/version/retire and Deploy/CMDB projections did not roll back together
+
+2026/11/10 14:45:52 [34;1mD:/cache/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.10.windows-amd64/src/runtime/panic.go:694
+[0m[35m[warn] [0mremoving callback `linked_owner_written` from D:/cache/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.10.windows-amd64/src/runtime/panic.go:694
+
+2026/11/10 14:45:52 [34;1mD:/cache/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.10.windows-amd64/src/runtime/panic.go:694
+[0m[35m[warn] [0mremoving callback `linked_second_command` from D:/cache/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.10.windows-amd64/src/runtime/panic.go:694
+=== RUN   TestServiceTransactionLinkedCompletionRollback/manual/after-retire
+
+2026/11/10 14:45:53 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/service/state.go:79 [35;1mlinked owner completion refused
+[0m[33m[3.811ms] [34;1m[rows:1][0m UPDATE `biz_service_instance` SET `current_version`='old',`desired_state`='retired',`desired_version`='1',`health_message`='',`health_observed_at`='2026-11-10 14:45:53.976',`health_revision`='',`health_state`='unknown',`last_transition_at`='2026-11-10 14:45:53.976',`last_transition_id`='deploy:1:retire',`lifecycle_version`=lifecycle_version + 1,`observed_state`='retired',`rollback_version`='',`updated_at`='2026-11-10 14:45:53.976',`updated_by`='test' WHERE id = 1 AND `biz_service_instance`.`deleted_at` IS NULL
+    service_transaction_test.go:133: ServiceInstance state/version/retire and Deploy/CMDB projections did not roll back together
+
+2026/11/10 14:45:53 [34;1mD:/cache/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.10.windows-amd64/src/runtime/panic.go:694
+[0m[35m[warn] [0mremoving callback `linked_owner_written` from D:/cache/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.10.windows-amd64/src/runtime/panic.go:694
+
+2026/11/10 14:45:53 [34;1mD:/cache/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.10.windows-amd64/src/runtime/panic.go:694
+[0m[35m[warn] [0mremoving callback `linked_second_command` from D:/cache/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.10.windows-amd64/src/runtime/panic.go:694
+--- FAIL: TestServiceTransactionLinkedCompletionRollback (11.53s)
+    --- FAIL: TestServiceTransactionLinkedCompletionRollback/owned/commit (1.35s)
+    --- FAIL: TestServiceTransactionLinkedCompletionRollback/owned/uninstall-second-command (1.52s)
+    --- FAIL: TestServiceTransactionLinkedCompletionRollback/owned/after-retire (1.52s)
+    --- FAIL: TestServiceTransactionLinkedCompletionRollback/owned/owner-refusal (1.46s)
+    --- FAIL: TestServiceTransactionLinkedCompletionRollback/owned/owner-deadline (1.29s)
+    --- FAIL: TestServiceTransactionLinkedCompletionRollback/manual/commit (1.37s)
+    --- FAIL: TestServiceTransactionLinkedCompletionRollback/manual/uninstall-second-command (1.58s)
+    --- FAIL: TestServiceTransactionLinkedCompletionRollback/manual/after-retire (1.44s)
+=== RUN   TestServiceTransactionLinkedCompletionCommit
+=== RUN   TestServiceTransactionLinkedCompletionCommit/owned/install
+=== RUN   TestServiceTransactionLinkedCompletionCommit/owned/uninstall
+=== RUN   TestServiceTransactionLinkedCompletionCommit/manual/install
+    service_transaction_test.go:186: lease release did not commit
+=== RUN   TestServiceTransactionLinkedCompletionCommit/manual/uninstall
+    service_transaction_test.go:186: lease release did not commit
+--- FAIL: TestServiceTransactionLinkedCompletionCommit (5.87s)
+    --- PASS: TestServiceTransactionLinkedCompletionCommit/owned/install (1.41s)
+    --- PASS: TestServiceTransactionLinkedCompletionCommit/owned/uninstall (1.50s)
+    --- FAIL: TestServiceTransactionLinkedCompletionCommit/manual/install (1.48s)
+    --- FAIL: TestServiceTransactionLinkedCompletionCommit/manual/uninstall (1.49s)
+=== RUN   TestServiceTransactionNonbindingRefusedBeforeMutation
+=== RUN   TestServiceTransactionNonbindingRefusedBeforeMutation/owned
+    service_transaction_test.go:217: unknown owner reached mutation: err=<nil> calls=1
+=== RUN   TestServiceTransactionNonbindingRefusedBeforeMutation/manual
+    service_transaction_test.go:217: unknown owner reached mutation: err=<nil> calls=1
+--- FAIL: TestServiceTransactionNonbindingRefusedBeforeMutation (2.68s)
+    --- FAIL: TestServiceTransactionNonbindingRefusedBeforeMutation/owned (1.30s)
+    --- FAIL: TestServiceTransactionNonbindingRefusedBeforeMutation/manual (1.38s)
+FAIL
+FAIL	github.com/duanxldragon/pantheon-base/backend/modules/business/deploy	22.780s
+FAIL

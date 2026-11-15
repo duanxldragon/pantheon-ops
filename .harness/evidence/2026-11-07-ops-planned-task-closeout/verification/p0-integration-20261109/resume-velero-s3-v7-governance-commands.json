@@ -1,0 +1,28 @@
+{
+  "generatedAt": "2026-11-10T04:11:10.709942+00:00",
+  "requestSHA256": "05a39bef4df96a8c08ad78b17373d4968b6116be8ee8a2682e7708147517ad6e",
+  "remoteExecuted": false,
+  "commands": [
+    {
+      "command": "node scripts/frontmatter-check.mjs",
+      "exitCode": 0,
+      "stdout": "Frontmatter check passed. Checked 462 docs, 301 with frontmatter.\n",
+      "stderr": ""
+    },
+    {
+      "command": "node scripts/check-task-packet-template.mjs",
+      "exitCode": 0,
+      "stdout": "OK pantheon-ops task-packet template is present and linked\n",
+      "stderr": ""
+    },
+    {
+      "command": "python -B .local/ops-acceptance/resume-velero-s3-v7-root.py check-inputs",
+      "exitCode": 0,
+      "stdout": "{\"exitCode\": 0, \"remoteExecuted\": false, \"rootRequestSHA256\": \"05a39bef4df96a8c08ad78b17373d4968b6116be8ee8a2682e7708147517ad6e\", \"v7Scripts\": 7, \"originalFive\": 5, \"failureReceiptSHA256\": \"9c2048e5ff4d4f2ce139a8a19fe281afa26b539ba93a7c988cdd445a8a61683b\", \"backupRestoreVerified\": false}\n",
+      "stderr": ""
+    }
+  ],
+  "newHelperWhitespaceCheck": true,
+  "temporaryTestDirectoriesRemain": false,
+  "P0Approved": false
+}

@@ -48,3 +48,7 @@
 ## Gates
 
 - Base lock、新聚合 schema/API、首页信息优先级和最终维护者视觉验收。
+
+## Implemented recorded-state subset — 2026-11-14
+
+Official Base v0.18.8 supplies the operational renderer and source contract. Ops implements four bounded metadata summaries: deployment failures, recent deployments, recorded cluster status and recorded datasource status. Fixed8-row output, SQL timeout, restricted partial samples and real supported filter links are covered by native/unit tests. This subset does not close live workload/alert-health, temporal drill-down or the original full state/theme/render matrix; those acceptance items remain open. No live provider call or credentials are loaded by these summaries.

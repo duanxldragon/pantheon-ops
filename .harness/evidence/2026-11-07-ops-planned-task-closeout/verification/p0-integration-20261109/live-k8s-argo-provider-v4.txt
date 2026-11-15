@@ -1,0 +1,7 @@
+{"check": "installed Argo namespace ownership", "passed": true}
+{"check": "unauthenticated Argo API refused", "passed": true, "httpStatus": 401}
+{"check": "authenticated Argo session established", "passed": true, "httpStatus": 200}
+{"check": "authenticated Argo API health", "passed": true, "httpStatus": 200}
+{"phase": "failure", "stage": "authenticated Argo API health", "errorType": "OSError"}
+{"phase": "cleanup", "kind": "Namespace", "uidChecked": true, "absenceVerified": true, "exitCode": 0}
+{"phase": "result", "exitCode": 1, "checksPassed": 4, "providersRetained": true, "namespace": "pantheon-p0-argo-live-409fe7", "project": "p0-live-409fe7", "application": "p0-live-409fe7"}

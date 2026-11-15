@@ -1,0 +1,28 @@
+{
+  "host": "115.190.251.143",
+  "origin": "public current DeployService/default SSH on actual VM; independent SSH state and fresh OS child process",
+  "run": "d2bd3e89ef71",
+  "cases": [],
+  "positivePassed": 0,
+  "negativePassed": 0,
+  "failed": 0,
+  "driverFailures": 0,
+  "approval": "generator evidence only; no independent O2/P0 approval",
+  "artifacts": {
+    "live-diagnostic-o2-v6.go": "d650280072feb6000183c7675b25600fd1954af99a90431b2879b4e5df13fb86",
+    "live-diagnostic-o2-v6-runner.py": "bb4158de64020fb602f2859bbd2aabeb85a149807eff22ae14a1621cb19932d7",
+    "live-diagnostic-o2-v6_test.go": "ea8aa8c3974f919a7bc155c1d0c7d6c2a63f22fd62c48b78f9dddc7c8c21b782",
+    "live-diagnostic-o2-v6-local-verify.py": "2fd4277bfe9962697ee951e396b58117521710cf70225a4ef021c86e5a308b25",
+    "remote.py": "37acccd12ba3b30e38182f11101821f110355ed660c4cf559d91cc1c638e1b5e",
+    "known_hosts": "45a3379d7e5d75b57e4d47c37ea424b611ddc56ee6d2a70fdc89c05c1ae8213e",
+    "live-diagnostic-o2-v6-driver.exe": "88981572e327afe5614d9c9854a99098eec60d537253beecccf956b8b624a623",
+    "live-diagnostic-o2-v6-driver-linux": "f2556f11b67cf3206b487edddc78e0e220563cb7f346285e039afa365e64e6d8"
+  },
+  "blocker": {
+    "errorType": "SSHException",
+    "errno": null
+  },
+  "seconds": 5.703,
+  "sourceStable": true,
+  "exitCode": 1
+}

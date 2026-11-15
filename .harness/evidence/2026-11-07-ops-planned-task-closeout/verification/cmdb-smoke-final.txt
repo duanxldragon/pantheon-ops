@@ -1,0 +1,38 @@
+[smoke-suite] API base http://127.0.0.1:24483/api/v1
+[generated-modules] cleanup complete
+{
+  "modules": 0,
+  "schemas": 1,
+  "registries": 4,
+  "i18n": 5
+}
+(!) Your Vite config uses features that are unsupported by `configLoader: 'native'`, which is planned to become the default in a future major version of Vite:
+  - `__dirname` (vite.config.ts:32:25). Use `import.meta.dirname` instead
+Set `VITE_CONFIG_NATIVE_IGNORE_WARNING=true` to suppress this warning.
+Smoke Vite ready at http://127.0.0.1:24576/
+
+Running 12 tests using 1 worker
+
+(node:24344) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok  1 tests\smoke\business\cmdb\cmdb-import-export-permissions.spec.ts:29:3 › CMDB view role with explicit API grants enforces separate CSV capabilities (1.3s)
+  ok  2 tests\smoke\business\cmdb\cmdb-import-export-permissions.spec.ts:29:3 › CMDB export role with explicit API grants enforces separate CSV capabilities (876ms)
+  ok  3 tests\smoke\business\cmdb\cmdb-import-export-permissions.spec.ts:29:3 › CMDB import role with explicit API grants enforces separate CSV capabilities (746ms)
+  ok  4 tests\smoke\business\cmdb\cmdb-pages.spec.ts:105:3 › CMDB Host Management › host list page loads with table (3.7s)
+  ok  5 tests\smoke\business\cmdb\cmdb-pages.spec.ts:136:3 › CMDB Host Management › host detail action opens a modal without leaving the list page (3.5s)
+  ok  6 tests\smoke\business\cmdb\cmdb-pages.spec.ts:184:3 › CMDB Host Management › host detail loads by ID (2.5s)
+  ok  7 tests\smoke\business\cmdb\cmdb-pages.spec.ts:202:3 › CMDB Host Management › group list page loads (2.8s)
+  ok  8 tests\smoke\business\cmdb\cmdb-pages.spec.ts:227:3 › CMDB Host Management › business scope page loads as an independent module (2.8s)
+  ok  9 tests\smoke\business\cmdb\cmdb-pages.spec.ts:245:3 › CMDB Host Management › business scope detail binds and unbinds hosts (4.8s)
+  ok 10 tests\smoke\business\cmdb\cmdb-pages.spec.ts:365:3 › CMDB Host Management › label management page loads without raw i18n keys (2.9s)
+  ok 11 tests\smoke\business\cmdb\cmdb-pages.spec.ts:383:3 › CMDB Host Management › cmdb pages stay within a phone viewport (8.4s)
+  ok 12 tests\smoke\business\cmdb\cmdb-pages.spec.ts:410:3 › CMDB Business API Smoke › host and group lifecycle validates labels, status, members, and cleanup (587ms)
+
+  12 passed (36.8s)
+[generated-modules] cleanup complete
+{
+  "modules": 0,
+  "schemas": 1,
+  "registries": 4,
+  "i18n": 5
+}

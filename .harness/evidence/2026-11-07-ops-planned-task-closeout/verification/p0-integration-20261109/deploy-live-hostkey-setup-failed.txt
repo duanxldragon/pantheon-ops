@@ -1,0 +1,22 @@
+=== RUN   TestDeployLiveVMExecution
+=== RUN   TestDeployLiveVMExecution/success
+
+2026/11/09 09:22:00 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/deploy_service.go:1942 [35;1mrecord not found
+[0m[33m[1.806ms] [34;1m[rows:0][0m SELECT * FROM `biz_deploy_task_step` WHERE task_id = 1 AND task_host_id = 1 AND step_key = 'package_default' ORDER BY `biz_deploy_task_step`.`id` LIMIT 1
+    deploy_live_acceptance_test.go:97: business.deploy.task.sshHostKeyMismatch
+    deploy_live_acceptance_test.go:61: cleanup SSH connection failed
+=== RUN   TestDeployLiveVMExecution/failure
+
+2026/11/09 09:22:05 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/deploy_service.go:1942 [35;1mrecord not found
+[0m[33m[1.715ms] [34;1m[rows:0][0m SELECT * FROM `biz_deploy_task_step` WHERE task_id = 1 AND task_host_id = 1 AND step_key = 'package_default' ORDER BY `biz_deploy_task_step`.`id` LIMIT 1
+    deploy_live_acceptance_test.go:90: expected remote exit17, got business.deploy.task.sshHostKeyMismatch
+    deploy_live_acceptance_test.go:61: cleanup SSH connection failed
+--- FAIL: TestDeployLiveVMExecution (10.64s)
+    --- FAIL: TestDeployLiveVMExecution/success (5.35s)
+    --- FAIL: TestDeployLiveVMExecution/failure (5.30s)
+=== RUN   TestDeployLiveVMCancellation
+    deploy_live_acceptance_test.go:164: business.deploy.task.sshHostKeyMismatch
+--- FAIL: TestDeployLiveVMCancellation (1.70s)
+FAIL
+FAIL	github.com/duanxldragon/pantheon-base/backend/modules/business/deploy	12.478s
+FAIL

@@ -1,0 +1,24 @@
+{
+  "url": "http://127.0.0.1:24485/api/v1/health",
+  "response": {
+    "code": 200,
+    "data": {
+      "status": "ok",
+      "service": "pantheon-platform",
+      "timestamp": "2026-11-07T12:22:05Z",
+      "requestId": "8f946ecc-b25b-421f-bb18-bb6e2f956f1c",
+      "dependencies": {
+        "database": {
+          "status": "ok"
+        },
+        "migrations": {
+          "status": "ok"
+        },
+        "redis": {
+          "status": "ok"
+        }
+      }
+    },
+    "message": "success"
+  }
+}

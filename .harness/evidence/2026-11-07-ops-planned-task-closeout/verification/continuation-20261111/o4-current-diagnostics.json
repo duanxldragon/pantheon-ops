@@ -1,0 +1,986 @@
+{
+  "tool": "native TypeScript LanguageService",
+  "version": "6.0.3",
+  "originalBaseline": false,
+  "checkJs": true,
+  "skipLibCheck": false,
+  "optionsDiagnostics": [],
+  "diagnostics": [
+    {
+      "file": "scripts/business-overlay/foundation-candidate.mjs",
+      "originalAbsent": false,
+      "diagnostics": [
+        {
+          "code": 7006,
+          "category": "Error",
+          "line": 17,
+          "text": "Parameter 'bytes' implicitly has an 'any' type.",
+          "source": "bytes"
+        },
+        {
+          "code": 7006,
+          "category": "Error",
+          "line": 19,
+          "text": "Parameter 'files' implicitly has an 'any' type.",
+          "source": "files"
+        },
+        {
+          "code": 7006,
+          "category": "Error",
+          "line": 22,
+          "text": "Parameter 'a' implicitly has an 'any' type.",
+          "source": "a"
+        },
+        {
+          "code": 7006,
+          "category": "Error",
+          "line": 22,
+          "text": "Parameter 'b' implicitly has an 'any' type.",
+          "source": "b"
+        },
+        {
+          "code": 7006,
+          "category": "Error",
+          "line": 77,
+          "text": "Parameter 'entries' implicitly has an 'any' type.",
+          "source": "entries"
+        },
+        {
+          "code": 7006,
+          "category": "Error",
+          "line": 78,
+          "text": "Parameter 'entry' implicitly has an 'any' type.",
+          "source": "entry"
+        },
+        {
+          "code": 7006,
+          "category": "Error",
+          "line": 81,
+          "text": "Parameter 'entry' implicitly has an 'any' type.",
+          "source": "entry"
+        },
+        {
+          "code": 7006,
+          "category": "Error",
+          "line": 85,
+          "text": "Parameter 'file' implicitly has an 'any' type.",
+          "source": "file"
+        },
+        {
+          "code": 7006,
+          "category": "Error",
+          "line": 98,
+          "text": "Parameter 'entry' implicitly has an 'any' type.",
+          "source": "entry"
+        },
+        {
+          "code": 7006,
+          "category": "Error",
+          "line": 102,
+          "text": "Parameter 'value' implicitly has an 'any' type.",
+          "source": "value"
+        },
+        {
+          "code": 7006,
+          "category": "Error",
+          "line": 155,
+          "text": "Parameter 'absolute' implicitly has an 'any' type.",
+          "source": "absolute"
+        },
+        {
+          "code": 18046,
+          "category": "Error",
+          "line": 170,
+          "text": "'error' is of type 'unknown'.",
+          "source": "error"
+        },
+        {
+          "code": 7006,
+          "category": "Error",
+          "line": 188,
+          "text": "Parameter 'files' implicitly has an 'any' type.",
+          "source": "files"
+        },
+        {
+          "code": 7006,
+          "category": "Error",
+          "line": 235,
+          "text": "Parameter 'values' implicitly has an 'any' type.",
+          "source": "values"
+        },
+        {
+          "code": 7006,
+          "category": "Error",
+          "line": 235,
+          "text": "Parameter 'label' implicitly has an 'any' type.",
+          "source": "label"
+        },
+        {
+          "code": 7006,
+          "category": "Error",
+          "line": 250,
+          "text": "Parameter 'capabilities' implicitly has an 'any' type.",
+          "source": "capabilities"
+        },
+        {
+          "code": 7006,
+          "category": "Error",
+          "line": 250,
+          "text": "Parameter 'files' implicitly has an 'any' type.",
+          "source": "files"
+        },
+        {
+          "code": 7006,
+          "category": "Error",
+          "line": 252,
+          "text": "Parameter 'file' implicitly has an 'any' type.",
+          "source": "file"
+        },
+        {
+          "code": 7053,
+          "category": "Error",
+          "line": 257,
+          "text": "Element implicitly has an 'any' type because expression of type 'any' can't be used to index type 'Readonly<{ \"business-tenant-v2\": string[][]; \"required-business-bootstrap-v1\": string[][]; \"audit-metadata-only-v1\": string[][]; \"permission-route-registration-v1\": string[][]; }>'.",
+          "source": "CAPABILITY_EXPORTS[capability]"
+        },
+        {
+          "code": 7006,
+          "category": "Error",
+          "line": 272,
+          "text": "Parameter 'descriptor' implicitly has an 'any' type.",
+          "source": "descriptor"
+        },
+        {
+          "code": 7006,
+          "category": "Error",
+          "line": 331,
+          "text": "Parameter 'file' implicitly has an 'any' type.",
+          "source": "file"
+        },
+        {
+          "code": 7006,
+          "category": "Error",
+          "line": 341,
+          "text": "Parameter 'descriptorPath' implicitly has an 'any' type.",
+          "source": "descriptorPath"
+        },
+        {
+          "code": 7006,
+          "category": "Error",
+          "line": 342,
+          "text": "Parameter 'expectedDescriptorSha256' implicitly has an 'any' type.",
+          "source": "expectedDescriptorSha256"
+        },
+        {
+          "code": 7006,
+          "category": "Error",
+          "line": 356,
+          "text": "Parameter 'archive' implicitly has an 'any' type.",
+          "source": "archive"
+        },
+        {
+          "code": 7006,
+          "category": "Error",
+          "line": 356,
+          "text": "Parameter 'descriptor' implicitly has an 'any' type.",
+          "source": "descriptor"
+        },
+        {
+          "code": 7006,
+          "category": "Error",
+          "line": 368,
+          "text": "Parameter 'byte' implicitly has an 'any' type.",
+          "source": "byte"
+        },
+        {
+          "code": 7006,
+          "category": "Error",
+          "line": 371,
+          "text": "Parameter 'byte' implicitly has an 'any' type.",
+          "source": "byte"
+        },
+        {
+          "code": 7006,
+          "category": "Error",
+          "line": 376,
+          "text": "Parameter 'start' implicitly has an 'any' type.",
+          "source": "start"
+        },
+        {
+          "code": 7006,
+          "category": "Error",
+          "line": 376,
+          "text": "Parameter 'length' implicitly has an 'any' type.",
+          "source": "length"
+        },
+        {
+          "code": 7006,
+          "category": "Error",
+          "line": 379,
+          "text": "Parameter 'byte' implicitly has an 'any' type.",
+          "source": "byte"
+        },
+        {
+          "code": 7006,
+          "category": "Error",
+          "line": 385,
+          "text": "Parameter 'start' implicitly has an 'any' type.",
+          "source": "start"
+        },
+        {
+          "code": 7006,
+          "category": "Error",
+          "line": 385,
+          "text": "Parameter 'length' implicitly has an 'any' type.",
+          "source": "length"
+        },
+        {
+          "code": 7006,
+          "category": "Error",
+          "line": 417,
+          "text": "Parameter 'byte' implicitly has an 'any' type.",
+          "source": "byte"
+        },
+        {
+          "code": 7031,
+          "category": "Error",
+          "line": 440,
+          "text": "Binding element 'descriptorPath' implicitly has an 'any' type.",
+          "source": "descriptorPath"
+        },
+        {
+          "code": 7031,
+          "category": "Error",
+          "line": 441,
+          "text": "Binding element 'expectedDescriptorSha256' implicitly has an 'any' type.",
+          "source": "expectedDescriptorSha256"
+        },
+        {
+          "code": 7031,
+          "category": "Error",
+          "line": 442,
+          "text": "Binding element 'buildReceiptPath' implicitly has an 'any' type.",
+          "source": "buildReceiptPath"
+        },
+        {
+          "code": 7031,
+          "category": "Error",
+          "line": 443,
+          "text": "Binding element 'expectedBuildReceiptSha256' implicitly has an 'any' type.",
+          "source": "expectedBuildReceiptSha256"
+        },
+        {
+          "code": 7031,
+          "category": "Error",
+          "line": 444,
+          "text": "Binding element 'executablePath' implicitly has an 'any' type.",
+          "source": "executablePath"
+        },
+        {
+          "code": 7031,
+          "category": "Error",
+          "line": 445,
+          "text": "Binding element 'expectedExecutableSha256' implicitly has an 'any' type.",
+          "source": "expectedExecutableSha256"
+        },
+        {
+          "code": 7006,
+          "category": "Error",
+          "line": 493,
+          "text": "Parameter 'stat' implicitly has an 'any' type.",
+          "source": "stat"
+        },
+        {
+          "code": 7006,
+          "category": "Error",
+          "line": 502,
+          "text": "Parameter 'a' implicitly has an 'any' type.",
+          "source": "a"
+        },
+        {
+          "code": 7006,
+          "category": "Error",
+          "line": 502,
+          "text": "Parameter 'b' implicitly has an 'any' type.",
+          "source": "b"
+        },
+        {
+          "code": 7006,
+          "category": "Error",
+          "line": 506,
+          "text": "Parameter 'root' implicitly has an 'any' type.",
+          "source": "root"
+        },
+        {
+          "code": 7006,
+          "category": "Error",
+          "line": 506,
+          "text": "Parameter 'reason' implicitly has an 'any' type.",
+          "source": "reason"
+        },
+        {
+          "code": 7006,
+          "category": "Error",
+          "line": 506,
+          "text": "Parameter 'cause' implicitly has an 'any' type.",
+          "source": "cause"
+        },
+        {
+          "code": 7006,
+          "category": "Error",
+          "line": 516,
+          "text": "Parameter 'absolute' implicitly has an 'any' type.",
+          "source": "absolute"
+        },
+        {
+          "code": 7006,
+          "category": "Error",
+          "line": 532,
+          "text": "Parameter 'absolute' implicitly has an 'any' type.",
+          "source": "absolute"
+        },
+        {
+          "code": 7006,
+          "category": "Error",
+          "line": 540,
+          "text": "Parameter 'absolute' implicitly has an 'any' type.",
+          "source": "absolute"
+        },
+        {
+          "code": 7006,
+          "category": "Error",
+          "line": 540,
+          "text": "Parameter 'identities' implicitly has an 'any' type.",
+          "source": "identities"
+        },
+        {
+          "code": 7006,
+          "category": "Error",
+          "line": 548,
+          "text": "Parameter 'absolute' implicitly has an 'any' type.",
+          "source": "absolute"
+        },
+        {
+          "code": 7006,
+          "category": "Error",
+          "line": 548,
+          "text": "Parameter 'identities' implicitly has an 'any' type.",
+          "source": "identities"
+        },
+        {
+          "code": 7006,
+          "category": "Error",
+          "line": 553,
+          "text": "Parameter 'absolute' implicitly has an 'any' type.",
+          "source": "absolute"
+        },
+        {
+          "code": 7006,
+          "category": "Error",
+          "line": 553,
+          "text": "Parameter 'stage' implicitly has an 'any' type.",
+          "source": "stage"
+        },
+        {
+          "code": 7006,
+          "category": "Error",
+          "line": 571,
+          "text": "Parameter 'stat' implicitly has an 'any' type.",
+          "source": "stat"
+        },
+        {
+          "code": 7006,
+          "category": "Error",
+          "line": 571,
+          "text": "Parameter 'absolute' implicitly has an 'any' type.",
+          "source": "absolute"
+        },
+        {
+          "code": 7006,
+          "category": "Error",
+          "line": 578,
+          "text": "Parameter 'absolute' implicitly has an 'any' type.",
+          "source": "absolute"
+        },
+        {
+          "code": 7006,
+          "category": "Error",
+          "line": 578,
+          "text": "Parameter 'stage' implicitly has an 'any' type.",
+          "source": "stage"
+        },
+        {
+          "code": 7006,
+          "category": "Error",
+          "line": 578,
+          "text": "Parameter 'fd' implicitly has an 'any' type.",
+          "source": "fd"
+        },
+        {
+          "code": 7006,
+          "category": "Error",
+          "line": 583,
+          "text": "Parameter 'value' implicitly has an 'any' type.",
+          "source": "value"
+        },
+        {
+          "code": 7006,
+          "category": "Error",
+          "line": 583,
+          "text": "Parameter 'part' implicitly has an 'any' type.",
+          "source": "part"
+        },
+        {
+          "code": 7006,
+          "category": "Error",
+          "line": 583,
+          "text": "Parameter 'i' implicitly has an 'any' type.",
+          "source": "i"
+        },
+        {
+          "code": 7006,
+          "category": "Error",
+          "line": 590,
+          "text": "Parameter 'absolute' implicitly has an 'any' type.",
+          "source": "absolute"
+        },
+        {
+          "code": 7006,
+          "category": "Error",
+          "line": 590,
+          "text": "Parameter 'bytes' implicitly has an 'any' type.",
+          "source": "bytes"
+        },
+        {
+          "code": 7006,
+          "category": "Error",
+          "line": 590,
+          "text": "Parameter 'options' implicitly has an 'any' type.",
+          "source": "options"
+        },
+        {
+          "code": 7006,
+          "category": "Error",
+          "line": 590,
+          "text": "Parameter 'stage' implicitly has an 'any' type.",
+          "source": "stage"
+        },
+        {
+          "code": 18046,
+          "category": "Error",
+          "line": 600,
+          "text": "'error' is of type 'unknown'.",
+          "source": "error"
+        },
+        {
+          "code": 7006,
+          "category": "Error",
+          "line": 630,
+          "text": "Parameter 'value' implicitly has an 'any' type.",
+          "source": "value"
+        },
+        {
+          "code": 7006,
+          "category": "Error",
+          "line": 639,
+          "text": "Parameter 'absolute' implicitly has an 'any' type.",
+          "source": "absolute"
+        },
+        {
+          "code": 7006,
+          "category": "Error",
+          "line": 671,
+          "text": "Parameter 'value' implicitly has an 'any' type.",
+          "source": "value"
+        },
+        {
+          "code": 7006,
+          "category": "Error",
+          "line": 693,
+          "text": "Parameter 'root' implicitly has an 'any' type.",
+          "source": "root"
+        },
+        {
+          "code": 7006,
+          "category": "Error",
+          "line": 693,
+          "text": "Parameter 'selection' implicitly has an 'any' type.",
+          "source": "selection"
+        },
+        {
+          "code": 7006,
+          "category": "Error",
+          "line": 698,
+          "text": "Parameter 'absolute' implicitly has an 'any' type.",
+          "source": "absolute"
+        },
+        {
+          "code": 7006,
+          "category": "Error",
+          "line": 741,
+          "text": "Parameter 'root' implicitly has an 'any' type.",
+          "source": "root"
+        },
+        {
+          "code": 7006,
+          "category": "Error",
+          "line": 741,
+          "text": "Parameter 'captured' implicitly has an 'any' type.",
+          "source": "captured"
+        },
+        {
+          "code": 7006,
+          "category": "Error",
+          "line": 742,
+          "text": "Parameter 'file' implicitly has an 'any' type.",
+          "source": "file"
+        },
+        {
+          "code": 7006,
+          "category": "Error",
+          "line": 745,
+          "text": "Parameter 'absolute' implicitly has an 'any' type.",
+          "source": "absolute"
+        },
+        {
+          "code": 7006,
+          "category": "Error",
+          "line": 745,
+          "text": "Parameter 'relative' implicitly has an 'any' type.",
+          "source": "relative"
+        },
+        {
+          "code": 7006,
+          "category": "Error",
+          "line": 763,
+          "text": "Parameter 'absolute' implicitly has an 'any' type.",
+          "source": "absolute"
+        },
+        {
+          "code": 7006,
+          "category": "Error",
+          "line": 763,
+          "text": "Parameter 'encoding' implicitly has an 'any' type.",
+          "source": "encoding"
+        },
+        {
+          "code": 7006,
+          "category": "Error",
+          "line": 784,
+          "text": "Parameter 'root' implicitly has an 'any' type.",
+          "source": "root"
+        },
+        {
+          "code": 7006,
+          "category": "Error",
+          "line": 784,
+          "text": "Parameter 'paths' implicitly has an 'any' type.",
+          "source": "paths"
+        },
+        {
+          "code": 7006,
+          "category": "Error",
+          "line": 788,
+          "text": "Parameter 'relative' implicitly has an 'any' type.",
+          "source": "relative"
+        },
+        {
+          "code": 7031,
+          "category": "Error",
+          "line": 808,
+          "text": "Binding element 'a' implicitly has an 'any' type.",
+          "source": "a"
+        },
+        {
+          "code": 7031,
+          "category": "Error",
+          "line": 808,
+          "text": "Binding element 'b' implicitly has an 'any' type.",
+          "source": "b"
+        },
+        {
+          "code": 2345,
+          "category": "Error",
+          "line": 810,
+          "text": "Argument of type '([a]: [any], [b]: [any]) => 1 | 0 | -1' is not assignable to parameter of type '(a: [any, any], b: [any, any]) => number'.\n  Types of parameters '__0' and 'a' are incompatible.\n    Type '[any, any]' is not assignable to type '[any]'.\n      Source has 2 element(s) but target allows only 1.",
+          "source": "sort"
+        },
+        {
+          "code": 2345,
+          "category": "Error",
+          "line": 811,
+          "text": "Argument of type '([a]: [any], [b]: [any]) => 1 | 0 | -1' is not assignable to parameter of type '(a: [any, any], b: [any, any]) => number'.\n  Types of parameters '__0' and 'a' are incompatible.\n    Type '[any, any]' is not assignable to type '[any]'.\n      Source has 2 element(s) but target allows only 1.",
+          "source": "sort"
+        },
+        {
+          "code": 7006,
+          "category": "Error",
+          "line": 815,
+          "text": "Parameter 'absolute' implicitly has an 'any' type.",
+          "source": "absolute"
+        },
+        {
+          "code": 7006,
+          "category": "Error",
+          "line": 815,
+          "text": "Parameter 'maxBytes' implicitly has an 'any' type.",
+          "source": "maxBytes"
+        },
+        {
+          "code": 7006,
+          "category": "Error",
+          "line": 818,
+          "text": "Parameter 'stat' implicitly has an 'any' type.",
+          "source": "stat"
+        },
+        {
+          "code": 7006,
+          "category": "Error",
+          "line": 848,
+          "text": "Parameter 'entries' implicitly has an 'any' type.",
+          "source": "entries"
+        },
+        {
+          "code": 7006,
+          "category": "Error",
+          "line": 848,
+          "text": "Parameter 'requiredExports' implicitly has an 'any' type.",
+          "source": "requiredExports"
+        },
+        {
+          "code": 7006,
+          "category": "Error",
+          "line": 850,
+          "text": "Parameter 'entry' implicitly has an 'any' type.",
+          "source": "entry"
+        },
+        {
+          "code": 7006,
+          "category": "Error",
+          "line": 857,
+          "text": "Parameter 'match' implicitly has an 'any' type.",
+          "source": "match"
+        },
+        {
+          "code": 2339,
+          "category": "Error",
+          "line": 871,
+          "text": "Property 'artifactPath' does not exist on type '{}'.",
+          "source": "artifactPath"
+        },
+        {
+          "code": 2339,
+          "category": "Error",
+          "line": 872,
+          "text": "Property 'descriptorPath' does not exist on type '{}'.",
+          "source": "descriptorPath"
+        },
+        {
+          "code": 2339,
+          "category": "Error",
+          "line": 873,
+          "text": "Property 'expectedDescriptorSha256' does not exist on type '{}'.",
+          "source": "expectedDescriptorSha256"
+        },
+        {
+          "code": 2339,
+          "category": "Error",
+          "line": 874,
+          "text": "Property 'cacheRoot' does not exist on type '{}'.",
+          "source": "cacheRoot"
+        },
+        {
+          "code": 2339,
+          "category": "Error",
+          "line": 875,
+          "text": "Property 'retainedSnapshotRoot' does not exist on type '{}'.",
+          "source": "retainedSnapshotRoot"
+        },
+        {
+          "code": 7006,
+          "category": "Error",
+          "line": 947,
+          "text": "Parameter 'directory' implicitly has an 'any' type.",
+          "source": "directory"
+        },
+        {
+          "code": 7006,
+          "category": "Error",
+          "line": 1024,
+          "text": "Parameter 'root' implicitly has an 'any' type.",
+          "source": "root"
+        },
+        {
+          "code": 7006,
+          "category": "Error",
+          "line": 1024,
+          "text": "Parameter 'identity' implicitly has an 'any' type.",
+          "source": "identity"
+        },
+        {
+          "code": 7006,
+          "category": "Error",
+          "line": 1035,
+          "text": "Parameter 'root' implicitly has an 'any' type.",
+          "source": "root"
+        },
+        {
+          "code": 7006,
+          "category": "Error",
+          "line": 1035,
+          "text": "Parameter 'stage' implicitly has an 'any' type.",
+          "source": "stage"
+        },
+        {
+          "code": 7006,
+          "category": "Error",
+          "line": 1038,
+          "text": "Parameter 'directory' implicitly has an 'any' type.",
+          "source": "directory"
+        },
+        {
+          "code": 7006,
+          "category": "Error",
+          "line": 1054,
+          "text": "Parameter 'file' implicitly has an 'any' type.",
+          "source": "file"
+        },
+        {
+          "code": 7006,
+          "category": "Error",
+          "line": 1067,
+          "text": "Parameter 'root' implicitly has an 'any' type.",
+          "source": "root"
+        },
+        {
+          "code": 7006,
+          "category": "Error",
+          "line": 1090,
+          "text": "Parameter 'file' implicitly has an 'any' type.",
+          "source": "file"
+        },
+        {
+          "code": 7006,
+          "category": "Error",
+          "line": 1114,
+          "text": "Parameter 'source' implicitly has an 'any' type.",
+          "source": "source"
+        },
+        {
+          "code": 7006,
+          "category": "Error",
+          "line": 1114,
+          "text": "Parameter 'file' implicitly has an 'any' type.",
+          "source": "file"
+        },
+        {
+          "code": 7006,
+          "category": "Error",
+          "line": 1119,
+          "text": "Parameter 'file' implicitly has an 'any' type.",
+          "source": "file"
+        },
+        {
+          "code": 7006,
+          "category": "Error",
+          "line": 1119,
+          "text": "Parameter 'bytes' implicitly has an 'any' type.",
+          "source": "bytes"
+        },
+        {
+          "code": 7006,
+          "category": "Error",
+          "line": 1119,
+          "text": "Parameter 'options' implicitly has an 'any' type.",
+          "source": "options"
+        },
+        {
+          "code": 7006,
+          "category": "Error",
+          "line": 1122,
+          "text": "Parameter 'file' implicitly has an 'any' type.",
+          "source": "file"
+        },
+        {
+          "code": 7006,
+          "category": "Error",
+          "line": 1131,
+          "text": "Parameter 'file' implicitly has an 'any' type.",
+          "source": "file"
+        },
+        {
+          "code": 18046,
+          "category": "Error",
+          "line": 1138,
+          "text": "'error' is of type 'unknown'.",
+          "source": "error"
+        },
+        {
+          "code": 18046,
+          "category": "Error",
+          "line": 1144,
+          "text": "'error' is of type 'unknown'.",
+          "source": "error"
+        },
+        {
+          "code": 7006,
+          "category": "Error",
+          "line": 1155,
+          "text": "Parameter 'args' implicitly has an 'any' type.",
+          "source": "args"
+        },
+        {
+          "code": 7006,
+          "category": "Error",
+          "line": 1155,
+          "text": "Parameter 'options' implicitly has an 'any' type.",
+          "source": "options"
+        },
+        {
+          "code": 2339,
+          "category": "Error",
+          "line": 1191,
+          "text": "Property 'targetIdentityError' does not exist on type 'Error'.",
+          "source": "targetIdentityError"
+        },
+        {
+          "code": 7006,
+          "category": "Error",
+          "line": 1208,
+          "text": "Parameter 'root' implicitly has an 'any' type.",
+          "source": "root"
+        },
+        {
+          "code": 2339,
+          "category": "Error",
+          "line": 1208,
+          "text": "Property 'cause' does not exist on type '{}'.",
+          "source": "cause"
+        },
+        {
+          "code": 18046,
+          "category": "Error",
+          "line": 1220,
+          "text": "'error' is of type 'unknown'.",
+          "source": "error"
+        },
+        {
+          "code": 2339,
+          "category": "Error",
+          "line": 1221,
+          "text": "Property 'cleanupStatus' does not exist on type 'CandidateCleanupError'.",
+          "source": "cleanupStatus"
+        },
+        {
+          "code": 2339,
+          "category": "Error",
+          "line": 1222,
+          "text": "Property 'retainedDirectories' does not exist on type 'CandidateCleanupError'.",
+          "source": "retainedDirectories"
+        }
+      ]
+    },
+    {
+      "file": "scripts/business-overlay/rebuild-from-candidate.mjs",
+      "originalAbsent": false,
+      "diagnostics": [
+        {
+          "code": 7006,
+          "category": "Error",
+          "line": 29,
+          "text": "Parameter 'a' implicitly has an 'any' type.",
+          "source": "a"
+        },
+        {
+          "code": 7006,
+          "category": "Error",
+          "line": 29,
+          "text": "Parameter 'b' implicitly has an 'any' type.",
+          "source": "b"
+        },
+        {
+          "code": 2339,
+          "category": "Error",
+          "line": 33,
+          "text": "Property 'artifactPath' does not exist on type '{ opsRoot?: string | undefined; }'.",
+          "source": "artifactPath"
+        },
+        {
+          "code": 2339,
+          "category": "Error",
+          "line": 34,
+          "text": "Property 'descriptorPath' does not exist on type '{ opsRoot?: string | undefined; }'.",
+          "source": "descriptorPath"
+        },
+        {
+          "code": 2339,
+          "category": "Error",
+          "line": 35,
+          "text": "Property 'expectedDescriptorSha256' does not exist on type '{ opsRoot?: string | undefined; }'.",
+          "source": "expectedDescriptorSha256"
+        },
+        {
+          "code": 2339,
+          "category": "Error",
+          "line": 36,
+          "text": "Property 'targetRoot' does not exist on type '{ opsRoot?: string | undefined; }'.",
+          "source": "targetRoot"
+        },
+        {
+          "code": 2339,
+          "category": "Error",
+          "line": 37,
+          "text": "Property 'manifestPath' does not exist on type '{ opsRoot?: string | undefined; }'.",
+          "source": "manifestPath"
+        },
+        {
+          "code": 2339,
+          "category": "Error",
+          "line": 38,
+          "text": "Property 'attempt' does not exist on type '{ opsRoot?: string | undefined; }'.",
+          "source": "attempt"
+        },
+        {
+          "code": 2740,
+          "category": "Error",
+          "line": 146,
+          "text": "Type '{ existsSync: (path: PathLike) => boolean; readFileSync(file: string, encoding?: BufferEncoding | undefined): string | NonSharedBuffer; ... 7 more ...; runGo(args: any, options: any): SpawnSyncReturns<...>; }' is missing the following properties from type 'typeof import(\"node:fs\")': rename, renameSync, truncate, truncateSync, and 90 more.",
+          "source": "fileSystem"
+        },
+        {
+          "code": 2353,
+          "category": "Error",
+          "line": 301,
+          "text": "Object literal may only specify known properties, and 'descriptorPath' does not exist in type '{ opsRoot?: string | undefined; }'.",
+          "source": "descriptorPath"
+        },
+        {
+          "code": 18046,
+          "category": "Error",
+          "line": 322,
+          "text": "'error' is of type 'unknown'.",
+          "source": "error"
+        },
+        {
+          "code": 18046,
+          "category": "Error",
+          "line": 323,
+          "text": "'error' is of type 'unknown'.",
+          "source": "error"
+        },
+        {
+          "code": 18046,
+          "category": "Error",
+          "line": 323,
+          "text": "'error' is of type 'unknown'.",
+          "source": "error"
+        }
+      ]
+    },
+    {
+      "file": "scripts/business-overlay/candidate-copy-binding.test.mjs",
+      "originalAbsent": false,
+      "diagnostics": []
+    }
+  ]
+}

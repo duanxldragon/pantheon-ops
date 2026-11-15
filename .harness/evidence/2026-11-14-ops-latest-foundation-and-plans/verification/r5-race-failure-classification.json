@@ -1,0 +1,68 @@
+{
+  "exitCode": 1,
+  "testPass": 3105,
+  "packagePass": 63,
+  "testFailures": 0,
+  "testSkips": [
+    {
+      "package": "github.com/duanxldragon/pantheon-base/backend/modules/business/cicd/argocd",
+      "test": "TestArgoFinalProductLive"
+    },
+    {
+      "package": "github.com/duanxldragon/pantheon-base/backend/modules/business/cicd/argocd",
+      "test": "TestArgoProductLive"
+    },
+    {
+      "package": "github.com/duanxldragon/pantheon-base/backend/modules/business/deploy",
+      "test": "TestDeployLiveVMExecution"
+    },
+    {
+      "package": "github.com/duanxldragon/pantheon-base/backend/modules/business/deploy",
+      "test": "TestDeployLiveVMCancellation"
+    },
+    {
+      "package": "github.com/duanxldragon/pantheon-base/backend/modules/business/observability",
+      "test": "TestDatasourceLiveAcceptance"
+    }
+  ],
+  "packageNoTestSkips": 21,
+  "buildFailures": [
+    {
+      "package": "github.com/duanxldragon/pantheon-base/backend/modules/system/iam/user",
+      "failedBuild": "github.com/duanxldragon/pantheon-base/backend/modules/system/iam/user.test",
+      "reason": "disk exhaustion"
+    },
+    {
+      "package": "github.com/duanxldragon/pantheon-base/backend/pkg/contracts",
+      "failedBuild": "github.com/duanxldragon/pantheon-base/backend/pkg/contracts.test",
+      "reason": "disk exhaustion"
+    },
+    {
+      "package": "github.com/duanxldragon/pantheon-base/backend/pkg/database",
+      "failedBuild": "github.com/duanxldragon/pantheon-base/backend/pkg/database.test",
+      "reason": "disk exhaustion"
+    },
+    {
+      "package": "github.com/duanxldragon/pantheon-base/backend/pkg/impexp",
+      "failedBuild": "github.com/duanxldragon/pantheon-base/backend/pkg/impexp.test",
+      "reason": "disk exhaustion"
+    },
+    {
+      "package": "github.com/duanxldragon/pantheon-base/backend/pkg/telemetry",
+      "failedBuild": "github.com/duanxldragon/pantheon-base/backend/pkg/telemetry.test",
+      "reason": "disk exhaustion"
+    },
+    {
+      "package": "github.com/duanxldragon/pantheon-base/backend/pkg/tenant",
+      "failedBuild": "github.com/duanxldragon/pantheon-base/backend/pkg/tenant.test",
+      "reason": "disk exhaustion"
+    },
+    {
+      "package": "github.com/duanxldragon/pantheon-base/backend/pkg/upload",
+      "failedBuild": "github.com/duanxldragon/pantheon-base/backend/pkg/upload.test",
+      "reason": "disk exhaustion"
+    }
+  ],
+  "logSHA256": "27e1cd7cef4b9cff421487f6e66d7bcd08bfc2fbfb07274e7699feea3f83c0ce",
+  "completeRacePassed": false
+}

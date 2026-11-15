@@ -1,0 +1,56 @@
+
+Running 3 tests using 1 worker
+
+(node:11632) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok 1 tests\smoke\business\cmdb\cmdb-import-export-permissions.spec.ts:23:3 › CMDB view role enforces separate CSV capabilities (809ms)
+  x  2 tests\smoke\business\cmdb\cmdb-import-export-permissions.spec.ts:23:3 › CMDB export role enforces separate CSV capabilities (838ms)
+(node:21072) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x  3 tests\smoke\business\cmdb\cmdb-import-export-permissions.spec.ts:23:3 › CMDB import role enforces separate CSV capabilities (1.0s)
+
+
+  1) tests\smoke\business\cmdb\cmdb-import-export-permissions.spec.ts:23:3 › CMDB export role enforces separate CSV capabilities 
+
+    Error: {"code":403,"data":null,"message":"permission.denied"}
+
+    expect(received).toContain(expected) // indexOf
+
+    Expected substring: "text/csv"
+    Received string:    "application/json; charset=utf-8"
+
+      45 |       if (scenario.canExport) {
+      46 |         expect(exported.ok()).toBeTruthy();
+    > 47 |         expect(exported.headers()['content-type'], await exported.text()).toContain('text/csv');
+         |                                                                           ^
+      48 |         expect(await exported.text()).toContain('hostname');
+      49 |       } else await forbidden(exported);
+      50 |       const template = await viewer.get(`${apiBaseUrl}/business/cmdb/hosts/import-template`, { headers: viewerHeaders });
+        at D:\workspace\go\pantheon-platform\pantheon-ops\frontend\tests\smoke\business\cmdb\cmdb-import-export-permissions.spec.ts:47:75
+
+    Error Context: test-results\business-cmdb-cmdb-import--74849-s-separate-CSV-capabilities\error-context.md
+
+  2) tests\smoke\business\cmdb\cmdb-import-export-permissions.spec.ts:23:3 › CMDB import role enforces separate CSV capabilities 
+
+    Error: {"code":403,"data":null,"message":"permission.denied"}
+
+    expect(received).toContain(expected) // indexOf
+
+    Expected substring: "text/csv"
+    Received string:    "application/json; charset=utf-8"
+
+      51 |       if (scenario.canImport) {
+      52 |         expect(template.ok()).toBeTruthy();
+    > 53 |         expect(template.headers()['content-type'], await template.text()).toContain('text/csv');
+         |                                                                           ^
+      54 |       } else await forbidden(template);
+      55 |       // Invalid CSV exercises the authorized handler without creating host data.
+      56 |       const imported = await viewer.post(`${apiBaseUrl}/business/cmdb/hosts/import`, {
+        at D:\workspace\go\pantheon-platform\pantheon-ops\frontend\tests\smoke\business\cmdb\cmdb-import-export-permissions.spec.ts:53:75
+
+    Error Context: test-results\business-cmdb-cmdb-import--d9a44-s-separate-CSV-capabilities\error-context.md
+
+  2 failed
+    tests\smoke\business\cmdb\cmdb-import-export-permissions.spec.ts:23:3 › CMDB export role enforces separate CSV capabilities 
+    tests\smoke\business\cmdb\cmdb-import-export-permissions.spec.ts:23:3 › CMDB import role enforces separate CSV capabilities 
+  1 passed (4.4s)

@@ -1,0 +1,52 @@
+[
+  {
+    "path": "backend/modules/business/deploy/attempt_ownership_test.go",
+    "oldSHA256": null,
+    "newSHA256": "766a30521bad0f3ab22217e946fc6414e942dd3a02411283a3559e78bc870460"
+  },
+  {
+    "path": "backend/modules/business/deploy/attempt_ownership.go",
+    "oldSHA256": null,
+    "newSHA256": "1c3073b1a29dcc27f9a49f8e9b89902df01f1a4d92f9757fe85861a48b6e2f0c"
+  },
+  {
+    "path": "backend/modules/business/deploy/deploy_reliability_test.go",
+    "oldSHA256": "58ff415824ee9810596302b61e593d148b2b2fd52ae405be8dbe9c2bd6612c63",
+    "newSHA256": "5dc1066896bee97eca62c512fbd05d3e4544c8e468dd4bcae60ef8ea394a24c3"
+  },
+  {
+    "path": "backend/modules/business/deploy/deploy_rollback.go",
+    "oldSHA256": "cb054c1930b8afa125d24f6ca78c1cb323dbc72e0d5c59eb487e4a9bd306d3e3",
+    "newSHA256": "ea34d00b4a67b2f125e479f135d7af63573c8eec316ad383af3e3aaf8596bfee"
+  },
+  {
+    "path": "backend/modules/business/deploy/deploy_service.go",
+    "oldSHA256": "7b4695ff601636e905ef3f6903df15b48d1f23fd4c5f2a33282c6c281670b9a7",
+    "newSHA256": "1f60a774c742cfd72d0c3fb15414637e4fa690703c6af5ebf4eaec5706e3287b"
+  },
+  {
+    "path": "backend/modules/business/deploy/deploy_ssh_transport_test.go",
+    "oldSHA256": "18d28e745fe711a40e02d213abbcf9d7fdd5ed89403fe1c1faefbb0de8df0302",
+    "newSHA256": "d8f9c5fb3b0d9a48ab99bc55dfc69cec7c0ee59f66502d9991a0c88409fa2a2f"
+  },
+  {
+    "path": "backend/modules/business/deploy/resume_scope_revocation_test.go",
+    "oldSHA256": "f2f36405292d07b46dec6b641c44d9985adf7c87f8ee3e911fb6f31e2b5feb8e",
+    "newSHA256": "79851cc192136dff8d1fc13464d668a55c880c208a19c2464f2ad933717ca60b"
+  },
+  {
+    "path": "backend/modules/business/deploy/target_selection.go",
+    "oldSHA256": "239ac4b249da0d105234d74ae65a1ca1dfe03f0407b91ed28415709f0583b889",
+    "newSHA256": "e554d3ab8a372eadbf6b44196fc836f53ed3227f49ada47a3e12be6dc081b279"
+  },
+  {
+    "path": "backend/modules/business/deploy/task_command.go",
+    "oldSHA256": "e256db4c85400efe8d44cc87e062f486e77221c2daa4e8d8b417b4d3cfc683ac",
+    "newSHA256": "51807f8308a6193a01429d5bd00a153f6c15bf3c5f31a0f15e06115d9aba998c"
+  },
+  {
+    "path": "backend/modules/business/deploy/task_preview.go",
+    "oldSHA256": "656255301998f2bbea30041f493d71f50622bbcde74de644eb74f5d06d067c15",
+    "newSHA256": "65d1a816abd499604d4fbce28f693c2facedf4c9d10f9972822561a10ad11765"
+  }
+]

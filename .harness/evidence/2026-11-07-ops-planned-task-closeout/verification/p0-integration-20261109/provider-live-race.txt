@@ -1,0 +1,89 @@
+=== RUN   TestDatasourceLiveAcceptance
+=== RUN   TestDatasourceLiveAcceptance/prometheus
+[GIN-debug] [WARNING] Running in "debug" mode. Switch to "release" mode in production.
+ - using env:	export GIN_MODE=release
+ - using code:	gin.SetMode(gin.ReleaseMode)
+
+[GIN-debug] GET    /:id/query                --> github.com/duanxldragon/pantheon-base/backend/modules/business/observability.(*ObservabilityHandler).QueryDatasource-fm (2 handlers)
+=== RUN   TestDatasourceLiveAcceptance/prometheus/success
+    datasource_live_acceptance_test.go:92: actual prometheus provider query succeeded at 2026-11-09T01:18:41Z
+=== RUN   TestDatasourceLiveAcceptance/prometheus/provider_failure
+=== RUN   TestDatasourceLiveAcceptance/prometheus/revoked_department
+
+2026/11/09 09:18:42 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/observability/datasource_service.go:411 [35;1mrecord not found
+[0m[33m[1.458ms] [34;1m[rows:0][0m SELECT * FROM `obs_prometheus_datasource` WHERE `obs_prometheus_datasource`.`id` = 1 AND dept_id = 772 AND `obs_prometheus_datasource`.`deleted_at` IS NULL ORDER BY `obs_prometheus_datasource`.`id` LIMIT 1
+
+2026/11/09 09:18:42 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/observability/datasource_service.go:411 [35;1mrecord not found
+[0m[33m[1.187ms] [34;1m[rows:0][0m SELECT * FROM `obs_prometheus_datasource` WHERE `obs_prometheus_datasource`.`id` = 1 AND dept_id = 772 AND `obs_prometheus_datasource`.`deleted_at` IS NULL ORDER BY `obs_prometheus_datasource`.`id` LIMIT 1
+=== RUN   TestDatasourceLiveAcceptance/victoriametrics
+[GIN-debug] [WARNING] Running in "debug" mode. Switch to "release" mode in production.
+ - using env:	export GIN_MODE=release
+ - using code:	gin.SetMode(gin.ReleaseMode)
+
+[GIN-debug] GET    /:id/query                --> github.com/duanxldragon/pantheon-base/backend/modules/business/observability.(*ObservabilityHandler).QueryDatasource-fm (2 handlers)
+=== RUN   TestDatasourceLiveAcceptance/victoriametrics/success
+    datasource_live_acceptance_test.go:82: actual provider query HTTP 500
+=== RUN   TestDatasourceLiveAcceptance/victoriametrics/provider_failure
+=== RUN   TestDatasourceLiveAcceptance/victoriametrics/revoked_department
+
+2026/11/09 09:18:52 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/observability/datasource_service.go:411 [35;1mrecord not found
+[0m[33m[1.882ms] [34;1m[rows:0][0m SELECT * FROM `obs_prometheus_datasource` WHERE `obs_prometheus_datasource`.`id` = 1 AND dept_id = 772 AND `obs_prometheus_datasource`.`deleted_at` IS NULL ORDER BY `obs_prometheus_datasource`.`id` LIMIT 1
+
+2026/11/09 09:18:52 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/observability/datasource_service.go:411 [35;1mrecord not found
+[0m[33m[2.672ms] [34;1m[rows:0][0m SELECT * FROM `obs_prometheus_datasource` WHERE `obs_prometheus_datasource`.`id` = 1 AND dept_id = 772 AND `obs_prometheus_datasource`.`deleted_at` IS NULL ORDER BY `obs_prometheus_datasource`.`id` LIMIT 1
+=== RUN   TestDatasourceLiveAcceptance/loki
+[GIN-debug] [WARNING] Running in "debug" mode. Switch to "release" mode in production.
+ - using env:	export GIN_MODE=release
+ - using code:	gin.SetMode(gin.ReleaseMode)
+
+[GIN-debug] GET    /:id/logs                 --> github.com/duanxldragon/pantheon-base/backend/modules/business/observability.(*ObservabilityHandler).QueryLogs-fm (2 handlers)
+=== RUN   TestDatasourceLiveAcceptance/loki/success
+    datasource_live_acceptance_test.go:82: actual provider query HTTP 502
+=== RUN   TestDatasourceLiveAcceptance/loki/provider_failure
+=== RUN   TestDatasourceLiveAcceptance/loki/revoked_department
+
+2026/11/09 09:19:02 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/observability/datasource_service.go:411 [35;1mrecord not found
+[0m[33m[2.033ms] [34;1m[rows:0][0m SELECT * FROM `obs_prometheus_datasource` WHERE `obs_prometheus_datasource`.`id` = 1 AND dept_id = 772 AND `obs_prometheus_datasource`.`deleted_at` IS NULL ORDER BY `obs_prometheus_datasource`.`id` LIMIT 1
+
+2026/11/09 09:19:02 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/observability/datasource_service.go:411 [35;1mrecord not found
+[0m[33m[2.555ms] [34;1m[rows:0][0m SELECT * FROM `obs_prometheus_datasource` WHERE `obs_prometheus_datasource`.`id` = 1 AND dept_id = 772 AND `obs_prometheus_datasource`.`deleted_at` IS NULL ORDER BY `obs_prometheus_datasource`.`id` LIMIT 1
+=== RUN   TestDatasourceLiveAcceptance/tempo
+[GIN-debug] [WARNING] Running in "debug" mode. Switch to "release" mode in production.
+ - using env:	export GIN_MODE=release
+ - using code:	gin.SetMode(gin.ReleaseMode)
+
+[GIN-debug] GET    /:id/traces               --> github.com/duanxldragon/pantheon-base/backend/modules/business/observability.(*ObservabilityHandler).SearchTraces-fm (2 handlers)
+[GIN-debug] GET    /:id/traces/:traceId      --> github.com/duanxldragon/pantheon-base/backend/modules/business/observability.(*ObservabilityHandler).GetTrace-fm (2 handlers)
+=== RUN   TestDatasourceLiveAcceptance/tempo/success
+    datasource_live_acceptance_test.go:82: actual provider query HTTP 502
+=== RUN   TestDatasourceLiveAcceptance/tempo/provider_failure
+=== RUN   TestDatasourceLiveAcceptance/tempo/revoked_department
+
+2026/11/09 09:19:12 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/observability/datasource_service.go:411 [35;1mrecord not found
+[0m[33m[2.542ms] [34;1m[rows:0][0m SELECT * FROM `obs_prometheus_datasource` WHERE `obs_prometheus_datasource`.`id` = 1 AND dept_id = 772 AND `obs_prometheus_datasource`.`deleted_at` IS NULL ORDER BY `obs_prometheus_datasource`.`id` LIMIT 1
+
+2026/11/09 09:19:12 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/observability/datasource_service.go:411 [35;1mrecord not found
+[0m[33m[5.647ms] [34;1m[rows:0][0m SELECT * FROM `obs_prometheus_datasource` WHERE `obs_prometheus_datasource`.`id` = 1 AND dept_id = 772 AND `obs_prometheus_datasource`.`deleted_at` IS NULL ORDER BY `obs_prometheus_datasource`.`id` LIMIT 1
+=== RUN   TestDatasourceLiveAcceptance/tempo/trace_detail
+    datasource_live_acceptance_test.go:116: actual trace detail HTTP 502
+--- FAIL: TestDatasourceLiveAcceptance (38.45s)
+    --- PASS: TestDatasourceLiveAcceptance/prometheus (2.82s)
+        --- PASS: TestDatasourceLiveAcceptance/prometheus/success (1.35s)
+        --- PASS: TestDatasourceLiveAcceptance/prometheus/provider_failure (1.33s)
+        --- PASS: TestDatasourceLiveAcceptance/prometheus/revoked_department (0.00s)
+    --- FAIL: TestDatasourceLiveAcceptance/victoriametrics (10.18s)
+        --- FAIL: TestDatasourceLiveAcceptance/victoriametrics/success (5.02s)
+        --- PASS: TestDatasourceLiveAcceptance/victoriametrics/provider_failure (5.01s)
+        --- PASS: TestDatasourceLiveAcceptance/victoriametrics/revoked_department (0.00s)
+    --- FAIL: TestDatasourceLiveAcceptance/loki (10.22s)
+        --- FAIL: TestDatasourceLiveAcceptance/loki/success (5.02s)
+        --- PASS: TestDatasourceLiveAcceptance/loki/provider_failure (5.03s)
+        --- PASS: TestDatasourceLiveAcceptance/loki/revoked_department (0.01s)
+    --- FAIL: TestDatasourceLiveAcceptance/tempo (15.23s)
+        --- FAIL: TestDatasourceLiveAcceptance/tempo/success (5.01s)
+        --- PASS: TestDatasourceLiveAcceptance/tempo/provider_failure (5.01s)
+        --- PASS: TestDatasourceLiveAcceptance/tempo/revoked_department (0.01s)
+        --- FAIL: TestDatasourceLiveAcceptance/tempo/trace_detail (5.01s)
+FAIL
+FAIL	github.com/duanxldragon/pantheon-base/backend/modules/business/observability	38.588s
+FAIL

@@ -2,7 +2,7 @@
 
 **决策日期**：2026-10-27
 **决策对象**：TC-01（P1）——跨租户 membership 授予登录与切换能力、但不授予任何授权（角色、菜单全空，受保护 API 全部 403）
-**任务包**：`.harness/tasks/2026-10-27-tenant-multi-membership-decision/manifest.json`（W3，父程序 [`2026-10-27-tenant-completeness-remediation`](../harness/tasks/2026-10-27-tenant-completeness-remediation.task.md)）
+**任务包**：`.harness/tasks/2026-10-27-tenant-multi-membership-decision/manifest.json`（W3，父程序 [`2026-10-27-tenant-completeness-remediation`](https://github.com/duanxldragon/pantheon-base/blob/135730fd6f63ad73cf40f6e4b321fdd9f69ea932/docs/harness/tasks/2026-10-27-tenant-completeness-remediation.task.md)）
 **判据**：[租户合同 V1](../contracts/TENANT_CONTRACT_V1.md) §2.2 不变量 1（一个 user 可属于多个 tenant）与命名空间分离条款；[TENANT_API.md](../api/TENANT_API.md)；[租户功能完整性审查](TENANT_FUNCTIONAL_COMPLETENESS_REVIEW_2026-10-27.md)
 **性质**：决策文档。本文件不改任何源码、不改合同文本（由 W4/W5 落地）、不清理任何存量行。
 
@@ -24,11 +24,11 @@
 
 授权是租户私有的，而成员关系不是：
 
-| 读/写点 | 位置 | 行为 |
-|---|---|---|
-| 角色绑定写入 | `user_helper.go:83` `replaceUserRoles` | `system_user_role.tenant_id` 取自用户的**归属租户**（`lockUserOwningTenantIDTx`）；`:88` 的删除语句 `DELETE ... WHERE user_id = ?` **无租户谓词** |
-| 角色写入校验 | `role_helper.go:301` `ensureUsersExist` | 按目标租户作用域校验 |
-| 登录后角色解析 | `login_runtime.go:328` `GetUserRolesForTenant` | 按 claim 的租户过滤绑定 |
+| 读/写点        | 位置                                           | 行为                                                                                                                                              |
+| -------------- | ---------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 角色绑定写入   | `user_helper.go:83` `replaceUserRoles`         | `system_user_role.tenant_id` 取自用户的**归属租户**（`lockUserOwningTenantIDTx`）；`:88` 的删除语句 `DELETE ... WHERE user_id = ?` **无租户谓词** |
+| 角色写入校验   | `role_helper.go:301` `ensureUsersExist`        | 按目标租户作用域校验                                                                                                                              |
+| 登录后角色解析 | `login_runtime.go:328` `GetUserRolesForTenant` | 按 claim 的租户过滤绑定                                                                                                                           |
 
 于是在租户 B 加入的用户（归属租户为 A）：登录选择器与 TenantSwitcher 都会提供 B，但解析出的角色集、菜单树为空，所有受保护 API 返回 403，且没有任何 UI 或 API 能在 B 里为其指派角色。
 
@@ -57,6 +57,7 @@ W2（已合并）为 AddMember 补了**存在性**校验（`memberUserExists`）
 **修掉的失败案例**：TC-01 整体——选择器/切换器不再提供不可用上下文；自动解析不再落在无角色租户。
 
 **可能新引入的失败案例**：
+
 - 被跨租户加入的用户登录后只见归属租户（其第二租户从入口消失）——这正是语义修正的本意，但**对既有跨租户成员是可感知变化**，须在 W5 的 API 文档与发布说明中写明；
 - 「一个用户在两个租户工作」的产品诉求在 V1 内无法满足（须走 B）；
 - 兼容端点的消费方看到的列表变短。
@@ -72,6 +73,7 @@ W2（已合并）为 AddMember 补了**存在性**校验（`memberUserExists`）
 **修掉的失败案例**：跨租户 membership 完全可用。
 
 **可能新引入的失败案例**：
+
 - 所有权模型歧义：绑定在 B、用户归属在 A——谁管理这些绑定？删除用户时按谁的规则清理？
 - 跨租户提权面扩大，权限策略审查（qualityProfile: permission-policy）必须升级；
 - 「每租户至少一个 owner」等不变量须按新模型逐条重推导；
@@ -91,13 +93,13 @@ W2（已合并）为 AddMember 补了**存在性**校验（`memberUserExists`）
 
 ## 3. 对比
 
-| 维度 | A 收窄语义 ✅ | B 跨租户绑定 | C 移除多成员 |
-|---|---|---|---|
-| 合同改动 | 澄清（不改不变量） | 重写 §2.2 所有权模型 | 修订不变量 1 |
-| schema/迁移 | 无 | 绑定语义迁移 | 存量行迁移 |
-| 修复 TC-01 | 是 | 是 | 是 |
-| 新增风险 | 兼容面行为变化（文档化） | 提权面 + 所有权歧义 | 能力回退 |
-| 成本 | 一个 wave + 文档 | 多 wave，V2 | 中，且损失能力 |
+| 维度        | A 收窄语义 ✅            | B 跨租户绑定         | C 移除多成员   |
+| ----------- | ------------------------ | -------------------- | -------------- |
+| 合同改动    | 澄清（不改不变量）       | 重写 §2.2 所有权模型 | 修订不变量 1   |
+| schema/迁移 | 无                       | 绑定语义迁移         | 存量行迁移     |
+| 修复 TC-01  | 是                       | 是                   | 是             |
+| 新增风险    | 兼容面行为变化（文档化） | 提权面 + 所有权歧义  | 能力回退       |
+| 成本        | 一个 wave + 文档         | 多 wave，V2          | 中，且损失能力 |
 
 **推荐**：A for V1，B as V2 workstream（立项时新建包，范围以 §2 选项 B 的前置与风险清单为起点）。
 

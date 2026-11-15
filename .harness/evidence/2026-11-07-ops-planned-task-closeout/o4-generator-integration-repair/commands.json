@@ -1,0 +1,77 @@
+{
+  "schemaVersion": 1,
+  "taskId": "2026-11-07-ops-planned-task-closeout",
+  "parentTaskPacket": ".harness/tasks/2026-11-07-ops-planned-task-closeout/plan.md",
+  "scope": "O4 candidate integration repair, Ops business-owned scripts only",
+  "checks": [
+    {
+      "command": "node --test --test-name-pattern 'real generated|canonical generated|fresh consumer attempt' scripts/business-overlay/foundation-candidate.test.mjs",
+      "phase": "red",
+      "exitCode": 1,
+      "result": "Reproduced actual 2 modified / 6 missing / 3 stale drift and unknown assembled-directory cleanup ownership; raw first RED appears in execution tool transcript."
+    },
+    {
+      "command": "node --test scripts/business-overlay/foundation-candidate.test.mjs tests/scripts/business-overlay/*.test.mjs",
+      "phase": "final",
+      "exitCode": 0,
+      "tests": 155,
+      "passed": 155,
+      "failed": 0,
+      "skipped": 0,
+      "elapsedMilliseconds": 139085.5194,
+      "log": "contracts-final.log"
+    },
+    {
+      "command": "npm run check:business-overlay",
+      "exitCode": 0,
+      "result": "OK business overlay contract (56 declared paths, rebuilt tree)"
+    },
+    {
+      "command": "node --check <six modified mjs files>",
+      "exitCode": 0,
+      "evidence": "native-js-final.json"
+    },
+    {
+      "command": "TypeScript 6.0.3 transpileModule(reportDiagnostics=true) on 11 retained generated .ts files",
+      "exitCode": 0,
+      "result": "Zero syntax diagnostics; syntax/transpile only, no semantic frontend type-check",
+      "log": "native-diagnostics.log"
+    },
+    {
+      "command": "checkSharedDrift({root:retained assembled,snapshot:descriptor-bound original snapshot})",
+      "exitCode": 0,
+      "sharedIdenticalFiles": 801,
+      "canonicalOutputs": 17,
+      "businessPathsSkipped": 313,
+      "businessMigrations": 10,
+      "log": "retained-drift-check.log",
+      "actualAssemblyRun": false
+    },
+    {
+      "command": "captureInputs(retained snapshot) + verify all retained report ownedFiles hashes + original failure log hash",
+      "exitCode": 0,
+      "snapshotFiles": 1141,
+      "ownedFileHashes": 4634,
+      "evidence": "retained-proof.json"
+    },
+    {
+      "command": "git diff --check -- scripts/business-overlay tests/scripts/business-overlay",
+      "exitCode": 0,
+      "result": "No whitespace errors; existing CRLF normalization advisory retained"
+    }
+  ],
+  "notRun": [
+    {
+      "operation": "Fresh actual full consumer assembly / producer",
+      "reason": "Reserved to root after independent CODE/ARCH and source quiescence; O2 concurrently owns deploy."
+    },
+    {
+      "operation": "Full Go race, full frontend lint/type-check/build/runtime smoke",
+      "reason": "No backend/frontend source edits in this repair; execute on the fresh actual stage under root ownership."
+    }
+  ],
+  "independentReviewPending": true,
+  "P0Approved": false,
+  "officialConsumption": false,
+  "gateOutcomes": "Drift gate caught shared byte tamper / forged generatedFiles; source stability caught edit/revert and Git-selection changes; cleanup gate caught replaced/unknown directories; coverage regression caught stale allowlist false positives; genuine in-coverage stale allowance still fails."
+}

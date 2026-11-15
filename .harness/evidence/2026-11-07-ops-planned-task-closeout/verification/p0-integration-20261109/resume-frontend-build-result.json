@@ -1,0 +1,7 @@
+{
+  "command": "npm.cmd run build",
+  "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\frontend",
+  "exitCode": 0,
+  "elapsedSeconds": 25.329,
+  "log": ".harness\\evidence\\2026-11-07-ops-planned-task-closeout\\verification\\p0-integration-20261109\\resume-frontend-build.txt"
+}

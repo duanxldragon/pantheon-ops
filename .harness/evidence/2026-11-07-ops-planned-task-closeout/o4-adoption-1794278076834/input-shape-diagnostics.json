@@ -1,0 +1,50 @@
+{
+  "limitBytes": 33554432,
+  "offenders": [
+    {
+      "path": ".foundation/releases/pantheon-base-v0.17.6/repo.tar",
+      "bytes": 45168640,
+      "nlink": 1
+    },
+    {
+      "path": ".foundation/releases/pantheon-base-v0.17.7/repo.tar",
+      "bytes": 45240320,
+      "nlink": 1
+    },
+    {
+      "path": ".foundation/releases/pantheon-base-v0.17.8/repo.tar",
+      "bytes": 45772800,
+      "nlink": 1
+    },
+    {
+      "path": ".foundation/releases/pantheon-base-v0.18.0/repo.tar",
+      "bytes": 47339520,
+      "nlink": 1
+    },
+    {
+      "path": ".foundation/releases/pantheon-base-v0.18.1/repo.tar",
+      "bytes": 47411200,
+      "nlink": 1
+    },
+    {
+      "path": ".foundation/releases/pantheon-base-v0.18.2/repo.tar",
+      "bytes": 47923200,
+      "nlink": 1
+    },
+    {
+      "path": ".foundation/releases/pantheon-base-v0.18.4/repo.tar",
+      "bytes": 52285440,
+      "nlink": 1
+    },
+    {
+      "path": ".foundation/releases/pantheon-base-v0.18.6/foundation-release-pantheon-base-v0.18.6.tgz",
+      "bytes": 36214646,
+      "nlink": 1
+    },
+    {
+      "path": ".foundation/releases/pantheon-base-v0.18.6/repo.tar",
+      "bytes": 59422720,
+      "nlink": 1
+    }
+  ]
+}

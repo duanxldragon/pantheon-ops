@@ -1,0 +1,57 @@
+=== RUN   TestReviewMixedScopeLogsBeforeCapAndFirstError
+    mysql.go:67: mysql test dsn is not configured (PANTHEON_TEST_DSN and PANTHEON_DSN unset)
+--- SKIP: TestReviewMixedScopeLogsBeforeCapAndFirstError (0.00s)
+=== RUN   TestReviewConnectedStreamScopeShrinkAndRevoke
+    mysql.go:67: mysql test dsn is not configured (PANTHEON_TEST_DSN and PANTHEON_DSN unset)
+--- SKIP: TestReviewConnectedStreamScopeShrinkAndRevoke (0.00s)
+=== RUN   TestReviewRetryExhaustedPreservesAllFacts
+=== RUN   TestReviewRetryExhaustedPreservesAllFacts/false
+    mysql.go:67: mysql test dsn is not configured (PANTHEON_TEST_DSN and PANTHEON_DSN unset)
+=== RUN   TestReviewRetryExhaustedPreservesAllFacts/true
+    mysql.go:67: mysql test dsn is not configured (PANTHEON_TEST_DSN and PANTHEON_DSN unset)
+--- PASS: TestReviewRetryExhaustedPreservesAllFacts (0.00s)
+    --- SKIP: TestReviewRetryExhaustedPreservesAllFacts/false (0.00s)
+    --- SKIP: TestReviewRetryExhaustedPreservesAllFacts/true (0.00s)
+=== RUN   TestTaskCommandStateMatrix
+    mysql.go:67: mysql test dsn is not configured (PANTHEON_TEST_DSN and PANTHEON_DSN unset)
+--- SKIP: TestTaskCommandStateMatrix (0.00s)
+=== RUN   TestTaskCommandConcurrentABAAndLogIsolation
+    mysql.go:67: mysql test dsn is not configured (PANTHEON_TEST_DSN and PANTHEON_DSN unset)
+--- SKIP: TestTaskCommandConcurrentABAAndLogIsolation (0.00s)
+=== RUN   TestTaskCommandScopeAndContext
+    mysql.go:67: mysql test dsn is not configured (PANTHEON_TEST_DSN and PANTHEON_DSN unset)
+--- SKIP: TestTaskCommandScopeAndContext (0.00s)
+=== RUN   TestTaskCommandFailureRollbackAndPostCommitCancel
+=== RUN   TestTaskCommandFailureRollbackAndPostCommitCancel/event
+    mysql.go:67: mysql test dsn is not configured (PANTHEON_TEST_DSN and PANTHEON_DSN unset)
+=== RUN   TestTaskCommandFailureRollbackAndPostCommitCancel/host
+    mysql.go:67: mysql test dsn is not configured (PANTHEON_TEST_DSN and PANTHEON_DSN unset)
+=== RUN   TestTaskCommandFailureRollbackAndPostCommitCancel/after-event
+    mysql.go:67: mysql test dsn is not configured (PANTHEON_TEST_DSN and PANTHEON_DSN unset)
+=== RUN   TestTaskCommandFailureRollbackAndPostCommitCancel/none
+    mysql.go:67: mysql test dsn is not configured (PANTHEON_TEST_DSN and PANTHEON_DSN unset)
+--- PASS: TestTaskCommandFailureRollbackAndPostCommitCancel (0.00s)
+    --- SKIP: TestTaskCommandFailureRollbackAndPostCommitCancel/event (0.00s)
+    --- SKIP: TestTaskCommandFailureRollbackAndPostCommitCancel/host (0.00s)
+    --- SKIP: TestTaskCommandFailureRollbackAndPostCommitCancel/after-event (0.00s)
+    --- SKIP: TestTaskCommandFailureRollbackAndPostCommitCancel/none (0.00s)
+=== RUN   TestTaskCommandRetryHostFailureRollsBack
+    mysql.go:67: mysql test dsn is not configured (PANTHEON_TEST_DSN and PANTHEON_DSN unset)
+--- SKIP: TestTaskCommandRetryHostFailureRollsBack (0.00s)
+=== RUN   TestTaskCommandHandlersRequireViewedVersion
+    mysql.go:67: mysql test dsn is not configured (PANTHEON_TEST_DSN and PANTHEON_DSN unset)
+--- SKIP: TestTaskCommandHandlersRequireViewedVersion (0.00s)
+=== RUN   TestTaskCommandManualPauseResumeAndRetryDoNotDispatchSSH
+    mysql.go:67: mysql test dsn is not configured (PANTHEON_TEST_DSN and PANTHEON_DSN unset)
+--- SKIP: TestTaskCommandManualPauseResumeAndRetryDoNotDispatchSSH (0.00s)
+=== RUN   TestExecutionWorkbenchMetadataAndLogPagination
+    mysql.go:67: mysql test dsn is not configured (PANTHEON_TEST_DSN and PANTHEON_DSN unset)
+--- SKIP: TestExecutionWorkbenchMetadataAndLogPagination (0.00s)
+=== RUN   TestWorkbenchLogSourceIsolationAndFirstError
+    mysql.go:67: mysql test dsn is not configured (PANTHEON_TEST_DSN and PANTHEON_DSN unset)
+--- SKIP: TestWorkbenchLogSourceIsolationAndFirstError (0.00s)
+=== RUN   TestWorkbenchLogAttemptSurvivesCheckpointRetry
+    mysql.go:67: mysql test dsn is not configured (PANTHEON_TEST_DSN and PANTHEON_DSN unset)
+--- SKIP: TestWorkbenchLogAttemptSurvivesCheckpointRetry (0.00s)
+PASS
+ok  	github.com/duanxldragon/pantheon-base/backend/modules/business/deploy	1.146s

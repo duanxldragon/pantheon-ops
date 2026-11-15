@@ -1,0 +1,20 @@
+Listing tests:
+  smoke\business\cmdb\cmdb-import-export-permissions.spec.ts:35:3 › CMDB view role with explicit API grants enforces separate CSV capabilities
+  smoke\business\cmdb\cmdb-import-export-permissions.spec.ts:35:3 › CMDB export role with explicit API grants enforces separate CSV capabilities
+  smoke\business\cmdb\cmdb-import-export-permissions.spec.ts:35:3 › CMDB import role with explicit API grants enforces separate CSV capabilities
+  smoke\business\cmdb\cmdb-import-export-permissions.spec.ts:35:3 › CMDB scoped role with explicit API grants enforces separate CSV capabilities
+  smoke\business\deploy\deploy-command.spec.ts:10:2 › viewed task command conflict refreshes without replay (light)
+  smoke\business\deploy\deploy-command.spec.ts:10:2 › viewed task command conflict refreshes without replay (dark)
+  smoke\business\deploy\deploy-command.spec.ts:59:1 › batch cancel retains failed selection and reports partial failure
+  smoke\business\deploy\deploy-selection-preview.spec.ts:12:2 › selection and preview confirm/conflict/refresh (light)
+  smoke\business\deploy\deploy-selection-preview.spec.ts:12:2 › selection and preview confirm/conflict/refresh (dark)
+  smoke\business\deploy\deploy-selection-preview.spec.ts:134:1 › rollback draft uses frozen definition and its own reviewed start
+  smoke\business\deploy\deploy-workbench.spec.ts:16:3 › deployment workbench sources, logs, keyboard and mobile (light)
+  smoke\business\deploy\deploy-workbench.spec.ts:16:3 › deployment workbench sources, logs, keyboard and mobile (dark)
+  smoke\business\k8s\release-preview.spec.ts:7:2 › K8s image preview conflict, same-request retry, rollback and mobile (light)
+  smoke\business\k8s\release-preview.spec.ts:7:2 › K8s image preview conflict, same-request retry, rollback and mobile (dark)
+  smoke\business\observability-tempo-workbench.spec.ts:7:3 › Tempo UTC range, detail, cancellation and revocation (light)
+  smoke\business\observability-tempo-workbench.spec.ts:7:3 › Tempo UTC range, detail, cancellation and revocation (dark)
+  smoke\business\observability-workbench.spec.ts:8:3 › Loki UTC range, cancellation, denial and recovery (light)
+  smoke\business\observability-workbench.spec.ts:8:3 › Loki UTC range, cancellation, denial and recovery (dark)
+Total: 18 tests in 7 files

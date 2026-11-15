@@ -1,0 +1,199 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-11-11",
+  "taskId": "2026-11-07-ops-planned-task-closeout",
+  "status": "in-progress",
+  "o2": {
+    "exitCode": 0,
+    "cases": 12,
+    "passedCases": 12,
+    "positivePassed": 152,
+    "negativePassed": 31,
+    "failed": 0,
+    "driverFailures": 0,
+    "sourceStable": true,
+    "ownedDirectoriesAbsent": true,
+    "databasesRetained": true
+  },
+  "o4": {
+    "tests": {
+      "tests": 207,
+      "pass": 206,
+      "fail": 1,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 470756.3848
+    },
+    "failedCase": "selected inputs: selected symlink still refuses before stage creation",
+    "failure": "EPERM creating the actual file symlink; product assertion not reached",
+    "diagnostics": [
+      {
+        "file": "scripts/business-overlay/foundation-candidate.mjs",
+        "original": 124,
+        "current": 124,
+        "comparison": "code/category/source multiset; line offsets and inferred-type message rendering may change",
+        "messageRenderingChanged": false
+      },
+      {
+        "file": "scripts/business-overlay/rebuild-from-candidate.mjs",
+        "original": 13,
+        "current": 13,
+        "comparison": "code/category/source multiset; line offsets and inferred-type message rendering may change",
+        "messageRenderingChanged": true
+      },
+      {
+        "file": "scripts/business-overlay/candidate-copy-binding.test.mjs",
+        "original": 0,
+        "current": 0,
+        "comparison": "code/category/source multiset; line offsets and inferred-type message rendering may change",
+        "messageRenderingChanged": false
+      }
+    ],
+    "newDiagnostics": 0,
+    "fullTypeSafety": false,
+    "rawOriginalByteProofPassed": true,
+    "actualCompleteAssemblyPerformed": false,
+    "CFImplemented": false
+  },
+  "baseProducerTests": {
+    "tests": 38,
+    "pass": 38,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0,
+    "duration_ms": 13394.553
+  },
+  "independentReviews": {
+    "nativeRoles": [
+      {
+        "role": "code-reviewer",
+        "status": 503
+      },
+      {
+        "role": "architect",
+        "status": 503
+      },
+      {
+        "role": "executor",
+        "status": 503
+      }
+    ],
+    "cliRoles": [
+      {
+        "role": "code-reviewer",
+        "receipt": "continue-20261111-code-review/receipt.json",
+        "reason": "Repeated network-send failures; exact owned CLI processes stopped after approximately 436 seconds; no report or verdict."
+      },
+      {
+        "role": "architect",
+        "receipt": "continue-20261111-arch-review/receipt.json",
+        "reason": "Repeated network-send failures; exact owned CLI processes stopped after approximately 436 seconds; no report or verdict."
+      }
+    ],
+    "independentFinalO4Approval": false,
+    "independentFinalVeleroV6Approval": false
+  },
+  "sourceHashes": {
+    "scripts/business-overlay/foundation-candidate.mjs": "77903fb900fcc676bea4b8246533db5fef8225ecef3a8fb8fdb75a21ed9bc552",
+    "scripts/business-overlay/rebuild-from-candidate.mjs": "0d310bdcaffd8f961835737faf8aa6d1db1242bbdfa6ae10147e5e7871ed85c8",
+    "scripts/business-overlay/candidate-copy-binding.test.mjs": "8e462b763f7588d2062230d7f3828e4e46f91b338c4b0c927f8c71c3a377f382",
+    ".local/ops-acceptance/continue-o2-v12-dispatcher.py": "097f517aa514042bee56dbdf4cc3a16420844daf549f91aa2b7c15ea7185cff8",
+    ".local/ops-acceptance/continue-o2-live-v12-root-execute.py": "9eb7cf193bc4a3990244c3a23c46dbf4117100ca3e86a380c01b5b2ba831dd70",
+    ".local/ops-acceptance/continue-20261111-o2-preflight.py": "4f826966730c68e996bce99bcd24fe4dde77206fb1f8ae1e360d1f1d377db5c1",
+    "foundation-release.lock.json": "95de1a87270e15c0d4c672418a5df906818a88652f8a3e6c480f1484ee9fa70c"
+  },
+  "artifacts": [
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/continuation-20261111/o4-tests.tap",
+      "sha256": "5c900ca2c42ef4489d8c6f6dc3df9318ec0bc44103d53af8b241225df594d248",
+      "bytes": 65329
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/continuation-20261111/o4-byte-proof.json",
+      "sha256": "b99f8f6d743b81acf6661e8ccfd4cf90e5c7c8bd21ad49d6b0dabf69ef7294bb",
+      "bytes": 1220
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/continuation-20261111/o4-original-diagnostics.json",
+      "sha256": "48d9c4252baea60978d169c5886d2746b9a358f5a81a1d947ffb01d15a2ad8f9",
+      "bytes": 30505
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/continuation-20261111/o4-current-diagnostics.json",
+      "sha256": "ecc9b7aed9d2288eecefd89fe85eed0324721877d5380918c2294fca448fa531",
+      "bytes": 30395
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/continuation-20261111/o2-original-preflight-failure.log",
+      "sha256": "28000d1e6f67445770e538c264f5f4cd10bcdb37772f4a395aadd1acc852bf4c",
+      "bytes": 1463
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/continuation-20261111/o2-import-diagnosis.json",
+      "sha256": "a4aafdd7535449c1d515e301651155a5052167e734ef2778ea8f24f79ff55a1c",
+      "bytes": 731
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/continuation-20261111/o2-corrected-preflight.log",
+      "sha256": "af36fed4919fb5be1b3b2326037b343c893526b32ec53c2a9bec4fb6fa42db72",
+      "bytes": 399
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/continuation-20261111/o2-execution.log",
+      "sha256": "20e921e641de4ec700c82c3be4f9a329f16fdba1310e727e0c9e1de83970ece4",
+      "bytes": 87910
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/continuation-20261111/o2-launcher-source.py",
+      "sha256": "4f826966730c68e996bce99bcd24fe4dde77206fb1f8ae1e360d1f1d377db5c1",
+      "bytes": 1991
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/continuation-20261111/linux-node-preflight.json",
+      "sha256": "6dfc70acbc6daf51cefe92bb3151e1170c0bcae0bd4e7f0753cb38f500c531ff",
+      "bytes": 60
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/continuation-20261111/frontmatter.log",
+      "sha256": "7c5f80ae869f9f0457ff76f96b9a761e12b76a24f6dd5a25fe137e501f769d3e",
+      "bytes": 67
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/continuation-20261111/code-review-events.jsonl",
+      "sha256": "84c07691cb758af91319b8d374383833446c258ced9f39235b8559aef1fddfd0",
+      "bytes": 3286
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/continuation-20261111/code-review-cli-receipt.json",
+      "sha256": "9b9437417768d279cccf5d742018544c4aa205f2ad4fd039ec290b52ef6c0f6d",
+      "bytes": 333
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/continuation-20261111/arch-review-events.jsonl",
+      "sha256": "3ad3325b6d077f84822a27fbbb77ff00247f4021edc519386ef959d890628861",
+      "bytes": 3102
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/continuation-20261111/arch-review-cli-receipt.json",
+      "sha256": "af1449c7f72d10f6f6bbc38724220049b7cc90f588d7aee1670c88ecbe04c433",
+      "bytes": 328
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/continuation-20261111/o2-matrix-result.json",
+      "sha256": "fe5d1fb0caecea2640b54530987570b4e7e0f79bb281cf27734433238c5d1dfe",
+      "bytes": 145352
+    }
+  ],
+  "officialConsumption": false,
+  "P0ParentsClosed": 0,
+  "visualChanges": false,
+  "linkage": {
+    "taskManifest": ".harness/tasks/2026-11-07-ops-planned-task-closeout/manifest.json",
+    "taskPacket": "docs/harness/tasks/2026-11-07-ops-planned-task-closeout.task.md",
+    "parentEvidence": ".harness/evidence/2026-11-07-ops-planned-task-closeout/commands.json",
+    "parentReview": ".harness/evidence/2026-11-07-ops-planned-task-closeout/review.md",
+    "baseTaskManifest": "../pantheon-base/.harness/tasks/2026-11-07-ops-formal-queue-foundation-gaps/manifest.json"
+  }
+}

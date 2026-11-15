@@ -1,0 +1,92 @@
+{
+  "phase": "read-only-native-ip-inspection",
+  "exitCode": 0,
+  "nativeOutput": [
+    {
+      "ifindex": 2,
+      "ifname": "eth0",
+      "flags": [
+        "BROADCAST",
+        "MULTICAST",
+        "UP",
+        "LOWER_UP"
+      ],
+      "mtu": 1500,
+      "qdisc": "fq_codel",
+      "operstate": "UP",
+      "group": "default",
+      "txqlen": 1000,
+      "altnames": [
+        "enp3s1"
+      ],
+      "addr_info": [
+        {
+          "family": "inet",
+          "local": "192.168.94.127",
+          "prefixlen": 16,
+          "metric": 100,
+          "broadcast": "192.168.255.255",
+          "scope": "global",
+          "dynamic": true,
+          "label": "eth0",
+          "valid_life_time": 315287484,
+          "preferred_life_time": 315287484
+        }
+      ]
+    },
+    {
+      "ifindex": 3,
+      "ifname": "flannel.1",
+      "flags": [
+        "BROADCAST",
+        "MULTICAST",
+        "UP",
+        "LOWER_UP"
+      ],
+      "mtu": 1450,
+      "qdisc": "noqueue",
+      "operstate": "UNKNOWN",
+      "group": "default",
+      "addr_info": [
+        {
+          "family": "inet",
+          "local": "10.42.0.0",
+          "prefixlen": 32,
+          "scope": "global",
+          "label": "flannel.1",
+          "valid_life_time": 4294967295,
+          "preferred_life_time": 4294967295
+        }
+      ]
+    },
+    {
+      "ifindex": 4,
+      "ifname": "cni0",
+      "flags": [
+        "BROADCAST",
+        "MULTICAST",
+        "UP",
+        "LOWER_UP"
+      ],
+      "mtu": 1450,
+      "qdisc": "noqueue",
+      "operstate": "UP",
+      "group": "default",
+      "txqlen": 1000,
+      "addr_info": [
+        {
+          "family": "inet",
+          "local": "10.42.0.1",
+          "prefixlen": 24,
+          "broadcast": "10.42.0.255",
+          "scope": "global",
+          "label": "cni0",
+          "valid_life_time": 4294967295,
+          "preferred_life_time": 4294967295
+        }
+      ]
+    }
+  ],
+  "rawSHA256": "9a4f7a552462a508b56d34e9293f83484c27ad0165566f2ba08d0de883bcf44a",
+  "remoteMutation": false
+}

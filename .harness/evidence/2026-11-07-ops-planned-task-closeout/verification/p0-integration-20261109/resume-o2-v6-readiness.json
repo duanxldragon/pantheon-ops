@@ -1,0 +1,624 @@
+{
+  "taskId": "2026-11-07-ops-planned-task-closeout",
+  "parentTaskPacket": "docs/harness/tasks/2026-11-07-ops-planned-task-closeout.task.md",
+  "tier": "L2",
+  "layer": "business/deploy acceptance harness; no platform/system/product edits",
+  "createdAt": "2026-11-09T09:28:45.320454+00:00",
+  "status": "local-preparation-ready-for-root-review; remote-access-blocked",
+  "buildReceipt": "live-diagnostic-o2-v6-build-ready-result.json",
+  "verificationReceipt": "live-diagnostic-o2-v6-local-verification-ready.json",
+  "preflightReceipt": "live-diagnostic-o2-v6-preflight-result.json",
+  "phaseRequest": "resume-o2-v6-phase-request.json",
+  "sourceCount": 185,
+  "compiledSourcesAndArtifactsStable": true,
+  "priorReceiptsAndScriptsPreserved": true,
+  "priorHashCount": 22,
+  "artifactHashes": {
+    "live-diagnostic-o2-v6.go": "d650280072feb6000183c7675b25600fd1954af99a90431b2879b4e5df13fb86",
+    "live-diagnostic-o2-v6-runner.py": "bb4158de64020fb602f2859bbd2aabeb85a149807eff22ae14a1621cb19932d7",
+    "live-diagnostic-o2-v6_test.go": "ea8aa8c3974f919a7bc155c1d0c7d6c2a63f22fd62c48b78f9dddc7c8c21b782",
+    "live-diagnostic-o2-v6-local-verify.py": "2fd4277bfe9962697ee951e396b58117521710cf70225a4ef021c86e5a308b25",
+    "remote.py": "37acccd12ba3b30e38182f11101821f110355ed660c4cf559d91cc1c638e1b5e",
+    "known_hosts": "45a3379d7e5d75b57e4d47c37ea424b611ddc56ee6d2a70fdc89c05c1ae8213e",
+    "live-diagnostic-o2-v6-driver.exe": "88981572e327afe5614d9c9854a99098eec60d537253beecccf956b8b624a623",
+    "live-diagnostic-o2-v6-driver-linux": "f2556f11b67cf3206b487edddc78e0e220563cb7f346285e039afa365e64e6d8"
+  },
+  "compiledModuleIdentities": [
+    {
+      "artifact": "live-diagnostic-o2-v6-driver.exe",
+      "dependencies": [
+        {
+          "module": "filippo.io/edwards25519",
+          "version": "v1.2.0",
+          "sum": "h1:crnVqOiS4jqYleHd9vaKZ+HKtHfllngJIiOpNpoJsjo=",
+          "goSumMatches": true
+        },
+        {
+          "module": "github.com/beorn7/perks",
+          "version": "v1.0.1",
+          "sum": "h1:VlbKKnNfV8bJzeqoa4cOKqO6bYr3WgKZxO8Z16+hsOM=",
+          "goSumMatches": true
+        },
+        {
+          "module": "github.com/bmatcuk/doublestar/v4",
+          "version": "v4.9.1",
+          "sum": "h1:X8jg9rRZmJd4yRy7ZeNDRnM+T3ZfHv15JiBJ/avrEXE=",
+          "goSumMatches": true
+        },
+        {
+          "module": "github.com/casbin/casbin/v2",
+          "version": "v2.135.0",
+          "sum": "h1:6BLkMQiGotYyS5yYeWgW19vxqugUlvHFkFiLnLR/bxk=",
+          "goSumMatches": true
+        },
+        {
+          "module": "github.com/casbin/govaluate",
+          "version": "v1.10.0",
+          "sum": "h1:ffGw51/hYH3w3rZcxO/KcaUIDOLP84w7nsidMVgaDG0=",
+          "goSumMatches": true
+        },
+        {
+          "module": "github.com/cespare/xxhash/v2",
+          "version": "v2.3.0",
+          "sum": "h1:UL815xU9SqsFlibzuggzjXhog7bL6oX9BbNZnL2UFvs=",
+          "goSumMatches": true
+        },
+        {
+          "module": "github.com/duanxldragon/pantheon-base/backend",
+          "version": "(devel)",
+          "identity": "local compiled source SHA256 inventory (185 files)"
+        },
+        {
+          "module": "github.com/gabriel-vasile/mimetype",
+          "version": "v1.4.13",
+          "sum": "h1:46nXokslUBsAJE/wMsp5gtO500a4F3Nkz9Ufpk2AcUM=",
+          "goSumMatches": true
+        },
+        {
+          "module": "github.com/gin-contrib/sse",
+          "version": "v1.1.1",
+          "sum": "h1:uGYpNwTacv5R68bSGMapo62iLTRa9l5zxGCps4hK6ko=",
+          "goSumMatches": true
+        },
+        {
+          "module": "github.com/gin-gonic/gin",
+          "version": "v1.12.0",
+          "sum": "h1:b3YAbrZtnf8N//yjKeU2+MQsh2mY5htkZidOM7O0wG8=",
+          "goSumMatches": true
+        },
+        {
+          "module": "github.com/go-playground/locales",
+          "version": "v0.14.1",
+          "sum": "h1:EWaQ/wswjilfKLTECiXz7Rh+3BjFhfDFKv/oXslEjJA=",
+          "goSumMatches": true
+        },
+        {
+          "module": "github.com/go-playground/universal-translator",
+          "version": "v0.18.1",
+          "sum": "h1:Bcnm0ZwsGyWbCzImXv+pAJnYK9S473LQFuzCbDbfSFY=",
+          "goSumMatches": true
+        },
+        {
+          "module": "github.com/go-playground/validator/v10",
+          "version": "v10.30.2",
+          "sum": "h1:JiFIMtSSHb2/XBUbWM4i/MpeQm9ZK2xqPNk8vgvu5JQ=",
+          "goSumMatches": true
+        },
+        {
+          "module": "github.com/go-sql-driver/mysql",
+          "version": "v1.10.0",
+          "sum": "h1:Q+1LV8DkHJvSYAdR83XzuhDaTykuDx0l6fkXxoWCWfw=",
+          "goSumMatches": true
+        },
+        {
+          "module": "github.com/goccy/go-yaml",
+          "version": "v1.19.2",
+          "sum": "h1:PmFC1S6h8ljIz6gMRBopkjP1TVT7xuwrButHID66PoM=",
+          "goSumMatches": true
+        },
+        {
+          "module": "github.com/golang-migrate/migrate/v4",
+          "version": "v4.17.1",
+          "sum": "h1:4zQ6iqL6t6AiItphxJctQb3cFqWiSpMnX7wLTPnnYO4=",
+          "goSumMatches": true
+        },
+        {
+          "module": "github.com/google/uuid",
+          "version": "v1.6.0",
+          "sum": "h1:NIvaJDMOsjHA8n1jAhLSgzrAzy1Hgr+hNrb57e+94F0=",
+          "goSumMatches": true
+        },
+        {
+          "module": "github.com/hashicorp/errwrap",
+          "version": "v1.1.0",
+          "sum": "h1:OxrOeh75EUXMY8TBjag2fzXGZ40LB6IKw45YeGUDY2I=",
+          "goSumMatches": true
+        },
+        {
+          "module": "github.com/hashicorp/go-multierror",
+          "version": "v1.1.1",
+          "sum": "h1:H5DkEtf6CXdFp0N0Em5UCwQpXMWke8IA0+lD48awMYo=",
+          "goSumMatches": true
+        },
+        {
+          "module": "github.com/jinzhu/inflection",
+          "version": "v1.0.0",
+          "sum": "h1:K317FqzuhWc8YvSVlFMCCUb36O/S9MCKRDI7QkRKD/E=",
+          "goSumMatches": true
+        },
+        {
+          "module": "github.com/jinzhu/now",
+          "version": "v1.1.5",
+          "sum": "h1:/o9tlHleP7gOFmsnYNz3RGnqzefHA47wQpKrrdTIwXQ=",
+          "goSumMatches": true
+        },
+        {
+          "module": "github.com/leodido/go-urn",
+          "version": "v1.4.0",
+          "sum": "h1:WT9HwE9SGECu3lg4d/dIA+jxlljEa1/ffXKmRjqdmIQ=",
+          "goSumMatches": true
+        },
+        {
+          "module": "github.com/mattn/go-isatty",
+          "version": "v0.0.22",
+          "sum": "h1:j8l17JJ9i6VGPUFUYoTUKPSgKe/83EYU2zBC7YNKMw4=",
+          "goSumMatches": true
+        },
+        {
+          "module": "github.com/matttproud/golang_protobuf_extensions/v2",
+          "version": "v2.0.0",
+          "sum": "h1:jWpvCLoY8Z/e3VKvlsiIGKtc+UG6U5vzxaoagmhXfyg=",
+          "goSumMatches": true
+        },
+        {
+          "module": "github.com/pelletier/go-toml/v2",
+          "version": "v2.3.1",
+          "sum": "h1:MYEvvGnQjeNkRF1qUuGolNtNExTDwct51yp7olPtrEc=",
+          "goSumMatches": true
+        },
+        {
+          "module": "github.com/pkg/errors",
+          "version": "v0.9.1",
+          "sum": "h1:FEBLx1zS214owpjy7qsBeixbURkuhQAwrK5UwLGTwt4=",
+          "goSumMatches": true
+        },
+        {
+          "module": "github.com/prometheus/client_golang",
+          "version": "v1.18.0",
+          "sum": "h1:HzFfmkOzH5Q8L8G+kSJKUx5dtG87sewO+FoDDqP5Tbk=",
+          "goSumMatches": true
+        },
+        {
+          "module": "github.com/prometheus/client_model",
+          "version": "v0.6.2",
+          "sum": "h1:oBsgwpGs7iVziMvrGhE53c/GrLUsZdHnqNwqPLxwZyk=",
+          "goSumMatches": true
+        },
+        {
+          "module": "github.com/prometheus/common",
+          "version": "v0.45.0",
+          "sum": "h1:2BGz0eBc2hdMDLnO/8n0jeB3oPrt2D08CekT0lneoxM=",
+          "goSumMatches": true
+        },
+        {
+          "module": "github.com/quic-go/qpack",
+          "version": "v0.6.0",
+          "sum": "h1:g7W+BMYynC1LbYLSqRt8PBg5Tgwxn214ZZR34VIOjz8=",
+          "goSumMatches": true
+        },
+        {
+          "module": "github.com/quic-go/quic-go",
+          "version": "v0.59.1",
+          "sum": "h1:0Gmua0HW1Tv7ANR7hUYwRyD0MG5OJfgvYSZasGZzBic=",
+          "goSumMatches": true
+        },
+        {
+          "module": "github.com/redis/go-redis/v9",
+          "version": "v9.21.0",
+          "sum": "h1:FPBE4hhbAke+TLmcY3WkpbDffJEomdqPn3HYiqAtL9E=",
+          "goSumMatches": true
+        },
+        {
+          "module": "github.com/ugorji/go/codec",
+          "version": "v1.3.1",
+          "sum": "h1:waO7eEiFDwidsBN6agj1vJQ4AG7lh2yqXyOXqhgQuyY=",
+          "goSumMatches": true
+        },
+        {
+          "module": "github.com/ulule/limiter/v3",
+          "version": "v3.11.2",
+          "sum": "h1:P4yOrxoEMJbOTfRJR2OzjL90oflzYPPmWg+dvwN2tHA=",
+          "goSumMatches": true
+        },
+        {
+          "module": "go.mongodb.org/mongo-driver/v2",
+          "version": "v2.6.0",
+          "sum": "h1:b9sJOYrkmt4l8bY43ZenFBcPlhYIjaOfYHLtbB/5qi8=",
+          "goSumMatches": true
+        },
+        {
+          "module": "go.uber.org/atomic",
+          "version": "v1.11.0",
+          "sum": "h1:ZvwS0R+56ePWxUNi+Atn9dWONBPp/AUETXlHW0DxSjE=",
+          "goSumMatches": true
+        },
+        {
+          "module": "go.uber.org/multierr",
+          "version": "v1.10.0",
+          "sum": "h1:S0h4aNzvfcFsC3dRF1jLoaov7oRaKqRGC/pUEJ2yvPQ=",
+          "goSumMatches": true
+        },
+        {
+          "module": "go.uber.org/zap",
+          "version": "v1.28.0",
+          "sum": "h1:IZzaP1Fv73/T/pBMLk4VutPl36uNC+OSUh3JLG3FIjo=",
+          "goSumMatches": true
+        },
+        {
+          "module": "golang.org/x/crypto",
+          "version": "v0.57.0",
+          "sum": "h1:3ZVCjf8Ggz7zneR/EHRVx68Ctf+2pmIMP2UFhh9cC6M=",
+          "goSumMatches": true
+        },
+        {
+          "module": "golang.org/x/net",
+          "version": "v0.60.0",
+          "sum": "h1:79p50tfZlm0J9YfoDsSi639qSXNGVwEzOPLCxM2FsYU=",
+          "goSumMatches": true
+        },
+        {
+          "module": "golang.org/x/sys",
+          "version": "v0.48.0",
+          "sum": "h1:bbX/i/6MgT9BVLM9RT1thmxL04yeTAhbEz4SyadbXoo=",
+          "goSumMatches": true
+        },
+        {
+          "module": "golang.org/x/text",
+          "version": "v0.42.0",
+          "sum": "h1:JbOZXgfeCPU9gacVtYliJqOhD+zhrEqK4LfdpmlUZqI=",
+          "goSumMatches": true
+        },
+        {
+          "module": "google.golang.org/protobuf",
+          "version": "v1.36.12-0.20260120151049-f2248ac996af",
+          "sum": "h1:+5/Sw3GsDNlEmu7TfklWKPdQ0Ykja5VEmq2i817+jbI=",
+          "goSumMatches": true
+        },
+        {
+          "module": "gorm.io/datatypes",
+          "version": "v1.2.7",
+          "sum": "h1:ww9GAhF1aGXZY3EB3cJPJ7//JiuQo7DlQA7NNlVaTdk=",
+          "goSumMatches": true
+        },
+        {
+          "module": "gorm.io/driver/mysql",
+          "version": "v1.6.0",
+          "sum": "h1:eNbLmNTpPpTOVZi8MMxCi2aaIm0ZpInbORNXDwyLGvg=",
+          "goSumMatches": true
+        },
+        {
+          "module": "gorm.io/gorm",
+          "version": "v1.31.2",
+          "sum": "h1:3o8FXNo9v9S858gil+3LlZA1LkCOzgb4g5BL64FgaCo=",
+          "goSumMatches": true
+        }
+      ],
+      "allExternalDependencySumsMatchGoSum": true
+    },
+    {
+      "artifact": "live-diagnostic-o2-v6-driver-linux",
+      "dependencies": [
+        {
+          "module": "filippo.io/edwards25519",
+          "version": "v1.2.0",
+          "sum": "h1:crnVqOiS4jqYleHd9vaKZ+HKtHfllngJIiOpNpoJsjo=",
+          "goSumMatches": true
+        },
+        {
+          "module": "github.com/beorn7/perks",
+          "version": "v1.0.1",
+          "sum": "h1:VlbKKnNfV8bJzeqoa4cOKqO6bYr3WgKZxO8Z16+hsOM=",
+          "goSumMatches": true
+        },
+        {
+          "module": "github.com/bmatcuk/doublestar/v4",
+          "version": "v4.9.1",
+          "sum": "h1:X8jg9rRZmJd4yRy7ZeNDRnM+T3ZfHv15JiBJ/avrEXE=",
+          "goSumMatches": true
+        },
+        {
+          "module": "github.com/casbin/casbin/v2",
+          "version": "v2.135.0",
+          "sum": "h1:6BLkMQiGotYyS5yYeWgW19vxqugUlvHFkFiLnLR/bxk=",
+          "goSumMatches": true
+        },
+        {
+          "module": "github.com/casbin/govaluate",
+          "version": "v1.10.0",
+          "sum": "h1:ffGw51/hYH3w3rZcxO/KcaUIDOLP84w7nsidMVgaDG0=",
+          "goSumMatches": true
+        },
+        {
+          "module": "github.com/cespare/xxhash/v2",
+          "version": "v2.3.0",
+          "sum": "h1:UL815xU9SqsFlibzuggzjXhog7bL6oX9BbNZnL2UFvs=",
+          "goSumMatches": true
+        },
+        {
+          "module": "github.com/duanxldragon/pantheon-base/backend",
+          "version": "(devel)",
+          "identity": "local compiled source SHA256 inventory (185 files)"
+        },
+        {
+          "module": "github.com/gabriel-vasile/mimetype",
+          "version": "v1.4.13",
+          "sum": "h1:46nXokslUBsAJE/wMsp5gtO500a4F3Nkz9Ufpk2AcUM=",
+          "goSumMatches": true
+        },
+        {
+          "module": "github.com/gin-contrib/sse",
+          "version": "v1.1.1",
+          "sum": "h1:uGYpNwTacv5R68bSGMapo62iLTRa9l5zxGCps4hK6ko=",
+          "goSumMatches": true
+        },
+        {
+          "module": "github.com/gin-gonic/gin",
+          "version": "v1.12.0",
+          "sum": "h1:b3YAbrZtnf8N//yjKeU2+MQsh2mY5htkZidOM7O0wG8=",
+          "goSumMatches": true
+        },
+        {
+          "module": "github.com/go-playground/locales",
+          "version": "v0.14.1",
+          "sum": "h1:EWaQ/wswjilfKLTECiXz7Rh+3BjFhfDFKv/oXslEjJA=",
+          "goSumMatches": true
+        },
+        {
+          "module": "github.com/go-playground/universal-translator",
+          "version": "v0.18.1",
+          "sum": "h1:Bcnm0ZwsGyWbCzImXv+pAJnYK9S473LQFuzCbDbfSFY=",
+          "goSumMatches": true
+        },
+        {
+          "module": "github.com/go-playground/validator/v10",
+          "version": "v10.30.2",
+          "sum": "h1:JiFIMtSSHb2/XBUbWM4i/MpeQm9ZK2xqPNk8vgvu5JQ=",
+          "goSumMatches": true
+        },
+        {
+          "module": "github.com/go-sql-driver/mysql",
+          "version": "v1.10.0",
+          "sum": "h1:Q+1LV8DkHJvSYAdR83XzuhDaTykuDx0l6fkXxoWCWfw=",
+          "goSumMatches": true
+        },
+        {
+          "module": "github.com/goccy/go-yaml",
+          "version": "v1.19.2",
+          "sum": "h1:PmFC1S6h8ljIz6gMRBopkjP1TVT7xuwrButHID66PoM=",
+          "goSumMatches": true
+        },
+        {
+          "module": "github.com/golang-migrate/migrate/v4",
+          "version": "v4.17.1",
+          "sum": "h1:4zQ6iqL6t6AiItphxJctQb3cFqWiSpMnX7wLTPnnYO4=",
+          "goSumMatches": true
+        },
+        {
+          "module": "github.com/google/uuid",
+          "version": "v1.6.0",
+          "sum": "h1:NIvaJDMOsjHA8n1jAhLSgzrAzy1Hgr+hNrb57e+94F0=",
+          "goSumMatches": true
+        },
+        {
+          "module": "github.com/hashicorp/errwrap",
+          "version": "v1.1.0",
+          "sum": "h1:OxrOeh75EUXMY8TBjag2fzXGZ40LB6IKw45YeGUDY2I=",
+          "goSumMatches": true
+        },
+        {
+          "module": "github.com/hashicorp/go-multierror",
+          "version": "v1.1.1",
+          "sum": "h1:H5DkEtf6CXdFp0N0Em5UCwQpXMWke8IA0+lD48awMYo=",
+          "goSumMatches": true
+        },
+        {
+          "module": "github.com/jinzhu/inflection",
+          "version": "v1.0.0",
+          "sum": "h1:K317FqzuhWc8YvSVlFMCCUb36O/S9MCKRDI7QkRKD/E=",
+          "goSumMatches": true
+        },
+        {
+          "module": "github.com/jinzhu/now",
+          "version": "v1.1.5",
+          "sum": "h1:/o9tlHleP7gOFmsnYNz3RGnqzefHA47wQpKrrdTIwXQ=",
+          "goSumMatches": true
+        },
+        {
+          "module": "github.com/leodido/go-urn",
+          "version": "v1.4.0",
+          "sum": "h1:WT9HwE9SGECu3lg4d/dIA+jxlljEa1/ffXKmRjqdmIQ=",
+          "goSumMatches": true
+        },
+        {
+          "module": "github.com/mattn/go-isatty",
+          "version": "v0.0.22",
+          "sum": "h1:j8l17JJ9i6VGPUFUYoTUKPSgKe/83EYU2zBC7YNKMw4=",
+          "goSumMatches": true
+        },
+        {
+          "module": "github.com/matttproud/golang_protobuf_extensions/v2",
+          "version": "v2.0.0",
+          "sum": "h1:jWpvCLoY8Z/e3VKvlsiIGKtc+UG6U5vzxaoagmhXfyg=",
+          "goSumMatches": true
+        },
+        {
+          "module": "github.com/pelletier/go-toml/v2",
+          "version": "v2.3.1",
+          "sum": "h1:MYEvvGnQjeNkRF1qUuGolNtNExTDwct51yp7olPtrEc=",
+          "goSumMatches": true
+        },
+        {
+          "module": "github.com/pkg/errors",
+          "version": "v0.9.1",
+          "sum": "h1:FEBLx1zS214owpjy7qsBeixbURkuhQAwrK5UwLGTwt4=",
+          "goSumMatches": true
+        },
+        {
+          "module": "github.com/prometheus/client_golang",
+          "version": "v1.18.0",
+          "sum": "h1:HzFfmkOzH5Q8L8G+kSJKUx5dtG87sewO+FoDDqP5Tbk=",
+          "goSumMatches": true
+        },
+        {
+          "module": "github.com/prometheus/client_model",
+          "version": "v0.6.2",
+          "sum": "h1:oBsgwpGs7iVziMvrGhE53c/GrLUsZdHnqNwqPLxwZyk=",
+          "goSumMatches": true
+        },
+        {
+          "module": "github.com/prometheus/common",
+          "version": "v0.45.0",
+          "sum": "h1:2BGz0eBc2hdMDLnO/8n0jeB3oPrt2D08CekT0lneoxM=",
+          "goSumMatches": true
+        },
+        {
+          "module": "github.com/prometheus/procfs",
+          "version": "v0.16.1",
+          "sum": "h1:hZ15bTNuirocR6u0JZ6BAHHmwS1p8B4P6MRqxtzMyRg=",
+          "goSumMatches": true
+        },
+        {
+          "module": "github.com/quic-go/qpack",
+          "version": "v0.6.0",
+          "sum": "h1:g7W+BMYynC1LbYLSqRt8PBg5Tgwxn214ZZR34VIOjz8=",
+          "goSumMatches": true
+        },
+        {
+          "module": "github.com/quic-go/quic-go",
+          "version": "v0.59.1",
+          "sum": "h1:0Gmua0HW1Tv7ANR7hUYwRyD0MG5OJfgvYSZasGZzBic=",
+          "goSumMatches": true
+        },
+        {
+          "module": "github.com/redis/go-redis/v9",
+          "version": "v9.21.0",
+          "sum": "h1:FPBE4hhbAke+TLmcY3WkpbDffJEomdqPn3HYiqAtL9E=",
+          "goSumMatches": true
+        },
+        {
+          "module": "github.com/ugorji/go/codec",
+          "version": "v1.3.1",
+          "sum": "h1:waO7eEiFDwidsBN6agj1vJQ4AG7lh2yqXyOXqhgQuyY=",
+          "goSumMatches": true
+        },
+        {
+          "module": "github.com/ulule/limiter/v3",
+          "version": "v3.11.2",
+          "sum": "h1:P4yOrxoEMJbOTfRJR2OzjL90oflzYPPmWg+dvwN2tHA=",
+          "goSumMatches": true
+        },
+        {
+          "module": "go.mongodb.org/mongo-driver/v2",
+          "version": "v2.6.0",
+          "sum": "h1:b9sJOYrkmt4l8bY43ZenFBcPlhYIjaOfYHLtbB/5qi8=",
+          "goSumMatches": true
+        },
+        {
+          "module": "go.uber.org/atomic",
+          "version": "v1.11.0",
+          "sum": "h1:ZvwS0R+56ePWxUNi+Atn9dWONBPp/AUETXlHW0DxSjE=",
+          "goSumMatches": true
+        },
+        {
+          "module": "go.uber.org/multierr",
+          "version": "v1.10.0",
+          "sum": "h1:S0h4aNzvfcFsC3dRF1jLoaov7oRaKqRGC/pUEJ2yvPQ=",
+          "goSumMatches": true
+        },
+        {
+          "module": "go.uber.org/zap",
+          "version": "v1.28.0",
+          "sum": "h1:IZzaP1Fv73/T/pBMLk4VutPl36uNC+OSUh3JLG3FIjo=",
+          "goSumMatches": true
+        },
+        {
+          "module": "golang.org/x/crypto",
+          "version": "v0.57.0",
+          "sum": "h1:3ZVCjf8Ggz7zneR/EHRVx68Ctf+2pmIMP2UFhh9cC6M=",
+          "goSumMatches": true
+        },
+        {
+          "module": "golang.org/x/net",
+          "version": "v0.60.0",
+          "sum": "h1:79p50tfZlm0J9YfoDsSi639qSXNGVwEzOPLCxM2FsYU=",
+          "goSumMatches": true
+        },
+        {
+          "module": "golang.org/x/sys",
+          "version": "v0.48.0",
+          "sum": "h1:bbX/i/6MgT9BVLM9RT1thmxL04yeTAhbEz4SyadbXoo=",
+          "goSumMatches": true
+        },
+        {
+          "module": "golang.org/x/text",
+          "version": "v0.42.0",
+          "sum": "h1:JbOZXgfeCPU9gacVtYliJqOhD+zhrEqK4LfdpmlUZqI=",
+          "goSumMatches": true
+        },
+        {
+          "module": "google.golang.org/protobuf",
+          "version": "v1.36.12-0.20260120151049-f2248ac996af",
+          "sum": "h1:+5/Sw3GsDNlEmu7TfklWKPdQ0Ykja5VEmq2i817+jbI=",
+          "goSumMatches": true
+        },
+        {
+          "module": "gorm.io/datatypes",
+          "version": "v1.2.7",
+          "sum": "h1:ww9GAhF1aGXZY3EB3cJPJ7//JiuQo7DlQA7NNlVaTdk=",
+          "goSumMatches": true
+        },
+        {
+          "module": "gorm.io/driver/mysql",
+          "version": "v1.6.0",
+          "sum": "h1:eNbLmNTpPpTOVZi8MMxCi2aaIm0ZpInbORNXDwyLGvg=",
+          "goSumMatches": true
+        },
+        {
+          "module": "gorm.io/gorm",
+          "version": "v1.31.2",
+          "sum": "h1:3o8FXNo9v9S858gil+3LlZA1LkCOzgb4g5BL64FgaCo=",
+          "goSumMatches": true
+        }
+      ],
+      "allExternalDependencySumsMatchGoSum": true
+    }
+  ],
+  "localChecksPassed": 17,
+  "localChecksFailed": 0,
+  "buildCommandCount": 4,
+  "allBuildAndRaceTestCommandsPass": true,
+  "preflight": {
+    "host": "115.190.251.143",
+    "scope": "pinned read-only SSH; no remote mutation or DB creation",
+    "exitCode": 1,
+    "errorType": "PermissionError",
+    "errno": 13,
+    "remaining": "root execution required; no true VM case attempted"
+  },
+  "newRemoteCases": 0,
+  "remoteResourceMutations": 0,
+  "productSourceEdits": 0,
+  "cleanupContract": "unchanged exact owner/regular allowlisted file bytes; verified with 5 offline cleanup checks; v5 12/12 absent receipts retained",
+  "review": {
+    "posture": "findings-first self-review only; native leaf guard disallows reviewer spawning",
+    "independentApproval": false,
+    "pending": [
+      "Root review before full remote execution",
+      "Working authorized SSH tool; current preflight errno13",
+      "Strict inactive business-scope resume denial likely needs business/deploy source owner; current ResumeTask/ControlTask/runAsyncTask do not call GetActive at resume",
+      "Independent SSH failure subtype awaits actual v6 execution; no assumed pin/auth/rollback repair",
+      "Real 420s cold case, including 40s termination/quiescence/cleanup reserve, remains unexecuted"
+    ]
+  },
+  "gateOutcomes": "Cold lease check false-positive retained earlier failed attempts; source status corrected disabled to inactive; explicit case/summary/cleanup gates retain incomplete or failed matrix; no O2/P0 approval"
+}

@@ -1,0 +1,13 @@
+{
+  "exitCode": 0,
+  "remoteExecuted": false,
+  "requestSHA256": "aec0783ef37a191284c16f9fe69f96a06dcf94b846de62de2efdd0dcffae232f",
+  "request": "resume-velero-s3-v8-root-request-final.json",
+  "protectedFiles": 198,
+  "v8Scripts": 7,
+  "remoteBaselineFiles": 29,
+  "v6FailureSHA256": "4a486df4fa7f3b35f5a5c7596dd0045e76bfdd18fe1facb2a806af3d769b305e",
+  "absenceInspectionSHA256": "b8154da9dea668ca334fe3f6dae10134361ca79c722a035c83a6cea594507a7f",
+  "backupRestoreVerified": false,
+  "P0Approved": false
+}

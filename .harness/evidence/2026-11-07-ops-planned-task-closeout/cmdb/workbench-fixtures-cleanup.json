@@ -1,0 +1,71 @@
+{
+  "database": "ops_planned_final_versioned",
+  "match": "^workbench-(light|dark)-[0-9]{13}$",
+  "removed": [
+    {
+      "endpoint": "cmdb/hosts",
+      "id": 41,
+      "token": "workbench-dark-1794044028001"
+    },
+    {
+      "endpoint": "cmdb/hosts",
+      "id": 40,
+      "token": "workbench-light-1794044026429"
+    },
+    {
+      "endpoint": "cmdb/hosts",
+      "id": 39,
+      "token": "workbench-dark-1794043979742"
+    },
+    {
+      "endpoint": "cmdb/hosts",
+      "id": 38,
+      "token": "workbench-light-1794043978256"
+    }
+  ],
+  "errors": [
+    {
+      "endpoint": "deploy/tasks",
+      "id": 32,
+      "message": "HTTP 409 business.deploy.task.invalidDeleteState"
+    },
+    {
+      "endpoint": "deploy/tasks",
+      "id": 31,
+      "message": "HTTP 409 business.deploy.task.invalidDeleteState"
+    },
+    {
+      "endpoint": "deploy/tasks",
+      "id": 30,
+      "message": "HTTP 409 business.deploy.task.invalidDeleteState"
+    },
+    {
+      "endpoint": "deploy/tasks",
+      "id": 29,
+      "message": "HTTP 409 business.deploy.task.invalidDeleteState"
+    },
+    {
+      "endpoint": "deploy/tasks",
+      "id": 28,
+      "message": "HTTP 409 business.deploy.task.invalidDeleteState"
+    },
+    {
+      "endpoint": "deploy/tasks",
+      "id": 27,
+      "message": "HTTP 409 business.deploy.task.invalidDeleteState"
+    },
+    {
+      "endpoint": "deploy/tasks",
+      "id": 26,
+      "message": "HTTP 409 business.deploy.task.invalidDeleteState"
+    },
+    {
+      "endpoint": "deploy/tasks",
+      "id": 25,
+      "message": "HTTP 409 business.deploy.task.invalidDeleteState"
+    },
+    {
+      "message": "Unexpected non-whitespace character after JSON at position 4 (line 1 column 5)"
+    }
+  ]
+}

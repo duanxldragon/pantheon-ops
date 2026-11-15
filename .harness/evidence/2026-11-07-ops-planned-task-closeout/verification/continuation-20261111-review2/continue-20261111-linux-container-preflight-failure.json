@@ -1,0 +1,8 @@
+{
+  "completed": false,
+  "operation": "Read-only inventory of existing Linux Node/Git/container executables",
+  "failure": "PermissionError: [WinError 10013] socket access denied by the current sandbox",
+  "remoteCommandExecuted": false,
+  "remoteMutations": 0,
+  "newRuntimeInstalled": false
+}

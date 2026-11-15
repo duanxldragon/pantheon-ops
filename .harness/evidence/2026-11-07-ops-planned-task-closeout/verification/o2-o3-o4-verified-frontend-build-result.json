@@ -1,0 +1,12 @@
+{
+  "command": [
+    "npm.cmd",
+    "run",
+    "build"
+  ],
+  "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\frontend",
+  "exitCode": 1,
+  "elapsedSeconds": 7.64100000000326,
+  "artifact": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/o2-o3-o4-verified-frontend-build.txt",
+  "lane": "frontend"
+}

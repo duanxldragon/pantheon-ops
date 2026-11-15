@@ -1,0 +1,15 @@
+{
+  "command": [
+    "go",
+    "build",
+    "-mod=readonly",
+    "-o",
+    "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.tmp\\ops-priority-runtime\\server-o3-k8s-final.exe",
+    "./cmd/server"
+  ],
+  "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\backend",
+  "exitCode": 0,
+  "elapsedSeconds": 6.48499999998603,
+  "artifact": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/o2-o3-o4-verified-backend-build.txt",
+  "lane": "backend"
+}

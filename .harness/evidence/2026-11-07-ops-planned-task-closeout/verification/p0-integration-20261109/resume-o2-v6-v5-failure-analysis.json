@@ -1,0 +1,245 @@
+{
+  "taskId": "2026-11-07-ops-planned-task-closeout",
+  "scope": "O2 v6 preparation only; no new remote execution",
+  "v5Summary": {
+    "positivePassed": 97,
+    "negativePassed": 26,
+    "failed": 2,
+    "exitCode": 1,
+    "sourceStable": true
+  },
+  "cases": [
+    {
+      "case": "cancel",
+      "receipt": "live-diagnostic-o2-v5-case-cancel-b454c3a7a6ea.json",
+      "status": "passed",
+      "driverExitCode": 0,
+      "failedAssertions": [],
+      "driverFailureCount": 0,
+      "independentSSHFailures": [],
+      "ownedCleanupAbsent": true
+    },
+    {
+      "case": "cold-restart",
+      "receipt": "live-diagnostic-o2-v5-case-cold-restart-b454c3a7a6ea.json",
+      "status": "failed",
+      "driverExitCode": 1,
+      "failedAssertions": [
+        {
+          "check": "fresh queue startup honors actual unexpired abandoned attempt lease",
+          "kind": "positive",
+          "passed": false
+        }
+      ],
+      "driverFailureCount": 1,
+      "independentSSHFailures": [
+        {
+          "stage": "dial-handshake",
+          "errorType": "*fmt.wrapError",
+          "errorChainTypes": [
+            "*fmt.wrapError",
+            "*errors.errorString"
+          ]
+        }
+      ],
+      "ownedCleanupAbsent": true
+    },
+    {
+      "case": "concurrent",
+      "receipt": "live-diagnostic-o2-v5-case-concurrent-b454c3a7a6ea.json",
+      "status": "failed",
+      "driverExitCode": 1,
+      "failedAssertions": [],
+      "driverFailureCount": 1,
+      "independentSSHFailures": [
+        {
+          "stage": "dial-handshake",
+          "errorType": "*fmt.wrapError",
+          "errorChainTypes": [
+            "*fmt.wrapError",
+            "*errors.errorString"
+          ]
+        }
+      ],
+      "ownedCleanupAbsent": true
+    },
+    {
+      "case": "failure-retry",
+      "receipt": "live-diagnostic-o2-v5-case-failure-retry-b454c3a7a6ea.json",
+      "status": "failed",
+      "driverExitCode": 1,
+      "failedAssertions": [],
+      "driverFailureCount": 1,
+      "independentSSHFailures": [
+        {
+          "stage": "dial-handshake",
+          "errorType": "*fmt.wrapError",
+          "errorChainTypes": [
+            "*fmt.wrapError",
+            "*errors.errorString"
+          ]
+        }
+      ],
+      "ownedCleanupAbsent": true
+    },
+    {
+      "case": "hostkey-negative",
+      "receipt": "live-diagnostic-o2-v5-case-hostkey-negative-b454c3a7a6ea.json",
+      "status": "passed",
+      "driverExitCode": 0,
+      "failedAssertions": [],
+      "driverFailureCount": 0,
+      "independentSSHFailures": [],
+      "ownedCleanupAbsent": true
+    },
+    {
+      "case": "pause-resume",
+      "receipt": "live-diagnostic-o2-v5-case-pause-resume-b454c3a7a6ea.json",
+      "status": "failed",
+      "driverExitCode": 1,
+      "failedAssertions": [],
+      "driverFailureCount": 1,
+      "independentSSHFailures": [
+        {
+          "stage": "dial-handshake",
+          "errorType": "*fmt.wrapError",
+          "errorChainTypes": [
+            "*fmt.wrapError",
+            "*errors.errorString"
+          ]
+        }
+      ],
+      "ownedCleanupAbsent": true
+    },
+    {
+      "case": "revoke-credential",
+      "receipt": "live-diagnostic-o2-v5-case-revoke-credential-b454c3a7a6ea.json",
+      "status": "passed",
+      "driverExitCode": 0,
+      "failedAssertions": [],
+      "driverFailureCount": 0,
+      "independentSSHFailures": [],
+      "ownedCleanupAbsent": true
+    },
+    {
+      "case": "revoke-host",
+      "receipt": "live-diagnostic-o2-v5-case-revoke-host-b454c3a7a6ea.json",
+      "status": "passed",
+      "driverExitCode": 0,
+      "failedAssertions": [],
+      "driverFailureCount": 0,
+      "independentSSHFailures": [],
+      "ownedCleanupAbsent": true
+    },
+    {
+      "case": "revoke-rotation",
+      "receipt": "live-diagnostic-o2-v5-case-revoke-rotation-b454c3a7a6ea.json",
+      "status": "passed",
+      "driverExitCode": 0,
+      "failedAssertions": [],
+      "driverFailureCount": 0,
+      "independentSSHFailures": [],
+      "ownedCleanupAbsent": true
+    },
+    {
+      "case": "revoke-source",
+      "receipt": "live-diagnostic-o2-v5-case-revoke-source-b454c3a7a6ea.json",
+      "status": "failed",
+      "driverExitCode": 1,
+      "failedAssertions": [
+        {
+          "check": "disabled live business scope denies resumed VM side effect",
+          "kind": "negative",
+          "passed": false
+        }
+      ],
+      "driverFailureCount": 0,
+      "independentSSHFailures": [],
+      "ownedCleanupAbsent": true
+    },
+    {
+      "case": "start-negative",
+      "receipt": "live-diagnostic-o2-v5-case-start-negative-b454c3a7a6ea.json",
+      "status": "passed",
+      "driverExitCode": 0,
+      "failedAssertions": [],
+      "driverFailureCount": 0,
+      "independentSSHFailures": [],
+      "ownedCleanupAbsent": true
+    },
+    {
+      "case": "success",
+      "receipt": "live-diagnostic-o2-v5-case-success-b454c3a7a6ea.json",
+      "status": "failed",
+      "driverExitCode": 1,
+      "failedAssertions": [],
+      "driverFailureCount": 1,
+      "independentSSHFailures": [
+        {
+          "stage": "dial-handshake",
+          "errorType": "*fmt.wrapError",
+          "errorChainTypes": [
+            "*fmt.wrapError",
+            "*errors.errorString"
+          ]
+        }
+      ],
+      "ownedCleanupAbsent": true
+    }
+  ],
+  "failedCaseCount": 6,
+  "driverFailureCount": 5,
+  "priorReceiptHashes": {
+    "live-diagnostic-o2-v5-build-0.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "live-diagnostic-o2-v5-build-1.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "live-diagnostic-o2-v5-build-2.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "live-diagnostic-o2-v5-build-result.json": "47c5530561c990ff4b99c641586ef1e15e61df6c3a96b26d3f271ad879bf5a52",
+    "live-diagnostic-o2-v5-build-source-after.json": "0e658730ab2e07c684235495d6e92f77c7ea8e0b68252b789dcb3aac6003e5ab",
+    "live-diagnostic-o2-v5-build-source-before.json": "0e658730ab2e07c684235495d6e92f77c7ea8e0b68252b789dcb3aac6003e5ab",
+    "live-diagnostic-o2-v5-case-cancel-b454c3a7a6ea.json": "9871549f240be0d8d94a9e775f7ff5712f496725d421f98244c735d2c5d36b56",
+    "live-diagnostic-o2-v5-case-cold-restart-b454c3a7a6ea.json": "caf2e3a33a50101b7a2913b183ff33c4e6323b6597019d581c1f7af4e8fd5802",
+    "live-diagnostic-o2-v5-case-concurrent-b454c3a7a6ea.json": "9aebefa73a4adc7aded21efdf3ab1060a8b2551865615fa1009104b6a289c3bb",
+    "live-diagnostic-o2-v5-case-failure-retry-b454c3a7a6ea.json": "cd93254c8ec804c92a3003902b393fd54e8d1308c627dcf257a79c5bcdc11724",
+    "live-diagnostic-o2-v5-case-hostkey-negative-b454c3a7a6ea.json": "380ce5984897637358ca9b5fb087d951bc5358076f727bb4481fd2893a75c98a",
+    "live-diagnostic-o2-v5-case-pause-resume-b454c3a7a6ea.json": "bf123539a219920d9bc7ec4ffe490106b32f23116f5b27f95064933df6c8d11a",
+    "live-diagnostic-o2-v5-case-revoke-credential-b454c3a7a6ea.json": "ee0114f1f8516a95256d72668ad02889b9376e04e5e17a11f6152f4dd3c7e2a5",
+    "live-diagnostic-o2-v5-case-revoke-host-b454c3a7a6ea.json": "ff60ae49516b6f183474e6848490348c31aef2c81d0c3d9934b6875249b6e63d",
+    "live-diagnostic-o2-v5-case-revoke-rotation-b454c3a7a6ea.json": "ac30f6331176c14e263f953b68357473c01da1330985cc9f1878bb6e95945256",
+    "live-diagnostic-o2-v5-case-revoke-source-b454c3a7a6ea.json": "fa7870accff5ed60e64846ef8d1ec1d0072588b2df412d80d4d20ca2900552d5",
+    "live-diagnostic-o2-v5-case-start-negative-b454c3a7a6ea.json": "69e77a909f7fd7a29cede9cb59874ba2a34cfa900b52330d0d26edb5e7e7d496",
+    "live-diagnostic-o2-v5-case-success-b454c3a7a6ea.json": "526781642ff89b1374e22f870ff127b3e58d1ff5a7486a4043b2f154c114b426",
+    "live-diagnostic-o2-v5-matrix-result-b454c3a7a6ea.json": "4d8694e349ea7307ed0b10c025c11cc1ae558f64127244fa88bbb7095e192b3e",
+    ".local/live-diagnostic-o2-v5.go": "6a85e67a9c82a9410416a92000f8608b8785b30160b0341737c701178739854a",
+    ".local/live-diagnostic-o2-v5-runner.py": "98831349a332bed7241ffc98b40f587c20f45ab2cb1fa154d662e6343237db67",
+    ".local/live-diagnostic-o2-v5-phase-request.json": "6af97f4f29ca10eb7c8d00df1cbb98e442f23cea541a2aea1cef57619a19ec30"
+  },
+  "findings": [
+    {
+      "id": "cold-probe-cardinality",
+      "kind": "harness-assumption",
+      "evidence": "v5 actual-process-crash-ready reports attemptNo=2; retained recovery evidence shows failed attempt1, expired attempt2, successful attempt3",
+      "change": "Track actual claim ID/no and unchanged full persisted expiry; retain earlier failures; no lease or timestamp writes",
+      "contract": "deploy_service.go claimAttempt/ReconcileDeployAttempts/ReconcileDeployQueue protect the actual running claim, not total history cardinality"
+    },
+    {
+      "id": "source-status",
+      "kind": "harness-assumption plus suspected product defect",
+      "evidence": "BizScope canonical design supports active/inactive. v5 used disabled; current ResumeTask/ControlTask authorize hosts but omit GetActive recheck",
+      "change": "Use inactive; assert owner GetActive denial plus unchanged strict resume-error and no-side-effect requirement",
+      "owner": "business/deploy + business/bizscope source owner; no source edit in executor scope"
+    },
+    {
+      "id": "independent-ssh",
+      "kind": "unresolved transport diagnostic",
+      "evidence": "All five v5 driver failures are dial-handshake fmt.wrapError -> errors.errorString, without ssh.ExitError; exit status absent",
+      "change": "Split TCP, handshake/auth/pin, channel and command; typed sanitized failure flags; enforce total 18s connection+command budget; no retry or assumed transport fix"
+    },
+    {
+      "id": "rollback-marker",
+      "kind": "existing valid contractual behavior",
+      "evidence": "frozenRollbackPlan maps single package install to uninstall; driver UninstallCommand removes only own done marker. Existing v5 marker verifier returns absent with exit0",
+      "change": "Preserve uninstall/absent expectations; add public action/source linkage assertion and local actual shell verification; do not reinterpret an absent marker as rollback failure"
+    }
+  ],
+  "approval": "generator preparation evidence only; no O2 or P0 approval"
+}

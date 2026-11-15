@@ -1,0 +1,179 @@
+{
+  "case": "revoke-host",
+  "identity": "o2-live-0e2ebc53350e-revoke-host",
+  "database": "ops_p0_o2_live_0e2ebc53350e_revoke_host",
+  "databaseRetention": "retained; no drop",
+  "events": [
+    {
+      "credentialId": 1,
+      "packageId": 1,
+      "phase": "task-created",
+      "taskId": 1
+    },
+    {
+      "operationPhase": "public-reviewed-start",
+      "phase": "v8-operation-phase",
+      "taskId": 1
+    },
+    {
+      "errorCategory": "none",
+      "phase": "v8-product-start-category",
+      "taskId": 1
+    },
+    {
+      "operationPhase": "marker-started",
+      "phase": "v8-operation-phase",
+      "taskId": 1
+    },
+    {
+      "operationPhase": "marker-started",
+      "ordinal": 1,
+      "phase": "v8-verifier-connection"
+    },
+    {
+      "deadlineExceeded": false,
+      "phase": "independent-ssh-handshake",
+      "pinChecked": true,
+      "pinMatched": true
+    },
+    {
+      "deadlineExceeded": false,
+      "exitStatus": 0,
+      "passed": true,
+      "phase": "independent-ssh-command"
+    },
+    {
+      "marker": "started",
+      "ownershipChecked": true,
+      "phase": "independent-marker",
+      "present": false
+    },
+    {
+      "operationPhase": "marker-started",
+      "phase": "v8-operation-phase",
+      "taskId": 1
+    },
+    {
+      "operationPhase": "marker-started",
+      "ordinal": 2,
+      "phase": "v8-verifier-connection"
+    },
+    {
+      "deadlineExceeded": false,
+      "phase": "independent-ssh-handshake",
+      "pinChecked": true,
+      "pinMatched": true
+    },
+    {
+      "deadlineExceeded": false,
+      "exitStatus": 0,
+      "passed": true,
+      "phase": "independent-ssh-command"
+    },
+    {
+      "marker": "started",
+      "ownershipChecked": true,
+      "phase": "independent-marker",
+      "present": false
+    },
+    {
+      "operationPhase": "marker-started",
+      "phase": "v8-operation-phase",
+      "taskId": 1
+    },
+    {
+      "operationPhase": "marker-started",
+      "ordinal": 3,
+      "phase": "v8-verifier-connection"
+    },
+    {
+      "deadlineExceeded": false,
+      "phase": "independent-ssh-handshake",
+      "pinChecked": false,
+      "pinMatched": false
+    },
+    {
+      "authenticationFailed": false,
+      "deadlineExceeded": false,
+      "errorChainTypes": [
+        "*fmt.wrapError",
+        "*errors.errorString"
+      ],
+      "errorType": "*fmt.wrapError",
+      "phase": "independent-ssh-error",
+      "pinMismatch": false,
+      "stage": "handshake-auth",
+      "unexpectedEOF": true
+    },
+    {
+      "contextCanceled": false,
+      "deadlineExceeded": false,
+      "driverFrames": [
+        {
+          "file": "resume-o2-v8-driver.go",
+          "line": 86
+        },
+        {
+          "file": "resume-o2-v8-driver.go",
+          "line": 201
+        },
+        {
+          "file": "resume-o2-v8-driver.go",
+          "line": 211
+        },
+        {
+          "file": "resume-o2-v8-driver.go",
+          "line": 550
+        },
+        {
+          "file": "resume-o2-v8-driver.go",
+          "line": 712
+        }
+      ],
+      "errorKey": "suppressed",
+      "errorType": "*fmt.wrapError",
+      "phase": "operation-error"
+    },
+    {
+      "operationPhase": "marker-started",
+      "panicCategory": "operation-error",
+      "phase": "v8-failure-location",
+      "taskId": 1,
+      "verifierConnections": 3
+    },
+    {
+      "error": "operation or deadline; secret details suppressed",
+      "phase": "driver-failure"
+    },
+    {
+      "case": "revoke-host",
+      "failed": 1,
+      "negativePassed": 0,
+      "phase": "driver-result",
+      "positivePassed": 0
+    }
+  ],
+  "driverExitCode": 1,
+  "stderrPresent": false,
+  "missingOrFailedDriverSummary": true,
+  "missingAssertions": true,
+  "status": "failed",
+  "cleanup": {
+    "phase": "exact-owned-cleanup",
+    "directory": "/opt/pantheon-p0-20261109/o2-live-0e2ebc53350e-revoke-host",
+    "files": [
+      {
+        "file": ".owner",
+        "sha256": "3c5c47cfb2afbe1cf757c3b8374b1bee21acfe007f3e2c754ba930b33ff212ba",
+        "bytes": 32
+      },
+      {
+        "file": "started",
+        "sha256": "3c5c47cfb2afbe1cf757c3b8374b1bee21acfe007f3e2c754ba930b33ff212ba",
+        "bytes": 32
+      }
+    ],
+    "absent": true,
+    "processKill": false
+  }
+}

@@ -1,0 +1,123 @@
+?   	github.com/duanxldragon/pantheon-base/backend/modules/business/capability	[no test files]
+=== RUN   TestStateTransactionValidationRevisionAndLifecycle
+
+2026/11/10 14:49:44 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/service/service.go:607 [35;1mrecord not found
+[0m[33m[2.539ms] [34;1m[rows:0][0m SELECT * FROM `biz_service_instance` WHERE service_id IN (SELECT `id` FROM `biz_service` WHERE application_id IN (SELECT `id` FROM `biz_application` WHERE dept_id = 7 AND `biz_application`.`deleted_at` IS NULL) AND `biz_service`.`deleted_at` IS NULL) AND `biz_service_instance`.`id` = 1 AND `biz_service_instance`.`deleted_at` IS NULL ORDER BY `biz_service_instance`.`id` LIMIT 1
+
+2026/11/10 14:49:44 [34;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/service/state_transaction_test.go:98
+[0m[35m[warn] [0mremoving callback `bound_write` from D:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/service/state_transaction_test.go:98
+
+2026/11/10 14:49:44 [34;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/service/state_transaction_test.go:98
+[0m[35m[warn] [0mremoving callback `bound_read` from D:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/service/state_transaction_test.go:98
+
+2026/11/10 14:49:44 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/service/service.go:607 [35;1msql: transaction has already been committed or rolled back
+[0m[33m[0.000ms] [34;1m[rows:0][0m SELECT * FROM `biz_service_instance` WHERE service_id IN (SELECT `id` FROM `biz_service` WHERE application_id IN (SELECT `id` FROM `biz_application` WHERE `biz_application`.`deleted_at` IS NULL) AND `biz_service`.`deleted_at` IS NULL) AND `biz_service_instance`.`id` = 1 AND `biz_service_instance`.`deleted_at` IS NULL ORDER BY `biz_service_instance`.`id` LIMIT 1
+--- PASS: TestStateTransactionValidationRevisionAndLifecycle (0.29s)
+=== RUN   TestStateTransactionRejectsMissingTransactionAndCanceledContext
+--- PASS: TestStateTransactionRejectsMissingTransactionAndCanceledContext (0.18s)
+PASS
+ok  	github.com/duanxldragon/pantheon-base/backend/modules/business/service	1.547s
+=== RUN   TestDeployTaskRoutesServiceInstanceStateThroughTypedCommand
+
+2026/11/10 14:49:50 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/deploy_service.go:1956 [35;1mrecord not found
+[0m[33m[0.585ms] [34;1m[rows:0][0m SELECT * FROM `biz_deploy_task_step` WHERE task_id = 1 AND task_host_id = 1 AND step_key = 'package_default' ORDER BY `biz_deploy_task_step`.`id` LIMIT 1
+--- PASS: TestDeployTaskRoutesServiceInstanceStateThroughTypedCommand (1.11s)
+=== RUN   TestIndependentO2CancelBeforeFirstClaimSettles
+    independent_o2_regression_test.go:37: after cancel + recovery: task=canceled retained physical leases=0
+--- PASS: TestIndependentO2CancelBeforeFirstClaimSettles (1.17s)
+=== RUN   TestIndependentO2ServiceProjectionRollsBackWithFinish
+    independent_o2_regression_test.go:91: outer finish failed and deploy/CMDB rolled back; actual service instance=installing version= lifecycle=0
+--- PASS: TestIndependentO2ServiceProjectionRollsBackWithFinish (1.34s)
+=== RUN   TestServiceTransactionLinkedCompletionRollback
+=== RUN   TestServiceTransactionLinkedCompletionRollback/owned/commit
+
+2026/11/10 14:49:54 [34;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/service_transaction_test.go:138
+[0m[35m[warn] [0mremoving callback `linked_owner_written` from D:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/service_transaction_test.go:138
+
+2026/11/10 14:49:54 [34;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/service_transaction_test.go:138
+[0m[35m[warn] [0mremoving callback `linked_second_command` from D:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/service_transaction_test.go:138
+=== RUN   TestServiceTransactionLinkedCompletionRollback/owned/uninstall-second-command
+
+2026/11/10 14:49:55 [34;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/service_transaction_test.go:138
+[0m[35m[warn] [0mremoving callback `linked_owner_written` from D:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/service_transaction_test.go:138
+
+2026/11/10 14:49:55 [34;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/service_transaction_test.go:138
+[0m[35m[warn] [0mremoving callback `linked_second_command` from D:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/service_transaction_test.go:138
+=== RUN   TestServiceTransactionLinkedCompletionRollback/owned/after-retire
+
+2026/11/10 14:49:57 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/service/state.go:115 [35;1mlinked owner completion refused
+[0m[33m[0.635ms] [34;1m[rows:1][0m UPDATE `biz_service_instance` SET `current_version`='old',`desired_state`='retired',`desired_version`='1',`health_message`='',`health_observed_at`='2026-11-10 14:49:57.04',`health_revision`='',`health_state`='unknown',`last_transition_at`='2026-11-10 14:49:57.04',`last_transition_id`='deploy:1:retire',`lifecycle_version`=lifecycle_version + 1,`observed_state`='retired',`rollback_version`='',`updated_at`='2026-11-10 14:49:57.04',`updated_by`='test' WHERE id = 1 AND `biz_service_instance`.`deleted_at` IS NULL
+
+2026/11/10 14:49:57 [34;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/service_transaction_test.go:138
+[0m[35m[warn] [0mremoving callback `linked_owner_written` from D:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/service_transaction_test.go:138
+
+2026/11/10 14:49:57 [34;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/service_transaction_test.go:138
+[0m[35m[warn] [0mremoving callback `linked_second_command` from D:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/service_transaction_test.go:138
+=== RUN   TestServiceTransactionLinkedCompletionRollback/owned/owner-refusal
+
+2026/11/10 14:49:58 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/service/service.go:607 [35;1mcontext canceled
+[0m[33m[0.000ms] [34;1m[rows:0][0m SELECT * FROM `biz_service_instance` WHERE service_id IN (SELECT `id` FROM `biz_service` WHERE application_id IN (SELECT `id` FROM `biz_application` WHERE `biz_application`.`deleted_at` IS NULL) AND `biz_service`.`deleted_at` IS NULL) AND `biz_service_instance`.`id` = 1 AND `biz_service_instance`.`deleted_at` IS NULL ORDER BY `biz_service_instance`.`id` LIMIT 1
+
+2026/11/10 14:49:58 [34;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/service_transaction_test.go:138
+[0m[35m[warn] [0mremoving callback `linked_owner_written` from D:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/service_transaction_test.go:138
+
+2026/11/10 14:49:58 [34;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/service_transaction_test.go:138
+[0m[35m[warn] [0mremoving callback `linked_second_command` from D:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/service_transaction_test.go:138
+=== RUN   TestServiceTransactionLinkedCompletionRollback/owned/owner-deadline
+
+2026/11/10 14:50:00 [34;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/service_transaction_test.go:138
+[0m[35m[warn] [0mremoving callback `linked_owner_written` from D:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/service_transaction_test.go:138
+
+2026/11/10 14:50:00 [34;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/service_transaction_test.go:138
+[0m[35m[warn] [0mremoving callback `linked_second_command` from D:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/service_transaction_test.go:138
+=== RUN   TestServiceTransactionLinkedCompletionRollback/manual/commit
+
+2026/11/10 14:50:01 [34;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/service_transaction_test.go:138
+[0m[35m[warn] [0mremoving callback `linked_owner_written` from D:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/service_transaction_test.go:138
+
+2026/11/10 14:50:01 [34;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/service_transaction_test.go:138
+[0m[35m[warn] [0mremoving callback `linked_second_command` from D:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/service_transaction_test.go:138
+=== RUN   TestServiceTransactionLinkedCompletionRollback/manual/uninstall-second-command
+
+2026/11/10 14:50:02 [34;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/service_transaction_test.go:138
+[0m[35m[warn] [0mremoving callback `linked_owner_written` from D:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/service_transaction_test.go:138
+
+2026/11/10 14:50:02 [34;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/service_transaction_test.go:138
+[0m[35m[warn] [0mremoving callback `linked_second_command` from D:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/service_transaction_test.go:138
+=== RUN   TestServiceTransactionLinkedCompletionRollback/manual/after-retire
+
+2026/11/10 14:50:04 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/service/state.go:115 [35;1mlinked owner completion refused
+[0m[33m[0.549ms] [34;1m[rows:1][0m UPDATE `biz_service_instance` SET `current_version`='old',`desired_state`='retired',`desired_version`='1',`health_message`='',`health_observed_at`='2026-11-10 14:50:04.099',`health_revision`='',`health_state`='unknown',`last_transition_at`='2026-11-10 14:50:04.099',`last_transition_id`='deploy:1:retire',`lifecycle_version`=lifecycle_version + 1,`observed_state`='retired',`rollback_version`='',`updated_at`='2026-11-10 14:50:04.099',`updated_by`='test' WHERE id = 1 AND `biz_service_instance`.`deleted_at` IS NULL
+
+2026/11/10 14:50:04 [34;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/service_transaction_test.go:138
+[0m[35m[warn] [0mremoving callback `linked_owner_written` from D:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/service_transaction_test.go:138
+
+2026/11/10 14:50:04 [34;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/service_transaction_test.go:138
+[0m[35m[warn] [0mremoving callback `linked_second_command` from D:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/service_transaction_test.go:138
+--- PASS: TestServiceTransactionLinkedCompletionRollback (11.26s)
+    --- PASS: TestServiceTransactionLinkedCompletionRollback/owned/commit (1.58s)
+    --- PASS: TestServiceTransactionLinkedCompletionRollback/owned/uninstall-second-command (1.41s)
+    --- PASS: TestServiceTransactionLinkedCompletionRollback/owned/after-retire (1.18s)
+    --- PASS: TestServiceTransactionLinkedCompletionRollback/owned/owner-refusal (1.55s)
+    --- PASS: TestServiceTransactionLinkedCompletionRollback/owned/owner-deadline (1.68s)
+    --- PASS: TestServiceTransactionLinkedCompletionRollback/manual/commit (1.29s)
+    --- PASS: TestServiceTransactionLinkedCompletionRollback/manual/uninstall-second-command (1.21s)
+    --- PASS: TestServiceTransactionLinkedCompletionRollback/manual/after-retire (1.35s)
+=== RUN   TestServiceTransactionLinkedCompletionCommit
+=== RUN   TestServiceTransactionLinkedCompletionCommit/owned/install
+=== RUN   TestServiceTransactionLinkedCompletionCommit/owned/uninstall
+=== RUN   TestServiceTransactionLinkedCompletionCommit/manual/install
+=== RUN   TestServiceTransactionLinkedCompletionCommit/manual/uninstall
+--- PASS: TestServiceTransactionLinkedCompletionCommit (6.22s)
+    --- PASS: TestServiceTransactionLinkedCompletionCommit/owned/install (1.52s)
+    --- PASS: TestServiceTransactionLinkedCompletionCommit/owned/uninstall (1.62s)
+    --- PASS: TestServiceTransactionLinkedCompletionCommit/manual/install (1.62s)
+    --- PASS: TestServiceTransactionLinkedCompletionCommit/manual/uninstall (1.46s)
+=== RUN   TestServiceTransactionNonbindingRefusedBeforeMutation
+=== RUN   TestServiceTransactionNonbindingRefusedBeforeMutation/owned
+=== RUN   TestServiceTransactionNonbindingRefusedBeforeMutation/manual
+--- PASS: TestServiceTransactionNonbindingRefusedBeforeMutation (2.68s)
+    --- PASS: TestServiceTransactionNonbindingRefusedBeforeMutation/owned (1.27s)
+    --- PASS: TestServiceTransactionNonbindingRefusedBeforeMutation/manual (1.41s)
+PASS
+ok  	github.com/duanxldragon/pantheon-base/backend/modules/business/deploy	24.890s

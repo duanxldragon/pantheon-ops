@@ -1,0 +1,37 @@
+(!) Your Vite config uses features that are unsupported by `configLoader: 'native'`, which is planned to become the default in a future major version of Vite:
+  - `__dirname` (vitest.config.ts:10:25). Use `import.meta.dirname` instead
+Set `VITE_CONFIG_NATIVE_IGNORE_WARNING=true` to suppress this warning.
+
+ RUN  v5.0.5 D:/workspace/go/pantheon-platform/pantheon-ops/frontend
+
+ ❯ tests/unit/business/operational/deploy-preview.test.tsx (6 tests | 1 failed) 369ms
+   ❯ Deploy confirmation lifecycle (5)
+     × clears the previous intent while a different task review is pending 40ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/unit/business/operational/deploy-preview.test.tsx > Deploy confirmation lifecycle > clears the previous intent while a different task review is pending
+AssertionError: expected undefined to be true // Object.is equality
+
+- Expected:
+true
+
++ Received:
+undefined
+
+ ❯ tests/unit/business/operational/deploy-preview.test.tsx:33:95
+     31|   rerender(<DeployTaskPreview taskId={8} {...props} />);
+     32|   expect(screen.getByTestId('preview-state').textContent).toBe('loadin…
+     33|   expect((screen.getByText('business.deploy.preview.confirm') as HTMLB…
+       |                                                                                               ^
+     34|   expect(screen.queryByText('business.deploy.preview.scopeSummary')).t…
+     35|  });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 5 passed (6)
+   Start at  21:17:58
+   Duration  3.43s (import 49%, environment 33%, tests 11%, transform 7%)
+

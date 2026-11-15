@@ -1,0 +1,378 @@
+{
+  "case": "failure-retry",
+  "identity": "o2-live-b454c3a7a6ea-failure-retry",
+  "database": "ops_p0_o2_live_b454c3a7a6ea_failure_retry",
+  "databaseRetention": "retained; no drop",
+  "events": [
+    {
+      "credentialId": 1,
+      "packageId": 1,
+      "phase": "task-created",
+      "taskId": 1
+    },
+    {
+      "contextCanceled": false,
+      "deadlineExceeded": false,
+      "driverFrames": [
+        {
+          "file": "live-diagnostic-o2-v5.go",
+          "line": 239
+        },
+        {
+          "file": "live-diagnostic-o2-v5.go",
+          "line": 462
+        },
+        {
+          "file": "live-diagnostic-o2-v5.go",
+          "line": 648
+        }
+      ],
+      "errorType": "*errors.errorString",
+      "phase": "public-start-error"
+    },
+    {
+      "case": "failure-retry",
+      "check": "actual remote exit 17 makes task failed",
+      "kind": "negative",
+      "passed": true
+    },
+    {
+      "case": "failure-retry",
+      "check": "public current checkpoint and recorded safe history",
+      "kind": "positive",
+      "passed": true
+    },
+    {
+      "fieldTypes": {
+        "attemptNo": "float64",
+        "sequence": "float64",
+        "taskHostId": "float64",
+        "taskStepId": "float64"
+      },
+      "httpStatus": 200,
+      "kind": "logs",
+      "phase": "public-projection-structure",
+      "responseCode": 200
+    },
+    {
+      "case": "failure-retry",
+      "check": "public log sequence ownership attempts and secret exclusion",
+      "kind": "positive",
+      "passed": true
+    },
+    {
+      "case": "failure-retry",
+      "check": "both actual VM streams persisted",
+      "kind": "positive",
+      "passed": true
+    },
+    {
+      "fieldTypes": {},
+      "httpStatus": 200,
+      "kind": "logs",
+      "phase": "public-projection-structure",
+      "responseCode": 200
+    },
+    {
+      "case": "failure-retry",
+      "check": "log cursor excludes already delivered sequence",
+      "kind": "positive",
+      "passed": true
+    },
+    {
+      "fieldTypes": {
+        "attemptNo": "missing",
+        "sequence": "float64",
+        "taskHostId": "missing",
+        "taskStepId": "missing"
+      },
+      "httpStatus": 200,
+      "kind": "events",
+      "phase": "public-projection-structure",
+      "responseCode": 200
+    },
+    {
+      "case": "failure-retry",
+      "check": "public event sequence ordered across committed transitions",
+      "kind": "positive",
+      "passed": true
+    },
+    {
+      "fieldTypes": {},
+      "httpStatus": 200,
+      "kind": "events",
+      "phase": "public-projection-structure",
+      "responseCode": 200
+    },
+    {
+      "case": "failure-retry",
+      "check": "event reconnect cursor no replay at latest sequence",
+      "kind": "positive",
+      "passed": true
+    },
+    {
+      "attempts": [],
+      "eventTypes": [
+        "task.started",
+        "step.running",
+        "step.failed",
+        "task.completed"
+      ],
+      "finished": true,
+      "history": [
+        {
+          "id": 1,
+          "taskHostId": 1,
+          "stepKey": "package_default",
+          "stepOrder": 1,
+          "status": "failed",
+          "attemptNo": 1,
+          "stateVersion": 3,
+          "startedAt": "2026-11-09T16:51:01.399+08:00",
+          "finishedAt": "2026-11-09T16:51:02.534+08:00",
+          "capturedAt": "2026-11-09T16:51:02.539+08:00"
+        }
+      ],
+      "logCount": 2,
+      "phase": "persisted-state",
+      "status": "failed",
+      "steps": [
+        {
+          "id": 1,
+          "taskHostId": 1,
+          "stepKey": "package_default",
+          "stepOrder": 1,
+          "status": "failed",
+          "attemptNo": 1,
+          "stateVersion": 3,
+          "startedAt": "2026-11-09T16:51:01.399+08:00",
+          "finishedAt": "2026-11-09T16:51:02.534+08:00"
+        }
+      ],
+      "taskId": 1
+    },
+    {
+      "case": "failure-retry",
+      "check": "public current checkpoint and recorded safe history",
+      "kind": "positive",
+      "origin": "fresh-process",
+      "passed": true
+    },
+    {
+      "fieldTypes": {
+        "attemptNo": "float64",
+        "sequence": "float64",
+        "taskHostId": "float64",
+        "taskStepId": "float64"
+      },
+      "httpStatus": 200,
+      "kind": "logs",
+      "origin": "fresh-process",
+      "phase": "public-projection-structure",
+      "responseCode": 200
+    },
+    {
+      "case": "failure-retry",
+      "check": "public log sequence ownership attempts and secret exclusion",
+      "kind": "positive",
+      "origin": "fresh-process",
+      "passed": true
+    },
+    {
+      "case": "failure-retry",
+      "check": "both actual VM streams persisted",
+      "kind": "positive",
+      "origin": "fresh-process",
+      "passed": true
+    },
+    {
+      "fieldTypes": {},
+      "httpStatus": 200,
+      "kind": "logs",
+      "origin": "fresh-process",
+      "phase": "public-projection-structure",
+      "responseCode": 200
+    },
+    {
+      "case": "failure-retry",
+      "check": "log cursor excludes already delivered sequence",
+      "kind": "positive",
+      "origin": "fresh-process",
+      "passed": true
+    },
+    {
+      "fieldTypes": {
+        "attemptNo": "missing",
+        "sequence": "float64",
+        "taskHostId": "missing",
+        "taskStepId": "missing"
+      },
+      "httpStatus": 200,
+      "kind": "events",
+      "origin": "fresh-process",
+      "phase": "public-projection-structure",
+      "responseCode": 200
+    },
+    {
+      "case": "failure-retry",
+      "check": "public event sequence ordered across committed transitions",
+      "kind": "positive",
+      "origin": "fresh-process",
+      "passed": true
+    },
+    {
+      "fieldTypes": {},
+      "httpStatus": 200,
+      "kind": "events",
+      "origin": "fresh-process",
+      "phase": "public-projection-structure",
+      "responseCode": 200
+    },
+    {
+      "case": "failure-retry",
+      "check": "event reconnect cursor no replay at latest sequence",
+      "kind": "positive",
+      "origin": "fresh-process",
+      "passed": true
+    },
+    {
+      "attempts": [],
+      "eventTypes": [
+        "task.started",
+        "step.running",
+        "step.failed",
+        "task.completed"
+      ],
+      "finished": true,
+      "history": [
+        {
+          "attemptNo": 1,
+          "capturedAt": "2026-11-09T16:51:02.539+08:00",
+          "finishedAt": "2026-11-09T16:51:02.534+08:00",
+          "id": 1,
+          "startedAt": "2026-11-09T16:51:01.399+08:00",
+          "stateVersion": 3,
+          "status": "failed",
+          "stepKey": "package_default",
+          "stepOrder": 1,
+          "taskHostId": 1
+        }
+      ],
+      "logCount": 2,
+      "origin": "fresh-process",
+      "phase": "persisted-state",
+      "status": "failed",
+      "steps": [
+        {
+          "attemptNo": 1,
+          "finishedAt": "2026-11-09T16:51:02.534+08:00",
+          "id": 1,
+          "startedAt": "2026-11-09T16:51:01.399+08:00",
+          "stateVersion": 3,
+          "status": "failed",
+          "stepKey": "package_default",
+          "stepOrder": 1,
+          "taskHostId": 1
+        }
+      ],
+      "taskId": 1
+    },
+    {
+      "case": "failure-retry",
+      "failed": 0,
+      "negativePassed": 0,
+      "origin": "fresh-process",
+      "phase": "driver-result",
+      "positivePassed": 6
+    },
+    {
+      "case": "failure-retry",
+      "check": "new OS process inspect uses committed task state",
+      "kind": "positive",
+      "passed": true
+    },
+    {
+      "case": "failure-retry",
+      "check": "failed partial install inverse obeys host state policy",
+      "kind": "negative",
+      "passed": true
+    },
+    {
+      "action": "retry",
+      "errorKey": "",
+      "phase": "control",
+      "taskId": 1
+    },
+    {
+      "errorChainTypes": [
+        "*fmt.wrapError",
+        "*errors.errorString"
+      ],
+      "errorType": "*fmt.wrapError",
+      "phase": "independent-ssh-error",
+      "stage": "dial-handshake"
+    },
+    {
+      "contextCanceled": false,
+      "deadlineExceeded": false,
+      "driverFrames": [
+        {
+          "file": "live-diagnostic-o2-v5.go",
+          "line": 79
+        },
+        {
+          "file": "live-diagnostic-o2-v5.go",
+          "line": 167
+        },
+        {
+          "file": "live-diagnostic-o2-v5.go",
+          "line": 477
+        },
+        {
+          "file": "live-diagnostic-o2-v5.go",
+          "line": 648
+        }
+      ],
+      "errorKey": "suppressed",
+      "errorType": "*fmt.wrapError",
+      "phase": "operation-error"
+    },
+    {
+      "error": "operation or deadline; secret details suppressed",
+      "phase": "driver-failure"
+    },
+    {
+      "case": "failure-retry",
+      "failed": 1,
+      "negativePassed": 2,
+      "phase": "driver-result",
+      "positivePassed": 7
+    }
+  ],
+  "driverExitCode": 1,
+  "stderrPresent": false,
+  "status": "failed",
+  "cleanup": {
+    "phase": "exact-owned-cleanup",
+    "directory": "/opt/pantheon-p0-20261109/o2-live-b454c3a7a6ea-failure-retry",
+    "files": [
+      {
+        "file": "gate",
+        "sha256": "d8b01a2b13ebab9c4c78e80fafdda5df6aa3b1fb66536322afb771c014382954",
+        "bytes": 34
+      },
+      {
+        "file": ".owner",
+        "sha256": "d8b01a2b13ebab9c4c78e80fafdda5df6aa3b1fb66536322afb771c014382954",
+        "bytes": 34
+      },
+      {
+        "file": "done",
+        "sha256": "d8b01a2b13ebab9c4c78e80fafdda5df6aa3b1fb66536322afb771c014382954",
+        "bytes": 34
+      }
+    ],
+    "absent": true,
+    "processKill": false
+  }
+}

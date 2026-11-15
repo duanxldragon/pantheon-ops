@@ -1,0 +1,59 @@
+{
+  "database": "ops_planned_final_versioned",
+  "endpoint": "http://127.0.0.1:24485/api/v1",
+  "match": "^deploy-detail-edit-[0-9]{13}-task$",
+  "removed": [
+    {
+      "id": 97,
+      "name": "deploy-detail-edit-1794054161428-task",
+      "status": "draft"
+    },
+    {
+      "id": 87,
+      "name": "deploy-detail-edit-1794053662780-task",
+      "status": "draft"
+    },
+    {
+      "id": 83,
+      "name": "deploy-detail-edit-1794053355126-task",
+      "status": "draft"
+    },
+    {
+      "id": 70,
+      "name": "deploy-detail-edit-1794053191744-task",
+      "status": "draft"
+    },
+    {
+      "id": 49,
+      "name": "deploy-detail-edit-1794044947273-task",
+      "status": "draft"
+    },
+    {
+      "id": 39,
+      "name": "deploy-detail-edit-1794044387311-task",
+      "status": "draft"
+    },
+    {
+      "id": 23,
+      "name": "deploy-detail-edit-1794042271181-task",
+      "status": "draft"
+    },
+    {
+      "id": 17,
+      "name": "deploy-detail-edit-1794042139599-task",
+      "status": "draft"
+    },
+    {
+      "id": 11,
+      "name": "deploy-detail-edit-1794041844509-task",
+      "status": "draft"
+    },
+    {
+      "id": 5,
+      "name": "deploy-detail-edit-1794041697580-task",
+      "status": "draft"
+    }
+  ],
+  "remainingMatches": [],
+  "otherFixtureData": "retained; original scoped cleanup attachments and historical gaps remain"
+}

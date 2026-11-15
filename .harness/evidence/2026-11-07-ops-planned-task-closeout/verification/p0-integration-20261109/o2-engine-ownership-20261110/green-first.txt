@@ -1,0 +1,13 @@
+=== RUN   TestOwnershipComponentSnapshot
+--- PASS: TestOwnershipComponentSnapshot (1.34s)
+=== RUN   TestMarkHostResultDefersTerminalTaskUntilActiveAttemptFinishes
+    deploy_reliability_test.go:87: mark host result: business.deploy.taskHost.staleReport
+--- FAIL: TestMarkHostResultDefersTerminalTaskUntilActiveAttemptFinishes (1.30s)
+=== RUN   TestDeployTaskExecutionSnapshotFrozenAgainstLiveMutation
+
+2026/11/10 13:17:18 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/deploy_service.go:1910 [35;1mrecord not found
+[0m[33m[0.526ms] [34;1m[rows:0][0m SELECT * FROM `biz_deploy_task_step` WHERE task_id = 1 AND task_host_id = 1 AND step_key = 'package_default' ORDER BY `biz_deploy_task_step`.`id` LIMIT 1
+--- PASS: TestDeployTaskExecutionSnapshotFrozenAgainstLiveMutation (1.47s)
+FAIL
+FAIL	github.com/duanxldragon/pantheon-base/backend/modules/business/deploy	4.261s
+FAIL

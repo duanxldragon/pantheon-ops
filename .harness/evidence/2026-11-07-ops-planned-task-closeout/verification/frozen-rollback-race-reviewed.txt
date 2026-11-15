@@ -1,0 +1,23 @@
+=== RUN   TestFrozenRollbackPreservesDefinitionAndOwnReview
+
+2026/11/07 21:47:03 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/deploy_service.go:1897 [35;1mrecord not found
+[0m[33m[0.519ms] [34;1m[rows:0][0m SELECT * FROM `biz_deploy_task_step` WHERE task_id = 2 AND task_host_id = 1 AND step_key = 'default' ORDER BY `biz_deploy_task_step`.`id` LIMIT 1
+--- PASS: TestFrozenRollbackPreservesDefinitionAndOwnReview (1.38s)
+=== RUN   TestFrozenRollbackRejectsScopeAndCancellationWithoutRows
+--- PASS: TestFrozenRollbackRejectsScopeAndCancellationWithoutRows (1.30s)
+=== RUN   TestFrozenRollbackRejectsUnsupportedAndUnreadablePlans
+=== RUN   TestFrozenRollbackRejectsUnsupportedAndUnreadablePlans/malformed
+=== RUN   TestFrozenRollbackRejectsUnsupportedAndUnreadablePlans/multiple
+=== RUN   TestFrozenRollbackRejectsUnsupportedAndUnreadablePlans/script
+=== RUN   TestFrozenRollbackRejectsUnsupportedAndUnreadablePlans/conditional
+=== RUN   TestFrozenRollbackRejectsUnsupportedAndUnreadablePlans/no-inverse
+=== RUN   TestFrozenRollbackRejectsUnsupportedAndUnreadablePlans/unreadable-secret
+--- PASS: TestFrozenRollbackRejectsUnsupportedAndUnreadablePlans (8.82s)
+    --- PASS: TestFrozenRollbackRejectsUnsupportedAndUnreadablePlans/malformed (1.30s)
+    --- PASS: TestFrozenRollbackRejectsUnsupportedAndUnreadablePlans/multiple (1.55s)
+    --- PASS: TestFrozenRollbackRejectsUnsupportedAndUnreadablePlans/script (1.49s)
+    --- PASS: TestFrozenRollbackRejectsUnsupportedAndUnreadablePlans/conditional (1.48s)
+    --- PASS: TestFrozenRollbackRejectsUnsupportedAndUnreadablePlans/no-inverse (1.48s)
+    --- PASS: TestFrozenRollbackRejectsUnsupportedAndUnreadablePlans/unreadable-secret (1.53s)
+PASS
+ok  	github.com/duanxldragon/pantheon-base/backend/modules/business/deploy	12.591s

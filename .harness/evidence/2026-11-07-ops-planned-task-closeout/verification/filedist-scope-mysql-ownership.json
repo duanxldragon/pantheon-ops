@@ -1,0 +1,15 @@
+{
+  "runtimeRoot": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.tmp\\ops-planned-cmdb-services",
+  "port": 33316,
+  "mysqlPid": 23412,
+  "identityVerified": true,
+  "purpose": "FileDist DataScope handler/MySQL regression and full race",
+  "settings": [
+    1,
+    1
+  ],
+  "state": "stopped",
+  "datadir": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.tmp\\ops-planned-cmdb-services\\mysql-data",
+  "listenerPid": 22632,
+  "restoreRequired": false
+}

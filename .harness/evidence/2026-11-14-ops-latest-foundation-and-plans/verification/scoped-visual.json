@@ -1,0 +1,12 @@
+{
+  "checkerSHA256": "e68c6d07ebdcb8e84598d657de294543b86ee785b6fbb1d51b3ece9338406d1d",
+  "scope": [
+    "2026-11-14-ops-latest-foundation-and-plans",
+    "2026-11-13-ops-business-menu-ia-refactor"
+  ],
+  "rootRegistryExitCode": 1,
+  "rootRegistryPassed": false,
+  "scopedOnlyPassed": true,
+  "scopedFindings": [],
+  "scopeCount": 2
+}

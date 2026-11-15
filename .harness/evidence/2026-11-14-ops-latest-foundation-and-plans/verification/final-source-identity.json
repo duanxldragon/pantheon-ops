@@ -1,0 +1,9 @@
+{
+  "backendFiles": 836,
+  "backendMatchesPreBuildPins": true,
+  "backendSourceSHA256": "a4c072d2aef8c64cb8fbc2221746e138d12d2f920962751b4b5baf9134785c68",
+  "frontendOwnedPinsChecked": 165,
+  "frontendOwnedFilesMatchAssemblyPins": true,
+  "candidateReportSHA256": "36c803cd5f09c09cf4b3d870898026d068facf976c8d3be3a38ba9448fb737ce",
+  "activeRelease": "pantheon-base-v0.18.6"
+}

@@ -1,0 +1,9 @@
+{
+  "exitCode": 1,
+  "testMethods": 2,
+  "failingAssertions": 5,
+  "errors": 0,
+  "skips": 0,
+  "aggregationCorrection": "Initial wrapper expected two method failures; unittest counts four gate subtest failures plus one inspection failure. Original output retained.",
+  "log": "independent-review-regressions.log"
+}

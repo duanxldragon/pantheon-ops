@@ -1,0 +1,376 @@
+{
+  "languageServer": "pyright",
+  "version": "1.1.414",
+  "protocol": "LSP stdio JSON-RPC",
+  "settings": {
+    "diagnosticMode": "openFilesOnly",
+    "typeCheckingMode": "basic",
+    "autoSearchPaths": true,
+    "useLibraryCodeForTypes": true
+  },
+  "sourceFiles": [
+    {
+      "path": ".local/ops-acceptance/argo-adoption-v2-root-run.py",
+      "sha256": "7957878150d1d84b449fd7a8a0c8d277d34dc71a0c5eb999c00adbdc27d02419",
+      "stable": true,
+      "diagnostics": [
+        {
+          "range": {
+            "start": {
+              "line": 190,
+              "character": 9
+            },
+            "end": {
+              "line": 190,
+              "character": 15
+            }
+          },
+          "message": "Import \"remote\" could not be resolved",
+          "severity": 1,
+          "code": "reportMissingImports",
+          "source": "Pyright",
+          "codeDescription": {
+            "href": "https://github.com/microsoft/pyright/blob/main/docs/configuration.md#reportMissingImports"
+          }
+        },
+        {
+          "range": {
+            "start": {
+              "line": 158,
+              "character": 26
+            },
+            "end": {
+              "line": 158,
+              "character": 32
+            }
+          },
+          "message": "\"decode\" is not a known attribute of \"None\"",
+          "severity": 1,
+          "code": "reportOptionalMemberAccess",
+          "source": "Pyright",
+          "codeDescription": {
+            "href": "https://github.com/microsoft/pyright/blob/main/docs/configuration.md#reportOptionalMemberAccess"
+          }
+        }
+      ]
+    },
+    {
+      "path": ".local/ops-acceptance/argo-adoption-v2-deploy-test.py",
+      "sha256": "851bd8c8139b503138cf24567d9c687d4f48adbf0bf90848d562404a860743f8",
+      "stable": true,
+      "diagnostics": [
+        {
+          "range": {
+            "start": {
+              "line": 20,
+              "character": 41
+            },
+            "end": {
+              "line": 20,
+              "character": 45
+            }
+          },
+          "message": "Argument of type \"ModuleSpec | None\" cannot be assigned to parameter \"spec\" of type \"ModuleSpec\" in function \"module_from_spec\"\n\u00a0\u00a0Type \"ModuleSpec | None\" is not assignable to type \"ModuleSpec\"\n\u00a0\u00a0\u00a0\u00a0\"None\" is not assignable to \"ModuleSpec\"",
+          "severity": 1,
+          "code": "reportArgumentType",
+          "source": "Pyright",
+          "codeDescription": {
+            "href": "https://github.com/microsoft/pyright/blob/main/docs/configuration.md#reportArgumentType"
+          }
+        },
+        {
+          "range": {
+            "start": {
+              "line": 21,
+              "character": 5
+            },
+            "end": {
+              "line": 21,
+              "character": 11
+            }
+          },
+          "message": "\"loader\" is not a known attribute of \"None\"",
+          "severity": 1,
+          "code": "reportOptionalMemberAccess",
+          "source": "Pyright",
+          "codeDescription": {
+            "href": "https://github.com/microsoft/pyright/blob/main/docs/configuration.md#reportOptionalMemberAccess"
+          }
+        },
+        {
+          "range": {
+            "start": {
+              "line": 21,
+              "character": 12
+            },
+            "end": {
+              "line": 21,
+              "character": 23
+            }
+          },
+          "message": "\"exec_module\" is not a known attribute of \"None\"",
+          "severity": 1,
+          "code": "reportOptionalMemberAccess",
+          "source": "Pyright",
+          "codeDescription": {
+            "href": "https://github.com/microsoft/pyright/blob/main/docs/configuration.md#reportOptionalMemberAccess"
+          }
+        },
+        {
+          "range": {
+            "start": {
+              "line": 106,
+              "character": 19
+            },
+            "end": {
+              "line": 106,
+              "character": 26
+            }
+          },
+          "message": "Cannot assign to attribute \"channel\" for class \"BytesIO\"\n\u00a0\u00a0Attribute \"channel\" is unknown",
+          "severity": 1,
+          "code": "reportAttributeAccessIssue",
+          "source": "Pyright",
+          "codeDescription": {
+            "href": "https://github.com/microsoft/pyright/blob/main/docs/configuration.md#reportAttributeAccessIssue"
+          }
+        },
+        {
+          "range": {
+            "start": {
+              "line": 367,
+              "character": 41
+            },
+            "end": {
+              "line": 367,
+              "character": 54
+            }
+          },
+          "message": "Cannot assign to attribute \"exit_status_ready\" for class \"Channel\"\n\u00a0\u00a0Type \"() -> Literal[False]\" is not assignable to type \"() -> Literal[True]\"\n\u00a0\u00a0\u00a0\u00a0Function return type \"Literal[False]\" is incompatible with type \"Literal[True]\"\n\u00a0\u00a0\u00a0\u00a0\u00a0\u00a0\"Literal[False]\" is not assignable to type \"Literal[True]\"",
+          "severity": 1,
+          "code": "reportAttributeAccessIssue",
+          "source": "Pyright",
+          "codeDescription": {
+            "href": "https://github.com/microsoft/pyright/blob/main/docs/configuration.md#reportAttributeAccessIssue"
+          }
+        }
+      ]
+    },
+    {
+      "path": ".local/ops-acceptance/argo-adoption-v2-verify.py",
+      "sha256": "3a69d2b33a0524c43aa7859c30b5a82d8c884d169629c021c0f954b7410d5e79",
+      "stable": true,
+      "diagnostics": []
+    },
+    {
+      "path": ".local/ops-acceptance/argo-reviewed-live-v3-contract.py",
+      "sha256": "5adb78dededc09860f5e0ece51c693e781019b1903f08a49e23d3b8e31717cbb",
+      "stable": true,
+      "diagnostics": []
+    },
+    {
+      "path": ".local/ops-acceptance/argo-reviewed-live-v3-prepare.py",
+      "sha256": "1146ebb810eb88a89825d084ccc70a8de29f683a8daba197f318aa2f5a1abe2e",
+      "stable": true,
+      "diagnostics": [
+        {
+          "range": {
+            "start": {
+              "line": 26,
+              "character": 12
+            },
+            "end": {
+              "line": 26,
+              "character": 122
+            }
+          },
+          "message": "Operator \"+\" not supported for types \"Literal['import re\\nfrom urllib.parse import parse_qs, urlsp\u2026']\" and \"str | None\"\n\u00a0\u00a0Operator \"+\" not supported for types \"Literal['import re\\nfrom urllib.parse import parse_qs, urlsp\u2026']\" and \"None\"",
+          "severity": 1,
+          "code": "reportOperatorIssue",
+          "source": "Pyright",
+          "codeDescription": {
+            "href": "https://github.com/microsoft/pyright/blob/main/docs/configuration.md#reportOperatorIssue"
+          }
+        }
+      ]
+    },
+    {
+      "path": ".local/ops-acceptance/argo-reviewed-live-v3-test.py",
+      "sha256": "646fd2d542314867bc6287bc55cf7c853240ee7c20a6db5c9608ae7ea876927c",
+      "stable": true,
+      "diagnostics": [
+        {
+          "range": {
+            "start": {
+              "line": 7,
+              "character": 43
+            },
+            "end": {
+              "line": 7,
+              "character": 47
+            }
+          },
+          "message": "Argument of type \"ModuleSpec | None\" cannot be assigned to parameter \"spec\" of type \"ModuleSpec\" in function \"module_from_spec\"\n\u00a0\u00a0Type \"ModuleSpec | None\" is not assignable to type \"ModuleSpec\"\n\u00a0\u00a0\u00a0\u00a0\"None\" is not assignable to \"ModuleSpec\"",
+          "severity": 1,
+          "code": "reportArgumentType",
+          "source": "Pyright",
+          "codeDescription": {
+            "href": "https://github.com/microsoft/pyright/blob/main/docs/configuration.md#reportArgumentType"
+          }
+        },
+        {
+          "range": {
+            "start": {
+              "line": 8,
+              "character": 5
+            },
+            "end": {
+              "line": 8,
+              "character": 11
+            }
+          },
+          "message": "\"loader\" is not a known attribute of \"None\"",
+          "severity": 1,
+          "code": "reportOptionalMemberAccess",
+          "source": "Pyright",
+          "codeDescription": {
+            "href": "https://github.com/microsoft/pyright/blob/main/docs/configuration.md#reportOptionalMemberAccess"
+          }
+        },
+        {
+          "range": {
+            "start": {
+              "line": 8,
+              "character": 12
+            },
+            "end": {
+              "line": 8,
+              "character": 23
+            }
+          },
+          "message": "\"exec_module\" is not a known attribute of \"None\"",
+          "severity": 1,
+          "code": "reportOptionalMemberAccess",
+          "source": "Pyright",
+          "codeDescription": {
+            "href": "https://github.com/microsoft/pyright/blob/main/docs/configuration.md#reportOptionalMemberAccess"
+          }
+        }
+      ]
+    },
+    {
+      "path": ".local/ops-acceptance/argo-reviewed-live-v3.py",
+      "sha256": "cac63af2fd12b241f7dd5b2b18fba9d445c318cc731cf90924b8b493de34f135",
+      "stable": true,
+      "diagnostics": [
+        {
+          "range": {
+            "start": {
+              "line": 191,
+              "character": 9
+            },
+            "end": {
+              "line": 191,
+              "character": 15
+            }
+          },
+          "message": "Import \"remote\" could not be resolved",
+          "severity": 1,
+          "code": "reportMissingImports",
+          "source": "Pyright",
+          "codeDescription": {
+            "href": "https://github.com/microsoft/pyright/blob/main/docs/configuration.md#reportMissingImports"
+          }
+        }
+      ]
+    },
+    {
+      "path": ".local/ops-acceptance/argo-reviewed-remote-staged-v3.py",
+      "sha256": "7e7a705db1d1fe4b2f41845788199a838769f2e91c092b766ab5228b570b6aa7",
+      "stable": true,
+      "diagnostics": [
+        {
+          "range": {
+            "start": {
+              "line": 236,
+              "character": 10
+            },
+            "end": {
+              "line": 236,
+              "character": 13
+            }
+          },
+          "message": "Object of type \"(kind: Unknown, body: Unknown) -> str\" is not subscriptable",
+          "severity": 1,
+          "code": "reportIndexIssue",
+          "source": "Pyright",
+          "codeDescription": {
+            "href": "https://github.com/microsoft/pyright/blob/main/docs/configuration.md#reportIndexIssue"
+          }
+        },
+        {
+          "range": {
+            "start": {
+              "line": 236,
+              "character": 54
+            },
+            "end": {
+              "line": 236,
+              "character": 57
+            }
+          },
+          "message": "Object of type \"(kind: Unknown, body: Unknown) -> str\" is not subscriptable",
+          "severity": 1,
+          "code": "reportIndexIssue",
+          "source": "Pyright",
+          "codeDescription": {
+            "href": "https://github.com/microsoft/pyright/blob/main/docs/configuration.md#reportIndexIssue"
+          }
+        },
+        {
+          "range": {
+            "start": {
+              "line": 236,
+              "character": 128
+            },
+            "end": {
+              "line": 236,
+              "character": 131
+            }
+          },
+          "message": "Object of type \"(kind: Unknown, body: Unknown) -> str\" is not subscriptable",
+          "severity": 1,
+          "code": "reportIndexIssue",
+          "source": "Pyright",
+          "codeDescription": {
+            "href": "https://github.com/microsoft/pyright/blob/main/docs/configuration.md#reportIndexIssue"
+          }
+        },
+        {
+          "range": {
+            "start": {
+              "line": 251,
+              "character": 10
+            },
+            "end": {
+              "line": 251,
+              "character": 34
+            }
+          },
+          "message": "Operator \"/\" not supported for types \"Unbound | Path\" and \"Literal['refs/heads/main']\"\n\u00a0\u00a0Operator \"/\" not supported for types \"Unbound\" and \"Literal['refs/heads/main']\"",
+          "severity": 1,
+          "code": "reportOperatorIssue",
+          "source": "Pyright",
+          "codeDescription": {
+            "href": "https://github.com/microsoft/pyright/blob/main/docs/configuration.md#reportOperatorIssue"
+          }
+        }
+      ]
+    }
+  ],
+  "exitCode": 1,
+  "runtimeExecuted": false,
+  "errorCount": 16,
+  "warningCount": 0,
+  "seconds": 4.703
+}

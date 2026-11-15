@@ -1,0 +1,64 @@
+--- original/resume-velero-s3-remote.py
++++ v2/resume-velero-s3-v2-remote.py
+@@ -50,12 +50,57 @@
+ 
+ def private_ip():
+     networks = [ipaddress.ip_network(x) for x in ['10.0.0.0/8', '172.16.0.0/12', '192.168.0.0/16']]
+-    candidates = {a['local'] for link in json.loads(command(['ip', '-j', 'address', 'show', 'scope', 'global']))
+-        if link['ifname'].startswith(('eth', 'en')) for a in link['addr_info']
+-        if a['family'] == 'inet' and any(ipaddress.ip_address(a['local']) in n for n in networks)}
++    # Native IPv4 selection supports iproute2 JSON that omits family.
++    def unique_fields(pairs):
++        value = {}
++        for key, item in pairs:
++            if key in value:
++                raise ValueError('duplicate-address-json-field')
++            value[key] = item
++        return value
++    raw = command(['ip', '-j', '-4', 'address', 'show', 'scope', 'global'])
++    if len(raw) > 64 * 1024:
++        raise ValueError('address-json-bound')
++    try:
++        links = json.loads(raw, object_pairs_hook=unique_fields)
++    except (TypeError, json.JSONDecodeError) as exc:
++        raise ValueError('malformed-address-json') from exc
++    if not isinstance(links, list):
++        raise ValueError('address-interface-list-required')
++    candidates = []
++    seen_interfaces = set()
++    for link in links:
++        if not isinstance(link, dict):
++            raise ValueError('address-interface-object-required')
++        interface = link.get('ifname')
++        if not isinstance(interface, str) or not re.fullmatch(r'(?:eth[0-9]+|en[A-Za-z0-9]+)', interface):
++            raise ValueError('approved-vm-interface-required')
++        if interface in seen_interfaces:
++            raise ValueError('duplicate-vm-interface')
++        seen_interfaces.add(interface)
++        addresses = link.get('addr_info')
++        if not isinstance(addresses, list):
++            raise ValueError('address-info-list-required')
++        for address in addresses:
++            if not isinstance(address, dict):
++                raise ValueError('address-object-required')
++            if 'family' in address and address['family'] != 'inet':
++                raise ValueError('ipv4-family-required')
++            if 'scope' in address and address['scope'] != 'global':
++                raise ValueError('global-address-scope-required')
++            local = address.get('local')
++            if not isinstance(local, str):
++                raise ValueError('ipv4-local-string-required')
++            try:
++                parsed = ipaddress.IPv4Address(local)
++            except ipaddress.AddressValueError as exc:
++                raise ValueError('valid-ipv4-local-required') from exc
++            if str(parsed) != local or not any(parsed in network for network in networks):
++                raise ValueError('rfc1918-vm-address-required')
++            candidates.append(local)
+     if len(candidates) != 1:
+         raise ValueError('unique-private-vm-address-required')
+-    return candidates.pop()
++    return candidates[0]
+ 
+ def absent(kind, name, namespace=None):
+     args = ['kubectl', '--request-timeout=20s', 'get', kind, name]

@@ -1,0 +1,54 @@
+{
+  "exitCode": 0,
+  "logs": [
+    {
+      "level": "log",
+      "text": "ALLOWLIST_NOT_COMPARED frontend/package.json (outside selected shared path coverage; no equality claim)"
+    },
+    {
+      "level": "log",
+      "text": "ALLOWLIST_NOT_COMPARED frontend/scripts/cleanup-generated-modules.mjs (outside selected shared path coverage; no equality claim)"
+    },
+    {
+      "level": "log",
+      "text": "ALLOWLIST_NOT_COMPARED frontend/tests/smoke/README.md (outside selected shared path coverage; no equality claim)"
+    },
+    {
+      "level": "log",
+      "text": "DERIVED_BUSINESS_VERIFIED 19 canonical assembler outputs (report hashes checked)"
+    },
+    {
+      "level": "log",
+      "text": "LEGACY_ALLOWLIST_SUPERSEDED backend/modules/business/business.go (canonical assembly verified; entry grants no exemption)"
+    },
+    {
+      "level": "log",
+      "text": "LEGACY_ALLOWLIST_SUPERSEDED backend/modules/business/business_overlay_registry.go (canonical assembly verified; entry grants no exemption)"
+    },
+    {
+      "level": "log",
+      "text": "LEGACY_ALLOWLIST_SUPERSEDED backend/modules/system/iam/menu/business_overlay_component_registry.go (canonical assembly verified; entry grants no exemption)"
+    },
+    {
+      "level": "log",
+      "text": "LEGACY_ALLOWLIST_SUPERSEDED backend/modules/system/iam/menu/component_registry.go (canonical assembly verified; entry grants no exemption)"
+    },
+    {
+      "level": "log",
+      "text": "LEGACY_ALLOWLIST_SUPERSEDED frontend/src/core/router/businessOverlayComponentRegistry.ts (canonical assembly verified; entry grants no exemption)"
+    },
+    {
+      "level": "log",
+      "text": "LEGACY_ALLOWLIST_SUPERSEDED frontend/src/core/router/componentRegistry.ts (canonical assembly verified; entry grants no exemption)"
+    },
+    {
+      "level": "log",
+      "text": "LEGACY_ALLOWLIST_SUPERSEDED frontend/src/core/router/modules.ts (canonical assembly verified; entry grants no exemption)"
+    },
+    {
+      "level": "log",
+      "text": "OK shared drift check: 801 shared files compared, 801 identical to base, 0 allowlisted drift, 313 business-overlay files skipped, 10 derived business migrations verified (base=D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.tmp\\foundation-candidates\\candidate-4315cee606c249a42c8a3372c26dee9a4658a9259229485de85953430c7f439f\\snapshot)"
+    }
+  ],
+  "note": "Read-only checker on immutable failed original; this is not assembly/runtime success."
+}

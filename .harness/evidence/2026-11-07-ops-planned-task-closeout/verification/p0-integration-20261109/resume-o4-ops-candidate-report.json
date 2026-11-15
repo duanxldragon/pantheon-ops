@@ -1,0 +1,237 @@
+{
+  "schemaVersion": 1,
+  "recordedAt": "2026-11-09T10:02:08.108810+00:00",
+  "status": "ops-candidate-tooling-verified-independent-review-and-paired-runtime-open",
+  "tier": "L2",
+  "role": "Generator/executor",
+  "linkage": {
+    "opsParent": ".harness/tasks/2026-11-07-ops-planned-task-closeout/manifest.json",
+    "baseParent": "../pantheon-base/.harness/tasks/2026-11-07-ops-formal-queue-foundation-gaps/manifest.json",
+    "planPath": "..\\pantheon-base\\.harness\\tasks\\2026-11-07-ops-formal-queue-foundation-gaps\\o4-tenant-implementation-plan.md",
+    "planSha256": "9aaa0e53b43c040a4d04949693d3ef6ab4b086336fe953c3e04105400e4caaf7",
+    "baseToolingHandoff": "../pantheon-base/.harness/evidence/2026-11-07-ops-formal-queue-foundation-gaps/resume-o4-candidate-tooling.md"
+  },
+  "scope": [
+    "scripts/business-overlay/foundation-candidate.mjs",
+    "scripts/business-overlay/rebuild-from-candidate.mjs",
+    "scripts/business-overlay/foundation-candidate.test.mjs"
+  ],
+  "sourceReceipt": "resume-o4-ops-candidate-source-receipt.json",
+  "sourceReceiptSha256": "7e767a899855c8c0ecddf1695eb15f6dc7dd4b050d347a327f21a1a16c83b8d5",
+  "sourceExports": {
+    "scripts/business-overlay/foundation-candidate.mjs": [
+      "LIMITS",
+      "sha256",
+      "aggregateSha256",
+      "CAPABILITY_EXPORTS",
+      "assertCandidatePath",
+      "assertRealPath",
+      "assertInventory",
+      "candidateExports",
+      "validateCandidateDescriptor",
+      "readCandidateDescriptor",
+      "verifyCandidateArchive",
+      "verifyCandidateExecutable",
+      "readStableFile",
+      "assertRelativeInput",
+      "captureInputs",
+      "resolveCandidateArtifact",
+      "removeCandidateStage"
+    ],
+    "scripts/business-overlay/rebuild-from-candidate.mjs": [
+      "rebuildFromCandidate"
+    ],
+    "scripts/business-overlay/foundation-candidate.test.mjs": []
+  },
+  "commands": [
+    {
+      "command": "node --test scripts/business-overlay/foundation-candidate.test.mjs",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+      "exitCode": 1,
+      "log": "resume-o4-ops-candidate-tests-initial.txt",
+      "logSha256": "766d31d5fff97c431e106de2b4486c87797925e749f0f985e68c37ddad0569fe",
+      "classification": "fixture-error-retained",
+      "tests": 46,
+      "pass": 44,
+      "fail": 2,
+      "skipped": 0,
+      "cancelled": 0,
+      "duration_ms": 61314.2801
+    },
+    {
+      "command": "node --test scripts/business-overlay/foundation-candidate.test.mjs",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+      "exitCode": 0,
+      "log": "resume-o4-ops-candidate-tests-green.txt",
+      "logSha256": "2303fcfdcbb8540c4ba46336d2b6450117c57683bc8dd6bf988aee14f1c8751d",
+      "tests": 46,
+      "pass": 46,
+      "fail": 0,
+      "skipped": 0,
+      "cancelled": 0,
+      "duration_ms": 62131.7762
+    },
+    {
+      "command": "node --test scripts/business-overlay/foundation-candidate.test.mjs",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+      "exitCode": 0,
+      "log": "resume-o4-ops-candidate-tests-final.txt",
+      "logSha256": "bae1710eec1b773d24adcef90c8f29f4d0eb6cbf6d3122e6f3dd67e41a729b2f",
+      "tests": 47,
+      "pass": 47,
+      "fail": 0,
+      "skipped": 0,
+      "cancelled": 0,
+      "duration_ms": 66047.319
+    },
+    {
+      "command": "node --test scripts/business-overlay/foundation-candidate.test.mjs",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+      "exitCode": 0,
+      "log": "resume-o4-ops-candidate-tests-selection-final.txt",
+      "logSha256": "db856ab1b77e82efa38ad58b3ce8604bc90abd3fe09ba4c45fc3ca0f9a781283",
+      "tests": 48,
+      "pass": 48,
+      "fail": 0,
+      "skipped": 0,
+      "cancelled": 0,
+      "duration_ms": 81339.5914
+    },
+    {
+      "command": "node --test scripts/business-overlay/foundation-candidate.test.mjs",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+      "exitCode": 0,
+      "log": "resume-o4-ops-candidate-tests-verified-final.txt",
+      "logSha256": "0f8cf67ce1b6d3e5121d684ca43cda5472f4e0ccab7fedbfb044a484f4394044",
+      "tests": 48,
+      "pass": 48,
+      "fail": 0,
+      "skipped": 0,
+      "cancelled": 0,
+      "duration_ms": 74508.8491
+    },
+    {
+      "command": "node --test --test-name-pattern='protects repository|fresh extraction|assembly rejects|drift and migration' scripts/business-overlay/foundation-candidate.test.mjs",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+      "exitCode": 0,
+      "log": "resume-o4-ops-candidate-tests-ownership-final.txt",
+      "logSha256": "ae99c61c3e83c57e366867db5f3d1d5c2257d888b3790e5c677846bdb29e2e1e",
+      "tests": 18,
+      "pass": 18,
+      "fail": 0,
+      "skipped": 0,
+      "cancelled": 0,
+      "duration_ms": 34238.0973
+    },
+    {
+      "command": "npm run test:business-overlay",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+      "exitCode": 0,
+      "log": "resume-o4-ops-candidate-existing-overlay-tests.txt",
+      "logSha256": "bde7ff691936806ad039d4e954aba65d49b2804ce11f78f1497944d1687d3462",
+      "tests": 62,
+      "pass": 62,
+      "fail": 0,
+      "skipped": 0,
+      "cancelled": 0,
+      "duration_ms": 16160.9946
+    },
+    {
+      "command": "npm run check:business-overlay",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+      "exitCode": 0,
+      "log": "resume-o4-ops-candidate-overlay-contract.txt",
+      "logSha256": "55ee542cb301d23a24fd6e9278e56ec687d7f91041b98119fb7c4c69aeabf13d"
+    },
+    {
+      "command": "node --check scripts/business-overlay/foundation-candidate.mjs; node --check scripts/business-overlay/rebuild-from-candidate.mjs; node --check scripts/business-overlay/foundation-candidate.test.mjs",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+      "exitCode": 0,
+      "log": "resume-o4-ops-candidate-diagnostics-final.txt",
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": "node node_modules/prettier/bin/prettier.cjs --check scripts/business-overlay/foundation-candidate.mjs scripts/business-overlay/rebuild-from-candidate.mjs scripts/business-overlay/foundation-candidate.test.mjs",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+      "exitCode": 0,
+      "log": "resume-o4-ops-candidate-format-verified-final.txt",
+      "logSha256": "f20510a9da4717c51c4cffee6d0dd88d6c9a723d0a83711d01216f5b48961283"
+    },
+    {
+      "command": "git -c core.safecrlf=false diff --check -- <three owned files>; git -c core.safecrlf=false diff --no-index --check -- NUL <each owned file>",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+      "exitCode": 0,
+      "log": "resume-o4-ops-candidate-diff-check.txt",
+      "logSha256": "e69b27cfb4f41e0c381285e273684610c5b3aec1580fc2594d585c7a86f8087b",
+      "rawUntrackedExitCodes": [
+        1,
+        1,
+        1
+      ],
+      "note": "No-index reports new-file differences with exit1; no whitespace diagnostics. Wrapper accepts only raw0/1 plus empty diagnostics; tracked diff exit0."
+    },
+    {
+      "command": "npm run check:docs-frontmatter",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+      "exitCode": 0,
+      "log": "resume-o4-ops-candidate-frontmatter.txt",
+      "logSha256": "a76e6a9d0fda859ff73c777c0b3645a8f9c066d94231d8439dd33fee5f39260e"
+    },
+    {
+      "command": "npm run check:task-packet-template",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+      "exitCode": 0,
+      "log": "resume-o4-ops-candidate-task-template.txt",
+      "logSha256": "dd584e62f1a6477061cf063dd4b4182c4f1efded117d58380f9c2d0e6d4d6c6c"
+    }
+  ],
+  "graphChecks": {
+    "availability": "CodeGraph tools were not callable in this executor session; focused source/seam reads used.",
+    "chain": "pinned descriptor/archive -> resolveCandidateArtifact -> stable snapshot -> assembleConsumerTree -> source recheck -> checkSharedDrift -> source/assembly recheck -> staging receipt",
+    "findings": [
+      "Frozen capability mappings prevent consumer-side export reinterpretation.",
+      "Ops Git file selection is frozen in addition to byte/stamp inventories.",
+      "Cleanup only deletes candidate directories created by this resolver in this process."
+    ],
+    "ownership": "No formal producer/fetch/resolver/rebuild/drift seam, backend/UI/SQL, manifest, ledger, lock or Base source edits."
+  },
+  "verification": {
+    "finalCandidateTests": {
+      "tests": 48,
+      "pass": 48,
+      "fail": 0,
+      "skipped": 0,
+      "cancelled": 0,
+      "duration_ms": 74508.8491
+    },
+    "existingOverlayTests": {
+      "tests": 62,
+      "pass": 62,
+      "fail": 0,
+      "skipped": 0,
+      "cancelled": 0,
+      "duration_ms": 16160.9946
+    },
+    "sourceStable": true,
+    "protectedBytesUnchanged": true,
+    "officialLockSha256": "95de1a87270e15c0d4c672418a5df906818a88652f8a3e6c480f1484ee9fa70c"
+  },
+  "selfReview": {
+    "unresolvedScopedFindings": [],
+    "independent": false,
+    "reviewGap": "Leaf executor; root retains independent concrete CODE/ARCH tool/API review and paired runtime. Fixture evidence is not product acceptance.",
+    "notes": [
+      "The initial migration-conflict fixture omitted the mandatory down pair; fixed only the fixture and retained the original failing log.",
+      "Initial formatter check reported new-file formatting; the final formatter passed.",
+      "Current Base files are never read by product consumption; the only Base imports are explicitly located fixture producer/parser imports in the test file."
+    ]
+  },
+  "runtimeEvidence": "Fresh dirty-source candidate fixtures, real exported assembly/drift seams and synthetic build receipts only. No current product candidate seal/build/start or paired runtime.",
+  "remaining": [
+    "Root reviews concrete Base API and both candidate tools with independent CODE/ARCH before Ops consumer advancement.",
+    "Root supplies the complete reviewed source/build/docs inventory and descriptor digest after source owners finish writing.",
+    "Root creates the actual source-stable product candidate, builds it and seals a separate executable/build receipt, then verifies supported-start/old-process-stop, schema/migrations, generator and paired runtime.",
+    "Later official immutable release and Ops formal consumption remain open; the v0.18.6 lock is unchanged."
+  ],
+  "gateOutcomes": "candidate integrity/extraction caught tamper, false capabilities, unsafe tar and source instability | stage ownership caught destructive/foreign targets and unowned cleanup | inheritance caught drift/migration conflicts | none false-positive"
+}

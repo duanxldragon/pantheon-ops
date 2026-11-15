@@ -1,0 +1,14 @@
+{
+  "command": [
+    "go",
+    "vet",
+    "-mod=readonly",
+    "./..."
+  ],
+  "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\backend",
+  "exitCode": 0,
+  "elapsedSeconds": 2.2190000000118744,
+  "artifact": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/o2-ssh-command-final-vet.txt",
+  "sourceHashesStable": true,
+  "hashedFiles": 695
+}

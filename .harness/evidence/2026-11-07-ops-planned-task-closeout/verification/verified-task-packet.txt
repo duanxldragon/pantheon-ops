@@ -1,0 +1,7 @@
+Task packet check: 2 file(s), 0 error(s), 2 warning(s)
+
+[PASS] docs/harness/tasks/2026-11-07-ops-planned-task-closeout.task.md
+
+[PASS] docs/harness/tasks/2026-08-31-ops-operational-workbench-design.task.md
+  warning: Contract anchor does not exist: ../pantheon-base/DESIGN.md
+  warning: Contract anchor does not exist: ../pantheon-base/docs/designs/OPERATIONAL_WORKBENCH_COMPONENTS_DESIGN.md

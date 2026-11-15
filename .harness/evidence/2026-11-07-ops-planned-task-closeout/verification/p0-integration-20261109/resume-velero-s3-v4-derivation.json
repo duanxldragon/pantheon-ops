@@ -1,0 +1,50 @@
+{
+  "remoteFunctions": 15,
+  "remoteFunctionsUnchanged": [
+    "command",
+    "k",
+    "persist",
+    "sha",
+    "capacity",
+    "private_ip",
+    "absent",
+    "namespace",
+    "resource",
+    "apply",
+    "s3",
+    "load_artifacts",
+    "assert_bindings"
+  ],
+  "remoteFunctionsChanged": [
+    "diagnostic",
+    "install"
+  ],
+  "fixtureFunctionsUnchanged": 6,
+  "allOtherFunctionASTHashes": {
+    "command": "3732c08c448149dedd561c47c01377a1cf5ecb8dad3c0a59c2b33d573138c416",
+    "k": "560c2871070e2cc2f8844d5d3d37d8a2030245b255fb49a4c4dc16b8101a532c",
+    "persist": "a3c732bbe265f08973a84b79f228359a4a8c2796b111bf64fbb75294b172e745",
+    "sha": "02bf640ae7da74bd52ae06ee98b2e8bbe3ee79a901a7fa614e1555b4c35b1889",
+    "capacity": "b763446d20b6ce46e5680d2e82c763b68ee516931dcc25684a821c1a6a5de230",
+    "private_ip": "e2fbd5f7c06f5a176e54203820a393f419d124290b33dc959d0f69f6277c5cd7",
+    "absent": "495535976e816141b7cf6984e01197d56aa1173ed2ed48e0c37c4859086739cb",
+    "namespace": "009631f583fea70a1d9aa92fc4311385de46bf5c0282d78dfe995290ecd70806",
+    "resource": "a55477cda426878c5df093dc6ee7ea5699f9ccf67d48df43c896b22a506ba0a7",
+    "apply": "1305e04f26c7fd4dc3b2a4da1a64ae1641d452e88bb7f29bf3724127d9a81f8e",
+    "s3": "3b6bda3863e1828f34380a62e60eed7a0ca50a91d88fc398249f4570d9b9bf79",
+    "load_artifacts": "898269029394de602d48b08108986cb07cca4ed09947d3e30756024d64517119",
+    "assert_bindings": "c6fefeadbba99f0bc489a4a6a2e033b80b79c6345abedc4ae87653319129fe02"
+  },
+  "fixtureFunctionASTHashes": {
+    "apply": "50cfe1cd54723012a44d2a4ef2a67e4f74ffd2c7251741bb1ac5e3e8ff7ee240",
+    "prepare": "1f170a355ad7de34dd9957e67accd33583eea1c51cb9fd8b04f80f61f5d6f11d",
+    "assert_owned": "46f07d15d2863878b5076bf256fa209c76ad64cff703c4b4206fc5001c708691",
+    "delete_exact": "9afa889b93e1c624115eba0a50a4d241dee957083deb63d4e5651cf69b582058",
+    "inspect_storage": "e55d3b870a38bf9f72c126bd831e80a2e95f3ef552b21440890b8a018b020239",
+    "cleanup": "7ef11b56933f546f1624272a7e1e44bd9177080cbe1f50feb578fdbebca71c0a"
+  },
+  "originalValidationOnlyFixtureFilenameChanged": true,
+  "remoteExecuted": false,
+  "rootRequestSHA256": "ea4d2d5e406f95cb3e838067f66ed32c40e0e7b02152e117d25e59ad1da4f812",
+  "verification": "25-tests-pass"
+}

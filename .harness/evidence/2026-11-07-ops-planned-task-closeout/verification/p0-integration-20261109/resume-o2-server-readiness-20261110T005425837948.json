@@ -1,0 +1,39 @@
+{
+  "phase": "read-only-ssh-readiness",
+  "serverChanges": false,
+  "memoryMi": {
+    "MemTotal": 3916,
+    "MemAvailable": 1352
+  },
+  "loadAverage": [
+    0.33740234375,
+    0.21826171875,
+    0.18603515625
+  ],
+  "sshdEffective": {
+    "logingracetime": "120",
+    "maxauthtries": "6",
+    "maxsessions": "10",
+    "maxstartups": "10:30:100",
+    "persourcemaxstartups": "none",
+    "persourcenetblocksize": "32:128"
+  },
+  "sshdConfigExit": 0,
+  "sshSocketStates": {
+    "ESTAB": 13,
+    "FIN-WAIT-2": 2,
+    "FIN-WAIT-1": 1
+  },
+  "socketInspectionExit": 0,
+  "boundedJournalExit": null,
+  "journalPatternCounts": {
+    "maxstartups": 0,
+    "connectionDrop": 0,
+    "resourceFailure": 0,
+    "connectionClosed": 0,
+    "authFailures": 0,
+    "disconnect": 0
+  },
+  "rawJournalRetained": false,
+  "exitCode": 0
+}

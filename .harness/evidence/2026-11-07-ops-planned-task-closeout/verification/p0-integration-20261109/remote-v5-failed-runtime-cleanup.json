@@ -1,0 +1,11 @@
+{
+  "host": "115.190.251.143",
+  "stoppedLocalOwnedV5Runner": true,
+  "remotePIDIdentityChecked": true,
+  "outcomes": {
+    "backend": "absent",
+    "web": "terminated-owned"
+  },
+  "databaseRetained": true,
+  "reason": "formal migration conflicts with earlier AutoMigrate schema; fresh separate database will be used"
+}

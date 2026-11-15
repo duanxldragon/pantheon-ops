@@ -111,4 +111,3 @@ List the required:
 - when new design or remediation no longer fits this contract, update the contract first and then change the implementation
 - when this contract is replaced by a newer contract, change its status to `Superseded`
 - when it exits the active governance chain but still needs to be retained for reference, change its status to `Archived`
-

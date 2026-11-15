@@ -1,0 +1,35 @@
+=== RUN   TestCreateRestoreRejectsBeforePersistence
+=== RUN   TestCreateRestoreRejectsBeforePersistence/foreign_department_guessing_source_and_cluster
+    restore_authorization_test.go:70: restore must be rejected before returning New
+    restore_authorization_test.go:70: denied request persisted 1 restore rows
+=== RUN   TestCreateRestoreRejectsBeforePersistence/own_department_without_credential
+    restore_authorization_test.go:71: restore must be rejected before returning New
+    restore_authorization_test.go:71: denied request persisted 1 restore rows
+=== RUN   TestCreateRestoreRejectsBeforePersistence/canceled_request
+    restore_authorization_test.go:75: restore must be rejected before returning New
+    restore_authorization_test.go:75: expected context canceled, got <nil>
+    restore_authorization_test.go:75: denied request persisted 1 restore rows
+=== RUN   TestCreateRestoreRejectsBeforePersistence/expired_request
+    restore_authorization_test.go:80: restore must be rejected before returning New
+    restore_authorization_test.go:80: expected context deadline exceeded, got <nil>
+    restore_authorization_test.go:80: denied request persisted 1 restore rows
+=== RUN   TestCreateRestoreRejectsBeforePersistence/source_in_another_cluster
+=== RUN   TestCreateRestoreRejectsBeforePersistence/revoked_source
+=== RUN   TestCreateRestoreRejectsBeforePersistence/revoked_credential_with_cached_client
+    restore_authorization_test.go:115: restore must be rejected before returning New
+    restore_authorization_test.go:115: denied request persisted 1 restore rows
+=== RUN   TestCreateRestoreRejectsBeforePersistence/revoked_cluster_department_with_cached_client
+    restore_authorization_test.go:121: restore must be rejected before returning New
+    restore_authorization_test.go:121: denied request persisted 1 restore rows
+--- FAIL: TestCreateRestoreRejectsBeforePersistence (0.60s)
+    --- FAIL: TestCreateRestoreRejectsBeforePersistence/foreign_department_guessing_source_and_cluster (0.02s)
+    --- FAIL: TestCreateRestoreRejectsBeforePersistence/own_department_without_credential (0.02s)
+    --- FAIL: TestCreateRestoreRejectsBeforePersistence/canceled_request (0.02s)
+    --- FAIL: TestCreateRestoreRejectsBeforePersistence/expired_request (0.02s)
+    --- PASS: TestCreateRestoreRejectsBeforePersistence/source_in_another_cluster (0.00s)
+    --- PASS: TestCreateRestoreRejectsBeforePersistence/revoked_source (0.01s)
+    --- FAIL: TestCreateRestoreRejectsBeforePersistence/revoked_credential_with_cached_client (0.02s)
+    --- FAIL: TestCreateRestoreRejectsBeforePersistence/revoked_cluster_department_with_cached_client (0.03s)
+FAIL
+FAIL	github.com/duanxldragon/pantheon-base/backend/modules/business/k8s/backup	0.782s
+FAIL

@@ -15,9 +15,11 @@ updated_at: YYYY-MM-DD
 English version: [CONTRACT_TEMPLATE.en.md](./CONTRACT_TEMPLATE.en.md)
 
 关联设计：
+
 - `TBD`
 
 关联验收：
+
 - `TBD`
 
 ---

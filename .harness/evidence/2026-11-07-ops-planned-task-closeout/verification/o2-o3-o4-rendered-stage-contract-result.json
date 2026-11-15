@@ -1,0 +1,11 @@
+{
+  "command": [
+    "node",
+    "scripts/business-overlay/check-business-overlay.mjs",
+    "--root",
+    ".tmp/ops-priority-rendered-stage"
+  ],
+  "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+  "exitCode": 0,
+  "elapsedSeconds": 0.09399999998277053
+}

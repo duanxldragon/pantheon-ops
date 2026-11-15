@@ -1,0 +1,3 @@
+UI quality gate (strict): 0 finding(s)
+
+no findings

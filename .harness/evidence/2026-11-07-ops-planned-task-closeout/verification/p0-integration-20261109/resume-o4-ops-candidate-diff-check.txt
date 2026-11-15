@@ -1,0 +1,3 @@
+scripts/business-overlay/foundation-candidate.mjs : raw exit 1; no whitespace diagnostics (new file diff)
+scripts/business-overlay/rebuild-from-candidate.mjs : raw exit 1; no whitespace diagnostics (new file diff)
+scripts/business-overlay/foundation-candidate.test.mjs : raw exit 1; no whitespace diagnostics (new file diff)

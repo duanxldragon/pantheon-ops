@@ -1,0 +1,127 @@
+{
+  "database": "ops_planned_final_versioned",
+  "match": "^workbench-(light|dark)-[0-9]{13}$",
+  "removed": [],
+  "errors": [
+    {
+      "endpoint": "deploy/tasks",
+      "id": 32,
+      "message": "HTTP 409 business.deploy.task.invalidDeleteState"
+    },
+    {
+      "endpoint": "deploy/tasks",
+      "id": 31,
+      "message": "HTTP 409 business.deploy.task.invalidDeleteState"
+    },
+    {
+      "endpoint": "deploy/tasks",
+      "id": 30,
+      "message": "HTTP 409 business.deploy.task.invalidDeleteState"
+    },
+    {
+      "endpoint": "deploy/tasks",
+      "id": 29,
+      "message": "HTTP 409 business.deploy.task.invalidDeleteState"
+    },
+    {
+      "endpoint": "deploy/tasks",
+      "id": 28,
+      "message": "HTTP 409 business.deploy.task.invalidDeleteState"
+    },
+    {
+      "endpoint": "deploy/tasks",
+      "id": 27,
+      "message": "HTTP 409 business.deploy.task.invalidDeleteState"
+    },
+    {
+      "endpoint": "deploy/tasks",
+      "id": 26,
+      "message": "HTTP 409 business.deploy.task.invalidDeleteState"
+    },
+    {
+      "endpoint": "deploy/tasks",
+      "id": 25,
+      "message": "HTTP 409 business.deploy.task.invalidDeleteState"
+    },
+    {
+      "endpoint": "bizscope",
+      "id": 37,
+      "message": "HTTP 200 business.bizscope.inUse"
+    },
+    {
+      "endpoint": "bizscope",
+      "id": 36,
+      "message": "HTTP 200 business.bizscope.inUse"
+    },
+    {
+      "endpoint": "bizscope",
+      "id": 35,
+      "message": "HTTP 200 business.bizscope.inUse"
+    },
+    {
+      "endpoint": "bizscope",
+      "id": 34,
+      "message": "HTTP 200 business.bizscope.inUse"
+    },
+    {
+      "endpoint": "bizscope",
+      "id": 33,
+      "message": "HTTP 200 business.bizscope.inUse"
+    },
+    {
+      "endpoint": "bizscope",
+      "id": 32,
+      "message": "HTTP 200 business.bizscope.inUse"
+    },
+    {
+      "endpoint": "bizscope",
+      "id": 31,
+      "message": "HTTP 200 business.bizscope.inUse"
+    },
+    {
+      "endpoint": "bizscope",
+      "id": 30,
+      "message": "HTTP 200 business.bizscope.inUse"
+    },
+    {
+      "endpoint": "deploy/packages",
+      "id": 40,
+      "message": "HTTP 200 deploypackage.in_use"
+    },
+    {
+      "endpoint": "deploy/packages",
+      "id": 39,
+      "message": "HTTP 200 deploypackage.in_use"
+    },
+    {
+      "endpoint": "deploy/packages",
+      "id": 38,
+      "message": "HTTP 200 deploypackage.in_use"
+    },
+    {
+      "endpoint": "deploy/packages",
+      "id": 37,
+      "message": "HTTP 200 deploypackage.in_use"
+    },
+    {
+      "endpoint": "deploy/packages",
+      "id": 36,
+      "message": "HTTP 200 deploypackage.in_use"
+    },
+    {
+      "endpoint": "deploy/packages",
+      "id": 35,
+      "message": "HTTP 200 deploypackage.in_use"
+    },
+    {
+      "endpoint": "deploy/packages",
+      "id": 34,
+      "message": "HTTP 200 deploypackage.in_use"
+    },
+    {
+      "endpoint": "deploy/packages",
+      "id": 33,
+      "message": "HTTP 200 deploypackage.in_use"
+    }
+  ]
+}

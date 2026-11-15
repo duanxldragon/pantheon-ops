@@ -1,0 +1,30 @@
+{
+  "case": "cold-restart",
+  "identity": "o2-live-67fc9fadd215-cold-restart",
+  "database": "ops_p0_o2_live_67fc9fadd215_cold_restart",
+  "databaseRetention": "retained; no drop",
+  "events": [],
+  "driverExitCode": 1,
+  "stderrPresent": false,
+  "status": "blocked",
+  "errorType": "RuntimeError",
+  "errno": null,
+  "cleanup": {
+    "phase": "exact-owned-cleanup",
+    "directory": "/opt/pantheon-p0-20261109/o2-live-67fc9fadd215-cold-restart",
+    "files": [
+      {
+        "file": ".owner",
+        "sha256": "ecb9a20ba51c45b2e6c13a77e30aec4c4adb82ad518c24d38917f8583d9907f2",
+        "bytes": 33
+      },
+      {
+        "file": "started",
+        "sha256": "ecb9a20ba51c45b2e6c13a77e30aec4c4adb82ad518c24d38917f8583d9907f2",
+        "bytes": 33
+      }
+    ],
+    "absent": true,
+    "processKill": false
+  }
+}

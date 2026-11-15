@@ -2,15 +2,17 @@
 
 ## Dependency Map
 
-| Packet | Priority | Required Base | Business Dependencies | State |
-| --- | --- | --- | --- | --- |
-| O1 | P1 | B3 `ContextSelector` | BizScope + CMDB typed capabilities | blocked |
-| O2 | P0 | B1 + B3 step/log | Deploy immutable task/events | blocked |
-| O3 | P0 | B3 `ChangeDiff` | Deploy/K8s/Argo CD intent versions | blocked |
-| O4 | P0 | B2 + B3 condition/table | datasource query APIs | blocked |
-| O5 | P1 | B3 `TaskLogViewer` | Deploy SSE + K8s log API | blocked |
-| O6 | P1 | B4 widget kinds | business summary endpoints | blocked |
-| O7 | P2 | none initially | mature CMDB relationship model | deferred |
+Reconciled 2026-11-07 against consumed Base v0.18.6: B3 primitives and table preferences are present. Ready means implementable, not implemented or accepted. O6 still requires a released Dashboard render/data contract.
+
+| Packet | Priority | Required Base           | Business Dependencies                                                                     | State                                                                                                                                                                                                                         |
+| ------ | -------- | ----------------------- | ----------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| O1     | P1       | B3 `ContextSelector`    | BizScope + CMDB typed capabilities                                                        | in-progress; Deploy resolve/create/update/UI/runtime verified; other consumers and full acceptance open                                                                                                                       |
+| O2     | P0       | B1 + B3 step/log        | Deploy immutable task/events                                                              | in-progress; viewed-version controls and24/24 local runtime verified; full SSH/attempt/action and Base consumption open                                                                                                       |
+| O3     | P0       | B3 `ChangeDiff`         | Deploy/K8s/Argo CD intent versions                                                        | in-progress; Deploy signed preview and frozen configuration implemented; single-package frozen rollback verified; K8s image review scoped tests pass; K8s manifest/config/resource, Argo/complex rollback and acceptance open |
+| O4     | P0       | B2 + B3 condition/table | datasource query APIs                                                                     | in-progress; Loki returned-row modes locally verified; history/ConditionBuilder/multi-source/real acceptance open                                                                                                             |
+| O5     | P1       | B3 `TaskLogViewer`      | Deploy SSE + K8s log API                                                                  | in-progress; scoped checks pass, acceptance open                                                                                                                                                                              |
+| O6     | P1       | B4 widget kinds         | business summary endpoints; Base renderer implemented; formal release/consumption pending | blocked                                                                                                                                                                                                                       |
+| O7     | P2       | none initially          | mature CMDB relationship model                                                            | deferred                                                                                                                                                                                                                      |
 
 ## Packets
 
@@ -32,3 +34,5 @@
 ## Shared Acceptance Matrix
 
 All packets cover permission, DataScope, audit, i18n, loading/empty/error/forbidden/conflict/stale/partial failure as applicable, 1440x900, 390x844, light/dark, long Chinese/English, keyboard/focus, 200% zoom and reduced motion. External actions require real evidence or an explicit endpoint/credential/production gap.
+
+O2/O4 continuation 2026-11-08: actual ephemeral loopback SSH protocol and isolated MySQL credential/frozen-script/step/log/writeback evidence verify the local SSH path and context cancellation repairs; this is not real VM acceptance. O4 adds six-label/eighty-character previews with explicit truncation notices and retained bounded raw detail. Current validation/review/cleanup receipts are in the linked closeout summary. Both parent packets and all release/external/final gates remain open.

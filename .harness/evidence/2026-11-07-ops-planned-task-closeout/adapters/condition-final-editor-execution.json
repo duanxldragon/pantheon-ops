@@ -1,0 +1,10 @@
+{
+  "status": "completed",
+  "exitCode": 0,
+  "seconds": 79.49,
+  "promptSha256": "3b81825ff529329930de9e69bc91c808ba848e54a0e071dd41e2a56a3f9c3618",
+  "sourceSha256": "4fcc32ea4656e2f6dcd8745a0ef340cc164969eab68469a79752ef6c5a6bf4a5",
+  "outputSha256": "b1d6eab4b571649c9284d902a00acf6e376469ef9446a0968c844b71e7e4abf4",
+  "characters": 7976,
+  "command": "claude.exe -p --tools \"\" --output-format text; exact prompt on stdin"
+}

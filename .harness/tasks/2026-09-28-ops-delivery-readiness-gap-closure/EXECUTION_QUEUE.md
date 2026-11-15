@@ -1,14 +1,16 @@
 # Execution Queue: Ops Delivery Readiness Gap Closure
 
+Reconciled 2026-11-07. The STATUS.md and current linked execution evidence supersede historical counts below; original acceptance criteria remain unchanged.
+
 ## Dependency Map
 
-| Packet | Priority | Depends on | State | Estimate |
-| --- | --- | --- | --- | --- |
-| D1 External integration acceptance | P0 | endpoint and credential inventory | blocked | 2-4d |
-| D2 SSRF and outbound network policy | P0 | policy decision; Base owner identified | blocked | 1-2d |
-| D3 Base-first consumer re-review | P0 | v0.13.0 lock already present | ready | 0.5-1d |
-| D4 Tenant G2/G3 gray gates | P1 | DBA, backup access, maintenance window | blocked | 3-7d |
-| D5 Harness and generated-artifact governance | P1 | current dirty-tree decision | ready | 1-2d active; 2-5d historical |
+| Packet                                       | Priority | Depends on                             | State                                                                       | Estimate         |
+| -------------------------------------------- | -------- | -------------------------------------- | --------------------------------------------------------------------------- | ---------------- |
+| D1 External integration acceptance           | P0       | endpoint and credential inventory      | blocked                                                                     | 2-4d             |
+| D2 SSRF and outbound network policy          | P0       | policy decision; Base owner identified | blocked                                                                     | 1-2d             |
+| D3 Base-first consumer re-review             | P0       | v0.18.6 official lock                  | rebuild verified; implemented Base permission extension release pending     | upstream release |
+| D4 Tenant G2/G3 gray gates                   | P1       | DBA, backup access, maintenance window | blocked                                                                     | 3-7d             |
+| D5 Harness and generated-artifact governance | P1       | Base documentation packaging           | active repaired; Base link/archive source repairs verified, release pending | upstream release |
 
 ## D1 - External Integration Acceptance (P0)
 
@@ -43,7 +45,7 @@ Acceptance:
 ## D3 - Base-first Consumer Re-review (P0)
 
 Reconcile the 2026-08-31 boundary finding against the current
-`pantheon-base-v0.13.0` lock. Confirm that generic middleware, common packages,
+`pantheon-base-v0.18.6` lock. Confirm that generic middleware, common packages,
 frontend tooling, and shared registries are inherited from Base and that Ops
 contains only declared business overlay assets. If a shared fix is still local,
 move the fix to Base and consume a new immutable release; do not patch the Ops
@@ -100,3 +102,7 @@ Acceptance:
 1. D3 and the active portion of D5.
 2. D1 and D2 in parallel after endpoint/policy decisions.
 3. D4 only when the DBA and maintenance-window gates are available.
+
+## Current execution evidence
+
+See `.harness/evidence/2026-11-07-ops-planned-task-closeout/summary.md`. D2 implementation remains separate from deployment policy; D3 awaits the implemented Base permission extension release; D5 awaits release of the verified 19-link and archive-projection repairs. No gate exemption or shared Ops override was added.

@@ -1,0 +1,97 @@
+{
+  "checks": [
+    {
+      "check": "all 45 assertion calls preserved verbatim",
+      "passed": true,
+      "assertionCallCount": 45
+    },
+    {
+      "check": "all 12 cases preserved in order",
+      "passed": true
+    },
+    {
+      "check": "cleanup AST unchanged",
+      "passed": true
+    },
+    {
+      "check": "remote_command AST unchanged",
+      "passed": true
+    },
+    {
+      "check": "pin AST unchanged",
+      "passed": true
+    },
+    {
+      "check": "unknown key-shaped error excluded",
+      "passed": true
+    },
+    {
+      "check": "candidate CLI cannot execute before root review/reseal",
+      "passed": true
+    },
+    {
+      "check": "cold failure retains driver events before rejecting missing exit75/ready",
+      "passed": true,
+      "origin": "in-memory fake process and transport; no acceptance claim"
+    },
+    {
+      "check": "readiness static counters accepted",
+      "passed": true,
+      "origin": "offline channel fixture; no remote connection"
+    },
+    {
+      "check": "readiness unexpected field suppressed",
+      "passed": true,
+      "origin": "offline channel fixture; no remote connection"
+    },
+    {
+      "check": "readiness unknown counter suppressed",
+      "passed": true,
+      "origin": "offline channel fixture; no remote connection"
+    },
+    {
+      "check": "readiness counter string suppressed",
+      "passed": true,
+      "origin": "offline channel fixture; no remote connection"
+    },
+    {
+      "check": "readiness negative counter suppressed",
+      "passed": true,
+      "origin": "offline channel fixture; no remote connection"
+    },
+    {
+      "check": "resume-o2-v8-diagnosis.py AST parse",
+      "passed": true
+    },
+    {
+      "check": "resume-o2-v8-prepare.py AST parse",
+      "passed": true
+    },
+    {
+      "check": "resume-o2-v8-readiness.py AST parse",
+      "passed": true
+    },
+    {
+      "check": "resume-o2-v8-runner.py AST parse",
+      "passed": true
+    },
+    {
+      "check": "resume-o2-v8-seal.py AST parse",
+      "passed": true
+    },
+    {
+      "check": "resume-o2-v8-verify.py AST parse",
+      "passed": true
+    }
+  ],
+  "failed": 0,
+  "sourceSeal": {
+    "sourceCount": 185,
+    "sourceChanges": [],
+    "artifactChanges": [],
+    "sealed": true,
+    "sourceInventorySHA256": "17b4af459b818ecfd697f35ce8faedf8a86cf57856bc40d462eafc06c6d73483"
+  },
+  "note": "final Python safety checks; prior Go vet/race/build results retained",
+  "remoteExecuted": false
+}

@@ -1,0 +1,14 @@
+{
+  "mysqlPid": 12280,
+  "redisPid": 16552,
+  "mysqlPort": 33316,
+  "redisPort": 26316,
+  "dataRoot": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.tmp\\ops-planned-cmdb-services",
+  "backendPid": 6048,
+  "state": "stopped",
+  "settingsRestored": [
+    1,
+    1
+  ],
+  "cleanupEvidence": "cmdb/continuation-owned-services-cleanup.json"
+}

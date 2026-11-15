@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "contract": "docs/harness/REVIEW_LOOP_SPEC.md",
+  "description": "Archived review artifacts that predate the machine-readable review contract and cannot be backfilled honestly. scripts/harness/check-review.mjs skips these by name so a plain run answers 'do current-schema packets comply?' instead of failing on history. Listed explicitly rather than ignored by a date or path rule so the exemption stays reviewable: the checker errors if a listed artifact disappears, which forces this file to shrink. Two reasons are admitted here, and each entry states which one applies. (a) No commands.json: the six 2026-09-04/2026-09-10 artifacts below have a packet with no commands.json at all, and the contract requires linkage.evidence to be `.harness/evidence/<task-id>/commands.json`; backfilling one would mean writing command statuses for a round nobody ran, which is exactly the false evidence the spec forbids. (b) Vocabulary that cannot be restated without falsifying it: 2026-08-31-base-operational-workbench-design writes verdict `approved-with-maintainer-acceptance-gate` and describes its structural checks as four free-text dimensions (opt-in path preservation, business agnosticism, registry filtering, widget budgets), none of which is one of the contract's four check categories (cycle, hub, call-depth, sensitive-flow); coercing them would claim checks that round did not run. 2026-09-24-fix-report-residual-closeout links planRefs to `fix-report.md`, the root-level plan that commit 722fa9e1 deleted with the v0.14.0 publication; the pointer is a true historical claim whose target no longer exists, and dropping it would rewrite the round's own linkage record. Never add an artifact written after 2026-10-26 (the schema backfill round that made the live tree conform).",
+  "entries": [
+    ".harness/archive/2026-09/evidence/2026-09-04-readme-v0.11.0-update/review.md",
+    ".harness/archive/2026-09/evidence/2026-09-10-tenant-canary-slice/review.md",
+    ".harness/archive/2026-09/evidence/2026-09-10-tenant-contract-design/review.md",
+    ".harness/archive/2026-09/evidence/2026-09-10-tenant-core-auth-iam/review.md",
+    ".harness/archive/2026-09/evidence/2026-09-10-tenant-migration-runbook/review.md",
+    ".harness/archive/2026-09/evidence/2026-09-10-tenant-ready-guardrails/review.md",
+    ".harness/archive/2026-08/evidence/2026-08-31-base-operational-workbench-design/review.md",
+    ".harness/archive/2026-09/evidence/2026-09-24-fix-report-residual-closeout/review.md"
+  ]
+}

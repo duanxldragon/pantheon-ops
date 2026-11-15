@@ -1,0 +1,6 @@
+{
+  "command": "npm.cmd run lint",
+  "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\frontend",
+  "exitCode": 0,
+  "elapsedSeconds": 58.906
+}

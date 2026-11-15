@@ -1,0 +1,22 @@
+{
+  "activeRelease": "pantheon-base-v0.18.6",
+  "activeCommit": "5553bc0e8ddc006cb7a6b99a46968bf8cf907a49",
+  "candidateRelease": "pantheon-base-v0.18.8",
+  "candidateCommit": "34428814a9efc997fd93d4434406a53df6460323",
+  "candidatePath": ".tmp/ops-v0188-install-r6",
+  "reportSHA256": "e092b077c6d06609c74681198f68bb82089392a2f14958e713dc2c23015cf8c5",
+  "plannedWrites": 165,
+  "plannedDeletes": 0,
+  "attemptedWrites": 60,
+  "all165PreimagesReverified": true,
+  "indexSHA256Unchanged": true,
+  "rollbackArchiveSHA256": "d198d3849da9d108e13ca0e3a4e0a917dda4f2d356c3e27261db2bc313066bec",
+  "planSHA256": "fe0ec035867abf50018bacd7b720dc06142bc869144ab1b84aa18be504a8f80f",
+  "independentReview": "blocked; scope COMMENT",
+  "backend836AndFrontend165MatchValidatedR5": true,
+  "userAuthorizedElevation": true,
+  "elevatedProcessUsed": false,
+  "aclChanged": false,
+  "toolApprovalPolicy": "never",
+  "activeUpgradeComplete": false
+}

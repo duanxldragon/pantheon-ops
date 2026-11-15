@@ -1,0 +1,93 @@
+{
+  "taskId": "2026-11-07-ops-planned-task-closeout",
+  "lane": "O2 real VM generator/acceptance",
+  "scriptPath": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\live-diagnostic-o2-v6-runner.py",
+  "args": [
+    "--phase",
+    "execute"
+  ],
+  "host": "115.190.251.143",
+  "scope": [
+    "success",
+    "failure-retry",
+    "pause-resume",
+    "cancel",
+    "concurrent",
+    "revoke-credential",
+    "revoke-rotation",
+    "revoke-source",
+    "revoke-host",
+    "start-negative",
+    "hostkey-negative",
+    "cold-restart"
+  ],
+  "dependencies": [
+    "Root reviews this prepared request before any execute phase",
+    "Final build and local safety receipts pass; 185 source hashes and artifacts sealed",
+    "Restricted lane preflight errno13; execute requires an already authorized tool with working access",
+    "Existing local isolated MySQL33316 and pinned known_hosts/credentialref1; inject credentials via driver stdin only",
+    "Strict inactive-source negative remains open for business/deploy source owner"
+  ],
+  "authority": "User authorized scoped SSH VM; root must use its approved execution tool if sandbox SSH returns errno13",
+  "remoteOwnership": "/opt/pantheon-p0-20261109/o2-live-<random-run>-<case>",
+  "dbOwnership": "fresh ops_p0_o2_live_<random-run>_<case> at existing local MySQL33316; retained",
+  "credentialOrigin": "existing authorized credentialref1 through remote.load_credential; decrypted in memory only",
+  "privateInjection": "local MySQL DSN and SSH credentials via driver stdin; never arguments/evidence",
+  "provider": "current production public DeployService default SSH + pinned host; independent SSH verifier",
+  "budgets": {
+    "driverSecondsPerCase": 130,
+    "maxCases": 12,
+    "remoteCommandSeconds": 18,
+    "coldRestartSeconds": 420,
+    "coldExecutionSeconds": 380,
+    "coldCleanupAndTerminationReserveSeconds": 40,
+    "actualUnmodifiedLeaseWaitSeconds": 305,
+    "additionalRemoteMemoryMiB": 128,
+    "driverRemoteMemory": 0,
+    "maxLocalDBConnections": 8
+  },
+  "cleanup": "only exact checked run directory owner token, regular allowlisted files with expected SHA256; no recursive delete or generic process kill",
+  "prohibited": [
+    "provider installation",
+    "other namespaces/services",
+    "old database deletion",
+    "product source edits",
+    "SQL/lock/baseline/ledger changes",
+    "commit/push/publication",
+    "whole-P0 approval"
+  ],
+  "knownGaps": [
+    "No full IAM middleware/session/role/data-grant rederivation: supplied DataScope is a current public service input",
+    "Cold restart probes the actual crashed attempt identity, preserves earlier failures, waits its actual five-minute lease without writes, then reconstructs queue; remote acceptance pending",
+    "Inactive scope must deny resume and VM side effect; likely product gap in resume path retained as a failing assertion",
+    "Independent SSH typed pin/auth/timeout/exit diagnostics preserve handshake failures; no retry or assumed transport fix",
+    "No browser/network SSE transport reconnect claim; HTTP projection cursor verified in-process",
+    "Frozen command definition validates public package immutability; no direct DB mutation"
+  ],
+  "artifactHashes": {
+    "live-diagnostic-o2-v6.go": "d650280072feb6000183c7675b25600fd1954af99a90431b2879b4e5df13fb86",
+    "live-diagnostic-o2-v6-runner.py": "bb4158de64020fb602f2859bbd2aabeb85a149807eff22ae14a1621cb19932d7",
+    "live-diagnostic-o2-v6_test.go": "ea8aa8c3974f919a7bc155c1d0c7d6c2a63f22fd62c48b78f9dddc7c8c21b782",
+    "live-diagnostic-o2-v6-local-verify.py": "2fd4277bfe9962697ee951e396b58117521710cf70225a4ef021c86e5a308b25",
+    "remote.py": "37acccd12ba3b30e38182f11101821f110355ed660c4cf559d91cc1c638e1b5e",
+    "known_hosts": "45a3379d7e5d75b57e4d47c37ea424b611ddc56ee6d2a70fdc89c05c1ae8213e",
+    "live-diagnostic-o2-v6-driver.exe": "88981572e327afe5614d9c9854a99098eec60d537253beecccf956b8b624a623",
+    "live-diagnostic-o2-v6-driver-linux": "f2556f11b67cf3206b487edddc78e0e220563cb7f346285e039afa365e64e6d8"
+  },
+  "rootReviewRequiredBeforeExecute": true,
+  "readiness": "prepared-for-root-review; remote matrix not executed",
+  "parentTaskPacket": "docs/harness/tasks/2026-11-07-ops-planned-task-closeout.task.md",
+  "buildReceipt": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.harness\\evidence\\2026-11-07-ops-planned-task-closeout\\verification\\p0-integration-20261109\\live-diagnostic-o2-v6-build-ready-result.json",
+  "localVerificationReceipt": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.harness\\evidence\\2026-11-07-ops-planned-task-closeout\\verification\\p0-integration-20261109\\live-diagnostic-o2-v6-local-verification-ready.json",
+  "failureAnalysis": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.harness\\evidence\\2026-11-07-ops-planned-task-closeout\\verification\\p0-integration-20261109\\resume-o2-v6-v5-failure-analysis.json",
+  "preflightReceipt": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.harness\\evidence\\2026-11-07-ops-planned-task-closeout\\verification\\p0-integration-20261109\\live-diagnostic-o2-v6-preflight-result.json",
+  "executionBlockedBy": {
+    "errorType": "PermissionError",
+    "errno": 13,
+    "rootAction": "execute the prepared phase with the existing authorized tool approval; do not retry in restricted lane"
+  },
+  "localPreparationReady": true,
+  "remotePreflightPassed": false,
+  "remoteMatrixExecuted": false,
+  "sourceIdentityReceipt": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.harness\\evidence\\2026-11-07-ops-planned-task-closeout\\verification\\p0-integration-20261109\\resume-o2-v6-readiness.json"
+}

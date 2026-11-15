@@ -1,0 +1,13 @@
+import fs from 'node:fs';import path from 'node:path';import crypto from 'node:crypto';import {spawnSync} from 'node:child_process';import {fileURLToPath} from 'node:url';
+const here=path.dirname(fileURLToPath(import.meta.url));const before=JSON.parse(fs.readFileSync(path.join(here,'source-hashes-before.json')));const sha=p=>crypto.createHash('sha256').update(fs.readFileSync(p)).digest('hex');
+const syntax=before.sources.map(p=>{const r=spawnSync(process.execPath,['--check',p.path],{encoding:'utf8'});return {file:p.path,command:['node','--check',p.path],exitCode:r.status,stderr:r.stderr};});
+const args=['-n','-e','console\\.log\\(','-e','catch\\s*\\([^)]*\\)\\s*\\{\\s*\\}','-e','(apiKey|api_key|password|secret|token)\\s*[:=]\\s*[\x22\x27]','-e','try\\s*\\{|catch\\s*\\(|fallback|best.effort|return (null|undefined|\\{\\}|\\[\\])','-e','rmSync|unlinkSync|rmdirSync|openSync|ftruncateSync|writeFileSync|spawnSync',...before.sources.map(p=>p.path)];
+// JS string literals above intentionally hold one regex backslash after normalization.
+const command=args.map(a=>a.replaceAll('\\\\','\\'));
+const scan=spawnSync('rg',command,{encoding:'utf8',maxBuffer:1024*1024});fs.writeFileSync(path.join(here,'literal-security-scan.log'),scan.stdout+'\nSTDERR\n'+scan.stderr,{flag:'wx'});
+const overlay=spawnSync(process.execPath,['scripts/business-overlay/check-business-overlay.mjs'],{encoding:'utf8'});fs.writeFileSync(path.join(here,'check-business-overlay.log'),overlay.stdout+'\nSTDERR\n'+overlay.stderr,{flag:'wx'});
+const sources=before.sources.map(p=>({...p,after:sha(p.path)}));const protectedPins=before.protectedPins.map(p=>({...p,after:sha(p.path)}));
+const output={node:process.version,stage1:'pass; requirements and root-cause guard reviewed before Stage 2',syntax,scan:{command:['rg',...command],exitCode:scan.status,method:'literal heuristic; ast_grep_search unavailable'},overlay:{command:['node','scripts/business-overlay/check-business-overlay.mjs'],exitCode:overlay.status},sources,protectedPins,diagnostics:before.sources.map(p=>({file:p.path,lsp_diagnostics:'unavailable; no callable tool',ast_grep_search:'unavailable; no callable tool',semanticTypecheck:'not claimed'}))};
+fs.writeFileSync(path.join(here,'validation-and-final-hashes.json'),JSON.stringify(output,null,2)+'\n',{flag:'wx'});
+if(syntax.some(p=>p.exitCode!==0)||![0,1].includes(scan.status)||overlay.status!==0||sources.some(p=>p.after!==p.before)||protectedPins.some(p=>p.after!==p.before))process.exitCode=1;
+console.log(JSON.stringify({syntaxPass:syntax.filter(p=>p.exitCode===0).length,scanExit:scan.status,overlayExit:overlay.status,sourcesUnchanged:sources.every(p=>p.before===p.after),protectedPinsUnchanged:protectedPins.every(p=>p.before===p.after),lsp:'unavailable'}));

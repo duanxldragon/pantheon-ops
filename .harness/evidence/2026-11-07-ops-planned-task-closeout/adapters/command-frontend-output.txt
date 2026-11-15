@@ -1,0 +1,13 @@
+**APPROVE (supplied scope only).**
+
+Checked the supplied snippets against the stated contract:
+
+- **Optimistic control path** — `cancelDeployTask` / `controlDeployTask` send `stateVersion` + `X-Idempotency-Key`; detail and list handlers catch 409 via `isDeployTaskCommandConflict`, set conflict/alert state, and refresh via `loadData()` without replaying the command. Matches "409 refresh does not replay."
+- **Batch cancel alignment** — `results[index]` maps correctly over `candidates` (filter + map over the same array); succeeded rows are pruned from selection, failed rows retained; `loadData()` runs in all paths via `try/finally`. Matches "failed batch selections retained."
+- **Alert lifecycle** — `setCommandFeedback(null)` / `setCommandConflict(false)` only at the start of an explicit user action (cancel/control/batch); successes, conflicts, and rethrows leave prior alerts intact otherwise. Matches "persist until next explicit action."
+- **Error typing** — `isDeployTaskCommandConflict` reads numeric `code`/`status` only, consistent with the stated numeric-code contract.
+- **Non-conflict errors rethrow** in both detail handlers and list cancel — no swallowing.
+
+Not proved as defects (insufficient source, per review scope): `handleDelete` has no conflict/submitting handling (acceptable if delete is versionless and the caller surfaces thrown errors); `selectedRowKeys.includes(item.id)` assumes numeric keys — the `Number(rowKey)` conversions elsewhere suggest keys *might* be strings, which would silently empty `candidates`; verify the table's `rowKey`/selection key type once.
+
+No P1/P2 defect is provable from the supplied source.

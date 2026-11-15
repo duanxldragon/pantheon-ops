@@ -1,0 +1,17 @@
+{
+  "operations.service.application.menu": "应用",
+  "operations.service.service.menu": "服务",
+  "operations.service.instance.menu": "服务实例",
+  "business.service.catalog.editApplication": "编辑应用",
+  "business.service.catalog.editService": "编辑服务",
+  "business.service.catalog.applicationKeyword": "搜索应用编码或名称",
+  "business.service.catalog.host": "CMDB 主机",
+  "business.service.catalog.hostBinding": "主机 #{{id}}",
+  "business.service.catalog.runtime.vm": "虚拟机",
+  "business.service.catalog.runtime.k8s": "Kubernetes",
+  "business.service.catalog.runtime.hybrid": "混合",
+  "business.service.instance.empty": "暂无服务实例",
+  "business.service.instance.total": "匹配实例",
+  "business.service.catalog.operationFailed": "服务目录操作失败",
+  "business.service.catalog.field.remark": "备注"
+}

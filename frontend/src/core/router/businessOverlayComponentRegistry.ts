@@ -30,7 +30,6 @@ export const businessOverlayComponentRegistry = {
   'business/k8s/ingress/IngressList': defineRegistryEntry(() => import('../../modules/business/k8s/ingress/IngressList')),
   'business/k8s/storage/StorageList': defineRegistryEntry(() => import('../../modules/business/k8s/storage/StorageList')),
   'business/k8s/backup/BackupList': defineRegistryEntry(() => import('../../modules/business/k8s/backup/BackupList')),
-  'business/service/ServiceCatalog': defineRegistryEntry(() => import('../../modules/business/service/ServiceCatalog')),
   'business/observability/MonitoringCenter': defineRegistryEntry(() => import('../../modules/business/observability/MonitoringCenter')),
   'business/observability/AlertCenter': defineRegistryEntry(() => import('../../modules/business/observability/AlertCenter')),
   'business/observability/LogExplorer': defineRegistryEntry(() => import('../../modules/business/observability/LogExplorer')),
@@ -41,4 +40,9 @@ export const businessOverlayComponentRegistry = {
   'business/filedist/FiledistList': defineRegistryEntry(() => import('../../modules/business/filedist/FiledistList')),
   'business/filedist/FiledistDetail': defineRegistryEntry(() => import('../../modules/business/filedist/FiledistDetail')),
   'business/cicd/argocd/ArgoCDList': defineRegistryEntry(() => import('../../modules/business/cicd/argocd/ArgoCDList')),
+  'business/bizscope/BizScopeHostBindingList': defineRegistryEntry(() => import('../../modules/business/bizscope/BizScopeHostBindingList')),
+  'business/bizscope/EnvironmentList': defineRegistryEntry(() => import('../../modules/business/bizscope/environment/EnvironmentList')),
+  'business/service/ApplicationList': defineRegistryEntry(() => import('../../modules/business/service/ApplicationList')),
+  'business/service/ServiceList': defineRegistryEntry(() => import('../../modules/business/service/ServiceList')),
+  'business/serviceinstance/ServiceInstanceList': defineRegistryEntry(() => import('../../modules/business/serviceinstance/ServiceInstanceList')),
 } satisfies Record<string, RegistryEntry>;

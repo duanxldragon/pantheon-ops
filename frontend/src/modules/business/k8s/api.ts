@@ -287,6 +287,7 @@ export interface K8sReleasePayload {
   image: string;
   strategy?: string;
   idempotencyKey?: string;
+  intentVersion?: string;
 }
 
 export function getK8sReleaseList(params?: K8sReleaseListQuery) {
@@ -301,15 +302,17 @@ export function createK8sRelease(data: K8sReleasePayload) {
   return apiRequest<K8sReleaseRow>({
     url: '/business/k8s/releases',
     method: 'post',
+    skipErrorMessage: true,
     data,
   });
 }
 
-export function rollbackK8sRelease(id: number, idempotencyKey?: string) {
+export function rollbackK8sRelease(id: number, idempotencyKey?: string, intentVersion?: string) {
   return apiRequest<K8sReleaseRow>({
     url: `/business/k8s/releases/${id}/rollback`,
     method: 'post',
-    data: { idempotencyKey },
+    skipErrorMessage: true,
+    data: { idempotencyKey, intentVersion },
   });
 }
 
@@ -403,11 +406,14 @@ export interface K8sServicePort {
   name?: string;
   port: number;
   targetPort: number;
+  targetPortName?: string;
   nodePort?: number;
   protocol: string;
 }
 
 export interface K8sServiceRow {
+  uid: string;
+  resourceVersion: string;
   name: string;
   namespace: string;
   type: string;
@@ -417,11 +423,12 @@ export interface K8sServiceRow {
   loadBalancerIP?: string;
 }
 
-export function getK8sServiceList(clusterId: number, params?: { namespace?: string; name?: string }) {
+export function getK8sServiceList(clusterId: number, params?: { namespace?: string; name?: string }, signal?: AbortSignal) {
   return apiRequest<{ items: K8sServiceRow[]; total: number }>({
     url: `/business/k8s/clusters/${clusterId}/services`,
     method: 'get',
     params,
+    signal,
   });
 }
 
@@ -434,11 +441,19 @@ export function createK8sService(clusterId: number, namespace: string, data: { n
   });
 }
 
-export function deleteK8sService(clusterId: number, namespace: string, name: string) {
+export function updateK8sService(clusterId: number, namespace: string, name: string, data: { uid: string; resourceVersion: string; selector?: Record<string, string>; ports?: K8sServicePort[] }) {
+  return apiRequest<K8sServiceRow>({
+    url: `/business/k8s/clusters/${clusterId}/services/${encodeURIComponent(name)}`,
+    method: 'put',
+    params: { namespace },
+    data,
+  });
+}
+export function deleteK8sService(clusterId: number, namespace: string, name: string, identity: { uid: string; resourceVersion: string }) {
   return apiRequest<void>({
     url: `/business/k8s/clusters/${clusterId}/services/${encodeURIComponent(name)}`,
     method: 'delete',
-    params: { namespace },
+    params: { namespace, uid: identity.uid, resourceVersion: identity.resourceVersion },
   });
 }
 
@@ -803,3 +818,28 @@ export function createK8sStorageLocation(data: { name: string; provider: string;
 export function deleteK8sStorageLocation(id: number) {
   return apiRequest<{ deleted: boolean }>({ url: `/business/k8s/backup/locations/${id}`, method: 'delete' });
 }
+
+export interface K8sReleasePreviewResponse {
+ intentId: string;
+ intentVersion: string;
+ currentVersion: string;
+ targetVersion: string;
+ targetCount: number;
+ environment: string;
+ namespace: string;
+ workloadType: string;
+ workloadName: string;
+ containerName: string;
+ changes: { id: string; field: string; kind: 'modified' | 'unchanged'; before: string; after: string }[];
+ riskKeys: string[];
+ rollbackAvailable: boolean;
+ expiresAt: string;
+}
+
+export function previewK8sRelease(data: K8sReleasePayload, signal?: AbortSignal) {
+ return apiRequest<K8sReleasePreviewResponse>({url:'/business/k8s/releases/preview',method:'post',skipErrorMessage:true,data,signal});
+}
+export function previewK8sRollback(id:number,idempotencyKey:string,signal?:AbortSignal) {
+ return apiRequest<K8sReleasePreviewResponse>({url:`/business/k8s/releases/${id}/rollback/preview`,method:'post',skipErrorMessage:true,data:{idempotencyKey},signal});
+}
+

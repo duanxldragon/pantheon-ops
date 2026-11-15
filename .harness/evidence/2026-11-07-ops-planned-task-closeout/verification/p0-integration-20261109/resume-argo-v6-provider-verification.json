@@ -1,0 +1,501 @@
+{
+  "upstreamCommit": "66b2f302d91a42cc151808da0eec0846bbe1062c",
+  "patchSHA256": "a21740245ef6f35a6da8337ab05e6771e8c376fb4bcc70493cc51ac2e5dfc852",
+  "changedPathCount": 8,
+  "unchangedTrackedFiles": 4820,
+  "passedTestEvents": 49,
+  "nonGroupTestCases": 44,
+  "skipped": 0,
+  "checks": {
+    "race": {
+      "command": [
+        "go",
+        "test",
+        "-race",
+        "-mod=readonly",
+        "./server/application",
+        "./pkg/apiclient/application",
+        "-run",
+        "^(TestReviewed|TestSyncAndTerminate$|TestSyncHelm$|TestSyncGit$|TestSync_WithRefresh$|TestRollbackApp)",
+        "-count=1",
+        "-json"
+      ],
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\argo-reviewed-provider-v3.2.0",
+      "started": "2026-11-10T01:23:25.649311+00:00",
+      "elapsedSeconds": 38.906,
+      "exit": 0,
+      "toolchain": "go version go1.26.5 windows/amd64",
+      "CGO_ENABLED": "1",
+      "compilerPath": "D:/msys64/mingw64/bin",
+      "sourceHashesBefore": {
+        "server/application/application.go": "9902808d66b291b7fe38e101b9b9627b2507ca7b66e487e8e540be30c0ca30b4",
+        "server/application/application.proto": "97f2d78b74c263400fe02c6b65aacb5351c0763ec3b3211f701d423bcb245b66",
+        "server/application/reviewed_actions.go": "deaf3671254dd804432c9f73713ec3274c90a0c0f556402e71da5ceeb7ba0a31",
+        "server/application/reviewed_actions_test.go": "fa77ac7f3e7b123ee7c445f5f0dd664314ed0afd6d4bc49214060db36790ae22",
+        "pkg/apiclient/application/application.pb.go": "b6ae80edad7208f02617a6d2f6fee37c95b0f277c59cffdcc2f2c5de4e129026",
+        "pkg/apiclient/application/application.pb.gw.go": "16ac726e69ad4e30906209d0b832542b76031a02446c476caac7dad81eb37ad6",
+        "pkg/apiclient/application/reviewed_protocol_test.go": "99f189b521675f96436ab307cbe76f73c7f04ac4fc89a7572dc2eca25e5c3b1f",
+        "assets/swagger.json": "eee7ccc1d563bcc6bd025867d87b5d88e7ee7d9845cd960054872aa21958f1de",
+        "go.mod": "c4d916d428c255f9e4276326986ca419935a203fbf13392e6431b316d65991a5",
+        "go.sum": "81ebeffd71e931811e668f366ad9a7cc0060905aa2edb99cdc2757549b4ab088"
+      },
+      "sourceHashesAfter": {
+        "server/application/application.go": "9902808d66b291b7fe38e101b9b9627b2507ca7b66e487e8e540be30c0ca30b4",
+        "server/application/application.proto": "97f2d78b74c263400fe02c6b65aacb5351c0763ec3b3211f701d423bcb245b66",
+        "server/application/reviewed_actions.go": "deaf3671254dd804432c9f73713ec3274c90a0c0f556402e71da5ceeb7ba0a31",
+        "server/application/reviewed_actions_test.go": "fa77ac7f3e7b123ee7c445f5f0dd664314ed0afd6d4bc49214060db36790ae22",
+        "pkg/apiclient/application/application.pb.go": "b6ae80edad7208f02617a6d2f6fee37c95b0f277c59cffdcc2f2c5de4e129026",
+        "pkg/apiclient/application/application.pb.gw.go": "16ac726e69ad4e30906209d0b832542b76031a02446c476caac7dad81eb37ad6",
+        "pkg/apiclient/application/reviewed_protocol_test.go": "99f189b521675f96436ab307cbe76f73c7f04ac4fc89a7572dc2eca25e5c3b1f",
+        "assets/swagger.json": "eee7ccc1d563bcc6bd025867d87b5d88e7ee7d9845cd960054872aa21958f1de",
+        "go.mod": "c4d916d428c255f9e4276326986ca419935a203fbf13392e6431b316d65991a5",
+        "go.sum": "81ebeffd71e931811e668f366ad9a7cc0060905aa2edb99cdc2757549b4ab088"
+      },
+      "sourceStable": true,
+      "testEvents": [
+        {
+          "Time": "2026-11-10T09:23:38.8163957+08:00",
+          "Action": "pass",
+          "Package": "github.com/argoproj/argo-cd/v3/pkg/apiclient/application",
+          "Test": "TestReviewedProtocolRoundTrip",
+          "Elapsed": 0.02
+        },
+        {
+          "Time": "2026-11-10T09:23:38.8267432+08:00",
+          "Action": "pass",
+          "Package": "github.com/argoproj/argo-cd/v3/pkg/apiclient/application",
+          "Test": "TestReviewedGatewayFieldsAndDistinctRoute",
+          "Elapsed": 0.01
+        },
+        {
+          "Time": "2026-11-10T09:23:38.8329156+08:00",
+          "Action": "pass",
+          "Package": "github.com/argoproj/argo-cd/v3/pkg/apiclient/application",
+          "Test": "TestReviewedUnavailableNeverUsesLegacy",
+          "Elapsed": 0.01
+        },
+        {
+          "Time": "2026-11-10T09:23:38.8388697+08:00",
+          "Action": "pass",
+          "Package": "github.com/argoproj/argo-cd/v3/pkg/apiclient/application",
+          "Test": "TestReviewedGatewayConflictIs409",
+          "Elapsed": 0.01
+        },
+        {
+          "Time": "2026-11-10T09:23:39.8588386+08:00",
+          "Action": "pass",
+          "Package": "github.com/argoproj/argo-cd/v3/pkg/apiclient/application",
+          "Elapsed": 1.548
+        },
+        {
+          "Time": "2026-11-10T09:23:40.2618329+08:00",
+          "Action": "pass",
+          "Package": "github.com/argoproj/argo-cd/v3/server/application",
+          "Test": "TestSyncAndTerminate",
+          "Elapsed": 1.45
+        },
+        {
+          "Time": "2026-11-10T09:23:40.958866+08:00",
+          "Action": "pass",
+          "Package": "github.com/argoproj/argo-cd/v3/server/application",
+          "Test": "TestSyncHelm",
+          "Elapsed": 0.7
+        },
+        {
+          "Time": "2026-11-10T09:23:41.6616454+08:00",
+          "Action": "pass",
+          "Package": "github.com/argoproj/argo-cd/v3/server/application",
+          "Test": "TestSyncGit",
+          "Elapsed": 0.7
+        },
+        {
+          "Time": "2026-11-10T09:23:42.3692821+08:00",
+          "Action": "pass",
+          "Package": "github.com/argoproj/argo-cd/v3/server/application",
+          "Test": "TestSync_WithRefresh",
+          "Elapsed": 0.71
+        },
+        {
+          "Time": "2026-11-10T09:23:43.0201184+08:00",
+          "Action": "pass",
+          "Package": "github.com/argoproj/argo-cd/v3/server/application",
+          "Test": "TestRollbackApp",
+          "Elapsed": 0.65
+        },
+        {
+          "Time": "2026-11-10T09:23:43.6698825+08:00",
+          "Action": "pass",
+          "Package": "github.com/argoproj/argo-cd/v3/server/application",
+          "Test": "TestRollbackApp_WithRefresh",
+          "Elapsed": 0.65
+        },
+        {
+          "Time": "2026-11-10T09:23:44.9734857+08:00",
+          "Action": "pass",
+          "Package": "github.com/argoproj/argo-cd/v3/server/application",
+          "Test": "TestReviewedSyncNativeConstruction",
+          "Elapsed": 1.3
+        },
+        {
+          "Time": "2026-11-10T09:23:46.2752171+08:00",
+          "Action": "pass",
+          "Package": "github.com/argoproj/argo-cd/v3/server/application",
+          "Test": "TestReviewedRollbackNativeHistoryAndWindowPolicy",
+          "Elapsed": 1.3
+        },
+        {
+          "Time": "2026-11-10T09:23:46.9093486+08:00",
+          "Action": "pass",
+          "Package": "github.com/argoproj/argo-cd/v3/server/application",
+          "Test": "TestReviewedNativePolicyDenials/sync-rbac",
+          "Elapsed": 0.63
+        },
+        {
+          "Time": "2026-11-10T09:23:47.4315427+08:00",
+          "Action": "pass",
+          "Package": "github.com/argoproj/argo-cd/v3/server/application",
+          "Test": "TestReviewedNativePolicyDenials/rollback-rbac",
+          "Elapsed": 0.52
+        },
+        {
+          "Time": "2026-11-10T09:23:47.9732707+08:00",
+          "Action": "pass",
+          "Package": "github.com/argoproj/argo-cd/v3/server/application",
+          "Test": "TestReviewedNativePolicyDenials/capabilities-rbac",
+          "Elapsed": 0.54
+        },
+        {
+          "Time": "2026-11-10T09:23:48.5943452+08:00",
+          "Action": "pass",
+          "Package": "github.com/argoproj/argo-cd/v3/server/application",
+          "Test": "TestReviewedNativePolicyDenials/sync-window",
+          "Elapsed": 0.62
+        },
+        {
+          "Time": "2026-11-10T09:23:49.219885+08:00",
+          "Action": "pass",
+          "Package": "github.com/argoproj/argo-cd/v3/server/application",
+          "Test": "TestReviewedNativePolicyDenials/rollback-auto-sync",
+          "Elapsed": 0.63
+        },
+        {
+          "Time": "2026-11-10T09:23:49.7547861+08:00",
+          "Action": "pass",
+          "Package": "github.com/argoproj/argo-cd/v3/server/application",
+          "Test": "TestReviewedNativePolicyDenials/local-manifests-override-not-available",
+          "Elapsed": 0.53
+        },
+        {
+          "Time": "2026-11-10T09:23:49.7547861+08:00",
+          "Action": "pass",
+          "Package": "github.com/argoproj/argo-cd/v3/server/application",
+          "Test": "TestReviewedNativePolicyDenials",
+          "Elapsed": 3.48
+        },
+        {
+          "Time": "2026-11-10T09:23:50.2829464+08:00",
+          "Action": "pass",
+          "Package": "github.com/argoproj/argo-cd/v3/server/application",
+          "Test": "TestReviewedRequiresNativeAuthenticatedPrincipal",
+          "Elapsed": 0.53
+        },
+        {
+          "Time": "2026-11-10T09:23:50.9159601+08:00",
+          "Action": "pass",
+          "Package": "github.com/argoproj/argo-cd/v3/server/application",
+          "Test": "TestReviewedDriftAndPendingBeforeMutation/uid-replacement",
+          "Elapsed": 0.63
+        },
+        {
+          "Time": "2026-11-10T09:23:51.5708664+08:00",
+          "Action": "pass",
+          "Package": "github.com/argoproj/argo-cd/v3/server/application",
+          "Test": "TestReviewedDriftAndPendingBeforeMutation/spec-aba-version",
+          "Elapsed": 0.66
+        },
+        {
+          "Time": "2026-11-10T09:23:52.1991428+08:00",
+          "Action": "pass",
+          "Package": "github.com/argoproj/argo-cd/v3/server/application",
+          "Test": "TestReviewedDriftAndPendingBeforeMutation/pending",
+          "Elapsed": 0.63
+        },
+        {
+          "Time": "2026-11-10T09:23:52.8292049+08:00",
+          "Action": "pass",
+          "Package": "github.com/argoproj/argo-cd/v3/server/application",
+          "Test": "TestReviewedDriftAndPendingBeforeMutation/running-consumed",
+          "Elapsed": 0.63
+        },
+        {
+          "Time": "2026-11-10T09:23:53.4715783+08:00",
+          "Action": "pass",
+          "Package": "github.com/argoproj/argo-cd/v3/server/application",
+          "Test": "TestReviewedDriftAndPendingBeforeMutation/invalid-pending-state",
+          "Elapsed": 0.64
+        },
+        {
+          "Time": "2026-11-10T09:23:54.0925218+08:00",
+          "Action": "pass",
+          "Package": "github.com/argoproj/argo-cd/v3/server/application",
+          "Test": "TestReviewedDriftAndPendingBeforeMutation/deleting",
+          "Elapsed": 0.62
+        },
+        {
+          "Time": "2026-11-10T09:23:54.0925218+08:00",
+          "Action": "pass",
+          "Package": "github.com/argoproj/argo-cd/v3/server/application",
+          "Test": "TestReviewedDriftAndPendingBeforeMutation",
+          "Elapsed": 3.81
+        },
+        {
+          "Time": "2026-11-10T09:23:54.6371435+08:00",
+          "Action": "pass",
+          "Package": "github.com/argoproj/argo-cd/v3/server/application",
+          "Test": "TestReviewedRequestAndHistoryMismatches/missing",
+          "Elapsed": 0.54
+        },
+        {
+          "Time": "2026-11-10T09:23:55.1692531+08:00",
+          "Action": "pass",
+          "Package": "github.com/argoproj/argo-cd/v3/server/application",
+          "Test": "TestReviewedRequestAndHistoryMismatches/uid",
+          "Elapsed": 0.53
+        },
+        {
+          "Time": "2026-11-10T09:23:55.7036638+08:00",
+          "Action": "pass",
+          "Package": "github.com/argoproj/argo-cd/v3/server/application",
+          "Test": "TestReviewedRequestAndHistoryMismatches/version",
+          "Elapsed": 0.53
+        },
+        {
+          "Time": "2026-11-10T09:23:56.23552+08:00",
+          "Action": "pass",
+          "Package": "github.com/argoproj/argo-cd/v3/server/application",
+          "Test": "TestReviewedRequestAndHistoryMismatches/branch",
+          "Elapsed": 0.53
+        },
+        {
+          "Time": "2026-11-10T09:23:56.7731487+08:00",
+          "Action": "pass",
+          "Package": "github.com/argoproj/argo-cd/v3/server/application",
+          "Test": "TestReviewedRequestAndHistoryMismatches/marker",
+          "Elapsed": 0.54
+        },
+        {
+          "Time": "2026-11-10T09:23:57.3104638+08:00",
+          "Action": "pass",
+          "Package": "github.com/argoproj/argo-cd/v3/server/application",
+          "Test": "TestReviewedRequestAndHistoryMismatches/extra-marker",
+          "Elapsed": 0.54
+        },
+        {
+          "Time": "2026-11-10T09:23:57.9516093+08:00",
+          "Action": "pass",
+          "Package": "github.com/argoproj/argo-cd/v3/server/application",
+          "Test": "TestReviewedRequestAndHistoryMismatches/missing-history",
+          "Elapsed": 0.64
+        },
+        {
+          "Time": "2026-11-10T09:23:58.5817644+08:00",
+          "Action": "pass",
+          "Package": "github.com/argoproj/argo-cd/v3/server/application",
+          "Test": "TestReviewedRequestAndHistoryMismatches/wrong-history-id",
+          "Elapsed": 0.63
+        },
+        {
+          "Time": "2026-11-10T09:23:59.2243463+08:00",
+          "Action": "pass",
+          "Package": "github.com/argoproj/argo-cd/v3/server/application",
+          "Test": "TestReviewedRequestAndHistoryMismatches/old-history-no-source",
+          "Elapsed": 0.64
+        },
+        {
+          "Time": "2026-11-10T09:23:59.8660001+08:00",
+          "Action": "pass",
+          "Package": "github.com/argoproj/argo-cd/v3/server/application",
+          "Test": "TestReviewedRequestAndHistoryMismatches/history-revision-drift",
+          "Elapsed": 0.64
+        },
+        {
+          "Time": "2026-11-10T09:24:00.5019068+08:00",
+          "Action": "pass",
+          "Package": "github.com/argoproj/argo-cd/v3/server/application",
+          "Test": "TestReviewedRequestAndHistoryMismatches/resolved-sync-drift",
+          "Elapsed": 0.64
+        },
+        {
+          "Time": "2026-11-10T09:24:00.5019068+08:00",
+          "Action": "pass",
+          "Package": "github.com/argoproj/argo-cd/v3/server/application",
+          "Test": "TestReviewedRequestAndHistoryMismatches",
+          "Elapsed": 6.41
+        },
+        {
+          "Time": "2026-11-10T09:24:01.1346591+08:00",
+          "Action": "pass",
+          "Package": "github.com/argoproj/argo-cd/v3/server/application",
+          "Test": "TestReviewedServerConflictNeverReloads",
+          "Elapsed": 0.63
+        },
+        {
+          "Time": "2026-11-10T09:24:01.1351682+08:00",
+          "Action": "pass",
+          "Package": "github.com/argoproj/argo-cd/v3/server/application",
+          "Test": "TestReviewedSingleUpdateCancellationAndFastConsume/already-canceled",
+          "Elapsed": 0
+        },
+        {
+          "Time": "2026-11-10T09:24:01.1356966+08:00",
+          "Action": "pass",
+          "Package": "github.com/argoproj/argo-cd/v3/server/application",
+          "Test": "TestReviewedSingleUpdateCancellationAndFastConsume/cancel-during-update",
+          "Elapsed": 0
+        },
+        {
+          "Time": "2026-11-10T09:24:01.136239+08:00",
+          "Action": "pass",
+          "Package": "github.com/argoproj/argo-cd/v3/server/application",
+          "Test": "TestReviewedSingleUpdateCancellationAndFastConsume/lost-reply-no-retry",
+          "Elapsed": 0
+        },
+        {
+          "Time": "2026-11-10T09:24:01.136239+08:00",
+          "Action": "pass",
+          "Package": "github.com/argoproj/argo-cd/v3/server/application",
+          "Test": "TestReviewedSingleUpdateCancellationAndFastConsume/fast-consume-keeps-write-response",
+          "Elapsed": 0
+        },
+        {
+          "Time": "2026-11-10T09:24:01.136787+08:00",
+          "Action": "pass",
+          "Package": "github.com/argoproj/argo-cd/v3/server/application",
+          "Test": "TestReviewedSingleUpdateCancellationAndFastConsume/invalid-operation-before-update",
+          "Elapsed": 0
+        },
+        {
+          "Time": "2026-11-10T09:24:01.136787+08:00",
+          "Action": "pass",
+          "Package": "github.com/argoproj/argo-cd/v3/server/application",
+          "Test": "TestReviewedSingleUpdateCancellationAndFastConsume",
+          "Elapsed": 0
+        },
+        {
+          "Time": "2026-11-10T09:24:02.4060288+08:00",
+          "Action": "pass",
+          "Package": "github.com/argoproj/argo-cd/v3/server/application",
+          "Test": "TestReviewedCapabilitiesAndUnsupportedSources/multi",
+          "Elapsed": 0.64
+        },
+        {
+          "Time": "2026-11-10T09:24:03.0435747+08:00",
+          "Action": "pass",
+          "Package": "github.com/argoproj/argo-cd/v3/server/application",
+          "Test": "TestReviewedCapabilitiesAndUnsupportedSources/chart",
+          "Elapsed": 0.64
+        },
+        {
+          "Time": "2026-11-10T09:24:03.0441295+08:00",
+          "Action": "pass",
+          "Package": "github.com/argoproj/argo-cd/v3/server/application",
+          "Test": "TestReviewedCapabilitiesAndUnsupportedSources",
+          "Elapsed": 1.91
+        },
+        {
+          "Time": "2026-11-10T09:24:04.1147254+08:00",
+          "Action": "pass",
+          "Package": "github.com/argoproj/argo-cd/v3/server/application",
+          "Elapsed": 25.804
+        }
+      ],
+      "output": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\resume-argo-v6-provider-evidence\\final-auth-race.log"
+    },
+    "vet": {
+      "command": [
+        "go",
+        "vet",
+        "-mod=readonly",
+        "./server/application",
+        "./pkg/apiclient/application"
+      ],
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\argo-reviewed-provider-v3.2.0",
+      "started": "2026-11-10T01:23:25.629782+00:00",
+      "elapsedSeconds": 3.219,
+      "exit": 0,
+      "toolchain": "go version go1.26.5 windows/amd64",
+      "CGO_ENABLED": "1",
+      "compilerPath": "D:/msys64/mingw64/bin",
+      "sourceHashesBefore": {
+        "server/application/application.go": "9902808d66b291b7fe38e101b9b9627b2507ca7b66e487e8e540be30c0ca30b4",
+        "server/application/application.proto": "97f2d78b74c263400fe02c6b65aacb5351c0763ec3b3211f701d423bcb245b66",
+        "server/application/reviewed_actions.go": "deaf3671254dd804432c9f73713ec3274c90a0c0f556402e71da5ceeb7ba0a31",
+        "server/application/reviewed_actions_test.go": "fa77ac7f3e7b123ee7c445f5f0dd664314ed0afd6d4bc49214060db36790ae22",
+        "pkg/apiclient/application/application.pb.go": "b6ae80edad7208f02617a6d2f6fee37c95b0f277c59cffdcc2f2c5de4e129026",
+        "pkg/apiclient/application/application.pb.gw.go": "16ac726e69ad4e30906209d0b832542b76031a02446c476caac7dad81eb37ad6",
+        "pkg/apiclient/application/reviewed_protocol_test.go": "99f189b521675f96436ab307cbe76f73c7f04ac4fc89a7572dc2eca25e5c3b1f",
+        "assets/swagger.json": "eee7ccc1d563bcc6bd025867d87b5d88e7ee7d9845cd960054872aa21958f1de",
+        "go.mod": "c4d916d428c255f9e4276326986ca419935a203fbf13392e6431b316d65991a5",
+        "go.sum": "81ebeffd71e931811e668f366ad9a7cc0060905aa2edb99cdc2757549b4ab088"
+      },
+      "sourceHashesAfter": {
+        "server/application/application.go": "9902808d66b291b7fe38e101b9b9627b2507ca7b66e487e8e540be30c0ca30b4",
+        "server/application/application.proto": "97f2d78b74c263400fe02c6b65aacb5351c0763ec3b3211f701d423bcb245b66",
+        "server/application/reviewed_actions.go": "deaf3671254dd804432c9f73713ec3274c90a0c0f556402e71da5ceeb7ba0a31",
+        "server/application/reviewed_actions_test.go": "fa77ac7f3e7b123ee7c445f5f0dd664314ed0afd6d4bc49214060db36790ae22",
+        "pkg/apiclient/application/application.pb.go": "b6ae80edad7208f02617a6d2f6fee37c95b0f277c59cffdcc2f2c5de4e129026",
+        "pkg/apiclient/application/application.pb.gw.go": "16ac726e69ad4e30906209d0b832542b76031a02446c476caac7dad81eb37ad6",
+        "pkg/apiclient/application/reviewed_protocol_test.go": "99f189b521675f96436ab307cbe76f73c7f04ac4fc89a7572dc2eca25e5c3b1f",
+        "assets/swagger.json": "eee7ccc1d563bcc6bd025867d87b5d88e7ee7d9845cd960054872aa21958f1de",
+        "go.mod": "c4d916d428c255f9e4276326986ca419935a203fbf13392e6431b316d65991a5",
+        "go.sum": "81ebeffd71e931811e668f366ad9a7cc0060905aa2edb99cdc2757549b4ab088"
+      },
+      "sourceStable": true,
+      "testEvents": [],
+      "output": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\resume-argo-v6-provider-evidence\\final-auth-vet.log"
+    },
+    "build": {
+      "command": [
+        "go",
+        "build",
+        "-mod=readonly",
+        "./server/application",
+        "./pkg/apiclient/application"
+      ],
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\argo-reviewed-provider-v3.2.0",
+      "started": "2026-11-10T01:23:25.633877+00:00",
+      "elapsedSeconds": 3.172,
+      "exit": 0,
+      "toolchain": "go version go1.26.5 windows/amd64",
+      "CGO_ENABLED": "1",
+      "compilerPath": "D:/msys64/mingw64/bin",
+      "sourceHashesBefore": {
+        "server/application/application.go": "9902808d66b291b7fe38e101b9b9627b2507ca7b66e487e8e540be30c0ca30b4",
+        "server/application/application.proto": "97f2d78b74c263400fe02c6b65aacb5351c0763ec3b3211f701d423bcb245b66",
+        "server/application/reviewed_actions.go": "deaf3671254dd804432c9f73713ec3274c90a0c0f556402e71da5ceeb7ba0a31",
+        "server/application/reviewed_actions_test.go": "fa77ac7f3e7b123ee7c445f5f0dd664314ed0afd6d4bc49214060db36790ae22",
+        "pkg/apiclient/application/application.pb.go": "b6ae80edad7208f02617a6d2f6fee37c95b0f277c59cffdcc2f2c5de4e129026",
+        "pkg/apiclient/application/application.pb.gw.go": "16ac726e69ad4e30906209d0b832542b76031a02446c476caac7dad81eb37ad6",
+        "pkg/apiclient/application/reviewed_protocol_test.go": "99f189b521675f96436ab307cbe76f73c7f04ac4fc89a7572dc2eca25e5c3b1f",
+        "assets/swagger.json": "eee7ccc1d563bcc6bd025867d87b5d88e7ee7d9845cd960054872aa21958f1de",
+        "go.mod": "c4d916d428c255f9e4276326986ca419935a203fbf13392e6431b316d65991a5",
+        "go.sum": "81ebeffd71e931811e668f366ad9a7cc0060905aa2edb99cdc2757549b4ab088"
+      },
+      "sourceHashesAfter": {
+        "server/application/application.go": "9902808d66b291b7fe38e101b9b9627b2507ca7b66e487e8e540be30c0ca30b4",
+        "server/application/application.proto": "97f2d78b74c263400fe02c6b65aacb5351c0763ec3b3211f701d423bcb245b66",
+        "server/application/reviewed_actions.go": "deaf3671254dd804432c9f73713ec3274c90a0c0f556402e71da5ceeb7ba0a31",
+        "server/application/reviewed_actions_test.go": "fa77ac7f3e7b123ee7c445f5f0dd664314ed0afd6d4bc49214060db36790ae22",
+        "pkg/apiclient/application/application.pb.go": "b6ae80edad7208f02617a6d2f6fee37c95b0f277c59cffdcc2f2c5de4e129026",
+        "pkg/apiclient/application/application.pb.gw.go": "16ac726e69ad4e30906209d0b832542b76031a02446c476caac7dad81eb37ad6",
+        "pkg/apiclient/application/reviewed_protocol_test.go": "99f189b521675f96436ab307cbe76f73c7f04ac4fc89a7572dc2eca25e5c3b1f",
+        "assets/swagger.json": "eee7ccc1d563bcc6bd025867d87b5d88e7ee7d9845cd960054872aa21958f1de",
+        "go.mod": "c4d916d428c255f9e4276326986ca419935a203fbf13392e6431b316d65991a5",
+        "go.sum": "81ebeffd71e931811e668f366ad9a7cc0060905aa2edb99cdc2757549b4ab088"
+      },
+      "sourceStable": true,
+      "testEvents": [],
+      "output": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\resume-argo-v6-provider-evidence\\final-auth-build.log"
+    }
+  }
+}

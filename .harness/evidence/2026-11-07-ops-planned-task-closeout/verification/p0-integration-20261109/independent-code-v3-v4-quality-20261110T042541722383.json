@@ -1,0 +1,86 @@
+{
+  "role": "CODE reviewer",
+  "tests": [
+    {
+      "log": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/independent-code-v3-v4-deployment-20261110T042451913381.log",
+      "logSHA256": "56271f773a60321fe3a3e2d4ff608bf89de137a2596e953c71272f0bc1f325ba",
+      "subprocessExitCode": 0,
+      "tests": 23,
+      "passed": true
+    },
+    {
+      "log": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/independent-code-v3-v4-live-20261110T042451913381.log",
+      "logSHA256": "e7e597684a2d83c217e91a3332d7e9fa846e4ce88c25303b529a95aea0fbd581",
+      "subprocessExitCode": 0,
+      "tests": 9,
+      "passed": true
+    }
+  ],
+  "initialCaptureChecker": "FAILED: LF-only success marker did not match Windows CRLF; both subprocesses exited 0. Corrected by inspecting these same retained bytes, without rerunning tests or rewriting logs.",
+  "lspReceipt": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/python-lsp-independent-code-v3-v4-20261110T042457134317.json",
+  "lspSHA256": "91a93fc554f2ba73cf66f445c8517d3740ca69f3de4c9c95e9ec4c83bd8dace0",
+  "lspErrors": 0,
+  "lspWarnings": 0,
+  "patternMethod": "Python AST because ast_grep_search is unavailable; changed exception handlers compared with exact predecessor ASTs.",
+  "patterns": [
+    {
+      "path": ".local/ops-acceptance/argo-adoption-v3-root-run.py",
+      "sha256": "69477ec5d41ad5492eee66d876344cd96fff3106cc0e2825e15f4a60926a7f45",
+      "newCatchHandlers": [],
+      "emptyCatchHandlers": [],
+      "ignoreDirectives": false
+    },
+    {
+      "path": ".local/ops-acceptance/argo-adoption-v3-deploy-test.py",
+      "sha256": "b3946c1ca96deeb840407ae7fae1c01865e218f1339d42dd137e91f4327565f7",
+      "newCatchHandlers": [],
+      "emptyCatchHandlers": [],
+      "ignoreDirectives": false
+    },
+    {
+      "path": ".local/ops-acceptance/argo-adoption-v3-verify.py",
+      "sha256": "857dd597f81b81b6d6de17927240ff6c6bff5e0dd63fa53a3360f03256ae6352",
+      "newCatchHandlers": [],
+      "emptyCatchHandlers": [],
+      "ignoreDirectives": false
+    },
+    {
+      "path": ".local/ops-acceptance/argo-reviewed-live-v4-contract.py",
+      "sha256": "5adb78dededc09860f5e0ece51c693e781019b1903f08a49e23d3b8e31717cbb",
+      "newCatchHandlers": [],
+      "emptyCatchHandlers": [],
+      "ignoreDirectives": false
+    },
+    {
+      "path": ".local/ops-acceptance/argo-reviewed-live-v4-prepare.py",
+      "sha256": "19ebb6b5c8e416e502afa8228d68ce99358ce20be9d9af0a6683c35e7d0bb70c",
+      "newCatchHandlers": [],
+      "emptyCatchHandlers": [],
+      "ignoreDirectives": false
+    },
+    {
+      "path": ".local/ops-acceptance/argo-reviewed-live-v4-test.py",
+      "sha256": "99dbed5421e621453f0208230463e39f5960590f944e58b44d6d5cf8a05a03fe",
+      "newCatchHandlers": [],
+      "emptyCatchHandlers": [],
+      "ignoreDirectives": false
+    },
+    {
+      "path": ".local/ops-acceptance/argo-reviewed-live-v4.py",
+      "sha256": "b650c47d5d2c7c3122a8c414c56cdc9a8adbad1f19517cd09827c8243192472b",
+      "newCatchHandlers": [],
+      "emptyCatchHandlers": [],
+      "ignoreDirectives": false
+    },
+    {
+      "path": ".local/ops-acceptance/argo-reviewed-remote-staged-v4.py",
+      "sha256": "e476e7ff6a024de5234a369b1b91e02d857cad131ec4b036d586b524680c0a6b",
+      "newCatchHandlers": [],
+      "emptyCatchHandlers": [],
+      "ignoreDirectives": false
+    }
+  ],
+  "sourceStable": true,
+  "remoteExecuted": false,
+  "P0Approved": false
+}

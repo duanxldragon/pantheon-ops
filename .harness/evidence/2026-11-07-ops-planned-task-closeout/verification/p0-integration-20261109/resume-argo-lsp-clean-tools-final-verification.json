@@ -1,0 +1,79 @@
+{
+  "parentTask": "2026-11-07-ops-planned-task-closeout",
+  "role": "Generator",
+  "sourceFiles": [
+    {
+      "path": ".local/ops-acceptance/argo-adoption-v3-root-run.py",
+      "sha256": "69477ec5d41ad5492eee66d876344cd96fff3106cc0e2825e15f4a60926a7f45",
+      "grammar": "Python 3.9",
+      "inMemoryCompile": true,
+      "whitespaceClean": true
+    },
+    {
+      "path": ".local/ops-acceptance/argo-adoption-v3-deploy-test.py",
+      "sha256": "b3946c1ca96deeb840407ae7fae1c01865e218f1339d42dd137e91f4327565f7",
+      "grammar": "Python 3.9",
+      "inMemoryCompile": true,
+      "whitespaceClean": true
+    },
+    {
+      "path": ".local/ops-acceptance/argo-adoption-v3-verify.py",
+      "sha256": "857dd597f81b81b6d6de17927240ff6c6bff5e0dd63fa53a3360f03256ae6352",
+      "grammar": "Python 3.9",
+      "inMemoryCompile": true,
+      "whitespaceClean": true
+    },
+    {
+      "path": ".local/ops-acceptance/argo-reviewed-live-v4-contract.py",
+      "sha256": "5adb78dededc09860f5e0ece51c693e781019b1903f08a49e23d3b8e31717cbb",
+      "grammar": "Python 3.9",
+      "inMemoryCompile": true,
+      "whitespaceClean": true
+    },
+    {
+      "path": ".local/ops-acceptance/argo-reviewed-live-v4-prepare.py",
+      "sha256": "19ebb6b5c8e416e502afa8228d68ce99358ce20be9d9af0a6683c35e7d0bb70c",
+      "grammar": "Python 3.9",
+      "inMemoryCompile": true,
+      "whitespaceClean": true
+    },
+    {
+      "path": ".local/ops-acceptance/argo-reviewed-live-v4-test.py",
+      "sha256": "99dbed5421e621453f0208230463e39f5960590f944e58b44d6d5cf8a05a03fe",
+      "grammar": "Python 3.9",
+      "inMemoryCompile": true,
+      "whitespaceClean": true
+    },
+    {
+      "path": ".local/ops-acceptance/argo-reviewed-live-v4.py",
+      "sha256": "b650c47d5d2c7c3122a8c414c56cdc9a8adbad1f19517cd09827c8243192472b",
+      "grammar": "Python 3.9",
+      "inMemoryCompile": true,
+      "whitespaceClean": true
+    },
+    {
+      "path": ".local/ops-acceptance/argo-reviewed-remote-staged-v4.py",
+      "sha256": "e476e7ff6a024de5234a369b1b91e02d857cad131ec4b036d586b524680c0a6b",
+      "grammar": "Python 3.9",
+      "inMemoryCompile": true,
+      "whitespaceClean": true
+    }
+  ],
+  "actualPrepare": {
+    "passed": true,
+    "artifactSealSHA256": "6f3174aa85fd8a7dd6369e3aef289363a36c327655f497e2d65148a5853868a3",
+    "binarySHA256": "cd68356983230edfa0c013235eccba4381a5fbe00d7076f47b7d4b7b8578138b",
+    "binarySize": 206041319,
+    "seconds": 1.703,
+    "transportImported": false,
+    "remoteExecuted": false
+  },
+  "phaseRequestSHA256": "e7934f5656cd8aa537af487e898cd91431240aac955c76d3b7cfd9c0efc85b5d",
+  "phaseSourceHashesMatched": true,
+  "baselineFiles": 1567,
+  "missingOriginalPaths": [],
+  "changedBaselinePaths": [
+    ".local/ops-acceptance/resume-argo-lsp-clean-tools-generator-report-events.jsonl"
+  ],
+  "P0Approved": false
+}

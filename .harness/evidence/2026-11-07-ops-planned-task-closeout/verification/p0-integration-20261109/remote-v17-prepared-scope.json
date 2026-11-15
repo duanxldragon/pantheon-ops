@@ -1,0 +1,8 @@
+{
+  "host": "115.190.251.143",
+  "scope": "Tempo stable mobile frames and drawer/sidebar transitions; two existing cases only",
+  "backend": "reused checksum-verified v16 binary, predates final Argo delta; no Argo/browser tenant coverage",
+  "frontend": "unchanged v14 archive, only browser spec changed",
+  "database": "existing owned ops_p0_remote_acceptance_v16, status checked not fresh migration claim",
+  "launcherUTF8": true
+}

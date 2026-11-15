@@ -1,0 +1,101 @@
+{
+  "date": "2026-11-11",
+  "configurationAndReviewRestored": true,
+  "administratorCodexRequired": false,
+  "networkAvailable": true,
+  "sourceHashes": {
+    "scripts/business-overlay/foundation-candidate.mjs": "54dcbaf0addebc5523d3ffdfde07839412f2b7bb94d005d9313aac5e13a0d4d8",
+    "scripts/business-overlay/rebuild-from-candidate.mjs": "0d310bdcaffd8f961835737faf8aa6d1db1242bbdfa6ae10147e5e7871ed85c8",
+    "scripts/business-overlay/candidate-copy-binding.test.mjs": "8e462b763f7588d2062230d7f3828e4e46f91b338c4b0c927f8c71c3a377f382",
+    "scripts/business-overlay/candidate-retained-evidence.test.mjs": "329730e585a3a8fb8dca716003c86c2a6656bca9407c6a55cd321743ee55b09f"
+  },
+  "o4ToolingReview": {
+    "requestSHA256": "f48ef88870a98d21a35cb7a7fa83b88f4f5ddedcfe7ead26568455eeafdad00a",
+    "CODE": "APPROVE",
+    "ARCH": "CLEAR",
+    "scope": "tooling only"
+  },
+  "linuxSymlink": {
+    "tests": 1,
+    "pass": 1,
+    "fail": 0,
+    "skipped": 0,
+    "sourceStable": true,
+    "exactOwnedTaskContainerAbsent": true,
+    "scope": "r2 fixture only"
+  },
+  "currentNativeGitLongpathsTests": {
+    "tests": 10,
+    "pass": 10,
+    "fail": 0,
+    "skipped": 0
+  },
+  "priorFixtureBroaderTests": {
+    "tests": 217,
+    "pass": 216,
+    "fail": 1,
+    "skipped": 0,
+    "failure": "Windows file-symlink EPERM before assertion",
+    "currentFinalFixture": false
+  },
+  "typeRatchet": {
+    "inherited": 137,
+    "new": 0,
+    "fullTypeSafety": false
+  },
+  "o4ActualAssembly": {
+    "freshAttempt": "post-config-20261111-2aa25fb70de3",
+    "exitCode": 1,
+    "bindingStable": true,
+    "reason": "initial capture32MiB limit on retained40MiB evidence archives",
+    "successfulConsumerReceiptExists": false,
+    "next": "fresh metadata-quiescent final r4 attempt"
+  },
+  "velero7": {
+    "toolingCODE": "APPROVE",
+    "toolingARCH": "CLEAR",
+    "actualDiagnosticExitCode": 1,
+    "remoteExecuted": true,
+    "errorKey": "live-policy-field-missing",
+    "knownNewHelperUploads": 2,
+    "aliasesAdded": 0,
+    "providerInstalled": false,
+    "backupRestoreVerified": false,
+    "failureInspection": "COMPLETE",
+    "continuationPermitted": false,
+    "replayPermitted": false,
+    "next": "read-only missing policy field diagnosis under .local"
+  },
+  "O2PriorMatrix": {
+    "cases": 12,
+    "positive": 152,
+    "negative": 31,
+    "scope": "DeployService SSH projection fixture, not full public composition",
+    "replayPermitted": false
+  },
+  "P0ParentsClosed": 0,
+  "officialLockChanged": false,
+  "officialConsumption": false,
+  "artifactHashes": {
+    "pantheon-ops/.harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/continue-o4-copy-binding-20261111-r4-request.json": "f48ef88870a98d21a35cb7a7fa83b88f4f5ddedcfe7ead26568455eeafdad00a",
+    "pantheon-ops/.local/post-config-reviews/o4-r4-code-final-af99528beda34925.json": "eaa8eaaf1441da3c13e246dfa8d72c7aaa09a6f5d2d7ade8d818f44014168781",
+    "pantheon-ops/.local/ops-acceptance/post-config-reviews/post-config-o4-r4-code-report.json": "eaa8eaaf1441da3c13e246dfa8d72c7aaa09a6f5d2d7ade8d818f44014168781",
+    "pantheon-ops/.local/ops-acceptance/post-config-reviews/post-config-o4-r4-arch-report.json": "659d15c679838ea846db2074426e7f176a6fbcd13cca0d2d9556669af2655b12",
+    "pantheon-ops/.local/ops-acceptance/post-config-reviews/linux-arch-report.json": "3a02cf9385fe5b2abb644c81f6c5105c8681be561a4cff04cd2303dc3dba6e2e",
+    "pantheon-ops/.local/ops-acceptance/post-config-reviews/linux-code-final-1b5fd2cb17794bfd.json": "91546b93a4fb044259091b7fd4df6e454257f05b023b4972e4adee3577fd2218",
+    "pantheon-ops/.local/ops-acceptance/post-config-linux-symlink/run-o4-symlink-20261111-7ab5cff803134202/result.json": "0510892d39e4a5596787fc5debe2913480563bc2828cd2cf6bed15b0c304ad36",
+    "pantheon-ops/.local/ops-acceptance/post-config-linux-symlink/run-o4-symlink-20261111-7ab5cff803134202/execution.json": "b7fa81cab9af115adaa898fa9c32b7e9af77bf1e6b9851dd5bea74d0187df4d6",
+    "pantheon-ops/.local/ops-acceptance/post-config-linux-symlink/run-o4-symlink-20261111-7ab5cff803134202/symlink-test.tap": "d190ddb0d20dfc62270780da380ce349d9687393c3b8f71c53359eb5f71d4e82",
+    "pantheon-ops/.local/ops-acceptance/post-config-linux-symlink/run-o4-symlink-20261111-7ab5cff803134202/source-before.json": "51c8dd0348157a548ec98b3e9b0cdb622fa814da365621d08d0ab261bf047a9a",
+    "pantheon-ops/.local/ops-acceptance/post-config-linux-symlink/run-o4-symlink-20261111-7ab5cff803134202/source-after.json": "51c8dd0348157a548ec98b3e9b0cdb622fa814da365621d08d0ab261bf047a9a",
+    "pantheon-ops/.harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/continue-velero-alias-v7-root-diagnostic-20261111T032146630631.json": "21c30cfe8b26fd55432dacc906dc234514cdbe25955777ecab2b816c7f366740",
+    "pantheon-ops/.harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/continue-velero-alias-v7-root-inspect-failed-20261111T032307702929.json": "a01a40366227c68a7a8a39c3712ee2121818d969163ad301476c0c5adc02ac71",
+    "pantheon-ops/.harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/continue-velero-alias-v7-independent-code-report.md": "893b5cdc922fd60b982e396c4df0383aa3520262121b8b674e507b1ea919fec0",
+    "pantheon-ops/.harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/continue-velero-alias-v7-independent-arch-report.md": "d7715e9e9b1690e8c79b33ae384c7aaaab688b51a1058ff2881d73ff6da94865",
+    "pantheon-ops/.local/ops-acceptance/post-config-o4-metadata-copy/longpaths-fixture-r4/handoff.json": "e6d6a8311032b3d5c2980b2704f90875e0ffa015d2973b1f4a06d6af1fee6594",
+    "pantheon-ops/.local/ops-acceptance/post-config-o4-metadata-copy/longpaths-fixture-r4/focused-native-longpaths.tap": "1e0961ae0e711099bbbb5352698c5c6d42c0c402ca8c33adc82865c58ae47fcd",
+    "pantheon-ops/.local/ops-acceptance/post-config-o4-metadata-copy/longpaths-fixture-r4/diagnostics-ratchet-current.json": "ff4a95e4a30c0e6bb79f5840aeecfeec1794b4ef715fedbf1086b6e0e7ccf03c",
+    "pantheon-ops/.local/ops-acceptance/post-config-o4-metadata-copy/broader-prior-fixture-result.json": "bc02bfd7c01e5befaa3603be3d61a627dee986fd9ea77417b139644a15619a6e",
+    "pantheon-ops/.local/ops-acceptance/post-config-20261111-2aa25fb70de3/run.json": "6074f2a32b38014f8fa918e623fcd46631da5091a8df1570618010f90fe49eaa"
+  }
+}

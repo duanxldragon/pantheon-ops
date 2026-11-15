@@ -1,0 +1,342 @@
+{
+  "case": "revoke-host",
+  "identity": "o2-live-1815605de83a-revoke-host",
+  "database": "ops_p0_o2_live_1815605de83a_revoke_host",
+  "databaseRetention": "retained; no drop",
+  "events": [
+    {
+      "credentialId": 1,
+      "packageId": 1,
+      "phase": "task-created",
+      "taskId": 1
+    },
+    {
+      "operationPhase": "public-reviewed-start",
+      "phase": "v8-operation-phase",
+      "taskId": 1
+    },
+    {
+      "errorCategory": "none",
+      "phase": "v8-product-start-category",
+      "taskId": 1
+    },
+    {
+      "operationPhase": "marker-started",
+      "phase": "v8-operation-phase",
+      "taskId": 1
+    },
+    {
+      "operationPhase": "marker-started",
+      "ordinal": 1,
+      "phase": "v9-verifier-connection"
+    },
+    {
+      "deadlineExceeded": false,
+      "phase": "independent-ssh-handshake",
+      "pinCallbacks": 1,
+      "pinChecked": true,
+      "pinMatched": true
+    },
+    {
+      "deadlineExceeded": false,
+      "exitStatus": 0,
+      "passed": true,
+      "phase": "independent-ssh-command"
+    },
+    {
+      "marker": "started",
+      "ownershipChecked": true,
+      "phase": "independent-marker",
+      "present": false
+    },
+    {
+      "operationPhase": "marker-started",
+      "phase": "v8-operation-phase",
+      "taskId": 1
+    },
+    {
+      "deadlineExceeded": false,
+      "exitStatus": 0,
+      "passed": true,
+      "phase": "independent-ssh-command"
+    },
+    {
+      "marker": "started",
+      "ownershipChecked": true,
+      "phase": "independent-marker",
+      "present": true
+    },
+    {
+      "operationPhase": "public-control-pause",
+      "phase": "v8-operation-phase",
+      "taskId": 1
+    },
+    {
+      "action": "pause",
+      "errorKey": "",
+      "phase": "control",
+      "taskId": 1
+    },
+    {
+      "case": "revoke-host",
+      "check": "real running command acknowledged paused",
+      "kind": "positive",
+      "passed": true
+    },
+    {
+      "operationPhase": "public-control-cancel",
+      "phase": "v8-operation-phase",
+      "taskId": 1
+    },
+    {
+      "action": "cancel",
+      "errorKey": "business.deploy.task.commandConflict",
+      "phase": "control",
+      "taskId": 1
+    },
+    {
+      "case": "revoke-host",
+      "check": "stale running view conflicts after control",
+      "kind": "negative",
+      "passed": true
+    },
+    {
+      "operationPhase": "marker-done",
+      "phase": "v8-operation-phase",
+      "taskId": 1
+    },
+    {
+      "deadlineExceeded": false,
+      "exitStatus": 0,
+      "passed": true,
+      "phase": "independent-ssh-command"
+    },
+    {
+      "marker": "done",
+      "ownershipChecked": true,
+      "phase": "independent-marker",
+      "present": false
+    },
+    {
+      "case": "revoke-host",
+      "check": "independent VM interrupted attempt never wrote completion",
+      "kind": "positive",
+      "passed": true
+    },
+    {
+      "operationPhase": "fresh-child-inspect",
+      "phase": "v8-operation-phase",
+      "taskId": 1
+    },
+    {
+      "case": "revoke-host",
+      "check": "public current checkpoint and recorded safe history",
+      "kind": "positive",
+      "origin": "fresh-process",
+      "passed": true
+    },
+    {
+      "fieldTypes": {
+        "attemptNo": "float64",
+        "sequence": "float64",
+        "taskHostId": "float64",
+        "taskStepId": "float64"
+      },
+      "httpStatus": 200,
+      "kind": "logs",
+      "origin": "fresh-process",
+      "phase": "public-projection-structure",
+      "responseCode": 200
+    },
+    {
+      "case": "revoke-host",
+      "check": "public log sequence ownership attempts and secret exclusion",
+      "kind": "positive",
+      "origin": "fresh-process",
+      "passed": true
+    },
+    {
+      "case": "revoke-host",
+      "check": "both actual VM streams persisted",
+      "kind": "positive",
+      "origin": "fresh-process",
+      "passed": true
+    },
+    {
+      "fieldTypes": {},
+      "httpStatus": 200,
+      "kind": "logs",
+      "origin": "fresh-process",
+      "phase": "public-projection-structure",
+      "responseCode": 200
+    },
+    {
+      "case": "revoke-host",
+      "check": "log cursor excludes already delivered sequence",
+      "kind": "positive",
+      "origin": "fresh-process",
+      "passed": true
+    },
+    {
+      "fieldTypes": {
+        "attemptNo": "missing",
+        "sequence": "float64",
+        "taskHostId": "missing",
+        "taskStepId": "missing"
+      },
+      "httpStatus": 200,
+      "kind": "events",
+      "origin": "fresh-process",
+      "phase": "public-projection-structure",
+      "responseCode": 200
+    },
+    {
+      "case": "revoke-host",
+      "check": "public event sequence ordered across committed transitions",
+      "kind": "positive",
+      "origin": "fresh-process",
+      "passed": true
+    },
+    {
+      "fieldTypes": {},
+      "httpStatus": 200,
+      "kind": "events",
+      "origin": "fresh-process",
+      "phase": "public-projection-structure",
+      "responseCode": 200
+    },
+    {
+      "case": "revoke-host",
+      "check": "event reconnect cursor no replay at latest sequence",
+      "kind": "positive",
+      "origin": "fresh-process",
+      "passed": true
+    },
+    {
+      "attempts": [
+        {
+          "attemptNo": 1,
+          "leaseReleased": true,
+          "status": "paused"
+        }
+      ],
+      "eventTypes": [
+        "task.started",
+        "step.running",
+        "task.pause_requested",
+        "task.paused"
+      ],
+      "finished": false,
+      "history": [
+        {
+          "attemptNo": 1,
+          "capturedAt": "2026-11-10T10:26:05.904+08:00",
+          "finishedAt": null,
+          "id": 1,
+          "startedAt": "2026-11-10T10:26:03.687+08:00",
+          "stateVersion": 3,
+          "status": "pending",
+          "stepKey": "package_default",
+          "stepOrder": 1,
+          "taskHostId": 1
+        }
+      ],
+      "logCount": 2,
+      "origin": "fresh-process",
+      "phase": "persisted-state",
+      "status": "paused",
+      "steps": [
+        {
+          "attemptNo": 1,
+          "finishedAt": null,
+          "id": 1,
+          "startedAt": "2026-11-10T10:26:03.687+08:00",
+          "stateVersion": 3,
+          "status": "pending",
+          "stepKey": "package_default",
+          "stepOrder": 1,
+          "taskHostId": 1
+        }
+      ],
+      "taskId": 1
+    },
+    {
+      "case": "revoke-host",
+      "failed": 0,
+      "negativePassed": 0,
+      "origin": "fresh-process",
+      "phase": "driver-result",
+      "positivePassed": 6
+    },
+    {
+      "case": "revoke-host",
+      "check": "new OS process inspect uses committed task state",
+      "kind": "positive",
+      "passed": true
+    },
+    {
+      "case": "revoke-host",
+      "check": "current public host ownership change revokes task read",
+      "kind": "negative",
+      "passed": true
+    },
+    {
+      "operationPhase": "public-control-resume",
+      "phase": "v8-operation-phase",
+      "taskId": 1
+    },
+    {
+      "action": "resume",
+      "errorKey": "business.deploy.task.forbidden",
+      "phase": "control",
+      "taskId": 1
+    },
+    {
+      "case": "revoke-host",
+      "check": "current public host ownership change revokes viewed resume",
+      "kind": "negative",
+      "passed": true
+    },
+    {
+      "fieldTypes": {},
+      "httpStatus": 403,
+      "kind": "logs",
+      "phase": "public-projection-structure",
+      "responseCode": 403
+    },
+    {
+      "case": "revoke-host",
+      "check": "current public host ownership change revokes log projection",
+      "kind": "negative",
+      "passed": true
+    },
+    {
+      "case": "revoke-host",
+      "failed": 0,
+      "negativePassed": 4,
+      "phase": "driver-result",
+      "positivePassed": 3
+    }
+  ],
+  "driverExitCode": 0,
+  "stderrPresent": false,
+  "status": "passed",
+  "cleanup": {
+    "phase": "exact-owned-cleanup",
+    "directory": "/opt/pantheon-p0-20261109/o2-live-1815605de83a-revoke-host",
+    "files": [
+      {
+        "file": ".owner",
+        "sha256": "c119452a3897d6e5b1999a8ca12e2854080e3f605dd7411ff7082f1e85bfbdcc",
+        "bytes": 32
+      },
+      {
+        "file": "started",
+        "sha256": "c119452a3897d6e5b1999a8ca12e2854080e3f605dd7411ff7082f1e85bfbdcc",
+        "bytes": 32
+      }
+    ],
+    "absent": true,
+    "processKill": false
+  }
+}

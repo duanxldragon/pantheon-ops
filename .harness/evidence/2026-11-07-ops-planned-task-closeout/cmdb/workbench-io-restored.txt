@@ -1,0 +1,2 @@
+@@GLOBAL.innodb_flush_log_at_trx_commit	@@GLOBAL.sync_binlog
+1	1

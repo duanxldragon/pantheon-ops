@@ -5,6 +5,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/duanxldragon/pantheon-base/backend/modules/business/observability"
 	"github.com/duanxldragon/pantheon-base/backend/pkg/common"
 
 	"github.com/gin-gonic/gin"
@@ -33,6 +34,10 @@ func NewIdempotencyMiddleware(redisClient *redis.Client) *IdempotencyMiddleware 
 // requests with the header are deduplicated via Redis SET NX.
 func (m *IdempotencyMiddleware) Handle() gin.HandlerFunc {
 	return func(c *gin.Context) {
+		if observability.IsProtectedQueryRoute(c) {
+			c.Next()
+			return
+		}
 		if c.Request.Method == http.MethodGet || c.Request.Method == http.MethodHead || c.Request.Method == http.MethodOptions {
 			c.Next()
 			return

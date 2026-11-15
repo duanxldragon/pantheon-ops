@@ -1,0 +1,7 @@
+{
+  "mysqlBaselineAcceptanceEnabled": true,
+  "cgo": "1",
+  "vetExitCode": 0,
+  "buildExitCode": 0,
+  "raceExitCode": 0
+}

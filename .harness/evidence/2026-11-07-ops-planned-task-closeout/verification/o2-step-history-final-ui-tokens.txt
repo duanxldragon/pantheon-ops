@@ -1,0 +1,38 @@
+
+> check:ui-tokens
+> node scripts/check-ui-tokens.mjs
+
+
+[34m=== Pantheon UI Token Consistency Check ===[0m
+
+[34mℹ[0m Checking Arco raw token usage...
+[34mℹ[0m Checking UI forbidden patterns...
+[34mℹ[0m Checking Modal.confirm direct usage...
+[34mℹ[0m Checking hardcoded color values...
+[34mℹ[0m Checking inline style usage...
+
+[33m⚠[0m Modal.confirm direct usage (should use platform wrapper) (6 occurrences)
+  [33mfrontend/src/modules/lowcode/dynamicmodule/ModuleManager.tsx:761:content={t('generator.moduleManager.purgeModal.warning')}[0m
+  [33mfrontend/src/modules/lowcode/dynamicmodule/ModuleManager.tsx:803:{t('generator.moduleManager.purgeModal.confirmLabel')}[0m
+  [33mfrontend/src/components/patterns/modals/appModalActions.ts:4:type AppModalStaticConfig = Parameters<typeof Modal.confirm>[0] & {[0m
+  [33mfrontend/src/components/patterns/modals/appModalActions.ts:23:return Modal.confirm({[0m
+  [33mfrontend/src/components/patterns/modals/appModalActions.ts:32:return Modal.success({[0m
+  [33mfrontend/src/components/patterns/modals/appModalActions.ts:41:return Modal.error({[0m
+
+[33m⚠[0m Inline style with color (prefer CSS class with token) (11 occurrences)
+  [33mfrontend/src/modules/business/cmdb/group/CmdbGroupList.tsx:780:<div style={{ color: 'var(--text-tertiary)' }}>[0m
+  [33mfrontend/src/modules/business/cmdb/host/CmdbHostDetail.tsx:238:<div style={{ color: 'var(--text-secondary)', fontSize: 12 }}>[0m
+  [33mfrontend/src/modules/business/cmdb/host/CmdbHostDetail.tsx:258:<span style={{ color: 'var(--text-tertiary)', fontSize: 12 }}>{group.fullPath}</span>[0m
+  [33mfrontend/src/modules/business/cmdb/host/CmdbHostDetail.tsx:329:<div style={{ color: 'var(--text-tertiary)', marginBottom: 16 }}>[0m
+  [33mfrontend/src/modules/business/cmdb/host/CmdbHostList.tsx:137:<span style={{ color: 'var(--text-tertiary)', fontSize: 12 }}>[0m
+  [33mfrontend/src/modules/business/cmdb/host/CmdbHostList.tsx:161:<span style={{ color: 'var(--text-tertiary)', fontSize: 12 }}>[0m
+  [33mfrontend/src/modules/business/deploy/package/DeployPackageList.tsx:159:<span style={{ color: 'var(--text-tertiary)', fontSize: 12 }}>[0m
+  [33mfrontend/src/modules/business/deploy/package/DeployPackageList.tsx:616:<span style={{ color: 'var(--text-tertiary)', fontSize: 12 }}>[0m
+  [34m... and 3 more[0m
+
+[34mSummary:[0m
+  Errors: 0
+  Warnings: 17
+
+[33m⚠[0m UI token consistency check passed with warnings
+

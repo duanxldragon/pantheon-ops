@@ -1,0 +1,16 @@
+{
+  "command": [
+    "npm.cmd",
+    "run",
+    "check:shared-drift",
+    "--",
+    "--root",
+    ".tmp/ops-priority-ssh-stage"
+  ],
+  "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+  "exitCode": 0,
+  "elapsedSeconds": 19.187000000005355,
+  "artifact": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/o2-ssh-context-drift.txt",
+  "sourceHashesStable": true,
+  "hashedFiles": 695
+}

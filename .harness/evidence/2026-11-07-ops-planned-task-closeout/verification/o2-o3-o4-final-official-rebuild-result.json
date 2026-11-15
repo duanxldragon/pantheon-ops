@@ -1,0 +1,6 @@
+{
+  "command": "npm.cmd run rebuild:from-base -- --target .tmp/ops-priority-o2-o3-o4-final-stage",
+  "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+  "exitCode": 0,
+  "elapsedSeconds": 16.094000000011874
+}

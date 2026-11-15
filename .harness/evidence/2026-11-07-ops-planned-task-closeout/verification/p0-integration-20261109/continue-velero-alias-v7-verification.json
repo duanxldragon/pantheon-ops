@@ -1,0 +1,53 @@
+{
+  "requestSHA256": "6bba684f283d6eca328ffe3e66e46391db67ae8606b634941183ea5a99e83ecc",
+  "scriptHashes": {
+    ".local/ops-acceptance/continue-velero-alias-v7-contract.py": "c33a31f6d6af824a9fdff7560433a6f4a6a2e617ae4f93cc33fa12c7b9e5a2f5",
+    ".local/ops-acceptance/continue-velero-alias-v7-remote.py": "637368b547c41c0e11f234873998defe297435513aa2cccef17fddf1d82dfb71",
+    ".local/ops-acceptance/continue-velero-alias-v7-root.py": "a9ec79669b0ff5733842319a618415741bfa6b2ef30848d6762eac1936e347d3",
+    ".local/ops-acceptance/continue-velero-alias-v7-generate.py": "541c6ab85957a7b5b973a6e6ba30993cec46cf7f55cf8d38b6db6782b73aa870",
+    ".local/ops-acceptance/continue-velero-alias-v7-test.py": "da3cd46b5693b8dce507a064c693b5833a24513b7838d05f1b5699eb4fc4122a"
+  },
+  "matrix": {
+    "originalRegressions": 238,
+    "currentTests": 93,
+    "newUniqueTests": 40,
+    "fullUniqueRegressions": 278,
+    "testsRun": 331,
+    "failures": 0,
+    "errors": 0,
+    "forgeryCases": 52,
+    "inheritedV5UniqueTests": 260,
+    "newV6UniqueTests": 13,
+    "inheritedV6UniqueTests": 273,
+    "newV7UniqueTests": 5,
+    "skips": 0,
+    "oldGeneratorsExecuted": false,
+    "runtimeExecuted": false
+  },
+  "historicalAssets": 347,
+  "historicalHashesStable": true,
+  "remoteBaselineFiles": 37,
+  "memoryCompiles": 5,
+  "lsp": {
+    "version": "1.1.414",
+    "files": 5,
+    "errors": 0,
+    "warnings": 0,
+    "artifact": "continue-velero-alias-v7-lsp-actual-20261111T025814067698.json",
+    "sha256": "03a3de168522975f330c47a5c75b9851bd68434997b9d38d822a57519c0cd392",
+    "exitCode": 0
+  },
+  "artifacts": {
+    "continue-velero-alias-v7-focused_r2.json": "752a8d08dfaa9ad06456757331ac6385fe8ea5e68fed1a841ae77d50e9d2e57b",
+    "continue-velero-alias-v7-full.json": "1088680f5659c4145941fb5b5e4746a744aea24a244c58bc2fee45b47ac46285",
+    "continue-velero-alias-v7-lsp.json": "feaa88e39a8a7bff349ad6480109b0fa6563655200d5ba44f978d157ca6315e5",
+    "continue-velero-alias-v7-seal.json": "3b2bb72d964469b51f73cf1fb01da8d24c53ff4fc87cd348b225a641e1ef61bd",
+    "continue-velero-alias-v7-check-inputs.json": "2ae483219627b69953868acb82160b669166e9ecf370ab18d0ae2532bc5ac7cb"
+  },
+  "sealedV6CounterexampleReproduced": true,
+  "extraKnownAndUnknownSpecRefused": true,
+  "podStateSpecRefused": true,
+  "remoteExecuted": false,
+  "P0Approved": false,
+  "reviewsPending": true
+}

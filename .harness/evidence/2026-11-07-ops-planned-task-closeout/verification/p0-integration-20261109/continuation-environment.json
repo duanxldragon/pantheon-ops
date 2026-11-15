@@ -1,0 +1,12 @@
+{
+  "acceptanceHost": "115.190.251.143",
+  "serverOperationsAuthorized": true,
+  "sshAttempt": "Existing paramiko connect refused by local execution environment (WinError 10013)",
+  "remoteMutationsThisContinuation": 0,
+  "latestServiceProtocolEvidence": "k8s-service-provider-cas-json.txt",
+  "serviceConcurrencyAndCancellation": "passed in retained evidence",
+  "finalSourceRace": "pending: previous passing full race precedes K8s Service changes",
+  "remoteReadiness": "pending: normal SQL migrations required, schema_migrations missing",
+  "independentReview": "unavailable: installed role agents returned model-provider 503",
+  "parentStatus": "in-progress"
+}

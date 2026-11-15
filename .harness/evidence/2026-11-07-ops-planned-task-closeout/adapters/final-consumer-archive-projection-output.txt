@@ -1,0 +1,15 @@
+**APPROVE** — no provable P1/P2 within the supplied source.
+
+What I verified:
+
+- **Contract pinning**: `contract.path` and `artifactRoot` are exact-equality checked (`rebuild-from-base.mjs:563-567`), so `path.join(baseRoot, contract.path)` and the write target cannot be redirected by a hostile descriptor.
+- **Fail-closed entry gate** (`:574-577`): non-`.harness/archive/`, `..`, backslash, and non-`/review.md` entries throw before any classification; test 3 exercises both current-path and traversal forms.
+- **Ordering**: stale-Base check (`:579`) precedes exclusion, so a deleted Base entry fails even when its root is excluded — test 2's `rmSync` + `/Stale Base/` proves it.
+- **Excluded artifacts cannot silently vanish**: they're recorded in `projection.externalBaseArtifacts` with `sourceConfigSha256`; test 1 asserts the consumer checker no longer flags them as stale.
+- **Write integrity**: `writeReport` dedupes via `Set`; projection spread order (`...source` then `entries`) is correct.
+
+Omitted scope (not in supplied source, cannot be proven here):
+
+1. `repoPath`/`isWithin` helpers — if `isWithin` doesn't normalize separators, POSIX-slash entries vs. Windows-mapped roots would misclassify exclusion; worst case is fail-closed (`Missing retained`), not a bypass.
+2. Call-site ordering of `projectConsumerReviewRegistry` vs. the Base repository copy — if a wholesale `config/` copy runs after this, the projection is overwritten. The `[contract.path]` return suggests generated-file integration, but unverified.
+3. `check-review.mjs` internals; tests also assume CWD = repo root (`path.resolve('scripts/...')`).

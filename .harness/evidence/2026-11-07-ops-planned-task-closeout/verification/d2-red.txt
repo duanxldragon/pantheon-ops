@@ -1,0 +1,9 @@
+--- FAIL: TestKubeconfigUsesCheckedDial (0.00s)
+    client_factory_test.go:32: Kubernetes requests have no checked dial boundary
+FAIL
+FAIL	github.com/duanxldragon/pantheon-base/backend/modules/business/k8s/pkg	0.025s
+--- FAIL: TestEmailRejectsPrivateSMTPBeforeConnecting (0.00s)
+    notification_network_test.go:16: private SMTP must be rejected by the SSRF boundary: dial tcp 127.0.0.1:25: connectex: No connection could be made because the target machine actively refused it.
+FAIL
+FAIL	github.com/duanxldragon/pantheon-base/backend/modules/business/observability	0.030s
+FAIL

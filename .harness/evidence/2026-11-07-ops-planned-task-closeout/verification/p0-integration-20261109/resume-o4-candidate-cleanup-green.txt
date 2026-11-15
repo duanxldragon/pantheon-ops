@@ -1,0 +1,77 @@
+ALLOWED_DRIFT backend/modules/business/business.go — fixture overlay hook
+ALLOWED_DRIFT frontend/src/core/router/modules.ts — fixture overlay hook
+OK shared drift check: 5 shared files compared, 3 identical to base, 2 allowlisted drift, 0 business-overlay files skipped, 2 derived business migrations verified (base=C:\Users\xiaolong\AppData\Local\Temp\ops-candidate-4Essz1\ops\.tmp\foundation-candidates\candidate-5e4757c4069b55bdacd523289dd85f7d9786ce939f06f5ece1610f7bf627fad1\snapshot)
+DRIFT_MODIFIED backend/modules/business/business.go
+DRIFT_MODIFIED frontend/src/core/router/modules.ts
+FAIL shared drift check: 2 modified, 0 missing in base, 0 stale allowlist (5 shared files compared, 0 business-overlay files skipped, 2 derived business migrations verified, base=C:\Users\xiaolong\AppData\Local\Temp\ops-candidate-50yXr5\ops\.tmp\foundation-candidates\candidate-5e4757c4069b55bdacd523289dd85f7d9786ce939f06f5ece1610f7bf627fad1\snapshot)
+✔ cleanup preserves renamed original and real replacement: extraction/stage (877.6323ms)
+✔ cleanup preserves renamed original and real replacement: extraction/snapshot (916.6729ms)
+✔ cleanup preserves renamed original and real replacement: extraction/nested (994.5527ms)
+✔ cleanup preserves renamed original and real replacement: extraction/ancestor (973.9622ms)
+✔ cleanup preserves renamed original and real replacement: assembly/stage (1485.7464ms)
+✔ cleanup preserves renamed original and real replacement: assembly/snapshot (984.7026ms)
+✔ cleanup preserves renamed original and real replacement: assembly/nested (1178.5654ms)
+✔ cleanup preserves renamed original and real replacement: assembly/ancestor (1236.3939ms)
+✔ cleanup preserves renamed original and real replacement: assembly/assembled (1293.1778ms)
+✔ cleanup refuses an unknown descendant before removing any owned files (1197.8771ms)
+✔ cleanup removes an unchanged extracted directory instance (1189.8746ms)
+✔ schema1 source-interface mapping matches the producer and rejects contradictory metadata (1127.888ms)
+✔ requires external descriptor pin and rejects descriptor/archive tamper before staging (1040.2209ms)
+✔ rejects descriptor edit/revert during extraction and bounded input overflow (1169.2651ms)
+▶ rejects hostile regular tar paths, aliases, config and extension/link/special types with valid archive pins
+  ✔ ../escape (502.936ms)
+  ✔ /absolute (635.8363ms)
+  ✔ C:/outside (750.4865ms)
+  ✔ //host/share (700.7676ms)
+  ✔ dir\file (589.6581ms)
+  ✔ x:y (661.8215ms)
+  ✔ .env.local (817.6453ms)
+  ✔ config/secrets.json (675.3636ms)
+  ✔ .aws/credentials (630.4729ms)
+  ✔ aux.txt (615.0603ms)
+  ✔ file. (657.1032ms)
+  ✔ a//b (685.8576ms)
+  ✔ tar type 1 (633.1511ms)
+  ✔ tar type 2 (572.2971ms)
+  ✔ tar type 3 (794.1036ms)
+  ✔ tar type 5 (711.5716ms)
+  ✔ tar type x (577.4178ms)
+  ✔ tar type g (601.5987ms)
+  ✔ tar type L (634.9507ms)
+  ✔ tar type K (602.3619ms)
+✔ rejects hostile regular tar paths, aliases, config and extension/link/special types with valid archive pins (13055.4725ms)
+✔ rejects duplicate/case/directory collisions, missing entries, wrong file hashes and corrupt tar framing (628.9601ms)
+✔ false capability comments cannot replace real declarations even when all digests are consistent (688.4228ms)
+▶ fresh extraction is sealed; mutations, additions, edit/revert and snapshot reuse refuse
+  ✔ write (1180.7601ms)
+  ✔ addition (1041.4827ms)
+  ✔ revert (888.6973ms)
+  ✔ root-revert (1116.4974ms)
+✔ fresh extraction is sealed; mutations, additions, edit/revert and snapshot reuse refuse (4228.8628ms)
+✔ rebuild calls real assembly/drift seams, derives only declared migrations, preserves exact locks and never reads current Base sources (2476.9163ms)
+✔ protects repository/foreign/existing targets and rejects alternative manifest ownership (1795.1132ms)
+✔ rejects junction ancestors and hard-linked artifact/declared source without touching foreign bytes (1098.409ms)
+▶ assembly rejects snapshot/artifact and declared Ops mutations including edit/revert; unknown assembled ownership retains stage
+  ✔ snapshot (1562.4305ms)
+  ✔ artifact (1113.6921ms)
+  ✔ business (1430.8179ms)
+  ✔ manifest (1347.1777ms)
+  ✔ lock (1116.7001ms)
+  ✔ revert (1035.9458ms)
+  ✔ addition (1030.5062ms)
+  ✔ git-selection (1326.5058ms)
+✔ assembly rejects snapshot/artifact and declared Ops mutations including edit/revert; unknown assembled ownership retains stage (9965.6567ms)
+▶ drift and migration conflicts refuse candidate publication
+  ✔ unallowlisted shared modification (1710.1831ms)
+  ✔ Base migration conflict (1087.3753ms)
+✔ drift and migration conflicts refuse candidate publication (2798.7964ms)
+✔ independently pinned build receipt binds source capability identity and exact executable bytes (617.0333ms)
+✔ CLI help is precise; unsupported, duplicate, unpinned and formal-source options refuse (545.3266ms)
+ℹ tests 59
+ℹ suites 0
+ℹ pass 59
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 53689.4753

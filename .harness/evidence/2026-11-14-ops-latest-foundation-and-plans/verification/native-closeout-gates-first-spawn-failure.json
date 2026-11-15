@@ -1,0 +1,6 @@
+{
+  "nativeAttemptPassed": false,
+  "reason": "Windows nested spawnSync anonymous pipes EPERM",
+  "errno": -4048,
+  "followup": "Existing independently reviewed task-private file-stdio adapter; checker source/arguments/output unchanged"
+}

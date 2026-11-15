@@ -1,0 +1,16 @@
+{
+  "utc": "2026-11-10T04:15:13.860899+00:00",
+  "changedSourceMatches": 3,
+  "changedSourceTotal": 3,
+  "protectedHistoricalAndSourceMatches": 216,
+  "protectedTotal": 216,
+  "engineInputMatches": 7,
+  "engineInputTotal": 7,
+  "addedWhitespaceViolations": [],
+  "mainReportWords": 589,
+  "gitNoIndexCheck": {
+    "exitCode": 1,
+    "reason": "--no-index returns 1 for differing before/after files; no whitespace diagnostics, only CRLF normalization warnings",
+    "evidence": "diff-check-final.txt"
+  }
+}

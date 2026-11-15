@@ -1,0 +1,178 @@
+{
+  "host": "115.190.251.143",
+  "formalApi": true,
+  "records": [
+    {
+      "endpoint": "deploy/templates",
+      "id": 2,
+      "identityVerified": false,
+      "alreadyAbsent": true,
+      "absenceViaFormalList": true
+    },
+    {
+      "endpoint": "deploy/packages",
+      "id": 5,
+      "identityVerified": false,
+      "alreadyAbsent": true,
+      "absenceViaFormalList": true
+    },
+    {
+      "endpoint": "bizscope",
+      "id": 5,
+      "identityVerified": false,
+      "alreadyAbsent": true,
+      "absenceViaFormalList": true
+    },
+    {
+      "endpoint": "deploy/packages",
+      "id": 1,
+      "identityVerified": true,
+      "alreadyAbsent": false,
+      "absenceViaFormalList": true
+    },
+    {
+      "endpoint": "bizscope",
+      "id": 1,
+      "identityVerified": true,
+      "alreadyAbsent": false,
+      "absenceViaFormalList": true
+    },
+    {
+      "endpoint": "deploy/tasks",
+      "id": 9,
+      "identityVerified": true,
+      "absent": true
+    },
+    {
+      "endpoint": "cmdb/hosts",
+      "id": 11,
+      "identityVerified": true,
+      "absent": true
+    },
+    {
+      "endpoint": "deploy/packages",
+      "id": 7,
+      "identityVerified": true,
+      "alreadyAbsent": false,
+      "absenceViaFormalList": true
+    },
+    {
+      "endpoint": "bizscope",
+      "id": 7,
+      "identityVerified": true,
+      "alreadyAbsent": false,
+      "absenceViaFormalList": true
+    },
+    {
+      "endpoint": "deploy/tasks",
+      "id": 3,
+      "identityVerified": true,
+      "absent": true
+    },
+    {
+      "endpoint": "deploy/tasks",
+      "id": 4,
+      "identityVerified": true,
+      "absent": true
+    },
+    {
+      "endpoint": "cmdb/hosts",
+      "id": 7,
+      "identityVerified": true,
+      "absent": true
+    },
+    {
+      "endpoint": "cmdb/hosts",
+      "id": 6,
+      "identityVerified": true,
+      "absent": true
+    },
+    {
+      "endpoint": "deploy/packages",
+      "id": 3,
+      "identityVerified": true,
+      "alreadyAbsent": false,
+      "absenceViaFormalList": true
+    },
+    {
+      "endpoint": "bizscope",
+      "id": 3,
+      "identityVerified": true,
+      "alreadyAbsent": false,
+      "absenceViaFormalList": true
+    },
+    {
+      "endpoint": "deploy/packages",
+      "id": 2,
+      "identityVerified": true,
+      "alreadyAbsent": false,
+      "absenceViaFormalList": true
+    },
+    {
+      "endpoint": "bizscope",
+      "id": 2,
+      "identityVerified": false,
+      "alreadyAbsent": true,
+      "absenceViaFormalList": true
+    },
+    {
+      "endpoint": "deploy/tasks",
+      "id": 5,
+      "identityVerified": true,
+      "absent": true
+    },
+    {
+      "endpoint": "cmdb/hosts",
+      "id": 8,
+      "identityVerified": true,
+      "absent": true
+    },
+    {
+      "endpoint": "deploy/templates",
+      "id": 1,
+      "identityVerified": true,
+      "alreadyAbsent": false,
+      "absenceViaFormalList": true
+    },
+    {
+      "endpoint": "deploy/packages",
+      "id": 4,
+      "identityVerified": true,
+      "alreadyAbsent": false,
+      "absenceViaFormalList": true
+    },
+    {
+      "endpoint": "bizscope",
+      "id": 4,
+      "identityVerified": true,
+      "alreadyAbsent": false,
+      "absenceViaFormalList": true
+    },
+    {
+      "endpoint": "deploy/tasks",
+      "id": 10,
+      "identityVerified": true,
+      "absent": true
+    },
+    {
+      "endpoint": "cmdb/hosts",
+      "id": 12,
+      "identityVerified": true,
+      "absent": true
+    },
+    {
+      "endpoint": "deploy/packages",
+      "id": 8,
+      "identityVerified": true,
+      "alreadyAbsent": false,
+      "absenceViaFormalList": true
+    },
+    {
+      "endpoint": "bizscope",
+      "id": 8,
+      "identityVerified": true,
+      "alreadyAbsent": false,
+      "absenceViaFormalList": true
+    }
+  ]
+}

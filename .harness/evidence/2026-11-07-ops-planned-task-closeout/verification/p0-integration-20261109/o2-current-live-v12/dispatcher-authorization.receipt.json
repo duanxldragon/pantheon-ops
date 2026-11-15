@@ -1,0 +1,11 @@
+{
+  "schema": "o2-v10-review-v1",
+  "role": "dispatcher",
+  "verdict": "DISPATCHER AUTHORIZE",
+  "exitCode": 0,
+  "subjectSHA256": "eb0a1cf9b56afec530deb0eeea7149389b64ef5bfbe7d26b2da9d6705ae24d9d",
+  "report": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/o2-current-live-v12/dispatcher-authorization.md",
+  "reportSHA256": "f7e6843eec24be51ea12d6030ef90bc75a1afede51703eed9d720673a45e8ccb",
+  "userAuthorizedHost": "115.190.251.143",
+  "createdUTC": "2026-11-10T10:14:08.130513+00:00"
+}

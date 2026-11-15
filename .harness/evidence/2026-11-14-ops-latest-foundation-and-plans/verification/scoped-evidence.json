@@ -1,0 +1,35 @@
+{
+  "checkerSHA256": "af00ef9be2163371db7ef5773166a0ebd722a850047ab0e9b38faa6416734f5d",
+  "command": [
+    "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.tmp\\node24\\node.exe",
+    "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.tmp\\ops-v0188-final-r5\\scripts\\harness\\check-evidence.mjs",
+    "--json",
+    "--strict",
+    "--root",
+    "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+    ".harness/evidence/2026-11-14-ops-latest-foundation-and-plans/commands.json",
+    ".harness/evidence/2026-11-13-ops-business-menu-ia-refactor/commands.json"
+  ],
+  "exitCode": 0,
+  "executionStdioAdaptation": "Previously reviewed task-private regular-file stdio for nested Windows pipe EPERM; same checker source/arguments/output",
+  "mode": "strict",
+  "fileCount": 2,
+  "errorCount": 0,
+  "warningCount": 0,
+  "historicalErrorCount": 0,
+  "currentSchemaFrom": "2026-10-26",
+  "results": [
+    {
+      "file": ".harness/evidence/2026-11-14-ops-latest-foundation-and-plans/commands.json",
+      "errors": [],
+      "warnings": [],
+      "historicalErrors": []
+    },
+    {
+      "file": ".harness/evidence/2026-11-13-ops-business-menu-ia-refactor/commands.json",
+      "errors": [],
+      "warnings": [],
+      "historicalErrors": []
+    }
+  ]
+}

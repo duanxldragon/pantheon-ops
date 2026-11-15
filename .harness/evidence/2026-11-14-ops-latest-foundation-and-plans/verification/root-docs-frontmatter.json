@@ -1,0 +1,10 @@
+{
+  "ok": true,
+  "checkedFiles": 464,
+  "frontmatterFiles": 303,
+  "legacyFiles": [
+    "docs/migrations/COMPAT_TO_MULTI_UPGRADE.md",
+    "docs/runbooks/DECOMMISSION_LEGACY_AUTH_ROUTES_2026-12-31.md"
+  ],
+  "errors": []
+}

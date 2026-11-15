@@ -1,0 +1,14 @@
+FAIL	github.com/duanxldragon/pantheon-base/backend/modules/business/deploy [build failed]
+# github.com/duanxldragon/pantheon-base/backend/modules/business/deploy [github.com/duanxldragon/pantheon-base/backend/modules/business/deploy.test]
+modules\business\deploy\task_command_test.go:23:175: undefined: TaskStatusCompleted
+modules\business\deploy\task_command_test.go:27:17: svc.ControlTask undefined (type *DeployService has no field or method ControlTask)
+modules\business\deploy\task_command_test.go:27:104: undefined: TaskCommandRequest
+modules\business\deploy\task_command_test.go:27:141: task.StateVersion undefined (type *TaskResponse has no field or method StateVersion)
+modules\business\deploy\task_command_test.go:28:65: task.StateVersion undefined (type *TaskResponse has no field or method StateVersion)
+modules\business\deploy\task_command_test.go:28:150: svc.ControlTask undefined (type *DeployService has no field or method ControlTask)
+modules\business\deploy\task_command_test.go:28:206: undefined: TaskCommandRequest
+FAIL
+modules\business\deploy\task_command_test.go:28:243: task.StateVersion undefined (type *TaskResponse has no field or method StateVersion)
+modules\business\deploy\task_command_test.go:28: undefined: ErrTaskCommandConflict
+modules\business\deploy\task_command_test.go:34:66: svc.ControlTask undefined (type *DeployService has no field or method ControlTask)
+modules\business\deploy\task_command_test.go:34:66: too many errors

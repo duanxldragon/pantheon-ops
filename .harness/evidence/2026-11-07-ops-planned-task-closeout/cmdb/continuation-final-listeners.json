@@ -1,0 +1,12 @@
+{
+  "ports": [
+    24485,
+    26316,
+    33316,
+    5173,
+    5175
+  ],
+  "remainingListeners": [],
+  "otherServicesUntouched": true,
+  "dataRetained": true
+}

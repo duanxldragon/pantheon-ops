@@ -1,0 +1,98 @@
+# Review: O1 CMDB target selection + O3 deploy preview/start
+
+## F1 — P1, Authorization: group load bypasses data scope and business scope (definite)
+
+`cmdb/target_selection.go:136`:
+
+```go
+gq := c.db.WithContext(ctx).Order(idAscOrder).Limit(TargetSelectionBudget + 1)
+```
+
+The host query at line 95 applies `database.WithDataScope(scope)` + `businessScopeIDWhereClause`; the group query applies neither. Consequences:
+
+- **Group-ID enumeration oracle.** `groupMap[id]` (line 151) succeeds for any existing group in the table regardless of the caller's data scope. `UnavailableCount++` distinguishes "no such group" from "group exists somewhere", so a caller can enumerate group IDs system-wide. Hosts stay scoped (good), but the authorization boundary the doc comment at lines 29–30 claims is broken on the group axis.
+- **Out-of-scope group conditions drive selection.** `conditionChainFromMap(group, groupMap)` (line 156) consumes condition chains of groups the caller cannot see, and there is no `group.BusinessScopeID == req.BusinessScopeID` check — a group owned by another business scope can select hosts in this one.
+- Compounds F3 below: those same unfiltered rows enter the revision digest.
+
+Fix direction: apply `database.WithDataScope(scope)` and a business-scope predicate to the group query, and reject out-of-scope group IDs as `Unavailable` without existence confirmation.
+
+## F2 — P1, Authorization (conditional): `UpdateTask` locks the task row without visibility check
+
+`deploy/target_selection.go:96`:
+
+```go
+if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).First(&current, id).Error; err != nil {
+```
+
+Primary-key load, no data-scope predicate — unlike `StartTask`/`PreviewTask`, which go through `loadVisibleTask(id, scope)`. Everything downstream (`inner.updateTask`, the snapshot write at line 131) runs on this unscoped load. If `inner.updateTask` does not itself re-enforce scope, **any authenticated caller can modify any task by ID across scopes**, and the trailing `s.GetTask(id, scope)` at line 136 then returns not-found — masking a committed cross-scope modification as a failure. The non-selection branch (line 77) does check `loadVisibleTask` first, but only outside the transaction, so even there the in-tx re-check depends on `updateTask` internals. `updateTask` was not provided; treat as must-verify before merge.
+
+## F3 — P1, Consistency: revision digest covers the entire unfiltered group table
+
+`cmdb/target_selection.go:211-216` hashes `{req, scopeRef, hosts, groups}` where `groups` (loaded at 134–145 when any GroupID is present) is the whole table. So:
+
+- Any group edit, by any user, in any scope, changes `ScopeVersion` → every pending preview/`CreateTask`/`StartTask` with GroupIDs in the system fails with `ErrTargetSelectionConflict` until re-resolved. Spurious-conflict amplification; effectively a soft DoS on the O1→O3 handshake under group churn.
+- The digest binds hidden (out-of-scope) state, contradicting the "only authorized assets enter revision material" invariant at lines 93–94.
+
+The digest should cover only the groups actually referenced by `req.GroupIDs` (+ their inherited chains), which is also the correct scope for F1's fix.
+
+## F4 — P1, Compatibility/ops: per-process random HMAC key
+
+`task_preview.go:24-30`: `previewSigningKey` is generated once per process from `crypto/rand`, with no injection/config point. Any multi-replica deployment or rolling restart invalidates outstanding tickets signed by another instance/prior boot — `parsePreviewTicket` fails with `ErrTaskPreviewConflict`. Under the forthcoming Base provider mapping (business routes behind middleware), this silently breaks preview-gated starts whenever a load balancer routes preview and start to different replicas. Fail-closed, but operationally a hard break. Key must come from shared config/secret store.
+
+## F5 — P1 (low likelihood, high impact): `validatePreview` inner service drops `serviceState`
+
+`task_preview.go:263`:
+
+```go
+inner := &DeployService{db: tx, cmdbCapability: provider, bizScopeReader: ..., hostReader: ...}
+```
+
+The two sibling construction sites both set it (`deploy/target_selection.go:56` and `:122` explicitly copy `s.serviceState`). The claim path constructs the same wrapper without it. If anything under `validateSelectionForPreview`/`prepareStartTargets` reads `serviceState`, the start path behaves differently from the preview path (nil-field divergence) — the exact class of drift this review is for. Concrete inconsistency; impact depends on unseen consumers.
+
+## F6 — P2: `context.Background()` inside transactions holding row locks
+
+`deploy/target_selection.go:36` and `:100`; `task_preview.go:156` and `:264`. Request cancellation/deadlines are discarded while the tx holds `FOR UPDATE` locks on task, hosts, groups, secrets, credential. A hung client or stalled backend holds locks until DB timeout. Pass the request ctx (Gorm tx is already bound to the tx handle, not the ctx).
+
+## F7 — P2, malformed input: manual IP resolution quirks
+
+- `cmdb/target_selection.go:107-110`: `byIP[host.IP] = host` — duplicate IPs across hosts silently resolve to the highest ID (last write wins). Deterministic but arbitrary target selection.
+- Line 179: lookup normalizes via `addr.Unmap().String()`, but the `byIP` key is the **raw stored** `host.IP`. Hosts stored in IPv4-mapped IPv6 form (`::ffff:10.0.0.1`) are unreachable via manual IP entry. Normalize both sides with the same function.
+- Lines 88–92 vs 165–175: `Manual` is echoed into the digest **raw and unsorted** (`req` at line 216), while resolution trims. `" host1"` vs `"host1"` produce identical selections but different `ScopeVersion` → spurious conflicts. Trim + sort `Manual` in the normalized `req`.
+
+## F8 — P2: corrupt `TargetSnapshot` silently downgrades preview enforcement
+
+`task_preview.go:233-234`:
+
+```go
+_ = json.Unmarshal(c.task.TargetSnapshot, &selection)
+```
+
+Error ignored; on unparseable snapshot `selection.Selection == nil` and the skip condition at line 235 passes — a selection-gated task becomes startable **without any preview ticket**. Compare `deploy/target_selection.go:82-84`, which correctly treats the same corruption as `ErrTargetSelectionConflict`. Fail-open on malformed input at the strictest gate in the flow.
+
+## F9 — P2: exclusion masks ineligibility
+
+`cmdb/target_selection.go:198-205`: an excluded host is counted `ExcludedCount` even if also retired/pending/unassigned, and never reaches the eligibility check. A client can hide ineligible targets behind exclusions; conversely the exclusion of a host that went ineligible is silently absorbed instead of surfacing as a conflict. Check eligibility before exclusion, or count both.
+
+## F10 — P2, availability: hard budget failure for large scopes
+
+`cmdb/target_selection.go:95-104`: a data scope containing >10000 hosts makes `ResolveTargetSelection` unconditionally fail (`Limit(budget+1)` → `ErrTargetSelectionInvalid`), including with `IncludeScope=true`. Legitimate large-scope tenants get a permanent invalid error, not a size warning. Consider a scoped-count precheck with a distinct error code.
+
+## F11 — P3 / informational
+
+- Ticket replay within the 10-min TTL is possible, but the revision re-check at claim (`task_preview.go:280-286`) re-binds hosts/secrets/credential/task state, so replay cannot skip state validation. Sound as designed; do not weaken.
+- `task_preview.go:177-193`: empty `InstalledComponents` yields `kind="added"` rather than unknown — misreports "already present, version unknown" as a fresh install in preview semantics.
+- `PreviewTask` checks `hostStatusAllowedForAction` (lines 151–155) only outside the claim; claim-time safety relies on the revision covering host status. That holds **only if** `cmdbHostSnapshot` includes `Status` — verify.
+- `claim` ignores `json.Marshal` error (`targetJSON, _ := ...`) and could write an empty snapshot; low likelihood.
+- `taskPreviewRevision` hashes `SecretEncrypted` ciphertext (task_preview.go:100-108) — redaction verdict: no secret material reaches the ticket, response, or logs; the only caveat is that re-saving an unchanged secret under randomized AEAD rotates ciphertext and invalidates outstanding previews (fail-closed availability quirk only).
+- Hardcoded status strings `"retired"/"pending"/"unassigned"` (cmdb:202) duplicate the cmdbhost status vocabulary — drift risk with the shared constants.
+
+## What is sound (verified from provided source)
+
+Preview→start TOCTOU bridging is well-built: ticket HMAC constant-time compared, `DisallowUnknownFields`, expiry checked, actor+TaskID bound; claim re-reads task/hosts/secrets/credential under `FOR UPDATE`, re-derives the revision, and the status transition is a guarded `UPDATE ... WHERE status IN (...)` with `RowsAffected` check; idempotent replay is keyed on `StartRequestKey` and visibility-scoped. Host enumeration never crosses the caller's data scope (F1 is on the group axis only).
+
+## Limits
+
+Static review of the provided source only; no execution, no DB, no schema access. Unverified dependencies that gate several findings: `updateTask`/`createTask` internals (F2, F5), `resolveTaskTargets`/`validateTaskExecutionPlan` (status re-check at claim), `hostStatusAllowedForAction`, `cmdbHostSnapshot` fields, `conditionChainFromMap`, `acquireHostLease` conflict semantics, and whether `cmdbgroup.Group` carries a business-scope column to filter on. Authorization at the route layer is assumed absent for business routes pending the Base provider mapping — function-level scope checks are the only barrier, which is why F1/F2 are ranked P1. `bizScopeReader` not implementing `WithBizScopeTransaction` would additionally make scope reads non-transactional (cmdb:66-70 fallback).
+
+---
+Skipped: no runtime/test reproduction and no read of the unseen call targets listed under Limits — F2 and F5 are flagged conditional on those internals; risk: if `updateTask` turns out to enforce scope internally, F2 downgrades to defense-in-depth cleanup.

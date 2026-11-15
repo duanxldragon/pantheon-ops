@@ -1,0 +1,160 @@
+
+Running 4 tests using 1 worker
+
+(node:2444) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x  1 tests\smoke\business\deploy\deploy-workbench.spec.ts:16:3 › deployment workbench sources, logs, keyboard and mobile (light) (15.8s)
+(node:25076) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x  2 tests\smoke\business\deploy\deploy-workbench.spec.ts:16:3 › deployment workbench sources, logs, keyboard and mobile (dark) (15.3s)
+(node:2988) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x  3 tests\smoke\business\observability-workbench.spec.ts:8:3 › Loki UTC range, cancellation, denial and recovery (light) (4.0s)
+(node:856) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x  4 tests\smoke\business\observability-workbench.spec.ts:8:3 › Loki UTC range, cancellation, denial and recovery (dark) (4.1s)
+
+
+  1) tests\smoke\business\deploy\deploy-workbench.spec.ts:16:3 › deployment workbench sources, logs, keyboard and mobile (light) 
+
+    Error: expect(locator).toHaveCount(expected) failed
+
+    Locator:  locator('.deploy-execution-workbench').locator('.task-log-viewer__row')
+    Expected: 1
+    Received: 0
+    Timeout:  10000ms
+
+    Call log:
+      - Expect "toHaveCount" locator('.deploy-execution-workbench').locator('.task-log-viewer__row') with timeout 10000ms
+      - waiting for locator('.deploy-execution-workbench').locator('.task-log-viewer__row')
+        24 × locator resolved to 0 elements
+           - unexpected value "0"
+
+
+      89 |       await expect(workbench.getByRole('button', { name: '恢复追尾', exact: true })).toBeVisible();
+      90 |       await workbench.locator('.task-log-viewer input').fill('fixture-error');
+    > 91 |       await expect(workbench.locator('.task-log-viewer__row')).toHaveCount(1);
+         |                                                                ^
+      92 |       await page.screenshot({ path: testInfo.outputPath(`workbench-${mode}-desktop.png`), fullPage: true });
+      93 |       await page.setViewportSize({ width: 390, height: 844 });
+      94 |       await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
+        at D:\workspace\go\pantheon-platform\pantheon-ops\frontend\tests\smoke\business\deploy\deploy-workbench.spec.ts:91:64
+
+    Error Context: ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\o2-o4-browser-ready\smoke-business-deploy-depl-58206--keyboard-and-mobile-light-\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\o2-o4-browser-ready\smoke-business-deploy-depl-58206--keyboard-and-mobile-light-\trace.zip
+    Usage:
+
+        npx playwright show-trace ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\o2-o4-browser-ready\smoke-business-deploy-depl-58206--keyboard-and-mobile-light-\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  2) tests\smoke\business\deploy\deploy-workbench.spec.ts:16:3 › deployment workbench sources, logs, keyboard and mobile (dark) 
+
+    Error: expect(locator).toHaveCount(expected) failed
+
+    Locator:  locator('.deploy-execution-workbench').locator('.task-log-viewer__row')
+    Expected: 1
+    Received: 0
+    Timeout:  10000ms
+
+    Call log:
+      - Expect "toHaveCount" locator('.deploy-execution-workbench').locator('.task-log-viewer__row') with timeout 10000ms
+      - waiting for locator('.deploy-execution-workbench').locator('.task-log-viewer__row')
+        24 × locator resolved to 0 elements
+           - unexpected value "0"
+
+
+      89 |       await expect(workbench.getByRole('button', { name: '恢复追尾', exact: true })).toBeVisible();
+      90 |       await workbench.locator('.task-log-viewer input').fill('fixture-error');
+    > 91 |       await expect(workbench.locator('.task-log-viewer__row')).toHaveCount(1);
+         |                                                                ^
+      92 |       await page.screenshot({ path: testInfo.outputPath(`workbench-${mode}-desktop.png`), fullPage: true });
+      93 |       await page.setViewportSize({ width: 390, height: 844 });
+      94 |       await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
+        at D:\workspace\go\pantheon-platform\pantheon-ops\frontend\tests\smoke\business\deploy\deploy-workbench.spec.ts:91:64
+
+    Error Context: ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\o2-o4-browser-ready\smoke-business-deploy-depl-d16f5-s-keyboard-and-mobile-dark-\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\o2-o4-browser-ready\smoke-business-deploy-depl-d16f5-s-keyboard-and-mobile-dark-\trace.zip
+    Usage:
+
+        npx playwright show-trace ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\o2-o4-browser-ready\smoke-business-deploy-depl-d16f5-s-keyboard-and-mobile-dark-\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  3) tests\smoke\business\observability-workbench.spec.ts:8:3 › Loki UTC range, cancellation, denial and recovery (light) 
+
+    Error: expect(locator).toContainText(expected) failed
+
+    Locator: getByLabel('原始行', { exact: true })
+    Expected substring: "local-loki-result"
+    Error: strict mode violation: getByLabel('原始行', { exact: true }) resolved to 2 elements:
+        1) <div tabindex="0" role="tabpanel" id="arco-tabs-1-panel-3" aria-labelledby="arco-tabs-1-tab-3" class="arco-tabs-content-item arco-tabs-content-item-active">…</div> aka getByRole('tabpanel', { name: '原始行' })
+        2) <pre aria-label="原始行" class="observability-log-results__raw">[↵{"id":"1794009600000000000-0","timestamp":"1794…</pre> aka getByText('[ {"id":"1794009600000000000-')
+
+    Call log:
+      - Expect "toContainText" getByLabel('原始行', { exact: true }) with timeout 10000ms
+      - waiting for getByLabel('原始行', { exact: true })
+
+
+      44 |     await expect(page.getByText('2026-11-07T00:00:00.000Z', { exact: true })).toBeVisible();
+      45 |     await page.getByRole('tab', { name: '原始行', exact: true }).click();
+    > 46 |     await expect(page.getByLabel('原始行', { exact: true })).toContainText('local-loki-result');
+         |                                                           ^
+      47 |     await page.setViewportSize({ width: 390, height: 844 });
+      48 |     await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
+      49 |     await page.screenshot({ path: testInfo.outputPath(`loki-${mode}-mobile-raw.png`), fullPage: true });
+        at D:\workspace\go\pantheon-platform\pantheon-ops\frontend\tests\smoke\business\observability-workbench.spec.ts:46:59
+
+    Error Context: ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\o2-o4-browser-ready\smoke-business-observabili-aaf1f--denial-and-recovery-light-\error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\o2-o4-browser-ready\smoke-business-observabili-aaf1f--denial-and-recovery-light-\trace.zip
+    Usage:
+
+        npx playwright show-trace ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\o2-o4-browser-ready\smoke-business-observabili-aaf1f--denial-and-recovery-light-\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  4) tests\smoke\business\observability-workbench.spec.ts:8:3 › Loki UTC range, cancellation, denial and recovery (dark) 
+
+    Error: expect(locator).toContainText(expected) failed
+
+    Locator: getByLabel('原始行', { exact: true })
+    Expected substring: "local-loki-result"
+    Error: strict mode violation: getByLabel('原始行', { exact: true }) resolved to 2 elements:
+        1) <div tabindex="0" role="tabpanel" id="arco-tabs-1-panel-3" aria-labelledby="arco-tabs-1-tab-3" class="arco-tabs-content-item arco-tabs-content-item-active">…</div> aka getByRole('tabpanel', { name: '原始行' })
+        2) <pre aria-label="原始行" class="observability-log-results__raw">[↵{"id":"1794009600000000000-0","timestamp":"1794…</pre> aka getByText('[ {"id":"1794009600000000000-')
+
+    Call log:
+      - Expect "toContainText" getByLabel('原始行', { exact: true }) with timeout 10000ms
+      - waiting for getByLabel('原始行', { exact: true })
+
+
+      44 |     await expect(page.getByText('2026-11-07T00:00:00.000Z', { exact: true })).toBeVisible();
+      45 |     await page.getByRole('tab', { name: '原始行', exact: true }).click();
+    > 46 |     await expect(page.getByLabel('原始行', { exact: true })).toContainText('local-loki-result');
+         |                                                           ^
+      47 |     await page.setViewportSize({ width: 390, height: 844 });
+      48 |     await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
+      49 |     await page.screenshot({ path: testInfo.outputPath(`loki-${mode}-mobile-raw.png`), fullPage: true });
+        at D:\workspace\go\pantheon-platform\pantheon-ops\frontend\tests\smoke\business\observability-workbench.spec.ts:46:59
+
+    Error Context: ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\o2-o4-browser-ready\smoke-business-observabili-a1888-n-denial-and-recovery-dark-\error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\o2-o4-browser-ready\smoke-business-observabili-a1888-n-denial-and-recovery-dark-\trace.zip
+    Usage:
+
+        npx playwright show-trace ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\o2-o4-browser-ready\smoke-business-observabili-a1888-n-denial-and-recovery-dark-\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  4 failed
+    tests\smoke\business\deploy\deploy-workbench.spec.ts:16:3 › deployment workbench sources, logs, keyboard and mobile (light) 
+    tests\smoke\business\deploy\deploy-workbench.spec.ts:16:3 › deployment workbench sources, logs, keyboard and mobile (dark) 
+    tests\smoke\business\observability-workbench.spec.ts:8:3 › Loki UTC range, cancellation, denial and recovery (light) 
+    tests\smoke\business\observability-workbench.spec.ts:8:3 › Loki UTC range, cancellation, denial and recovery (dark) 

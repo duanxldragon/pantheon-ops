@@ -1,0 +1,12 @@
+{
+  "lane": "code",
+  "role": "code-reviewer",
+  "exitCode": 1,
+  "timedOut": true,
+  "elapsedSeconds": 300.656,
+  "report": null,
+  "reportSHA256": null,
+  "modelOverride": false,
+  "authorFallback": false,
+  "rawEventsStoredOnlyInIgnoredLocalDirectory": true
+}

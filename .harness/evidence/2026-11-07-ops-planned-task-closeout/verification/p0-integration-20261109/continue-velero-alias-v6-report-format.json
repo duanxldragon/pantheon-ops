@@ -1,0 +1,34 @@
+{
+  "reportFilenames": {
+    "CODE": "continue-velero-alias-v6-independent-code-report.md",
+    "ARCH": "continue-velero-alias-v6-independent-arch-report.md"
+  },
+  "format": "Exactly one ```json report fence in each Markdown report; findings-first prose outside the fence.",
+  "requiredReportJSON": {
+    "lane": "The exact report lane: CODE or ARCH",
+    "decision": "The independent reviewer actual decision; no placeholder or inherited approval",
+    "independent": true,
+    "requestSHA256": "b307329e8bd2e41ea4fd1056599a0ca8b5396cfc71138bd719afe41d5abfa0c8",
+    "scriptHashes": {
+      ".local/ops-acceptance/continue-velero-alias-v6-contract.py": "2e481f4f4d020c665414ecfb5ab5f646d4d9c3a564a1c3dda6fcfc18028411bd",
+      ".local/ops-acceptance/continue-velero-alias-v6-remote.py": "d2ad1d5230809ec3fdfd8bbbf5083ddae2d80eb5aca27bcd3d08c44dbae7ff64",
+      ".local/ops-acceptance/continue-velero-alias-v6-root.py": "f47efe6a19643c0302c1d92bfcf223861872f0307c80429d8c627dfa0b858c84",
+      ".local/ops-acceptance/continue-velero-alias-v6-generate.py": "dbee7c540c459637375ce8887b626894d34b8dd1d7f7d6d89f02853de33ecbd7",
+      ".local/ops-acceptance/continue-velero-alias-v6-test.py": "14c063937a26b23e93c4cfcbb8f94509085e64074d9e49d2efaf0f146aa384ec"
+    }
+  },
+  "ARCHAdditionalRequiredField": {
+    "architecturalStatus": "The actual architectural status, explicitly CLEAR, WATCH, or BLOCK"
+  },
+  "existingExecutionGateRequires": {
+    "bothDecisions": "APPROVE",
+    "bothIndependent": true,
+    "ARCHArchitecturalStatus": "CLEAR",
+    "exactRequestAndFullCurrentScriptHashes": true,
+    "beforeConnection": true
+  },
+  "reportsCreated": false,
+  "remoteExecuted": false,
+  "P0Approved": false,
+  "independentFinalV6ReviewsPending": true
+}

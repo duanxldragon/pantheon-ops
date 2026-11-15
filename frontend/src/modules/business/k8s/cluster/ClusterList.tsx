@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
   Button,
+  Alert,
   Card,
   Input,
   Message,
@@ -58,9 +59,21 @@ const statusColor: Record<string, string> = {
 export default function ClusterList() {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const routeKeyword = searchParams.get('keyword')?.slice(0, 128) ?? '';
+  const routeStatus = searchParams.get('status')?.slice(0, 32) ?? '';
+  const routeScopeValue = Number(searchParams.get('businessScopeId'));
+  const routeScopeId = Number.isSafeInteger(routeScopeValue) && routeScopeValue > 0 ? routeScopeValue : undefined;
   const { hasPerm } = usePermission();
   const [data, setData] = useState<K8sClusterRow[]>([]);
-  const [query, setQuery] = useState<K8sClusterListQuery>(emptyQuery);
+  const [query, setQuery] = useState<K8sClusterListQuery>(() => {
+    return {
+      ...emptyQuery,
+      keyword: routeKeyword,
+      status: routeStatus,
+      businessScopeId: routeScopeId,
+    };
+  });
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<unknown>(null);
@@ -69,6 +82,16 @@ export default function ClusterList() {
   const [submitting, setSubmitting] = useState(false);
   const [syncingId, setSyncingId] = useState<number | null>(null);
   const [selectedRowKeys, setSelectedRowKeys] = useState<Array<string | number>>([]);
+
+  useEffect(() => {
+    let current = true;
+    queueMicrotask(() => {
+      if (!current) return;
+      setQuery((value) => ({ ...value, keyword: routeKeyword, status: routeStatus, businessScopeId: routeScopeId, page: 1 }));
+      setSelectedRowKeys([]);
+    });
+    return () => { current = false; };
+  }, [routeKeyword, routeStatus, routeScopeId]);
 
   const canCreate = hasPerm('business:k8s:cluster:create');
   const canUpdate = hasPerm('business:k8s:cluster:update');
@@ -284,6 +307,7 @@ export default function ClusterList() {
           description={t('business.k8s.cluster.hero.title')}
           metrics={heroMetrics}
         />
+        {query.businessScopeId && <Alert type="info" content={t('business.dashboard.scopeFilter', { id: query.businessScopeId })} />}
         <SearchToolbar
           keyword={query.keyword ?? ''}
           keywordPlaceholder={t('business.k8s.cluster.field.keywordPlaceholder')}
@@ -326,7 +350,7 @@ export default function ClusterList() {
               />
             </Space>
           }
-          hasActiveFilters={Boolean(query.keyword || query.environment || query.status)}
+          hasActiveFilters={Boolean(query.keyword || query.environment || query.status || query.businessScopeId)}
           onClearAll={() => {
             setSelectedRowKeys([]);
             setQuery(emptyQuery);

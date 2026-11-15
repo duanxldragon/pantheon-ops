@@ -1,0 +1,35 @@
+{
+  "command": [
+    "D:/Go/bin/go.exe",
+    "test",
+    "-race",
+    "-p=1",
+    "-count=1",
+    "-buildvcs=false",
+    "-mod=readonly",
+    "-json",
+    "-run",
+    "^TestDatasourceLiveEnvelopeMatchesNativeSuccess$",
+    "./modules/business/observability"
+  ],
+  "exitCode": 1,
+  "failure": null,
+  "elapsedSeconds": 0.422,
+  "sourceStable": true,
+  "changedSources": [],
+  "sourceCount": 840,
+  "fixtureSHA256": "8796d1a6c2b599e8e5406df8848638287d93827fb4436e6373c271b79cca5f05",
+  "stdoutSHA256": "144073b6ecd70c46736a423d14dd57dd4dd24dd0062dbf5614e2890bed9608cc",
+  "stderrSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "privateLogs": true,
+  "credentialsPrinted": false,
+  "testPasses": 0,
+  "packagePasses": 0,
+  "skipped": [],
+  "failed": [
+    {
+      "Action": "fail",
+      "Package": "./modules/business/observability"
+    }
+  ]
+}

@@ -1,0 +1,50 @@
+{
+  "exitCode": 0,
+  "requestSHA256": "b307329e8bd2e41ea4fd1056599a0ca8b5396cfc71138bd719afe41d5abfa0c8",
+  "scriptHashes": {
+    ".local/ops-acceptance/continue-velero-alias-v6-contract.py": "2e481f4f4d020c665414ecfb5ab5f646d4d9c3a564a1c3dda6fcfc18028411bd",
+    ".local/ops-acceptance/continue-velero-alias-v6-remote.py": "d2ad1d5230809ec3fdfd8bbbf5083ddae2d80eb5aca27bcd3d08c44dbae7ff64",
+    ".local/ops-acceptance/continue-velero-alias-v6-root.py": "f47efe6a19643c0302c1d92bfcf223861872f0307c80429d8c627dfa0b858c84",
+    ".local/ops-acceptance/continue-velero-alias-v6-generate.py": "dbee7c540c459637375ce8887b626894d34b8dd1d7f7d6d89f02853de33ecbd7",
+    ".local/ops-acceptance/continue-velero-alias-v6-test.py": "14c063937a26b23e93c4cfcbb8f94509085e64074d9e49d2efaf0f146aa384ec"
+  },
+  "protectedCount": 341,
+  "allPinsStable": true,
+  "evidenceHashes": {
+    "before.json": "c44345550db1cd4a4f72afa96c82b04ca8f9e061c89823c5b6d50a4087a541d5",
+    "development-tests.json": "6e0cf6988ec1d4477158425f0fe19190c32da8f29c8cee0a310e05ccad48397e",
+    "verification.json": "68dfbba02c59ab79e207dbdfea3382ec810bed21b34aa76e277dbd23076598a6",
+    "stable-checks.json": "a0f1cf946051a52ca8164055d489ad2ea3b15c26d14045ec5e97beb5985652fb",
+    "preparation.json": "4c2a4396549058a135dd4fa658e7edf8ccb4b0edcb34d46147fc36e32df91bf1",
+    "request.json": "b307329e8bd2e41ea4fd1056599a0ca8b5396cfc71138bd719afe41d5abfa0c8",
+    "sealing.json": "2b7bb5bd2bac1d11f988354e2f69b674b36a7631a7581f07fa11780ddff5794b",
+    "sealed-readback.json": "76c056f52ec105a7835ca5f98f78fd3866e9cea0172c661096dc1602f303f85e",
+    "report-format.json": "b7a60505f7a94384349dc74e6ebe2cd208145aa7c9cb9052124e7fc7a07b7efd",
+    "handoff.md": "fb403cc33b4ce61142f4920a8334562a1ff7b19129afd6e0e06697bb649236ba",
+    "lsp-actual-20261110T101026696315.json": "b6c18521c77a32d0d26166cd613e5886dbbd12ae6454f6e1361663a2e9ef38ac",
+    "lsp-actual-20261110T101229483248.json": "5334ed2d6f1a57f5cfc14bdd0935f9cb2ce53e4021dcee64f1a87e4d5333531a",
+    "lsp-actual-20261110T101454083813.json": "822f833be4e3c1a579e8a755e99061bad22a05a17867dc360f71276a56a76841"
+  },
+  "actualPyrightVersion": "1.1.414",
+  "fullTests": {
+    "originalRegressions": 238,
+    "currentTests": 88,
+    "newUniqueTests": 35,
+    "fullUniqueRegressions": 273,
+    "testsRun": 326,
+    "failures": 0,
+    "errors": 0,
+    "forgeryCases": 52,
+    "inheritedV5UniqueTests": 260,
+    "newV6UniqueTests": 13,
+    "skips": 0,
+    "oldGeneratorsExecuted": false,
+    "runtimeExecuted": false
+  },
+  "generatorExecutions": 1,
+  "independentReviewsPresent": false,
+  "localSuccessorComplete": true,
+  "runtimeAcceptanceComplete": false,
+  "remoteExecuted": false,
+  "P0Approved": false
+}

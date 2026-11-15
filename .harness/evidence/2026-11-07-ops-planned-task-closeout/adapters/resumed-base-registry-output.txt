@@ -1,0 +1,7 @@
+**APPROVE**
+
+Verified: check-then-write under a single `Lock` with the conflict loop completing before any mutation — all-or-nothing semantics match the doc comment; no TOCTOU. `Snapshot`/`Lookup` copy slices, so no internal aliasing. Validation is complete: module/permission patterns, permission-to-module prefix binding, in-batch duplicate rejection, method whitelist, path-prefix plus segment regex (trailing slash / empty segment correctly rejected), bounded sizes, RE2 regexes (no backtracking DoS). Deterministic sorting makes the element-wise conflict comparison sound; `Route` is comparable; duplicate-route dedup is benign. Re-registering an identical binding passes, as documented.
+
+P2 (optional, non-blocking): `Register` returns bare `ErrInvalid`/`ErrConflict` without identifying the offending permission or route — with many providers, startup diagnosis is guesswork. Minimal fix: `fmt.Errorf("%w: %s", ErrConflict, key)`.
+
+Scope limits: single-file static review; no compile, tests, callers, or IAM consumers examined; missing helpers not treated as defects per instructions. No release or production approval implied.

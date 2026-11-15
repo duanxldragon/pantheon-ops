@@ -1,0 +1,6 @@
+{
+  "command": "npm.cmd run lint",
+  "cwd": "frontend",
+  "exitCode": 0,
+  "elapsedSeconds": 27.312999999994645
+}

@@ -1,0 +1,6 @@
+{
+  "vetExitCode": 0,
+  "mysqlBaselineAcceptanceEnabled": true,
+  "cgo": "1",
+  "raceExitCode": 0
+}

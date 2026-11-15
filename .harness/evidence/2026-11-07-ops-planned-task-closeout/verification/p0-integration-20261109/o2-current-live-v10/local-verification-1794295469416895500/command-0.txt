@@ -1,0 +1,16 @@
+test_archived_source_drift_is_failure_and_archive_retained (__main__.Contracts.test_archived_source_drift_is_failure_and_archive_retained) ... ok
+test_attempt_replay_and_failed_start_remain_consumed (__main__.Contracts.test_attempt_replay_and_failed_start_remain_consumed) ... ok
+test_bad_authorization_request_or_receipt_hash_rejected (__main__.Contracts.test_bad_authorization_request_or_receipt_hash_rejected) ... ok
+test_missing_authority_rejects_before_validation_and_runner_import (__main__.Contracts.test_missing_authority_rejects_before_validation_and_runner_import) ... ok
+test_old_review_bad_subject_bad_report_and_wrong_role_rejected (__main__.Contracts.test_old_review_bad_subject_bad_report_and_wrong_role_rejected) ... ok
+test_original_cold_failure_retains_events_and_exit_one (__main__.Contracts.test_original_cold_failure_retains_events_and_exit_one) ... ok
+test_original_matrix_assertions_tests_and_cleanup_preserved (__main__.Contracts.test_original_matrix_assertions_tests_and_cleanup_preserved) ... ok
+test_runner_cli_resource_guards (__main__.Contracts.test_runner_cli_resource_guards) ... ok
+test_source_tool_or_discovery_drift_rejected (__main__.Contracts.test_source_tool_or_discovery_drift_rejected) ... ok
+test_transient_cannot_seal_and_missing_owner_does_not_build (__main__.Contracts.test_transient_cannot_seal_and_missing_owner_does_not_build) ... ok
+test_unsealed_and_old185_substitution_rejected (__main__.Contracts.test_unsealed_and_old185_substitution_rejected) ... ok
+
+----------------------------------------------------------------------
+Ran 11 tests in 0.901s
+
+OK

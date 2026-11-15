@@ -1,6 +1,6 @@
 # 租户初始化指南
 
-最后更新：2026-11-05。适用于当前租户 V1；唯一权威是 [租户合同](./contracts/TENANT_CONTRACT_V1.md)，资源分类见 [scope 矩阵](./designs/TENANT_RESOURCE_SCOPE_MATRIX.md)，接口字段见 [租户 API](./api/TENANT_API.md)。
+最后更新：2026-11-09。已发行行为适用于租户 V1；V2.0-O4 业务增量正在实施，未完成正式发行和消费验收。唯一权威是 [租户合同](./contracts/TENANT_CONTRACT_V1.md)，资源分类见 [scope 矩阵](./designs/TENANT_RESOURCE_SCOPE_MATRIX.md)，接口字段见 [租户 API](./api/TENANT_API.md)。
 
 ## 先确认模式和主体
 
@@ -10,6 +10,8 @@
 - 租户主体的拥有关系、活动 membership、租户内角色绑定共同决定登录和权限。membership 的 `owner/admin/member` 是成员关系角色，不自动授予 IAM/Casbin 权限。
 - `tenant_id = 0` 是平台/全局作用域，不应把全部全局菜单、权限、设置和平台用户搬入默认租户。
 - 系统域按当前 V1 合同隔离；业务域 V1 不参与多租户隔离，套餐配额只度量与展示。
+
+V2.0-O4 首批只采用资源矩阵登记的五张 observability 表。历史行保留全局归属0；历史和保存视图同时按租户、用户隔离。初始化时分别建立租户成员和租户内 IAM 权限，成员角色不能代替查询或保存视图权限。入口、provider 调用前及结果释放前验证当前会话、主体、模式、角色绑定、成员和租户状态；缺失模式配置或授权依赖拒绝请求。该目标及真实双租户验收由 [O4 实施计划](../.harness/tasks/2026-11-07-ops-formal-queue-foundation-gaps/o4-tenant-implementation-plan.md) 跟踪；局部 API 测试不代表消费产品已经隔离。
 
 从 `backend` 使用配置好的 `PANTHEON_DSN` 运行 `go run ./cmd/tenantmigration status`，确认当前发布迁移链版本和 `dirty=false`。迁移应用、生产数据转换与备份恢复遵循发布和 [升级指南](./migrations/COMPAT_TO_MULTI_UPGRADE.md)。
 
@@ -64,6 +66,6 @@
 
 验收至少包括：创建初始管理员、租户登录和系统 CRUD、owner 移除拒绝、暂停/归档/删除、套餐分配及停用拒绝、跨租户 ID/头/导出/上传拒绝、刷新重放和撤销。测试数据只在专用实例使用既有 fixture cleanup 清理。
 
-出现 `403 permission.denied` 先确认运行模式、主体拥有关系、有效角色和 scope，再检查请求；不要禁用 tenant middleware/Casbin 来使烟测变绿。初始化、运维与运行证据以 [当前任务矩阵](../.harness/evidence/2026-11-05-base-freeze-release/functionality-matrix.md) 为准，历史 `.tmp` 临时脚本不能作为当前交付凭证。
+出现 `403 permission.denied` 先确认运行模式、主体拥有关系、有效角色和 scope，再检查请求；不要禁用 tenant middleware/Casbin 来使烟测变绿。初始化、运维与运行证据以 [当前任务矩阵](https://github.com/duanxldragon/pantheon-base/blob/135730fd6f63ad73cf40f6e4b321fdd9f69ea932/.harness/evidence/2026-11-05-base-freeze-release/functionality-matrix.md) 为准，历史 `.tmp` 临时脚本不能作为当前交付凭证。
 
 从 compat 升级见 [升级指南](./migrations/COMPAT_TO_MULTI_UPGRADE.md)。multi 产生写入后，回滚必须恢复完整已验证备份及匹配的应用/会话状态，不能仅把模式改回 compat。

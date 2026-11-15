@@ -1,0 +1,13 @@
+# Argo reviewed protocol live phase — prepared, not executed
+
+Parent: `2026-11-07-ops-planned-task-closeout`; L2 O3/D1. The maintainer's test-host authorization remains in force. This is local acceptance tooling; no backend, provider, release lock or previous failed receipt was changed.
+
+The previous finite relay admitted PATCH operations and injected a lost reply after PATCH. The new independently readable runner preserves its native Git fixture, finite project token, private verified provider transport, identity-bound cleanup, required MySQL and CGO tests, and changes the wire admission to reviewed-actions/v1 GET capabilities and POST Sync/Rollback. Project permissions are restricted to native get/sync. No native/PATCH fallback is admitted. The relay injects a failure only after a reviewed POST returns HTTP200; product checks must independently confirm Unknown, same-ticket recovery, actual Service state and exactly four provider submissions.
+
+New local files are `argo-reviewed-live-v3-{contract,prepare,test}.py`, generated `argo-reviewed-live-v3.py`, and staged `argo-reviewed-remote-staged-v3.py` under `.local/ops-acceptance/`. The source transformation is bounded and fails if expected source shape changes. Original `argo-final-live-v2.py` SHA256 is `1c6f0cb210920b56e5e37a210d165633c45ca769d38701d15fb9026abdfcece8`; it was preserved. All new source and phase receipts are separate.
+
+Local verification: `python -B .local/ops-acceptance/argo-reviewed-live-v3-test.py` passes 5 test groups, covering valid sync/historyID0/reads and negative native/PATCH/foreign path/UID/revision/marker/extra field/invalid history cases. Preparation and stage both exit0; generated local and remote Python grammars compile. These are admission checks, not real provider or P0 acceptance.
+
+Runner SHA256: `cac63af2fd12b241f7dd5b2b18fba9d445c318cc731cf90924b8b493de34f135`. Remote stage SHA256: `7e7a705db1d1fe4b2f41845788199a838769f2e91c092b766ab5228b570b6aa7`. The phase receipt `argo-reviewed-phase-request-v3.json` binds exact current Argo product source hashes, both scripts and the authorized host. It must be independently reviewed before execution; generating a receipt is not approving it.
+
+After exact client/deployment and relay reviews, root deploys the separately sealed provider, verifies actual readiness/limits/mounted binary, then runs `python -B .local/ops-acceptance/argo-reviewed-live-v3.py --phase run`. Existing root source/phase pin checks refuse changes. Results/logs use new exclusive v3 filenames; a failure requires a new phase and is never overwritten. This phase injects test authority and a private relay, so originating Base session/IAM/audit/public network policy remain separate required product gates.

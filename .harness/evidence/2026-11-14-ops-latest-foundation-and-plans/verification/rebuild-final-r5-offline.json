@@ -1,0 +1,16 @@
+{
+  "acquiredOfficialVersion": "pantheon-base-v0.18.8",
+  "baseCommit": "34428814a9efc997fd93d4434406a53df6460323",
+  "replayMode": "already-acquired-immutable-assets",
+  "freshGitHubLookup": false,
+  "priorOnlineStandardRebuild": "rebuild-final-r3.log",
+  "priorOnlineDrift": "final-drift.log",
+  "bundleSHA256": "da20d44efe6edc1f7546c1f388ace98844bbe7fc945e6f509f99e2e34faec355",
+  "repoSHA256": "ba3b7b1b462ab39f0bc74158ea0e0c6afc2ef5c94be4149b5338849d47e6a646",
+  "standardAssembler": true,
+  "targetRoot": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.tmp\\ops-v0188-final-r5",
+  "ownedFiles": 5515,
+  "reportSHA256": "36c803cd5f09c09cf4b3d870898026d068facf976c8d3be3a38ba9448fb737ce",
+  "completedAt": "2026-11-13T23:40:35.077Z",
+  "result": "pass"
+}

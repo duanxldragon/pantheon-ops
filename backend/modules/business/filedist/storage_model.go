@@ -46,6 +46,8 @@ type FileRecord struct {
 	Tags        datatypes.JSON `json:"tags"`
 	Description string         `gorm:"type:text" json:"description,omitempty"`
 	UploadedBy  string         `gorm:"size:64" json:"uploadedBy"`
+	OwnerID     uint64         `gorm:"not null;default:0;index" json:"ownerId"`
+	DeptID      uint64         `gorm:"not null;default:0;index" json:"-"`
 	UploadedAt  time.Time      `gorm:"not null;index" json:"uploadedAt"`
 	CreatedAt   time.Time      `json:"createdAt"`
 	DeletedAt   gorm.DeletedAt `gorm:"index" json:"-"`

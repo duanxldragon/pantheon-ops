@@ -1,0 +1,112 @@
+{
+  "taskId": "2026-11-07-ops-planned-task-closeout",
+  "sources": [
+    {
+      "path": "scripts/business-overlay/rebuild-from-base.mjs",
+      "oldSha256": "5706de2dcd8d2334b374fa8dd1f621a9c4ddeb4b8b1a075172f4395e4ae2fdbd",
+      "newSha256": "127955e086e03a3460fcc910c9e01688880b5c394982293aead0711c5a1a0226",
+      "baselineSource": ".tmp/foundation-candidates/candidate-4315cee606c249a42c8a3372c26dee9a4658a9259229485de85953430c7f439f/assembled/scripts/business-overlay/rebuild-from-base.mjs",
+      "beforeSha256": "127955e086e03a3460fcc910c9e01688880b5c394982293aead0711c5a1a0226",
+      "retainedBaselineSha256": "5706de2dcd8d2334b374fa8dd1f621a9c4ddeb4b8b1a075172f4395e4ae2fdbd",
+      "afterSha256": "d5dc2969a2caed916aa2ac6f9e02e898406b58189822c16899fbad5f9d6e0726"
+    },
+    {
+      "path": "scripts/business-overlay/rebuild-from-candidate.mjs",
+      "oldSha256": "cbcf32ed8246736eb78469eabffa9d80145c67bfaf96d4a9928d660cabc74e32",
+      "newSha256": "77ec66c1f9df0d3027280eacb8b618cc24a142d8575bef8163777a25c2e3c26e",
+      "baselineSource": ".tmp/foundation-candidates/candidate-4315cee606c249a42c8a3372c26dee9a4658a9259229485de85953430c7f439f/assembled/scripts/business-overlay/rebuild-from-candidate.mjs",
+      "beforeSha256": "77ec66c1f9df0d3027280eacb8b618cc24a142d8575bef8163777a25c2e3c26e",
+      "retainedBaselineSha256": "cbcf32ed8246736eb78469eabffa9d80145c67bfaf96d4a9928d660cabc74e32",
+      "afterSha256": "f487f012f25ec652156b99f3765d989f0bf947be91dfef3c6654b2e6762b7ea0"
+    },
+    {
+      "path": "scripts/business-overlay/check-shared-drift.mjs",
+      "oldSha256": "b60ceb39cb309761d928252da22442e4c05ee507f85f199cc7a17b92b469c085",
+      "newSha256": "a6ee2b769c1d27167c7f426ad913981c28b99f462054342e826dc194a1c4302b",
+      "baselineSource": ".tmp/foundation-candidates/candidate-4315cee606c249a42c8a3372c26dee9a4658a9259229485de85953430c7f439f/assembled/scripts/business-overlay/check-shared-drift.mjs",
+      "beforeSha256": "a6ee2b769c1d27167c7f426ad913981c28b99f462054342e826dc194a1c4302b",
+      "retainedBaselineSha256": "b60ceb39cb309761d928252da22442e4c05ee507f85f199cc7a17b92b469c085",
+      "afterSha256": "a6ee2b769c1d27167c7f426ad913981c28b99f462054342e826dc194a1c4302b"
+    },
+    {
+      "path": "scripts/business-overlay/foundation-candidate.mjs",
+      "oldSha256": "894eb9401d05a6d272eaf9cd5582c88e5ff3b9a2aa5430d5a309d138827b06a9",
+      "newSha256": "ab22e05de2e2c867d555e136ddcb899d20fb307e36af6a1b79db601d5cb4fac0",
+      "baselineSource": ".tmp/foundation-candidates/candidate-4315cee606c249a42c8a3372c26dee9a4658a9259229485de85953430c7f439f/assembled/scripts/business-overlay/foundation-candidate.mjs",
+      "beforeSha256": "ab22e05de2e2c867d555e136ddcb899d20fb307e36af6a1b79db601d5cb4fac0",
+      "retainedBaselineSha256": "894eb9401d05a6d272eaf9cd5582c88e5ff3b9a2aa5430d5a309d138827b06a9",
+      "afterSha256": "664eab2f3d8e702a505954a1326cfc4dad5699c48426e9d36d8e3cfb85dcea03"
+    },
+    {
+      "path": "scripts/business-overlay/foundation-candidate.test.mjs",
+      "oldSha256": "1b5f7b820b587e933b271434e47f077620e976845de82480a866580d5769d56c",
+      "newSha256": "af6b275390ee096a18bcab503f7fb4158fa628f2702e5b84283d265b2b102bc4",
+      "baselineSource": ".tmp/foundation-candidates/candidate-4315cee606c249a42c8a3372c26dee9a4658a9259229485de85953430c7f439f/assembled/scripts/business-overlay/foundation-candidate.test.mjs",
+      "beforeSha256": "af6b275390ee096a18bcab503f7fb4158fa628f2702e5b84283d265b2b102bc4",
+      "retainedBaselineSha256": "1b5f7b820b587e933b271434e47f077620e976845de82480a866580d5769d56c",
+      "afterSha256": "e33cd08abe468efb3e513c887a9c73af4075762d1d1bb28aeeef1706fa271fda"
+    },
+    {
+      "path": "tests/scripts/business-overlay/check-shared-drift.test.mjs",
+      "oldSha256": "026c1c5836b3be38dec7825c8690541c2084bb28ad1210f4902f60c94eae8070",
+      "newSha256": "b79af64de465f3b1e2efda7e14d595fb2ba24ee46bdb36b04f2e79824338be36",
+      "baselineSource": ".tmp/foundation-candidates/candidate-4315cee606c249a42c8a3372c26dee9a4658a9259229485de85953430c7f439f/assembled/tests/scripts/business-overlay/check-shared-drift.test.mjs",
+      "beforeSha256": "b79af64de465f3b1e2efda7e14d595fb2ba24ee46bdb36b04f2e79824338be36",
+      "retainedBaselineSha256": "026c1c5836b3be38dec7825c8690541c2084bb28ad1210f4902f60c94eae8070",
+      "afterSha256": "b79af64de465f3b1e2efda7e14d595fb2ba24ee46bdb36b04f2e79824338be36"
+    }
+  ],
+  "extra": [
+    {
+      "path": "scripts/business-overlay/candidate-ownership.test.mjs",
+      "sha256": "d03069b8bff768819389f1760c5a66adf90ba7272c66e3c70351303b7c3686f0"
+    }
+  ],
+  "protectedFiles": 35,
+  "protectedMismatches": [],
+  "snapshotFiles": 1141,
+  "snapshotMismatches": [],
+  "reportFiles": 4634,
+  "reportMismatches": [],
+  "reportSha256": "13ff60276a0c94df5ca26a371e70c40b56bf1d3bb178e5e3f900b0e980c7e337",
+  "syntax": [
+    {
+      "file": "scripts/business-overlay/rebuild-from-base.mjs",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "file": "scripts/business-overlay/rebuild-from-candidate.mjs",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "file": "scripts/business-overlay/check-shared-drift.mjs",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "file": "scripts/business-overlay/foundation-candidate.mjs",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "file": "scripts/business-overlay/foundation-candidate.test.mjs",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "file": "tests/scripts/business-overlay/check-shared-drift.test.mjs",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "file": "scripts/business-overlay/candidate-ownership.test.mjs",
+      "status": 0,
+      "stderr": ""
+    }
+  ],
+  "codegraph": "not callable",
+  "lsp": "not callable",
+  "approval": "Generator evidence only; independent CODE/ARCH required"
+}

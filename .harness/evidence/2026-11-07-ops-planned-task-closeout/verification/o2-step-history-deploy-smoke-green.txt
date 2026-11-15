@@ -1,0 +1,1184 @@
+
+> @duanxldragon/pantheon-base-ui@0.11.2 test:smoke:business:deploy
+> node scripts/run-smoke-suite.mjs --host 127.0.0.1 --port 5173 --config playwright.config.ts -- tests/smoke/business/deploy/deploy-pages.spec.ts tests/smoke/business/deploy/deploy-workbench.spec.ts tests/smoke/business/deploy/deploy-selection-preview.spec.ts tests/smoke/business/deploy/deploy-command.spec.ts --workers=1 --workers=1 --output=D:\workspace\go\pantheon-platform\pantheon-ops\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\o2-step-history-deploy-smoke-green
+
+[smoke-suite] API base http://127.0.0.1:24485/api/v1
+[generated-modules] cleanup complete
+{
+  "modules": 0,
+  "schemas": 1,
+  "registries": 4,
+  "i18n": 5
+}
+(!) Your Vite config uses features that are unsupported by `configLoader: 'native'`, which is planned to become the default in a future major version of Vite:
+  - `__dirname` (vite.config.ts:32:25). Use `import.meta.dirname` instead
+Set `VITE_CONFIG_NATIVE_IGNORE_WARNING=true` to suppress this warning.
+Smoke Vite ready at http://127.0.0.1:5173/
+
+Running 18 tests using 1 worker
+
+(node:10416) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+11:07:45 [vite] http proxy error: /api/v1/system/setting/public
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+11:07:45 [vite] http proxy error: /api/v1/auth/me
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+11:07:45 [vite] http proxy error: /api/v1/system/menu/tree?scope=nav
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+11:07:45 [vite] http proxy error: /api/v1/auth/me
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+11:07:45 [vite] http proxy error: /api/v1/system/menu/tree?scope=nav
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+11:07:45 [vite] http proxy error: /api/v1/auth/tenants/current
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+11:07:45 [vite] http proxy error: /api/v1/system/refresh/state?topics=system:dept:changed,system:dict:changed,system:i18n:changed,system:menu:changed,system:permission:changed,system:post:changed,system:role:changed,system:setting:changed,system:user:changed
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+11:07:45 [vite] http proxy error: /api/v1/system/refresh/state?topics=system:dept:changed,system:dict:changed,system:i18n:changed,system:menu:changed,system:permission:changed,system:post:changed,system:role:changed,system:setting:changed,system:user:changed
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+11:07:50 [vite] http proxy error: /api/v1/system/refresh/state?topics=system:dept:changed,system:dict:changed,system:i18n:changed,system:menu:changed,system:permission:changed,system:post:changed,system:role:changed,system:setting:changed,system:user:changed
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+11:07:55 [vite] http proxy error: /api/v1/system/refresh/state?topics=system:dept:changed,system:dict:changed,system:i18n:changed,system:menu:changed,system:permission:changed,system:post:changed,system:role:changed,system:setting:changed,system:user:changed
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+  x   1 tests\smoke\business\deploy\deploy-command.spec.ts:10:2 › viewed task command conflict refreshes without replay (light) (13.4s)
+(node:6284) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+11:08:00 [vite] http proxy error: /api/v1/system/setting/public
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+11:08:00 [vite] http proxy error: /api/v1/auth/me
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+11:08:00 [vite] http proxy error: /api/v1/system/menu/tree?scope=nav
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+11:08:00 [vite] http proxy error: /api/v1/auth/me
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+11:08:00 [vite] http proxy error: /api/v1/system/menu/tree?scope=nav
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+11:08:00 [vite] http proxy error: /api/v1/auth/tenants/current
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+11:08:00 [vite] http proxy error: /api/v1/system/refresh/state?topics=system:dept:changed,system:dict:changed,system:i18n:changed,system:menu:changed,system:permission:changed,system:post:changed,system:role:changed,system:setting:changed,system:user:changed
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+11:08:00 [vite] http proxy error: /api/v1/system/refresh/state?topics=system:dept:changed,system:dict:changed,system:i18n:changed,system:menu:changed,system:permission:changed,system:post:changed,system:role:changed,system:setting:changed,system:user:changed
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+11:08:05 [vite] http proxy error: /api/v1/system/refresh/state?topics=system:dept:changed,system:dict:changed,system:i18n:changed,system:menu:changed,system:permission:changed,system:post:changed,system:role:changed,system:setting:changed,system:user:changed
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+11:08:10 [vite] http proxy error: /api/v1/system/refresh/state?topics=system:dept:changed,system:dict:changed,system:i18n:changed,system:menu:changed,system:permission:changed,system:post:changed,system:role:changed,system:setting:changed,system:user:changed
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+  x   2 tests\smoke\business\deploy\deploy-command.spec.ts:10:2 › viewed task command conflict refreshes without replay (dark) (13.6s)
+(node:3348) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+11:08:14 [vite] http proxy error: /api/v1/system/setting/public
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+11:08:14 [vite] http proxy error: /api/v1/auth/me
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+11:08:14 [vite] http proxy error: /api/v1/system/menu/tree?scope=nav
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+11:08:15 [vite] http proxy error: /api/v1/auth/me
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+11:08:15 [vite] http proxy error: /api/v1/system/menu/tree?scope=nav
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+11:08:15 [vite] http proxy error: /api/v1/auth/tenants/current
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+11:08:15 [vite] http proxy error: /api/v1/system/refresh/state?topics=system:dept:changed,system:dict:changed,system:i18n:changed,system:menu:changed,system:permission:changed,system:post:changed,system:role:changed,system:setting:changed,system:user:changed
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+11:08:15 [vite] http proxy error: /api/v1/system/refresh/state?topics=system:dept:changed,system:dict:changed,system:i18n:changed,system:menu:changed,system:permission:changed,system:post:changed,system:role:changed,system:setting:changed,system:user:changed
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+11:08:20 [vite] http proxy error: /api/v1/system/refresh/state?topics=system:dept:changed,system:dict:changed,system:i18n:changed,system:menu:changed,system:permission:changed,system:post:changed,system:role:changed,system:setting:changed,system:user:changed
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+11:08:25 [vite] http proxy error: /api/v1/system/refresh/state?topics=system:dept:changed,system:dict:changed,system:i18n:changed,system:menu:changed,system:permission:changed,system:post:changed,system:role:changed,system:setting:changed,system:user:changed
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+11:08:30 [vite] http proxy error: /api/v1/system/refresh/state?topics=system:dept:changed,system:dict:changed,system:i18n:changed,system:menu:changed,system:permission:changed,system:post:changed,system:role:changed,system:setting:changed,system:user:changed
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+11:08:35 [vite] http proxy error: /api/v1/system/refresh/state?topics=system:dept:changed,system:dict:changed,system:i18n:changed,system:menu:changed,system:permission:changed,system:post:changed,system:role:changed,system:setting:changed,system:user:changed
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+11:08:40 [vite] http proxy error: /api/v1/system/refresh/state?topics=system:dept:changed,system:dict:changed,system:i18n:changed,system:menu:changed,system:permission:changed,system:post:changed,system:role:changed,system:setting:changed,system:user:changed
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+  x   3 tests\smoke\business\deploy\deploy-command.spec.ts:59:1 › batch cancel retains failed selection and reports partial failure (30.2s)
+(node:5608) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+11:08:44 [vite] http proxy error: /api/v1/system/setting/public
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+11:08:44 [vite] http proxy error: /api/v1/auth/me
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+11:08:44 [vite] http proxy error: /api/v1/system/menu/tree?scope=nav
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+11:08:45 [vite] http proxy error: /api/v1/auth/me
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+11:08:45 [vite] http proxy error: /api/v1/system/menu/tree?scope=nav
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+11:08:45 [vite] http proxy error: /api/v1/auth/tenants/current
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+11:08:45 [vite] http proxy error: /api/v1/system/refresh/state?topics=system:dept:changed,system:dict:changed,system:i18n:changed,system:menu:changed,system:permission:changed,system:post:changed,system:role:changed,system:setting:changed,system:user:changed
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+11:08:45 [vite] http proxy error: /api/v1/system/refresh/state?topics=system:dept:changed,system:dict:changed,system:i18n:changed,system:menu:changed,system:permission:changed,system:post:changed,system:role:changed,system:setting:changed,system:user:changed
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+11:08:49 [vite] http proxy error: /api/v1/system/refresh/state?topics=system:dept:changed,system:dict:changed,system:i18n:changed,system:menu:changed,system:permission:changed,system:post:changed,system:role:changed,system:setting:changed,system:user:changed
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+11:08:54 [vite] http proxy error: /api/v1/system/refresh/state?topics=system:dept:changed,system:dict:changed,system:i18n:changed,system:menu:changed,system:permission:changed,system:post:changed,system:role:changed,system:setting:changed,system:user:changed
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+  x   4 tests\smoke\business\deploy\deploy-pages.spec.ts:69:3 › Deploy business module smoke › deploy pages load under operations platform (12.8s)
+(node:24380) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+11:08:59 [vite] http proxy error: /api/v1/system/setting/public
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+11:08:59 [vite] http proxy error: /api/v1/auth/me
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+11:08:59 [vite] http proxy error: /api/v1/system/menu/tree?scope=nav
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+11:08:59 [vite] http proxy error: /api/v1/auth/me
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+11:08:59 [vite] http proxy error: /api/v1/system/menu/tree?scope=nav
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+11:08:59 [vite] http proxy error: /api/v1/auth/tenants/current
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+11:08:59 [vite] http proxy error: /api/v1/system/refresh/state?topics=system:dept:changed,system:dict:changed,system:i18n:changed,system:menu:changed,system:permission:changed,system:post:changed,system:role:changed,system:setting:changed,system:user:changed
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+11:08:59 [vite] http proxy error: /api/v1/system/refresh/state?topics=system:dept:changed,system:dict:changed,system:i18n:changed,system:menu:changed,system:permission:changed,system:post:changed,system:role:changed,system:setting:changed,system:user:changed
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+11:09:04 [vite] http proxy error: /api/v1/system/refresh/state?topics=system:dept:changed,system:dict:changed,system:i18n:changed,system:menu:changed,system:permission:changed,system:post:changed,system:role:changed,system:setting:changed,system:user:changed
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+11:09:09 [vite] http proxy error: /api/v1/system/refresh/state?topics=system:dept:changed,system:dict:changed,system:i18n:changed,system:menu:changed,system:permission:changed,system:post:changed,system:role:changed,system:setting:changed,system:user:changed
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+  x   5 tests\smoke\business\deploy\deploy-pages.spec.ts:112:3 › Deploy business module smoke › deploy task detail action opens a modal without leaving the list page (14.1s)
+(node:24976) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+11:09:14 [vite] http proxy error: /api/v1/system/setting/public
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+11:09:14 [vite] http proxy error: /api/v1/auth/me
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+11:09:14 [vite] http proxy error: /api/v1/system/menu/tree?scope=nav
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+11:09:14 [vite] http proxy error: /api/v1/auth/me
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+11:09:14 [vite] http proxy error: /api/v1/system/menu/tree?scope=nav
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+11:09:14 [vite] http proxy error: /api/v1/auth/tenants/current
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+11:09:14 [vite] http proxy error: /api/v1/system/refresh/state?topics=system:dept:changed,system:dict:changed,system:i18n:changed,system:menu:changed,system:permission:changed,system:post:changed,system:role:changed,system:setting:changed,system:user:changed
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+11:09:14 [vite] http proxy error: /api/v1/system/refresh/state?topics=system:dept:changed,system:dict:changed,system:i18n:changed,system:menu:changed,system:permission:changed,system:post:changed,system:role:changed,system:setting:changed,system:user:changed
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+11:09:19 [vite] http proxy error: /api/v1/system/refresh/state?topics=system:dept:changed,system:dict:changed,system:i18n:changed,system:menu:changed,system:permission:changed,system:post:changed,system:role:changed,system:setting:changed,system:user:changed
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+11:09:24 [vite] http proxy error: /api/v1/system/refresh/state?topics=system:dept:changed,system:dict:changed,system:i18n:changed,system:menu:changed,system:permission:changed,system:post:changed,system:role:changed,system:setting:changed,system:user:changed
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+  x   6 tests\smoke\business\deploy\deploy-pages.spec.ts:207:3 › Deploy business module smoke › deploy package detail action opens a modal without leaving the list page (13.8s)
+(node:23088) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+11:09:28 [vite] http proxy error: /api/v1/system/setting/public
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+11:09:28 [vite] http proxy error: /api/v1/auth/me
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+11:09:28 [vite] http proxy error: /api/v1/system/menu/tree?scope=nav
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+11:09:28 [vite] http proxy error: /api/v1/auth/me
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+11:09:28 [vite] http proxy error: /api/v1/system/menu/tree?scope=nav
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+11:09:28 [vite] http proxy error: /api/v1/auth/tenants/current
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+11:09:28 [vite] http proxy error: /api/v1/system/refresh/state?topics=system:dept:changed,system:dict:changed,system:i18n:changed,system:menu:changed,system:permission:changed,system:post:changed,system:role:changed,system:setting:changed,system:user:changed
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+11:09:28 [vite] http proxy error: /api/v1/system/refresh/state?topics=system:dept:changed,system:dict:changed,system:i18n:changed,system:menu:changed,system:permission:changed,system:post:changed,system:role:changed,system:setting:changed,system:user:changed
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+11:09:33 [vite] http proxy error: /api/v1/system/refresh/state?topics=system:dept:changed,system:dict:changed,system:i18n:changed,system:menu:changed,system:permission:changed,system:post:changed,system:role:changed,system:setting:changed,system:user:changed
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+11:09:38 [vite] http proxy error: /api/v1/system/refresh/state?topics=system:dept:changed,system:dict:changed,system:i18n:changed,system:menu:changed,system:permission:changed,system:post:changed,system:role:changed,system:setting:changed,system:user:changed
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+  x   7 tests\smoke\business\deploy\deploy-pages.spec.ts:247:3 › Deploy business module smoke › deploy template detail action opens a modal without leaving the list page (13.3s)
+(node:24976) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+11:09:43 [vite] http proxy error: /api/v1/system/setting/public
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+11:09:43 [vite] http proxy error: /api/v1/auth/me
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+11:09:43 [vite] http proxy error: /api/v1/system/menu/tree?scope=nav
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+11:09:43 [vite] http proxy error: /api/v1/auth/me
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+11:09:43 [vite] http proxy error: /api/v1/system/menu/tree?scope=nav
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+11:09:43 [vite] http proxy error: /api/v1/auth/tenants/current
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+11:09:43 [vite] http proxy error: /api/v1/system/refresh/state?topics=system:dept:changed,system:dict:changed,system:i18n:changed,system:menu:changed,system:permission:changed,system:post:changed,system:role:changed,system:setting:changed,system:user:changed
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+11:09:43 [vite] http proxy error: /api/v1/system/refresh/state?topics=system:dept:changed,system:dict:changed,system:i18n:changed,system:menu:changed,system:permission:changed,system:post:changed,system:role:changed,system:setting:changed,system:user:changed
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+11:09:48 [vite] http proxy error: /api/v1/system/refresh/state?topics=system:dept:changed,system:dict:changed,system:i18n:changed,system:menu:changed,system:permission:changed,system:post:changed,system:role:changed,system:setting:changed,system:user:changed
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+11:09:53 [vite] http proxy error: /api/v1/system/refresh/state?topics=system:dept:changed,system:dict:changed,system:i18n:changed,system:menu:changed,system:permission:changed,system:post:changed,system:role:changed,system:setting:changed,system:user:changed
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+  x   8 tests\smoke\business\deploy\deploy-pages.spec.ts:329:3 › Deploy business module smoke › deploy detail page loads with summary and host table (13.7s)
+(node:9544) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+11:09:57 [vite] http proxy error: /api/v1/system/setting/public
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+11:09:58 [vite] http proxy error: /api/v1/auth/me
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+11:09:58 [vite] http proxy error: /api/v1/system/menu/tree?scope=nav
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+11:09:58 [vite] http proxy error: /api/v1/auth/me
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+11:09:58 [vite] http proxy error: /api/v1/system/menu/tree?scope=nav
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+11:09:58 [vite] http proxy error: /api/v1/auth/tenants/current
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+11:09:58 [vite] http proxy error: /api/v1/system/refresh/state?topics=system:dept:changed,system:dict:changed,system:i18n:changed,system:menu:changed,system:permission:changed,system:post:changed,system:role:changed,system:setting:changed,system:user:changed
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+11:09:58 [vite] http proxy error: /api/v1/system/refresh/state?topics=system:dept:changed,system:dict:changed,system:i18n:changed,system:menu:changed,system:permission:changed,system:post:changed,system:role:changed,system:setting:changed,system:user:changed
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+11:10:03 [vite] http proxy error: /api/v1/system/refresh/state?topics=system:dept:changed,system:dict:changed,system:i18n:changed,system:menu:changed,system:permission:changed,system:post:changed,system:role:changed,system:setting:changed,system:user:changed
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+  x   9 tests\smoke\business\deploy\deploy-pages.spec.ts:404:3 › Deploy business module smoke › deploy detail requires a reason when marking host failure (12.6s)
+(node:23012) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+11:10:10 [vite] http proxy error: /api/v1/system/setting/public
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+11:10:11 [vite] http proxy error: /api/v1/auth/me
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+11:10:11 [vite] http proxy error: /api/v1/system/menu/tree?scope=nav
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+11:10:11 [vite] http proxy error: /api/v1/auth/me
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+11:10:11 [vite] http proxy error: /api/v1/system/menu/tree?scope=nav
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+11:10:11 [vite] http proxy error: /api/v1/auth/tenants/current
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+11:10:11 [vite] http proxy error: /api/v1/system/refresh/state?topics=system:dept:changed,system:dict:changed,system:i18n:changed,system:menu:changed,system:permission:changed,system:post:changed,system:role:changed,system:setting:changed,system:user:changed
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+11:10:11 [vite] http proxy error: /api/v1/system/refresh/state?topics=system:dept:changed,system:dict:changed,system:i18n:changed,system:menu:changed,system:permission:changed,system:post:changed,system:role:changed,system:setting:changed,system:user:changed
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+11:10:16 [vite] http proxy error: /api/v1/system/refresh/state?topics=system:dept:changed,system:dict:changed,system:i18n:changed,system:menu:changed,system:permission:changed,system:post:changed,system:role:changed,system:setting:changed,system:user:changed
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+11:10:21 [vite] http proxy error: /api/v1/system/refresh/state?topics=system:dept:changed,system:dict:changed,system:i18n:changed,system:menu:changed,system:permission:changed,system:post:changed,system:role:changed,system:setting:changed,system:user:changed
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+11:10:26 [vite] http proxy error: /api/v1/system/refresh/state?topics=system:dept:changed,system:dict:changed,system:i18n:changed,system:menu:changed,system:permission:changed,system:post:changed,system:role:changed,system:setting:changed,system:user:changed
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+11:10:31 [vite] http proxy error: /api/v1/system/refresh/state?topics=system:dept:changed,system:dict:changed,system:i18n:changed,system:menu:changed,system:permission:changed,system:post:changed,system:role:changed,system:setting:changed,system:user:changed
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+11:10:36 [vite] http proxy error: /api/v1/system/refresh/state?topics=system:dept:changed,system:dict:changed,system:i18n:changed,system:menu:changed,system:permission:changed,system:post:changed,system:role:changed,system:setting:changed,system:user:changed
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+  x  10 tests\smoke\business\deploy\deploy-pages.spec.ts:488:3 › Deploy business module smoke › deploy template supports script steps and task params render in detail (30.1s)
+(node:3184) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+11:10:41 [vite] http proxy error: /api/v1/system/setting/public
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+11:10:41 [vite] http proxy error: /api/v1/auth/me
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+11:10:41 [vite] http proxy error: /api/v1/system/menu/tree?scope=nav
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+11:10:42 [vite] http proxy error: /api/v1/auth/me
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+11:10:42 [vite] http proxy error: /api/v1/system/menu/tree?scope=nav
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+11:10:42 [vite] http proxy error: /api/v1/auth/tenants/current
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+11:10:42 [vite] http proxy error: /api/v1/system/refresh/state?topics=system:dept:changed,system:dict:changed,system:i18n:changed,system:menu:changed,system:permission:changed,system:post:changed,system:role:changed,system:setting:changed,system:user:changed
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+11:10:42 [vite] http proxy error: /api/v1/system/refresh/state?topics=system:dept:changed,system:dict:changed,system:i18n:changed,system:menu:changed,system:permission:changed,system:post:changed,system:role:changed,system:setting:changed,system:user:changed
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+11:10:47 [vite] http proxy error: /api/v1/system/refresh/state?topics=system:dept:changed,system:dict:changed,system:i18n:changed,system:menu:changed,system:permission:changed,system:post:changed,system:role:changed,system:setting:changed,system:user:changed
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+11:10:52 [vite] http proxy error: /api/v1/system/refresh/state?topics=system:dept:changed,system:dict:changed,system:i18n:changed,system:menu:changed,system:permission:changed,system:post:changed,system:role:changed,system:setting:changed,system:user:changed
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+  x  11 tests\smoke\business\deploy\deploy-pages.spec.ts:610:3 › Deploy business module smoke › deploy detail edit action routes back to list and opens edit modal (15.9s)
+(node:3068) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+11:11:02 [vite] http proxy error: /api/v1/system/setting/public
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+11:11:02 [vite] http proxy error: /api/v1/auth/me
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+11:11:02 [vite] http proxy error: /api/v1/system/menu/tree?scope=nav
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+11:11:02 [vite] http proxy error: /api/v1/auth/me
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+11:11:02 [vite] http proxy error: /api/v1/system/menu/tree?scope=nav
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+11:11:02 [vite] http proxy error: /api/v1/auth/tenants/current
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+11:11:02 [vite] http proxy error: /api/v1/system/refresh/state?topics=system:dept:changed,system:dict:changed,system:i18n:changed,system:menu:changed,system:permission:changed,system:post:changed,system:role:changed,system:setting:changed,system:user:changed
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+11:11:02 [vite] http proxy error: /api/v1/system/refresh/state?topics=system:dept:changed,system:dict:changed,system:i18n:changed,system:menu:changed,system:permission:changed,system:post:changed,system:role:changed,system:setting:changed,system:user:changed
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+11:11:07 [vite] http proxy error: /api/v1/system/refresh/state?topics=system:dept:changed,system:dict:changed,system:i18n:changed,system:menu:changed,system:permission:changed,system:post:changed,system:role:changed,system:setting:changed,system:user:changed
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+  x  12 tests\smoke\business\deploy\deploy-pages.spec.ts:708:3 › Deploy business module smoke › targeted smoke closes cmdb, bizscope, deploy with uploaded source package and visible task trace (15.6s)
+(node:9400) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+11:11:14 [vite] http proxy error: /api/v1/system/setting/public
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+11:11:14 [vite] http proxy error: /api/v1/auth/me
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+11:11:14 [vite] http proxy error: /api/v1/system/menu/tree?scope=nav
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+11:11:15 [vite] http proxy error: /api/v1/auth/me
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+11:11:15 [vite] http proxy error: /api/v1/system/menu/tree?scope=nav
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+11:11:15 [vite] http proxy error: /api/v1/auth/tenants/current
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+11:11:15 [vite] http proxy error: /api/v1/system/refresh/state?topics=system:dept:changed,system:dict:changed,system:i18n:changed,system:menu:changed,system:permission:changed,system:post:changed,system:role:changed,system:setting:changed,system:user:changed
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+11:11:15 [vite] http proxy error: /api/v1/system/refresh/state?topics=system:dept:changed,system:dict:changed,system:i18n:changed,system:menu:changed,system:permission:changed,system:post:changed,system:role:changed,system:setting:changed,system:user:changed
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+11:11:20 [vite] http proxy error: /api/v1/system/refresh/state?topics=system:dept:changed,system:dict:changed,system:i18n:changed,system:menu:changed,system:permission:changed,system:post:changed,system:role:changed,system:setting:changed,system:user:changed
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+11:11:25 [vite] http proxy error: /api/v1/system/refresh/state?topics=system:dept:changed,system:dict:changed,system:i18n:changed,system:menu:changed,system:permission:changed,system:post:changed,system:role:changed,system:setting:changed,system:user:changed
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+  x  13 tests\smoke\business\deploy\deploy-pages.spec.ts:860:3 › Deploy business module smoke › deploy pages stay within a phone viewport (12.6s)
+(node:8460) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+11:11:28 [vite] http proxy error: /api/v1/system/setting/public
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+11:11:28 [vite] http proxy error: /api/v1/auth/me
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+11:11:28 [vite] http proxy error: /api/v1/system/menu/tree?scope=nav
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+11:11:28 [vite] http proxy error: /api/v1/auth/me
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+11:11:28 [vite] http proxy error: /api/v1/system/menu/tree?scope=nav
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+11:11:28 [vite] http proxy error: /api/v1/auth/tenants/current
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+11:11:28 [vite] http proxy error: /api/v1/system/refresh/state?topics=system:dept:changed,system:dict:changed,system:i18n:changed,system:menu:changed,system:permission:changed,system:post:changed,system:role:changed,system:setting:changed,system:user:changed
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+11:11:28 [vite] http proxy error: /api/v1/system/refresh/state?topics=system:dept:changed,system:dict:changed,system:i18n:changed,system:menu:changed,system:permission:changed,system:post:changed,system:role:changed,system:setting:changed,system:user:changed
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+11:11:33 [vite] http proxy error: /api/v1/system/refresh/state?topics=system:dept:changed,system:dict:changed,system:i18n:changed,system:menu:changed,system:permission:changed,system:post:changed,system:role:changed,system:setting:changed,system:user:changed
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+11:11:38 [vite] http proxy error: /api/v1/system/refresh/state?topics=system:dept:changed,system:dict:changed,system:i18n:changed,system:menu:changed,system:permission:changed,system:post:changed,system:role:changed,system:setting:changed,system:user:changed
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+  x  14 tests\smoke\business\deploy\deploy-selection-preview.spec.ts:12:2 › selection and preview confirm/conflict/refresh (light) (12.3s)
+(node:22868) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+11:11:41 [vite] http proxy error: /api/v1/system/setting/public
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+11:11:41 [vite] http proxy error: /api/v1/auth/me
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+11:11:41 [vite] http proxy error: /api/v1/system/menu/tree?scope=nav
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+11:11:41 [vite] http proxy error: /api/v1/auth/me
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+11:11:41 [vite] http proxy error: /api/v1/system/menu/tree?scope=nav
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+11:11:41 [vite] http proxy error: /api/v1/auth/tenants/current
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+11:11:41 [vite] http proxy error: /api/v1/system/refresh/state?topics=system:dept:changed,system:dict:changed,system:i18n:changed,system:menu:changed,system:permission:changed,system:post:changed,system:role:changed,system:setting:changed,system:user:changed
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+11:11:41 [vite] http proxy error: /api/v1/system/refresh/state?topics=system:dept:changed,system:dict:changed,system:i18n:changed,system:menu:changed,system:permission:changed,system:post:changed,system:role:changed,system:setting:changed,system:user:changed
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+11:11:46 [vite] http proxy error: /api/v1/system/refresh/state?topics=system:dept:changed,system:dict:changed,system:i18n:changed,system:menu:changed,system:permission:changed,system:post:changed,system:role:changed,system:setting:changed,system:user:changed
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+11:11:51 [vite] http proxy error: /api/v1/system/refresh/state?topics=system:dept:changed,system:dict:changed,system:i18n:changed,system:menu:changed,system:permission:changed,system:post:changed,system:role:changed,system:setting:changed,system:user:changed
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+  x  15 tests\smoke\business\deploy\deploy-selection-preview.spec.ts:12:2 › selection and preview confirm/conflict/refresh (dark) (11.8s)
+(node:24768) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok 16 tests\smoke\business\deploy\deploy-selection-preview.spec.ts:134:1 › rollback draft uses frozen definition and its own reviewed start (1.9s)
+11:11:56 [vite] http proxy error: /api/v1/system/setting/public
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+11:11:56 [vite] http proxy error: /api/v1/auth/me
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+11:11:56 [vite] http proxy error: /api/v1/system/menu/tree?scope=nav
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+11:11:56 [vite] http proxy error: /api/v1/auth/me
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+11:11:56 [vite] http proxy error: /api/v1/system/menu/tree?scope=nav
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+11:11:56 [vite] http proxy error: /api/v1/auth/tenants/current
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+11:11:56 [vite] http proxy error: /api/v1/system/refresh/state?topics=system:dept:changed,system:dict:changed,system:i18n:changed,system:menu:changed,system:permission:changed,system:post:changed,system:role:changed,system:setting:changed,system:user:changed
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+11:11:56 [vite] http proxy error: /api/v1/system/refresh/state?topics=system:dept:changed,system:dict:changed,system:i18n:changed,system:menu:changed,system:permission:changed,system:post:changed,system:role:changed,system:setting:changed,system:user:changed
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+11:12:01 [vite] http proxy error: /api/v1/system/refresh/state?topics=system:dept:changed,system:dict:changed,system:i18n:changed,system:menu:changed,system:permission:changed,system:post:changed,system:role:changed,system:setting:changed,system:user:changed
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+  x  17 tests\smoke\business\deploy\deploy-workbench.spec.ts:16:3 › deployment workbench sources, logs, keyboard and mobile (light) (12.0s)
+(node:3944) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+11:12:08 [vite] http proxy error: /api/v1/system/setting/public
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+11:12:08 [vite] http proxy error: /api/v1/auth/me
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+11:12:08 [vite] http proxy error: /api/v1/system/menu/tree?scope=nav
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+11:12:09 [vite] http proxy error: /api/v1/auth/me
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+11:12:09 [vite] http proxy error: /api/v1/system/menu/tree?scope=nav
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+11:12:09 [vite] http proxy error: /api/v1/auth/tenants/current
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+11:12:09 [vite] http proxy error: /api/v1/system/refresh/state?topics=system:dept:changed,system:dict:changed,system:i18n:changed,system:menu:changed,system:permission:changed,system:post:changed,system:role:changed,system:setting:changed,system:user:changed
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+11:12:09 [vite] http proxy error: /api/v1/system/refresh/state?topics=system:dept:changed,system:dict:changed,system:i18n:changed,system:menu:changed,system:permission:changed,system:post:changed,system:role:changed,system:setting:changed,system:user:changed
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+11:12:14 [vite] http proxy error: /api/v1/system/refresh/state?topics=system:dept:changed,system:dict:changed,system:i18n:changed,system:menu:changed,system:permission:changed,system:post:changed,system:role:changed,system:setting:changed,system:user:changed
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+11:12:19 [vite] http proxy error: /api/v1/system/refresh/state?topics=system:dept:changed,system:dict:changed,system:i18n:changed,system:menu:changed,system:permission:changed,system:post:changed,system:role:changed,system:setting:changed,system:user:changed
+Error: connect ECONNREFUSED 127.0.0.1:8080
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+  x  18 tests\smoke\business\deploy\deploy-workbench.spec.ts:16:3 › deployment workbench sources, logs, keyboard and mobile (dark) (12.1s)
+
+
+  1) tests\smoke\business\deploy\deploy-command.spec.ts:10:2 › viewed task command conflict refreshes without replay (light) 
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator: getByRole('button', { name: '重试失败步骤', exact: true })
+    Expected: visible
+    Timeout: 10000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toBeVisible" getByRole('button', { name: '重试失败步骤', exact: true }) with timeout 10000ms
+      - waiting for getByRole('button', { name: '重试失败步骤', exact: true })
+
+
+      35 |    });
+      36 |    await page.setViewportSize({width:1440,height:900});await page.goto(`/business/deploy/task/${taskId}`);
+    > 37 |    const retry=page.getByRole('button',{name:'重试失败步骤',exact:true});await expect(retry).toBeVisible();
+         |                                                                                        ^
+      38 |    const conflict=page.waitForResponse(response=>response.url().endsWith(`/tasks/${taskId}/retry`));await retry.click();expect((await (await conflict).json()).code).toBe(409);
+      39 |    await expect(page.locator('.arco-alert-content').getByText('任务状态已变化，请刷新并确认当前状态后重新操作。',{exact:true})).toBeVisible();await expect.poll(()=>refreshes).toBeGreaterThan(0);
+      40 |    expect(commands).toBe(1);
+        at D:\workspace\go\pantheon-platform\pantheon-ops\frontend\tests\smoke\business\deploy\deploy-command.spec.ts:37:88
+
+    Error Context: ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\o2-step-history-deploy-smoke-green\smoke-business-deploy-depl-515b4-eshes-without-replay-light-\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\o2-step-history-deploy-smoke-green\smoke-business-deploy-depl-515b4-eshes-without-replay-light-\trace.zip
+    Usage:
+
+        npx playwright show-trace ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\o2-step-history-deploy-smoke-green\smoke-business-deploy-depl-515b4-eshes-without-replay-light-\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  2) tests\smoke\business\deploy\deploy-command.spec.ts:10:2 › viewed task command conflict refreshes without replay (dark) 
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator: getByRole('button', { name: '重试失败步骤', exact: true })
+    Expected: visible
+    Timeout: 10000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toBeVisible" getByRole('button', { name: '重试失败步骤', exact: true }) with timeout 10000ms
+      - waiting for getByRole('button', { name: '重试失败步骤', exact: true })
+
+
+      35 |    });
+      36 |    await page.setViewportSize({width:1440,height:900});await page.goto(`/business/deploy/task/${taskId}`);
+    > 37 |    const retry=page.getByRole('button',{name:'重试失败步骤',exact:true});await expect(retry).toBeVisible();
+         |                                                                                        ^
+      38 |    const conflict=page.waitForResponse(response=>response.url().endsWith(`/tasks/${taskId}/retry`));await retry.click();expect((await (await conflict).json()).code).toBe(409);
+      39 |    await expect(page.locator('.arco-alert-content').getByText('任务状态已变化，请刷新并确认当前状态后重新操作。',{exact:true})).toBeVisible();await expect.poll(()=>refreshes).toBeGreaterThan(0);
+      40 |    expect(commands).toBe(1);
+        at D:\workspace\go\pantheon-platform\pantheon-ops\frontend\tests\smoke\business\deploy\deploy-command.spec.ts:37:88
+
+    Error Context: ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\o2-step-history-deploy-smoke-green\smoke-business-deploy-depl-8790f-reshes-without-replay-dark-\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\o2-step-history-deploy-smoke-green\smoke-business-deploy-depl-8790f-reshes-without-replay-dark-\trace.zip
+    Usage:
+
+        npx playwright show-trace ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\o2-step-history-deploy-smoke-green\smoke-business-deploy-depl-8790f-reshes-without-replay-dark-\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  3) tests\smoke\business\deploy\deploy-command.spec.ts:59:1 › batch cancel retains failed selection and reports partial failure 
+
+    Test timeout of 30000ms exceeded.
+
+    Error: page.waitForResponse: Test timeout of 30000ms exceeded.
+
+      78 |   await page.route('**/business/deploy/tasks/*/cancel',async route=>{submissions++;await route.continue();});
+      79 |   await page.goto('/business/deploy/task');
+    > 80 |   const filtered=page.waitForResponse(response=>response.request().method()==='GET'&&response.url().includes('/business/deploy/tasks?')&&new URL(response.url()).searchParams.get('keyword')===token);
+         |                       ^
+      81 |   await page.locator('.search-toolbar input').first().fill(token);await filtered;
+      82 |   const rowA=page.getByRole('row').filter({hasText:`${token}-a`}).first();const rowB=page.getByRole('row').filter({hasText:`${token}-b`}).first();
+      83 |   await expect(rowA).toBeVisible();await expect(rowB).toBeVisible();await rowA.locator('label.arco-checkbox').click();await expect(rowA.getByRole('checkbox')).toBeChecked();await rowB.locator('label.arco-checkbox').click();await expect(rowB.getByRole('checkbox')).toBeChecked();
+        at D:\workspace\go\pantheon-platform\pantheon-ops\frontend\tests\smoke\business\deploy\deploy-command.spec.ts:80:23
+
+    Error: locator.fill: Test timeout of 30000ms exceeded.
+    Call log:
+      - waiting for locator('.search-toolbar input').first()
+
+
+      79 |   await page.goto('/business/deploy/task');
+      80 |   const filtered=page.waitForResponse(response=>response.request().method()==='GET'&&response.url().includes('/business/deploy/tasks?')&&new URL(response.url()).searchParams.get('keyword')===token);
+    > 81 |   await page.locator('.search-toolbar input').first().fill(token);await filtered;
+         |                                                       ^
+      82 |   const rowA=page.getByRole('row').filter({hasText:`${token}-a`}).first();const rowB=page.getByRole('row').filter({hasText:`${token}-b`}).first();
+      83 |   await expect(rowA).toBeVisible();await expect(rowB).toBeVisible();await rowA.locator('label.arco-checkbox').click();await expect(rowA.getByRole('checkbox')).toBeChecked();await rowB.locator('label.arco-checkbox').click();await expect(rowB.getByRole('checkbox')).toBeChecked();
+      84 |   await page.getByRole('button',{name:'取消',exact:true}).first().click();await page.getByRole('button',{name:'确定',exact:true}).click();
+        at D:\workspace\go\pantheon-platform\pantheon-ops\frontend\tests\smoke\business\deploy\deploy-command.spec.ts:81:55
+
+    Error Context: ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\o2-step-history-deploy-smoke-green\smoke-business-deploy-depl-5e1fa-and-reports-partial-failure\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\o2-step-history-deploy-smoke-green\smoke-business-deploy-depl-5e1fa-and-reports-partial-failure\trace.zip
+    Usage:
+
+        npx playwright show-trace ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\o2-step-history-deploy-smoke-green\smoke-business-deploy-depl-5e1fa-and-reports-partial-failure\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  4) tests\smoke\business\deploy\deploy-pages.spec.ts:69:3 › Deploy business module smoke › deploy pages load under operations platform 
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator: locator('.governance-summary-bar')
+    Expected: visible
+    Timeout: 10000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toBeVisible" locator('.governance-summary-bar') with timeout 10000ms
+      - waiting for locator('.governance-summary-bar')
+
+
+      76 |
+      77 |     await page.goto('/business/deploy/package', { waitUntil: 'networkidle' });
+    > 78 |     await expect(page.locator('.governance-summary-bar')).toBeVisible();
+         |                                                           ^
+      79 |     await expect(page.locator('.governance-summary-bar__title-row')).toBeVisible();
+      80 |     await expect(page.locator('.governance-summary-bar')).toContainText('软件组件');
+      81 |     await page.locator('.governance-summary-bar .arco-btn').click();
+        at D:\workspace\go\pantheon-platform\pantheon-ops\frontend\tests\smoke\business\deploy\deploy-pages.spec.ts:78:59
+
+    Error Context: ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\o2-step-history-deploy-smoke-green\smoke-business-deploy-depl-ee0fa-d-under-operations-platform\error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\o2-step-history-deploy-smoke-green\smoke-business-deploy-depl-ee0fa-d-under-operations-platform\trace.zip
+    Usage:
+
+        npx playwright show-trace ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\o2-step-history-deploy-smoke-green\smoke-business-deploy-depl-ee0fa-d-under-operations-platform\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  5) tests\smoke\business\deploy\deploy-pages.spec.ts:112:3 › Deploy business module smoke › deploy task detail action opens a modal without leaving the list page 
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator: locator('.search-toolbar input').first()
+    Expected: visible
+    Timeout: 10000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toBeVisible" locator('.search-toolbar input').first() with timeout 10000ms
+      - waiting for locator('.search-toolbar input').first()
+
+
+      183 |       await expect(page).toHaveURL(/\/business\/deploy\/task$/);
+      184 |       const taskKeywordInput = page.locator('.search-toolbar input').first();
+    > 185 |       await expect(taskKeywordInput).toBeVisible();
+          |                                      ^
+      186 |       await taskKeywordInput.fill(token);
+      187 |
+      188 |       const row = page.getByRole('row').filter({ hasText: `${token}-task` }).first();
+        at D:\workspace\go\pantheon-platform\pantheon-ops\frontend\tests\smoke\business\deploy\deploy-pages.spec.ts:185:38
+
+    Error Context: ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\o2-step-history-deploy-smoke-green\smoke-business-deploy-depl-d6a4b-thout-leaving-the-list-page\error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\o2-step-history-deploy-smoke-green\smoke-business-deploy-depl-d6a4b-thout-leaving-the-list-page\trace.zip
+    Usage:
+
+        npx playwright show-trace ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\o2-step-history-deploy-smoke-green\smoke-business-deploy-depl-d6a4b-thout-leaving-the-list-page\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  6) tests\smoke\business\deploy\deploy-pages.spec.ts:207:3 › Deploy business module smoke › deploy package detail action opens a modal without leaving the list page 
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator: getByRole('row').filter({ hasText: 'deploy-package-modal-1794107352952' }).first()
+    Expected: visible
+    Timeout: 10000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toBeVisible" getByRole('row').filter({ hasText: 'deploy-package-modal-1794107352952' }).first() with timeout 10000ms
+      - waiting for getByRole('row').filter({ hasText: 'deploy-package-modal-1794107352952' }).first()
+
+
+      230 |       await expect(page).toHaveURL(/\/business\/deploy\/package$/);
+      231 |       const row = page.getByRole('row').filter({ hasText: token }).first();
+    > 232 |       await expect(row).toBeVisible();
+          |                         ^
+      233 |       await row.getByRole('button', { name: '详情' }).click();
+      234 |
+      235 |       const modal = page.locator('.arco-modal:visible').last();
+        at D:\workspace\go\pantheon-platform\pantheon-ops\frontend\tests\smoke\business\deploy\deploy-pages.spec.ts:232:25
+
+    Error Context: ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\o2-step-history-deploy-smoke-green\smoke-business-deploy-depl-3eed5-thout-leaving-the-list-page\error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\o2-step-history-deploy-smoke-green\smoke-business-deploy-depl-3eed5-thout-leaving-the-list-page\trace.zip
+    Usage:
+
+        npx playwright show-trace ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\o2-step-history-deploy-smoke-green\smoke-business-deploy-depl-3eed5-thout-leaving-the-list-page\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  7) tests\smoke\business\deploy\deploy-pages.spec.ts:247:3 › Deploy business module smoke › deploy template detail action opens a modal without leaving the list page 
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator: locator('.search-toolbar input').first()
+    Expected: visible
+    Timeout: 10000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toBeVisible" locator('.search-toolbar input').first() with timeout 10000ms
+      - waiting for locator('.search-toolbar input').first()
+
+
+      306 |       await expect(page).toHaveURL(/\/business\/deploy\/template$/);
+      307 |       const templateKeywordInput = page.locator('.search-toolbar input').first();
+    > 308 |       await expect(templateKeywordInput).toBeVisible();
+          |                                          ^
+      309 |       await templateKeywordInput.fill(token);
+      310 |
+      311 |       const row = page.getByRole('row').filter({ hasText: token }).first();
+        at D:\workspace\go\pantheon-platform\pantheon-ops\frontend\tests\smoke\business\deploy\deploy-pages.spec.ts:308:42
+
+    Error Context: ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\o2-step-history-deploy-smoke-green\smoke-business-deploy-depl-70818-thout-leaving-the-list-page\error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\o2-step-history-deploy-smoke-green\smoke-business-deploy-depl-70818-thout-leaving-the-list-page\trace.zip
+    Usage:
+
+        npx playwright show-trace ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\o2-step-history-deploy-smoke-green\smoke-business-deploy-depl-70818-thout-leaving-the-list-page\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  8) tests\smoke\business\deploy\deploy-pages.spec.ts:329:3 › Deploy business module smoke › deploy detail page loads with summary and host table 
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator: locator('.page-container').filter({ has: locator('.system-page-hero') })
+    Expected: visible
+    Timeout: 10000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toBeVisible" locator('.page-container').filter({ has: locator('.system-page-hero') }) with timeout 10000ms
+      - waiting for locator('.page-container').filter({ has: locator('.system-page-hero') })
+
+
+      386 |     try {
+      387 |       await page.goto(`/business/deploy/task/${task.id}`, { waitUntil: 'networkidle' });
+    > 388 |       await expect(page.locator('.page-container').filter({ has: page.locator('.system-page-hero') })).toBeVisible();
+          |                                                                                                        ^
+      389 |       await expect(page.locator('.system-page-hero')).toBeVisible();
+      390 |       await expect(page.locator('.system-list__table-card')).toBeVisible();
+      391 |       await expect(page.locator('.page-header')).toBeVisible();
+        at D:\workspace\go\pantheon-platform\pantheon-ops\frontend\tests\smoke\business\deploy\deploy-pages.spec.ts:388:104
+
+    Error Context: ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\o2-step-history-deploy-smoke-green\smoke-business-deploy-depl-51def-with-summary-and-host-table\error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\o2-step-history-deploy-smoke-green\smoke-business-deploy-depl-51def-with-summary-and-host-table\trace.zip
+    Usage:
+
+        npx playwright show-trace ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\o2-step-history-deploy-smoke-green\smoke-business-deploy-depl-51def-with-summary-and-host-table\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  9) tests\smoke\business\deploy\deploy-pages.spec.ts:404:3 › Deploy business module smoke › deploy detail requires a reason when marking host failure 
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator: getByRole('button', { name: '标记失败' }).first()
+    Expected: visible
+    Timeout: 10000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toBeVisible" getByRole('button', { name: '标记失败' }).first() with timeout 10000ms
+      - waiting for getByRole('button', { name: '标记失败' }).first()
+
+
+      466 |
+      467 |       await page.goto(`/business/deploy/task/${task.id}`, { waitUntil: 'domcontentloaded' });
+    > 468 |       await expect(page.getByRole('button', { name: '标记失败' }).first()).toBeVisible();
+          |                                                                        ^
+      469 |       await page.getByRole('button', { name: '标记失败' }).first().click();
+      470 |
+      471 |       const modal = page.locator('.arco-modal:visible').last();
+        at D:\workspace\go\pantheon-platform\pantheon-ops\frontend\tests\smoke\business\deploy\deploy-pages.spec.ts:468:72
+
+    Error Context: ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\o2-step-history-deploy-smoke-green\smoke-business-deploy-depl-f5f1e-n-when-marking-host-failure\error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\o2-step-history-deploy-smoke-green\smoke-business-deploy-depl-f5f1e-n-when-marking-host-failure\trace.zip
+    Usage:
+
+        npx playwright show-trace ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\o2-step-history-deploy-smoke-green\smoke-business-deploy-depl-f5f1e-n-when-marking-host-failure\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  10) tests\smoke\business\deploy\deploy-pages.spec.ts:488:3 › Deploy business module smoke › deploy template supports script steps and task params render in detail 
+
+    Test timeout of 30000ms exceeded.
+
+    Error: locator.fill: Test timeout of 30000ms exceeded.
+    Call log:
+      - waiting for locator('.search-toolbar input').first()
+
+
+      591 |     try {
+      592 |       await page.goto('/business/deploy/template', { waitUntil: 'networkidle' });
+    > 593 |       await page.locator('.search-toolbar input').first().fill(token);
+          |                                                           ^
+      594 |       await expect(page.getByText(token, { exact: true }).first()).toBeVisible();
+      595 |       await page.screenshot({ path: testInfo.outputPath('deploy-script-template-list.png'), fullPage: true });
+      596 |
+        at D:\workspace\go\pantheon-platform\pantheon-ops\frontend\tests\smoke\business\deploy\deploy-pages.spec.ts:593:59
+
+    Error Context: ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\o2-step-history-deploy-smoke-green\smoke-business-deploy-depl-ee9c8-ask-params-render-in-detail\error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\o2-step-history-deploy-smoke-green\smoke-business-deploy-depl-ee9c8-ask-params-render-in-detail\trace.zip
+    Usage:
+
+        npx playwright show-trace ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\o2-step-history-deploy-smoke-green\smoke-business-deploy-depl-ee9c8-ask-params-render-in-detail\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  11) tests\smoke\business\deploy\deploy-pages.spec.ts:610:3 › Deploy business module smoke › deploy detail edit action routes back to list and opens edit modal 
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator: getByText('任务级操作', { exact: true })
+    Expected: visible
+    Timeout: 10000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toBeVisible" getByText('任务级操作', { exact: true }) with timeout 10000ms
+      - waiting for getByText('任务级操作', { exact: true })
+
+
+      669 |     try {
+      670 |       await page.goto(`/business/deploy/task/${task.id}`, { waitUntil: 'networkidle' });
+    > 671 |       await expect(page.getByText('任务级操作', { exact: true })).toBeVisible();
+          |                                                              ^
+      672 |       await page.getByRole('button', { name: '编辑' }).click();
+      673 |
+      674 |       await expect(page).toHaveURL(new RegExp(`/business/deploy/task\\?editId=${task.id}$`));
+        at D:\workspace\go\pantheon-platform\pantheon-ops\frontend\tests\smoke\business\deploy\deploy-pages.spec.ts:671:62
+
+    Error Context: ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\o2-step-history-deploy-smoke-green\smoke-business-deploy-depl-bff2f-o-list-and-opens-edit-modal\error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\o2-step-history-deploy-smoke-green\smoke-business-deploy-depl-bff2f-o-list-and-opens-edit-modal\trace.zip
+    Usage:
+
+        npx playwright show-trace ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\o2-step-history-deploy-smoke-green\smoke-business-deploy-depl-bff2f-o-list-and-opens-edit-modal\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  12) tests\smoke\business\deploy\deploy-pages.spec.ts:708:3 › Deploy business module smoke › targeted smoke closes cmdb, bizscope, deploy with uploaded source package and visible task trace 
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator: locator('.page-container').filter({ has: locator('.system-page-hero') })
+    Expected: visible
+    Timeout: 10000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toBeVisible" locator('.page-container').filter({ has: locator('.system-page-hero') }) with timeout 10000ms
+      - waiting for locator('.page-container').filter({ has: locator('.system-page-hero') })
+
+
+      836 |
+      837 |     await page.goto(`/business/deploy/task/${task.id}`, { waitUntil: 'domcontentloaded' });
+    > 838 |     await expect(page.locator('.page-container').filter({ has: page.locator('.system-page-hero') })).toBeVisible();
+          |                                                                                                      ^
+      839 |     await expect(page.locator('.system-page-hero')).toContainText('目标主机');
+      840 |     await expect(page.getByRole('cell', { name: '业务域' })).toBeVisible();
+      841 |     await expect(page.getByText('installRoot', { exact: true })).toBeVisible();
+        at D:\workspace\go\pantheon-platform\pantheon-ops\frontend\tests\smoke\business\deploy\deploy-pages.spec.ts:838:102
+
+    Error Context: ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\o2-step-history-deploy-smoke-green\smoke-business-deploy-depl-43b2c-kage-and-visible-task-trace\error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\o2-step-history-deploy-smoke-green\smoke-business-deploy-depl-43b2c-kage-and-visible-task-trace\trace.zip
+    Usage:
+
+        npx playwright show-trace ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\o2-step-history-deploy-smoke-green\smoke-business-deploy-depl-43b2c-kage-and-visible-task-trace\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  13) tests\smoke\business\deploy\deploy-pages.spec.ts:860:3 › Deploy business module smoke › deploy pages stay within a phone viewport 
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator: locator('.governance-summary-bar')
+    Expected: visible
+    Timeout: 10000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toBeVisible" locator('.governance-summary-bar') with timeout 10000ms
+      - waiting for locator('.governance-summary-bar')
+
+
+      862 |
+      863 |     await page.goto('/business/deploy/package', { waitUntil: 'networkidle' });
+    > 864 |     await expect(page.locator('.governance-summary-bar')).toBeVisible();
+          |                                                           ^
+      865 |     await expect
+      866 |       .poll(async () =>
+      867 |         page.evaluate(() => document.body.scrollWidth <= globalThis.innerWidth + 1),
+        at D:\workspace\go\pantheon-platform\pantheon-ops\frontend\tests\smoke\business\deploy\deploy-pages.spec.ts:864:59
+
+    Error Context: ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\o2-step-history-deploy-smoke-green\smoke-business-deploy-depl-4707c-tay-within-a-phone-viewport\error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\o2-step-history-deploy-smoke-green\smoke-business-deploy-depl-4707c-tay-within-a-phone-viewport\trace.zip
+    Usage:
+
+        npx playwright show-trace ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\o2-step-history-deploy-smoke-green\smoke-business-deploy-depl-4707c-tay-within-a-phone-viewport\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  14) tests\smoke\business\deploy\deploy-selection-preview.spec.ts:12:2 › selection and preview confirm/conflict/refresh (light) 
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator: locator('.deploy-target-selector').getByText('selection-preview-light-1794107487215 · 10.249.22.91', { exact: true }).first()
+    Expected: visible
+    Timeout: 10000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toBeVisible" locator('.deploy-target-selector').getByText('selection-preview-light-1794107487215 · 10.249.22.91', { exact: true }).first() with timeout 10000ms
+      - waiting for locator('.deploy-target-selector').getByText('selection-preview-light-1794107487215 · 10.249.22.91', { exact: true }).first()
+
+
+      33 |    await page.goto(`/business/deploy/task?editId=${taskId}`);
+      34 |    const selector = page.locator('.deploy-target-selector');
+    > 35 |    await expect(selector.getByText(`${token} · ${ip}`, { exact: true }).first()).toBeVisible();
+         |                                                                                  ^
+      36 |    await selector.getByLabel('每行输入一个主机 IP 或 ID').fill('not-a-host');
+      37 |    await selector.getByRole('button', { name: '解析并核对目标' }).click();
+      38 |    await expect(selector.getByText('目标无效或状态不允许，请调整选择后重新解析')).toBeVisible();
+        at D:\workspace\go\pantheon-platform\pantheon-ops\frontend\tests\smoke\business\deploy\deploy-selection-preview.spec.ts:35:82
+
+    Error Context: ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\o2-step-history-deploy-smoke-green\smoke-business-deploy-depl-9c782-irm-conflict-refresh-light-\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\o2-step-history-deploy-smoke-green\smoke-business-deploy-depl-9c782-irm-conflict-refresh-light-\trace.zip
+    Usage:
+
+        npx playwright show-trace ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\o2-step-history-deploy-smoke-green\smoke-business-deploy-depl-9c782-irm-conflict-refresh-light-\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  15) tests\smoke\business\deploy\deploy-selection-preview.spec.ts:12:2 › selection and preview confirm/conflict/refresh (dark) 
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator: locator('.deploy-target-selector').getByText('selection-preview-dark-1794107500132 · 10.249.154.91', { exact: true }).first()
+    Expected: visible
+    Timeout: 10000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toBeVisible" locator('.deploy-target-selector').getByText('selection-preview-dark-1794107500132 · 10.249.154.91', { exact: true }).first() with timeout 10000ms
+      - waiting for locator('.deploy-target-selector').getByText('selection-preview-dark-1794107500132 · 10.249.154.91', { exact: true }).first()
+
+
+      33 |    await page.goto(`/business/deploy/task?editId=${taskId}`);
+      34 |    const selector = page.locator('.deploy-target-selector');
+    > 35 |    await expect(selector.getByText(`${token} · ${ip}`, { exact: true }).first()).toBeVisible();
+         |                                                                                  ^
+      36 |    await selector.getByLabel('每行输入一个主机 IP 或 ID').fill('not-a-host');
+      37 |    await selector.getByRole('button', { name: '解析并核对目标' }).click();
+      38 |    await expect(selector.getByText('目标无效或状态不允许，请调整选择后重新解析')).toBeVisible();
+        at D:\workspace\go\pantheon-platform\pantheon-ops\frontend\tests\smoke\business\deploy\deploy-selection-preview.spec.ts:35:82
+
+    Error Context: ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\o2-step-history-deploy-smoke-green\smoke-business-deploy-depl-226da-firm-conflict-refresh-dark-\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\o2-step-history-deploy-smoke-green\smoke-business-deploy-depl-226da-firm-conflict-refresh-dark-\trace.zip
+    Usage:
+
+        npx playwright show-trace ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\o2-step-history-deploy-smoke-green\smoke-business-deploy-depl-226da-firm-conflict-refresh-dark-\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  16) tests\smoke\business\deploy\deploy-workbench.spec.ts:16:3 › deployment workbench sources, logs, keyboard and mobile (light) 
+
+    Error: expect(locator).toHaveCount(expected) failed
+
+    Locator:  locator('.deploy-execution-workbench').locator('.task-log-viewer__row')
+    Expected: 500
+    Received: 0
+    Timeout:  10000ms
+
+    Call log:
+      - Expect "toHaveCount" locator('.deploy-execution-workbench').locator('.task-log-viewer__row') with timeout 10000ms
+      - waiting for locator('.deploy-execution-workbench').locator('.task-log-viewer__row')
+        23 × locator resolved to 0 elements
+           - unexpected value "0"
+
+
+      68 |       await page.goto(`/business/deploy/task/${taskId}`);
+      69 |       const workbench = page.locator('.deploy-execution-workbench');
+    > 70 |       await expect(workbench.locator('.task-log-viewer__row')).toHaveCount(500);
+         |                                                                ^
+      71 |       await expect(page.locator('html')).toHaveAttribute('data-color-mode', mode);
+      72 |       await expect(workbench.getByText('fixture-first-error', { exact: true })).toHaveCount(0);
+      73 |       await workbench.locator('.arco-select').nth(1).click();
+        at D:\workspace\go\pantheon-platform\pantheon-ops\frontend\tests\smoke\business\deploy\deploy-workbench.spec.ts:70:64
+
+    Error Context: ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\o2-step-history-deploy-smoke-green\smoke-business-deploy-depl-58206--keyboard-and-mobile-light-\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\o2-step-history-deploy-smoke-green\smoke-business-deploy-depl-58206--keyboard-and-mobile-light-\trace.zip
+    Usage:
+
+        npx playwright show-trace ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\o2-step-history-deploy-smoke-green\smoke-business-deploy-depl-58206--keyboard-and-mobile-light-\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  17) tests\smoke\business\deploy\deploy-workbench.spec.ts:16:3 › deployment workbench sources, logs, keyboard and mobile (dark) 
+
+    Error: expect(locator).toHaveCount(expected) failed
+
+    Locator:  locator('.deploy-execution-workbench').locator('.task-log-viewer__row')
+    Expected: 500
+    Received: 0
+    Timeout:  10000ms
+
+    Call log:
+      - Expect "toHaveCount" locator('.deploy-execution-workbench').locator('.task-log-viewer__row') with timeout 10000ms
+      - waiting for locator('.deploy-execution-workbench').locator('.task-log-viewer__row')
+        23 × locator resolved to 0 elements
+           - unexpected value "0"
+
+
+      68 |       await page.goto(`/business/deploy/task/${taskId}`);
+      69 |       const workbench = page.locator('.deploy-execution-workbench');
+    > 70 |       await expect(workbench.locator('.task-log-viewer__row')).toHaveCount(500);
+         |                                                                ^
+      71 |       await expect(page.locator('html')).toHaveAttribute('data-color-mode', mode);
+      72 |       await expect(workbench.getByText('fixture-first-error', { exact: true })).toHaveCount(0);
+      73 |       await workbench.locator('.arco-select').nth(1).click();
+        at D:\workspace\go\pantheon-platform\pantheon-ops\frontend\tests\smoke\business\deploy\deploy-workbench.spec.ts:70:64
+
+    Error Context: ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\o2-step-history-deploy-smoke-green\smoke-business-deploy-depl-d16f5-s-keyboard-and-mobile-dark-\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\o2-step-history-deploy-smoke-green\smoke-business-deploy-depl-d16f5-s-keyboard-and-mobile-dark-\trace.zip
+    Usage:
+
+        npx playwright show-trace ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\o2-step-history-deploy-smoke-green\smoke-business-deploy-depl-d16f5-s-keyboard-and-mobile-dark-\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  17 failed
+    tests\smoke\business\deploy\deploy-command.spec.ts:10:2 › viewed task command conflict refreshes without replay (light) 
+    tests\smoke\business\deploy\deploy-command.spec.ts:10:2 › viewed task command conflict refreshes without replay (dark) 
+    tests\smoke\business\deploy\deploy-command.spec.ts:59:1 › batch cancel retains failed selection and reports partial failure 
+    tests\smoke\business\deploy\deploy-pages.spec.ts:69:3 › Deploy business module smoke › deploy pages load under operations platform 
+    tests\smoke\business\deploy\deploy-pages.spec.ts:112:3 › Deploy business module smoke › deploy task detail action opens a modal without leaving the list page 
+    tests\smoke\business\deploy\deploy-pages.spec.ts:207:3 › Deploy business module smoke › deploy package detail action opens a modal without leaving the list page 
+    tests\smoke\business\deploy\deploy-pages.spec.ts:247:3 › Deploy business module smoke › deploy template detail action opens a modal without leaving the list page 
+    tests\smoke\business\deploy\deploy-pages.spec.ts:329:3 › Deploy business module smoke › deploy detail page loads with summary and host table 
+    tests\smoke\business\deploy\deploy-pages.spec.ts:404:3 › Deploy business module smoke › deploy detail requires a reason when marking host failure 
+    tests\smoke\business\deploy\deploy-pages.spec.ts:488:3 › Deploy business module smoke › deploy template supports script steps and task params render in detail 
+    tests\smoke\business\deploy\deploy-pages.spec.ts:610:3 › Deploy business module smoke › deploy detail edit action routes back to list and opens edit modal 
+    tests\smoke\business\deploy\deploy-pages.spec.ts:708:3 › Deploy business module smoke › targeted smoke closes cmdb, bizscope, deploy with uploaded source package and visible task trace 
+    tests\smoke\business\deploy\deploy-pages.spec.ts:860:3 › Deploy business module smoke › deploy pages stay within a phone viewport 
+    tests\smoke\business\deploy\deploy-selection-preview.spec.ts:12:2 › selection and preview confirm/conflict/refresh (light) 
+    tests\smoke\business\deploy\deploy-selection-preview.spec.ts:12:2 › selection and preview confirm/conflict/refresh (dark) 
+    tests\smoke\business\deploy\deploy-workbench.spec.ts:16:3 › deployment workbench sources, logs, keyboard and mobile (light) 
+    tests\smoke\business\deploy\deploy-workbench.spec.ts:16:3 › deployment workbench sources, logs, keyboard and mobile (dark) 
+  1 passed (4.6m)
+[generated-modules] cleanup complete
+{
+  "modules": 0,
+  "schemas": 1,
+  "registries": 4,
+  "i18n": 5
+}

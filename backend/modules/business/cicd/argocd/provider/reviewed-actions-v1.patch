@@ -1,0 +1,3646 @@
+diff --git a/assets/swagger.json b/assets/swagger.json
+index 8b0fddb..b57da93 100644
+--- a/assets/swagger.json
++++ b/assets/swagger.json
+@@ -4885,6 +4885,125 @@
+           }
+         }
+       }
++    },
++    "/api/v1/applications/{name}/reviewed-actions/capabilities": {
++      "get": {
++        "summary": "These methods are intentionally absent on an unmodified Argo CD server.",
++        "operationId": "ApplicationService_ReviewedActionsCapabilities",
++        "responses": {
++          "200": {
++            "description": "A successful response.",
++            "schema": {
++              "$ref": "#/definitions/applicationReviewedActionsCapabilitiesResponse"
++            }
++          },
++          "default": {
++            "description": "An unexpected error response.",
++            "schema": {
++              "$ref": "#/definitions/runtimeError"
++            }
++          }
++        },
++        "parameters": [
++          {
++            "name": "name",
++            "in": "path",
++            "required": true,
++            "type": "string"
++          },
++          {
++            "name": "appNamespace",
++            "in": "query",
++            "required": false,
++            "type": "string"
++          },
++          {
++            "name": "project",
++            "in": "query",
++            "required": false,
++            "type": "string"
++          }
++        ],
++        "tags": [
++          "ApplicationService"
++        ]
++      }
++    },
++    "/api/v1/applications/{name}/reviewed-actions/rollback": {
++      "post": {
++        "operationId": "ApplicationService_ReviewedRollback",
++        "responses": {
++          "200": {
++            "description": "A successful response.",
++            "schema": {
++              "$ref": "#/definitions/v1alpha1Application"
++            }
++          },
++          "default": {
++            "description": "An unexpected error response.",
++            "schema": {
++              "$ref": "#/definitions/runtimeError"
++            }
++          }
++        },
++        "parameters": [
++          {
++            "name": "name",
++            "in": "path",
++            "required": true,
++            "type": "string"
++          },
++          {
++            "name": "body",
++            "in": "body",
++            "required": true,
++            "schema": {
++              "$ref": "#/definitions/applicationApplicationRollbackRequest"
++            }
++          }
++        ],
++        "tags": [
++          "ApplicationService"
++        ]
++      }
++    },
++    "/api/v1/applications/{name}/reviewed-actions/sync": {
++      "post": {
++        "operationId": "ApplicationService_ReviewedSync",
++        "responses": {
++          "200": {
++            "description": "A successful response.",
++            "schema": {
++              "$ref": "#/definitions/v1alpha1Application"
++            }
++          },
++          "default": {
++            "description": "An unexpected error response.",
++            "schema": {
++              "$ref": "#/definitions/runtimeError"
++            }
++          }
++        },
++        "parameters": [
++          {
++            "name": "name",
++            "in": "path",
++            "required": true,
++            "type": "string"
++          },
++          {
++            "name": "body",
++            "in": "body",
++            "required": true,
++            "schema": {
++              "$ref": "#/definitions/applicationApplicationSyncRequest"
++            }
++          }
++        ],
++        "tags": [
++          "ApplicationService"
++        ]
++      }
+     }
+   },
+   "definitions": {
+@@ -5053,24 +5172,27 @@
+     "applicationApplicationRollbackRequest": {
+       "type": "object",
+       "properties": {
+-        "appNamespace": {
++        "name": {
+           "type": "string"
+         },
+-        "dryRun": {
+-          "type": "boolean"
+-        },
+         "id": {
+           "type": "integer",
+           "format": "int64"
+         },
+-        "name": {
++        "dryRun": {
++          "type": "boolean"
++        },
++        "prune": {
++          "type": "boolean"
++        },
++        "appNamespace": {
+           "type": "string"
+         },
+         "project": {
+           "type": "string"
+         },
+-        "prune": {
+-          "type": "boolean"
++        "reviewed": {
++          "$ref": "#/definitions/applicationReviewedActionPreconditions"
+         }
+       }
+     },
+@@ -5090,18 +5212,26 @@
+     },
+     "applicationApplicationSyncRequest": {
+       "type": "object",
+-      "title": "ApplicationSyncRequest is a request to apply the config state to live state",
+       "properties": {
+-        "appNamespace": {
++        "name": {
++          "type": "string"
++        },
++        "revision": {
+           "type": "string"
+         },
+         "dryRun": {
+           "type": "boolean"
+         },
+-        "infos": {
++        "prune": {
++          "type": "boolean"
++        },
++        "strategy": {
++          "$ref": "#/definitions/v1alpha1SyncStrategy"
++        },
++        "resources": {
+           "type": "array",
+           "items": {
+-            "$ref": "#/definitions/v1alpha1Info"
++            "$ref": "#/definitions/v1alpha1SyncOperationResource"
+           }
+         },
+         "manifests": {
+@@ -5110,32 +5240,23 @@
+             "type": "string"
+           }
+         },
+-        "name": {
+-          "type": "string"
+-        },
+-        "project": {
+-          "type": "string"
+-        },
+-        "prune": {
+-          "type": "boolean"
+-        },
+-        "resources": {
++        "infos": {
+           "type": "array",
+           "items": {
+-            "$ref": "#/definitions/v1alpha1SyncOperationResource"
++            "$ref": "#/definitions/v1alpha1Info"
+           }
+         },
+         "retryStrategy": {
+           "$ref": "#/definitions/v1alpha1RetryStrategy"
+         },
+-        "revision": {
++        "syncOptions": {
++          "$ref": "#/definitions/applicationSyncOptions"
++        },
++        "appNamespace": {
+           "type": "string"
+         },
+-        "revisions": {
+-          "type": "array",
+-          "items": {
+-            "type": "string"
+-          }
++        "project": {
++          "type": "string"
+         },
+         "sourcePositions": {
+           "type": "array",
+@@ -5144,13 +5265,17 @@
+             "format": "int64"
+           }
+         },
+-        "strategy": {
+-          "$ref": "#/definitions/v1alpha1SyncStrategy"
++        "revisions": {
++          "type": "array",
++          "items": {
++            "type": "string"
++          }
+         },
+-        "syncOptions": {
+-          "$ref": "#/definitions/applicationSyncOptions"
++        "reviewed": {
++          "$ref": "#/definitions/applicationReviewedActionPreconditions"
+         }
+-      }
++      },
++      "title": "ApplicationSyncRequest is a request to apply the config state to live state"
+     },
+     "applicationApplicationSyncWindow": {
+       "type": "object",
+@@ -10776,6 +10901,47 @@
+           "type": "string"
+         }
+       }
++    },
++    "applicationReviewedActionPreconditions": {
++      "type": "object",
++      "properties": {
++        "expectedUID": {
++          "type": "string"
++        },
++        "expectedResourceVersion": {
++          "type": "string"
++        },
++        "resolvedRevision": {
++          "type": "string"
++        },
++        "actionMarker": {
++          "type": "string"
++        }
++      },
++      "description": "Preconditions are enforced only by the distinct ReviewedSync/ReviewedRollback RPCs."
++    },
++    "applicationReviewedActionsCapabilitiesResponse": {
++      "type": "object",
++      "properties": {
++        "protocol": {
++          "type": "string"
++        },
++        "revisionScope": {
++          "type": "string"
++        },
++        "markerName": {
++          "type": "string"
++        },
++        "conditionalUpdate": {
++          "type": "boolean"
++        },
++        "nativePolicy": {
++          "type": "boolean"
++        },
++        "correlatedRollback": {
++          "type": "boolean"
++        }
++      }
+     }
+   }
+ }
+diff --git a/pkg/apiclient/application/application.pb.go b/pkg/apiclient/application/application.pb.go
+index 0f59121..a27e6b9 100644
+--- a/pkg/apiclient/application/application.pb.go
++++ b/pkg/apiclient/application/application.pb.go
+@@ -985,6 +985,165 @@ func (m *SyncOptions) GetItems() []string {
+ 	return nil
+ }
+ 
++// Preconditions are enforced only by the distinct ReviewedSync/ReviewedRollback RPCs.
++type ReviewedActionPreconditions struct {
++	ExpectedUID             *string  `protobuf:"bytes,1,req,name=expectedUID" json:"expectedUID,omitempty"`
++	ExpectedResourceVersion *string  `protobuf:"bytes,2,req,name=expectedResourceVersion" json:"expectedResourceVersion,omitempty"`
++	ResolvedRevision        *string  `protobuf:"bytes,3,req,name=resolvedRevision" json:"resolvedRevision,omitempty"`
++	ActionMarker            *string  `protobuf:"bytes,4,req,name=actionMarker" json:"actionMarker,omitempty"`
++	XXX_NoUnkeyedLiteral    struct{} `json:"-"`
++	XXX_unrecognized        []byte   `json:"-"`
++	XXX_sizecache           int32    `json:"-"`
++}
++
++func (m *ReviewedActionPreconditions) Reset()         { *m = ReviewedActionPreconditions{} }
++func (m *ReviewedActionPreconditions) String() string { return proto.CompactTextString(m) }
++func (*ReviewedActionPreconditions) ProtoMessage()    {}
++func (*ReviewedActionPreconditions) Descriptor() ([]byte, []int) {
++	return fileDescriptor_df6e82b174b5eaec, []int{13}
++}
++func (m *ReviewedActionPreconditions) XXX_Unmarshal(b []byte) error {
++	return m.Unmarshal(b)
++}
++func (m *ReviewedActionPreconditions) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
++	if deterministic {
++		return xxx_messageInfo_ReviewedActionPreconditions.Marshal(b, m, deterministic)
++	} else {
++		b = b[:cap(b)]
++		n, err := m.MarshalToSizedBuffer(b)
++		if err != nil {
++			return nil, err
++		}
++		return b[:n], nil
++	}
++}
++func (m *ReviewedActionPreconditions) XXX_Merge(src proto.Message) {
++	xxx_messageInfo_ReviewedActionPreconditions.Merge(m, src)
++}
++func (m *ReviewedActionPreconditions) XXX_Size() int {
++	return m.Size()
++}
++func (m *ReviewedActionPreconditions) XXX_DiscardUnknown() {
++	xxx_messageInfo_ReviewedActionPreconditions.DiscardUnknown(m)
++}
++
++var xxx_messageInfo_ReviewedActionPreconditions proto.InternalMessageInfo
++
++func (m *ReviewedActionPreconditions) GetExpectedUID() string {
++	if m != nil && m.ExpectedUID != nil {
++		return *m.ExpectedUID
++	}
++	return ""
++}
++
++func (m *ReviewedActionPreconditions) GetExpectedResourceVersion() string {
++	if m != nil && m.ExpectedResourceVersion != nil {
++		return *m.ExpectedResourceVersion
++	}
++	return ""
++}
++
++func (m *ReviewedActionPreconditions) GetResolvedRevision() string {
++	if m != nil && m.ResolvedRevision != nil {
++		return *m.ResolvedRevision
++	}
++	return ""
++}
++
++func (m *ReviewedActionPreconditions) GetActionMarker() string {
++	if m != nil && m.ActionMarker != nil {
++		return *m.ActionMarker
++	}
++	return ""
++}
++
++type ReviewedActionsCapabilitiesResponse struct {
++	Protocol             *string  `protobuf:"bytes,1,req,name=protocol" json:"protocol,omitempty"`
++	RevisionScope        *string  `protobuf:"bytes,2,req,name=revisionScope" json:"revisionScope,omitempty"`
++	MarkerName           *string  `protobuf:"bytes,3,req,name=markerName" json:"markerName,omitempty"`
++	ConditionalUpdate    *bool    `protobuf:"varint,4,req,name=conditionalUpdate" json:"conditionalUpdate,omitempty"`
++	NativePolicy         *bool    `protobuf:"varint,5,req,name=nativePolicy" json:"nativePolicy,omitempty"`
++	CorrelatedRollback   *bool    `protobuf:"varint,6,req,name=correlatedRollback" json:"correlatedRollback,omitempty"`
++	XXX_NoUnkeyedLiteral struct{} `json:"-"`
++	XXX_unrecognized     []byte   `json:"-"`
++	XXX_sizecache        int32    `json:"-"`
++}
++
++func (m *ReviewedActionsCapabilitiesResponse) Reset()         { *m = ReviewedActionsCapabilitiesResponse{} }
++func (m *ReviewedActionsCapabilitiesResponse) String() string { return proto.CompactTextString(m) }
++func (*ReviewedActionsCapabilitiesResponse) ProtoMessage()    {}
++func (*ReviewedActionsCapabilitiesResponse) Descriptor() ([]byte, []int) {
++	return fileDescriptor_df6e82b174b5eaec, []int{14}
++}
++func (m *ReviewedActionsCapabilitiesResponse) XXX_Unmarshal(b []byte) error {
++	return m.Unmarshal(b)
++}
++func (m *ReviewedActionsCapabilitiesResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
++	if deterministic {
++		return xxx_messageInfo_ReviewedActionsCapabilitiesResponse.Marshal(b, m, deterministic)
++	} else {
++		b = b[:cap(b)]
++		n, err := m.MarshalToSizedBuffer(b)
++		if err != nil {
++			return nil, err
++		}
++		return b[:n], nil
++	}
++}
++func (m *ReviewedActionsCapabilitiesResponse) XXX_Merge(src proto.Message) {
++	xxx_messageInfo_ReviewedActionsCapabilitiesResponse.Merge(m, src)
++}
++func (m *ReviewedActionsCapabilitiesResponse) XXX_Size() int {
++	return m.Size()
++}
++func (m *ReviewedActionsCapabilitiesResponse) XXX_DiscardUnknown() {
++	xxx_messageInfo_ReviewedActionsCapabilitiesResponse.DiscardUnknown(m)
++}
++
++var xxx_messageInfo_ReviewedActionsCapabilitiesResponse proto.InternalMessageInfo
++
++func (m *ReviewedActionsCapabilitiesResponse) GetProtocol() string {
++	if m != nil && m.Protocol != nil {
++		return *m.Protocol
++	}
++	return ""
++}
++
++func (m *ReviewedActionsCapabilitiesResponse) GetRevisionScope() string {
++	if m != nil && m.RevisionScope != nil {
++		return *m.RevisionScope
++	}
++	return ""
++}
++
++func (m *ReviewedActionsCapabilitiesResponse) GetMarkerName() string {
++	if m != nil && m.MarkerName != nil {
++		return *m.MarkerName
++	}
++	return ""
++}
++
++func (m *ReviewedActionsCapabilitiesResponse) GetConditionalUpdate() bool {
++	if m != nil && m.ConditionalUpdate != nil {
++		return *m.ConditionalUpdate
++	}
++	return false
++}
++
++func (m *ReviewedActionsCapabilitiesResponse) GetNativePolicy() bool {
++	if m != nil && m.NativePolicy != nil {
++		return *m.NativePolicy
++	}
++	return false
++}
++
++func (m *ReviewedActionsCapabilitiesResponse) GetCorrelatedRollback() bool {
++	if m != nil && m.CorrelatedRollback != nil {
++		return *m.CorrelatedRollback
++	}
++	return false
++}
++
+ // ApplicationSyncRequest is a request to apply the config state to live state
+ type ApplicationSyncRequest struct {
+ 	Name                 *string                           `protobuf:"bytes,1,req,name=name" json:"name,omitempty"`
+@@ -1001,6 +1160,7 @@ type ApplicationSyncRequest struct {
+ 	Project              *string                           `protobuf:"bytes,13,opt,name=project" json:"project,omitempty"`
+ 	SourcePositions      []int64                           `protobuf:"varint,14,rep,name=sourcePositions" json:"sourcePositions,omitempty"`
+ 	Revisions            []string                          `protobuf:"bytes,15,rep,name=revisions" json:"revisions,omitempty"`
++	Reviewed             *ReviewedActionPreconditions      `protobuf:"bytes,16,opt,name=reviewed" json:"reviewed,omitempty"`
+ 	XXX_NoUnkeyedLiteral struct{}                          `json:"-"`
+ 	XXX_unrecognized     []byte                            `json:"-"`
+ 	XXX_sizecache        int32                             `json:"-"`
+@@ -1010,7 +1170,7 @@ func (m *ApplicationSyncRequest) Reset()         { *m = ApplicationSyncRequest{}
+ func (m *ApplicationSyncRequest) String() string { return proto.CompactTextString(m) }
+ func (*ApplicationSyncRequest) ProtoMessage()    {}
+ func (*ApplicationSyncRequest) Descriptor() ([]byte, []int) {
+-	return fileDescriptor_df6e82b174b5eaec, []int{13}
++	return fileDescriptor_df6e82b174b5eaec, []int{15}
+ }
+ func (m *ApplicationSyncRequest) XXX_Unmarshal(b []byte) error {
+ 	return m.Unmarshal(b)
+@@ -1137,6 +1297,13 @@ func (m *ApplicationSyncRequest) GetRevisions() []string {
+ 	return nil
+ }
+ 
++func (m *ApplicationSyncRequest) GetReviewed() *ReviewedActionPreconditions {
++	if m != nil {
++		return m.Reviewed
++	}
++	return nil
++}
++
+ // ApplicationUpdateSpecRequest is a request to update application spec
+ type ApplicationUpdateSpecRequest struct {
+ 	Name                 *string                   `protobuf:"bytes,1,req,name=name" json:"name,omitempty"`
+@@ -1153,7 +1320,7 @@ func (m *ApplicationUpdateSpecRequest) Reset()         { *m = ApplicationUpdateS
+ func (m *ApplicationUpdateSpecRequest) String() string { return proto.CompactTextString(m) }
+ func (*ApplicationUpdateSpecRequest) ProtoMessage()    {}
+ func (*ApplicationUpdateSpecRequest) Descriptor() ([]byte, []int) {
+-	return fileDescriptor_df6e82b174b5eaec, []int{14}
++	return fileDescriptor_df6e82b174b5eaec, []int{16}
+ }
+ func (m *ApplicationUpdateSpecRequest) XXX_Unmarshal(b []byte) error {
+ 	return m.Unmarshal(b)
+@@ -1233,7 +1400,7 @@ func (m *ApplicationPatchRequest) Reset()         { *m = ApplicationPatchRequest
+ func (m *ApplicationPatchRequest) String() string { return proto.CompactTextString(m) }
+ func (*ApplicationPatchRequest) ProtoMessage()    {}
+ func (*ApplicationPatchRequest) Descriptor() ([]byte, []int) {
+-	return fileDescriptor_df6e82b174b5eaec, []int{15}
++	return fileDescriptor_df6e82b174b5eaec, []int{17}
+ }
+ func (m *ApplicationPatchRequest) XXX_Unmarshal(b []byte) error {
+ 	return m.Unmarshal(b)
+@@ -1298,22 +1465,23 @@ func (m *ApplicationPatchRequest) GetProject() string {
+ }
+ 
+ type ApplicationRollbackRequest struct {
+-	Name                 *string  `protobuf:"bytes,1,req,name=name" json:"name,omitempty"`
+-	Id                   *int64   `protobuf:"varint,2,req,name=id" json:"id,omitempty"`
+-	DryRun               *bool    `protobuf:"varint,3,opt,name=dryRun" json:"dryRun,omitempty"`
+-	Prune                *bool    `protobuf:"varint,4,opt,name=prune" json:"prune,omitempty"`
+-	AppNamespace         *string  `protobuf:"bytes,6,opt,name=appNamespace" json:"appNamespace,omitempty"`
+-	Project              *string  `protobuf:"bytes,7,opt,name=project" json:"project,omitempty"`
+-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+-	XXX_unrecognized     []byte   `json:"-"`
+-	XXX_sizecache        int32    `json:"-"`
++	Name                 *string                      `protobuf:"bytes,1,req,name=name" json:"name,omitempty"`
++	Id                   *int64                       `protobuf:"varint,2,req,name=id" json:"id,omitempty"`
++	DryRun               *bool                        `protobuf:"varint,3,opt,name=dryRun" json:"dryRun,omitempty"`
++	Prune                *bool                        `protobuf:"varint,4,opt,name=prune" json:"prune,omitempty"`
++	AppNamespace         *string                      `protobuf:"bytes,6,opt,name=appNamespace" json:"appNamespace,omitempty"`
++	Project              *string                      `protobuf:"bytes,7,opt,name=project" json:"project,omitempty"`
++	Reviewed             *ReviewedActionPreconditions `protobuf:"bytes,8,opt,name=reviewed" json:"reviewed,omitempty"`
++	XXX_NoUnkeyedLiteral struct{}                     `json:"-"`
++	XXX_unrecognized     []byte                       `json:"-"`
++	XXX_sizecache        int32                        `json:"-"`
+ }
+ 
+ func (m *ApplicationRollbackRequest) Reset()         { *m = ApplicationRollbackRequest{} }
+ func (m *ApplicationRollbackRequest) String() string { return proto.CompactTextString(m) }
+ func (*ApplicationRollbackRequest) ProtoMessage()    {}
+ func (*ApplicationRollbackRequest) Descriptor() ([]byte, []int) {
+-	return fileDescriptor_df6e82b174b5eaec, []int{16}
++	return fileDescriptor_df6e82b174b5eaec, []int{18}
+ }
+ func (m *ApplicationRollbackRequest) XXX_Unmarshal(b []byte) error {
+ 	return m.Unmarshal(b)
+@@ -1384,6 +1552,13 @@ func (m *ApplicationRollbackRequest) GetProject() string {
+ 	return ""
+ }
+ 
++func (m *ApplicationRollbackRequest) GetReviewed() *ReviewedActionPreconditions {
++	if m != nil {
++		return m.Reviewed
++	}
++	return nil
++}
++
+ type ApplicationResourceRequest struct {
+ 	Name                 *string  `protobuf:"bytes,1,req,name=name" json:"name,omitempty"`
+ 	Namespace            *string  `protobuf:"bytes,2,opt,name=namespace" json:"namespace,omitempty"`
+@@ -1402,7 +1577,7 @@ func (m *ApplicationResourceRequest) Reset()         { *m = ApplicationResourceR
+ func (m *ApplicationResourceRequest) String() string { return proto.CompactTextString(m) }
+ func (*ApplicationResourceRequest) ProtoMessage()    {}
+ func (*ApplicationResourceRequest) Descriptor() ([]byte, []int) {
+-	return fileDescriptor_df6e82b174b5eaec, []int{17}
++	return fileDescriptor_df6e82b174b5eaec, []int{19}
+ }
+ func (m *ApplicationResourceRequest) XXX_Unmarshal(b []byte) error {
+ 	return m.Unmarshal(b)
+@@ -1507,7 +1682,7 @@ func (m *ApplicationResourcePatchRequest) Reset()         { *m = ApplicationReso
+ func (m *ApplicationResourcePatchRequest) String() string { return proto.CompactTextString(m) }
+ func (*ApplicationResourcePatchRequest) ProtoMessage()    {}
+ func (*ApplicationResourcePatchRequest) Descriptor() ([]byte, []int) {
+-	return fileDescriptor_df6e82b174b5eaec, []int{18}
++	return fileDescriptor_df6e82b174b5eaec, []int{20}
+ }
+ func (m *ApplicationResourcePatchRequest) XXX_Unmarshal(b []byte) error {
+ 	return m.Unmarshal(b)
+@@ -1626,7 +1801,7 @@ func (m *ApplicationResourceDeleteRequest) Reset()         { *m = ApplicationRes
+ func (m *ApplicationResourceDeleteRequest) String() string { return proto.CompactTextString(m) }
+ func (*ApplicationResourceDeleteRequest) ProtoMessage()    {}
+ func (*ApplicationResourceDeleteRequest) Descriptor() ([]byte, []int) {
+-	return fileDescriptor_df6e82b174b5eaec, []int{19}
++	return fileDescriptor_df6e82b174b5eaec, []int{21}
+ }
+ func (m *ApplicationResourceDeleteRequest) XXX_Unmarshal(b []byte) error {
+ 	return m.Unmarshal(b)
+@@ -1737,7 +1912,7 @@ func (m *ResourceActionParameters) Reset()         { *m = ResourceActionParamete
+ func (m *ResourceActionParameters) String() string { return proto.CompactTextString(m) }
+ func (*ResourceActionParameters) ProtoMessage()    {}
+ func (*ResourceActionParameters) Descriptor() ([]byte, []int) {
+-	return fileDescriptor_df6e82b174b5eaec, []int{20}
++	return fileDescriptor_df6e82b174b5eaec, []int{22}
+ }
+ func (m *ResourceActionParameters) XXX_Unmarshal(b []byte) error {
+ 	return m.Unmarshal(b)
+@@ -1803,7 +1978,7 @@ func (m *ResourceActionRunRequest) Reset()         { *m = ResourceActionRunReque
+ func (m *ResourceActionRunRequest) String() string { return proto.CompactTextString(m) }
+ func (*ResourceActionRunRequest) ProtoMessage()    {}
+ func (*ResourceActionRunRequest) Descriptor() ([]byte, []int) {
+-	return fileDescriptor_df6e82b174b5eaec, []int{21}
++	return fileDescriptor_df6e82b174b5eaec, []int{23}
+ }
+ func (m *ResourceActionRunRequest) XXX_Unmarshal(b []byte) error {
+ 	return m.Unmarshal(b)
+@@ -1915,7 +2090,7 @@ func (m *ResourceActionRunRequestV2) Reset()         { *m = ResourceActionRunReq
+ func (m *ResourceActionRunRequestV2) String() string { return proto.CompactTextString(m) }
+ func (*ResourceActionRunRequestV2) ProtoMessage()    {}
+ func (*ResourceActionRunRequestV2) Descriptor() ([]byte, []int) {
+-	return fileDescriptor_df6e82b174b5eaec, []int{22}
++	return fileDescriptor_df6e82b174b5eaec, []int{24}
+ }
+ func (m *ResourceActionRunRequestV2) XXX_Unmarshal(b []byte) error {
+ 	return m.Unmarshal(b)
+@@ -2025,7 +2200,7 @@ func (m *ResourceActionsListResponse) Reset()         { *m = ResourceActionsList
+ func (m *ResourceActionsListResponse) String() string { return proto.CompactTextString(m) }
+ func (*ResourceActionsListResponse) ProtoMessage()    {}
+ func (*ResourceActionsListResponse) Descriptor() ([]byte, []int) {
+-	return fileDescriptor_df6e82b174b5eaec, []int{23}
++	return fileDescriptor_df6e82b174b5eaec, []int{25}
+ }
+ func (m *ResourceActionsListResponse) XXX_Unmarshal(b []byte) error {
+ 	return m.Unmarshal(b)
+@@ -2072,7 +2247,7 @@ func (m *ApplicationResourceResponse) Reset()         { *m = ApplicationResource
+ func (m *ApplicationResourceResponse) String() string { return proto.CompactTextString(m) }
+ func (*ApplicationResourceResponse) ProtoMessage()    {}
+ func (*ApplicationResourceResponse) Descriptor() ([]byte, []int) {
+-	return fileDescriptor_df6e82b174b5eaec, []int{24}
++	return fileDescriptor_df6e82b174b5eaec, []int{26}
+ }
+ func (m *ApplicationResourceResponse) XXX_Unmarshal(b []byte) error {
+ 	return m.Unmarshal(b)
+@@ -2135,7 +2310,7 @@ func (m *ApplicationPodLogsQuery) Reset()         { *m = ApplicationPodLogsQuery
+ func (m *ApplicationPodLogsQuery) String() string { return proto.CompactTextString(m) }
+ func (*ApplicationPodLogsQuery) ProtoMessage()    {}
+ func (*ApplicationPodLogsQuery) Descriptor() ([]byte, []int) {
+-	return fileDescriptor_df6e82b174b5eaec, []int{25}
++	return fileDescriptor_df6e82b174b5eaec, []int{27}
+ }
+ func (m *ApplicationPodLogsQuery) XXX_Unmarshal(b []byte) error {
+ 	return m.Unmarshal(b)
+@@ -2299,7 +2474,7 @@ func (m *LogEntry) Reset()         { *m = LogEntry{} }
+ func (m *LogEntry) String() string { return proto.CompactTextString(m) }
+ func (*LogEntry) ProtoMessage()    {}
+ func (*LogEntry) Descriptor() ([]byte, []int) {
+-	return fileDescriptor_df6e82b174b5eaec, []int{26}
++	return fileDescriptor_df6e82b174b5eaec, []int{28}
+ }
+ func (m *LogEntry) XXX_Unmarshal(b []byte) error {
+ 	return m.Unmarshal(b)
+@@ -2376,7 +2551,7 @@ func (m *OperationTerminateRequest) Reset()         { *m = OperationTerminateReq
+ func (m *OperationTerminateRequest) String() string { return proto.CompactTextString(m) }
+ func (*OperationTerminateRequest) ProtoMessage()    {}
+ func (*OperationTerminateRequest) Descriptor() ([]byte, []int) {
+-	return fileDescriptor_df6e82b174b5eaec, []int{27}
++	return fileDescriptor_df6e82b174b5eaec, []int{29}
+ }
+ func (m *OperationTerminateRequest) XXX_Unmarshal(b []byte) error {
+ 	return m.Unmarshal(b)
+@@ -2439,7 +2614,7 @@ func (m *ApplicationSyncWindowsQuery) Reset()         { *m = ApplicationSyncWind
+ func (m *ApplicationSyncWindowsQuery) String() string { return proto.CompactTextString(m) }
+ func (*ApplicationSyncWindowsQuery) ProtoMessage()    {}
+ func (*ApplicationSyncWindowsQuery) Descriptor() ([]byte, []int) {
+-	return fileDescriptor_df6e82b174b5eaec, []int{28}
++	return fileDescriptor_df6e82b174b5eaec, []int{30}
+ }
+ func (m *ApplicationSyncWindowsQuery) XXX_Unmarshal(b []byte) error {
+ 	return m.Unmarshal(b)
+@@ -2502,7 +2677,7 @@ func (m *ApplicationSyncWindowsResponse) Reset()         { *m = ApplicationSyncW
+ func (m *ApplicationSyncWindowsResponse) String() string { return proto.CompactTextString(m) }
+ func (*ApplicationSyncWindowsResponse) ProtoMessage()    {}
+ func (*ApplicationSyncWindowsResponse) Descriptor() ([]byte, []int) {
+-	return fileDescriptor_df6e82b174b5eaec, []int{29}
++	return fileDescriptor_df6e82b174b5eaec, []int{31}
+ }
+ func (m *ApplicationSyncWindowsResponse) XXX_Unmarshal(b []byte) error {
+ 	return m.Unmarshal(b)
+@@ -2566,7 +2741,7 @@ func (m *ApplicationSyncWindow) Reset()         { *m = ApplicationSyncWindow{} }
+ func (m *ApplicationSyncWindow) String() string { return proto.CompactTextString(m) }
+ func (*ApplicationSyncWindow) ProtoMessage()    {}
+ func (*ApplicationSyncWindow) Descriptor() ([]byte, []int) {
+-	return fileDescriptor_df6e82b174b5eaec, []int{30}
++	return fileDescriptor_df6e82b174b5eaec, []int{32}
+ }
+ func (m *ApplicationSyncWindow) XXX_Unmarshal(b []byte) error {
+ 	return m.Unmarshal(b)
+@@ -2633,7 +2808,7 @@ func (m *OperationTerminateResponse) Reset()         { *m = OperationTerminateRe
+ func (m *OperationTerminateResponse) String() string { return proto.CompactTextString(m) }
+ func (*OperationTerminateResponse) ProtoMessage()    {}
+ func (*OperationTerminateResponse) Descriptor() ([]byte, []int) {
+-	return fileDescriptor_df6e82b174b5eaec, []int{31}
++	return fileDescriptor_df6e82b174b5eaec, []int{33}
+ }
+ func (m *OperationTerminateResponse) XXX_Unmarshal(b []byte) error {
+ 	return m.Unmarshal(b)
+@@ -2680,7 +2855,7 @@ func (m *ResourcesQuery) Reset()         { *m = ResourcesQuery{} }
+ func (m *ResourcesQuery) String() string { return proto.CompactTextString(m) }
+ func (*ResourcesQuery) ProtoMessage()    {}
+ func (*ResourcesQuery) Descriptor() ([]byte, []int) {
+-	return fileDescriptor_df6e82b174b5eaec, []int{32}
++	return fileDescriptor_df6e82b174b5eaec, []int{34}
+ }
+ func (m *ResourcesQuery) XXX_Unmarshal(b []byte) error {
+ 	return m.Unmarshal(b)
+@@ -2776,7 +2951,7 @@ func (m *ManagedResourcesResponse) Reset()         { *m = ManagedResourcesRespon
+ func (m *ManagedResourcesResponse) String() string { return proto.CompactTextString(m) }
+ func (*ManagedResourcesResponse) ProtoMessage()    {}
+ func (*ManagedResourcesResponse) Descriptor() ([]byte, []int) {
+-	return fileDescriptor_df6e82b174b5eaec, []int{33}
++	return fileDescriptor_df6e82b174b5eaec, []int{35}
+ }
+ func (m *ManagedResourcesResponse) XXX_Unmarshal(b []byte) error {
+ 	return m.Unmarshal(b)
+@@ -2827,7 +3002,7 @@ func (m *ApplicationServerSideDiffQuery) Reset()         { *m = ApplicationServe
+ func (m *ApplicationServerSideDiffQuery) String() string { return proto.CompactTextString(m) }
+ func (*ApplicationServerSideDiffQuery) ProtoMessage()    {}
+ func (*ApplicationServerSideDiffQuery) Descriptor() ([]byte, []int) {
+-	return fileDescriptor_df6e82b174b5eaec, []int{34}
++	return fileDescriptor_df6e82b174b5eaec, []int{36}
+ }
+ func (m *ApplicationServerSideDiffQuery) XXX_Unmarshal(b []byte) error {
+ 	return m.Unmarshal(b)
+@@ -2903,7 +3078,7 @@ func (m *ApplicationServerSideDiffResponse) Reset()         { *m = ApplicationSe
+ func (m *ApplicationServerSideDiffResponse) String() string { return proto.CompactTextString(m) }
+ func (*ApplicationServerSideDiffResponse) ProtoMessage()    {}
+ func (*ApplicationServerSideDiffResponse) Descriptor() ([]byte, []int) {
+-	return fileDescriptor_df6e82b174b5eaec, []int{35}
++	return fileDescriptor_df6e82b174b5eaec, []int{37}
+ }
+ func (m *ApplicationServerSideDiffResponse) XXX_Unmarshal(b []byte) error {
+ 	return m.Unmarshal(b)
+@@ -2960,7 +3135,7 @@ func (m *LinkInfo) Reset()         { *m = LinkInfo{} }
+ func (m *LinkInfo) String() string { return proto.CompactTextString(m) }
+ func (*LinkInfo) ProtoMessage()    {}
+ func (*LinkInfo) Descriptor() ([]byte, []int) {
+-	return fileDescriptor_df6e82b174b5eaec, []int{36}
++	return fileDescriptor_df6e82b174b5eaec, []int{38}
+ }
+ func (m *LinkInfo) XXX_Unmarshal(b []byte) error {
+ 	return m.Unmarshal(b)
+@@ -3028,7 +3203,7 @@ func (m *LinksResponse) Reset()         { *m = LinksResponse{} }
+ func (m *LinksResponse) String() string { return proto.CompactTextString(m) }
+ func (*LinksResponse) ProtoMessage()    {}
+ func (*LinksResponse) Descriptor() ([]byte, []int) {
+-	return fileDescriptor_df6e82b174b5eaec, []int{37}
++	return fileDescriptor_df6e82b174b5eaec, []int{39}
+ }
+ func (m *LinksResponse) XXX_Unmarshal(b []byte) error {
+ 	return m.Unmarshal(b)
+@@ -3077,7 +3252,7 @@ func (m *ListAppLinksRequest) Reset()         { *m = ListAppLinksRequest{} }
+ func (m *ListAppLinksRequest) String() string { return proto.CompactTextString(m) }
+ func (*ListAppLinksRequest) ProtoMessage()    {}
+ func (*ListAppLinksRequest) Descriptor() ([]byte, []int) {
+-	return fileDescriptor_df6e82b174b5eaec, []int{38}
++	return fileDescriptor_df6e82b174b5eaec, []int{40}
+ }
+ func (m *ListAppLinksRequest) XXX_Unmarshal(b []byte) error {
+ 	return m.Unmarshal(b)
+@@ -3141,6 +3316,8 @@ func init() {
+ 	proto.RegisterType((*ApplicationUpdateRequest)(nil), "application.ApplicationUpdateRequest")
+ 	proto.RegisterType((*ApplicationDeleteRequest)(nil), "application.ApplicationDeleteRequest")
+ 	proto.RegisterType((*SyncOptions)(nil), "application.SyncOptions")
++	proto.RegisterType((*ReviewedActionPreconditions)(nil), "application.ReviewedActionPreconditions")
++	proto.RegisterType((*ReviewedActionsCapabilitiesResponse)(nil), "application.ReviewedActionsCapabilitiesResponse")
+ 	proto.RegisterType((*ApplicationSyncRequest)(nil), "application.ApplicationSyncRequest")
+ 	proto.RegisterType((*ApplicationUpdateSpecRequest)(nil), "application.ApplicationUpdateSpecRequest")
+ 	proto.RegisterType((*ApplicationPatchRequest)(nil), "application.ApplicationPatchRequest")
+@@ -3174,196 +3351,213 @@ func init() {
+ }
+ 
+ var fileDescriptor_df6e82b174b5eaec = []byte{
+-	// 3017 bytes of a gzipped FileDescriptorProto
+-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe4, 0x5b, 0xcd, 0x8f, 0x1c, 0x47,
+-	0x15, 0xa7, 0x66, 0x76, 0x76, 0x67, 0xdf, 0x78, 0xfd, 0x51, 0xb1, 0x4d, 0x67, 0xbc, 0x31, 0x9b,
+-	0xb6, 0x1d, 0x6f, 0xd6, 0xde, 0x19, 0x7b, 0x62, 0x20, 0xd9, 0x24, 0x04, 0x67, 0xed, 0x38, 0x0b,
+-	0x6b, 0xc7, 0xf4, 0x3a, 0x31, 0x0a, 0x07, 0xa8, 0x74, 0xd7, 0xcc, 0x34, 0xdb, 0xd3, 0xdd, 0xee,
+-	0xee, 0x99, 0xb0, 0x0a, 0xb9, 0x04, 0x21, 0x71, 0x88, 0x82, 0x80, 0x1c, 0x38, 0xf0, 0x99, 0x28,
+-	0x08, 0x21, 0x10, 0x17, 0x84, 0x90, 0x10, 0x12, 0x1c, 0x82, 0xe0, 0x80, 0x84, 0xe0, 0x1f, 0x40,
+-	0x11, 0xe2, 0xc0, 0x21, 0xb9, 0xe4, 0x8c, 0x50, 0x55, 0x57, 0x75, 0x77, 0xcd, 0x47, 0xcf, 0x2c,
+-	0x33, 0x10, 0x4b, 0xdc, 0xfa, 0xd5, 0x74, 0xbf, 0xf7, 0x7b, 0xaf, 0xde, 0x7b, 0xf5, 0xea, 0xbd,
+-	0x5d, 0x38, 0x1d, 0xd2, 0xa0, 0x47, 0x83, 0x3a, 0xf1, 0x7d, 0xc7, 0x36, 0x49, 0x64, 0x7b, 0x6e,
+-	0xf6, 0xb9, 0xe6, 0x07, 0x5e, 0xe4, 0xe1, 0x4a, 0x66, 0xa9, 0xba, 0xdc, 0xf2, 0xbc, 0x96, 0x43,
+-	0xeb, 0xc4, 0xb7, 0xeb, 0xc4, 0x75, 0xbd, 0x88, 0x2f, 0x87, 0xf1, 0xab, 0x55, 0x7d, 0xf7, 0xe1,
+-	0xb0, 0x66, 0x7b, 0xfc, 0x57, 0xd3, 0x0b, 0x68, 0xbd, 0x77, 0xb1, 0xde, 0xa2, 0x2e, 0x0d, 0x48,
+-	0x44, 0x2d, 0xf1, 0xce, 0xa5, 0xf4, 0x9d, 0x0e, 0x31, 0xdb, 0xb6, 0x4b, 0x83, 0xbd, 0xba, 0xbf,
+-	0xdb, 0x62, 0x0b, 0x61, 0xbd, 0x43, 0x23, 0x32, 0xec, 0xab, 0xed, 0x96, 0x1d, 0xb5, 0xbb, 0x2f,
+-	0xd4, 0x4c, 0xaf, 0x53, 0x27, 0x41, 0xcb, 0xf3, 0x03, 0xef, 0x8b, 0xfc, 0x61, 0xdd, 0xb4, 0xea,
+-	0xbd, 0x87, 0x52, 0x06, 0x59, 0x5d, 0x7a, 0x17, 0x89, 0xe3, 0xb7, 0xc9, 0x20, 0xb7, 0xab, 0x63,
+-	0xb8, 0x05, 0xd4, 0xf7, 0x84, 0x6d, 0xf8, 0xa3, 0x1d, 0x79, 0xc1, 0x5e, 0xe6, 0x31, 0x66, 0xa3,
+-	0xbf, 0x8f, 0xe0, 0xf0, 0xe5, 0x54, 0xde, 0x67, 0xba, 0x34, 0xd8, 0xc3, 0x18, 0xe6, 0x5c, 0xd2,
+-	0xa1, 0x1a, 0x5a, 0x41, 0xab, 0x8b, 0x06, 0x7f, 0xc6, 0x1a, 0x2c, 0x04, 0xb4, 0x19, 0xd0, 0xb0,
+-	0xad, 0x15, 0xf8, 0xb2, 0x24, 0x71, 0x15, 0xca, 0x4c, 0x38, 0x35, 0xa3, 0x50, 0x2b, 0xae, 0x14,
+-	0x57, 0x17, 0x8d, 0x84, 0xc6, 0xab, 0x70, 0x28, 0xa0, 0xa1, 0xd7, 0x0d, 0x4c, 0xfa, 0x1c, 0x0d,
+-	0x42, 0xdb, 0x73, 0xb5, 0x39, 0xfe, 0x75, 0xff, 0x32, 0xe3, 0x12, 0x52, 0x87, 0x9a, 0x91, 0x17,
+-	0x68, 0x25, 0xfe, 0x4a, 0x42, 0x33, 0x3c, 0x0c, 0xb8, 0x36, 0x1f, 0xe3, 0x61, 0xcf, 0x58, 0x87,
+-	0x03, 0xc4, 0xf7, 0x6f, 0x90, 0x0e, 0x0d, 0x7d, 0x62, 0x52, 0x6d, 0x81, 0xff, 0xa6, 0xac, 0x31,
+-	0xcc, 0x02, 0x89, 0x56, 0xe6, 0xc0, 0x24, 0xa9, 0x6f, 0xc2, 0xe2, 0x0d, 0xcf, 0xa2, 0xa3, 0xd5,
+-	0xed, 0x67, 0x5f, 0x18, 0x64, 0xaf, 0xbf, 0x8d, 0xe0, 0x98, 0x41, 0x7b, 0x36, 0xc3, 0x7f, 0x9d,
+-	0x46, 0xc4, 0x22, 0x11, 0xe9, 0xe7, 0x58, 0x48, 0x38, 0x56, 0xa1, 0x1c, 0x88, 0x97, 0xb5, 0x02,
+-	0x5f, 0x4f, 0xe8, 0x01, 0x69, 0xc5, 0x7c, 0x65, 0x62, 0x13, 0x4a, 0x12, 0xaf, 0x40, 0x25, 0xb6,
+-	0xe5, 0x96, 0x6b, 0xd1, 0x2f, 0x71, 0xeb, 0x95, 0x8c, 0xec, 0x12, 0x5e, 0x86, 0xc5, 0x5e, 0x6c,
+-	0xe7, 0x2d, 0x8b, 0x5b, 0xb1, 0x64, 0xa4, 0x0b, 0xfa, 0x3f, 0x10, 0x9c, 0xcc, 0xf8, 0x80, 0x21,
+-	0x76, 0xe6, 0x6a, 0x8f, 0xba, 0x51, 0x38, 0x5a, 0xa1, 0xf3, 0x70, 0x44, 0x6e, 0x62, 0xbf, 0x9d,
+-	0x06, 0x7f, 0x60, 0x2a, 0x66, 0x17, 0xa5, 0x8a, 0xd9, 0x35, 0xa6, 0x88, 0xa4, 0x9f, 0xdd, 0xba,
+-	0x22, 0xd4, 0xcc, 0x2e, 0x0d, 0x18, 0xaa, 0x94, 0x6f, 0xa8, 0x79, 0xc5, 0x50, 0xfa, 0x3f, 0x11,
+-	0x68, 0x19, 0x45, 0xaf, 0x13, 0xd7, 0x6e, 0xd2, 0x30, 0x9a, 0x74, 0xcf, 0xd0, 0x0c, 0xf7, 0x6c,
+-	0x15, 0x0e, 0xc5, 0x5a, 0xdd, 0x64, 0xf1, 0xc8, 0xf2, 0x8f, 0x56, 0x5a, 0x29, 0xae, 0x16, 0x8d,
+-	0xfe, 0x65, 0xb6, 0x77, 0x52, 0x66, 0xa8, 0xcd, 0x73, 0x37, 0x4e, 0x17, 0x98, 0x04, 0xd7, 0xdb,
+-	0x24, 0x66, 0x3b, 0x8e, 0x80, 0xb2, 0x21, 0x49, 0xfd, 0x7e, 0x58, 0x7c, 0xca, 0x76, 0xe8, 0x66,
+-	0xbb, 0xeb, 0xee, 0xe2, 0xa3, 0x50, 0x32, 0xd9, 0x03, 0xd7, 0xee, 0x80, 0x11, 0x13, 0xfa, 0x37,
+-	0x10, 0xdc, 0x3f, 0xca, 0x1e, 0xb7, 0xed, 0xa8, 0xcd, 0xbe, 0x0f, 0x47, 0x19, 0xc6, 0x6c, 0x53,
+-	0x73, 0x37, 0xec, 0x76, 0xa4, 0x33, 0x4b, 0x7a, 0x3a, 0xc3, 0xe8, 0x3f, 0x41, 0xb0, 0x3a, 0x16,
+-	0xd3, 0xed, 0x80, 0xf8, 0x3e, 0x0d, 0xf0, 0x53, 0x50, 0xba, 0xc3, 0x7e, 0xe0, 0xa1, 0x5b, 0x69,
+-	0xd4, 0x6a, 0xd9, 0xd4, 0x3f, 0x96, 0xcb, 0xd3, 0x1f, 0x32, 0xe2, 0xcf, 0x71, 0x4d, 0x9a, 0xa7,
+-	0xc0, 0xf9, 0x1c, 0x57, 0xf8, 0x24, 0x56, 0x64, 0xef, 0xf3, 0xd7, 0x9e, 0x9c, 0x87, 0x39, 0x9f,
+-	0x04, 0x91, 0x7e, 0x0c, 0xee, 0x51, 0x03, 0xc7, 0xf7, 0xdc, 0x90, 0xea, 0xbf, 0x56, 0xfd, 0x6c,
+-	0x33, 0xa0, 0x24, 0xa2, 0x06, 0xbd, 0xd3, 0xa5, 0x61, 0x84, 0x77, 0x21, 0x7b, 0x1a, 0x71, 0xab,
+-	0x56, 0x1a, 0x5b, 0xb5, 0x34, 0x9d, 0xd7, 0x64, 0x3a, 0xe7, 0x0f, 0x9f, 0x37, 0xad, 0x5a, 0xef,
+-	0xa1, 0x9a, 0xbf, 0xdb, 0xaa, 0xb1, 0xc3, 0x41, 0x41, 0x26, 0x0f, 0x87, 0xac, 0xaa, 0x46, 0x96,
+-	0x3b, 0x3e, 0x0e, 0xf3, 0x5d, 0x3f, 0xa4, 0x41, 0xc4, 0x35, 0x2b, 0x1b, 0x82, 0x62, 0xfb, 0xd7,
+-	0x23, 0x8e, 0x6d, 0x91, 0x28, 0xde, 0x9f, 0xb2, 0x91, 0xd0, 0xfa, 0x6f, 0x54, 0xf4, 0xcf, 0xfa,
+-	0xd6, 0x07, 0x85, 0x3e, 0x8b, 0xb2, 0xa0, 0xa2, 0xcc, 0x7a, 0x50, 0x51, 0xf5, 0xa0, 0x5f, 0xa8,
+-	0xf8, 0xaf, 0x50, 0x87, 0xa6, 0xf8, 0x87, 0x39, 0xb3, 0x06, 0x0b, 0x26, 0x09, 0x4d, 0x62, 0x49,
+-	0x29, 0x92, 0x64, 0x29, 0xce, 0x0f, 0x3c, 0x9f, 0xb4, 0x38, 0xa7, 0x9b, 0x9e, 0x63, 0x9b, 0x7b,
+-	0x42, 0xdc, 0xe0, 0x0f, 0x03, 0x8e, 0x3f, 0x97, 0xef, 0xf8, 0x25, 0x15, 0xf6, 0x29, 0xa8, 0xec,
+-	0xec, 0xb9, 0xe6, 0x33, 0x7e, 0x1c, 0xf6, 0x47, 0xa1, 0x64, 0x47, 0xb4, 0x13, 0x6a, 0x88, 0x87,
+-	0x7c, 0x4c, 0xe8, 0xff, 0x2a, 0xc1, 0xf1, 0x8c, 0x6e, 0xec, 0x83, 0x3c, 0xcd, 0xf2, 0xf2, 0xd7,
+-	0x71, 0x98, 0xb7, 0x82, 0x3d, 0xa3, 0xeb, 0x0a, 0x07, 0x10, 0x14, 0x13, 0xec, 0x07, 0x5d, 0x37,
+-	0x86, 0x5f, 0x36, 0x62, 0x02, 0x37, 0xa1, 0x1c, 0x46, 0xac, 0xfe, 0x68, 0xed, 0x71, 0xe0, 0x95,
+-	0xc6, 0xa7, 0xa6, 0xdb, 0x74, 0x06, 0x7d, 0x47, 0x70, 0x34, 0x12, 0xde, 0xf8, 0x0e, 0xcb, 0x76,
+-	0x71, 0x0a, 0x0c, 0xb5, 0x85, 0x95, 0xe2, 0x6a, 0xa5, 0xb1, 0x33, 0xbd, 0xa0, 0x67, 0x7c, 0x56,
+-	0x3b, 0x65, 0xce, 0x36, 0x23, 0x95, 0xc2, 0x12, 0x6c, 0x47, 0xe4, 0x87, 0x50, 0xd4, 0x09, 0xe9,
+-	0x02, 0xfe, 0x2c, 0x94, 0x6c, 0xb7, 0xe9, 0x85, 0xda, 0x22, 0x07, 0xf3, 0xe4, 0x74, 0x60, 0xb6,
+-	0xdc, 0xa6, 0x67, 0xc4, 0x0c, 0xf1, 0x1d, 0x58, 0x0a, 0x68, 0x14, 0xec, 0x49, 0x2b, 0x68, 0xc0,
+-	0xed, 0xfa, 0xe9, 0xe9, 0x24, 0x18, 0x59, 0x96, 0x86, 0x2a, 0x01, 0x6f, 0x40, 0x25, 0x4c, 0x7d,
+-	0x4c, 0xab, 0x70, 0x81, 0x9a, 0xc2, 0x28, 0xe3, 0x83, 0x46, 0xf6, 0xe5, 0x01, 0xef, 0x3e, 0x90,
+-	0xef, 0xdd, 0x4b, 0x63, 0xcf, 0xbb, 0x83, 0x13, 0x9c, 0x77, 0x87, 0xfa, 0xce, 0x3b, 0xfd, 0x3d,
+-	0x04, 0xcb, 0x03, 0xc9, 0x69, 0xc7, 0xa7, 0xb9, 0x61, 0x40, 0x60, 0x2e, 0xf4, 0xa9, 0xc9, 0x4f,
+-	0xaa, 0x4a, 0xe3, 0xfa, 0xcc, 0xb2, 0x15, 0x97, 0xcb, 0x59, 0xe7, 0x25, 0xd4, 0x29, 0xf3, 0xc2,
+-	0xf7, 0x11, 0x7c, 0x38, 0x23, 0xf3, 0x26, 0x89, 0xcc, 0x76, 0x9e, 0xb2, 0x2c, 0x7e, 0xd9, 0x3b,
+-	0xe2, 0x5c, 0x8e, 0x09, 0x66, 0x55, 0xfe, 0x70, 0x6b, 0xcf, 0x67, 0x00, 0xd9, 0x2f, 0xe9, 0xc2,
+-	0x94, 0x65, 0xd5, 0x4f, 0x11, 0x54, 0xb3, 0x39, 0xdc, 0x73, 0x9c, 0x17, 0x88, 0xb9, 0x9b, 0x07,
+-	0xf2, 0x20, 0x14, 0x6c, 0x8b, 0x23, 0x2c, 0x1a, 0x05, 0xdb, 0xda, 0x67, 0x32, 0xea, 0x87, 0x3b,
+-	0x9f, 0x0f, 0x77, 0x41, 0x85, 0xfb, 0x7e, 0x1f, 0x5c, 0x99, 0x12, 0x72, 0xe0, 0x2e, 0xc3, 0xa2,
+-	0xdb, 0x57, 0xe2, 0xa6, 0x0b, 0x43, 0x4a, 0xdb, 0xc2, 0x40, 0x69, 0xab, 0xc1, 0x42, 0x2f, 0xb9,
+-	0x00, 0xb1, 0x9f, 0x25, 0xc9, 0x54, 0x6c, 0x05, 0x5e, 0xd7, 0x17, 0x46, 0x8f, 0x09, 0x86, 0x62,
+-	0xd7, 0x76, 0x59, 0xb1, 0xce, 0x51, 0xb0, 0xe7, 0xfd, 0x5f, 0x79, 0x14, 0xb5, 0x7f, 0x56, 0x80,
+-	0x8f, 0x0c, 0x51, 0x7b, 0xac, 0x3f, 0xdd, 0x1d, 0xba, 0x27, 0x5e, 0xbd, 0x30, 0xd2, 0xab, 0xcb,
+-	0xe3, 0xbc, 0x7a, 0x31, 0xdf, 0x5e, 0xa0, 0xda, 0xeb, 0xc7, 0x05, 0x58, 0x19, 0x62, 0xaf, 0xf1,
+-	0xe5, 0xc4, 0x5d, 0x63, 0xb0, 0xa6, 0x17, 0x98, 0xf2, 0x5a, 0x10, 0x13, 0x2c, 0xce, 0xbc, 0xc0,
+-	0x6f, 0x13, 0x97, 0x7b, 0x47, 0xd9, 0x10, 0xd4, 0x94, 0xa6, 0xba, 0x02, 0x9a, 0x34, 0xcf, 0x65,
+-	0x33, 0x4e, 0x52, 0x01, 0xe9, 0xd0, 0x88, 0x06, 0xe1, 0xa8, 0x14, 0xd5, 0x23, 0x4e, 0x97, 0xca,
+-	0x14, 0xc5, 0x09, 0xfd, 0xb5, 0x42, 0x3f, 0x1b, 0xa3, 0xeb, 0xde, 0xfd, 0x86, 0x3e, 0x0e, 0xf3,
+-	0x84, 0xa3, 0x15, 0xae, 0x29, 0xa8, 0x01, 0x93, 0x96, 0xf3, 0x4d, 0xba, 0xa8, 0x98, 0x74, 0xa3,
+-	0xa0, 0x21, 0xfd, 0xbd, 0x02, 0x54, 0x47, 0x19, 0xe4, 0xb9, 0xc6, 0xff, 0x9b, 0x49, 0x30, 0x01,
+-	0x2d, 0x18, 0xe1, 0x65, 0x1a, 0xf0, 0xe2, 0xec, 0x8c, 0x72, 0x62, 0x8f, 0x72, 0x49, 0x63, 0x24,
+-	0x1b, 0xfd, 0xab, 0x08, 0x4e, 0xa8, 0x9f, 0x85, 0xdb, 0x76, 0x18, 0xc9, 0x8b, 0x1d, 0x6e, 0xc2,
+-	0x42, 0xac, 0x4a, 0x5c, 0x96, 0x57, 0x1a, 0xdb, 0xd3, 0x16, 0x6b, 0xca, 0xee, 0x4a, 0xe6, 0xfa,
+-	0x23, 0x70, 0x62, 0xe8, 0x09, 0x25, 0x60, 0x54, 0xa1, 0x2c, 0x0b, 0x54, 0xb1, 0xfb, 0x09, 0xad,
+-	0xbf, 0x39, 0xa7, 0x96, 0x0b, 0x9e, 0xb5, 0xed, 0xb5, 0x72, 0xba, 0x38, 0xf9, 0x1e, 0xc3, 0x76,
+-	0xc3, 0xb3, 0x32, 0x0d, 0x1b, 0x49, 0xb2, 0xef, 0x4c, 0xcf, 0x8d, 0x88, 0xed, 0xd2, 0x40, 0x54,
+-	0x34, 0xe9, 0x02, 0xdb, 0xe9, 0xd0, 0x76, 0x4d, 0xba, 0x43, 0x4d, 0xcf, 0xb5, 0x42, 0xee, 0x32,
+-	0x45, 0x43, 0x59, 0xc3, 0x4f, 0xc3, 0x22, 0xa7, 0x6f, 0xd9, 0x9d, 0xf8, 0x08, 0xaf, 0x34, 0xd6,
+-	0x6a, 0x71, 0x67, 0xb5, 0x96, 0xed, 0xac, 0xa6, 0x36, 0xec, 0xd0, 0x88, 0xd4, 0x7a, 0x17, 0x6b,
+-	0xec, 0x0b, 0x23, 0xfd, 0x98, 0x61, 0x89, 0x88, 0xed, 0x6c, 0xdb, 0x2e, 0xbf, 0x34, 0x30, 0x51,
+-	0xe9, 0x02, 0xf3, 0xc6, 0xa6, 0xe7, 0x38, 0xde, 0x8b, 0x32, 0xe7, 0xc5, 0x14, 0xfb, 0xaa, 0xeb,
+-	0x46, 0xb6, 0xc3, 0xe5, 0xc7, 0xbe, 0x96, 0x2e, 0xf0, 0xaf, 0x6c, 0x27, 0xa2, 0x81, 0x48, 0x76,
+-	0x82, 0x4a, 0xfc, 0xbd, 0x12, 0x37, 0x0b, 0x65, 0xae, 0x8d, 0x23, 0xe3, 0x40, 0x36, 0x32, 0xfa,
+-	0xa3, 0x6d, 0x69, 0x48, 0xc7, 0x8b, 0xf7, 0x4e, 0x69, 0xcf, 0xf6, 0xba, 0xac, 0x1e, 0xe6, 0x65,
+-	0xa3, 0xa4, 0x07, 0xa2, 0xe5, 0x50, 0x7e, 0xb4, 0x1c, 0x56, 0xa3, 0x85, 0xdf, 0x6a, 0x22, 0xb3,
+-	0xbd, 0x49, 0x42, 0xaa, 0x1d, 0xe1, 0xac, 0xd3, 0x05, 0xfd, 0xb7, 0x08, 0xca, 0xdb, 0x5e, 0xeb,
+-	0xaa, 0x1b, 0x05, 0x7b, 0xfc, 0xfe, 0xeb, 0xb9, 0x11, 0x75, 0xa5, 0x37, 0x49, 0x92, 0x6d, 0x51,
+-	0x64, 0x77, 0xe8, 0x4e, 0x44, 0x3a, 0xbe, 0xa8, 0x9e, 0xf7, 0xb5, 0x45, 0xc9, 0xc7, 0xcc, 0x6c,
+-	0x0e, 0x09, 0x23, 0x9e, 0x72, 0xca, 0x06, 0x7f, 0x66, 0x0a, 0x26, 0x2f, 0xec, 0x44, 0x81, 0xc8,
+-	0x37, 0xca, 0x5a, 0xd6, 0x01, 0x4b, 0x31, 0x36, 0x41, 0xea, 0x1d, 0xb8, 0x37, 0xb9, 0xd6, 0xdd,
+-	0xa2, 0x41, 0xc7, 0x76, 0x49, 0xfe, 0xb9, 0x3c, 0x41, 0x4b, 0x37, 0xa7, 0xab, 0xe0, 0x29, 0x21,
+-	0xc9, 0x6e, 0x49, 0xb7, 0x6d, 0xd7, 0xf2, 0x5e, 0xcc, 0x09, 0xad, 0xe9, 0x04, 0xfe, 0x45, 0xed,
+-	0xca, 0x66, 0x24, 0x26, 0x79, 0xe0, 0x69, 0x58, 0x62, 0x19, 0xa3, 0x47, 0xc5, 0x0f, 0x22, 0x29,
+-	0xe9, 0xa3, 0xda, 0x60, 0x29, 0x0f, 0x43, 0xfd, 0x10, 0x6f, 0xc3, 0x21, 0x12, 0x86, 0x76, 0xcb,
+-	0xa5, 0x96, 0xe4, 0x55, 0x98, 0x98, 0x57, 0xff, 0xa7, 0x71, 0x43, 0x85, 0xbf, 0x21, 0xf6, 0x5b,
+-	0x92, 0xfa, 0x57, 0x10, 0x1c, 0x1b, 0xca, 0x24, 0x89, 0x2b, 0x94, 0x39, 0x47, 0xaa, 0x50, 0x0e,
+-	0xcd, 0x36, 0xb5, 0xba, 0x8e, 0x2c, 0x15, 0x12, 0x9a, 0xfd, 0x66, 0x75, 0xe3, 0xdd, 0x17, 0xe7,
+-	0x58, 0x42, 0xe3, 0x93, 0x00, 0x1d, 0xe2, 0x76, 0x89, 0xc3, 0x21, 0xcc, 0x71, 0x08, 0x99, 0x15,
+-	0x7d, 0x19, 0xaa, 0xc3, 0x5c, 0x47, 0x74, 0xef, 0xde, 0x45, 0x70, 0x50, 0xa6, 0x5c, 0xb1, 0xbb,
+-	0xab, 0x70, 0x28, 0x63, 0x86, 0x1b, 0xe9, 0x46, 0xf7, 0x2f, 0x8f, 0x49, 0xa7, 0xd2, 0x4b, 0x8a,
+-	0xea, 0x60, 0xa5, 0xa7, 0x8c, 0x46, 0x26, 0x3e, 0x70, 0xd1, 0x8c, 0x6e, 0x06, 0x5f, 0x06, 0xed,
+-	0x3a, 0x71, 0x49, 0x8b, 0x5a, 0x89, 0xda, 0x89, 0x8b, 0x7d, 0x21, 0xdb, 0x86, 0x9a, 0xba, 0xe9,
+-	0x93, 0x14, 0xd1, 0x76, 0xb3, 0x29, 0x5b, 0x5a, 0xaf, 0x17, 0x54, 0x3f, 0xe7, 0x33, 0xab, 0x1d,
+-	0xdb, 0xe2, 0x2f, 0xc5, 0xe6, 0xd7, 0x60, 0x41, 0xa8, 0x22, 0x13, 0x94, 0x20, 0xa7, 0x0b, 0x31,
+-	0xec, 0xc3, 0x92, 0x63, 0xf7, 0x68, 0xa2, 0xb5, 0x36, 0x37, 0x73, 0x25, 0x55, 0x01, 0xcc, 0x91,
+-	0x22, 0x12, 0xb4, 0x68, 0x74, 0x3d, 0xe9, 0x38, 0x95, 0x78, 0x8b, 0xa3, 0x7f, 0x59, 0xff, 0xa1,
+-	0xda, 0x9b, 0x57, 0xcd, 0xf2, 0xbf, 0xdb, 0x1e, 0x5e, 0x6b, 0x78, 0x96, 0xdd, 0xb4, 0x69, 0x7c,
+-	0x5f, 0x2f, 0x1b, 0x09, 0xad, 0x07, 0x50, 0xde, 0xb6, 0xdd, 0xdd, 0x2d, 0xb7, 0xe9, 0x31, 0x67,
+-	0x8d, 0xec, 0xc8, 0x91, 0x3b, 0x14, 0x13, 0xf8, 0x30, 0x14, 0xbb, 0x81, 0x23, 0x82, 0x97, 0x3d,
+-	0xe2, 0x15, 0xa8, 0x58, 0x34, 0x34, 0x03, 0xdb, 0x17, 0xa1, 0xcb, 0x67, 0x3c, 0x99, 0x25, 0x16,
+-	0x42, 0xb6, 0xe9, 0xb9, 0x9b, 0x0e, 0x09, 0x43, 0x59, 0x59, 0x24, 0x0b, 0xfa, 0x63, 0xb0, 0xc4,
+-	0x64, 0xa6, 0x1e, 0x7a, 0x4e, 0x35, 0xc1, 0x31, 0x45, 0x35, 0x09, 0x4f, 0x3a, 0x1b, 0x81, 0x7b,
+-	0x58, 0x41, 0x77, 0xd9, 0xf7, 0x05, 0x93, 0x09, 0x6f, 0x17, 0xc5, 0x61, 0x85, 0xd1, 0xd0, 0x01,
+-	0x46, 0xe3, 0xdd, 0xb3, 0x80, 0xfb, 0x36, 0xce, 0x36, 0x29, 0xfe, 0x26, 0x82, 0x39, 0x26, 0x1a,
+-	0xdf, 0x37, 0x2a, 0xa3, 0x72, 0x5f, 0xaf, 0xce, 0xae, 0x3b, 0xc5, 0xa4, 0xe9, 0xcb, 0xaf, 0xfc,
+-	0xf5, 0xef, 0xdf, 0x2a, 0x1c, 0xc7, 0x47, 0xf9, 0x40, 0xbb, 0x77, 0x31, 0x3b, 0x5c, 0x0e, 0xf1,
+-	0xab, 0x08, 0xb0, 0x28, 0x70, 0x33, 0x23, 0x3f, 0x7c, 0x6e, 0x14, 0xc4, 0x21, 0xa3, 0xc1, 0xea,
+-	0x7d, 0x99, 0x82, 0xa0, 0x66, 0x7a, 0x01, 0x65, 0xc7, 0x3f, 0x7f, 0x81, 0x03, 0x58, 0xe3, 0x00,
+-	0x4e, 0x63, 0x7d, 0x18, 0x80, 0xfa, 0x4b, 0xcc, 0xa2, 0x2f, 0xd7, 0x69, 0x2c, 0xf7, 0x0d, 0x04,
+-	0xa5, 0xdb, 0xfc, 0x62, 0x3f, 0xc6, 0x48, 0x3b, 0x33, 0x33, 0x12, 0x17, 0xc7, 0xd1, 0xea, 0xa7,
+-	0x38, 0xd2, 0xfb, 0xf0, 0x09, 0x89, 0x34, 0x8c, 0x02, 0x4a, 0x3a, 0x0a, 0xe0, 0x0b, 0x08, 0xbf,
+-	0x85, 0x60, 0x3e, 0x9e, 0xe8, 0xe0, 0x33, 0xa3, 0x50, 0x2a, 0x13, 0x9f, 0xea, 0xec, 0xc6, 0x23,
+-	0xfa, 0x83, 0x1c, 0xe3, 0x29, 0x7d, 0xe8, 0x76, 0x6e, 0x28, 0xc3, 0x93, 0xd7, 0x11, 0x14, 0xaf,
+-	0xd1, 0xb1, 0xfe, 0x36, 0x43, 0x70, 0x03, 0x06, 0x1c, 0xb2, 0xd5, 0xf8, 0x4d, 0x04, 0xf7, 0x5e,
+-	0xa3, 0xd1, 0xf0, 0xca, 0x06, 0xaf, 0x8e, 0x2f, 0x37, 0x84, 0xdb, 0x9d, 0x9b, 0xe0, 0xcd, 0xe4,
+-	0x48, 0xaf, 0x73, 0x64, 0x0f, 0xe2, 0xb3, 0x79, 0x4e, 0x18, 0xee, 0xb9, 0xe6, 0x8b, 0x02, 0xc7,
+-	0x1f, 0x11, 0x1c, 0xee, 0x1f, 0xed, 0x63, 0xbd, 0xef, 0x7a, 0x39, 0x64, 0xf2, 0x5f, 0xbd, 0x31,
+-	0x6d, 0x06, 0x56, 0x99, 0xea, 0x97, 0x39, 0xf2, 0x47, 0xf1, 0x23, 0x79, 0xc8, 0x93, 0xf6, 0x78,
+-	0xfd, 0x25, 0xf9, 0xf8, 0x32, 0xff, 0x33, 0x14, 0x0e, 0xfb, 0x4f, 0x08, 0x8e, 0x4a, 0xbe, 0x9b,
+-	0x6d, 0x12, 0x44, 0x57, 0x28, 0xbb, 0x1c, 0x85, 0x13, 0xe9, 0x33, 0xe5, 0x89, 0x92, 0x95, 0xa7,
+-	0x5f, 0xe5, 0xba, 0x3c, 0x81, 0x1f, 0xdf, 0xb7, 0x2e, 0x26, 0x63, 0x63, 0x09, 0xd8, 0x6f, 0x23,
+-	0x38, 0x78, 0x8d, 0x46, 0xcf, 0x6c, 0x6e, 0xed, 0x6b, 0x67, 0xa6, 0x74, 0xf4, 0x8c, 0x38, 0xfd,
+-	0x0a, 0x57, 0xe4, 0x13, 0xf8, 0xb1, 0x7d, 0x2b, 0xe2, 0x99, 0x76, 0xb2, 0x2f, 0xaf, 0x20, 0x38,
+-	0x70, 0x2d, 0x73, 0xe4, 0x8f, 0x4e, 0x27, 0xca, 0xf8, 0xba, 0xba, 0x5c, 0xcb, 0xfc, 0x15, 0x8f,
+-	0xfc, 0x29, 0x71, 0xf5, 0x75, 0x8e, 0xed, 0x2c, 0x3e, 0x93, 0x87, 0x2d, 0x1d, 0x6f, 0xbd, 0x81,
+-	0xe0, 0x58, 0x16, 0x44, 0x3a, 0xf6, 0xff, 0xe8, 0xfe, 0x86, 0xe9, 0x62, 0x24, 0x3f, 0x06, 0x5d,
+-	0x83, 0xa3, 0x3b, 0xaf, 0x0f, 0x0f, 0xc4, 0xce, 0x00, 0x8a, 0x0d, 0xb4, 0xb6, 0x8a, 0xf0, 0xef,
+-	0x10, 0xcc, 0xc7, 0x93, 0x9e, 0xd1, 0x36, 0x52, 0xc6, 0xd4, 0xb3, 0xcc, 0x6a, 0xc2, 0x6b, 0xab,
+-	0x17, 0x86, 0x1b, 0x34, 0xfb, 0xbd, 0xdc, 0xda, 0x1a, 0xb7, 0xb2, 0x9a, 0x8e, 0x7f, 0x89, 0x00,
+-	0xd2, 0x69, 0x15, 0x7e, 0x30, 0x5f, 0x8f, 0xcc, 0x44, 0xab, 0x3a, 0xdb, 0x79, 0x95, 0x5e, 0xe3,
+-	0xfa, 0xac, 0x56, 0x57, 0x72, 0x73, 0xa1, 0x4f, 0xcd, 0x8d, 0x78, 0xb2, 0xf5, 0x03, 0x04, 0x25,
+-	0x3e, 0x24, 0xc0, 0xa7, 0x47, 0x61, 0xce, 0xce, 0x10, 0x66, 0x69, 0xfa, 0x07, 0x38, 0xd4, 0x95,
+-	0x46, 0xde, 0x81, 0xb2, 0x81, 0xd6, 0x70, 0x0f, 0xe6, 0xe3, 0xb6, 0xfc, 0x68, 0xf7, 0x50, 0xda,
+-	0xf6, 0xd5, 0x95, 0x9c, 0x02, 0x27, 0x76, 0x54, 0x71, 0x96, 0xad, 0x8d, 0x3b, 0xcb, 0xe6, 0xd8,
+-	0x71, 0x83, 0x4f, 0xe5, 0x1d, 0x46, 0xff, 0x05, 0xc3, 0x9c, 0xe3, 0xe8, 0xce, 0xe8, 0x2b, 0xe3,
+-	0xce, 0x33, 0x66, 0x9d, 0x6f, 0x23, 0x38, 0xdc, 0x7f, 0xbf, 0xc3, 0x27, 0x86, 0xb6, 0x4a, 0xc5,
+-	0xd9, 0xaa, 0x5a, 0x71, 0xd4, 0xdd, 0x50, 0xff, 0x24, 0x47, 0xb1, 0x81, 0x1f, 0x1e, 0x1b, 0x19,
+-	0x37, 0x64, 0xd6, 0x61, 0x8c, 0xd6, 0xd3, 0xd1, 0xfb, 0x8f, 0x10, 0x1c, 0x54, 0x6f, 0x36, 0xa3,
+-	0x6b, 0xcf, 0x21, 0x17, 0xc3, 0x6a, 0x6d, 0xb2, 0x97, 0x13, 0xc4, 0x1f, 0xe7, 0x88, 0x2f, 0xe2,
+-	0xfa, 0x48, 0xc4, 0x31, 0xd2, 0xf8, 0x0f, 0x27, 0xd7, 0x43, 0xdb, 0xa2, 0xeb, 0x16, 0x43, 0xf5,
+-	0x2b, 0x04, 0x07, 0xa4, 0x01, 0x6e, 0x05, 0x94, 0xe6, 0xdb, 0x6f, 0x76, 0x11, 0xcb, 0x64, 0xe9,
+-	0x8f, 0x71, 0xd4, 0x1f, 0xc3, 0x97, 0x26, 0xb4, 0xb3, 0xb4, 0xef, 0x7a, 0xc4, 0x90, 0xfe, 0x1e,
+-	0xc1, 0x91, 0xdb, 0x71, 0x80, 0x7e, 0x40, 0xf8, 0x37, 0x39, 0xfe, 0xc7, 0xf1, 0xa3, 0x39, 0x85,
+-	0xf5, 0x38, 0x35, 0x2e, 0x20, 0xfc, 0x73, 0x04, 0x65, 0x39, 0x5b, 0xc6, 0x67, 0x47, 0x46, 0xb0,
+-	0x3a, 0x7d, 0x9e, 0x65, 0xd4, 0x89, 0x2a, 0x52, 0x3f, 0x9d, 0x7b, 0xec, 0x0b, 0xf9, 0x2c, 0xf2,
+-	0x5e, 0x47, 0x80, 0x93, 0xfe, 0x52, 0xd2, 0x71, 0xc2, 0x0f, 0x28, 0xa2, 0x46, 0x36, 0x31, 0xab,
+-	0x67, 0xc7, 0xbe, 0xa7, 0x9e, 0xf9, 0x6b, 0xb9, 0x67, 0xbe, 0x97, 0xc8, 0x7f, 0x0d, 0x41, 0xe5,
+-	0x1a, 0x4d, 0x2e, 0x7d, 0x39, 0xb6, 0x54, 0x47, 0xe3, 0xd5, 0xd5, 0xf1, 0x2f, 0x0a, 0x44, 0xe7,
+-	0x39, 0xa2, 0x07, 0x70, 0xbe, 0xa9, 0x24, 0x80, 0xef, 0x20, 0x58, 0xba, 0x99, 0x75, 0x51, 0x7c,
+-	0x7e, 0x9c, 0x24, 0xe5, 0xc8, 0x99, 0x1c, 0xd7, 0x43, 0x1c, 0xd7, 0xba, 0x3e, 0x11, 0xae, 0x0d,
+-	0x31, 0x65, 0xfe, 0x1e, 0x8a, 0xbb, 0x06, 0x7d, 0x93, 0xa1, 0xff, 0xd4, 0x6e, 0x39, 0x03, 0x26,
+-	0xfd, 0x12, 0xc7, 0x57, 0xc3, 0xe7, 0x27, 0xc1, 0x57, 0x17, 0xe3, 0x22, 0xfc, 0x5d, 0x04, 0x47,
+-	0xf8, 0x68, 0x30, 0xcb, 0x18, 0xe7, 0x4d, 0xc3, 0xd2, 0x41, 0xe2, 0x04, 0x67, 0xe1, 0x13, 0x71,
+-	0xfe, 0xd1, 0xf7, 0x05, 0x6a, 0x43, 0x0c, 0xfd, 0xbe, 0x56, 0x40, 0x6c, 0x7f, 0xef, 0x19, 0xc0,
+-	0xf7, 0x5c, 0xa3, 0xcf, 0x80, 0xa3, 0x47, 0x9d, 0x13, 0x60, 0xdc, 0xe0, 0x18, 0x2f, 0xe9, 0xf5,
+-	0xfd, 0x60, 0xac, 0xf7, 0x1a, 0x2c, 0x4c, 0xbf, 0x8e, 0xe0, 0xa0, 0xac, 0x0f, 0x84, 0xff, 0xad,
+-	0x8f, 0xdb, 0xda, 0xfd, 0xd6, 0x13, 0x22, 0x20, 0xd6, 0x26, 0x0b, 0x88, 0xb7, 0x10, 0x2c, 0x88,
+-	0xc9, 0x5d, 0x4e, 0xd5, 0x95, 0x19, 0xed, 0x55, 0xfb, 0xda, 0x5e, 0x62, 0xb4, 0xa3, 0x7f, 0x8e,
+-	0x8b, 0x7d, 0x16, 0xe7, 0x9a, 0xc5, 0xf7, 0xac, 0xb0, 0xfe, 0x92, 0x98, 0xab, 0xbc, 0x5c, 0x77,
+-	0xbc, 0x56, 0xf8, 0xbc, 0x8e, 0x73, 0x6b, 0x0b, 0xf6, 0xce, 0x05, 0x84, 0x23, 0x58, 0x64, 0xee,
+-	0xcb, 0x7b, 0x69, 0x78, 0xa5, 0xaf, 0xf3, 0x36, 0xd0, 0x66, 0xab, 0x56, 0x07, 0x7a, 0x73, 0x69,
+-	0x31, 0x21, 0x3a, 0x1b, 0xf8, 0xfe, 0x5c, 0xb1, 0x5c, 0xd0, 0xab, 0x08, 0x8e, 0x64, 0xe3, 0x31,
+-	0x16, 0x3f, 0x71, 0x34, 0xe6, 0xa1, 0x10, 0xf7, 0x13, 0xbc, 0x36, 0x91, 0x1b, 0x71, 0x38, 0x4f,
+-	0x3e, 0xf5, 0x87, 0x77, 0x4e, 0xa2, 0x3f, 0xbf, 0x73, 0x12, 0xfd, 0xed, 0x9d, 0x93, 0xe8, 0xf9,
+-	0x87, 0x27, 0xfb, 0x2f, 0x0f, 0xd3, 0xb1, 0xa9, 0x1b, 0x65, 0xd9, 0xff, 0x3b, 0x00, 0x00, 0xff,
+-	0xff, 0xf3, 0x23, 0xc0, 0x98, 0xcb, 0x32, 0x00, 0x00,
++	// 3281 bytes of a gzipped FileDescriptorProto
++	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe4, 0x5b, 0x5b, 0x8f, 0x1c, 0x47,
++	0xf5, 0xff, 0xd7, 0xcc, 0xce, 0xee, 0xec, 0x19, 0x5f, 0x2b, 0xb6, 0xd3, 0x19, 0x3b, 0xfe, 0x6f,
++	0xda, 0x76, 0xbc, 0x59, 0x7b, 0x67, 0xec, 0x8d, 0x03, 0xce, 0x26, 0x21, 0x38, 0x6b, 0xc7, 0x31,
++	0xac, 0x1d, 0xd3, 0xeb, 0xc4, 0x28, 0x3c, 0x40, 0xa5, 0xbb, 0x76, 0xb6, 0xd9, 0x9e, 0xee, 0x76,
++	0x77, 0xcf, 0x38, 0xab, 0x90, 0x97, 0x20, 0x24, 0x90, 0xa2, 0x20, 0x20, 0x0f, 0x3c, 0x70, 0x4d,
++	0x14, 0x84, 0x90, 0x10, 0x2f, 0x08, 0x90, 0x08, 0x12, 0x48, 0x04, 0x25, 0x0f, 0x48, 0x08, 0xbe,
++	0x00, 0x8a, 0x10, 0x0f, 0x3c, 0x10, 0x09, 0xe5, 0x03, 0xa0, 0xba, 0x75, 0x57, 0xcf, 0xa5, 0x67,
++	0x36, 0xb3, 0xe0, 0x48, 0xbc, 0xcd, 0xa9, 0xae, 0xae, 0xf3, 0x3b, 0xa7, 0xce, 0xad, 0x4e, 0xf5,
++	0xc0, 0xf1, 0x98, 0x46, 0x5d, 0x1a, 0x35, 0x49, 0x18, 0x7a, 0xae, 0x4d, 0x12, 0x37, 0xf0, 0xf5,
++	0xdf, 0x8d, 0x30, 0x0a, 0x92, 0x00, 0xd7, 0xb4, 0xa1, 0xfa, 0x91, 0x56, 0x10, 0xb4, 0x3c, 0xda,
++	0x24, 0xa1, 0xdb, 0x24, 0xbe, 0x1f, 0x24, 0x7c, 0x38, 0x16, 0x53, 0xeb, 0xe6, 0xe6, 0xf9, 0xb8,
++	0xe1, 0x06, 0xfc, 0xa9, 0x1d, 0x44, 0xb4, 0xd9, 0x3d, 0xdb, 0x6c, 0x51, 0x9f, 0x46, 0x24, 0xa1,
++	0x8e, 0x9c, 0x73, 0x2e, 0x9b, 0xd3, 0x26, 0xf6, 0x86, 0xeb, 0xd3, 0x68, 0xab, 0x19, 0x6e, 0xb6,
++	0xd8, 0x40, 0xdc, 0x6c, 0xd3, 0x84, 0x0c, 0x7a, 0x6b, 0xb5, 0xe5, 0x26, 0x1b, 0x9d, 0xe7, 0x1b,
++	0x76, 0xd0, 0x6e, 0x92, 0xa8, 0x15, 0x84, 0x51, 0xf0, 0x45, 0xfe, 0x63, 0xd1, 0x76, 0x9a, 0xdd,
++	0x07, 0xb3, 0x05, 0x74, 0x59, 0xba, 0x67, 0x89, 0x17, 0x6e, 0x90, 0xfe, 0xd5, 0x2e, 0x8d, 0x58,
++	0x2d, 0xa2, 0x61, 0x20, 0x75, 0xc3, 0x7f, 0xba, 0x49, 0x10, 0x6d, 0x69, 0x3f, 0xc5, 0x32, 0xe6,
++	0x07, 0x08, 0xf6, 0x5d, 0xc8, 0xf8, 0x7d, 0xa6, 0x43, 0xa3, 0x2d, 0x8c, 0x61, 0xca, 0x27, 0x6d,
++	0x6a, 0xa0, 0x39, 0x34, 0x3f, 0x6b, 0xf1, 0xdf, 0xd8, 0x80, 0x99, 0x88, 0xae, 0x47, 0x34, 0xde,
++	0x30, 0x4a, 0x7c, 0x58, 0x91, 0xb8, 0x0e, 0x55, 0xc6, 0x9c, 0xda, 0x49, 0x6c, 0x94, 0xe7, 0xca,
++	0xf3, 0xb3, 0x56, 0x4a, 0xe3, 0x79, 0xd8, 0x1b, 0xd1, 0x38, 0xe8, 0x44, 0x36, 0x7d, 0x96, 0x46,
++	0xb1, 0x1b, 0xf8, 0xc6, 0x14, 0x7f, 0xbb, 0x77, 0x98, 0xad, 0x12, 0x53, 0x8f, 0xda, 0x49, 0x10,
++	0x19, 0x15, 0x3e, 0x25, 0xa5, 0x19, 0x1e, 0x06, 0xdc, 0x98, 0x16, 0x78, 0xd8, 0x6f, 0x6c, 0xc2,
++	0x2e, 0x12, 0x86, 0xd7, 0x48, 0x9b, 0xc6, 0x21, 0xb1, 0xa9, 0x31, 0xc3, 0x9f, 0xe5, 0xc6, 0x18,
++	0x66, 0x89, 0xc4, 0xa8, 0x72, 0x60, 0x8a, 0x34, 0x57, 0x60, 0xf6, 0x5a, 0xe0, 0xd0, 0xe1, 0xe2,
++	0xf6, 0x2e, 0x5f, 0xea, 0x5f, 0xde, 0x7c, 0x1b, 0xc1, 0x41, 0x8b, 0x76, 0x5d, 0x86, 0xff, 0x2a,
++	0x4d, 0x88, 0x43, 0x12, 0xd2, 0xbb, 0x62, 0x29, 0x5d, 0xb1, 0x0e, 0xd5, 0x48, 0x4e, 0x36, 0x4a,
++	0x7c, 0x3c, 0xa5, 0xfb, 0xb8, 0x95, 0x8b, 0x85, 0x11, 0x2a, 0x54, 0x24, 0x9e, 0x83, 0x9a, 0xd0,
++	0xe5, 0x15, 0xdf, 0xa1, 0x2f, 0x70, 0xed, 0x55, 0x2c, 0x7d, 0x08, 0x1f, 0x81, 0xd9, 0xae, 0xd0,
++	0xf3, 0x15, 0x87, 0x6b, 0xb1, 0x62, 0x65, 0x03, 0xe6, 0xdf, 0x11, 0x1c, 0xd5, 0x6c, 0xc0, 0x92,
++	0x3b, 0x73, 0xa9, 0x4b, 0xfd, 0x24, 0x1e, 0x2e, 0xd0, 0x69, 0xd8, 0xaf, 0x36, 0xb1, 0x57, 0x4f,
++	0xfd, 0x0f, 0x98, 0x88, 0xfa, 0xa0, 0x12, 0x51, 0x1f, 0x63, 0x82, 0x28, 0xfa, 0x99, 0x2b, 0x17,
++	0xa5, 0x98, 0xfa, 0x50, 0x9f, 0xa2, 0x2a, 0xc5, 0x8a, 0x9a, 0xce, 0x29, 0xca, 0xfc, 0x07, 0x02,
++	0x43, 0x13, 0xf4, 0x2a, 0xf1, 0xdd, 0x75, 0x1a, 0x27, 0xe3, 0xee, 0x19, 0xda, 0xc1, 0x3d, 0x9b,
++	0x87, 0xbd, 0x42, 0xaa, 0xeb, 0xcc, 0x1f, 0x59, 0xfc, 0x31, 0x2a, 0x73, 0xe5, 0xf9, 0xb2, 0xd5,
++	0x3b, 0xcc, 0xf6, 0x4e, 0xf1, 0x8c, 0x8d, 0x69, 0x6e, 0xc6, 0xd9, 0x00, 0xe3, 0xe0, 0x07, 0x2b,
++	0xc4, 0xde, 0x10, 0x1e, 0x50, 0xb5, 0x14, 0x69, 0xde, 0x07, 0xb3, 0x4f, 0xba, 0x1e, 0x5d, 0xd9,
++	0xe8, 0xf8, 0x9b, 0xf8, 0x00, 0x54, 0x6c, 0xf6, 0x83, 0x4b, 0xb7, 0xcb, 0x12, 0x84, 0xf9, 0x0d,
++	0x04, 0xf7, 0x0d, 0xd3, 0xc7, 0x4d, 0x37, 0xd9, 0x60, 0xef, 0xc7, 0xc3, 0x14, 0x63, 0x6f, 0x50,
++	0x7b, 0x33, 0xee, 0xb4, 0x95, 0x31, 0x2b, 0x7a, 0x32, 0xc5, 0x98, 0x3f, 0x41, 0x30, 0x3f, 0x12,
++	0xd3, 0xcd, 0x88, 0x84, 0x21, 0x8d, 0xf0, 0x93, 0x50, 0xb9, 0xc5, 0x1e, 0x70, 0xd7, 0xad, 0x2d,
++	0x35, 0x1a, 0x7a, 0xe8, 0x1f, 0xb9, 0xca, 0x53, 0xff, 0x67, 0x89, 0xd7, 0x71, 0x43, 0xa9, 0xa7,
++	0xc4, 0xd7, 0x39, 0x94, 0x5b, 0x27, 0xd5, 0x22, 0x9b, 0xcf, 0xa7, 0x3d, 0x31, 0x0d, 0x53, 0x21,
++	0x89, 0x12, 0xf3, 0x20, 0xdc, 0x95, 0x77, 0x9c, 0x30, 0xf0, 0x63, 0x6a, 0xfe, 0x3a, 0x6f, 0x67,
++	0x2b, 0x11, 0x25, 0x09, 0xb5, 0xe8, 0xad, 0x0e, 0x8d, 0x13, 0xbc, 0x09, 0x7a, 0x36, 0xe2, 0x5a,
++	0xad, 0x2d, 0x5d, 0x69, 0x64, 0xe1, 0xbc, 0xa1, 0xc2, 0x39, 0xff, 0xf1, 0x79, 0xdb, 0x69, 0x74,
++	0x1f, 0x6c, 0x84, 0x9b, 0xad, 0x06, 0x4b, 0x0e, 0x39, 0x64, 0x2a, 0x39, 0xe8, 0xa2, 0x5a, 0xfa,
++	0xea, 0xf8, 0x10, 0x4c, 0x77, 0xc2, 0x98, 0x46, 0x09, 0x97, 0xac, 0x6a, 0x49, 0x8a, 0xed, 0x5f,
++	0x97, 0x78, 0xae, 0x43, 0x12, 0xb1, 0x3f, 0x55, 0x2b, 0xa5, 0xcd, 0xdf, 0xe4, 0xd1, 0x3f, 0x13,
++	0x3a, 0x77, 0x0a, 0xbd, 0x8e, 0xb2, 0x94, 0x47, 0xa9, 0x5b, 0x50, 0x39, 0x6f, 0x41, 0x3f, 0xcf,
++	0xe3, 0xbf, 0x48, 0x3d, 0x9a, 0xe1, 0x1f, 0x64, 0xcc, 0x06, 0xcc, 0xd8, 0x24, 0xb6, 0x89, 0xa3,
++	0xb8, 0x28, 0x92, 0x85, 0xb8, 0x30, 0x0a, 0x42, 0xd2, 0xe2, 0x2b, 0x5d, 0x0f, 0x3c, 0xd7, 0xde,
++	0x92, 0xec, 0xfa, 0x1f, 0xf4, 0x19, 0xfe, 0x54, 0xb1, 0xe1, 0x57, 0xf2, 0xb0, 0x8f, 0x41, 0x6d,
++	0x6d, 0xcb, 0xb7, 0x9f, 0x0e, 0x85, 0xdb, 0x1f, 0x80, 0x8a, 0x9b, 0xd0, 0x76, 0x6c, 0x20, 0xee,
++	0xf2, 0x82, 0x30, 0xdf, 0x45, 0x70, 0x98, 0xa5, 0x1c, 0x7a, 0x9b, 0x3a, 0x17, 0x6c, 0xce, 0x3b,
++	0xa2, 0x76, 0xe0, 0x3b, 0x32, 0x58, 0xcc, 0x41, 0x8d, 0xbe, 0x10, 0x52, 0x3b, 0xa1, 0x0e, 0x8b,
++	0xa0, 0x42, 0x4a, 0x7d, 0x08, 0x9f, 0x87, 0xbb, 0x15, 0x69, 0xf5, 0x64, 0x66, 0xe1, 0xc8, 0xc3,
++	0x1e, 0xe3, 0x05, 0xd8, 0xc7, 0x42, 0xb1, 0xd7, 0x65, 0x8f, 0x64, 0x50, 0x2c, 0xf3, 0x57, 0xfa,
++	0xc6, 0xb9, 0x2a, 0x6c, 0xe1, 0x79, 0xd1, 0x26, 0x8d, 0x8c, 0x29, 0x3e, 0x2f, 0x37, 0x66, 0x7e,
++	0xad, 0x04, 0xc7, 0xf2, 0xb2, 0xc4, 0x2b, 0x24, 0x24, 0xcf, 0xbb, 0x9e, 0x9b, 0xb8, 0x34, 0x56,
++	0xde, 0x24, 0xeb, 0x8b, 0x24, 0xb0, 0x03, 0x4f, 0x0a, 0x94, 0xd2, 0xf8, 0x38, 0xec, 0x56, 0xb1,
++	0x70, 0xcd, 0x0e, 0x42, 0x2a, 0x65, 0xc8, 0x0f, 0xe2, 0xa3, 0x00, 0x6d, 0xce, 0x53, 0x66, 0x1e,
++	0x36, 0x45, 0x1b, 0x61, 0xdb, 0x9c, 0xea, 0x90, 0x78, 0xc2, 0xe0, 0x39, 0xe4, 0xaa, 0xd5, 0xff,
++	0x80, 0xc9, 0xe6, 0x93, 0xc4, 0xed, 0x52, 0x69, 0x0f, 0x15, 0x3e, 0x31, 0x37, 0x86, 0x1b, 0x80,
++	0xed, 0x20, 0x8a, 0xa8, 0xc7, 0x2a, 0x36, 0x2b, 0xf0, 0xbc, 0xe7, 0x89, 0xbd, 0x69, 0x4c, 0xf3,
++	0x99, 0x03, 0x9e, 0x98, 0xbf, 0x9f, 0x86, 0x43, 0x9a, 0xcd, 0x32, 0x43, 0x28, 0xb2, 0xd8, 0xa2,
++	0xbc, 0x74, 0x08, 0xa6, 0x9d, 0x68, 0xcb, 0xea, 0xf8, 0xd2, 0xb1, 0x25, 0xc5, 0x0c, 0x2a, 0x8c,
++	0x3a, 0xbe, 0x30, 0xcb, 0xaa, 0x25, 0x08, 0xbc, 0x0e, 0xd5, 0x38, 0x61, 0x75, 0x65, 0x6b, 0x8b,
++	0x1b, 0x64, 0x6d, 0xe9, 0x53, 0x93, 0x39, 0x33, 0x83, 0xbe, 0x26, 0x57, 0xb4, 0xd2, 0xb5, 0xf1,
++	0x2d, 0x96, 0xc5, 0x84, 0x3d, 0xc5, 0xc6, 0xcc, 0x5c, 0x79, 0xbe, 0xb6, 0xb4, 0x36, 0x39, 0xa3,
++	0xa7, 0x43, 0x56, 0x13, 0x6b, 0x35, 0x8b, 0x95, 0x71, 0x61, 0x89, 0xb3, 0x2d, 0xe3, 0x7e, 0x2c,
++	0xeb, 0xbf, 0x6c, 0x00, 0x7f, 0x16, 0x2a, 0xae, 0xbf, 0x1e, 0xc4, 0xc6, 0x2c, 0x07, 0xf3, 0xc4,
++	0x64, 0x60, 0xae, 0xf8, 0xeb, 0x81, 0x25, 0x16, 0xc4, 0xb7, 0x98, 0x4d, 0x26, 0xd1, 0x96, 0xd2,
++	0x82, 0x01, 0x5c, 0xaf, 0x9f, 0x9e, 0x8c, 0x83, 0xa5, 0x2f, 0x69, 0xe5, 0x39, 0xe0, 0x65, 0xa8,
++	0xc5, 0x59, 0xec, 0x30, 0x6a, 0x9c, 0xa1, 0x91, 0x5b, 0x48, 0x8b, 0x2d, 0x96, 0x3e, 0xb9, 0x2f,
++	0x6a, 0xed, 0x2a, 0x8e, 0x5a, 0xbb, 0x47, 0xd6, 0x31, 0x7b, 0xc6, 0xa8, 0x63, 0xf6, 0xf6, 0xd6,
++	0x31, 0x17, 0x85, 0x45, 0xb3, 0x58, 0x60, 0xec, 0xe3, 0xf0, 0xe7, 0x73, 0xf0, 0x0b, 0x82, 0x9e,
++	0x95, 0xbe, 0x69, 0xbe, 0x8f, 0xe0, 0x48, 0x5f, 0xea, 0x5a, 0x0b, 0x69, 0xa1, 0x33, 0x11, 0x98,
++	0x8a, 0x43, 0x6a, 0xf3, 0xd0, 0x51, 0x5b, 0xba, 0xba, 0x63, 0xb9, 0x8c, 0xf3, 0xe5, 0x4b, 0x17,
++	0xa5, 0xdb, 0x09, 0xb3, 0xc6, 0xf7, 0x11, 0xdc, 0xad, 0xf1, 0xbc, 0x4e, 0x12, 0x7b, 0xa3, 0x48,
++	0x58, 0x16, 0x05, 0xd8, 0x1c, 0x19, 0x28, 0x05, 0xc1, 0xf6, 0x86, 0xff, 0xb8, 0xb1, 0x15, 0xaa,
++	0xf8, 0x98, 0x0d, 0x4c, 0x58, 0x74, 0xff, 0x0b, 0x41, 0x5d, 0xcf, 0xf0, 0x32, 0xe4, 0x15, 0x81,
++	0xdc, 0x03, 0x25, 0xd7, 0xe1, 0x08, 0xcb, 0x56, 0xc9, 0x75, 0xb6, 0x19, 0xd2, 0x7a, 0xe1, 0x4e,
++	0x17, 0xc3, 0x9d, 0xc9, 0x1b, 0xb4, 0x6e, 0x88, 0xd5, 0x0f, 0x6d, 0x88, 0x1f, 0xf4, 0x08, 0xad,
++	0xc2, 0x53, 0x81, 0xd0, 0x47, 0x60, 0xd6, 0xef, 0x39, 0x46, 0x65, 0x03, 0x03, 0x8e, 0x4f, 0xa5,
++	0xbe, 0xe3, 0x93, 0x01, 0x33, 0xdd, 0xf4, 0x90, 0xcd, 0x1e, 0x2b, 0x92, 0x29, 0xaa, 0x15, 0x05,
++	0x9d, 0x50, 0x6e, 0x9d, 0x20, 0x18, 0x8a, 0x4d, 0xd7, 0x77, 0x78, 0x5a, 0x9a, 0xb5, 0xf8, 0xef,
++	0xed, 0x1f, 0xab, 0x73, 0x7b, 0xfd, 0xd3, 0x12, 0xfc, 0xff, 0x00, 0xb1, 0x47, 0x5a, 0xe5, 0x47,
++	0x43, 0xf6, 0xd4, 0x37, 0x66, 0x86, 0xfa, 0x46, 0x75, 0x94, 0x6f, 0xcc, 0x16, 0xeb, 0x0b, 0xf2,
++	0xfa, 0xfa, 0x71, 0x09, 0xe6, 0x06, 0xe8, 0x6b, 0x74, 0xc9, 0xfa, 0x91, 0x51, 0xd8, 0x7a, 0x10,
++	0xd9, 0xea, 0xe8, 0x29, 0x08, 0xe6, 0xad, 0x41, 0x14, 0x6e, 0x10, 0x9f, 0x5b, 0x47, 0xd5, 0x92,
++	0xd4, 0x84, 0xaa, 0xba, 0x08, 0x86, 0x52, 0x8f, 0x74, 0x3d, 0x12, 0x91, 0x36, 0x4d, 0x68, 0x14,
++	0x0f, 0x0b, 0x74, 0x5d, 0xe2, 0x75, 0x54, 0x45, 0x28, 0x08, 0xf3, 0xd5, 0x52, 0xef, 0x32, 0x56,
++	0xc7, 0xff, 0xe8, 0x2b, 0xfa, 0x10, 0x4c, 0x8b, 0xd2, 0x59, 0x9a, 0xa6, 0xa4, 0xfa, 0x54, 0x5a,
++	0x2d, 0x56, 0xe9, 0x6c, 0x4e, 0xa5, 0xcb, 0x25, 0x03, 0x99, 0xef, 0x97, 0xa0, 0x3e, 0x4c, 0x21,
++	0xcf, 0x2e, 0xfd, 0xaf, 0xa9, 0x04, 0x13, 0x30, 0xa2, 0x21, 0x56, 0x66, 0x00, 0x2f, 0x14, 0x4f,
++	0xf4, 0x64, 0x83, 0xc1, 0x93, 0xad, 0xa1, 0xcb, 0x98, 0x5f, 0xe1, 0x47, 0x38, 0xfd, 0x61, 0xbc,
++	0xea, 0xc6, 0x49, 0x7a, 0xdc, 0x59, 0x87, 0x19, 0x21, 0x8a, 0x38, 0xfa, 0xd5, 0x96, 0x56, 0x27,
++	0x2d, 0x1c, 0x73, 0xbb, 0xab, 0x16, 0x37, 0x1f, 0x86, 0xc3, 0x03, 0x33, 0x54, 0x76, 0xea, 0x52,
++	0xc5, 0xb2, 0x3a, 0x75, 0x29, 0xda, 0x7c, 0x63, 0x2a, 0x5f, 0x74, 0x04, 0xce, 0x6a, 0xd0, 0x2a,
++	0xe8, 0x14, 0x16, 0x5b, 0x0c, 0xdb, 0x8d, 0xc0, 0xd1, 0x9a, 0x82, 0x8a, 0x64, 0xef, 0xd9, 0x81,
++	0x9f, 0x10, 0xd7, 0xe7, 0x47, 0x48, 0xfe, 0x5e, 0x3a, 0xc0, 0x76, 0x3a, 0x76, 0x7d, 0x9b, 0xae,
++	0xf1, 0x14, 0x1c, 0x73, 0x93, 0x29, 0x5b, 0xb9, 0x31, 0xfc, 0x14, 0xcc, 0x72, 0xfa, 0x86, 0xdb,
++	0x16, 0x85, 0x40, 0x6d, 0x69, 0xa1, 0x21, 0xba, 0xf7, 0x0d, 0xbd, 0x7b, 0x9f, 0xe9, 0xb0, 0x4d,
++	0x13, 0xd2, 0xe8, 0x9e, 0x6d, 0xb0, 0x37, 0xac, 0xec, 0x65, 0x86, 0x25, 0x21, 0xae, 0xb7, 0xea,
++	0xfa, 0xfc, 0x00, 0xc3, 0x58, 0x65, 0x03, 0xcc, 0x1a, 0xd7, 0x03, 0xcf, 0x0b, 0x6e, 0xab, 0x98,
++	0x27, 0x28, 0xf6, 0x56, 0xc7, 0x4f, 0x5c, 0x8f, 0xf3, 0x17, 0xb6, 0x96, 0x0d, 0xf0, 0xb7, 0x5c,
++	0x2f, 0xa1, 0x91, 0x0c, 0x76, 0x92, 0x4a, 0xed, 0xbd, 0x26, 0x1a, 0xd2, 0x2a, 0xd6, 0x0a, 0xcf,
++	0xd8, 0xa5, 0x7b, 0x46, 0xaf, 0xb7, 0xed, 0x1e, 0xd0, 0x55, 0xe5, 0xe7, 0x67, 0xda, 0x75, 0x83,
++	0x0e, 0xab, 0xcd, 0x79, 0xf1, 0xa9, 0xe8, 0x3e, 0x6f, 0xd9, 0x5b, 0xec, 0x2d, 0xfb, 0xf2, 0xde,
++	0xc2, 0x4f, 0x58, 0x89, 0xbd, 0xb1, 0x42, 0x62, 0x6a, 0xec, 0xe7, 0x4b, 0x67, 0x03, 0xe6, 0x6f,
++	0x11, 0x54, 0x57, 0x83, 0xd6, 0x25, 0x3f, 0x89, 0xb6, 0x78, 0x8f, 0x25, 0xf0, 0x13, 0xea, 0x2b,
++	0x6b, 0x52, 0x24, 0xdb, 0xa2, 0xc4, 0x6d, 0xd3, 0xb5, 0x84, 0xb4, 0x43, 0x59, 0x83, 0x6f, 0x6b,
++	0x8b, 0xd2, 0x97, 0x99, 0xda, 0x3c, 0x12, 0x27, 0x3c, 0xe4, 0x54, 0x2d, 0xfe, 0x9b, 0x09, 0x98,
++	0x4e, 0x58, 0x4b, 0xd2, 0x46, 0x84, 0x3e, 0xa6, 0x1b, 0x60, 0x45, 0x60, 0x93, 0xa4, 0xd9, 0x86,
++	0x7b, 0xd2, 0x23, 0xe6, 0x0d, 0x1a, 0xb5, 0x5d, 0x9f, 0x14, 0xe7, 0xe5, 0x31, 0xae, 0x0d, 0x0a,
++	0x3a, 0x57, 0x41, 0xce, 0x25, 0xd9, 0x89, 0xed, 0xa6, 0xeb, 0x3b, 0xc1, 0xed, 0x02, 0xd7, 0x9a,
++	0x8c, 0xe1, 0x9f, 0xf3, 0x9d, 0x7f, 0x8d, 0x63, 0x1a, 0x07, 0x9e, 0x82, 0xdd, 0x2c, 0x62, 0x74,
++	0xa9, 0x7c, 0x20, 0x83, 0x92, 0x39, 0xac, 0xd5, 0x9a, 0xad, 0x61, 0xe5, 0x5f, 0xc4, 0xab, 0xb0,
++	0x97, 0xc4, 0xb1, 0xdb, 0xf2, 0xa9, 0xa3, 0xd6, 0x2a, 0x8d, 0xbd, 0x56, 0xef, 0xab, 0xa2, 0x69,
++	0xc7, 0x67, 0xc8, 0xfd, 0x56, 0xa4, 0xf9, 0x65, 0x04, 0x07, 0x07, 0x2e, 0x92, 0xfa, 0x15, 0xd2,
++	0xf2, 0x48, 0x1d, 0xaa, 0xb1, 0xbd, 0x41, 0x9d, 0x8e, 0xa7, 0x4a, 0x85, 0x94, 0x66, 0xcf, 0x9c,
++	0x8e, 0xd8, 0x7d, 0x99, 0xc7, 0x52, 0x5a, 0xf4, 0x94, 0xfc, 0x0e, 0xf1, 0x38, 0x04, 0xd1, 0x2c,
++	0xd2, 0x46, 0xcc, 0x23, 0x50, 0x1f, 0x64, 0x3a, 0xb2, 0x43, 0xfc, 0x4f, 0x04, 0x7b, 0x54, 0xc8,
++	0x95, 0xbb, 0x3b, 0x0f, 0x7b, 0x35, 0x35, 0x5c, 0xcb, 0x36, 0xba, 0x77, 0x78, 0x44, 0x38, 0x55,
++	0x56, 0x52, 0xce, 0x5f, 0xde, 0x75, 0x73, 0xd7, 0x6f, 0x63, 0x27, 0x5c, 0xb4, 0x43, 0x27, 0x83,
++	0x2f, 0x81, 0x71, 0x95, 0xf8, 0xa4, 0x95, 0xb5, 0x15, 0x33, 0x13, 0xfb, 0x82, 0xde, 0xea, 0x9c,
++	0xb8, 0x01, 0x95, 0x16, 0xd1, 0xee, 0xfa, 0xba, 0x6a, 0x9b, 0xbe, 0x56, 0xca, 0xdb, 0x39, 0xbf,
++	0x17, 0x5d, 0x73, 0x1d, 0x3e, 0x49, 0xa8, 0xdf, 0x80, 0x19, 0x29, 0x8a, 0x0a, 0x50, 0x92, 0x9c,
++	0xcc, 0xc5, 0x70, 0x08, 0xbb, 0x3d, 0xb7, 0x4b, 0x53, 0xa9, 0x8d, 0xa9, 0x1d, 0x17, 0x32, 0xcf,
++	0x80, 0x19, 0x52, 0x42, 0xa2, 0x16, 0x4d, 0xae, 0xa6, 0xdd, 0xaf, 0x0a, 0x6f, 0xb7, 0xf4, 0x0e,
++	0x9b, 0x3f, 0xcc, 0xdf, 0xff, 0xe4, 0xd5, 0xf2, 0xdf, 0xdb, 0x1e, 0x5e, 0x6b, 0x04, 0x8e, 0xbb,
++	0xee, 0x52, 0x71, 0xea, 0xaf, 0x5a, 0x29, 0x6d, 0x46, 0x50, 0x5d, 0x75, 0xfd, 0xcd, 0x2b, 0xfe,
++	0x7a, 0xc0, 0x8c, 0x35, 0x71, 0x13, 0x4f, 0xed, 0x90, 0x20, 0xf0, 0x3e, 0x28, 0x77, 0x22, 0x4f,
++	0x3a, 0x2f, 0xfb, 0x89, 0xe7, 0xa0, 0xe6, 0xd0, 0xd8, 0x8e, 0xdc, 0x50, 0xba, 0x2e, 0xbf, 0x47,
++	0xd4, 0x86, 0x98, 0x0b, 0xb9, 0x76, 0xe0, 0xaf, 0x78, 0x24, 0x8e, 0x55, 0x65, 0x91, 0x0e, 0x98,
++	0x8f, 0xc2, 0x6e, 0xc6, 0x33, 0xb3, 0xd0, 0x53, 0x79, 0x15, 0x1c, 0xcc, 0x89, 0xa6, 0xe0, 0x29,
++	0x63, 0x23, 0x70, 0x17, 0x2b, 0xe8, 0x2e, 0x84, 0xa1, 0x5c, 0x64, 0xcc, 0xd3, 0x45, 0x79, 0x50,
++	0x61, 0x34, 0xf0, 0x92, 0x6c, 0xe9, 0x97, 0xa7, 0x01, 0xf7, 0x6c, 0x9c, 0x6b, 0x53, 0xfc, 0x4d,
++	0x04, 0x53, 0x8c, 0x35, 0xbe, 0x77, 0x58, 0x44, 0xe5, 0xb6, 0x5e, 0xdf, 0xb9, 0x1e, 0x17, 0xe3,
++	0x66, 0x1e, 0x79, 0xf9, 0x2f, 0x7f, 0xfb, 0x56, 0xe9, 0x10, 0x3e, 0xc0, 0x3f, 0x9a, 0xe8, 0x9e,
++	0xd5, 0x3f, 0x60, 0x88, 0xf1, 0x2b, 0x08, 0xb0, 0x2c, 0x70, 0xb5, 0x6b, 0x65, 0x7c, 0x6a, 0x18,
++	0xc4, 0x01, 0xd7, 0xcf, 0xf5, 0x7b, 0xb5, 0x82, 0xa0, 0x61, 0x07, 0x11, 0x65, 0xe9, 0x9f, 0x4f,
++	0xe0, 0x00, 0x16, 0x38, 0x80, 0xe3, 0xd8, 0x1c, 0x04, 0xa0, 0xf9, 0x22, 0xd3, 0xe8, 0x4b, 0x4d,
++	0x2a, 0xf8, 0xbe, 0x8e, 0xa0, 0x72, 0x93, 0x1f, 0xec, 0x47, 0x28, 0x69, 0x6d, 0xc7, 0x94, 0xc4,
++	0xd9, 0x71, 0xb4, 0xe6, 0x31, 0x8e, 0xf4, 0x5e, 0x7c, 0x58, 0x21, 0x8d, 0x93, 0x88, 0x92, 0x76,
++	0x0e, 0xf0, 0x19, 0x84, 0xdf, 0x44, 0x30, 0x2d, 0x6e, 0x0d, 0xf1, 0x89, 0x61, 0x28, 0x73, 0xb7,
++	0x8a, 0xf5, 0x9d, 0xbb, 0x82, 0x33, 0x1f, 0xe0, 0x18, 0x8f, 0x99, 0x03, 0xb7, 0x73, 0x39, 0x77,
++	0x41, 0xf7, 0x1a, 0x82, 0xf2, 0x65, 0x3a, 0xd2, 0xde, 0x76, 0x10, 0x5c, 0x9f, 0x02, 0x07, 0x6c,
++	0x35, 0x7e, 0x03, 0xc1, 0x3d, 0x97, 0x69, 0x32, 0xb8, 0xb2, 0xc1, 0xf3, 0xa3, 0xcb, 0x0d, 0x69,
++	0x76, 0xa7, 0xc6, 0x98, 0x99, 0xa6, 0xf4, 0x26, 0x47, 0xf6, 0x00, 0x3e, 0x59, 0x64, 0x84, 0xf1,
++	0x96, 0x6f, 0xdf, 0x96, 0x38, 0xde, 0x45, 0xb0, 0xaf, 0xf7, 0xf3, 0x11, 0x6c, 0xf6, 0x35, 0x1b,
++	0xfb, 0xbe, 0x2e, 0xa9, 0x5f, 0x9b, 0x34, 0x02, 0xe7, 0x17, 0x35, 0x2f, 0x70, 0xe4, 0x8f, 0xe0,
++	0x87, 0x8b, 0x90, 0xa7, 0xad, 0xfa, 0xe6, 0x8b, 0xea, 0xe7, 0x4b, 0xfc, 0x53, 0x27, 0x0e, 0xfb,
++	0x8f, 0x08, 0x0e, 0xa8, 0x75, 0x57, 0x36, 0x48, 0x94, 0x5c, 0xa4, 0xec, 0x70, 0x14, 0x8f, 0x25,
++	0xcf, 0x84, 0x19, 0x45, 0xe7, 0x67, 0x5e, 0xe2, 0xb2, 0x3c, 0x8e, 0x1f, 0xdb, 0xb6, 0x2c, 0x36,
++	0x5b, 0xc6, 0x91, 0xb0, 0xdf, 0x46, 0xb0, 0xe7, 0x32, 0x4d, 0x9e, 0x5e, 0xb9, 0xb2, 0xad, 0x9d,
++	0x99, 0xd0, 0xd0, 0x35, 0x76, 0xe6, 0x45, 0x2e, 0xc8, 0x27, 0xf0, 0xa3, 0xdb, 0x16, 0x24, 0xb0,
++	0xdd, 0x74, 0x5f, 0x5e, 0x46, 0xb0, 0xeb, 0xb2, 0x96, 0xf2, 0x87, 0x87, 0x93, 0xdc, 0x27, 0x12,
++	0xf5, 0x23, 0x0d, 0xed, 0x4b, 0x31, 0xf5, 0x28, 0x35, 0xf5, 0x45, 0x8e, 0xed, 0x24, 0x3e, 0x51,
++	0x84, 0x2d, 0xbb, 0x6a, 0x7b, 0x1d, 0xc1, 0x41, 0x1d, 0x44, 0xf6, 0x69, 0xc9, 0x43, 0xdb, 0xfb,
++	0x60, 0x43, 0x7e, 0xf6, 0x31, 0x02, 0xdd, 0x12, 0x47, 0x77, 0xda, 0x1c, 0xec, 0x88, 0xed, 0x3e,
++	0x14, 0xcb, 0x68, 0x61, 0x1e, 0xe1, 0xdf, 0x21, 0x98, 0x96, 0x17, 0xbc, 0x43, 0x75, 0x94, 0xfb,
++	0x14, 0x62, 0x27, 0xa3, 0x9a, 0xb4, 0xda, 0xfa, 0x99, 0xc1, 0x0a, 0xd5, 0xdf, 0x57, 0x5b, 0xdb,
++	0xe0, 0x5a, 0xce, 0x87, 0xe3, 0x5f, 0x20, 0x80, 0xec, 0xce, 0x0b, 0x3f, 0x50, 0x2c, 0x87, 0x76,
++	0x2f, 0x56, 0xdf, 0xd9, 0x5b, 0x2f, 0xb3, 0xc1, 0xe5, 0x99, 0xaf, 0xcf, 0x15, 0xc6, 0xc2, 0x90,
++	0xda, 0xcb, 0xe2, 0x7e, 0xec, 0x07, 0x08, 0x2a, 0xfc, 0x92, 0x00, 0x1f, 0x1f, 0x86, 0x59, 0xbf,
++	0x43, 0xd8, 0x49, 0xd5, 0xdf, 0xcf, 0xa1, 0xce, 0x2d, 0x15, 0x25, 0x94, 0x65, 0xb4, 0x80, 0xbb,
++	0x30, 0x2d, 0xda, 0xf2, 0xc3, 0xcd, 0x23, 0xd7, 0xb6, 0xaf, 0xcf, 0x15, 0x14, 0x38, 0xc2, 0x50,
++	0x65, 0x2e, 0x5b, 0x18, 0x95, 0xcb, 0xa6, 0x58, 0xba, 0xc1, 0xc7, 0x8a, 0x92, 0xd1, 0x7f, 0x40,
++	0x31, 0xa7, 0x38, 0xba, 0x13, 0xe6, 0xdc, 0xa8, 0x7c, 0xc6, 0xb4, 0xf3, 0x56, 0xdf, 0x77, 0x29,
++	0xb9, 0x6f, 0x39, 0xb6, 0x91, 0x73, 0xcf, 0x14, 0xdc, 0xb6, 0x0d, 0xfc, 0x3e, 0x64, 0xfc, 0xf4,
++	0xc5, 0x16, 0x5a, 0x94, 0xed, 0xcf, 0xa6, 0xad, 0xc3, 0x7b, 0x0b, 0xc1, 0x2e, 0xc5, 0xea, 0x8e,
++	0x28, 0xfb, 0x51, 0x2e, 0xc3, 0xc7, 0xcc, 0xb3, 0xdb, 0x92, 0x41, 0x69, 0xff, 0x1d, 0x59, 0x49,
++	0xb0, 0x87, 0xea, 0x7e, 0x15, 0x9f, 0x1c, 0x6a, 0x7f, 0xf9, 0x1b, 0xd8, 0x9d, 0x14, 0xe3, 0x93,
++	0x5c, 0x8c, 0x65, 0xf3, 0xa1, 0x6d, 0x89, 0x11, 0x49, 0x40, 0x4c, 0x94, 0x6f, 0x23, 0xd8, 0xd7,
++	0xdb, 0x28, 0xc0, 0x87, 0x07, 0xf6, 0xdc, 0xa5, 0xc1, 0xe4, 0xdd, 0x71, 0x58, 0x93, 0x41, 0x41,
++	0xc3, 0xe7, 0x47, 0x86, 0xd8, 0x6b, 0x2a, 0x7d, 0xb1, 0x85, 0x16, 0xb3, 0xef, 0x49, 0x7e, 0x84,
++	0x60, 0x4f, 0xfe, 0x88, 0x3c, 0xfc, 0x10, 0x33, 0xa0, 0xc3, 0x50, 0x6f, 0x8c, 0x37, 0x39, 0x45,
++	0xfc, 0x71, 0x8e, 0xf8, 0x2c, 0x6e, 0x0e, 0x45, 0x2c, 0x90, 0x8a, 0xaf, 0xbc, 0x17, 0x63, 0xd7,
++	0xa1, 0x8b, 0x0e, 0x43, 0xf5, 0x2b, 0x6e, 0xcd, 0x02, 0xf6, 0x8d, 0x88, 0xd2, 0x62, 0xfd, 0xed,
++	0x5c, 0xe8, 0x67, 0xbc, 0x94, 0x25, 0xe3, 0x73, 0x63, 0xea, 0x59, 0xe9, 0x77, 0x31, 0x61, 0x48,
++	0xff, 0x80, 0x60, 0xff, 0x4d, 0x11, 0xe9, 0xef, 0x10, 0xfe, 0x15, 0x8e, 0xff, 0x31, 0xfc, 0x48,
++	0xc1, 0x09, 0x6d, 0x94, 0x18, 0x67, 0x10, 0xfe, 0x19, 0x82, 0xea, 0x1d, 0x75, 0x45, 0x79, 0x1c,
++	0x31, 0x8f, 0x17, 0xba, 0xa2, 0xe6, 0x79, 0xaf, 0x21, 0xc0, 0x69, 0xa3, 0x32, 0x6d, 0x5d, 0xe2,
++	0xfb, 0x73, 0xac, 0x86, 0x76, 0xc3, 0xeb, 0x27, 0x47, 0xce, 0xcb, 0x17, 0x8f, 0x0b, 0x85, 0xc5,
++	0x63, 0x90, 0xf2, 0x7f, 0x15, 0x41, 0xed, 0x32, 0x4d, 0xbb, 0x07, 0x05, 0xba, 0xcc, 0x7f, 0x63,
++	0x51, 0x9f, 0x1f, 0x3d, 0x51, 0x22, 0x3a, 0xcd, 0x11, 0xdd, 0x8f, 0x8b, 0x55, 0xa5, 0x00, 0x7c,
++	0x07, 0xc1, 0xee, 0xeb, 0xba, 0x89, 0xe2, 0xd3, 0xa3, 0x38, 0xe5, 0x6a, 0x97, 0xf1, 0x71, 0x3d,
++	0xc8, 0x71, 0x2d, 0x9a, 0x63, 0xe1, 0x5a, 0x96, 0x9f, 0x2b, 0x7c, 0x0f, 0x89, 0xf6, 0x53, 0xcf,
++	0x15, 0xe3, 0x87, 0xd5, 0x5b, 0xc1, 0x4d, 0xa5, 0x79, 0x8e, 0xe3, 0x6b, 0xe0, 0xd3, 0xe3, 0xe0,
++	0x6b, 0xca, 0x68, 0x8f, 0xbf, 0x8b, 0x60, 0x3f, 0xbf, 0x63, 0xd6, 0x17, 0xc6, 0x45, 0xd7, 0xaa,
++	0xd9, 0x8d, 0xf4, 0x18, 0x45, 0xd5, 0xe3, 0x32, 0x93, 0x6e, 0x0b, 0xd4, 0xb2, 0xbc, 0x3d, 0xfe,
++	0x6a, 0x09, 0xb1, 0xfd, 0xbd, 0xab, 0x0f, 0xdf, 0xb3, 0x4b, 0x3d, 0x0a, 0x1c, 0x7e, 0x67, 0x3e,
++	0x06, 0xc6, 0x65, 0x8e, 0xf1, 0x9c, 0xd9, 0xdc, 0x0e, 0xc6, 0x66, 0x77, 0x89, 0xb9, 0xe9, 0xd7,
++	0x11, 0xec, 0x51, 0x85, 0xa6, 0xb4, 0xbf, 0xc5, 0x51, 0x5b, 0xbb, 0xdd, 0xc2, 0x54, 0x3a, 0xc4,
++	0xc2, 0x78, 0x0e, 0xf1, 0x26, 0x82, 0x19, 0x79, 0x05, 0x5c, 0x50, 0xbe, 0x6b, 0x77, 0xc4, 0xf5,
++	0x9e, 0xfe, 0xa9, 0xbc, 0x23, 0x34, 0x3f, 0xc7, 0xd9, 0x3e, 0x83, 0x0b, 0xd5, 0x12, 0x06, 0x4e,
++	0xdc, 0x7c, 0x51, 0x5e, 0xd0, 0xbd, 0xd4, 0xf4, 0x82, 0x56, 0xfc, 0x9c, 0x89, 0x0b, 0x8b, 0x54,
++	0x36, 0xe7, 0x0c, 0xc2, 0x09, 0xcc, 0x32, 0xf3, 0xe5, 0x4d, 0x59, 0x3c, 0xd7, 0xd3, 0xc2, 0xed,
++	0xeb, 0xd7, 0xd6, 0xeb, 0x7d, 0x4d, 0xde, 0xac, 0x98, 0x90, 0x2d, 0x32, 0x7c, 0x5f, 0x21, 0x5b,
++	0xce, 0xe8, 0x15, 0x04, 0xfb, 0x75, 0x7f, 0x14, 0xec, 0xc7, 0xf6, 0xc6, 0x22, 0x14, 0xf2, 0xa0,
++	0x8b, 0x17, 0xc6, 0x32, 0x23, 0x0e, 0xe7, 0x89, 0x27, 0xdf, 0x79, 0xef, 0x28, 0xfa, 0xd3, 0x7b,
++	0x47, 0xd1, 0x5f, 0xdf, 0x3b, 0x8a, 0x9e, 0x3b, 0x3f, 0xde, 0x5f, 0xd2, 0x6c, 0xcf, 0xa5, 0x7e,
++	0xa2, 0x2f, 0xff, 0xef, 0x00, 0x00, 0x00, 0xff, 0xff, 0x47, 0x8a, 0xe9, 0xac, 0x78, 0x37, 0x00,
++	0x00,
+ }
+ 
+ // Reference imports to suppress errors if they are not otherwise used.
+@@ -3410,6 +3604,10 @@ type ApplicationServiceClient interface {
+ 	Delete(ctx context.Context, in *ApplicationDeleteRequest, opts ...grpc.CallOption) (*ApplicationResponse, error)
+ 	// Sync syncs an application to its target state
+ 	Sync(ctx context.Context, in *ApplicationSyncRequest, opts ...grpc.CallOption) (*v1alpha1.Application, error)
++	// These methods are intentionally absent on an unmodified Argo CD server.
++	ReviewedActionsCapabilities(ctx context.Context, in *ApplicationSyncWindowsQuery, opts ...grpc.CallOption) (*ReviewedActionsCapabilitiesResponse, error)
++	ReviewedSync(ctx context.Context, in *ApplicationSyncRequest, opts ...grpc.CallOption) (*v1alpha1.Application, error)
++	ReviewedRollback(ctx context.Context, in *ApplicationRollbackRequest, opts ...grpc.CallOption) (*v1alpha1.Application, error)
+ 	// ManagedResources returns list of managed resources
+ 	ManagedResources(ctx context.Context, in *ResourcesQuery, opts ...grpc.CallOption) (*ManagedResourcesResponse, error)
+ 	// ServerSideDiff performs server-side diff calculation using dry-run apply
+@@ -3645,6 +3843,33 @@ func (c *applicationServiceClient) Sync(ctx context.Context, in *ApplicationSync
+ 	return out, nil
+ }
+ 
++func (c *applicationServiceClient) ReviewedActionsCapabilities(ctx context.Context, in *ApplicationSyncWindowsQuery, opts ...grpc.CallOption) (*ReviewedActionsCapabilitiesResponse, error) {
++	out := new(ReviewedActionsCapabilitiesResponse)
++	err := c.cc.Invoke(ctx, "/application.ApplicationService/ReviewedActionsCapabilities", in, out, opts...)
++	if err != nil {
++		return nil, err
++	}
++	return out, nil
++}
++
++func (c *applicationServiceClient) ReviewedSync(ctx context.Context, in *ApplicationSyncRequest, opts ...grpc.CallOption) (*v1alpha1.Application, error) {
++	out := new(v1alpha1.Application)
++	err := c.cc.Invoke(ctx, "/application.ApplicationService/ReviewedSync", in, out, opts...)
++	if err != nil {
++		return nil, err
++	}
++	return out, nil
++}
++
++func (c *applicationServiceClient) ReviewedRollback(ctx context.Context, in *ApplicationRollbackRequest, opts ...grpc.CallOption) (*v1alpha1.Application, error) {
++	out := new(v1alpha1.Application)
++	err := c.cc.Invoke(ctx, "/application.ApplicationService/ReviewedRollback", in, out, opts...)
++	if err != nil {
++		return nil, err
++	}
++	return out, nil
++}
++
+ func (c *applicationServiceClient) ManagedResources(ctx context.Context, in *ResourcesQuery, opts ...grpc.CallOption) (*ManagedResourcesResponse, error) {
+ 	out := new(ManagedResourcesResponse)
+ 	err := c.cc.Invoke(ctx, "/application.ApplicationService/ManagedResources", in, out, opts...)
+@@ -3861,6 +4086,10 @@ type ApplicationServiceServer interface {
+ 	Delete(context.Context, *ApplicationDeleteRequest) (*ApplicationResponse, error)
+ 	// Sync syncs an application to its target state
+ 	Sync(context.Context, *ApplicationSyncRequest) (*v1alpha1.Application, error)
++	// These methods are intentionally absent on an unmodified Argo CD server.
++	ReviewedActionsCapabilities(context.Context, *ApplicationSyncWindowsQuery) (*ReviewedActionsCapabilitiesResponse, error)
++	ReviewedSync(context.Context, *ApplicationSyncRequest) (*v1alpha1.Application, error)
++	ReviewedRollback(context.Context, *ApplicationRollbackRequest) (*v1alpha1.Application, error)
+ 	// ManagedResources returns list of managed resources
+ 	ManagedResources(context.Context, *ResourcesQuery) (*ManagedResourcesResponse, error)
+ 	// ServerSideDiff performs server-side diff calculation using dry-run apply
+@@ -3948,6 +4177,15 @@ func (*UnimplementedApplicationServiceServer) Delete(ctx context.Context, req *A
+ func (*UnimplementedApplicationServiceServer) Sync(ctx context.Context, req *ApplicationSyncRequest) (*v1alpha1.Application, error) {
+ 	return nil, status.Errorf(codes.Unimplemented, "method Sync not implemented")
+ }
++func (*UnimplementedApplicationServiceServer) ReviewedActionsCapabilities(ctx context.Context, req *ApplicationSyncWindowsQuery) (*ReviewedActionsCapabilitiesResponse, error) {
++	return nil, status.Errorf(codes.Unimplemented, "method ReviewedActionsCapabilities not implemented")
++}
++func (*UnimplementedApplicationServiceServer) ReviewedSync(ctx context.Context, req *ApplicationSyncRequest) (*v1alpha1.Application, error) {
++	return nil, status.Errorf(codes.Unimplemented, "method ReviewedSync not implemented")
++}
++func (*UnimplementedApplicationServiceServer) ReviewedRollback(ctx context.Context, req *ApplicationRollbackRequest) (*v1alpha1.Application, error) {
++	return nil, status.Errorf(codes.Unimplemented, "method ReviewedRollback not implemented")
++}
+ func (*UnimplementedApplicationServiceServer) ManagedResources(ctx context.Context, req *ResourcesQuery) (*ManagedResourcesResponse, error) {
+ 	return nil, status.Errorf(codes.Unimplemented, "method ManagedResources not implemented")
+ }
+@@ -4297,6 +4535,60 @@ func _ApplicationService_Sync_Handler(srv interface{}, ctx context.Context, dec
+ 	return interceptor(ctx, in, info, handler)
+ }
+ 
++func _ApplicationService_ReviewedActionsCapabilities_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
++	in := new(ApplicationSyncWindowsQuery)
++	if err := dec(in); err != nil {
++		return nil, err
++	}
++	if interceptor == nil {
++		return srv.(ApplicationServiceServer).ReviewedActionsCapabilities(ctx, in)
++	}
++	info := &grpc.UnaryServerInfo{
++		Server:     srv,
++		FullMethod: "/application.ApplicationService/ReviewedActionsCapabilities",
++	}
++	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
++		return srv.(ApplicationServiceServer).ReviewedActionsCapabilities(ctx, req.(*ApplicationSyncWindowsQuery))
++	}
++	return interceptor(ctx, in, info, handler)
++}
++
++func _ApplicationService_ReviewedSync_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
++	in := new(ApplicationSyncRequest)
++	if err := dec(in); err != nil {
++		return nil, err
++	}
++	if interceptor == nil {
++		return srv.(ApplicationServiceServer).ReviewedSync(ctx, in)
++	}
++	info := &grpc.UnaryServerInfo{
++		Server:     srv,
++		FullMethod: "/application.ApplicationService/ReviewedSync",
++	}
++	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
++		return srv.(ApplicationServiceServer).ReviewedSync(ctx, req.(*ApplicationSyncRequest))
++	}
++	return interceptor(ctx, in, info, handler)
++}
++
++func _ApplicationService_ReviewedRollback_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
++	in := new(ApplicationRollbackRequest)
++	if err := dec(in); err != nil {
++		return nil, err
++	}
++	if interceptor == nil {
++		return srv.(ApplicationServiceServer).ReviewedRollback(ctx, in)
++	}
++	info := &grpc.UnaryServerInfo{
++		Server:     srv,
++		FullMethod: "/application.ApplicationService/ReviewedRollback",
++	}
++	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
++		return srv.(ApplicationServiceServer).ReviewedRollback(ctx, req.(*ApplicationRollbackRequest))
++	}
++	return interceptor(ctx, in, info, handler)
++}
++
+ func _ApplicationService_ManagedResources_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+ 	in := new(ResourcesQuery)
+ 	if err := dec(in); err != nil {
+@@ -4633,6 +4925,18 @@ var _ApplicationService_serviceDesc = grpc.ServiceDesc{
+ 			MethodName: "Sync",
+ 			Handler:    _ApplicationService_Sync_Handler,
+ 		},
++		{
++			MethodName: "ReviewedActionsCapabilities",
++			Handler:    _ApplicationService_ReviewedActionsCapabilities_Handler,
++		},
++		{
++			MethodName: "ReviewedSync",
++			Handler:    _ApplicationService_ReviewedSync_Handler,
++		},
++		{
++			MethodName: "ReviewedRollback",
++			Handler:    _ApplicationService_ReviewedRollback_Handler,
++		},
+ 		{
+ 			MethodName: "ManagedResources",
+ 			Handler:    _ApplicationService_ManagedResources_Handler,
+@@ -5484,7 +5788,7 @@ func (m *SyncOptions) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+ 	return len(dAtA) - i, nil
+ }
+ 
+-func (m *ApplicationSyncRequest) Marshal() (dAtA []byte, err error) {
++func (m *ReviewedActionPreconditions) Marshal() (dAtA []byte, err error) {
+ 	size := m.Size()
+ 	dAtA = make([]byte, size)
+ 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+@@ -5494,12 +5798,12 @@ func (m *ApplicationSyncRequest) Marshal() (dAtA []byte, err error) {
+ 	return dAtA[:n], nil
+ }
+ 
+-func (m *ApplicationSyncRequest) MarshalTo(dAtA []byte) (int, error) {
++func (m *ReviewedActionPreconditions) MarshalTo(dAtA []byte) (int, error) {
+ 	size := m.Size()
+ 	return m.MarshalToSizedBuffer(dAtA[:size])
+ }
+ 
+-func (m *ApplicationSyncRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
++func (m *ReviewedActionPreconditions) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+ 	i := len(dAtA)
+ 	_ = i
+ 	var l int
+@@ -5508,37 +5812,204 @@ func (m *ApplicationSyncRequest) MarshalToSizedBuffer(dAtA []byte) (int, error)
+ 		i -= len(m.XXX_unrecognized)
+ 		copy(dAtA[i:], m.XXX_unrecognized)
+ 	}
+-	if len(m.Revisions) > 0 {
+-		for iNdEx := len(m.Revisions) - 1; iNdEx >= 0; iNdEx-- {
+-			i -= len(m.Revisions[iNdEx])
+-			copy(dAtA[i:], m.Revisions[iNdEx])
+-			i = encodeVarintApplication(dAtA, i, uint64(len(m.Revisions[iNdEx])))
+-			i--
+-			dAtA[i] = 0x7a
+-		}
+-	}
+-	if len(m.SourcePositions) > 0 {
+-		for iNdEx := len(m.SourcePositions) - 1; iNdEx >= 0; iNdEx-- {
+-			i = encodeVarintApplication(dAtA, i, uint64(m.SourcePositions[iNdEx]))
+-			i--
+-			dAtA[i] = 0x70
+-		}
++	if m.ActionMarker == nil {
++		return 0, github_com_gogo_protobuf_proto.NewRequiredNotSetError("actionMarker")
++	} else {
++		i -= len(*m.ActionMarker)
++		copy(dAtA[i:], *m.ActionMarker)
++		i = encodeVarintApplication(dAtA, i, uint64(len(*m.ActionMarker)))
++		i--
++		dAtA[i] = 0x22
+ 	}
+-	if m.Project != nil {
+-		i -= len(*m.Project)
+-		copy(dAtA[i:], *m.Project)
+-		i = encodeVarintApplication(dAtA, i, uint64(len(*m.Project)))
++	if m.ResolvedRevision == nil {
++		return 0, github_com_gogo_protobuf_proto.NewRequiredNotSetError("resolvedRevision")
++	} else {
++		i -= len(*m.ResolvedRevision)
++		copy(dAtA[i:], *m.ResolvedRevision)
++		i = encodeVarintApplication(dAtA, i, uint64(len(*m.ResolvedRevision)))
+ 		i--
+-		dAtA[i] = 0x6a
++		dAtA[i] = 0x1a
+ 	}
+-	if m.AppNamespace != nil {
+-		i -= len(*m.AppNamespace)
+-		copy(dAtA[i:], *m.AppNamespace)
+-		i = encodeVarintApplication(dAtA, i, uint64(len(*m.AppNamespace)))
++	if m.ExpectedResourceVersion == nil {
++		return 0, github_com_gogo_protobuf_proto.NewRequiredNotSetError("expectedResourceVersion")
++	} else {
++		i -= len(*m.ExpectedResourceVersion)
++		copy(dAtA[i:], *m.ExpectedResourceVersion)
++		i = encodeVarintApplication(dAtA, i, uint64(len(*m.ExpectedResourceVersion)))
+ 		i--
+-		dAtA[i] = 0x62
++		dAtA[i] = 0x12
+ 	}
+-	if m.SyncOptions != nil {
++	if m.ExpectedUID == nil {
++		return 0, github_com_gogo_protobuf_proto.NewRequiredNotSetError("expectedUID")
++	} else {
++		i -= len(*m.ExpectedUID)
++		copy(dAtA[i:], *m.ExpectedUID)
++		i = encodeVarintApplication(dAtA, i, uint64(len(*m.ExpectedUID)))
++		i--
++		dAtA[i] = 0xa
++	}
++	return len(dAtA) - i, nil
++}
++
++func (m *ReviewedActionsCapabilitiesResponse) Marshal() (dAtA []byte, err error) {
++	size := m.Size()
++	dAtA = make([]byte, size)
++	n, err := m.MarshalToSizedBuffer(dAtA[:size])
++	if err != nil {
++		return nil, err
++	}
++	return dAtA[:n], nil
++}
++
++func (m *ReviewedActionsCapabilitiesResponse) MarshalTo(dAtA []byte) (int, error) {
++	size := m.Size()
++	return m.MarshalToSizedBuffer(dAtA[:size])
++}
++
++func (m *ReviewedActionsCapabilitiesResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
++	i := len(dAtA)
++	_ = i
++	var l int
++	_ = l
++	if m.XXX_unrecognized != nil {
++		i -= len(m.XXX_unrecognized)
++		copy(dAtA[i:], m.XXX_unrecognized)
++	}
++	if m.CorrelatedRollback == nil {
++		return 0, github_com_gogo_protobuf_proto.NewRequiredNotSetError("correlatedRollback")
++	} else {
++		i--
++		if *m.CorrelatedRollback {
++			dAtA[i] = 1
++		} else {
++			dAtA[i] = 0
++		}
++		i--
++		dAtA[i] = 0x30
++	}
++	if m.NativePolicy == nil {
++		return 0, github_com_gogo_protobuf_proto.NewRequiredNotSetError("nativePolicy")
++	} else {
++		i--
++		if *m.NativePolicy {
++			dAtA[i] = 1
++		} else {
++			dAtA[i] = 0
++		}
++		i--
++		dAtA[i] = 0x28
++	}
++	if m.ConditionalUpdate == nil {
++		return 0, github_com_gogo_protobuf_proto.NewRequiredNotSetError("conditionalUpdate")
++	} else {
++		i--
++		if *m.ConditionalUpdate {
++			dAtA[i] = 1
++		} else {
++			dAtA[i] = 0
++		}
++		i--
++		dAtA[i] = 0x20
++	}
++	if m.MarkerName == nil {
++		return 0, github_com_gogo_protobuf_proto.NewRequiredNotSetError("markerName")
++	} else {
++		i -= len(*m.MarkerName)
++		copy(dAtA[i:], *m.MarkerName)
++		i = encodeVarintApplication(dAtA, i, uint64(len(*m.MarkerName)))
++		i--
++		dAtA[i] = 0x1a
++	}
++	if m.RevisionScope == nil {
++		return 0, github_com_gogo_protobuf_proto.NewRequiredNotSetError("revisionScope")
++	} else {
++		i -= len(*m.RevisionScope)
++		copy(dAtA[i:], *m.RevisionScope)
++		i = encodeVarintApplication(dAtA, i, uint64(len(*m.RevisionScope)))
++		i--
++		dAtA[i] = 0x12
++	}
++	if m.Protocol == nil {
++		return 0, github_com_gogo_protobuf_proto.NewRequiredNotSetError("protocol")
++	} else {
++		i -= len(*m.Protocol)
++		copy(dAtA[i:], *m.Protocol)
++		i = encodeVarintApplication(dAtA, i, uint64(len(*m.Protocol)))
++		i--
++		dAtA[i] = 0xa
++	}
++	return len(dAtA) - i, nil
++}
++
++func (m *ApplicationSyncRequest) Marshal() (dAtA []byte, err error) {
++	size := m.Size()
++	dAtA = make([]byte, size)
++	n, err := m.MarshalToSizedBuffer(dAtA[:size])
++	if err != nil {
++		return nil, err
++	}
++	return dAtA[:n], nil
++}
++
++func (m *ApplicationSyncRequest) MarshalTo(dAtA []byte) (int, error) {
++	size := m.Size()
++	return m.MarshalToSizedBuffer(dAtA[:size])
++}
++
++func (m *ApplicationSyncRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
++	i := len(dAtA)
++	_ = i
++	var l int
++	_ = l
++	if m.XXX_unrecognized != nil {
++		i -= len(m.XXX_unrecognized)
++		copy(dAtA[i:], m.XXX_unrecognized)
++	}
++	if m.Reviewed != nil {
++		{
++			size, err := m.Reviewed.MarshalToSizedBuffer(dAtA[:i])
++			if err != nil {
++				return 0, err
++			}
++			i -= size
++			i = encodeVarintApplication(dAtA, i, uint64(size))
++		}
++		i--
++		dAtA[i] = 0x1
++		i--
++		dAtA[i] = 0x82
++	}
++	if len(m.Revisions) > 0 {
++		for iNdEx := len(m.Revisions) - 1; iNdEx >= 0; iNdEx-- {
++			i -= len(m.Revisions[iNdEx])
++			copy(dAtA[i:], m.Revisions[iNdEx])
++			i = encodeVarintApplication(dAtA, i, uint64(len(m.Revisions[iNdEx])))
++			i--
++			dAtA[i] = 0x7a
++		}
++	}
++	if len(m.SourcePositions) > 0 {
++		for iNdEx := len(m.SourcePositions) - 1; iNdEx >= 0; iNdEx-- {
++			i = encodeVarintApplication(dAtA, i, uint64(m.SourcePositions[iNdEx]))
++			i--
++			dAtA[i] = 0x70
++		}
++	}
++	if m.Project != nil {
++		i -= len(*m.Project)
++		copy(dAtA[i:], *m.Project)
++		i = encodeVarintApplication(dAtA, i, uint64(len(*m.Project)))
++		i--
++		dAtA[i] = 0x6a
++	}
++	if m.AppNamespace != nil {
++		i -= len(*m.AppNamespace)
++		copy(dAtA[i:], *m.AppNamespace)
++		i = encodeVarintApplication(dAtA, i, uint64(len(*m.AppNamespace)))
++		i--
++		dAtA[i] = 0x62
++	}
++	if m.SyncOptions != nil {
+ 		{
+ 			size, err := m.SyncOptions.MarshalToSizedBuffer(dAtA[:i])
+ 			if err != nil {
+@@ -5816,6 +6287,18 @@ func (m *ApplicationRollbackRequest) MarshalToSizedBuffer(dAtA []byte) (int, err
+ 		i -= len(m.XXX_unrecognized)
+ 		copy(dAtA[i:], m.XXX_unrecognized)
+ 	}
++	if m.Reviewed != nil {
++		{
++			size, err := m.Reviewed.MarshalToSizedBuffer(dAtA[:i])
++			if err != nil {
++				return 0, err
++			}
++			i -= size
++			i = encodeVarintApplication(dAtA, i, uint64(size))
++		}
++		i--
++		dAtA[i] = 0x42
++	}
+ 	if m.Project != nil {
+ 		i -= len(*m.Project)
+ 		copy(dAtA[i:], *m.Project)
+@@ -7800,6 +8283,67 @@ func (m *SyncOptions) Size() (n int) {
+ 	return n
+ }
+ 
++func (m *ReviewedActionPreconditions) Size() (n int) {
++	if m == nil {
++		return 0
++	}
++	var l int
++	_ = l
++	if m.ExpectedUID != nil {
++		l = len(*m.ExpectedUID)
++		n += 1 + l + sovApplication(uint64(l))
++	}
++	if m.ExpectedResourceVersion != nil {
++		l = len(*m.ExpectedResourceVersion)
++		n += 1 + l + sovApplication(uint64(l))
++	}
++	if m.ResolvedRevision != nil {
++		l = len(*m.ResolvedRevision)
++		n += 1 + l + sovApplication(uint64(l))
++	}
++	if m.ActionMarker != nil {
++		l = len(*m.ActionMarker)
++		n += 1 + l + sovApplication(uint64(l))
++	}
++	if m.XXX_unrecognized != nil {
++		n += len(m.XXX_unrecognized)
++	}
++	return n
++}
++
++func (m *ReviewedActionsCapabilitiesResponse) Size() (n int) {
++	if m == nil {
++		return 0
++	}
++	var l int
++	_ = l
++	if m.Protocol != nil {
++		l = len(*m.Protocol)
++		n += 1 + l + sovApplication(uint64(l))
++	}
++	if m.RevisionScope != nil {
++		l = len(*m.RevisionScope)
++		n += 1 + l + sovApplication(uint64(l))
++	}
++	if m.MarkerName != nil {
++		l = len(*m.MarkerName)
++		n += 1 + l + sovApplication(uint64(l))
++	}
++	if m.ConditionalUpdate != nil {
++		n += 2
++	}
++	if m.NativePolicy != nil {
++		n += 2
++	}
++	if m.CorrelatedRollback != nil {
++		n += 2
++	}
++	if m.XXX_unrecognized != nil {
++		n += len(m.XXX_unrecognized)
++	}
++	return n
++}
++
+ func (m *ApplicationSyncRequest) Size() (n int) {
+ 	if m == nil {
+ 		return 0
+@@ -7869,6 +8413,10 @@ func (m *ApplicationSyncRequest) Size() (n int) {
+ 			n += 1 + l + sovApplication(uint64(l))
+ 		}
+ 	}
++	if m.Reviewed != nil {
++		l = m.Reviewed.Size()
++		n += 2 + l + sovApplication(uint64(l))
++	}
+ 	if m.XXX_unrecognized != nil {
+ 		n += len(m.XXX_unrecognized)
+ 	}
+@@ -7965,6 +8513,10 @@ func (m *ApplicationRollbackRequest) Size() (n int) {
+ 		l = len(*m.Project)
+ 		n += 1 + l + sovApplication(uint64(l))
+ 	}
++	if m.Reviewed != nil {
++		l = m.Reviewed.Size()
++		n += 1 + l + sovApplication(uint64(l))
++	}
+ 	if m.XXX_unrecognized != nil {
+ 		n += len(m.XXX_unrecognized)
+ 	}
+@@ -10947,7 +11499,7 @@ func (m *SyncOptions) Unmarshal(dAtA []byte) error {
+ 	}
+ 	return nil
+ }
+-func (m *ApplicationSyncRequest) Unmarshal(dAtA []byte) error {
++func (m *ReviewedActionPreconditions) Unmarshal(dAtA []byte) error {
+ 	var hasFields [1]uint64
+ 	l := len(dAtA)
+ 	iNdEx := 0
+@@ -10971,15 +11523,15 @@ func (m *ApplicationSyncRequest) Unmarshal(dAtA []byte) error {
+ 		fieldNum := int32(wire >> 3)
+ 		wireType := int(wire & 0x7)
+ 		if wireType == 4 {
+-			return fmt.Errorf("proto: ApplicationSyncRequest: wiretype end group for non-group")
++			return fmt.Errorf("proto: ReviewedActionPreconditions: wiretype end group for non-group")
+ 		}
+ 		if fieldNum <= 0 {
+-			return fmt.Errorf("proto: ApplicationSyncRequest: illegal tag %d (wire type %d)", fieldNum, wire)
++			return fmt.Errorf("proto: ReviewedActionPreconditions: illegal tag %d (wire type %d)", fieldNum, wire)
+ 		}
+ 		switch fieldNum {
+ 		case 1:
+ 			if wireType != 2 {
+-				return fmt.Errorf("proto: wrong wireType = %d for field Name", wireType)
++				return fmt.Errorf("proto: wrong wireType = %d for field ExpectedUID", wireType)
+ 			}
+ 			var stringLen uint64
+ 			for shift := uint(0); ; shift += 7 {
+@@ -11008,12 +11560,12 @@ func (m *ApplicationSyncRequest) Unmarshal(dAtA []byte) error {
+ 				return io.ErrUnexpectedEOF
+ 			}
+ 			s := string(dAtA[iNdEx:postIndex])
+-			m.Name = &s
++			m.ExpectedUID = &s
+ 			iNdEx = postIndex
+ 			hasFields[0] |= uint64(0x00000001)
+ 		case 2:
+ 			if wireType != 2 {
+-				return fmt.Errorf("proto: wrong wireType = %d for field Revision", wireType)
++				return fmt.Errorf("proto: wrong wireType = %d for field ExpectedResourceVersion", wireType)
+ 			}
+ 			var stringLen uint64
+ 			for shift := uint(0); ; shift += 7 {
+@@ -11042,13 +11594,14 @@ func (m *ApplicationSyncRequest) Unmarshal(dAtA []byte) error {
+ 				return io.ErrUnexpectedEOF
+ 			}
+ 			s := string(dAtA[iNdEx:postIndex])
+-			m.Revision = &s
++			m.ExpectedResourceVersion = &s
+ 			iNdEx = postIndex
++			hasFields[0] |= uint64(0x00000002)
+ 		case 3:
+-			if wireType != 0 {
+-				return fmt.Errorf("proto: wrong wireType = %d for field DryRun", wireType)
++			if wireType != 2 {
++				return fmt.Errorf("proto: wrong wireType = %d for field ResolvedRevision", wireType)
+ 			}
+-			var v int
++			var stringLen uint64
+ 			for shift := uint(0); ; shift += 7 {
+ 				if shift >= 64 {
+ 					return ErrIntOverflowApplication
+@@ -11058,39 +11611,31 @@ func (m *ApplicationSyncRequest) Unmarshal(dAtA []byte) error {
+ 				}
+ 				b := dAtA[iNdEx]
+ 				iNdEx++
+-				v |= int(b&0x7F) << shift
++				stringLen |= uint64(b&0x7F) << shift
+ 				if b < 0x80 {
+ 					break
+ 				}
+ 			}
+-			b := bool(v != 0)
+-			m.DryRun = &b
+-		case 4:
+-			if wireType != 0 {
+-				return fmt.Errorf("proto: wrong wireType = %d for field Prune", wireType)
++			intStringLen := int(stringLen)
++			if intStringLen < 0 {
++				return ErrInvalidLengthApplication
+ 			}
+-			var v int
+-			for shift := uint(0); ; shift += 7 {
+-				if shift >= 64 {
+-					return ErrIntOverflowApplication
+-				}
+-				if iNdEx >= l {
+-					return io.ErrUnexpectedEOF
+-				}
+-				b := dAtA[iNdEx]
+-				iNdEx++
+-				v |= int(b&0x7F) << shift
+-				if b < 0x80 {
+-					break
+-				}
++			postIndex := iNdEx + intStringLen
++			if postIndex < 0 {
++				return ErrInvalidLengthApplication
+ 			}
+-			b := bool(v != 0)
+-			m.Prune = &b
+-		case 5:
++			if postIndex > l {
++				return io.ErrUnexpectedEOF
++			}
++			s := string(dAtA[iNdEx:postIndex])
++			m.ResolvedRevision = &s
++			iNdEx = postIndex
++			hasFields[0] |= uint64(0x00000004)
++		case 4:
+ 			if wireType != 2 {
+-				return fmt.Errorf("proto: wrong wireType = %d for field Strategy", wireType)
++				return fmt.Errorf("proto: wrong wireType = %d for field ActionMarker", wireType)
+ 			}
+-			var msglen int
++			var stringLen uint64
+ 			for shift := uint(0); ; shift += 7 {
+ 				if shift >= 64 {
+ 					return ErrIntOverflowApplication
+@@ -11100,24 +11645,469 @@ func (m *ApplicationSyncRequest) Unmarshal(dAtA []byte) error {
+ 				}
+ 				b := dAtA[iNdEx]
+ 				iNdEx++
+-				msglen |= int(b&0x7F) << shift
++				stringLen |= uint64(b&0x7F) << shift
+ 				if b < 0x80 {
+ 					break
+ 				}
+ 			}
+-			if msglen < 0 {
++			intStringLen := int(stringLen)
++			if intStringLen < 0 {
+ 				return ErrInvalidLengthApplication
+ 			}
+-			postIndex := iNdEx + msglen
++			postIndex := iNdEx + intStringLen
+ 			if postIndex < 0 {
+ 				return ErrInvalidLengthApplication
+ 			}
+ 			if postIndex > l {
+ 				return io.ErrUnexpectedEOF
+ 			}
+-			if m.Strategy == nil {
+-				m.Strategy = &v1alpha1.SyncStrategy{}
+-			}
++			s := string(dAtA[iNdEx:postIndex])
++			m.ActionMarker = &s
++			iNdEx = postIndex
++			hasFields[0] |= uint64(0x00000008)
++		default:
++			iNdEx = preIndex
++			skippy, err := skipApplication(dAtA[iNdEx:])
++			if err != nil {
++				return err
++			}
++			if (skippy < 0) || (iNdEx+skippy) < 0 {
++				return ErrInvalidLengthApplication
++			}
++			if (iNdEx + skippy) > l {
++				return io.ErrUnexpectedEOF
++			}
++			m.XXX_unrecognized = append(m.XXX_unrecognized, dAtA[iNdEx:iNdEx+skippy]...)
++			iNdEx += skippy
++		}
++	}
++	if hasFields[0]&uint64(0x00000001) == 0 {
++		return github_com_gogo_protobuf_proto.NewRequiredNotSetError("expectedUID")
++	}
++	if hasFields[0]&uint64(0x00000002) == 0 {
++		return github_com_gogo_protobuf_proto.NewRequiredNotSetError("expectedResourceVersion")
++	}
++	if hasFields[0]&uint64(0x00000004) == 0 {
++		return github_com_gogo_protobuf_proto.NewRequiredNotSetError("resolvedRevision")
++	}
++	if hasFields[0]&uint64(0x00000008) == 0 {
++		return github_com_gogo_protobuf_proto.NewRequiredNotSetError("actionMarker")
++	}
++
++	if iNdEx > l {
++		return io.ErrUnexpectedEOF
++	}
++	return nil
++}
++func (m *ReviewedActionsCapabilitiesResponse) Unmarshal(dAtA []byte) error {
++	var hasFields [1]uint64
++	l := len(dAtA)
++	iNdEx := 0
++	for iNdEx < l {
++		preIndex := iNdEx
++		var wire uint64
++		for shift := uint(0); ; shift += 7 {
++			if shift >= 64 {
++				return ErrIntOverflowApplication
++			}
++			if iNdEx >= l {
++				return io.ErrUnexpectedEOF
++			}
++			b := dAtA[iNdEx]
++			iNdEx++
++			wire |= uint64(b&0x7F) << shift
++			if b < 0x80 {
++				break
++			}
++		}
++		fieldNum := int32(wire >> 3)
++		wireType := int(wire & 0x7)
++		if wireType == 4 {
++			return fmt.Errorf("proto: ReviewedActionsCapabilitiesResponse: wiretype end group for non-group")
++		}
++		if fieldNum <= 0 {
++			return fmt.Errorf("proto: ReviewedActionsCapabilitiesResponse: illegal tag %d (wire type %d)", fieldNum, wire)
++		}
++		switch fieldNum {
++		case 1:
++			if wireType != 2 {
++				return fmt.Errorf("proto: wrong wireType = %d for field Protocol", wireType)
++			}
++			var stringLen uint64
++			for shift := uint(0); ; shift += 7 {
++				if shift >= 64 {
++					return ErrIntOverflowApplication
++				}
++				if iNdEx >= l {
++					return io.ErrUnexpectedEOF
++				}
++				b := dAtA[iNdEx]
++				iNdEx++
++				stringLen |= uint64(b&0x7F) << shift
++				if b < 0x80 {
++					break
++				}
++			}
++			intStringLen := int(stringLen)
++			if intStringLen < 0 {
++				return ErrInvalidLengthApplication
++			}
++			postIndex := iNdEx + intStringLen
++			if postIndex < 0 {
++				return ErrInvalidLengthApplication
++			}
++			if postIndex > l {
++				return io.ErrUnexpectedEOF
++			}
++			s := string(dAtA[iNdEx:postIndex])
++			m.Protocol = &s
++			iNdEx = postIndex
++			hasFields[0] |= uint64(0x00000001)
++		case 2:
++			if wireType != 2 {
++				return fmt.Errorf("proto: wrong wireType = %d for field RevisionScope", wireType)
++			}
++			var stringLen uint64
++			for shift := uint(0); ; shift += 7 {
++				if shift >= 64 {
++					return ErrIntOverflowApplication
++				}
++				if iNdEx >= l {
++					return io.ErrUnexpectedEOF
++				}
++				b := dAtA[iNdEx]
++				iNdEx++
++				stringLen |= uint64(b&0x7F) << shift
++				if b < 0x80 {
++					break
++				}
++			}
++			intStringLen := int(stringLen)
++			if intStringLen < 0 {
++				return ErrInvalidLengthApplication
++			}
++			postIndex := iNdEx + intStringLen
++			if postIndex < 0 {
++				return ErrInvalidLengthApplication
++			}
++			if postIndex > l {
++				return io.ErrUnexpectedEOF
++			}
++			s := string(dAtA[iNdEx:postIndex])
++			m.RevisionScope = &s
++			iNdEx = postIndex
++			hasFields[0] |= uint64(0x00000002)
++		case 3:
++			if wireType != 2 {
++				return fmt.Errorf("proto: wrong wireType = %d for field MarkerName", wireType)
++			}
++			var stringLen uint64
++			for shift := uint(0); ; shift += 7 {
++				if shift >= 64 {
++					return ErrIntOverflowApplication
++				}
++				if iNdEx >= l {
++					return io.ErrUnexpectedEOF
++				}
++				b := dAtA[iNdEx]
++				iNdEx++
++				stringLen |= uint64(b&0x7F) << shift
++				if b < 0x80 {
++					break
++				}
++			}
++			intStringLen := int(stringLen)
++			if intStringLen < 0 {
++				return ErrInvalidLengthApplication
++			}
++			postIndex := iNdEx + intStringLen
++			if postIndex < 0 {
++				return ErrInvalidLengthApplication
++			}
++			if postIndex > l {
++				return io.ErrUnexpectedEOF
++			}
++			s := string(dAtA[iNdEx:postIndex])
++			m.MarkerName = &s
++			iNdEx = postIndex
++			hasFields[0] |= uint64(0x00000004)
++		case 4:
++			if wireType != 0 {
++				return fmt.Errorf("proto: wrong wireType = %d for field ConditionalUpdate", wireType)
++			}
++			var v int
++			for shift := uint(0); ; shift += 7 {
++				if shift >= 64 {
++					return ErrIntOverflowApplication
++				}
++				if iNdEx >= l {
++					return io.ErrUnexpectedEOF
++				}
++				b := dAtA[iNdEx]
++				iNdEx++
++				v |= int(b&0x7F) << shift
++				if b < 0x80 {
++					break
++				}
++			}
++			b := bool(v != 0)
++			m.ConditionalUpdate = &b
++			hasFields[0] |= uint64(0x00000008)
++		case 5:
++			if wireType != 0 {
++				return fmt.Errorf("proto: wrong wireType = %d for field NativePolicy", wireType)
++			}
++			var v int
++			for shift := uint(0); ; shift += 7 {
++				if shift >= 64 {
++					return ErrIntOverflowApplication
++				}
++				if iNdEx >= l {
++					return io.ErrUnexpectedEOF
++				}
++				b := dAtA[iNdEx]
++				iNdEx++
++				v |= int(b&0x7F) << shift
++				if b < 0x80 {
++					break
++				}
++			}
++			b := bool(v != 0)
++			m.NativePolicy = &b
++			hasFields[0] |= uint64(0x00000010)
++		case 6:
++			if wireType != 0 {
++				return fmt.Errorf("proto: wrong wireType = %d for field CorrelatedRollback", wireType)
++			}
++			var v int
++			for shift := uint(0); ; shift += 7 {
++				if shift >= 64 {
++					return ErrIntOverflowApplication
++				}
++				if iNdEx >= l {
++					return io.ErrUnexpectedEOF
++				}
++				b := dAtA[iNdEx]
++				iNdEx++
++				v |= int(b&0x7F) << shift
++				if b < 0x80 {
++					break
++				}
++			}
++			b := bool(v != 0)
++			m.CorrelatedRollback = &b
++			hasFields[0] |= uint64(0x00000020)
++		default:
++			iNdEx = preIndex
++			skippy, err := skipApplication(dAtA[iNdEx:])
++			if err != nil {
++				return err
++			}
++			if (skippy < 0) || (iNdEx+skippy) < 0 {
++				return ErrInvalidLengthApplication
++			}
++			if (iNdEx + skippy) > l {
++				return io.ErrUnexpectedEOF
++			}
++			m.XXX_unrecognized = append(m.XXX_unrecognized, dAtA[iNdEx:iNdEx+skippy]...)
++			iNdEx += skippy
++		}
++	}
++	if hasFields[0]&uint64(0x00000001) == 0 {
++		return github_com_gogo_protobuf_proto.NewRequiredNotSetError("protocol")
++	}
++	if hasFields[0]&uint64(0x00000002) == 0 {
++		return github_com_gogo_protobuf_proto.NewRequiredNotSetError("revisionScope")
++	}
++	if hasFields[0]&uint64(0x00000004) == 0 {
++		return github_com_gogo_protobuf_proto.NewRequiredNotSetError("markerName")
++	}
++	if hasFields[0]&uint64(0x00000008) == 0 {
++		return github_com_gogo_protobuf_proto.NewRequiredNotSetError("conditionalUpdate")
++	}
++	if hasFields[0]&uint64(0x00000010) == 0 {
++		return github_com_gogo_protobuf_proto.NewRequiredNotSetError("nativePolicy")
++	}
++	if hasFields[0]&uint64(0x00000020) == 0 {
++		return github_com_gogo_protobuf_proto.NewRequiredNotSetError("correlatedRollback")
++	}
++
++	if iNdEx > l {
++		return io.ErrUnexpectedEOF
++	}
++	return nil
++}
++func (m *ApplicationSyncRequest) Unmarshal(dAtA []byte) error {
++	var hasFields [1]uint64
++	l := len(dAtA)
++	iNdEx := 0
++	for iNdEx < l {
++		preIndex := iNdEx
++		var wire uint64
++		for shift := uint(0); ; shift += 7 {
++			if shift >= 64 {
++				return ErrIntOverflowApplication
++			}
++			if iNdEx >= l {
++				return io.ErrUnexpectedEOF
++			}
++			b := dAtA[iNdEx]
++			iNdEx++
++			wire |= uint64(b&0x7F) << shift
++			if b < 0x80 {
++				break
++			}
++		}
++		fieldNum := int32(wire >> 3)
++		wireType := int(wire & 0x7)
++		if wireType == 4 {
++			return fmt.Errorf("proto: ApplicationSyncRequest: wiretype end group for non-group")
++		}
++		if fieldNum <= 0 {
++			return fmt.Errorf("proto: ApplicationSyncRequest: illegal tag %d (wire type %d)", fieldNum, wire)
++		}
++		switch fieldNum {
++		case 1:
++			if wireType != 2 {
++				return fmt.Errorf("proto: wrong wireType = %d for field Name", wireType)
++			}
++			var stringLen uint64
++			for shift := uint(0); ; shift += 7 {
++				if shift >= 64 {
++					return ErrIntOverflowApplication
++				}
++				if iNdEx >= l {
++					return io.ErrUnexpectedEOF
++				}
++				b := dAtA[iNdEx]
++				iNdEx++
++				stringLen |= uint64(b&0x7F) << shift
++				if b < 0x80 {
++					break
++				}
++			}
++			intStringLen := int(stringLen)
++			if intStringLen < 0 {
++				return ErrInvalidLengthApplication
++			}
++			postIndex := iNdEx + intStringLen
++			if postIndex < 0 {
++				return ErrInvalidLengthApplication
++			}
++			if postIndex > l {
++				return io.ErrUnexpectedEOF
++			}
++			s := string(dAtA[iNdEx:postIndex])
++			m.Name = &s
++			iNdEx = postIndex
++			hasFields[0] |= uint64(0x00000001)
++		case 2:
++			if wireType != 2 {
++				return fmt.Errorf("proto: wrong wireType = %d for field Revision", wireType)
++			}
++			var stringLen uint64
++			for shift := uint(0); ; shift += 7 {
++				if shift >= 64 {
++					return ErrIntOverflowApplication
++				}
++				if iNdEx >= l {
++					return io.ErrUnexpectedEOF
++				}
++				b := dAtA[iNdEx]
++				iNdEx++
++				stringLen |= uint64(b&0x7F) << shift
++				if b < 0x80 {
++					break
++				}
++			}
++			intStringLen := int(stringLen)
++			if intStringLen < 0 {
++				return ErrInvalidLengthApplication
++			}
++			postIndex := iNdEx + intStringLen
++			if postIndex < 0 {
++				return ErrInvalidLengthApplication
++			}
++			if postIndex > l {
++				return io.ErrUnexpectedEOF
++			}
++			s := string(dAtA[iNdEx:postIndex])
++			m.Revision = &s
++			iNdEx = postIndex
++		case 3:
++			if wireType != 0 {
++				return fmt.Errorf("proto: wrong wireType = %d for field DryRun", wireType)
++			}
++			var v int
++			for shift := uint(0); ; shift += 7 {
++				if shift >= 64 {
++					return ErrIntOverflowApplication
++				}
++				if iNdEx >= l {
++					return io.ErrUnexpectedEOF
++				}
++				b := dAtA[iNdEx]
++				iNdEx++
++				v |= int(b&0x7F) << shift
++				if b < 0x80 {
++					break
++				}
++			}
++			b := bool(v != 0)
++			m.DryRun = &b
++		case 4:
++			if wireType != 0 {
++				return fmt.Errorf("proto: wrong wireType = %d for field Prune", wireType)
++			}
++			var v int
++			for shift := uint(0); ; shift += 7 {
++				if shift >= 64 {
++					return ErrIntOverflowApplication
++				}
++				if iNdEx >= l {
++					return io.ErrUnexpectedEOF
++				}
++				b := dAtA[iNdEx]
++				iNdEx++
++				v |= int(b&0x7F) << shift
++				if b < 0x80 {
++					break
++				}
++			}
++			b := bool(v != 0)
++			m.Prune = &b
++		case 5:
++			if wireType != 2 {
++				return fmt.Errorf("proto: wrong wireType = %d for field Strategy", wireType)
++			}
++			var msglen int
++			for shift := uint(0); ; shift += 7 {
++				if shift >= 64 {
++					return ErrIntOverflowApplication
++				}
++				if iNdEx >= l {
++					return io.ErrUnexpectedEOF
++				}
++				b := dAtA[iNdEx]
++				iNdEx++
++				msglen |= int(b&0x7F) << shift
++				if b < 0x80 {
++					break
++				}
++			}
++			if msglen < 0 {
++				return ErrInvalidLengthApplication
++			}
++			postIndex := iNdEx + msglen
++			if postIndex < 0 {
++				return ErrInvalidLengthApplication
++			}
++			if postIndex > l {
++				return io.ErrUnexpectedEOF
++			}
++			if m.Strategy == nil {
++				m.Strategy = &v1alpha1.SyncStrategy{}
++			}
+ 			if err := m.Strategy.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+ 				return err
+ 			}
+@@ -11468,6 +12458,42 @@ func (m *ApplicationSyncRequest) Unmarshal(dAtA []byte) error {
+ 			}
+ 			m.Revisions = append(m.Revisions, string(dAtA[iNdEx:postIndex]))
+ 			iNdEx = postIndex
++		case 16:
++			if wireType != 2 {
++				return fmt.Errorf("proto: wrong wireType = %d for field Reviewed", wireType)
++			}
++			var msglen int
++			for shift := uint(0); ; shift += 7 {
++				if shift >= 64 {
++					return ErrIntOverflowApplication
++				}
++				if iNdEx >= l {
++					return io.ErrUnexpectedEOF
++				}
++				b := dAtA[iNdEx]
++				iNdEx++
++				msglen |= int(b&0x7F) << shift
++				if b < 0x80 {
++					break
++				}
++			}
++			if msglen < 0 {
++				return ErrInvalidLengthApplication
++			}
++			postIndex := iNdEx + msglen
++			if postIndex < 0 {
++				return ErrInvalidLengthApplication
++			}
++			if postIndex > l {
++				return io.ErrUnexpectedEOF
++			}
++			if m.Reviewed == nil {
++				m.Reviewed = &ReviewedActionPreconditions{}
++			}
++			if err := m.Reviewed.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
++				return err
++			}
++			iNdEx = postIndex
+ 		default:
+ 			iNdEx = preIndex
+ 			skippy, err := skipApplication(dAtA[iNdEx:])
+@@ -12131,6 +13157,42 @@ func (m *ApplicationRollbackRequest) Unmarshal(dAtA []byte) error {
+ 			s := string(dAtA[iNdEx:postIndex])
+ 			m.Project = &s
+ 			iNdEx = postIndex
++		case 8:
++			if wireType != 2 {
++				return fmt.Errorf("proto: wrong wireType = %d for field Reviewed", wireType)
++			}
++			var msglen int
++			for shift := uint(0); ; shift += 7 {
++				if shift >= 64 {
++					return ErrIntOverflowApplication
++				}
++				if iNdEx >= l {
++					return io.ErrUnexpectedEOF
++				}
++				b := dAtA[iNdEx]
++				iNdEx++
++				msglen |= int(b&0x7F) << shift
++				if b < 0x80 {
++					break
++				}
++			}
++			if msglen < 0 {
++				return ErrInvalidLengthApplication
++			}
++			postIndex := iNdEx + msglen
++			if postIndex < 0 {
++				return ErrInvalidLengthApplication
++			}
++			if postIndex > l {
++				return io.ErrUnexpectedEOF
++			}
++			if m.Reviewed == nil {
++				m.Reviewed = &ReviewedActionPreconditions{}
++			}
++			if err := m.Reviewed.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
++				return err
++			}
++			iNdEx = postIndex
+ 		default:
+ 			iNdEx = preIndex
+ 			skippy, err := skipApplication(dAtA[iNdEx:])
+diff --git a/pkg/apiclient/application/application.pb.gw.go b/pkg/apiclient/application/application.pb.gw.go
+index dfd53ee..f64548e 100644
+--- a/pkg/apiclient/application/application.pb.gw.go
++++ b/pkg/apiclient/application/application.pb.gw.go
+@@ -1151,6 +1151,218 @@ func local_request_ApplicationService_Sync_0(ctx context.Context, marshaler runt
+ 
+ }
+ 
++var (
++	filter_ApplicationService_ReviewedActionsCapabilities_0 = &utilities.DoubleArray{Encoding: map[string]int{"name": 0}, Base: []int{1, 1, 0}, Check: []int{0, 1, 2}}
++)
++
++func request_ApplicationService_ReviewedActionsCapabilities_0(ctx context.Context, marshaler runtime.Marshaler, client ApplicationServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
++	var protoReq ApplicationSyncWindowsQuery
++	var metadata runtime.ServerMetadata
++
++	var (
++		val string
++		ok  bool
++		err error
++		_   = err
++	)
++
++	val, ok = pathParams["name"]
++	if !ok {
++		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "name")
++	}
++
++	protoReq.Name, err = runtime.StringP(val)
++
++	if err != nil {
++		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "name", err)
++	}
++
++	if err := req.ParseForm(); err != nil {
++		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
++	}
++	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_ApplicationService_ReviewedActionsCapabilities_0); err != nil {
++		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
++	}
++
++	msg, err := client.ReviewedActionsCapabilities(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
++	return msg, metadata, err
++
++}
++
++func local_request_ApplicationService_ReviewedActionsCapabilities_0(ctx context.Context, marshaler runtime.Marshaler, server ApplicationServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
++	var protoReq ApplicationSyncWindowsQuery
++	var metadata runtime.ServerMetadata
++
++	var (
++		val string
++		ok  bool
++		err error
++		_   = err
++	)
++
++	val, ok = pathParams["name"]
++	if !ok {
++		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "name")
++	}
++
++	protoReq.Name, err = runtime.StringP(val)
++
++	if err != nil {
++		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "name", err)
++	}
++
++	if err := req.ParseForm(); err != nil {
++		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
++	}
++	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_ApplicationService_ReviewedActionsCapabilities_0); err != nil {
++		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
++	}
++
++	msg, err := server.ReviewedActionsCapabilities(ctx, &protoReq)
++	return msg, metadata, err
++
++}
++
++func request_ApplicationService_ReviewedSync_0(ctx context.Context, marshaler runtime.Marshaler, client ApplicationServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
++	var protoReq ApplicationSyncRequest
++	var metadata runtime.ServerMetadata
++
++	newReader, berr := utilities.IOReaderFactory(req.Body)
++	if berr != nil {
++		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", berr)
++	}
++	if err := marshaler.NewDecoder(newReader()).Decode(&protoReq); err != nil && err != io.EOF {
++		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
++	}
++
++	var (
++		val string
++		ok  bool
++		err error
++		_   = err
++	)
++
++	val, ok = pathParams["name"]
++	if !ok {
++		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "name")
++	}
++
++	protoReq.Name, err = runtime.StringP(val)
++
++	if err != nil {
++		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "name", err)
++	}
++
++	msg, err := client.ReviewedSync(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
++	return msg, metadata, err
++
++}
++
++func local_request_ApplicationService_ReviewedSync_0(ctx context.Context, marshaler runtime.Marshaler, server ApplicationServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
++	var protoReq ApplicationSyncRequest
++	var metadata runtime.ServerMetadata
++
++	newReader, berr := utilities.IOReaderFactory(req.Body)
++	if berr != nil {
++		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", berr)
++	}
++	if err := marshaler.NewDecoder(newReader()).Decode(&protoReq); err != nil && err != io.EOF {
++		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
++	}
++
++	var (
++		val string
++		ok  bool
++		err error
++		_   = err
++	)
++
++	val, ok = pathParams["name"]
++	if !ok {
++		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "name")
++	}
++
++	protoReq.Name, err = runtime.StringP(val)
++
++	if err != nil {
++		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "name", err)
++	}
++
++	msg, err := server.ReviewedSync(ctx, &protoReq)
++	return msg, metadata, err
++
++}
++
++func request_ApplicationService_ReviewedRollback_0(ctx context.Context, marshaler runtime.Marshaler, client ApplicationServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
++	var protoReq ApplicationRollbackRequest
++	var metadata runtime.ServerMetadata
++
++	newReader, berr := utilities.IOReaderFactory(req.Body)
++	if berr != nil {
++		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", berr)
++	}
++	if err := marshaler.NewDecoder(newReader()).Decode(&protoReq); err != nil && err != io.EOF {
++		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
++	}
++
++	var (
++		val string
++		ok  bool
++		err error
++		_   = err
++	)
++
++	val, ok = pathParams["name"]
++	if !ok {
++		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "name")
++	}
++
++	protoReq.Name, err = runtime.StringP(val)
++
++	if err != nil {
++		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "name", err)
++	}
++
++	msg, err := client.ReviewedRollback(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
++	return msg, metadata, err
++
++}
++
++func local_request_ApplicationService_ReviewedRollback_0(ctx context.Context, marshaler runtime.Marshaler, server ApplicationServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
++	var protoReq ApplicationRollbackRequest
++	var metadata runtime.ServerMetadata
++
++	newReader, berr := utilities.IOReaderFactory(req.Body)
++	if berr != nil {
++		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", berr)
++	}
++	if err := marshaler.NewDecoder(newReader()).Decode(&protoReq); err != nil && err != io.EOF {
++		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
++	}
++
++	var (
++		val string
++		ok  bool
++		err error
++		_   = err
++	)
++
++	val, ok = pathParams["name"]
++	if !ok {
++		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "name")
++	}
++
++	protoReq.Name, err = runtime.StringP(val)
++
++	if err != nil {
++		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "name", err)
++	}
++
++	msg, err := server.ReviewedRollback(ctx, &protoReq)
++	return msg, metadata, err
++
++}
++
+ var (
+ 	filter_ApplicationService_ManagedResources_0 = &utilities.DoubleArray{Encoding: map[string]int{"applicationName": 0}, Base: []int{1, 1, 0}, Check: []int{0, 1, 2}}
+ )
+@@ -2606,6 +2818,75 @@ func RegisterApplicationServiceHandlerServer(ctx context.Context, mux *runtime.S
+ 
+ 	})
+ 
++	mux.Handle("GET", pattern_ApplicationService_ReviewedActionsCapabilities_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
++		ctx, cancel := context.WithCancel(req.Context())
++		defer cancel()
++		var stream runtime.ServerTransportStream
++		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
++		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
++		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req)
++		if err != nil {
++			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
++			return
++		}
++		resp, md, err := local_request_ApplicationService_ReviewedActionsCapabilities_0(rctx, inboundMarshaler, server, req, pathParams)
++		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
++		ctx = runtime.NewServerMetadataContext(ctx, md)
++		if err != nil {
++			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
++			return
++		}
++
++		forward_ApplicationService_ReviewedActionsCapabilities_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
++
++	})
++
++	mux.Handle("POST", pattern_ApplicationService_ReviewedSync_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
++		ctx, cancel := context.WithCancel(req.Context())
++		defer cancel()
++		var stream runtime.ServerTransportStream
++		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
++		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
++		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req)
++		if err != nil {
++			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
++			return
++		}
++		resp, md, err := local_request_ApplicationService_ReviewedSync_0(rctx, inboundMarshaler, server, req, pathParams)
++		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
++		ctx = runtime.NewServerMetadataContext(ctx, md)
++		if err != nil {
++			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
++			return
++		}
++
++		forward_ApplicationService_ReviewedSync_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
++
++	})
++
++	mux.Handle("POST", pattern_ApplicationService_ReviewedRollback_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
++		ctx, cancel := context.WithCancel(req.Context())
++		defer cancel()
++		var stream runtime.ServerTransportStream
++		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
++		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
++		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req)
++		if err != nil {
++			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
++			return
++		}
++		resp, md, err := local_request_ApplicationService_ReviewedRollback_0(rctx, inboundMarshaler, server, req, pathParams)
++		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
++		ctx = runtime.NewServerMetadataContext(ctx, md)
++		if err != nil {
++			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
++			return
++		}
++
++		forward_ApplicationService_ReviewedRollback_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
++
++	})
++
+ 	mux.Handle("GET", pattern_ApplicationService_ManagedResources_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+ 		ctx, cancel := context.WithCancel(req.Context())
+ 		defer cancel()
+@@ -3287,6 +3568,66 @@ func RegisterApplicationServiceHandlerClient(ctx context.Context, mux *runtime.S
+ 
+ 	})
+ 
++	mux.Handle("GET", pattern_ApplicationService_ReviewedActionsCapabilities_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
++		ctx, cancel := context.WithCancel(req.Context())
++		defer cancel()
++		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
++		rctx, err := runtime.AnnotateContext(ctx, mux, req)
++		if err != nil {
++			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
++			return
++		}
++		resp, md, err := request_ApplicationService_ReviewedActionsCapabilities_0(rctx, inboundMarshaler, client, req, pathParams)
++		ctx = runtime.NewServerMetadataContext(ctx, md)
++		if err != nil {
++			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
++			return
++		}
++
++		forward_ApplicationService_ReviewedActionsCapabilities_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
++
++	})
++
++	mux.Handle("POST", pattern_ApplicationService_ReviewedSync_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
++		ctx, cancel := context.WithCancel(req.Context())
++		defer cancel()
++		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
++		rctx, err := runtime.AnnotateContext(ctx, mux, req)
++		if err != nil {
++			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
++			return
++		}
++		resp, md, err := request_ApplicationService_ReviewedSync_0(rctx, inboundMarshaler, client, req, pathParams)
++		ctx = runtime.NewServerMetadataContext(ctx, md)
++		if err != nil {
++			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
++			return
++		}
++
++		forward_ApplicationService_ReviewedSync_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
++
++	})
++
++	mux.Handle("POST", pattern_ApplicationService_ReviewedRollback_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
++		ctx, cancel := context.WithCancel(req.Context())
++		defer cancel()
++		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
++		rctx, err := runtime.AnnotateContext(ctx, mux, req)
++		if err != nil {
++			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
++			return
++		}
++		resp, md, err := request_ApplicationService_ReviewedRollback_0(rctx, inboundMarshaler, client, req, pathParams)
++		ctx = runtime.NewServerMetadataContext(ctx, md)
++		if err != nil {
++			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
++			return
++		}
++
++		forward_ApplicationService_ReviewedRollback_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
++
++	})
++
+ 	mux.Handle("GET", pattern_ApplicationService_ManagedResources_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+ 		ctx, cancel := context.WithCancel(req.Context())
+ 		defer cancel()
+@@ -3643,6 +3984,12 @@ var (
+ 
+ 	pattern_ApplicationService_Sync_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3, 2, 4}, []string{"api", "v1", "applications", "name", "sync"}, "", runtime.AssumeColonVerbOpt(true)))
+ 
++	pattern_ApplicationService_ReviewedActionsCapabilities_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3, 2, 4, 2, 5}, []string{"api", "v1", "applications", "name", "reviewed-actions", "capabilities"}, "", runtime.AssumeColonVerbOpt(true)))
++
++	pattern_ApplicationService_ReviewedSync_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3, 2, 4, 2, 5}, []string{"api", "v1", "applications", "name", "reviewed-actions", "sync"}, "", runtime.AssumeColonVerbOpt(true)))
++
++	pattern_ApplicationService_ReviewedRollback_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3, 2, 4, 2, 5}, []string{"api", "v1", "applications", "name", "reviewed-actions", "rollback"}, "", runtime.AssumeColonVerbOpt(true)))
++
+ 	pattern_ApplicationService_ManagedResources_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3, 2, 4}, []string{"api", "v1", "applications", "applicationName", "managed-resources"}, "", runtime.AssumeColonVerbOpt(true)))
+ 
+ 	pattern_ApplicationService_ServerSideDiff_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3, 2, 4}, []string{"api", "v1", "applications", "appName", "server-side-diff"}, "", runtime.AssumeColonVerbOpt(true)))
+@@ -3709,6 +4056,12 @@ var (
+ 
+ 	forward_ApplicationService_Sync_0 = runtime.ForwardResponseMessage
+ 
++	forward_ApplicationService_ReviewedActionsCapabilities_0 = runtime.ForwardResponseMessage
++
++	forward_ApplicationService_ReviewedSync_0 = runtime.ForwardResponseMessage
++
++	forward_ApplicationService_ReviewedRollback_0 = runtime.ForwardResponseMessage
++
+ 	forward_ApplicationService_ManagedResources_0 = runtime.ForwardResponseMessage
+ 
+ 	forward_ApplicationService_ServerSideDiff_0 = runtime.ForwardResponseMessage
+diff --git a/server/application/application.go b/server/application/application.go
+index 5cf814d..e88612d 100644
+--- a/server/application/application.go
++++ b/server/application/application.go
+@@ -1996,12 +1996,24 @@ func isTheSelectedOne(currentNode *v1alpha1.ResourceNode, q *application.Applica
+ 
+ // Sync syncs an application to its target state
+ func (s *Server) Sync(ctx context.Context, syncReq *application.ApplicationSyncRequest) (*v1alpha1.Application, error) {
++	return s.sync(ctx, syncReq, nil)
++}
++
++func (s *Server) sync(ctx context.Context, syncReq *application.ApplicationSyncRequest, reviewed *application.ReviewedActionPreconditions) (*v1alpha1.Application, error) {
+ 	a, proj, err := s.getApplicationEnforceRBACClient(ctx, rbac.ActionGet, syncReq.GetProject(), syncReq.GetAppNamespace(), syncReq.GetName(), "")
+ 	if err != nil {
+ 		return nil, err
+ 	}
+ 
+-	s.inferResourcesStatusHealth(a)
++	if reviewed != nil {
++		if err := validateReviewedApplication(a, reviewed); err != nil {
++			return nil, err
++		}
++	}
++
++	if reviewed == nil {
++		s.inferResourcesStatusHealth(a)
++	}
+ 
+ 	canSync, err := proj.Spec.SyncWindows.Matches(a).CanSync(true)
+ 	if err != nil {
+@@ -2091,7 +2103,12 @@ func (s *Server) Sync(ctx context.Context, syncReq *application.ApplicationSyncR
+ 	appName := syncReq.GetName()
+ 	appNs := s.appNamespaceOrDefault(syncReq.GetAppNamespace())
+ 	appIf := s.appclientset.ArgoprojV1alpha1().Applications(appNs)
+-	a, err = argo.SetAppOperation(appIf, appName, &op)
++	if reviewed != nil {
++		op.Info = reviewedActionInfo(reviewed)
++		a, err = setReviewedAppOperation(ctx, appIf, a, &op, reviewed)
++	} else {
++		a, err = argo.SetAppOperation(appIf, appName, &op)
++	}
+ 	if err != nil {
+ 		return nil, fmt.Errorf("error setting app operation: %w", err)
+ 	}
+@@ -2154,12 +2171,24 @@ func (s *Server) resolveSourceRevisions(ctx context.Context, a *v1alpha1.Applica
+ }
+ 
+ func (s *Server) Rollback(ctx context.Context, rollbackReq *application.ApplicationRollbackRequest) (*v1alpha1.Application, error) {
++	return s.rollback(ctx, rollbackReq, nil)
++}
++
++func (s *Server) rollback(ctx context.Context, rollbackReq *application.ApplicationRollbackRequest, reviewed *application.ReviewedActionPreconditions) (*v1alpha1.Application, error) {
+ 	a, _, err := s.getApplicationEnforceRBACClient(ctx, rbac.ActionSync, rollbackReq.GetProject(), rollbackReq.GetAppNamespace(), rollbackReq.GetName(), "")
+ 	if err != nil {
+ 		return nil, err
+ 	}
+ 
+-	s.inferResourcesStatusHealth(a)
++	if reviewed != nil {
++		if err := validateReviewedApplication(a, reviewed); err != nil {
++			return nil, err
++		}
++	}
++
++	if reviewed == nil {
++		s.inferResourcesStatusHealth(a)
++	}
+ 
+ 	if a.DeletionTimestamp != nil {
+ 		return nil, status.Errorf(codes.FailedPrecondition, "application is deleting")
+@@ -2207,7 +2236,12 @@ func (s *Server) Rollback(ctx context.Context, rollbackReq *application.Applicat
+ 	appName := rollbackReq.GetName()
+ 	appNs := s.appNamespaceOrDefault(rollbackReq.GetAppNamespace())
+ 	appIf := s.appclientset.ArgoprojV1alpha1().Applications(appNs)
+-	a, err = argo.SetAppOperation(appIf, appName, &op)
++	if reviewed != nil {
++		op.Info = reviewedActionInfo(reviewed)
++		a, err = setReviewedAppOperation(ctx, appIf, a, &op, reviewed)
++	} else {
++		a, err = argo.SetAppOperation(appIf, appName, &op)
++	}
+ 	if err != nil {
+ 		return nil, fmt.Errorf("error setting app operation: %w", err)
+ 	}
+diff --git a/server/application/application.proto b/server/application/application.proto
+index 9f4000c..cbbfdf7 100644
+--- a/server/application/application.proto
++++ b/server/application/application.proto
+@@ -122,6 +122,23 @@ message SyncOptions {
+ 	repeated string items = 1;
+ }
+ 
++// Preconditions are enforced only by the distinct ReviewedSync/ReviewedRollback RPCs.
++message ReviewedActionPreconditions {
++	required string expectedUID = 1;
++	required string expectedResourceVersion = 2;
++	required string resolvedRevision = 3;
++	required string actionMarker = 4;
++}
++
++message ReviewedActionsCapabilitiesResponse {
++	required string protocol = 1;
++	required string revisionScope = 2;
++	required string markerName = 3;
++	required bool conditionalUpdate = 4;
++	required bool nativePolicy = 5;
++	required bool correlatedRollback = 6;
++}
++
+ // ApplicationSyncRequest is a request to apply the config state to live state
+ message ApplicationSyncRequest {
+ 	required string name = 1;
+@@ -138,6 +155,7 @@ message ApplicationSyncRequest {
+ 	optional string project = 13;
+ 	repeated int64 sourcePositions = 14;
+ 	repeated string revisions = 15;
++	optional ReviewedActionPreconditions reviewed = 16;
+ }
+ 
+ // ApplicationUpdateSpecRequest is a request to update application spec
+@@ -165,6 +183,7 @@ message ApplicationRollbackRequest {
+ 	optional bool prune = 4;
+ 	optional string appNamespace = 6;
+ 	optional string project = 7;
++	optional ReviewedActionPreconditions reviewed = 8;
+ }
+ 
+ message ApplicationResourceRequest {
+@@ -451,6 +470,25 @@ service ApplicationService {
+ 		};
+ 	}
+ 
++	// These methods are intentionally absent on an unmodified Argo CD server.
++	rpc ReviewedActionsCapabilities(ApplicationSyncWindowsQuery) returns (ReviewedActionsCapabilitiesResponse) {
++		option (google.api.http).get = "/api/v1/applications/{name}/reviewed-actions/capabilities";
++	}
++
++	rpc ReviewedSync(ApplicationSyncRequest) returns (github.com.argoproj.argo_cd.v3.pkg.apis.application.v1alpha1.Application) {
++		option (google.api.http) = {
++			post: "/api/v1/applications/{name}/reviewed-actions/sync"
++			body: "*"
++		};
++	}
++
++	rpc ReviewedRollback(ApplicationRollbackRequest) returns (github.com.argoproj.argo_cd.v3.pkg.apis.application.v1alpha1.Application) {
++		option (google.api.http) = {
++			post: "/api/v1/applications/{name}/reviewed-actions/rollback"
++			body: "*"
++		};
++	}
++
+ 	// ManagedResources returns list of managed resources
+ 	rpc ManagedResources(ResourcesQuery) returns (ManagedResourcesResponse) {
+ 		option (google.api.http).get = "/api/v1/applications/{applicationName}/managed-resources";
+diff --git a/pkg/apiclient/application/reviewed_protocol_test.go b/pkg/apiclient/application/reviewed_protocol_test.go
+new file mode 100644
+index 0000000..a1e8789
+--- /dev/null
++++ b/pkg/apiclient/application/reviewed_protocol_test.go
+@@ -0,0 +1,136 @@
++package application
++
++import (
++	"context"
++	"encoding/json"
++	"net"
++	"net/http"
++	"net/http/httptest"
++	"strings"
++	"testing"
++	"time"
++
++	"github.com/gogo/protobuf/proto"
++	"github.com/grpc-ecosystem/grpc-gateway/runtime"
++	"github.com/stretchr/testify/require"
++	"google.golang.org/grpc"
++	"google.golang.org/grpc/codes"
++	"google.golang.org/grpc/credentials/insecure"
++	"google.golang.org/grpc/metadata"
++	"google.golang.org/grpc/status"
++	"google.golang.org/grpc/test/bufconn"
++	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
++	"k8s.io/apimachinery/pkg/types"
++	"k8s.io/utils/ptr"
++
++	"github.com/argoproj/argo-cd/v3/pkg/apis/application/v1alpha1"
++)
++
++type reviewedProtocolServer struct {
++	UnimplementedApplicationServiceServer
++	request     *ApplicationSyncRequest
++	token       string
++	legacyCalls int
++}
++
++func (s *reviewedProtocolServer) ReviewedSync(ctx context.Context, req *ApplicationSyncRequest) (*v1alpha1.Application, error) {
++	s.request = req
++	md, _ := metadata.FromIncomingContext(ctx)
++	s.token = strings.Join(md.Get("token"), "")
++	return &v1alpha1.Application{ObjectMeta: metav1.ObjectMeta{Name: req.GetName(), UID: types.UID(req.Reviewed.GetExpectedUID()), ResourceVersion: req.Reviewed.GetExpectedResourceVersion()}}, nil
++}
++
++func (s *reviewedProtocolServer) Sync(context.Context, *ApplicationSyncRequest) (*v1alpha1.Application, error) {
++	s.legacyCalls++
++	return nil, status.Error(codes.Internal, "native route must not be a fallback")
++}
++
++func protocolClient(t *testing.T, service ApplicationServiceServer) ApplicationServiceClient {
++	t.Helper()
++	listener := bufconn.Listen(1024 * 1024)
++	server := grpc.NewServer()
++	RegisterApplicationServiceServer(server, service)
++	go func() { _ = server.Serve(listener) }()
++	t.Cleanup(server.Stop)
++	t.Cleanup(func() { _ = listener.Close() })
++	ctx, cancel := context.WithTimeout(t.Context(), 10*time.Second)
++	defer cancel()
++	conn, err := grpc.DialContext(ctx, "passthrough:///reviewed-protocol", grpc.WithTransportCredentials(insecure.NewCredentials()),
++		grpc.WithContextDialer(func(context.Context, string) (net.Conn, error) { return listener.Dial() }), grpc.WithBlock())
++	require.NoError(t, err)
++	t.Cleanup(func() { _ = conn.Close() })
++	return NewApplicationServiceClient(conn)
++}
++
++func TestReviewedProtocolRoundTrip(t *testing.T) {
++	req := &ApplicationSyncRequest{Name: ptr.To("app"), Prune: ptr.To(true), Reviewed: &ReviewedActionPreconditions{
++		ExpectedUID: ptr.To("uid"), ExpectedResourceVersion: ptr.To("7"),
++		ResolvedRevision: ptr.To(strings.Repeat("a", 40)), ActionMarker: ptr.To("action-1"),
++	}}
++	encoded, err := proto.Marshal(req)
++	require.NoError(t, err)
++	var decoded ApplicationSyncRequest
++	require.NoError(t, proto.Unmarshal(encoded, &decoded))
++	require.Equal(t, req, &decoded)
++	server := &reviewedProtocolServer{}
++	client := protocolClient(t, server)
++	_, err = client.ReviewedSync(metadata.AppendToOutgoingContext(t.Context(), "token", "local-test-token"), req)
++	require.NoError(t, err)
++	require.Equal(t, req, server.request)
++	require.Equal(t, "local-test-token", server.token)
++	require.Zero(t, server.legacyCalls)
++}
++
++func TestReviewedGatewayFieldsAndDistinctRoute(t *testing.T) {
++	server := &reviewedProtocolServer{}
++	client := protocolClient(t, server)
++	mux := runtime.NewServeMux()
++	require.NoError(t, RegisterApplicationServiceHandlerClient(t.Context(), mux, client))
++	body := `{"name":"app","prune":true,"reviewed":{"expectedUID":"uid","expectedResourceVersion":"7","resolvedRevision":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","actionMarker":"action-1"}}`
++	req := httptest.NewRequest(http.MethodPost, "/api/v1/applications/app/reviewed-actions/sync", strings.NewReader(body))
++	req.Header.Set("Content-Type", "application/json")
++	req.Header.Set("Grpc-Metadata-Token", "local-test-token")
++	response := httptest.NewRecorder()
++	mux.ServeHTTP(response, req)
++	require.Equal(t, http.StatusOK, response.Code, response.Body.String())
++	require.Equal(t, "app", server.request.GetName())
++	require.Equal(t, "uid", server.request.Reviewed.GetExpectedUID())
++	require.Equal(t, "7", server.request.Reviewed.GetExpectedResourceVersion())
++	require.Equal(t, strings.Repeat("a", 40), server.request.Reviewed.GetResolvedRevision())
++	require.Equal(t, "action-1", server.request.Reviewed.GetActionMarker())
++	require.True(t, server.request.GetPrune())
++	require.Equal(t, "local-test-token", server.token)
++	require.Zero(t, server.legacyCalls)
++	var application map[string]any
++	require.NoError(t, json.Unmarshal(response.Body.Bytes(), &application))
++	require.Equal(t, "uid", application["metadata"].(map[string]any)["uid"])
++}
++
++func TestReviewedUnavailableNeverUsesLegacy(t *testing.T) {
++	// The generated unimplemented service models a peer without reviewed handlers.
++	// Official stock descriptors/routes are also checked against the pinned source manifest.
++	client := protocolClient(t, &UnimplementedApplicationServiceServer{})
++	_, err := client.ReviewedSync(t.Context(), &ApplicationSyncRequest{Name: ptr.To("app")})
++	require.Equal(t, codes.Unimplemented, status.Code(err))
++	_, err = client.ReviewedRollback(t.Context(), &ApplicationRollbackRequest{Name: ptr.To("app"), Id: ptr.To(int64(0))})
++	require.Equal(t, codes.Unimplemented, status.Code(err))
++	_, err = client.ReviewedActionsCapabilities(t.Context(), &ApplicationSyncWindowsQuery{Name: ptr.To("app")})
++	require.Equal(t, codes.Unimplemented, status.Code(err))
++}
++
++type reviewedConflictProtocolServer struct {
++	UnimplementedApplicationServiceServer
++}
++
++func (*reviewedConflictProtocolServer) ReviewedSync(context.Context, *ApplicationSyncRequest) (*v1alpha1.Application, error) {
++	return nil, status.Error(codes.Aborted, "review again")
++}
++
++func TestReviewedGatewayConflictIs409(t *testing.T) {
++	client := protocolClient(t, &reviewedConflictProtocolServer{})
++	mux := runtime.NewServeMux()
++	require.NoError(t, RegisterApplicationServiceHandlerClient(t.Context(), mux, client))
++	response := httptest.NewRecorder()
++	mux.ServeHTTP(response, httptest.NewRequest(http.MethodPost, "/api/v1/applications/app/reviewed-actions/sync", strings.NewReader(`{"name":"app"}`)))
++	require.Equal(t, http.StatusConflict, response.Code)
++}
+diff --git a/server/application/reviewed_actions.go b/server/application/reviewed_actions.go
+new file mode 100644
+index 0000000..0ade41e
+--- /dev/null
++++ b/server/application/reviewed_actions.go
+@@ -0,0 +1,165 @@
++package application
++
++import (
++	"context"
++	"regexp"
++
++	"google.golang.org/grpc/codes"
++	"google.golang.org/grpc/status"
++	apierrors "k8s.io/apimachinery/pkg/api/errors"
++	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
++	"k8s.io/utils/ptr"
++
++	"github.com/argoproj/argo-cd/v3/pkg/apiclient/application"
++	"github.com/argoproj/argo-cd/v3/pkg/apis/application/v1alpha1"
++	appclient "github.com/argoproj/argo-cd/v3/pkg/client/clientset/versioned/typed/application/v1alpha1"
++	"github.com/argoproj/argo-cd/v3/util/rbac"
++	"github.com/argoproj/argo-cd/v3/util/session"
++)
++
++const reviewedActionsProtocol = "pantheon-reviewed-actions/v1"
++const reviewedActionMarkerName = "pantheon-action-id"
++
++var reviewedRevisionPattern = regexp.MustCompile(`^[0-9a-f]{40}$`)
++var reviewedMarkerPattern = regexp.MustCompile(`^[A-Za-z0-9_-]{1,128}$`)
++
++// ReviewedActionsCapabilities uses the same authenticated, scoped application read as Sync.
++// Capability discovery does not grant sync permission or predict policy at submission time.
++func (s *Server) ReviewedActionsCapabilities(ctx context.Context, req *application.ApplicationSyncWindowsQuery) (*application.ReviewedActionsCapabilitiesResponse, error) {
++	if err := validateReviewedContext(ctx); err != nil {
++		return nil, err
++	}
++	if req == nil || req.GetName() == "" {
++		return nil, status.Error(codes.InvalidArgument, "application name is required")
++	}
++	if _, _, err := s.getApplicationEnforceRBACClient(ctx, rbac.ActionGet, req.GetProject(), req.GetAppNamespace(), req.GetName(), ""); err != nil {
++		return nil, err
++	}
++	return &application.ReviewedActionsCapabilitiesResponse{
++		Protocol: ptr.To(reviewedActionsProtocol), RevisionScope: ptr.To("single-git-sha1"),
++		MarkerName: ptr.To(reviewedActionMarkerName), ConditionalUpdate: ptr.To(true),
++		NativePolicy: ptr.To(true), CorrelatedRollback: ptr.To(true),
++	}, nil
++}
++
++func (s *Server) ReviewedSync(ctx context.Context, req *application.ApplicationSyncRequest) (*v1alpha1.Application, error) {
++	if err := validateReviewedContext(ctx); err != nil {
++		return nil, err
++	}
++	if req == nil || req.GetName() == "" {
++		return nil, status.Error(codes.InvalidArgument, "application name is required")
++	}
++	if err := validateReviewedPreconditions(req.Reviewed); err != nil {
++		return nil, err
++	}
++	// V1 deliberately has one immutable Git revision and one correlation marker.
++	if req.Manifests != nil || len(req.Revisions) != 0 || len(req.SourcePositions) != 0 || len(req.Infos) != 0 {
++		return nil, status.Error(codes.InvalidArgument, "reviewed sync requires a single Git source and no supplied infos or manifests")
++	}
++	return s.sync(ctx, req, req.Reviewed)
++}
++
++func (s *Server) ReviewedRollback(ctx context.Context, req *application.ApplicationRollbackRequest) (*v1alpha1.Application, error) {
++	if err := validateReviewedContext(ctx); err != nil {
++		return nil, err
++	}
++	if req == nil || req.GetName() == "" || req.Id == nil || req.GetId() < 0 {
++		return nil, status.Error(codes.InvalidArgument, "application name and history ID are required")
++	}
++	if err := validateReviewedPreconditions(req.Reviewed); err != nil {
++		return nil, err
++	}
++	// Native rollback checks sync RBAC and auto-sync; it does not check sync windows.
++	return s.rollback(ctx, req, req.Reviewed)
++}
++
++func validateReviewedContext(ctx context.Context) error {
++	if err := ctx.Err(); err != nil {
++		return status.FromContextError(err).Err()
++	}
++	// Reuse the principal supplied by Argo's authentication interceptor. Reviewed
++	// actions cannot be authorized by an anonymous default role or DisableAuth.
++	if session.Username(ctx) == "" {
++		return status.Error(codes.Unauthenticated, "authenticated reviewed action principal is required")
++	}
++	return nil
++}
++
++func validateReviewedPreconditions(p *application.ReviewedActionPreconditions) error {
++	if p == nil || !boundedReviewedIdentity(p.GetExpectedUID()) || !boundedReviewedIdentity(p.GetExpectedResourceVersion()) ||
++		!reviewedRevisionPattern.MatchString(p.GetResolvedRevision()) || !reviewedMarkerPattern.MatchString(p.GetActionMarker()) {
++		return status.Error(codes.InvalidArgument, "reviewed action requires bounded UID/resourceVersion, resolved Git SHA and one action marker")
++	}
++	return nil
++}
++
++func boundedReviewedIdentity(value string) bool {
++	if len(value) == 0 || len(value) > 128 {
++		return false
++	}
++	for _, ch := range value {
++		if ch <= ' ' || ch > '~' {
++			return false
++		}
++	}
++	return true
++}
++
++func validateReviewedApplication(a *v1alpha1.Application, p *application.ReviewedActionPreconditions) error {
++	if a == nil || string(a.UID) != p.GetExpectedUID() || a.ResourceVersion != p.GetExpectedResourceVersion() {
++		return status.Error(codes.Aborted, "reviewed application identity or version changed; review again")
++	}
++	if a.DeletionTimestamp != nil {
++		return status.Error(codes.FailedPrecondition, "application is deleting")
++	}
++	if a.Operation != nil || (a.Status.OperationState != nil && !a.Status.OperationState.Phase.Completed()) {
++		return status.Error(codes.FailedPrecondition, "another operation is in progress")
++	}
++	if a.Spec.HasMultipleSources() {
++		return status.Error(codes.FailedPrecondition, "reviewed actions v1 requires a single Git source")
++	}
++	return nil
++}
++
++func reviewedActionInfo(p *application.ReviewedActionPreconditions) []*v1alpha1.Info {
++	return []*v1alpha1.Info{{Name: reviewedActionMarkerName, Value: p.GetActionMarker()}}
++}
++
++// setReviewedAppOperation commits the SAME application used for policy and native operation
++// construction. The Kubernetes API enforces UID and resourceVersion on this single Update.
++// There is no name-only reread, conflict retry, or background context on this path.
++func setReviewedAppOperation(ctx context.Context, appIf appclient.ApplicationInterface, a *v1alpha1.Application, op *v1alpha1.Operation, p *application.ReviewedActionPreconditions) (*v1alpha1.Application, error) {
++	if err := ctx.Err(); err != nil {
++		return nil, status.FromContextError(err).Err()
++	}
++	if err := validateReviewedPreconditions(p); err != nil {
++		return nil, err
++	}
++	if err := validateReviewedApplication(a, p); err != nil {
++		return nil, err
++	}
++	if op == nil || op.Sync == nil || op.Sync.Source == nil || op.Sync.Source.IsZero() ||
++		op.Sync.Source.IsHelm() || len(op.Sync.Sources) != 0 || len(op.Sync.Revisions) != 0 || len(op.Sync.Manifests) != 0 ||
++		len(op.Info) != 1 || op.Info[0] == nil || op.Info[0].Name != reviewedActionMarkerName || op.Info[0].Value != p.GetActionMarker() {
++		return nil, status.Error(codes.InvalidArgument, "invalid reviewed single-source Git operation or action marker")
++	}
++	if op.Sync.Revision != p.GetResolvedRevision() {
++		return nil, status.Error(codes.Aborted, "resolved revision differs from review; review again")
++	}
++	updated := a.DeepCopy()
++	updated.Operation = op.DeepCopy()
++	updated.Status.OperationState = nil
++	result, err := appIf.Update(ctx, updated, metav1.UpdateOptions{})
++	if err != nil {
++		if ctx.Err() != nil {
++			return nil, status.FromContextError(ctx.Err()).Err()
++		}
++		if apierrors.IsConflict(err) || apierrors.IsNotFound(err) {
++			return nil, status.Error(codes.Aborted, "reviewed application changed at acceptance; review again")
++		}
++		return nil, err
++	}
++	// Return the API server's write response, including the correlated operation, even if
++	// a controller consumes it immediately after acceptance. Never manufacture terminal state.
++	return result, nil
++}
+diff --git a/server/application/reviewed_actions_test.go b/server/application/reviewed_actions_test.go
+new file mode 100644
+index 0000000..4076755
+--- /dev/null
++++ b/server/application/reviewed_actions_test.go
+@@ -0,0 +1,398 @@
++package application
++
++import (
++	"context"
++	"errors"
++	"strings"
++	"testing"
++
++	synccommon "github.com/argoproj/gitops-engine/pkg/sync/common"
++	"github.com/golang-jwt/jwt/v5"
++	"github.com/stretchr/testify/require"
++	"google.golang.org/grpc/codes"
++	"google.golang.org/grpc/status"
++	apierrors "k8s.io/apimachinery/pkg/api/errors"
++	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
++	"k8s.io/apimachinery/pkg/runtime"
++	"k8s.io/apimachinery/pkg/runtime/schema"
++	"k8s.io/apimachinery/pkg/types"
++	kubetesting "k8s.io/client-go/testing"
++	"k8s.io/utils/ptr"
++
++	"github.com/argoproj/argo-cd/v3/pkg/apiclient/application"
++	"github.com/argoproj/argo-cd/v3/pkg/apis/application/v1alpha1"
++	apps "github.com/argoproj/argo-cd/v3/pkg/client/clientset/versioned/fake"
++	appclient "github.com/argoproj/argo-cd/v3/pkg/client/clientset/versioned/typed/application/v1alpha1"
++	"github.com/argoproj/argo-cd/v3/util/rbac"
++)
++
++const reviewedTestRevision = "f9ba9e98119bf8c1176fbd65dbae26a71d044add"
++
++func reviewedTestContext(t *testing.T) context.Context {
++	t.Helper()
++	// Native Authenticate supplies these claims; these unit fixtures do not verify a token.
++	//nolint:staticcheck
++	return context.WithValue(t.Context(), "claims", &jwt.RegisteredClaims{Subject: "provider-reviewer"})
++}
++
++func reviewedTestApp() *v1alpha1.Application {
++	return newTestApp(func(a *v1alpha1.Application) {
++		a.UID = types.UID("reviewed-uid")
++		a.ResourceVersion = "7"
++	})
++}
++
++func reviewedTestPreconditions(a *v1alpha1.Application) *application.ReviewedActionPreconditions {
++	return &application.ReviewedActionPreconditions{
++		ExpectedUID: ptr.To(string(a.UID)), ExpectedResourceVersion: ptr.To(a.ResourceVersion),
++		ResolvedRevision: ptr.To(reviewedTestRevision), ActionMarker: ptr.To("review-action-1"),
++	}
++}
++
++func reviewedTestRequest(a *v1alpha1.Application) *application.ApplicationSyncRequest {
++	return &application.ApplicationSyncRequest{Name: &a.Name, Reviewed: reviewedTestPreconditions(a)}
++}
++
++func applicationActions(s *Server, verb string) int {
++	n := 0
++	for _, action := range s.appclientset.(*deepCopyAppClientset).GetUnderlyingClientSet().(*apps.Clientset).Actions() {
++		if action.GetResource().Resource == "applications" && action.GetVerb() == verb {
++			n++
++		}
++	}
++	return n
++}
++
++func TestReviewedSyncNativeConstruction(t *testing.T) {
++	a := reviewedTestApp()
++	a.Spec.SyncPolicy = &v1alpha1.SyncPolicy{SyncOptions: v1alpha1.SyncOptions{"CreateNamespace=true"}, Retry: &v1alpha1.RetryStrategy{Limit: 2}}
++	a.Status.OperationState = &v1alpha1.OperationState{Phase: synccommon.OperationSucceeded}
++	a.Status.ResourceHealthSource = v1alpha1.ResourceHealthLocationAppTree
++	a.Status.Resources = []v1alpha1.ResourceStatus{{Name: "service", Kind: "Service", Health: &v1alpha1.HealthStatus{Status: "Healthy"}}}
++	s := newTestAppServer(t, a)
++	req := reviewedTestRequest(a)
++	req.Prune = ptr.To(true)
++	result, err := s.ReviewedSync(reviewedTestContext(t), req)
++	require.NoError(t, err)
++	require.Equal(t, 1, applicationActions(s, "get"))
++	require.Equal(t, 1, applicationActions(s, "update"))
++	require.Nil(t, result.Status.OperationState)
++	require.Equal(t, a.Status.Resources, result.Status.Resources, "cached response health must not be written into the application")
++	require.Equal(t, a.Spec.GetSource(), *result.Operation.Sync.Source)
++	require.Equal(t, reviewedTestRevision, result.Operation.Sync.Revision)
++	require.True(t, result.Operation.Sync.Prune)
++	require.Equal(t, reviewedActionInfo(req.Reviewed), result.Operation.Info)
++
++	// Compare with actual native construction, including prune/source/options/retry.
++	native := newTestAppServer(t, a.DeepCopy())
++	nativeResult, err := native.Sync(reviewedTestContext(t), req)
++	require.NoError(t, err)
++	got := result.Operation.DeepCopy()
++	got.Info = nil
++	require.Equal(t, nativeResult.Operation, got)
++}
++
++func TestReviewedRollbackNativeHistoryAndWindowPolicy(t *testing.T) {
++	a := reviewedTestApp()
++	a.Spec.Project = "reviewed-window"
++	historical := a.Spec.Source.DeepCopy()
++	historical.Path = "historical/path"
++	historical.RepoURL = "https://git.example.com/historical.git"
++	historical.TargetRevision = "old-branch"
++	a.Status.History = []v1alpha1.RevisionHistory{{ID: 0, Revision: reviewedTestRevision, Source: *historical}}
++	project := &v1alpha1.AppProject{
++		ObjectMeta: metav1.ObjectMeta{Name: a.Spec.Project, Namespace: testNamespace},
++		Spec: v1alpha1.AppProjectSpec{SourceRepos: []string{"*"}, Destinations: []v1alpha1.ApplicationDestination{{Server: "*", Namespace: "*"}},
++			SyncWindows: v1alpha1.SyncWindows{&v1alpha1.SyncWindow{Kind: "deny", Schedule: "* * * * *", Duration: "1h", Applications: []string{a.Name}}}},
++	}
++	s := newTestAppServer(t, a, project)
++	req := &application.ApplicationRollbackRequest{Name: &a.Name, Id: ptr.To(int64(0)), Prune: ptr.To(true), Reviewed: reviewedTestPreconditions(a)}
++	result, err := s.ReviewedRollback(reviewedTestContext(t), req)
++	require.NoError(t, err, "native rollback has no sync-window restriction")
++	require.Equal(t, *historical, *result.Operation.Sync.Source)
++	require.Equal(t, reviewedTestRevision, result.Operation.Sync.Revision)
++	require.True(t, result.Operation.Sync.Prune)
++	require.Equal(t, reviewedActionInfo(req.Reviewed), result.Operation.Info)
++	require.Equal(t, 1, applicationActions(s, "get"))
++	require.Equal(t, 1, applicationActions(s, "update"))
++	native := newTestAppServer(t, a.DeepCopy(), project.DeepCopy())
++	nativeResult, err := native.Rollback(reviewedTestContext(t), req)
++	require.NoError(t, err)
++	got := result.Operation.DeepCopy()
++	got.Info = nil
++	require.Equal(t, nativeResult.Operation, got)
++}
++
++func TestReviewedNativePolicyDenials(t *testing.T) {
++	for _, action := range []string{"sync", "rollback", "capabilities"} {
++		t.Run(action+"-rbac", func(t *testing.T) {
++			a := reviewedTestApp()
++			s := newTestAppServerWithEnforcerConfigure(t, func(e *rbac.Enforcer) {
++				e.SetDefaultRole("role:reader")
++				policy := "p, role:reader, applications, get, */*, allow"
++				if action == "capabilities" {
++					policy = ""
++				}
++				require.NoError(t, e.SetBuiltinPolicy(policy))
++			}, nil, a)
++			var err error
++			switch action {
++			case "sync":
++				_, err = s.ReviewedSync(reviewedTestContext(t), reviewedTestRequest(a))
++			case "rollback":
++				_, err = s.ReviewedRollback(reviewedTestContext(t), &application.ApplicationRollbackRequest{Name: &a.Name, Id: ptr.To(int64(1)), Reviewed: reviewedTestPreconditions(a)})
++			case "capabilities":
++				_, err = s.ReviewedActionsCapabilities(reviewedTestContext(t), &application.ApplicationSyncWindowsQuery{Name: &a.Name})
++			}
++			require.Equal(t, codes.PermissionDenied, status.Code(err))
++			require.Zero(t, applicationActions(s, "update"))
++		})
++	}
++	t.Run("sync-window", func(t *testing.T) {
++		a := reviewedTestApp()
++		a.Spec.Project = "blocked"
++		project := &v1alpha1.AppProject{ObjectMeta: metav1.ObjectMeta{Name: "blocked", Namespace: testNamespace}, Spec: v1alpha1.AppProjectSpec{
++			SourceRepos: []string{"*"}, Destinations: []v1alpha1.ApplicationDestination{{Server: "*", Namespace: "*"}},
++			SyncWindows: v1alpha1.SyncWindows{&v1alpha1.SyncWindow{Kind: "deny", Schedule: "* * * * *", Duration: "1h", Applications: []string{a.Name}}},
++		}}
++		s := newTestAppServer(t, a, project)
++		_, err := s.ReviewedSync(reviewedTestContext(t), reviewedTestRequest(a))
++		require.Equal(t, codes.PermissionDenied, status.Code(err))
++		require.Contains(t, err.Error(), "sync window")
++		require.Zero(t, applicationActions(s, "update"))
++	})
++	t.Run("rollback-auto-sync", func(t *testing.T) {
++		a := reviewedTestApp()
++		a.Spec.SyncPolicy = &v1alpha1.SyncPolicy{Automated: &v1alpha1.SyncPolicyAutomated{}}
++		s := newTestAppServer(t, a)
++		_, err := s.ReviewedRollback(reviewedTestContext(t), &application.ApplicationRollbackRequest{Name: &a.Name, Id: ptr.To(int64(1)), Reviewed: reviewedTestPreconditions(a)})
++		require.Equal(t, codes.FailedPrecondition, status.Code(err))
++		require.Contains(t, err.Error(), "auto-sync")
++		require.Zero(t, applicationActions(s, "update"))
++	})
++	t.Run("local-manifests-override-not-available", func(t *testing.T) {
++		a := reviewedTestApp()
++		s := newTestAppServer(t, a)
++		req := reviewedTestRequest(a)
++		req.Manifests = []string{"apiVersion: v1"}
++		_, err := s.ReviewedSync(reviewedTestContext(t), req)
++		require.Equal(t, codes.InvalidArgument, status.Code(err))
++		require.Zero(t, applicationActions(s, "update"))
++	})
++}
++
++func TestReviewedRequiresNativeAuthenticatedPrincipal(t *testing.T) {
++	a := reviewedTestApp()
++	s := newTestAppServer(t, a)
++	_, err := s.ReviewedSync(t.Context(), reviewedTestRequest(a))
++	require.Equal(t, codes.Unauthenticated, status.Code(err))
++	_, err = s.ReviewedRollback(t.Context(), &application.ApplicationRollbackRequest{Name: &a.Name, Id: ptr.To(int64(0)), Reviewed: reviewedTestPreconditions(a)})
++	require.Equal(t, codes.Unauthenticated, status.Code(err))
++	_, err = s.ReviewedActionsCapabilities(t.Context(), &application.ApplicationSyncWindowsQuery{Name: &a.Name})
++	require.Equal(t, codes.Unauthenticated, status.Code(err))
++	require.Zero(t, applicationActions(s, "get"))
++	require.Zero(t, applicationActions(s, "update"))
++}
++
++func TestReviewedDriftAndPendingBeforeMutation(t *testing.T) {
++	cases := []struct {
++		name   string
++		change func(*v1alpha1.Application)
++		code   codes.Code
++	}{
++		{"uid-replacement", func(a *v1alpha1.Application) { a.UID = "replacement" }, codes.Aborted},
++		{"spec-aba-version", func(a *v1alpha1.Application) { a.ResourceVersion = "9" }, codes.Aborted},
++		{"pending", func(a *v1alpha1.Application) { a.Operation = &v1alpha1.Operation{Sync: &v1alpha1.SyncOperation{}} }, codes.FailedPrecondition},
++		{"running-consumed", func(a *v1alpha1.Application) {
++			a.Status.OperationState = &v1alpha1.OperationState{Phase: synccommon.OperationRunning}
++		}, codes.FailedPrecondition},
++		{"invalid-pending-state", func(a *v1alpha1.Application) { a.Status.OperationState = &v1alpha1.OperationState{} }, codes.FailedPrecondition},
++		{"deleting", func(a *v1alpha1.Application) { a.DeletionTimestamp = ptr.To(metav1.Now()) }, codes.FailedPrecondition},
++	}
++	for _, tc := range cases {
++		t.Run(tc.name, func(t *testing.T) {
++			a := reviewedTestApp()
++			req := reviewedTestRequest(a)
++			tc.change(a)
++			s := newTestAppServer(t, a)
++			_, err := s.ReviewedSync(reviewedTestContext(t), req)
++			require.Equal(t, tc.code, status.Code(err))
++			require.Equal(t, 1, applicationActions(s, "get"))
++			require.Zero(t, applicationActions(s, "update"))
++		})
++	}
++}
++
++func TestReviewedRequestAndHistoryMismatches(t *testing.T) {
++	for _, tc := range []struct {
++		name   string
++		change func(*application.ApplicationSyncRequest)
++	}{
++		{"missing", func(q *application.ApplicationSyncRequest) { q.Reviewed = nil }},
++		{"uid", func(q *application.ApplicationSyncRequest) { q.Reviewed.ExpectedUID = nil }},
++		{"version", func(q *application.ApplicationSyncRequest) { q.Reviewed.ExpectedResourceVersion = ptr.To(" ") }},
++		{"branch", func(q *application.ApplicationSyncRequest) { q.Reviewed.ResolvedRevision = ptr.To("main") }},
++		{"marker", func(q *application.ApplicationSyncRequest) {
++			q.Reviewed.ActionMarker = ptr.To(strings.Repeat("x", 129))
++		}},
++		{"extra-marker", func(q *application.ApplicationSyncRequest) {
++			q.Infos = []*v1alpha1.Info{{Name: reviewedActionMarkerName, Value: "other"}}
++		}},
++	} {
++		t.Run(tc.name, func(t *testing.T) {
++			a := reviewedTestApp()
++			s := newTestAppServer(t, a)
++			req := reviewedTestRequest(a)
++			tc.change(req)
++			_, err := s.ReviewedSync(reviewedTestContext(t), req)
++			require.Equal(t, codes.InvalidArgument, status.Code(err))
++			require.Zero(t, applicationActions(s, "get"))
++			require.Zero(t, applicationActions(s, "update"))
++		})
++	}
++	for _, tc := range []struct {
++		name    string
++		history []v1alpha1.RevisionHistory
++		code    codes.Code
++	}{
++		{"missing-history", nil, codes.InvalidArgument},
++		{"wrong-history-id", []v1alpha1.RevisionHistory{{ID: 2, Revision: reviewedTestRevision}}, codes.InvalidArgument},
++		{"old-history-no-source", []v1alpha1.RevisionHistory{{ID: 1, Revision: reviewedTestRevision}}, codes.FailedPrecondition},
++		{"history-revision-drift", []v1alpha1.RevisionHistory{{ID: 1, Revision: strings.Repeat("a", 40), Source: *reviewedTestApp().Spec.Source}}, codes.Aborted},
++	} {
++		t.Run(tc.name, func(t *testing.T) {
++			a := reviewedTestApp()
++			a.Status.History = tc.history
++			s := newTestAppServer(t, a)
++			_, err := s.ReviewedRollback(reviewedTestContext(t), &application.ApplicationRollbackRequest{Name: &a.Name, Id: ptr.To(int64(1)), Reviewed: reviewedTestPreconditions(a)})
++			require.Equal(t, tc.code, status.Code(err))
++			require.Zero(t, applicationActions(s, "update"))
++		})
++	}
++	t.Run("resolved-sync-drift", func(t *testing.T) {
++		a := reviewedTestApp()
++		s := newTestAppServer(t, a)
++		req := reviewedTestRequest(a)
++		req.Reviewed.ResolvedRevision = ptr.To(strings.Repeat("a", 40))
++		_, err := s.ReviewedSync(reviewedTestContext(t), req)
++		require.Equal(t, codes.Aborted, status.Code(err))
++		require.Zero(t, applicationActions(s, "update"))
++	})
++}
++
++func TestReviewedServerConflictNeverReloads(t *testing.T) {
++	a := reviewedTestApp()
++	s := newTestAppServer(t, a)
++	s.appclientset.(*deepCopyAppClientset).GetUnderlyingClientSet().(*apps.Clientset).PrependReactor("update", "applications", func(action kubetesting.Action) (bool, runtime.Object, error) {
++		written := action.(kubetesting.UpdateAction).GetObject().(*v1alpha1.Application)
++		require.Equal(t, a.UID, written.UID)
++		require.Equal(t, "7", written.ResourceVersion)
++		require.Equal(t, a.Spec.Source, written.Operation.Sync.Source)
++		return true, nil, apierrors.NewConflict(schema.GroupResource{Group: "argoproj.io", Resource: "applications"}, a.Name, errors.New("concurrent ABA/version/UID replacement"))
++	})
++	_, err := s.ReviewedSync(reviewedTestContext(t), reviewedTestRequest(a))
++	require.Equal(t, codes.Aborted, status.Code(err))
++	require.Equal(t, 1, applicationActions(s, "get"))
++	require.Equal(t, 1, applicationActions(s, "update"))
++}
++
++type reviewedUpdateClient struct {
++	appclient.ApplicationInterface
++	calls  int
++	update func(context.Context, *v1alpha1.Application) (*v1alpha1.Application, error)
++}
++
++func (c *reviewedUpdateClient) Update(ctx context.Context, a *v1alpha1.Application, _ metav1.UpdateOptions) (*v1alpha1.Application, error) {
++	c.calls++
++	return c.update(ctx, a)
++}
++
++func TestReviewedSingleUpdateCancellationAndFastConsume(t *testing.T) {
++	a := reviewedTestApp()
++	p := reviewedTestPreconditions(a)
++	op := &v1alpha1.Operation{Sync: &v1alpha1.SyncOperation{Source: a.Spec.Source.DeepCopy(), Revision: reviewedTestRevision, Prune: true}, Info: reviewedActionInfo(p)}
++	t.Run("already-canceled", func(t *testing.T) {
++		ctx, cancel := context.WithCancel(t.Context())
++		cancel()
++		client := &reviewedUpdateClient{}
++		_, err := setReviewedAppOperation(ctx, client, a, op, p)
++		require.Equal(t, codes.Canceled, status.Code(err))
++		require.Zero(t, client.calls)
++	})
++	t.Run("cancel-during-update", func(t *testing.T) {
++		ctx, cancel := context.WithCancel(t.Context())
++		defer cancel()
++		client := &reviewedUpdateClient{update: func(actual context.Context, _ *v1alpha1.Application) (*v1alpha1.Application, error) {
++			require.Equal(t, ctx, actual)
++			cancel()
++			return nil, actual.Err()
++		}}
++		_, err := setReviewedAppOperation(ctx, client, a, op, p)
++		require.Equal(t, codes.Canceled, status.Code(err))
++		require.Equal(t, 1, client.calls)
++	})
++	t.Run("lost-reply-no-retry", func(t *testing.T) {
++		client := &reviewedUpdateClient{update: func(_ context.Context, _ *v1alpha1.Application) (*v1alpha1.Application, error) {
++			return nil, errors.New("write may have committed; reply lost")
++		}}
++		result, err := setReviewedAppOperation(t.Context(), client, a, op, p)
++		require.Error(t, err)
++		require.Nil(t, result)
++		require.Equal(t, 1, client.calls)
++	})
++	t.Run("fast-consume-keeps-write-response", func(t *testing.T) {
++		var current *v1alpha1.Application
++		client := &reviewedUpdateClient{update: func(_ context.Context, written *v1alpha1.Application) (*v1alpha1.Application, error) {
++			written.ResourceVersion = "8"
++			receipt := written.DeepCopy()
++			current = written.DeepCopy()
++			current.Operation = nil
++			current.Status.OperationState = &v1alpha1.OperationState{Operation: *written.Operation.DeepCopy(), Phase: synccommon.OperationSucceeded}
++			current.ResourceVersion = "9"
++			return receipt, nil
++		}}
++		result, err := setReviewedAppOperation(t.Context(), client, a, op, p)
++		require.NoError(t, err)
++		require.Equal(t, 1, client.calls)
++		require.Equal(t, "8", result.ResourceVersion)
++		require.Equal(t, op, result.Operation)
++		require.Nil(t, result.Status.OperationState)
++		require.Nil(t, current.Operation)
++		require.Equal(t, op.Info, current.Status.OperationState.Operation.Info)
++		require.Nil(t, a.Operation, "caller snapshot must remain immutable")
++	})
++	t.Run("invalid-operation-before-update", func(t *testing.T) {
++		client := &reviewedUpdateClient{}
++		_, err := setReviewedAppOperation(t.Context(), client, a, &v1alpha1.Operation{}, p)
++		require.Equal(t, codes.InvalidArgument, status.Code(err))
++		require.Zero(t, client.calls)
++	})
++}
++
++func TestReviewedCapabilitiesAndUnsupportedSources(t *testing.T) {
++	a := reviewedTestApp()
++	s := newTestAppServer(t, a)
++	capability, err := s.ReviewedActionsCapabilities(reviewedTestContext(t), &application.ApplicationSyncWindowsQuery{Name: &a.Name})
++	require.NoError(t, err)
++	require.Equal(t, reviewedActionsProtocol, capability.GetProtocol())
++	require.Equal(t, "single-git-sha1", capability.GetRevisionScope())
++	require.True(t, capability.GetConditionalUpdate())
++	require.True(t, capability.GetNativePolicy())
++	require.True(t, capability.GetCorrelatedRollback())
++	require.Equal(t, reviewedActionMarkerName, capability.GetMarkerName())
++	require.Zero(t, applicationActions(s, "update"))
++	for _, sourceType := range []string{"multi", "chart"} {
++		t.Run(sourceType, func(t *testing.T) {
++			a := reviewedTestApp()
++			if sourceType == "multi" {
++				a.Spec.Sources = []v1alpha1.ApplicationSource{*a.Spec.Source, *a.Spec.Source}
++			} else {
++				a.Spec.Source.Chart = "chart"
++			}
++			s := newTestAppServer(t, a)
++			_, err := s.ReviewedSync(reviewedTestContext(t), reviewedTestRequest(a))
++			require.Error(t, err)
++			require.Zero(t, applicationActions(s, "update"))
++		})
++	}
++}

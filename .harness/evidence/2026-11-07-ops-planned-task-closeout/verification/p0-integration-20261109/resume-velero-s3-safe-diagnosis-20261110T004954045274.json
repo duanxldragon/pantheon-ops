@@ -1,0 +1,23 @@
+{
+  "phase": "read-only-phase-diagnosis",
+  "checks": [
+    {
+      "stage": "capacity",
+      "passed": true
+    },
+    {
+      "stage": "load_artifacts",
+      "passed": true
+    },
+    {
+      "stage": "private_ip",
+      "passed": false,
+      "errorType": "KeyError",
+      "sourceLines": [
+        55
+      ],
+      "canonicalMissingKey": "family"
+    }
+  ],
+  "remoteMutation": false
+}

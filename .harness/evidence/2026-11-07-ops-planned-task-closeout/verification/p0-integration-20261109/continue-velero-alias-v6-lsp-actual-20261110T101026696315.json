@@ -1,0 +1,166 @@
+{
+  "languageServer": "pyright",
+  "version": "1.1.414",
+  "protocol": "LSP stdio JSON-RPC",
+  "settings": {
+    "diagnosticMode": "openFilesOnly",
+    "typeCheckingMode": "basic",
+    "autoSearchPaths": true,
+    "useLibraryCodeForTypes": true,
+    "extraPaths": [
+      "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance"
+    ]
+  },
+  "sourceFiles": [
+    {
+      "path": ".local/ops-acceptance/continue-velero-alias-v6-contract.py",
+      "sha256": "ca27d36178c871df792d14227e65592df04c790279fb20c10f55a042cb9b604b",
+      "stable": true,
+      "diagnostics": []
+    },
+    {
+      "path": ".local/ops-acceptance/continue-velero-alias-v6-remote.py",
+      "sha256": "6c39c11879753b35a46eff11cce029142b05cbd8f5659a2b790539d30fb14f9d",
+      "stable": true,
+      "diagnostics": []
+    },
+    {
+      "path": ".local/ops-acceptance/continue-velero-alias-v6-root.py",
+      "sha256": "8bade656b5e5b9ab60857bb14238876418950207444dc87f0b14357a33de093a",
+      "stable": true,
+      "diagnostics": []
+    },
+    {
+      "path": ".local/ops-acceptance/continue-velero-alias-v6-generate.py",
+      "sha256": "534556e8960ae6651b53eba00e8c68642605b70c15975eb722b46d60bfd8a79d",
+      "stable": true,
+      "diagnostics": []
+    },
+    {
+      "path": ".local/ops-acceptance/continue-velero-alias-v6-test.py",
+      "sha256": "039aa3846ff41f6c52482f26b3e65c682ac8068461d5de8b8445d2fbc3ff5966",
+      "stable": true,
+      "diagnostics": [
+        {
+          "range": {
+            "start": {
+              "line": 1230,
+              "character": 11
+            },
+            "end": {
+              "line": 1230,
+              "character": 15
+            }
+          },
+          "message": "Cannot assign to attribute \"WORK\" for class \"ModuleType\"\n\u00a0\u00a0Attribute \"WORK\" is unknown",
+          "severity": 1,
+          "code": "reportAttributeAccessIssue",
+          "source": "Pyright",
+          "codeDescription": {
+            "href": "https://github.com/microsoft/pyright/blob/main/docs/configuration.md#reportAttributeAccessIssue"
+          }
+        },
+        {
+          "range": {
+            "start": {
+              "line": 1230,
+              "character": 24
+            },
+            "end": {
+              "line": 1230,
+              "character": 29
+            }
+          },
+          "message": "Cannot assign to attribute \"LOCAL\" for class \"ModuleType\"\n\u00a0\u00a0Attribute \"LOCAL\" is unknown",
+          "severity": 1,
+          "code": "reportAttributeAccessIssue",
+          "source": "Pyright",
+          "codeDescription": {
+            "href": "https://github.com/microsoft/pyright/blob/main/docs/configuration.md#reportAttributeAccessIssue"
+          }
+        },
+        {
+          "range": {
+            "start": {
+              "line": 1230,
+              "character": 38
+            },
+            "end": {
+              "line": 1230,
+              "character": 42
+            }
+          },
+          "message": "Cannot assign to attribute \"ROOT\" for class \"ModuleType\"\n\u00a0\u00a0Attribute \"ROOT\" is unknown",
+          "severity": 1,
+          "code": "reportAttributeAccessIssue",
+          "source": "Pyright",
+          "codeDescription": {
+            "href": "https://github.com/microsoft/pyright/blob/main/docs/configuration.md#reportAttributeAccessIssue"
+          }
+        },
+        {
+          "range": {
+            "start": {
+              "line": 1230,
+              "character": 51
+            },
+            "end": {
+              "line": 1230,
+              "character": 53
+            }
+          },
+          "message": "Cannot assign to attribute \"EV\" for class \"ModuleType\"\n\u00a0\u00a0Attribute \"EV\" is unknown",
+          "severity": 1,
+          "code": "reportAttributeAccessIssue",
+          "source": "Pyright",
+          "codeDescription": {
+            "href": "https://github.com/microsoft/pyright/blob/main/docs/configuration.md#reportAttributeAccessIssue"
+          }
+        },
+        {
+          "range": {
+            "start": {
+              "line": 1231,
+              "character": 11
+            },
+            "end": {
+              "line": 1231,
+              "character": 21
+            }
+          },
+          "message": "Cannot assign to attribute \"load_tests\" for class \"ModuleType\"\n\u00a0\u00a0Attribute \"load_tests\" is unknown",
+          "severity": 1,
+          "code": "reportAttributeAccessIssue",
+          "source": "Pyright",
+          "codeDescription": {
+            "href": "https://github.com/microsoft/pyright/blob/main/docs/configuration.md#reportAttributeAccessIssue"
+          }
+        },
+        {
+          "range": {
+            "start": {
+              "line": 1234,
+              "character": 11
+            },
+            "end": {
+              "line": 1234,
+              "character": 17
+            }
+          },
+          "message": "Cannot assign to attribute \"denied\" for class \"ModuleType\"\n\u00a0\u00a0Attribute \"denied\" is unknown",
+          "severity": 1,
+          "code": "reportAttributeAccessIssue",
+          "source": "Pyright",
+          "codeDescription": {
+            "href": "https://github.com/microsoft/pyright/blob/main/docs/configuration.md#reportAttributeAccessIssue"
+          }
+        }
+      ]
+    }
+  ],
+  "exitCode": 1,
+  "runtimeExecuted": false,
+  "errorCount": 6,
+  "warningCount": 0,
+  "seconds": 5.547
+}

@@ -1,0 +1,7 @@
+{
+  "command": "claude.exe -p --tools \"\" --output-format text < resume-review-projection-condition-prompt.md",
+  "status": "timeout",
+  "exitCode": 1,
+  "seconds": 240,
+  "characters": 12430
+}

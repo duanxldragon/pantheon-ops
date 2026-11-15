@@ -1,3 +1,4 @@
+import { startReviewedTask } from './reviewed-start';
 import { expect, test, type APIResponse } from '@playwright/test';
 import {
   apiBaseUrl,
@@ -6,6 +7,7 @@ import {
   installClientSession,
   loginByApi,
   primeChineseLocale,
+  verifiedApiHeaders,
 } from '../../helpers/auth';
 
 type ApiEnvelope<T> = {
@@ -38,6 +40,7 @@ type TemplateRow = {
 };
 
 type TaskRow = {
+  remark?: string;
   id: number;
   status: string;
   businessScopeName?: string;
@@ -166,7 +169,7 @@ test.describe('Deploy business module smoke', () => {
 
     try {
       const started = await expectSuccess<TaskRow>(
-        await request.post(`${apiBaseUrl}/business/deploy/tasks/${task.id}/start`, { headers }),
+        await startReviewedTask(request, task.id, { headers }),
       );
       expect(started.hosts).toHaveLength(1);
 
@@ -383,7 +386,7 @@ test.describe('Deploy business module smoke', () => {
 
     try {
       await page.goto(`/business/deploy/task/${task.id}`, { waitUntil: 'networkidle' });
-      await expect(page.locator('.page-container')).toBeVisible();
+      await expect(page.locator('.page-container').filter({ has: page.locator('.system-page-hero') })).toBeVisible();
       await expect(page.locator('.system-page-hero')).toBeVisible();
       await expect(page.locator('.system-list__table-card')).toBeVisible();
       await expect(page.locator('.page-header')).toBeVisible();
@@ -458,7 +461,7 @@ test.describe('Deploy business module smoke', () => {
 
     try {
       const started = await expectSuccess<TaskRow>(
-        await request.post(`${apiBaseUrl}/business/deploy/tasks/${task.id}/start`, { headers }),
+        await startReviewedTask(request, task.id, { headers }),
       );
       expect(started.hosts).toHaveLength(1);
 
@@ -674,7 +677,9 @@ test.describe('Deploy business module smoke', () => {
       await expect(modal).toBeVisible();
       await expect(modal).toContainText('编辑任务');
       await expect(modal.locator('input').first()).toHaveValue(`${token}-task`);
-      await modal.locator('textarea').fill('detail edit smoke updated');
+      await modal.locator('.arco-form-item').filter({ hasText: '备注' }).locator('textarea').fill('detail edit smoke updated');
+      await modal.getByRole('button', { name: '解析并核对目标' }).click();
+      await expect(modal.locator('.deploy-target-selector').getByRole('status')).toContainText('已解析 1 个目标');
       await modal.getByRole('button', { name: '保存' }).click();
       await expect(modal).toBeHidden();
       await expect(page).toHaveURL(/\/business\/deploy\/task$/);
@@ -683,8 +688,18 @@ test.describe('Deploy business module smoke', () => {
         await request.get(`${apiBaseUrl}/business/deploy/tasks/${task.id}`, { headers }),
       );
       expect(detail.remark).toBe('detail edit smoke updated');
+      // A consumed edit intent must stay closed, while a later visit to the
+      // same task must still open a fresh editor with the persisted values.
+      await page.goto(`/business/deploy/task?editId=${task.id}`, { waitUntil: 'networkidle' });
+      await expect(modal).toBeVisible();
+      await expect(modal.locator('.arco-form-item').filter({ hasText: '备注' }).locator('textarea')).toHaveValue('detail edit smoke updated');
+      await modal.getByRole('button', { name: '取消', exact: true }).click();
+      await expect(modal).toBeHidden();
+      await expect(page).toHaveURL(/\/business\/deploy\/task$/);
       await page.screenshot({ path: testInfo.outputPath('deploy-task-detail-edit-modal.png'), fullPage: true });
     } finally {
+      const cleanupHeaders = await verifiedApiHeaders(request, login);
+      await expectSuccess(await request.delete(`${apiBaseUrl}/business/deploy/tasks/${task.id}`, { headers: cleanupHeaders }));
       await request.delete(`${apiBaseUrl}/business/cmdb/hosts/${host.id}`, { headers }).catch(() => undefined);
       await request.delete(`${apiBaseUrl}/business/bizscope/${scope.id}`, { headers }).catch(() => undefined);
       await request.delete(`${apiBaseUrl}/business/deploy/packages/${pkg.id}`, { headers }).catch(() => undefined);
@@ -796,7 +811,7 @@ test.describe('Deploy business module smoke', () => {
     );
 
     await expectSuccess<TaskRow>(
-      await request.post(`${apiBaseUrl}/business/deploy/tasks/${task.id}/start`, {
+      await startReviewedTask(request, task.id, {
         headers,
         data: {
           credentialRefId: credential.id,
@@ -821,7 +836,7 @@ test.describe('Deploy business module smoke', () => {
     );
 
     await page.goto(`/business/deploy/task/${task.id}`, { waitUntil: 'domcontentloaded' });
-    await expect(page.locator('.page-container')).toBeVisible();
+    await expect(page.locator('.page-container').filter({ has: page.locator('.system-page-hero') })).toBeVisible();
     await expect(page.locator('.system-page-hero')).toContainText('目标主机');
     await expect(page.getByRole('cell', { name: '业务域' })).toBeVisible();
     await expect(page.getByText('installRoot', { exact: true })).toBeVisible();

@@ -1,0 +1,6 @@
+{
+  "exitCode": 1,
+  "expectedFailures": 2,
+  "expectedErrors": 0,
+  "log": "independent-review-regressions.log"
+}

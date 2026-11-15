@@ -1,0 +1,80 @@
+
+Running 2 tests using 1 worker
+
+(node:21908) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x  1 tests\smoke\business\deploy\deploy-selection-preview.spec.ts:11:2 › selection and preview confirm/conflict/refresh (light) (11.9s)
+(node:15576) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x  2 tests\smoke\business\deploy\deploy-selection-preview.spec.ts:11:2 › selection and preview confirm/conflict/refresh (dark) (11.9s)
+
+
+  1) tests\smoke\business\deploy\deploy-selection-preview.spec.ts:11:2 › selection and preview confirm/conflict/refresh (light) 
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator: locator('.deploy-target-selector').getByText('selection-preview-light-1794051049081 · 10.249.58.91', { exact: true }).first()
+    Expected: visible
+    Timeout: 10000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toBeVisible" locator('.deploy-target-selector').getByText('selection-preview-light-1794051049081 · 10.249.58.91', { exact: true }).first() with timeout 10000ms
+      - waiting for locator('.deploy-target-selector').getByText('selection-preview-light-1794051049081 · 10.249.58.91', { exact: true }).first()
+
+
+      31 |    await page.goto(`/business/deploy/task?editId=${taskId}`);
+      32 |    const selector = page.locator('.deploy-target-selector');
+    > 33 |    await expect(selector.getByText(`${token} · ${ip}`, { exact: true }).first()).toBeVisible();
+         |                                                                                  ^
+      34 |    await selector.getByLabel('每行输入一个主机 IP 或 ID').fill('not-a-host');
+      35 |    await selector.getByRole('button', { name: '解析并核对目标' }).click();
+      36 |    await expect(selector.getByText('目标无效或状态不允许，请调整选择后重新解析')).toBeVisible();
+        at D:\workspace\go\pantheon-platform\pantheon-ops\frontend\tests\smoke\business\deploy\deploy-selection-preview.spec.ts:33:82
+
+    Error Context: ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\o1-o3-preview-ready-runtime\smoke-business-deploy-depl-9c782-irm-conflict-refresh-light-\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\o1-o3-preview-ready-runtime\smoke-business-deploy-depl-9c782-irm-conflict-refresh-light-\trace.zip
+    Usage:
+
+        npx playwright show-trace ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\o1-o3-preview-ready-runtime\smoke-business-deploy-depl-9c782-irm-conflict-refresh-light-\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  2) tests\smoke\business\deploy\deploy-selection-preview.spec.ts:11:2 › selection and preview confirm/conflict/refresh (dark) 
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator: locator('.deploy-target-selector').getByText('selection-preview-dark-1794051062104 · 10.249.175.91', { exact: true }).first()
+    Expected: visible
+    Timeout: 10000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toBeVisible" locator('.deploy-target-selector').getByText('selection-preview-dark-1794051062104 · 10.249.175.91', { exact: true }).first() with timeout 10000ms
+      - waiting for locator('.deploy-target-selector').getByText('selection-preview-dark-1794051062104 · 10.249.175.91', { exact: true }).first()
+
+
+      31 |    await page.goto(`/business/deploy/task?editId=${taskId}`);
+      32 |    const selector = page.locator('.deploy-target-selector');
+    > 33 |    await expect(selector.getByText(`${token} · ${ip}`, { exact: true }).first()).toBeVisible();
+         |                                                                                  ^
+      34 |    await selector.getByLabel('每行输入一个主机 IP 或 ID').fill('not-a-host');
+      35 |    await selector.getByRole('button', { name: '解析并核对目标' }).click();
+      36 |    await expect(selector.getByText('目标无效或状态不允许，请调整选择后重新解析')).toBeVisible();
+        at D:\workspace\go\pantheon-platform\pantheon-ops\frontend\tests\smoke\business\deploy\deploy-selection-preview.spec.ts:33:82
+
+    Error Context: ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\o1-o3-preview-ready-runtime\smoke-business-deploy-depl-226da-firm-conflict-refresh-dark-\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\o1-o3-preview-ready-runtime\smoke-business-deploy-depl-226da-firm-conflict-refresh-dark-\trace.zip
+    Usage:
+
+        npx playwright show-trace ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\o1-o3-preview-ready-runtime\smoke-business-deploy-depl-226da-firm-conflict-refresh-dark-\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  2 failed
+    tests\smoke\business\deploy\deploy-selection-preview.spec.ts:11:2 › selection and preview confirm/conflict/refresh (light) 
+    tests\smoke\business\deploy\deploy-selection-preview.spec.ts:11:2 › selection and preview confirm/conflict/refresh (dark) 

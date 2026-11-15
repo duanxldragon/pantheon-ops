@@ -1,0 +1,5 @@
+--- FAIL: TestDeploySSHTransportCancelDuringHandshake (1.00s)
+    deploy_ssh_transport_test.go:489: SSH handshake ignored host cancellation
+FAIL
+FAIL	github.com/duanxldragon/pantheon-base/backend/modules/business/deploy	1.075s
+FAIL

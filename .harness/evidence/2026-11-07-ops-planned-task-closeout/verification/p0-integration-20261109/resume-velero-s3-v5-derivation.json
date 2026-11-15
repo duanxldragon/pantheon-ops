@@ -1,0 +1,28 @@
+{
+  "requestSHA256": "723824066805739acad3f52011c299a947f01c8035b872193c9113b4663949d6",
+  "remainingInstallSource": "resume-velero-s3-v4-remote.py:install",
+  "firstRemainingStatement": "images = ...",
+  "onlyStatementReplacement": "manifest = copy.deepcopy(_reviewed_manifest)",
+  "officialArgvDelta": [
+    "--kubeconfig",
+    "/etc/rancher/k3s/k3s.yaml"
+  ],
+  "fixtureByteIdentical": true,
+  "rootFunctionAdapters": {
+    "validate": "v5 fixture filename only",
+    "remote_phase": "v5 fixture filename only"
+  },
+  "compiledHelpers": [
+    ".local/ops-acceptance/resume-velero-s3-v5-fixture.py",
+    ".local/ops-acceptance/resume-velero-s3-v5-generate.py",
+    ".local/ops-acceptance/resume-velero-s3-v5-native.py",
+    ".local/ops-acceptance/resume-velero-s3-v5-remote.py",
+    ".local/ops-acceptance/resume-velero-s3-v5-root.py",
+    ".local/ops-acceptance/resume-velero-s3-v5-test.py"
+  ],
+  "protectedFilesStable": 135,
+  "v4FailedReceiptSHA256": "9c2048e5ff4d4f2ce139a8a19fe281afa26b539ba93a7c988cdd445a8a61683b",
+  "sourceDiffSHA256": "06e2f73741701887e85383c6a08f1c44fa80c4a286db1e8f98af2364833f35b6",
+  "remoteExecuted": false,
+  "backupRestoreVerified": false
+}

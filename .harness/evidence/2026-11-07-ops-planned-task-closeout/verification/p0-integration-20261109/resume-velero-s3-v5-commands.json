@@ -1,0 +1,117 @@
+{
+  "schemaVersion": 1,
+  "taskId": "2026-11-07-ops-planned-task-closeout",
+  "tier": "L2",
+  "layer": "business/k8s acceptance preparation",
+  "createdAt": "2026-11-10T02:36:56.089565+00:00",
+  "linkage": {
+    "taskPacket": "docs/harness/tasks/2026-11-07-ops-planned-task-closeout.task.md",
+    "evidenceDirectory": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109",
+    "summary": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-velero-s3-v5-handoff.md",
+    "review": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/resume-velero-s3-v5-review.md"
+  },
+  "requestSHA256": "723824066805739acad3f52011c299a947f01c8035b872193c9113b4663949d6",
+  "commands": [
+    {
+      "argv": [
+        "D:\\Python\\Python312\\python.exe",
+        "-B",
+        ".local/ops-acceptance/resume-velero-s3-v5-test.py"
+      ],
+      "exitCode": 0,
+      "seconds": 2.266,
+      "stdout": "",
+      "stderr": "test_all_v5_parse_compile (__main__.Derivation.test_all_v5_parse_compile) ... ok\ntest_exact_caps_and_pinned_images_reused (__main__.Derivation.test_exact_caps_and_pinned_images_reused) ... ok\ntest_fixture_is_byte_identical (__main__.Derivation.test_fixture_is_byte_identical) ... ok\ntest_official_argv_only_adds_config_and_never_calls_real_install (__main__.Derivation.test_official_argv_only_adds_config_and_never_calls_real_install) ... ok\ntest_original_remaining_body_exact (__main__.Derivation.test_original_remaining_body_exact) ... ok\ntest_original_validation_and_fixture_adapter_ast (__main__.Derivation.test_original_validation_and_fixture_adapter_ast) ... ok\ntest_remaining_body_cannot_replay_native_or_first_five (__main__.Derivation.test_remaining_body_cannot_replay_native_or_first_five) ... ok\ntest_unpinned_image_refuses_before_create (__main__.Derivation.test_unpinned_image_refuses_before_create) ... ok\ntest_changed_uid_owner_and_owner_reference_refuse (__main__.FiveGuard.test_changed_uid_owner_and_owner_reference_refuse) ... ok\ntest_credential_mismatch_refuses (__main__.FiveGuard.test_credential_mismatch_refuses) ... ok\ntest_diagnostic_refusal_retains_only_safe_official_shape (__main__.FiveGuard.test_diagnostic_refusal_retains_only_safe_official_shape) ... ok\ntest_exact_live_five_and_in_memory_credential_match (__main__.FiveGuard.test_exact_live_five_and_in_memory_credential_match) ... ok\ntest_extra_pod_refuses (__main__.FiveGuard.test_extra_pod_refuses) ... ok\ntest_foreign_service_or_endpoint_refuses (__main__.FiveGuard.test_foreign_service_or_endpoint_refuses) ... ok\ntest_mirrored_or_arbitrary_endpoint_slice_not_adopted (__main__.FiveGuard.test_mirrored_or_arbitrary_endpoint_slice_not_adopted) ... ok\ntest_only_kubernetes_defaults_excluded_from_adoption (__main__.FiveGuard.test_only_kubernetes_defaults_excluded_from_adoption) ... ok\ntest_all_remaining_names_checked_absent_before_any_create (__main__.ManifestSafety.test_all_remaining_names_checked_absent_before_any_create) ... ok\ntest_list_and_native_document_stream (__main__.ManifestSafety.test_list_and_native_document_stream) ... ok\ntest_secret_output_refuses (__main__.ManifestSafety.test_secret_output_refuses) ... ok\ntest_trailing_junk_duplicate_json_and_bound_refuse (__main__.ManifestSafety.test_trailing_junk_duplicate_json_and_bound_refuse) ... ok\ntest_unknown_namespace_schema_duplicates_refuse (__main__.ManifestSafety.test_unknown_namespace_schema_duplicates_refuse) ... ok\ntest_bounded_complete_keeps_original_five_and_migration (__main__.RecoveryGuard.test_bounded_complete_keeps_original_five_and_migration) ... ok\ntest_changed_manifest_refuses_without_any_write (__main__.RecoveryGuard.test_changed_manifest_refuses_without_any_write) ... ok\ntest_exclusive_writes_cannot_replace_failure (__main__.RecoveryGuard.test_exclusive_writes_cannot_replace_failure) ... ok\ntest_failed_predecessor_cannot_be_success (__main__.RecoveryGuard.test_failed_predecessor_cannot_be_success) ... ok\ntest_failure_directory_discovery_exact_hashes_only (__main__.RecoveryGuard.test_failure_directory_discovery_exact_hashes_only) ... ok\ntest_private_native_kubeconfig_required (__main__.RecoveryGuard.test_private_native_kubeconfig_required) ... ok\ntest_root_input_check_never_connects (__main__.RecoveryGuard.test_root_input_check_never_connects) ... ok\ntest_root_refuses_wrong_request_before_connect (__main__.RecoveryGuard.test_root_refuses_wrong_request_before_connect) ... ok\ntest_source_hash_change_refuses_without_connect (__main__.RecoveryGuard.test_source_hash_change_refuses_without_connect) ... ok\ntest_stale_diagnostic_refuses_without_any_write (__main__.RecoveryGuard.test_stale_diagnostic_refuses_without_any_write) ... ok\ntest_unknown_native_entry_refuses_before_config_or_source_reads (__main__.RecoveryGuard.test_unknown_native_entry_refuses_before_config_or_source_reads) ... ok\n\n----------------------------------------------------------------------\nRan 32 tests in 1.993s\n\nOK\n",
+      "remoteExecuted": false
+    },
+    {
+      "argv": [
+        "D:\\Python\\Python312\\python.exe",
+        "-B",
+        ".local/ops-acceptance/resume-velero-s3-v4-test.py"
+      ],
+      "exitCode": 0,
+      "seconds": 0.437,
+      "stdout": "",
+      "stderr": "test_actual_v3_failure_extras_private (__main__.BindingTests.test_actual_v3_failure_extras_private) ... ok\ntest_exact_eight_private_v4_listeners (__main__.BindingTests.test_exact_eight_private_v4_listeners) ... ok\ntest_wildcards_public_unknown_and_missing_denied (__main__.BindingTests.test_wildcards_public_unknown_and_missing_denied) ... ok\ntest_actual_help_supports_exact_flags (__main__.DerivationTests.test_actual_help_supports_exact_flags) ... ok\ntest_all_python_compile (__main__.DerivationTests.test_all_python_compile) ... ok\ntest_exact_ast_provider_delta (__main__.DerivationTests.test_exact_ast_provider_delta) ... ok\ntest_fixture_functions_and_every_assertion_preserved (__main__.DerivationTests.test_fixture_functions_and_every_assertion_preserved) ... ok\ntest_native_eth0_and_no_fallback (__main__.DerivationTests.test_native_eth0_and_no_fallback) ... ok\ntest_original_validation_preserved (__main__.DerivationTests.test_original_validation_preserved) ... ok\ntest_diagnostic_then_install_requires_exact_original_budget_and_ports (__main__.RootPhaseTests.test_diagnostic_then_install_requires_exact_original_budget_and_ports) ... ok\ntest_inspect_and_cleanup_pass_bound_snapshot_to_native (__main__.RootPhaseTests.test_inspect_and_cleanup_pass_bound_snapshot_to_native) ... ok\ntest_request_hash_refused_before_connect (__main__.RootPhaseTests.test_request_hash_refused_before_connect) ... ok\ntest_validate_and_cleanup_require_persisted_s3_finite_fixture_cleanup (__main__.RootPhaseTests.test_validate_and_cleanup_require_persisted_s3_finite_fixture_cleanup) ... ok\ntest_auth_exact_owner_and_counts_only (__main__.SafetyTests.test_auth_exact_owner_and_counts_only) ... ok\ntest_boolean_failed_exit_code_refused (__main__.SafetyTests.test_boolean_failed_exit_code_refused) ... ok\ntest_exact_cleanup_only_unmount_unlink_empty_rmdir (__main__.SafetyTests.test_exact_cleanup_only_unmount_unlink_empty_rmdir) ... ok\ntest_exact_native_findmnt_losetup (__main__.SafetyTests.test_exact_native_findmnt_losetup) ... ok\ntest_foreign_nested_mount_loop_backing_offset_ro_refused (__main__.SafetyTests.test_foreign_nested_mount_loop_backing_offset_ro_refused) ... ok\ntest_inspection_drift_blocks_before_unmount (__main__.SafetyTests.test_inspection_drift_blocks_before_unmount) ... ok\ntest_kubernetes_absence_from_successful_native_lists (__main__.SafetyTests.test_kubernetes_absence_from_successful_native_lists) ... ok\ntest_metadata_symlink_uid_gid_hardlink_mode_refused (__main__.SafetyTests.test_metadata_symlink_uid_gid_hardlink_mode_refused) ... ok\ntest_root_upload_exclusive_and_no_original_provision (__main__.SafetyTests.test_root_upload_exclusive_and_no_original_provision) ... ok\ntest_stopped_absent_unit_and_foreign_uid_rejection (__main__.SafetyTests.test_stopped_absent_unit_and_foreign_uid_rejection) ... ok\ntest_underlying_foreign_file_retained_after_unmount (__main__.SafetyTests.test_underlying_foreign_file_retained_after_unmount) ... ok\ntest_unknown_top_level_file_and_failed_shape_refused (__main__.SafetyTests.test_unknown_top_level_file_and_failed_shape_refused) ... ok\n\n----------------------------------------------------------------------\nRan 25 tests in 0.226s\n\nOK\n",
+      "remoteExecuted": false
+    },
+    {
+      "argv": [
+        "D:\\Python\\Python312\\python.exe",
+        "-B",
+        ".local/ops-acceptance/resume-velero-s3-v5-root.py",
+        "check-inputs"
+      ],
+      "exitCode": 0,
+      "seconds": 1.047,
+      "stdout": "{\"exitCode\": 0, \"remoteExecuted\": false, \"rootRequestSHA256\": \"723824066805739acad3f52011c299a947f01c8035b872193c9113b4663949d6\", \"v5Scripts\": 6, \"originalFive\": 5, \"failureReceiptSHA256\": \"9c2048e5ff4d4f2ce139a8a19fe281afa26b539ba93a7c988cdd445a8a61683b\", \"backupRestoreVerified\": false}\n",
+      "stderr": "",
+      "remoteExecuted": false
+    },
+    {
+      "argv": [
+        "node",
+        "scripts/frontmatter-check.mjs"
+      ],
+      "exitCode": 0,
+      "seconds": 0.266,
+      "stdout": "Frontmatter check passed. Checked 462 docs, 301 with frontmatter.\n",
+      "stderr": "",
+      "remoteExecuted": false
+    },
+    {
+      "argv": [
+        "node",
+        "scripts/check-task-packet-template.mjs"
+      ],
+      "exitCode": 0,
+      "seconds": 0.078,
+      "stdout": "OK pantheon-ops task-packet template is present and linked\n",
+      "stderr": "",
+      "remoteExecuted": false
+    },
+    {
+      "argv": [
+        "git",
+        "check-ignore",
+        "--",
+        ".local/ops-acceptance/resume-velero-s3-v5-fixture.py",
+        ".local/ops-acceptance/resume-velero-s3-v5-generate.py",
+        ".local/ops-acceptance/resume-velero-s3-v5-native.py",
+        ".local/ops-acceptance/resume-velero-s3-v5-remote.py",
+        ".local/ops-acceptance/resume-velero-s3-v5-root.py",
+        ".local/ops-acceptance/resume-velero-s3-v5-test.py"
+      ],
+      "exitCode": 0,
+      "seconds": 0.031,
+      "stdout": ".local/ops-acceptance/resume-velero-s3-v5-fixture.py\n.local/ops-acceptance/resume-velero-s3-v5-generate.py\n.local/ops-acceptance/resume-velero-s3-v5-native.py\n.local/ops-acceptance/resume-velero-s3-v5-remote.py\n.local/ops-acceptance/resume-velero-s3-v5-root.py\n.local/ops-acceptance/resume-velero-s3-v5-test.py\n",
+      "stderr": "",
+      "remoteExecuted": false
+    }
+  ],
+  "syntaxCompile": {
+    "passed": true,
+    "helpers": 6
+  },
+  "sourceSeals": {
+    "protectedFiles": 135,
+    "allStable": true,
+    "driverBinarySHA256": "7204fc7cabbfe4ed9b73c4edf83fedd9f917c2f614b943f287baab8da0d5244e",
+    "originalFailureSHA256": "9c2048e5ff4d4f2ce139a8a19fe281afa26b539ba93a7c988cdd445a8a61683b"
+  },
+  "graphChecks": {
+    "toolAvailable": false,
+    "reason": "CodeGraph tools not exposed; supplied ignored helper sources inspected directly",
+    "chain": "sealed root -> native guards -> explicit migration -> original remaining install -> original live validation/cleanup"
+  },
+  "remoteExecuted": false,
+  "credentialReads": false,
+  "tests": {
+    "v5": 32,
+    "unchangedV4": 25,
+    "allPassed": true
+  },
+  "runtimeGap": "root diagnostic/completion/actual Backup/Restore pending",
+  "P0Approved": false
+}

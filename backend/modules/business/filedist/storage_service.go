@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/duanxldragon/pantheon-base/backend/modules/business/secrets"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/common"
 
 	"gorm.io/datatypes"
 	"gorm.io/gorm"
@@ -272,7 +273,7 @@ func sanitizeUploadFileName(name string) (string, error) {
 }
 
 // UploadFile stores a file and creates a record.
-func (s *StorageService) UploadFile(storageID uint64, fileName string, reader io.Reader, size int64, uploadedBy string) (*FileRecordResponse, error) {
+func (s *StorageService) UploadFile(storageID uint64, fileName string, reader io.Reader, size int64, uploadedBy string, owners ...*common.DataScopeReq) (*FileRecordResponse, error) {
 	// Get storage
 	var storage FileStorage
 	if err := s.db.First(&storage, storageID).Error; err != nil {
@@ -339,6 +340,9 @@ func (s *StorageService) UploadFile(storageID uint64, fileName string, reader io
 		SHA256:     sha256sum,
 		UploadedBy: uploadedBy,
 		UploadedAt: time.Now(),
+	}
+	if len(owners) == 1 && owners[0] != nil {
+		record.OwnerID, record.DeptID = owners[0].UserID, owners[0].DeptID
 	}
 
 	if err := s.db.Create(record).Error; err != nil {

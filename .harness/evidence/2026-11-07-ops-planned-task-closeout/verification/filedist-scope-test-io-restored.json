@@ -1,0 +1,15 @@
+{
+  "identityVerified": true,
+  "datadir": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.tmp\\ops-planned-cmdb-services\\mysql-data",
+  "priorTestSettings": [
+    2,
+    0
+  ],
+  "mysqlPid": 23412,
+  "listenerPid": 22632,
+  "restoreRequired": false,
+  "settingsRestored": [
+    1,
+    1
+  ]
+}

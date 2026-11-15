@@ -117,11 +117,12 @@ function normalizeHostRow(row: HostRow): HostRow {
   };
 }
 
-export async function getHostList(params?: HostListQuery) {
+export async function getHostList(params?: HostListQuery, signal?: AbortSignal) {
   const result = await apiRequest<HostListResp>({
     url: '/business/cmdb/hosts',
     method: 'get',
     params,
+    signal,
   });
   return { ...result, items: result.items.map(normalizeHostRow) };
 }

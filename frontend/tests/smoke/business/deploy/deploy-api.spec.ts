@@ -1,3 +1,4 @@
+import { startReviewedTask } from './reviewed-start';
 import { expect, request as playwrightRequest, test, type APIRequestContext, type APIResponse } from '@playwright/test';
 import {
   adminCredentials,
@@ -137,7 +138,7 @@ test.describe.serial('Deploy business api smoke', () => {
     expect(task.status).toBe('draft');
 
     const started = await expectSuccess<TaskRow>(
-      await apiContext.post(`${apiBaseUrl}/business/deploy/tasks/${task.id}/start`),
+      await startReviewedTask(apiContext, task.id),
     );
     expect(started.status).toBe('running');
     expect(started.hosts).toHaveLength(1);
@@ -364,7 +365,7 @@ test.describe.serial('Deploy business api smoke', () => {
     expect(runningTask.status).toBe('draft');
 
     const started = await expectSuccess<TaskRow>(
-      await apiContext.post(`${apiBaseUrl}/business/deploy/tasks/${runningTask.id}/start`),
+      await startReviewedTask(apiContext, runningTask.id),
     );
     expect(started.status).toBe('running');
 
@@ -488,7 +489,7 @@ test.describe.serial('Deploy business api smoke', () => {
     );
 
     await expectSuccess<TaskRow>(
-      await apiContext.post(`${apiBaseUrl}/business/deploy/tasks/${task.id}/start`, {
+      await startReviewedTask(apiContext, task.id, {
         data: {
           credentialRefId: credential.id,
           hostFingerprint: 'SHA256:test',

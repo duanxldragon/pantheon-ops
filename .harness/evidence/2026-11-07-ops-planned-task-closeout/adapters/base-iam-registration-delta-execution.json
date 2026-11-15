@@ -1,0 +1,7 @@
+{
+  "status": "completed",
+  "exitCode": 0,
+  "seconds": 208,
+  "characters": 3015,
+  "command": "claude.exe -p --tools \"\" --output-format text; stdin=base-iam-registration-delta-prompt.md"
+}

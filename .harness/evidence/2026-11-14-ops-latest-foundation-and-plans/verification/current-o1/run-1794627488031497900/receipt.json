@@ -1,0 +1,22 @@
+{
+  "command": [
+    "go",
+    "test",
+    "-race",
+    "-p=1",
+    "-buildvcs=false",
+    "-mod=readonly",
+    "-json",
+    "./modules/business/filedist"
+  ],
+  "exitCode": 0,
+  "elapsedSeconds": 8.469,
+  "sourceStable": true,
+  "sourceCount": 59,
+  "fixtureSHA256": "8796d1a6c2b599e8e5406df8848638287d93827fb4436e6373c271b79cca5f05",
+  "testPasses": 456,
+  "skipped": [],
+  "failed": [],
+  "credentialsPrinted": false,
+  "privateLogs": ".harness/evidence/2026-11-14-ops-latest-foundation-and-plans/verification/current-o1/run-1794627488031497900"
+}

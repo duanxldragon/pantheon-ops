@@ -1,0 +1,378 @@
+
+Running 18 tests using 1 worker
+
+(node:6196) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok  1 tests\smoke\business\cmdb\cmdb-import-export-permissions.spec.ts:35:3 › CMDB view role with explicit API grants enforces separate CSV capabilities (4.9s)
+  ok  2 tests\smoke\business\cmdb\cmdb-import-export-permissions.spec.ts:35:3 › CMDB export role with explicit API grants enforces separate CSV capabilities (5.2s)
+  ok  3 tests\smoke\business\cmdb\cmdb-import-export-permissions.spec.ts:35:3 › CMDB import role with explicit API grants enforces separate CSV capabilities (5.5s)
+  ok  4 tests\smoke\business\cmdb\cmdb-import-export-permissions.spec.ts:35:3 › CMDB scoped role with explicit API grants enforces separate CSV capabilities (9.3s)
+  x   5 tests\smoke\business\deploy\deploy-command.spec.ts:10:2 › viewed task command conflict refreshes without replay (light) (30.9s)
+(node:11568) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x   6 tests\smoke\business\deploy\deploy-command.spec.ts:10:2 › viewed task command conflict refreshes without replay (dark) (30.9s)
+(node:21408) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x   7 tests\smoke\business\deploy\deploy-command.spec.ts:59:1 › batch cancel retains failed selection and reports partial failure (31.1s)
+(node:14176) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x   8 tests\smoke\business\deploy\deploy-selection-preview.spec.ts:12:2 › selection and preview confirm/conflict/refresh (light) (30.7s)
+(node:144) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x   9 tests\smoke\business\deploy\deploy-selection-preview.spec.ts:12:2 › selection and preview confirm/conflict/refresh (dark) (26.5s)
+(node:13452) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok 10 tests\smoke\business\deploy\deploy-selection-preview.spec.ts:134:1 › rollback draft uses frozen definition and its own reviewed start (10.0s)
+  x  11 tests\smoke\business\deploy\deploy-workbench.spec.ts:16:3 › deployment workbench sources, logs, keyboard and mobile (light) (30.9s)
+(node:19936) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x  12 tests\smoke\business\deploy\deploy-workbench.spec.ts:16:3 › deployment workbench sources, logs, keyboard and mobile (dark) (30.9s)
+(node:8460) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok 13 tests\smoke\business\k8s\release-preview.spec.ts:7:2 › K8s image preview conflict, same-request retry, rollback and mobile (light) (21.2s)
+  ok 14 tests\smoke\business\k8s\release-preview.spec.ts:7:2 › K8s image preview conflict, same-request retry, rollback and mobile (dark) (21.0s)
+  x  15 tests\smoke\business\observability-tempo-workbench.spec.ts:7:3 › Tempo UTC range, detail, cancellation and revocation (light) (30.5s)
+(node:5472) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x  16 tests\smoke\business\observability-tempo-workbench.spec.ts:7:3 › Tempo UTC range, detail, cancellation and revocation (dark) (30.6s)
+(node:2512) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x  17 tests\smoke\business\observability-workbench.spec.ts:8:3 › Loki UTC range, cancellation, denial and recovery (light) (30.9s)
+(node:13704) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x  18 tests\smoke\business\observability-workbench.spec.ts:8:3 › Loki UTC range, cancellation, denial and recovery (dark) (30.9s)
+
+
+  1) tests\smoke\business\deploy\deploy-command.spec.ts:10:2 › viewed task command conflict refreshes without replay (light) 
+
+    Test timeout of 30000ms exceeded.
+
+    Error: expect(received).toEqual(expected) // deep equality
+
+    - Expected  - 1
+    + Received  + 5
+
+    - Array []
+    + Array [
+    +   "cmdb/hosts/4: Error: apiRequestContext.delete: Test timeout of 30000ms exceeded.",
+    +   "bizscope/1: Error: apiRequestContext.delete: Test timeout of 30000ms exceeded.",
+    +   "deploy/packages/1: Error: apiRequestContext.delete: Test timeout of 30000ms exceeded.",
+    + ]
+
+      52 |     for(const [id,endpoint] of [[taskId,'deploy/tasks'],[hostId,'cmdb/hosts'],[scopeId,'bizscope'],[packageId,'deploy/packages']] as const){if(!id)continue;try{await success(await page.request.delete(`${apiBaseUrl}/business/${endpoint}/${id}`,{headers:cleanupHeaders}))}catch(error){cleanupErrors.push(`${endpoint}/${id}: ${String(error)}`)}}
+      53 |    }catch(error){cleanupErrors.push(String(error))}
+    > 54 |    await testInfo.attach('command-fixture-cleanup',{contentType:'application/json',body:JSON.stringify({token,taskId,hostId,scopeId,packageId,cleanupErrors})});if(!failed)expect(cleanupErrors).toEqual([]);
+         |                                                                                                                                                                                                  ^
+      55 |   }
+      56 |  });
+      57 | }
+        at D:\workspace\go\pantheon-platform\pantheon-ops\frontend\tests\smoke\business\deploy\deploy-command.spec.ts:54:194
+
+    Error Context: ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\p0-integration-20261109\remote-p0-browser-v6\smoke-business-deploy-depl-515b4-eshes-without-replay-light-\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\p0-integration-20261109\remote-p0-browser-v6\smoke-business-deploy-depl-515b4-eshes-without-replay-light-\trace.zip
+    Usage:
+
+        npx playwright show-trace ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\p0-integration-20261109\remote-p0-browser-v6\smoke-business-deploy-depl-515b4-eshes-without-replay-light-\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  2) tests\smoke\business\deploy\deploy-command.spec.ts:10:2 › viewed task command conflict refreshes without replay (dark) 
+
+    Test timeout of 30000ms exceeded.
+
+    Error: expect(received).toEqual(expected) // deep equality
+
+    - Expected  - 1
+    + Received  + 4
+
+    - Array []
+    + Array [
+    +   "bizscope/2: Error: apiResponse.json: Response has been disposed",
+    +   "deploy/packages/2: Error: apiRequestContext.delete: Test timeout of 30000ms exceeded.",
+    + ]
+
+      52 |     for(const [id,endpoint] of [[taskId,'deploy/tasks'],[hostId,'cmdb/hosts'],[scopeId,'bizscope'],[packageId,'deploy/packages']] as const){if(!id)continue;try{await success(await page.request.delete(`${apiBaseUrl}/business/${endpoint}/${id}`,{headers:cleanupHeaders}))}catch(error){cleanupErrors.push(`${endpoint}/${id}: ${String(error)}`)}}
+      53 |    }catch(error){cleanupErrors.push(String(error))}
+    > 54 |    await testInfo.attach('command-fixture-cleanup',{contentType:'application/json',body:JSON.stringify({token,taskId,hostId,scopeId,packageId,cleanupErrors})});if(!failed)expect(cleanupErrors).toEqual([]);
+         |                                                                                                                                                                                                  ^
+      55 |   }
+      56 |  });
+      57 | }
+        at D:\workspace\go\pantheon-platform\pantheon-ops\frontend\tests\smoke\business\deploy\deploy-command.spec.ts:54:194
+
+    Error Context: ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\p0-integration-20261109\remote-p0-browser-v6\smoke-business-deploy-depl-8790f-reshes-without-replay-dark-\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\p0-integration-20261109\remote-p0-browser-v6\smoke-business-deploy-depl-8790f-reshes-without-replay-dark-\trace.zip
+    Usage:
+
+        npx playwright show-trace ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\p0-integration-20261109\remote-p0-browser-v6\smoke-business-deploy-depl-8790f-reshes-without-replay-dark-\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  3) tests\smoke\business\deploy\deploy-command.spec.ts:59:1 › batch cancel retains failed selection and reports partial failure 
+
+    Test timeout of 30000ms exceeded.
+
+    Error: apiResponse.json: Response has been disposed
+
+      4 |
+      5 | async function success<T>(response: APIResponse): Promise<T> {
+    > 6 |  const payload = await response.json(); expect(response.ok(), payload.message).toBeTruthy(); expect(payload.code,payload.message).toBe(200); return payload.data as T;
+        |                                 ^
+      7 | }
+      8 | type CommandTask = {id:number;status:string;stateVersion:string;hosts:{id:number}[]};
+      9 | for(const mode of ['light','dark'] as const){
+        at success (D:\workspace\go\pantheon-platform\pantheon-ops\frontend\tests\smoke\business\deploy\deploy-command.spec.ts:6:33)
+        at D:\workspace\go\pantheon-platform\pantheon-ops\frontend\tests\smoke\business\deploy\deploy-command.spec.ts:87:17
+
+    Error Context: ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\p0-integration-20261109\remote-p0-browser-v6\smoke-business-deploy-depl-5e1fa-and-reports-partial-failure\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\p0-integration-20261109\remote-p0-browser-v6\smoke-business-deploy-depl-5e1fa-and-reports-partial-failure\trace.zip
+    Usage:
+
+        npx playwright show-trace ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\p0-integration-20261109\remote-p0-browser-v6\smoke-business-deploy-depl-5e1fa-and-reports-partial-failure\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  4) tests\smoke\business\deploy\deploy-selection-preview.spec.ts:12:2 › selection and preview confirm/conflict/refresh (light) 
+
+    Test timeout of 30000ms exceeded.
+
+    Error: page.goto: Test timeout of 30000ms exceeded.
+    Call log:
+      - navigating to "http://127.0.0.1:5173/business/deploy/task/5", waiting until "load"
+
+
+      47 |    await page.screenshot({ path: testInfo.outputPath(`selection-${mode}-mobile-ready.png`), fullPage: true });
+      48 |    await page.locator('.arco-modal:visible').last().getByRole('button', { name: '取消', exact: true }).click();
+    > 49 |    await page.goto(`/business/deploy/task/${taskId}`);
+         |               ^
+      50 |    let starts = 0;
+      51 |    page.on('request', (request) => { if (request.method() === 'POST' && request.url().endsWith(`/tasks/${taskId}/start`)) starts++; });
+      52 |    await page.getByRole('button', { name: '启动', exact: true }).click();
+        at D:\workspace\go\pantheon-platform\pantheon-ops\frontend\tests\smoke\business\deploy\deploy-selection-preview.spec.ts:49:15
+
+    Error Context: ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\p0-integration-20261109\remote-p0-browser-v6\smoke-business-deploy-depl-9c782-irm-conflict-refresh-light-\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\p0-integration-20261109\remote-p0-browser-v6\smoke-business-deploy-depl-9c782-irm-conflict-refresh-light-\trace.zip
+    Usage:
+
+        npx playwright show-trace ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\p0-integration-20261109\remote-p0-browser-v6\smoke-business-deploy-depl-9c782-irm-conflict-refresh-light-\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  5) tests\smoke\business\deploy\deploy-selection-preview.spec.ts:12:2 › selection and preview confirm/conflict/refresh (dark) 
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator: locator('.deploy-target-selector').getByText('selection-preview-dark-1794194219211 · 10.249.39.91', { exact: true }).first()
+    Expected: visible
+    Timeout: 10000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toBeVisible" locator('.deploy-target-selector').getByText('selection-preview-dark-1794194219211 · 10.249.39.91', { exact: true }).first() with timeout 10000ms
+      - waiting for locator('.deploy-target-selector').getByText('selection-preview-dark-1794194219211 · 10.249.39.91', { exact: true }).first()
+
+
+      33 |    await page.goto(`/business/deploy/task?editId=${taskId}`);
+      34 |    const selector = page.locator('.deploy-target-selector');
+    > 35 |    await expect(selector.getByText(`${token} · ${ip}`, { exact: true }).first()).toBeVisible();
+         |                                                                                  ^
+      36 |    await selector.getByLabel('每行输入一个主机 IP 或 ID').fill('not-a-host');
+      37 |    await selector.getByRole('button', { name: '解析并核对目标' }).click();
+      38 |    await expect(selector.getByText('目标无效或状态不允许，请调整选择后重新解析')).toBeVisible();
+        at D:\workspace\go\pantheon-platform\pantheon-ops\frontend\tests\smoke\business\deploy\deploy-selection-preview.spec.ts:35:82
+
+    Error Context: ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\p0-integration-20261109\remote-p0-browser-v6\smoke-business-deploy-depl-226da-firm-conflict-refresh-dark-\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\p0-integration-20261109\remote-p0-browser-v6\smoke-business-deploy-depl-226da-firm-conflict-refresh-dark-\trace.zip
+    Usage:
+
+        npx playwright show-trace ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\p0-integration-20261109\remote-p0-browser-v6\smoke-business-deploy-depl-226da-firm-conflict-refresh-dark-\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  6) tests\smoke\business\deploy\deploy-workbench.spec.ts:16:3 › deployment workbench sources, logs, keyboard and mobile (light) 
+
+    Test timeout of 30000ms exceeded.
+
+    Error: page.reload: Test timeout of 30000ms exceeded.
+    Call log:
+      - waiting for navigation until "load"
+        - navigated to "http://127.0.0.1:5173/business/deploy/task/9?host=7&attempt=2&step=901"
+
+
+      119 |       await expect(dialog).toBeHidden();
+      120 |       denied = true;
+    > 121 |       await page.reload();
+          |                  ^
+      122 |       await expect(page.getByText('没有日志查看权限', { exact: true }).first()).toBeVisible();
+      123 |       await expect(page.getByText('fixture-output', { exact: true })).toHaveCount(0);
+      124 |       await page.screenshot({ path: testInfo.outputPath(`workbench-${mode}-mobile-forbidden.png`), fullPage: true });
+        at D:\workspace\go\pantheon-platform\pantheon-ops\frontend\tests\smoke\business\deploy\deploy-workbench.spec.ts:121:18
+
+    Error Context: ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\p0-integration-20261109\remote-p0-browser-v6\smoke-business-deploy-depl-58206--keyboard-and-mobile-light-\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\p0-integration-20261109\remote-p0-browser-v6\smoke-business-deploy-depl-58206--keyboard-and-mobile-light-\trace.zip
+    Usage:
+
+        npx playwright show-trace ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\p0-integration-20261109\remote-p0-browser-v6\smoke-business-deploy-depl-58206--keyboard-and-mobile-light-\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  7) tests\smoke\business\deploy\deploy-workbench.spec.ts:16:3 › deployment workbench sources, logs, keyboard and mobile (dark) 
+
+    Test timeout of 30000ms exceeded.
+
+    Error: page.reload: Test timeout of 30000ms exceeded.
+    Call log:
+      - waiting for navigation until "load"
+        - navigated to "http://127.0.0.1:5173/business/deploy/task/10?host=8&attempt=2&step=901"
+
+
+      119 |       await expect(dialog).toBeHidden();
+      120 |       denied = true;
+    > 121 |       await page.reload();
+          |                  ^
+      122 |       await expect(page.getByText('没有日志查看权限', { exact: true }).first()).toBeVisible();
+      123 |       await expect(page.getByText('fixture-output', { exact: true })).toHaveCount(0);
+      124 |       await page.screenshot({ path: testInfo.outputPath(`workbench-${mode}-mobile-forbidden.png`), fullPage: true });
+        at D:\workspace\go\pantheon-platform\pantheon-ops\frontend\tests\smoke\business\deploy\deploy-workbench.spec.ts:121:18
+
+    Error Context: ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\p0-integration-20261109\remote-p0-browser-v6\smoke-business-deploy-depl-d16f5-s-keyboard-and-mobile-dark-\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\p0-integration-20261109\remote-p0-browser-v6\smoke-business-deploy-depl-d16f5-s-keyboard-and-mobile-dark-\trace.zip
+    Usage:
+
+        npx playwright show-trace ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\p0-integration-20261109\remote-p0-browser-v6\smoke-business-deploy-depl-d16f5-s-keyboard-and-mobile-dark-\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  8) tests\smoke\business\observability-tempo-workbench.spec.ts:7:3 › Tempo UTC range, detail, cancellation and revocation (light) 
+
+    Test timeout of 30000ms exceeded.
+
+    Error: locator.click: Test timeout of 30000ms exceeded.
+    Call log:
+      - waiting for getByRole('button', { name: '查看', exact: true })
+
+
+      41 |     await expect(page.getByText('查询条件已改变，当前显示上一次链路结果；请重新运行。', { exact: true })).toBeVisible();
+      42 |     await page.screenshot({ path: testInfo.outputPath(`tempo-${mode}-desktop-stale.png`), fullPage: true });
+    > 43 |     await page.getByRole('button', { name: '查看', exact: true }).click();
+         |                                                                 ^
+      44 |     const detail = page.getByRole('region', { name: /11111111111111111111111111111111/ });
+      45 |     await expect(detail).toContainText('safe-trace-detail');
+      46 |     await detail.focus(); await expect(detail).toBeFocused();
+        at D:\workspace\go\pantheon-platform\pantheon-ops\frontend\tests\smoke\business\observability-tempo-workbench.spec.ts:43:65
+
+    Error Context: ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\p0-integration-20261109\remote-p0-browser-v6\smoke-business-observabili-724a5-ation-and-revocation-light-\error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\p0-integration-20261109\remote-p0-browser-v6\smoke-business-observabili-724a5-ation-and-revocation-light-\trace.zip
+    Usage:
+
+        npx playwright show-trace ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\p0-integration-20261109\remote-p0-browser-v6\smoke-business-observabili-724a5-ation-and-revocation-light-\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  9) tests\smoke\business\observability-tempo-workbench.spec.ts:7:3 › Tempo UTC range, detail, cancellation and revocation (dark) 
+
+    Test timeout of 30000ms exceeded.
+
+    Error: locator.click: Test timeout of 30000ms exceeded.
+    Call log:
+      - waiting for getByRole('button', { name: '查看', exact: true })
+
+
+      41 |     await expect(page.getByText('查询条件已改变，当前显示上一次链路结果；请重新运行。', { exact: true })).toBeVisible();
+      42 |     await page.screenshot({ path: testInfo.outputPath(`tempo-${mode}-desktop-stale.png`), fullPage: true });
+    > 43 |     await page.getByRole('button', { name: '查看', exact: true }).click();
+         |                                                                 ^
+      44 |     const detail = page.getByRole('region', { name: /11111111111111111111111111111111/ });
+      45 |     await expect(detail).toContainText('safe-trace-detail');
+      46 |     await detail.focus(); await expect(detail).toBeFocused();
+        at D:\workspace\go\pantheon-platform\pantheon-ops\frontend\tests\smoke\business\observability-tempo-workbench.spec.ts:43:65
+
+    Error Context: ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\p0-integration-20261109\remote-p0-browser-v6\smoke-business-observabili-fe48d-lation-and-revocation-dark-\error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\p0-integration-20261109\remote-p0-browser-v6\smoke-business-observabili-fe48d-lation-and-revocation-dark-\trace.zip
+    Usage:
+
+        npx playwright show-trace ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\p0-integration-20261109\remote-p0-browser-v6\smoke-business-observabili-fe48d-lation-and-revocation-dark-\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  10) tests\smoke\business\observability-workbench.spec.ts:8:3 › Loki UTC range, cancellation, denial and recovery (light) 
+
+    Test timeout of 30000ms exceeded.
+
+    Error: page.waitForTimeout: Test timeout of 30000ms exceeded.
+
+      110 |     await expect(page.getByText('查询已停止，已有结果来自上一次查询', { exact: true })).toBeVisible();
+      111 |     const stoppedCount = queryCount;
+    > 112 |     await page.waitForTimeout(5200);
+          |                ^
+      113 |     expect(queryCount).toBe(stoppedCount);
+      114 |     await page.setViewportSize({ width: 390, height: 844 });
+      115 |     state = 'wide';
+        at D:\workspace\go\pantheon-platform\pantheon-ops\frontend\tests\smoke\business\observability-workbench.spec.ts:112:16
+
+    Error Context: ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\p0-integration-20261109\remote-p0-browser-v6\smoke-business-observabili-aaf1f--denial-and-recovery-light-\error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\p0-integration-20261109\remote-p0-browser-v6\smoke-business-observabili-aaf1f--denial-and-recovery-light-\trace.zip
+    Usage:
+
+        npx playwright show-trace ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\p0-integration-20261109\remote-p0-browser-v6\smoke-business-observabili-aaf1f--denial-and-recovery-light-\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  11) tests\smoke\business\observability-workbench.spec.ts:8:3 › Loki UTC range, cancellation, denial and recovery (dark) 
+
+    Test timeout of 30000ms exceeded.
+
+    Error: page.waitForTimeout: Test timeout of 30000ms exceeded.
+
+      110 |     await expect(page.getByText('查询已停止，已有结果来自上一次查询', { exact: true })).toBeVisible();
+      111 |     const stoppedCount = queryCount;
+    > 112 |     await page.waitForTimeout(5200);
+          |                ^
+      113 |     expect(queryCount).toBe(stoppedCount);
+      114 |     await page.setViewportSize({ width: 390, height: 844 });
+      115 |     state = 'wide';
+        at D:\workspace\go\pantheon-platform\pantheon-ops\frontend\tests\smoke\business\observability-workbench.spec.ts:112:16
+
+    Error Context: ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\p0-integration-20261109\remote-p0-browser-v6\smoke-business-observabili-a1888-n-denial-and-recovery-dark-\error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\p0-integration-20261109\remote-p0-browser-v6\smoke-business-observabili-a1888-n-denial-and-recovery-dark-\trace.zip
+    Usage:
+
+        npx playwright show-trace ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\p0-integration-20261109\remote-p0-browser-v6\smoke-business-observabili-a1888-n-denial-and-recovery-dark-\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  11 failed
+    tests\smoke\business\deploy\deploy-command.spec.ts:10:2 › viewed task command conflict refreshes without replay (light) 
+    tests\smoke\business\deploy\deploy-command.spec.ts:10:2 › viewed task command conflict refreshes without replay (dark) 
+    tests\smoke\business\deploy\deploy-command.spec.ts:59:1 › batch cancel retains failed selection and reports partial failure 
+    tests\smoke\business\deploy\deploy-selection-preview.spec.ts:12:2 › selection and preview confirm/conflict/refresh (light) 
+    tests\smoke\business\deploy\deploy-selection-preview.spec.ts:12:2 › selection and preview confirm/conflict/refresh (dark) 
+    tests\smoke\business\deploy\deploy-workbench.spec.ts:16:3 › deployment workbench sources, logs, keyboard and mobile (light) 
+    tests\smoke\business\deploy\deploy-workbench.spec.ts:16:3 › deployment workbench sources, logs, keyboard and mobile (dark) 
+    tests\smoke\business\observability-tempo-workbench.spec.ts:7:3 › Tempo UTC range, detail, cancellation and revocation (light) 
+    tests\smoke\business\observability-tempo-workbench.spec.ts:7:3 › Tempo UTC range, detail, cancellation and revocation (dark) 
+    tests\smoke\business\observability-workbench.spec.ts:8:3 › Loki UTC range, cancellation, denial and recovery (light) 
+    tests\smoke\business\observability-workbench.spec.ts:8:3 › Loki UTC range, cancellation, denial and recovery (dark) 
+  7 passed (7.2m)

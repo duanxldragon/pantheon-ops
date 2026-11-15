@@ -1,0 +1,21 @@
+{
+  "name": "r4-doc-links",
+  "command": [
+    "node",
+    "scripts/harness/check-doc-links.mjs",
+    "--root",
+    ".",
+    "--strict"
+  ],
+  "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.tmp\\ops-v0188-final-r4",
+  "exitCode": 1,
+  "signal": null,
+  "elapsedSeconds": 0.156,
+  "privateFixtureSHA256": "8796d1a6c2b599e8e5406df8848638287d93827fb4436e6373c271b79cca5f05",
+  "logSHA256": "9fb3c5badbffb169a1c484d881d605eaee219b1972b7f04010455414669f8852",
+  "logPrivate": true,
+  "credentialValuesPrinted": false,
+  "passEvents": 0,
+  "skipEvents": 0,
+  "failEvents": 0
+}

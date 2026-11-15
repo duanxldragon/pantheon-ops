@@ -1,0 +1,80 @@
+{
+  "archiveMembersMatched": 5532,
+  "artifactHashes": {
+    ".local/ops-acceptance/continue-o2-v11-independent-code-20261110-01/gopls-diagnostics.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    ".local/ops-acceptance/continue-o2-v11-independent-code-20261110-01/gopls-receipt.json": "39c91dd5cc959ae4f7e2043e59f3c79bb1adf1411820b77b6b3025a3414c7eae",
+    ".local/ops-acceptance/continue-o2-v11-independent-code-20261110-02.py": "03e1fa6cc0e17ff971d50d70b68c9fbaf214f938fbcf863900299946046f0a27",
+    ".local/ops-acceptance/continue-o2-v11-independent-code-20261110-02/cc1-loaded-modules.json": "4b90df22d3d7bce11cb6c6fd44455c1b345b82ed901c107bd185d8503011ab05",
+    ".local/ops-acceptance/continue-o2-v11-independent-code-20261110-02/fresh-inventory.json": "28255cafc15aaee642c4ffa8482559c24fdca025d696ff63ef995595ced53b1f",
+    ".local/ops-acceptance/continue-o2-v11-independent-code-20261110-02/gcc-selected-compiler.txt": "bda3f52901b45841e14dcb0e729947eb5fd73e2f0fca33f1d7ab4c2c5c5e301a",
+    ".local/ops-acceptance/continue-o2-v11-independent-code-20261110-02/native-mutation-inventory.json": "28255cafc15aaee642c4ffa8482559c24fdca025d696ff63ef995595ced53b1f",
+    ".local/ops-acceptance/continue-o2-v11-independent-code-20261110-02/pins-before.json": "c9ac261e7b7583dfb6de2384b08486bfdcdc5132026b60afc62ea465b5e4ccdf",
+    ".local/ops-acceptance/continue-o2-v11-independent-code-20261110-02/result.json": "9d6225ecb17c3e59198d85a98290c9ea2f6295c3d2effa334fa61454df8bfe9f"
+  },
+  "attemptWrites": 0,
+  "authorizationWrites": 0,
+  "credentialsLoaded": false,
+  "decision": "REQUEST CHANGES",
+  "generatedCgoCachePathRelocations": 3,
+  "gopls": {
+    "CGO_ENABLED": "1",
+    "GOCACHE": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\continue-o2-v11-independent-code-20261110-01\\gopls-gocache",
+    "PATHPrefix": "D:/msys64/mingw64/bin",
+    "command": [
+      "D:\\Go\\bin\\gopls.exe",
+      "check",
+      "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\continue-o2-live-v11-driver.go",
+      "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\continue-o2-live-v11-driver_test.go",
+      "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\continue-o2-live-v11-transport_test.go"
+    ],
+    "exitCode": 0,
+    "logSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "independent": true,
+  "issues": [
+    {
+      "file": ".local/ops-acceptance/continue-o2-live-v11-contract.py",
+      "line": 246,
+      "reason": "Selected MinGW compiler DLL inputs are absent from both files and toolFiles; actual discovery and request validation accept their hashing drift.",
+      "severity": "HIGH",
+      "witness": "D:/msys64/mingw64/bin/libgmp-10.dll"
+    }
+  ],
+  "lane": "CODE",
+  "nativeMutation": {
+    "actualInventoryUnchanged": true,
+    "changedCopySHA256": "f4f3e2c438d5fd5106015be277c1a0a26b2a90a2b7efa22fb4fe0a13a439fd78",
+    "externalOriginalUnchanged": true,
+    "originalSHA256": "37248cda33845e7c5c35a574e57da762dd0a8268f0270d179f30a33746809681",
+    "selectedInput": "D:/msys64/mingw64/bin/libgmp-10.dll",
+    "selectorDigestCallsForSelectedDLL": 0,
+    "validateRequestAccepted": true
+  },
+  "originalMismatches": 0,
+  "originalPinsCheckedBeforeAfter": 6256,
+  "ownerPinsMatched": 65,
+  "pythonASTFilesPassed": 8,
+  "raceMutationResults": [
+    {
+      "changedCopySHA256": "005f4457cedff5e8b968e074c3f246810b4c73b5f7c82623cde1faf0060a8f0b",
+      "key": "external:D:/cache/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.10.windows-amd64/src/runtime/race/internal/amd64v1/race_windows.syso",
+      "originalUnchanged": true,
+      "rejected": true
+    },
+    {
+      "changedCopySHA256": "32297c562c8c9d8648be26508fa816584f032de8e3b715ddaf2fc9b047f6e7f7",
+      "key": "external:D:/cache/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.10.windows-amd64/src/runtime/race.go",
+      "originalUnchanged": true,
+      "rejected": true
+    }
+  ],
+  "relocatedCacheBytesMatched": true,
+  "remoteExecuted": false,
+  "requestSHA256": "ffbc6666c896de2b00ec2eb799aa96e41e9b4d3bb0e5a9417d049db361649e51",
+  "runtimeCasesExecuted": 0,
+  "schema": "o2-v11-independent-code-evidence-v1",
+  "stopCondition": "Focused v11 code/spec/security review complete; native-input closure must be repaired before tooling approval.",
+  "subjectSHA256": "ffbc6666c896de2b00ec2eb799aa96e41e9b4d3bb0e5a9417d049db361649e51",
+  "unpinnedNativeOriginalMismatches": 0,
+  "unpinnedNativeOriginalsCheckedBeforeAfter": 8
+}

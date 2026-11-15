@@ -1,0 +1,65 @@
+{
+  "taskId": "2026-11-07-ops-planned-task-closeout",
+  "tool": "TypeScript LanguageService native per-file diagnostics used by tsserver",
+  "version": "6.0.3",
+  "options": {
+    "allowJs": true,
+    "checkJs": false,
+    "noEmit": true
+  },
+  "reason": "Existing untyped .mjs language settings; full static type safety is not claimed.",
+  "errors": 0,
+  "sourceStable": true,
+  "diagnostics": [
+    {
+      "file": "scripts/business-overlay/foundation-candidate.mjs",
+      "sha256": "02deaf187133b267622359e5756100262f99c48b031f76db47716157c8c974f1",
+      "syntactic": [],
+      "semantic": [],
+      "suggestions": []
+    },
+    {
+      "file": "scripts/business-overlay/rebuild-from-candidate.mjs",
+      "sha256": "b06fa5a04595f9a245920814f3ba0e31b5f3a9009061c249c62ef69fd8030f06",
+      "syntactic": [],
+      "semantic": [],
+      "suggestions": []
+    },
+    {
+      "file": "scripts/business-overlay/rebuild-from-base.mjs",
+      "sha256": "24e7e834622d7e61d240a25aedfd5c914cee86ea9780dc7280a31ce55ee06c76",
+      "syntactic": [],
+      "semantic": [],
+      "suggestions": []
+    },
+    {
+      "file": "scripts/business-overlay/check-shared-drift.mjs",
+      "sha256": "a6ee2b769c1d27167c7f426ad913981c28b99f462054342e826dc194a1c4302b",
+      "syntactic": [],
+      "semantic": [],
+      "suggestions": []
+    },
+    {
+      "file": "scripts/business-overlay/candidate-ownership.test.mjs",
+      "sha256": "30f4c185051b232d414b4867c7a9b35601d335405d8477b26dcb236be09f6062",
+      "syntactic": [],
+      "semantic": [],
+      "suggestions": []
+    },
+    {
+      "file": "scripts/business-overlay/foundation-candidate.test.mjs",
+      "sha256": "6f2cb9a366de1fdb71838ccc89ccfc76af39d68570aafde06cbe660dfd9b8894",
+      "syntactic": [],
+      "semantic": [],
+      "suggestions": []
+    },
+    {
+      "file": "tests/scripts/business-overlay/check-shared-drift.test.mjs",
+      "sha256": "b79af64de465f3b1e2efda7e14d595fb2ba24ee46bdb36b04f2e79824338be36",
+      "syntactic": [],
+      "semantic": [],
+      "suggestions": []
+    }
+  ],
+  "P0Approved": false
+}

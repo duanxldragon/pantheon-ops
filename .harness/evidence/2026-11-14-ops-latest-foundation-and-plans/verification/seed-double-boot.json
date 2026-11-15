@@ -1,0 +1,19 @@
+{
+  "result": "fail",
+  "errorClass": "AssertionError",
+  "phase": "redis-startup",
+  "newEmptySchema": "ops_baseline_test_20261114_seed_cfe52a5d",
+  "autoMigrate": false,
+  "actualRedisReady": false,
+  "isolatedRedisPort": 26325,
+  "isolatedAPIPort": 18216,
+  "twoConsecutiveBoots": [],
+  "seedSnapshotsEqual": false,
+  "elapsedSeconds": 1.188,
+  "logsPrivate": true,
+  "databaseAndLogsRetained": true,
+  "originalPreviewAndFixturesUntouched": true,
+  "onlyOwnProcessHandlesStopped": true,
+  "compiledR4EqualsR5Backend": true,
+  "scriptSHA256": "adf21de293f7b421d559ff7012c00dae75d2e3fdfe54a76f9f7fec55eb092974"
+}

@@ -1,0 +1,51 @@
+{
+  "languageServer": "pyright",
+  "version": "1.1.414",
+  "protocol": "LSP stdio JSON-RPC",
+  "settings": {
+    "diagnosticMode": "openFilesOnly",
+    "typeCheckingMode": "basic",
+    "autoSearchPaths": true,
+    "useLibraryCodeForTypes": true,
+    "extraPaths": [
+      "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance"
+    ]
+  },
+  "sourceFiles": [
+    {
+      "path": ".local/ops-acceptance/continue-velero-alias-contract.py",
+      "sha256": "a0cc68224e262e5781f7b87ee0e4f0520f40d686295644834de7909e92d51e97",
+      "stable": true,
+      "diagnostics": []
+    },
+    {
+      "path": ".local/ops-acceptance/continue-velero-alias-remote.py",
+      "sha256": "0117b40fd56886422b69cb10d22ace0c264e872c0d47d4cabd0c07bbcbd435f3",
+      "stable": true,
+      "diagnostics": []
+    },
+    {
+      "path": ".local/ops-acceptance/continue-velero-alias-root.py",
+      "sha256": "ca884ef9eda9a7e1f9d439cf09cf709f68216a9faf4a827ab1106a82f57c32c1",
+      "stable": true,
+      "diagnostics": []
+    },
+    {
+      "path": ".local/ops-acceptance/continue-velero-alias-generate.py",
+      "sha256": "788c655540df1b3de7ed7aa214aa1d8667287337219dd91999b54892d1c2acc2",
+      "stable": true,
+      "diagnostics": []
+    },
+    {
+      "path": ".local/ops-acceptance/continue-velero-alias-test.py",
+      "sha256": "319698659b450d480452189195e4f4a100a63b43d713626b86be835f1e2dbf38",
+      "stable": true,
+      "diagnostics": []
+    }
+  ],
+  "exitCode": 0,
+  "runtimeExecuted": false,
+  "errorCount": 0,
+  "warningCount": 0,
+  "seconds": 4.907
+}

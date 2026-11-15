@@ -1,0 +1,21 @@
+{
+  "name": "r4-review-registry",
+  "command": [
+    "node",
+    "scripts/harness/check-review.mjs",
+    "--root",
+    ".",
+    "--strict"
+  ],
+  "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.tmp\\ops-v0188-final-r4",
+  "exitCode": 1,
+  "signal": null,
+  "elapsedSeconds": 0.158,
+  "privateFixtureSHA256": "8796d1a6c2b599e8e5406df8848638287d93827fb4436e6373c271b79cca5f05",
+  "logSHA256": "f8ff12185fff1e86e3530ca6ff8a3d655ef742b6460b2e24f898b0544604f725",
+  "logPrivate": true,
+  "credentialValuesPrinted": false,
+  "passEvents": 0,
+  "skipEvents": 0,
+  "failEvents": 0
+}

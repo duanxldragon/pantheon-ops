@@ -1,0 +1,7 @@
+{
+  "status": "completed",
+  "exitCode": 0,
+  "seconds": 289,
+  "characters": 5279,
+  "command": "claude.exe -p --tools \"\" --output-format text; stdin=frozen-plan-projection-prompt.md"
+}

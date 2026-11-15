@@ -1,0 +1,49 @@
+{
+  "case": "hostkey-negative",
+  "identity": "o2-live-593d9f0f9442-hostkey-negative",
+  "database": "ops_p0_o2_live_593d9f0f9442_hostkey_negative",
+  "databaseRetention": "retained; no drop",
+  "events": [
+    {
+      "credentialId": 1,
+      "packageId": 1,
+      "phase": "task-created",
+      "taskId": 1
+    },
+    {
+      "case": "hostkey-negative",
+      "check": "actual VM host-key mismatch denied by product SSH",
+      "kind": "negative",
+      "passed": true
+    },
+    {
+      "case": "hostkey-negative",
+      "check": "untrusted host never executes marker script",
+      "kind": "negative",
+      "passed": true
+    },
+    {
+      "case": "hostkey-negative",
+      "failed": 0,
+      "negativePassed": 2,
+      "phase": "driver-result",
+      "positivePassed": 0
+    }
+  ],
+  "driverExitCode": 0,
+  "stderrPresent": false,
+  "status": "passed",
+  "cleanup": {
+    "phase": "exact-owned-cleanup",
+    "directory": "/opt/pantheon-p0-20261109/o2-live-593d9f0f9442-hostkey-negative",
+    "files": [
+      {
+        "file": ".owner",
+        "sha256": "027ee66b15fd3e52493398ce94867b1bc1c6f22cbcfa224a430461575bb814c1",
+        "bytes": 37
+      }
+    ],
+    "absent": true,
+    "processKill": false
+  }
+}

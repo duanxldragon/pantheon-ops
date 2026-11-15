@@ -1,0 +1,45 @@
+--- v4-remaining-install
++++ v5-reviewed-manifest-continuation
+@@ -1,11 +1,7 @@
+-def original_remaining_tail(artifacts, ip, endpoint, listeners, memory):
++def continuation_tail(artifacts, ip, endpoint, listeners, memory):
+     global PHASE
+     images = {i['tag']: i['image'] for i in artifacts['images']}
+-    manifest = json.loads(command([str(HOME_DIR / 'velero'), 'install', '--provider', 'aws',
+-        '--plugins', images['docker.io/velero/velero-plugin-for-aws:v1.13.0'], '--image', images['docker.io/velero/velero:v1.17.0'],
+-        '--bucket', BUCKET, '--namespace', 'velero', '--no-secret', '--use-volume-snapshots=false',
+-        '--backup-location-config', 'region=us-east-1,s3ForcePathStyle=true,s3Url=http://seaweedfs-s3.' + STORE + '.svc:18333',
+-        '--dry-run', '-o', 'json']))
++    manifest = copy.deepcopy(_reviewed_manifest)
+     objects = manifest.get('items', [manifest])
+     # Verify every object before creating any controller. Official schema only.
+     allowed = {'Namespace', 'CustomResourceDefinition', 'ServiceAccount', 'ClusterRole', 'ClusterRoleBinding',
+--- v4-validate
++++ v5-validate-fixture-adapter
+@@ -19,7 +19,7 @@
+                 provider = json.loads(stream.read())
+         if provider['exitCode'] != 0 or provider['storagePhase'] != 'Available':
+             raise ValueError('actual-installed-provider-required')
+-        prepared = remote_phase(client, 'resume-velero-s3-v4-fixture.py', 'prepare')
++        prepared = remote_phase(client, 'resume-velero-s3-v5-fixture.py', 'prepare')
+         if prepared['exitCode']:
+             result['partialFixtureMayRemain'] = True
+             raise ValueError('fixture-prepare-failed')
+@@ -62,7 +62,7 @@
+         material = None
+         if client and attempted_fixture:
+             try:
+-                cleanup = remote_phase(client, 'resume-velero-s3-v4-fixture.py', 'cleanup')
++                cleanup = remote_phase(client, 'resume-velero-s3-v5-fixture.py', 'cleanup')
+                 result['cleanupExitCode'] = cleanup['exitCode']
+                 result['s3PersistenceVerified'] = cleanup['records'][0].get('s3PersistenceVerified', False)
+                 if cleanup['exitCode'] or not result['s3PersistenceVerified']:
+--- v4-remote_phase
++++ v5-remote_phase-fixture-adapter
+@@ -1,5 +1,5 @@
+ def remote_phase(client, script, phase, timeout=600):
+-    require(script == 'resume-velero-s3-v4-fixture.py' and phase in ['prepare', 'cleanup'], 'fixed-fixture-phase')
++    require(script == 'resume-velero-s3-v5-fixture.py' and phase in ['prepare', 'cleanup'], 'fixed-fixture-phase')
+     before = STATE['files']
+     if phase == 'prepare':
+         checked_listing(client, before, native=True)

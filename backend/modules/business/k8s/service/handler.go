@@ -1,6 +1,7 @@
 package service
 
 import (
+	"net/http"
 	"strconv"
 
 	"github.com/duanxldragon/pantheon-base/backend/modules/business/k8s/rbac"
@@ -27,6 +28,7 @@ func (h *ServiceHandler) RegisterRoutes(r gin.IRoutes) {
 	r.GET("/clusters/:id/services", h.List)
 	r.POST("/clusters/:id/services", h.Create)
 	r.GET("/clusters/:id/services/:name", h.Get)
+	r.PUT("/clusters/:id/services/:name", h.Update)
 	r.DELETE("/clusters/:id/services/:name", h.Delete)
 }
 
@@ -42,7 +44,7 @@ func (h *ServiceHandler) List(c *gin.Context) {
 		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
 		return
 	}
-	resp, err := h.svc.List(clusterID, query, common.GetDataScope(c))
+	resp, err := h.svc.ListContext(c.Request.Context(), clusterID, query, common.GetDataScope(c))
 	if err != nil {
 		common.FailWithError(c, common.CodeError, err, "k8s.service.list_failed")
 		return
@@ -57,7 +59,7 @@ func (h *ServiceHandler) Get(c *gin.Context) {
 		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
 		return
 	}
-	resp, err := h.svc.Get(clusterID, c.Query("namespace"), c.Param("name"), common.GetDataScope(c))
+	resp, err := h.svc.GetContext(c.Request.Context(), clusterID, c.Query("namespace"), c.Param("name"), common.GetDataScope(c))
 	if err != nil {
 		common.FailWithError(c, common.CodeError, err, "k8s.service.not_found")
 		return
@@ -88,7 +90,7 @@ func (h *ServiceHandler) Create(c *gin.Context) {
 		common.Fail(c, common.CodeForbidden, "k8s.rbac.permission_denied")
 		return
 	}
-	resp, err := h.svc.Create(clusterID, namespace, req, common.GetDataScope(c))
+	resp, err := h.svc.CreateContext(c.Request.Context(), clusterID, namespace, req, common.GetDataScope(c))
 	if err != nil {
 		common.FailWithError(c, common.CodeError, err, "k8s.service.create_failed")
 		return
@@ -106,7 +108,7 @@ func (h *ServiceHandler) Delete(c *gin.Context) {
 		return
 	}
 	namespace := c.Query("namespace")
-	if namespace == "" {
+	if namespace == "" || c.Query("uid") == "" || c.Query("resourceVersion") == "" {
 		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
 		return
 	}
@@ -114,9 +116,54 @@ func (h *ServiceHandler) Delete(c *gin.Context) {
 		common.Fail(c, common.CodeForbidden, "k8s.rbac.permission_denied")
 		return
 	}
-	if err := h.svc.Delete(clusterID, namespace, c.Param("name"), common.GetDataScope(c)); err != nil {
-		common.FailWithError(c, common.CodeError, err, "k8s.service.delete_failed")
+	if err := h.svc.DeleteContext(c.Request.Context(), clusterID, namespace, c.Param("name"), c.Query("uid"), c.Query("resourceVersion"), common.GetDataScope(c)); err != nil {
+		failServiceMutation(c, err, "k8s.service.delete_failed")
 		return
 	}
 	common.Success(c, nil)
+}
+
+// Update handles a version-bound change to Service routing.
+func (h *ServiceHandler) Update(c *gin.Context) {
+	common.SetAuditMetadata(c, "business.k8s.service.audit.update", common.BusinessUpdate)
+	clusterID, err := strconv.ParseUint(c.Param("id"), 10, 64)
+	if err != nil || clusterID == 0 || c.Query("namespace") == "" {
+		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
+		return
+	}
+	var req UpdateServiceRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
+		return
+	}
+	if err := validateServiceUpdate(req); err != nil {
+		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
+		return
+	}
+	ns := c.Query("namespace")
+	if h.rbacSvc != nil && !h.rbacSvc.CheckHandlerPermission(c, clusterID, ns, rbac.ResourceTypeService, rbac.ActionUpdate) {
+		common.Fail(c, common.CodeForbidden, "k8s.rbac.permission_denied")
+		return
+	}
+	item, err := h.svc.UpdateContext(c.Request.Context(), clusterID, ns, c.Param("name"), req, common.GetDataScope(c))
+	if err != nil {
+		failServiceMutation(c, err, "business.k8s.service.updateFailed")
+		return
+	}
+	common.Success(c, item)
+}
+
+func failServiceMutation(c *gin.Context, err error, fallback string) {
+	switch err.Error() {
+	case msgServiceConflict:
+		common.FailWithCode(c, http.StatusConflict, msgServiceConflict)
+	case msgParamInvalid:
+		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
+	case "k8s.rbac.permission_denied", "k8s.namespace.action_forbidden":
+		common.Fail(c, common.CodeForbidden, err.Error())
+	case "k8s.service.not_found", "k8s.cluster.not_found":
+		common.Fail(c, common.CodeNotFound, err.Error())
+	default:
+		common.FailWithError(c, common.CodeError, err, fallback)
+	}
 }

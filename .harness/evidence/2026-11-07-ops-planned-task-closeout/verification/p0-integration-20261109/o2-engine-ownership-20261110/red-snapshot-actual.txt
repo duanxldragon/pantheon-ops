@@ -1,0 +1,6 @@
+=== RUN   TestOwnershipComponentSnapshot
+    attempt_ownership_test.go:41: projection lost committed B component: [{"name": "A", "version": "1", "deployedAt": "2026-11-10T13:10:19+08:00"}]
+--- FAIL: TestOwnershipComponentSnapshot (1.13s)
+FAIL
+FAIL	github.com/duanxldragon/pantheon-base/backend/modules/business/deploy	1.209s
+FAIL

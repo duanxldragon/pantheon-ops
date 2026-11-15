@@ -1,0 +1,43 @@
+{
+  "checkerSHA256": "e68c6d07ebdcb8e84598d657de294543b86ee785b6fbb1d51b3ece9338406d1d",
+  "command": [
+    "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.tmp\\node24\\node.exe",
+    "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.tmp\\ops-v0188-final-r5\\scripts\\harness\\check-visual-evidence.mjs",
+    "--json",
+    "--strict",
+    "--root",
+    "D:\\workspace\\go\\pantheon-platform\\pantheon-ops"
+  ],
+  "exitCode": 1,
+  "executionStdioAdaptation": "Previously reviewed task-private regular-file stdio for nested Windows pipe EPERM; same checker source/arguments/output",
+  "mode": "strict",
+  "uiTaskCount": 3,
+  "warningCount": 4,
+  "uiTasks": [
+    "2026-11-07-ops-planned-task-closeout",
+    "2026-11-13-ops-business-menu-ia-refactor",
+    "2026-11-14-ops-latest-foundation-and-plans"
+  ],
+  "warnings": [
+    {
+      "file": ".harness/tasks/2026-08-19-ops-v1-backlog-closeout/manifest.json",
+      "taskId": ".harness/tasks/2026-08-19-ops-v1-backlog-closeout/manifest.json",
+      "reason": "task manifest is unreadable: taskManifest.status must be one of: planned, in-progress, completed, abandoned (got \"complete-with-explicit-gates\")."
+    },
+    {
+      "file": ".harness/tasks/2026-09-29-ops-ssrf-protection-integration/manifest.json",
+      "taskId": ".harness/tasks/2026-09-29-ops-ssrf-protection-integration/manifest.json",
+      "reason": "task manifest is unreadable: taskManifest.taskId must be a non-empty string.\ntaskManifest.goal must be a non-empty string.\ntaskManifest.primaryLayer must be a non-empty string.\ntaskManifest.taskId must match manifest path task id \"2026-09-29-ops-ssrf-protection-integration\".\ntaskManifest.linkage must be an object.\ntaskManifest.status must be one of: planned, in-progress, completed, abandoned (got \"done\")."
+    },
+    {
+      "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/",
+      "taskId": "2026-11-07-ops-planned-task-closeout",
+      "reason": "UI task evidence is missing browserEvidence entries for the manifest visual plan"
+    },
+    {
+      "file": ".harness/tasks/cmdb-host-import-export/manifest.json",
+      "taskId": ".harness/tasks/cmdb-host-import-export/manifest.json",
+      "reason": "task manifest is unreadable: taskManifest.status must be one of: planned, in-progress, completed, abandoned (got \"implementation-complete-authorization-gap\")."
+    }
+  ]
+}

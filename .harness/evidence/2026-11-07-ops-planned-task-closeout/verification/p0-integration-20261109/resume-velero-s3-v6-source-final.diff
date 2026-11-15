@@ -1,0 +1,1086 @@
+--- v5-root
++++ v6-root
+@@ -5,7 +5,7 @@
+ ROOT = Path(__file__).resolve().parents[2]
+ LOCAL = ROOT / '.local/ops-acceptance'
+ EV = ROOT / '.harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109'
+-REQUEST = 'resume-velero-s3-v5-root-request.json'
++REQUEST = 'resume-velero-s3-v6-root-request.json'
+ 
+ def load(name):
+     spec = importlib.util.spec_from_file_location(name.replace('-', '_'), LOCAL / (name + '.py'))
+@@ -17,12 +17,17 @@
+ ORIGINAL_REVIEW = W.reviewed_inputs
+ sha, require, parse = W.sha, W.require, W.parse
+ REMOTE, OWNER = W.REMOTE, W.OWNER
+-SCRIPTS = ['resume-velero-s3-v5-remote.py', 'resume-velero-s3-v5-native.py', 'resume-velero-s3-v5-fixture.py']
++SCRIPTS = ['resume-velero-s3-v6-remote.py', 'resume-velero-s3-v6-native.py', 'resume-velero-s3-v6-fixture.py']
+ 
+ def reviewed_inputs():
+     request = parse((EV / REQUEST).read_text())
+     require(request['phaseOrder'] == ['diagnostic', 'complete', 'validate', 'cleanup'] and request['remoteOwnedPath'] == REMOTE and
+-            request['owner'] == OWNER and request['tier'] == 'L2' and request['requiresRootExecution'], 'fixed-v5-request')
++            request['owner'] == OWNER and request['tier'] == 'L2' and request['requiresRootExecution'], 'fixed-v6-request')
++    require(request['schemaVersion'] == 2 and request['v5RequestSHA256'] ==
++            '723824066805739acad3f52011c299a947f01c8035b872193c9113b4663949d6' and
++            request['v5DiagnosticReceiptSHA256'] == '4c9ae739221233ae3d3c0f1a10706b97e9ed2557fdc690c78d5086bbfc5aab53' and
++            request['mirrorInspectionSHA256'] == 'b792321b9c3ce9240cd2e6f0664e93b2396ea0defe003f0f45f9c923a5f2224a',
++            'fixed-v5-failure-and-mirror-inspection')
+     for name, expected in {**request['protectedHashes'], **request['scriptHashes']}.items():
+         path = ROOT / name
+         require(path.is_file() and not path.is_symlink() and path.stat().st_nlink == 1 and
+@@ -37,17 +42,30 @@
+             'exact-v4-failure-required')
+     require(request['failureReceiptSHA256'] == '9c2048e5ff4d4f2ce139a8a19fe281afa26b539ba93a7c988cdd445a8a61683b' and
+             sha(EV / request['failureReceipt']) == request['failureReceiptSHA256'], 'canonical-failure-hash-required')
++    prior = parse((EV / request['v5DiagnosticReceipt']).read_text())
++    inspection = parse((EV / request['mirrorInspectionReceipt']).read_text())
++    require(sha(EV / request['v5DiagnosticReceipt']) == request['v5DiagnosticReceiptSHA256'] and
++            sha(EV / request['mirrorInspectionReceipt']) == request['mirrorInspectionSHA256'] and
++            sha(EV / 'resume-velero-s3-v5-root-request.json') == request['v5RequestSHA256'] and
++            prior['exitCode'] == 1 and prior['phase'] == 'diagnostic' and prior['remoteExecuted'] is True and
++            prior['rootRequestSHA256'] == request['v5RequestSHA256'] and prior['v5ScriptHashes'] == request['v5ScriptHashes'] and
++            prior['remoteFiles'] == request['remoteBaseline'] and prior['failedRemoteReceipt'] == request['failedRemoteReceipt'] and
++            inspection['exitCode'] == 0 and inspection['remoteMutation'] is False and
++            inspection['objects'] == request['mirrorInspection'], 'actual-failure-inspection-baseline')
++    load('resume-velero-s3-v6-native').inspection_policy(request['mirrorInspection'])
+     return request, original, previous, artifacts
+ 
+ def prior_receipt(name, expected_hash, phase):
+-    require(isinstance(name, str) and re.fullmatch(r'resume-velero-s3-v5-root-[a-z-]+-[0-9]{8}T[0-9]{12}\.json', name), 'fixed-v5-receipt')
++    require(isinstance(name, str) and re.fullmatch(r'resume-velero-s3-v6-root-[a-z-]+-[0-9]{8}T[0-9]{12}\.json', name), 'fixed-v6-receipt')
+     require(isinstance(expected_hash, str) and re.fullmatch(r'[0-9a-f]{64}', expected_hash), 'explicit-prior-hash')
+     path = EV / name
+     require(path.is_file() and not path.is_symlink() and path.stat().st_nlink == 1 and sha(path) == expected_hash, 'prior-receipt-drift')
+     receipt = parse(path.read_text())
+     request = reviewed_inputs()[0]
+     require(receipt['phase'] == phase and type(receipt['exitCode']) is int and receipt['exitCode'] == 0 and receipt['remoteExecuted'] is True and
+-            receipt['rootRequestSHA256'] == sha(EV / REQUEST) and receipt['v5ScriptHashes'] == request['scriptHashes'], 'successful-sealed-predecessor')
++            receipt['rootRequestSHA256'] == sha(EV / REQUEST) and receipt['v6ScriptHashes'] == request['scriptHashes'] and
++            receipt['mirrorInspectionSHA256'] == request['mirrorInspectionSHA256'] and
++            receipt['v5DiagnosticReceiptSHA256'] == request['v5DiagnosticReceiptSHA256'], 'successful-sealed-predecessor')
+     if phase == 'complete':
+         require(receipt['providerInstalled'] is True and receipt['records'][0]['details']['originalFiveReused'] is True and
+                 receipt['records'][0]['details']['migration']['failureReceiptSHA256'] == request['failureReceiptSHA256'], 'explicit-recovery-predecessor')
+@@ -56,15 +74,19 @@
+ def discover_failure(client, request):
+     records = dict(request['remoteBaseline'])
+     with client.open_sftp() as sftp:
+-        names = set(sftp.listdir(REMOTE))
++        listed = sftp.listdir(REMOTE)
++        require(len(listed) == len(set(listed)), 'duplicate-remote-entry')
++        names = set(listed)
++        for name in request['optionalRetainedV5Files']:
++            if name in names:
++                records[name] = request['retainedV5Files'][name]
+         # Only exact reuploads of the new helpers may already exist; never overwrite.
+         for name in SCRIPTS:
+             if name in names:
+                 records[name] = {'bytes': (LOCAL / name).stat().st_size, 'sha256': sha(LOCAL / name), 'mode': 0o600}
+         extra = names - set(records) - {'data', 'data.img', 's3-auth.json'}
+-        require('resume-velero-s3-partial-owned.json' in extra and len(extra) == 2, 'exact-failure-and-progress-files')
+-        failed = next(x for x in extra if x != 'resume-velero-s3-partial-owned.json')
+-        require(re.fullmatch(r'resume-velero-s3-install-[0-9]{8}T[0-9]{12}\.json', failed), 'unknown-failure-entry')
++        require(not extra, 'unknown-remote-recovery-entry')
++        failed = request['failedRemoteReceipt']
+         for name, expected in [('resume-velero-s3-partial-owned.json', request['originalFive']), (failed, request['knownFailure'])]:
+             W.file_metadata(sftp, name)
+             raw = W.bounded_file(sftp, name, 65536)
+@@ -85,7 +107,7 @@
+             except FileNotFoundError:
+                 pass
+             else:
+-                raise ValueError('unreviewed-existing-v5-file')
++                raise ValueError('unreviewed-existing-v6-file')
+             with sftp.open(destination, 'wx') as output:
+                 output.write((LOCAL / name).read_bytes())
+                 output.flush()
+@@ -96,7 +118,7 @@
+ def invoke_recovery(client, phase, inputs):
+     require(phase in ['diagnostic', 'complete'], 'fixed-recovery-invocation')
+     timeout = 900
+-    command = 'timeout --signal=TERM --kill-after=5s 900s python3 -B ' + REMOTE + '/resume-velero-s3-v5-remote.py ' + phase
++    command = 'timeout --signal=TERM --kill-after=5s 900s python3 -B ' + REMOTE + '/resume-velero-s3-v6-remote.py ' + phase
+     stdin, output, error = client.exec_command(command, timeout=timeout + 15)
+     output.channel.sendall(json.dumps(inputs).encode())
+     output.channel.shutdown_write()
+@@ -124,43 +146,44 @@
+     require(inventory[:5] == request['originalFive'] and len(inventory) > 5 and
+             all(x.get('uid') and x['owner'] == OWNER for x in inventory) and len({x['uid'] for x in inventory}) == len(inventory), 'recovery-uid-inventory')
+     canonical = {'resume-velero-s3-partial-owned.json': inventory, 'resume-velero-s3-provider.json': provider,
+-                 'resume-velero-s3-v5-original-partial-owned.json': request['originalFive'], 'resume-velero-s3-v5-migration.json': details['migration']}
++                 'resume-velero-s3-v6-original-partial-owned.json': request['originalFive'], 'resume-velero-s3-v6-migration.json': details['migration']}
+     records = {k: v for k, v in before.items() if k != 'resume-velero-s3-partial-owned.json'}
+     with client.open_sftp() as sftp:
+         names = set(sftp.listdir(REMOTE))
+         extra = names - set(before) - set(canonical) - {'data', 'data.img', 's3-auth.json'}
+         require(len(extra) == 1, 'one-new-recovery-receipt')
+         timestamp = next(iter(extra))
+-        require(re.fullmatch(r'resume-velero-s3-v5-complete-[0-9]{8}T[0-9]{12}\.json', timestamp), 'unknown-recovery-entry')
++        require(re.fullmatch(r'resume-velero-s3-v6-complete-[0-9]{8}T[0-9]{12}\.json', timestamp), 'unknown-recovery-entry')
+         for name, expected in {**canonical, timestamp: receipt}.items():
+             W.file_metadata(sftp, name)
+             raw = W.bounded_file(sftp, name)
+             require(parse(raw) == expected, 'exact-recovery-product-required')
+             records[name] = {'bytes': len(raw), 'sha256': hashlib.sha256(raw).hexdigest(), 'mode': 0o600}
+-        require(records['resume-velero-s3-v5-original-partial-owned.json']['sha256'] ==
++        require(records['resume-velero-s3-v6-original-partial-owned.json']['sha256'] ==
+                 before['resume-velero-s3-partial-owned.json']['sha256'], 'original-progress-byte-preservation')
+     return W.checked_listing(client, records, native=True)
+ 
+ def bind_original_adapters():
+-    # Keep all original validation assertions and fixture operations, with explicit v5 seals/imports.
++    # Keep all original validation assertions and fixture operations, with explicit v6 seals/imports.
+     W.reviewed_inputs = reviewed_inputs
+     W.SCRIPTS = SCRIPTS
+     source = (LOCAL / 'resume-velero-s3-v4-root.py').read_text()
+     for name in ['validate', 'remote_phase']:
+         node = next(x for x in ast.parse(source).body if isinstance(x, ast.FunctionDef) and x.name == name)
+-        adapted = ast.get_source_segment(source, node).replace("'resume-velero-s3-v4-fixture.py'", "'resume-velero-s3-v5-fixture.py'")
+-        exec(compile(adapted, '<original-v4-' + name + '-v5-fixture-adapter>', 'exec'), W.__dict__)
++        adapted = ast.get_source_segment(source, node).replace("'resume-velero-s3-v4-fixture.py'", "'resume-velero-s3-v6-fixture.py'")
++        exec(compile(adapted, '<original-v4-' + name + '-v6-fixture-adapter>', 'exec'), W.__dict__)
+ 
+ def run(args):
+     request = reviewed_inputs()[0]
+     request_hash = sha(EV / REQUEST)
+-    require(args.request_sha256 == request_hash, 'explicit-v5-request-hash')
++    require(args.request_sha256 == request_hash, 'explicit-v6-request-hash')
+     predecessor = {'complete': 'diagnostic', 'validate': 'complete', 'cleanup': 'validate'}
+     prior = prior_receipt(args.receipt, args.sha256, predecessor[args.phase]) if args.phase != 'diagnostic' else None
+     bind_original_adapters()
+     W.STATE.clear()
+     result = {'phase': args.phase, 'exitCode': 1, 'remoteExecuted': False, 'rootRequestSHA256': request_hash,
+-              'v5ScriptHashes': request['scriptHashes'], 'failureReceiptSHA256': request['failureReceiptSHA256'],
++              'v6ScriptHashes': request['scriptHashes'], 'failureReceiptSHA256': request['failureReceiptSHA256'],
++              'v5DiagnosticReceiptSHA256': request['v5DiagnosticReceiptSHA256'], 'mirrorInspectionSHA256': request['mirrorInspectionSHA256'],
+               'providerInstalled': False, 'backupRestoreVerified': False, 'P0Approved': False}
+     try:
+         with W.connect() as client:
+@@ -177,6 +200,8 @@
+                 inputs = {'home': REMOTE, 'owner': OWNER, 'expectedFiles': records, 'rootRequestSHA256': request_hash,
+                           'originalFive': request['originalFive'], 'failureReceiptSHA256': request['failureReceiptSHA256'],
+                           'failedRemoteReceipt': failed, 'privateIP': request['privateIP'], 'binaryHashes': request['binaryHashes']}
++                inputs.update(mirrorInspection=request['mirrorInspection'], mirrorInspectionSHA256=request['mirrorInspectionSHA256'],
++                              v5DiagnosticReceiptSHA256=request['v5DiagnosticReceiptSHA256'])
+                 if prior:
+                     inputs['approvedDiagnostic'] = prior['records'][0]['details']
+                 receipt = invoke_recovery(client, args.phase, inputs)
+@@ -199,7 +224,7 @@
+                         cleanup.get('privatePorts') == sorted(request['approvedPorts']), 'original-live-validation-cleanup-required')
+                 result['providerInstalled'] = True
+             else:
+-                output = W.remote_phase(client, 'resume-velero-s3-v5-fixture.py', 'cleanup')
++                output = W.remote_phase(client, 'resume-velero-s3-v6-fixture.py', 'cleanup')
+                 result.update(exitCode=output['exitCode'], records=output['records'], providerInstalled=True)
+                 require(output['exitCode'] == 0 and output['records'][0]['s3PersistenceVerified'], 'final-persistence-cleanup-required')
+                 result['backupRestoreVerified'] = prior['backupRestoreVerified']
+@@ -224,14 +249,14 @@
+         if args.phase == 'check-inputs':
+             value = reviewed_inputs()[0]
+             print(json.dumps({'exitCode': 0, 'remoteExecuted': False, 'rootRequestSHA256': sha(EV / REQUEST),
+-                              'v5Scripts': len(value['scriptHashes']), 'originalFive': len(value['originalFive']),
++                              'v6Scripts': len(value['scriptHashes']), 'originalFive': len(value['originalFive']),
+                               'failureReceiptSHA256': value['failureReceiptSHA256'], 'backupRestoreVerified': False}))
+             return 0
+         result = run(args)
+     except Exception as exc:
+         result = {'phase': args.phase, 'exitCode': 1, 'errorType': type(exc).__name__, 'detailsOmitted': True,
+                   'remoteExecuted': False, 'backupRestoreVerified': False, 'P0Approved': False}
+-    name = 'resume-velero-s3-v5-root-' + args.phase + '-' + datetime.datetime.now(datetime.timezone.utc).strftime('%Y%m%dT%H%M%S%f') + '.json'
++    name = 'resume-velero-s3-v6-root-' + args.phase + '-' + datetime.datetime.now(datetime.timezone.utc).strftime('%Y%m%dT%H%M%S%f') + '.json'
+     with (EV / name).open('x', encoding='utf-8', newline='\n') as output:
+         output.write(json.dumps(result, indent=2) + '\n')
+     print(json.dumps({'phase': args.phase, 'exitCode': result['exitCode'], 'artifact': name, 'sha256': sha(EV / name),
+--- v5-native
++++ v6-native
+@@ -14,6 +14,23 @@
+ require, parse, metadata = V4.require, V4.parse, V4.metadata
+ HOME_DIR, OWNER, UNIT = P.HOME_DIR, P.OWNER, P.UNIT
+ KUBECONFIG = Path('/etc/rancher/k3s/k3s.yaml')
++SERVICE_UID = '97c4a5d0-203d-473f-8068-cdc1a29e1490'
++ENDPOINTS_UID = 'b6ab7b83-3a24-4b10-87d1-fae129a51dca'
++MIRROR_UID = 'e34fea74-5bd1-4c47-adf6-f637e7a0dee6'
++MIRROR_NAME = 'seaweedfs-s3-rp65g'
++PRIVATE_IP = '192.168.94.127'
++STORE_LABELS = {'app.kubernetes.io/component': 'seaweedfs-s3', 'pantheon-p0-owner': OWNER}
++MIRROR_LABELS = {**STORE_LABELS, 'kubernetes.io/service-name': 'seaweedfs-s3',
++                 'endpointslice.kubernetes.io/managed-by': 'endpointslicemirroring-controller.k8s.io'}
++MIRROR_OWNER = [{'apiVersion': 'v1', 'blockOwnerDeletion': True, 'controller': True,
++                 'kind': 'Endpoints', 'name': 'seaweedfs-s3', 'uid': ENDPOINTS_UID}]
++SERVICE_SPEC = {'clusterIP': '10.43.75.62', 'clusterIPs': ['10.43.75.62'], 'internalTrafficPolicy': 'Cluster',
++                'ipFamilies': ['IPv4'], 'ipFamilyPolicy': 'SingleStack',
++                'ports': [{'name': 's3', 'port': 18333, 'protocol': 'TCP', 'targetPort': 18333}],
++                'sessionAffinity': 'None', 'type': 'ClusterIP'}
++ENDPOINTS_SPEC = [{'addresses': [{'ip': PRIVATE_IP}], 'ports': [{'name': 's3', 'port': 18333, 'protocol': 'TCP'}]}]
++MIRROR_SPEC = {'addressType': 'IPv4', 'ports': [{'name': 's3', 'port': 18333, 'protocol': 'TCP'}],
++               'endpoints': [{'addresses': [PRIVATE_IP], 'conditions': {'ready': True}}]}
+ 
+ class NativeRefusal(ValueError):
+     def __init__(self, key, safe_metadata):
+@@ -22,6 +39,135 @@
+ 
+ def digest(value):
+     return hashlib.sha256(json.dumps(value, sort_keys=True, separators=(',', ':')).encode()).hexdigest()
++
++def safe_object(obj, count=None):
++    # Only bounded identity fields; never return arbitrary spec, annotations or Secret bytes.
++    meta = obj.get('metadata', {}) if isinstance(obj, dict) else {}
++    meta = meta if isinstance(meta, dict) else {}
++    result = {key: str(value)[:128] for key, value in {
++        'kind': obj.get('kind') if isinstance(obj, dict) else None, 'name': meta.get('name'),
++        'namespace': meta.get('namespace'), 'uid': meta.get('uid')}.items()}
++    labels = meta.get('labels', {})
++    result['expectedOwnerMatches'] = isinstance(labels, dict) and labels.get('pantheon-p0-owner') == OWNER
++    if count is not None:
++        result['listCount'] = count
++    return result
++
++def exact_metadata(meta, name, uid, labels, refs):
++    require(isinstance(meta, dict) and set(meta) <= {'name', 'namespace', 'uid', 'resourceVersion', 'creationTimestamp',
++            'generation', 'generateName', 'labels', 'annotations', 'ownerReferences', 'deletionTimestamp', 'managedFields', 'finalizers'},
++            'unknown-mirror-metadata')
++    require(meta.get('name') == name and meta.get('namespace') == P.STORE and meta.get('uid') == uid and
++            digest(meta.get('labels')) == digest(labels) and meta.get('deletionTimestamp') is None and
++            meta.get('annotations') in [None, {}] and meta.get('finalizers') in [None, []] and
++            (meta.get('generateName') in [None, 'seaweedfs-s3-'] if name == MIRROR_NAME else not meta.get('generateName')),
++            'pinned-mirror-metadata-drift')
++    require(digest(meta.get('ownerReferences') or []) == digest(refs), 'exact-mirror-controller-reference')
++    if 'resourceVersion' in meta:
++        require(isinstance(meta['resourceVersion'], str) and re.fullmatch(r'[0-9]{1,32}', meta['resourceVersion']), 'malformed-mirror-resource-version')
++    if 'creationTimestamp' in meta:
++        require(isinstance(meta['creationTimestamp'], str) and re.fullmatch(r'[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9:.]+Z', meta['creationTimestamp']),
++                'malformed-mirror-creation-timestamp')
++    if 'generation' in meta:
++        require(type(meta['generation']) is int and meta['generation'] >= 1, 'malformed-mirror-generation')
++    require(meta.get('managedFields') is None or (isinstance(meta['managedFields'], list) and
++            len(meta['managedFields']) <= 32 and all(isinstance(item, dict) for item in meta['managedFields'])), 'malformed-live-managed-fields')
++    # managedFields was absent from the inspection. It is not ownership evidence.
++
++def mirror_relationship(service, endpoints, slices):
++    try:
++        require(isinstance(slices, list) and len(slices) == 1, 'exact-one-pinned-mirror')
++        for obj, kind, uid, fields, labels, refs, name in [
++                (service, 'Service', SERVICE_UID, {'spec': SERVICE_SPEC}, STORE_LABELS, [], 'seaweedfs-s3'),
++                (endpoints, 'Endpoints', ENDPOINTS_UID, {'subsets': ENDPOINTS_SPEC}, STORE_LABELS, [], 'seaweedfs-s3'),
++                (slices[0], 'EndpointSlice', MIRROR_UID, MIRROR_SPEC, MIRROR_LABELS, MIRROR_OWNER, MIRROR_NAME)]:
++            allowed_keys = {'apiVersion', 'kind', 'metadata', *fields}
++            if kind == 'Service' and 'status' in obj:
++                require(obj['status'] in [{}, {'loadBalancer': {}}], 'nonempty-mirror-service-status')
++                allowed_keys.add('status')
++            require(set(obj) == allowed_keys and obj['kind'] == kind and
++                    obj['apiVersion'] == ('discovery.k8s.io/v1' if kind == 'EndpointSlice' else 'v1'), 'exact-mirror-object-schema')
++            exact_metadata(obj['metadata'], name, uid, labels, refs)
++            require(digest({key: obj[key] for key in fields}) == digest(fields), 'exact-mirror-spec-drift')
++        return {'kind': 'EndpointSlice', 'name': MIRROR_NAME, 'namespace': P.STORE, 'uid': MIRROR_UID,
++                'serviceUID': SERVICE_UID, 'endpointsUID': ENDPOINTS_UID, 'relationshipSHA256': digest(
++                    {'service': SERVICE_SPEC, 'endpoints': ENDPOINTS_SPEC, 'slice': MIRROR_SPEC, 'ownerReference': MIRROR_OWNER}),
++                'managedFieldsEvidenceAvailable': False, 'adoptedIntoApplied': False,
++                'cleanupRoute': 'controller-garbage-collection-through-exact-owned-Endpoints-or-namespace'}
++    except (ValueError, TypeError, KeyError, IndexError) as exc:
++        suspect = slices[0] if isinstance(slices, list) and slices else {}
++        raise NativeRefusal('pinned-mirror-relationship-refused', safe_object(suspect, len(slices) if isinstance(slices, list) else 0)) from exc
++
++def inspection_policy(objects):
++    # The read-only receipt is a projection, not a full API object. Validate the exact observed fields.
++    service = {'apiVersion': 'v1', 'kind': 'Service', **objects['service']}
++    endpoints = {'apiVersion': 'v1', 'kind': 'Endpoints', **objects['endpoints']}
++    slices = [{'apiVersion': 'discovery.k8s.io/v1', 'kind': 'EndpointSlice', **o} for o in objects['slices']]
++    return mirror_relationship(service, endpoints, slices)
++
++def namespace_objects(namespace):
++    kinds = P.command(['kubectl', '--request-timeout=20s', 'api-resources', '--verbs=list', '--namespaced=true', '-o', 'name']).split()
++    require(0 < len(kinds) <= 256 and len(kinds) == len(set(kinds)) and
++            all(re.fullmatch(r'[a-z0-9.-]+', kind) for kind in kinds) and
++            {'services', 'endpoints', 'endpointslices.discovery.k8s.io', 'secrets', 'serviceaccounts', 'configmaps'} <= set(kinds),
++            'complete-bounded-api-discovery-required')
++    objects, seen = [], set()
++    for kind in kinds:
++        items = P.k('get', kind, '-n', namespace)['items']
++        require(isinstance(items, list) and len(items) <= 64, 'namespace-list-bound')
++        for obj in items:
++            meta = obj['metadata']
++            key = (obj['kind'], meta['name'])
++            if not (meta.get('namespace') == namespace and isinstance(meta.get('uid'), str) and meta['uid'] and key not in seen):
++                raise NativeRefusal('namespace-list-identity-drift', safe_object(obj, len(items)))
++            seen.add(key)
++            objects.append(obj)
++    return objects
++
++def namespace_default(obj):
++    meta = obj['metadata']
++    return ((obj['kind'] == 'ServiceAccount' and meta['name'] == 'default' and not obj.get('secrets') and
++             not obj.get('imagePullSecrets')) or (obj['kind'] == 'ConfigMap' and meta['name'] == 'kube-root-ca.crt' and
++             set(obj.get('data', {})) == {'ca.crt'} and not obj.get('binaryData'))) and not meta.get('ownerReferences') and \
++             not meta.get('deletionTimestamp') and 'pantheon-p0-owner' not in meta.get('labels', {})
++
++def guarded_namespace(namespace, entries, allow_mirror=False, require_present=True):
++    objects = namespace_objects(namespace)
++    allowed = {(e['kind'], e['name']): e for e in entries if e['namespace'] == namespace}
++    require(len(allowed) == sum(e['namespace'] == namespace for e in entries), 'duplicate-owned-namespace-entry')
++    defaults, found, slices = [], set(), []
++    for obj in objects:
++        key = (obj['kind'], obj['metadata']['name'])
++        if key in allowed:
++            require(identity(obj) == allowed[key] and not obj['metadata'].get('deletionTimestamp') and
++                    not obj['metadata'].get('ownerReferences'), 'listed-owner-uid-drift')
++            found.add(key)
++        elif allow_mirror and namespace == P.STORE and obj['kind'] == 'EndpointSlice':
++            slices.append(obj)
++        elif namespace_default(obj):
++            defaults.append({'kind': obj['kind'], 'name': obj['metadata']['name'], 'namespace': namespace,
++                             'uid': obj['metadata']['uid'], 'shapeSHA256': digest({k: v for k, v in obj.items() if k != 'metadata'})})
++        else:
++            raise NativeRefusal('extra-or-foreign-namespace-object', safe_object(obj, len(objects)))
++    if require_present:
++        require(found == set(allowed), 'missing-listed-owned-object')
++    mirror = None
++    if allow_mirror:
++        service = next(o for o in objects if o['kind'] == 'Service' and o['metadata']['name'] == 'seaweedfs-s3')
++        endpoints = next(o for o in objects if o['kind'] == 'Endpoints' and o['metadata']['name'] == 'seaweedfs-s3')
++        mirror = mirror_relationship(service, endpoints, slices)
++    return {'namespaceDefaults': defaults, 'controllerMirror': mirror}
++
++def guard_provider_cleanup(entry, entries):
++    # A guard only: this recovery has no provider-destructive entry. Never delete the mirrored slice directly.
++    require(entry in entries and entry['namespace'] in [None, P.STORE] and
++            (entry['kind'], entry['name']) in [('Endpoints', 'seaweedfs-s3'), ('Namespace', P.STORE)],
++            'only-exact-mirror-owner-cleanup')
++    namespace = P.k('get', 'Namespace', P.STORE)
++    owned_ns = next(e for e in entries if e['kind'] == 'Namespace' and e['name'] == P.STORE)
++    require(identity(namespace) == owned_ns and not namespace['metadata'].get('deletionTimestamp') and
++            not namespace['metadata'].get('ownerReferences'), 'exact-store-namespace-uid-required')
++    return guarded_namespace(P.STORE, entries, allow_mirror=True)
+ 
+ def sealed_files(expected):
+     require(os.geteuid() == 0, 'root-required')
+@@ -80,37 +226,17 @@
+         resources = P.k('get', kind)['items']
+         require(len(resources) <= 4096 and not any(x['metadata'].get('labels', {}).get('pantheon-p0-owner') == OWNER or
+                 x['metadata']['name'] in ['velero', 'velero-server'] for x in resources), 'extra-provider-cluster-object')
+-    # Enumerate every listable namespaced type, not only kubectl get all.
+-    kinds = P.command(['kubectl', '--request-timeout=20s', 'api-resources', '--verbs=list', '--namespaced=true', '-o', 'name']).split()
+-    require(len(kinds) <= 256 and len(kinds) == len(set(kinds)) and
+-            all(re.fullmatch(r'[a-z0-9.-]+', kind) for kind in kinds), 'bounded-api-discovery-required')
+-    system_defaults = []
+-    for kind in kinds:
+-        for namespace in ['velero', P.STORE]:
+-            items = P.k('get', kind, '-n', namespace)['items']
+-            require(len(items) <= 64, 'namespace-list-bound')
+-            for obj in items:
+-                key = (obj['kind'], obj['metadata']['name'], namespace)
+-                if key in expected:
+-                    continue
+-                meta = obj['metadata']
+-                # Kubernetes creates these two namespace defaults; never adopt them into APPLIED.
+-                default = (obj['kind'] == 'ServiceAccount' and meta['name'] == 'default' and not obj.get('secrets') and
+-                           not obj.get('imagePullSecrets')) or (obj['kind'] == 'ConfigMap' and meta['name'] == 'kube-root-ca.crt' and
+-                           set(obj.get('data', {})) == {'ca.crt'} and not obj.get('binaryData'))
+-                if not (default and not meta.get('ownerReferences') and not meta.get('deletionTimestamp') and
+-                        'pantheon-p0-owner' not in meta.get('labels', {})):
+-                    raise NativeRefusal('extra-or-foreign-namespace-object', {'apiResource': kind, 'kind': obj['kind'],
+-                        'name': meta['name'], 'namespace': namespace, 'uid': meta.get('uid'), 'listCount': len(items),
+-                        'expectedOwnerMatches': meta.get('labels', {}).get('pantheon-p0-owner') == OWNER})
+-                system_defaults.append({'kind': obj['kind'], 'name': meta['name'], 'namespace': namespace,
+-                                        'uid': meta['uid'], 'shapeSHA256': digest({k: v for k, v in obj.items() if k != 'metadata'})})
++    store_check = guarded_namespace(P.STORE, entries, allow_mirror=True)
++    velero_check = guarded_namespace('velero', entries)
++    system_defaults = store_check['namespaceDefaults'] + velero_check['namespaceDefaults']
+     require(len(system_defaults) <= 4, 'system-default-count')
+     return {'ownedObjects': entries, 'namespaceDefaults': sorted(system_defaults, key=lambda x: (x['namespace'], x['kind'])),
++            'controllerMirror': store_check['controllerMirror'],
+             'liveCredentialMatch': True, 'auth': auth_summary, 'secretValuesPrinted': False}
+ 
+ def inspect(inputs):
+     require(inputs['home'] == str(HOME_DIR) and inputs['owner'] == OWNER, 'fixed-native-request')
++    inspection_policy(inputs['mirrorInspection'])
+     config = sealed_files(inputs['expectedFiles'])
+     memory = P.capacity()
+     util, artifacts = P.load_artifacts()
+--- v5-remote
++++ v6-remote
+@@ -2,7 +2,7 @@
+ from pathlib import Path
+ import ast, copy, datetime, hashlib, importlib.util, json, os, sys
+ sys.dont_write_bytecode = True
+-spec = importlib.util.spec_from_file_location('v5_native', Path(__file__).with_name('resume-velero-s3-v5-native.py'))
++spec = importlib.util.spec_from_file_location('v6_native', Path(__file__).with_name('resume-velero-s3-v6-native.py'))
+ N = importlib.util.module_from_spec(spec)
+ spec.loader.exec_module(N)
+ P, require, parse = N.P, N.require, N.parse
+@@ -132,25 +132,29 @@
+     manifest, summary = official_manifest(artifacts)
+     require(summary['rawSHA256'] == approved['manifest']['rawSHA256'], 'second-official-dry-run-drift')
+     N.sealed_files(inputs['expectedFiles'])
++    require(N.exact_five(inputs['originalFive'], inputs['privateIP']) == current['native']['five'], 'last-five-mirror-state-drift')
+     original = list(inputs['originalFive'])
+     progress = P.HOME_DIR / P.INVENTORY
+     old_raw = progress.read_bytes()
+     require(parse(old_raw) == original and sha_bytes(old_raw) == inputs['expectedFiles'][P.INVENTORY]['sha256'], 'exact-v4-progress-required')
+     require(not (P.HOME_DIR / 'resume-velero-s3-provider.json').exists(), 'canonical-provider-already-exists')
+     # Explicit migration preserves the old canonical progress bytes before it evolves.
+-    exclusive('resume-velero-s3-v5-original-partial-owned.json', old_raw)
++    exclusive('resume-velero-s3-v6-original-partial-owned.json', old_raw)
+     migration = {'phase': 'migration', 'exitCode': 0, 'owner': P.OWNER,
+                  'rootRequestSHA256': inputs['rootRequestSHA256'], 'failureReceiptSHA256': inputs['failureReceiptSHA256'],
++                 'v5DiagnosticReceiptSHA256': inputs['v5DiagnosticReceiptSHA256'],
++                 'mirrorInspectionSHA256': inputs['mirrorInspectionSHA256'],
+                  'failedRemoteReceipt': inputs['failedRemoteReceipt'], 'originalFive': original,
+                  'priorProgressSHA256': sha_bytes(old_raw), 'canonicalProgress': P.INVENTORY,
+-                 'archivedProgress': 'resume-velero-s3-v5-original-partial-owned.json',
++                 'archivedProgress': 'resume-velero-s3-v6-original-partial-owned.json',
+                  'canonicalProvider': 'resume-velero-s3-provider.json', 'canonicalProviderPreviouslyAbsent': True,
+                  'manifestRawSHA256': summary['rawSHA256'], 'backupRestoreVerified': False}
+-    exclusive('resume-velero-s3-v5-migration.json', (json.dumps(migration, indent=2) + '\n').encode())
++    exclusive('resume-velero-s3-v6-migration.json', (json.dumps(migration, indent=2) + '\n').encode())
+     P.PHASE = 'owned-kubernetes-provider-continuation'
+     P.__dict__.update(copy=copy, _reviewed_manifest=manifest)
+     exec(compile(tail_source(), '<sealed-v4-remaining-install>', 'exec'), P.__dict__)
+     native = current['native']
++    require(N.exact_five(original, native['privateIP']) == native['five'], 'pre-create-five-mirror-state-drift')
+     # Original success receipt is canonical and remains compatible with unchanged fixture/driver.
+     receipt = P.continuation_tail(artifacts, native['privateIP'], 'http://' + native['privateIP'] + ':18333',
+                                   native['ports'], native['memoryBeforeMi'])
+@@ -167,7 +171,7 @@
+         require(len(raw) <= 512 * 1024, 'input-bound')
+         inputs = parse(raw)
+         require(inputs['home'] == str(P.HOME_DIR) and inputs['owner'] == P.OWNER and
+-                N.V4.sha(Path(__file__)) == inputs['expectedFiles'][Path(__file__).name]['sha256'], 'sealed-v5-request')
++                N.V4.sha(Path(__file__)) == inputs['expectedFiles'][Path(__file__).name]['sha256'], 'sealed-v6-request')
+         require(phase in ['diagnostic', 'complete'], 'fixed-recovery-phase')
+         detail = diagnostic(inputs) if phase == 'diagnostic' else complete(inputs)
+         receipt = {'phase': phase, 'exitCode': 0, 'owner': P.OWNER, 'rootRequestSHA256': inputs['rootRequestSHA256'],
+@@ -181,7 +185,7 @@
+         if isinstance(exc, N.NativeRefusal):
+             receipt['refusedObjectMetadata'] = exc.safe_metadata
+     if phase == 'complete':
+-        exclusive('resume-velero-s3-v5-complete-' + datetime.datetime.now(datetime.timezone.utc).strftime('%Y%m%dT%H%M%S%f') + '.json',
++        exclusive('resume-velero-s3-v6-complete-' + datetime.datetime.now(datetime.timezone.utc).strftime('%Y%m%dT%H%M%S%f') + '.json',
+                   (json.dumps(receipt, indent=2) + '\n').encode())
+     print(json.dumps(receipt))
+     return receipt['exitCode']
+--- v5-fixture
++++ v6-fixture
+@@ -6,6 +6,10 @@
+ spec = importlib.util.spec_from_file_location('seaweed_provider', Path(__file__).with_name('resume-velero-s3-v4-remote.py'))
+ provider = importlib.util.module_from_spec(spec)
+ spec.loader.exec_module(provider)
++guard_spec = importlib.util.spec_from_file_location('v6_native_guard', Path(__file__).with_name('resume-velero-s3-v6-native.py'))
++guard = importlib.util.module_from_spec(guard_spec)
++guard_spec.loader.exec_module(guard)
++guard.P = provider
+ HOME_DIR = provider.HOME_DIR
+ TEST_OWNER = 'velero-final-20261109'
+ TEST_LABEL = {'pantheon-p0-owner': TEST_OWNER, 'app.kubernetes.io/component': 'velero-acceptance'}
+@@ -23,6 +27,8 @@
+     receipt = json.loads((HOME_DIR / 'resume-velero-s3-provider.json').read_text())
+     if receipt['exitCode'] != 0 or receipt['owner'] != provider.OWNER:
+         raise ValueError('real-provider-required')
++    guard.guard_provider_cleanup(next(e for e in receipt['ownedObjects'] if e['kind'] == 'Namespace' and e['name'] == provider.STORE),
++                                 receipt['ownedObjects'])  # Read-only; provider and controller mirror remain retained.
+     for entry in receipt['namespaces']:
+         obj = provider.k('get', 'namespace', entry['name'])
+         if obj['metadata']['uid'] != entry['uid'] or obj['metadata'].get('labels', {}).get('pantheon-p0-owner') != provider.OWNER:
+@@ -88,6 +94,35 @@
+     if not uid or meta.get('uid') != uid or meta.get('labels', {}).get('pantheon-p0-owner') != owner:
+         raise ValueError('exact-owner-uid-required')
+ 
++def guard_test_namespace(namespace):
++    inventory = guard.parse((HOME_DIR / 'resume-velero-s3-fixture-partial-owned.json').read_text())
++    fixture = guard.parse((HOME_DIR / 'resume-velero-s3-fixture.json').read_text())
++    owned_ns = next(e for e in inventory if e['kind'] == 'Namespace' and e['name'] == namespace)
++    assert_owned(provider.k('get', 'Namespace', namespace)['metadata'], TEST_OWNER, owned_ns['uid'])
++    allowed = {(e['kind'], e['name']): e for e in inventory if e['namespace'] == namespace}
++    for obj in guard.namespace_objects(namespace):
++        key = (obj['kind'], obj['metadata']['name'])
++        if key in allowed:
++            if guard.identity(obj) != allowed[key] or obj['metadata'].get('ownerReferences') or obj['metadata'].get('deletionTimestamp'):
++                raise ValueError('fixture-listed-owner-uid-drift')
++        elif guard.namespace_default(obj):
++            continue
++        elif namespace == TARGET and key == ('ConfigMap', 'velero-resume-content'):
++            # Restore creates this object. Admit only the unchanged acceptance content, never a name/label alone.
++            data = obj.get('data', {})
++            meta = obj['metadata']
++            labels = meta.get('labels', {})
++            allowed_labels = {**TEST_LABEL, 'velero.io/backup-name': 'velero-final-backup',
++                              'velero.io/restore-name': 'velero-final-restore'}
++            if (set(data) != {'content'} or not isinstance(data['content'], str) or obj.get('binaryData') or
++                not isinstance(labels, dict) or any(labels.get(k) != v for k, v in TEST_LABEL.items()) or
++                any(k not in allowed_labels or v != allowed_labels[k] for k, v in labels.items()) or
++                meta.get('ownerReferences') or meta.get('deletionTimestamp') or
++                hashlib.sha256(data['content'].encode()).hexdigest() != fixture['contentSHA256']):
++                raise ValueError('foreign-restored-configmap')
++        else:
++            raise guard.NativeRefusal('foreign-object-before-fixture-namespace-delete', guard.safe_object(obj))
++
+ def delete_exact(entry):
+     kind, name, ns = entry['kind'], entry['name'], entry.get('namespace')
+     # A successful LIST proves absence; errors cannot masquerade as NotFound.
+@@ -97,6 +132,9 @@
+         return
+     assert_owned(found[0]['metadata'], TEST_OWNER, entry.get('uid'))
+     if kind == 'Namespace':
++        if name not in [SOURCE, TARGET]:
++            raise ValueError('fixed-test-namespace-only')
++        guard_test_namespace(name)  # Successful discovery/LIST of every type immediately before UID-precondition DELETE.
+         unexpected = provider.k('get', 'pods,deployments,statefulsets,daemonsets,jobs,cronjobs,services,persistentvolumeclaims,secrets', '-n', name)['items']
+         if unexpected:
+             raise ValueError('unexpected-workload-in-test-namespace')
+@@ -152,6 +190,13 @@
+     owned_crs_path = HOME_DIR / 'resume-velero-s3-driver-owned.json'
+     owned_crs = json.loads(owned_crs_path.read_text()) if owned_crs_path.exists() else []
+     storage = inspect_storage()
++    retained_provider = guard.parse((HOME_DIR / 'resume-velero-s3-provider.json').read_text())
++    guard.guard_provider_cleanup(next(e for e in retained_provider['ownedObjects'] if e['kind'] == 'Namespace' and e['name'] == provider.STORE),
++                                 retained_provider['ownedObjects'])
++    namespaces = {o['metadata']['name'] for o in provider.k('get', 'namespaces')['items']}
++    for namespace in [SOURCE, TARGET]:
++        if namespace in namespaces:
++            guard_test_namespace(namespace)  # Refuse foreign objects before the first destructive fixture cleanup.
+     # Refuse deleting an unlabeled/unreceipted attempt even if its name matches.
+     for kind, names in ATTEMPTS.items():
+         for obj in provider.k('get', kind + '.velero.io', '-n', 'velero')['items']:
+--- v5-test
++++ v6-test
+@@ -15,9 +15,11 @@
+     spec.loader.exec_module(module)
+     return module
+ 
+-R = load('resume-velero-s3-v5-remote')
++R = load('resume-velero-s3-v6-remote')
+ N = R.N
+-W = load('resume-velero-s3-v5-root')
++W = load('resume-velero-s3-v6-root')
++F = load('resume-velero-s3-v6-fixture')
++INSPECTION = json.loads((EV / 'velero-v6-mirror-inspect-20261110T024616246362.json').read_text())['objects']
+ FAILURE = json.loads((EV / 'resume-velero-s3-v4-root-install-20261110T021156151544.json').read_text())
+ FIVE = FAILURE['records'][0]['ownedObjects']
+ ARTIFACTS = {'images': [{'tag': 'docker.io/velero/velero:v1.17.0', 'image': 'docker.io/velero/velero@sha256:' + 'a' * 64},
+@@ -37,8 +39,8 @@
+         object_('BackupStorageLocation', 'default', 'velero', api='velero.io/v1', spec={}), deployment]}
+ 
+ class Derivation(unittest.TestCase):
+-    def test_all_v5_parse_compile(self):
+-        for path in LOCAL.glob('resume-velero-s3-v5-*.py'):
++    def test_all_v6_parse_compile(self):
++        for path in LOCAL.glob('resume-velero-s3-v6-*.py'):
+             compile(path.read_text(), str(path), 'exec')
+ 
+     def test_original_remaining_body_exact(self):
+@@ -71,15 +73,20 @@
+         self.assertIn('--dry-run', args)
+         self.assertEqual(info['rawSHA256'], hashlib.sha256(raw.encode()).hexdigest())
+ 
+-    def test_fixture_is_byte_identical(self):
+-        self.assertEqual((LOCAL / 'resume-velero-s3-v5-fixture.py').read_bytes(), (LOCAL / 'resume-velero-s3-v4-fixture.py').read_bytes())
++    def test_original_fixture_functions_preserved(self):
++        original = ast.parse((LOCAL / 'resume-velero-s3-v4-fixture.py').read_text())
++        current = ast.parse((LOCAL / 'resume-velero-s3-v6-fixture.py').read_text())
++        for name in ['apply', 'assert_owned', 'inspect_storage']:
++            one = next(n for n in original.body if isinstance(n, ast.FunctionDef) and n.name == name)
++            two = next(n for n in current.body if isinstance(n, ast.FunctionDef) and n.name == name)
++            self.assertEqual(ast.dump(one), ast.dump(two))
+ 
+     def test_original_validation_and_fixture_adapter_ast(self):
+         W.bind_original_adapters()
+         source = (LOCAL / 'resume-velero-s3-v4-root.py').read_text()
+         for name in ['validate', 'remote_phase']:
+             node = next(n for n in ast.parse(source).body if isinstance(n, ast.FunctionDef) and n.name == name)
+-            expected = ast.get_source_segment(source, node).replace("'resume-velero-s3-v4-fixture.py'", "'resume-velero-s3-v5-fixture.py'")
++            expected = ast.get_source_segment(source, node).replace("'resume-velero-s3-v4-fixture.py'", "'resume-velero-s3-v6-fixture.py'")
+             self.assertIn('original-v4-', W.W.__dict__[name].__code__.co_filename)
+             reference = {}; exec(compile(expected, '<expected>', 'exec'), reference)
+             def signature(code):
+@@ -143,8 +150,8 @@
+             obj['metadata'].update(uid=e['uid'], labels={'pantheon-p0-owner': e['owner'],
+                 'app.kubernetes.io/component': 'velero' if e['kind'] == 'Namespace' and e['name'] == 'velero' else 'seaweedfs-s3'})
+             result.append(obj)
+-        result[2]['spec'] = {'type': 'ClusterIP', 'ports': [{'name': 's3', 'port': 18333, 'targetPort': 18333}]}
+-        result[3]['subsets'] = [{'addresses': [{'ip': '192.168.94.127'}], 'ports': [{'name': 's3', 'port': 18333, 'protocol': 'TCP'}]}]
++        result[2] = {'apiVersion': 'v1', 'kind': 'Service', **copy.deepcopy(INSPECTION['service'])}
++        result[3] = {'apiVersion': 'v1', 'kind': 'Endpoints', **copy.deepcopy(INSPECTION['endpoints'])}
+         cloud = '[default]\naws_access_key_id=p0' + 'a' * 24 + '\naws_secret_access_key=' + 'b' * 64 + '\n'
+         result[4].update(type='Opaque', data={'cloud': base64.b64encode(cloud.encode()).decode()})
+         return result
+@@ -155,9 +162,17 @@
+         def k(*args):
+             if len(args) >= 3 and args[1] in {x['kind'] for x in objects}:
+                 return next(x for x in objects if x['kind'] == args[1] and x['metadata']['name'] == args[2])
+-            return {'items': [extra] if extra and args[1] == 'pods' and args[-1] == 'velero' else []}
++            if args[1] in ['crds', 'clusterroles', 'clusterrolebindings']:
++                return {'items': []}
++            items = [copy.deepcopy(x) for x in objects if x['metadata'].get('namespace') == args[-1] and
++                     {'Service': 'services', 'Endpoints': 'endpoints', 'Secret': 'secrets'}.get(x['kind']) == args[1]]
++            if args[1] == 'endpointslices.discovery.k8s.io' and args[-1] == N.P.STORE:
++                items.append({'apiVersion': 'discovery.k8s.io/v1', 'kind': 'EndpointSlice', **copy.deepcopy(INSPECTION['slices'][0])})
++            if extra and args[1] == 'pods' and args[-1] == 'velero':
++                items.append(extra)
++            return {'items': items}
+         auth = json.dumps({'identities': [{'credentials': [{'accessKey': 'p0' + 'a' * 24, 'secretKey': 'b' * 64}]}]})
+-        with patch.object(N.P, 'k', side_effect=k), patch.object(N.P, 'command', return_value='pods\n'), \
++        with patch.object(N.P, 'k', side_effect=k), patch.object(N.P, 'command', return_value='services endpoints endpointslices.discovery.k8s.io secrets serviceaccounts configmaps pods'), \
+              patch.object(N.V4, 'credential_summary', return_value={'identityCount': 1, 'credentialCount': 1}), \
+              patch.object(Path, 'read_text', return_value=auth):
+             return N.exact_five(FIVE, '192.168.94.127')
+@@ -184,12 +199,13 @@
+             with self.assertRaises(ValueError): self.run_guard(change)
+ 
+     def test_extra_pod_refuses(self):
+-        with self.assertRaises(N.NativeRefusal) as refusal: self.run_guard(extra=object_('Pod', 'foreign', 'velero'))
++        extra = object_('Pod', 'foreign', 'velero'); extra['metadata']['uid'] = 'foreign-uid'
++        with self.assertRaises(N.NativeRefusal) as refusal: self.run_guard(extra=extra)
+         self.assertEqual(refusal.exception.safe_metadata['kind'], 'Pod')
+         self.assertNotIn('data', refusal.exception.safe_metadata)
+ 
+     def test_mirrored_or_arbitrary_endpoint_slice_not_adopted(self):
+-        extra = object_('EndpointSlice', 'seaweedfs-s3-mirror', N.P.STORE)
++        extra = object_('EndpointSlice', 'seaweedfs-s3-mirror', 'velero'); extra['metadata']['uid'] = 'foreign-uid'
+         with self.assertRaises(N.NativeRefusal): self.run_guard(extra=extra)
+ 
+     def test_diagnostic_refusal_retains_only_safe_official_shape(self):
+@@ -212,11 +228,82 @@
+         default['secrets'] = [{'name': 'long-lived'}]
+         with self.assertRaises(ValueError): self.run_guard(extra=default)
+ 
++class MirrorGuard(unittest.TestCase):
++    def objects(self):
++        return ({'apiVersion': 'v1', 'kind': 'Service', **copy.deepcopy(INSPECTION['service'])},
++                {'apiVersion': 'v1', 'kind': 'Endpoints', **copy.deepcopy(INSPECTION['endpoints'])},
++                [{'apiVersion': 'discovery.k8s.io/v1', 'kind': 'EndpointSlice', **copy.deepcopy(INSPECTION['slices'][0])}])
++
++    def test_valid_pinned_relationship(self):
++        result = N.mirror_relationship(*self.objects())
++        self.assertEqual(result['uid'], N.MIRROR_UID)
++        self.assertFalse(result['adoptedIntoApplied'])
++        self.assertFalse(result['managedFieldsEvidenceAvailable'])
++        self.assertEqual(N.inspection_policy(INSPECTION), result)
++
++    def test_uid_owner_controller_service_address_port_and_unknown_fields_refuse(self):
++        changes = [
++            lambda s, e, m: m[0]['metadata'].update(uid='replaced'),
++            lambda s, e, m: m[0]['metadata']['labels'].update({'pantheon-p0-owner': 'foreign'}),
++            lambda s, e, m: m[0]['metadata']['labels'].update({'app.kubernetes.io/component': 'foreign'}),
++            lambda s, e, m: m[0]['metadata']['labels'].update({'endpointslice.kubernetes.io/managed-by': 'other-controller'}),
++            lambda s, e, m: m[0]['metadata']['labels'].update({'kubernetes.io/service-name': 'foreign'}),
++            lambda s, e, m: m[0]['metadata']['labels'].update({'unknown': 'extra'}),
++            lambda s, e, m: m[0]['metadata']['ownerReferences'][0].update(uid='replaced'),
++            lambda s, e, m: m[0]['metadata']['ownerReferences'][0].update(controller=False),
++            lambda s, e, m: m[0]['metadata']['ownerReferences'][0].update(controller=1),
++            lambda s, e, m: m[0]['metadata']['ownerReferences'][0].update(blockOwnerDeletion=False),
++            lambda s, e, m: m[0]['metadata']['ownerReferences'][0].update(kind='Service'),
++            lambda s, e, m: m[0]['metadata']['ownerReferences'][0].update(apiVersion='v2'),
++            lambda s, e, m: m[0]['metadata']['ownerReferences'].append(copy.deepcopy(m[0]['metadata']['ownerReferences'][0])),
++            lambda s, e, m: m[0]['metadata'].update(namespace='foreign'),
++            lambda s, e, m: m[0]['metadata'].update(deletionTimestamp='now'),
++            lambda s, e, m: m[0]['metadata'].update(annotations={'unreviewed': 'value'}),
++            lambda s, e, m: m[0]['metadata'].update(resourceVersion={}),
++            lambda s, e, m: m[0]['metadata'].update(generation=True),
++            lambda s, e, m: m[0]['metadata'].update(managedFields='malformed'),
++            lambda s, e, m: m[0].update(addressType='IPv6'),
++            lambda s, e, m: m[0]['endpoints'][0].update(addresses=['1.2.3.4']),
++            lambda s, e, m: m[0]['endpoints'][0]['conditions'].update(ready=False),
++            lambda s, e, m: m[0]['endpoints'][0]['conditions'].update(ready=1),
++            lambda s, e, m: m[0]['endpoints'][0].update(targetRef={'uid': 'foreign'}),
++            lambda s, e, m: m[0]['ports'][0].update(port=18334),
++            lambda s, e, m: m[0]['ports'][0].update(protocol='UDP'),
++            lambda s, e, m: m[0]['ports'][0].update(name='other'),
++            lambda s, e, m: m[0].update(unknown='extra'),
++            lambda s, e, m: m.append(copy.deepcopy(m[0])),
++            lambda s, e, m: m.clear(),
++            lambda s, e, m: s['metadata'].update(uid='replaced'),
++            lambda s, e, m: s['spec'].update(selector={'app': 'foreign'}),
++            lambda s, e, m: e['metadata'].update(uid='replaced'),
++            lambda s, e, m: e['subsets'][0]['addresses'][0].update(ip='1.2.3.4')]
++        for index, change in enumerate(changes):
++            with self.subTest(index=index):
++                objects = self.objects(); change(*objects)
++                with self.assertRaises(N.NativeRefusal) as refused:
++                    N.mirror_relationship(*objects)
++                self.assertLess(len(json.dumps(refused.exception.safe_metadata)), 800)
++                self.assertNotIn('endpoints', refused.exception.safe_metadata)
++
++    def test_missing_malformed_and_duplicate_json_refuse(self):
++        for value in [None, {}, [], ['malformed'], [None]]:
++            s, e, _ = self.objects()
++            with self.assertRaises(N.NativeRefusal): N.mirror_relationship(s, e, value)
++        with self.assertRaises(ValueError): N.parse('{"ports":[],"ports":[]}')
++
++    def test_live_ordinary_metadata_does_not_invent_managed_fields_evidence(self):
++        objects = self.objects()
++        objects[2][0]['metadata'].update(resourceVersion='2001502', creationTimestamp='2026-11-10T00:00:00Z',
++                                        generateName='seaweedfs-s3-', managedFields=[{'manager': 'controller'}])
++        objects[0]['status'] = {'loadBalancer': {}}
++        self.assertFalse(N.mirror_relationship(*objects)['managedFieldsEvidenceAvailable'])
++
+ class RecoveryGuard(unittest.TestCase):
+     def inputs(self):
+         raw = (json.dumps(FIVE, indent=2) + '\n').encode()
+         return {'originalFive': FIVE, 'expectedFiles': {'resume-velero-s3-partial-owned.json': {'sha256': hashlib.sha256(raw).hexdigest()}},
+-                'rootRequestSHA256': 'a' * 64, 'failureReceiptSHA256': 'b' * 64, 'failedRemoteReceipt': 'failed.json'}
++                'rootRequestSHA256': 'a' * 64, 'failureReceiptSHA256': 'b' * 64, 'failedRemoteReceipt': 'failed.json',
++                'v5DiagnosticReceiptSHA256': 'c' * 64, 'mirrorInspectionSHA256': 'd' * 64, 'privateIP': N.PRIVATE_IP}
+ 
+     def test_stale_diagnostic_refuses_without_any_write(self):
+         inputs = self.inputs()
+@@ -234,6 +321,18 @@
+             R.complete(inputs)
+         exclusive.assert_not_called()
+ 
++    def test_mirror_drift_in_last_preflight_refuses_without_migration_or_create(self):
++        native = {key: 'same' for key in ['five', 'image', 'data', 'mount', 'unit', 'nativeArgvSHA256', 'privateIP', 'ports', 'binaryHashes', 'images', 'kubeconfigMetadata']}
++        native['five'] = {'controllerMirror': {'uid': N.MIRROR_UID}}
++        inputs = self.inputs(); inputs['approvedDiagnostic'] = {'native': native, 'manifest': {'rawSHA256': 'a' * 64}}
++        with patch.object(R, 'diagnostic', return_value=inputs['approvedDiagnostic']), \
++             patch.object(R.P, 'load_artifacts', return_value=(None, ARTIFACTS)), \
++             patch.object(R, 'official_manifest', return_value=(manifest(), {'rawSHA256': 'a' * 64})), \
++             patch.object(N, 'sealed_files'), patch.object(N, 'exact_five', return_value={'controllerMirror': {'uid': 'replaced'}}), \
++             patch.object(R, 'exclusive') as exclusive, patch.object(R.P, 'apply') as apply, self.assertRaises(ValueError):
++            R.complete(inputs)
++        exclusive.assert_not_called(); apply.assert_not_called()
++
+     def test_exclusive_writes_cannot_replace_failure(self):
+         with tempfile.TemporaryDirectory(dir=LOCAL) as directory:
+             path = Path(directory); target = path / 'failed.json'; target.write_bytes(b'failure')
+@@ -256,7 +355,7 @@
+         connect.assert_not_called()
+ 
+     def test_private_native_kubeconfig_required(self):
+-        source = (LOCAL / 'resume-velero-s3-v5-native.py').read_text()
++        source = (LOCAL / 'resume-velero-s3-v6-native.py').read_text()
+         self.assertIn("config['mode'] in [0o600, 0o400]", source)
+         self.assertNotIn('KUBECONFIG.read', source)
+         self.assertNotIn('KUBECONFIG.chmod', source)
+@@ -276,16 +375,37 @@
+             W.reviewed_inputs()
+         connect.assert_not_called()
+ 
++    def test_predecessor_success_exact_hash_and_phase_required(self):
++        request = W.reviewed_inputs()[0]
++        good = {'phase': 'diagnostic', 'exitCode': 0, 'remoteExecuted': True,
++                'rootRequestSHA256': W.sha(EV / W.REQUEST), 'v6ScriptHashes': request['scriptHashes'],
++                'mirrorInspectionSHA256': request['mirrorInspectionSHA256'],
++                'v5DiagnosticReceiptSHA256': request['v5DiagnosticReceiptSHA256']}
++        with tempfile.TemporaryDirectory(dir=LOCAL) as directory:
++            path = Path(directory); (path / W.REQUEST).write_bytes((EV / W.REQUEST).read_bytes())
++            name = 'resume-velero-s3-v6-root-diagnostic-20261110T000000000000.json'
++            receipt = path / name
++            with patch.object(W, 'EV', path), patch.object(W, 'reviewed_inputs', return_value=(request, None, None, None)), \
++                 patch.object(W.W, 'connect') as connect:
++                receipt.write_text(json.dumps(good))
++                self.assertEqual(W.prior_receipt(name, W.sha(receipt), 'diagnostic'), good)
++                with self.assertRaises(ValueError): W.prior_receipt(name, '0' * 64, 'diagnostic')
++                for change in [{'exitCode': 1}, {'exitCode': False}, {'phase': 'complete'}, {'remoteExecuted': False},
++                               {'rootRequestSHA256': '0' * 64}, {'v6ScriptHashes': {}}, {'mirrorInspectionSHA256': '0' * 64}]:
++                    receipt.write_text(json.dumps({**good, **change}))
++                    with self.assertRaises(ValueError): W.prior_receipt(name, W.sha(receipt), 'diagnostic')
++                connect.assert_not_called()
++
+     def test_failure_directory_discovery_exact_hashes_only(self):
+         request = json.loads((EV / W.REQUEST).read_text())
+-        failure_name = 'resume-velero-s3-install-20261110T021000000000.json'
++        failure_name = request['failedRemoteReceipt']
+         progress_name = 'resume-velero-s3-partial-owned.json'
+         files = {progress_name: (json.dumps(FIVE, indent=2) + '\n').encode(),
+                  failure_name: (json.dumps(request['knownFailure'], indent=2) + '\n').encode()}
+         class SFTP:
+             def __enter__(self): return self
+             def __exit__(self, *args): pass
+-            def listdir(self, path): return list(request['remoteBaseline']) + ['data', 'data.img', 's3-auth.json'] + list(files)
++            def listdir(self, path): return list(set(request['remoteBaseline']) | set(files)) + ['data', 'data.img', 's3-auth.json']
+         client = SimpleNamespace(open_sftp=lambda: SFTP())
+         with patch.object(W.W, 'file_metadata'), patch.object(W.W, 'bounded_file', side_effect=lambda s, n, b: files[n]), \
+              patch.object(W.W, 'checked_listing', side_effect=lambda c, r, native: r):
+@@ -318,6 +438,7 @@
+                  patch.object(R.P, 'load_artifacts', return_value=(None, ARTIFACTS)), \
+                  patch.object(R, 'official_manifest', return_value=(manifest(), {'rawSHA256': 'a' * 64})), \
+                  patch.object(N, 'sealed_files'), \
++                 patch.object(N, 'exact_five', return_value=native['five']), \
+                  patch.object(R.P, 'apply', side_effect=apply), patch.object(R.P, 'k', side_effect=k), \
+                  patch.object(R.P, 'command', side_effect=lambda a, **kw: commands.append(a)), \
+                  patch.object(R.P, 'assert_bindings', return_value=native['ports']), \
+@@ -326,12 +447,148 @@
+             self.assertEqual(result['provider']['ownedObjects'][:5], FIVE)
+             self.assertEqual(len(created), len(manifest()['items']) - 1)
+             self.assertTrue(all(e['uid'].startswith('new-') for e in created))
+-            self.assertEqual((path / 'resume-velero-s3-v5-original-partial-owned.json').read_bytes(), (path / R.P.INVENTORY).read_bytes())
+-            migration = json.loads((path / 'resume-velero-s3-v5-migration.json').read_text())
++            self.assertEqual((path / 'resume-velero-s3-v6-original-partial-owned.json').read_bytes(), (path / R.P.INVENTORY).read_bytes())
++            migration = json.loads((path / 'resume-velero-s3-v6-migration.json').read_text())
+             self.assertEqual(migration['failureReceiptSHA256'], inputs['failureReceiptSHA256'])
+             self.assertEqual(len(commands), 1); self.assertEqual(commands[0][:2], ['kubectl', '-n'])
+             self.assertFalse(result['firstFiveCreatesReplayed']); self.assertFalse(result['provider']['backupRestoreVerified'])
+             self.assertIn('resume-velero-s3-provider.json', written)
+ 
++class CleanupSafety(unittest.TestCase):
++    def store_objects(self):
++        service, endpoints, slices = MirrorGuard().objects()
++        return [service, endpoints, *slices]
++
++    def test_exact_owned_gc_route_and_unknown_object_refusal(self):
++        ns = object_('Namespace', N.P.STORE)
++        ns['metadata'].update(uid=FIVE[1]['uid'], labels=N.STORE_LABELS)
++        with patch.object(N.P, 'k', return_value=ns), patch.object(N, 'namespace_objects', return_value=self.store_objects()), \
++             patch.object(N.P, 'command') as command:
++            result = N.guard_provider_cleanup(FIVE[3], FIVE)
++        self.assertIn('garbage-collection', result['controllerMirror']['cleanupRoute'])
++        command.assert_not_called()
++        for extra in [object_('Pod', 'foreign', N.P.STORE), object_('EndpointSlice', 'foreign', N.P.STORE),
++                      object_('CustomResource', 'foreign', N.P.STORE)]:
++            extra['metadata'].update(uid='extra-uid', labels=N.STORE_LABELS)
++            with patch.object(N.P, 'k', return_value=ns), patch.object(N, 'namespace_objects', return_value=self.store_objects() + [extra]), \
++                 self.assertRaises(ValueError): N.guard_provider_cleanup(FIVE[1], FIVE)
++
++    def test_no_direct_mirror_or_foreign_cleanup_entry(self):
++        for entry in [{'kind': 'EndpointSlice', 'name': N.MIRROR_NAME, 'namespace': N.P.STORE, 'owner': N.OWNER, 'uid': N.MIRROR_UID},
++                      {**FIVE[3], 'uid': 'foreign'}, FIVE[0]]:
++            with patch.object(N.P, 'k') as k, self.assertRaises(ValueError): N.guard_provider_cleanup(entry, FIVE)
++            k.assert_not_called()
++
++    def test_foreign_fixture_object_refuses_before_delete(self):
++        entry = {'kind': 'Namespace', 'name': F.SOURCE, 'namespace': None, 'owner': F.TEST_OWNER, 'uid': 'source-uid'}
++        ns = object_('Namespace', F.SOURCE)
++        ns['metadata'].update(uid=entry['uid'], labels=F.TEST_LABEL)
++        extra = object_('EndpointSlice', 'foreign', F.SOURCE, api='discovery.k8s.io/v1')
++        extra['metadata'].update(uid='foreign-uid')
++        def read(path, *args, **kwargs):
++            if path.name.endswith('partial-owned.json'): return json.dumps([entry])
++            return json.dumps({'contentSHA256': 'a' * 64})
++        def k(*args):
++            return ns if len(args) == 3 else {'items': [ns]}
++        with patch.object(F.provider, 'k', side_effect=k), patch.object(Path, 'read_text', read), \
++             patch.object(F.guard, 'namespace_objects', return_value=[extra]), \
++             patch.object(F.provider, 'command') as command, self.assertRaises(ValueError):
++            F.delete_exact(entry)
++        command.assert_not_called()
++
++    def test_restored_configmap_exact_content_and_finite_velero_labels(self):
++        ns = object_('Namespace', F.TARGET); ns['metadata'].update(uid='target-uid', labels=F.TEST_LABEL)
++        entry = {'kind': 'Namespace', 'name': F.TARGET, 'namespace': None, 'owner': F.TEST_OWNER, 'uid': 'target-uid'}
++        cm = object_('ConfigMap', 'velero-resume-content', F.TARGET, data={'content': 'verified-content'})
++        cm['metadata'].update(uid='restore-uid', labels=dict(F.TEST_LABEL))
++        def read(path, *args, **kwargs):
++            return json.dumps([entry]) if path.name.endswith('partial-owned.json') else json.dumps({
++                'contentSHA256': hashlib.sha256(b'verified-content').hexdigest()})
++        with patch.object(F.provider, 'k', return_value=ns), patch.object(Path, 'read_text', read), \
++             patch.object(F.guard, 'namespace_objects', return_value=[cm]), patch.object(F.provider, 'command') as command:
++            F.guard_test_namespace(F.TARGET)
++            cm['metadata']['labels'].update({'velero.io/backup-name': 'velero-final-backup', 'velero.io/restore-name': 'velero-final-restore'})
++            F.guard_test_namespace(F.TARGET)
++            for change in [lambda: cm['data'].update(content='foreign'),
++                           lambda: cm['metadata']['labels'].update({'unknown': 'extra'}),
++                           lambda: cm['metadata']['labels'].update({'velero.io/restore-name': 'foreign-restore'})]:
++                saved = copy.deepcopy(cm); change()
++                with self.assertRaises(ValueError): F.guard_test_namespace(F.TARGET)
++                cm.clear(); cm.update(saved)
++            command.assert_not_called()
++
++    def test_discovery_failures_missing_types_and_duplicate_objects_refuse(self):
++        complete = 'services endpoints endpointslices.discovery.k8s.io secrets serviceaccounts configmaps'
++        obj = object_('Service', 'seaweedfs-s3', N.P.STORE); obj['metadata']['uid'] = N.SERVICE_UID
++        for discovery in ['', 'services', complete + ' services']:
++            with patch.object(N.P, 'command', return_value=discovery), patch.object(N.P, 'k') as k, self.assertRaises(ValueError):
++                N.namespace_objects(N.P.STORE)
++            k.assert_not_called()
++        with patch.object(N.P, 'command', return_value=complete), patch.object(N.P, 'k', side_effect=RuntimeError('list-failed')), \
++             self.assertRaises(RuntimeError): N.namespace_objects(N.P.STORE)
++        with patch.object(N.P, 'command', return_value=complete), patch.object(N.P, 'k', return_value={'items': [obj, obj]}), \
++             self.assertRaises(ValueError): N.namespace_objects(N.P.STORE)
++
++class RetainedFileSafety(unittest.TestCase):
++    def test_exact_optional_v5_files_and_idempotent_v6_helpers_only(self):
++        request = W.reviewed_inputs()[0]
++        progress = 'resume-velero-s3-partial-owned.json'
++        failed = request['failedRemoteReceipt']
++        files = {progress: (json.dumps(FIVE, indent=2) + '\n').encode(),
++                 failed: (json.dumps(request['knownFailure'], indent=2) + '\n').encode()}
++        names = set(request['remoteBaseline']) | {'data', 'data.img', 's3-auth.json'}
++        class SFTP:
++            def __enter__(self): return self
++            def __exit__(self, *args): pass
++            def listdir(self, path): return sorted(names)
++        client = SimpleNamespace(open_sftp=lambda: SFTP())
++        observed = dict(request['remoteBaseline'])
++        def listing(client, expected, native):
++            W.require(set(expected) | {'data', 'data.img', 's3-auth.json'} == names, 'unknown-file')
++            W.require(expected == observed, 'file-hash-size-mode-drift')
++            return expected
++        with patch.object(W.W, 'file_metadata'), patch.object(W.W, 'bounded_file', side_effect=lambda s, n, b: files[n]), \
++             patch.object(W.W, 'checked_listing', side_effect=listing):
++            W.discover_failure(client, request)
++            for name in request['optionalRetainedV5Files']:
++                names.add(name); observed[name] = request['retainedV5Files'][name]
++            W.discover_failure(client, request)
++            for name in W.SCRIPTS:
++                names.add(name); observed[name] = {'bytes': (LOCAL / name).stat().st_size, 'sha256': W.sha(LOCAL / name), 'mode': 0o600}
++            W.discover_failure(client, request)
++            observed[request['optionalRetainedV5Files'][0]] = {'bytes': 1, 'sha256': '0' * 64, 'mode': 0o600}
++            with self.assertRaises(ValueError): W.discover_failure(client, request)
++            names.add('arbitrary-unreviewed.py')
++            with self.assertRaises(ValueError): W.discover_failure(client, request)
++
++    def test_semantically_equal_failure_with_extra_bytes_refuses(self):
++        request = W.reviewed_inputs()[0]
++        class SFTP:
++            def __enter__(self): return self
++            def __exit__(self, *args): pass
++            def listdir(self, path): return list(request['remoteBaseline']) + ['data', 'data.img', 's3-auth.json']
++        client = SimpleNamespace(open_sftp=lambda: SFTP())
++        def raw(sftp, name, bound):
++            value = FIVE if name.endswith('owned.json') else request['knownFailure']
++            return (json.dumps(value, indent=2) + '\n\n').encode()
++        with patch.object(W.W, 'file_metadata'), patch.object(W.W, 'bounded_file', side_effect=raw), \
++             patch.object(W.W, 'checked_listing') as listing, self.assertRaises(ValueError):
++            W.discover_failure(client, request)
++        listing.assert_not_called()
++
++    def test_native_extra_source_bytes_and_unknown_paths_refuse(self):
++        with tempfile.TemporaryDirectory(dir=LOCAL) as directory:
++            path = Path(directory)
++            for name in ['data', 'data.img', 's3-auth.json']: (path / name).touch()
++            source = path / 'helper.py'; source.write_bytes(b'approved\nextra')
++            expected = {'helper.py': {'bytes': len(b'approved'), 'sha256': hashlib.sha256(b'approved').hexdigest(), 'mode': 0o600}}
++            with patch.object(N, 'HOME_DIR', path), patch.object(N.os, 'geteuid', return_value=0, create=True), \
++                 patch.object(N, 'metadata', side_effect=lambda p, **kw: {} if kw.get('directory') else {'bytes': p.stat().st_size}), \
++                 self.assertRaises(ValueError): N.sealed_files(expected)
++            source.write_bytes(b'tampered')
++            with patch.object(N, 'HOME_DIR', path), patch.object(N.os, 'geteuid', return_value=0, create=True), \
++                 patch.object(N, 'metadata', side_effect=lambda p, **kw: {} if kw.get('directory') else {'bytes': p.stat().st_size}), \
++                 self.assertRaises(ValueError): N.sealed_files(expected)
++
+ if __name__ == '__main__':
+     unittest.main(verbosity=2)
+--- v5-generate
++++ v6-generate
+@@ -1,13 +1,16 @@
+-"""Local-only v5 source/request preparation. Never reads credentials or connects."""
++"""Local-only immutable v6 request; never connects or reads credentials."""
+ from pathlib import Path
+-import hashlib, json, sys
++import copy, hashlib, importlib.util, json, sys
+ sys.dont_write_bytecode = True
+ ROOT = Path(__file__).resolve().parents[2]
+ LOCAL = ROOT / '.local/ops-acceptance'
+ EV = ROOT / '.harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109'
+-PREFIX = 'resume-velero-s3-v5-'
+-FAILURE = 'resume-velero-s3-v4-root-install-20261110T021156151544.json'
+-FAILURE_SHA = '9c2048e5ff4d4f2ce139a8a19fe281afa26b539ba93a7c988cdd445a8a61683b'
++PREFIX = 'resume-velero-s3-v6-'
++V5_REQUEST_SHA = '723824066805739acad3f52011c299a947f01c8035b872193c9113b4663949d6'
++DIAGNOSTIC = 'resume-velero-s3-v5-root-diagnostic-20261110T024105028756.json'
++DIAGNOSTIC_SHA = '4c9ae739221233ae3d3c0f1a10706b97e9ed2557fdc690c78d5086bbfc5aab53'
++INSPECTION = 'velero-v6-mirror-inspect-20261110T024616246362.json'
++INSPECTION_SHA = 'b792321b9c3ce9240cd2e6f0664e93b2396ea0defe003f0f45f9c923a5f2224a'
+ 
+ def sha(path):
+     with path.open('rb') as source:
+@@ -15,54 +18,67 @@
+ 
+ def write_once(path, raw):
+     if path.exists():
+-        assert path.read_bytes() == raw, 'existing-v5-artifact-drift'
+-    else:
+-        with path.open('xb') as output:
+-            output.write(raw)
++        if path.read_bytes() != raw:
++            # Local review iterations preserve each prior request under its content hash.
++            # Never overwrite a failure, prior-version artifact or prior request candidate.
++            candidate = path.with_name(PREFIX + 'root-request-candidate-' + sha(path) + '.json')
++            if candidate.exists():
++                raise ValueError('immutable-v6-candidate-already-exists')
++            path.rename(candidate)
++        else:
++            return
++    with path.open('xb') as output:
++        output.write(raw)
+ 
+ def prepare():
+-    old = json.loads((EV / 'resume-velero-s3-v4-root-request.json').read_text())
+-    for name, expected in {**old['protectedHashes'], **old['scriptHashes']}.items():
+-        assert sha(ROOT / name) == expected, 'v4-protected-source-drift'
+-    assert sha(EV / FAILURE) == FAILURE_SHA
+-    failure = json.loads((EV / FAILURE).read_text())
+-    record = failure['records'][0]
+-    assert failure['exitCode'] == 1 and record['failedStage'] == 'owned-kubernetes-provider' and len(record['ownedObjects']) == 5
+-    # Exact fixture bytes and AST retained; only the root dispatch names this v5 copy.
+-    fixture = (LOCAL / 'resume-velero-s3-v4-fixture.py').read_bytes()
+-    write_once(LOCAL / (PREFIX + 'fixture.py'), fixture)
++    spec = importlib.util.spec_from_file_location('sealed_v5_root', LOCAL / 'resume-velero-s3-v5-root.py')
++    previous = importlib.util.module_from_spec(spec)
++    spec.loader.exec_module(previous)
++    old = previous.reviewed_inputs()[0]  # Local hash validation only.
++    for name, expected in [('resume-velero-s3-v5-root-request.json', V5_REQUEST_SHA),
++                           (DIAGNOSTIC, DIAGNOSTIC_SHA), (INSPECTION, INSPECTION_SHA)]:
++        previous.require(sha(EV / name) == expected, 'pinned-v5-inspection-drift')
++    failed = previous.parse((EV / DIAGNOSTIC).read_text())
++    inspected = previous.parse((EV / INSPECTION).read_text())
++    previous.require(failed['exitCode'] == 1 and failed['phase'] == 'diagnostic' and failed['remoteExecuted'] is True and
++                     failed['rootRequestSHA256'] == V5_REQUEST_SHA and inspected['exitCode'] == 0 and
++                     inspected['remoteMutation'] is False and len(inspected['objects']['slices']) == 1,
++                     'actual-failed-diagnostic-and-read-only-inspection')
++    value = copy.deepcopy(old)
+     protected = {**old['protectedHashes'], **old['scriptHashes']}
+-    extra = [EV / FAILURE, EV / 'resume-velero-s3-v4-root-request.json', EV / 'resume-velero-s3-v4-handoff.md',
+-             EV / 'resume-velero-v4-install-diagnostic-20261110T021316400477.json',
+-             ROOT / 'docs/harness/tasks/2026-11-07-ops-planned-task-closeout.task.md']
+-    # Seal all v1-v4 files/evidence in this acceptance family; no historical bytes are changed.
+-    for path in LOCAL.glob('resume-velero-s3*.py'):
+-        if not path.name.startswith(PREFIX):
+-            extra.append(path)
+-    for path in EV.glob('resume-velero*'):
+-        if path.is_file() and not path.name.startswith(PREFIX):
+-            extra.append(path)
++    extra = [EV / 'resume-velero-s3-v5-root-request.json', EV / DIAGNOSTIC, EV / INSPECTION,
++             LOCAL / 'velero-v6-mirror-inspect.py']
++    extra += [p for p in EV.glob('resume-velero*') if p.is_file() and not p.name.startswith(PREFIX)]
+     for path in extra:
+         protected[path.relative_to(ROOT).as_posix()] = sha(path)
+-    failed_raw = (json.dumps(record, indent=2) + '\n').encode()
+-    progress_raw = (json.dumps(record['ownedObjects'], indent=2) + '\n').encode()
+-    value = {'schemaVersion': 1, 'parentTaskPacket': old['parentTaskPacket'], 'tier': 'L2',
+-             'layer': 'business/k8s acceptance preparation only', 'host': old['host'], 'owner': old['owner'],
+-             'remoteOwnedPath': old['remoteOwnedPath'], 'phaseOrder': ['diagnostic', 'complete', 'validate', 'cleanup'],
+-             'requiresRootExecution': True, 'authorization': old['authorization'], 'protectedHashes': protected,
+-             'scriptHashes': {p.relative_to(ROOT).as_posix(): sha(p) for p in sorted(LOCAL.glob(PREFIX + '*.py'))},
+-             'v4ScriptHashes': old['scriptHashes'], 'originalScriptHashes': old['originalScriptHashes'],
+-             'productSourceHashes': old['productSourceHashes'], 'driverBinarySHA256': old['driverBinarySHA256'],
+-             'failureReceipt': FAILURE, 'failureReceiptSHA256': FAILURE_SHA, 'knownFailure': record,
+-             'originalFive': record['ownedObjects'], 'remoteBaseline': failure['remoteFiles'],
+-             'failureProductsSHA256': {'failure': hashlib.sha256(failed_raw).hexdigest(), 'progress': hashlib.sha256(progress_raw).hexdigest()},
+-             'privateIP': old['privateIP'], 'binaryHashes': old['binaryHashes'], 'approvedPorts': old['approvedPorts'],
+-             'resourcePolicies': old['resourcePolicies'], 'nativeKubeconfigPath': '/etc/rancher/k3s/k3s.yaml',
+-             'P0Approved': False, 'realAcceptancePending': True}
++    additions = {}
++    for name, expected in old['scriptHashes'].items():
++        path = ROOT / name
++        additions[path.name] = {'bytes': path.stat().st_size, 'sha256': expected, 'mode': 0o600}
++    # Three uploads are observed. Other three are optional only at their exact original seals.
++    baseline = dict(failed['remoteFiles'])
++    required = sorted(set(baseline) & set(additions))
++    previous.require(required == ['resume-velero-s3-v5-fixture.py', 'resume-velero-s3-v5-native.py',
++                                  'resume-velero-s3-v5-remote.py'] and
++                     all(baseline[n] == additions[n] for n in required), 'exact-retained-v5-additions')
++    value.update(schemaVersion=2, protectedHashes=protected,
++                 scriptHashes={p.relative_to(ROOT).as_posix(): sha(p) for p in sorted(LOCAL.glob(PREFIX + '*.py'))},
++                 v5ScriptHashes=old['scriptHashes'], v5RequestSHA256=V5_REQUEST_SHA,
++                 v5DiagnosticReceipt=DIAGNOSTIC, v5DiagnosticReceiptSHA256=DIAGNOSTIC_SHA,
++                 mirrorInspectionReceipt=INSPECTION, mirrorInspectionSHA256=INSPECTION_SHA,
++                 mirrorInspection=inspected['objects'], remoteBaseline=baseline,
++                 failedRemoteReceipt=failed['failedRemoteReceipt'],
++                 retainedV5Files=additions, requiredRetainedV5Files=required,
++                 optionalRetainedV5Files=sorted(set(additions) - set(required)),
++                 retainedV5Explanation='Three observed v5 uploads are required; the other three may only be retained at exact old request bytes/hash/mode. No overwrite or arbitrary adoption.',
++                 realAcceptancePending=True, P0Approved=False)
+     write_once(EV / (PREFIX + 'root-request.json'), (json.dumps(value, indent=2) + '\n').encode())
+-    print(json.dumps({'exitCode': 0, 'remoteExecuted': False, 'requestSHA256': sha(EV / (PREFIX + 'root-request.json')),
+-                      'protectedFiles': len(protected), 'v5Scripts': len(value['scriptHashes']), 'originalFive': 5}))
++    print(json.dumps({'exitCode': 0, 'remoteExecuted': False,
++                      'requestSHA256': sha(EV / (PREFIX + 'root-request.json')),
++                      'protectedFiles': len(protected), 'v6Scripts': len(value['scriptHashes']),
++                      'requiredRetainedV5Files': required, 'backupRestoreVerified': False}))
+ 
+ if __name__ == '__main__':
+-    assert len(sys.argv) == 1
++    if len(sys.argv) != 1:
++        raise ValueError('local-preparation-only')
+     prepare()

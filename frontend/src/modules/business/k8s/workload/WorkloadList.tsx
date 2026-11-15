@@ -1,6 +1,8 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
+  Alert,
   Button,
   Card,
   InputNumber,
@@ -103,10 +105,18 @@ function WorkloadPodsPanel({ podsLoading, pods, podColumns }: WorkloadPodsPanelP
 export default function WorkloadList() {
   const { t } = useTranslation();
   const { hasPerm } = usePermission();
+  const [searchParams] = useSearchParams();
+  const parsedClusterId = Number(searchParams.get('clusterId'));
+  const routeClusterId = Number.isSafeInteger(parsedClusterId) && parsedClusterId > 0 ? parsedClusterId : undefined;
+  const routeNamespace = searchParams.get('namespace')?.slice(0, 63) ?? '';
+  const routeKind = searchParams.get('kind')?.slice(0, 32) ?? '';
+  const routeKeyword = searchParams.get('keyword')?.slice(0, 253) ?? '';
+  const generation = useRef(0);
   const [clusters, setClusters] = useState<K8sClusterRow[]>([]);
-  const [clusterId, setClusterId] = useState<number | undefined>();
-  const [namespace, setNamespace] = useState('');
-  const [kind, setKind] = useState('');
+  const [clusterId, setClusterId] = useState<number | undefined>(routeClusterId);
+  const [namespace, setNamespace] = useState(routeNamespace);
+  const [kind, setKind] = useState(routeKind);
+  const [keyword, setKeyword] = useState(routeKeyword);
   const [data, setData] = useState<K8sWorkloadRow[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<unknown>(null);
@@ -122,6 +132,19 @@ export default function WorkloadList() {
   const [logTarget, setLogTarget] = useState<{ clusterId: number; namespace: string; podName: string } | null>(null);
 
   const canUpdate = hasPerm('business:k8s:workload:update');
+  useEffect(() => {
+    let active = true;
+    generation.current++;
+    queueMicrotask(() => {
+      if (!active) return;
+      setClusterId(routeClusterId);
+      setNamespace(routeNamespace);
+      setKind(routeKind);
+      setKeyword(routeKeyword);
+      setData([]);
+    });
+    return () => { active = false; generation.current++; };
+  }, [routeClusterId, routeNamespace, routeKind, routeKeyword]);
 
   const loadClusters = useCallback(async () => {
     try {
@@ -139,6 +162,7 @@ export default function WorkloadList() {
   }, [loadClusters]);
 
   const loadData = useCallback(async () => {
+    const current = ++generation.current;
     if (!clusterId) {
       setData([]);
       return;
@@ -151,15 +175,17 @@ export default function WorkloadList() {
         namespace: namespace || undefined,
         kind: kind || undefined,
       });
-      setData(result.items);
+      if (current !== generation.current) return;
+      setData(keyword ? result.items.filter((row) => row.name === keyword) : result.items);
     } catch (requestError) {
+      if (current !== generation.current) return;
       setError(requestError);
       setData([]);
       Message.error(t('common.loadFailed'));
     } finally {
-      setLoading(false);
+      if (current === generation.current) setLoading(false);
     }
-  }, [clusterId, kind, namespace, t]);
+  }, [clusterId, kind, namespace, keyword, t]);
 
   useEffect(() => {
     queueMicrotask(() => {
@@ -343,6 +369,7 @@ export default function WorkloadList() {
           description={t('business.k8s.workload.hero.title')}
           metrics={heroMetrics}
         />
+        {keyword ? <Alert type="info" content={t('business.dashboard.recordFilter', { name: keyword })} closable onClose={() => setKeyword('')} /> : null}
         <SearchToolbar
           keyword={namespace}
           keywordPlaceholder={t('business.k8s.workload.field.namespacePlaceholder')}

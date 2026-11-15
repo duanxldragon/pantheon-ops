@@ -1,0 +1,27 @@
+=== RUN   TestDatasourceHTTPQueryCancellation
+=== RUN   TestDatasourceHTTPQueryCancellation/prometheus
+[GIN-debug] [WARNING] Running in "debug" mode. Switch to "release" mode in production.
+ - using env:	export GIN_MODE=release
+ - using code:	gin.SetMode(gin.ReleaseMode)
+
+[GIN-debug] GET    /datasources/:id/query    --> github.com/duanxldragon/pantheon-base/backend/modules/business/observability.(*ObservabilityHandler).QueryDatasource-fm (1 handlers)
+=== RUN   TestDatasourceHTTPQueryCancellation/victoriametrics
+[GIN-debug] [WARNING] Running in "debug" mode. Switch to "release" mode in production.
+ - using env:	export GIN_MODE=release
+ - using code:	gin.SetMode(gin.ReleaseMode)
+
+[GIN-debug] GET    /datasources/:id/query    --> github.com/duanxldragon/pantheon-base/backend/modules/business/observability.(*ObservabilityHandler).QueryDatasource-fm (1 handlers)
+=== RUN   TestDatasourceHTTPQueryCancellation/tempo
+[GIN-debug] [WARNING] Running in "debug" mode. Switch to "release" mode in production.
+ - using env:	export GIN_MODE=release
+ - using code:	gin.SetMode(gin.ReleaseMode)
+
+[GIN-debug] GET    /datasources/:id/traces   --> github.com/duanxldragon/pantheon-base/backend/modules/business/observability.(*ObservabilityHandler).SearchTraces-fm (1 handlers)
+--- PASS: TestDatasourceHTTPQueryCancellation (0.35s)
+    --- PASS: TestDatasourceHTTPQueryCancellation/prometheus (0.13s)
+    --- PASS: TestDatasourceHTTPQueryCancellation/victoriametrics (0.11s)
+    --- PASS: TestDatasourceHTTPQueryCancellation/tempo (0.11s)
+=== RUN   TestDatasourceQueryContextPreCanceled
+--- PASS: TestDatasourceQueryContextPreCanceled (0.00s)
+PASS
+ok  	github.com/duanxldragon/pantheon-base/backend/modules/business/observability	1.462s

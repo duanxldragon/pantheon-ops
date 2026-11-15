@@ -1,0 +1,22 @@
+{
+  "checkerSHA256": "371460abea149db6a46a7418e6d96e86432507d6b4f8569607c723b69fb7e017",
+  "scope": [
+    "2026-11-14-ops-latest-foundation-and-plans",
+    "2026-11-13-ops-business-menu-ia-refactor"
+  ],
+  "rootRegistryExitCode": 1,
+  "rootRegistryPassed": false,
+  "scopedOnlyPassed": true,
+  "scopedFindings": [
+    {
+      "file": ".harness/evidence/2026-11-14-ops-latest-foundation-and-plans/review.md",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "file": ".harness/evidence/2026-11-13-ops-business-menu-ia-refactor/review.md",
+      "errors": [],
+      "warnings": []
+    }
+  ]
+}

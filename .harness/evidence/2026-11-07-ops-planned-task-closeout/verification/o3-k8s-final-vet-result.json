@@ -1,0 +1,6 @@
+{
+  "command": "go vet -mod=readonly ./...",
+  "cwd": "backend",
+  "exitCode": 0,
+  "elapsedSeconds": 5.5310000000172295
+}

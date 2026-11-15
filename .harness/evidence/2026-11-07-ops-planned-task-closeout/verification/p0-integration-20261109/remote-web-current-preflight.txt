@@ -1,0 +1,8 @@
+iv-yedenmmwhsqc6iu4z5p6
+NAME        READY   STATUS    RESTARTS   AGE    IP            NODE                      NOMINATED NODE   READINESS GATES
+loki        1/1     Running   0          112m   10.42.0.111   iv-yedenmmwhsqc6iu4z5p6   <none>           <none>
+metrics     1/1     Running   0          112m   10.42.0.113   iv-yedenmmwhsqc6iu4z5p6   <none>           <none>
+tempo       1/1     Running   0          112m   10.42.0.112   iv-yedenmmwhsqc6iu4z5p6   <none>           <none>
+web-mysql   1/1     Running   0          72m    10.42.0.115   iv-yedenmmwhsqc6iu4z5p6   <none>           <none>
+web-redis   1/1     Running   0          72m    10.42.0.114   iv-yedenmmwhsqc6iu4z5p6   <none>           <none>
+State  Recv-Q Send-Q Local Address:Port  Peer Address:PortProcess                                                       

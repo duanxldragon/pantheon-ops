@@ -1,0 +1,7 @@
+{
+  "command": "go vet ./...",
+  "cwd": "backend",
+  "exitCode": 0,
+  "stdout": "",
+  "provenance": "Executed in this continuation; tool terminal result 8fef59. The empty Tee pipeline created no file; this JSON records the returned result and is not captured process output."
+}

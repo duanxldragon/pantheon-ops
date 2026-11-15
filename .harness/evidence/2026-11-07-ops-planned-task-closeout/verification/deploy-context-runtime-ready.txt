@@ -1,0 +1,69 @@
+
+Running 16 tests using 1 worker
+
+(node:22488) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok  1 tests\smoke\business\deploy\deploy-api.spec.ts:89:3 › Deploy business api smoke › deploy api creates starts and marks a manual task (428ms)
+  ok  2 tests\smoke\business\deploy\deploy-api.spec.ts:167:3 › Deploy business api smoke › deploy api updates a draft task before execution (194ms)
+  ok  3 tests\smoke\business\deploy\deploy-api.spec.ts:294:3 › Deploy business api smoke › deploy api deletes draft and terminal tasks but rejects active execution (235ms)
+  ok  4 tests\smoke\business\deploy\deploy-api.spec.ts:395:3 › Deploy business api smoke › deploy api records uploaded package metadata and failed ssh trace (749ms)
+  ok  5 tests\smoke\business\deploy\deploy-pages.spec.ts:68:3 › Deploy business module smoke › deploy pages load under operations platform (7.9s)
+  ok  6 tests\smoke\business\deploy\deploy-pages.spec.ts:111:3 › Deploy business module smoke › deploy task detail action opens a modal without leaving the list page (3.9s)
+  ok  7 tests\smoke\business\deploy\deploy-pages.spec.ts:206:3 › Deploy business module smoke › deploy package detail action opens a modal without leaving the list page (3.5s)
+  ok  8 tests\smoke\business\deploy\deploy-pages.spec.ts:246:3 › Deploy business module smoke › deploy template detail action opens a modal without leaving the list page (3.9s)
+  ok  9 tests\smoke\business\deploy\deploy-pages.spec.ts:328:3 › Deploy business module smoke › deploy detail page loads with summary and host table (3.5s)
+  ok 10 tests\smoke\business\deploy\deploy-pages.spec.ts:403:3 › Deploy business module smoke › deploy detail requires a reason when marking host failure (4.0s)
+  ok 11 tests\smoke\business\deploy\deploy-pages.spec.ts:487:3 › Deploy business module smoke › deploy template supports script steps and task params render in detail (5.1s)
+  x  12 tests\smoke\business\deploy\deploy-pages.spec.ts:609:3 › Deploy business module smoke › deploy detail edit action routes back to list and opens edit modal (14.5s)
+(node:12104) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok 13 tests\smoke\business\deploy\deploy-pages.spec.ts:697:3 › Deploy business module smoke › targeted smoke closes cmdb, bizscope, deploy with uploaded source package and visible task trace (3.9s)
+  ok 14 tests\smoke\business\deploy\deploy-pages.spec.ts:849:3 › Deploy business module smoke › deploy pages stay within a phone viewport (6.8s)
+  ok 15 tests\smoke\business\deploy\deploy-selection-preview.spec.ts:11:2 › selection and preview confirm/conflict/refresh (light) (8.4s)
+  ok 16 tests\smoke\business\deploy\deploy-selection-preview.spec.ts:11:2 › selection and preview confirm/conflict/refresh (dark) (8.0s)
+
+
+  1) tests\smoke\business\deploy\deploy-pages.spec.ts:609:3 › Deploy business module smoke › deploy detail edit action routes back to list and opens edit modal 
+
+    Error: expect(locator).toBeHidden() failed
+
+    Locator:  locator('.arco-modal').last()
+    Expected: hidden
+    Received: visible
+    Timeout:  10000ms
+
+    Call log:
+      - Expect "toBeHidden" locator('.arco-modal').last() with timeout 10000ms
+      - waiting for locator('.arco-modal').last()
+        - locator resolved to <div role="dialog" aria-modal="true" aria-labelledby="arco-dialog-11" class="arco-modal app-dialog zoomModal-appear-done zoomModal-enter-done">…</div>
+        3 × unexpected value "visible"
+          - locator resolved to <div role="dialog" aria-modal="true" aria-labelledby="arco-dialog-11" class="arco-modal app-dialog zoomModal-exit zoomModal-exit-active">…</div>
+        - unexpected value "visible"
+        - locator resolved to <div role="dialog" aria-modal="true" aria-labelledby="arco-dialog-11" class="arco-modal app-dialog zoomModal-enter zoomModal-enter-active">…</div>
+        18 × unexpected value "visible"
+           - locator resolved to <div role="dialog" aria-modal="true" aria-labelledby="arco-dialog-11" class="arco-modal app-dialog zoomModal-enter-done">…</div>
+        - unexpected value "visible"
+
+
+      680 |       await expect(modal.locator('.deploy-target-selector').getByRole('status')).toContainText('已解析 1 个目标');
+      681 |       await modal.getByRole('button', { name: '保存' }).click();
+    > 682 |       await expect(modal).toBeHidden();
+          |                           ^
+      683 |       await expect(page).toHaveURL(/\/business\/deploy\/task$/);
+      684 |
+      685 |       const detail = await expectSuccess<TaskRow>(
+        at D:\workspace\go\pantheon-platform\pantheon-ops\frontend\tests\smoke\business\deploy\deploy-pages.spec.ts:682:27
+
+    Error Context: ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\deploy-context-runtime-ready\smoke-business-deploy-depl-bff2f-o-list-and-opens-edit-modal\error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\deploy-context-runtime-ready\smoke-business-deploy-depl-bff2f-o-list-and-opens-edit-modal\trace.zip
+    Usage:
+
+        npx playwright show-trace ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\deploy-context-runtime-ready\smoke-business-deploy-depl-bff2f-o-list-and-opens-edit-modal\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  1 failed
+    tests\smoke\business\deploy\deploy-pages.spec.ts:609:3 › Deploy business module smoke › deploy detail edit action routes back to list and opens edit modal 
+  15 passed (1.3m)

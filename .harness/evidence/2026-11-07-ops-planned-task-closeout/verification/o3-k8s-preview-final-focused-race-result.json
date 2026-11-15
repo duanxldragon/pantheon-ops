@@ -1,0 +1,7 @@
+{
+  "command": "go test -mod=readonly -race -p 2 -timeout 10m ./modules/business/k8s/release ./modules/business/k8s/cluster ./modules/business/k8s/pkg -count=1",
+  "CGO_ENABLED": "1",
+  "mysqlRequired": true,
+  "exitCode": 0,
+  "elapsedSeconds": 15.577999999979511
+}

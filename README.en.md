@@ -84,3 +84,7 @@ CodeQL is the primary security signal. Code quality is gated by GitHub required 
 - [DESIGN.md](./DESIGN.md): repo-level design stance
 - `../pantheon-base/docs/designs/QUALITY_AND_SECURITY_STRATEGY.md`: shared code-quality and security governance strategy
 - [docs/README.en.md](./docs/README.en.md) and [docs/PROJECT_INHERITANCE.en.md](./docs/PROJECT_INHERITANCE.en.md): English companion entry points
+
+## v0.18.8 installation continuation
+
+The active installation now consumes official `pantheon-base-v0.18.8`, commit `34428814a9efc997fd93d4434406a53df6460323`, assembled from verified GitHub release assets and the current declared business overlay. Prior denied-installation records describe the earlier attempt and are preserved. The new installation uses fresh preimages; six P0 parents, external-provider acceptance and final visual/functional acceptance remain open. See [current evidence](./.harness/evidence/2026-11-14-ops-latest-foundation-and-plans/summary.md).

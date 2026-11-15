@@ -96,8 +96,8 @@ func seedArgocdI18n(db *gorm.DB) error {
 		return nil
 	}
 	seeds := []argocdI18nSeed{
-		{Locale: "zh-CN", Group: "menu", Key: argocdMenuTitleKey, Value: "ArgoCD 应用发布"},
-		{Locale: "en-US", Group: "menu", Key: argocdMenuTitleKey, Value: "ArgoCD GitOps"},
+		{Locale: "zh-CN", Group: "menu", Key: argocdMenuTitleKey, Value: "应用发布"},
+		{Locale: "en-US", Group: "menu", Key: argocdMenuTitleKey, Value: "Application Delivery"},
 	}
 	return db.Transaction(func(tx *gorm.DB) error {
 		for _, item := range seeds {
@@ -133,12 +133,12 @@ func SeedPerms(db *gorm.DB) error {
 		return nil
 	}
 	seeds := []argocdI18nSeed{
-		{Locale: "zh-CN", Group: "permission", Key: "business.cicd.argocd.permission.list", Value: "查看 ArgoCD 应用"},
-		{Locale: "en-US", Group: "permission", Key: "business.cicd.argocd.permission.list", Value: "View ArgoCD apps"},
-		{Locale: "zh-CN", Group: "permission", Key: "business.cicd.argocd.permission.create", Value: "创建 ArgoCD 应用"},
-		{Locale: "en-US", Group: "permission", Key: "business.cicd.argocd.permission.create", Value: "Create ArgoCD apps"},
-		{Locale: "zh-CN", Group: "permission", Key: "business.cicd.argocd.permission.delete", Value: "删除 ArgoCD 应用"},
-		{Locale: "en-US", Group: "permission", Key: "business.cicd.argocd.permission.delete", Value: "Delete ArgoCD apps"},
+		{Locale: "zh-CN", Group: "permission", Key: "business.cicd.argocd.permission.list", Value: "查看应用发布"},
+		{Locale: "en-US", Group: "permission", Key: "business.cicd.argocd.permission.list", Value: "View application deliveries"},
+		{Locale: "zh-CN", Group: "permission", Key: "business.cicd.argocd.permission.create", Value: "创建应用发布"},
+		{Locale: "en-US", Group: "permission", Key: "business.cicd.argocd.permission.create", Value: "Create application deliveries"},
+		{Locale: "zh-CN", Group: "permission", Key: "business.cicd.argocd.permission.delete", Value: "删除应用发布"},
+		{Locale: "en-US", Group: "permission", Key: "business.cicd.argocd.permission.delete", Value: "Delete application deliveries"},
 	}
 	return db.Transaction(func(tx *gorm.DB) error {
 		for _, item := range seeds {
@@ -147,6 +147,9 @@ func SeedPerms(db *gorm.DB) error {
 				return err
 			}
 			if count != 0 {
+				if err := tx.Table("system_i18n").Where(i18nRowWhere, cicdModuleKey, item.Locale, item.Key).Updates(map[string]any{"value": item.Value, "updated_at": time.Now()}).Error; err != nil {
+					return err
+				}
 				continue
 			}
 			if err := tx.Table("system_i18n").Create(map[string]any{

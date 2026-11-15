@@ -1,0 +1,39 @@
+// Curated PUBLIC review leaves required by the existing consumer-artifact
+// contract. Keep this block byte-equivalent in both schema1 validators. This
+// permits no recursive selection or other private .harness payload.
+export const PUBLIC_REVIEW_ARCHIVE_PATHS = Object.freeze([
+  ".harness/archive/2026-08/evidence/2026-08-31-base-operational-workbench-design/review.md",
+  ".harness/archive/2026-09/evidence/2026-09-04-readme-v0.11.0-update/review.md",
+  ".harness/archive/2026-09/evidence/2026-09-10-tenant-canary-slice/review.md",
+  ".harness/archive/2026-09/evidence/2026-09-10-tenant-contract-design/review.md",
+  ".harness/archive/2026-09/evidence/2026-09-10-tenant-core-auth-iam/review.md",
+  ".harness/archive/2026-09/evidence/2026-09-10-tenant-migration-runbook/review.md",
+  ".harness/archive/2026-09/evidence/2026-09-10-tenant-ready-guardrails/review.md",
+  ".harness/archive/2026-09/evidence/2026-09-24-fix-report-residual-closeout/review.md"
+]);
+
+export function assertPublicReviewPackaging(entries) {
+  const payload = new Map(entries.map(entry => [entry.path, entry.bytes]));
+  const configPath = 'config/foundation-consumer-artifacts.json';
+  const registryPath = 'config/review-loop-legacy-artifacts.json';
+  const archival = entries.filter(entry => entry.path.startsWith('.harness/'));
+  if (!payload.has(configPath) && !payload.has(registryPath) && !archival.length) return;
+  if (!payload.has(configPath) || !payload.has(registryPath))
+    throw new Error('Public review packaging requires both original registry configurations');
+  const parse = file => JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(payload.get(file)));
+  const config = parse(configPath);
+  if (config.schemaVersion !== 1 || config.sourceOwner !== 'pantheon-base' ||
+      config.reviewLegacyRegistry?.path !== registryPath ||
+      config.reviewLegacyRegistry?.artifactRoot !== '.harness/archive')
+    throw new Error('Invalid Base consumer review packaging contract');
+  const registry = parse(registryPath);
+  const refs = registry.entries;
+  if (registry.schemaVersion !== 1 || !Array.isArray(refs) ||
+      refs.length > PUBLIC_REVIEW_ARCHIVE_PATHS.length || new Set(refs).size !== refs.length ||
+      refs.some(ref => !PUBLIC_REVIEW_ARCHIVE_PATHS.includes(ref)))
+    throw new Error('Registry must reference only curated public review leaves');
+  if (refs.some(ref => !payload.has(ref)) ||
+      archival.some(entry => !refs.includes(entry.path)))
+    throw new Error('Public review archive payload must exactly match registry references');
+}
+

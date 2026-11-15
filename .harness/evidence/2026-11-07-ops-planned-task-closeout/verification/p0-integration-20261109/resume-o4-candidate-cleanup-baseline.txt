@@ -1,0 +1,66 @@
+ALLOWED_DRIFT backend/modules/business/business.go — fixture overlay hook
+ALLOWED_DRIFT frontend/src/core/router/modules.ts — fixture overlay hook
+OK shared drift check: 5 shared files compared, 3 identical to base, 2 allowlisted drift, 0 business-overlay files skipped, 2 derived business migrations verified (base=C:\Users\xiaolong\AppData\Local\Temp\ops-candidate-JMVjGf\ops\.tmp\foundation-candidates\candidate-5e4757c4069b55bdacd523289dd85f7d9786ce939f06f5ece1610f7bf627fad1\snapshot)
+DRIFT_MODIFIED backend/modules/business/business.go
+DRIFT_MODIFIED frontend/src/core/router/modules.ts
+FAIL shared drift check: 2 modified, 0 missing in base, 0 stale allowlist (5 shared files compared, 0 business-overlay files skipped, 2 derived business migrations verified, base=C:\Users\xiaolong\AppData\Local\Temp\ops-candidate-Qjx6TD\ops\.tmp\foundation-candidates\candidate-5e4757c4069b55bdacd523289dd85f7d9786ce939f06f5ece1610f7bf627fad1\snapshot)
+✔ schema1 source-interface mapping matches the producer and rejects contradictory metadata (543.7565ms)
+✔ requires external descriptor pin and rejects descriptor/archive tamper before staging (673.997ms)
+✔ rejects descriptor edit/revert during extraction and bounded input overflow (679.6293ms)
+▶ rejects hostile regular tar paths, aliases, config and extension/link/special types with valid archive pins
+  ✔ ../escape (676.9012ms)
+  ✔ /absolute (605.2923ms)
+  ✔ C:/outside (860.7764ms)
+  ✔ //host/share (947.8351ms)
+  ✔ dir\file (657.9514ms)
+  ✔ x:y (781.6506ms)
+  ✔ .env.local (677.1646ms)
+  ✔ config/secrets.json (623.8381ms)
+  ✔ .aws/credentials (835.5326ms)
+  ✔ aux.txt (738.1361ms)
+  ✔ file. (650.502ms)
+  ✔ a//b (626.3489ms)
+  ✔ tar type 1 (597.5081ms)
+  ✔ tar type 2 (669.3595ms)
+  ✔ tar type 3 (546.8894ms)
+  ✔ tar type 5 (552.3171ms)
+  ✔ tar type x (491.5175ms)
+  ✔ tar type g (661.3953ms)
+  ✔ tar type L (527.7653ms)
+  ✔ tar type K (606.9828ms)
+✔ rejects hostile regular tar paths, aliases, config and extension/link/special types with valid archive pins (13340.7682ms)
+✔ rejects duplicate/case/directory collisions, missing entries, wrong file hashes and corrupt tar framing (658.8825ms)
+✔ false capability comments cannot replace real declarations even when all digests are consistent (666.675ms)
+▶ fresh extraction is sealed; mutations, additions, edit/revert and snapshot reuse refuse
+  ✔ write (1056.4307ms)
+  ✔ addition (1314.9061ms)
+  ✔ revert (1279.8512ms)
+  ✔ root-revert (953.1962ms)
+✔ fresh extraction is sealed; mutations, additions, edit/revert and snapshot reuse refuse (4605.5357ms)
+✔ rebuild calls real assembly/drift seams, derives only declared migrations, preserves exact locks and never reads current Base sources (2059.7101ms)
+✔ protects repository/foreign/existing targets and rejects alternative manifest ownership (1130.835ms)
+✔ rejects junction ancestors and hard-linked artifact/declared source without touching foreign bytes (1253.4945ms)
+▶ assembly rejects snapshot/artifact and declared Ops mutations including edit/revert; failure cleans owned stage only
+  ✔ snapshot (1423.2814ms)
+  ✔ artifact (1522.4485ms)
+  ✔ business (1199.4691ms)
+  ✔ manifest (1512.947ms)
+  ✔ lock (1297.0555ms)
+  ✔ revert (1328.6803ms)
+  ✔ addition (1417.0791ms)
+  ✔ git-selection (1097.197ms)
+✔ assembly rejects snapshot/artifact and declared Ops mutations including edit/revert; failure cleans owned stage only (10801.1823ms)
+▶ drift and migration conflicts refuse candidate publication
+  ✔ unallowlisted shared modification (1570.7383ms)
+  ✔ Base migration conflict (1101.0457ms)
+✔ drift and migration conflicts refuse candidate publication (2672.3604ms)
+✔ independently pinned build receipt binds source capability identity and exact executable bytes (608.0122ms)
+✔ CLI help is precise; unsupported, duplicate, unpinned and formal-source options refuse (388.8318ms)
+ℹ tests 48
+ℹ suites 0
+ℹ pass 48
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 40217.7963

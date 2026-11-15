@@ -1,0 +1,25 @@
+2026-11-11T00:33:54.612066Z ERROR codex_skills_extension::host_service: failed to install system skills: io error while remove existing system skills dir: 拒绝访问。 (os error 5)
+{"type":"thread.started","thread_id":"01a1c806-8bd0-7f21-98ca-05f3442803e3"}
+2026-11-11T00:33:54.762501Z ERROR codex_api::endpoint::responses_websocket: failed to connect to Responses WebSocket stage=Unknown
+{"type":"turn.started"}
+2026-11-11T00:33:54.787823Z ERROR codex_api::endpoint::responses_websocket: failed to connect to Responses WebSocket stage=Unknown
+2026-11-11T00:33:54.988354Z ERROR codex_api::endpoint::responses_websocket: failed to connect to Responses WebSocket stage=Unknown
+{"type":"error","message":"Reconnecting... 2/5 (stream disconnected before completion: 以一种访问权限不允许的方式做了一个访问套接字的尝试。 (os error 10013))"}
+2026-11-11T00:33:55.439882Z ERROR codex_api::endpoint::responses_websocket: failed to connect to Responses WebSocket stage=Unknown
+{"type":"error","message":"Reconnecting... 3/5 (stream disconnected before completion: 以一种访问权限不允许的方式做了一个访问套接字的尝试。 (os error 10013))"}
+2026-11-11T00:33:56.200463Z ERROR codex_api::endpoint::responses_websocket: failed to connect to Responses WebSocket stage=Unknown
+{"type":"error","message":"Reconnecting... 4/5 (stream disconnected before completion: 以一种访问权限不允许的方式做了一个访问套接字的尝试。 (os error 10013))"}
+2026-11-11T00:33:57.742556Z ERROR codex_api::endpoint::responses_websocket: failed to connect to Responses WebSocket stage=Unknown
+{"type":"error","message":"Reconnecting... 5/5 (stream disconnected before completion: 以一种访问权限不允许的方式做了一个访问套接字的尝试。 (os error 10013))"}
+2026-11-11T00:34:00.663378Z ERROR codex_api::endpoint::responses_websocket: failed to connect to Responses WebSocket stage=Unknown
+{"type":"item.completed","item":{"id":"item_0","type":"error","message":"Falling back from WebSockets to HTTPS transport. stream disconnected before completion: 以一种访问权限不允许的方式做了一个访问套接字的尝试。 (os error 10013)"}}
+{"type":"error","message":"Reconnecting... waiting for network (Connection failed: error sending request)"}
+{"type":"error","message":"Reconnecting... waiting for network (Connection failed: error sending request)"}
+{"type":"error","message":"Reconnecting... waiting for network (Connection failed: error sending request)"}
+{"type":"error","message":"Reconnecting... waiting for network (Connection failed: error sending request)"}
+{"type":"error","message":"Reconnecting... waiting for network (Connection failed: error sending request)"}
+{"type":"error","message":"Reconnecting... waiting for network (Connection failed: error sending request)"}
+{"type":"error","message":"Reconnecting... waiting for network (Connection failed: error sending request)"}
+{"type":"error","message":"Reconnecting... waiting for network (Connection failed: error sending request)"}
+{"type":"error","message":"Reconnecting... waiting for network (Connection failed: error sending request)"}
+{"type":"error","message":"Reconnecting... waiting for network (Connection failed: error sending request)"}

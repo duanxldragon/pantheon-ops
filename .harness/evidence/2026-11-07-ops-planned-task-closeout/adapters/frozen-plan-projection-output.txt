@@ -1,0 +1,11 @@
+**Scope:** Supplied excerpts only. Foreign helpers (`taskPreviewPublicText`, `taskPreviewParameterValue`, `taskPreviewIdentifier`, `effectiveFailurePolicy`, `decryptDeployCredential`, `taskIDWhereClause`) trusted per frozen contract; other callers of `loadDeployTaskSecrets` not audited; no build/tests run.
+
+**Verified correct:** Truncation is sound — step limit (≥100 skips, sets `Truncated`), global 200-param limit (no off-by-one; check precedes decrement), `ParameterCount`/`StepCount` count totals including truncated parts. Nil maps safe. Keys failing public/identifier checks are replaced with `parameter:N`, so no raw key leaks.
+
+**P2-1** (`task_preview_plan.go:70` + `deploy_rollback.go`): duplicate `SecretKey` rows overwrite silently (last wins). If schema permits duplicates, (a) `len(secrets) < secretCount` masks the whole preview (fail-closed), or (b) with the loser value appearing in a param, occurrence masking can miss it. Minimal fix: enforce unique `(task_id, secret_key)`; or have `loadDeployTaskSecrets` return a skipped-count and set `complete = skipped == 0`.
+
+**P2-2:** completeness uses two unsynchronized queries (`Find` then `Count`); races skew `complete`, mostly fail-closed. Fixing P2-1 via skipped-count also removes this.
+
+**APPROVE** — no proved P0/P1.
+
+Not checked: schema uniqueness, other `loadDeployTaskSecrets` callers, compiled behavior.

@@ -1,0 +1,47 @@
+=== RUN   TestPreviewTicketRejectsForgeryExpiryAndBudget
+--- PASS: TestPreviewTicketRejectsForgeryExpiryAndBudget (0.00s)
+=== RUN   TestPreviewRequiredValidStartAndReplay
+
+2026/11/07 21:27:41 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/deploy_service.go:1897 [35;1mrecord not found
+[0m[33m[1.394ms] [34;1m[rows:0][0m SELECT * FROM `biz_deploy_task_step` WHERE task_id = 1 AND task_host_id = 1 AND step_key = 'package_default' ORDER BY `biz_deploy_task_step`.`id` LIMIT 1
+--- PASS: TestPreviewRequiredValidStartAndReplay (1.44s)
+=== RUN   TestPreviewRejectsActorRequestAndPersistedDrift
+=== RUN   TestPreviewRejectsActorRequestAndPersistedDrift/actor
+=== RUN   TestPreviewRejectsActorRequestAndPersistedDrift/request
+=== RUN   TestPreviewRejectsActorRequestAndPersistedDrift/task
+=== RUN   TestPreviewRejectsActorRequestAndPersistedDrift/host
+=== RUN   TestPreviewRejectsActorRequestAndPersistedDrift/secret
+=== RUN   TestPreviewRejectsActorRequestAndPersistedDrift/scope
+
+2026/11/07 21:27:49 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/bizscope/bizscope_service.go:73 [35;1mrecord not found
+[0m[33m[1.348ms] [34;1m[rows:0][0m SELECT * FROM `biz_business_scope` WHERE (id = 1 AND status = 'active') AND `biz_business_scope`.`deleted_at` IS NULL ORDER BY `biz_business_scope`.`id` LIMIT 1 FOR UPDATE
+=== RUN   TestPreviewRejectsActorRequestAndPersistedDrift/permission
+--- PASS: TestPreviewRejectsActorRequestAndPersistedDrift (9.49s)
+    --- PASS: TestPreviewRejectsActorRequestAndPersistedDrift/actor (1.08s)
+    --- PASS: TestPreviewRejectsActorRequestAndPersistedDrift/request (1.29s)
+    --- PASS: TestPreviewRejectsActorRequestAndPersistedDrift/task (1.23s)
+    --- PASS: TestPreviewRejectsActorRequestAndPersistedDrift/host (1.35s)
+    --- PASS: TestPreviewRejectsActorRequestAndPersistedDrift/secret (1.42s)
+    --- PASS: TestPreviewRejectsActorRequestAndPersistedDrift/scope (1.58s)
+    --- PASS: TestPreviewRejectsActorRequestAndPersistedDrift/permission (1.55s)
+=== RUN   TestPreviewSecretMaterialIsNeverReturned
+--- PASS: TestPreviewSecretMaterialIsNeverReturned (1.51s)
+=== RUN   TestPreviewCredentialVersionChangesInvalidate
+--- PASS: TestPreviewCredentialVersionChangesInvalidate (1.14s)
+=== RUN   TestPreviewSigningConfigurationAndRotation
+--- PASS: TestPreviewSigningConfigurationAndRotation (0.00s)
+=== RUN   TestPreviewCorruptSnapshotCannotDowngradeEnforcement
+--- PASS: TestPreviewCorruptSnapshotCannotDowngradeEnforcement (1.50s)
+=== RUN   TestPreviewFrozenPlanIgnoresLiveDefinitionsAndRejectsSnapshotDrift
+
+2026/11/07 21:27:56 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/deploy/deploy_service.go:1897 [35;1mrecord not found
+[0m[33m[0.582ms] [34;1m[rows:0][0m SELECT * FROM `biz_deploy_task_step` WHERE task_id = 2 AND task_host_id = 1 AND step_key = 'default' ORDER BY `biz_deploy_task_step`.`id` LIMIT 1
+--- PASS: TestPreviewFrozenPlanIgnoresLiveDefinitionsAndRejectsSnapshotDrift (1.62s)
+=== RUN   TestPreviewPlanRedactionAndBudgets
+--- PASS: TestPreviewPlanRedactionAndBudgets (0.02s)
+=== RUN   TestPreviewUnreadableSecretHidesAllNewValues
+--- PASS: TestPreviewUnreadableSecretHidesAllNewValues (1.57s)
+=== RUN   TestPreviewLegacyDuplicateSecretHidesNewValues
+--- PASS: TestPreviewLegacyDuplicateSecretHidesNewValues (1.19s)
+PASS
+ok  	github.com/duanxldragon/pantheon-base/backend/modules/business/deploy	20.609s

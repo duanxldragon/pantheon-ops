@@ -1,0 +1,11 @@
+{
+  "redisPid": 18840,
+  "state": "stopped",
+  "mysqlPort": 33316,
+  "redisPort": 26316,
+  "mysqlPid": 25308,
+  "runtimeRoot": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.tmp\\ops-planned-cmdb-services",
+  "backendPid": 1368,
+  "backendPort": 24485,
+  "backendBinary": "server-command-final.exe"
+}

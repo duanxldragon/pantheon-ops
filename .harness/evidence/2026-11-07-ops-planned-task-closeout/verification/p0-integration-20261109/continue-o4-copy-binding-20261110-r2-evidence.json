@@ -1,0 +1,604 @@
+{
+  "taskId": "2026-11-07-ops-planned-task-closeout",
+  "parent": "docs/harness/tasks/2026-11-07-ops-planned-task-closeout.task.md",
+  "tier": "L2",
+  "role": "Generator/executor",
+  "linkage": {
+    "task": "docs/harness/tasks/2026-11-07-ops-planned-task-closeout.task.md",
+    "request": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/continue-o4-copy-binding-20261110-r2-request.json",
+    "requestSHA256": "deda434467f5ea1da73cd8e7673855e86c6b2143e55f1bd0855c57bcebd1e553",
+    "evidence": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/continue-o4-copy-binding-20261110-r2-evidence.json",
+    "handoff": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/continue-o4-copy-binding-20261110-r2-handoff.md"
+  },
+  "previousRequest": {
+    "path": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/continue-o4-copy-binding-20261110-r1-request.json",
+    "sha256": "6dc636da5804c8c1783f702bfe9e4618b9398b7a965461f5c7d6471ff72dc90e"
+  },
+  "historicalRequestSHA256": "9b6a0bec4daea400f8c99144934bbfcd87f0659db65e0993e8c91df085dd7786",
+  "boundary": "Ops consumer tooling. R2 changes only candidate-copy-binding.test.mjs and new finite r2 proof/evidence artifacts. Logical tooling change; no physical domain split.",
+  "plan": [
+    "Recover and authenticate original bytes from pinned r1 records",
+    "Annotate new test and preserve typed native argument forwarding",
+    "Compare all three files against authenticated original baseline; run syntax/AST and focused 207 contracts",
+    "Verify exact preservation pins and seal finite r2 request/evidence/handoff; stop before review or actual assembly"
+  ],
+  "sourceHashes": [
+    {
+      "path": "scripts/business-overlay/foundation-candidate.mjs",
+      "before": "17687364e7cc0420164707a9d92b33971f83d755efe57d61ace7e166a7105033",
+      "after": "77903fb900fcc676bea4b8246533db5fef8225ecef3a8fb8fdb75a21ed9bc552"
+    },
+    {
+      "path": "scripts/business-overlay/rebuild-from-candidate.mjs",
+      "before": "d92eb077c1b67cb3a0b291be24958db0533ecfac8c3c586930f0d9ce2468f104",
+      "after": "0d310bdcaffd8f961835737faf8aa6d1db1242bbdfa6ae10147e5e7871ed85c8"
+    },
+    {
+      "path": "scripts/business-overlay/candidate-copy-binding.test.mjs",
+      "before": null,
+      "after": "8e462b763f7588d2062230d7f3828e4e46f91b338c4b0c927f8c71c3a377f382"
+    }
+  ],
+  "r2OnlyChange": {
+    "path": "scripts/business-overlay/candidate-copy-binding.test.mjs",
+    "before": "d220d33cb27d140c4bcf702e6b2688ec2377b7ce0a8fa92cff1e089ec43326ad",
+    "after": "8e462b763f7588d2062230d7f3828e4e46f91b338c4b0c927f8c71c3a377f382",
+    "diff": {
+      "path": ".local/ops-acceptance/continue-o4-copy-binding-20261110-r2/r2-test-only.diff",
+      "sha256": "268338e768372ddc3738b02eaf6c1f2978df73f1b19181cd808cb512e9ed8266"
+    },
+    "description": "JSDoc/types, typed mock argument forwarding, BufferEncoding and callback typing; two production scripts unchanged from r1."
+  },
+  "productionR1SourceHashesStable": true,
+  "finalSourcePinsStableDuringChecks": true,
+  "originalProof": {
+    "command": "python .local/ops-acceptance/continue-o4-copy-binding-20261110-r2/byte-proof.py",
+    "script": {
+      "path": ".local/ops-acceptance/continue-o4-copy-binding-20261110-r2/byte-proof.py",
+      "sha256": "1ff55072ca39ab897b37b677651f2451679480c8dfc869f058cdcf080d0f0604"
+    },
+    "log": {
+      "path": ".local/ops-acceptance/continue-o4-copy-binding-20261110-r2/byte-proof-final.json",
+      "sha256": "b99f8f6d743b81acf6661e8ccfd4cf90e5c7c8bd21ad49d6b0dabf69ef7294bb"
+    },
+    "delta": {
+      "path": ".local/ops-acceptance/continue-o4-copy-binding-20261110-r2/byte-delta.json",
+      "sha256": "3c3995659e85a0c7bf330289ca0cf48374bb13f32e1f4d511b17f782204cef24"
+    },
+    "diff": {
+      "path": ".local/ops-acceptance/continue-o4-copy-binding-20261110-r2/source.diff",
+      "sha256": "c329e0ea1fbdf5fa1edf7d3527bbd942fb4d59a75f4ab9a2663c3153f56be6e2"
+    },
+    "rawOriginals": [
+      {
+        "path": ".local/ops-acceptance/continue-o4-copy-binding-20261110-r2/original/foundation-candidate.mjs",
+        "sha256": "17687364e7cc0420164707a9d92b33971f83d755efe57d61ace7e166a7105033",
+        "bytes": 46867
+      },
+      {
+        "path": ".local/ops-acceptance/continue-o4-copy-binding-20261110-r2/original/rebuild-from-candidate.mjs",
+        "sha256": "d92eb077c1b67cb3a0b291be24958db0533ecfac8c3c586930f0d9ce2468f104",
+        "bytes": 12326
+      }
+    ],
+    "recovery": "Literal inverse replacements from immutable r1 source record; raw bytes authenticated against original r1 request pins. No standalone pre-r1 backup is claimed.",
+    "retainedRecoveryRecord": {
+      "path": ".local/ops-acceptance/continue-o4-copy-binding-20261110-r1/review-diff.py",
+      "sha256": "45c4bfb86fa6fef9622c14decee06ce6fe7a3ac8a6b328492ea7346c8b723ca0"
+    },
+    "rawOriginalsAuthenticated": true,
+    "forwardAndReverseBytesEqual": true
+  },
+  "priorInverseFinding": "Independent CODE reported an inverse reconstruction hash mismatch. New proof retains the old request/diff untouched and reconstructs raw bytes from its pinned literal inverse source record, authenticating the original SHA256 before generating a reversible byte delta. No standalone pre-r1 backup is claimed.",
+  "languageDiagnostics": {
+    "tool": "native TypeScript LanguageService",
+    "version": "6.0.3",
+    "checkJs": true,
+    "skipLibCheck": false,
+    "suppressions": false,
+    "fullTypeSafety": false,
+    "allThreeChangedFilesIncluded": true,
+    "inheritedDiagnostics": 137,
+    "newDiagnostics": 0,
+    "r1AllThreeCounts": [
+      124,
+      13,
+      17
+    ],
+    "finalAllThreeCounts": [
+      124,
+      13,
+      0
+    ],
+    "baseline": {
+      "path": ".local/ops-acceptance/continue-o4-copy-binding-20261110-r2/diagnostics-original-all3.json",
+      "sha256": "4464d334ab91f08d9e3ce422f6388ccdb601f01d386b354154e19b7844082933"
+    },
+    "final": {
+      "path": ".local/ops-acceptance/continue-o4-copy-binding-20261110-r2/diagnostics-final-all3.json",
+      "sha256": "f8d92f525df5a091875efc030ae74f64ab67aeb65fae6534cb45b026395704de"
+    },
+    "r1AllThree": {
+      "path": ".local/ops-acceptance/continue-o4-copy-binding-20261110-r2/diagnostics-r1-all3.json",
+      "sha256": "deba57488698521bfa833e3d9b1e1e49ea505755938bd0a9a7404f41faf2cce5"
+    },
+    "comparison": {
+      "comparison": [
+        {
+          "file": "scripts/business-overlay/foundation-candidate.mjs",
+          "originalAbsent": false,
+          "before": 124,
+          "after": 124,
+          "added": [],
+          "removed": []
+        },
+        {
+          "file": "scripts/business-overlay/rebuild-from-candidate.mjs",
+          "originalAbsent": false,
+          "before": 13,
+          "after": 13,
+          "added": [],
+          "removed": []
+        },
+        {
+          "file": "scripts/business-overlay/candidate-copy-binding.test.mjs",
+          "originalAbsent": true,
+          "before": 0,
+          "after": 0,
+          "added": [],
+          "removed": []
+        }
+      ],
+      "inheritedDiagnostics": 137,
+      "newDiagnostics": 0,
+      "checkJs": true,
+      "skipLibCheck": false,
+      "suppressions": false,
+      "fullTypeSafety": false,
+      "comparisonKey": "category + diagnostic code + offending source token, occurrence-counted",
+      "baseline": "Authenticated raw originals virtually loaded at original repository paths; the newly added test is explicitly absent in the original baseline."
+    },
+    "commands": [
+      {
+        "executable": "D:\\nodejs\\node.exe",
+        "args": [
+          ".local/ops-acceptance/continue-o4-copy-binding-20261110-r2/diagnostics.mjs",
+          "--original",
+          "scripts/business-overlay/foundation-candidate.mjs",
+          "scripts/business-overlay/rebuild-from-candidate.mjs",
+          "scripts/business-overlay/candidate-copy-binding.test.mjs"
+        ],
+        "exitCode": 0,
+        "signal": null,
+        "log": ".local/ops-acceptance/continue-o4-copy-binding-20261110-r2/diagnostics-original-all3.json",
+        "logSHA256": "4464d334ab91f08d9e3ce422f6388ccdb601f01d386b354154e19b7844082933"
+      },
+      {
+        "executable": "D:\\nodejs\\node.exe",
+        "args": [
+          ".local/ops-acceptance/continue-o4-copy-binding-20261110-r2/diagnostics.mjs",
+          "scripts/business-overlay/foundation-candidate.mjs",
+          "scripts/business-overlay/rebuild-from-candidate.mjs",
+          "scripts/business-overlay/candidate-copy-binding.test.mjs"
+        ],
+        "exitCode": 0,
+        "signal": null,
+        "log": ".local/ops-acceptance/continue-o4-copy-binding-20261110-r2/diagnostics-final-all3.json",
+        "logSHA256": "f8d92f525df5a091875efc030ae74f64ab67aeb65fae6534cb45b026395704de"
+      }
+    ]
+  },
+  "syntax": [
+    {
+      "command": [
+        "node",
+        "--check",
+        "scripts/business-overlay/foundation-candidate.mjs"
+      ],
+      "exitCode": 0,
+      "astParser": "TypeScript 6.0.3",
+      "astParseDiagnostics": 0,
+      "topLevelStatements": 49,
+      "suppressionDirectives": 0
+    },
+    {
+      "command": [
+        "node",
+        "--check",
+        "scripts/business-overlay/rebuild-from-candidate.mjs"
+      ],
+      "exitCode": 0,
+      "astParser": "TypeScript 6.0.3",
+      "astParseDiagnostics": 0,
+      "topLevelStatements": 10,
+      "suppressionDirectives": 0
+    },
+    {
+      "command": [
+        "node",
+        "--check",
+        "scripts/business-overlay/candidate-copy-binding.test.mjs"
+      ],
+      "exitCode": 0,
+      "astParser": "TypeScript 6.0.3",
+      "astParseDiagnostics": 0,
+      "topLevelStatements": 22,
+      "suppressionDirectives": 0
+    }
+  ],
+  "tests": {
+    "tests": 207,
+    "pass": 207,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0,
+    "priorContracts": 198,
+    "newAttacks": 9,
+    "subtestNamesMatchR1": true
+  },
+  "checkCommands": [
+    {
+      "executable": "python",
+      "args": [
+        ".local/ops-acceptance/continue-o4-copy-binding-20261110-r2/byte-proof.py"
+      ],
+      "exitCode": 0,
+      "signal": null,
+      "log": ".local/ops-acceptance/continue-o4-copy-binding-20261110-r2/byte-proof-final.json",
+      "logSHA256": "b99f8f6d743b81acf6661e8ccfd4cf90e5c7c8bd21ad49d6b0dabf69ef7294bb"
+    },
+    {
+      "executable": "D:\\nodejs\\node.exe",
+      "args": [
+        ".local/ops-acceptance/continue-o4-copy-binding-20261110-r2/diagnostics.mjs",
+        "--original",
+        "scripts/business-overlay/foundation-candidate.mjs",
+        "scripts/business-overlay/rebuild-from-candidate.mjs",
+        "scripts/business-overlay/candidate-copy-binding.test.mjs"
+      ],
+      "exitCode": 0,
+      "signal": null,
+      "log": ".local/ops-acceptance/continue-o4-copy-binding-20261110-r2/diagnostics-original-all3.json",
+      "logSHA256": "4464d334ab91f08d9e3ce422f6388ccdb601f01d386b354154e19b7844082933"
+    },
+    {
+      "executable": "D:\\nodejs\\node.exe",
+      "args": [
+        ".local/ops-acceptance/continue-o4-copy-binding-20261110-r2/diagnostics.mjs",
+        "scripts/business-overlay/foundation-candidate.mjs",
+        "scripts/business-overlay/rebuild-from-candidate.mjs",
+        "scripts/business-overlay/candidate-copy-binding.test.mjs"
+      ],
+      "exitCode": 0,
+      "signal": null,
+      "log": ".local/ops-acceptance/continue-o4-copy-binding-20261110-r2/diagnostics-final-all3.json",
+      "logSHA256": "f8d92f525df5a091875efc030ae74f64ab67aeb65fae6534cb45b026395704de"
+    },
+    {
+      "executable": "D:\\nodejs\\node.exe",
+      "args": [
+        "--import",
+        "./.local/ops-acceptance/continue-o4-copy-binding-20261110-r2/preload.mjs",
+        "--test",
+        "--test-reporter=tap",
+        "scripts/business-overlay/foundation-candidate.test.mjs",
+        "scripts/business-overlay/candidate-ownership.test.mjs",
+        "scripts/business-overlay/candidate-copy-binding.test.mjs",
+        "tests/scripts/business-overlay/*.test.mjs"
+      ],
+      "exitCode": 0,
+      "signal": null,
+      "log": ".local/ops-acceptance/continue-o4-copy-binding-20261110-r2/focused-207.tap",
+      "logSHA256": "36380e45140803e09674db333e96452675f3506032d61cc89b7f7291c7b4dca2"
+    },
+    {
+      "command": "npm run check:business-overlay",
+      "shell": "PowerShell",
+      "exitCode": 0,
+      "log": ".local/ops-acceptance/continue-o4-copy-binding-20261110-r2/contract-powershell.log",
+      "logSHA256": "55ee542cb301d23a24fd6e9278e56ec687d7f91041b98119fb7c4c69aeabf13d",
+      "exitCodeRecord": ".local/ops-acceptance/continue-o4-copy-binding-20261110-r2/contract-powershell-exit.json",
+      "exitCodeRecordSHA256": "420d0b86662fc0dc3d1e287aaca3ac7117756ff7ce8b6b72238d3f92e9a4a48b"
+    }
+  ],
+  "failedAttempts": [
+    {
+      "path": ".local/ops-acceptance/continue-o4-copy-binding-20261110-r2/check-run-attempt1-result.json",
+      "sha256": "fdd3f2f791dd1d7415f018abec48f4c4b489831b0760ba843b591aa668bdcc6e"
+    },
+    {
+      "path": ".local/ops-acceptance/continue-o4-copy-binding-20261110-r2/check-recovery-attempt1-result.json",
+      "sha256": "c2b3388f97d093025531bfc3538323200793d371020aabc40cd54c62996b99e5"
+    }
+  ],
+  "failureRecovery": "Windows npm.cmd spawn EINVAL and an evidence-helper success-text assertion were retained. Direct PowerShell contract invocation passed; corrected evidence helper verified the completed 207 tests without rerunning them.",
+  "preservation": {
+    "verified": true,
+    "preservedEntries": 30598,
+    "historicalFileHashes": 19069,
+    "snapshotFiles": 1141,
+    "reportFiles": 4634,
+    "hashesChecked": 24844,
+    "statPinsChecked": 36373,
+    "hashMismatches": [],
+    "statMismatches": [],
+    "descriptorSHA256": "2f105d76e38c82e8c301d816269ea26669a7a0291a5860be74d6ca71281a9ce6",
+    "artifactSHA256": "618b8a4b244aeb52a0e80983c60a19de076f6a5f0f37a2b5faade227d29bb11a",
+    "reportSHA256": "13ff60276a0c94df5ca26a371e70c40b56bf1d3bb178e5e3f900b0e980c7e337",
+    "evidencePinsChecked": 1247,
+    "immutableEvidencePinsUnchanged": 1246,
+    "concurrentEvidenceUpdates": [
+      {
+        "path": ".harness\\evidence\\2026-11-07-ops-planned-task-closeout\\verification\\p0-integration-20261109\\progress-continuation-20261110.md",
+        "historical": "0436bb095cae2e52e4552d2b8f3de0e8a8767125cecb276f7023315fccd5ef0a",
+        "r2EntryAndFinal": "0266ebcf84225bb5e2db4229f9f2ea043666786d01a72950b7d209d9d5bcd4c4",
+        "handling": "Recorded prior concurrent coordination update; exact current bytes and stats preserved during r2."
+      }
+    ],
+    "r1AndEntryFilesUnchanged": 43,
+    "unchangedSourceHashes": {
+      ".gitignore": "053c2f12d5dfb20b171a6f0b17ec9c2694b67fdf2bc67cda13aecf3544cffd78",
+      "scripts/business-overlay/rebuild-from-base.mjs": "94ce67fc97fd358200835dc81df769d9dcbe7865e32b74981dc84ecdb5004e4f",
+      "scripts/business-overlay/foundation-candidate.test.mjs": "c9be950b627e86c92a6e0e42d1ef1886119c4bf050fe62aa3f1b894dd8d76ff2",
+      "scripts/business-overlay/candidate-ownership.test.mjs": "30f4c185051b232d414b4867c7a9b35601d335405d8477b26dcb236be09f6062",
+      "scripts/business-overlay/check-shared-drift.mjs": "a6ee2b769c1d27167c7f426ad913981c28b99f462054342e826dc194a1c4302b",
+      "tests/scripts/business-overlay/check-shared-drift.test.mjs": "b79af64de465f3b1e2efda7e14d595fb2ba24ee46bdb36b04f2e79824338be36"
+    },
+    "enumeration": "exact recorded paths only; no broad history scan, inventory or old-source copy",
+    "originalPinFile": ".local/ops-acceptance/continue-o4-copy-binding-20261110-r1/before-with-preservation-pins.json",
+    "originalPinFileSHA256": "8d4e61e72c4c5dec86aa0369d93cc950d0aff7cde54f767c1494b4f4122c82be"
+  },
+  "artifacts": [
+    {
+      "path": ".local/ops-acceptance/continue-o4-copy-binding-20261110-r2/source-pins-before.json",
+      "sha256": "b97819a85db40a86277d965f3a028b0c06bd1b5bcfdcdc04841ee9c3ca07ddac"
+    },
+    {
+      "path": ".local/ops-acceptance/continue-o4-copy-binding-20261110-r2/r1-candidate-copy-binding.test.mjs",
+      "sha256": "d220d33cb27d140c4bcf702e6b2688ec2377b7ce0a8fa92cff1e089ec43326ad"
+    },
+    {
+      "path": ".local/ops-acceptance/continue-o4-copy-binding-20261110-r2/r2-test-only.diff",
+      "sha256": "268338e768372ddc3738b02eaf6c1f2978df73f1b19181cd808cb512e9ed8266"
+    },
+    {
+      "path": ".local/ops-acceptance/continue-o4-copy-binding-20261110-r2/byte-proof.py",
+      "sha256": "1ff55072ca39ab897b37b677651f2451679480c8dfc869f058cdcf080d0f0604"
+    },
+    {
+      "path": ".local/ops-acceptance/continue-o4-copy-binding-20261110-r2/byte-delta.json",
+      "sha256": "3c3995659e85a0c7bf330289ca0cf48374bb13f32e1f4d511b17f782204cef24"
+    },
+    {
+      "path": ".local/ops-acceptance/continue-o4-copy-binding-20261110-r2/source.diff",
+      "sha256": "c329e0ea1fbdf5fa1edf7d3527bbd942fb4d59a75f4ab9a2663c3153f56be6e2"
+    },
+    {
+      "path": ".local/ops-acceptance/continue-o4-copy-binding-20261110-r2/byte-proof-generate.json",
+      "sha256": "b99f8f6d743b81acf6661e8ccfd4cf90e5c7c8bd21ad49d6b0dabf69ef7294bb"
+    },
+    {
+      "path": ".local/ops-acceptance/continue-o4-copy-binding-20261110-r2/byte-proof-final.json",
+      "sha256": "b99f8f6d743b81acf6661e8ccfd4cf90e5c7c8bd21ad49d6b0dabf69ef7294bb"
+    },
+    {
+      "path": ".local/ops-acceptance/continue-o4-copy-binding-20261110-r2/diagnostics.mjs",
+      "sha256": "9caea04ddb92b73afbd98e33665351ca435fffa3085aed2951284c22c52d7165"
+    },
+    {
+      "path": ".local/ops-acceptance/continue-o4-copy-binding-20261110-r2/preload.mjs",
+      "sha256": "d2ed6afef2aa0e3e5b72748d102492f53c4caf05ae4c15e81803cbfb8f07ea05"
+    },
+    {
+      "path": ".local/ops-acceptance/continue-o4-copy-binding-20261110-r2/run-checks.mjs",
+      "sha256": "191760ae11390eb8be436ef038525b65d41a6ee1e4af34f6d77d0c14f4e61846"
+    },
+    {
+      "path": ".local/ops-acceptance/continue-o4-copy-binding-20261110-r2/diagnostics-r1-all3.json",
+      "sha256": "deba57488698521bfa833e3d9b1e1e49ea505755938bd0a9a7404f41faf2cce5"
+    },
+    {
+      "path": ".local/ops-acceptance/continue-o4-copy-binding-20261110-r2/diagnostics-after-attempt1.json",
+      "sha256": "9e352d7e9290ecb02f56bdd6ce8ababe513f892e555101393f7f68970cd6b0d8"
+    },
+    {
+      "path": ".local/ops-acceptance/continue-o4-copy-binding-20261110-r2/diagnostics-original-all3.json",
+      "sha256": "4464d334ab91f08d9e3ce422f6388ccdb601f01d386b354154e19b7844082933"
+    },
+    {
+      "path": ".local/ops-acceptance/continue-o4-copy-binding-20261110-r2/diagnostics-final-all3.json",
+      "sha256": "f8d92f525df5a091875efc030ae74f64ab67aeb65fae6534cb45b026395704de"
+    },
+    {
+      "path": ".local/ops-acceptance/continue-o4-copy-binding-20261110-r2/diagnostic-comparison.json",
+      "sha256": "1d70ae8991cc82f2b88e9dfffc072ca48e062d7c11b897b4717a4d7566625ccc"
+    },
+    {
+      "path": ".local/ops-acceptance/continue-o4-copy-binding-20261110-r2/syntax-ast.json",
+      "sha256": "820654cbc2d7590ab7bd220149c5be332d02f2b5b5e39ab7963fef01b5d8940c"
+    },
+    {
+      "path": ".local/ops-acceptance/continue-o4-copy-binding-20261110-r2/final-run-before.json",
+      "sha256": "e53d998d4e7f9cc33ff130a36472ee51d8d1c8d5edf6c6f16a2adb35e0e7ad4e"
+    },
+    {
+      "path": ".local/ops-acceptance/continue-o4-copy-binding-20261110-r2/final-run-after.json",
+      "sha256": "e53d998d4e7f9cc33ff130a36472ee51d8d1c8d5edf6c6f16a2adb35e0e7ad4e"
+    },
+    {
+      "path": ".local/ops-acceptance/continue-o4-copy-binding-20261110-r2/focused-207.tap",
+      "sha256": "36380e45140803e09674db333e96452675f3506032d61cc89b7f7291c7b4dca2"
+    },
+    {
+      "path": ".local/ops-acceptance/continue-o4-copy-binding-20261110-r2/focused-counts.json",
+      "sha256": "bb04ebff742dcf22945c06d00f8e93c5d94b7da86f43df57a086d1d858a3c748"
+    },
+    {
+      "path": ".local/ops-acceptance/continue-o4-copy-binding-20261110-r2/check-run-attempt1.log",
+      "sha256": "e483dd8407e92b56e63db4660ce61e06375e2dc7fb501e90696d5232fe37344a"
+    },
+    {
+      "path": ".local/ops-acceptance/continue-o4-copy-binding-20261110-r2/contract.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".local/ops-acceptance/continue-o4-copy-binding-20261110-r2/contract-powershell.log",
+      "sha256": "55ee542cb301d23a24fd6e9278e56ec687d7f91041b98119fb7c4c69aeabf13d"
+    },
+    {
+      "path": ".local/ops-acceptance/continue-o4-copy-binding-20261110-r2/contract-powershell-exit.json",
+      "sha256": "420d0b86662fc0dc3d1e287aaca3ac7117756ff7ce8b6b72238d3f92e9a4a48b"
+    },
+    {
+      "path": ".local/ops-acceptance/continue-o4-copy-binding-20261110-r2/complete-checks.mjs",
+      "sha256": "f5a19e9575efb228e9103322256eade0606dbcbcf68e02f575991a43a102fafb"
+    },
+    {
+      "path": ".local/ops-acceptance/continue-o4-copy-binding-20261110-r2/complete-checks-v2.mjs",
+      "sha256": "858685a3c6738d6fea9cbdd10c916d3f410b2e7aa6019198112d129282347dcf"
+    },
+    {
+      "path": ".local/ops-acceptance/continue-o4-copy-binding-20261110-r2/check-recovery.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".local/ops-acceptance/continue-o4-copy-binding-20261110-r2/check-recovery-v2.log",
+      "sha256": "5f77c63ca2900cb6417f5380a8d7cd7e70e7f72dc74be4631de149616c5745b7"
+    },
+    {
+      "path": ".local/ops-acceptance/continue-o4-copy-binding-20261110-r2/check-run-attempt1-result.json",
+      "sha256": "fdd3f2f791dd1d7415f018abec48f4c4b489831b0760ba843b591aa668bdcc6e"
+    },
+    {
+      "path": ".local/ops-acceptance/continue-o4-copy-binding-20261110-r2/check-recovery-attempt1-result.json",
+      "sha256": "c2b3388f97d093025531bfc3538323200793d371020aabc40cd54c62996b99e5"
+    },
+    {
+      "path": ".local/ops-acceptance/continue-o4-copy-binding-20261110-r2/check-results.json",
+      "sha256": "6b2546f45ae7bfb2394104f541c0b408058884126c0f5dfea6178378ae9e5deb"
+    },
+    {
+      "path": ".local/ops-acceptance/continue-o4-copy-binding-20261110-r2/preservation.mjs",
+      "sha256": "94e9c9b94d81d3195a0149698f0c19857a5e1d4c15dd2aacd03ed820c5bfd762"
+    },
+    {
+      "path": ".local/ops-acceptance/continue-o4-copy-binding-20261110-r2/preservation-entry-pins.json",
+      "sha256": "b418b24e66afbb991952b68afe8a41cb8dc48308d0179097ac20e97bc659e7e8"
+    },
+    {
+      "path": ".local/ops-acceptance/continue-o4-copy-binding-20261110-r2/preservation-entry.log",
+      "sha256": "0ea6e87f35953ff571df4d955c40a3ebf3060694a58fb24aba1801f43b94419a"
+    },
+    {
+      "path": ".local/ops-acceptance/continue-o4-copy-binding-20261110-r2/preservation-final.json",
+      "sha256": "1a43d296a16e4aee3921cedf2b869a2fe1f3406089247ee70c80e8ab422ac664"
+    },
+    {
+      "path": ".local/ops-acceptance/continue-o4-copy-binding-20261110-r2/preservation-final.log",
+      "sha256": "1a43d296a16e4aee3921cedf2b869a2fe1f3406089247ee70c80e8ab422ac664"
+    },
+    {
+      "path": ".local/ops-acceptance/continue-o4-copy-binding-20261110-r2/original/foundation-candidate.mjs",
+      "sha256": "17687364e7cc0420164707a9d92b33971f83d755efe57d61ace7e166a7105033"
+    },
+    {
+      "path": ".local/ops-acceptance/continue-o4-copy-binding-20261110-r2/original/rebuild-from-candidate.mjs",
+      "sha256": "d92eb077c1b67cb3a0b291be24958db0533ecfac8c3c586930f0d9ce2468f104"
+    },
+    {
+      "path": ".local/ops-acceptance/continue-o4-copy-binding-20261110-r2/final/foundation-candidate.mjs",
+      "sha256": "77903fb900fcc676bea4b8246533db5fef8225ecef3a8fb8fdb75a21ed9bc552"
+    },
+    {
+      "path": ".local/ops-acceptance/continue-o4-copy-binding-20261110-r2/final/rebuild-from-candidate.mjs",
+      "sha256": "0d310bdcaffd8f961835737faf8aa6d1db1242bbdfa6ae10147e5e7871ed85c8"
+    },
+    {
+      "path": ".local/ops-acceptance/continue-o4-copy-binding-20261110-r2/final/candidate-copy-binding.test.mjs",
+      "sha256": "8e462b763f7588d2062230d7f3828e4e46f91b338c4b0c927f8c71c3a377f382"
+    },
+    {
+      "path": ".local/ops-acceptance/continue-o4-copy-binding-20261110-r2/seal.mjs",
+      "sha256": "b841ca1e6f7140b101d4ac71ce1ed215571ba1a987bfddf6b6fabfecfa27c1f4"
+    },
+    {
+      "path": ".local/ops-acceptance/continue-o4-copy-binding-20261110-r2/seal-draft-attempt1/continue-o4-copy-binding-20261110-r2-request.json",
+      "sha256": "ad82b77608fa0af1893d5c8e4b5d0d3a5730cff969861d631a4f0d3386782c20"
+    },
+    {
+      "path": ".local/ops-acceptance/continue-o4-copy-binding-20261110-r2/seal-draft-attempt1/continue-o4-copy-binding-20261110-r2-evidence.json",
+      "sha256": "46736940e9acaf68106cdc721a0278bcfbaca9587063f98f716db50d5674345f"
+    },
+    {
+      "path": ".local/ops-acceptance/continue-o4-copy-binding-20261110-r2/seal-draft-attempt1/continue-o4-copy-binding-20261110-r2-handoff.md",
+      "sha256": "cc5737fc4ef2d2d63e0d1155ee8b0f4b92799de4a56fa9f4c46dbf8aff3374e1"
+    },
+    {
+      "path": ".local/ops-acceptance/continue-o4-copy-binding-20261110-r2/seal-draft-attempt1/continue-o4-copy-binding-20261110-r2-sha256.json",
+      "sha256": "399cff8b28f68341c07360522c6cb207cc844e2c0741de243eb6891d164cd851"
+    },
+    {
+      "path": ".local/ops-acceptance/continue-o4-copy-binding-20261110-r2/correct-draft-command.mjs",
+      "sha256": "b5dfdd9a27f69c5095e959f78bd439da9d1a70fd8e390cbbe8a2ab0b951aedb8"
+    }
+  ],
+  "environment": {
+    "node": "v24.14.0",
+    "GIT_CONFIG_COUNT": "1",
+    "GIT_CONFIG_KEY_0": "core.longpaths",
+    "GIT_CONFIG_VALUE_0": "true",
+    "COPY_BINDING_TMP_ROOT": ".local/ops-acceptance/continue-o4-copy-binding-20261110-r2/tmp",
+    "TEMP": ".local/ops-acceptance/continue-o4-copy-binding-20261110-r2/tmp",
+    "TMP": ".local/ops-acceptance/continue-o4-copy-binding-20261110-r2/tmp",
+    "GOCACHE": ".local/ops-acceptance/continue-o4-copy-binding-20261110-r2/gocache",
+    "GOPATH": ".local/ops-acceptance/continue-o4-copy-binding-20261110-r2/gopath",
+    "GOMODCACHE": ".local/ops-acceptance/continue-o4-copy-binding-20261110-r2/gomodcache",
+    "GOPROXY": "off",
+    "GOSUMDB": "off"
+  },
+  "selfApproval": false,
+  "realCompleteAssembly": false,
+  "runtimeEvidence": false,
+  "officialConsumption": false,
+  "P0Closed": false,
+  "sixP0ParentsRemainOpen": true,
+  "remaining": [
+    "Root independent final CODE/ARCH review of this exact r2 request",
+    "Root actual complete assembly in a metadata-quiescent interval after actual review",
+    "O4 C-F requires an actual successful sourceStable consumer receipt and .local/ops-acceptance/continue-o4-reviewed-attempt-result.json",
+    "C-F and all six P0 parents remain open; identity/IAM/audit/network/CMDB-key-only, official consumption/full Ops/final visual-functional and broader tenancy/history/views gates remain open"
+  ],
+  "stopCondition": "Scoped test typing fix, authenticated original-byte proof and fresh r2 verification/seal complete. Root owns independent review and actual assembly; C-F and six P0 parents remain open.",
+  "draftSealCorrection": {
+    "reason": "Request tests[0] mislabeled the Python proof executable as node; originalProof and actual command log were already correct.",
+    "initialDraftPreserved": [
+      {
+        "originalPath": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/continue-o4-copy-binding-20261110-r2-request.json",
+        "retainedPath": ".local/ops-acceptance/continue-o4-copy-binding-20261110-r2/seal-draft-attempt1/continue-o4-copy-binding-20261110-r2-request.json",
+        "sha256": "ad82b77608fa0af1893d5c8e4b5d0d3a5730cff969861d631a4f0d3386782c20"
+      },
+      {
+        "originalPath": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/continue-o4-copy-binding-20261110-r2-evidence.json",
+        "retainedPath": ".local/ops-acceptance/continue-o4-copy-binding-20261110-r2/seal-draft-attempt1/continue-o4-copy-binding-20261110-r2-evidence.json",
+        "sha256": "46736940e9acaf68106cdc721a0278bcfbaca9587063f98f716db50d5674345f"
+      },
+      {
+        "originalPath": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/continue-o4-copy-binding-20261110-r2-handoff.md",
+        "retainedPath": ".local/ops-acceptance/continue-o4-copy-binding-20261110-r2/seal-draft-attempt1/continue-o4-copy-binding-20261110-r2-handoff.md",
+        "sha256": "cc5737fc4ef2d2d63e0d1155ee8b0f4b92799de4a56fa9f4c46dbf8aff3374e1"
+      },
+      {
+        "originalPath": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/continue-o4-copy-binding-20261110-r2-sha256.json",
+        "retainedPath": ".local/ops-acceptance/continue-o4-copy-binding-20261110-r2/seal-draft-attempt1/continue-o4-copy-binding-20261110-r2-sha256.json",
+        "sha256": "399cff8b28f68341c07360522c6cb207cc844e2c0741de243eb6891d164cd851"
+      }
+    ],
+    "correctedCommand": "python .local/ops-acceptance/continue-o4-copy-binding-20261110-r2/byte-proof.py",
+    "r1Untouched": true,
+    "correctionScript": {
+      "path": ".local/ops-acceptance/continue-o4-copy-binding-20261110-r2/correct-draft-command.mjs",
+      "sha256": "b5dfdd9a27f69c5095e959f78bd439da9d1a70fd8e390cbbe8a2ab0b951aedb8"
+    }
+  }
+}

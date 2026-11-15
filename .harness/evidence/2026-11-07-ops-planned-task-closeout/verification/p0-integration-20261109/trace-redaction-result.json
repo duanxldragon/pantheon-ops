@@ -1,0 +1,8 @@
+{
+  "rawBackupGitIgnored": true,
+  "rawBackupDirectory": ".local/ops-acceptance/raw-evidence-traces",
+  "sanitizedArchiveCount": 0,
+  "preserved": "resource references, request method/path/status/timing, screenshots; credential/session values redacted",
+  "elapsedSeconds": 6.141,
+  "archives": []
+}

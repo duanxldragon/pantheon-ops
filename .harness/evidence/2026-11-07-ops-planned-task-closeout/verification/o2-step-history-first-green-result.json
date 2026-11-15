@@ -1,0 +1,20 @@
+{
+  "command": [
+    "go",
+    "test",
+    "-mod=readonly",
+    "-race",
+    "-count=1",
+    "-timeout",
+    "2m",
+    "./modules/business/deploy",
+    "-run",
+    "^TestStepHistoryKeepsPriorAttemptCheckpoint$"
+  ],
+  "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\backend",
+  "exitCode": 0,
+  "elapsedSeconds": 8.75,
+  "artifact": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/o2-step-history-first-green.txt",
+  "CGO_ENABLED": "1",
+  "mysqlRequired": true
+}

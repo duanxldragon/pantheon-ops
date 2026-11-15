@@ -1,0 +1,308 @@
+{
+  "taskId": "2026-11-07-ops-planned-task-closeout",
+  "parent": "docs/harness/tasks/2026-11-07-ops-planned-task-closeout.task.md",
+  "tier": "L2",
+  "role": "Generator/executor",
+  "historicalRequestSHA256": "9b6a0bec4daea400f8c99144934bbfcd87f0659db65e0993e8c91df085dd7786",
+  "linkage": {
+    "task": "docs/harness/tasks/2026-11-07-ops-planned-task-closeout.task.md",
+    "evidence": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/continue-o4-copy-binding-20261110-r1-evidence.json",
+    "reviewRequest": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/continue-o4-copy-binding-20261110-r1-request.json",
+    "requestSHA256": "6dc636da5804c8c1783f702bfe9e4618b9398b7a965461f5c7d6471ff72dc90e",
+    "handoff": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/continue-o4-copy-binding-20261110-r1-handoff.md"
+  },
+  "boundary": "Ops consumer tooling only; this repair edits no platform/system/business product sources; no physical separation or Base override",
+  "minimalComplexity": "Reuse frozenInputReader, exact existing archive bounds and verifySources; no post-transform accounting",
+  "sourceHashes": [
+    {
+      "path": "scripts/business-overlay/foundation-candidate.mjs",
+      "before": "17687364e7cc0420164707a9d92b33971f83d755efe57d61ace7e166a7105033",
+      "after": "77903fb900fcc676bea4b8246533db5fef8225ecef3a8fb8fdb75a21ed9bc552"
+    },
+    {
+      "path": "scripts/business-overlay/rebuild-from-candidate.mjs",
+      "before": "d92eb077c1b67cb3a0b291be24958db0533ecfac8c3c586930f0d9ce2468f104",
+      "after": "0d310bdcaffd8f961835737faf8aa6d1db1242bbdfa6ae10147e5e7871ed85c8"
+    },
+    {
+      "path": "scripts/business-overlay/candidate-copy-binding.test.mjs",
+      "before": null,
+      "after": "d220d33cb27d140c4bcf702e6b2688ec2377b7ce0a8fa92cff1e089ec43326ad"
+    }
+  ],
+  "unchangedSourceHashes": {
+    ".gitignore": "053c2f12d5dfb20b171a6f0b17ec9c2694b67fdf2bc67cda13aecf3544cffd78",
+    "scripts/business-overlay/rebuild-from-base.mjs": "94ce67fc97fd358200835dc81df769d9dcbe7865e32b74981dc84ecdb5004e4f",
+    "scripts/business-overlay/foundation-candidate.test.mjs": "c9be950b627e86c92a6e0e42d1ef1886119c4bf050fe62aa3f1b894dd8d76ff2",
+    "scripts/business-overlay/candidate-ownership.test.mjs": "30f4c185051b232d414b4867c7a9b35601d335405d8477b26dcb236be09f6062",
+    "scripts/business-overlay/check-shared-drift.mjs": "a6ee2b769c1d27167c7f426ad913981c28b99f462054342e826dc194a1c4302b",
+    "tests/scripts/business-overlay/check-shared-drift.test.mjs": "b79af64de465f3b1e2efda7e14d595fb2ba24ee46bdb36b04f2e79824338be36"
+  },
+  "finalSourcePinsStableDuringTests": true,
+  "inverseDiffAuthenticatesOriginalPins": true,
+  "inverseDiff": {
+    "command": "python .local/ops-acceptance/continue-o4-copy-binding-20261110-r1/review-diff.py",
+    "path": ".local/ops-acceptance/continue-o4-copy-binding-20261110-r1/source.diff",
+    "sha256": "2e23a58709f22a7e28753cc69f3d873eb376b9a078cb83e604a7f07e558d4e56"
+  },
+  "tests": [
+    {
+      "command": "node --import ./.local/ops-acceptance/continue-o4-copy-binding-20261110-r1/preload.mjs --test --test-reporter=tap --test-name-pattern='returned selected copy bytes' .local/ops-acceptance/continue-o4-copy-binding-20261110-r1/retained-red/confirm-copy.test.mjs",
+      "exitCode": 1,
+      "tests": 2,
+      "pass": 0,
+      "fail": 2,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "log": ".local/ops-acceptance/continue-o4-copy-binding-20261110-r1/red-retained.tap",
+      "logSHA256": "0fe61662b7ceb550ae796fe0c0b50bd9245354e49860dab4ee79defcaca23292"
+    },
+    {
+      "command": "node --import ./.local/ops-acceptance/continue-o4-copy-binding-20261110-r1/preload.mjs --test --test-reporter=tap --test-name-pattern='copy inlet' scripts/business-overlay/candidate-copy-binding.test.mjs",
+      "exitCode": 1,
+      "tests": 3,
+      "pass": 0,
+      "fail": 3,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "log": ".local/ops-acceptance/continue-o4-copy-binding-20261110-r1/red-copy.tap",
+      "logSHA256": "d24651eba461c151c1ca38055c62e14af12cbd063bd48019fa143f17fd09465f"
+    },
+    {
+      "command": "node --import ./.local/ops-acceptance/continue-o4-copy-binding-20261110-r1/preload.mjs --test --test-reporter=tap --test-name-pattern='returned selected copy bytes' .local/ops-acceptance/continue-o4-copy-binding-20261110-r1/retained-final/confirm-copy.test.mjs",
+      "exitCode": 0,
+      "tests": 2,
+      "pass": 2,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "log": ".local/ops-acceptance/continue-o4-copy-binding-20261110-r1/green-retained-final.tap",
+      "logSHA256": "6656745aa994d420c4cf4a447ec2d1906751c784bb93cf5a5dc2e802a8d4f668"
+    },
+    {
+      "command": "node --import ./.local/ops-acceptance/continue-o4-copy-binding-20261110-r1/preload.mjs --test --test-reporter=tap --test-name-pattern='mutation rejects|assembly rejects snapshot|copy inlet|assembler source reads|frozen archive reads|authenticated copy' scripts/business-overlay/foundation-candidate.test.mjs scripts/business-overlay/candidate-copy-binding.test.mjs",
+      "exitCode": 0,
+      "tests": 27,
+      "pass": 27,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "log": ".local/ops-acceptance/continue-o4-copy-binding-20261110-r1/green-compatibility.tap",
+      "logSHA256": "b8e0fac133f3dce5868870d5b285309d1619359172aee1843ecc20811ad3d764"
+    },
+    {
+      "command": "node --import ./.local/ops-acceptance/continue-o4-copy-binding-20261110-r1/preload.mjs --test --test-reporter=tap scripts/business-overlay/foundation-candidate.test.mjs scripts/business-overlay/candidate-ownership.test.mjs scripts/business-overlay/candidate-copy-binding.test.mjs tests/scripts/business-overlay/*.test.mjs",
+      "exitCode": 0,
+      "tests": 207,
+      "pass": 207,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "log": ".local/ops-acceptance/continue-o4-copy-binding-20261110-r1/green-final.tap",
+      "logSHA256": "6326854ca0929ceea4883a91200bf28b6f6bbed87d928d912b04bbffca4ee2c4"
+    }
+  ],
+  "initialCompatibilityFailure": {
+    "command": "node --import ./.local/ops-acceptance/continue-o4-copy-binding-20261110-r1/preload.mjs --test --test-reporter=tap scripts/business-overlay/foundation-candidate.test.mjs scripts/business-overlay/candidate-ownership.test.mjs scripts/business-overlay/candidate-copy-binding.test.mjs tests/scripts/business-overlay/*.test.mjs",
+    "exitCode": 1,
+    "tests": 207,
+    "pass": 197,
+    "fail": 10,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0,
+    "log": ".local/ops-acceptance/continue-o4-copy-binding-20261110-r1/green-regressions.tap",
+    "logSHA256": "21e3a372dcec28e1ce58423aa17334737c44a3fd0c25f55cc48f3a2fc8871024"
+  },
+  "compatibilityRepair": "On frozen read failure, invoke existing verifySources to retain real source-change error classification; unchanged captures retain the original byte/hash rejection",
+  "syntax": [
+    {
+      "command": "node --check scripts/business-overlay/foundation-candidate.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node --check scripts/business-overlay/rebuild-from-candidate.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node --check scripts/business-overlay/candidate-copy-binding.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node --check scripts/business-overlay/rebuild-from-base.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node --check scripts/business-overlay/foundation-candidate.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node --check scripts/business-overlay/candidate-ownership.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node --check scripts/business-overlay/check-shared-drift.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node --check tests/scripts/business-overlay/check-shared-drift.test.mjs",
+      "exitCode": 0
+    }
+  ],
+  "languageDiagnostics": {
+    "tool": "native TypeScript LanguageService",
+    "version": "6.0.3",
+    "checkJs": true,
+    "skipLibCheck": false,
+    "suppressions": false,
+    "fullTypeSafety": false,
+    "existingDiagnostics": 137,
+    "newDiagnostics": 0,
+    "command": "node .local/ops-acceptance/continue-o4-copy-binding-20261110-r1/diagnostics.mjs scripts/business-overlay/foundation-candidate.mjs scripts/business-overlay/rebuild-from-candidate.mjs",
+    "comparison": {
+      "comparison": [
+        {
+          "file": "scripts/business-overlay/foundation-candidate.mjs",
+          "before": 124,
+          "after": 124,
+          "added": []
+        },
+        {
+          "file": "scripts/business-overlay/rebuild-from-candidate.mjs",
+          "before": 13,
+          "after": 13,
+          "added": []
+        }
+      ],
+      "fullTypeSafety": false,
+      "comparisonKey": "diagnostic code + offending source token, occurrence-counted; generated signature text/line offsets may change"
+    },
+    "before": ".local/ops-acceptance/continue-o4-copy-binding-20261110-r1/diagnostics-before.json",
+    "after": ".local/ops-acceptance/continue-o4-copy-binding-20261110-r1/diagnostics-after-compatibility.json"
+  },
+  "contract": {
+    "command": "npm run check:business-overlay",
+    "exitCode": 0,
+    "declarations": 56,
+    "log": ".local/ops-acceptance/continue-o4-copy-binding-20261110-r1/contract.log",
+    "sha256": "55ee542cb301d23a24fd6e9278e56ec687d7f91041b98119fb7c4c69aeabf13d"
+  },
+  "observations": {
+    "red": [
+      {
+        "label": "selected-product",
+        "fixture": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\continue-o4-copy-binding-20261110-r1\\retained-red\\tmp\\ops-candidate-DXQKY7",
+        "hits": 1,
+        "success": true,
+        "originalHash": "4e4125ef1acb371da2a60fd589c1163108c5a636ee455ef1900ec94908ed36b3",
+        "forgedHash": "d217f32e9ff360c8959109ee8425f5b225878912ae0f5909ccb1f6503c6ce0e6",
+        "sourceHash": "4e4125ef1acb371da2a60fd589c1163108c5a636ee455ef1900ec94908ed36b3",
+        "receiptExists": true,
+        "sourceStable": true,
+        "capturedHash": "4e4125ef1acb371da2a60fd589c1163108c5a636ee455ef1900ec94908ed36b3",
+        "targetHash": "63a0ad5be0bb10acecb490543888979a01611f13a3826a45e9a548b775f73067"
+      },
+      {
+        "label": "selected-metadata",
+        "fixture": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\continue-o4-copy-binding-20261110-r1\\retained-red\\tmp\\ops-candidate-qmF6H7",
+        "hits": 1,
+        "success": true,
+        "originalHash": "73800d2e5a91fa76bd33d3de38d274289bcccc1f4fa8ad626e5aa9c4f56ab8b8",
+        "forgedHash": "091c3ce5b85ebf5f64f8dff145aaa0abb9d4d46e18c12e119ead695cbc57d7ba",
+        "sourceHash": "73800d2e5a91fa76bd33d3de38d274289bcccc1f4fa8ad626e5aa9c4f56ab8b8",
+        "receiptExists": true,
+        "sourceStable": true,
+        "capturedHash": "73800d2e5a91fa76bd33d3de38d274289bcccc1f4fa8ad626e5aa9c4f56ab8b8",
+        "targetHash": "091c3ce5b85ebf5f64f8dff145aaa0abb9d4d46e18c12e119ead695cbc57d7ba"
+      }
+    ],
+    "final": [
+      {
+        "label": "selected-product",
+        "fixture": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\continue-o4-copy-binding-20261110-r1\\retained-final\\tmp\\ops-candidate-btz57y",
+        "hits": 1,
+        "success": false,
+        "error": "Candidate cleanup ownership/identity refused: Unproven directory creation; cleanup deferred without deletion (Node mkdir has no authenticated creation handle); retained stage D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\continue-o4-copy-binding-20261110-r1\\retained-final\\tmp\\ops-candidate-btz57y\\ops\\.tmp\\foundation-candidates\\candidate-5e4757c4069b55bdacd523289dd85f7d9786ce939f06f5ece1610f7bf627fad1; original failure: Frozen source bytes/hash mismatch: backend/modules/business/cmdb/module.go",
+        "cause": "Frozen source bytes/hash mismatch: backend/modules/business/cmdb/module.go",
+        "originalHash": "4e4125ef1acb371da2a60fd589c1163108c5a636ee455ef1900ec94908ed36b3",
+        "forgedHash": "d217f32e9ff360c8959109ee8425f5b225878912ae0f5909ccb1f6503c6ce0e6",
+        "sourceHash": "4e4125ef1acb371da2a60fd589c1163108c5a636ee455ef1900ec94908ed36b3",
+        "receiptExists": false,
+        "targetHash": null
+      },
+      {
+        "label": "selected-metadata",
+        "fixture": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\continue-o4-copy-binding-20261110-r1\\retained-final\\tmp\\ops-candidate-HeNZCt",
+        "hits": 1,
+        "success": false,
+        "error": "Candidate cleanup ownership/identity refused: Unproven directory creation; cleanup deferred without deletion (Node mkdir has no authenticated creation handle); retained stage D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\continue-o4-copy-binding-20261110-r1\\retained-final\\tmp\\ops-candidate-HeNZCt\\ops\\.tmp\\foundation-candidates\\candidate-5e4757c4069b55bdacd523289dd85f7d9786ce939f06f5ece1610f7bf627fad1; original failure: Frozen source bytes/hash mismatch: .harness/report.md",
+        "cause": "Frozen source bytes/hash mismatch: .harness/report.md",
+        "originalHash": "73800d2e5a91fa76bd33d3de38d274289bcccc1f4fa8ad626e5aa9c4f56ab8b8",
+        "forgedHash": "091c3ce5b85ebf5f64f8dff145aaa0abb9d4d46e18c12e119ead695cbc57d7ba",
+        "sourceHash": "73800d2e5a91fa76bd33d3de38d274289bcccc1f4fa8ad626e5aa9c4f56ab8b8",
+        "receiptExists": false,
+        "targetHash": null
+      }
+    ]
+  },
+  "preservation": {
+    "preservedEntries": 30598,
+    "hashedFiles": 19069,
+    "snapshotFiles": 1141,
+    "reportFiles": 4634,
+    "hashesChecked": 24844,
+    "statPinsChecked": 36373,
+    "hashMismatches": [],
+    "statMismatches": [],
+    "enumeration": "exact recorded paths only; no new inventory or source copying",
+    "deviceComparison": "omitted historical device representation; current inode/nlink/size/mode/mtime/ctime compared",
+    "evidencePinsChecked": 1247,
+    "immutableEvidencePinsUnchanged": 1246,
+    "concurrentEvidenceUpdates": [
+      {
+        "path": ".harness\\evidence\\2026-11-07-ops-planned-task-closeout\\verification\\p0-integration-20261109\\progress-continuation-20261110.md",
+        "before": "0436bb095cae2e52e4552d2b8f3de0e8a8767125cecb276f7023315fccd5ef0a",
+        "after": "5b431f30a247d2b3524b6bff29140838bd78139bc61baa4b09ca415a7430428a",
+        "handling": "Concurrent coordination update preserved; never edited by this executor"
+      }
+    ],
+    "immutablePinFile": ".local/ops-acceptance/continue-o4-copy-binding-20261110-r1/before-with-preservation-pins.json",
+    "immutablePinFileSHA256": "8d4e61e72c4c5dec86aa0369d93cc950d0aff7cde54f767c1494b4f4122c82be",
+    "currentStatsRecheckedAtHandoff": 36373,
+    "priorReportsSealsAssetsUntouched": true
+  },
+  "environment": {
+    "node": "v24.14.0",
+    "GIT_CONFIG_COUNT": "1",
+    "GIT_CONFIG_KEY_0": "core.longpaths",
+    "GIT_CONFIG_VALUE_0": "true",
+    "COPY_BINDING_TMP_ROOT": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\continue-o4-copy-binding-20261110-r1\\tmp",
+    "retainedRedTmp": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\continue-o4-copy-binding-20261110-r1\\retained-red\\tmp",
+    "retainedGreenTmp": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\continue-o4-copy-binding-20261110-r1\\retained-final\\tmp",
+    "GOCACHE": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\continue-o4-copy-binding-20261110-r1\\gocache",
+    "GOPATH": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\continue-o4-copy-binding-20261110-r1\\gopath",
+    "GOMODCACHE": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\continue-o4-copy-binding-20261110-r1\\gomodcache",
+    "GOPROXY": "off",
+    "GOSUMDB": "off",
+    "TEMP": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\continue-o4-copy-binding-20261110-r1\\tmp",
+    "TMP": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\continue-o4-copy-binding-20261110-r1\\tmp"
+  },
+  "gateOutcomes": "Frozen copy binding caught altered returned bytes before writes; existing source-stability classification and 198 prior regressions retained",
+  "selfApproval": false,
+  "realCompleteAssembly": false,
+  "runtimeEvidence": false,
+  "officialConsumption": false,
+  "P0Closed": false,
+  "remaining": [
+    "Independent review of this exact request",
+    "Dispatcher actual complete assembly in a metadata-quiescent interval",
+    "O4 C-F starts only from an actual successful sourceStable consumer receipt and .local/ops-acceptance/continue-o4-reviewed-attempt-result.json",
+    "Identity/IAM/audit/network/CMDB-key-only, official consumption, full Ops, final visual/functional and broader tenancy/history/views gates remain open"
+  ],
+  "stopCondition": "Minimum copy-inlet repair verified; exact-request independent review and actual assembly/C-F stay pending"
+}

@@ -1,8 +1,11 @@
-import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
+import DeployTargetSelector from './DeployTargetSelector';
+import DeployTaskPreview from './DeployTaskPreview';
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { TFunction } from 'i18next';
 import { useSearchParams } from 'react-router-dom';
 import {
+  Alert,
   Button,
   Card,
   Descriptions,
@@ -43,6 +46,7 @@ import { getHostList, type HostRow } from '../../cmdb/host/api';
 import { getBizScopeOptions, type BizScopeOptionItem } from '../../bizscope/api';
 import {
   cancelDeployTask,
+  isDeployTaskCommandConflict,
   createDeployTask,
   deleteDeployTask,
   getDeployCredentialList,
@@ -50,7 +54,6 @@ import {
   getDeployPackageList,
   getDeployTaskList,
   getDeployTemplateList,
-  startDeployTask,
   updateDeployTask,
   exportDeployTasks,
   type DeployAction,
@@ -58,6 +61,7 @@ import {
   type DeployPackageRow,
   type DeployTaskPayload,
   type DeployTaskRow,
+  type DeployTargetResolution,
   type DeployTemplateRow,
   type StartDeployTaskPayload,
 } from '../api';
@@ -105,14 +109,23 @@ export default function DeployTaskList() {
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<unknown>(null);
-  const [queryKeyword, setQueryKeyword] = useState('');
-  const [queryStatus, setQueryStatus] = useState('');
+  const routeKeyword = searchParams.get('keyword')?.slice(0, 128) ?? '';
+  const routeStatus = searchParams.get('status')?.slice(0, 32) ?? '';
+  const [queryKeyword, setQueryKeyword] = useState(routeKeyword);
+  const [queryStatus, setQueryStatus] = useState(routeStatus);
+  const scopeFilterValue = Number(searchParams.get('businessScopeId'));
+  const queryBusinessScopeId = Number.isSafeInteger(scopeFilterValue) && scopeFilterValue > 0 ? scopeFilterValue : undefined;
+  const queryCreatedFrom = searchParams.get('createdFrom') || undefined;
+  const queryCreatedTo = searchParams.get('createdTo') || undefined;
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [visible, setVisible] = useState(false);
+  const [targetResolution, setTargetResolution] = useState<DeployTargetResolution | null>(null);
   const [editingTask, setEditingTask] = useState<DeployTaskRow | null>(null);
+  const [commandFeedback, setCommandFeedback] = useState<'conflict' | 'partial' | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [startVisible, setStartVisible] = useState(false);
+  const [previewRequest, setPreviewRequest] = useState<{taskId: number; payload: StartDeployTaskPayload} | null>(null);
   const [startSubmitting, setStartSubmitting] = useState(false);
   const [startingTask, setStartingTask] = useState<DeployTaskRow | null>(null);
   const [credentials, setCredentials] = useState<DeployCredentialRow[]>([]);
@@ -126,8 +139,19 @@ export default function DeployTaskList() {
   const [detailVisible, setDetailVisible] = useState(false);
   const [detailLoading, setDetailLoading] = useState(false);
   const [detailTask, setDetailTask] = useState<DeployTaskRow | null>(null);
-  const [routeEditLoading, setRouteEditLoading] = useState(false);
   const [routeEditHandledId, setRouteEditHandledId] = useState<number | null>(null);
+
+  useEffect(() => {
+    let current = true;
+    queueMicrotask(() => {
+      if (!current) return;
+      setQueryKeyword(routeKeyword);
+      setQueryStatus(routeStatus);
+      setSelectedRowKeys([]);
+      setPage(1);
+    });
+    return () => { current = false; };
+  }, [routeKeyword, routeStatus, queryBusinessScopeId, queryCreatedFrom, queryCreatedTo]);
 
   const canCreate = hasPerm('business:deploy:task:create');
   const canExport = hasPerm('business:deploy:task:export');
@@ -166,6 +190,9 @@ export default function DeployTaskList() {
         pageSize,
         keyword: queryKeyword,
         status: queryStatus,
+        businessScopeId: queryBusinessScopeId,
+        createdFrom: queryCreatedFrom,
+        createdTo: queryCreatedTo,
       });
       setData(result.items);
       setTotal(result.total);
@@ -175,7 +202,7 @@ export default function DeployTaskList() {
     } finally {
       setLoading(false);
     }
-  }, [page, pageSize, queryKeyword, queryStatus, t]);
+  }, [page, pageSize, queryBusinessScopeId, queryCreatedFrom, queryCreatedTo, queryKeyword, queryStatus, t]);
 
   const refreshDataSilently = useCallback(async () => {
     try {
@@ -184,6 +211,9 @@ export default function DeployTaskList() {
         pageSize,
         keyword: queryKeyword,
         status: queryStatus,
+        businessScopeId: queryBusinessScopeId,
+        createdFrom: queryCreatedFrom,
+        createdTo: queryCreatedTo,
       });
       setData(result.items);
       setTotal(result.total);
@@ -191,7 +221,7 @@ export default function DeployTaskList() {
     } catch {
       // Keep the current table state stable during background polling.
     }
-  }, [page, pageSize, queryKeyword, queryStatus]);
+  }, [page, pageSize, queryBusinessScopeId, queryCreatedFrom, queryCreatedTo, queryKeyword, queryStatus]);
 
   const loadOptions = useCallback(async () => {
     const [packageResp, templateResp, scopeResp, groupResp] = await Promise.all([
@@ -326,9 +356,9 @@ export default function DeployTaskList() {
   }, [searchParams, setSearchParams]);
 
   const closeTaskModal = useCallback(() => {
+    setTargetResolution(null);
     setVisible(false);
     setEditingTask(null);
-    setRouteEditHandledId(null);
     setSelectedBusinessScopeId(undefined);
     setSelectedPackage(null);
     setSelectedTemplate(null);
@@ -338,6 +368,7 @@ export default function DeployTaskList() {
   }, [clearTaskEditIntent, form]);
 
   const openCreate = async () => {
+    setTargetResolution(null);
     setEditingTask(null);
     setTargetType('host');
     setTaskAction('install');
@@ -368,7 +399,8 @@ export default function DeployTaskList() {
     setVisible(true);
   };
 
-  const openEdit = useCallback(async (row: DeployTaskRow) => {
+  const openEdit = useCallback(async (row: DeployTaskRow, isCurrent: () => boolean = () => true) => {
+    setTargetResolution(null);
     setEditingTask(row);
     setTargetType(row.targetType || 'host');
     setTaskAction((row.action as TaskFormValues['action']) || 'install');
@@ -376,6 +408,7 @@ export default function DeployTaskList() {
     setSourceKind(nextSourceKind);
     form.resetFields();
     const options = await loadOptions();
+    if (!isCurrent()) return;
     const nextTemplate = row.templateId
       ? options.templates.find((item) => item.id === row.templateId) || null
       : null;
@@ -390,6 +423,7 @@ export default function DeployTaskList() {
     } else {
       setHosts([]);
     }
+    if (!isCurrent()) return;
     form.setFieldsValue({
       name: row.name,
       sourceKind: nextSourceKind,
@@ -406,73 +440,49 @@ export default function DeployTaskList() {
     setVisible(true);
   }, [form, loadOptions, loadScopedHosts]);
 
+  // Hydrating translations or router callback identities must not cancel a
+  // pending editor load for the same task. Only task/permission changes own it.
+  const routeEditCallbacks = useRef({ openEdit, clearTaskEditIntent, t });
   useEffect(() => {
-    const editId = Number(searchParams.get('editId') || 0);
-    if (
-      !editId ||
-      Number.isNaN(editId) ||
-      !canUpdate ||
-      visible ||
-      routeEditLoading ||
-      routeEditHandledId === editId
-    ) {
-      return;
+    routeEditCallbacks.current = { openEdit, clearTaskEditIntent, t };
+  }, [openEdit, clearTaskEditIntent, t]);
+  const routeEditId = Number(searchParams.get('editId') || 0);
+  useEffect(() => {
+    if (!Number.isSafeInteger(routeEditId) || routeEditId <= 0) {
+      // Keep the intent consumed while navigation removes editId. Clearing it
+      // in closeTaskModal can reopen the editor before that navigation commits.
+      const timer = globalThis.setTimeout(() => setRouteEditHandledId(null), 0);
+      return () => globalThis.clearTimeout(timer);
     }
-
+    if (!canUpdate || routeEditHandledId === routeEditId) return;
     let cancelled = false;
     const timer = globalThis.setTimeout(() => {
-      setRouteEditLoading(true);
-      const existingRow = data.find((item) => item.id === editId);
-      const detailPromise = existingRow ? Promise.resolve(existingRow) : getDeployTaskDetail(editId);
-      detailPromise
-        .then(async (row) => {
-          if (cancelled) {
-            return;
-          }
-          await openEdit(row);
-          if (cancelled) {
-            return;
-          }
-          setRouteEditHandledId(editId);
-        })
-        .catch(() => {
-          if (cancelled) {
-            return;
-          }
-          Message.error(t('common.loadFailed'));
-          clearTaskEditIntent();
-        })
-        .finally(() => {
-          if (!cancelled) {
-            setRouteEditLoading(false);
-          }
-        });
+      // Read the detail even when a summary row is cached: selection provenance
+      // and editability must reflect the current persisted task.
+      void getDeployTaskDetail(routeEditId).then(async (row) => {
+        if (cancelled) return;
+        await routeEditCallbacks.current.openEdit(row, () => !cancelled);
+        if (!cancelled) setRouteEditHandledId(routeEditId);
+      }).catch(() => {
+        if (!cancelled) { Message.error(routeEditCallbacks.current.t('common.loadFailed')); routeEditCallbacks.current.clearTaskEditIntent(); }
+      });
     }, 0);
-
-    return () => {
-      cancelled = true;
-      globalThis.clearTimeout(timer);
-    };
-  }, [
-    canUpdate,
-    clearTaskEditIntent,
-    data,
-    openEdit,
-    routeEditHandledId,
-    routeEditLoading,
-    searchParams,
-    t,
-    visible,
-  ]);
+    return () => { cancelled = true; globalThis.clearTimeout(timer); };
+  }, [canUpdate, routeEditHandledId, routeEditId]);
 
   const handleSubmit = async () => {
     const values = await form.validate();
+    if (values.targetType === 'host' && (!targetResolution || targetResolution.selection.businessScopeId !== values.businessScopeId || targetResolution.unavailableCount > 0 || targetResolution.ineligibleCount > 0 || targetResolution.hosts.length === 0)) {
+      Message.warning(t('business.deploy.selection.required')); return;
+    }
     const payload: DeployTaskPayload = {
       name: values.name,
       action: values.action,
       targetType: values.targetType,
       targetIds: values.targetIds,
       executorType: values.executorType,
+      targetSelection: values.targetType === 'host' ? targetResolution?.selection : undefined,
+      scopeVersion: values.targetType === 'host' ? targetResolution?.scopeVersion : undefined,
       businessScopeId: values.targetType === 'host' ? values.businessScopeId : undefined,
       remark: values.remark,
     };
@@ -510,10 +520,8 @@ export default function DeployTaskList() {
     }
   };
 
-  const handleStart = async (row: DeployTaskRow, payload?: StartDeployTaskPayload) => {
-    await startDeployTask(row.id, payload);
-    Message.success(t('business.deploy.task.startSuccess'));
-    await loadData();
+  const handleStart = async (row: DeployTaskRow, payload: StartDeployTaskPayload = {}) => {
+    setPreviewRequest({ taskId: row.id, payload });
   };
 
   const openStart = (row: DeployTaskRow) => {
@@ -545,10 +553,18 @@ export default function DeployTaskList() {
     }
   };
 
-  const handleCancel = async (id: number) => {
-    await cancelDeployTask(id);
-    Message.success(t('business.deploy.task.cancelSuccess'));
-    await loadData();
+  const handleCancel = async (task: DeployTaskRow) => {
+    setSubmitting(true);
+    setCommandFeedback(null);
+    try {
+      await cancelDeployTask(task.id, task.stateVersion);
+      Message.success(t('business.deploy.task.cancelSuccess'));
+    } catch (error) {
+      if (!isDeployTaskCommandConflict(error)) throw error;
+      setCommandFeedback('conflict');
+    } finally {
+      try { await loadData(); } finally { setSubmitting(false); }
+    }
   };
 
   const handleDelete = async (id: number) => {
@@ -568,9 +584,15 @@ export default function DeployTaskList() {
         (item) =>
           selectedRowKeys.includes(item.id) && ['pending', 'running'].includes(item.status),
       );
-      await Promise.all(candidates.map((item) => cancelDeployTask(item.id)));
-      setSelectedRowKeys([]);
-      Message.success(t('business.deploy.task.cancelSuccess'));
+      setCommandFeedback(null);
+      const results = await Promise.allSettled(candidates.map((item) => cancelDeployTask(item.id, item.stateVersion)));
+      const succeeded = candidates.filter((_, index) => results[index].status === 'fulfilled').map((item) => item.id);
+      setSelectedRowKeys((current) => current.filter((key) => !succeeded.includes(Number(key))));
+      if (results.some((result) => result.status === 'rejected')) {
+        setCommandFeedback('partial');
+      } else if (candidates.length > 0) {
+        Message.success(t('business.deploy.task.cancelSuccess'));
+      }
       await loadData();
     } finally {
       setSubmitting(false);
@@ -639,6 +661,9 @@ export default function DeployTaskList() {
             </GovernanceRailToggleButton>
           }
         />
+        {commandFeedback && <Alert type="warning" role="status" content={t(commandFeedback === 'conflict' ? 'business.deploy.task.commandConflict' : 'business.deploy.task.commandPartialFailure')} />}
+        {queryBusinessScopeId && <Alert type="info" content={t('business.dashboard.scopeFilter', { id: queryBusinessScopeId })} />}
+        {(queryCreatedFrom || queryCreatedTo) && <Alert type="info" content={t('business.dashboard.timeFilter', { from: formatDateTime(queryCreatedFrom), to: formatDateTime(queryCreatedTo) })} />}
         <SearchToolbar
           keyword={queryKeyword}
           keywordPlaceholder={t('common.keyword')}
@@ -658,15 +683,22 @@ export default function DeployTaskList() {
               placeholder={t('business.deploy.task.status')}
               allowClear
             >
-              {['draft', 'pending', 'running', 'success', 'failed', 'canceled'].map((item) => (
-                <Select.Option key={item} value={item}>{t(`business.deploy.task.status.${item}`)}</Select.Option>
+              {['draft', 'pending', 'running', 'success', 'failed', 'canceled', 'pause_requested', 'paused', 'cancel_requested'].map((item) => (
+                <Select.Option key={item} value={item}>{t(`business.dashboard.status.${item}`)}</Select.Option>
               ))}
             </Select>
           }
-          hasActiveFilters={Boolean(queryKeyword || queryStatus)}
+          hasActiveFilters={Boolean(queryKeyword || queryStatus || queryBusinessScopeId || queryCreatedFrom || queryCreatedTo)}
           onClearAll={() => {
             setQueryKeyword('');
             setQueryStatus('');
+            const nextParams = new URLSearchParams(searchParams);
+            nextParams.delete('businessScopeId');
+            nextParams.delete('keyword');
+            nextParams.delete('status');
+            nextParams.delete('createdFrom');
+            nextParams.delete('createdTo');
+            setSearchParams(nextParams, { replace: true });
             setSelectedRowKeys([]);
             setPage(1);
           }}
@@ -681,7 +713,7 @@ export default function DeployTaskList() {
             canCreate ? (
               <ListHeaderActions
                 utility={(
-                  <Button icon={<IconDownload />} disabled={!canExport} onClick={() => { void exportDeployTasks({ keyword: queryKeyword, status: queryStatus }); }}>{t('common.export')}</Button>
+                  <Button icon={<IconDownload />} disabled={!canExport} onClick={() => { void exportDeployTasks({ keyword: queryKeyword, status: queryStatus, businessScopeId: queryBusinessScopeId }); }}>{t('common.export')}</Button>
                 )}
                 primary={
                   <Button type="primary" icon={<IconPlus />} onClick={() => openCreate()}>
@@ -788,14 +820,16 @@ export default function DeployTaskList() {
         taskAction={taskAction}
         targetType={targetType}
         setTargetType={setTargetType}
-        setSelectedBusinessScopeId={setSelectedBusinessScopeId}
+        setSelectedBusinessScopeId={(id) => { setTargetResolution(null); setSelectedBusinessScopeId(id); }}
         setHosts={setHosts}
         loadScopedHosts={loadScopedHosts}
         scopeOptions={scopeOptions}
         selectedBusinessScopeId={selectedBusinessScopeId}
         targetOptions={targetOptions}
         executorTypeDisabled={Boolean(selectedRuntimeTemplateEntry)}
+        targetSelector={visible && targetType === 'host' && selectedBusinessScopeId ? <DeployTargetSelector key={`${selectedBusinessScopeId}:${editingTask?.id || 'new'}`} scopeId={selectedBusinessScopeId} initial={editingTask?.targetSelection} initialHostIds={editingTask?.businessScopeId === selectedBusinessScopeId ? editingTask.targetIds : undefined} groups={flattenGroups(groups).map((group) => ({ id: group.id, label: group.name }))} onChange={(result) => { setTargetResolution(result); form.setFieldValue('targetIds', result?.hosts.map((host) => host.id) || []); }} /> : undefined}
       />
+      {previewRequest && <DeployTaskPreview key={`${previewRequest.taskId}:${JSON.stringify(previewRequest.payload)}`} taskId={previewRequest.taskId} payload={previewRequest.payload} onClose={() => setPreviewRequest(null)} onStarted={async () => { setPreviewRequest(null); Message.success(t('business.deploy.task.startSuccess')); await loadData(); }} />}
       <DeployTaskStartModal
         t={t}
         visible={startVisible}
@@ -829,7 +863,7 @@ interface BuildTaskColumnsOptions {
   openDetail: (id: number) => void;
   openEdit: (row: DeployTaskRow) => void;
   openStart: (row: DeployTaskRow) => void;
-  handleCancel: (id: number) => void;
+  handleCancel: (task: DeployTaskRow) => void;
   handleDelete: (id: number) => void;
 }
 
@@ -938,7 +972,7 @@ function buildTaskColumns({
             )
           )}
           {canCancel && ['pending', 'running'].includes(row.status) && (
-            <Popconfirm title={t('business.deploy.task.cancelConfirm')} onOk={() => handleCancel(row.id)}>
+            <Popconfirm title={t('business.deploy.task.cancelConfirm')} onOk={() => handleCancel(row)}>
               <Button type="text" size="small" status="danger" icon={<IconClose />}>{t('business.deploy.task.cancel')}</Button>
             </Popconfirm>
           )}
@@ -1166,6 +1200,7 @@ interface DeployTaskFormModalProps {
   selectedBusinessScopeId: number | undefined;
   targetOptions: Array<{ id: number; label: string }>;
   executorTypeDisabled: boolean;
+  targetSelector?: ReactNode;
 }
 
 function DeployTaskFormModal({
@@ -1198,6 +1233,7 @@ function DeployTaskFormModal({
   selectedBusinessScopeId,
   targetOptions,
   executorTypeDisabled,
+  targetSelector,
 }: Readonly<DeployTaskFormModalProps>) {
   return (
     <AppModal
@@ -1362,6 +1398,7 @@ function DeployTaskFormModal({
             </Select>
           </Form.Item>
         ) : null}
+        {targetSelector || (
         <Form.Item field="targetIds" label={t('business.deploy.task.targets')} rules={[{ required: true }]}>
           <Select
             mode="multiple"
@@ -1379,6 +1416,7 @@ function DeployTaskFormModal({
             ))}
           </Select>
         </Form.Item>
+        )}
         <Form.Item field="executorType" label={t('business.deploy.task.executorType')} initialValue="manual">
           <Select disabled={executorTypeDisabled}>
             <Select.Option value="manual">{t('business.deploy.task.executorType.manual')}</Select.Option>

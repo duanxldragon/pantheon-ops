@@ -1,0 +1,20 @@
+--- pre-repair/scripts/business-overlay/foundation-candidate.test.mjs
++++ post-repair/scripts/business-overlay/foundation-candidate.test.mjs
+@@ -498,7 +498,16 @@
+         write(f.ops, ".harness/report.md", "legitimate untracked evidence\n");
+       }
+     };
+-    assert.throws(() => interceptCopy(mutate, f.rebuild), /Declared Ops source\/manifest\/lock changed during candidate assembly/);
++    const stabilityRejection = /Declared Ops source\/manifest\/lock changed during candidate assembly/;
++    assert.throws(() => interceptCopy(mutate, f.rebuild), mode === "remove" ? (error) => {
++      const cause = error instanceof consumer.CandidateCleanupError ? error.cause : error;
++      if (cause?.code === "ENOENT") {
++        assert.equal(cause.path, path.join(f.ops, ".harness/report.md"));
++      } else {
++        assert.match(error.message, stabilityRejection);
++      }
++      return true;
++    } : stabilityRejection);
+     assert.equal(fs.existsSync(path.join(f.cacheRoot, "assembled/.foundation-candidate-receipt.json")), false);
+   });
+ }

@@ -1,0 +1,15 @@
+
+2026/11/07 17:45:32 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/observability/datasource_service.go:212 [35;1mError 1213 (40001): Deadlock found when trying to get lock; try restarting transaction
+[0m[33m[4.575ms] [34;1m[rows:0][0m SELECT * FROM `obs_prometheus_datasource` WHERE `obs_prometheus_datasource`.`id` = 2 AND `obs_prometheus_datasource`.`deleted_at` IS NULL ORDER BY `obs_prometheus_datasource`.`id` LIMIT 1
+
+2026/11/07 17:45:33 [31;1mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/observability/datasource_service.go:367 [35;1mrecord not found
+[0m[33m[4.226ms] [34;1m[rows:0][0m SELECT * FROM `obs_prometheus_datasource` WHERE `obs_prometheus_datasource`.`id` = 2 AND dept_id = 7 AND `obs_prometheus_datasource`.`deleted_at` IS NULL ORDER BY `obs_prometheus_datasource`.`id` LIMIT 1
+
+2026/11/07 17:45:34 [32mD:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/business/observability/notification_service.go:47 [33mSLOW SQL >= 200ms
+[0m[31;1m[317.721ms] [33m[rows:0][35m CREATE TABLE `obs_notification_log` (`id` bigint unsigned AUTO_INCREMENT,`dept_id` bigint unsigned,`channel_id` bigint unsigned NOT NULL,`event_id` bigint unsigned NOT NULL,`rule_id` bigint unsigned NOT NULL,`rule_name` varchar(128),`severity` varchar(32),`status` varchar(32) NOT NULL,`error` text,`sent_at` datetime(3) NOT NULL,`created_at` datetime(3) NULL,`deleted_at` datetime(3) NULL,PRIMARY KEY (`id`),INDEX `idx_obs_notification_log_dept_id` (`dept_id`),INDEX `idx_obs_notification_log_channel_id` (`channel_id`),INDEX `idx_obs_notification_log_event_id` (`event_id`),INDEX `idx_obs_notification_log_rule_id` (`rule_id`),INDEX `idx_obs_notification_log_sent_at` (`sent_at`),INDEX `idx_obs_notification_log_deleted_at` (`deleted_at`))[0m
+--- FAIL: TestSeedMenusAndI18nIsIdempotent (0.99s)
+    seed_test.go:93: expected 24 rows in system_i18n, got 42
+FAIL
+FAIL	github.com/duanxldragon/pantheon-base/backend/modules/business/observability	3.430s
+ok  	github.com/duanxldragon/pantheon-base/backend/modules/business/cmdb/host	(cached)
+FAIL

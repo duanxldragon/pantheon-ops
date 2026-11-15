@@ -1,0 +1,58 @@
+{
+  "commands": [
+    {
+      "command": [
+        "go",
+        "vet",
+        "-mod=readonly",
+        "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\o2-live-driver.go"
+      ],
+      "CGO_ENABLED": "1",
+      "GOOS": "windows",
+      "exitCode": 0,
+      "seconds": 1.078,
+      "log": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.harness\\evidence\\2026-11-07-ops-planned-task-closeout\\verification\\p0-integration-20261109\\o2-live-build-0.txt"
+    },
+    {
+      "command": [
+        "go",
+        "build",
+        "-mod=readonly",
+        "-race",
+        "-o",
+        "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\o2-live-driver.exe",
+        "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\o2-live-driver.go"
+      ],
+      "CGO_ENABLED": "1",
+      "GOOS": "windows",
+      "exitCode": 0,
+      "seconds": 4.531,
+      "log": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.harness\\evidence\\2026-11-07-ops-planned-task-closeout\\verification\\p0-integration-20261109\\o2-live-build-1.txt"
+    },
+    {
+      "command": [
+        "go",
+        "build",
+        "-mod=readonly",
+        "-o",
+        "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\o2-live-driver-linux",
+        "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance\\o2-live-driver.go"
+      ],
+      "CGO_ENABLED": "0",
+      "GOOS": "linux",
+      "exitCode": 0,
+      "seconds": 2.766,
+      "log": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.harness\\evidence\\2026-11-07-ops-planned-task-closeout\\verification\\p0-integration-20261109\\o2-live-build-2.txt"
+    }
+  ],
+  "sourceCount": 721,
+  "sourceStable": true,
+  "changedFiles": [],
+  "artifacts": {
+    "o2-live-driver.go": "ef6184eb3beb64eef827658422d3e8d85d5ffc7989f89bb4a3ef61249d55600b",
+    "o2-live-runner.py": "45611b37ca83fde11a072bcd5897919d6819504965b3f74de65c08f86f18dd36",
+    "o2-live-driver.exe": "a77f4a3e1dc34df75ae87dd0b90ce1a08d9993b52e19212af01c9a7860f1081b",
+    "o2-live-driver-linux": "b215ddd230486a48f41cb087294d1fe69f0f9b26f7c2cd569cf635c5566e6028"
+  },
+  "exitCode": 0
+}

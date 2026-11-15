@@ -1,0 +1,106 @@
+{
+  "recordedUTC": "2026-11-11T06:26:51.565294+00:00",
+  "parentTask": "2026-11-07-ops-planned-task-closeout",
+  "predecessorCheckpoint": ".harness/evidence/2026-11-07-ops-planned-task-closeout/verification/continuation-20261111-reviewed-successor/checkpoint.md",
+  "artifacts": {
+    "velero-v10-failed": {
+      "path": "pantheon-ops/.harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/continue-velero-alias-v10-root-diagnostic-20261111T055141038554.json",
+      "sha256": "41fbd6671b2e270df03c53b4bc8407364e525c15a4bccd24433b883a1f52d693"
+    },
+    "velero-v10-inspected": {
+      "path": "pantheon-ops/.harness/evidence/2026-11-07-ops-planned-task-closeout/verification/p0-integration-20261109/continue-velero-alias-v10-root-inspect-failed-20261111T055237030721.json",
+      "sha256": "4d4360d564e839c56dc00af0a9000592e0d3b13e370ef6e585d35200e338bd3f"
+    },
+    "velero-v11-readonly": {
+      "path": "pantheon-ops/.local/ops-acceptance/post-config-velero-v11/observed-20261111T061556768652.json",
+      "sha256": "f8cf1bff4b2fa4eaba380fd799e387e47475f8b8414607bb633a204dec571b17"
+    },
+    "cmdb-scoped-gates": {
+      "path": "pantheon-ops/.local/ops-acceptance/cmdb-key-only-20261111/registration-b0acfb9d4ddd/result.json",
+      "sha256": "ad2d12f1a786cf297a879052c3b66dac9044bb195d7a73a9fd1da1cd6053ae45"
+    },
+    "cmdb-code-review": {
+      "path": "pantheon-ops/.local/post-config-reviews/cmdb-key-only-code-20261111/review.md",
+      "sha256": "b050eaccb00d309eeb6eaaed7976947cbddbe854590fef4ada81a64f31155456"
+    },
+    "cmdb-arch-review": {
+      "path": "pantheon-ops/.local/post-config-reviews/cmdb-key-only-arch-20261111/review.md",
+      "sha256": "a49de85c1233502f693c6c3e5cac51b9932c4d13a25588a6f24dfd55593f84f9"
+    },
+    "o4-backend-r2": {
+      "path": "pantheon-ops/.local/ops-acceptance/o4-backend-cf-current/handoff-current-cf-20261111-r2.json",
+      "sha256": "32e03a671d3ed901d3038046b08e44171d2da516656897e486b41946bf337d8e"
+    },
+    "o4-backend-r2-handoff": {
+      "path": "pantheon-ops/.local/ops-acceptance/o4-backend-cf-current/handoff-current-cf-20261111-r2.md",
+      "sha256": "5a3e20f4afb979f338514b1c38ae7859c01c172ccbf644c16d92ec2011f11f20"
+    }
+  },
+  "cmdbSourceHashes": {
+    "backend/modules/business/cmdb/cmdb.go": "50f1d51a7bf14557ee878f2a6bb62f51209dad842c4369736d1535d10db63ee4",
+    "backend/modules/business/cmdb/permission_routes.go": "413e3ae9aa9925b8bbae1774ce6ad22ab816df3f22e041fc9d6c4e11aa9e1b4f",
+    "backend/modules/business/cmdb/permission_routes_test.go": "8df4c96ca9c353822f4ed5dccc137085ef02fcc079b7260c6dcbb1e5522be0ca"
+  },
+  "cmdbSynthesis": "COMMENT",
+  "cmdbNoScopedSourceBlocker": true,
+  "cmdbCurrentRuntimeAccepted": false,
+  "veleroV10ConsumedFailureInspectionComplete": true,
+  "veleroV11ReadOnlyRootObserved": true,
+  "veleroV11IdentityRefusal": {
+    "namespaceCategory": "velero",
+    "nativeIdentityGatePassed": false,
+    "originalNativeErrorKey": "namespace-list-identity-drift",
+    "discoveryResources": 82,
+    "listedResources": 26,
+    "reason": "duplicate-kind-name",
+    "resourceSHA256": "05343a7aff8174c9ac0beca379a1e59c8b1e0b516502e5887e2fcc34539a910c",
+    "rowIndex": 0,
+    "rowsBeforeRefusal": 9,
+    "identitySHA256": "09f4bcbf749ccd2864f712bf1587cd1a1e87221268f065f46f0d6d8f45de45df",
+    "namespacePresent": true,
+    "namespaceIsString": true,
+    "namespaceMatches": true,
+    "uidPresent": true,
+    "uidIsString": true,
+    "uidNonempty": true,
+    "duplicateKindName": true,
+    "priorSameNameCount": 1,
+    "priorSameNameDifferentKindCount": 0,
+    "ownerLabelMatches": false,
+    "deletionTimestampAbsentOrNull": true,
+    "nativeGateStillRefuses": true,
+    "rawObjectRetainedInReceipt": false,
+    "duplicateCorrelation": {
+      "firstResourceSHA256": "5482c9818e6159bc4df8afc87619d87f7ccdb8d9bbc75beb63cc04f66efc93a4",
+      "resourceEqual": false,
+      "UIDEqual": true,
+      "namespaceEqual": true,
+      "APIVersionEqual": false,
+      "metadataExactlyEqual": true,
+      "labelsAndPresenceEqual": true,
+      "ownerReferencesAndPresenceEqual": true,
+      "completeObjectExactlyEqual": false,
+      "completeObjectEqualExceptAPIVersion": false
+    }
+  },
+  "veleroRecoveryAccepted": false,
+  "baseOwnerLifecycle": "implementation and targeted verification active; fresh independent reviews/full backend gates/candidate pending",
+  "previousBaseBackendGatesAreHistoricalAfterLifecycleChanges": true,
+  "o4Frontend": "approved G implementation started; rendered and current public-product evidence pending",
+  "P0ParentsClosed": 0,
+  "P0Approved": false,
+  "officialConsumption": false,
+  "officialLockChanged": false,
+  "replayPermitted": false,
+  "remainingGates": [
+    "Base lifecycle review, fresh full gates and candidate",
+    "O4 owner lifecycle adoption and frontend",
+    "new complete source-stable assembly",
+    "CMDB current public grant/revoke and scope",
+    "Velero guarded recovery",
+    "public identity/tenant/IAM/audit/privacy and provider composition",
+    "current Ops full-source gates",
+    "official paired release/consumption",
+    "final functional/visual acceptance"
+  ]
+}

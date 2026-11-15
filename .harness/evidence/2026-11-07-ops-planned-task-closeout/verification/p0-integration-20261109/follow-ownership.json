@@ -1,0 +1,31 @@
+{
+  "baseCommit": "5553bc0e8ddc006cb7a6b99a46968bf8cf907a49",
+  "stage": ".tmp/p0-follow-final-20261109-stage-v2",
+  "updatedOwnedRecords": 317,
+  "verifiedGenerated": [
+    "backend/pkg/database/migrations/000032_backfill_cmdb_host_state_version.down.sql",
+    "backend/pkg/database/migrations/000032_backfill_cmdb_host_state_version.up.sql",
+    "backend/pkg/database/migrations/000033_core_business_schema.down.sql",
+    "backend/pkg/database/migrations/000033_core_business_schema.up.sql",
+    "backend/pkg/database/migrations/000034_deploy_log_attempt.down.sql",
+    "backend/pkg/database/migrations/000034_deploy_log_attempt.up.sql",
+    "backend/pkg/database/migrations/000035_deploy_step_history.down.sql",
+    "backend/pkg/database/migrations/000035_deploy_step_history.up.sql",
+    "backend/pkg/database/migrations/000036_deploy_log_sequence_scope.down.sql",
+    "backend/pkg/database/migrations/000036_deploy_log_sequence_scope.up.sql",
+    "frontend/src/i18n/resources/business/en-US.ts",
+    "frontend/src/i18n/resources/business/fr-FR.ts",
+    "frontend/src/i18n/resources/business/ja-JP.ts",
+    "frontend/src/i18n/resources/business/ko-KR.ts",
+    "frontend/src/i18n/resources/business/zh-CN.ts"
+  ],
+  "businessLocalesMaterialized": [
+    "frontend/src/i18n/resources/business/en-US.ts",
+    "frontend/src/i18n/resources/business/fr-FR.ts",
+    "frontend/src/i18n/resources/business/ja-JP.ts",
+    "frontend/src/i18n/resources/business/ko-KR.ts",
+    "frontend/src/i18n/resources/business/zh-CN.ts"
+  ],
+  "sharedSourceCopied": false,
+  "lockChanged": false
+}

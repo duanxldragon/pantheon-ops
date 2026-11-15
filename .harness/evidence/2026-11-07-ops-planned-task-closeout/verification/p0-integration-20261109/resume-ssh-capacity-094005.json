@@ -1,0 +1,39 @@
+{
+  "host": "115.190.251.143",
+  "readOnly": true,
+  "remoteMutations": 0,
+  "exitCode": 0,
+  "result": {
+    "memoryMi": {
+      "MemTotal": 3916,
+      "MemAvailable": 1501
+    },
+    "load": [
+      1.36767578125,
+      1.03759765625,
+      0.54931640625
+    ],
+    "sshdOptionsExit": 0,
+    "sshdOptions": [
+      "usepam yes",
+      "logingracetime 120",
+      "maxsessions 10",
+      "authenticationmethods any",
+      "maxstartups 10:30:100",
+      "persourcemaxstartups none"
+    ],
+    "sshSocketsExit": 0,
+    "sshSockets": {
+      "LISTEN": 1,
+      "ESTAB": 8,
+      "FIN-WAIT-1": 1,
+      "FIN-WAIT-2": 1
+    },
+    "sshJournalTimeout": true,
+    "sshdProcessCount": 10
+  },
+  "stdoutBytes": 433,
+  "stderrBytes": 0,
+  "errorTypes": [],
+  "commandNotFound": false
+}

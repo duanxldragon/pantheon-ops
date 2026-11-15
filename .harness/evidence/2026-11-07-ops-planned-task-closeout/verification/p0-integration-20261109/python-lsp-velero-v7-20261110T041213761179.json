@@ -1,0 +1,618 @@
+{
+  "languageServer": "pyright",
+  "version": "1.1.414",
+  "protocol": "LSP stdio JSON-RPC",
+  "settings": {
+    "diagnosticMode": "openFilesOnly",
+    "typeCheckingMode": "basic",
+    "autoSearchPaths": true,
+    "useLibraryCodeForTypes": true,
+    "extraPaths": [
+      "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance"
+    ]
+  },
+  "sourceFiles": [
+    {
+      "path": ".local/ops-acceptance/resume-velero-s3-v7-fixture.py",
+      "sha256": "67ecaa4b12124b7608578fadffd9f70011936c660d8ca93b2fe9ac5c543cd385",
+      "stable": true,
+      "diagnostics": []
+    },
+    {
+      "path": ".local/ops-acceptance/resume-velero-s3-v7-generate.py",
+      "sha256": "cb2d9053a716dc83c0c96c23e8264b88e9e335d4e128b0478d4565ada9038f7d",
+      "stable": true,
+      "diagnostics": []
+    },
+    {
+      "path": ".local/ops-acceptance/resume-velero-s3-v7-native.py",
+      "sha256": "6149b4beb881ccaeebb2ac5f3e24e414df8b5d124230654797970165c5b98103",
+      "stable": true,
+      "diagnostics": []
+    },
+    {
+      "path": ".local/ops-acceptance/resume-velero-s3-v7-remote.py",
+      "sha256": "39f0673ebb4931a7bcca41be981e298c0955c4be5b6178eab2b1ef65e2ee1362",
+      "stable": true,
+      "diagnostics": [
+        {
+          "range": {
+            "start": {
+              "line": 72,
+              "character": 33
+            },
+            "end": {
+              "line": 72,
+              "character": 37
+            }
+          },
+          "message": "Cannot access attribute \"args\" for class \"expr\"\n\u00a0\u00a0Attribute \"args\" is unknown",
+          "severity": 1,
+          "code": "reportAttributeAccessIssue",
+          "source": "Pyright",
+          "codeDescription": {
+            "href": "https://github.com/microsoft/pyright/blob/main/docs/configuration.md#reportAttributeAccessIssue"
+          }
+        },
+        {
+          "range": {
+            "start": {
+              "line": 96,
+              "character": 26
+            },
+            "end": {
+              "line": 96,
+              "character": 34
+            }
+          },
+          "message": "Argument of type \"str | None\" cannot be assigned to parameter \"sub\" of type \"str\" in function \"count\"\n\u00a0\u00a0Type \"str | None\" is not assignable to type \"str\"\n\u00a0\u00a0\u00a0\u00a0\"None\" is not assignable to \"str\"",
+          "severity": 1,
+          "code": "reportArgumentType",
+          "source": "Pyright",
+          "codeDescription": {
+            "href": "https://github.com/microsoft/pyright/blob/main/docs/configuration.md#reportArgumentType"
+          }
+        },
+        {
+          "range": {
+            "start": {
+              "line": 97,
+              "character": 30
+            },
+            "end": {
+              "line": 97,
+              "character": 38
+            }
+          },
+          "message": "Argument of type \"str | None\" cannot be assigned to parameter \"old\" of type \"str\" in function \"replace\"\n\u00a0\u00a0Type \"str | None\" is not assignable to type \"str\"\n\u00a0\u00a0\u00a0\u00a0\"None\" is not assignable to \"str\"",
+          "severity": 1,
+          "code": "reportArgumentType",
+          "source": "Pyright",
+          "codeDescription": {
+            "href": "https://github.com/microsoft/pyright/blob/main/docs/configuration.md#reportArgumentType"
+          }
+        },
+        {
+          "range": {
+            "start": {
+              "line": 192,
+              "character": 45
+            },
+            "end": {
+              "line": 192,
+              "character": 49
+            }
+          },
+          "message": "Cannot access attribute \"body\" for class \"stmt\"\n\u00a0\u00a0Attribute \"body\" is unknown",
+          "severity": 1,
+          "code": "reportAttributeAccessIssue",
+          "source": "Pyright",
+          "codeDescription": {
+            "href": "https://github.com/microsoft/pyright/blob/main/docs/configuration.md#reportAttributeAccessIssue"
+          }
+        },
+        {
+          "range": {
+            "start": {
+              "line": 194,
+              "character": 71
+            },
+            "end": {
+              "line": 194,
+              "character": 75
+            }
+          },
+          "message": "Cannot access attribute \"body\" for class \"stmt\"\n\u00a0\u00a0Attribute \"body\" is unknown",
+          "severity": 1,
+          "code": "reportAttributeAccessIssue",
+          "source": "Pyright",
+          "codeDescription": {
+            "href": "https://github.com/microsoft/pyright/blob/main/docs/configuration.md#reportAttributeAccessIssue"
+          }
+        },
+        {
+          "range": {
+            "start": {
+              "line": 193,
+              "character": 15
+            },
+            "end": {
+              "line": 194,
+              "character": 164
+            }
+          },
+          "message": "No overloads for \"__init__\" match the provided arguments\n\u00a0\u00a0Argument types: (Literal['prepare_original_policy'], arguments, Unknown, list[Unknown])",
+          "severity": 1,
+          "code": "reportCallIssue",
+          "source": "Pyright",
+          "codeDescription": {
+            "href": "https://github.com/microsoft/pyright/blob/main/docs/configuration.md#reportCallIssue"
+          }
+        },
+        {
+          "range": {
+            "start": {
+              "line": 284,
+              "character": 51
+            },
+            "end": {
+              "line": 284,
+              "character": 64
+            }
+          },
+          "message": "Cannot access attribute \"safe_metadata\" for class \"ValueError\"\n\u00a0\u00a0Attribute \"safe_metadata\" is unknown",
+          "severity": 1,
+          "code": "reportAttributeAccessIssue",
+          "source": "Pyright",
+          "codeDescription": {
+            "href": "https://github.com/microsoft/pyright/blob/main/docs/configuration.md#reportAttributeAccessIssue"
+          }
+        },
+        {
+          "range": {
+            "start": {
+              "line": 284,
+              "character": 51
+            },
+            "end": {
+              "line": 284,
+              "character": 64
+            }
+          },
+          "message": "Cannot access attribute \"safe_metadata\" for class \"Exception\"\n\u00a0\u00a0Attribute \"safe_metadata\" is unknown",
+          "severity": 1,
+          "code": "reportAttributeAccessIssue",
+          "source": "Pyright",
+          "codeDescription": {
+            "href": "https://github.com/microsoft/pyright/blob/main/docs/configuration.md#reportAttributeAccessIssue"
+          }
+        }
+      ]
+    },
+    {
+      "path": ".local/ops-acceptance/resume-velero-s3-v7-root.py",
+      "sha256": "31a3bea2e2e8988f60e1021107f22e105ac31fde402accc4e5141eeebdba3c4a",
+      "stable": true,
+      "diagnostics": [
+        {
+          "range": {
+            "start": {
+              "line": 222,
+              "character": 55
+            },
+            "end": {
+              "line": 222,
+              "character": 62
+            }
+          },
+          "message": "\"replace\" is not a known attribute of \"None\"",
+          "severity": 1,
+          "code": "reportOptionalMemberAccess",
+          "source": "Pyright",
+          "codeDescription": {
+            "href": "https://github.com/microsoft/pyright/blob/main/docs/configuration.md#reportOptionalMemberAccess"
+          }
+        },
+        {
+          "range": {
+            "start": {
+              "line": 245,
+              "character": 52
+            },
+            "end": {
+              "line": 245,
+              "character": 57
+            }
+          },
+          "message": "Object of type \"None\" is not subscriptable",
+          "severity": 1,
+          "code": "reportOptionalSubscript",
+          "source": "Pyright",
+          "codeDescription": {
+            "href": "https://github.com/microsoft/pyright/blob/main/docs/configuration.md#reportOptionalSubscript"
+          }
+        },
+        {
+          "range": {
+            "start": {
+              "line": 246,
+              "character": 25
+            },
+            "end": {
+              "line": 246,
+              "character": 30
+            }
+          },
+          "message": "Object of type \"None\" is not subscriptable",
+          "severity": 1,
+          "code": "reportOptionalSubscript",
+          "source": "Pyright",
+          "codeDescription": {
+            "href": "https://github.com/microsoft/pyright/blob/main/docs/configuration.md#reportOptionalSubscript"
+          }
+        },
+        {
+          "range": {
+            "start": {
+              "line": 281,
+              "character": 50
+            },
+            "end": {
+              "line": 281,
+              "character": 55
+            }
+          },
+          "message": "Object of type \"None\" is not subscriptable",
+          "severity": 1,
+          "code": "reportOptionalSubscript",
+          "source": "Pyright",
+          "codeDescription": {
+            "href": "https://github.com/microsoft/pyright/blob/main/docs/configuration.md#reportOptionalSubscript"
+          }
+        }
+      ]
+    },
+    {
+      "path": ".local/ops-acceptance/resume-velero-s3-v7-seals.py",
+      "sha256": "56d889f19ed8635737ce6e45005a917196a264637a29d91b492424cd4f168697",
+      "stable": true,
+      "diagnostics": [
+        {
+          "range": {
+            "start": {
+              "line": 76,
+              "character": 27
+            },
+            "end": {
+              "line": 76,
+              "character": 31
+            }
+          },
+          "message": "Cannot access attribute \"func\" for class \"AST\"\n\u00a0\u00a0Attribute \"func\" is unknown",
+          "severity": 1,
+          "code": "reportAttributeAccessIssue",
+          "source": "Pyright",
+          "codeDescription": {
+            "href": "https://github.com/microsoft/pyright/blob/main/docs/configuration.md#reportAttributeAccessIssue"
+          }
+        },
+        {
+          "range": {
+            "start": {
+              "line": 76,
+              "character": 69
+            },
+            "end": {
+              "line": 76,
+              "character": 73
+            }
+          },
+          "message": "Cannot access attribute \"func\" for class \"AST\"\n\u00a0\u00a0Attribute \"func\" is unknown",
+          "severity": 1,
+          "code": "reportAttributeAccessIssue",
+          "source": "Pyright",
+          "codeDescription": {
+            "href": "https://github.com/microsoft/pyright/blob/main/docs/configuration.md#reportAttributeAccessIssue"
+          }
+        },
+        {
+          "range": {
+            "start": {
+              "line": 77,
+              "character": 17
+            },
+            "end": {
+              "line": 77,
+              "character": 21
+            }
+          },
+          "message": "Cannot assign to attribute \"func\" for class \"AST\"\n\u00a0\u00a0Attribute \"func\" is unknown",
+          "severity": 1,
+          "code": "reportAttributeAccessIssue",
+          "source": "Pyright",
+          "codeDescription": {
+            "href": "https://github.com/microsoft/pyright/blob/main/docs/configuration.md#reportAttributeAccessIssue"
+          }
+        },
+        {
+          "range": {
+            "start": {
+              "line": 78,
+              "character": 29
+            },
+            "end": {
+              "line": 78,
+              "character": 33
+            }
+          },
+          "message": "Cannot access attribute \"func\" for class \"AST\"\n\u00a0\u00a0Attribute \"func\" is unknown",
+          "severity": 1,
+          "code": "reportAttributeAccessIssue",
+          "source": "Pyright",
+          "codeDescription": {
+            "href": "https://github.com/microsoft/pyright/blob/main/docs/configuration.md#reportAttributeAccessIssue"
+          }
+        },
+        {
+          "range": {
+            "start": {
+              "line": 78,
+              "character": 59
+            },
+            "end": {
+              "line": 78,
+              "character": 63
+            }
+          },
+          "message": "Cannot access attribute \"func\" for class \"AST\"\n\u00a0\u00a0Attribute \"func\" is unknown",
+          "severity": 1,
+          "code": "reportAttributeAccessIssue",
+          "source": "Pyright",
+          "codeDescription": {
+            "href": "https://github.com/microsoft/pyright/blob/main/docs/configuration.md#reportAttributeAccessIssue"
+          }
+        },
+        {
+          "range": {
+            "start": {
+              "line": 79,
+              "character": 30
+            },
+            "end": {
+              "line": 79,
+              "character": 34
+            }
+          },
+          "message": "Cannot access attribute \"func\" for class \"AST\"\n\u00a0\u00a0Attribute \"func\" is unknown",
+          "severity": 1,
+          "code": "reportAttributeAccessIssue",
+          "source": "Pyright",
+          "codeDescription": {
+            "href": "https://github.com/microsoft/pyright/blob/main/docs/configuration.md#reportAttributeAccessIssue"
+          }
+        },
+        {
+          "range": {
+            "start": {
+              "line": 79,
+              "character": 60
+            },
+            "end": {
+              "line": 79,
+              "character": 64
+            }
+          },
+          "message": "Cannot access attribute \"func\" for class \"AST\"\n\u00a0\u00a0Attribute \"func\" is unknown",
+          "severity": 1,
+          "code": "reportAttributeAccessIssue",
+          "source": "Pyright",
+          "codeDescription": {
+            "href": "https://github.com/microsoft/pyright/blob/main/docs/configuration.md#reportAttributeAccessIssue"
+          }
+        },
+        {
+          "range": {
+            "start": {
+              "line": 79,
+              "character": 78
+            },
+            "end": {
+              "line": 79,
+              "character": 82
+            }
+          },
+          "message": "Cannot access attribute \"args\" for class \"AST\"\n\u00a0\u00a0Attribute \"args\" is unknown",
+          "severity": 1,
+          "code": "reportAttributeAccessIssue",
+          "source": "Pyright",
+          "codeDescription": {
+            "href": "https://github.com/microsoft/pyright/blob/main/docs/configuration.md#reportAttributeAccessIssue"
+          }
+        },
+        {
+          "range": {
+            "start": {
+              "line": 79,
+              "character": 17
+            },
+            "end": {
+              "line": 79,
+              "character": 21
+            }
+          },
+          "message": "Cannot assign to attribute \"args\" for class \"AST\"\n\u00a0\u00a0Attribute \"args\" is unknown",
+          "severity": 1,
+          "code": "reportAttributeAccessIssue",
+          "source": "Pyright",
+          "codeDescription": {
+            "href": "https://github.com/microsoft/pyright/blob/main/docs/configuration.md#reportAttributeAccessIssue"
+          }
+        },
+        {
+          "range": {
+            "start": {
+              "line": 80,
+              "character": 17
+            },
+            "end": {
+              "line": 80,
+              "character": 21
+            }
+          },
+          "message": "Cannot assign to attribute \"func\" for class \"AST\"\n\u00a0\u00a0Attribute \"func\" is unknown",
+          "severity": 1,
+          "code": "reportAttributeAccessIssue",
+          "source": "Pyright",
+          "codeDescription": {
+            "href": "https://github.com/microsoft/pyright/blob/main/docs/configuration.md#reportAttributeAccessIssue"
+          }
+        },
+        {
+          "range": {
+            "start": {
+              "line": 102,
+              "character": 45
+            },
+            "end": {
+              "line": 102,
+              "character": 49
+            }
+          },
+          "message": "Argument of type \"ModuleSpec | None\" cannot be assigned to parameter \"spec\" of type \"ModuleSpec\" in function \"module_from_spec\"\n\u00a0\u00a0Type \"ModuleSpec | None\" is not assignable to type \"ModuleSpec\"\n\u00a0\u00a0\u00a0\u00a0\"None\" is not assignable to \"ModuleSpec\"",
+          "severity": 1,
+          "code": "reportArgumentType",
+          "source": "Pyright",
+          "codeDescription": {
+            "href": "https://github.com/microsoft/pyright/blob/main/docs/configuration.md#reportArgumentType"
+          }
+        },
+        {
+          "range": {
+            "start": {
+              "line": 103,
+              "character": 9
+            },
+            "end": {
+              "line": 103,
+              "character": 15
+            }
+          },
+          "message": "\"loader\" is not a known attribute of \"None\"",
+          "severity": 1,
+          "code": "reportOptionalMemberAccess",
+          "source": "Pyright",
+          "codeDescription": {
+            "href": "https://github.com/microsoft/pyright/blob/main/docs/configuration.md#reportOptionalMemberAccess"
+          }
+        },
+        {
+          "range": {
+            "start": {
+              "line": 103,
+              "character": 16
+            },
+            "end": {
+              "line": 103,
+              "character": 27
+            }
+          },
+          "message": "\"exec_module\" is not a known attribute of \"None\"",
+          "severity": 1,
+          "code": "reportOptionalMemberAccess",
+          "source": "Pyright",
+          "codeDescription": {
+            "href": "https://github.com/microsoft/pyright/blob/main/docs/configuration.md#reportOptionalMemberAccess"
+          }
+        }
+      ]
+    },
+    {
+      "path": ".local/ops-acceptance/resume-velero-s3-v7-test.py",
+      "sha256": "5e852fe411cfe0b25f8f2a7bba5fe9e045b26d34e4f7403884397372b82d7d6e",
+      "stable": true,
+      "diagnostics": [
+        {
+          "range": {
+            "start": {
+              "line": 10,
+              "character": 57
+            },
+            "end": {
+              "line": 10,
+              "character": 63
+            }
+          },
+          "message": "\"loader\" is not a known attribute of \"None\"",
+          "severity": 1,
+          "code": "reportOptionalMemberAccess",
+          "source": "Pyright",
+          "codeDescription": {
+            "href": "https://github.com/microsoft/pyright/blob/main/docs/configuration.md#reportOptionalMemberAccess"
+          }
+        },
+        {
+          "range": {
+            "start": {
+              "line": 10,
+              "character": 64
+            },
+            "end": {
+              "line": 10,
+              "character": 75
+            }
+          },
+          "message": "\"exec_module\" is not a known attribute of \"None\"",
+          "severity": 1,
+          "code": "reportOptionalMemberAccess",
+          "source": "Pyright",
+          "codeDescription": {
+            "href": "https://github.com/microsoft/pyright/blob/main/docs/configuration.md#reportOptionalMemberAccess"
+          }
+        },
+        {
+          "range": {
+            "start": {
+              "line": 10,
+              "character": 45
+            },
+            "end": {
+              "line": 10,
+              "character": 49
+            }
+          },
+          "message": "Argument of type \"ModuleSpec | None\" cannot be assigned to parameter \"spec\" of type \"ModuleSpec\" in function \"module_from_spec\"\n\u00a0\u00a0Type \"ModuleSpec | None\" is not assignable to type \"ModuleSpec\"\n\u00a0\u00a0\u00a0\u00a0\"None\" is not assignable to \"ModuleSpec\"",
+          "severity": 1,
+          "code": "reportArgumentType",
+          "source": "Pyright",
+          "codeDescription": {
+            "href": "https://github.com/microsoft/pyright/blob/main/docs/configuration.md#reportArgumentType"
+          }
+        },
+        {
+          "range": {
+            "start": {
+              "line": 344,
+              "character": 64
+            },
+            "end": {
+              "line": 344,
+              "character": 66
+            }
+          },
+          "message": "Argument of type \"dict[Any, Any]\" cannot be assigned to parameter \"memoryBeforeMi\" of type \"str\" in function \"update\"",
+          "severity": 1,
+          "code": "reportArgumentType",
+          "source": "Pyright",
+          "codeDescription": {
+            "href": "https://github.com/microsoft/pyright/blob/main/docs/configuration.md#reportArgumentType"
+          }
+        }
+      ]
+    }
+  ],
+  "exitCode": 1,
+  "runtimeExecuted": false,
+  "errorCount": 29,
+  "warningCount": 0,
+  "seconds": 4.312
+}

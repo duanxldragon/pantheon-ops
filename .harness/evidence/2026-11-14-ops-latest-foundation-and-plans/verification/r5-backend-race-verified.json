@@ -1,0 +1,24 @@
+{
+  "name": "r5-backend-race-verified",
+  "command": [
+    "go",
+    "test",
+    "-race",
+    "-p=1",
+    "-buildvcs=false",
+    "-mod=readonly",
+    "-json",
+    "./..."
+  ],
+  "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.tmp\\ops-v0188-final-r5\\backend",
+  "exitCode": 1,
+  "signal": null,
+  "elapsedSeconds": 2159.989,
+  "privateFixtureSHA256": "8796d1a6c2b599e8e5406df8848638287d93827fb4436e6373c271b79cca5f05",
+  "logSHA256": "27e1cd7cef4b9cff421487f6e66d7bcd08bfc2fbfb07274e7699feea3f83c0ce",
+  "logPrivate": true,
+  "credentialValuesPrinted": false,
+  "passEvents": 3168,
+  "skipEvents": 26,
+  "failEvents": 7
+}

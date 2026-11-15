@@ -1,0 +1,54 @@
+{
+  "records": [
+    {
+      "registry": "registry-1.docker.io",
+      "freshRequest": false,
+      "authStatus": 200,
+      "authDate": "Mon, 09 Nov 2026 09:14:13 GMT",
+      "expiredAtLocalClock": false,
+      "secondsUntilExpiry": 299,
+      "pullGrantPresent": false,
+      "errorType": "HTTPError",
+      "httpStatus": 401,
+      "winerror": null
+    },
+    {
+      "registry": "registry-1.docker.io",
+      "freshRequest": true,
+      "authStatus": 200,
+      "authDate": "Mon, 09 Nov 2026 09:14:16 GMT",
+      "expiredAtLocalClock": false,
+      "secondsUntilExpiry": 299,
+      "pullGrantPresent": false,
+      "errorType": "HTTPError",
+      "httpStatus": 401,
+      "winerror": null
+    },
+    {
+      "registry": "quay.io",
+      "freshRequest": false,
+      "authStatus": 200,
+      "authDate": "Mon, 09 Nov 2026 09:14:18 GMT",
+      "expiredAtLocalClock": false,
+      "secondsUntilExpiry": 3600,
+      "pullGrantPresent": false,
+      "errorType": "HTTPError",
+      "httpStatus": 401,
+      "winerror": null
+    },
+    {
+      "registry": "quay.io",
+      "freshRequest": true,
+      "authStatus": 200,
+      "authDate": "Mon, 09 Nov 2026 09:14:20 GMT",
+      "expiredAtLocalClock": false,
+      "secondsUntilExpiry": 3599,
+      "pullGrantPresent": false,
+      "errorType": "HTTPError",
+      "httpStatus": 401,
+      "winerror": null
+    }
+  ],
+  "credentialsPrinted": false,
+  "remoteMutations": 0
+}

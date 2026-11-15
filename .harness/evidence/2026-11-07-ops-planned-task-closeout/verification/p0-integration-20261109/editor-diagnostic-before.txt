@@ -1,0 +1,44 @@
+
+Running 1 test using 1 worker
+
+(node:22716) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x  1 .tmp\ops-acceptance\editor-diagnostic.spec.ts:3:1 › capture production editor render errors (200ms)
+
+
+  1) .tmp\ops-acceptance\editor-diagnostic.spec.ts:3:1 › capture production editor render errors ───
+
+    Error: apiRequestContext.post: connect ECONNREFUSED 127.0.0.1:24485
+    Call log:
+      - → POST http://127.0.0.1:24485/api/v1/auth/login
+        - user-agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/156.0.8078.4 Safari/537.36
+        - accept: */*
+        - accept-encoding: gzip,deflate,br
+        - content-type: application/json
+        - content-length: 66
+
+
+       at ..\..\tests\smoke\helpers\auth.ts:57
+
+      55 | ): Promise<BrowserLoginResult> {
+      56 |   const request = resolveRequestContext(requestLike);
+    > 57 |   const response = await request.post(`${apiBaseUrl}/auth/login`, {
+         |                                  ^
+      58 |     data: credentials,
+      59 |   });
+      60 |   expect(response.ok()).toBeTruthy();
+        at loginByApi (D:\workspace\go\pantheon-platform\pantheon-ops\frontend\tests\smoke\helpers\auth.ts:57:34)
+        at D:\workspace\go\pantheon-platform\pantheon-ops\frontend\.tmp\ops-acceptance\editor-diagnostic.spec.ts:5:20
+
+    Error Context: ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\p0-integration-20261109\editor-diagnostic-before\editor-diagnostic-capture-production-editor-render-errors\error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\p0-integration-20261109\editor-diagnostic-before\editor-diagnostic-capture-production-editor-render-errors\trace.zip
+    Usage:
+
+        npx playwright show-trace ..\.harness\evidence\2026-11-07-ops-planned-task-closeout\verification\p0-integration-20261109\editor-diagnostic-before\editor-diagnostic-capture-production-editor-render-errors\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  1 failed
+    .tmp\ops-acceptance\editor-diagnostic.spec.ts:3:1 › capture production editor render errors ────

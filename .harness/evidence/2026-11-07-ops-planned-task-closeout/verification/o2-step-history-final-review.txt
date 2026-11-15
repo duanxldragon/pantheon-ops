@@ -1,0 +1,27 @@
+Review check (strict): 9 file(s), 8 error(s)
+
+[PASS] .harness/evidence/2026-11-07-ops-planned-task-closeout/review.md
+
+[FAIL] .harness/archive/2026-09/evidence/2026-09-04-readme-v0.11.0-update/review.md
+  error: stale legacy review allowlist entry: the artifact no longer exists
+
+[FAIL] .harness/archive/2026-09/evidence/2026-09-10-tenant-canary-slice/review.md
+  error: stale legacy review allowlist entry: the artifact no longer exists
+
+[FAIL] .harness/archive/2026-09/evidence/2026-09-10-tenant-contract-design/review.md
+  error: stale legacy review allowlist entry: the artifact no longer exists
+
+[FAIL] .harness/archive/2026-09/evidence/2026-09-10-tenant-core-auth-iam/review.md
+  error: stale legacy review allowlist entry: the artifact no longer exists
+
+[FAIL] .harness/archive/2026-09/evidence/2026-09-10-tenant-migration-runbook/review.md
+  error: stale legacy review allowlist entry: the artifact no longer exists
+
+[FAIL] .harness/archive/2026-09/evidence/2026-09-10-tenant-ready-guardrails/review.md
+  error: stale legacy review allowlist entry: the artifact no longer exists
+
+[FAIL] .harness/archive/2026-08/evidence/2026-08-31-base-operational-workbench-design/review.md
+  error: stale legacy review allowlist entry: the artifact no longer exists
+
+[FAIL] .harness/archive/2026-09/evidence/2026-09-24-fix-report-residual-closeout/review.md
+  error: stale legacy review allowlist entry: the artifact no longer exists

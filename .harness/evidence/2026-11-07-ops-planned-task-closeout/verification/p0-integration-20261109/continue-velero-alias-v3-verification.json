@@ -1,0 +1,73 @@
+{
+  "parentTask": "2026-11-07-ops-planned-task-closeout",
+  "phase": "final-local-verification",
+  "request": "continue-velero-alias-v3-request.json",
+  "requestSHA256": "96fef023020ad1f8e880e01f04612acfa0480bd3009c009063fa8756703e3b07",
+  "scriptHashes": {
+    ".local/ops-acceptance/continue-velero-alias-v3-contract.py": "bfac98f9c72ae3cbe3ff4bc3a9d97fe3d3c377f471e1ab851586c945772a4ca6",
+    ".local/ops-acceptance/continue-velero-alias-v3-remote.py": "5e443950e04855771f6a36ad67041439a34902be9eb66dc0a960891e4dcb951b",
+    ".local/ops-acceptance/continue-velero-alias-v3-root.py": "d3604678f345f258157a572add4fa8d8d367f30f27d66082e0e06589a1285897",
+    ".local/ops-acceptance/continue-velero-alias-v3-generate.py": "a1c3738d2ebff357e18f20866f5ca9d84131d1f178332e321ef81ac2588ad88f",
+    ".local/ops-acceptance/continue-velero-alias-v3-test.py": "da68651673b5a7281a152ecd0dce5d6138f1ccd6a9cd5efa70eb513585a8f176"
+  },
+  "sourceHashesBefore": {
+    ".local/ops-acceptance/continue-velero-alias-v3-contract.py": "bfac98f9c72ae3cbe3ff4bc3a9d97fe3d3c377f471e1ab851586c945772a4ca6",
+    ".local/ops-acceptance/continue-velero-alias-v3-remote.py": "5e443950e04855771f6a36ad67041439a34902be9eb66dc0a960891e4dcb951b",
+    ".local/ops-acceptance/continue-velero-alias-v3-root.py": "d3604678f345f258157a572add4fa8d8d367f30f27d66082e0e06589a1285897",
+    ".local/ops-acceptance/continue-velero-alias-v3-generate.py": "a1c3738d2ebff357e18f20866f5ca9d84131d1f178332e321ef81ac2588ad88f",
+    ".local/ops-acceptance/continue-velero-alias-v3-test.py": "da68651673b5a7281a152ecd0dce5d6138f1ccd6a9cd5efa70eb513585a8f176"
+  },
+  "sourceHashesAfter": {
+    ".local/ops-acceptance/continue-velero-alias-v3-contract.py": "bfac98f9c72ae3cbe3ff4bc3a9d97fe3d3c377f471e1ab851586c945772a4ca6",
+    ".local/ops-acceptance/continue-velero-alias-v3-remote.py": "5e443950e04855771f6a36ad67041439a34902be9eb66dc0a960891e4dcb951b",
+    ".local/ops-acceptance/continue-velero-alias-v3-root.py": "d3604678f345f258157a572add4fa8d8d367f30f27d66082e0e06589a1285897",
+    ".local/ops-acceptance/continue-velero-alias-v3-generate.py": "a1c3738d2ebff357e18f20866f5ca9d84131d1f178332e321ef81ac2588ad88f",
+    ".local/ops-acceptance/continue-velero-alias-v3-test.py": "da68651673b5a7281a152ecd0dce5d6138f1ccd6a9cd5efa70eb513585a8f176"
+  },
+  "sourceHashesStable": true,
+  "compiledFiles": 5,
+  "compileMode": "in-memory compile(source_bytes, filename, exec); no bytecode artifacts",
+  "original230Passed": 230,
+  "adaptedV2Passed": 45,
+  "newTestsPassed": 8,
+  "currentV3Passed": 53,
+  "fullUniqueRegressionPassed": 238,
+  "skips": 0,
+  "originalV1Counterexamples": 4,
+  "freshnessRed": {
+    "againstOriginalV2SHA256": "4bc6858b5f1ad5ff531339b8152fcd24b3a9ef53ed367f7f5720fbc158d22292",
+    "assertions": 2,
+    "expectedFailures": 2,
+    "errors": 0,
+    "skips": 0,
+    "evidence": "continue-velero-alias-v3-preseal-final-checks.json"
+  },
+  "lspArtifact": "continue-velero-alias-v3-lsp-final-20261110T071355818470.json",
+  "lspSHA256": "e41921fd3f84d8266d21af692b0eb154b0767e75e8357c396b8cfc0966a4b98c",
+  "lspErrors": 0,
+  "lspWarnings": 0,
+  "lspHashesMatchRequest": true,
+  "lspVersion": "1.1.414",
+  "lspSettings": {
+    "diagnosticMode": "openFilesOnly",
+    "typeCheckingMode": "basic",
+    "autoSearchPaths": true,
+    "useLibraryCodeForTypes": true,
+    "extraPaths": [
+      "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\ops-acceptance"
+    ]
+  },
+  "suppressedDiagnostics": false,
+  "protectedCount": 237,
+  "inheritedProtectedCount": 223,
+  "originalProtectionConsistency": true,
+  "original22NativeBaselineAliasAuthorityPreserved": true,
+  "remoteExecuted": false,
+  "requestGeneratedOnce": true,
+  "independentReviews": "pending",
+  "actualRuntime": "pending",
+  "executionBlock": "independent-final-v3-reviews-required",
+  "P0Approved": false,
+  "sourceSelfApproved": false,
+  "finishedAt": "2026-11-10T07:16:37.475611+00:00"
+}
