@@ -285,3 +285,4 @@ Harness maturity progresses in three stages:
 1. protocol layer: establish `docs/harness/*` and `.agents/*` so the workflow is tool-agnostic
 2. evidence layer: establish task packet, evidence schema, and evidence directory conventions
 3. gate layer: push architecture boundaries, permission, i18n, audit, drift, and document frontmatter governance down into scripts and CI
+

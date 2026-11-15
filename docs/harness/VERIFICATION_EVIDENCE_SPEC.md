@@ -62,8 +62,8 @@ English version: [VERIFICATION_EVIDENCE_SPEC.en.md](./VERIFICATION_EVIDENCE_SPEC
 
 ## Commands
 
-| Command         | CWD                     | Result | Notes |
-| --------------- | ----------------------- | ------ | ----- |
+| Command         | CWD             | Result | Notes |
+| --------------- | --------------- | ------ | ----- |
 | `go test ./...` | `pantheon-base/backend` | passed |       |
 
 ## Graph Checks

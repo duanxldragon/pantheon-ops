@@ -4,7 +4,7 @@ doc_type: Remediation
 layer: platform
 linked_contracts:
   - docs/contracts/PLATFORM_CONTRACT.md
-status: Active
+status: Archived
 updated_at: 2026-11-07
 ---
 
