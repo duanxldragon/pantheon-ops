@@ -96,8 +96,8 @@ func seedArgocdI18n(db *gorm.DB) error {
 		return nil
 	}
 	seeds := []argocdI18nSeed{
-		{Locale: "zh-CN", Group: "menu", Key: argocdMenuTitleKey, Value: "ArgoCD 应用发布"},
-		{Locale: "en-US", Group: "menu", Key: argocdMenuTitleKey, Value: "ArgoCD GitOps"},
+		{Locale: "zh-CN", Group: "menu", Key: argocdMenuTitleKey, Value: "应用发布"},
+		{Locale: "en-US", Group: "menu", Key: argocdMenuTitleKey, Value: "Application Delivery"},
 	}
 	return db.Transaction(func(tx *gorm.DB) error {
 		for _, item := range seeds {
