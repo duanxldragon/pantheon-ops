@@ -1,0 +1,80 @@
+{
+  "taskId": "2026-11-16-ops-business-menu-m3c",
+  "repo": "pantheon-ops",
+  "agent": {
+    "tool": "claude",
+    "adapter": "CLAUDE.md maintainer contract (planner-lead execution per session mandate)"
+  },
+  "commands": [
+    {
+      "command": "go build ./...",
+      "cwd": "pantheon-ops/backend",
+      "status": "passed",
+      "durationMs": 0,
+      "notes": "backend builds clean after bizscope environment + service seed changes"
+    },
+    {
+      "command": "go vet ./modules/business/service/...",
+      "cwd": "pantheon-ops/backend",
+      "status": "passed",
+      "durationMs": 0,
+      "notes": "service module vet clean"
+    },
+    {
+      "command": "go test ./modules/business/bizscope/... ./modules/business/service/... ./modules/system/iam/menu/...",
+      "cwd": "pantheon-ops/backend",
+      "status": "passed",
+      "durationMs": 0,
+      "notes": "bizscope/service/iam-menu tests pass"
+    },
+    {
+      "command": "go test ./modules/...",
+      "cwd": "pantheon-ops/backend",
+      "status": "passed",
+      "durationMs": 0,
+      "notes": "full backend module test suite: 0 FAIL"
+    },
+    {
+      "command": "node scripts/business-overlay/check-business-overlay.mjs",
+      "cwd": "pantheon-ops",
+      "status": "passed",
+      "durationMs": 0,
+      "notes": "OK business overlay contract (53 declared paths, rebuilt tree)"
+    },
+    {
+      "command": "npm run check:gorm-sql-literal",
+      "cwd": "pantheon-ops",
+      "status": "passed",
+      "durationMs": 0,
+      "notes": "GORM SQL text and column names are literals or package constants"
+    },
+    {
+      "command": "npm run check:menu-contract",
+      "cwd": "pantheon-ops/frontend",
+      "status": "passed",
+      "durationMs": 0,
+      "notes": "manifest/menu-seed consistency: 45 menus, 55 routes, 250 perms, 54 component keys"
+    },
+    {
+      "command": "npm run audit:i18n-locales",
+      "cwd": "pantheon-ops/frontend",
+      "status": "passed",
+      "durationMs": 0,
+      "notes": "zh-CN/en-US/ja-JP/ko-KR/fr-FR all missing=0, extra=0, empty=0"
+    },
+    {
+      "command": "npx tsc -b && npx eslint . && npm run build",
+      "cwd": "pantheon-ops/frontend",
+      "status": "passed",
+      "durationMs": 0,
+      "notes": "type-check, eslint (0 errors; 1 pre-existing AlertCenter warning), and full vite build pass"
+    },
+    {
+      "command": "npm run check:generated-modules",
+      "cwd": "pantheon-ops",
+      "status": "passed",
+      "durationMs": 0,
+      "notes": "OK: no generated modules found once artifacts are tracked"
+    }
+  ]
+}
