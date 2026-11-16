@@ -1,0 +1,30 @@
+[
+  {
+    "command": "node scripts/check-business-module-boundaries.mjs",
+    "workdir": "pantheon-ops",
+    "exitCode": 0,
+    "timestamp": "2026-08-17",
+    "output": "business module boundary check passed"
+  },
+  {
+    "command": "go test -count=1 ./modules/business/...",
+    "workdir": "pantheon-ops/backend",
+    "exitCode": 0,
+    "timestamp": "2026-08-17",
+    "output": "all business packages passed"
+  },
+  {
+    "command": "PATH=D:/msys64/mingw64/bin;$PATH CGO_ENABLED=1 go test -race ./modules/business/...",
+    "workdir": "pantheon-ops/backend",
+    "exitCode": 0,
+    "timestamp": "2026-08-17",
+    "output": "all business packages passed with race detector"
+  },
+  {
+    "command": "go vet ./...",
+    "workdir": "pantheon-ops/backend",
+    "exitCode": 0,
+    "timestamp": "2026-08-17",
+    "output": "no findings"
+  }
+]

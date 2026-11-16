@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "taskId": "2026-08-17-ops-foundation-hardening",
+  "scope": "program-closeout",
+  "commands": [
+    {"command": "go test -count=1 ./modules/business/...", "workdir": "pantheon-ops/backend", "exitCode": 0, "purpose": "Run backend business module tests."},
+    {"command": "node scripts/check-business-module-boundaries.mjs", "workdir": "pantheon-ops", "exitCode": 0, "purpose": "Enforce cross-module table access boundaries."},
+    {"command": "npm run check:business-overlay", "workdir": "pantheon-ops", "exitCode": 0, "purpose": "Validate declared business overlay paths and registry."},
+    {"command": "node --test frontend/scripts/cleanup-generated-modules.test.mjs", "workdir": "pantheon-ops", "exitCode": 0, "purpose": "Run generated-module cleanup regression tests."},
+    {"command": "git diff --check", "workdir": "pantheon-ops", "exitCode": 0, "purpose": "Check whitespace errors in the preserved dirty worktree."}
+  ],
+  "notes": [
+    "Full race, vet, frontend build/type-check, smoke-script, and contract evidence is recorded in child quality-gate evidence.",
+    "Credentialed browser smoke, rendered screenshots, and live Kubernetes mutation remain runtime follow-ups.",
+    "No reset, restore, or revert was performed against the pre-existing dirty worktree."
+  ]
+}

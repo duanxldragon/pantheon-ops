@@ -1,0 +1,95 @@
+{
+  "results": [
+    {
+      "file": "docs/harness/tasks/2026-11-16-ops-argocd-ownership-convergence.task.md",
+      "errors": [],
+      "warnings": [
+        "Linked review file does not exist: .harness/evidence/2026-11-16-ops-argocd-ownership-convergence/review.md"
+      ]
+    },
+    {
+      "file": "docs/harness/tasks/2026-11-16-ops-business-menu-m3c.task.md",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "file": "docs/harness/tasks/2026-11-16-ops-business-runtime-acceptance.task.md",
+      "errors": [],
+      "warnings": [
+        "Linked review file does not exist: .harness/evidence/2026-11-16-ops-business-runtime-acceptance/review.md"
+      ]
+    },
+    {
+      "file": "docs/harness/tasks/2026-11-16-ops-extensions-live-acceptance.task.md",
+      "errors": [],
+      "warnings": [
+        "Linked review file does not exist: .harness/evidence/2026-11-16-ops-extensions-live-acceptance/review.md"
+      ]
+    },
+    {
+      "file": "docs/harness/tasks/2026-11-16-ops-filedist-product-closure.task.md",
+      "errors": [],
+      "warnings": [
+        "Linked review file does not exist: .harness/evidence/2026-11-16-ops-filedist-product-closure/review.md"
+      ]
+    },
+    {
+      "file": "docs/harness/tasks/2026-11-16-ops-helm-capability-truth.task.md",
+      "errors": [],
+      "warnings": [
+        "Linked review file does not exist: .harness/evidence/2026-11-16-ops-helm-capability-truth/review.md"
+      ]
+    },
+    {
+      "file": "docs/harness/tasks/2026-11-16-ops-k8s-service-mutations.task.md",
+      "errors": [],
+      "warnings": [
+        "Linked review file does not exist: .harness/evidence/2026-11-16-ops-k8s-service-mutations/review.md"
+      ]
+    },
+    {
+      "file": "docs/harness/tasks/2026-11-16-ops-pilot-delivery.task.md",
+      "errors": [],
+      "warnings": [
+        "Linked review file does not exist: .harness/evidence/2026-11-16-ops-pilot-delivery/review.md"
+      ]
+    },
+    {
+      "file": "docs/harness/tasks/2026-11-16-ops-pilot-release-closeout.task.md",
+      "errors": [],
+      "warnings": [
+        "Linked review file does not exist: .harness/evidence/2026-11-16-ops-pilot-release-closeout/review.md"
+      ]
+    },
+    {
+      "file": "docs/harness/tasks/2026-11-16-ops-readiness-plan-closeout.task.md",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "file": "docs/harness/tasks/2026-11-16-ops-service-catalog-usability.task.md",
+      "errors": [],
+      "warnings": [
+        "Linked review file does not exist: .harness/evidence/2026-11-16-ops-service-catalog-usability/review.md"
+      ]
+    },
+    {
+      "file": "docs/harness/tasks/2026-11-16-ops-service-deploy-integrity.task.md",
+      "errors": [],
+      "warnings": [
+        "Linked review file does not exist: .harness/evidence/2026-11-16-ops-service-deploy-integrity/review.md"
+      ]
+    },
+    {
+      "file": "docs/harness/tasks/2026-11-16-ops-service-deploy-user-flow.task.md",
+      "errors": [],
+      "warnings": [
+        "Linked review file does not exist: .harness/evidence/2026-11-16-ops-service-deploy-user-flow/review.md"
+      ]
+    }
+  ],
+  "errorCount": 0,
+  "warningCount": 11,
+  "legacySkippedCount": 0,
+  "legacyConfig": null
+}

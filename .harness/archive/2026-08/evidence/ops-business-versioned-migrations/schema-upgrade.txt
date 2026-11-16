@@ -1,0 +1,6 @@
+Representative upgrade check on MySQL 8.0.36: a database containing the
+business schema was accepted by the idempotent CREATE TABLE IF NOT EXISTS
+statements without data changes. Duplicate active scope and task/host writes
+were rejected with MySQL error 1062. A full legacy AutoMigrate index-shape
+conversion was not run; existing pre-migration tables with legacy unique index
+names remain a residual upgrade risk and require a follow-up conditional ALTER.

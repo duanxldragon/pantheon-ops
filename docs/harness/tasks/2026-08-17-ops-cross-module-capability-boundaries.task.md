@@ -1,3 +1,14 @@
+---
+title: ops-cross-module-capability-boundaries
+doc_type: Remediation
+layer: business
+status: Superseded
+superseded_by: .harness/tasks/2026-11-16-ops-pilot-delivery/plan.md
+linked_contracts:
+  - docs/PROJECT_INHERITANCE.md
+updated_at: 2026-11-16
+---
+
 # Task: Cross-Module Capability Boundaries
 
 Task ID: `ops-cross-module-capability-boundaries`  
@@ -144,3 +155,9 @@ contract tests, dependency diagram, review, and residual risks. Stop if an API
 would require a base-owned authorization contract, if a package cycle cannot be
 resolved without a shared DTO package, or if a caller needs an unbounded query
 that would turn the provider into a generic database proxy.
+
+## Archive Closeout 2026-11-16
+
+原范围已完成，manifest 与 evidence 成对迁至 .harness/archive/2026-08/；原 canonical 地址由 archive-aware resolver 解析。历史运行/审查证据不改写。后续业务 gap 见 .harness/tasks/2026-11-16-ops-pilot-delivery/plan.md；本次归档不表示当前试点/生产验收完成。
+
+历史文档文件名带 2026-08-17 前缀，机器 taskId 为 ops-cross-module-capability-boundaries；该旧阅读地址标 Superseded，任务状态与原始证据已按真实 taskId 归档。归档 manifest：[ops-cross-module-capability-boundaries](../../../.harness/archive/2026-08/tasks/ops-cross-module-capability-boundaries/manifest.json)。不得为满足按文件名查找的生命周期检查复制或改写证据。

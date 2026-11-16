@@ -1,123 +1,56 @@
 ---
-title: Pantheon-Ops 全局功能设计
+title: Pantheon Ops 全局业务功能设计
 doc_type: Design
 layer: business
 status: Active
 linked_contracts:
   - docs/PROJECT_INHERITANCE.md
-updated_at: 2026-08-28
+updated_at: 2026-11-16
 ---
 
-# Pantheon-Ops 全局功能设计
+# Pantheon Ops 全局业务功能设计
 
-> 状态说明：Active（V1 冻结基线；各模块实现状态以 `../V1_RELEASE_CHECKLIST.md` 为准）
+目标是 CMDB → BizScope → Application/Service/Instance → Deploy → SSH/K8s 的试点闭环。当前执行与退出条件以[试点交付计划](../../.harness/tasks/2026-11-16-ops-pilot-delivery/plan.md)为准。业务审查基线为 691dd455（当时 Base v0.18.7）；本轮计划基线 07d53988 已提交 Base v0.18.9 消费，不能把旧审查结果视为新版验收。
 
-本文是 pantheon-ops 的全局功能视图：能力地图、跨模块流程、状态机、安全模型与 V1 能力追溯。此前本文档在 `docs/README.md` 索引中存在悬空引用，本文为 2026-08-28 评审后补建版本，结论与《pantheon-ops v1.0 冻结前综合评审报告》一致。
+## 能力现状与任务归属
 
-## 1. 能力地图（含 V1 实现状态）
+“已有实现”描述源码与装配；只有同一交付候选的真实业务证据才能证明可交付。
 
-状态图例：✅ 已实现且验证 / ⚠️ 已实现有缺陷 / ❌ 壳级未实现（V1 下架） / 📐 规划中
+| 业务模块      | 已有能力                                                  | 剩余交付条件                                                                                     |
+| ------------- | --------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| CMDB          | 主机、分组、标签、状态与引用机制                          | C01/C05 验证部署引用、导入 fixture、隔离迁移与权限；八月 UpdateStatus 缺陷不是当前重新确认的缺陷 |
+| BizScope      | 域、资源绑定；新增环境目录与菜单                          | C05 验证环境 CRUD、两域权限与菜单用户流程                                                        |
+| Service       | 应用、服务、实例、生命周期与部署回写接口                  | C01 关联/引用一致性；C02 普通 UI 关联及结果回读；C03 编辑、分页与受限角色查询                    |
+| Deploy        | 包、模板、任务、SSH、队列/租约/checkpoint、取消重试与回滚 | C01 强校验 service/instance/目标；C02 页面闭环；C05 真执行、并发与恢复                           |
+| K8s           | 集群、namespace 绑定、工作负载、镜像 Release 等真实 API   | C04 Service Update 与陈旧更新/删除保护；C05 真集群发布回滚与权限                                 |
+| Observability | Prometheus/VM、Loki、Tempo 等 provider 查询与告警实现     | E04 对所选 provider 的查询、通知、失败及隔离验收；自动 exporter/file_sd 不在首期范围             |
+| FileDist      | 真实 SFTP、校验与排队执行，已有出队取消保护               | E01 创建 UI、分页、在途取消、未来触发与重启收敛；E04 真传输验收                                  |
+| ArgoCD/GitOps | 真实 Argo API、手工 Refresh，当前已装配                   | E02 DataScope 行归属、Sync 状态真实性与自动 reconcile；E04 真环境验收                            |
+| Velero/Backup | 真实 CRD/reconciler，当前已装配                           | E04 backup/restore/schedule、PVC、失败和归属验收，不沿用“伪实现/下架”口径                        |
+| Helm 专用模块 | 记录登记；创建默认 deployed 不代表安装 Chart              | E03 纠正能力与状态口径；真实 Chart 执行只有明确范围才新增                                        |
 
-| 域 | 能力 | 模块 | V1 状态 |
-|---|---|---|---|
-| 底座 | 认证会话（opaque token、轮换、注销失效） | system/auth | ✅ |
-| 底座 | 四层权限（菜单/页面/操作/Casbin API） | system/iam | ✅ |
-| 底座 | 操作审计（非 GET 全覆盖、脱敏） | system/audit | ⚠️ 缺 before/after |
-| 底座 | 统一加密（`v1:`/`enc:v1:` AES-256-GCM） | pkg | ✅ |
-| 资源 | 主机台账（生命周期状态机+乐观锁） | business/cmdb | ⚠️ UpdateStatus 绕过 retire（P0） |
-| 资源 | 分组（树形+条件）、标签规范 | business/cmdb | ✅ |
-| 资源 | 业务域（绑定/解绑事务+锁） | business/bizscope | ⚠️ 删除引用检查不全（P0） |
-| 资源 | 应用/服务/实例目录（VM/K8s target） | business/service | ⚠️ 前端仅只读 |
-| 交付 | 部署包/模板/任务三层模型 | business/deploy | ✅ |
-| 交付 | SSH 执行（幂等键/checkpoint 续跑/租约/重试） | business/deploy | ✅ |
-| 交付 | 组件固定模板（nginx/redis/jdk，systemd） | business/deploy | ✅ |
-| 交付 | K8s 集群纳管（kubeconfig 加密+轮换+探测） | business/k8s | ✅ |
-| 交付 | K8s 资源（NS/CM/Secret/Workload 只读+部分操作） | business/k8s | ⚠️ 缺 Update |
-| 交付 | 镜像发布 Release（幂等指纹+回滚） | business/k8s | ✅ |
-| GitOps | ArgoCD 应用纳管/同步/回滚 | business/cicd | ❌ 伪实现，V1 下架，v1.2 重做 |
-| 备份 | Velero 备份/恢复/定时 | business/k8s/backup | ❌ 伪实现，V1 下架，v1.2 重做 |
-| 观测 | 主机/K8s 纳管监控 | observability | 📐 v1.1/v1.2（见专项设计） |
-| 观测 | 平台自监控 | grafana/ + pkg/metrics | ✅（仅自监控） |
-| 商业 | 模块开关/License | system | 📐 v1.1（见专项设计） |
+## 首期流程和边界
 
-## 2. 跨模块流程（V1 主链路）
+1. CMDB 资源与业务域、环境绑定，应用/服务建立可见实例目标。
+2. 部署创建、更新、启动在副作用前验证关联和目标一致性，保留历史快照。
+3. 有权限用户从 UI 选择实例、预览并执行部署，终态回写相同实例，日志与审计可追溯。
+4. K8s 已绑定 namespace 的写操作带冲突保护，发布与回滚按真实外部结果验收。
+5. C05 固定候选执行隔离迁移/真 SSH/K8s/权限/失败恢复与桌面窄屏验收，C06 输出可复现交付包并演练安装升级回滚。
 
-### 2.1 资源管理闭环
+六个核心包属于首期；四个扩展包按实际开放能力激活。当前扩展已装配，若试点不交付，必须在候选菜单、路由/权限、可见能力与说明中实施并验证裁剪，不能只在文档列 Out。开放 ArgoCD 就必须关闭 E02 的 P0。
 
-```
-CMDB 主机（pending→assigned） → 业务域绑定（事务+锁）
-→ 应用/服务/实例登记（capability 校验 target 与业务域一致）
-→ 主机生命周期（retire 前查活跃服务实例引用）
-```
+实时健康平台、自动 exporter/file_sd 纳管、商业 License/ModuleGate、租户生产迁移属于后续范围。Service 的当前 reconcile 是超时收敛，不能以此认定首期必须新增完整健康平台。
 
-### 2.2 部署交付闭环
+## 状态、权限与证据
 
-```
-部署包（fixed/template 模板） → 创建任务（业务域圈定目标主机）
-→ 启动（幂等键防重放 / 主机租约防并发 / Attempt worker 认领）
-→ SSH 执行（组件健康探测：已达标则跳过 = 幂等）
-→ 步骤 checkpoint（失败重试从失败步续跑）
-→ 结果回写（事件流+日志块，错误信息脱敏）
-→ ServiceInstance 状态联动（begin/finish）
-```
+业务状态机以对应模块源码和模块设计为准；关联部署 ID 缺失、错配、失效引用、重复/乱序回调、陈旧写和在途取消均是任务中的验收反例。部署普通表单目前未提交实例关联；关联检查不足的影响是静态高置信结论，具体误回写或越权尚未动态复现。
 
-### 2.3 K8s 交付闭环（V1 无 GitOps 段）
+认证、IAM、组织、通用审计、加密、UI 规范沿用 Base 合同，Ops 不维护副本。业务域负责 capability owner、DataScope、namespace/target 验证及业务菜单/权限/i18n/审计同步。旧设计中的 ArgoCD/Velero 明文凭据结论不能自动套用当前实现。
 
-```
-集群纳管（kubeconfig 加密入库+连通探测）
-→ Namespace 绑定（AllowedActions 白名单）
-→ Release 镜像发布（幂等指纹+rollout 轮询+回滚审计）
-```
+菜单已改为业务域父级与主机绑定/环境子级、服务目录与应用/服务/实例子级；近期 menu-m3c 任务保留 in-progress，当前 rendered/E2E gap 由 C05 承接。普通编译/单测与现有 CI Smoke Sanity 不替代这些业务验收。
 
-### 2.4 规划闭环（v1.1+）
+## 追溯
 
-```
-主机监控：CMDB → node_exporter 下发（deploy 引擎） → file_sd → Prometheus
-GitOps：Release/镜像 → ArgoCD Application → 集群状态回传
-备份：业务域 → 集群 → namespace → Velero CRD → 状态 reconcile
-```
-
-## 3. 状态机汇总
-
-| 对象 | 状态集 | 关键规则 |
-|---|---|---|
-| CMDB 主机生命周期 | pending→assigned→maintenance→retired | 乐观锁 state_version；retired 需引用检查；**唯一合法写通道为状态机 API** |
-| 部署任务 | draft→pending→running→success/failed/canceled（含 pause_requested/paused/cancel_requested） | 事件流记录每次流转；reconciler 收敛悬挂态 |
-| 部署步骤 | pending→running→success/failed/skipped/canceled | checkpoint 续跑依据 |
-| 服务实例 | desired/observed/health + lifecycle_version | CorrelationID 幂等；Reconcile 超时收敛 |
-| K8s 集群 | active/unreachable | 30s 探测 |
-| 凭据 | 版本化（credential_ref_version） | 轮换不失效执行中任务 |
-
-## 4. 安全模型（V1 事实）
-
-1. 认证：opaque token（Redis 会话），HttpOnly+Secure+SameSite=Strict Cookie，CSRF 头，15min/7d。
-2. 授权：Casbin RBAC + DataScope 数据范围 + SecureAction 危险操作二次确认。
-3. 凭据：SSH 密码不落库（凭据引用 `v1:` 加密）；kubeconfig 独立表加密+版本轮换。
-4. 审计：全局操作日志（含失败分类、敏感掩码）；**已知缺口**：ArgoCD/Velero 凭据明文（随伪实现一并 v1.2 修复）、before/after 不全（P1）。
-
-## 5. UI 信息架构
-
-```
-工作台
-├── 运维平台（业务域）
-│   ├── CMDB（主机/分组/标签）
-│   ├── 部署（包/模板/任务：列表-详情-日志三视图）
-│   ├── 应用服务（应用/服务/实例）
-│   └── K8s（集群/资源/发布）
-└── 系统管理（用户/角色/菜单/审计/设置）
-```
-
-前端规范沿用 base：组件注册表 + 菜单 seed + 构建期契约检查；业务模块通过 `businessOverlayComponentRegistry.ts` 注入。
-
-## 6. V1 追溯
-
-- 评审基线：《pantheon-ops v1.0 冻结前综合评审报告》（2026-08-28）。
-- 执行计划：`.harness/v1.2-docs/V1_FREEZE_REMEDIATION_DEV_PLAN.md`（P0/P1/P2 按优先级排序）。
-- 发布状态：`../V1_RELEASE_CHECKLIST.md`（唯一事实源）。
-- 已知遗留：P1 清单见评审报告第 6 节与开发计划 Phase 2。
-
-## 7. 商业版图（v1.1 起）
-
-免费版：底座 + CMDB + 业务域 + 部署引擎 + 主机监控。
-商业版：K8s 全量 + GitOps + Velero 备份 + 流程编排。
-技术基础：模块开关三层裁剪 + ed25519 离线 License（详见 `BUSINESS_MODULE_LICENSING_DESIGN.md`）。
+- [当前计划](../../.harness/tasks/2026-11-16-ops-pilot-delivery/plan.md)、[执行队列](../../.harness/tasks/2026-11-16-ops-pilot-delivery/EXECUTION_QUEUE.md)、[任务状态](../../.harness/STATUS.md)。
+- [归档索引](../../.harness/ARCHIVE.md)：12 个历史任务按原范围关闭，119 个原证据文件逐文件 hash 保全。
+- [八月 V1 检查点](../V1_RELEASE_CHECKLIST.md)和[历史开发估算](./BUSINESS_DEVELOPMENT_PLAN.md)已被当前计划接管；OPEN 条目不能因为任务归档而视为通过。

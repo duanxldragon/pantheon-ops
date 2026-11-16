@@ -2,85 +2,25 @@
 
 Chinese version: [README.md](./README.md)
 
-Pantheon Ops is the operations-management repository derived from the Pantheon Platform foundation. It uses BizScope, CMDB, and Deploy as its first business modules and focuses on business-scope governance, operations resource inventory, grouping, tag standards, and deployment task management.
+Pantheon Ops consumes official Pantheon Base foundation releases and adds operations business modules. Base owns the platform and system domains; Ops owns its business domains, assembly and business acceptance.
 
-The repository keeps platform foundation capabilities as business runtime infrastructure, but its main evolution focus is `business/bizscope`, `business/cmdb`, `business/deploy`, and future operations-domain modules. Ongoing evolution of generic backoffice capabilities should flow back to `pantheon-base`.
+The product is preparing for a pilot and has not passed pilot acceptance. CMDB, BizScope, Service, Deploy and K8s have implementations. Deployment-instance integrity, catalog maintenance, K8s Service editing and acceptance on the current candidate remain open. Observability, file distribution, GitOps and backup have implementations or runtime assembly and require acceptance for every capability exposed in the delivery. The dedicated Helm module currently records releases; that does not prove Chart installation.
 
-The default collaboration model is now: `pantheon-ops` consumes `pantheon-base` foundation releases instead of tracking `pantheon-base/main` directly.
+The current commit locks Base v0.18.9. The business audit predates that upgrade, so acceptance evidence must be collected again for the delivery candidate. The frontend uses React, TypeScript, Arco Design and Vite; the backend uses Go, Gin and GORM with MySQL and Redis.
 
-## Positioning
+## Current plan
 
-- **Platform layer**: inherits the application shell, route composition, middleware, workbench, and cross-domain aggregate views from Pantheon Platform
-- **System domains**: inherits auth/security, users/roles/permissions, menus, organization, configuration, dictionaries, audit
-- **Business domains**: currently ships `business/bizscope`, `business/cmdb`, and `business/deploy`
+- [Pilot delivery plan](./.harness/tasks/2026-11-16-ops-pilot-delivery/plan.md): six required core packages and four conditional extension packages, with dependencies and testable exit criteria.
+- [Execution queue](./.harness/tasks/2026-11-16-ops-pilot-delivery/EXECUTION_QUEUE.md): start with C01; C03/C04 can proceed independently.
+- [Task status](./.harness/STATUS.md) and [archive index](./.harness/ARCHIVE.md): 12 historical tasks archived within their original scope; evidence preserved.
+- [Business functional design](./docs/designs/BUSINESS_FUNCTIONAL_DESIGN.md): current capabilities and boundaries.
 
-## Recommended Reading Order
+## Development entry
 
-For Chinese-first onboarding, read:
+1. Read the [document index](./docs/README.en.md), [inheritance guide](./docs/PROJECT_INHERITANCE.en.md) and [AGENTS.md](./AGENTS.md).
+2. Prepare isolated MySQL/Redis and environment variables using the Base [deployment guide](../pantheon-base/docs/DEPLOYMENT_GUIDE.md); Ops applies its business migrations and runtime seeds.
+3. Run go run ./cmd/server from backend/; run npm install and npm run dev from frontend/.
 
-1. [README.md](./README.md)
-2. [docs/README.md](./docs/README.md)
-3. [docs/PROJECT_INHERITANCE.md](./docs/PROJECT_INHERITANCE.md)
-4. [DESIGN.md](./DESIGN.md)
-5. [AGENTS.md](./AGENTS.md)
+Run npm run check:business-overlay and npm run check:shared-drift from the repository root. Rebuild from the locked official release as described in the inheritance guide. Business changes need their package tests, smoke suites and full CGO race checks. Compilation does not replace provider or user-flow acceptance.
 
-Then continue through the Chinese document index in [docs/README.md](./docs/README.md). Use [docs/README.en.md](./docs/README.en.md) only when an English companion is needed.
-
-## Quick Start
-
-### 1. Start infrastructure
-
-```bash
-docker compose up -d
-```
-
-Defaults:
-
-- MySQL: `127.0.0.1:3306`
-- Redis: `127.0.0.1:6379`
-- default database: `pantheon_ops`
-
-### 2. Start backend
-
-```powershell
-$env:PANTHEON_DSN='root:<your-mysql-password>@tcp(127.0.0.1:3306)/pantheon_ops?charset=utf8mb4&parseTime=True&loc=Local'
-$env:PANTHEON_REDIS_ADDR='127.0.0.1:6379'
-$env:PANTHEON_REDIS_PASSWORD='<your-redis-password>'
-go run ./backend/cmd/server
-```
-
-### 3. Start frontend
-
-```bash
-cd frontend
-npm install
-npm run dev
-```
-
-## Common Commands
-
-```bash
-npm run check:business-overlay   # verify the declared business overlay contract
-npm run test:business-overlay    # run the rebuild/overlay unit tests
-npm run rebuild:from-base        # deterministically rebuild the consumer tree from the locked Base snapshot
-```
-
-## Quality and Security Gates
-
-This repository keeps GitHub-native merge gates only:
-
-- `Quality Gates` for docs governance, frontend contract checks, and backend tests
-- `Security Gates` for secret scan, workflow posture, dependency reports, CodeQL scan, and the CodeQL alert gate
-
-CodeQL is the primary security signal. Code quality is gated by GitHub required checks, CodeQL, branch protection, and optional Copilot review; Sonar, Codacy, and OCR are no longer part of the merge gate. The current `main` branch protection requires only `Quality Gates` and `Security Gates`, with strict up-to-date enforcement disabled so solo-maintainer squash auto-merge does not stall.
-
-## Document Entry
-
-- [docs/README.md](./docs/README.md): Chinese primary index
-- [docs/PROJECT_INHERITANCE.md](./docs/PROJECT_INHERITANCE.md): inheritance lock, local scope, and override boundaries
-- [docs/designs/BUSINESS_BIZSCOPE_MODULE_DESIGN.md](./docs/designs/BUSINESS_BIZSCOPE_MODULE_DESIGN.md): business-scope governance, host-binding, and deploy trust-boundary design
-- `Base release line + Base version` inside `docs/PROJECT_INHERITANCE.md` is the current consumer-version anchor
-- [.agents/skills/README.md](./.agents/skills/README.md): repository-local agent workflow skills for business-overlay checks, PR closure, GitHub comment automation, and CI triage
-- [DESIGN.md](./DESIGN.md): repo-level design stance
-- `../pantheon-base/docs/designs/QUALITY_AND_SECURITY_STRATEGY.md`: shared code-quality and security governance strategy
-- [docs/README.en.md](./docs/README.en.md) and [docs/PROJECT_INHERITANCE.en.md](./docs/PROJECT_INHERITANCE.en.md): English companion entry points
+Shared capability changes belong in [pantheon-base](https://github.com/duanxldragon/pantheon-base). See [LICENSE](./LICENSE).

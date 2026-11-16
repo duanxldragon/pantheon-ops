@@ -1,0 +1,109 @@
+{
+  "taskId": "2026-11-16-ops-service-deploy-integrity",
+  "title": "部署与服务实例关联及引用保护",
+  "goal": "部署与服务实例关联及引用保护",
+  "primaryLayer": "business/*",
+  "status": "planned",
+  "priority": "P0",
+  "deliveryTier": "L2",
+  "taskDoc": "docs/harness/tasks/2026-11-16-ops-service-deploy-integrity.task.md",
+  "parentTask": "2026-11-16-ops-pilot-delivery",
+  "dependencies": [],
+  "activation": "core",
+  "owner": "business/deploy + business/service",
+  "scope": {
+    "in": [
+      "复用 Service owner Reader/Command，在创建、更新、启动前校验 service、instance、host/cluster/namespace、业务域一致；不跨 owner 查询表。",
+      "区分显式独立部署（serviceId/serviceInstanceId 均为0，不做实例回写）与关联部署（两字段均必填且一致）。单字段缺失、已删除、inactive、跨域和目标错配在副作用前拒绝；旧无关联任务保留可追溯的独立模式，不能伪装关联部署。",
+      "增加执行中实例及服务删除的引用保护；保留历史快照，不静默级联。"
+    ],
+    "out": [
+      "platform/system/* 通用实现与规则副本；共享问题 Base-first",
+      "未授权生产操作、规则豁免与风险接受",
+      "自动 exporter/file_sd/商业 License 等后续产品扩张"
+    ]
+  },
+  "dependencyLayers": [
+    "business/*",
+    "inheritance-sync"
+  ],
+  "contractAnchors": [
+    "AGENTS.md",
+    "docs/PROJECT_INHERITANCE.md",
+    "docs/designs/BUSINESS_FUNCTIONAL_DESIGN.md",
+    "docs/designs/BUSINESS_QA_ACCEPTANCE_PLAN.md"
+  ],
+  "expectedFiles": {
+    "create": [
+      "docs/harness/tasks/2026-11-16-ops-service-deploy-integrity.task.md",
+      ".harness/tasks/2026-11-16-ops-service-deploy-integrity/manifest.json",
+      ".harness/evidence/2026-11-16-ops-service-deploy-integrity/summary.md",
+      ".harness/evidence/2026-11-16-ops-service-deploy-integrity/review.md",
+      ".harness/evidence/2026-11-16-ops-service-deploy-integrity/commands.json"
+    ],
+    "modify": [
+      "backend/modules/business/deploy/deploy_service.go",
+      "backend/modules/business/service/service.go",
+      "backend/modules/business/service/state.go",
+      "backend/modules/business/capability",
+      "backend/modules/business/opsinit/opsinit.go"
+    ],
+    "doNotTouch": [
+      "../pantheon-base/**",
+      "foundation-release.lock.json",
+      "backend/modules/system/**",
+      "frontend/src/modules/system/**"
+    ]
+  },
+  "harnessProfile": {
+    "template": "admin-platform",
+    "overlay": "pantheon-ops",
+    "qualityProfile": "ui-runtime",
+    "portableFailureClass": "business-delivery-gap",
+    "ownerLayer": "business/*",
+    "coverageDimensions": [
+      "behaviour",
+      "architecture-fitness",
+      "runtime-quality"
+    ]
+  },
+  "implementationNotes": [
+    "Minimal Complexity Rung: reuse",
+    "开始实现前重新读取当前候选与结构；本审查行号绑定旧基线，不能覆盖并发升级。"
+  ],
+  "acceptanceCriteria": [
+    "同一用户均有权访问 Host A 与 Instance B 时，错配创建/更新/启动被拒绝，任务、实例、远端均无部分副作用。",
+    "匹配任务完成及失败只更新对应实例；重复/乱序回调和并发删除不破坏状态或历史。",
+    "真实 MySQL 事务、幂等及引用竞态用例执行而非 SKIP。",
+    "显式独立部署两关联字段均0且不回写实例；关联部署任一字段缺失/0、实体错配被拒绝，兼容历史记录有模式与审计追溯。"
+  ],
+  "verificationPlan": {
+    "commands": [
+      "go test -race -count=1 ./modules/business/deploy/... ./modules/business/service/...",
+      "node scripts/check-business-module-boundaries.mjs"
+    ],
+    "runtimeEvidence": [
+      "当前候选、隔离环境、业务正反向及桌面/窄屏渲染；未跑必须记录 gap"
+    ],
+    "commandWorkingDirectories": {
+      "go test -race -count=1 ./modules/business/deploy/... ./modules/business/service/...": "backend",
+      "node scripts/check-business-module-boundaries.mjs": "."
+    }
+  },
+  "runtimeSensitive": true,
+  "humanGates": [
+    "范围已由维护者确认：按业务设计评估试点；安全可逆步骤自主执行。",
+    "生产操作、门禁豁免、风险接受及最终视觉/功能验收由维护者决定；不得以等候时间作为批准。"
+  ],
+  "linkage": {
+    "taskManifest": ".harness/tasks/2026-11-16-ops-service-deploy-integrity/manifest.json",
+    "taskDoc": "docs/harness/tasks/2026-11-16-ops-service-deploy-integrity.task.md",
+    "evidenceDir": ".harness/evidence/2026-11-16-ops-service-deploy-integrity/",
+    "reviewFile": ".harness/evidence/2026-11-16-ops-service-deploy-integrity/review.md",
+    "summaryFile": ".harness/evidence/2026-11-16-ops-service-deploy-integrity/summary.md",
+    "changeRef": "none",
+    "planRefs": [
+      ".harness/tasks/2026-11-16-ops-pilot-delivery/plan.md"
+    ]
+  }
+}

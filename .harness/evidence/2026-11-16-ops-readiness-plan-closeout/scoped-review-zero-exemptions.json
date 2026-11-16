@@ -1,0 +1,12 @@
+{
+  "mode": "strict",
+  "fileCount": 1,
+  "errorCount": 0,
+  "results": [
+    {
+      "file": ".harness/evidence/2026-11-16-ops-readiness-plan-closeout/review.md",
+      "errors": [],
+      "warnings": []
+    }
+  ]
+}

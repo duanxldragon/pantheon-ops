@@ -1,0 +1,4 @@
+{
+  "description": "Current governance artifact schema check with zero exemptions. The repository-wide legacy configuration is still checked by the full before/after gate comparison.",
+  "entries": []
+}

@@ -1,0 +1,59 @@
+{
+  "taskId": "2026-10-31-frontend-follow-redirects-audit",
+  "title": "Clear the frontend follow-redirects high advisory so the dependency gate is green again",
+  "goal": "Refresh node_modules/follow-redirects in frontend/package-lock.json from 1.16.1 to 1.16.2 so GHSA-mrwp-f3q8-3g9p no longer trips the hosted Dependency Vulnerabilities and Security Gates jobs, without changing any other dependency or source file.",
+  "primaryLayer": "inheritance-sync",
+  "taskDoc": "docs/harness/tasks/2026-10-31-frontend-follow-redirects-audit.task.md",
+  "status": "completed",
+  "priority": "P1",
+  "deliveryTier": "L1",
+  "dependsOn": [
+    "2026-10-31-foundation-upgrade-base-v0-18-2 (the lockfile this packet refreshes)"
+  ],
+  "blocks": [
+    "green Dependency Vulnerabilities and Security Gates on pantheon-ops main"
+  ],
+  "scope": {
+    "in": [
+      "frontend/package-lock.json follow-redirects 1.16.1 -> 1.16.2",
+      "frontend audit high/critical count back to zero",
+      "hosted Dependency Vulnerabilities and Security Gates read-back"
+    ],
+    "out": [
+      "any other frontend dependency re-resolution",
+      "security workflow or gate policy changes",
+      "backend, business source and i18n changes"
+    ]
+  },
+  "expectedFiles": {
+    "create": [
+      "docs/harness/tasks/2026-10-31-frontend-follow-redirects-audit.task.md",
+      ".harness/tasks/2026-10-31-frontend-follow-redirects-audit/manifest.json",
+      ".harness/evidence/2026-10-31-frontend-follow-redirects-audit/commands.json",
+      ".harness/evidence/2026-10-31-frontend-follow-redirects-audit/summary.md",
+      ".harness/evidence/2026-10-31-frontend-follow-redirects-audit/review.md",
+      ".harness/evidence/2026-10-31-frontend-follow-redirects-audit/pr-body.md"
+    ],
+    "modify": [
+      "frontend/package-lock.json"
+    ],
+    "doNotTouch": [
+      "frontend/package.json",
+      ".github/workflows/security.yml",
+      "foundation-release.lock.json",
+      ".foundation/foundation-release.lock.json",
+      "backend/modules/business/**",
+      "frontend/src/modules/business/**"
+    ]
+  },
+  "linkage": {
+    "taskDoc": "docs/harness/tasks/2026-10-31-frontend-follow-redirects-audit.task.md",
+    "evidenceDir": ".harness/evidence/2026-10-31-frontend-follow-redirects-audit",
+    "reviewFile": ".harness/evidence/2026-10-31-frontend-follow-redirects-audit/review.md",
+    "changeRef": "none",
+    "planRefs": [
+      "docs/harness/tasks/2026-10-31-frontend-follow-redirects-audit.task.md"
+    ],
+    "openspecChange": "none"
+  }
+}
