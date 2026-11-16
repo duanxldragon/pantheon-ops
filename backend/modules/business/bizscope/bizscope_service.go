@@ -47,7 +47,7 @@ func (s *Service) Migrate() error {
 	if s.db == nil {
 		return errors.New("database.not_initialized")
 	}
-	return s.db.AutoMigrate(&BizScope{})
+	return s.db.AutoMigrate(&BizScope{}, &BusinessEnvironment{})
 }
 
 // GetActive returns one active business scope through the capability projection.

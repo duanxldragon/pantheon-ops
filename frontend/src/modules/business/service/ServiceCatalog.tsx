@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Button, Card, Form, Input, Message, Popconfirm, Select, Space, Switch, Tabs, Tag } from '@arco-design/web-react';
 import { IconDelete, IconPlus, IconRefresh } from '@arco-design/web-react/icon';
@@ -289,6 +290,9 @@ function InstanceFormModal({
 export default function ServiceCatalog() {
   const { t } = useTranslation();
   const { hasPerm } = usePermission();
+  const location = useLocation();
+  const suffix = location.pathname.split('/').pop();
+  const activeTab = suffix === 'applications' || suffix === 'services' || suffix === 'instances' ? suffix : 'applications';
   const [applications, setApplications] = useState<ApplicationRow[]>([]);
   const [services, setServices] = useState<ServiceRow[]>([]);
   const [instances, setInstances] = useState<ServiceInstanceRow[]>([]);
@@ -469,7 +473,7 @@ export default function ServiceCatalog() {
           serviceCount={services.length}
           onRetry={() => void load()}
         />
-        {!error ? <Tabs defaultActiveTab="applications">
+        {!error ? <Tabs defaultActiveTab={activeTab}>
           <TabPane key="applications" title={t('business.service.catalog.applicationsTab')}>
             <CatalogTabPanel
               rows={applications}

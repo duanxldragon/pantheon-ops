@@ -20,8 +20,17 @@ type menuSeed struct {
 	Sort                                                                                                  int
 }
 
+const (
+	menuTitleKeyServiceApplication = "operations.service.application.menu"
+	menuTitleKeyServiceService     = "operations.service.service.menu"
+	menuTitleKeyServiceInstance    = "operations.service.instance.menu"
+)
+
 var menuSeeds = []menuSeed{
-	{Key: "service", ParentPath: "", TitleKey: menuTitleKeyService, Path: "/business/service", Component: "business/service/ServiceCatalog", PagePerm: "business:service:list", Type: "C", Icon: "apps", RouteName: "service-list", Module: serviceModuleKey, Sort: 2},
+	{Key: "service", ParentPath: "", TitleKey: menuTitleKeyService, Path: "/business/service-catalog", Component: "business/service/ServiceCatalog", PagePerm: "business:service:list", Type: "C", Icon: "apps", RouteName: "service-list", Module: serviceModuleKey, Sort: 2},
+	{Key: "service-applications", ParentKey: "service", TitleKey: menuTitleKeyServiceApplication, Path: "/business/service-catalog/applications", Component: "business/service/ServiceCatalog", PagePerm: "business:service:list", Type: "C", Icon: "apps", RouteName: "service-applications", Module: serviceModuleKey, Sort: 3},
+	{Key: "service-services", ParentKey: "service", TitleKey: menuTitleKeyServiceService, Path: "/business/service-catalog/services", Component: "business/service/ServiceCatalog", PagePerm: "business:service:list", Type: "C", Icon: "apps", RouteName: "service-services", Module: serviceModuleKey, Sort: 4},
+	{Key: "service-instances", ParentKey: "service", TitleKey: menuTitleKeyServiceInstance, Path: "/business/service-catalog/instances", Component: "business/service/ServiceCatalog", PagePerm: "business:service:list", Type: "C", Icon: "apps", RouteName: "service-instances", Module: serviceModuleKey, Sort: 5},
 	{Key: "service-view", ParentKey: "service", TitleKey: permKeyServiceView, Perms: "business:service:view", Type: "F", Module: serviceModuleKey, Sort: 1},
 	{Key: "service-create", ParentKey: "service", TitleKey: permKeyServiceCreate, Perms: "business:service:create", Type: "F", Module: serviceModuleKey, Sort: 2},
 	{Key: "service-update", ParentKey: "service", TitleKey: permKeyServiceUpdate, Perms: "business:service:update", Type: "F", Module: serviceModuleKey, Sort: 3},
@@ -104,6 +113,12 @@ func seedI18n(db *gorm.DB) error {
 	}{
 		{Locale: "zh-CN", Group: "menu", Key: menuTitleKeyService, Value: "服务目录"},
 		{Locale: "en-US", Group: "menu", Key: menuTitleKeyService, Value: "Service Catalog"},
+		{Locale: "zh-CN", Group: "menu", Key: menuTitleKeyServiceApplication, Value: "应用"},
+		{Locale: "en-US", Group: "menu", Key: menuTitleKeyServiceApplication, Value: "Applications"},
+		{Locale: "zh-CN", Group: "menu", Key: menuTitleKeyServiceService, Value: "服务"},
+		{Locale: "en-US", Group: "menu", Key: menuTitleKeyServiceService, Value: "Services"},
+		{Locale: "zh-CN", Group: "menu", Key: menuTitleKeyServiceInstance, Value: "服务实例"},
+		{Locale: "en-US", Group: "menu", Key: menuTitleKeyServiceInstance, Value: "Service Instances"},
 		{Locale: "zh-CN", Group: "permission", Key: permKeyServiceView, Value: "查看服务"},
 		{Locale: "en-US", Group: "permission", Key: permKeyServiceView, Value: "View services"},
 		{Locale: "zh-CN", Group: "permission", Key: permKeyServiceCreate, Value: "创建服务"},

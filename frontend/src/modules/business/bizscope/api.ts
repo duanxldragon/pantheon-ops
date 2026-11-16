@@ -167,3 +167,90 @@ export function downloadBizScopeImportTemplate() {
 export function importBizScopes(file: File) {
   return uploadImportFile('/business/bizscope/import', file);
 }
+
+export interface EnvironmentRow {
+  id: number;
+  businessScopeId: number;
+  code: string;
+  name: string;
+  envType: string;
+  status: string;
+  remark?: string;
+  createdAt: string;
+}
+
+export interface EnvironmentListResp {
+  items: EnvironmentRow[];
+  total: number;
+  page: number;
+  pageSize: number;
+}
+
+export interface EnvironmentListQuery {
+  code?: string;
+  name?: string;
+  status?: string;
+  page?: number;
+  pageSize?: number;
+}
+
+export interface EnvironmentPayload {
+  code: string;
+  name: string;
+  envType: string;
+  status: string;
+  remark?: string;
+}
+
+export interface EnvironmentOption {
+  label: string;
+  value: string;
+  code: string;
+  name: string;
+}
+
+export function getEnvironmentList(scopeId: number, params?: EnvironmentListQuery) {
+  return apiRequest<EnvironmentListResp>({
+    url: `/business/bizscope/${scopeId}/environments`,
+    method: 'get',
+    params,
+  });
+}
+
+export function getEnvironment(scopeId: number, id: number) {
+  return apiRequest<EnvironmentRow>({
+    url: `/business/bizscope/${scopeId}/environments/${id}`,
+    method: 'get',
+  });
+}
+
+export function getEnvironmentOptions(scopeId: number, activeOnly = false) {
+  return apiRequest<EnvironmentOption[]>({
+    url: `/business/bizscope/${scopeId}/environments/options`,
+    method: 'get',
+    params: activeOnly ? { activeOnly: true } : undefined,
+  });
+}
+
+export function createEnvironment(scopeId: number, data: EnvironmentPayload) {
+  return apiRequest<EnvironmentRow>({
+    url: `/business/bizscope/${scopeId}/environments`,
+    method: 'post',
+    data,
+  });
+}
+
+export function updateEnvironment(scopeId: number, id: number, data: Partial<EnvironmentPayload>) {
+  return apiRequest<EnvironmentRow>({
+    url: `/business/bizscope/${scopeId}/environments/${id}`,
+    method: 'put',
+    data,
+  });
+}
+
+export function deleteEnvironment(scopeId: number, id: number) {
+  return apiRequest<{ deleted: boolean }>({
+    url: `/business/bizscope/${scopeId}/environments/${id}`,
+    method: 'delete',
+  });
+}

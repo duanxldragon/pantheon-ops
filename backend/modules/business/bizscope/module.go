@@ -11,15 +11,22 @@ import (
 )
 
 const (
-	bizScopeModuleKey         = "business.bizscope"
-	operationsBizScopeMenuKey = "operations.bizscope.menu"
-	bizScopePermViewKey       = "business.bizscope.permission.view"
-	bizScopePermCreateKey     = "business.bizscope.permission.create"
-	bizScopePermUpdateKey     = "business.bizscope.permission.update"
-	bizScopePermDeleteKey     = "business.bizscope.permission.delete"
-	bizScopePermExportKey     = "business.bizscope.permission.export"
-	bizScopePermImportKey     = "business.bizscope.permission.import"
-	menuPathWhereClause       = "path = ?"
+	bizScopeModuleKey          = "business.bizscope"
+	operationsBizScopeMenuKey  = "operations.bizscope.menu"
+	bizScopePermViewKey        = "business.bizscope.permission.view"
+	bizScopePermCreateKey      = "business.bizscope.permission.create"
+	bizScopePermUpdateKey      = "business.bizscope.permission.update"
+	bizScopePermDeleteKey      = "business.bizscope.permission.delete"
+	bizScopePermExportKey      = "business.bizscope.permission.export"
+	bizScopePermImportKey      = "business.bizscope.permission.import"
+	bizScopeEnvMenuKey         = "operations.bizscope.environment.menu"
+	bizScopeHostBindingMenuKey = "operations.bizscope.hostBinding.menu"
+	bizScopeEnvPagePerm        = "business:bizscope:environment"
+	bizScopeEnvPermViewKey     = "business.bizscope.environment.permission.view"
+	bizScopeEnvPermCreateKey   = "business.bizscope.environment.permission.create"
+	bizScopeEnvPermUpdateKey   = "business.bizscope.environment.permission.update"
+	bizScopeEnvPermDeleteKey   = "business.bizscope.environment.permission.delete"
+	menuPathWhereClause        = "path = ?"
 )
 
 type menuSeed struct {
@@ -106,6 +113,68 @@ var seeds = []menuSeed{
 		Module:    bizScopeModuleKey,
 		Sort:      6,
 	},
+	{
+		Key:       "bizscope-host-binding",
+		ParentKey: "bizscope",
+		TitleKey:  bizScopeHostBindingMenuKey,
+		Path:      "/business/business-scope/host-binding",
+		Component: "business/bizscope/HostBinding",
+		PagePerm:  "business:bizscope:view",
+		Type:      "C",
+		Icon:      "cloud",
+		RouteName: "bizscope-host-binding",
+		Module:    bizScopeModuleKey,
+		Sort:      7,
+	},
+	{
+		Key:       "bizscope-environments",
+		ParentKey: "bizscope",
+		TitleKey:  bizScopeEnvMenuKey,
+		Path:      "/business/business-scope/environments",
+		Component: "business/bizscope/EnvironmentList",
+		PagePerm:  bizScopeEnvPagePerm,
+		Type:      "C",
+		Icon:      "settings",
+		RouteName: "bizscope-environments",
+		Module:    bizScopeModuleKey,
+		Sort:      7,
+	},
+	{
+		Key:       "bizscope-env-view",
+		ParentKey: "bizscope-environments",
+		TitleKey:  bizScopeEnvPermViewKey,
+		Perms:     "business:bizscope:environment:view",
+		Type:      "F",
+		Module:    bizScopeModuleKey,
+		Sort:      1,
+	},
+	{
+		Key:       "bizscope-env-create",
+		ParentKey: "bizscope-environments",
+		TitleKey:  bizScopeEnvPermCreateKey,
+		Perms:     "business:bizscope:environment:create",
+		Type:      "F",
+		Module:    bizScopeModuleKey,
+		Sort:      2,
+	},
+	{
+		Key:       "bizscope-env-update",
+		ParentKey: "bizscope-environments",
+		TitleKey:  bizScopeEnvPermUpdateKey,
+		Perms:     "business:bizscope:environment:update",
+		Type:      "F",
+		Module:    bizScopeModuleKey,
+		Sort:      3,
+	},
+	{
+		Key:       "bizscope-env-delete",
+		ParentKey: "bizscope-environments",
+		TitleKey:  bizScopeEnvPermDeleteKey,
+		Perms:     "business:bizscope:environment:delete",
+		Type:      "F",
+		Module:    bizScopeModuleKey,
+		Sort:      4,
+	},
 }
 
 type i18nSeed struct {
@@ -189,6 +258,84 @@ var i18nSeeds = []i18nSeed{
 	{Module: bizScopeModuleKey, Locale: "en-US", Group: "audit", Key: "business.bizscope.audit.update", Value: "Update business scope"},
 	{Module: bizScopeModuleKey, Locale: "zh-CN", Group: "audit", Key: "business.bizscope.audit.delete", Value: "删除业务域"},
 	{Module: bizScopeModuleKey, Locale: "en-US", Group: "audit", Key: "business.bizscope.audit.delete", Value: "Delete business scope"},
+	{Module: bizScopeModuleKey, Locale: "zh-CN", Group: "audit", Key: "business.bizscope.audit.environment_create", Value: "新增环境"},
+	{Module: bizScopeModuleKey, Locale: "en-US", Group: "audit", Key: "business.bizscope.audit.environment_create", Value: "Create environment"},
+	{Module: bizScopeModuleKey, Locale: "zh-CN", Group: "audit", Key: "business.bizscope.audit.environment_update", Value: "编辑环境"},
+	{Module: bizScopeModuleKey, Locale: "en-US", Group: "audit", Key: "business.bizscope.audit.environment_update", Value: "Update environment"},
+	{Module: bizScopeModuleKey, Locale: "zh-CN", Group: "audit", Key: "business.bizscope.audit.environment_delete", Value: "删除环境"},
+	{Module: bizScopeModuleKey, Locale: "en-US", Group: "audit", Key: "business.bizscope.audit.environment_delete", Value: "Delete environment"},
+	{Module: bizScopeModuleKey, Locale: "zh-CN", Group: "menu", Key: bizScopeEnvMenuKey, Value: "环境管理"},
+	{Module: bizScopeModuleKey, Locale: "en-US", Group: "menu", Key: bizScopeEnvMenuKey, Value: "Environments"},
+	{Module: bizScopeModuleKey, Locale: "zh-CN", Group: "menu", Key: bizScopeHostBindingMenuKey, Value: "主机绑定"},
+	{Module: bizScopeModuleKey, Locale: "en-US", Group: "menu", Key: bizScopeHostBindingMenuKey, Value: "Host Bindings"},
+	{Module: bizScopeModuleKey, Locale: "zh-CN", Group: "page", Key: "business.bizscope.hostBinding.description", Value: "按业务域查看主机归属，主机详情遵循 CMDB 权限。"},
+	{Module: bizScopeModuleKey, Locale: "en-US", Group: "page", Key: "business.bizscope.hostBinding.description", Value: "Review host ownership by scope. Host details require CMDB permissions."},
+	{Module: bizScopeModuleKey, Locale: "zh-CN", Group: "page", Key: "business.bizscope.hostBinding.total", Value: "匹配主机"},
+	{Module: bizScopeModuleKey, Locale: "en-US", Group: "page", Key: "business.bizscope.hostBinding.total", Value: "Matching Hosts"},
+	{Module: bizScopeModuleKey, Locale: "zh-CN", Group: "page", Key: "business.bizscope.hostBinding.keywordPlaceholder", Value: "搜索主机名或 IP 地址"},
+	{Module: bizScopeModuleKey, Locale: "en-US", Group: "page", Key: "business.bizscope.hostBinding.keywordPlaceholder", Value: "Search hostname or IP address"},
+	{Module: bizScopeModuleKey, Locale: "zh-CN", Group: "page", Key: "business.bizscope.hostBinding.field.scope", Value: "业务域"},
+	{Module: bizScopeModuleKey, Locale: "en-US", Group: "page", Key: "business.bizscope.hostBinding.field.scope", Value: "Business Scope"},
+	{Module: bizScopeModuleKey, Locale: "zh-CN", Group: "page", Key: "business.bizscope.hostBinding.unbound", Value: "未绑定"},
+	{Module: bizScopeModuleKey, Locale: "en-US", Group: "page", Key: "business.bizscope.hostBinding.unbound", Value: "Unbound"},
+	{Module: bizScopeModuleKey, Locale: "zh-CN", Group: "page", Key: "business.bizscope.hostBinding.empty", Value: "没有匹配的主机绑定"},
+	{Module: bizScopeModuleKey, Locale: "en-US", Group: "page", Key: "business.bizscope.hostBinding.empty", Value: "No matching host bindings"},
+	{Module: bizScopeModuleKey, Locale: "zh-CN", Group: "page", Key: "business.bizscope.environment.description", Value: "在业务域内维护环境编码、类型和启用状态。"},
+	{Module: bizScopeModuleKey, Locale: "en-US", Group: "page", Key: "business.bizscope.environment.description", Value: "Manage environment codes, types, and status within each business scope."},
+	{Module: bizScopeModuleKey, Locale: "zh-CN", Group: "page", Key: "business.bizscope.environment.total", Value: "匹配环境"},
+	{Module: bizScopeModuleKey, Locale: "en-US", Group: "page", Key: "business.bizscope.environment.total", Value: "Matching Environments"},
+	{Module: bizScopeModuleKey, Locale: "zh-CN", Group: "page", Key: "business.bizscope.environment.keywordPlaceholder", Value: "搜索环境编码或名称"},
+	{Module: bizScopeModuleKey, Locale: "en-US", Group: "page", Key: "business.bizscope.environment.keywordPlaceholder", Value: "Search environment code or name"},
+	{Module: bizScopeModuleKey, Locale: "zh-CN", Group: "page", Key: "business.bizscope.environment.field.scope", Value: "业务域"},
+	{Module: bizScopeModuleKey, Locale: "en-US", Group: "page", Key: "business.bizscope.environment.field.scope", Value: "Business Scope"},
+	{Module: bizScopeModuleKey, Locale: "zh-CN", Group: "page", Key: "business.bizscope.environment.field.code", Value: "环境编码"},
+	{Module: bizScopeModuleKey, Locale: "en-US", Group: "page", Key: "business.bizscope.environment.field.code", Value: "Environment Code"},
+	{Module: bizScopeModuleKey, Locale: "zh-CN", Group: "page", Key: "business.bizscope.environment.field.name", Value: "环境名称"},
+	{Module: bizScopeModuleKey, Locale: "en-US", Group: "page", Key: "business.bizscope.environment.field.name", Value: "Environment Name"},
+	{Module: bizScopeModuleKey, Locale: "zh-CN", Group: "page", Key: "business.bizscope.environment.field.envType", Value: "环境类型"},
+	{Module: bizScopeModuleKey, Locale: "en-US", Group: "page", Key: "business.bizscope.environment.field.envType", Value: "Environment Type"},
+	{Module: bizScopeModuleKey, Locale: "zh-CN", Group: "page", Key: "business.bizscope.environment.field.remark", Value: "备注"},
+	{Module: bizScopeModuleKey, Locale: "en-US", Group: "page", Key: "business.bizscope.environment.field.remark", Value: "Remark"},
+	{Module: bizScopeModuleKey, Locale: "zh-CN", Group: "page", Key: "business.bizscope.environment.empty", Value: "暂无环境"},
+	{Module: bizScopeModuleKey, Locale: "en-US", Group: "page", Key: "business.bizscope.environment.empty", Value: "No environments"},
+	{Module: bizScopeModuleKey, Locale: "zh-CN", Group: "page", Key: "business.bizscope.environment.createTitle", Value: "新建环境"},
+	{Module: bizScopeModuleKey, Locale: "en-US", Group: "page", Key: "business.bizscope.environment.createTitle", Value: "Create Environment"},
+	{Module: bizScopeModuleKey, Locale: "zh-CN", Group: "page", Key: "business.bizscope.environment.editTitle", Value: "编辑环境"},
+	{Module: bizScopeModuleKey, Locale: "en-US", Group: "page", Key: "business.bizscope.environment.editTitle", Value: "Edit Environment"},
+	{Module: bizScopeModuleKey, Locale: "zh-CN", Group: "page", Key: "business.bizscope.environment.deleteConfirm", Value: "确认删除环境 {{name}}？"},
+	{Module: bizScopeModuleKey, Locale: "en-US", Group: "page", Key: "business.bizscope.environment.deleteConfirm", Value: "Delete environment {{name}}?"},
+	{Module: bizScopeModuleKey, Locale: "zh-CN", Group: "page", Key: "business.bizscope.environment.operationFailed", Value: "环境操作失败"},
+	{Module: bizScopeModuleKey, Locale: "en-US", Group: "page", Key: "business.bizscope.environment.operationFailed", Value: "Environment operation failed"},
+	{Module: bizScopeModuleKey, Locale: "zh-CN", Group: "page", Key: "business.bizscope.environment.notFound", Value: "环境不存在"},
+	{Module: bizScopeModuleKey, Locale: "en-US", Group: "page", Key: "business.bizscope.environment.notFound", Value: "Environment does not exist"},
+	{Module: bizScopeModuleKey, Locale: "zh-CN", Group: "page", Key: "business.bizscope.environment.codeExists", Value: "业务域内环境编码已存在"},
+	{Module: bizScopeModuleKey, Locale: "en-US", Group: "page", Key: "business.bizscope.environment.codeExists", Value: "Environment code already exists in this scope"},
+	{Module: bizScopeModuleKey, Locale: "zh-CN", Group: "page", Key: "business.bizscope.environment.scopeRequired", Value: "请选择业务域"},
+	{Module: bizScopeModuleKey, Locale: "en-US", Group: "page", Key: "business.bizscope.environment.scopeRequired", Value: "Business scope is required"},
+	{Module: bizScopeModuleKey, Locale: "zh-CN", Group: "page", Key: "business.bizscope.environment.envTypeInvalid", Value: "环境类型无效"},
+	{Module: bizScopeModuleKey, Locale: "en-US", Group: "page", Key: "business.bizscope.environment.envTypeInvalid", Value: "Invalid environment type"},
+	{Module: bizScopeModuleKey, Locale: "zh-CN", Group: "page", Key: "business.bizscope.environment.statusInvalid", Value: "环境状态无效"},
+	{Module: bizScopeModuleKey, Locale: "en-US", Group: "page", Key: "business.bizscope.environment.statusInvalid", Value: "Invalid environment status"},
+	{Module: bizScopeModuleKey, Locale: "zh-CN", Group: "permission", Key: bizScopeEnvPermViewKey, Value: "查看环境"},
+	{Module: bizScopeModuleKey, Locale: "en-US", Group: "permission", Key: bizScopeEnvPermViewKey, Value: "View environments"},
+	{Module: bizScopeModuleKey, Locale: "zh-CN", Group: "permission", Key: bizScopeEnvPermCreateKey, Value: "新增环境"},
+	{Module: bizScopeModuleKey, Locale: "en-US", Group: "permission", Key: bizScopeEnvPermCreateKey, Value: "Create environments"},
+	{Module: bizScopeModuleKey, Locale: "zh-CN", Group: "permission", Key: bizScopeEnvPermUpdateKey, Value: "编辑环境"},
+	{Module: bizScopeModuleKey, Locale: "en-US", Group: "permission", Key: bizScopeEnvPermUpdateKey, Value: "Update environments"},
+	{Module: bizScopeModuleKey, Locale: "zh-CN", Group: "permission", Key: bizScopeEnvPermDeleteKey, Value: "删除环境"},
+	{Module: bizScopeModuleKey, Locale: "en-US", Group: "permission", Key: bizScopeEnvPermDeleteKey, Value: "Delete environments"},
+	{Module: bizScopeModuleKey, Locale: "zh-CN", Group: "error", Key: envCodeExistsKey, Value: "环境编码已存在"},
+	{Module: bizScopeModuleKey, Locale: "en-US", Group: "error", Key: envCodeExistsKey, Value: "Environment code already exists"},
+	{Module: bizScopeModuleKey, Locale: "zh-CN", Group: "error", Key: envNotFoundKey, Value: "环境不存在"},
+	{Module: bizScopeModuleKey, Locale: "en-US", Group: "error", Key: envNotFoundKey, Value: "Environment does not exist"},
+	{Module: bizScopeModuleKey, Locale: "zh-CN", Group: "error", Key: envStatusInvalid, Value: "状态必须是 active/inactive 之一"},
+	{Module: bizScopeModuleKey, Locale: "en-US", Group: "error", Key: envStatusInvalid, Value: "Status must be one of active/inactive"},
+	{Module: bizScopeModuleKey, Locale: "zh-CN", Group: "error", Key: envCodeInvalid, Value: "环境编码不能为空"},
+	{Module: bizScopeModuleKey, Locale: "en-US", Group: "error", Key: envCodeInvalid, Value: "Environment code is required"},
+	{Module: bizScopeModuleKey, Locale: "zh-CN", Group: "error", Key: envNameRequired, Value: "环境名称不能为空"},
+	{Module: bizScopeModuleKey, Locale: "en-US", Group: "error", Key: envNameRequired, Value: "Environment name is required"},
+	{Module: bizScopeModuleKey, Locale: "zh-CN", Group: "error", Key: envStatusRequired, Value: "状态不能为空"},
+	{Module: bizScopeModuleKey, Locale: "en-US", Group: "error", Key: envStatusRequired, Value: "Status is required"},
 	{Module: bizScopeModuleKey, Locale: "zh-CN", Group: "error", Key: bizScopeCodeExistsKey, Value: "业务域编码已存在"},
 	{Module: bizScopeModuleKey, Locale: "en-US", Group: "error", Key: bizScopeCodeExistsKey, Value: "Business scope code already exists"},
 	{Module: bizScopeModuleKey, Locale: "zh-CN", Group: "error", Key: bizScopeInUseKey, Value: "业务域已绑定主机，不能删除"},
@@ -243,6 +390,15 @@ func InitBizScopeModule(r *gin.RouterGroup, db *gorm.DB, dependencies ...Service
 				protected.GET("/export", handler.Export)
 				protected.GET("/import-template", handler.DownloadImportTemplate)
 				protected.POST("/import", handler.Import)
+
+				// Environment management (bizscope M+3C promotion). Routes are scoped
+				// under a scope id so the environment catalog belongs to one scope.
+				protected.GET("/:id/environments", handler.ListEnvironments)
+				protected.GET("/:id/environments/options", handler.EnvironmentOptions)
+				protected.GET("/:id/environments/:envId", handler.GetEnvironment)
+				protected.POST("/:id/environments", handler.CreateEnvironment)
+				protected.PUT("/:id/environments/:envId", handler.UpdateEnvironment)
+				protected.DELETE("/:id/environments/:envId", handler.DeleteEnvironment)
 			}
 		},
 	})
