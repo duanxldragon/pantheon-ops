@@ -13,6 +13,7 @@ import (
 	"github.com/duanxldragon/pantheon-base/backend/pkg/common"
 	"github.com/duanxldragon/pantheon-base/backend/pkg/contracts"
 	"github.com/duanxldragon/pantheon-base/backend/pkg/database"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/maintenance"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -28,10 +29,6 @@ const (
 // msgParamInvalid is the i18n key returned for a malformed request. The key belongs to the
 // frontend message catalogue, so it is declared once here.
 const msgParamInvalid = "common.param_invalid"
-
-// idWhereClause is the GORM fragment that keys a statement on the row id. Seed and request data
-// reaches the statement only through the bind parameter.
-const idWhereClause = "id = ?"
 
 // MonitoringTarget is a DB-recorded monitoring target bound to a business
 // scope. It is the seed for file_sd generation in v1.1.
@@ -96,6 +93,13 @@ type ObservabilityModule struct {
 
 // InitObservabilityModule creates the observability module.
 func InitObservabilityModule(r *gin.RouterGroup, db *gorm.DB, bizScopeSvc *bizscope.Service) *ObservabilityModule {
+	lifecycle, err := QueryWorkspaceMaintenanceReady(db)
+	if err != nil {
+		panic(err)
+	}
+	if err := QueryWorkspaceReady(db); err != nil {
+		panic(err)
+	}
 	datasourceService := NewDatasourceService(db)
 	alertRuleService := NewAlertRuleService(db)
 	notificationService := NewNotificationService(db)
@@ -105,6 +109,7 @@ func InitObservabilityModule(r *gin.RouterGroup, db *gorm.DB, bizScopeSvc *bizsc
 	if err := SeedMenus(db); err != nil {
 		panic(err)
 	}
+	registerQueryWorkspaceMaintenance(db, lifecycle, maintenance.Default())
 	return &ObservabilityModule{
 		db:                  db,
 		bizScopeSvc:         bizScopeSvc,
@@ -121,9 +126,6 @@ func (m *ObservabilityModule) Migrate(db *gorm.DB) error {
 	if err := db.AutoMigrate(&MonitoringTarget{}); err != nil {
 		return err
 	}
-	if err := m.datasourceService.Migrate(); err != nil {
-		return err
-	}
 	if err := m.alertRuleService.Migrate(); err != nil {
 		return err
 	}
@@ -134,9 +136,27 @@ func (m *ObservabilityModule) Migrate(db *gorm.DB) error {
 // All routes are mounted under DataScopedGroup so token + Casbin + data-scope
 // middleware apply.
 func (m *ObservabilityModule) RegisterRoutes(r *gin.RouterGroup) {
+	if err := QueryWorkspaceReady(m.db); err != nil {
+		panic(err)
+	}
+	if err := RegisterQueryPolicies(); err != nil {
+		panic(err)
+	}
 	canonical := contracts.DataScopedGroup(r, "/business/observability", m.db)
 	alias := contracts.DataScopedGroup(r, "/observability", m.db)
-	m.handler.RegisterRoutes(canonical, alias)
+	m.handler.RegisterLegacyRoutes(canonical)
+	m.handler.RegisterLegacyRoutes(alias)
+	tenantCanonical, err := contracts.TenantScopedBusinessGroup(r, "/business/observability", contracts.BusinessTenantGroupOptions{DB: m.db, RDB: database.RDB, DataScope: true, PlatformScope: true})
+	if err != nil {
+		panic(err)
+	}
+	tenantAlias, err := contracts.TenantScopedBusinessGroup(r, "/observability", contracts.BusinessTenantGroupOptions{DB: m.db, RDB: database.RDB, DataScope: true, PlatformScope: true})
+	if err != nil {
+		panic(err)
+	}
+	m.handler.RegisterDatasourceRoutes(tenantCanonical)
+	m.handler.RegisterDatasourceRoutes(tenantAlias)
+	m.handler.RegisterWorkspaceRoutes(tenantCanonical)
 	group := contracts.DataScopedGroup(r, "/business/observability", m.db)
 	group.GET("/targets", m.ListTargets)
 	group.POST("/targets", m.CreateTarget)

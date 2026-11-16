@@ -1,9 +1,11 @@
+import DeployTaskPreview from './DeployTaskPreview';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { TFunction } from 'i18next';
 import { useNavigate, useParams } from 'react-router-dom';
 import {
+  Alert,
   Button,
   Card,
   Descriptions,
@@ -30,6 +32,7 @@ import {
 import { isForbiddenRequestError, isRequestError } from '../../../../api/request';
 import {
   AppModal,
+  buildStandardPagination,
   PageEmpty,
   PageError,
   PageForbidden,
@@ -45,15 +48,13 @@ import { usePermission } from '../../../../hooks/usePermission';
 import { formatDateTime } from '../../../../core/format/dateTime';
 import {
   cancelDeployTask,
+  isDeployTaskCommandConflict,
   deleteDeployTask,
   getDeployCredentialList,
-  getDeployTaskDetail,
-  getDeployTaskEventStreamUrl,
   markDeployHostResult,
   pauseDeployTask,
   resumeDeployTask,
   retryDeployTask,
-  startDeployTask,
   type DeployCredentialRow,
   type DeployTaskHostRow,
   type DeployTaskRow,
@@ -61,6 +62,10 @@ import {
 } from '../api';
 import '../../../../assets/list-page.css';
 import '../deploy.css';
+import { apiRequest } from '@duanxldragon/pantheon-base-ui';
+import { useDeployTaskSnapshot } from './useDeployTaskSnapshot';
+import { useDeployTaskStream } from './useDeployTaskStream';
+import DeployExecutionWorkbench from './DeployExecutionWorkbench';
 
 const statusColorMap: Record<string, string> = {
   pending: 'gray',
@@ -394,6 +399,8 @@ interface TaskActionsCardProps {
   readonly handlePauseTask: () => void;
   readonly handleResumeTask: () => void;
   readonly handleRetryTask: () => void;
+  readonly handleRollbackTask: () => void;
+  readonly canRollbackTask: boolean;
   readonly handleDeleteTask: () => void;
 }
 
@@ -416,19 +423,13 @@ function TaskActionsCard({
   handleResumeTask,
   handleRetryTask,
   handleDeleteTask,
+  handleRollbackTask,
+  canRollbackTask,
 }: TaskActionsCardProps) {
-  const startAction =
-    task.executorType === 'ssh' ? (
-      <Button type="primary" loading={startSubmitting} onClick={() => openStart()}>
-        {t('business.deploy.task.start')}
-      </Button>
-    ) : (
-      <Popconfirm title={t('business.deploy.task.startConfirm')} onOk={() => openStart()}>
-        <Button type="primary" loading={startSubmitting}>
-          {t('business.deploy.task.start')}
-        </Button>
-      </Popconfirm>
-    );
+  const startAction = <Button type="primary" loading={startSubmitting} onClick={() => openStart()}>
+    {t('business.deploy.task.start')}
+  </Button>;
+
   return (
     <Card className="page-panel">
       <Space direction="vertical" size={12} style={{ width: '100%' }}>
@@ -484,6 +485,9 @@ function TaskActionsCard({
                 </Button>
               </Popconfirm>
             ) : null}
+            {canRollbackTask ? <Popconfirm title={t('business.deploy.task.rollbackDraftConfirm')} onOk={handleRollbackTask}>
+              <Button loading={submitting}>{t('business.deploy.task.rollbackDraft')}</Button>
+            </Popconfirm> : null}
             {canDeleteTask ? (
               <Popconfirm
                 title={t('business.deploy.task.deleteConfirm')}
@@ -544,7 +548,7 @@ function resolveTaskActionPermissions(
   const { status } = task;
   return {
     canStartTask: taskStatusAllowed(perms.canStart, ['draft', 'pending'], status),
-    canCancelTask: taskStatusAllowed(perms.canCancel, ['pending', 'running'], status),
+    canCancelTask: perms.canCancel && (['pending', 'running', 'paused', 'pause_requested'].includes(status) || (status === 'cancel_requested' && task.executorType === 'manual')),
     canPauseTask: taskStatusAllowed(perms.canPause, ['running'], status),
     canResumeTask: taskStatusAllowed(perms.canResume, ['paused'], status),
     canRetryTask: taskStatusAllowed(perms.canRetry, ['failed'], status),
@@ -887,16 +891,15 @@ export default function DeployTaskDetail() {
   const { hasPerm } = usePermission();
   const [form] = Form.useForm<MarkResultFormValues>();
   const [startForm] = Form.useForm<StartDeployTaskPayload>();
-  const [task, setTask] = useState<DeployTaskRow | null>(null);
-  const [streamConnected, setStreamConnected] = useState(false);
+  const { task, error, loading, stale: detailStale, loadData, deny } = useDeployTaskSnapshot(id ? Number(id) : undefined);
   const [selectedHost, setSelectedHost] = useState<DeployTaskHostRow | null>(null);
   const [visible, setVisible] = useState(false);
   const [startVisible, setStartVisible] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const [previewRequest, setPreviewRequest] = useState<{taskId: number; payload: StartDeployTaskPayload} | null>(null);
+  const [commandConflictTaskId, setCommandConflictTaskId] = useState<number | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [startSubmitting, setStartSubmitting] = useState(false);
   const [credentials, setCredentials] = useState<DeployCredentialRow[]>([]);
-  const [error, setError] = useState<unknown>(null);
 
   const canMark = hasPerm('business:deploy:task:mark-result');
   const canStart = hasPerm('business:deploy:task:start');
@@ -904,6 +907,7 @@ export default function DeployTaskDetail() {
   const canPause = hasPerm('business:deploy:task:pause');
   const canResume = hasPerm('business:deploy:task:resume');
   const canRetry = hasPerm('business:deploy:task:retry');
+  const canRollback = hasPerm('business:deploy:task:rollback');
   const canUpdate = hasPerm('business:deploy:task:update');
   const canDelete = hasPerm('business:deploy:task:delete');
 
@@ -918,61 +922,27 @@ export default function DeployTaskDetail() {
     startForm.resetFields();
   }, [startForm]);
 
-  const loadData = useCallback(
-    async (options?: { silent?: boolean }) => {
-      if (!id) return;
-      if (!options?.silent) {
-        setLoading(true);
-        setError(null);
-      }
-      try {
-        setTask(await getDeployTaskDetail(Number(id)));
-      } catch (err) {
-        if (!options?.silent) {
-          setError(err);
-          setTask(null);
-        }
-      } finally {
-        if (!options?.silent) {
-          setLoading(false);
-        }
-      }
-    },
-    [id],
-  );
-
   useEffect(() => {
+    let disposed = false;
     queueMicrotask(() => {
-      void loadData();
+      if (disposed) return;
+      // Clear modal copies and selections when the task loses current access.
+      if (!task) {
+        closeResultModal(); closeStartModal(); setPreviewRequest(null); setCredentials([]);
+      } else if (selectedHost && !task.hosts?.some((host) => host.id === selectedHost.id)) {
+        closeResultModal();
+      }
     });
-  }, [loadData]);
+    return () => { disposed = true; };
+  }, [task, selectedHost, closeResultModal, closeStartModal]);
+
+  const streamActive = Boolean(task && ['pending', 'running', 'pause_requested', 'cancel_requested'].includes(task.status));
+  const streamConnected = useDeployTaskStream(task?.id, streamActive, () => { void loadData({ silent: true }); }, deny);
 
   useEffect(() => {
     if (
       !task ||
-      !['pending', 'running', 'pause_requested', 'cancel_requested'].includes(task.status)
-    ) {
-      return;
-    }
-    const eventSource = new EventSource(getDeployTaskEventStreamUrl(task.id), {
-      withCredentials: true,
-    });
-    eventSource.onopen = () => setStreamConnected(true);
-    eventSource.addEventListener('task', () => {
-      setStreamConnected(true);
-      void loadData({ silent: true });
-    });
-    eventSource.onerror = () => setStreamConnected(false);
-    return () => {
-      eventSource.close();
-      setStreamConnected(false);
-    };
-  }, [loadData, task]);
-
-  useEffect(() => {
-    if (
-      !task ||
-      streamConnected ||
+      (streamConnected && !detailStale) ||
       !['pending', 'running', 'pause_requested', 'cancel_requested'].includes(task.status)
     ) {
       return;
@@ -981,7 +951,19 @@ export default function DeployTaskDetail() {
       void loadData({ silent: true });
     }, 5000);
     return () => globalThis.clearInterval(timer);
-  }, [loadData, streamConnected, task]);
+  }, [loadData, streamConnected, task, detailStale]);
+
+  const handleRollbackTask = async () => {
+    if (!task || !canRollback) return;
+    setSubmitting(true);
+    try {
+      const draft = await apiRequest<DeployTaskRow>({ url: `/business/deploy/tasks/${task.id}/rollback`, method: 'post' });
+      navigate(`/business/deploy/task?editId=${draft.id}`);
+    } catch (rollbackError) {
+      if (isForbiddenRequestError(rollbackError)) deny();
+      Message.error(isRequestError(rollbackError) && rollbackError.messageKey ? t(rollbackError.messageKey) : t('business.deploy.task.rollbackFailed'));
+    } finally { setSubmitting(false); }
+  };
 
   const heroStats = useMemo(
     () => [
@@ -1116,12 +1098,10 @@ export default function DeployTaskDetail() {
       if (!task) {
         return;
       }
-      await startDeployTask(task.id, payload);
-      Message.success(t('business.deploy.task.startSuccess'));
+      setPreviewRequest({ taskId: task.id, payload: payload || {} });
       closeStartModal();
-      await loadData();
     },
-    [closeStartModal, loadData, t, task],
+    [closeStartModal, task],
   );
 
   const openStart = useCallback(() => {
@@ -1155,8 +1135,13 @@ export default function DeployTaskDetail() {
     }
     setSubmitting(true);
     try {
-      await cancelDeployTask(task.id);
+      setCommandConflictTaskId(null);
+      await cancelDeployTask(task.id, task.stateVersion);
       Message.success(t('business.deploy.task.cancelSuccess'));
+      await loadData();
+    } catch (error) {
+      if (!isDeployTaskCommandConflict(error)) throw error;
+      setCommandConflictTaskId(task.id);
       await loadData();
     } finally {
       setSubmitting(false);
@@ -1173,8 +1158,13 @@ export default function DeployTaskDetail() {
           resume: resumeDeployTask,
           retry: retryDeployTask,
         };
-        await controls[action](task.id);
+        setCommandConflictTaskId(null);
+        await controls[action](task.id, task.stateVersion);
         Message.success(t(`business.deploy.task.${action}Success`));
+        await loadData();
+      } catch (error) {
+        if (!isDeployTaskCommandConflict(error)) throw error;
+        setCommandConflictTaskId(task.id);
         await loadData();
       } finally {
         setSubmitting(false);
@@ -1268,11 +1258,12 @@ export default function DeployTaskDetail() {
     <PageContainer>
       <TaskDetailHeader
         task={task}
-        streamConnected={streamConnected}
+        streamConnected={streamConnected && !detailStale}
         t={t}
         navigate={navigate}
       />
       <Space direction="vertical" size={16} className="system-page-template">
+        {commandConflictTaskId === task.id && <Alert type="warning" role="status" content={t('business.deploy.task.commandConflict')} />}
         <TaskHeroCard task={task} t={t} heroStats={heroStats} />
         <StatusFlowCard t={t} taskFlowItems={taskFlowItems} />
         <TaskActionsCard
@@ -1293,6 +1284,8 @@ export default function DeployTaskDetail() {
           handlePauseTask={() => void handleTaskControl('pause')}
           handleResumeTask={() => void handleTaskControl('resume')}
           handleRetryTask={() => void handleTaskControl('retry')}
+          canRollbackTask={canRollback && ['success', 'failed'].includes(task.status)}
+          handleRollbackTask={() => { void handleRollbackTask(); }}
           handleDeleteTask={handleDeleteTask}
         />
         <Card className="page-panel">
@@ -1332,13 +1325,15 @@ export default function DeployTaskDetail() {
                 className="system-list__table"
                 columns={columns}
                 data={task.hosts}
-                pagination={false}
+                pagination={buildStandardPagination(t, { pageSize: 50 })}
               />
             </AsyncContentState>
           </Space>
         </Card>
-        <HostTraceCards t={t} hosts={task.hosts} processColumns={processColumns} />
+        <DeployExecutionWorkbench key={task.id} task={task} stale={detailStale || (streamActive && !streamConnected)}
+          renderHost={(host) => <HostTraceCards t={t} hosts={[host]} processColumns={processColumns} />} />
       </Space>
+      {detailStale ? <p role="status">{t('business.deploy.task.refreshStale')}</p> : null}
       <MarkResultModal
         visible={visible}
         t={t}
@@ -1347,6 +1342,7 @@ export default function DeployTaskDetail() {
         onClose={closeResultModal}
         onSubmit={handleSubmit}
       />
+      {previewRequest && <DeployTaskPreview key={`${previewRequest.taskId}:${JSON.stringify(previewRequest.payload)}`} taskId={previewRequest.taskId} payload={previewRequest.payload} onClose={() => setPreviewRequest(null)} onStarted={async () => { setPreviewRequest(null); Message.success(t('business.deploy.task.startSuccess')); await loadData(); }} />}
       <StartSshModal
         visible={startVisible}
         t={t}

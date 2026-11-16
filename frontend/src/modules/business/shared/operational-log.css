@@ -1,0 +1,13 @@
+.business-log-panel {
+  min-width: 0;
+  width: 100%;
+}
+.business-log-panel__toolbar {
+  margin-bottom: var(--space-sm);
+}
+.business-log-panel__toolbar .arco-select {
+  width: 140px;
+}
+.business-log-dialog .task-log-viewer__rows {
+  max-height: calc(100dvh - 220px);
+}

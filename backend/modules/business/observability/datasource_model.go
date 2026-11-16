@@ -13,9 +13,11 @@ const queryStatusSuccess = "success"
 // PrometheusDatasource stores an observability backend configuration. The table
 // name is retained for migration compatibility with the original Prometheus-only model.
 type PrometheusDatasource struct {
-	ID          uint64         `gorm:"primaryKey;autoIncrement" json:"id"`
+	ID          uint64         `gorm:"primaryKey;autoIncrement;index:idx_datasource_tenant_id,priority:2" json:"id"`
+	TenantID    uint64         `gorm:"not null;default:0;uniqueIndex:idx_datasource_tenant_name,priority:1;index:idx_datasource_tenant_id,priority:1;index:idx_datasource_tenant_default,priority:1" json:"tenantId"`
+	Revision    uint64         `gorm:"not null;default:1" json:"revision"`
 	DeptID      uint64         `gorm:"column:dept_id;index" json:"deptId"`
-	Name        string         `gorm:"size:128;not null;uniqueIndex" json:"name"`
+	Name        string         `gorm:"size:128;not null;uniqueIndex:idx_datasource_tenant_name,priority:2" json:"name"`
 	Type        string         `gorm:"size:32;not null;default:'prometheus'" json:"type"`
 	URL         string         `gorm:"size:512;not null" json:"url"`
 	AccessMode  string         `gorm:"size:32;not null;default:'proxy'" json:"accessMode"` // proxy, direct
@@ -23,18 +25,18 @@ type PrometheusDatasource struct {
 	Password    string         `gorm:"size:512" json:"-"`         // encrypted
 	BearerToken string         `gorm:"size:1024" json:"-"`        // encrypted
 	Timeout     int            `gorm:"default:30" json:"timeout"` // seconds
-	IsDefault   bool           `gorm:"default:false" json:"isDefault"`
+	IsDefault   bool           `gorm:"default:false;index:idx_datasource_tenant_default,priority:2" json:"isDefault"`
 	Status      string         `gorm:"size:32;not null;default:'unknown'" json:"status"` // healthy, unhealthy, unknown
 	LastChecked *time.Time     `json:"lastChecked,omitempty"`
 	CreatedAt   time.Time      `json:"createdAt"`
 	UpdatedAt   time.Time      `json:"updatedAt"`
 	CreatedBy   string         `gorm:"size:64" json:"createdBy"`
-	DeletedAt   gorm.DeletedAt `gorm:"index" json:"-"`
+	DeletedAt   gorm.DeletedAt `gorm:"index;index:idx_datasource_tenant_default,priority:3" json:"-"`
 }
 
 // TableName returns the obs_prometheus_datasource table name.
 func (PrometheusDatasource) TableName() string {
-	return "obs_prometheus_datasource"
+	return datasourceTableName
 }
 
 // DatasourceDTO for API requests
@@ -53,6 +55,8 @@ type DatasourceDTO struct {
 // DatasourceResponse is the Prometheus datasource shape returned to clients.
 type DatasourceResponse struct {
 	ID          uint64     `json:"id"`
+	TenantID    uint64     `json:"tenantId"`
+	Revision    uint64     `json:"revision"`
 	DeptID      uint64     `json:"deptId"`
 	Name        string     `json:"name"`
 	Type        string     `json:"type"`

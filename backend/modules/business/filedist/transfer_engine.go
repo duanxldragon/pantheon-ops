@@ -38,6 +38,9 @@ type TransferTask struct {
 	FinishTime      *time.Time
 	RetryCount      int
 	MaxRetries      int
+	// Optional only for legacy all/admin tasks; stable-ID tasks require this
+	// live check before every queued transfer attempt and local-file access.
+	Authorize func(context.Context) error
 }
 
 // NewTransferEngine creates a new TransferEngine.
@@ -107,6 +110,12 @@ func (e *TransferEngine) worker(ctx context.Context, id int) {
 }
 
 func (e *TransferEngine) processTask(ctx context.Context, task *TransferTask) {
+	if task.Authorize != nil {
+		if err := task.Authorize(ctx); err != nil {
+			e.finishTarget(task.ID, statusFailed, 0, safeDistributionFailure(err))
+			return
+		}
+	}
 	e.updateTarget(task.ID, map[string]interface{}{
 		"status":     statusTransferring,
 		"progress":   0,

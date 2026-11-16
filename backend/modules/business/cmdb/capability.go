@@ -16,6 +16,7 @@ import (
 
 	"gorm.io/datatypes"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 const (
@@ -24,16 +25,19 @@ const (
 )
 
 type DeployHostTarget struct {
-	ID                uint64
-	Hostname          string
-	IP                string
-	SSHPort           int
-	OS                string
-	Status            string
-	BusinessScopeID   uint64
-	BusinessScopeName string
-	LabelValues       datatypes.JSON
-	DeptID            uint64
+	StateVersion        uint64
+	UpdatedAt           time.Time
+	InstalledComponents datatypes.JSON
+	ID                  uint64
+	Hostname            string
+	IP                  string
+	SSHPort             int
+	OS                  string
+	Status              string
+	BusinessScopeID     uint64
+	BusinessScopeName   string
+	LabelValues         datatypes.JSON
+	DeptID              uint64
 }
 
 type InstalledComponentUpsert struct {
@@ -70,6 +74,7 @@ type DeployCMDBCapability interface {
 type deployCMDBCapability struct {
 	db             *gorm.DB
 	bizScopeReader bizcap.BizScopeReader
+	selectionLock  bool
 }
 
 // NewDeployCMDBCapability creates the CMDB capability consumed by deploy and bizscope.
@@ -459,6 +464,9 @@ func (c *deployCMDBCapability) resolveHostTargets(businessScopeID uint64, target
 	if businessScopeID > 0 {
 		query = query.Where(businessScopeIDWhereClause, businessScopeID)
 	}
+	if c.selectionLock {
+		query = query.Clauses(clause.Locking{Strength: "UPDATE"})
+	}
 	var rows []cmdbhost.Host
 	if err := query.Order(idAscOrder).Find(&rows).Error; err != nil {
 		return nil, err
@@ -466,6 +474,7 @@ func (c *deployCMDBCapability) resolveHostTargets(businessScopeID uint64, target
 	items := make([]DeployHostTarget, 0, len(rows))
 	for _, row := range rows {
 		items = append(items, DeployHostTarget{
+			StateVersion: row.StateVersion, UpdatedAt: row.UpdatedAt, InstalledComponents: row.InstalledComponents,
 			ID:                row.ID,
 			Hostname:          row.Hostname,
 			IP:                row.IP,
@@ -495,7 +504,11 @@ func (c *deployCMDBCapability) resolveGroupTargets(targetIDs []uint64, dataScope
 		groupsByID[group.ID] = group
 	}
 	var hosts []cmdbhost.Host
-	if err := c.db.Model(&cmdbhost.Host{}).Scopes(database.WithDataScope(dataScope)).Order(idAscOrder).Find(&hosts).Error; err != nil {
+	hostQuery := c.db.Model(&cmdbhost.Host{}).Scopes(database.WithDataScope(dataScope)).Order(idAscOrder)
+	if c.selectionLock {
+		hostQuery = hostQuery.Clauses(clause.Locking{Strength: "UPDATE"})
+	}
+	if err := hostQuery.Find(&hosts).Error; err != nil {
 		return nil, err
 	}
 	result := make([]DeployHostTarget, 0)
@@ -508,6 +521,7 @@ func (c *deployCMDBCapability) resolveGroupTargets(targetIDs []uint64, dataScope
 				}
 				seen[host.ID] = struct{}{}
 				result = append(result, DeployHostTarget{
+					StateVersion: host.StateVersion, UpdatedAt: host.UpdatedAt, InstalledComponents: host.InstalledComponents,
 					ID:                host.ID,
 					Hostname:          host.Hostname,
 					IP:                host.IP,

@@ -32,8 +32,9 @@ type observabilitySeedTestMenu struct {
 func (observabilitySeedTestMenu) TableName() string { return "system_menu" }
 
 type observabilitySeedTestRole struct {
-	ID      uint64 `gorm:"primaryKey;autoIncrement"`
-	RoleKey string
+	ID       uint64 `gorm:"primaryKey;autoIncrement"`
+	TenantID uint64 `gorm:"not null;default:0"`
+	RoleKey  string
 }
 
 func (observabilitySeedTestRole) TableName() string { return "system_role" }
@@ -80,6 +81,9 @@ func TestSeedMenusAndI18nIsIdempotent(t *testing.T) {
 	if err := db.Create(&observabilitySeedTestRole{ID: 1, RoleKey: "admin"}).Error; err != nil {
 		t.Fatalf("create admin role: %v", err)
 	}
+	if err := db.Create(&observabilitySeedTestRole{ID: 2, TenantID: 11, RoleKey: "admin"}).Error; err != nil {
+		t.Fatal(err)
+	}
 	if err := SeedMenus(db); err != nil {
 		t.Fatalf("first seed: %v", err)
 	}
@@ -90,8 +94,12 @@ func TestSeedMenusAndI18nIsIdempotent(t *testing.T) {
 	assertSeedCount(t, db, "system_menu", "module = ? AND type = ?", []any{observabilityModuleKey, "C"}, 4)
 	assertSeedCount(t, db, "system_role_menu", "role_id = ?", []any{uint64(1)}, 4)
 	assertSeedCount(t, db, "system_role_permission", "role_id = ?", []any{uint64(1)}, 11)
-	assertSeedCount(t, db, "system_i18n", "module = ?", []any{observabilityModuleKey}, 24)
+	assertSeedCount(t, db, "system_i18n", "module = ?", []any{observabilityModuleKey}, 84)
+	assertSeedCount(t, db, "system_role_permission", "role_id = ?", []any{uint64(2)}, 0)
+	assertSeedCount(t, db, "system_role_permission", "permission_key LIKE ? OR permission_key LIKE ?", []any{"business:observability:query-history:%", "business:observability:saved-view:%"}, 0)
 	assertSeedCount(t, db, "system_i18n", "module = ? AND `key` = ?", []any{observabilityModuleKey, "operations.observability.logs.menu"}, 2)
+	assertSeedCount(t, db, "system_i18n", "module = ? AND `key` = ?", []any{observabilityModuleKey, "business.observability.logs.stop"}, 2)
+	assertSeedCount(t, db, "system_i18n", "module = ? AND `key` = ?", []any{observabilityModuleKey, "business.observability.traces.forbidden"}, 2)
 }
 
 func assertSeedCount(t *testing.T, db *gorm.DB, table, where string, args []any, want int64) {

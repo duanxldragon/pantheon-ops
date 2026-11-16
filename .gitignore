@@ -57,6 +57,8 @@ test-results/
 
 # Local Pantheon artifacts
 .claude/
+.omx/
+.local/
 .smoke.token
 .tmp-visual/
 .trace-debug/

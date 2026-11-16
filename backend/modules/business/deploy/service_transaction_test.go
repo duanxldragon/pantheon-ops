@@ -1,0 +1,425 @@
+package deploy
+
+import (
+	"context"
+	"encoding/json"
+	"errors"
+	"testing"
+	"time"
+
+	bizcap "github.com/duanxldragon/pantheon-base/backend/modules/business/capability"
+	serviceowner "github.com/duanxldragon/pantheon-base/backend/modules/business/service"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/common"
+	"gorm.io/gorm"
+)
+
+// Use the actual Service owner: a recording fake cannot expose independent commits.
+func linkedServiceFixture(t *testing.T, uninstall bool) (*gorm.DB, *DeployService, DeployTask, DeployTaskHost, serviceowner.ServiceInstance) {
+	t.Helper()
+	db, s, _, task, host := ownershipFixture(t)
+	owner := serviceowner.NewManager(db, serviceowner.Dependencies{})
+	if err := owner.Migrate(); err != nil {
+		t.Fatal(err)
+	}
+	app := serviceowner.Application{Code: "linked", Name: "linked", BusinessScopeID: task.BusinessScopeID, DeptID: 7}
+	if err := db.Create(&app).Error; err != nil {
+		t.Fatal(err)
+	}
+	svc := serviceowner.Service{ApplicationID: app.ID, Code: "linked", Name: "linked", RuntimeType: "vm"}
+	if err := db.Create(&svc).Error; err != nil {
+		t.Fatal(err)
+	}
+	instance := serviceowner.ServiceInstance{ServiceID: svc.ID, TargetType: "vm", HostID: host.HostID, Environment: "test", DesiredState: "stopped", ObservedState: "installing", HealthState: "unknown", LifecycleVersion: 7, CurrentVersion: "old"}
+	if uninstall {
+		task.Action = TaskActionUninstall
+		instance.ObservedState = "stopping"
+		if err := db.Table("biz_cmdb_host").Where("id = ?", host.HostID).Update("installed_components", `[{"name":"owned","version":"old"}]`).Error; err != nil {
+			t.Fatal(err)
+		}
+	}
+	if err := db.Create(&instance).Error; err != nil {
+		t.Fatal(err)
+	}
+	task.ServiceID, task.ServiceInstanceID = svc.ID, instance.ID
+	if err := db.Save(&task).Error; err != nil {
+		t.Fatal(err)
+	}
+	s.SetServiceInstanceStateApplierWithTransaction(owner, owner.WithServiceInstanceStateTransaction)
+	return db, s, task, host, instance
+}
+
+func linkedServiceFacts(t *testing.T, db *gorm.DB) string {
+	t.Helper()
+	var rows []serviceowner.ServiceInstance
+	if err := db.Order("id").Find(&rows).Error; err != nil {
+		t.Fatal(err)
+	}
+	raw, err := json.Marshal(rows)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return ownershipFacts(t, db) + string(raw)
+}
+
+func TestServiceTransactionLinkedCompletionRollback(t *testing.T) {
+	for _, mode := range []string{"owned", "manual"} {
+		for _, fault := range []string{"commit", "uninstall-second-command", "after-retire", "owner-refusal", "owner-deadline"} {
+			if mode == "manual" && (fault == "owner-refusal" || fault == "owner-deadline") {
+				continue
+			}
+			t.Run(mode+"/"+fault, func(t *testing.T) {
+				uninstall := fault == "uninstall-second-command" || fault == "after-retire"
+				db, s, task, host, _ := linkedServiceFixture(t, uninstall)
+				var ctx context.Context
+				if mode == "owned" {
+					s, ctx = ownedClaim(t, s, task, host, "linked")
+				}
+				before := linkedServiceFacts(t, db)
+				injected := errors.New("linked owner completion refused")
+				writes := 0
+				if fault == "commit" {
+					sqlDB, err := db.DB()
+					if err != nil {
+						t.Fatal(err)
+					}
+					isolated := db.Session(&gorm.Session{NewDB: true}).WithContext(context.Background())
+					isolated.Statement.ConnPool = ownershipCommitPool{ConnPool: sqlDB, sqlDB: sqlDB, fail: injected}
+					s.db = isolated
+				}
+				if err := db.Callback().Update().Before("gorm:update").Register("linked_second_command", func(tx *gorm.DB) {
+					if tx.Statement.Table == "biz_service_instance" && fault == "uninstall-second-command" && writes == 1 {
+						tx.AddError(injected)
+					}
+				}); err != nil {
+					t.Fatal(err)
+				}
+				if err := db.Callback().Update().After("gorm:update").Register("linked_owner_written", func(tx *gorm.DB) {
+					if tx.Statement.Table != "biz_service_instance" || tx.Error != nil {
+						return
+					}
+					writes++
+					if fault == "owner-refusal" {
+						s.ownership.fail(injected)
+					}
+					if fault == "owner-deadline" {
+						s.ownership.mu.Lock()
+						s.ownership.deadline = time.Now().Add(-time.Second)
+						s.ownership.mu.Unlock()
+					}
+					if fault == "after-retire" && writes == 2 {
+						tx.AddError(injected)
+					}
+				}); err != nil {
+					t.Fatal(err)
+				}
+				defer db.Callback().Update().Remove("linked_second_command")
+				defer db.Callback().Update().Remove("linked_owner_written")
+				var err error
+				if mode == "owned" {
+					err = s.completeOwnedAttempt("success", nil, "test", false)
+				} else {
+					_, err = s.MarkHostResult(host.ID, MarkHostResultRequest{Status: TaskHostStatusSuccess}, "test", nil)
+				}
+				if err == nil {
+					t.Fatal("fault did not refuse outer completion")
+				}
+				if writes == 0 {
+					t.Fatal("fault ran before actual Service owner mutation")
+				}
+				if fault == "after-retire" && writes != 2 {
+					t.Fatalf("retire was not written: %d", writes)
+				}
+				if linkedServiceFacts(t, db) != before {
+					t.Fatal("ServiceInstance state/version/retire and Deploy/CMDB projections did not roll back together")
+				}
+				if mode == "owned" {
+					waitOwnership(t, ctx.Done(), "failed linked completion cancellation")
+				}
+			})
+		}
+	}
+}
+
+func TestServiceTransactionLinkedCompletionCommit(t *testing.T) {
+	for _, mode := range []string{"owned", "manual"} {
+		for _, uninstall := range []bool{false, true} {
+			name := mode + "/install"
+			if uninstall {
+				name = mode + "/uninstall"
+			}
+			t.Run(name, func(t *testing.T) {
+				db, s, task, host, instance := linkedServiceFixture(t, uninstall)
+				if mode == "owned" {
+					s, _ = ownedClaim(t, s, task, host, "linked")
+				}
+				if mode == "owned" {
+					if err := s.completeOwnedAttempt("success", nil, "test", false); err != nil {
+						t.Fatal(err)
+					}
+				} else {
+					if _, err := s.MarkHostResult(host.ID, MarkHostResultRequest{Status: TaskHostStatusSuccess}, "test", nil); err != nil {
+						t.Fatal(err)
+					}
+				}
+				var after serviceowner.ServiceInstance
+				if err := db.First(&after, instance.ID).Error; err != nil {
+					t.Fatal(err)
+				}
+				wantState, wantVersion := "stopped", instance.LifecycleVersion+1
+				if uninstall {
+					wantState, wantVersion = "retired", instance.LifecycleVersion+2
+				}
+				if after.ObservedState != wantState || after.LifecycleVersion != wantVersion {
+					t.Fatalf("owner projection: %+v", after)
+				}
+				if !uninstall && (after.CurrentVersion != task.PackageVersion || after.DesiredVersion != task.PackageVersion) {
+					t.Fatalf("owner version projection: %+v", after)
+				}
+				if err := db.First(&host, host.ID).Error; err != nil {
+					t.Fatal(err)
+				}
+				if host.Status != TaskHostStatusSuccess || host.FinishedAt == nil || len(host.TraceSteps) == 0 {
+					t.Fatal("host/result/trace did not commit")
+				}
+				var cmdbHost deployTestHost
+				if err := db.First(&cmdbHost, host.HostID).Error; err != nil {
+					t.Fatal(err)
+				}
+				var components []map[string]any
+				if err := json.Unmarshal(cmdbHost.InstalledComponents, &components); err != nil {
+					t.Fatal(err)
+				}
+				if uninstall && len(components) != 0 {
+					t.Fatal("CMDB removal did not commit")
+				}
+				if !uninstall && (len(components) != 1 || components[0]["name"] != task.PackageName || components[0]["version"] != task.PackageVersion) {
+					t.Fatalf("CMDB installation: %s", cmdbHost.InstalledComponents)
+				}
+				if err := db.First(&task, task.ID).Error; err != nil {
+					t.Fatal(err)
+				}
+				if task.Status != TaskStatusSuccess {
+					t.Fatalf("task did not commit: %s", task.Status)
+				}
+				var leases int64
+				if err := db.Model(&DeployHostLease{}).Where("host_id = ? AND task_id = ?", host.HostID, task.ID).Count(&leases).Error; err != nil {
+					t.Fatal(err)
+				}
+				if leases != 0 {
+					t.Fatal("lease release did not commit")
+				}
+			})
+		}
+	}
+}
+
+type nilbindingServiceState struct{ nonbindingServiceState }
+
+func (*nilbindingServiceState) WithServiceInstanceStateTransaction(*gorm.DB) bizcap.ServiceInstanceStateApplier {
+	return nil
+}
+
+func TestServiceTransactionNilBindingAndLinkCompatibility(t *testing.T) {
+	for _, mode := range []string{"nil-bound", "no-link", "no-owner"} {
+		t.Run(mode, func(t *testing.T) {
+			db, s, task, host, _ := linkedServiceFixture(t, false)
+			fake := &nilbindingServiceState{}
+			s.SetServiceInstanceStateApplierWithTransaction(fake, fake.WithServiceInstanceStateTransaction)
+			if mode == "no-link" {
+				task.ServiceInstanceID = 0
+				if err := db.Save(&task).Error; err != nil {
+					t.Fatal(err)
+				}
+			}
+			if mode == "no-owner" {
+				s.SetServiceInstanceStateApplier(nil)
+			}
+			inner, _ := ownedClaim(t, s, task, host, "nil-binding")
+			before := linkedServiceFacts(t, db)
+			err := inner.completeOwnedAttempt("success", nil, "test", false)
+			if mode == "nil-bound" {
+				if err == nil || linkedServiceFacts(t, db) != before {
+					t.Fatalf("nil binding failed open: %v", err)
+				}
+			} else if err != nil {
+				t.Fatalf("nil/no-link compatibility: %v", err)
+			}
+			if fake.calls != 0 {
+				t.Fatal("nil-bound owner invoked")
+			}
+		})
+	}
+}
+
+type nonbindingServiceState struct{ calls int }
+
+func (f *nonbindingServiceState) ApplyServiceInstanceState(context.Context, bizcap.ServiceInstanceStateTransition, string, *common.DataScopeReq) error {
+	f.calls++
+	return nil
+}
+
+func TestServiceTransactionNonbindingRefusedBeforeMutation(t *testing.T) {
+	for _, mode := range []string{"owned", "manual"} {
+		t.Run(mode, func(t *testing.T) {
+			db, s, task, host, _ := linkedServiceFixture(t, false)
+			fake := &nonbindingServiceState{}
+			s.SetServiceInstanceStateApplier(fake)
+			if mode == "owned" {
+				s, _ = ownedClaim(t, s, task, host, "nonbinding")
+			}
+			before := linkedServiceFacts(t, db)
+			var err error
+			if mode == "owned" {
+				err = s.completeOwnedAttempt("success", nil, "test", false)
+			} else {
+				_, err = s.MarkHostResult(host.ID, MarkHostResultRequest{Status: TaskHostStatusSuccess}, "test", nil)
+			}
+			if err == nil || fake.calls != 0 {
+				t.Fatalf("unknown owner reached mutation: err=%v calls=%d", err, fake.calls)
+			}
+			if linkedServiceFacts(t, db) != before {
+				t.Fatal("refused capability committed projections")
+			}
+		})
+	}
+}
+
+func TestServiceTransactionFactoryRefusesInvalidOwnerBeforeMutation(t *testing.T) {
+	for _, mode := range []string{"owned", "manual"} {
+		for _, fault := range []string{"missing-factory", "nil-bound", "typednil-bound", "typednil-owner", "unknown-replacement"} {
+			t.Run(mode+"/"+fault, func(t *testing.T) {
+				db, s, task, host, _ := linkedServiceFixture(t, false)
+				owner, originalFactory := s.serviceState, s.serviceStateTransaction
+				fake := &nonbindingServiceState{}
+				oldFactoryCalls := 0
+				trackedFactory := func(tx *gorm.DB) bizcap.ServiceInstanceStateApplier {
+					oldFactoryCalls++
+					return originalFactory(tx)
+				}
+				s.SetServiceInstanceStateApplierWithTransaction(owner, trackedFactory)
+				switch fault {
+				case "missing-factory":
+					s.SetServiceInstanceStateApplier(owner)
+				case "nil-bound":
+					s.SetServiceInstanceStateApplierWithTransaction(owner, func(*gorm.DB) bizcap.ServiceInstanceStateApplier { return nil })
+				case "typednil-bound":
+					s.SetServiceInstanceStateApplierWithTransaction(owner, func(*gorm.DB) bizcap.ServiceInstanceStateApplier { return (*nonbindingServiceState)(nil) })
+				case "typednil-owner":
+					s.SetServiceInstanceStateApplierWithTransaction((*nonbindingServiceState)(nil), trackedFactory)
+				case "unknown-replacement":
+					s.SetServiceInstanceStateApplier(fake)
+				}
+				if mode == "owned" {
+					s, _ = ownedClaim(t, s, task, host, "invalid-owner-factory")
+				}
+				before := linkedServiceFacts(t, db)
+				var err error
+				if mode == "owned" {
+					err = s.completeOwnedAttempt("success", nil, "test", false)
+				} else {
+					_, err = s.MarkHostResult(host.ID, MarkHostResultRequest{Status: TaskHostStatusSuccess}, "test", nil)
+				}
+				if err == nil || err.Error() != "deploy.serviceState.transactionNotSupported" {
+					t.Fatalf("invalid owner/factory did not return fixed rejection: %v", err)
+				}
+				if fake.calls != 0 || oldFactoryCalls != 0 || linkedServiceFacts(t, db) != before {
+					t.Fatalf("invalid owner/factory escaped caller transaction: unknownCalls=%d oldFactoryCalls=%d", fake.calls, oldFactoryCalls)
+				}
+			})
+		}
+	}
+}
+
+func TestServiceTransactionFactoryPreservesClonesAndCallerTransaction(t *testing.T) {
+	for _, mode := range []string{"owned", "manual"} {
+		t.Run(mode, func(t *testing.T) {
+			db, s, task, host, _ := linkedServiceFixture(t, true)
+			owner, factory := s.serviceState, s.serviceStateTransaction
+			var received *gorm.DB
+			factoryCalls, ownerWrites := 0, 0
+			s.SetServiceInstanceStateApplierWithTransaction(owner, func(tx *gorm.DB) bizcap.ServiceInstanceStateApplier {
+				received = tx
+				factoryCalls++
+				if _, ok := tx.Statement.ConnPool.(gorm.TxCommitter); !ok {
+					t.Error("factory received a nontransaction DB")
+				}
+				return factory(tx)
+			})
+			request := s.targetRequestService(context.Background())
+			discovery := s.targetDiscoveryService(context.Background())
+			if request.serviceStateTransaction == nil || discovery.serviceStateTransaction == nil || factoryCalls != 0 {
+				t.Fatal("request/discovery clone lost factory or bound it before a transaction")
+			}
+			injected := errors.New("identity-only caller rollback")
+			if err := request.db.Transaction(func(tx *gorm.DB) error {
+				clone := request.targetTransactionService(tx, request.cmdbCapability)
+				if received != tx || clone.serviceStateTransaction == nil {
+					t.Fatal("factory did not receive exact caller transaction or clone dropped it")
+				}
+				return injected
+			}); !errors.Is(err, injected) {
+				t.Fatalf("identity-only transaction: %v", err)
+			}
+			if mode == "owned" {
+				s, _ = ownedClaim(t, request, task, host, "same-transaction-factory")
+				if s.serviceStateTransaction == nil {
+					t.Fatal("owned execution clone lost the owner transaction factory")
+				}
+			} else {
+				s = request
+			}
+			if err := db.Callback().Update().Before("gorm:update").Register("factory_owner_transaction", func(operation *gorm.DB) {
+				if operation.Statement.Table != "biz_service_instance" {
+					return
+				}
+				ownerWrites++
+				if received == nil || operation.Statement.ConnPool != received.Statement.ConnPool {
+					t.Error("actual owner command used a different SQL transaction")
+				}
+				if !operation.SkipDefaultTransaction {
+					t.Error("actual owner command started its own default transaction")
+				}
+			}); err != nil {
+				t.Fatal(err)
+			}
+			defer db.Callback().Update().Remove("factory_owner_transaction")
+			var err error
+			if mode == "owned" {
+				err = s.completeOwnedAttempt("success", nil, "test", false)
+			} else {
+				_, err = s.MarkHostResult(host.ID, MarkHostResultRequest{Status: TaskHostStatusSuccess}, "test", nil)
+			}
+			if err != nil || ownerWrites != 2 || factoryCalls < 2 {
+				t.Fatalf("actual uninstall/retire factory binding: err=%v ownerWrites=%d factoryCalls=%d", err, ownerWrites, factoryCalls)
+			}
+		})
+	}
+}
+
+func TestServiceTransactionNilReplacementClearsOldOwnerFactory(t *testing.T) {
+	db, s, task, host, instance := linkedServiceFixture(t, false)
+	owner, factory := s.serviceState, s.serviceStateTransaction
+	factoryCalls := 0
+	s.SetServiceInstanceStateApplierWithTransaction(owner, func(tx *gorm.DB) bizcap.ServiceInstanceStateApplier {
+		factoryCalls++
+		return factory(tx)
+	})
+	// Even an explicit nil-owner pair cannot retain the former owner's factory.
+	s.SetServiceInstanceStateApplierWithTransaction(nil, s.serviceStateTransaction)
+	if s.serviceStateTransaction != nil {
+		t.Fatal("nil owner replacement kept former owner's factory")
+	}
+	if _, err := s.MarkHostResult(host.ID, MarkHostResultRequest{Status: TaskHostStatusSuccess}, "test", nil); err != nil {
+		t.Fatalf("no-owner compatibility: %v", err)
+	}
+	var after serviceowner.ServiceInstance
+	if err := db.First(&after, instance.ID).Error; err != nil {
+		t.Fatal(err)
+	}
+	if factoryCalls != 0 || after.ObservedState != instance.ObservedState || after.LifecycleVersion != instance.LifecycleVersion {
+		t.Fatal("nil owner replacement wrote through the old owner")
+	}
+	if err := db.First(&task, task.ID).Error; err != nil || task.Status != TaskStatusSuccess {
+		t.Fatalf("no-owner task did not retain completion compatibility: %v status=%s", err, task.Status)
+	}
+}

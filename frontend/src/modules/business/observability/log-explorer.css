@@ -1,0 +1,104 @@
+.observability-log-range {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: var(--space-md);
+}
+.observability-log-range label {
+  display: grid;
+  gap: var(--space-xs);
+  min-width: 0;
+  flex: 1 1 200px;
+}
+.observability-log-range span {
+  color: var(--text-secondary);
+  overflow-wrap: anywhere;
+}
+
+.observability-log-results {
+  min-width: 0;
+}
+.observability-log-results__note {
+  color: var(--text-secondary);
+  margin: var(--space-md) 0;
+}
+.observability-log-results__raw {
+  max-height: 480px;
+  overflow: auto;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  background: var(--panel-muted);
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-lg);
+  color: var(--text-primary);
+}
+.observability-log-results__raw:focus-visible {
+  outline: 2px solid var(--brand-primary);
+  outline-offset: 2px;
+}
+
+.observability-log-labels__value {
+  display: block;
+  max-width: 240px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.observability-log-labels__note {
+  margin-top: var(--space-xs);
+  color: var(--text-secondary);
+  overflow-wrap: anywhere;
+}
+
+.observability-workspace-controls {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-md);
+  min-width: 0;
+}
+.observability-workspace-note {
+  display: block;
+  color: var(--text-secondary);
+  font-size: 12px;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+.observability-workspace-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-md);
+  padding: var(--space-md) 0;
+  border-bottom: 1px solid var(--panel-border);
+}
+.observability-workspace-row > div:first-child {
+  flex: 1 1 180px;
+  min-width: 0;
+}
+.observability-workspace-drawer-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+  align-items: center;
+}
+.observability-metrics-workspace {
+  display: flex;
+  width: 100%;
+  min-width: 0;
+}
+.observability-metrics-workspace > .arco-space-item {
+  width: 100%;
+  min-width: 0;
+}
+@media (max-width: 640px) {
+  .observability-workspace-controls > .arco-space {
+    width: 100%;
+  }
+  .observability-workspace-row {
+    align-items: flex-start;
+  }
+}

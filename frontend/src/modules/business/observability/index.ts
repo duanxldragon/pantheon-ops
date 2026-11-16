@@ -1,8 +1,10 @@
 import { defineModule } from '@duanxldragon/pantheon-base-ui';
+import { observabilityDashboardWidgets } from '../shared/dashboardWidgets';
 
 export const ObservabilityModule = defineModule({
   name: 'observability',
   scope: 'business',
+  dashboardWidgets: observabilityDashboardWidgets,
   routes: [
     {
       path: 'business/observability/monitoring',
@@ -80,6 +82,14 @@ export const ObservabilityModule = defineModule({
     'business:observability:notification:update',
     'business:observability:logs:view',
     'business:observability:traces:view',
+    'business:observability:query-history:view',
+    'business:observability:query-history:delete',
+    'business:observability:query-history:restore',
+    'business:observability:saved-view:view',
+    'business:observability:saved-view:create',
+    'business:observability:saved-view:update',
+    'business:observability:saved-view:delete',
+    'business:observability:saved-view:restore',
   ],
   i18nNamespaces: ['business.observability'],
 });

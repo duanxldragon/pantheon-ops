@@ -19,6 +19,9 @@ const (
 
 // InitCmdbModule registers CMDB owner-module routes and capabilities.
 func InitCmdbModule(r *gin.RouterGroup, db *gorm.DB, readers ...bizcap.BizScopeReader) *host.HostService {
+	if err := registerHostPermissionRoutes(); err != nil {
+		panic(err)
+	}
 	var bizScopeReader bizcap.BizScopeReader
 	if len(readers) > 0 {
 		bizScopeReader = readers[0]

@@ -1,0 +1,9 @@
+{
+  "business.deploy.logs.copy": "Copier les journaux visibles",
+  "business.deploy.logs.copied": "Journaux copiés",
+  "business.deploy.logs.copyFailed": "Impossible de copier les journaux",
+  "business.deploy.logs.download": "Télécharger l’instantané",
+  "business.deploy.logs.downloadFailed": "Impossible de télécharger les journaux",
+  "business.deploy.logs.downloadLimited": "L’instantané est partiel car une limite a été atteinte.",
+  "business.deploy.logs.knownRedaction": "Les secrets connus de la tâche sont masqués. D’autres données sensibles peuvent subsister."
+}

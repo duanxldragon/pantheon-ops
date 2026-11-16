@@ -3,14 +3,11 @@ package observability
 import (
 	"context"
 	"encoding/json"
-	"fmt"
-	"io"
-	"net/http"
-	"net/url"
+	"errors"
+	"math"
+	"strconv"
 	"sync"
 	"time"
-
-	"github.com/duanxldragon/pantheon-base/backend/modules/business/secrets"
 
 	"gorm.io/gorm"
 )
@@ -90,7 +87,10 @@ func (e *AlertEvaluator) Stop() {
 
 // AddRule starts evaluating a new rule.
 func (e *AlertEvaluator) AddRule(rule *AlertRule) {
-	if !rule.Enabled {
+	if rule == nil || !rule.Enabled || rule.Interval <= 0 {
+		return
+	}
+	if _, err := e.datasourceService.GetByID(rule.DatasourceID); err != nil {
 		return
 	}
 
@@ -204,6 +204,9 @@ func (e *AlertEvaluator) sendNotifications(rule *AlertRule, value float64, statu
 	if e.notificationService == nil {
 		return
 	}
+	if _, err := e.datasourceService.GetByID(rule.DatasourceID); err != nil {
+		return
+	}
 	var channelIDs []uint64
 	_ = json.Unmarshal(rule.NotificationChannels, &channelIDs)
 	message := map[string]interface{}{
@@ -222,91 +225,36 @@ func (e *AlertEvaluator) sendNotifications(rule *AlertRule, value float64, statu
 }
 
 func (e *AlertEvaluator) executeQuery(ds *DatasourceResponse, query string, lookback int) (float64, error) {
-	// Get datasource record for credentials
-	var dsRecord PrometheusDatasource
-	if err := e.db.First(&dsRecord, ds.ID).Error; err != nil {
-		return 0, err
+	if ds == nil || ds.TenantID != 0 {
+		return 0, ErrWorkspaceDenied
 	}
-
-	// Decrypt credentials
-	password, err := secrets.Decrypt(dsRecord.Password)
+	result, err := e.datasourceService.Query(ds.ID, query)
 	if err != nil {
-		return 0, err
+		return 0, errors.New("observability.datasource_query_failed")
 	}
-	bearerToken, err := secrets.Decrypt(dsRecord.BearerToken)
-	if err != nil {
-		return 0, err
-	}
-
-	// Build query URL with proper encoding
-	queryURL := fmt.Sprintf("%s/api/v1/query?query=%s", ds.URL, url.QueryEscape(query))
-
-	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(ds.Timeout)*time.Second)
-	defer cancel()
-
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, queryURL, nil)
-	if err != nil {
-		return 0, err
-	}
-
-	if bearerToken != "" {
-		req.Header.Set("Authorization", "Bearer "+bearerToken)
-	} else if dsRecord.Username != "" {
-		req.SetBasicAuth(dsRecord.Username, password)
-	}
-
-	client := &http.Client{Timeout: time.Duration(ds.Timeout) * time.Second}
-	resp, err := client.Do(req)
-	if err != nil {
-		return 0, err
-	}
-	defer func() { _ = resp.Body.Close() }()
-
-	if resp.StatusCode != http.StatusOK {
-		body, _ := io.ReadAll(resp.Body)
-		return 0, fmt.Errorf("query failed with status %d: %s", resp.StatusCode, string(body))
-	}
-
-	// Parse Prometheus response
-	var result struct {
-		Status string `json:"status"`
-		Data   struct {
-			ResultType string `json:"resultType"`
-			Result     []struct {
-				Metric map[string]string `json:"metric"`
-				Value  []interface{}     `json:"value"`
-			} `json:"result"`
-		} `json:"data"`
-	}
-
-	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
-		return 0, err
-	}
-
-	if result.Status != queryStatusSuccess {
-		return 0, fmt.Errorf("query failed: %s", result.Status)
-	}
-
-	// Extract value from result
-	if len(result.Data.Result) == 0 {
-		return 0, nil
-	}
-
-	// Get first result value
-	if len(result.Data.Result[0].Value) < 2 {
-		return 0, nil
-	}
-
-	valueStr, ok := result.Data.Result[0].Value[1].(string)
+	data, ok := result["data"].(map[string]interface{})
 	if !ok {
 		return 0, nil
 	}
-
-	var value float64
-	_, err = fmt.Sscanf(valueStr, "%f", &value)
-	if err != nil {
-		return 0, err
+	rows, ok := data["result"].([]interface{})
+	if !ok || len(rows) == 0 {
+		return 0, nil
 	}
-
+	row, ok := rows[0].(map[string]interface{})
+	if !ok {
+		return 0, nil
+	}
+	values, ok := row["value"].([]interface{})
+	if !ok || len(values) < 2 {
+		return 0, nil
+	}
+	text, ok := values[1].(string)
+	if !ok {
+		return 0, nil
+	}
+	value, err := strconv.ParseFloat(text, 64)
+	if err != nil || math.IsInf(value, 0) || math.IsNaN(value) {
+		return 0, errors.New("observability.datasource_query_failed")
+	}
 	return value, nil
 }

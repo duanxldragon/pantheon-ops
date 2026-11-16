@@ -110,10 +110,11 @@ export function unbindBizScopeHost(id: number, hostId: number) {
   });
 }
 
-export function getBizScopeOptions() {
+export function getBizScopeOptions(signal?: AbortSignal) {
   return apiRequest<BizScopeOptionItem[]>({
     url: '/business/bizscope/options',
     method: 'get',
+    signal,
   });
 }
 

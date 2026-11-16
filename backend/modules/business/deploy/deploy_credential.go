@@ -65,7 +65,7 @@ func (s *DeployService) CreateCredential(req CreateDeployCredentialRequest, acto
 	if err != nil {
 		return nil, err
 	}
-	item := DeployCredentialRef{Name: strings.TrimSpace(req.Name), Username: strings.TrimSpace(req.Username), AuthMode: req.AuthMode, SecretEncrypted: secret, Version: 1, Status: "active", CreatedAt: time.Now(), UpdatedAt: time.Now()}
+	item := DeployCredentialRef{Name: strings.TrimSpace(req.Name), Username: strings.TrimSpace(req.Username), AuthMode: req.AuthMode, SecretEncrypted: secret, Version: 1, Status: bizScopeStatusActive, CreatedAt: time.Now(), UpdatedAt: time.Now()}
 	if err := s.db.Create(&item).Error; err != nil {
 		return nil, err
 	}
@@ -96,7 +96,7 @@ func (s *DeployService) UpdateCredential(id uint64, req UpdateDeployCredentialRe
 		updates["auth_mode"] = *req.AuthMode
 	}
 	if req.Status != nil {
-		if *req.Status != "active" && *req.Status != "disabled" {
+		if *req.Status != bizScopeStatusActive && *req.Status != "disabled" {
 			return nil, errors.New("business.deploy.credential.status_invalid")
 		}
 		updates["status"] = *req.Status
@@ -182,7 +182,7 @@ func (s *DeployService) resolveStartCredential(req StartTaskRequest) (StartTaskR
 	if err := s.db.First(&ref, req.CredentialRefID).Error; err != nil {
 		return req, 0, errors.New("business.deploy.credential.not_found")
 	}
-	if ref.Status != "active" {
+	if ref.Status != bizScopeStatusActive {
 		return req, 0, errors.New("business.deploy.credential.inactive")
 	}
 	secret, err := decryptDeployCredential(ref.SecretEncrypted)

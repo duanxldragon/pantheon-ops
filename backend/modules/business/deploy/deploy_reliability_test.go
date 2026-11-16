@@ -1,6 +1,8 @@
 package deploy
 
 import (
+	"context"
+	"errors"
 	"strings"
 	"testing"
 	"time"
@@ -80,7 +82,8 @@ func TestMarkHostResultDefersTerminalTaskUntilActiveAttemptFinishes(t *testing.T
 		t.Fatalf("create host lease: %v", err)
 	}
 
-	if _, err := svc.MarkHostResult(taskHost.ID, MarkHostResultRequest{
+	owned := svc.ownedService(tokenForAttempt(attempt, taskHost))
+	if _, err := owned.MarkHostResult(taskHost.ID, MarkHostResultRequest{
 		Status: TaskHostStatusFailed, ErrorMessage: "first attempt failed",
 	}, "1", nil); err != nil {
 		t.Fatalf("mark host result: %v", err)
@@ -100,13 +103,8 @@ func TestMarkHostResultDefersTerminalTaskUntilActiveAttemptFinishes(t *testing.T
 		t.Fatalf("active attempt must retain host lease, got %d", activeLeaseCount)
 	}
 
-	if err := db.Model(&DeployTaskAttempt{}).Where("id = ?", attempt.ID).Updates(map[string]any{
-		"status": "failed", "lease_expires_at": nil, "finished_at": now,
-	}).Error; err != nil {
-		t.Fatalf("finish active attempt: %v", err)
-	}
-	if err := svc.recomputeTaskStatus(task.ID, "1"); err != nil {
-		t.Fatalf("recompute task after attempt finish: %v", err)
+	if err := owned.completeOwnedAttempt("failed", errors.New("first attempt failed"), "1", false); err != nil {
+		t.Fatalf("atomic finish: %v", err)
 	}
 	if err := db.First(&currentTask, task.ID).Error; err != nil {
 		t.Fatalf("reload terminal task: %v", err)
@@ -116,7 +114,7 @@ func TestMarkHostResultDefersTerminalTaskUntilActiveAttemptFinishes(t *testing.T
 	}
 }
 
-func TestHasActiveTaskAttemptTreatsLegacyNilLeaseAsActive(t *testing.T) {
+func TestHasActiveTaskAttemptRejectsLegacyNilOwnership(t *testing.T) {
 	db := setupDeployTestDB(t)
 	svc := NewDeployService(db, cmdb.NewDeployCMDBCapability(db))
 	if err := db.Create(&DeployTaskAttempt{
@@ -128,8 +126,8 @@ func TestHasActiveTaskAttemptTreatsLegacyNilLeaseAsActive(t *testing.T) {
 	if err != nil {
 		t.Fatalf("check active attempt: %v", err)
 	}
-	if !active {
-		t.Fatal("running attempt without a lease expiry must remain active")
+	if active {
+		t.Fatal("running legacy attempt without lease cannot establish ownership")
 	}
 }
 
@@ -178,7 +176,7 @@ func TestDeployTaskExecutionSnapshotFrozenAgainstLiveMutation(t *testing.T) {
 	credID := setupDeployTestCredential(t, svc)
 
 	runner := &fakeDeploySSHRunner{stdout: "ok"}
-	svc.sshRunnerFactory = func(host cmdbHostSnapshot, req StartTaskRequest) (deploySSHRunner, error) {
+	svc.sshRunnerFactory = func(_ context.Context, host cmdbHostSnapshot, req StartTaskRequest) (deploySSHRunner, error) {
 		return runner, nil
 	}
 

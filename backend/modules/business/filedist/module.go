@@ -4,6 +4,8 @@ import (
 	"context"
 	"strings"
 
+	"github.com/duanxldragon/pantheon-base/backend/modules/business/cmdb"
+
 	"github.com/duanxldragon/pantheon-base/backend/pkg/contracts"
 
 	"github.com/gin-gonic/gin"
@@ -76,4 +78,14 @@ func (m *FileDistModule) Stop() {
 	if m != nil && m.transferEngine != nil {
 		m.transferEngine.Stop()
 	}
+}
+
+// SetTargetSelectionCapability wires the provider-owned stable-ID resolver.
+func (m *FileDistModule) SetTargetSelectionCapability(provider cmdb.TargetSelectionCapability) {
+	m.distributionService.SetTargetSelectionCapability(provider)
+}
+
+// SetFileDistributionAuthorizer wires current job/source authority at startup.
+func (m *FileDistModule) SetFileDistributionAuthorizer(authorizer FileDistributionAuthorizer) {
+	m.distributionService.SetFileDistributionAuthorizer(authorizer)
 }
