@@ -1,0 +1,151 @@
+{
+  "recordedAt": "2026-11-07T07:14:25.292Z",
+  "head": "951905200a19fdc3e7667d5cc00240d6ad3b1a9f",
+  "checks": [
+    {
+      "link": "https://github.com/duanxldragon/pantheon-ops/actions/runs/42350083686/job/128337040050",
+      "name": "Security Gates",
+      "state": "SUCCESS"
+    },
+    {
+      "link": "https://github.com/duanxldragon/pantheon-ops/actions/runs/42350083686/job/128337015379",
+      "name": "CodeQL Alert Gate",
+      "state": "SUCCESS"
+    },
+    {
+      "link": "https://github.com/duanxldragon/pantheon-ops/runs/128336971212",
+      "name": "CodeQL",
+      "state": "SUCCESS"
+    },
+    {
+      "link": "https://github.com/duanxldragon/pantheon-ops/actions/runs/42350083727/job/128336927830",
+      "name": "Quality Gates",
+      "state": "SUCCESS"
+    },
+    {
+      "link": "https://sonarcloud.io/dashboard?id=duanxldragon_pantheon-ops&pullRequest=178",
+      "name": "SonarCloud Code Analysis",
+      "state": "SUCCESS"
+    },
+    {
+      "link": "https://github.com/duanxldragon/pantheon-ops/actions/runs/42350083598/job/128336214557",
+      "name": "Automate Solo PR",
+      "state": "SUCCESS"
+    },
+    {
+      "link": "https://github.com/duanxldragon/pantheon-ops/actions/runs/42350083727/job/128336183750",
+      "name": "Docs Governance",
+      "state": "SUCCESS"
+    },
+    {
+      "link": "https://github.com/duanxldragon/pantheon-ops/actions/runs/42350083727/job/128336185320",
+      "name": "Smoke Sanity",
+      "state": "SKIPPED"
+    },
+    {
+      "link": "https://github.com/duanxldragon/pantheon-ops/actions/runs/42350083727/job/128336184878",
+      "name": "Frontend Contract",
+      "state": "SKIPPED"
+    },
+    {
+      "link": "https://github.com/duanxldragon/pantheon-ops/actions/runs/42350083598/job/128336155138",
+      "name": "GitHub Feedback Prereq",
+      "state": "SUCCESS"
+    },
+    {
+      "link": "https://github.com/duanxldragon/pantheon-ops/actions/runs/42350083727/job/128336156125",
+      "name": "Duplication Gate",
+      "state": "SUCCESS"
+    },
+    {
+      "link": "https://github.com/duanxldragon/pantheon-ops/actions/runs/42350083686/job/128336155393",
+      "name": "CodeQL Security Scan",
+      "state": "SUCCESS"
+    },
+    {
+      "link": "https://github.com/duanxldragon/pantheon-ops/actions/runs/42350083686/job/128336155250",
+      "name": "Workflow Posture",
+      "state": "SUCCESS"
+    },
+    {
+      "link": "https://github.com/duanxldragon/pantheon-ops/actions/runs/42350083727/job/128336155747",
+      "name": "Go Lint",
+      "state": "SUCCESS"
+    },
+    {
+      "link": "https://github.com/duanxldragon/pantheon-ops/actions/runs/42350083686/job/128336155419",
+      "name": "Secret Scan",
+      "state": "SUCCESS"
+    },
+    {
+      "link": "https://github.com/duanxldragon/pantheon-ops/actions/runs/42350083727/job/128336155889",
+      "name": "Backend Tests",
+      "state": "SUCCESS"
+    },
+    {
+      "link": "https://github.com/duanxldragon/pantheon-ops/actions/runs/42350083638/job/128336155073",
+      "name": "SonarCloud Scan",
+      "state": "SUCCESS"
+    },
+    {
+      "link": "https://github.com/duanxldragon/pantheon-ops/actions/runs/42350083598/job/128336155321",
+      "name": "PR Governance Prereq",
+      "state": "SUCCESS"
+    },
+    {
+      "link": "https://github.com/duanxldragon/pantheon-ops/actions/runs/42350083727/job/128336156005",
+      "name": "Change Scope",
+      "state": "SUCCESS"
+    },
+    {
+      "link": "https://vercel.com/github",
+      "name": "Vercel Preview Comments",
+      "state": "SUCCESS"
+    },
+    {
+      "link": "https://github.com/duanxldragon/pantheon-ops/actions/runs/42350083686/job/128336156341",
+      "name": "Dependency Vulnerabilities",
+      "state": "SKIPPED"
+    },
+    {
+      "link": "https://vercel.com/duanxiaolongs-projects-6795928c/pantheon-ops/9Ap1MvRpmCnnVFE3TNhyPH4ykp9k",
+      "name": "Vercel",
+      "state": "FAILURE"
+    }
+  ],
+  "required": [
+    {
+      "link": "https://github.com/duanxldragon/pantheon-ops/actions/runs/42350083686/job/128337040050",
+      "name": "Security Gates",
+      "state": "SUCCESS"
+    },
+    {
+      "link": "https://github.com/duanxldragon/pantheon-ops/actions/runs/42350083727/job/128336927830",
+      "name": "Quality Gates",
+      "state": "SUCCESS"
+    },
+    {
+      "link": "https://github.com/duanxldragon/pantheon-ops/actions/runs/42350083727/job/128336183750",
+      "name": "Docs Governance",
+      "state": "SUCCESS"
+    },
+    {
+      "link": "https://github.com/duanxldragon/pantheon-ops/actions/runs/42350083727/job/128336184878",
+      "name": "Frontend Contract",
+      "state": "SKIPPED"
+    },
+    {
+      "link": "https://github.com/duanxldragon/pantheon-ops/actions/runs/42350083727/job/128336155889",
+      "name": "Backend Tests",
+      "state": "SUCCESS"
+    }
+  ],
+  "externalAdvisory": [
+    {
+      "link": "https://vercel.com/duanxiaolongs-projects-6795928c/pantheon-ops/9Ap1MvRpmCnnVFE3TNhyPH4ykp9k",
+      "name": "Vercel",
+      "state": "FAILURE"
+    }
+  ],
+  "policyChanged": false
+}

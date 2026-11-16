@@ -1,0 +1,25 @@
+{
+  "number": 183,
+  "state": "MERGED",
+  "mergedAt": "2026-11-13T04:44:42Z",
+  "mergeCommit": {
+    "oid": "fc3fa867630580f7bcf1d40082a77f6b2548ac56"
+  },
+  "url": "https://github.com/duanxldragon/pantheon-ops/pull/183",
+  "source": "previous-session hosted observation, corroborated by local commit ancestry",
+  "statusCheckRollup": [],
+  "liveRecheck": {
+    "status": "failed",
+    "exitCode": 1,
+    "reason": "HTTP 401: Requires authentication (https://api.github.com/graphql)\nTry authenticating with:  gh auth login",
+    "publicRest": "403 rate limit"
+  },
+  "historicalRequiredChecks": {
+    "Quality Gates": "SUCCESS",
+    "Security Gates": "SUCCESS"
+  },
+  "historicalOtherChecks": {
+    "Vercel": "FAILURE",
+    "Dependency Vulnerabilities": "SKIPPED"
+  }
+}

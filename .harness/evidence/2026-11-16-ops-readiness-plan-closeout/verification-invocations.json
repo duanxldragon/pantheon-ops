@@ -1,0 +1,40 @@
+{
+  "taskId": "2026-11-16-ops-readiness-plan-closeout",
+  "commands": [
+    {
+      "command": "node scripts/harness/check-task-packet.mjs --root . --json docs/harness/tasks/2026-11-16-ops-argocd-ownership-convergence.task.md docs/harness/tasks/2026-11-16-ops-business-menu-m3c.task.md docs/harness/tasks/2026-11-16-ops-business-runtime-acceptance.task.md docs/harness/tasks/2026-11-16-ops-extensions-live-acceptance.task.md docs/harness/tasks/2026-11-16-ops-filedist-product-closure.task.md docs/harness/tasks/2026-11-16-ops-helm-capability-truth.task.md docs/harness/tasks/2026-11-16-ops-k8s-service-mutations.task.md docs/harness/tasks/2026-11-16-ops-pilot-delivery.task.md docs/harness/tasks/2026-11-16-ops-pilot-release-closeout.task.md docs/harness/tasks/2026-11-16-ops-readiness-plan-closeout.task.md docs/harness/tasks/2026-11-16-ops-service-catalog-usability.task.md docs/harness/tasks/2026-11-16-ops-service-deploy-integrity.task.md docs/harness/tasks/2026-11-16-ops-service-deploy-user-flow.task.md",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+      "status": "passed",
+      "exitCode": 0,
+      "output": ".harness/evidence/2026-11-16-ops-readiness-plan-closeout/scoped-task-packet.json"
+    },
+    {
+      "command": "node scripts/harness/check-task-packet.mjs --root . --json",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+      "status": "failed",
+      "exitCode": 1,
+      "output": ".harness/evidence/2026-11-16-ops-readiness-plan-closeout/final-task-packet.json"
+    },
+    {
+      "command": "node scripts/harness/check-doc-links.mjs --root . --strict --json",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+      "status": "failed",
+      "exitCode": 1,
+      "output": ".harness/evidence/2026-11-16-ops-readiness-plan-closeout/final-doc-links.json"
+    },
+    {
+      "command": "node scripts/harness/check-evidence.mjs --root . --strict --json",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+      "status": "failed",
+      "exitCode": 1,
+      "output": ".harness/evidence/2026-11-16-ops-readiness-plan-closeout/final-evidence.json"
+    },
+    {
+      "command": "node scripts/harness/check-review.mjs --root . --strict --json",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+      "status": "failed",
+      "exitCode": 1,
+      "output": ".harness/evidence/2026-11-16-ops-readiness-plan-closeout/final-review.json"
+    }
+  ]
+}

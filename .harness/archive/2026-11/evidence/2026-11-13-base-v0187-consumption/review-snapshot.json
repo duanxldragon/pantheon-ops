@@ -1,0 +1,10 @@
+{
+  "reviewedCommit": "9b51415",
+  "parentCommit": "4304970",
+  "base": "0a1ff023",
+  "snapshotSha256": "786e7bb7919fd2ab4544bd6052aed4bd33403dc39a6b16f5c630644224ff54f3",
+  "lanes": [
+    "code-reviewer.md",
+    "architect.md"
+  ]
+}

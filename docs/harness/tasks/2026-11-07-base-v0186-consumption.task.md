@@ -154,3 +154,7 @@ business/*
 - [x] Verification run or exception recorded
 - [x] Evidence saved or summarized
 - [x] Review completed
+
+## Archive Closeout 2026-11-16
+
+原范围已完成，manifest 与 evidence 成对迁至 .harness/archive/2026-11/；原 canonical 地址由 archive-aware resolver 解析。历史运行/审查证据不改写。后续业务 gap 见 .harness/tasks/2026-11-16-ops-pilot-delivery/plan.md；本次归档不表示当前试点/生产验收完成。

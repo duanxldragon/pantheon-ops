@@ -1,0 +1,44 @@
+[
+  {
+    "command": "go test -v -count=1 ./modules/business/k8s/...",
+    "workdir": "pantheon-ops/backend",
+    "exitCode": 0,
+    "timestamp": "2026-08-17",
+    "output": "K8s packages passed; release MySQL scenarios passed against isolated local databases."
+  },
+  {
+    "command": "PATH=D:/msys64/mingw64/bin;$PATH CGO_ENABLED=1 CC=gcc PANTHEON_TEST_DSN=<local compose DSN> go test -race -count=1 ./modules/business/k8s/release",
+    "workdir": "pantheon-ops/backend",
+    "exitCode": 0,
+    "timestamp": "2026-08-17",
+    "output": "Release package passed with MinGW CGO race detector and MySQL-backed scenarios."
+  },
+  {
+    "command": "go vet ./...",
+    "workdir": "pantheon-ops/backend",
+    "exitCode": 0,
+    "timestamp": "2026-08-17",
+    "output": "no findings"
+  },
+  {
+    "command": "npm run type-check",
+    "workdir": "pantheon-ops/frontend",
+    "exitCode": 0,
+    "timestamp": "2026-08-17",
+    "output": "tsc -b passed"
+  },
+  {
+    "command": "npm run build",
+    "workdir": "pantheon-ops/frontend",
+    "exitCode": 0,
+    "timestamp": "2026-08-17",
+    "output": "all frontend prebuild contracts and Vite production build passed"
+  },
+  {
+    "command": "git diff --check",
+    "workdir": "pantheon-ops",
+    "exitCode": 0,
+    "timestamp": "2026-08-17",
+    "output": "no whitespace errors"
+  }
+]

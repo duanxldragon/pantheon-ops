@@ -1,0 +1,13 @@
+{
+  "stoppedPids": [
+    7112,
+    2332,
+    24224
+  ],
+  "mysqlDataPreserved": "D:/workspace/go/pantheon-platform/audit-artifacts/task-closeout-2026-11-06/services/mysql-data",
+  "sharedPortsTouched": false,
+  "initialMysqlArgumentError": "Unquoted dotted PowerShell host parsed incorrectly; corrected to separate literal arguments; graceful shutdown succeeded",
+  "recordedAt": "2026-11-07T07:12:54.9974056Z",
+  "redisDataPreserved": "D:/workspace/go/pantheon-platform/audit-artifacts/task-closeout-2026-11-06/services/redis-data",
+  "redisSave": "shutdown save"
+}

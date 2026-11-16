@@ -1,0 +1,1170 @@
+{
+  "results": [
+    {
+      "file": "docs/harness/tasks/2026-06-17-github-governance-followup.task.md",
+      "errors": [
+        "Invalid primary layer \"platform/governance\". Expected one of: platform, system/auth, system/iam, system/org, system/config, business/*, app, inheritance-sync.",
+        "Invalid harness template \"pantheon-opscustom\". Expected one of: admin-platform, api-service, event-processor, dashboard, ui-heavy-product, custom.",
+        "Invalid coverage dimension \"security\". Expected one of: behaviour, maintainability, architecture-fitness, runtime-quality, method-health.",
+        "Completion checklist is missing required item: Layer and boundary declared",
+        "Completion checklist is missing required item: Contract anchors read",
+        "Completion checklist is missing required item: Verification run or exception recorded",
+        "Completion checklist is missing required item: Evidence saved or summarized",
+        "Completion checklist is missing required item: Review completed"
+      ],
+      "warnings": [
+        "Contract anchor does not exist: ../pantheon-base/DESIGN.md",
+        "Contract anchor does not exist: ../pantheon-base/AGENTS.md",
+        "Contract anchor does not exist: ../pantheon-base/docs/README.md",
+        "Contract anchor does not exist: ../harness-engineering/docs/harness/VERIFICATION_EVIDENCE_SPEC.md",
+        "Section \"## Linkage\" is missing recommended item: Superpowers Plan."
+      ]
+    },
+    {
+      "file": "docs/harness/tasks/2026-06-18-branch-hygiene-fallback.task.md",
+      "errors": [
+        "Invalid primary layer \"platform/governance\". Expected one of: platform, system/auth, system/iam, system/org, system/config, business/*, app, inheritance-sync.",
+        "Invalid harness template \"pantheon-opscustom\". Expected one of: admin-platform, api-service, event-processor, dashboard, ui-heavy-product, custom.",
+        "Completion checklist is missing required item: Layer and boundary declared",
+        "Completion checklist is missing required item: Contract anchors read",
+        "Completion checklist is missing required item: Verification run or exception recorded",
+        "Completion checklist is missing required item: Evidence saved or summarized",
+        "Completion checklist is missing required item: Review completed"
+      ],
+      "warnings": [
+        "Contract anchor does not exist: ../pantheon-base/AGENTS.md",
+        "Contract anchor does not exist: ../pantheon-base/DESIGN.md",
+        "Contract anchor does not exist: ../pantheon-base/docs/README.md",
+        "Section \"## Linkage\" is missing recommended item: Superpowers Plan."
+      ]
+    },
+    {
+      "file": "docs/harness/tasks/2026-06-18-branch-hygiene-slash-path-fix.task.md",
+      "errors": [
+        "Invalid primary layer \"platform/governance\". Expected one of: platform, system/auth, system/iam, system/org, system/config, business/*, app, inheritance-sync.",
+        "Invalid harness template \"pantheon-opscustom\". Expected one of: admin-platform, api-service, event-processor, dashboard, ui-heavy-product, custom.",
+        "Completion checklist is missing required item: Layer and boundary declared",
+        "Completion checklist is missing required item: Contract anchors read",
+        "Completion checklist is missing required item: Verification run or exception recorded",
+        "Completion checklist is missing required item: Evidence saved or summarized",
+        "Completion checklist is missing required item: Review completed"
+      ],
+      "warnings": [
+        "Contract anchor does not exist: ../pantheon-base/AGENTS.md",
+        "Contract anchor does not exist: ../pantheon-base/DESIGN.md",
+        "Contract anchor does not exist: ../pantheon-base/docs/README.md",
+        "Section \"## Linkage\" is missing recommended item: Superpowers Plan."
+      ]
+    },
+    {
+      "file": "docs/harness/tasks/2026-06-18-pr-branch-cleanup-automation.task.md",
+      "errors": [
+        "Invalid primary layer \"platform/governance\". Expected one of: platform, system/auth, system/iam, system/org, system/config, business/*, app, inheritance-sync.",
+        "Invalid harness template \"pantheon-opscustom\". Expected one of: admin-platform, api-service, event-processor, dashboard, ui-heavy-product, custom.",
+        "Invalid coverage dimension \"security\". Expected one of: behaviour, maintainability, architecture-fitness, runtime-quality, method-health.",
+        "Completion checklist is missing required item: Layer and boundary declared",
+        "Completion checklist is missing required item: Contract anchors read"
+      ],
+      "warnings": [
+        "Contract anchor does not exist: ../pantheon-base/AGENTS.md",
+        "Section \"## Linkage\" is missing recommended item: Superpowers Plan.",
+        "Section \"## Linkage\" is missing recommended item: Plan References."
+      ]
+    },
+    {
+      "file": "docs/harness/tasks/2026-06-20-business-closure-permission-scope.task.md",
+      "errors": [
+        "Missing top-level heading in the form \"# Task Packet: <task-name>\".",
+        "Missing required section \"## Goal\".",
+        "Missing required section \"## Primary Layer\".",
+        "Missing required section \"## Dependency Layers\".",
+        "Missing required section \"## Harness Profile\".",
+        "Missing required section \"## Contract Anchors\".",
+        "Missing required section \"## Scope\".",
+        "Missing required section \"## Expected Files\".",
+        "Missing required section \"## Implementation Notes\".",
+        "Missing required section \"## Verification Plan\".",
+        "Missing required section \"## Linkage\".",
+        "Missing required section \"## Evidence Required\".",
+        "Missing required section \"## Human Gates\".",
+        "Missing required section \"## Completion Checklist\"."
+      ],
+      "warnings": []
+    },
+    {
+      "file": "docs/harness/tasks/2026-06-21-business-deploy-state-guard.task.md",
+      "errors": [
+        "Missing top-level heading in the form \"# Task Packet: <task-name>\".",
+        "Missing required section \"## Goal\".",
+        "Missing required section \"## Primary Layer\".",
+        "Missing required section \"## Dependency Layers\".",
+        "Missing required section \"## Harness Profile\".",
+        "Missing required section \"## Contract Anchors\".",
+        "Missing required section \"## Scope\".",
+        "Missing required section \"## Expected Files\".",
+        "Missing required section \"## Implementation Notes\".",
+        "Missing required section \"## Verification Plan\".",
+        "Missing required section \"## Linkage\".",
+        "Missing required section \"## Evidence Required\".",
+        "Missing required section \"## Human Gates\".",
+        "Missing required section \"## Completion Checklist\"."
+      ],
+      "warnings": []
+    },
+    {
+      "file": "docs/harness/tasks/2026-06-21-business-deploy-task-delete.task.md",
+      "errors": [
+        "Missing top-level heading in the form \"# Task Packet: <task-name>\".",
+        "Missing required section \"## Goal\".",
+        "Missing required section \"## Primary Layer\".",
+        "Missing required section \"## Dependency Layers\".",
+        "Missing required section \"## Harness Profile\".",
+        "Missing required section \"## Contract Anchors\".",
+        "Missing required section \"## Scope\".",
+        "Missing required section \"## Expected Files\".",
+        "Missing required section \"## Implementation Notes\".",
+        "Missing required section \"## Verification Plan\".",
+        "Missing required section \"## Linkage\".",
+        "Missing required section \"## Evidence Required\".",
+        "Missing required section \"## Human Gates\".",
+        "Missing required section \"## Completion Checklist\"."
+      ],
+      "warnings": []
+    },
+    {
+      "file": "docs/harness/tasks/2026-06-21-business-deploy-task-main-flow-closeout.task.md",
+      "errors": [
+        "Missing top-level heading in the form \"# Task Packet: <task-name>\".",
+        "Missing required section \"## Goal\".",
+        "Missing required section \"## Primary Layer\".",
+        "Missing required section \"## Dependency Layers\".",
+        "Missing required section \"## Harness Profile\".",
+        "Missing required section \"## Contract Anchors\".",
+        "Missing required section \"## Scope\".",
+        "Missing required section \"## Expected Files\".",
+        "Missing required section \"## Implementation Notes\".",
+        "Missing required section \"## Verification Plan\".",
+        "Missing required section \"## Linkage\".",
+        "Missing required section \"## Evidence Required\".",
+        "Missing required section \"## Human Gates\".",
+        "Missing required section \"## Completion Checklist\"."
+      ],
+      "warnings": []
+    },
+    {
+      "file": "docs/harness/tasks/2026-07-17-bizscope-error-key-canonicalization.task.md",
+      "errors": [
+        "Missing top-level heading in the form \"# Task Packet: <task-name>\".",
+        "Missing required section \"## Goal\".",
+        "Missing required section \"## Primary Layer\".",
+        "Missing required section \"## Dependency Layers\".",
+        "Missing required section \"## Harness Profile\".",
+        "Missing required section \"## Contract Anchors\".",
+        "Missing required section \"## Scope\".",
+        "Missing required section \"## Expected Files\".",
+        "Missing required section \"## Implementation Notes\".",
+        "Missing required section \"## Verification Plan\".",
+        "Missing required section \"## Linkage\".",
+        "Missing required section \"## Evidence Required\".",
+        "Missing required section \"## Human Gates\".",
+        "Missing required section \"## Completion Checklist\"."
+      ],
+      "warnings": []
+    },
+    {
+      "file": "docs/harness/tasks/2026-07-17-business-design-docs-truthing.task.md",
+      "errors": [
+        "Missing top-level heading in the form \"# Task Packet: <task-name>\".",
+        "Missing required section \"## Goal\".",
+        "Missing required section \"## Primary Layer\".",
+        "Missing required section \"## Dependency Layers\".",
+        "Missing required section \"## Harness Profile\".",
+        "Missing required section \"## Contract Anchors\".",
+        "Missing required section \"## Scope\".",
+        "Missing required section \"## Expected Files\".",
+        "Missing required section \"## Implementation Notes\".",
+        "Missing required section \"## Verification Plan\".",
+        "Missing required section \"## Linkage\".",
+        "Missing required section \"## Evidence Required\".",
+        "Missing required section \"## Human Gates\".",
+        "Missing required section \"## Completion Checklist\"."
+      ],
+      "warnings": []
+    },
+    {
+      "file": "docs/harness/tasks/2026-07-17-business-permission-gaps.task.md",
+      "errors": [
+        "Missing top-level heading in the form \"# Task Packet: <task-name>\".",
+        "Missing required section \"## Goal\".",
+        "Missing required section \"## Primary Layer\".",
+        "Missing required section \"## Dependency Layers\".",
+        "Missing required section \"## Harness Profile\".",
+        "Missing required section \"## Contract Anchors\".",
+        "Missing required section \"## Scope\".",
+        "Missing required section \"## Expected Files\".",
+        "Missing required section \"## Implementation Notes\".",
+        "Missing required section \"## Verification Plan\".",
+        "Missing required section \"## Linkage\".",
+        "Missing required section \"## Evidence Required\".",
+        "Missing required section \"## Human Gates\".",
+        "Missing required section \"## Completion Checklist\"."
+      ],
+      "warnings": []
+    },
+    {
+      "file": "docs/harness/tasks/2026-07-17-cmdb-ssh-config-externalize.task.md",
+      "errors": [
+        "Missing top-level heading in the form \"# Task Packet: <task-name>\".",
+        "Missing required section \"## Goal\".",
+        "Missing required section \"## Primary Layer\".",
+        "Missing required section \"## Dependency Layers\".",
+        "Missing required section \"## Harness Profile\".",
+        "Missing required section \"## Contract Anchors\".",
+        "Missing required section \"## Scope\".",
+        "Missing required section \"## Expected Files\".",
+        "Missing required section \"## Implementation Notes\".",
+        "Missing required section \"## Verification Plan\".",
+        "Missing required section \"## Linkage\".",
+        "Missing required section \"## Evidence Required\".",
+        "Missing required section \"## Human Gates\".",
+        "Missing required section \"## Completion Checklist\"."
+      ],
+      "warnings": []
+    },
+    {
+      "file": "docs/harness/tasks/2026-07-29-sonar-ts-final.task.md",
+      "errors": [
+        "task manifest does not exist: .harness/tasks/2026-07-29-sonar-ts-final/manifest.json"
+      ],
+      "warnings": [
+        "Linked review file does not exist: .harness/evidence/2026-07-29-sonar-ts-final/review.md"
+      ]
+    },
+    {
+      "file": "docs/harness/tasks/2026-07-30-local-consolidation.task.md",
+      "errors": [
+        "task manifest does not exist: .harness/tasks/2026-07-30-local-consolidation/manifest.json"
+      ],
+      "warnings": [
+        "Linked review file does not exist: .harness/evidence/2026-07-30-local-consolidation/review.md"
+      ]
+    },
+    {
+      "file": "docs/harness/tasks/2026-08-02-sonarcloud-open-issues.task.md",
+      "errors": [
+        "task manifest does not exist: .harness/tasks/2026-08-02-sonarcloud-open-issues/manifest.json"
+      ],
+      "warnings": [
+        "Linked review file does not exist: .harness/evidence/2026-08-02-sonarcloud-open-issues/review.md"
+      ]
+    },
+    {
+      "file": "docs/harness/tasks/2026-08-03-dependabot-pr-governance.task.md",
+      "errors": [
+        "task manifest does not exist: .harness/tasks/2026-08-03-dependabot-pr-governance/manifest.json"
+      ],
+      "warnings": [
+        "Linked review file does not exist: .harness/evidence/2026-08-03-dependabot-pr-governance/review.md"
+      ]
+    },
+    {
+      "file": "docs/harness/tasks/2026-08-03-sonarcloud-encoding-warning.task.md",
+      "errors": [
+        "task manifest does not exist: .harness/tasks/2026-08-03-sonarcloud-encoding-warning/manifest.json"
+      ],
+      "warnings": [
+        "Linked review file does not exist: .harness/evidence/2026-08-03-sonarcloud-encoding-warning/review.md"
+      ]
+    },
+    {
+      "file": "docs/harness/tasks/2026-08-04-base-v0-10-0-release-candidate.task.md",
+      "errors": [
+        "task manifest does not exist: .harness/tasks/2026-08-04-base-v0-10-0-release-candidate/manifest.json",
+        "status is \"Archived\" but no evidence directory with summary.md exists (live or archived) — restore the evidence or revert the status."
+      ],
+      "warnings": [
+        "Linked review file does not exist: .harness/evidence/2026-08-04-base-v0-10-0-release-candidate/review.md"
+      ]
+    },
+    {
+      "file": "docs/harness/tasks/2026-08-05-base-v0-10-1-release.task.md",
+      "errors": [
+        "task manifest does not exist: .harness/tasks/2026-08-05-base-v0-10-1-release/manifest.json"
+      ],
+      "warnings": [
+        "Linked review file does not exist: .harness/evidence/2026-08-05-base-v0-10-1-release/review.md"
+      ]
+    },
+    {
+      "file": "docs/harness/tasks/2026-08-05-base-v0-10-2-visual-checker.task.md",
+      "errors": [
+        "task manifest does not exist: .harness/tasks/2026-08-05-base-v0-10-2-visual-checker/manifest.json"
+      ],
+      "warnings": [
+        "Linked review file does not exist: .harness/evidence/2026-08-05-base-v0-10-2-visual-checker/review.md"
+      ]
+    },
+    {
+      "file": "docs/harness/tasks/2026-08-05-foundation-upgrade-base-v0-10-1.task.md",
+      "errors": [
+        "Missing required section \"## Goal\".",
+        "Missing required section \"## Primary Layer\".",
+        "Missing required section \"## Dependency Layers\".",
+        "Missing required section \"## Harness Profile\".",
+        "Missing required section \"## Contract Anchors\".",
+        "Missing required section \"## Scope\".",
+        "Missing required section \"## Expected Files\".",
+        "Missing required section \"## Implementation Notes\".",
+        "Missing required section \"## Verification Plan\".",
+        "Missing required section \"## Linkage\".",
+        "Missing required section \"## Evidence Required\".",
+        "Missing required section \"## Human Gates\".",
+        "Missing required section \"## Completion Checklist\"."
+      ],
+      "warnings": []
+    },
+    {
+      "file": "docs/harness/tasks/2026-08-05-foundation-upgrade-base-v0-10-2.task.md",
+      "errors": [
+        "Missing required section \"## Goal\".",
+        "Missing required section \"## Primary Layer\".",
+        "Missing required section \"## Dependency Layers\".",
+        "Missing required section \"## Harness Profile\".",
+        "Missing required section \"## Contract Anchors\".",
+        "Missing required section \"## Scope\".",
+        "Missing required section \"## Expected Files\".",
+        "Missing required section \"## Implementation Notes\".",
+        "Missing required section \"## Verification Plan\".",
+        "Missing required section \"## Linkage\".",
+        "Missing required section \"## Evidence Required\".",
+        "Missing required section \"## Human Gates\".",
+        "Missing required section \"## Completion Checklist\"."
+      ],
+      "warnings": []
+    },
+    {
+      "file": "docs/harness/tasks/2026-08-06-generator-business-page-route.task.md",
+      "errors": [
+        "task manifest does not exist: .harness/tasks/2026-08-06-generator-business-page-route/manifest.json"
+      ],
+      "warnings": [
+        "Linked review file does not exist: .harness/evidence/2026-08-06-generator-business-page-route/review.md"
+      ]
+    },
+    {
+      "file": "docs/harness/tasks/2026-08-07-foundation-upgrade-base-v0-10-3.task.md",
+      "errors": [
+        "Missing required section \"## Goal\".",
+        "Missing required section \"## Primary Layer\".",
+        "Missing required section \"## Dependency Layers\".",
+        "Missing required section \"## Harness Profile\".",
+        "Missing required section \"## Contract Anchors\".",
+        "Missing required section \"## Scope\".",
+        "Missing required section \"## Expected Files\".",
+        "Missing required section \"## Implementation Notes\".",
+        "Missing required section \"## Verification Plan\".",
+        "Missing required section \"## Linkage\".",
+        "Missing required section \"## Evidence Required\".",
+        "Missing required section \"## Human Gates\".",
+        "Missing required section \"## Completion Checklist\".",
+        "evidence is complete (summary-readout) but status is \"Active\" — set status: Archived or close the evidence."
+      ],
+      "warnings": []
+    },
+    {
+      "file": "docs/harness/tasks/2026-08-08-foundation-upgrade-base-v0-10-5.task.md",
+      "errors": [
+        "Missing required section \"## Primary Layer\".",
+        "Missing required section \"## Dependency Layers\".",
+        "Missing required section \"## Harness Profile\".",
+        "Missing required section \"## Contract Anchors\".",
+        "Missing required section \"## Scope\".",
+        "Missing required section \"## Expected Files\".",
+        "Missing required section \"## Implementation Notes\".",
+        "Missing required section \"## Evidence Required\".",
+        "Missing required section \"## Human Gates\".",
+        "Missing required section \"## Completion Checklist\"."
+      ],
+      "warnings": [
+        "Section \"## Linkage\" is missing recommended item: Task ID.",
+        "Section \"## Linkage\" is missing recommended item: Task Manifest.",
+        "Section \"## Linkage\" is missing recommended item: OpenSpec Change.",
+        "Section \"## Linkage\" is missing recommended item: Superpowers Plan.",
+        "Section \"## Linkage\" is missing recommended item: Plan References.",
+        "Section \"## Linkage\" is missing recommended item: Evidence Directory.",
+        "Section \"## Linkage\" is missing recommended item: Review File."
+      ]
+    },
+    {
+      "file": "docs/harness/tasks/2026-08-10-security-csrf-closeout.task.md",
+      "errors": [
+        "Missing required section \"## Primary Layer\".",
+        "Missing required section \"## Dependency Layers\".",
+        "Missing required section \"## Harness Profile\".",
+        "Missing required section \"## Contract Anchors\".",
+        "Missing required section \"## Expected Files\".",
+        "Missing required section \"## Implementation Notes\".",
+        "Missing required section \"## Verification Plan\".",
+        "Missing required section \"## Evidence Required\".",
+        "Missing required section \"## Human Gates\".",
+        "Missing required section \"## Completion Checklist\"."
+      ],
+      "warnings": [
+        "Section \"## Linkage\" is missing recommended item: OpenSpec Change.",
+        "Section \"## Linkage\" is missing recommended item: Superpowers Plan.",
+        "Section \"## Linkage\" is missing recommended item: Plan References."
+      ]
+    },
+    {
+      "file": "docs/harness/tasks/2026-08-10-shared-csrf-release.task.md",
+      "errors": [
+        "Missing required section \"## Primary Layer\".",
+        "Missing required section \"## Dependency Layers\".",
+        "Missing required section \"## Harness Profile\".",
+        "Missing required section \"## Contract Anchors\".",
+        "Missing required section \"## Expected Files\".",
+        "Missing required section \"## Implementation Notes\".",
+        "Missing required section \"## Evidence Required\".",
+        "Missing required section \"## Human Gates\".",
+        "Missing required section \"## Completion Checklist\".",
+        "task manifest does not exist: .harness/tasks/2026-08-10-shared-csrf-release/manifest.json"
+      ],
+      "warnings": [
+        "Section \"## Linkage\" is missing recommended item: OpenSpec Change.",
+        "Section \"## Linkage\" is missing recommended item: Superpowers Plan.",
+        "Section \"## Linkage\" is missing recommended item: Plan References.",
+        "Linked review file does not exist: .harness/evidence/2026-08-10-shared-csrf-release/review.md"
+      ]
+    },
+    {
+      "file": "docs/harness/tasks/2026-08-11-base-security-dependencies.task.md",
+      "errors": [
+        "Missing required section \"## Primary Layer\".",
+        "Missing required section \"## Dependency Layers\".",
+        "Missing required section \"## Harness Profile\".",
+        "Missing required section \"## Contract Anchors\".",
+        "Missing required section \"## Expected Files\".",
+        "Missing required section \"## Implementation Notes\".",
+        "Missing required section \"## Verification Plan\".",
+        "Missing required section \"## Evidence Required\".",
+        "Missing required section \"## Human Gates\".",
+        "Missing required section \"## Completion Checklist\".",
+        "task manifest does not exist: .harness/tasks/2026-08-11-base-security-dependencies/manifest.json",
+        "status is \"Archived\" but no evidence directory with summary.md exists (live or archived) — restore the evidence or revert the status."
+      ],
+      "warnings": [
+        "Section \"## Linkage\" is missing recommended item: OpenSpec Change.",
+        "Section \"## Linkage\" is missing recommended item: Superpowers Plan.",
+        "Section \"## Linkage\" is missing recommended item: Plan References.",
+        "Linked review file does not exist: .harness/evidence/2026-08-11-base-security-dependencies/review.md"
+      ]
+    },
+    {
+      "file": "docs/harness/tasks/2026-08-11-delivery-certification.task.md",
+      "errors": [
+        "Missing required section \"## Primary Layer\".",
+        "Missing required section \"## Dependency Layers\".",
+        "Missing required section \"## Harness Profile\".",
+        "Missing required section \"## Contract Anchors\".",
+        "Missing required section \"## Expected Files\".",
+        "Missing required section \"## Implementation Notes\".",
+        "Missing required section \"## Verification Plan\".",
+        "Missing required section \"## Evidence Required\".",
+        "Missing required section \"## Human Gates\".",
+        "Missing required section \"## Completion Checklist\".",
+        "task manifest does not exist: .harness/tasks/2026-08-11-delivery-certification/manifest.json"
+      ],
+      "warnings": [
+        "Section \"## Linkage\" is missing recommended item: OpenSpec Change.",
+        "Section \"## Linkage\" is missing recommended item: Superpowers Plan.",
+        "Section \"## Linkage\" is missing recommended item: Plan References.",
+        "Linked review file does not exist: .harness/evidence/2026-08-11-delivery-certification/review.md"
+      ]
+    },
+    {
+      "file": "docs/harness/tasks/2026-08-11-foundation-consumer-certification.task.md",
+      "errors": [
+        "Missing required section \"## Primary Layer\".",
+        "Missing required section \"## Dependency Layers\".",
+        "Missing required section \"## Harness Profile\".",
+        "Missing required section \"## Contract Anchors\".",
+        "Missing required section \"## Expected Files\".",
+        "Missing required section \"## Implementation Notes\".",
+        "Missing required section \"## Verification Plan\".",
+        "Missing required section \"## Evidence Required\".",
+        "Missing required section \"## Human Gates\".",
+        "Missing required section \"## Completion Checklist\"."
+      ],
+      "warnings": [
+        "Section \"## Linkage\" is missing recommended item: OpenSpec Change.",
+        "Section \"## Linkage\" is missing recommended item: Superpowers Plan.",
+        "Section \"## Linkage\" is missing recommended item: Plan References."
+      ]
+    },
+    {
+      "file": "docs/harness/tasks/2026-08-11-foundation-release-v0-10-12.task.md",
+      "errors": [
+        "Missing required section \"## Primary Layer\".",
+        "Missing required section \"## Dependency Layers\".",
+        "Missing required section \"## Harness Profile\".",
+        "Missing required section \"## Contract Anchors\".",
+        "Missing required section \"## Expected Files\".",
+        "Missing required section \"## Implementation Notes\".",
+        "Missing required section \"## Verification Plan\".",
+        "Missing required section \"## Evidence Required\".",
+        "Missing required section \"## Human Gates\".",
+        "Missing required section \"## Completion Checklist\".",
+        "task manifest does not exist: .harness/tasks/2026-08-11-foundation-release-v0-10-12/manifest.json"
+      ],
+      "warnings": [
+        "Section \"## Linkage\" is missing recommended item: OpenSpec Change.",
+        "Section \"## Linkage\" is missing recommended item: Superpowers Plan.",
+        "Section \"## Linkage\" is missing recommended item: Plan References.",
+        "Linked review file does not exist: .harness/evidence/2026-08-11-foundation-release-v0-10-12/review.md"
+      ]
+    },
+    {
+      "file": "docs/harness/tasks/2026-08-11-foundation-release-v0-10-13.task.md",
+      "errors": [
+        "Missing required section \"## Primary Layer\".",
+        "Missing required section \"## Dependency Layers\".",
+        "Missing required section \"## Harness Profile\".",
+        "Missing required section \"## Contract Anchors\".",
+        "Missing required section \"## Expected Files\".",
+        "Missing required section \"## Implementation Notes\".",
+        "Missing required section \"## Verification Plan\".",
+        "Missing required section \"## Evidence Required\".",
+        "Missing required section \"## Human Gates\".",
+        "Missing required section \"## Completion Checklist\".",
+        "task manifest does not exist: .harness/tasks/2026-08-11-foundation-release-v0-10-13/manifest.json"
+      ],
+      "warnings": [
+        "Section \"## Linkage\" is missing recommended item: OpenSpec Change.",
+        "Section \"## Linkage\" is missing recommended item: Superpowers Plan.",
+        "Section \"## Linkage\" is missing recommended item: Plan References.",
+        "Linked review file does not exist: .harness/evidence/2026-08-11-foundation-release-v0-10-13/review.md"
+      ]
+    },
+    {
+      "file": "docs/harness/tasks/2026-08-12-foundation-consumer-cleanup-overlay.task.md",
+      "errors": [
+        "Missing required section \"## Primary Layer\".",
+        "Missing required section \"## Dependency Layers\".",
+        "Missing required section \"## Harness Profile\".",
+        "Missing required section \"## Contract Anchors\".",
+        "Missing required section \"## Expected Files\".",
+        "Missing required section \"## Implementation Notes\".",
+        "Missing required section \"## Verification Plan\".",
+        "Missing required section \"## Evidence Required\".",
+        "Missing required section \"## Human Gates\".",
+        "Missing required section \"## Completion Checklist\".",
+        "task manifest does not exist: .harness/tasks/2026-08-12-foundation-consumer-cleanup-overlay/manifest.json"
+      ],
+      "warnings": [
+        "Section \"## Linkage\" is missing recommended item: OpenSpec Change.",
+        "Section \"## Linkage\" is missing recommended item: Superpowers Plan.",
+        "Section \"## Linkage\" is missing recommended item: Plan References.",
+        "Linked review file does not exist: .harness/evidence/2026-08-12-foundation-consumer-cleanup-overlay/review.md"
+      ]
+    },
+    {
+      "file": "docs/harness/tasks/2026-08-12-foundation-consumer-runtime-portability.task.md",
+      "errors": [
+        "Missing required section \"## Primary Layer\".",
+        "Missing required section \"## Dependency Layers\".",
+        "Missing required section \"## Harness Profile\".",
+        "Missing required section \"## Contract Anchors\".",
+        "Missing required section \"## Expected Files\".",
+        "Missing required section \"## Implementation Notes\".",
+        "Missing required section \"## Verification Plan\".",
+        "Missing required section \"## Evidence Required\".",
+        "Missing required section \"## Human Gates\".",
+        "Missing required section \"## Completion Checklist\".",
+        "task manifest does not exist: .harness/tasks/2026-08-12-foundation-consumer-runtime-portability/manifest.json"
+      ],
+      "warnings": [
+        "Section \"## Linkage\" is missing recommended item: OpenSpec Change.",
+        "Section \"## Linkage\" is missing recommended item: Superpowers Plan.",
+        "Section \"## Linkage\" is missing recommended item: Plan References.",
+        "Linked review file does not exist: .harness/evidence/2026-08-12-foundation-consumer-runtime-portability/review.md"
+      ]
+    },
+    {
+      "file": "docs/harness/tasks/2026-08-12-foundation-smoke-closure.task.md",
+      "errors": [
+        "Missing required section \"## Primary Layer\".",
+        "Missing required section \"## Dependency Layers\".",
+        "Missing required section \"## Harness Profile\".",
+        "Missing required section \"## Contract Anchors\".",
+        "Missing required section \"## Expected Files\".",
+        "Missing required section \"## Implementation Notes\".",
+        "Missing required section \"## Verification Plan\".",
+        "Missing required section \"## Evidence Required\".",
+        "Missing required section \"## Human Gates\".",
+        "Missing required section \"## Completion Checklist\".",
+        "task manifest does not exist: .harness/tasks/2026-08-12-foundation-smoke-closure/manifest.json"
+      ],
+      "warnings": [
+        "Section \"## Linkage\" is missing recommended item: OpenSpec Change.",
+        "Section \"## Linkage\" is missing recommended item: Superpowers Plan.",
+        "Section \"## Linkage\" is missing recommended item: Plan References.",
+        "Linked review file does not exist: .harness/evidence/2026-08-12-foundation-smoke-closure/review.md"
+      ]
+    },
+    {
+      "file": "docs/harness/tasks/2026-08-12-foundation-smoke-contract-closure.task.md",
+      "errors": [
+        "Missing required section \"## Primary Layer\".",
+        "Missing required section \"## Dependency Layers\".",
+        "Missing required section \"## Harness Profile\".",
+        "Missing required section \"## Contract Anchors\".",
+        "Missing required section \"## Expected Files\".",
+        "Missing required section \"## Implementation Notes\".",
+        "Missing required section \"## Verification Plan\".",
+        "Missing required section \"## Evidence Required\".",
+        "Missing required section \"## Human Gates\".",
+        "Missing required section \"## Completion Checklist\".",
+        "task manifest does not exist: .harness/tasks/2026-08-12-foundation-smoke-contract-closure/manifest.json"
+      ],
+      "warnings": [
+        "Section \"## Linkage\" is missing recommended item: OpenSpec Change.",
+        "Section \"## Linkage\" is missing recommended item: Superpowers Plan.",
+        "Section \"## Linkage\" is missing recommended item: Plan References.",
+        "Linked review file does not exist: .harness/evidence/2026-08-12-foundation-smoke-contract-closure/review.md"
+      ]
+    },
+    {
+      "file": "docs/harness/tasks/2026-08-12-foundation-v0-10-14-clean-consumer.task.md",
+      "errors": [
+        "Missing required section \"## Primary Layer\".",
+        "Missing required section \"## Dependency Layers\".",
+        "Missing required section \"## Harness Profile\".",
+        "Missing required section \"## Contract Anchors\".",
+        "Missing required section \"## Expected Files\".",
+        "Missing required section \"## Implementation Notes\".",
+        "Missing required section \"## Verification Plan\".",
+        "Missing required section \"## Linkage\".",
+        "Missing required section \"## Evidence Required\".",
+        "Missing required section \"## Human Gates\".",
+        "Missing required section \"## Completion Checklist\"."
+      ],
+      "warnings": []
+    },
+    {
+      "file": "docs/harness/tasks/2026-08-12-pr-auto-merge-push-trigger.task.md",
+      "errors": [
+        "Missing required section \"## Primary Layer\".",
+        "Missing required section \"## Dependency Layers\".",
+        "Missing required section \"## Harness Profile\".",
+        "Missing required section \"## Contract Anchors\".",
+        "Missing required section \"## Expected Files\".",
+        "Missing required section \"## Implementation Notes\".",
+        "Missing required section \"## Verification Plan\".",
+        "Missing required section \"## Linkage\".",
+        "Missing required section \"## Evidence Required\".",
+        "Missing required section \"## Human Gates\".",
+        "Missing required section \"## Completion Checklist\"."
+      ],
+      "warnings": []
+    },
+    {
+      "file": "docs/harness/tasks/2026-08-12-pr-auto-merge-token.task.md",
+      "errors": [
+        "Missing required section \"## Primary Layer\".",
+        "Missing required section \"## Dependency Layers\".",
+        "Missing required section \"## Harness Profile\".",
+        "Missing required section \"## Contract Anchors\".",
+        "Missing required section \"## Expected Files\".",
+        "Missing required section \"## Implementation Notes\".",
+        "Missing required section \"## Verification Plan\".",
+        "Missing required section \"## Linkage\".",
+        "Missing required section \"## Evidence Required\".",
+        "Missing required section \"## Human Gates\".",
+        "Missing required section \"## Completion Checklist\"."
+      ],
+      "warnings": []
+    },
+    {
+      "file": "docs/harness/tasks/2026-08-13-clean-base-business-overlay-rebuild.task.md",
+      "errors": [
+        "Missing required section \"## Primary Layer\".",
+        "Missing required section \"## Dependency Layers\".",
+        "Missing required section \"## Harness Profile\".",
+        "Missing required section \"## Contract Anchors\".",
+        "Missing required section \"## Expected Files\".",
+        "Missing required section \"## Implementation Notes\".",
+        "Missing required section \"## Verification Plan\".",
+        "Missing required section \"## Evidence Required\".",
+        "Missing required section \"## Human Gates\".",
+        "Missing required section \"## Completion Checklist\".",
+        "Section \"## Structural Scope\" must include \"- Affected Subgraph: <value>\".",
+        "Section \"## Structural Scope\" must include \"- Boundary Crossings: <value>\".",
+        "Section \"## Structural Scope\" must include \"- Risk Nodes: <value>\".",
+        "Section \"## Structural Scope\" must include \"- Graph Focus: <value>\"."
+      ],
+      "warnings": [
+        "Section \"## Linkage\" is missing recommended item: Task Manifest.",
+        "Section \"## Linkage\" is missing recommended item: OpenSpec Change.",
+        "Section \"## Linkage\" is missing recommended item: Superpowers Plan.",
+        "Section \"## Linkage\" is missing recommended item: Plan References.",
+        "Section \"## Linkage\" is missing recommended item: Evidence Directory.",
+        "Section \"## Linkage\" is missing recommended item: Review File."
+      ]
+    },
+    {
+      "file": "docs/harness/tasks/2026-08-13-foundation-release-repo-snapshot.task.md",
+      "errors": [
+        "Missing required section \"## Primary Layer\".",
+        "Missing required section \"## Dependency Layers\".",
+        "Missing required section \"## Harness Profile\".",
+        "Missing required section \"## Contract Anchors\".",
+        "Missing required section \"## Expected Files\".",
+        "Missing required section \"## Implementation Notes\".",
+        "Missing required section \"## Verification Plan\".",
+        "Missing required section \"## Evidence Required\".",
+        "Missing required section \"## Human Gates\".",
+        "Missing required section \"## Completion Checklist\".",
+        "task manifest does not exist: .harness/tasks/2026-08-13-foundation-release-repo-snapshot/manifest.json"
+      ],
+      "warnings": [
+        "Section \"## Linkage\" is missing recommended item: OpenSpec Change.",
+        "Section \"## Linkage\" is missing recommended item: Superpowers Plan.",
+        "Section \"## Linkage\" is missing recommended item: Plan References.",
+        "Linked review file does not exist: .harness/evidence/2026-08-13-foundation-release-repo-snapshot/review.md"
+      ]
+    },
+    {
+      "file": "docs/harness/tasks/2026-08-17-foundation-cross-repo-handoff-adoption.task.md",
+      "errors": [
+        "task manifest does not exist: .harness/tasks/2026-08-17-foundation-cross-repo-handoff-adoption/manifest.json"
+      ],
+      "warnings": [
+        "Linked review file does not exist: .harness/evidence/2026-08-17-foundation-cross-repo-handoff-adoption/review.md"
+      ]
+    },
+    {
+      "file": "docs/harness/tasks/2026-08-17-ops-architecture-quality-gates.task.md",
+      "errors": [
+        "Missing top-level heading in the form \"# Task Packet: <task-name>\".",
+        "Missing required section \"## Primary Layer\".",
+        "Missing required section \"## Dependency Layers\".",
+        "Missing required section \"## Harness Profile\".",
+        "Missing required section \"## Contract Anchors\".",
+        "Missing required section \"## Scope\".",
+        "Missing required section \"## Implementation Notes\".",
+        "Missing required section \"## Verification Plan\".",
+        "Missing required section \"## Linkage\".",
+        "Missing required section \"## Evidence Required\".",
+        "Missing required section \"## Human Gates\".",
+        "Missing required section \"## Completion Checklist\".",
+        "Missing required subsection under \"## Expected Files\": \"### Create\".",
+        "Missing required subsection under \"## Expected Files\": \"### Modify\".",
+        "Missing required subsection under \"## Expected Files\": \"### Do Not Touch\"."
+      ],
+      "warnings": []
+    },
+    {
+      "file": "docs/harness/tasks/2026-08-17-ops-bizscope-datascope-ownership.task.md",
+      "errors": [
+        "Missing top-level heading in the form \"# Task Packet: <task-name>\".",
+        "Missing required section \"## Goal\".",
+        "Missing required section \"## Primary Layer\".",
+        "Missing required section \"## Dependency Layers\".",
+        "Missing required section \"## Harness Profile\".",
+        "Missing required section \"## Contract Anchors\".",
+        "Missing required section \"## Scope\".",
+        "Missing required section \"## Implementation Notes\".",
+        "Missing required section \"## Verification Plan\".",
+        "Missing required section \"## Linkage\".",
+        "Missing required section \"## Evidence Required\".",
+        "Missing required section \"## Human Gates\".",
+        "Missing required section \"## Completion Checklist\".",
+        "Missing required subsection under \"## Expected Files\": \"### Create\".",
+        "Missing required subsection under \"## Expected Files\": \"### Modify\".",
+        "Missing required subsection under \"## Expected Files\": \"### Do Not Touch\"."
+      ],
+      "warnings": []
+    },
+    {
+      "file": "docs/harness/tasks/2026-08-17-ops-business-versioned-migrations.task.md",
+      "errors": [
+        "Missing top-level heading in the form \"# Task Packet: <task-name>\".",
+        "Missing required section \"## Goal\".",
+        "Missing required section \"## Primary Layer\".",
+        "Missing required section \"## Dependency Layers\".",
+        "Missing required section \"## Harness Profile\".",
+        "Missing required section \"## Contract Anchors\".",
+        "Missing required section \"## Scope\".",
+        "Missing required section \"## Implementation Notes\".",
+        "Missing required section \"## Verification Plan\".",
+        "Missing required section \"## Linkage\".",
+        "Missing required section \"## Evidence Required\".",
+        "Missing required section \"## Human Gates\".",
+        "Missing required section \"## Completion Checklist\".",
+        "Missing required subsection under \"## Expected Files\": \"### Create\".",
+        "Missing required subsection under \"## Expected Files\": \"### Modify\".",
+        "Missing required subsection under \"## Expected Files\": \"### Do Not Touch\"."
+      ],
+      "warnings": []
+    },
+    {
+      "file": "docs/harness/tasks/2026-08-17-ops-cross-module-capability-boundaries.task.md",
+      "errors": [
+        "Missing top-level heading in the form \"# Task Packet: <task-name>\".",
+        "Missing required section \"## Goal\".",
+        "Missing required section \"## Primary Layer\".",
+        "Missing required section \"## Dependency Layers\".",
+        "Missing required section \"## Harness Profile\".",
+        "Missing required section \"## Contract Anchors\".",
+        "Missing required section \"## Scope\".",
+        "Missing required section \"## Implementation Notes\".",
+        "Missing required section \"## Verification Plan\".",
+        "Missing required section \"## Linkage\".",
+        "Missing required section \"## Evidence Required\".",
+        "Missing required section \"## Human Gates\".",
+        "Missing required section \"## Completion Checklist\".",
+        "Missing required subsection under \"## Expected Files\": \"### Create\".",
+        "Missing required subsection under \"## Expected Files\": \"### Modify\".",
+        "Missing required subsection under \"## Expected Files\": \"### Do Not Touch\"."
+      ],
+      "warnings": []
+    },
+    {
+      "file": "docs/harness/tasks/2026-08-17-ops-deploy-immutability-idempotency.task.md",
+      "errors": [
+        "Missing top-level heading in the form \"# Task Packet: <task-name>\".",
+        "Missing required section \"## Goal\".",
+        "Missing required section \"## Primary Layer\".",
+        "Missing required section \"## Dependency Layers\".",
+        "Missing required section \"## Harness Profile\".",
+        "Missing required section \"## Contract Anchors\".",
+        "Missing required section \"## Scope\".",
+        "Missing required section \"## Implementation Notes\".",
+        "Missing required section \"## Verification Plan\".",
+        "Missing required section \"## Linkage\".",
+        "Missing required section \"## Evidence Required\".",
+        "Missing required section \"## Human Gates\".",
+        "Missing required section \"## Completion Checklist\".",
+        "Missing required subsection under \"## Expected Files\": \"### Create\".",
+        "Missing required subsection under \"## Expected Files\": \"### Modify\".",
+        "Missing required subsection under \"## Expected Files\": \"### Do Not Touch\"."
+      ],
+      "warnings": []
+    },
+    {
+      "file": "docs/harness/tasks/2026-08-17-ops-foundation-hardening.task.md",
+      "errors": [
+        "Missing top-level heading in the form \"# Task Packet: <task-name>\".",
+        "Missing required section \"## Primary Layer\".",
+        "Missing required section \"## Dependency Layers\".",
+        "Missing required section \"## Harness Profile\".",
+        "Missing required section \"## Contract Anchors\".",
+        "Missing required section \"## Scope\".",
+        "Missing required section \"## Expected Files\".",
+        "Missing required section \"## Implementation Notes\".",
+        "Missing required section \"## Verification Plan\".",
+        "Missing required section \"## Linkage\".",
+        "Missing required section \"## Evidence Required\".",
+        "Missing required section \"## Human Gates\".",
+        "Missing required section \"## Completion Checklist\"."
+      ],
+      "warnings": []
+    },
+    {
+      "file": "docs/harness/tasks/2026-08-17-ops-k8s-release-reliability.task.md",
+      "errors": [
+        "Missing top-level heading in the form \"# Task Packet: <task-name>\".",
+        "Missing required section \"## Goal\".",
+        "Missing required section \"## Primary Layer\".",
+        "Missing required section \"## Dependency Layers\".",
+        "Missing required section \"## Harness Profile\".",
+        "Missing required section \"## Contract Anchors\".",
+        "Missing required section \"## Scope\".",
+        "Missing required section \"## Implementation Notes\".",
+        "Missing required section \"## Verification Plan\".",
+        "Missing required section \"## Linkage\".",
+        "Missing required section \"## Evidence Required\".",
+        "Missing required section \"## Human Gates\".",
+        "Missing required section \"## Completion Checklist\".",
+        "Missing required subsection under \"## Expected Files\": \"### Create\".",
+        "Missing required subsection under \"## Expected Files\": \"### Modify\".",
+        "Missing required subsection under \"## Expected Files\": \"### Do Not Touch\"."
+      ],
+      "warnings": []
+    },
+    {
+      "file": "docs/harness/tasks/2026-08-17-ops-resource-service-state-machines.task.md",
+      "errors": [
+        "Missing top-level heading in the form \"# Task Packet: <task-name>\".",
+        "Missing required section \"## Primary Layer\".",
+        "Missing required section \"## Dependency Layers\".",
+        "Missing required section \"## Harness Profile\".",
+        "Missing required section \"## Contract Anchors\".",
+        "Missing required section \"## Scope\".",
+        "Missing required section \"## Implementation Notes\".",
+        "Missing required section \"## Verification Plan\".",
+        "Missing required section \"## Linkage\".",
+        "Missing required section \"## Evidence Required\".",
+        "Missing required section \"## Human Gates\".",
+        "Missing required section \"## Completion Checklist\".",
+        "Missing required subsection under \"## Expected Files\": \"### Create\".",
+        "Missing required subsection under \"## Expected Files\": \"### Modify\".",
+        "Missing required subsection under \"## Expected Files\": \"### Do Not Touch\"."
+      ],
+      "warnings": []
+    },
+    {
+      "file": "docs/harness/tasks/2026-08-17-ops-service-instance-foundation.task.md",
+      "errors": [
+        "Missing top-level heading in the form \"# Task Packet: <task-name>\".",
+        "Missing required section \"## Goal\".",
+        "Missing required section \"## Primary Layer\".",
+        "Missing required section \"## Dependency Layers\".",
+        "Missing required section \"## Harness Profile\".",
+        "Missing required section \"## Contract Anchors\".",
+        "Missing required section \"## Scope\".",
+        "Missing required section \"## Implementation Notes\".",
+        "Missing required section \"## Verification Plan\".",
+        "Missing required section \"## Linkage\".",
+        "Missing required section \"## Evidence Required\".",
+        "Missing required section \"## Human Gates\".",
+        "Missing required section \"## Completion Checklist\".",
+        "Missing required subsection under \"## Expected Files\": \"### Create\".",
+        "Missing required subsection under \"## Expected Files\": \"### Modify\".",
+        "Missing required subsection under \"## Expected Files\": \"### Do Not Touch\"."
+      ],
+      "warnings": []
+    },
+    {
+      "file": "docs/harness/tasks/2026-08-19-ops-v1-backlog-closeout.task.md",
+      "errors": [
+        "taskManifest.status must be one of: planned, in-progress, completed, abandoned (got \"complete-with-explicit-gates\")."
+      ],
+      "warnings": []
+    },
+    {
+      "file": "docs/harness/tasks/2026-08-21-sonarcloud-remediation.task.md",
+      "errors": [
+        "Missing required section \"## Evidence Required\"."
+      ],
+      "warnings": [
+        "Contract anchor does not exist: .github/workflows/release-gate.yml",
+        "Section \"## Linkage\" is missing recommended item: Task Manifest.",
+        "Section \"## Linkage\" is missing recommended item: OpenSpec Change.",
+        "Section \"## Linkage\" is missing recommended item: Superpowers Plan.",
+        "Section \"## Linkage\" is missing recommended item: Review File."
+      ]
+    },
+    {
+      "file": "docs/harness/tasks/2026-08-31-base-operational-workbench-design.task.md",
+      "errors": [
+        "task manifest does not exist: .harness/tasks/2026-08-31-base-operational-workbench-design/manifest.json"
+      ],
+      "warnings": [
+        "Linked review file does not exist: .harness/evidence/2026-08-31-base-operational-workbench-design/review.md"
+      ]
+    },
+    {
+      "file": "docs/harness/tasks/2026-08-31-ops-operational-workbench-design.task.md",
+      "errors": [
+        "evidence is complete (summary-readout) but status is \"Active\" — set status: Archived or close the evidence."
+      ],
+      "warnings": [
+        "Contract anchor does not exist: ../pantheon-base/DESIGN.md",
+        "Contract anchor does not exist: ../pantheon-base/docs/designs/OPERATIONAL_WORKBENCH_COMPONENTS_DESIGN.md"
+      ]
+    },
+    {
+      "file": "docs/harness/tasks/2026-08-31-ops-v1-2-production-readiness-round2.task.md",
+      "errors": [
+        "Missing top-level heading in the form \"# Task Packet: <task-name>\".",
+        "Missing required section \"## Primary Layer\".",
+        "Missing required section \"## Dependency Layers\".",
+        "Missing required section \"## Harness Profile\".",
+        "Missing required section \"## Contract Anchors\".",
+        "Missing required section \"## Scope\".",
+        "Missing required section \"## Expected Files\".",
+        "Missing required section \"## Implementation Notes\".",
+        "Missing required section \"## Verification Plan\".",
+        "Missing required section \"## Linkage\".",
+        "Missing required section \"## Evidence Required\".",
+        "Missing required section \"## Human Gates\".",
+        "Missing required section \"## Completion Checklist\"."
+      ],
+      "warnings": []
+    },
+    {
+      "file": "docs/harness/tasks/2026-09-01-ops-foundation-upgrade-v0-10-25.task.md",
+      "errors": [
+        "Missing required section \"## Primary Layer\".",
+        "Missing required section \"## Dependency Layers\".",
+        "Missing required section \"## Harness Profile\".",
+        "Missing required section \"## Contract Anchors\".",
+        "Missing required section \"## Expected Files\".",
+        "Missing required section \"## Implementation Notes\".",
+        "Missing required section \"## Verification Plan\".",
+        "Missing required section \"## Evidence Required\".",
+        "Missing required section \"## Human Gates\".",
+        "Missing required section \"## Completion Checklist\".",
+        "Missing required subsection under \"## Scope\": \"### Out\"."
+      ],
+      "warnings": [
+        "Section \"## Linkage\" is missing recommended item: Task Manifest.",
+        "Section \"## Linkage\" is missing recommended item: OpenSpec Change.",
+        "Section \"## Linkage\" is missing recommended item: Superpowers Plan.",
+        "Section \"## Linkage\" is missing recommended item: Plan References.",
+        "Section \"## Linkage\" is missing recommended item: Evidence Directory.",
+        "Section \"## Linkage\" is missing recommended item: Review File."
+      ]
+    },
+    {
+      "file": "docs/harness/tasks/2026-09-01-release-docs-reconciliation.task.md",
+      "errors": [
+        "task manifest does not exist: .harness/tasks/2026-09-01-release-docs-reconciliation/manifest.json"
+      ],
+      "warnings": [
+        "Linked review file does not exist: .harness/evidence/2026-09-01-release-docs-reconciliation/review.md"
+      ]
+    },
+    {
+      "file": "docs/harness/tasks/2026-09-01-release-gate-sonar-cleanup.task.md",
+      "errors": [
+        "Missing required section \"## Dependency Layers\".",
+        "Missing required section \"## Harness Profile\".",
+        "Missing required section \"## Contract Anchors\".",
+        "Missing required section \"## Expected Files\".",
+        "Missing required section \"## Implementation Notes\".",
+        "Missing required section \"## Evidence Required\".",
+        "Missing required section \"## Human Gates\".",
+        "Missing required section \"## Completion Checklist\".",
+        "Section \"## Structural Scope\" must include \"- Affected Subgraph: <value>\".",
+        "Section \"## Structural Scope\" must include \"- Boundary Crossings: <value>\".",
+        "Section \"## Structural Scope\" must include \"- Risk Nodes: <value>\".",
+        "Section \"## Structural Scope\" must include \"- Graph Focus: <value>\".",
+        "task manifest does not exist: .harness/tasks/2026-09-01-release-gate-sonar-cleanup/manifest.json"
+      ],
+      "warnings": [
+        "Section \"## Linkage\" is missing recommended item: OpenSpec Change.",
+        "Section \"## Linkage\" is missing recommended item: Superpowers Plan.",
+        "Section \"## Linkage\" is missing recommended item: Plan References.",
+        "Section \"## Linkage\" is missing recommended item: Evidence Directory.",
+        "Section \"## Linkage\" is missing recommended item: Review File."
+      ]
+    },
+    {
+      "file": "docs/harness/tasks/2026-09-01-sonar-duplication-reduction.task.md",
+      "errors": [
+        "task manifest does not exist: .harness/tasks/2026-09-01-sonar-duplication-reduction/manifest.json"
+      ],
+      "warnings": [
+        "Linked review file does not exist: .harness/evidence/2026-09-01-sonar-duplication-reduction/review.md"
+      ]
+    },
+    {
+      "file": "docs/harness/tasks/2026-09-02-foundation-release-v0-10-26-and-ops-sync.task.md",
+      "errors": [
+        "task manifest does not exist: .harness/tasks/2026-09-02-foundation-release-v0-10-26-and-ops-sync/manifest.json"
+      ],
+      "warnings": [
+        "Linked review file does not exist: .harness/evidence/2026-09-02-foundation-release-v0-10-26-and-ops-sync/review.md"
+      ]
+    },
+    {
+      "file": "docs/harness/tasks/2026-09-28-ops-delivery-readiness-gap-closure.task.md",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "file": "docs/harness/tasks/2026-10-12-foundation-upgrade-base-v0-16-1.task.md",
+      "errors": [
+        "evidence is complete (summary-readout) but status is \"Active\" — set status: Archived or close the evidence."
+      ],
+      "warnings": []
+    },
+    {
+      "file": "docs/harness/tasks/2026-10-27-foundation-upgrade-base-v0-17-6.task.md",
+      "errors": [
+        "evidence is complete (manifest-completed) but status is \"Active\" — set status: Archived or close the evidence."
+      ],
+      "warnings": []
+    },
+    {
+      "file": "docs/harness/tasks/2026-10-27-foundation-upgrade-base-v0-17-7.task.md",
+      "errors": [
+        "evidence is complete (manifest-completed) but status is \"Active\" — set status: Archived or close the evidence."
+      ],
+      "warnings": []
+    },
+    {
+      "file": "docs/harness/tasks/2026-10-29-foundation-upgrade-base-v0-18-1.task.md",
+      "errors": [
+        "evidence is complete (manifest-completed) but status is \"Active\" — set status: Archived or close the evidence."
+      ],
+      "warnings": []
+    },
+    {
+      "file": "docs/harness/tasks/2026-10-29-sonar-ci-analysis-restore.task.md",
+      "errors": [
+        "evidence is complete (manifest-completed) but status is \"Active\" — set status: Archived or close the evidence."
+      ],
+      "warnings": []
+    },
+    {
+      "file": "docs/harness/tasks/2026-10-30-sonar-findings-remediation.task.md",
+      "errors": [
+        "evidence is complete (manifest-completed) but status is \"Active\" — set status: Archived or close the evidence."
+      ],
+      "warnings": []
+    },
+    {
+      "file": "docs/harness/tasks/2026-10-31-foundation-upgrade-base-v0-18-2.task.md",
+      "errors": [
+        "evidence is complete (manifest-completed) but status is \"Active\" — set status: Archived or close the evidence."
+      ],
+      "warnings": []
+    },
+    {
+      "file": "docs/harness/tasks/2026-10-31-frontend-follow-redirects-audit.task.md",
+      "errors": [
+        "evidence is complete (manifest-completed) but status is \"Active\" — set status: Archived or close the evidence."
+      ],
+      "warnings": []
+    },
+    {
+      "file": "docs/harness/tasks/2026-11-07-base-v0186-consumption.task.md",
+      "errors": [],
+      "warnings": [
+        "Contract anchor does not exist: ../pantheon-base/docs/designs/FOUNDATION_RELEASE_MODEL.md"
+      ]
+    },
+    {
+      "file": "docs/harness/tasks/2026-11-13-base-v0187-consumption.task.md",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "file": "docs/harness/tasks/2026-11-16-ops-business-menu-m3c.task.md",
+      "errors": [
+        "Missing top-level heading in the form \"# Task Packet: <task-name>\".",
+        "Missing required section \"## Goal\".",
+        "Missing required section \"## Primary Layer\".",
+        "Missing required section \"## Dependency Layers\".",
+        "Missing required section \"## Harness Profile\".",
+        "Missing required section \"## Contract Anchors\".",
+        "Missing required section \"## Scope\".",
+        "Missing required section \"## Expected Files\".",
+        "Missing required section \"## Implementation Notes\".",
+        "Missing required section \"## Verification Plan\".",
+        "Missing required section \"## Linkage\".",
+        "Missing required section \"## Evidence Required\".",
+        "Missing required section \"## Human Gates\".",
+        "Missing required section \"## Completion Checklist\"."
+      ],
+      "warnings": []
+    }
+  ],
+  "errorCount": 582,
+  "warningCount": 108,
+  "legacySkippedCount": 0,
+  "legacyConfig": "config/task-packet-legacy-docs.json"
+}

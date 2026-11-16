@@ -1,0 +1,58 @@
+[
+  {
+    "command": "go build ./...",
+    "workdir": "pantheon-ops/backend",
+    "exitCode": 0,
+    "timestamp": "2026-08-22",
+    "output": "backend builds cleanly"
+  },
+  {
+    "command": "go vet ./... (deploy module only)",
+    "workdir": "pantheon-ops/backend",
+    "exitCode": 0,
+    "timestamp": "2026-08-22",
+    "output": "no findings (pre-existing observability redeclared const excluded)"
+  },
+  {
+    "command": "PANTHEON_TEST_DSN=<redacted-local-dev-dsn>@tcp(127.0.0.1:3306)/pantheon_ops go test -count=1 ./modules/business/deploy/...",
+    "workdir": "pantheon-ops/backend",
+    "exitCode": 0,
+    "timestamp": "2026-08-22",
+    "output": "ok pantheon-base/modules/business/deploy (MySQL 8.0.36, 48s) [FZ-02: credential redacted from evidence; rotate outside repository]"
+  },
+  {
+    "command": "PANTHEON_TEST_DSN=<redacted-local-dev-dsn>@tcp(127.0.0.1:3306)/pantheon_ops PATH=D:\\msys64\\mingw64\\bin:$PATH CGO_ENABLED=1 go test -race -count=1 ./modules/business/deploy/...",
+    "workdir": "pantheon-ops/backend",
+    "exitCode": 0,
+    "timestamp": "2026-08-22",
+    "output": "ok pantheon-base/modules/business/deploy (MinGW race-detector proven, 52s) [FZ-02: credential redacted from evidence; rotate outside repository]"
+  },
+  {
+    "command": "node scripts/check-business-module-boundaries.mjs",
+    "workdir": "pantheon-ops",
+    "exitCode": 0,
+    "timestamp": "2026-08-22",
+    "output": "business module boundary check passed"
+  },
+  {
+    "command": "git diff --check",
+    "workdir": "pantheon-ops",
+    "exitCode": 0,
+    "timestamp": "2026-08-22",
+    "output": "no whitespace errors"
+  },
+  {
+    "command": "mysql 8.0.36: apply 000013 up after 000012 to a temporary empty database",
+    "workdir": "pantheon-ops",
+    "exitCode": 0,
+    "timestamp": "2026-08-17",
+    "output": "execution_snapshot/target_snapshot/start_request_key, ssh_port/business_scope_id/report_key/resolved_at, and biz_deploy_host_lease created"
+  },
+  {
+    "command": "mysql 8.0.36: apply 000013 down then drop temporary database",
+    "workdir": "pantheon-ops",
+    "exitCode": 0,
+    "timestamp": "2026-08-17",
+    "output": "biz_deploy_host_lease dropped and columns rolled back"
+  }
+]

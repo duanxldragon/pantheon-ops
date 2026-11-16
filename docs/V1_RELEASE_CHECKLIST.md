@@ -1,18 +1,19 @@
 ---
 title: Pantheon-Ops V1 发布检查表
 doc_type: Acceptance
-layer: platform
-status: Active
+layer: business
+status: Superseded
+superseded_by: .harness/tasks/2026-11-16-ops-pilot-delivery/plan.md
 linked_contracts:
   - docs/PROJECT_INHERITANCE.md
-updated_at: 2026-08-28
+updated_at: 2026-11-16
 ---
 
 # Pantheon-Ops V1 发布检查表
 
 依据：`.harness/evidence/2026-08-19-ops-v1-backlog-closeout/`（2026-08-22 基线 `ee21350` 全部通过）
 
-本文是 v1.0 冻结与发布的唯一状态口径。业务模块设计文档（`designs/BUSINESS_*`）标注的"V1 冻结目标"不代表已实现，以本文勾选状态为准。
+本文保留八月冻结验收检查点与原始勾选。当前试点状态由[试点交付计划](../.harness/tasks/2026-11-16-ops-pilot-delivery/plan.md)与[任务状态](../.harness/STATUS.md)接管。旧勾选只证明对应历史版本；ArgoCD/Velero 当前已装配，不沿用历史下架结论。当前数据库/SSH/K8s/业务烟测与截图由 C05 重新采证；包、安装与回滚由 C06 承接。生产快照迁移及未签维护冻结仍在独立生产轨道，不自动标通过。
 
 ## 1. 编译与测试门禁（全部必过）
 
@@ -47,6 +48,7 @@ updated_at: 2026-08-28
 - [x] 平台自监控（2026-08-28 R2：8090 `/metrics` 返回 212 条 `pantheon_*` 指标；业务指标实时准确——`pantheon_deploy_task_hosts_total{status="success"} 5` 与真机执行记录吻合；`pantheon_hosts_total{state="pending"}` / `pantheon_host_connectivity` 正常输出）
 
 > 真机验收证据：
+>
 > - `.harness/evidence/2026-08-28-v1-real-acceptance-r1/summary.md`（R1：部署引擎真实链路 10 项全通）
 > - `.harness/evidence/2026-08-28-v1-real-acceptance-r2/summary.md`（R2：源码编译安装 / 幂等 / 卸载 / 断点续跑 四项全通）
 

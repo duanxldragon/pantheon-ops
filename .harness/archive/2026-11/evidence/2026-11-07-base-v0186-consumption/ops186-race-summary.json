@@ -1,0 +1,43 @@
+{
+  "recordedAt": "2026-11-07T06:52:37.770Z",
+  "command": {
+    "name": "ops186-full-readonly-race",
+    "executable": "go",
+    "arguments": [
+      "test",
+      "-timeout=30m",
+      "-buildvcs=false",
+      "-mod=readonly",
+      "-race",
+      "-json",
+      "-p",
+      "2",
+      "-count=1",
+      "./..."
+    ],
+    "cwd": "D:/workspace/go/pantheon-platform/audit-artifacts/github-main-release-2026-11-07/ops-v186-rebuilt/backend",
+    "startedAt": "2026-11-07T06:33:28.9259547Z",
+    "finishedAt": "2026-11-07T06:51:56.7011077Z",
+    "exitCode": 0,
+    "log": "D:/workspace/go/pantheon-platform/audit-artifacts/github-main-release-2026-11-07/ops186-full-readonly-race.log",
+    "sha256": "7f647dc216d19628dd6009c14997fc0319c7f31d22e18c9a855890e414219138"
+  },
+  "tests": {
+    "pass": 2170,
+    "fail": 0,
+    "skip": 1
+  },
+  "skips": [
+    {
+      "Time": "2026-11-07T14:50:09.9562075+08:00",
+      "Action": "skip",
+      "Package": "github.com/duanxldragon/pantheon-base/backend/pkg/upload",
+      "Test": "TestServiceStoreUsesRealS3WhenConfigured",
+      "Elapsed": 0
+    }
+  ],
+  "passedPackages": 64,
+  "protectedSourceHashesUnchanged": 1337,
+  "goModReadonly": true,
+  "cgoEnabled": true
+}

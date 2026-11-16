@@ -1,0 +1,137 @@
+{
+  "taskId": "2026-11-16-ops-readiness-plan-closeout",
+  "title": "业务审查任务拆分、计划更新与完成任务归档",
+  "goal": "落地本次审查计划和任务包，证据驱动归档已完成历史任务，保留开放业务及继承 gap。",
+  "primaryLayer": "business/*",
+  "status": "completed",
+  "priority": "P1",
+  "deliveryTier": "L1",
+  "taskDoc": "docs/harness/tasks/2026-11-16-ops-readiness-plan-closeout.task.md",
+  "parentTask": null,
+  "dependencies": [],
+  "activation": "core",
+  "owner": "business-consumer",
+  "scope": {
+    "in": [
+      "任务包、计划/入口更新和 archive-aware 归档",
+      "PR183 已合并事实补记；原始日志内容保留",
+      "新菜单运行未验收保持进行中",
+      "同步中英文文档入口与已提交 Base v0.18.9 文档锚点；保留业务验收 gap"
+    ],
+    "out": [
+      "platform/system/* 通用实现与规则副本；共享问题 Base-first",
+      "未授权生产操作、规则豁免与风险接受",
+      "自动 exporter/file_sd/商业 License 等后续产品扩张"
+    ]
+  },
+  "dependencyLayers": [
+    "business/*",
+    "inheritance-sync"
+  ],
+  "contractAnchors": [
+    "AGENTS.md",
+    "docs/PROJECT_INHERITANCE.md",
+    "docs/designs/BUSINESS_FUNCTIONAL_DESIGN.md",
+    "docs/designs/BUSINESS_QA_ACCEPTANCE_PLAN.md"
+  ],
+  "expectedFiles": {
+    "create": [
+      "docs/harness/tasks/2026-11-16-ops-readiness-plan-closeout.task.md",
+      ".harness/tasks/2026-11-16-ops-readiness-plan-closeout/manifest.json",
+      ".harness/evidence/2026-11-16-ops-readiness-plan-closeout/summary.md",
+      ".harness/evidence/2026-11-16-ops-readiness-plan-closeout/review.md",
+      ".harness/evidence/2026-11-16-ops-readiness-plan-closeout/commands.json",
+      ".harness/tasks/2026-11-16-ops-readiness-plan-closeout/verify-governance.mjs",
+      ".harness/tasks/2026-11-16-ops-readiness-plan-closeout/review-scope.json"
+    ],
+    "modify": [
+      "docs/README.md",
+      "docs/README.en.md",
+      "docs/harness/tasks/README.md",
+      "docs/designs/BUSINESS_FUNCTIONAL_DESIGN.md",
+      "docs/designs/BUSINESS_DEVELOPMENT_PLAN.md",
+      "docs/V1_RELEASE_CHECKLIST.md",
+      ".harness/ARCHIVE.md",
+      ".harness/STATUS.md",
+      "README.md",
+      "README.en.md",
+      "docs/README.md",
+      "docs/README.en.md",
+      "docs/harness/tasks/README.md",
+      "docs/designs/BUSINESS_DEVELOPMENT_PLAN.md",
+      "docs/designs/BUSINESS_FUNCTIONAL_DESIGN.md",
+      "docs/V1_RELEASE_CHECKLIST.md",
+      "docs/PROJECT_INHERITANCE.md",
+      "docs/PROJECT_INHERITANCE.en.md",
+      "docs/harness/tasks/2026-11-16-ops-business-menu-m3c.task.md",
+      ".harness/tasks/2026-11-16-ops-business-menu-m3c/manifest.json"
+    ],
+    "doNotTouch": [
+      "../pantheon-base/**",
+      "foundation-release.lock.json",
+      "backend/modules/system/**",
+      "frontend/src/modules/system/**"
+    ]
+  },
+  "harnessProfile": {
+    "template": "admin-platform",
+    "overlay": "pantheon-ops",
+    "qualityProfile": "none",
+    "portableFailureClass": "business-delivery-gap",
+    "ownerLayer": "business/*",
+    "coverageDimensions": [
+      "behaviour",
+      "architecture-fitness",
+      "runtime-quality"
+    ]
+  },
+  "implementationNotes": [
+    "Minimal Complexity Rung: reuse",
+    "开始实现前重新读取当前候选与结构；本审查行号绑定旧基线，不能覆盖并发升级。"
+  ],
+  "acceptanceCriteria": [
+    "10 个子任务有 owner/依赖/范围/验收与证据链接，计划不声明业务完成。",
+    "12 个已完成任务成对归档，所有原始 evidence 字节相同；PR183 closeout 仅追加事实。",
+    "本次范围门禁通过，历史失败与前后差异显式记录，已有锁文件改动保持字节一致。"
+  ],
+  "verificationPlan": {
+    "commands": [
+      "node scripts/harness/check-task-packet.mjs <本次任务包>",
+      "npm run check:docs-frontmatter",
+      "npm run check:task-packet-template",
+      "node scripts/harness/check-evidence.mjs --strict <本次 commands.json>",
+      "node scripts/harness/check-review.mjs --strict <本次 review.md>",
+      "归档 SHA-256 比对与 archive-aware 引用解析",
+      "完整历史门禁与 baseline 比对",
+      "node scripts/harness/check-review.mjs --root . --strict --json --legacy-config .harness/tasks/2026-11-16-ops-readiness-plan-closeout/review-scope.json .harness/evidence/2026-11-16-ops-readiness-plan-closeout/review.md"
+    ],
+    "runtimeEvidence": [
+      "none: docs and archive lifecycle only"
+    ]
+  },
+  "runtimeSensitive": false,
+  "humanGates": [
+    "范围已由维护者确认：按业务设计评估试点；安全可逆步骤自主执行。",
+    "生产操作、门禁豁免、风险接受及最终视觉/功能验收由维护者决定；不得以等候时间作为批准。"
+  ],
+  "linkage": {
+    "taskManifest": ".harness/tasks/2026-11-16-ops-readiness-plan-closeout/manifest.json",
+    "taskDoc": "docs/harness/tasks/2026-11-16-ops-readiness-plan-closeout.task.md",
+    "evidenceDir": ".harness/evidence/2026-11-16-ops-readiness-plan-closeout/",
+    "reviewFile": ".harness/evidence/2026-11-16-ops-readiness-plan-closeout/review.md",
+    "summaryFile": ".harness/evidence/2026-11-16-ops-readiness-plan-closeout/summary.md",
+    "changeRef": "none",
+    "planRefs": [
+      ".harness/tasks/2026-11-16-ops-pilot-delivery/plan.md"
+    ]
+  },
+  "completedAt": "2026-11-16T10:10:17.497Z",
+  "completionScope": "governance only; child business tasks remain planned",
+  "completionChecklist": [
+    "Layer and boundary declared",
+    "Contract anchors read",
+    "Verification run or exception recorded",
+    "Evidence saved or summarized",
+    "Review completed"
+  ]
+}

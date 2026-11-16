@@ -1,0 +1,752 @@
+{
+  "date": "2026-11-16",
+  "baseline": "07d53988a13073d0293e44c906cee076d6d375c3",
+  "auditedBaseline": "691dd4553c6e47c6eebe8e13a44af71cfdf7ebb5",
+  "committedFoundation": "pantheon-base-v0.18.9",
+  "workingLock": "pantheon-base-v0.18.9",
+  "lockHash": "14417d10b6ac9fc6eb0c24069b8c2b099abef2f0ad22536c402df06de4eaf1fc",
+  "archival": [
+    {
+      "id": "2026-08-17-ops-foundation-hardening",
+      "taskDoc": "docs/harness/tasks/2026-08-17-ops-foundation-hardening.task.md",
+      "month": "2026-08",
+      "sourceTask": ".harness/tasks/2026-08-17-ops-foundation-hardening",
+      "sourceEvidence": ".harness/evidence/2026-08-17-ops-foundation-hardening",
+      "targetTask": ".harness/archive/2026-08/tasks/2026-08-17-ops-foundation-hardening",
+      "targetEvidence": ".harness/archive/2026-08/evidence/2026-08-17-ops-foundation-hardening",
+      "evidenceBefore": {
+        "commands.json": "e0bdbd186377b673e658ff59e0abbb213fcb14394053d8ac6b24e990639440b3",
+        "review.md": "fdf9858f3bc98d4252c927c47125f7c7cf95a5724c14921eba1a1dbbdc039e8e",
+        "summary.md": "3f19e7e6f13824f345ea3c9e00934debdfd16b3039c9027f0ef4dd656f434e8c"
+      },
+      "tasksBefore": {
+        "EXECUTION_QUEUE.md": "73912691c9fea761348644c4dcd3d599bcc813db1a58cf53f2ce574a18b5f43b",
+        "HANDOFF.md": "30343e3a85e30281b0b2540d48ed47a39cdde75faf8883866372c5bdb72eb277",
+        "manifest.json": "d1d55ba866d4e2f22f0bec6fc8a0cd906c5b42c3da17da20f51f02c57ff2231c",
+        "STATUS.md": "feb542a688606dce99d9ba174288c200c9a4c0a78ad7069cf11f841aa8f71e29"
+      },
+      "evidenceAfter": {
+        "commands.json": "e0bdbd186377b673e658ff59e0abbb213fcb14394053d8ac6b24e990639440b3",
+        "review.md": "fdf9858f3bc98d4252c927c47125f7c7cf95a5724c14921eba1a1dbbdc039e8e",
+        "summary.md": "3f19e7e6f13824f345ea3c9e00934debdfd16b3039c9027f0ef4dd656f434e8c"
+      },
+      "tasksAfter": {
+        "EXECUTION_QUEUE.md": "73912691c9fea761348644c4dcd3d599bcc813db1a58cf53f2ce574a18b5f43b",
+        "HANDOFF.md": "30343e3a85e30281b0b2540d48ed47a39cdde75faf8883866372c5bdb72eb277",
+        "manifest.json": "d1d55ba866d4e2f22f0bec6fc8a0cd906c5b42c3da17da20f51f02c57ff2231c",
+        "STATUS.md": "feb542a688606dce99d9ba174288c200c9a4c0a78ad7069cf11f841aa8f71e29"
+      },
+      "decision": "archived-original-scope-completed",
+      "successorPlan": ".harness/tasks/2026-11-16-ops-pilot-delivery/plan.md"
+    },
+    {
+      "id": "ops-business-versioned-migrations",
+      "taskDoc": "docs/harness/tasks/2026-08-17-ops-business-versioned-migrations.task.md",
+      "month": "2026-08",
+      "sourceTask": ".harness/tasks/ops-business-versioned-migrations",
+      "sourceEvidence": ".harness/evidence/ops-business-versioned-migrations",
+      "targetTask": ".harness/archive/2026-08/tasks/ops-business-versioned-migrations",
+      "targetEvidence": ".harness/archive/2026-08/evidence/ops-business-versioned-migrations",
+      "evidenceBefore": {
+        "commands.json": "a2bbd43c01e21f49c80e890fffca55edf7c6300904e3422f7f6385e616dbc1f3",
+        "review.md": "058a7100772e5244634205e381258f0a7c9a268ef37cef2bf3ae9186a334ec28",
+        "schema-empty.txt": "2a5b52744c00a74db64f9791002dc3918caf2d35bddc8e4ac1b26ecb4d99a648",
+        "schema-repeat.txt": "9076aa1101829a1a708fab79963e62857aa9dc68e99b533e5ee107c70fe5ae01",
+        "schema-upgrade.txt": "0b307083627aa12465abc713df24540a3c7c8d970c8d2575417eb28d24f57088",
+        "summary.md": "96d4f2147c7bc25c6aa39e798b1b8a6e815891d94a41b56ff550cd602aaeee7d"
+      },
+      "tasksBefore": {
+        "HANDOFF.md": "e2679fca7dbf96050ef85a5172aeedcade8e49cece4b87a5c22b22e68e94c56b",
+        "manifest.json": "1172167a6dd78b9b6f9d06bd623b0c592cf9fb1a1a2c46dd55afdbc20c03744b",
+        "STATUS.md": "30bcaae7969b87302226e513bcc04ce4f912948479a687235b4a37a4f504e45f"
+      },
+      "evidenceAfter": {
+        "commands.json": "a2bbd43c01e21f49c80e890fffca55edf7c6300904e3422f7f6385e616dbc1f3",
+        "review.md": "058a7100772e5244634205e381258f0a7c9a268ef37cef2bf3ae9186a334ec28",
+        "schema-empty.txt": "2a5b52744c00a74db64f9791002dc3918caf2d35bddc8e4ac1b26ecb4d99a648",
+        "schema-repeat.txt": "9076aa1101829a1a708fab79963e62857aa9dc68e99b533e5ee107c70fe5ae01",
+        "schema-upgrade.txt": "0b307083627aa12465abc713df24540a3c7c8d970c8d2575417eb28d24f57088",
+        "summary.md": "96d4f2147c7bc25c6aa39e798b1b8a6e815891d94a41b56ff550cd602aaeee7d"
+      },
+      "tasksAfter": {
+        "HANDOFF.md": "e2679fca7dbf96050ef85a5172aeedcade8e49cece4b87a5c22b22e68e94c56b",
+        "manifest.json": "1172167a6dd78b9b6f9d06bd623b0c592cf9fb1a1a2c46dd55afdbc20c03744b",
+        "STATUS.md": "30bcaae7969b87302226e513bcc04ce4f912948479a687235b4a37a4f504e45f"
+      },
+      "decision": "archived-original-scope-completed",
+      "successorPlan": ".harness/tasks/2026-11-16-ops-pilot-delivery/plan.md",
+      "docDisposition": "Superseded historical reading alias; actual machine task/evidence archived under original taskId"
+    },
+    {
+      "id": "ops-cross-module-capability-boundaries",
+      "taskDoc": "docs/harness/tasks/2026-08-17-ops-cross-module-capability-boundaries.task.md",
+      "month": "2026-08",
+      "sourceTask": ".harness/tasks/ops-cross-module-capability-boundaries",
+      "sourceEvidence": ".harness/evidence/ops-cross-module-capability-boundaries",
+      "targetTask": ".harness/archive/2026-08/tasks/ops-cross-module-capability-boundaries",
+      "targetEvidence": ".harness/archive/2026-08/evidence/ops-cross-module-capability-boundaries",
+      "evidenceBefore": {
+        "commands.json": "725c453dd0b3331510415c1277b414e5782e994713da2cd614ffd0917d730cf8",
+        "dependency-diagram.md": "1b77a91bde9e4bfe02dbfd79eef444508e1604dd22987d58301b4e4756a46c13",
+        "review.md": "5fc5ecd820e5d9c99476ec1e38346d6ff592fad38d039b122e383680771e7b6d",
+        "scan.txt": "2133ddf07fb8af49e595644de439560453dfe7dcd56c989b1e518e5272a78713",
+        "summary.md": "598290446218ccc57f467a1405229459f5973571bf2e2fc8e6048fc48ed1c3c1"
+      },
+      "tasksBefore": {
+        "HANDOFF.md": "ac526f5d05c545b13eb378a89b0cf04739525bb8d5e086c55775dfd38e5b5d55",
+        "manifest.json": "6606bcbc08d200ccb2402ed1d7bf0dff8f824eb8d2e38529ddc1a3910cb05634",
+        "STATUS.md": "3bfc5e1e3bcd97788c72f98dd1b3d87682c64a3496d10647f5d03485fa649f9d"
+      },
+      "evidenceAfter": {
+        "commands.json": "725c453dd0b3331510415c1277b414e5782e994713da2cd614ffd0917d730cf8",
+        "dependency-diagram.md": "1b77a91bde9e4bfe02dbfd79eef444508e1604dd22987d58301b4e4756a46c13",
+        "review.md": "5fc5ecd820e5d9c99476ec1e38346d6ff592fad38d039b122e383680771e7b6d",
+        "scan.txt": "2133ddf07fb8af49e595644de439560453dfe7dcd56c989b1e518e5272a78713",
+        "summary.md": "598290446218ccc57f467a1405229459f5973571bf2e2fc8e6048fc48ed1c3c1"
+      },
+      "tasksAfter": {
+        "HANDOFF.md": "ac526f5d05c545b13eb378a89b0cf04739525bb8d5e086c55775dfd38e5b5d55",
+        "manifest.json": "6606bcbc08d200ccb2402ed1d7bf0dff8f824eb8d2e38529ddc1a3910cb05634",
+        "STATUS.md": "3bfc5e1e3bcd97788c72f98dd1b3d87682c64a3496d10647f5d03485fa649f9d"
+      },
+      "decision": "archived-original-scope-completed",
+      "successorPlan": ".harness/tasks/2026-11-16-ops-pilot-delivery/plan.md",
+      "docDisposition": "Superseded historical reading alias; actual machine task/evidence archived under original taskId"
+    },
+    {
+      "id": "ops-bizscope-datascope-ownership",
+      "taskDoc": "docs/harness/tasks/2026-08-17-ops-bizscope-datascope-ownership.task.md",
+      "month": "2026-08",
+      "sourceTask": ".harness/tasks/ops-bizscope-datascope-ownership",
+      "sourceEvidence": ".harness/evidence/ops-bizscope-datascope-ownership",
+      "targetTask": ".harness/archive/2026-08/tasks/ops-bizscope-datascope-ownership",
+      "targetEvidence": ".harness/archive/2026-08/evidence/ops-bizscope-datascope-ownership",
+      "evidenceBefore": {
+        "commands.json": "9436f6b198c2805fd059e98fd4f22c2a57b3489e2960a0ae2d7a8497dbfe251d",
+        "review.md": "cb491ec44dab1ada845ea7b1e0be81ff62e34319e2dd5f46cb9fcc5077542d68",
+        "summary.md": "2e8d7df2a8915acdb12b1198c473024695b2181db366ac39dd6543eae7d885ad"
+      },
+      "tasksBefore": {
+        "HANDOFF.md": "7293df9830f8ddf78c75a6b6432bf54a274c7f52e738d45b4062285c48013dfd",
+        "manifest.json": "ee935ad08159796edefcf8131b3cf305e0648ae0b22e11c8107b4b9b03e8709c",
+        "STATUS.md": "73bb669f86cc99546c3e0aac30ca6ddd93325f76090c01624a11986f761f65f4"
+      },
+      "evidenceAfter": {
+        "commands.json": "9436f6b198c2805fd059e98fd4f22c2a57b3489e2960a0ae2d7a8497dbfe251d",
+        "review.md": "cb491ec44dab1ada845ea7b1e0be81ff62e34319e2dd5f46cb9fcc5077542d68",
+        "summary.md": "2e8d7df2a8915acdb12b1198c473024695b2181db366ac39dd6543eae7d885ad"
+      },
+      "tasksAfter": {
+        "HANDOFF.md": "7293df9830f8ddf78c75a6b6432bf54a274c7f52e738d45b4062285c48013dfd",
+        "manifest.json": "ee935ad08159796edefcf8131b3cf305e0648ae0b22e11c8107b4b9b03e8709c",
+        "STATUS.md": "73bb669f86cc99546c3e0aac30ca6ddd93325f76090c01624a11986f761f65f4"
+      },
+      "decision": "archived-original-scope-completed",
+      "successorPlan": ".harness/tasks/2026-11-16-ops-pilot-delivery/plan.md",
+      "docDisposition": "Superseded historical reading alias; actual machine task/evidence archived under original taskId"
+    },
+    {
+      "id": "ops-deploy-immutability-idempotency",
+      "taskDoc": "docs/harness/tasks/2026-08-17-ops-deploy-immutability-idempotency.task.md",
+      "month": "2026-08",
+      "sourceTask": ".harness/tasks/ops-deploy-immutability-idempotency",
+      "sourceEvidence": ".harness/evidence/ops-deploy-immutability-idempotency",
+      "targetTask": ".harness/archive/2026-08/tasks/ops-deploy-immutability-idempotency",
+      "targetEvidence": ".harness/archive/2026-08/evidence/ops-deploy-immutability-idempotency",
+      "evidenceBefore": {
+        "commands.json": "1d51067e197fcd3bb4af41ef404b37ff441542c745af92c67b8c5456caf15355",
+        "review.md": "958e0fc98aaafb85d2f040fc6655694cc1e18e983da58c79f043f5be5678c84b",
+        "summary.md": "3c33627beee44251be79e97c98274139d4a5ac98b28fcc8b81db27585a817407"
+      },
+      "tasksBefore": {
+        "HANDOFF.md": "b3f4723b3ce63f00c52a2cdbb2cecaecf9de5ed505d066320c83c77d4ce97f30",
+        "manifest.json": "87b9d0365b5ce3fd951575d02ba2e5397ee1abb1b0ad9b6f568a93e246d481d8",
+        "STATUS.md": "e7ef534794fc3ed645b8032417a36912a0c13e1a25913fc38b93c369057f5d05"
+      },
+      "evidenceAfter": {
+        "commands.json": "1d51067e197fcd3bb4af41ef404b37ff441542c745af92c67b8c5456caf15355",
+        "review.md": "958e0fc98aaafb85d2f040fc6655694cc1e18e983da58c79f043f5be5678c84b",
+        "summary.md": "3c33627beee44251be79e97c98274139d4a5ac98b28fcc8b81db27585a817407"
+      },
+      "tasksAfter": {
+        "HANDOFF.md": "b3f4723b3ce63f00c52a2cdbb2cecaecf9de5ed505d066320c83c77d4ce97f30",
+        "manifest.json": "87b9d0365b5ce3fd951575d02ba2e5397ee1abb1b0ad9b6f568a93e246d481d8",
+        "STATUS.md": "e7ef534794fc3ed645b8032417a36912a0c13e1a25913fc38b93c369057f5d05"
+      },
+      "decision": "archived-original-scope-completed",
+      "successorPlan": ".harness/tasks/2026-11-16-ops-pilot-delivery/plan.md",
+      "docDisposition": "Superseded historical reading alias; actual machine task/evidence archived under original taskId"
+    },
+    {
+      "id": "ops-service-instance-foundation",
+      "taskDoc": "docs/harness/tasks/2026-08-17-ops-service-instance-foundation.task.md",
+      "month": "2026-08",
+      "sourceTask": ".harness/tasks/ops-service-instance-foundation",
+      "sourceEvidence": ".harness/evidence/ops-service-instance-foundation",
+      "targetTask": ".harness/archive/2026-08/tasks/ops-service-instance-foundation",
+      "targetEvidence": ".harness/archive/2026-08/evidence/ops-service-instance-foundation",
+      "evidenceBefore": {
+        "commands.json": "1690f7b11b6c820a91f80a91b01896d85dbe71fcd3631245d9381d57151ea748",
+        "review.md": "e3d98dfb09129c100f97d46472eeb728fadd3ff241ed79a8f8609ea3a01bcfec",
+        "summary.md": "50e6264789dc4e018f441e240f9f944ea84bd9f87fb7445f4a51462fd6267bd1"
+      },
+      "tasksBefore": {
+        "HANDOFF.md": "4263b5963d50aa4edaf06f0fe67449bd1f64b2db64dc4481c1a9520daeb02224",
+        "manifest.json": "3a9725ec97d9019afe821cdcdaaa25cf1cf5787989c1ed8b18372d73e9cecc51",
+        "STATUS.md": "52ee6e688240496dd9a904a4f23eb4592779717f813297c86d8da7172a3cd98a"
+      },
+      "evidenceAfter": {
+        "commands.json": "1690f7b11b6c820a91f80a91b01896d85dbe71fcd3631245d9381d57151ea748",
+        "review.md": "e3d98dfb09129c100f97d46472eeb728fadd3ff241ed79a8f8609ea3a01bcfec",
+        "summary.md": "50e6264789dc4e018f441e240f9f944ea84bd9f87fb7445f4a51462fd6267bd1"
+      },
+      "tasksAfter": {
+        "HANDOFF.md": "4263b5963d50aa4edaf06f0fe67449bd1f64b2db64dc4481c1a9520daeb02224",
+        "manifest.json": "3a9725ec97d9019afe821cdcdaaa25cf1cf5787989c1ed8b18372d73e9cecc51",
+        "STATUS.md": "52ee6e688240496dd9a904a4f23eb4592779717f813297c86d8da7172a3cd98a"
+      },
+      "decision": "archived-original-scope-completed",
+      "successorPlan": ".harness/tasks/2026-11-16-ops-pilot-delivery/plan.md",
+      "docDisposition": "Superseded historical reading alias; actual machine task/evidence archived under original taskId"
+    },
+    {
+      "id": "ops-resource-service-state-machines",
+      "taskDoc": "docs/harness/tasks/2026-08-17-ops-resource-service-state-machines.task.md",
+      "month": "2026-08",
+      "sourceTask": ".harness/tasks/ops-resource-service-state-machines",
+      "sourceEvidence": ".harness/evidence/ops-resource-service-state-machines",
+      "targetTask": ".harness/archive/2026-08/tasks/ops-resource-service-state-machines",
+      "targetEvidence": ".harness/archive/2026-08/evidence/ops-resource-service-state-machines",
+      "evidenceBefore": {
+        "commands.json": "5af12cdd538ca9cbacb500cb0c1b9f8be45f05f4921b6bf3d22e4738a65e1d21",
+        "review.md": "8833338ae10c36e40848b99f82de633df267a4d1a8a3e0d95eaa0ada8c6e8474",
+        "summary.md": "16c6b920d72f2e0c84be460bd112eea1fda599cc87dfcc5510a10dcece6bd0f8"
+      },
+      "tasksBefore": {
+        "HANDOFF.md": "b8cdb6f6039a543d49d75407ca9f33644678a0760d9c7d1d78978584940bcdd8",
+        "manifest.json": "dd15c34aab5ade3189c51869dcfc37d45602b6f03d2b6365a099808cfa2da10c",
+        "STATUS.md": "dca8fbae36bdfeb0cee809a59e5a575e4d5ad47a0895dedb489148b280ab8e92"
+      },
+      "evidenceAfter": {
+        "commands.json": "5af12cdd538ca9cbacb500cb0c1b9f8be45f05f4921b6bf3d22e4738a65e1d21",
+        "review.md": "8833338ae10c36e40848b99f82de633df267a4d1a8a3e0d95eaa0ada8c6e8474",
+        "summary.md": "16c6b920d72f2e0c84be460bd112eea1fda599cc87dfcc5510a10dcece6bd0f8"
+      },
+      "tasksAfter": {
+        "HANDOFF.md": "b8cdb6f6039a543d49d75407ca9f33644678a0760d9c7d1d78978584940bcdd8",
+        "manifest.json": "dd15c34aab5ade3189c51869dcfc37d45602b6f03d2b6365a099808cfa2da10c",
+        "STATUS.md": "dca8fbae36bdfeb0cee809a59e5a575e4d5ad47a0895dedb489148b280ab8e92"
+      },
+      "decision": "archived-original-scope-completed",
+      "successorPlan": ".harness/tasks/2026-11-16-ops-pilot-delivery/plan.md",
+      "docDisposition": "Superseded historical reading alias; actual machine task/evidence archived under original taskId"
+    },
+    {
+      "id": "ops-k8s-release-reliability",
+      "taskDoc": "docs/harness/tasks/2026-08-17-ops-k8s-release-reliability.task.md",
+      "month": "2026-08",
+      "sourceTask": ".harness/tasks/ops-k8s-release-reliability",
+      "sourceEvidence": ".harness/evidence/ops-k8s-release-reliability",
+      "targetTask": ".harness/archive/2026-08/tasks/ops-k8s-release-reliability",
+      "targetEvidence": ".harness/archive/2026-08/evidence/ops-k8s-release-reliability",
+      "evidenceBefore": {
+        "commands.json": "86dd696d09da8516b0eb3f6b5d12a0709541eb81553a93dacd41e8bc0034e9db",
+        "release-create-mobile.png": "7d4f0d426593f0f007134083bc4dd86cebbc7dafa443f86bfe7951ddc950759d",
+        "release-desktop.png": "ec9cb820702d95a8dc4115234d6b0f772a6e0f79e6affba16520d66a26bfbf3d",
+        "release-mobile.png": "56323febc3827623209ef5b2095756140ae009964e9cc53858d857b6aed6c7d9",
+        "review.md": "e7a9183829384f0903eee602dddd9c0fea228356d85ec60a719a56db6e7f6347",
+        "summary.md": "ce973f8799ff8dc9f8539615980c24f522916ca12040714f99c76f021558a02e"
+      },
+      "tasksBefore": {
+        "HANDOFF.md": "fd474b6ecb3a5a9a1f0110c1a206a5a9a1d358530183048624ee0e6decc11e90",
+        "manifest.json": "02199643e589780174ef8f6b5b33f38085e44ce5c7fc7a249f524661af1e26d5",
+        "STATUS.md": "1ed617e22ac83e6347c47d069b96466302cb1f8c7b50f4e3771c289fd72b5e2d"
+      },
+      "evidenceAfter": {
+        "commands.json": "86dd696d09da8516b0eb3f6b5d12a0709541eb81553a93dacd41e8bc0034e9db",
+        "release-create-mobile.png": "7d4f0d426593f0f007134083bc4dd86cebbc7dafa443f86bfe7951ddc950759d",
+        "release-desktop.png": "ec9cb820702d95a8dc4115234d6b0f772a6e0f79e6affba16520d66a26bfbf3d",
+        "release-mobile.png": "56323febc3827623209ef5b2095756140ae009964e9cc53858d857b6aed6c7d9",
+        "review.md": "e7a9183829384f0903eee602dddd9c0fea228356d85ec60a719a56db6e7f6347",
+        "summary.md": "ce973f8799ff8dc9f8539615980c24f522916ca12040714f99c76f021558a02e"
+      },
+      "tasksAfter": {
+        "HANDOFF.md": "fd474b6ecb3a5a9a1f0110c1a206a5a9a1d358530183048624ee0e6decc11e90",
+        "manifest.json": "02199643e589780174ef8f6b5b33f38085e44ce5c7fc7a249f524661af1e26d5",
+        "STATUS.md": "1ed617e22ac83e6347c47d069b96466302cb1f8c7b50f4e3771c289fd72b5e2d"
+      },
+      "decision": "archived-original-scope-completed",
+      "successorPlan": ".harness/tasks/2026-11-16-ops-pilot-delivery/plan.md",
+      "docDisposition": "Superseded historical reading alias; actual machine task/evidence archived under original taskId"
+    },
+    {
+      "id": "ops-architecture-quality-gates",
+      "taskDoc": "docs/harness/tasks/2026-08-17-ops-architecture-quality-gates.task.md",
+      "month": "2026-08",
+      "sourceTask": ".harness/tasks/ops-architecture-quality-gates",
+      "sourceEvidence": ".harness/evidence/ops-architecture-quality-gates",
+      "targetTask": ".harness/archive/2026-08/tasks/ops-architecture-quality-gates",
+      "targetEvidence": ".harness/archive/2026-08/evidence/ops-architecture-quality-gates",
+      "evidenceBefore": {
+        "commands.json": "f015168c1449bdca41531541b0cf1dd4a65dea525e0280af16896865e6d80dab",
+        "review.md": "535caad3b4f7f00a172cf12d9f9a32ad015d355c5679ed904ca4b0e666c09493",
+        "summary.md": "581428d8ec8145801aa00303902efa2f5dc1a33593ea95e7e87fb6af960807a8"
+      },
+      "tasksBefore": {
+        "HANDOFF.md": "20a90c9b3a1a0ede8c59e7bd222593b60c4b478e92abc75b5f38bdd52b6734bf",
+        "manifest.json": "6a27ffa4d954163dd666951bf14b5f22231e4c4a6f64715c4f6032d9428c1a72",
+        "STATUS.md": "0db25a278e0d8e2ad3f74bfc9a6e2ddda0486fe1295ad81c5925423e12e19d32"
+      },
+      "evidenceAfter": {
+        "commands.json": "f015168c1449bdca41531541b0cf1dd4a65dea525e0280af16896865e6d80dab",
+        "review.md": "535caad3b4f7f00a172cf12d9f9a32ad015d355c5679ed904ca4b0e666c09493",
+        "summary.md": "581428d8ec8145801aa00303902efa2f5dc1a33593ea95e7e87fb6af960807a8"
+      },
+      "tasksAfter": {
+        "HANDOFF.md": "20a90c9b3a1a0ede8c59e7bd222593b60c4b478e92abc75b5f38bdd52b6734bf",
+        "manifest.json": "6a27ffa4d954163dd666951bf14b5f22231e4c4a6f64715c4f6032d9428c1a72",
+        "STATUS.md": "0db25a278e0d8e2ad3f74bfc9a6e2ddda0486fe1295ad81c5925423e12e19d32"
+      },
+      "decision": "archived-original-scope-completed",
+      "successorPlan": ".harness/tasks/2026-11-16-ops-pilot-delivery/plan.md",
+      "docDisposition": "Superseded historical reading alias; actual machine task/evidence archived under original taskId"
+    },
+    {
+      "id": "2026-10-31-frontend-follow-redirects-audit",
+      "taskDoc": "docs/harness/tasks/2026-10-31-frontend-follow-redirects-audit.task.md",
+      "month": "2026-10",
+      "sourceTask": ".harness/tasks/2026-10-31-frontend-follow-redirects-audit",
+      "sourceEvidence": ".harness/evidence/2026-10-31-frontend-follow-redirects-audit",
+      "targetTask": ".harness/archive/2026-10/tasks/2026-10-31-frontend-follow-redirects-audit",
+      "targetEvidence": ".harness/archive/2026-10/evidence/2026-10-31-frontend-follow-redirects-audit",
+      "evidenceBefore": {
+        "commands.json": "083e46a691ef7e7ee17bcd3c6977d7f784f4c36f1c82ebd08bb4327ff04deb5a",
+        "pr-body.md": "73e7a66c7b20c13d426b105ca25a82e434d2c5e4496e43c997a6b84edb527f90",
+        "review.md": "ab86e22e47d6936144ec9da85483e9291b0eaf2a98073943407c561603d4dbe7",
+        "summary.md": "c8e013f0fc8b293a37cb1eb25f6ca71490ed365cec7857d33024f882f22445d1"
+      },
+      "tasksBefore": {
+        "manifest.json": "8741ecd28e74ac15dba3c7aeba087f68b7a9049fb71a5af3df357f6c55c0a72c"
+      },
+      "evidenceAfter": {
+        "commands.json": "083e46a691ef7e7ee17bcd3c6977d7f784f4c36f1c82ebd08bb4327ff04deb5a",
+        "pr-body.md": "73e7a66c7b20c13d426b105ca25a82e434d2c5e4496e43c997a6b84edb527f90",
+        "review.md": "ab86e22e47d6936144ec9da85483e9291b0eaf2a98073943407c561603d4dbe7",
+        "summary.md": "c8e013f0fc8b293a37cb1eb25f6ca71490ed365cec7857d33024f882f22445d1"
+      },
+      "tasksAfter": {
+        "manifest.json": "8741ecd28e74ac15dba3c7aeba087f68b7a9049fb71a5af3df357f6c55c0a72c"
+      },
+      "decision": "archived-original-scope-completed",
+      "successorPlan": ".harness/tasks/2026-11-16-ops-pilot-delivery/plan.md"
+    },
+    {
+      "id": "2026-11-07-base-v0186-consumption",
+      "taskDoc": "docs/harness/tasks/2026-11-07-base-v0186-consumption.task.md",
+      "month": "2026-11",
+      "sourceTask": ".harness/tasks/2026-11-07-base-v0186-consumption",
+      "sourceEvidence": ".harness/evidence/2026-11-07-base-v0186-consumption",
+      "targetTask": ".harness/archive/2026-11/tasks/2026-11-07-base-v0186-consumption",
+      "targetEvidence": ".harness/archive/2026-11/evidence/2026-11-07-base-v0186-consumption",
+      "evidenceBefore": {
+        "architect.md": "66f29b362c9e87c53d202d91e089246ce7a0da38cc49b2b0458ec15b1462c7d9",
+        "base186-immutable-main-checks.json": "a2b2ec40452a5d6dff374c2c0c373e850621b441882ab9791f5c0ec6eb2e0d2e",
+        "baseline185-backend-enabled-stderr.log.gz": "26a4629bb662eed46923338d46738d61a6c22280648176cb3989a06b280cb45c",
+        "baseline185-resume8-backend-stderr.log.gz": "613abca1a32c22a19f371529d8165c2069e721119e336ffae39dc5052c921c77",
+        "code-reviewer.md": "233eb198e861f80fe1fceac84294e423430c38c485cc5ffb38fb5b52bd2f5add",
+        "commands.json": "343c24845721444a443b80f7350e95ce883485cf654368676c56d6cb968c5748",
+        "hosted-consumer-checks.json": "68affddbc5ef6cbe584e3f2f94ae1895d472a54830d7e633d11e5a4206a41bf8",
+        "hosted-consumer-merge.json": "05490b45f2715d9ebfe52dba26c77489bcdb6483b9904572cf67d9aa2b144cca",
+        "official186-lock.json": "95de1a87270e15c0d4c672418a5df906818a88652f8a3e6c480f1484ee9fa70c",
+        "official186-producer-publication.json": "920d1027b44edec60da04442ec2322ae9d8e1ba906457483da79fbdf7d17ee22",
+        "official186-release-metadata.json": "2264141536831830bb06680999e71439c37ce1dd2a5e147b42c48a32d9b2aefb",
+        "ops-assembler-tests.log.gz": "f516d5455977dced620fe1af248d5e915720281bad1829865363569496615d8b",
+        "ops-pr177-prior-checks.json": "1a7ecc2d4ffee987f6ada274104240fad08894c6f109bebfaf50ced3e38e1fee",
+        "ops-pr177-prior-merged.json": "9872bad2375b23b5f5d8304e8e986f3031df866f61ea339e12d56f311f99b8f6",
+        "ops186-fresh-migration-state.txt": "54a2f2cf518b30916673a2ede348a4acd509ad0cca6414f98f831dfefeb1d596",
+        "ops186-frontend-build.log.gz": "c55914a684b8f69d2b62fb35459fb34a8493108200b1d9481b42f2b0f5b6ad19",
+        "ops186-frontend-lint.log.gz": "016a821771af341985e890ad6a780d6dbd2b0b641ab43f500ed5941582a0b9fc",
+        "ops186-frontend-test-unit.log.gz": "7d7e5d2caec0911d48ec32343e507c56bd8a1400aaa7e7499709cf55d3a71526",
+        "ops186-frontend-type-check.log.gz": "17a66d4f9d721873779ab5b49de8bf79c247724ccff09105bd4bf3eb65089a36",
+        "ops186-full-readonly-race.log.gz": "fe204df575b463a9c85dfb0689366c9ec14f4f4051349d5fcc72708b6454d1d8",
+        "ops186-official-acquire.log.gz": "a6339d3bb444a661b85c91c78b87c03ecd0336ea4141d3cba49da99c645d763e",
+        "ops186-optional-baseline-evidence.json.gz": "cb9136470c8d11b9b84617b9fa1f3a63b89ba1362fdca47cab97e205d5100e75",
+        "ops186-optional-baseline-packet.json.gz": "b8e0f58f226445998dabb28283b5ba4e30b77cc339d544e10131ad023a463e16",
+        "ops186-optional-baseline-review.json.gz": "5a22ab609d15d2f04f7d6cea3198bb3e5cb07ae1593ded6e3148acde9f69234f",
+        "ops186-optional-current-evidence.json.gz": "054581aa7f481cee6b7b3e6d10b6daa50e9faf038897f88eafa23e87fc79913d",
+        "ops186-optional-current-packet.json.gz": "74a6bd920590840bdec836c0f290ffa1406ac3e05ef946f1731830246e336e8c",
+        "ops186-optional-current-review.json.gz": "a3b481718699cb2ff17d7aed75bd384f71e692e4da38650f092cb9dfaa0455be",
+        "ops186-overlay.log.gz": "47c060a3645075260b6ccce67070f5a97c8e823331bdb364e920d4701f4635ee",
+        "ops186-race-summary.json": "1f081414340a0b80d9140f9fc11cff8b022a365002eaf6baecefacb2af6e44e2",
+        "ops186-runtime-build.log.gz": "9e72928e7a01615b4cf090daa617b4ca9d68531748f887f323f695eb4ca3ef63",
+        "ops186-runtime-health.json": "9d0a0cb3348fb6a1bf78c7b0e87c46092f14369f442401cda5dba1c19e6b301d",
+        "ops186-runtime-ownership.json": "260a1931e8aaf3cc11fc377c413004f8cfa2e805aa962bb876e49ae131bdb818",
+        "ops186-runtime-stderr.log.gz": "66cb9465f4f96cf3159b877bcc0a1c14a4cc6dec046b2e150183d520c94e8bc5",
+        "ops186-runtime-stdout.log.gz": "853f3bcaff86af9c1a59fa593106cae725b3dee3df6ca047d58efb7bc6edced7",
+        "ops186-shared-drift.log.gz": "5139bf74ddac6569e00ddd8be424bfe86dbf880818f343e9197519938fb143c4",
+        "ops186-smoke-auto-recycle-retry1.log.gz": "23a90450f2af7d170d060870295637b8f34f15ed5d51751ba613ca1c18538119",
+        "ops186-smoke-generated-retry1.log.gz": "9b100d276ac6762b32a8617a4ee31b3c719afa52d97f3088965de00dc4a1c0ec",
+        "ops186-smoke-generated.log.gz": "e41a4497a9855a315895e2cb7d89496182f7c371e9e06e898d830112febdd289",
+        "ops186-smoke-index-setup.json": "443fcd8664810c2ddd65d9c6abbd3a0818dfcc01e51d52dc897c5766d303da7b",
+        "ops186-smoke-many-to-many-retry1.log.gz": "e74ffb415fe19df37a5acc25650dbb2b01a2b1d3a81c9db5482b4559ea89a4c1",
+        "ops186-smoke-master-detail-retry1.log.gz": "e2984b3f6d65f10efa9866b3a26a6c4a8030ed508d6a8fd11397c654f75ab67a",
+        "ops186-source-equivalence.json": "8ec1b1cb26ea46f19cc87f88c3c642ebad7ba33b7387aeea84c137a5c22b6802",
+        "ops186-staged-source-manifest.json": "592c2d98b8816f17c8933d3a224c2090ce743f7da98e00b0f68311984e07e93b",
+        "ops186-standard-rebuild.log.gz": "6fc0c76ccc938f79577eb88508ca4bd565fc5a528be1f432e9ec193f43f06a36",
+        "optional-history-audit-baseline.json": "c652414e05b2d940ccb86faa6193b192f44cc19015e5eda7e75a7a6d3f44f1ef",
+        "owned-services-stopped.json": "b3965cd371e4059e2f2976d742e69313ea2bfe4130b717e0a9e9c781fe499f44",
+        "pr-body.md": "7d62b68bad4545bfde7af0ae6ecdb0f7be056d5eb2b06642577da56c7eb42216",
+        "raw-architect.md.gz": "e3b1712f11e9b2cec04e4f092c3b270dc3bd8df61aa0d23c4edfaa14f27fb7a8",
+        "raw-code-reviewer.md.gz": "3612bb303f526f7a39308fd56bcec01552e2f802caa9683ec3791025b8190684",
+        "review-snapshot.json": "b3673fb07ce170e31d08b28da93f13eab1d900db99873810d46ccf524818df65",
+        "review.md": "415229eb4d630dde1957eeb641471384c5d20f9f2f73dd37a7dd3ce899f5983f",
+        "runtime-residuals.json": "ce9654562adf53620e45173f3c3e6314f3914156b6dfe0e7b723a93f009ac26a",
+        "standard-smoke-results.json": "7d9042d0a7215de98270afec6e5d5b88898bf9595e7a6781d125838bb04e87ec",
+        "summary.md": "80ffad92153d743a69395932d2002feade39d742032ba31ec1e8b18a0bf0df10",
+        "validation-log-index.json": "5664717a532b0c6b69ffd04db8230d8489755d7e03eb40b85d2e26b4a4b3d9f4",
+        "verified-installation.json": "6749e23132fe684ea23df986cb9a5e26722936465f89970b64cffccd95083449",
+        "verified-main-only.json": "268954b52a689f789b965fe7b634dfa25514e0e3eb813f0efd867e26f3f80575"
+      },
+      "tasksBefore": {
+        "manifest.json": "28ffb77bb887af21f678d74053f5536efac2a4f26c71c3a6b3c389d4033491d7",
+        "plan.md": "c4d701f34f4f4c803f99ed530eafefdaf4af1fcab9d52d26fcf8aa0ba3ba4997"
+      },
+      "evidenceAfter": {
+        "architect.md": "66f29b362c9e87c53d202d91e089246ce7a0da38cc49b2b0458ec15b1462c7d9",
+        "base186-immutable-main-checks.json": "a2b2ec40452a5d6dff374c2c0c373e850621b441882ab9791f5c0ec6eb2e0d2e",
+        "baseline185-backend-enabled-stderr.log.gz": "26a4629bb662eed46923338d46738d61a6c22280648176cb3989a06b280cb45c",
+        "baseline185-resume8-backend-stderr.log.gz": "613abca1a32c22a19f371529d8165c2069e721119e336ffae39dc5052c921c77",
+        "code-reviewer.md": "233eb198e861f80fe1fceac84294e423430c38c485cc5ffb38fb5b52bd2f5add",
+        "commands.json": "343c24845721444a443b80f7350e95ce883485cf654368676c56d6cb968c5748",
+        "hosted-consumer-checks.json": "68affddbc5ef6cbe584e3f2f94ae1895d472a54830d7e633d11e5a4206a41bf8",
+        "hosted-consumer-merge.json": "05490b45f2715d9ebfe52dba26c77489bcdb6483b9904572cf67d9aa2b144cca",
+        "official186-lock.json": "95de1a87270e15c0d4c672418a5df906818a88652f8a3e6c480f1484ee9fa70c",
+        "official186-producer-publication.json": "920d1027b44edec60da04442ec2322ae9d8e1ba906457483da79fbdf7d17ee22",
+        "official186-release-metadata.json": "2264141536831830bb06680999e71439c37ce1dd2a5e147b42c48a32d9b2aefb",
+        "ops-assembler-tests.log.gz": "f516d5455977dced620fe1af248d5e915720281bad1829865363569496615d8b",
+        "ops-pr177-prior-checks.json": "1a7ecc2d4ffee987f6ada274104240fad08894c6f109bebfaf50ced3e38e1fee",
+        "ops-pr177-prior-merged.json": "9872bad2375b23b5f5d8304e8e986f3031df866f61ea339e12d56f311f99b8f6",
+        "ops186-fresh-migration-state.txt": "54a2f2cf518b30916673a2ede348a4acd509ad0cca6414f98f831dfefeb1d596",
+        "ops186-frontend-build.log.gz": "c55914a684b8f69d2b62fb35459fb34a8493108200b1d9481b42f2b0f5b6ad19",
+        "ops186-frontend-lint.log.gz": "016a821771af341985e890ad6a780d6dbd2b0b641ab43f500ed5941582a0b9fc",
+        "ops186-frontend-test-unit.log.gz": "7d7e5d2caec0911d48ec32343e507c56bd8a1400aaa7e7499709cf55d3a71526",
+        "ops186-frontend-type-check.log.gz": "17a66d4f9d721873779ab5b49de8bf79c247724ccff09105bd4bf3eb65089a36",
+        "ops186-full-readonly-race.log.gz": "fe204df575b463a9c85dfb0689366c9ec14f4f4051349d5fcc72708b6454d1d8",
+        "ops186-official-acquire.log.gz": "a6339d3bb444a661b85c91c78b87c03ecd0336ea4141d3cba49da99c645d763e",
+        "ops186-optional-baseline-evidence.json.gz": "cb9136470c8d11b9b84617b9fa1f3a63b89ba1362fdca47cab97e205d5100e75",
+        "ops186-optional-baseline-packet.json.gz": "b8e0f58f226445998dabb28283b5ba4e30b77cc339d544e10131ad023a463e16",
+        "ops186-optional-baseline-review.json.gz": "5a22ab609d15d2f04f7d6cea3198bb3e5cb07ae1593ded6e3148acde9f69234f",
+        "ops186-optional-current-evidence.json.gz": "054581aa7f481cee6b7b3e6d10b6daa50e9faf038897f88eafa23e87fc79913d",
+        "ops186-optional-current-packet.json.gz": "74a6bd920590840bdec836c0f290ffa1406ac3e05ef946f1731830246e336e8c",
+        "ops186-optional-current-review.json.gz": "a3b481718699cb2ff17d7aed75bd384f71e692e4da38650f092cb9dfaa0455be",
+        "ops186-overlay.log.gz": "47c060a3645075260b6ccce67070f5a97c8e823331bdb364e920d4701f4635ee",
+        "ops186-race-summary.json": "1f081414340a0b80d9140f9fc11cff8b022a365002eaf6baecefacb2af6e44e2",
+        "ops186-runtime-build.log.gz": "9e72928e7a01615b4cf090daa617b4ca9d68531748f887f323f695eb4ca3ef63",
+        "ops186-runtime-health.json": "9d0a0cb3348fb6a1bf78c7b0e87c46092f14369f442401cda5dba1c19e6b301d",
+        "ops186-runtime-ownership.json": "260a1931e8aaf3cc11fc377c413004f8cfa2e805aa962bb876e49ae131bdb818",
+        "ops186-runtime-stderr.log.gz": "66cb9465f4f96cf3159b877bcc0a1c14a4cc6dec046b2e150183d520c94e8bc5",
+        "ops186-runtime-stdout.log.gz": "853f3bcaff86af9c1a59fa593106cae725b3dee3df6ca047d58efb7bc6edced7",
+        "ops186-shared-drift.log.gz": "5139bf74ddac6569e00ddd8be424bfe86dbf880818f343e9197519938fb143c4",
+        "ops186-smoke-auto-recycle-retry1.log.gz": "23a90450f2af7d170d060870295637b8f34f15ed5d51751ba613ca1c18538119",
+        "ops186-smoke-generated-retry1.log.gz": "9b100d276ac6762b32a8617a4ee31b3c719afa52d97f3088965de00dc4a1c0ec",
+        "ops186-smoke-generated.log.gz": "e41a4497a9855a315895e2cb7d89496182f7c371e9e06e898d830112febdd289",
+        "ops186-smoke-index-setup.json": "443fcd8664810c2ddd65d9c6abbd3a0818dfcc01e51d52dc897c5766d303da7b",
+        "ops186-smoke-many-to-many-retry1.log.gz": "e74ffb415fe19df37a5acc25650dbb2b01a2b1d3a81c9db5482b4559ea89a4c1",
+        "ops186-smoke-master-detail-retry1.log.gz": "e2984b3f6d65f10efa9866b3a26a6c4a8030ed508d6a8fd11397c654f75ab67a",
+        "ops186-source-equivalence.json": "8ec1b1cb26ea46f19cc87f88c3c642ebad7ba33b7387aeea84c137a5c22b6802",
+        "ops186-staged-source-manifest.json": "592c2d98b8816f17c8933d3a224c2090ce743f7da98e00b0f68311984e07e93b",
+        "ops186-standard-rebuild.log.gz": "6fc0c76ccc938f79577eb88508ca4bd565fc5a528be1f432e9ec193f43f06a36",
+        "optional-history-audit-baseline.json": "c652414e05b2d940ccb86faa6193b192f44cc19015e5eda7e75a7a6d3f44f1ef",
+        "owned-services-stopped.json": "b3965cd371e4059e2f2976d742e69313ea2bfe4130b717e0a9e9c781fe499f44",
+        "pr-body.md": "7d62b68bad4545bfde7af0ae6ecdb0f7be056d5eb2b06642577da56c7eb42216",
+        "raw-architect.md.gz": "e3b1712f11e9b2cec04e4f092c3b270dc3bd8df61aa0d23c4edfaa14f27fb7a8",
+        "raw-code-reviewer.md.gz": "3612bb303f526f7a39308fd56bcec01552e2f802caa9683ec3791025b8190684",
+        "review-snapshot.json": "b3673fb07ce170e31d08b28da93f13eab1d900db99873810d46ccf524818df65",
+        "review.md": "415229eb4d630dde1957eeb641471384c5d20f9f2f73dd37a7dd3ce899f5983f",
+        "runtime-residuals.json": "ce9654562adf53620e45173f3c3e6314f3914156b6dfe0e7b723a93f009ac26a",
+        "standard-smoke-results.json": "7d9042d0a7215de98270afec6e5d5b88898bf9595e7a6781d125838bb04e87ec",
+        "summary.md": "80ffad92153d743a69395932d2002feade39d742032ba31ec1e8b18a0bf0df10",
+        "validation-log-index.json": "5664717a532b0c6b69ffd04db8230d8489755d7e03eb40b85d2e26b4a4b3d9f4",
+        "verified-installation.json": "6749e23132fe684ea23df986cb9a5e26722936465f89970b64cffccd95083449",
+        "verified-main-only.json": "268954b52a689f789b965fe7b634dfa25514e0e3eb813f0efd867e26f3f80575"
+      },
+      "tasksAfter": {
+        "manifest.json": "28ffb77bb887af21f678d74053f5536efac2a4f26c71c3a6b3c389d4033491d7",
+        "plan.md": "c4d701f34f4f4c803f99ed530eafefdaf4af1fcab9d52d26fcf8aa0ba3ba4997"
+      },
+      "decision": "archived-original-scope-completed",
+      "successorPlan": ".harness/tasks/2026-11-16-ops-pilot-delivery/plan.md"
+    },
+    {
+      "id": "2026-11-13-base-v0187-consumption",
+      "taskDoc": "docs/harness/tasks/2026-11-13-base-v0187-consumption.task.md",
+      "month": "2026-11",
+      "sourceTask": ".harness/tasks/2026-11-13-base-v0187-consumption",
+      "sourceEvidence": ".harness/evidence/2026-11-13-base-v0187-consumption",
+      "targetTask": ".harness/archive/2026-11/tasks/2026-11-13-base-v0187-consumption",
+      "targetEvidence": ".harness/archive/2026-11/evidence/2026-11-13-base-v0187-consumption",
+      "evidenceBefore": {
+        "architect.md": "1ada044eb2bc2d80d808d7888c4846ac831ab4798216d01a2767f2e46457fb4b",
+        "code-reviewer.md": "5e685e2718c0fc9601e38f55219b18d17b80bc2a74831b3ec10552ba8d8214a0",
+        "commands.json": "f72eeee619f0572777e3c06e7dd48a74ec1604d8f4ac7d1d2e1b9508b18575d9",
+        "official187-lock.json": "19b145bcc94f5c7b280dd98085a2ca5037900848a6a942db625a88f8674006a6",
+        "official187-release-metadata.json": "c8b9f923e97531e28a6e805b7fe714dc1a0c6fa4c088e1826639145d43dca1b5",
+        "official187-tag-ref.txt": "54b9adf207c69e0e2c6e4483807b0f698ae2521a2b3f9291a0fe0c43f4003c17",
+        "ops187-backend-full-race.log.gz": "9a653415fcd9cda6c5605bd27d62894716b333564321919cfb8d5b14f87a1722",
+        "ops187-business-foundation.log.gz": "385e3bab00593bae892ddb5e9d490c65f790dfb03ea05aefc31bf8ff27a71564",
+        "ops187-checker-sync.log.gz": "e61c10bd9cae658012871d59a2bd7e3c94913b16833c0bf0069649836377dced",
+        "ops187-codearch-panel.log.gz": "03939d8a638ff7e40770330e848d7ba41afccdd88ae49121dd64839745afde94",
+        "ops187-docgates-final.log.gz": "07f083d47d86ec702cc5040cbcaf4a4a51503ba1a9e44b76bda6dd94f428af7a",
+        "ops187-fresh-migration-state.log.gz": "6f1e3d4c0e2fb0e05834671a5fe1c8956e4aa127da8680382bd23f6b4e7fc0ec",
+        "ops187-frontend-suite.log.gz": "176f3ba97b3488a2c7e5007ecff967371c4bee43e6e1d90f170736e668e65f19",
+        "ops187-official-acquire.log.gz": "c85ecf21e6bacd0a68d820f62a83bbd03fd7613f4aae5a1e15c40e89d812c1de",
+        "ops187-runtime-backend-log.log.gz": "ab2360908f1e60495b17a298ad2a19c657ac6ea12f3456fb3706adb7993e9134",
+        "ops187-staging-and-tree-gates.log.gz": "09228a1ed67538a9152fec2f1ffa39d36ab8132b6bf2213fdbea30cdb8d8d80d",
+        "ops187-standard-smoke-suites.log.gz": "d50338267943b35649be3ce0ae75274ff0ea024cc9d25b5130bc4366b01ef8d4",
+        "pr-body.md": "7865df8b73e8495375fa960290c40686b4b43918ac2b41145ad1388008990d70",
+        "raw-architect.md.gz": "473b8c7322ee43d717b0a47988d3d07a592902861adbc2a218c79ddbbe824e94",
+        "raw-code-reviewer.md.gz": "e95ff7f33f30e9d7d69e62954e5a5f551ade19e76965b1df976ee6cffa46f2a3",
+        "review-snapshot.json": "9d3b80af6363b2e1176ecf3ea062ade4e132151398c6838f4c9de639ee519716",
+        "review.md": "6203106840d76612c7f9933f3eb159f7e53fb6186260d689669a7bd815dff3ca",
+        "summary.md": "1abfc5e616bbe5526d28a0ef80f3c425c674a5c87a81b2b0d8fe08fff480ff70"
+      },
+      "tasksBefore": {
+        "manifest.json": "dd4b2b754f045f38c9c21e4d47aee95ec3e20df950d2de729d6ab5b184fbeeab",
+        "plan.md": "c35e5a79d391dfe945cd06508d76665fc25372c70a560cace18bb039ec791042"
+      },
+      "evidenceAfter": {
+        "architect.md": "1ada044eb2bc2d80d808d7888c4846ac831ab4798216d01a2767f2e46457fb4b",
+        "code-reviewer.md": "5e685e2718c0fc9601e38f55219b18d17b80bc2a74831b3ec10552ba8d8214a0",
+        "commands.json": "f72eeee619f0572777e3c06e7dd48a74ec1604d8f4ac7d1d2e1b9508b18575d9",
+        "official187-lock.json": "19b145bcc94f5c7b280dd98085a2ca5037900848a6a942db625a88f8674006a6",
+        "official187-release-metadata.json": "c8b9f923e97531e28a6e805b7fe714dc1a0c6fa4c088e1826639145d43dca1b5",
+        "official187-tag-ref.txt": "54b9adf207c69e0e2c6e4483807b0f698ae2521a2b3f9291a0fe0c43f4003c17",
+        "ops187-backend-full-race.log.gz": "9a653415fcd9cda6c5605bd27d62894716b333564321919cfb8d5b14f87a1722",
+        "ops187-business-foundation.log.gz": "385e3bab00593bae892ddb5e9d490c65f790dfb03ea05aefc31bf8ff27a71564",
+        "ops187-checker-sync.log.gz": "e61c10bd9cae658012871d59a2bd7e3c94913b16833c0bf0069649836377dced",
+        "ops187-codearch-panel.log.gz": "03939d8a638ff7e40770330e848d7ba41afccdd88ae49121dd64839745afde94",
+        "ops187-docgates-final.log.gz": "07f083d47d86ec702cc5040cbcaf4a4a51503ba1a9e44b76bda6dd94f428af7a",
+        "ops187-fresh-migration-state.log.gz": "6f1e3d4c0e2fb0e05834671a5fe1c8956e4aa127da8680382bd23f6b4e7fc0ec",
+        "ops187-frontend-suite.log.gz": "176f3ba97b3488a2c7e5007ecff967371c4bee43e6e1d90f170736e668e65f19",
+        "ops187-official-acquire.log.gz": "c85ecf21e6bacd0a68d820f62a83bbd03fd7613f4aae5a1e15c40e89d812c1de",
+        "ops187-runtime-backend-log.log.gz": "ab2360908f1e60495b17a298ad2a19c657ac6ea12f3456fb3706adb7993e9134",
+        "ops187-staging-and-tree-gates.log.gz": "09228a1ed67538a9152fec2f1ffa39d36ab8132b6bf2213fdbea30cdb8d8d80d",
+        "ops187-standard-smoke-suites.log.gz": "d50338267943b35649be3ce0ae75274ff0ea024cc9d25b5130bc4366b01ef8d4",
+        "pr-body.md": "7865df8b73e8495375fa960290c40686b4b43918ac2b41145ad1388008990d70",
+        "raw-architect.md.gz": "473b8c7322ee43d717b0a47988d3d07a592902861adbc2a218c79ddbbe824e94",
+        "raw-code-reviewer.md.gz": "e95ff7f33f30e9d7d69e62954e5a5f551ade19e76965b1df976ee6cffa46f2a3",
+        "review-snapshot.json": "9d3b80af6363b2e1176ecf3ea062ade4e132151398c6838f4c9de639ee519716",
+        "review.md": "6203106840d76612c7f9933f3eb159f7e53fb6186260d689669a7bd815dff3ca",
+        "summary.md": "1abfc5e616bbe5526d28a0ef80f3c425c674a5c87a81b2b0d8fe08fff480ff70"
+      },
+      "tasksAfter": {
+        "manifest.json": "0e775bb42fd117abc80554e14c170a12158e90b74c55989d244f8026d489a884",
+        "plan.md": "c35e5a79d391dfe945cd06508d76665fc25372c70a560cace18bb039ec791042"
+      },
+      "decision": "archived-original-scope-completed",
+      "successorPlan": ".harness/tasks/2026-11-16-ops-pilot-delivery/plan.md"
+    }
+  ],
+  "retained": [
+    {
+      "id": "2026-06-17-github-governance-followup",
+      "status": null,
+      "reason": "Not archived: incomplete/missing evidence, explicit pending work, or outside verified closure set; preserve original claims"
+    },
+    {
+      "id": "2026-06-18-branch-hygiene-fallback",
+      "status": null,
+      "reason": "Not archived: incomplete/missing evidence, explicit pending work, or outside verified closure set; preserve original claims"
+    },
+    {
+      "id": "2026-06-18-branch-hygiene-slash-path-fix",
+      "status": null,
+      "reason": "Not archived: incomplete/missing evidence, explicit pending work, or outside verified closure set; preserve original claims"
+    },
+    {
+      "id": "2026-06-18-pr-branch-cleanup-automation",
+      "status": null,
+      "reason": "Not archived: incomplete/missing evidence, explicit pending work, or outside verified closure set; preserve original claims"
+    },
+    {
+      "id": "2026-06-21-business-deploy-task-main-flow-closeout",
+      "status": null,
+      "reason": "Not archived: incomplete/missing evidence, explicit pending work, or outside verified closure set; preserve original claims"
+    },
+    {
+      "id": "2026-08-05-foundation-upgrade-base-v0-10-1",
+      "status": null,
+      "reason": "Not archived: incomplete/missing evidence, explicit pending work, or outside verified closure set; preserve original claims"
+    },
+    {
+      "id": "2026-08-05-foundation-upgrade-base-v0-10-2",
+      "status": null,
+      "reason": "Not archived: incomplete/missing evidence, explicit pending work, or outside verified closure set; preserve original claims"
+    },
+    {
+      "id": "2026-08-07-foundation-upgrade-base-v0-10-3",
+      "status": null,
+      "reason": "Not archived: incomplete/missing evidence, explicit pending work, or outside verified closure set; preserve original claims"
+    },
+    {
+      "id": "2026-08-08-foundation-upgrade-base-v0-10-5",
+      "status": null,
+      "reason": "Not archived: incomplete/missing evidence, explicit pending work, or outside verified closure set; preserve original claims"
+    },
+    {
+      "id": "2026-08-10-security-csrf-closeout",
+      "status": null,
+      "reason": "Not archived: incomplete/missing evidence, explicit pending work, or outside verified closure set; preserve original claims"
+    },
+    {
+      "id": "2026-08-11-foundation-consumer-certification",
+      "status": null,
+      "reason": "Not archived: incomplete/missing evidence, explicit pending work, or outside verified closure set; preserve original claims"
+    },
+    {
+      "id": "2026-08-11-sonarcloud-ops-remediation",
+      "status": null,
+      "reason": "Not archived: incomplete/missing evidence, explicit pending work, or outside verified closure set; preserve original claims"
+    },
+    {
+      "id": "2026-08-12-foundation-v0-10-14-clean-consumer",
+      "status": null,
+      "reason": "Not archived: incomplete/missing evidence, explicit pending work, or outside verified closure set; preserve original claims"
+    },
+    {
+      "id": "2026-08-13-clean-base-business-overlay-rebuild",
+      "status": null,
+      "reason": "Not archived: incomplete/missing evidence, explicit pending work, or outside verified closure set; preserve original claims"
+    },
+    {
+      "id": "2026-08-19-ops-v1-backlog-closeout",
+      "status": "complete-with-explicit-gates",
+      "reason": "Not archived: incomplete/missing evidence, explicit pending work, or outside verified closure set; preserve original claims"
+    },
+    {
+      "id": "2026-08-31-ops-operational-workbench-design",
+      "status": "planned",
+      "reason": "Not archived: incomplete/missing evidence, explicit pending work, or outside verified closure set; preserve original claims"
+    },
+    {
+      "id": "2026-09-28-ops-delivery-readiness-gap-closure",
+      "status": "planned",
+      "reason": "Not archived: incomplete/missing evidence, explicit pending work, or outside verified closure set; preserve original claims"
+    },
+    {
+      "id": "2026-09-29-ops-ssrf-protection-integration",
+      "status": "done",
+      "reason": "Not archived: incomplete/missing evidence, explicit pending work, or outside verified closure set; preserve original claims"
+    },
+    {
+      "id": "2026-10-12-foundation-upgrade-base-v0-16-1",
+      "status": null,
+      "reason": "Not archived: incomplete/missing evidence, explicit pending work, or outside verified closure set; preserve original claims"
+    },
+    {
+      "id": "2026-10-27-foundation-upgrade-base-v0-17-6",
+      "status": "completed",
+      "reason": "Not archived: incomplete/missing evidence, explicit pending work, or outside verified closure set; preserve original claims"
+    },
+    {
+      "id": "2026-10-27-foundation-upgrade-base-v0-17-7",
+      "status": "completed",
+      "reason": "Not archived: incomplete/missing evidence, explicit pending work, or outside verified closure set; preserve original claims"
+    },
+    {
+      "id": "2026-10-29-foundation-upgrade-base-v0-18-1",
+      "status": "completed",
+      "reason": "Not archived: incomplete/missing evidence, explicit pending work, or outside verified closure set; preserve original claims"
+    },
+    {
+      "id": "2026-10-29-sonar-ci-analysis-restore",
+      "status": "completed",
+      "reason": "Not archived: incomplete/missing evidence, explicit pending work, or outside verified closure set; preserve original claims"
+    },
+    {
+      "id": "2026-10-30-sonar-findings-remediation",
+      "status": "completed",
+      "reason": "Not archived: incomplete/missing evidence, explicit pending work, or outside verified closure set; preserve original claims"
+    },
+    {
+      "id": "2026-10-31-foundation-upgrade-base-v0-18-2",
+      "status": "completed",
+      "reason": "Not archived: incomplete/missing evidence, explicit pending work, or outside verified closure set; preserve original claims"
+    },
+    {
+      "id": "2026-11-05-base-v0183-consumption",
+      "status": "completed",
+      "reason": "Not archived: incomplete/missing evidence, explicit pending work, or outside verified closure set; preserve original claims"
+    },
+    {
+      "id": "2026-11-16-ops-argocd-ownership-convergence",
+      "status": "planned",
+      "reason": "New plan/governance task"
+    },
+    {
+      "id": "2026-11-16-ops-business-menu-m3c",
+      "status": null,
+      "reason": "Implementation merged; current business runtime/visual acceptance not complete; C05 owns gap"
+    },
+    {
+      "id": "2026-11-16-ops-business-runtime-acceptance",
+      "status": "planned",
+      "reason": "New plan/governance task"
+    },
+    {
+      "id": "2026-11-16-ops-extensions-live-acceptance",
+      "status": "planned",
+      "reason": "New plan/governance task"
+    },
+    {
+      "id": "2026-11-16-ops-filedist-product-closure",
+      "status": "planned",
+      "reason": "New plan/governance task"
+    },
+    {
+      "id": "2026-11-16-ops-helm-capability-truth",
+      "status": "planned",
+      "reason": "New plan/governance task"
+    },
+    {
+      "id": "2026-11-16-ops-k8s-service-mutations",
+      "status": "planned",
+      "reason": "New plan/governance task"
+    },
+    {
+      "id": "2026-11-16-ops-pilot-delivery",
+      "status": "planned",
+      "reason": "New plan/governance task"
+    },
+    {
+      "id": "2026-11-16-ops-pilot-release-closeout",
+      "status": "planned",
+      "reason": "New plan/governance task"
+    },
+    {
+      "id": "2026-11-16-ops-readiness-plan-closeout",
+      "status": "planned",
+      "reason": "New plan/governance task"
+    },
+    {
+      "id": "2026-11-16-ops-service-catalog-usability",
+      "status": "planned",
+      "reason": "New plan/governance task"
+    },
+    {
+      "id": "2026-11-16-ops-service-deploy-integrity",
+      "status": "planned",
+      "reason": "New plan/governance task"
+    },
+    {
+      "id": "2026-11-16-ops-service-deploy-user-flow",
+      "status": "planned",
+      "reason": "New plan/governance task"
+    },
+    {
+      "id": "cmdb-host-import-export",
+      "status": null,
+      "reason": "Not archived: incomplete/missing evidence, explicit pending work, or outside verified closure set; preserve original claims"
+    }
+  ]
+}

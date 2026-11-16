@@ -1,0 +1,72 @@
+{
+  "task-packet": {
+    "before": {
+      "errors": 582,
+      "warnings": 108
+    },
+    "after": {
+      "errors": 567,
+      "warnings": 119
+    },
+    "newFindings": [],
+    "removedFindings": [
+      "docs/harness/tasks/2026-10-31-frontend-follow-redirects-audit.task.md|evidence is complete (manifest-completed) but status is \"Active\" — set status: Archived or close the evidence.",
+      "docs/harness/tasks/2026-11-16-ops-business-menu-m3c.task.md|Missing top-level heading in the form \"# Task Packet: <task-name>\".",
+      "docs/harness/tasks/2026-11-16-ops-business-menu-m3c.task.md|Missing required section \"## Goal\".",
+      "docs/harness/tasks/2026-11-16-ops-business-menu-m3c.task.md|Missing required section \"## Primary Layer\".",
+      "docs/harness/tasks/2026-11-16-ops-business-menu-m3c.task.md|Missing required section \"## Dependency Layers\".",
+      "docs/harness/tasks/2026-11-16-ops-business-menu-m3c.task.md|Missing required section \"## Harness Profile\".",
+      "docs/harness/tasks/2026-11-16-ops-business-menu-m3c.task.md|Missing required section \"## Contract Anchors\".",
+      "docs/harness/tasks/2026-11-16-ops-business-menu-m3c.task.md|Missing required section \"## Scope\".",
+      "docs/harness/tasks/2026-11-16-ops-business-menu-m3c.task.md|Missing required section \"## Expected Files\".",
+      "docs/harness/tasks/2026-11-16-ops-business-menu-m3c.task.md|Missing required section \"## Implementation Notes\".",
+      "docs/harness/tasks/2026-11-16-ops-business-menu-m3c.task.md|Missing required section \"## Verification Plan\".",
+      "docs/harness/tasks/2026-11-16-ops-business-menu-m3c.task.md|Missing required section \"## Linkage\".",
+      "docs/harness/tasks/2026-11-16-ops-business-menu-m3c.task.md|Missing required section \"## Evidence Required\".",
+      "docs/harness/tasks/2026-11-16-ops-business-menu-m3c.task.md|Missing required section \"## Human Gates\".",
+      "docs/harness/tasks/2026-11-16-ops-business-menu-m3c.task.md|Missing required section \"## Completion Checklist\"."
+    ],
+    "missingScan": []
+  },
+  "doc-links": {
+    "before": {
+      "findings": 6
+    },
+    "after": {
+      "findings": 6
+    },
+    "newFindings": [],
+    "removedFindings": [],
+    "missingScan": []
+  },
+  "evidence": {
+    "before": {
+      "errors": 82,
+      "historicalErrors": 67,
+      "warnings": 0,
+      "files": 39
+    },
+    "after": {
+      "errors": 35,
+      "historicalErrors": 114,
+      "warnings": 0,
+      "files": 40
+    },
+    "newFindings": [],
+    "removedFindings": [],
+    "missingScan": []
+  },
+  "review": {
+    "before": {
+      "errors": 50,
+      "files": 45
+    },
+    "after": {
+      "errors": 50,
+      "files": 46
+    },
+    "newFindings": [],
+    "removedFindings": [],
+    "missingScan": []
+  }
+}

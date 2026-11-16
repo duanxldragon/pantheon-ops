@@ -1,4 +1,14 @@
-# 2026-11-16-ops-business-menu-m3c
+---
+title: Ops 业务菜单 M+3C
+doc_type: Remediation
+layer: business
+status: Active
+linked_contracts:
+  - docs/PROJECT_INHERITANCE.md
+updated_at: 2026-11-16
+---
+
+# Task Packet: 2026-11-16-ops-business-menu-m3c
 
 ## 目标
 
@@ -27,3 +37,94 @@
 ## 关联
 
 - [[ops-business-menu-ia-refactor-2026-11-13]]、[[ops_main_committed_push_blocked_2026_11_15]]、[[feedback_automate_dont_ask]]
+
+## Goal
+
+原目标与实现叙述见上文；本次只整理状态与治理字段，不重做菜单实现。实现已合并，运行和视觉验收仍开放。
+
+## Primary Layer
+
+business/*
+
+## Dependency Layers
+
+- business/*
+- inheritance-sync
+
+## Harness Profile
+
+- Template: admin-platform
+- Overlay: pantheon-ops
+- Coverage Dimensions:
+  - behaviour
+  - architecture-fitness
+  - runtime-quality
+- Quality Profile: ui-runtime
+
+## Contract Anchors
+
+- docs/PROJECT_INHERITANCE.md
+- `docs/designs/BUSINESS_FUNCTIONAL_DESIGN.md`
+- `business-overlay.json`
+
+## Scope
+
+### In
+
+- 原范围见上文。整理合法 primaryLayer/status，C05 承接当前候选环境管理、菜单深链接与角色运行验收。
+
+### Out
+
+- 不修改既有实现或共享规范，不用历史编译证据宣称新版视觉验收。
+
+## Expected Files
+
+### Create
+
+- none
+
+### Modify
+
+- docs/harness/tasks/2026-11-16-ops-business-menu-m3c.task.md
+- .harness/tasks/2026-11-16-ops-business-menu-m3c/manifest.json
+
+### Do Not Touch
+
+- 本任务既有 .harness/evidence/2026-11-16-ops-business-menu-m3c/ 原始证据
+- foundation-release.lock.json
+
+## Implementation Notes
+
+Minimal Complexity Rung: reuse。保留历史原文和证据，状态为 in-progress；C05 完成后再补本任务验收与归档。
+
+## Verification Plan
+
+- 当前候选环境 CRUD、两域/受限角色、菜单/Tab 深链接通过业务浏览器 smoke。
+- 桌面/窄屏与 loading/empty/error/forbidden 状态截图；未执行写 not-run。
+
+## Linkage
+
+- Task ID: 2026-11-16-ops-business-menu-m3c
+- Task Manifest: .harness/tasks/2026-11-16-ops-business-menu-m3c/manifest.json
+- Evidence Directory: .harness/evidence/2026-11-16-ops-business-menu-m3c/
+- Review File: .harness/evidence/2026-11-16-ops-business-menu-m3c/review.md
+- OpenSpec Change: none
+- Plan References: .harness/tasks/2026-11-16-ops-pilot-delivery/plan.md
+- OMX Plan: .harness/tasks/2026-11-16-ops-pilot-delivery/plan.md
+- Superpowers Plan: none
+
+## Evidence Required
+
+- 保留原 commands/summary/review；新增候选运行证据由 C05 链回。
+
+## Human Gates
+
+范围已确认；最终功能/视觉验收由维护者判断，未取得前不宣称交付完成。
+
+## Completion Checklist
+
+- [x] Layer and boundary declared
+- [x] Contract anchors read
+- [ ] Verification run or exception recorded
+- [ ] Evidence saved or summarized
+- [ ] Review completed

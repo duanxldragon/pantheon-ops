@@ -1,0 +1,21 @@
+{
+  "recordedAt": "2026-11-07T07:07:56.105Z",
+  "source": "D:/workspace/go/pantheon-platform/audit-artifacts/github-main-release-2026-11-07/ops-v186-final",
+  "target": "D:/workspace/go/pantheon-platform/pantheon-ops",
+  "baseline": "92c1efcfc4f754a7f0a4e9f181f446f4a2ddcfc2",
+  "officialBaseCommit": "5553bc0e8ddc006cb7a6b99a46968bf8cf907a49",
+  "files": 2500,
+  "protectedTestedFiles": 1337,
+  "allProtectedHashesMatch": true,
+  "copied": [
+    ".business-overlay-report.json",
+    "docs/harness/HARNESS_ENGINEERING_CONTRACT.en.md",
+    "docs/harness/HARNESS_ENGINEERING_CONTRACT.md",
+    "docs/harness/PANTHEON_BASE_DELIVERY_WORKFLOW.en.md",
+    "docs/harness/VERIFICATION_EVIDENCE_SPEC.en.md",
+    "docs/harness/VERIFICATION_EVIDENCE_SPEC.md"
+  ],
+  "removed": [],
+  "reportSha256": "684a200b8ebb8ff4fb61a32fd86090e01816c9c2a7f9722a91064e589066ab2e",
+  "authority": "User authorized replacement after exact official staged validation; all ten validator records verified before mutation; historical work/bundles/stashes retained"
+}
