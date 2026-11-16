@@ -1,10 +1,13 @@
 package observability
 
 import (
+	"context"
 	"errors"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
+	"time"
 
 	"github.com/duanxldragon/pantheon-base/backend/pkg/common"
 	"github.com/duanxldragon/pantheon-base/backend/pkg/security/ssrf"
@@ -150,5 +153,78 @@ func TestDatasourceQueriesLokiAndTempo(t *testing.T) {
 	}
 	if _, err := service.GetTrace(tempo.ID, "abc123"); err != nil {
 		t.Fatalf("get Tempo trace: %v", err)
+	}
+}
+
+func TestLogQueryRangeBudget(t *testing.T) {
+	for _, tc := range []struct {
+		start, end string
+		valid      bool
+	}{
+		{"", "", true},
+		{"2026-11-07T00:00:00Z", "2026-11-07T01:00:00Z", true},
+		{"1794009600000000000", "1794013200000000000", true},
+		{"1794009600", "1794013200", true},
+		{"", "2026-11-07T01:00:00Z", false},
+		{"2026-11-07T01:00:00Z", "2026-11-07T00:00:00Z", false},
+		{"2026-11-07T00:00:00Z", "2026-11-09T00:00:00Z", false},
+		{"bad", "also bad", false},
+	} {
+		if got := validLogQueryRange(tc.start, tc.end); got != tc.valid {
+			t.Errorf("range %q/%q: want %v got %v", tc.start, tc.end, tc.valid, got)
+		}
+	}
+}
+
+func TestLogQueryCancellationAndResponseBudget(t *testing.T) {
+	started, canceled := make(chan struct{}, 1), make(chan struct{}, 1)
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Query().Get("query") == "oversize" {
+			_, _ = w.Write([]byte(`{"status":"success","padding":"` + strings.Repeat("x", 8<<20) + `"}`))
+			return
+		}
+		started <- struct{}{}
+		<-r.Context().Done()
+		canceled <- struct{}{}
+	}))
+	defer server.Close()
+	db := testmysql.Open(t)
+	if err := db.AutoMigrate(&PrometheusDatasource{}); err != nil {
+		t.Fatal(err)
+	}
+	record := PrometheusDatasource{Name: "cancellation", Type: "loki", URL: server.URL, Timeout: 2}
+	if err := db.Create(&record).Error; err != nil {
+		t.Fatal(err)
+	}
+	service := NewDatasourceService(db)
+	service.ssrfValidator = testDatasourceValidator()
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	result := make(chan error, 1)
+	go func() { _, err := service.QueryLogsContext(ctx, record.ID, "slow", "", "", 500); result <- err }()
+	select {
+	case <-started:
+	case <-time.After(5 * time.Second):
+		t.Fatal("upstream not started")
+	}
+	cancel()
+	select {
+	case err := <-result:
+		if !errors.Is(err, context.Canceled) {
+			t.Fatalf("want canceled, got %v", err)
+		}
+	case <-time.After(time.Second):
+		t.Fatal("caller cancellation not propagated")
+	}
+	select {
+	case <-canceled:
+	case <-time.After(time.Second):
+		t.Fatal("upstream cancellation not propagated")
+	}
+	if _, err := service.QueryLogsContext(context.Background(), record.ID, "oversize", "", "", 500); err == nil || err.Error() != "observability.datasource_response_too_large" {
+		t.Fatalf("want bounded response rejection, got %v", err)
+	}
+	if _, err := service.QueryLogsContext(context.Background(), record.ID, strings.Repeat("x", 4097), "", "", 500); !errors.Is(err, errLogQueryInvalid) {
+		t.Fatalf("want invalid query budget, got %v", err)
 	}
 }

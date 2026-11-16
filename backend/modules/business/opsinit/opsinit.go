@@ -22,8 +22,29 @@ import (
 	"gorm.io/gorm"
 )
 
+// Preflight is the read-only startup adapter registered by the canonical
+// overlay generator before Base business retirement cleanup can have effects.
+func Preflight(db *gorm.DB) error {
+	_, err := observability.QueryWorkspaceMaintenanceReady(db)
+	return err
+}
+
 // Init wires all Ops business modules into the business router group.
 func Init(r *gin.RouterGroup, db *gorm.DB) {
+	if err := Preflight(db); err != nil {
+		panic(err)
+	}
+	if err := observability.RegisterQueryPolicies(); err != nil {
+		panic(err)
+	}
+	if database.ShouldAutoMigrate() {
+		if err := observability.BootstrapQueryWorkspaceDevelopment(db); err != nil {
+			panic(err)
+		}
+	}
+	if err := observability.QueryWorkspaceReady(db); err != nil {
+		panic(err)
+	}
 	// Idempotency protection for business write endpoints. Scoped to the
 	// business router group (migrated from the former global main.go
 	// registration); requests without X-Idempotency-Key pass through.
@@ -44,8 +65,10 @@ func Init(r *gin.RouterGroup, db *gorm.DB) {
 		CMDBReader:     cmdbCapability,
 		K8sReader:      k8sReader,
 	})
-	if stateApplier, ok := serviceReader.(bizcap.ServiceInstanceStateApplier); ok {
-		deploy.InitDeployModuleWithServiceState(r, db, cmdbCapability, stateApplier, bizScopeService)
+	if manager, ok := serviceReader.(*opsservice.Manager); ok && manager != nil {
+		deploy.InitDeployModuleWithServiceState(r, db, cmdbCapability, manager, manager.WithServiceInstanceStateTransaction, bizScopeService)
+	} else if stateApplier, ok := serviceReader.(bizcap.ServiceInstanceStateApplier); ok {
+		deploy.InitDeployModuleWithServiceState(r, db, cmdbCapability, stateApplier, nil, bizScopeService)
 	} else {
 		deploy.InitDeployModule(r, db, cmdbCapability, bizScopeService)
 	}
@@ -67,6 +90,7 @@ func Init(r *gin.RouterGroup, db *gorm.DB) {
 
 	// File distribution module: migrate schema, then register routes.
 	fileDistModule := filedist.InitFileDistModule(r, db, "./uploads")
+	fileDistModule.SetTargetSelectionCapability(cmdbCapability)
 	if err := fileDistModule.Migrate(db); err != nil {
 		panic(err)
 	}

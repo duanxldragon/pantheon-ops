@@ -5,8 +5,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/common"
 	"strings"
-	"time"
 
 	"gorm.io/gorm"
 )
@@ -168,19 +168,37 @@ func (s *DeployService) persistDeployTaskSecrets(taskID uint64, secretParams map
 
 // loadDeployTaskSecrets loads and decrypts the secret params for a task.
 func (s *DeployService) loadDeployTaskSecrets(taskID uint64) (map[string]string, error) {
+	secrets, _, err := s.loadDeployTaskSecretMaterial(taskID)
+	return secrets, err
+}
+
+// loadDeployTaskSecretMaterial derives completeness from the same row set as
+// decryption. Preview must hide values if legacy duplicates or unreadable rows
+// prevent reliable redaction; execution retains its existing skip behavior.
+func (s *DeployService) loadDeployTaskSecretMaterial(taskID uint64) (map[string]string, bool, error) {
+	ctx, cancel := context.WithTimeout(s.requestContext(), s.ownershipTiming().operation)
+	defer cancel()
 	var rows []DeployTaskSecret
-	if err := s.db.Where(taskIDWhereClause, taskID).Find(&rows).Error; err != nil {
-		return nil, err
+	if err := s.db.WithContext(ctx).Where(taskIDWhereClause, taskID).Find(&rows).Error; err != nil {
+		if s.ownership != nil {
+			s.ownership.fail(err)
+		}
+		return nil, false, err
 	}
 	secrets := make(map[string]string, len(rows))
+	complete := true
 	for _, row := range rows {
 		decrypted, err := decryptDeployCredential(row.SecretEncrypted)
 		if err != nil {
-			continue // skip unreadable rows instead of failing the whole task
+			complete = false
+			continue
+		}
+		if _, duplicate := secrets[row.SecretKey]; duplicate {
+			complete = false
 		}
 		secrets[row.SecretKey] = decrypted
 	}
-	return secrets, nil
+	return secrets, complete, nil
 }
 
 // deployTaskSecretPresence reports which secret keys exist for a task without
@@ -197,63 +215,34 @@ func (s *DeployService) deployTaskSecretPresence(taskID uint64) []SecretPresence
 	return items
 }
 
-// RollbackTask creates a rollback task from a completed deploy task. The
-// rollback action is derived from the original action (install -> uninstall,
-// start -> stop). The returned task is in draft state and must be started
-// explicitly.
-func (s *DeployService) RollbackTask(ctx context.Context, taskID uint64, userID string) (*TaskResponse, error) {
-	var original DeployTask
-	if err := s.db.First(&original, taskID).Error; err != nil {
-		return nil, err
+// RollbackTask creates a scoped draft from a supported frozen rollback plan.
+// Trusted worker callers may omit scope; HTTP callers must supply it.
+func (s *DeployService) RollbackTask(ctx context.Context, taskID uint64, userID string, scopes ...*common.DataScopeReq) (*TaskResponse, error) {
+	var scope *common.DataScopeReq
+	if len(scopes) > 0 {
+		scope = scopes[0]
 	}
-	rollbackAction := DetermineRollbackAction(original.Action)
-	if rollbackAction == "" {
-		return nil, errors.New("business.deploy.task.rollbackNotSupported")
-	}
-	if original.Status != TaskStatusSuccess && original.Status != TaskStatusFailed {
-		return nil, errors.New("business.deploy.task.rollbackInvalidState")
-	}
-
-	// Reuse the frozen snapshot: create a new task that replays the same
-	// plan with the inverse action.
-	req := CreateTaskRequest{
-		Name:              fmt.Sprintf("%s-rollback", strings.TrimSuffix(original.Name, "-rollback")),
-		TemplateID:        original.TemplateID,
-		PackageID:         original.PackageID,
-		BusinessScopeID:   original.BusinessScopeID,
-		ServiceID:         original.ServiceID,
-		ServiceInstanceID: original.ServiceInstanceID,
-		Action:            rollbackAction,
-		TargetType:        TargetTypeHost,
-		TargetIDs:         parseUint64JSON(original.TargetIDs),
-		ExecutorType:      original.ExecutorType,
-		TemplateParams:    decodeJSONMap(original.TemplateParams),
-		Remark:            fmt.Sprintf("rollback of task %d", taskID),
-	}
-	rollbackTask, err := s.CreateTask(req, userID, nil)
-	if err != nil {
-		return nil, err
-	}
-	// Link the rollback chain.
-	if err := s.db.Model(&DeployTask{}).Where("id = ?", rollbackTask.ID).Updates(map[string]any{
-		"rollback_task_id": original.ID,
-		"updated_at":       time.Now(),
-		"updated_by":       userID,
-	}).Error; err != nil {
-		return nil, err
-	}
-	return rollbackTask, nil
+	return s.createFrozenRollback(ctx, taskID, userID, scope)
 }
 
-// GetRollbackTask returns the rollback task linked to the given task, or
-// gorm.ErrRecordNotFound when no rollback exists.
-func (s *DeployService) GetRollbackTask(ctx context.Context, taskID uint64) (*TaskResponse, error) {
-	var rollback DeployTask
-	err := s.db.Where("rollback_task_id = ?", taskID).First(&rollback).Error
-	if err != nil {
+// GetRollbackTask authorizes the source and the derived task independently.
+func (s *DeployService) GetRollbackTask(ctx context.Context, taskID uint64, scopes ...*common.DataScopeReq) (*TaskResponse, error) {
+	if err := ctx.Err(); err != nil {
 		return nil, err
 	}
-	return s.GetTask(rollback.ID, nil)
+	var scope *common.DataScopeReq
+	if len(scopes) > 0 {
+		scope = scopes[0]
+	}
+	inner := s.targetRequestService(ctx)
+	if _, err := inner.loadVisibleTask(taskID, scope); err != nil {
+		return nil, err
+	}
+	var rollback DeployTask
+	if err := inner.db.Where("rollback_task_id = ?", taskID).Order("id DESC").First(&rollback).Error; err != nil {
+		return nil, err
+	}
+	return inner.GetTask(rollback.ID, scope)
 }
 
 // TriggerAutoRollback creates and immediately starts a rollback task for a

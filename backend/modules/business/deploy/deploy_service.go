@@ -10,6 +10,7 @@ import (
 	"net"
 	"regexp"
 	"runtime/debug"
+	"sort"
 	"strings"
 	"sync"
 	"time"
@@ -29,16 +30,20 @@ import (
 )
 
 type DeployService struct {
-	db               *gorm.DB
-	cmdbCapability   cmdb.DeployCMDBCapability
-	bizScopeReader   bizcap.BizScopeReader
-	hostReader       bizcap.CMDBHostReader
-	serviceState     bizcap.ServiceInstanceStateApplier
-	sshRunnerFactory func(host cmdbHostSnapshot, req StartTaskRequest) (deploySSHRunner, error)
-	executor         DeployExecutor
-	asyncExecution   bool
-	taskCancels      sync.Map
-	taskWorkers      sync.Map
+	db                      *gorm.DB
+	cmdbCapability          cmdb.DeployCMDBCapability
+	bizScopeReader          bizcap.BizScopeReader
+	hostReader              bizcap.CMDBHostReader
+	serviceState            bizcap.ServiceInstanceStateApplier
+	serviceStateTransaction func(*gorm.DB) bizcap.ServiceInstanceStateApplier
+	sshRunnerFactory        func(ctx context.Context, host cmdbHostSnapshot, req StartTaskRequest) (deploySSHRunner, error)
+	executor                DeployExecutor
+	asyncExecution          bool
+	taskCancels             sync.Map
+	taskWorkers             sync.Map
+	ownership               *executionOwnership
+	leaseTiming             *ownershipTiming
+	executionRoot           *DeployService
 }
 
 const deployAttemptMax = 3
@@ -65,6 +70,7 @@ type DeployExecutionHostRequest struct {
 	TaskHost   TaskHostResponse
 	Credential StartTaskRequest
 	Actor      string
+	ownership  *executionOwnership
 }
 
 type sshDeployExecutor struct{ service *DeployService }
@@ -180,16 +186,29 @@ func (s *DeployService) SetExecutor(executor DeployExecutor) {
 	s.executor = executor
 }
 
-// SetServiceInstanceStateApplier configures service-instance state writeback.
+// SetServiceInstanceStateApplier replaces the owner and clears any old owner's
+// transaction factory. Configure an owner/factory pair before starting workers.
 func (s *DeployService) SetServiceInstanceStateApplier(applier bizcap.ServiceInstanceStateApplier) {
+	s.SetServiceInstanceStateApplierWithTransaction(applier, nil)
+}
+
+// SetServiceInstanceStateApplierWithTransaction configures state writeback and
+// its same-owner transaction factory together before background reconciliation.
+func (s *DeployService) SetServiceInstanceStateApplierWithTransaction(applier bizcap.ServiceInstanceStateApplier, factory func(*gorm.DB) bizcap.ServiceInstanceStateApplier) {
+	if applier == nil {
+		factory = nil
+	} else if nilServiceInstanceState(applier) {
+		applier, factory = unboundServiceInstanceState{}, nil
+	}
 	s.serviceState = applier
+	s.serviceStateTransaction = factory
 }
 
 func (s *DeployService) Migrate() error {
 	if s.db == nil {
 		return errors.New("database.not_initialized")
 	}
-	return s.db.AutoMigrate(&DeployPackage{}, &DeployTemplate{}, &DeployTemplateStep{}, &DeployTask{}, &DeployTaskHost{}, &DeployHostLease{}, &DeployTaskAttempt{}, &DeployCredentialRef{}, &DeployTaskSecret{}, &DeployTaskStep{}, &DeployTaskEvent{}, &DeployTaskLogChunk{})
+	return s.db.AutoMigrate(&DeployPackage{}, &DeployTemplate{}, &DeployTemplateStep{}, &DeployTask{}, &DeployTaskHost{}, &DeployHostLease{}, &DeployTaskAttempt{}, &DeployCredentialRef{}, &DeployTaskSecret{}, &DeployTaskStep{}, &DeployStepHistory{}, &DeployTaskEvent{}, &DeployTaskLogChunk{})
 }
 
 func (s *DeployService) CreatePackage(req CreatePackageRequest, actor string) (*PackageResponse, error) {
@@ -461,7 +480,7 @@ func (s *DeployService) DeletePackage(id uint64) error {
 	return nil
 }
 
-func (s *DeployService) CreateTask(req CreateTaskRequest, actor string, dataScope *common.DataScopeReq) (*TaskResponse, error) {
+func (s *DeployService) createTask(req CreateTaskRequest, actor string, dataScope *common.DataScopeReq) (*TaskResponse, error) {
 	if s.db == nil {
 		return nil, errors.New("database.not_initialized")
 	}
@@ -566,9 +585,9 @@ func (s *DeployService) resolveDeployScopeName(businessScopeID uint64, targetIDs
 	if s.bizScopeReader == nil {
 		return "", errors.New("business.bizscope.readerNotConfigured")
 	}
-	scope, err := s.bizScopeReader.GetActive(context.Background(), businessScopeID, dataScope)
+	scope, err := s.bizScopeReader.GetActive(s.requestContext(), businessScopeID, dataScope)
 	if err != nil {
-		return "", errors.New("business.deploy.task.scopeInvalid")
+		return "", errors.New(taskCommandScopeInvalid)
 	}
 	hosts, err := s.cmdbCapability.ResolveDeployTargets(cmdb.DeployHostResolveRequest{
 		BusinessScopeID: businessScopeID,
@@ -654,6 +673,13 @@ func (s *DeployService) ListTasks(query TaskQuery, dataScope *common.DataScopeRe
 		query.PageSize = 10
 	}
 	db := s.db.Model(&DeployTask{})
+	db, err := applyTaskTimeRange(db, query)
+	if err != nil {
+		return nil, err
+	}
+	if query.BusinessScopeID > 0 {
+		db = db.Where("business_scope_id = ?", query.BusinessScopeID)
+	}
 	if strings.TrimSpace(query.Keyword) != "" {
 		like := "%" + strings.TrimSpace(query.Keyword) + "%"
 		db = db.Where("name LIKE ? OR package_name LIKE ?", like, like)
@@ -690,9 +716,15 @@ func (s *DeployService) ListTasks(query TaskQuery, dataScope *common.DataScopeRe
 	if err != nil {
 		return nil, err
 	}
+	sequences, err := s.taskCommandSequences(extractTaskIDs(rows))
+	if err != nil {
+		return nil, err
+	}
 	items := make([]TaskResponse, 0, len(rows))
 	for i := range rows {
-		items = append(items, taskToResponse(&rows[i], hostsByTaskID[rows[i].ID]))
+		response := taskToResponse(&rows[i], hostsByTaskID[rows[i].ID])
+		response.StateVersion = taskCommandVersion(&rows[i], sequences[rows[i].ID])
+		items = append(items, response)
 	}
 	return &TaskListResponse{Items: items, Total: total, Page: query.Page, PageSize: query.PageSize}, nil
 }
@@ -706,12 +738,45 @@ func (s *DeployService) GetTask(id uint64, dataScope *common.DataScopeReq) (*Tas
 	if err := s.db.Where(taskIDWhereClause, id).Order("id ASC").Find(&hosts).Error; err != nil {
 		return nil, err
 	}
+	hosts, err = s.visibleTaskHosts(hosts, dataScope)
+	if err != nil {
+		return nil, err
+	}
+	visibleHostIDs := make([]uint64, 0, len(hosts))
+	for _, host := range hosts {
+		visibleHostIDs = append(visibleHostIDs, host.ID)
+	}
 	hostResp := make([]TaskHostResponse, 0, len(hosts))
 	for i := range hosts {
 		hostResp = append(hostResp, taskHostToResponse(&hosts[i]))
 	}
 	resp := taskToResponse(task, hostResp)
+	sequences, err := s.taskCommandSequences([]uint64{id})
+	if err != nil {
+		return nil, err
+	}
+	resp.StateVersion = taskCommandVersion(task, sequences[id])
 	resp.SecretPresence = s.deployTaskSecretPresence(task.ID)
+	resp.StepHistory, resp.StepHistoryLimited, err = s.loadStepHistory(id, hosts)
+	if err != nil {
+		return nil, err
+	}
+	var steps []DeployTaskStep
+	if err := s.db.Where(taskIDWhereClause, id).Where("task_host_id IN ?", visibleHostIDs).Order("task_host_id ASC, step_order ASC, id ASC").Find(&steps).Error; err != nil {
+		return nil, err
+	}
+	resp.Steps = make([]TaskStepResponse, 0, len(steps))
+	for _, step := range steps {
+		resp.Steps = append(resp.Steps, TaskStepResponse{
+			ID: step.ID, TaskHostID: step.TaskHostID, StepKey: step.StepKey,
+			StepOrder: step.StepOrder, Status: step.Status, AttemptNo: step.AttemptNo,
+			StateVersion: step.StateVersion, StartedAt: step.StartedAt, FinishedAt: step.FinishedAt,
+		})
+	}
+	if err := s.db.Model(&DeployTaskLogChunk{}).Select("task_host_id, attempt_no").Where("task_id = ? AND attempt_no > 0", id).Where("task_host_id IN ?", visibleHostIDs).
+		Group("task_host_id, attempt_no").Order("task_host_id ASC, attempt_no ASC").Scan(&resp.LogAttempts).Error; err != nil {
+		return nil, err
+	}
 	return &resp, nil
 }
 
@@ -740,7 +805,7 @@ type taskUpdateValues struct {
 	remark            string
 }
 
-func (s *DeployService) UpdateTask(id uint64, req UpdateTaskRequest, actor string, dataScope *common.DataScopeReq) (*TaskResponse, error) {
+func (s *DeployService) updateTask(id uint64, req UpdateTaskRequest, actor string, dataScope *common.DataScopeReq) (*TaskResponse, error) {
 	task, err := s.loadVisibleTask(id, dataScope)
 	if err != nil {
 		return nil, err
@@ -1004,27 +1069,47 @@ func (s *DeployService) DeleteTask(id uint64, actor string, dataScope *common.Da
 	// Reconcile that orphaned execution before applying the normal delete
 	// guard; otherwise the task can never be cleaned up from the Web UI.
 	if task.Status == TaskStatusRunning && task.UpdatedAt.Before(time.Now().Add(-5*time.Minute)) {
-		now := time.Now()
-		var activeAttempts int64
-		if err := s.db.Model(&DeployTaskAttempt{}).
-			Where("task_id = ? AND status = ? AND (lease_expires_at IS NULL OR lease_expires_at > ?)", task.ID, "running", now).
-			Count(&activeAttempts).Error; err != nil {
-			return err
-		}
-		var activeLeases int64
-		if err := s.db.Model(&DeployHostLease{}).
-			Where("task_id = ? AND expires_at > ?", task.ID, now).
-			Count(&activeLeases).Error; err != nil {
-			return err
-		}
-		if activeAttempts == 0 && activeLeases == 0 {
-			if err := s.db.Model(&DeployTask{}).Where(idAndStatusWhereClause, task.ID, TaskStatusRunning).Updates(map[string]any{
-				"status": TaskStatusFailed, "finished_at": now, "updated_by": actor, "updated_at": now,
-			}).Error; err != nil {
+		if err := s.fencedTransaction(task.ID, func(tx *gorm.DB, state lockedDeployment) error {
+			if state.task.Status != TaskStatusRunning {
+				task.Status = state.task.Status
+				return nil
+			}
+			active, err := s.targetTransactionService(tx, s.cmdbCapability).hasActiveTaskAttempt(task.ID, 0, time.Time{})
+			if err != nil {
+				return err
+			}
+			if active {
+				return nil
+			}
+			now, err := databaseNow(tx)
+			if err != nil {
+				return err
+			}
+			if !state.task.UpdatedAt.Before(now.Add(-5 * time.Minute)) {
+				return nil
+			}
+			for _, lease := range state.leases {
+				if lease.TaskID == task.ID && lease.ExpiresAt.After(now) {
+					return nil
+				}
+			}
+			for _, attempt := range state.attempts {
+				if attempt.Status == TaskStatusRunning {
+					if err := tx.Model(&DeployTaskAttempt{}).Where("id = ?", attempt.ID).Updates(map[string]any{"status": "retryable", "lease_expires_at": nil, "finished_at": now, "updated_at": now, "error_message": "worker lease expired"}).Error; err != nil {
+						return err
+					}
+				}
+			}
+			if err := tx.Model(&DeployTask{}).Where("id = ?", task.ID).Updates(map[string]any{"status": TaskStatusFailed, "finished_at": now, "updated_by": actor, "updated_at": now}).Error; err != nil {
+				return err
+			}
+			if err := appendTaskEventTx(tx, taskEventInput{taskID: task.ID, eventType: "task.reconciled_stale", fromStatus: TaskStatusRunning, toStatus: TaskStatusFailed, actor: actor, reason: "worker lease expired"}); err != nil {
 				return err
 			}
 			task.Status = TaskStatusFailed
-			s.appendTaskEvent(taskEventInput{taskID: task.ID, eventType: "task.reconciled_stale", fromStatus: TaskStatusRunning, toStatus: TaskStatusFailed, actor: actor, reason: "worker lease expired"})
+			return nil
+		}); err != nil {
+			return err
 		}
 	}
 	// A task may be cleaned up after it reaches a terminal state. Running and
@@ -1033,7 +1118,11 @@ func (s *DeployService) DeleteTask(id uint64, actor string, dataScope *common.Da
 		task.Status == TaskStatusCancelRequested {
 		return errors.New(errDeployTaskInvalidDeleteState)
 	}
-	return s.db.Transaction(func(tx *gorm.DB) error {
+	return s.fencedTransaction(task.ID, func(tx *gorm.DB, state lockedDeployment) error {
+		if state.task.Status == TaskStatusRunning || state.task.Status == TaskStatusPauseRequested || state.task.Status == TaskStatusCancelRequested {
+			return errors.New(errDeployTaskInvalidDeleteState)
+		}
+
 		if err := tx.Where(taskIDWhereClause, task.ID).Delete(&DeployTaskHost{}).Error; err != nil {
 			return err
 		}
@@ -1052,7 +1141,18 @@ func (s *DeployService) DeleteTask(id uint64, actor string, dataScope *common.Da
 }
 
 func (s *DeployService) StartTask(id uint64, req StartTaskRequest, actor string, dataScope *common.DataScopeReq) (*TaskResponse, error) {
-	task, err := s.loadVisibleTask(id, dataScope)
+	return s.StartTaskContext(context.Background(), id, req, actor, dataScope)
+}
+
+// StartTaskContext runs the admission and ownership checks for starting a task.
+func (s *DeployService) StartTaskContext(ctx context.Context, id uint64, req StartTaskRequest, actor string, dataScope *common.DataScopeReq) (*TaskResponse, error) {
+	ctx, cancel := context.WithTimeout(ctx, s.ownershipTiming().operation)
+	defer cancel()
+	if err := ctx.Err(); err != nil {
+		return nil, err
+	}
+	reads := s.targetDiscoveryService(ctx)
+	task, err := reads.loadVisibleTask(id, dataScope)
 	if err != nil {
 		return nil, err
 	}
@@ -1071,19 +1171,20 @@ func (s *DeployService) StartTask(id uint64, req StartTaskRequest, actor string,
 		return nil, errors.New("business.deploy.task.invalidStartState")
 	}
 	if task.ExecutorType == ExecutorTypeSSH {
-		resolvedReq, version, err := s.prepareStartCredential(req)
+		resolvedReq, version, err := reads.prepareStartCredential(req)
 		if err != nil {
 			return nil, err
 		}
 		req, credentialVersion = resolvedReq, version
 	}
-	hosts, err := s.prepareStartTargets(task, req, dataScope)
+	hosts, err := reads.prepareStartTargets(task, req, dataScope)
 	if err != nil {
 		return nil, err
 	}
 
 	now := time.Now()
 	claim := startTaskClaim{
+		service: s, dataScope: dataScope,
 		task:              task,
 		req:               req,
 		hosts:             hosts,
@@ -1094,11 +1195,28 @@ func (s *DeployService) StartTask(id uint64, req StartTaskRequest, actor string,
 		leaseOwner:        deployHostLeaseOwner(task.ID),
 		credentialVersion: credentialVersion,
 	}
-	claimErr := s.db.Transaction(claim.claim)
+	var claimErr error
+	for discovery := 0; discovery < 3; discovery++ {
+		claimErr = s.targetRequestService(ctx).deploymentTransaction(claim.claim)
+		if !errors.Is(claimErr, ErrTaskPreviewConflict) || req.RequirePreview || req.IntentVersion != "" {
+			break
+		}
+		current, err := reads.loadVisibleTask(id, dataScope)
+		if err != nil {
+			return nil, err
+		}
+		candidates, err := reads.prepareStartTargets(current, req, dataScope)
+		if err != nil {
+			return nil, err
+		}
+		claim.task = current
+		claim.hosts = candidates
+	}
 	if claimErr != nil {
 		return s.rejectFailedStartClaim(id, claimErr, key, dataScope)
 	}
-	s.appendTaskEvent(taskEventInput{taskID: task.ID, eventType: "task.started", fromStatus: task.Status, toStatus: TaskStatusRunning, actor: actor, requestID: key})
+	task, hosts = claim.task, claim.hosts
+
 	if err := s.beginServiceInstanceState(*task, actor, dataScope); err != nil {
 		s.failStartedTask(task, hosts, actor, err)
 		return nil, err
@@ -1125,6 +1243,9 @@ func (s *DeployService) prepareStartCredential(req StartTaskRequest) (StartTaskR
 // prepareStartTargets validates the frozen execution snapshot and resolves the
 // hosts the start request targets.
 func (s *DeployService) prepareStartTargets(task *DeployTask, req StartTaskRequest, dataScope *common.DataScopeReq) ([]cmdbHostSnapshot, error) {
+	if err := s.validateActiveExecutionScope(s.requestContext(), task, dataScope); err != nil {
+		return nil, err
+	}
 	// Validate the frozen execution snapshot before mutating anything.
 	if _, err := s.resolveTaskExecutionPlan(*task); err != nil {
 		return nil, mapDeployTaskExecutionPlanError(err)
@@ -1150,6 +1271,8 @@ func (s *DeployService) prepareStartTargets(task *DeployTask, req StartTaskReque
 // startTaskClaim carries the resolved start request of the claiming
 // transaction so the transaction keeps its inputs in one place.
 type startTaskClaim struct {
+	service           *DeployService
+	dataScope         *common.DataScopeReq
 	task              *DeployTask
 	req               StartTaskRequest
 	hosts             []cmdbHostSnapshot
@@ -1163,7 +1286,35 @@ type startTaskClaim struct {
 
 // claim flips the task to running, freezes the target snapshot and creates the
 // per-host rows together with their leases.
-func (c startTaskClaim) claim(tx *gorm.DB) error {
+func (c *startTaskClaim) claim(tx *gorm.DB) error {
+	var current DeployTask
+	if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).First(&current, c.task.ID).Error; err != nil {
+		return err
+	}
+	if current.Status != TaskStatusDraft && current.Status != TaskStatusPending {
+		return errors.New(errDeployTaskAlreadyRunning)
+	}
+	c.task = &current
+	sort.Slice(c.hosts, func(i, j int) bool { return c.hosts[i].ID < c.hosts[j].ID })
+	// Reserve the task-host keys before physical leases and bound CMDB locks.
+	for _, host := range c.hosts {
+		row := DeployTaskHost{TaskID: c.task.ID, HostID: host.ID, Status: TaskHostStatusPending}
+		if err := tx.Clauses(clause.OnConflict{DoNothing: true}).Create(&row).Error; err != nil {
+			return err
+		}
+	}
+	if _, err := lockDeployment(tx, c.task.ID, true); err != nil {
+		return err
+	}
+	for _, host := range c.hosts {
+		if err := acquireHostLease(tx, host.ID, c.task.ID, c.leaseOwner, c.now); err != nil {
+			return err
+		}
+	}
+	if err := c.validatePreview(tx); err != nil {
+		return err
+	}
+
 	result := tx.Model(&DeployTask{}).
 		Where(idWhereClause, c.task.ID).
 		Where("status IN ?", []string{TaskStatusDraft, TaskStatusPending}).
@@ -1186,6 +1337,12 @@ func (c startTaskClaim) claim(tx *gorm.DB) error {
 	}
 
 	targetSnapshot := buildDeployTargetSnapshot(c.task, c.hosts, c.now)
+	var selectionSnapshot deployTargetSnapshot
+	if err := json.Unmarshal(c.task.TargetSnapshot, &selectionSnapshot); err == nil {
+		targetSnapshot.Selection = selectionSnapshot.Selection
+		targetSnapshot.ScopeVersion = selectionSnapshot.ScopeVersion
+		targetSnapshot.Sources = selectionSnapshot.Sources
+	}
 	targetJSON, _ := json.Marshal(targetSnapshot)
 	if err := tx.Model(&DeployTask{}).Where(idWhereClause, c.task.ID).Update("target_snapshot", datatypes.JSON(targetJSON)).Error; err != nil {
 		return err
@@ -1196,15 +1353,13 @@ func (c startTaskClaim) claim(tx *gorm.DB) error {
 			return err
 		}
 	}
-	return nil
+	return appendTaskEventTx(tx, taskEventInput{taskID: c.task.ID, eventType: "task.started", fromStatus: c.task.Status, toStatus: TaskStatusRunning, actor: c.actor, requestID: c.key})
 }
 
 // createTaskHostRow acquires the host lease and persists the running host row
 // with the execution steps needed for checkpoint recovery.
 func (c startTaskClaim) createTaskHostRow(tx *gorm.DB, host cmdbHostSnapshot) error {
-	if err := acquireHostLease(tx, host.ID, c.task.ID, c.leaseOwner, c.now); err != nil {
-		return err
-	}
+
 	initialTrace, _ := json.Marshal([]map[string]any{
 		{"at": c.now.Format(time.RFC3339), "phase": "start", "message": "Task host queued"},
 	})
@@ -1222,7 +1377,10 @@ func (c startTaskClaim) createTaskHostRow(tx *gorm.DB, host cmdbHostSnapshot) er
 		ResolvedAt:      &c.now,
 		UpdatedBy:       c.actor,
 	}
-	if err := tx.Create(&row).Error; err != nil {
+	if err := tx.Where("task_id = ? AND host_id = ?", c.task.ID, host.ID).First(&row).Error; err != nil {
+		return err
+	}
+	if err := tx.Model(&row).Updates(map[string]any{"hostname": host.Hostname, "host_ip": host.IP, "ssh_port": host.SSHPort, "os": host.OS, "business_scope_id": host.BusinessScopeID, "status": TaskHostStatusRunning, "trace_steps": datatypes.JSON(initialTrace), "started_at": c.now, "resolved_at": c.now, "updated_by": c.actor}).Error; err != nil {
 		return err
 	}
 	// FZ-03: persist execution steps for checkpoint recovery.
@@ -1248,17 +1406,8 @@ func (s *DeployService) rejectFailedStartClaim(id uint64, claimErr error, key st
 
 // failStartedTask marks the claimed task and its hosts failed when the service
 // instance could not be opened, and releases their leases.
-func (s *DeployService) failStartedTask(task *DeployTask, hosts []cmdbHostSnapshot, actor string, reason error) {
-	now := time.Now()
-	_ = s.db.Model(&DeployTask{}).Where(idWhereClause, task.ID).Updates(map[string]interface{}{
-		"status": TaskStatusFailed, "finished_at": &now, "updated_by": actor, "updated_at": now,
-	}).Error
-	_ = s.db.Model(&DeployTaskHost{}).Where(taskIDAndStatusInWhereClause, task.ID, []string{TaskHostStatusPending, TaskHostStatusRunning}).Updates(map[string]interface{}{
-		"status": TaskHostStatusFailed, "error_message": reason.Error(), "finished_at": &now, "updated_by": actor, "updated_at": now,
-	}).Error
-	for _, host := range hosts {
-		_ = releaseHostLease(s.db, host.ID, deployHostLeaseOwner(task.ID))
-	}
+func (s *DeployService) failStartedTask(task *DeployTask, _ []cmdbHostSnapshot, actor string, reason error) {
+	s.failQueuedTask(task.ID, actor, reason)
 }
 
 // dispatchStartedTask hands the claimed task to the async worker or runs it
@@ -1282,7 +1431,9 @@ func (s *DeployService) runAsyncTask(taskID uint64, actor string) {
 	}
 	defer s.taskWorkers.Delete(taskID)
 	workerID := fmt.Sprintf("deploy-worker:%d", time.Now().UnixNano())
-	_, _ = s.ReconcileDeployAttempts(time.Now())
+	if _, err := s.ReconcileDeployAttempts(time.Now()); err != nil {
+		return
+	}
 	var task DeployTask
 	if err := s.db.First(&task, taskID).Error; err != nil {
 		return
@@ -1296,10 +1447,7 @@ func (s *DeployService) runAsyncTask(taskID uint64, actor string) {
 	if err := s.db.Where(taskIDWhereClause, taskID).Order("id ASC").Find(&hosts).Error; err != nil {
 		return
 	}
-	if err := s.ensureTaskHostLeases(task, hosts); err != nil {
-		s.failQueuedTask(taskID, actor, err)
-		return
-	}
+
 	taskContext, cancelTask := context.WithCancel(context.Background())
 	s.taskCancels.Store(taskID, cancelTask)
 	defer func() {
@@ -1329,38 +1477,15 @@ func (s *DeployService) runAsyncTask(taskID uint64, actor string) {
 		}(host)
 	}
 	waitGroup.Wait()
-	s.releaseInactiveTaskHostLeases(taskID, hosts)
-	if s.taskCancellationRequested(taskID) {
-		s.finalizeTaskCancellation(taskID, actor)
-	} else if !s.taskExecutionSuspended(taskID) {
-		_ = s.recomputeTaskStatus(taskID, actor)
-	}
+
 }
 
 func (s *DeployService) runAsyncTaskHost(taskContext context.Context, task DeployTask, host DeployTaskHost, req StartTaskRequest, actor, workerID string) bool {
-	for attemptNo := 0; attemptNo < deployAttemptMax; attemptNo++ {
-		if s.taskCancellationRequested(task.ID) || s.taskExecutionSuspended(task.ID) {
-			return false
+	for i := 0; i < deployAttemptMax; i++ {
+		failed, err := s.runOwnedHost(taskContext, task, host, req, actor, workerID, true)
+		if err != nil || !failed {
+			return failed
 		}
-		attempt := s.claimAttempt(task.ID, host.ID, workerID)
-		if attempt == nil {
-			return false
-		}
-		err := s.executeAsyncHostAttempt(taskContext, task, host, req, actor)
-		if status := s.interruptedAsyncHostStatus(task); status != "" {
-			s.finishAttemptWithStatus(attempt.ID, workerID, status, nil)
-			return false
-		}
-		err = s.resolveAsyncHostError(host, err)
-		if err == nil {
-			s.finishAttempt(attempt.ID, workerID, nil)
-			return false
-		}
-		s.finishAttempt(attempt.ID, workerID, err)
-		if !s.asyncHostRetryAllowed(task, attemptNo) {
-			return true
-		}
-		s.requeueAsyncHostAttempt(host)
 	}
 	return true
 }
@@ -1372,71 +1497,6 @@ func (s *DeployService) executeAsyncHostAttempt(taskContext context.Context, tas
 	hostContext, cancelHost := context.WithTimeout(taskContext, deployExecutionTimeout(task))
 	defer cancelHost()
 	return s.executeTaskHostContext(hostContext, task, target, taskHostToResponse(&host), req, actor)
-}
-
-// interruptedAsyncHostStatus reports the attempt status of a task that was
-// suspended or canceled, or an empty string when it still runs normally.
-func (s *DeployService) interruptedAsyncHostStatus(task DeployTask) string {
-	switch {
-	case s.taskExecutionSuspended(task.ID):
-		return TaskStatusPaused
-	case s.taskCancellationRequested(task.ID):
-		return TaskStatusCanceled
-	default:
-		return ""
-	}
-}
-
-// resolveAsyncHostError maps the persisted host result of a finished attempt
-// onto the error reported for the attempt.
-func (s *DeployService) resolveAsyncHostError(host DeployTaskHost, err error) error {
-	var completed DeployTaskHost
-	if loadErr := s.db.First(&completed, host.ID).Error; loadErr != nil {
-		return loadErr
-	}
-	if completed.Status == TaskHostStatusFailed {
-		return errors.New(completed.ErrorMessage)
-	}
-	if completed.Status == TaskHostStatusSkipped {
-		return errors.New("business.deploy.task.canceled")
-	}
-	return err
-}
-
-// asyncHostRetryAllowed reports whether the host may claim another attempt.
-func (s *DeployService) asyncHostRetryAllowed(task DeployTask, attemptNo int) bool {
-	return attemptNo+1 < deployAttemptMax && s.interruptedAsyncHostStatus(task) == ""
-}
-
-// requeueAsyncHostAttempt resets the host row so the next attempt re-executes it.
-func (s *DeployService) requeueAsyncHostAttempt(host DeployTaskHost) {
-	_ = s.db.Model(&DeployTaskHost{}).Where(idWhereClause, host.ID).Updates(map[string]any{"status": TaskHostStatusRunning, "error_message": "", "finished_at": nil, "reported_at": nil, "updated_at": time.Now()}).Error
-}
-
-func (s *DeployService) ensureTaskHostLeases(task DeployTask, hosts []DeployTaskHost) error {
-	now := time.Now()
-	owner := deployHostLeaseOwner(task.ID)
-	return s.db.Transaction(func(tx *gorm.DB) error {
-		for _, host := range hosts {
-			if isTerminalTaskHostStatus(host.Status) {
-				continue
-			}
-			if err := acquireHostLease(tx, host.HostID, task.ID, owner, now); err != nil {
-				return err
-			}
-		}
-		return nil
-	})
-}
-
-func (s *DeployService) releaseInactiveTaskHostLeases(taskID uint64, hosts []DeployTaskHost) {
-	owner := deployHostLeaseOwner(taskID)
-	for _, host := range hosts {
-		active, err := s.hasActiveTaskAttempt(taskID, host.ID, time.Now())
-		if err == nil && !active {
-			_ = releaseHostLease(s.db, host.HostID, owner)
-		}
-	}
 }
 
 func deployMaxParallelHosts(task DeployTask) int {
@@ -1504,84 +1564,58 @@ func (s *DeployService) startRequestForTask(task DeployTask) (StartTaskRequest, 
 }
 
 func (s *DeployService) failQueuedTask(taskID uint64, actor string, reason error) {
-	now := time.Now()
-	_ = s.db.Model(&DeployTaskHost{}).Where(taskIDAndStatusInWhereClause, taskID, []string{TaskHostStatusPending, TaskHostStatusRunning}).Updates(map[string]any{"status": TaskHostStatusFailed, "error_message": truncateDeployLog(reason.Error(), 480), "finished_at": &now, "updated_by": actor, "updated_at": now}).Error
-	_ = s.db.Model(&DeployTask{}).Where(idAndStatusWhereClause, taskID, TaskStatusRunning).Updates(map[string]any{"status": TaskStatusFailed, "finished_at": &now, "updated_by": actor, "updated_at": now}).Error
-	s.appendTaskEvent(taskEventInput{taskID: taskID, eventType: "task.failed", fromStatus: TaskStatusRunning, toStatus: TaskStatusFailed, actor: actor, reason: truncateDeployLog(reason.Error(), 256)})
+	_ = s.fencedTransaction(taskID, func(tx *gorm.DB, state lockedDeployment) error {
+		if state.task.Status != TaskStatusRunning {
+			return nil
+		}
+		for _, a := range state.attempts {
+			if a.Status == TaskHostStatusRunning {
+				return errExecutionOwnership
+			}
+		}
+		now, err := databaseNow(tx)
+		if err != nil {
+			return err
+		}
+		if err := tx.Model(&DeployTaskHost{}).Where(taskIDAndStatusInWhereClause, taskID, []string{TaskHostStatusPending, TaskHostStatusRunning}).Updates(map[string]any{"status": TaskHostStatusFailed, "error_message": truncateDeployLog(reason.Error(), 480), "finished_at": now, "updated_at": now, "updated_by": actor}).Error; err != nil {
+			return err
+		}
+		for _, h := range state.hosts {
+			if err := releaseHostLease(tx, h.HostID, deployHostLeaseOwner(taskID)); err != nil {
+				return err
+			}
+		}
+		return recomputeTaskStatusTx(tx, state.task, actor)
+	})
 }
 
 func (s *DeployService) taskCanceled(taskID uint64) bool {
-	var task DeployTask
-	return s.db.Select("status").First(&task, taskID).Error == nil && task.Status == TaskStatusCanceled
+	status, err := s.executionTaskStatus(taskID)
+	return err != nil || status == TaskStatusCanceled
 }
 
 func (s *DeployService) taskCancellationRequested(taskID uint64) bool {
-	var task DeployTask
-	if s.db.Select("status").First(&task, taskID).Error != nil {
-		return false
-	}
-	return task.Status == TaskStatusCancelRequested || task.Status == TaskStatusCanceled
-}
-
-func (s *DeployService) finalizeTaskCancellation(taskID uint64, actor string) {
-	now := time.Now()
-	transition := s.db.Model(&DeployTask{}).Where(idAndStatusWhereClause, taskID, TaskStatusCancelRequested).Updates(map[string]any{
-		"status": TaskStatusCanceled, "finished_at": &now, "updated_by": actor, "updated_at": now,
-	})
-	if transition.Error == nil && transition.RowsAffected > 0 {
-		s.appendTaskEvent(taskEventInput{taskID: taskID, eventType: "task.canceled", fromStatus: TaskStatusCancelRequested, toStatus: TaskStatusCanceled, actor: actor})
-	}
+	status, err := s.executionTaskStatus(taskID)
+	return err != nil || status == TaskStatusCancelRequested || status == TaskStatusCanceled
 }
 
 func (s *DeployService) taskExecutionSuspended(taskID uint64) bool {
-	var task DeployTask
-	if s.db.Select("status").First(&task, taskID).Error != nil {
-		return false
-	}
-	return task.Status == TaskStatusPauseRequested || task.Status == TaskStatusPaused
+	status, err := s.executionTaskStatus(taskID)
+	return err != nil || status == TaskStatusPauseRequested || status == TaskStatusPaused
 }
 
 func (s *DeployService) claimAttempt(taskID, taskHostID uint64, workerID string) *DeployTaskAttempt {
-	now := time.Now()
-	lease := now.Add(5 * time.Minute)
-	var attempt DeployTaskAttempt
-	err := s.db.Transaction(func(tx *gorm.DB) error {
-		var taskHost DeployTaskHost
-		if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).Select("id").First(&taskHost, taskHostID).Error; err != nil {
-			return err
-		}
-		var active int64
-		if err := tx.Model(&DeployTaskAttempt{}).Where("task_host_id = ? AND status = ? AND lease_expires_at > ?", taskHostID, "running", now).Count(&active).Error; err != nil {
-			return err
-		}
-		if active > 0 {
-			return errors.New("business.deploy.attempt.active")
-		}
-		var chargeableCount int64
-		if err := tx.Model(&DeployTaskAttempt{}).Where("task_host_id = ? AND status <> ?", taskHostID, TaskStatusPaused).Count(&chargeableCount).Error; err != nil {
-			return err
-		}
-		if chargeableCount >= deployAttemptMax {
-			return errors.New("business.deploy.attempt.exhausted")
-		}
-		var maxAttemptNo int
-		if err := tx.Model(&DeployTaskAttempt{}).Where("task_host_id = ?", taskHostID).Select("COALESCE(MAX(attempt_no), 0)").Scan(&maxAttemptNo).Error; err != nil {
-			return err
-		}
-		attempt = DeployTaskAttempt{TaskID: taskID, TaskHostID: taskHostID, AttemptNo: maxAttemptNo + 1, Status: "running", WorkerID: workerID, LeaseExpiresAt: &lease, StartedAt: &now, CreatedAt: now, UpdatedAt: now}
-		return tx.Create(&attempt).Error
-	})
+	attempt, err := s.claimOwnedAttempt(taskID, taskHostID, workerID)
 	if err != nil {
 		return nil
 	}
-	return &attempt
+	return attempt
 }
 
 // ReconcileDeployAttempts makes abandoned worker claims visible to the next
 // worker. It is safe to call periodically or during worker startup.
-func (s *DeployService) ReconcileDeployAttempts(now time.Time) (int64, error) {
-	result := s.db.Model(&DeployTaskAttempt{}).Where("status = ? AND lease_expires_at IS NOT NULL AND lease_expires_at < ?", "running", now).Updates(map[string]any{"status": "retryable", "error_message": "worker lease expired", "finished_at": now, "lease_expires_at": nil, "updated_at": now})
-	return result.RowsAffected, result.Error
+func (s *DeployService) ReconcileDeployAttempts(_ time.Time) (int64, error) {
+	return s.reconcileOwnership()
 }
 
 // ReconcileDeployQueue resumes durable running tasks after a worker restart.
@@ -1591,20 +1625,17 @@ func (s *DeployService) ReconcileDeployQueue(actor string) (int, error) {
 	if _, err := s.ReconcileDeployAttempts(time.Now()); err != nil {
 		return 0, err
 	}
-	// FZ-03: reconcile pause_requested → paused after worker restart.
-	now := time.Now()
-	var pausedTaskIDs []uint64
-	s.db.Model(&DeployTask{}).Where(statusWhereClause, TaskStatusPauseRequested).Pluck("id", &pausedTaskIDs)
-	pauseResult := s.db.Model(&DeployTask{}).
-		Where(statusWhereClause, TaskStatusPauseRequested).
-		Updates(map[string]interface{}{
-			"status":     TaskStatusPaused,
-			"updated_by": actor,
-			"updated_at": now,
-		})
-	if pauseResult.Error == nil && pauseResult.RowsAffected > 0 {
-		for _, taskID := range pausedTaskIDs {
-			s.appendTaskEvent(taskEventInput{taskID: taskID, eventType: "task.paused", fromStatus: TaskStatusPauseRequested, toStatus: TaskStatusPaused, actor: actor, reason: "worker reconciliation"})
+	// Requested pause/cancel is acknowledged only after live ownership settles.
+	// Include admitted tasks canceled before their first worker claim.
+	var requestedTaskIDs []uint64
+	ctx, cancel := context.WithTimeout(s.requestContext(), s.ownershipTiming().operation)
+	defer cancel()
+	if err := s.db.WithContext(ctx).Model(&DeployTask{}).Where("status IN ?", []string{TaskStatusPauseRequested, TaskStatusCancelRequested}).Order("id ASC").Pluck("id", &requestedTaskIDs).Error; err != nil {
+		return 0, err
+	}
+	for _, id := range requestedTaskIDs {
+		if err := s.recomputeTaskStatus(id, actor); err != nil {
+			return 0, err
 		}
 	}
 	var tasks []DeployTask
@@ -1617,21 +1648,18 @@ func (s *DeployService) ReconcileDeployQueue(actor string) (int, error) {
 	return len(tasks), nil
 }
 
-func (s *DeployService) finishAttempt(id uint64, workerID string, runErr error) {
+func (s *DeployService) finishAttempt(o *executionOwnership, runErr error) {
 	status := "success"
 	if runErr != nil {
 		status = "failed"
 	}
-	s.finishAttemptWithStatus(id, workerID, status, runErr)
+	s.finishAttemptWithStatus(o, status, runErr)
 }
-
-func (s *DeployService) finishAttemptWithStatus(id uint64, workerID, status string, runErr error) {
-	now := time.Now()
-	updates := map[string]any{"status": status, "finished_at": &now, "updated_at": now, "lease_expires_at": nil}
-	if runErr != nil {
-		updates["error_message"] = truncateDeployLog(runErr.Error(), 480)
+func (s *DeployService) finishAttemptWithStatus(o *executionOwnership, status string, runErr error) {
+	if o == nil {
+		return
 	}
-	_ = s.db.Model(&DeployTaskAttempt{}).Where("id = ? AND worker_id = ?", id, workerID).Updates(updates).Error
+	_ = s.ownedService(o).completeOwnedAttempt(status, runErr, "system", false)
 }
 
 func (s *DeployService) CancelTask(id uint64, actor string, dataScope *common.DataScopeReq) (*TaskResponse, error) {
@@ -1645,13 +1673,15 @@ func (s *DeployService) CancelTask(id uint64, actor string, dataScope *common.Da
 		TaskStatusRunning:         true,
 		TaskStatusPauseRequested:  true,
 		TaskStatusPaused:          true,
-		TaskStatusCancelRequested: false,
+		TaskStatusCancelRequested: task.ExecutorType == ExecutorTypeManual,
 	}
 	if !allowed[task.Status] {
 		return nil, errors.New(errDeployTaskInvalidCancelState)
 	}
 	nextStatus := TaskStatusCancelRequested
-	if task.Status == TaskStatusPending || task.Status == TaskStatusPaused {
+	// Manual tasks have no worker to acknowledge cancellation. Complete both
+	// a new cancel and a legacy stranded request through the existing CAS path.
+	if task.Status == TaskStatusPending || task.Status == TaskStatusPaused || task.ExecutorType == ExecutorTypeManual {
 		nextStatus = TaskStatusCanceled
 	}
 	updates := map[string]interface{}{
@@ -1688,7 +1718,9 @@ func (s *DeployService) CancelTask(id uint64, actor string, dataScope *common.Da
 	if nextStatus == TaskStatusCanceled {
 		eventType = "task.canceled"
 	}
-	s.appendTaskEvent(taskEventInput{taskID: task.ID, eventType: eventType, fromStatus: task.Status, toStatus: nextStatus, actor: actor})
+	if err := s.appendTaskEvent(taskEventInput{taskID: task.ID, eventType: eventType, fromStatus: task.Status, toStatus: nextStatus, actor: actor}); err != nil {
+		return nil, err
+	}
 	return s.GetTask(id, dataScope)
 }
 
@@ -1703,11 +1735,18 @@ func (s *DeployService) PauseTask(id uint64, actor string, dataScope *common.Dat
 	if task.Status != TaskStatusRunning {
 		return nil, errors.New(errDeployTaskInvalidPauseState)
 	}
+	nextStatus := TaskStatusPauseRequested
+	eventType := "task.pause_requested"
+	// Manual execution has no worker to acknowledge a cooperative request.
+	if task.ExecutorType == ExecutorTypeManual {
+		nextStatus = TaskStatusPaused
+		eventType = "task.paused"
+	}
 	now := time.Now()
 	transition := s.db.Model(&DeployTask{}).
 		Where(idAndStatusWhereClause, task.ID, TaskStatusRunning).
 		Updates(map[string]interface{}{
-			"status":     TaskStatusPauseRequested,
+			"status":     nextStatus,
 			"updated_by": actor,
 			"updated_at": now,
 		})
@@ -1717,7 +1756,9 @@ func (s *DeployService) PauseTask(id uint64, actor string, dataScope *common.Dat
 	if transition.RowsAffected == 0 {
 		return nil, errors.New(errDeployTaskInvalidPauseState)
 	}
-	s.appendTaskEvent(taskEventInput{taskID: task.ID, eventType: "task.pause_requested", fromStatus: TaskStatusRunning, toStatus: TaskStatusPauseRequested, actor: actor})
+	if err := s.appendTaskEvent(taskEventInput{taskID: task.ID, eventType: eventType, fromStatus: TaskStatusRunning, toStatus: nextStatus, actor: actor}); err != nil {
+		return nil, err
+	}
 	// Propagate cancellation to the current executor step so it finishes
 	// promptly; the worker will transition to paused after the step returns.
 	if cancel, ok := s.taskCancels.Load(id); ok {
@@ -1738,6 +1779,9 @@ func (s *DeployService) ResumeTask(id uint64, actor string, dataScope *common.Da
 	if task.Status != TaskStatusPaused {
 		return nil, errors.New(errDeployTaskInvalidResumeState)
 	}
+	if err := s.validateTaskExecutionAdmission(task, dataScope); err != nil {
+		return nil, err
+	}
 	now := time.Now()
 	transition := s.db.Model(&DeployTask{}).
 		Where(idAndStatusWhereClause, task.ID, TaskStatusPaused).
@@ -1752,9 +1796,11 @@ func (s *DeployService) ResumeTask(id uint64, actor string, dataScope *common.Da
 	if transition.RowsAffected == 0 {
 		return nil, errors.New(errDeployTaskInvalidResumeState)
 	}
-	s.appendTaskEvent(taskEventInput{taskID: task.ID, eventType: "task.resumed", fromStatus: TaskStatusPaused, toStatus: TaskStatusRunning, actor: actor})
+	if err := s.appendTaskEvent(taskEventInput{taskID: task.ID, eventType: "task.resumed", fromStatus: TaskStatusPaused, toStatus: TaskStatusRunning, actor: actor}); err != nil {
+		return nil, err
+	}
 	// Re-run the async worker to pick up unfinished hosts from the checkpoint.
-	if s.asyncExecution {
+	if s.asyncExecution && task.ExecutorType == ExecutorTypeSSH {
 		go s.runAsyncTask(task.ID, actor)
 	}
 	return s.GetTask(id, dataScope)
@@ -1764,12 +1810,72 @@ func (s *DeployService) ResumeTask(id uint64, actor string, dataScope *common.Da
 // results are retained; only failed, canceled, or not-started hosts are
 // scheduled again.
 func (s *DeployService) RetryTask(id uint64, actor string, dataScope *common.DataScopeReq) (*TaskResponse, error) {
+	var response *TaskResponse
+	err := s.deploymentTransaction(func(tx *gorm.DB) error {
+		var task DeployTask
+		if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).Select("id").First(&task, id).Error; err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				return errDeployTaskNotFound
+			}
+			return err
+		}
+		if _, err := lockDeployment(tx, id); err != nil {
+			return err
+		}
+		provider := s.cmdbCapability
+		if owner, ok := provider.(cmdb.TargetSelectionCapability); ok {
+			if bound, ok := owner.WithTargetTransaction(tx).(cmdb.DeployCMDBCapability); ok {
+				provider = bound
+			}
+		}
+		inner := s.targetTransactionService(tx, provider)
+		var err error
+		response, err = inner.retryTask(id, actor, dataScope)
+		return err
+	})
+	if err != nil {
+		return nil, err
+	}
+	if s.asyncExecution && response.ExecutorType == ExecutorTypeSSH {
+		go s.runAsyncTask(id, actor)
+	}
+	return response, nil
+}
+
+// Match claimAttempt's cumulative nonpaused budget before any control writes.
+func (s *DeployService) validateRetryAttemptBudget(task *DeployTask) error {
+	if task.ExecutorType != ExecutorTypeSSH {
+		return nil
+	}
+	var hosts []DeployTaskHost
+	if err := s.db.Clauses(clause.Locking{Strength: "UPDATE"}).Where("task_id = ? AND status <> ?", task.ID, TaskHostStatusSuccess).Order("id ASC").Find(&hosts).Error; err != nil {
+		return err
+	}
+	for _, host := range hosts {
+		var count int64
+		if err := s.db.Model(&DeployTaskAttempt{}).Where("task_host_id = ? AND status <> ?", host.ID, TaskStatusPaused).Count(&count).Error; err != nil {
+			return err
+		}
+		if count >= deployAttemptMax {
+			return errors.New(msgDeployAttemptExhausted)
+		}
+	}
+	return nil
+}
+
+func (s *DeployService) retryTask(id uint64, actor string, dataScope *common.DataScopeReq) (*TaskResponse, error) {
 	task, err := s.loadVisibleTask(id, dataScope)
 	if err != nil {
 		return nil, err
 	}
 	if task.Status != TaskStatusFailed {
 		return nil, errors.New(errDeployTaskInvalidRetryState)
+	}
+	if err := s.validateTaskExecutionAdmission(task, dataScope); err != nil {
+		return nil, err
+	}
+	if err := s.validateRetryAttemptBudget(task); err != nil {
+		return nil, err
 	}
 	now := time.Now()
 	transition := s.db.Model(&DeployTask{}).
@@ -1786,9 +1892,11 @@ func (s *DeployService) RetryTask(id uint64, actor string, dataScope *common.Dat
 	if transition.RowsAffected == 0 {
 		return nil, errors.New(errDeployTaskInvalidRetryState)
 	}
-	s.appendTaskEvent(taskEventInput{taskID: task.ID, eventType: "task.retried", fromStatus: TaskStatusFailed, toStatus: TaskStatusRunning, actor: actor})
+	if err := s.appendTaskEvent(taskEventInput{taskID: task.ID, eventType: "task.retried", fromStatus: TaskStatusFailed, toStatus: TaskStatusRunning, actor: actor}); err != nil {
+		return nil, err
+	}
 	// Reset failed/canceled hosts to running so the worker re-executes them.
-	_ = s.db.Model(&DeployTaskHost{}).
+	if err := s.db.Model(&DeployTaskHost{}).
 		Where(taskIDAndStatusInWhereClause, task.ID, []string{TaskHostStatusFailed, TaskHostStatusSkipped}).
 		Updates(map[string]interface{}{
 			"status":        TaskHostStatusRunning,
@@ -1796,8 +1904,10 @@ func (s *DeployService) RetryTask(id uint64, actor string, dataScope *common.Dat
 			"finished_at":   nil,
 			"reported_at":   nil,
 			"updated_at":    now,
-		})
-	if s.asyncExecution {
+		}).Error; err != nil {
+		return nil, err
+	}
+	if s.asyncExecution && task.ExecutorType == ExecutorTypeSSH {
 		go s.runAsyncTask(task.ID, actor)
 	}
 	return s.GetTask(id, dataScope)
@@ -1821,8 +1931,17 @@ type taskEventInput struct {
 
 // appendTaskEvent writes an append-only event record for a task transition.
 // The sequence is monotonically increasing per task and never reused.
-func (s *DeployService) appendTaskEvent(event taskEventInput) {
+func (s *DeployService) appendTaskEvent(event taskEventInput) error {
+	if s.ownership != nil && (event.taskID != s.ownership.taskID || (event.taskHostID != 0 && event.taskHostID != s.ownership.taskHostID)) {
+		s.ownership.fail(errExecutionOwnership)
+		return errExecutionOwnership
+	}
 	err := s.withTaskSequence(event.taskID, &DeployTaskEvent{}, func(sequence uint64, tx *gorm.DB) error {
+		if event.taskHostID > 0 {
+			if err := s.requireHostWriter(tx, event.taskID, event.taskHostID); err != nil {
+				return err
+			}
+		}
 		return tx.Create(&DeployTaskEvent{
 			TaskID: event.taskID, TaskHostID: event.taskHostID, TaskStepID: event.taskStepID,
 			Sequence: sequence, EventType: event.eventType, FromStatus: event.fromStatus,
@@ -1833,14 +1952,11 @@ func (s *DeployService) appendTaskEvent(event taskEventInput) {
 	if err != nil {
 		slog.Error("append deploy task event failed", "task_id", event.taskID, "event_type", event.eventType, "error", err)
 	}
+	return err
 }
 
 func (s *DeployService) withTaskSequence(taskID uint64, model any, write func(uint64, *gorm.DB) error) error {
-	return s.db.Transaction(func(tx *gorm.DB) error {
-		var task DeployTask
-		if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).Select("id").First(&task, taskID).Error; err != nil {
-			return err
-		}
+	return s.fencedTransaction(taskID, func(tx *gorm.DB, _ lockedDeployment) error {
 		var maxSequence uint64
 		if err := tx.Model(model).Where(taskIDWhereClause, taskID).Select("COALESCE(MAX(sequence), 0)").Scan(&maxSequence).Error; err != nil {
 			return err
@@ -1921,19 +2037,29 @@ func (s *DeployService) loadTaskEvents(taskID, afterSequence uint64) ([]DeployTa
 const maxLogChunkSize = 16384 // 16 KiB
 
 // appendLogChunk writes append-only segments for a task host step.
-func (s *DeployService) appendLogChunk(taskID, taskHostID, taskStepID uint64, stream, content string) {
+func (s *DeployService) appendLogChunk(taskID, taskHostID, taskStepID uint64, attemptNo int, stream, content string) {
+	if s.ownership != nil && (taskID != s.ownership.taskID || taskHostID != s.ownership.taskHostID) {
+		s.ownership.fail(errExecutionOwnership)
+		return
+	}
 	if len(content) == 0 {
 		return
 	}
 	for len(content) > 0 {
 		segment, remaining := splitLogSegment(content)
 		err := s.withTaskSequence(taskID, &DeployTaskLogChunk{}, func(sequence uint64, tx *gorm.DB) error {
+			if err := s.requireHostWriter(tx, taskID, taskHostID); err != nil {
+				return err
+			}
 			return tx.Create(&DeployTaskLogChunk{
 				TaskID: taskID, TaskHostID: taskHostID, TaskStepID: taskStepID,
-				Sequence: sequence, Stream: stream, Content: segment, CreatedAt: time.Now(),
+				Sequence: sequence, AttemptNo: attemptNo, Stream: stream, Content: segment, CreatedAt: time.Now(),
 			}).Error
 		})
 		if err != nil {
+			if s.ownership != nil {
+				s.ownership.fail(err)
+			}
 			slog.Error("append deploy task log failed", "task_id", taskID, "stream", stream, "error", err)
 			return
 		}
@@ -1955,14 +2081,49 @@ func splitLogSegment(content string) (string, string) {
 	return content[:end], content[end:]
 }
 
-// loadLogChunks returns log chunks for a task, optionally after a given sequence.
-func (s *DeployService) loadLogChunks(taskID, afterSequence uint64) ([]DeployTaskLogChunk, error) {
+type taskLogFilter struct {
+	visibleHostIDs []uint64
+	hostID         uint64
+	stepID         uint64
+	attemptNo      uint64
+	firstError     bool
+}
+
+// loadLogChunks bounds each authorized provider-source page before it reaches the UI.
+func (s *DeployService) loadLogChunks(taskID, afterSequence uint64, filter taskLogFilter) ([]DeployTaskLogChunk, error) {
 	var chunks []DeployTaskLogChunk
 	db := s.db.Where(taskIDWhereClause, taskID)
+	if filter.visibleHostIDs != nil {
+		db = db.Where("task_host_id IN ?", filter.visibleHostIDs)
+	}
 	if afterSequence > 0 {
 		db = db.Where("sequence > ?", afterSequence)
 	}
-	if err := db.Order("sequence ASC").Find(&chunks).Error; err != nil {
+	if filter.hostID > 0 {
+		db = db.Where("task_host_id = ?", filter.hostID)
+	}
+	if filter.visibleHostIDs != nil || filter.stepID > 0 || filter.attemptNo > 0 {
+		steps := s.db.Model(&DeployTaskStep{}).Select("id").Where(taskIDWhereClause, taskID)
+		// Correlation also excludes a chunk mislabeled with another host's step.
+		steps = steps.Where("task_host_id = biz_deploy_task_log_chunk.task_host_id")
+		if filter.stepID > 0 {
+			steps = steps.Where("id = ?", filter.stepID)
+		}
+		if filter.attemptNo > 0 {
+			db = db.Where("attempt_no = ?", filter.attemptNo)
+		}
+		if filter.stepID == 0 && filter.attemptNo == 0 {
+			db = db.Where("task_step_id = 0 OR task_step_id IN (?)", steps)
+		} else {
+			db = db.Where("task_step_id IN (?)", steps)
+		}
+	}
+	limit := 500
+	if filter.firstError {
+		db = db.Where("stream = ?", "stderr")
+		limit = 1
+	}
+	if err := db.Order("sequence ASC").Limit(limit).Find(&chunks).Error; err != nil {
 		return nil, err
 	}
 	return chunks, nil
@@ -1974,10 +2135,13 @@ func (s *DeployService) WriteLog(taskID, taskHostID uint64, stepKey, stream, con
 	redacted := redactDeploySecrets(content, secrets)
 	checkpoint, err := s.loadTaskStep(taskID, taskHostID, stepKey)
 	if err != nil {
+		if s.ownership != nil {
+			s.ownership.fail(err)
+		}
 		slog.Error("load deploy task step for log failed", "task_id", taskID, "task_host_id", taskHostID, "step_key", stepKey, "error", err)
 		return
 	}
-	s.appendLogChunk(taskID, taskHostID, checkpoint.ID, stream, redacted)
+	s.appendLogChunk(taskID, taskHostID, checkpoint.ID, checkpoint.AttemptNo, stream, redacted)
 }
 
 func (s *DeployService) MarkHostResult(hostID uint64, req MarkHostResultRequest, actor string, dataScope *common.DataScopeReq) (*TaskHostResponse, error) {
@@ -1988,37 +2152,118 @@ func (s *DeployService) markHostResultWithSummary(hostID uint64, req MarkHostRes
 	if err := normalizeMarkHostResultRequest(&req); err != nil {
 		return nil, err
 	}
-	var host DeployTaskHost
-	if err := s.db.First(&host, hostID).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, errors.New("business.deploy.taskHost.notFound")
+	if s.ownership != nil {
+		if hostID != s.ownership.taskHostID {
+			return nil, errExecutionOwnership
 		}
-		return nil, err
+		err := s.fencedTransaction(s.ownership.taskID, func(_ *gorm.DB, state lockedDeployment) error {
+			// Final result and its projection are committed with finish/retry below.
+			s.ownership.mu.Lock()
+			defer s.ownership.mu.Unlock()
+			if s.ownership.result != nil {
+				return errExecutionOwnership
+			}
+			s.ownership.result = &req
+			s.ownership.summary = summary
+			return nil
+		})
+		if err != nil {
+			return nil, err
+		}
+		return &TaskHostResponse{ID: hostID, Status: req.Status}, nil
 	}
-	task, err := s.loadVisibleTask(host.TaskID, dataScope)
-	if err != nil {
-		return nil, err
-	}
+	var response *TaskHostResponse
+	var finished DeployTask
+	var settled bool
+	err := s.deploymentTransaction(func(tx *gorm.DB) error {
+		var hint DeployTaskHost
+		if err := tx.First(&hint, hostID).Error; err != nil {
+			return err
+		}
+		state, err := lockDeployment(tx, hint.TaskID, true)
+		if err != nil {
+			return err
+		}
+		if err := s.requireHostWriter(tx, hint.TaskID, hostID); err != nil {
+			return err
+		}
+		leaseNow, err := databaseNow(tx)
+		if err != nil {
+			return err
+		}
+		for _, lease := range state.leases {
+			if lease.HostID == hint.HostID && lease.ExpiresAt.After(leaseNow) && (lease.TaskID != hint.TaskID || lease.Owner != deployHostLeaseOwner(hint.TaskID)) {
+				return errExecutionOwnership
+			}
+		}
+		var host DeployTaskHost
+		for _, h := range state.hosts {
+			if h.ID == hostID {
+				host = h
+			}
+		}
+		provider, err := s.boundCMDB(tx, []uint64{host.HostID})
+		if err != nil {
+			return err
+		}
+		inner := s.targetTransactionService(tx, provider)
+		visible, err := inner.taskVisible(&state.task, dataScope)
+		if err != nil {
+			return err
+		}
+		if !visible {
+			return errDeployTaskForbidden
+		}
+		// Public/manual reports cannot impersonate a durable worker.
+		for _, a := range state.attempts {
+			if a.TaskHostID == hostID && a.Status == TaskHostStatusRunning {
+				return errExecutionOwnership
+			}
+		}
+		if isTerminalTaskHostStatus(host.Status) {
+			response, err = s.hostResultReplayOrStale(host, req, strings.TrimSpace(req.ReportKey))
+			return err
+		}
+		now, err := databaseNow(tx)
+		if err != nil {
+			return err
+		}
+		if err := inner.commitHostResult(tx, host, &state.task, req, actor, summary, now); err != nil {
+			return err
+		}
+		if err := recomputeTaskStatusTx(tx, state.task, actor); err != nil {
+			return err
+		}
+		var finalTask DeployTask
+		if err := tx.First(&finalTask, state.task.ID).Error; err != nil {
+			return err
+		}
+		finished = finalTask
+		settled = isTerminalTaskStatus(finalTask.Status) && finalTask.Status != state.task.Status
+		if isTerminalTaskStatus(finalTask.Status) {
+			if err := inner.finishServiceInstanceState(finalTask, req, actor, dataScope); err != nil {
+				return err
+			}
+		}
 
-	reportKey := strings.TrimSpace(req.ReportKey)
-	// A settled host keeps its first result; a different report is stale.
-	if isTerminalTaskHostStatus(host.Status) {
-		return s.hostResultReplayOrStale(host, req, reportKey)
+		if err := releaseHostLease(tx, host.HostID, deployHostLeaseOwner(host.TaskID)); err != nil {
+			return err
+		}
+		if err := tx.First(&host, hostID).Error; err != nil {
+			return err
+		}
+		r := taskHostToResponse(&host)
+		response = &r
+		return nil
+	})
+	if err == nil && response != nil {
+		h := DeployTaskHost{ID: response.ID, Status: response.Status}
+		recordHostResult(&h, finished.ExecutorType)
+		if settled {
+			s.recordTaskFinishMetrics(finished.ID, finished.Status)
+		}
 	}
-
-	now := time.Now()
-	applied, err := s.applyMarkedHostResult(host, req, reportKey, actor, now)
-	if err != nil {
-		return nil, err
-	}
-	if !applied {
-		return s.replayLostHostResult(host.ID, req, reportKey)
-	}
-	s.appendHostResultTrace(host, req, now)
-	if err := s.writebackMarkedHostResult(host, task, req, actor, summary, now); err != nil {
-		return nil, err
-	}
-	return s.finalizeMarkedHostResult(host, task, req, actor, dataScope)
+	return response, err
 }
 
 // normalizeMarkHostResultRequest rejects unsupported host results, truncates the
@@ -2079,25 +2324,14 @@ func (s *DeployService) replayLostHostResult(hostID uint64, req MarkHostResultRe
 	return s.hostResultReplayOrStale(current, req, reportKey)
 }
 
-// appendHostResultTrace records the reported status, and the failure reason when
-// the host ended in error.
-func (s *DeployService) appendHostResultTrace(host DeployTaskHost, req MarkHostResultRequest, now time.Time) {
-	resultTrace := []map[string]any{
-		{"at": now.Format(time.RFC3339), "phase": "result", "message": fmt.Sprintf("status=%s", req.Status)},
-	}
-	if strings.TrimSpace(req.ErrorMessage) != "" {
-		resultTrace = append(resultTrace, map[string]any{
-			"at": now.Format(time.RFC3339), "phase": "error", "message": strings.TrimSpace(req.ErrorMessage),
-		})
-	}
-	_ = s.appendTaskHostTrace(host.TaskID, host.ID, resultTrace)
-}
-
 // writebackMarkedHostResult publishes the installed or removed components of a
 // successful host result to CMDB.
 func (s *DeployService) writebackMarkedHostResult(host DeployTaskHost, task *DeployTask, req MarkHostResultRequest, actor string, summary deployExecutionSummary, now time.Time) error {
 	if req.Status != TaskHostStatusSuccess {
 		return nil
+	}
+	if _, tx := s.db.Statement.ConnPool.(gorm.TxCommitter); !tx || s.requestContext().Value(deploymentTxKey{}) != true {
+		return errors.New("deploy.projection.transactionIsolationUnknown")
 	}
 	writeback := cmdb.DeployHostWritebackRequest{
 		HostID: host.HostID,
@@ -2123,41 +2357,6 @@ func (s *DeployService) writebackMarkedHostResult(host DeployTaskHost, task *Dep
 	return s.cmdbCapability.WriteDeployHostResult(writeback)
 }
 
-// finalizeMarkedHostResult propagates a persisted host result into the task, its
-// service instance and its host lease, then reloads the host response.
-func (s *DeployService) finalizeMarkedHostResult(host DeployTaskHost, task *DeployTask, req MarkHostResultRequest, actor string, dataScope *common.DataScopeReq) (*TaskHostResponse, error) {
-	if err := s.recomputeTaskStatus(host.TaskID, actor); err != nil {
-		return nil, err
-	}
-	var refreshedTask DeployTask
-	if err := s.db.First(&refreshedTask, host.TaskID).Error; err != nil {
-		return nil, err
-	}
-	if isTerminalTaskStatus(refreshedTask.Status) {
-		if err := s.finishServiceInstanceState(refreshedTask, req, actor, dataScope); err != nil {
-			return nil, err
-		}
-	}
-	// An async worker persists the host result before it closes its attempt. Keep
-	// the host lease until that attempt is finished so a retry cannot race a
-	// terminal task status or a competing task claim.
-	activeAttempt, attemptErr := s.hasActiveTaskAttempt(host.TaskID, host.ID, time.Now())
-	if attemptErr != nil {
-		return nil, attemptErr
-	}
-	if !activeAttempt {
-		_ = releaseHostLease(s.db, host.HostID, deployHostLeaseOwner(host.TaskID))
-	}
-	var marked DeployTaskHost
-	if err := s.db.First(&marked, host.ID).Error; err != nil {
-		return nil, err
-	}
-	// 记录主机结果 metrics
-	recordHostResult(&marked, task.ExecutorType)
-	resp := taskHostToResponse(&marked)
-	return &resp, nil
-}
-
 func isTerminalTaskStatus(status string) bool {
 	return status == TaskStatusSuccess || status == TaskStatusFailed || status == TaskStatusCanceled
 }
@@ -2170,7 +2369,7 @@ func (s *DeployService) beginServiceInstanceState(task DeployTask, actor string,
 	if !ok {
 		return nil
 	}
-	return s.serviceState.ApplyServiceInstanceState(context.Background(), bizcap.ServiceInstanceStateTransition{
+	return s.serviceState.ApplyServiceInstanceState(s.requestContext(), bizcap.ServiceInstanceStateTransition{
 		InstanceID:     task.ServiceInstanceID,
 		Action:         action,
 		DesiredState:   desired,
@@ -2189,7 +2388,7 @@ func (s *DeployService) finishServiceInstanceState(task DeployTask, result MarkH
 	if !ok {
 		return nil
 	}
-	err := s.serviceState.ApplyServiceInstanceState(context.Background(), bizcap.ServiceInstanceStateTransition{
+	err := s.serviceState.ApplyServiceInstanceState(s.requestContext(), bizcap.ServiceInstanceStateTransition{
 		InstanceID:     task.ServiceInstanceID,
 		Action:         action,
 		DesiredState:   desired,
@@ -2204,7 +2403,7 @@ func (s *DeployService) finishServiceInstanceState(task DeployTask, result MarkH
 	if err != nil || task.Status != TaskStatusSuccess || normalizeTaskAction(task.Action) != TaskActionUninstall {
 		return err
 	}
-	return s.serviceState.ApplyServiceInstanceState(context.Background(), bizcap.ServiceInstanceStateTransition{
+	return s.serviceState.ApplyServiceInstanceState(s.requestContext(), bizcap.ServiceInstanceStateTransition{
 		InstanceID:    task.ServiceInstanceID,
 		Action:        "retire",
 		DesiredState:  "retired",
@@ -2361,6 +2560,7 @@ func (s *DeployService) resolveTaskTargets(task *DeployTask, dataScope *common.D
 	result := make([]cmdbHostSnapshot, 0, len(rows))
 	for _, row := range rows {
 		result = append(result, cmdbHostSnapshot{
+			StateVersion: row.StateVersion, UpdatedAt: row.UpdatedAt, InstalledComponents: row.InstalledComponents,
 			ID:                row.ID,
 			Hostname:          row.Hostname,
 			IP:                row.IP,
@@ -2505,7 +2705,7 @@ func (s *DeployService) taskHasVisibleTaskHost(taskID uint64, dataScope *common.
 	for _, taskHost := range taskHosts {
 		ids = append(ids, taskHost.HostID)
 	}
-	page, err := s.hostReader.GetByIDs(context.Background(), bizcap.HostIDsQuery{HostIDs: ids, DataScope: dataScope})
+	page, err := s.hostReader.GetByIDs(s.requestContext(), bizcap.HostIDsQuery{HostIDs: ids, DataScope: dataScope})
 	if err != nil {
 		return false, true, err
 	}
@@ -2521,34 +2721,24 @@ func requiresScopedTaskVisibility(dataScope *common.DataScopeReq) bool {
 }
 
 func (s *DeployService) recomputeTaskStatus(taskID uint64, actor string) error {
-	var hosts []DeployTaskHost
-	if err := s.db.Where(taskIDWhereClause, taskID).Find(&hosts).Error; err != nil {
-		return err
-	}
-	if len(hosts) == 0 {
+	var finished DeployTask
+	var settled bool
+	err := s.fencedTransaction(taskID, func(tx *gorm.DB, state lockedDeployment) error {
+		if err := recomputeTaskStatusTx(tx, state.task, actor); err != nil {
+			return err
+		}
+		if err := tx.First(&finished, taskID).Error; err != nil {
+			return err
+		}
+		settled = isTerminalTaskStatus(finished.Status) && finished.Status != state.task.Status
 		return nil
-	}
-	status := terminalTaskStatus(hosts)
-	if status == "" {
-		return nil
-	}
-	activeAttempt, err := s.hasActiveTaskAttempt(taskID, 0, time.Now())
-	if err != nil {
-		return err
-	}
-	if activeAttempt {
-		return nil
-	}
-	now := time.Now()
-	err = s.db.Model(&DeployTask{}).Where(idWhereClause, taskID).Updates(map[string]interface{}{
-		"status":      status,
-		"finished_at": &now,
-		"updated_by":  actor,
-		"updated_at":  now,
-	}).Error
-	if err == nil {
-		s.appendTaskEvent(taskEventInput{taskID: taskID, eventType: "task.completed", fromStatus: TaskStatusRunning, toStatus: status, actor: actor})
-		s.recordTaskFinishMetrics(taskID, status)
+	})
+	if err == nil && settled {
+		root := s.executionRoot
+		if root == nil {
+			root = s
+		}
+		root.recordTaskFinishMetrics(taskID, finished.Status)
 	}
 	return err
 }
@@ -2586,8 +2776,10 @@ func terminalTaskStatus(hosts []DeployTaskHost) string {
 // recordTaskFinishMetrics reports completion/failure metrics for a task that
 // just reached a terminal status and triggers the configured auto-rollback.
 func (s *DeployService) recordTaskFinishMetrics(taskID uint64, status string) {
+	ctx, cancel := context.WithTimeout(s.requestContext(), s.ownershipTiming().operation)
+	defer cancel()
 	var task DeployTask
-	if err := s.db.First(&task, taskID).Error; err != nil {
+	if err := s.db.WithContext(ctx).First(&task, taskID).Error; err != nil {
 		return
 	}
 	if task.StartedAt != nil && task.FinishedAt != nil {
@@ -2600,7 +2792,7 @@ func (s *DeployService) recordTaskFinishMetrics(taskID uint64, status string) {
 	if !task.RollbackEnabled || task.RollbackStrategy != RollbackStrategyAuto {
 		return
 	}
-	if rollbackErr := s.TriggerAutoRollback(context.Background(), &task); rollbackErr != nil {
+	if rollbackErr := s.TriggerAutoRollback(ctx, &task); rollbackErr != nil {
 		s.appendTaskEvent(taskEventInput{taskID: taskID, eventType: "rollback.auto_trigger_failed", actor: "system", reason: rollbackErr.Error()})
 		return
 	}
@@ -2609,17 +2801,21 @@ func (s *DeployService) recordTaskFinishMetrics(taskID uint64, status string) {
 
 // hasActiveTaskAttempt reports whether a worker currently owns a non-expired
 // attempt. A zero taskHostID checks every host under the task.
-func (s *DeployService) hasActiveTaskAttempt(taskID, taskHostID uint64, now time.Time) (bool, error) {
-	db := s.db.Model(&DeployTaskAttempt{}).
-		Where("task_id = ? AND status = ? AND (lease_expires_at IS NULL OR lease_expires_at > ?)", taskID, "running", now)
+func (s *DeployService) hasActiveTaskAttempt(taskID, taskHostID uint64, _ time.Time) (bool, error) {
+	ctx, cancel := context.WithTimeout(s.requestContext(), s.ownershipTiming().operation)
+	defer cancel()
+	db := s.db.WithContext(ctx).Table("biz_deploy_task_attempt AS a").Where("a.task_id = ? AND a.status = 'running' AND a.worker_id <> '' AND a.lease_expires_at > CURRENT_TIMESTAMP(6)", taskID).
+		Where("NOT EXISTS (SELECT 1 FROM biz_deploy_task_attempt newer WHERE newer.task_host_id = a.task_host_id AND (newer.attempt_no > a.attempt_no OR (newer.attempt_no = a.attempt_no AND newer.id > a.id)))").
+		Where("EXISTS (SELECT 1 FROM biz_deploy_task_host h JOIN biz_deploy_host_lease l ON l.host_id = h.host_id WHERE h.id = a.task_host_id AND h.task_id = a.task_id AND l.task_id = a.task_id AND l.owner = ? AND l.expires_at > CURRENT_TIMESTAMP(6))", deployHostLeaseOwner(taskID))
 	if taskHostID > 0 {
-		db = db.Where("task_host_id = ?", taskHostID)
+		db = db.Where("a.task_host_id = ?", taskHostID)
 	}
-	var active int64
-	if err := db.Count(&active).Error; err != nil {
-		return false, err
+	var count int64
+	err := db.Count(&count).Error
+	if s.ownership != nil {
+		s.ownership.fail(err)
 	}
-	return active > 0, nil
+	return count > 0, err
 }
 
 func (s *DeployService) packageExists(name string, version string, excludeID uint64) bool {
@@ -2758,35 +2954,35 @@ func buildDeployTargetSnapshot(task *DeployTask, hosts []cmdbHostSnapshot, now t
 	return snapshot
 }
 
-func acquireHostLease(tx *gorm.DB, hostID, taskID uint64, owner string, now time.Time) error {
-	expiresAt := now.Add(defaultHostLeaseDuration)
-	lease := DeployHostLease{HostID: hostID, TaskID: taskID, Owner: owner, ExpiresAt: expiresAt, CreatedAt: now, UpdatedAt: now}
-	if err := tx.Create(&lease).Error; err == nil {
-		return nil
-	}
-	var existing DeployHostLease
-	if err := tx.Where("host_id = ?", hostID).First(&existing).Error; err != nil {
+func acquireHostLease(tx *gorm.DB, hostID, taskID uint64, owner string, _ time.Time) error {
+	// Duplicate-safe insertion materializes the unique physical key before its
+	// locking read; competing processes cannot both pass a check-then-create.
+	now, err := databaseNow(tx)
+	if err != nil {
 		return err
 	}
-	if existing.ExpiresAt.After(now) && existing.TaskID == taskID && existing.Owner == owner {
-		return tx.Model(&DeployHostLease{}).Where("host_id = ? AND task_id = ? AND owner = ?", hostID, taskID, owner).Updates(map[string]any{"expires_at": expiresAt, "updated_at": now}).Error
+	lease := DeployHostLease{HostID: hostID, TaskID: taskID, Owner: owner, ExpiresAt: now, CreatedAt: now, UpdatedAt: now}
+	if err := tx.Clauses(clause.OnConflict{DoNothing: true}).Create(&lease).Error; err != nil {
+		return err
 	}
-	if existing.ExpiresAt.After(now) {
+	var current DeployHostLease
+	if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).Where("host_id = ?", hostID).First(&current).Error; err != nil {
+		return err
+	}
+	now, err = databaseNow(tx)
+	if err != nil {
+		return err
+	}
+	if current.ExpiresAt.After(now) && (current.TaskID != taskID || current.Owner != owner) {
 		return errors.New(errDeployTaskLeaseConflict)
 	}
-	result := tx.Model(&DeployHostLease{}).
-		Where("host_id = ? AND expires_at <= ?", hostID, now).
-		Updates(map[string]interface{}{"task_id": taskID, "owner": owner, "expires_at": expiresAt, "updated_at": now})
-	if result.Error != nil {
-		return result.Error
-	}
-	if result.RowsAffected == 0 {
-		return errors.New(errDeployTaskLeaseConflict)
-	}
-	return nil
+	return tx.Model(&DeployHostLease{}).Where("host_id = ?", hostID).Updates(map[string]any{"task_id": taskID, "owner": owner, "expires_at": now.Add(defaultHostLeaseDuration), "updated_at": now}).Error
 }
 
 func releaseHostLease(db *gorm.DB, hostID uint64, owner string) error {
+	if _, tx := db.Statement.ConnPool.(gorm.TxCommitter); !tx || db.Statement.Context.Value(deploymentTxKey{}) != true {
+		return errors.New("deploy.lease.requiresSerializedTransaction")
+	}
 	return db.Where("host_id = ? AND owner = ?", hostID, owner).Delete(&DeployHostLease{}).Error
 }
 
@@ -2811,19 +3007,15 @@ type deploySSHClient struct {
 }
 
 func (c *deploySSHClient) RunScript(ctx context.Context, script string) (string, string, error) {
-	session, err := c.client.NewSession()
-	if err != nil {
+	if err := ctx.Err(); err != nil {
 		return "", "", err
 	}
-	defer func() { _ = session.Close() }()
-
 	var stdout bytes.Buffer
 	var stderr bytes.Buffer
-	session.Stdout = &stdout
-	session.Stderr = &stderr
-	session.Stdin = strings.NewReader(script)
 	done := make(chan error, 1)
+	joined := make(chan struct{})
 	go func() {
+		defer close(joined)
 		defer func() {
 			if r := recover(); r != nil {
 				slog.Error("ssh session goroutine panic recovered",
@@ -2833,14 +3025,30 @@ func (c *deploySSHClient) RunScript(ctx context.Context, script string) (string,
 				done <- fmt.Errorf("ssh session panic: %v", r)
 			}
 		}()
+		session, err := c.client.NewSession()
+		if err != nil {
+			done <- err
+			return
+		}
+		defer func() { _ = session.Close() }()
+		session.Stdout = &stdout
+		session.Stderr = &stderr
+		session.Stdin = strings.NewReader(script)
 		done <- session.Run("/bin/bash -se")
 	}()
+	var err error
 	select {
 	case err = <-done:
 	case <-ctx.Done():
-		_ = session.Close()
+		// Each runner owns one host connection. Closing it also unblocks a
+		// pending channel-open request; session.Close alone cannot do that.
+		_ = c.client.Close()
+		<-done
 		err = ctx.Err()
 	}
+	<-joined
+	// Run waits for its stdout/stderr copy goroutines. Join it before reading
+	// the buffers, including when cancellation closes the connection.
 	return stdout.String(), stderr.String(), err
 }
 
@@ -2864,7 +3072,10 @@ func deployHostKeyCallback(expectedFingerprint string) ssh.HostKeyCallback {
 	}
 }
 
-func newDeploySSHRunner(host cmdbHostSnapshot, req StartTaskRequest) (deploySSHRunner, error) {
+func newDeploySSHRunner(ctx context.Context, host cmdbHostSnapshot, req StartTaskRequest) (deploySSHRunner, error) {
+	if err := ctx.Err(); err != nil {
+		return nil, err
+	}
 	fingerprint := strings.TrimSpace(req.HostFingerprint)
 	if fingerprint == "" {
 		return nil, errors.New(errDeployTaskSSHHostKeyRequired)
@@ -2900,14 +3111,32 @@ func newDeploySSHRunner(host cmdbHostSnapshot, req StartTaskRequest) (deploySSHR
 	if port == 0 {
 		port = 22
 	}
-	client, err := ssh.Dial("tcp", fmt.Sprintf("%s:%d", host.IP, port), config)
-	if err != nil {
-		if strings.Contains(strings.TrimSpace(err.Error()), errDeployTaskSSHHostKeyMismatch) {
-			return nil, errors.New(errDeployTaskSSHHostKeyMismatch)
+	connectCtx, cancel := context.WithTimeout(ctx, config.Timeout)
+	defer cancel()
+	connection, err := (&net.Dialer{}).DialContext(connectCtx, "tcp", net.JoinHostPort(host.IP, fmt.Sprint(port)))
+	if err == nil {
+		// ssh.NewClientConn has no context parameter. Bound handshake I/O with
+		// the same host context and existing ten-second connection budget.
+		cancelJoined := make(chan struct{})
+		stopCancel := context.AfterFunc(connectCtx, func() { defer close(cancelJoined); _ = connection.Close() })
+		sshConnection, channels, requests, handshakeErr := ssh.NewClientConn(connection, net.JoinHostPort(host.IP, fmt.Sprint(port)), config)
+		err = handshakeErr
+		if !stopCancel() {
+			<-cancelJoined
+			err = connectCtx.Err()
 		}
-		return nil, errors.New(errDeployTaskSSHConnectFailed)
+		if err == nil {
+			return &deploySSHClient{client: ssh.NewClient(sshConnection, channels, requests)}, nil
+		}
+		_ = connection.Close()
 	}
-	return &deploySSHClient{client: client}, nil
+	if ctxErr := ctx.Err(); ctxErr != nil {
+		return nil, ctxErr
+	}
+	if strings.Contains(strings.TrimSpace(err.Error()), errDeployTaskSSHHostKeyMismatch) {
+		return nil, errors.New(errDeployTaskSSHHostKeyMismatch)
+	}
+	return nil, errors.New(errDeployTaskSSHConnectFailed)
 }
 
 func parseUint64JSON(raw datatypes.JSON) []uint64 {
@@ -2929,30 +3158,24 @@ func (s *DeployService) executeSSHTask(task DeployTask, hosts []cmdbHostSnapshot
 	if _, err := s.resolveTaskExecutionPlan(task); err != nil {
 		return mapDeployTaskExecutionPlanError(err)
 	}
-	taskDetail, err := s.GetTask(task.ID, nil)
-	if err != nil {
-		return err
-	}
-
-	taskHostsByID := make(map[uint64]TaskHostResponse, len(taskDetail.Hosts))
-	for _, item := range taskDetail.Hosts {
-		taskHostsByID[item.HostID] = item
-	}
-
-	continueOnHostFailure := taskContinueOnHostFailure(task)
+	worker := fmt.Sprintf("deploy-inline:%d", time.Now().UnixNano())
 	for _, target := range hosts {
-		if err := s.executeTaskHostContext(context.Background(), task, target, taskHostsByID[target.ID], req, actor); err != nil {
+		var host DeployTaskHost
+		if err := s.db.Where("task_id = ? AND host_id = ?", task.ID, target.ID).First(&host).Error; err != nil {
 			return err
 		}
-		var completed DeployTaskHost
-		if err := s.db.First(&completed, taskHostsByID[target.ID].ID).Error; err != nil {
+		failed, err := s.runOwnedHost(context.Background(), task, host, req, actor, worker, false)
+		if err != nil {
 			return err
 		}
-		if completed.Status == TaskHostStatusFailed && !continueOnHostFailure {
-			if strings.TrimSpace(completed.ErrorMessage) == "" {
-				return errors.New("business.deploy.task.hostFailed")
+		if failed && !taskContinueOnHostFailure(task) {
+			if err := s.db.First(&host, host.ID).Error; err != nil {
+				return err
 			}
-			return errors.New(completed.ErrorMessage)
+			if strings.TrimSpace(host.ErrorMessage) != "" {
+				return errors.New(host.ErrorMessage)
+			}
+			return errors.New("business.deploy.task.hostFailed")
 		}
 	}
 	return nil
@@ -2997,10 +3220,22 @@ func (e *taskHostExecution) recordComponent(step deployExecutionStep, task Deplo
 // executeTaskHost executes the full plan against one target host and persists
 // the host result, returning a fatal error only when result persistence fails.
 func (s *DeployService) executeTaskHostContext(ctx context.Context, task DeployTask, target cmdbHostSnapshot, taskHost TaskHostResponse, req StartTaskRequest, actor string) error {
+	if s.ownership == nil {
+		return errExecutionOwnership
+	}
+	if err := s.validateExecutionHosts(ctx, &task, []uint64{taskHost.HostID}, nil); err != nil {
+		if recordErr := s.markSSHConnectFailure(task, taskHost, err, target.IP, actor); recordErr != nil {
+			return recordErr
+		}
+		return err
+	}
 	if s.executor == nil {
 		s.executor = &sshDeployExecutor{service: s}
 	}
-	return s.executor.ExecuteHost(ctx, DeployExecutionHostRequest{Task: task, TaskHost: taskHost, Credential: req, Actor: actor})
+	if err := s.ownership.check(); err != nil {
+		return err
+	}
+	return s.executor.ExecuteHost(ctx, DeployExecutionHostRequest{Task: task, TaskHost: taskHost, Credential: req, Actor: actor, ownership: s.ownership})
 }
 
 type sshStepProvider struct {
@@ -3091,8 +3326,17 @@ func writeNewExecutionLogs(logWriter executorprovider.LogWriter, req executorpro
 }
 
 func (s *DeployService) loadTaskStep(taskID, taskHostID uint64, stepKey string) (DeployTaskStep, error) {
+	if s.ownership != nil && (taskID != s.ownership.taskID || taskHostID != s.ownership.taskHostID) {
+		s.ownership.fail(errExecutionOwnership)
+		return DeployTaskStep{}, errExecutionOwnership
+	}
 	var checkpoint DeployTaskStep
-	err := s.db.Where("task_id = ? AND task_host_id = ? AND step_key = ?", taskID, taskHostID, stepKey).First(&checkpoint).Error
+	ctx, cancel := context.WithTimeout(s.requestContext(), s.ownershipTiming().operation)
+	defer cancel()
+	err := s.db.WithContext(ctx).Where("task_id = ? AND task_host_id = ? AND step_key = ?", taskID, taskHostID, stepKey).First(&checkpoint).Error
+	if s.ownership != nil {
+		s.ownership.fail(err)
+	}
 	return checkpoint, err
 }
 
@@ -3107,7 +3351,25 @@ func (s *DeployService) updateTaskStepStatus(checkpoint *DeployTaskStep, status,
 	case StepStatusSuccess, StepStatusFailed, StepStatusSkipped, StepStatusCanceled:
 		updates["finished_at"] = &now
 	}
-	err := s.db.Model(&DeployTaskStep{}).Where(idWhereClause, checkpoint.ID).Updates(updates).Error
+	err := s.fencedTransaction(checkpoint.TaskID, func(tx *gorm.DB, _ lockedDeployment) error {
+		if err := s.requireHostWriter(tx, checkpoint.TaskID, checkpoint.TaskHostID); err != nil {
+			return err
+		}
+		var current DeployTaskStep
+		if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).First(&current, checkpoint.ID).Error; err != nil {
+			return err
+		}
+		if current.TaskID != checkpoint.TaskID || current.TaskHostID != checkpoint.TaskHostID || (s.ownership != nil && current.TaskHostID != s.ownership.taskHostID) {
+			return errExecutionOwnership
+		}
+		if err := tx.Model(&DeployTaskStep{}).Where(idWhereClause, checkpoint.ID).Updates(updates).Error; err != nil {
+			return err
+		}
+		if err := tx.First(&current, checkpoint.ID).Error; err != nil {
+			return err
+		}
+		return appendStepCheckpointHistory(tx, current)
+	})
 	if err == nil {
 		// 更新内存中的 checkpoint 状态以供 metrics 使用
 		checkpoint.Status = status
@@ -3118,14 +3380,25 @@ func (s *DeployService) updateTaskStepStatus(checkpoint *DeployTaskStep, status,
 }
 
 func (s *DeployService) executeOrchestratedSSHHost(ctx context.Context, task DeployTask, target cmdbHostSnapshot, taskHost TaskHostResponse, req StartTaskRequest, actor string) error {
+	if s.ownership == nil {
+		return errExecutionOwnership
+	}
+	if err := s.validateExecutionHosts(ctx, &task, []uint64{taskHost.HostID}, nil); err != nil {
+		return s.markSSHConnectFailure(task, taskHost, err, target.IP, actor)
+	}
 	steps, err := s.resolveTaskExecutionPlan(task)
 	if err != nil {
 		return mapDeployTaskExecutionPlanError(err)
 	}
-	runner, runnerErr := s.sshRunnerFactory(target, req)
-	if runnerErr != nil {
-		return s.markSSHConnectFailure(taskHost, runnerErr, target.IP, actor)
+	if err := s.assertCommandOwnership(); err != nil {
+		return err
 	}
+	runner, runnerErr := s.sshRunnerFactory(ctx, target, req)
+	if runnerErr != nil {
+		return s.markSSHConnectFailure(task, taskHost, runnerErr, target.IP, actor)
+	}
+	defer func() { _ = runner.Close() }()
+	runner = &executionScopeSSHRunner{deploySSHRunner: runner, service: s, task: task, hostID: taskHost.HostID}
 	execution := &taskHostExecution{stdoutSections: make([]string, 0, len(steps)), stderrSections: make([]string, 0, len(steps)), summary: deployExecutionSummary{InstalledComponents: make([]cmdb.InstalledComponentUpsert, 0, len(steps)), RemovedComponentNames: make([]string, 0, len(steps))}}
 	_ = s.appendTaskHostTrace(task.ID, taskHost.ID, []map[string]any{{"at": time.Now().Format(time.RFC3339), "phase": "connect", "message": "SSH connected"}})
 	provider := &sshStepProvider{service: s, task: task, target: target, taskHost: taskHost, runner: runner, execution: execution, steps: make(map[string]deployExecutionStep, len(steps))}
@@ -3141,9 +3414,8 @@ func (s *DeployService) executeOrchestratedSSHHost(ctx context.Context, task Dep
 		_ = runner.Close()
 		return err
 	}
-	halted, haltErr := s.interruptOrchestratedHost(task, result, runner, actor)
-	if halted {
-		return haltErr
+	if result.Status == deployorchestrator.StatusCanceled && s.ownership != nil {
+		return context.Cause(ctx)
 	}
 	applyOrchestrationOutcome(ctx, result, execution)
 	return s.finalizeTaskHostExecution(task, taskHost, runner, execution, target.IP, actor)
@@ -3151,7 +3423,17 @@ func (s *DeployService) executeOrchestratedSSHHost(ctx context.Context, task Dep
 
 // markSSHConnectFailure records a host result for an SSH runner that never came
 // up; a nil error means the host row was marked as failed.
-func (s *DeployService) markSSHConnectFailure(taskHost TaskHostResponse, runnerErr error, ip, actor string) error {
+func (s *DeployService) markSSHConnectFailure(task DeployTask, taskHost TaskHostResponse, runnerErr error, ip, actor string) error {
+	// A command that interrupts connection setup follows the same pause/cancel
+	// handling as an interrupted step; it is not a remote host failure.
+	if errors.Is(runnerErr, context.Canceled) {
+		if s.taskExecutionSuspended(task.ID) {
+			return s.pauseTaskAfterSuspend(task, actor)
+		}
+		if s.taskCancellationRequested(task.ID) {
+			return nil
+		}
+	}
 	_, err := s.MarkHostResult(taskHost.ID, MarkHostResultRequest{
 		Status:       TaskHostStatusFailed,
 		ErrorMessage: runnerErr.Error(),
@@ -3199,15 +3481,10 @@ func (s *DeployService) interruptOrchestratedHost(task DeployTask, result deploy
 
 // pauseTaskAfterSuspend moves a task from pause-requested to paused.
 func (s *DeployService) pauseTaskAfterSuspend(task DeployTask, actor string) error {
-	now := time.Now()
-	transition := s.db.Model(&DeployTask{}).Where(idAndStatusWhereClause, task.ID, TaskStatusPauseRequested).Updates(map[string]any{"status": TaskStatusPaused, "updated_by": actor, "updated_at": now})
-	if transition.Error != nil {
-		return transition.Error
+	if s.ownership != nil {
+		return nil
 	}
-	if transition.RowsAffected > 0 {
-		s.appendTaskEvent(taskEventInput{taskID: task.ID, eventType: "task.paused", fromStatus: TaskStatusPauseRequested, toStatus: TaskStatusPaused, actor: actor})
-	}
-	return nil
+	return s.recomputeTaskStatus(task.ID, actor)
 }
 
 // applyOrchestrationOutcome records the error implied by a failed or canceled
@@ -3261,14 +3538,25 @@ func conditionType(condition map[string]any) string {
 }
 
 func (s *DeployService) executeSSHHost(ctx context.Context, task DeployTask, target cmdbHostSnapshot, taskHost TaskHostResponse, req StartTaskRequest, actor string) error {
+	if s.ownership == nil {
+		return errExecutionOwnership
+	}
+	if err := s.validateExecutionHosts(ctx, &task, []uint64{taskHost.HostID}, nil); err != nil {
+		return s.markSSHConnectFailure(task, taskHost, err, target.IP, actor)
+	}
 	plan, err := s.resolveTaskExecutionPlan(task)
 	if err != nil {
 		return mapDeployTaskExecutionPlanError(err)
 	}
-	runner, runnerErr := s.sshRunnerFactory(target, req)
-	if runnerErr != nil {
-		return s.markSSHConnectFailure(taskHost, runnerErr, target.IP, actor)
+	if err := s.assertCommandOwnership(); err != nil {
+		return err
 	}
+	runner, runnerErr := s.sshRunnerFactory(ctx, target, req)
+	if runnerErr != nil {
+		return s.markSSHConnectFailure(task, taskHost, runnerErr, target.IP, actor)
+	}
+	defer func() { _ = runner.Close() }()
+	runner = &executionScopeSSHRunner{deploySSHRunner: runner, service: s, task: task, hostID: taskHost.HostID}
 
 	_ = s.appendTaskHostTrace(task.ID, taskHost.ID, []map[string]any{
 		{"at": time.Now().Format(time.RFC3339), "phase": "connect", "message": "SSH connected"},
@@ -3858,6 +4146,9 @@ func selectDeployPlatformScript(scripts map[string]string, hostOS string) string
 func (s *DeployService) renderSecrets(taskID uint64) map[string]string {
 	secrets, err := s.loadDeployTaskSecrets(taskID)
 	if err != nil {
+		if s.ownership != nil {
+			s.ownership.fail(err)
+		}
 		return map[string]string{}
 	}
 	return secrets
@@ -4000,17 +4291,68 @@ func (s *DeployService) upsertHostInstalledComponent(hostID, taskID uint64, task
 	if strings.TrimSpace(pkg.name) == "" {
 		return nil
 	}
-	return s.cmdbCapability.WriteDeployHostResult(cmdb.DeployHostWritebackRequest{
-		HostID: hostID,
-		Actor:  actor,
-		InstalledComponents: []cmdb.InstalledComponentUpsert{{
-			Name:           pkg.name,
-			Version:        pkg.version,
-			DeployedAt:     now,
-			DeployTaskID:   taskID,
-			DeployTaskName: taskName,
-			ExecutorType:   executorType,
-		}},
+	if s.ownership != nil && (taskID != s.ownership.taskID || hostID != s.ownership.physicalHostID) {
+		s.ownership.fail(errExecutionOwnership)
+		return errExecutionOwnership
+	}
+	project := func(tx *gorm.DB) error {
+		provider, err := s.boundCMDB(tx, []uint64{hostID})
+		if err != nil {
+			return err
+		}
+		return provider.WriteDeployHostResult(cmdb.DeployHostWritebackRequest{HostID: hostID, Actor: actor, InstalledComponents: []cmdb.InstalledComponentUpsert{{Name: pkg.name, Version: pkg.version, DeployedAt: now, DeployTaskID: taskID, DeployTaskName: taskName, ExecutorType: executorType}}})
+	}
+	if s.ownership != nil {
+		return s.fencedTransaction(taskID, func(tx *gorm.DB, _ lockedDeployment) error { return project(tx) })
+	}
+	return s.deploymentTransaction(func(tx *gorm.DB) error {
+		// Retained legacy component reporting may reference a historical task
+		// absent here. Present task rows precede all host/result locks.
+		var tasks []DeployTask
+		if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).Where("id = ?", taskID).Find(&tasks).Error; err != nil {
+			return err
+		}
+		if len(tasks) > 0 {
+			state, err := lockDeployment(tx, taskID)
+			if err != nil {
+				return err
+			}
+			// Do not acquire a new, potentially lower physical key after the
+			// task's ordered set. Legacy tasks without hosts use the single key.
+			if len(state.hosts) > 0 {
+				found := false
+				for _, h := range state.hosts {
+					found = found || h.HostID == hostID
+				}
+				if !found {
+					return errExecutionOwnership
+				}
+			}
+		}
+		if err := s.requireHostWriter(tx, taskID, 0); err != nil {
+			return err
+		}
+		// Even a missing historical task must serialize with new admissions on
+		// the unique physical key before locking/projecting the CMDB host.
+		now, err := databaseNow(tx)
+		if err != nil {
+			return err
+		}
+		if err := tx.Clauses(clause.OnConflict{DoNothing: true}).Create(&DeployHostLease{HostID: hostID, ExpiresAt: now, CreatedAt: now, UpdatedAt: now}).Error; err != nil {
+			return err
+		}
+		var lease DeployHostLease
+		if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).Where("host_id = ?", hostID).First(&lease).Error; err != nil {
+			return err
+		}
+		now, err = databaseNow(tx)
+		if err != nil {
+			return err
+		}
+		if lease.ExpiresAt.After(now) && (lease.TaskID != taskID || lease.Owner != deployHostLeaseOwner(taskID)) {
+			return errExecutionOwnership
+		}
+		return project(tx)
 	})
 }
 
@@ -4081,7 +4423,10 @@ func taskToResponse(task *DeployTask, hosts []TaskHostResponse) TaskResponse {
 		task.SourceTaskID == nil &&
 		DetermineRollbackAction(task.Action) != ""
 
+	var targetSnapshot deployTargetSnapshot
+	_ = json.Unmarshal(task.TargetSnapshot, &targetSnapshot)
 	return TaskResponse{
+		TargetSelection: targetSnapshot.Selection, ScopeVersion: targetSnapshot.ScopeVersion,
 		ID:                   task.ID,
 		Name:                 task.Name,
 		TemplateID:           task.TemplateID,
@@ -4347,23 +4692,19 @@ rm -rf "$PKG_DIR"
 }
 
 func (s *DeployService) appendTaskHostTrace(taskID uint64, taskHostID uint64, steps []map[string]any) error {
+	if s.ownership != nil && (taskID != s.ownership.taskID || taskHostID != s.ownership.taskHostID) {
+		s.ownership.fail(errExecutionOwnership)
+		return errExecutionOwnership
+	}
 	if len(steps) == 0 {
 		return nil
 	}
-	var host DeployTaskHost
-	if err := s.db.Select("trace_steps").Where("id = ? AND task_id = ?", taskHostID, taskID).Take(&host).Error; err != nil {
-		return err
-	}
-	var current []map[string]any
-	if len(host.TraceSteps) > 0 {
-		_ = json.Unmarshal(host.TraceSteps, &current)
-	}
-	current = append(current, steps...)
-	payload, err := json.Marshal(current)
-	if err != nil {
-		return err
-	}
-	return s.db.Model(&DeployTaskHost{}).Where("id = ? AND task_id = ?", taskHostID, taskID).Update("trace_steps", datatypes.JSON(payload)).Error
+	return s.fencedTransaction(taskID, func(tx *gorm.DB, _ lockedDeployment) error {
+		if err := s.requireHostWriter(tx, taskID, taskHostID); err != nil {
+			return err
+		}
+		return appendHostTraceTx(tx, taskID, taskHostID, steps)
+	})
 }
 
 func anyToString(value any) string {

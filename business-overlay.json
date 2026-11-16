@@ -308,7 +308,17 @@
     "test:smoke:business:k8s"
   ],
   "businessMigrations": [
+    "backend/modules/business/cmdb/host/migrations/000032_backfill_cmdb_host_state_version.down.sql",
     "backend/modules/business/cmdb/host/migrations/000032_backfill_cmdb_host_state_version.up.sql",
-    "backend/modules/business/cmdb/host/migrations/000032_backfill_cmdb_host_state_version.down.sql"
+    "backend/modules/business/deploy/migrations/000034_deploy_log_attempt.down.sql",
+    "backend/modules/business/deploy/migrations/000034_deploy_log_attempt.up.sql",
+    "backend/modules/business/deploy/migrations/000035_deploy_step_history.down.sql",
+    "backend/modules/business/deploy/migrations/000035_deploy_step_history.up.sql",
+    "backend/modules/business/deploy/migrations/000036_deploy_log_sequence_scope.down.sql",
+    "backend/modules/business/deploy/migrations/000036_deploy_log_sequence_scope.up.sql",
+    "backend/modules/business/filedist/migrations/000039_filedist_ownership_selection.down.sql",
+    "backend/modules/business/filedist/migrations/000039_filedist_ownership_selection.up.sql",
+    "backend/modules/business/observability/migrations/000037_o4_business_tenant_workspace.down.sql",
+    "backend/modules/business/observability/migrations/000037_o4_business_tenant_workspace.up.sql"
   ]
 }

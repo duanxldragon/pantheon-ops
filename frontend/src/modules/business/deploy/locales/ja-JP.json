@@ -1,0 +1,9 @@
+{
+  "business.deploy.logs.copy": "表示中のログをコピー",
+  "business.deploy.logs.copied": "ログをコピーしました",
+  "business.deploy.logs.copyFailed": "ログをコピーできません",
+  "business.deploy.logs.download": "ログスナップショットを保存",
+  "business.deploy.logs.downloadFailed": "ログを保存できません",
+  "business.deploy.logs.downloadLimited": "上限に達したため、このスナップショットは一部の記録のみです。",
+  "business.deploy.logs.knownRedaction": "既知のタスクの秘密情報はマスクされています。その他の機密情報が含まれる場合があります。"
+}

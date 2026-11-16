@@ -7,10 +7,43 @@ import (
 	"strings"
 	"time"
 
+	bizcap "github.com/duanxldragon/pantheon-base/backend/modules/business/capability"
 	"github.com/duanxldragon/pantheon-base/backend/pkg/common"
 
 	"gorm.io/gorm"
 )
+
+// WithServiceInstanceStateTransaction provides state commands bound to the
+// caller's transaction without changing the long-lived owner Manager.
+func (m *Manager) WithServiceInstanceStateTransaction(tx *gorm.DB) bizcap.ServiceInstanceStateApplier {
+	return &transactionInstanceState{owner: m, tx: tx}
+}
+
+type transactionInstanceState struct {
+	owner *Manager
+	tx    *gorm.DB
+}
+
+func (b *transactionInstanceState) WithServiceInstanceStateTransaction(tx *gorm.DB) bizcap.ServiceInstanceStateApplier {
+	return b.owner.WithServiceInstanceStateTransaction(tx)
+}
+
+func (b *transactionInstanceState) ApplyServiceInstanceState(ctx context.Context, req bizcap.ServiceInstanceStateTransition, actor string, scope *common.DataScopeReq) error {
+	if b.owner == nil || b.tx == nil || b.tx.Statement == nil {
+		return errors.New(errNotInitialized)
+	}
+	if _, ok := b.tx.Statement.ConnPool.(gorm.TxCommitter); !ok {
+		return errors.New("service.state.transactionRequired")
+	}
+	if err := ctx.Err(); err != nil {
+		return err
+	}
+	owner := *b.owner
+	// All validation/ref reads inherit this DB and context. GORM's per-write
+	// default transaction must not attempt a separate begin/commit.
+	owner.db = b.tx.Session(&gorm.Session{SkipDefaultTransaction: true}).WithContext(ctx)
+	return owner.ApplyServiceInstanceState(ctx, req, actor, scope)
+}
 
 // TransitionAction constants identify service-instance state-machine operations.
 const (

@@ -137,6 +137,12 @@ type recordingServiceStateApplier struct {
 	err         error
 }
 
+// This fake owns no DB writes; explicitly support transaction binding when a
+// linked task uses it, rather than relying on a production fallback.
+func (f *recordingServiceStateApplier) WithServiceInstanceStateTransaction(*gorm.DB) bizcap.ServiceInstanceStateApplier {
+	return f
+}
+
 func (f *recordingServiceStateApplier) ApplyServiceInstanceState(_ context.Context, req bizcap.ServiceInstanceStateTransition, _ string, _ *common.DataScopeReq) error {
 	f.transitions = append(f.transitions, req)
 	return f.err
@@ -277,7 +283,7 @@ func TestDeployTaskRoutesServiceInstanceStateThroughTypedCommand(t *testing.T) {
 	db := setupDeployTestDB(t)
 	svc := NewDeployService(db, cmdb.NewDeployCMDBCapability(db))
 	stateApplier := &recordingServiceStateApplier{}
-	svc.SetServiceInstanceStateApplier(stateApplier)
+	svc.SetServiceInstanceStateApplierWithTransaction(stateApplier, stateApplier.WithServiceInstanceStateTransaction)
 
 	scopeID, hostID := seedDeployReliabilityFixture(t, db, "state-host", "10.40.0.250")
 	pkg, err := svc.CreatePackage(CreatePackageRequest{
@@ -538,7 +544,7 @@ func TestDeployTaskSSHExecutorRunsInstallAndWritesBackHostState(t *testing.T) {
 	db := setupDeployTestDB(t)
 	svc := NewDeployService(db, cmdb.NewDeployCMDBCapability(db))
 	credID := setupDeployTestCredential(t, svc)
-	svc.sshRunnerFactory = func(host cmdbHostSnapshot, req StartTaskRequest) (deploySSHRunner, error) {
+	svc.sshRunnerFactory = func(_ context.Context, host cmdbHostSnapshot, req StartTaskRequest) (deploySSHRunner, error) {
 		if req.SSHUser != "root" {
 			t.Fatalf("unexpected ssh user: %s", req.SSHUser)
 		}
@@ -699,7 +705,7 @@ func TestDeployTaskFixedTemplateSSHExecutorRendersScript(t *testing.T) {
 	credID := setupDeployTestCredential(t, svc)
 
 	runner := &fakeDeploySSHRunner{stdout: "nginx template installed"}
-	svc.sshRunnerFactory = func(host cmdbHostSnapshot, req StartTaskRequest) (deploySSHRunner, error) {
+	svc.sshRunnerFactory = func(_ context.Context, host cmdbHostSnapshot, req StartTaskRequest) (deploySSHRunner, error) {
 		return runner, nil
 	}
 
@@ -1031,7 +1037,7 @@ func TestStartDeployTaskPersistsCanonicalSSHRunnerErrors(t *testing.T) {
 	db := setupDeployTestDB(t)
 	svc := NewDeployService(db, cmdb.NewDeployCMDBCapability(db))
 	credID := setupDeployTestCredential(t, svc)
-	svc.sshRunnerFactory = func(host cmdbHostSnapshot, req StartTaskRequest) (deploySSHRunner, error) {
+	svc.sshRunnerFactory = func(_ context.Context, host cmdbHostSnapshot, req StartTaskRequest) (deploySSHRunner, error) {
 		return nil, errors.New(errDeployTaskSSHConnectFailed)
 	}
 
@@ -1098,7 +1104,7 @@ func TestDeployTaskFixedTemplateUsesUploadedSourceURL(t *testing.T) {
 	credID := setupDeployTestCredential(t, svc)
 
 	runner := &fakeDeploySSHRunner{stdout: "nginx offline installed"}
-	svc.sshRunnerFactory = func(host cmdbHostSnapshot, req StartTaskRequest) (deploySSHRunner, error) {
+	svc.sshRunnerFactory = func(_ context.Context, host cmdbHostSnapshot, req StartTaskRequest) (deploySSHRunner, error) {
 		return runner, nil
 	}
 
@@ -1353,7 +1359,7 @@ func TestDeployTaskTruncatesLargeExecutionLogs(t *testing.T) {
 
 	largeStdout := strings.Repeat("x", 70000)
 	runner := &fakeDeploySSHRunner{stdout: largeStdout}
-	svc.sshRunnerFactory = func(host cmdbHostSnapshot, req StartTaskRequest) (deploySSHRunner, error) {
+	svc.sshRunnerFactory = func(_ context.Context, host cmdbHostSnapshot, req StartTaskRequest) (deploySSHRunner, error) {
 		return runner, nil
 	}
 
@@ -1419,7 +1425,7 @@ func TestDeployTaskUninstallWritebackReturnsHostToAssignedAndRemovesComponent(t 
 	db := setupDeployTestDB(t)
 	svc := NewDeployService(db, cmdb.NewDeployCMDBCapability(db))
 	credID := setupDeployTestCredential(t, svc)
-	svc.sshRunnerFactory = func(host cmdbHostSnapshot, req StartTaskRequest) (deploySSHRunner, error) {
+	svc.sshRunnerFactory = func(_ context.Context, host cmdbHostSnapshot, req StartTaskRequest) (deploySSHRunner, error) {
 		return &fakeDeploySSHRunner{stdout: "nginx removed"}, nil
 	}
 
@@ -1903,7 +1909,7 @@ func TestDeployTemplateTaskSSHExecutorRunsAllTemplateSteps(t *testing.T) {
 	credID := setupDeployTestCredential(t, svc)
 
 	runner := &multiStepDeploySSHRunner{stdouts: []string{"nginx installed", "redis installed"}, errAt: -1}
-	svc.sshRunnerFactory = func(host cmdbHostSnapshot, req StartTaskRequest) (deploySSHRunner, error) {
+	svc.sshRunnerFactory = func(_ context.Context, host cmdbHostSnapshot, req StartTaskRequest) (deploySSHRunner, error) {
 		return runner, nil
 	}
 
@@ -2069,7 +2075,7 @@ func TestDeployTemplateTaskSSHExecutorRunsScriptStepsWithChecks(t *testing.T) {
 		stdouts: []string{"precheck ok", "prepare ok", "postcheck ok", "install ok"},
 		errAt:   -1,
 	}
-	svc.sshRunnerFactory = func(host cmdbHostSnapshot, req StartTaskRequest) (deploySSHRunner, error) {
+	svc.sshRunnerFactory = func(_ context.Context, host cmdbHostSnapshot, req StartTaskRequest) (deploySSHRunner, error) {
 		return runner, nil
 	}
 
@@ -2199,7 +2205,7 @@ func TestDeployTemplateTaskSSHExecutorFailsOnScriptPrecheck(t *testing.T) {
 		stderr:  "precheck stderr",
 		errAt:   0,
 	}
-	svc.sshRunnerFactory = func(host cmdbHostSnapshot, req StartTaskRequest) (deploySSHRunner, error) {
+	svc.sshRunnerFactory = func(_ context.Context, host cmdbHostSnapshot, req StartTaskRequest) (deploySSHRunner, error) {
 		return runner, nil
 	}
 
@@ -3344,7 +3350,12 @@ func TestDeployTaskActionHandlersReturnCanonicalStatusCodes(t *testing.T) {
 	cancelRouter := gin.New()
 	cancelRouter.POST("/tasks/:id/cancel", handler.CancelTask)
 	cancelRecorder := httptest.NewRecorder()
-	cancelRequest := httptest.NewRequest(http.MethodPost, "/tasks/"+strconv.FormatUint(draftTask.ID, 10)+"/cancel", nil)
+	cancelBody, err := json.Marshal(TaskCommandRequest{StateVersion: draftTask.StateVersion})
+	if err != nil {
+		t.Fatal(err)
+	}
+	cancelRequest := httptest.NewRequest(http.MethodPost, "/tasks/"+strconv.FormatUint(draftTask.ID, 10)+"/cancel", strings.NewReader(string(cancelBody)))
+	cancelRequest.Header.Set("Content-Type", "application/json")
 	cancelRouter.ServeHTTP(cancelRecorder, cancelRequest)
 	if cancelRecorder.Code != http.StatusConflict {
 		t.Fatalf("expected cancel conflict status, got %d", cancelRecorder.Code)
@@ -4033,7 +4044,7 @@ func TestAsyncPauseResumeUsesCheckpointAndAccurateAttempts(t *testing.T) {
 	credID := setupDeployTestCredential(t, svc)
 
 	blockingRunner := &blockingDeploySSHRunner{started: make(chan struct{})}
-	svc.sshRunnerFactory = func(cmdbHostSnapshot, StartTaskRequest) (deploySSHRunner, error) {
+	svc.sshRunnerFactory = func(context.Context, cmdbHostSnapshot, StartTaskRequest) (deploySSHRunner, error) {
 		return blockingRunner, nil
 	}
 	scopeID, hostID := seedDeployReliabilityFixture(t, db, "pause-resume-host", "10.40.0.244")
@@ -4084,7 +4095,7 @@ func TestAsyncPauseResumeUsesCheckpointAndAccurateAttempts(t *testing.T) {
 		t.Fatalf("expected interrupted checkpoint to return to pending, got %s", checkpoint.Status)
 	}
 
-	svc.sshRunnerFactory = func(cmdbHostSnapshot, StartTaskRequest) (deploySSHRunner, error) {
+	svc.sshRunnerFactory = func(context.Context, cmdbHostSnapshot, StartTaskRequest) (deploySSHRunner, error) {
 		return &fakeDeploySSHRunner{stdout: "resumed"}, nil
 	}
 	if _, err := svc.ResumeTask(task.ID, "1", nil); err != nil {
@@ -4274,7 +4285,7 @@ func TestControlTransitionsRecordEvents(t *testing.T) {
 	svc.SetAsyncExecution(true)
 	credID := setupDeployTestCredential(t, svc)
 	blockingRunner := &blockingDeploySSHRunner{started: make(chan struct{})}
-	svc.sshRunnerFactory = func(cmdbHostSnapshot, StartTaskRequest) (deploySSHRunner, error) {
+	svc.sshRunnerFactory = func(context.Context, cmdbHostSnapshot, StartTaskRequest) (deploySSHRunner, error) {
 		return blockingRunner, nil
 	}
 	scopeID, hostID := seedDeployReliabilityFixture(t, db, "event-host", "10.40.0.250")

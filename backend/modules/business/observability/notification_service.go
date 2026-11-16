@@ -10,7 +10,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"net/smtp"
 	"time"
 
 	"github.com/duanxldragon/pantheon-base/backend/modules/business/secrets"
@@ -223,9 +222,6 @@ func (s *NotificationService) sendEmail(config map[string]interface{}, ruleName,
 	subject := fmt.Sprintf("[%s] Alert: %s", severity, ruleName)
 	body := fmt.Sprintf("Alert Rule: %s\nSeverity: %s\n\n%v", ruleName, severity, message)
 
-	auth := smtp.PlainAuth("", username, password, smtpHost)
-	addr := fmt.Sprintf("%s:%d", smtpHost, int(smtpPort))
-
 	to := make([]string, 0, len(recipients))
 	for _, r := range recipients {
 		if email, ok := r.(string); ok && email != "" {
@@ -238,7 +234,10 @@ func (s *NotificationService) sendEmail(config map[string]interface{}, ruleName,
 
 	msg := []byte(fmt.Sprintf("To: %s\r\nSubject: %s\r\n\r\n%s", to[0], subject, body))
 
-	return smtp.SendMail(addr, auth, fromAddr, to, msg)
+	if smtpPort != float64(int(smtpPort)) {
+		return fmt.Errorf("invalid SMTP port")
+	}
+	return s.sendSMTP(smtpHost, int(smtpPort), username, password, fromAddr, to, msg)
 }
 
 func (s *NotificationService) sendWebhook(config map[string]interface{}, ruleName, severity string, message map[string]interface{}) error {

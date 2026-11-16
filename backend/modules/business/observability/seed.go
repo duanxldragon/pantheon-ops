@@ -1,10 +1,14 @@
 package observability
 
 import (
+	"strings"
 	"time"
 
 	"gorm.io/gorm"
 )
+
+// Seed and request values reach this statement only through its bind parameter.
+const idWhereClause = "id = ?"
 
 const (
 	observabilityModuleKey = "business.observability"
@@ -70,6 +74,14 @@ var obsMenuSeeds = []obsMenuSeed{
 	{Key: "observability-alert-update", ParentPath: alertCenterMenuPath, TitleKey: alertRuleUpdatePermTitle, Perms: "business:observability:alert_rule:update", Type: "F", Module: observabilityModuleKey, Sort: 2},
 	{Key: "observability-alert-delete", ParentPath: alertCenterMenuPath, TitleKey: alertRuleDeletePermTitle, Perms: "business:observability:alert_rule:delete", Type: "F", Module: observabilityModuleKey, Sort: 3},
 	{Key: "observability-notification-update", ParentPath: alertCenterMenuPath, TitleKey: notificationUpdatePermTitle, Perms: "business:observability:notification:update", Type: "F", Module: observabilityModuleKey, Sort: 4},
+	{Key: "observability-history-view", ParentPath: monitoringMenuPath, TitleKey: "business.observability.permission.queryHistoryView", Perms: "business:observability:query-history:view", Type: "F", Module: observabilityModuleKey, Sort: 10},
+	{Key: "observability-history-delete", ParentPath: monitoringMenuPath, TitleKey: "business.observability.permission.queryHistoryDelete", Perms: "business:observability:query-history:delete", Type: "F", Module: observabilityModuleKey, Sort: 11},
+	{Key: "observability-history-restore", ParentPath: monitoringMenuPath, TitleKey: "business.observability.permission.queryHistoryRestore", Perms: "business:observability:query-history:restore", Type: "F", Module: observabilityModuleKey, Sort: 12},
+	{Key: "observability-view-view", ParentPath: monitoringMenuPath, TitleKey: "business.observability.permission.savedViewView", Perms: "business:observability:saved-view:view", Type: "F", Module: observabilityModuleKey, Sort: 13},
+	{Key: "observability-view-create", ParentPath: monitoringMenuPath, TitleKey: "business.observability.permission.savedViewCreate", Perms: "business:observability:saved-view:create", Type: "F", Module: observabilityModuleKey, Sort: 14},
+	{Key: "observability-view-update", ParentPath: monitoringMenuPath, TitleKey: "business.observability.permission.savedViewUpdate", Perms: "business:observability:saved-view:update", Type: "F", Module: observabilityModuleKey, Sort: 15},
+	{Key: "observability-view-delete", ParentPath: monitoringMenuPath, TitleKey: "business.observability.permission.savedViewDelete", Perms: "business:observability:saved-view:delete", Type: "F", Module: observabilityModuleKey, Sort: 16},
+	{Key: "observability-view-restore", ParentPath: monitoringMenuPath, TitleKey: "business.observability.permission.savedViewRestore", Perms: "business:observability:saved-view:restore", Type: "F", Module: observabilityModuleKey, Sort: 17},
 }
 
 // SeedMenus aligns the backend menu tree with the frontend ObservabilityModule
@@ -209,6 +221,66 @@ func seedObservabilityI18n(db *gorm.DB) error {
 		Key    string
 		Value  string
 	}{
+		{Locale: "zh-CN", Group: "workspace", Key: "observability.query_upgrade_required", Value: "请升级客户端并使用 POST 查询"},
+		{Locale: "en-US", Group: "workspace", Key: "observability.query_upgrade_required", Value: "Upgrade the client to use POST queries"},
+		{Locale: "zh-CN", Group: "workspace", Key: "observability.workspace_unavailable", Value: "查询工作区暂不可用"},
+		{Locale: "en-US", Group: "workspace", Key: "observability.workspace_unavailable", Value: "Query workspace is unavailable"},
+		{Locale: "zh-CN", Group: "workspace", Key: "observability.query_unavailable", Value: "查询暂不可用"},
+		{Locale: "en-US", Group: "workspace", Key: "observability.query_unavailable", Value: "Query is unavailable"},
+		{Locale: "zh-CN", Group: "workspace", Key: "observability.workspace_conflict", Value: "内容已改变，请重新加载"},
+		{Locale: "en-US", Group: "workspace", Key: "observability.workspace_conflict", Value: "The item changed; reload it"},
+		{Locale: "zh-CN", Group: "workspace", Key: "observability.workspace_quota", Value: "已达到查询工作区上限"},
+		{Locale: "en-US", Group: "workspace", Key: "observability.workspace_quota", Value: "Query workspace limit reached"},
+		{Locale: "zh-CN", Group: "workspace", Key: "observability.query_busy", Value: "查询并发已达到上限"},
+		{Locale: "en-US", Group: "workspace", Key: "observability.query_busy", Value: "Query concurrency limit reached"},
+		{Locale: "zh-CN", Group: "workspace", Key: "business.observability.workspace.savedViewLabel", Value: "保存的视图 {{id}}"},
+		{Locale: "en-US", Group: "workspace", Key: "business.observability.workspace.savedViewLabel", Value: "Saved view {{id}}"},
+		{Locale: "zh-CN", Group: "permission", Key: "business.observability.permission.queryHistoryView", Value: "查看自己的查询历史"},
+		{Locale: "en-US", Group: "permission", Key: "business.observability.permission.queryHistoryView", Value: "View own query history"},
+		{Locale: "zh-CN", Group: "permission", Key: "business.observability.permission.queryHistoryDelete", Value: "删除自己的查询历史"},
+		{Locale: "en-US", Group: "permission", Key: "business.observability.permission.queryHistoryDelete", Value: "Delete own query history"},
+		{Locale: "zh-CN", Group: "permission", Key: "business.observability.permission.queryHistoryRestore", Value: "恢复自己的查询条件"},
+		{Locale: "en-US", Group: "permission", Key: "business.observability.permission.queryHistoryRestore", Value: "Restore own query intent"},
+		{Locale: "zh-CN", Group: "permission", Key: "business.observability.permission.savedViewView", Value: "查看自己的保存视图"},
+		{Locale: "en-US", Group: "permission", Key: "business.observability.permission.savedViewView", Value: "View own saved views"},
+		{Locale: "zh-CN", Group: "permission", Key: "business.observability.permission.savedViewCreate", Value: "创建自己的保存视图"},
+		{Locale: "en-US", Group: "permission", Key: "business.observability.permission.savedViewCreate", Value: "Create own saved views"},
+		{Locale: "zh-CN", Group: "permission", Key: "business.observability.permission.savedViewUpdate", Value: "更新自己的保存视图"},
+		{Locale: "en-US", Group: "permission", Key: "business.observability.permission.savedViewUpdate", Value: "Update own saved views"},
+		{Locale: "zh-CN", Group: "permission", Key: "business.observability.permission.savedViewDelete", Value: "删除自己的保存视图"},
+		{Locale: "en-US", Group: "permission", Key: "business.observability.permission.savedViewDelete", Value: "Delete own saved views"},
+		{Locale: "zh-CN", Group: "permission", Key: "business.observability.permission.savedViewRestore", Value: "恢复自己的保存视图"},
+		{Locale: "en-US", Group: "permission", Key: "business.observability.permission.savedViewRestore", Value: "Restore own saved views"},
+		{Locale: "zh-CN", Group: "logs", Key: "business.observability.logs.startUTC", Value: "开始时间（UTC）"},
+		{Locale: "en-US", Group: "logs", Key: "business.observability.logs.startUTC", Value: "Start time (UTC)"},
+		{Locale: "zh-CN", Group: "logs", Key: "business.observability.logs.endUTC", Value: "结束时间（UTC）"},
+		{Locale: "en-US", Group: "logs", Key: "business.observability.logs.endUTC", Value: "End time (UTC)"},
+		{Locale: "zh-CN", Group: "logs", Key: "business.observability.logs.limit", Value: "最多日志条数"},
+		{Locale: "en-US", Group: "logs", Key: "business.observability.logs.limit", Value: "Maximum log rows"},
+		{Locale: "zh-CN", Group: "logs", Key: "business.observability.logs.stop", Value: "停止查询"},
+		{Locale: "en-US", Group: "logs", Key: "business.observability.logs.stop", Value: "Stop query"},
+		{Locale: "zh-CN", Group: "logs", Key: "business.observability.logs.running", Value: "查询中，已有结果来自上一次查询"},
+		{Locale: "en-US", Group: "logs", Key: "business.observability.logs.running", Value: "Query running; retained rows are from the previous query"},
+		{Locale: "zh-CN", Group: "logs", Key: "business.observability.logs.stopped", Value: "查询已停止，已有结果来自上一次查询"},
+		{Locale: "en-US", Group: "logs", Key: "business.observability.logs.stopped", Value: "Query stopped; retained rows are from the previous query"},
+		{Locale: "zh-CN", Group: "logs", Key: "business.observability.logs.invalidRange", Value: "请选择不超过 24 小时的有效 UTC 时间范围"},
+		{Locale: "en-US", Group: "logs", Key: "business.observability.logs.invalidRange", Value: "Choose a valid UTC range of up to 24 hours"},
+		{Locale: "zh-CN", Group: "logs", Key: "business.observability.logs.budget", Value: "单次范围最多 24 小时，响应最多 8 MiB；按所选条数截取结果"},
+		{Locale: "en-US", Group: "logs", Key: "business.observability.logs.budget", Value: "Up to 24 hours and 8 MiB per query; results are capped at the selected row limit"},
+		{Locale: "zh-CN", Group: "logs", Key: "business.observability.logs.forbidden", Value: "没有日志查询权限"},
+		{Locale: "en-US", Group: "logs", Key: "business.observability.logs.forbidden", Value: "No permission to query logs"},
+		{Locale: "zh-CN", Group: "traces", Key: "business.observability.traces.budget", Value: "单次范围最多 24 小时，响应最多 8 MiB，最多展示 100 条链路"},
+		{Locale: "en-US", Group: "traces", Key: "business.observability.traces.budget", Value: "Up to 24 hours and 8 MiB per query; at most 100 traces are shown"},
+		{Locale: "zh-CN", Group: "traces", Key: "business.observability.traces.forbidden", Value: "没有链路追踪查询权限"},
+		{Locale: "en-US", Group: "traces", Key: "business.observability.traces.forbidden", Value: "No permission to query traces"},
+		{Locale: "zh-CN", Group: "traces", Key: "business.observability.traces.running", Value: "查询中，已有链路来自上一次查询"},
+		{Locale: "en-US", Group: "traces", Key: "business.observability.traces.running", Value: "Query running; retained traces are from the previous query"},
+		{Locale: "zh-CN", Group: "traces", Key: "business.observability.traces.stopped", Value: "查询已停止，已有链路来自上一次查询"},
+		{Locale: "en-US", Group: "traces", Key: "business.observability.traces.stopped", Value: "Query stopped; retained traces are from the previous query"},
+		{Locale: "zh-CN", Group: "traces", Key: "business.observability.traces.inputsChanged", Value: "查询条件已改变，当前显示上一次链路结果；请重新运行。"},
+		{Locale: "en-US", Group: "traces", Key: "business.observability.traces.inputsChanged", Value: "Query inputs changed; the previous trace result is shown. Run again."},
+		{Locale: "zh-CN", Group: "traces", Key: "business.observability.traces.resultContext", Value: "结果来源：{{datasource}} · UTC {{start}} 至 {{end}} · 最多 100 条"},
+		{Locale: "en-US", Group: "traces", Key: "business.observability.traces.resultContext", Value: "Result source: {{datasource}} · UTC {{start}} to {{end}} · up to 100 traces"},
 		{Locale: "zh-CN", Group: "menu", Key: observabilityMenuTitle, Value: "可观测中心"},
 		{Locale: "en-US", Group: "menu", Key: observabilityMenuTitle, Value: "Observability"},
 		{Locale: "zh-CN", Group: "menu", Key: monitoringMenuTitle, Value: "监控中心"},
@@ -264,11 +336,15 @@ func seedObservabilityI18n(db *gorm.DB) error {
 }
 
 func bindObservabilityAdmin(tx *gorm.DB, menuID uint64, seed obsMenuSeed) error {
+	// Shared definitions are not grants. Private O4 writes require explicit IAM assignment.
+	if strings.Contains(seed.Perms, ":query-history:") || strings.Contains(seed.Perms, ":saved-view:") {
+		return nil
+	}
 	if menuID == 0 || !tx.Migrator().HasTable("system_role") {
 		return nil
 	}
 	var roleID uint64
-	if err := tx.Table("system_role").Select("id").Where("role_key = ?", "admin").Limit(1).Pluck("id", &roleID).Error; err != nil {
+	if err := tx.Table("system_role").Select("id").Where("tenant_id = 0 AND role_key = ?", "admin").Limit(1).Pluck("id", &roleID).Error; err != nil {
 		return err
 	}
 	if roleID == 0 {

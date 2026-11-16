@@ -72,10 +72,12 @@ export interface NotificationChannelRow {
   createdAt: string;
 }
 
-export const getDatasourceList = () => {
+export const getDatasourceList = (signal?: AbortSignal) => {
   return apiRequest<{ items: DatasourceRow[]; total: number }>({
     url: '/business/observability/datasources',
     method: 'GET',
+    skipErrorMessage: true,
+    signal,
   });
 };
 
@@ -87,11 +89,12 @@ export const createDatasource = (data: DatasourcePayload) => {
   });
 };
 
-export const getMonitoringTargetList = () => {
+export const getMonitoringTargetList = (signal?: AbortSignal) => {
   return apiRequest<{ items: MonitoringTargetRow[]; total: number; page: number; pageSize: number }>({
     url: '/business/observability/targets',
     method: 'GET',
     params: { page: 1, pageSize: 100 },
+    signal,
   });
 };
 
@@ -122,11 +125,14 @@ export interface LokiStreamResult {
   values: [string, string][];
 }
 
-export const queryLogs = (datasourceId: number, params: { query: string; start?: string; end?: string; limit?: number }) => {
-  return apiRequest<{ status: string; data: { resultType: string; result: LokiStreamResult[] } }>({
+export const queryLogs = (datasourceId: number, data: RunQueryRequest, signal?: AbortSignal) => {
+  return apiRequest<QueryRunResponse<LokiQueryResult>>({
     url: `/business/observability/datasources/${datasourceId}/logs`,
-    method: 'GET',
-    params,
+    method: 'POST',
+    skipErrorMessage: true,
+    data,
+    timeout: 30000,
+    signal,
   });
 };
 
@@ -139,23 +145,29 @@ export interface TempoTraceSummary {
   durationNano?: string;
 }
 
-export const searchTraces = (datasourceId: number, params: { query: string; start?: string; end?: string; limit?: number }) => {
-  return apiRequest<{ traces?: TempoTraceSummary[] }>({
+export const searchTraces = (datasourceId: number, data: RecipeQueryRequest, signal?: AbortSignal) => {
+  return apiRequest<QueryRunResponse<{ traces?: TempoTraceSummary[] }>>({
     url: `/business/observability/datasources/${datasourceId}/traces`,
-    method: 'GET',
-    params,
+    method: 'POST',
+    skipErrorMessage: true,
+    data,
+    timeout: 30000,
+    signal,
   });
 };
 
-export const getTrace = (datasourceId: number, traceId: string) => {
+export const getTrace = (datasourceId: number, traceId: string, signal?: AbortSignal) => {
   return apiRequest<Record<string, unknown>>({
     url: `/business/observability/datasources/${datasourceId}/traces/${encodeURIComponent(traceId)}`,
     method: 'GET',
+    skipErrorMessage: true,
+    signal,
   });
 };
 
 export const getAlertRuleList = (params: {
   keyword?: string;
+  status?: string;
   datasourceId?: number;
   severity?: string;
   enabled?: boolean;
@@ -249,3 +261,54 @@ export const deleteNotificationChannel = (id: number) => {
     method: 'DELETE',
   });
 };
+
+export type QuerySourceKind = 'prometheus' | 'victoriametrics' | 'loki' | 'tempo';
+export type QueryDuration = '5m' | '15m' | '1h' | '6h' | '24h';
+export type QueryTime = { mode: 'relative'; duration: QueryDuration } | { mode: 'absolute'; start: string; end: string };
+export interface QueryRecipe {
+  version: 1;
+  sourceKind: QuerySourceKind;
+  rules: { field: string; op: string; value?: string }[];
+  time: QueryTime;
+  limit: number;
+  resultMode: 'table';
+}
+export interface QueryCatalog {
+  version: number;
+  sourceKind: QuerySourceKind;
+  fields: { field: string; ops: string[]; values?: string[] }[];
+  durations: string[];
+  maxLimit: number;
+  resultModes: string[];
+}
+interface QueryHistoryMode { historyMode?: 'record' | 'coalesced'; historyId?: number }
+export type RecipeQueryRequest = QueryHistoryMode & { recipe: QueryRecipe };
+export type RunQueryRequest = RecipeQueryRequest | (QueryHistoryMode & { rawQuery: string; time: QueryTime; limit: number; resultMode: 'table' });
+export interface QueryRunResponse<R> { result: R; historyUnavailable: boolean; historyId?: number }
+export interface LokiQueryResult { status: string; warnings?: string[]; data: { resultType: string; result: LokiStreamResult[] } }
+export interface QueryHistoryRow {
+  id: number;
+  datasourceId: number;
+  sourceKind: QuerySourceKind;
+  time: QueryTime;
+  limit: number;
+  resultMode: 'table';
+  outcome: string;
+  durationMs: number;
+  createdAt: string;
+  recipe?: QueryRecipe;
+  expressionUnavailable: boolean;
+}
+export interface SavedViewRow { id: number; datasourceId: number; revision: number; recipe: QueryRecipe; updatedAt: string }
+export interface QueryWorkspacePage<T> { items: T[]; total: number; catalogVersion: number }
+
+const workspacePrefix = '/business/observability';
+export const getQueryCatalog = (id: number, signal?: AbortSignal) => apiRequest<QueryCatalog>({ url: `${workspacePrefix}/datasources/${id}/query-fields`, method: 'GET', signal, skipErrorMessage: true });
+export const queryMetrics = (id: number, data: RunQueryRequest, signal?: AbortSignal) => apiRequest<QueryRunResponse<{ status: string; warnings?: string[]; data: { resultType: string; result: { metric: Record<string, string>; value?: [number, string] }[] } }>>({ url: `${workspacePrefix}/datasources/${id}/query`, method: 'POST', data, signal, timeout: 30000, skipErrorMessage: true });
+export const getQueryHistory = (page: number, signal?: AbortSignal) => apiRequest<QueryWorkspacePage<QueryHistoryRow>>({ url: `${workspacePrefix}/query-history`, method: 'GET', params: { page, pageSize: 20 }, signal, skipErrorMessage: true });
+export const getSavedViews = (page: number, signal?: AbortSignal) => apiRequest<QueryWorkspacePage<SavedViewRow>>({ url: `${workspacePrefix}/saved-views`, method: 'GET', params: { page, pageSize: 20 }, signal, skipErrorMessage: true });
+export const restoreQueryHistory = (id: number, signal?: AbortSignal) => apiRequest<QueryWorkspacePage<QueryHistoryRow>>({ url: `${workspacePrefix}/query-history/${id}/restore`, method: 'POST', data: {}, signal, skipErrorMessage: true });
+export const restoreSavedView = (id: number, signal?: AbortSignal) => apiRequest<QueryWorkspacePage<SavedViewRow>>({ url: `${workspacePrefix}/saved-views/${id}/restore`, method: 'POST', data: {}, signal, skipErrorMessage: true });
+export const deleteQueryHistory = (id?: number, signal?: AbortSignal) => apiRequest<{ deleted: boolean }>({ url: `${workspacePrefix}/query-history${id ? `/${id}` : ''}`, method: 'DELETE', signal, skipErrorMessage: true });
+export const deleteSavedView = (id: number, signal?: AbortSignal) => apiRequest<{ deleted: boolean }>({ url: `${workspacePrefix}/saved-views/${id}`, method: 'DELETE', signal, skipErrorMessage: true });
+export const saveQueryView = (datasourceId: number, recipe: QueryRecipe, signal?: AbortSignal, existing?: Pick<SavedViewRow, 'id' | 'revision'>) => apiRequest<SavedViewRow>({ url: `${workspacePrefix}/saved-views${existing ? `/${existing.id}` : ''}`, method: existing ? 'PUT' : 'POST', data: { datasourceId, recipe, ...(existing ? { expectedRevision: existing.revision } : {}) }, signal, skipErrorMessage: true });

@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
+	"strings"
 
 	"github.com/duanxldragon/pantheon-base/backend/pkg/common"
 
@@ -30,6 +31,7 @@ func NewFileDistHandler(storageService *StorageService, distributionService *Dis
 
 // RegisterRoutes registers all file distribution routes on a protected group.
 func (h *FileDistHandler) RegisterRoutes(filedist gin.IRoutes) {
+	filedist.Use(requireFileDistUnrestrictedScope)
 	{
 		// Storage
 		filedist.POST("/storages", h.CreateStorage)
@@ -58,6 +60,20 @@ func (h *FileDistHandler) RegisterRoutes(filedist gin.IRoutes) {
 		filedist.POST("/tasks/:id/cancel", h.CancelTask)
 		filedist.POST("/tasks/:id/retry", h.RetryTask)
 	}
+}
+
+// FileDist has username-only ownership and address-only targets. Until a
+// reviewed ownership/target contract exists, restricted scopes cannot safely
+// access this module. Only trust the IAM-resolved context, never request input.
+// The supplied group already enforces authentication, Casbin and DataScope.
+func requireFileDistUnrestrictedScope(c *gin.Context) {
+	scope := common.GetDataScope(c)
+	if scope == nil || (!scope.IsAdmin && strings.TrimSpace(scope.Mode) != common.DataScopeModeAll) {
+		common.FailWithCode(c, http.StatusForbidden, "permission.denied")
+		c.Abort()
+		return
+	}
+	c.Next()
 }
 
 // Storage handlers
@@ -167,7 +183,11 @@ func (h *FileDistHandler) UploadFile(c *gin.Context) {
 	defer func() { _ = file.Close() }()
 
 	uploadedBy := c.GetString("username")
-	resp, err := h.storageService.UploadFile(storageID, header.Filename, file, header.Size, uploadedBy)
+	owner := &common.DataScopeReq{UserID: common.GetUserID(c)}
+	if scope := common.GetDataScope(c); scope != nil && scope.UserID == owner.UserID {
+		owner.DeptID = scope.DeptID
+	}
+	resp, err := h.storageService.UploadFile(storageID, header.Filename, file, header.Size, uploadedBy, owner)
 	if err != nil {
 		common.FailWithCode(c, http.StatusInternalServerError, "upload_failed")
 		return
@@ -265,7 +285,15 @@ func (h *FileDistHandler) CreateTask(c *gin.Context) {
 	}
 
 	createdBy := c.GetString("username")
-	resp, err := h.distributionService.CreateTask(dto, createdBy)
+	var resp *DistributionTaskResponse
+	var err error
+	if dto.Selection != nil {
+		resp, err = h.distributionService.CreateAuthorizedTask(c.Request.Context(), dto, common.GetUserID(c), createdBy)
+	} else {
+		// Preserve the existing all/admin workflow until the released job-policy
+		// contract is consumed. Restricted scopes remain denied by the route gate.
+		resp, err = h.distributionService.CreateTask(dto, createdBy)
+	}
 	if err != nil {
 		common.FailWithCode(c, http.StatusInternalServerError, "create_failed")
 		return

@@ -3,6 +3,8 @@ package filedist
 import (
 	"time"
 
+	"github.com/duanxldragon/pantheon-base/backend/modules/business/cmdb"
+
 	"gorm.io/datatypes"
 	"gorm.io/gorm"
 )
@@ -34,6 +36,11 @@ type DistributionTask struct {
 	FinishedAt   *time.Time     `json:"finishedAt,omitempty"`
 	CreatedAt    time.Time      `json:"createdAt"`
 	CreatedBy    string         `gorm:"size:64" json:"createdBy"`
+	OwnerID      uint64         `gorm:"not null;default:0;index" json:"ownerId"`
+	DeptID       uint64         `gorm:"not null;default:0;index" json:"-"`
+	Selection    datatypes.JSON `json:"-"`
+	ScopeVersion string         `gorm:"size:64" json:"scopeVersion,omitempty"`
+	ResolvedAt   *time.Time     `json:"resolvedAt,omitempty"`
 	DeletedAt    gorm.DeletedAt `gorm:"index" json:"-"`
 }
 
@@ -46,6 +53,8 @@ func (DistributionTask) TableName() string {
 type DistributionTarget struct {
 	ID              uint64         `gorm:"primaryKey;autoIncrement" json:"id"`
 	TaskID          uint64         `gorm:"not null;index" json:"taskId"`
+	HostID          uint64         `gorm:"not null;default:0;index" json:"hostId"`
+	StateVersion    uint64         `gorm:"not null;default:0" json:"stateVersion"`
 	Host            string         `gorm:"size:128;not null" json:"host"`
 	Port            int            `gorm:"default:22" json:"port"`
 	TargetPath      string         `gorm:"size:512;not null" json:"targetPath"`
@@ -71,20 +80,24 @@ func (DistributionTarget) TableName() string {
 
 // DistributionTaskDTO for API requests
 type DistributionTaskDTO struct {
-	Name        string         `json:"name" binding:"required"`
-	FileID      uint64         `json:"fileId" binding:"required"`
-	Targets     []TargetConfig `json:"targets" binding:"required,min=1"`
-	ScheduledAt *time.Time     `json:"scheduledAt"`
+	Name         string                `json:"name" binding:"required"`
+	FileID       uint64                `json:"fileId" binding:"required"`
+	Targets      []TargetConfig        `json:"targets" binding:"required,min=1"`
+	ScheduledAt  *time.Time            `json:"scheduledAt"`
+	Selection    *cmdb.TargetSelection `json:"selection,omitempty"`
+	ScopeVersion string                `json:"scopeVersion,omitempty"`
 }
 
 // TargetConfig describes where a distribution task pushes a file on one target.
 type TargetConfig struct {
+	HostID          uint64 `json:"hostId,omitempty"`
+	StateVersion    uint64 `json:"stateVersion,omitempty"`
 	Host            string `json:"host" binding:"required"`
 	Port            int    `json:"port"`
 	TargetPath      string `json:"targetPath" binding:"required"`
 	Username        string `json:"username" binding:"required"`
-	Password        string `json:"password"`
-	PrivateKey      string `json:"privateKey"`
+	Password        string `json:"password,omitempty"`
+	PrivateKey      string `json:"privateKey,omitempty"`
 	HostFingerprint string `json:"hostFingerprint" binding:"required"` // SSH host key fingerprint (SHA256)
 	MaxRetries      int    `json:"maxRetries"`
 }

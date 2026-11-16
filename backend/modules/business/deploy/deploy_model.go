@@ -1,6 +1,7 @@
 package deploy
 
 import (
+	"github.com/duanxldragon/pantheon-base/backend/modules/business/cmdb"
 	"time"
 
 	"gorm.io/datatypes"
@@ -40,6 +41,11 @@ const (
 	TaskActionStop      = "stop"
 	TaskActionRollback  = "rollback"
 	TaskActionRetire    = "retire"
+
+	TaskActionPause  = "pause"
+	TaskActionResume = "resume"
+	TaskActionRetry  = "retry"
+	TaskActionCancel = "cancel"
 
 	RollbackStrategyAuto   = "auto"
 	RollbackStrategyManual = "manual"
@@ -269,16 +275,19 @@ type DeployCredentialRef struct {
 func (DeployCredentialRef) TableName() string { return "biz_deploy_credential_ref" }
 
 type cmdbHostSnapshot struct {
-	ID                uint64         `gorm:"column:id"`
-	Hostname          string         `gorm:"column:hostname"`
-	IP                string         `gorm:"column:ip"`
-	SSHPort           int            `gorm:"column:ssh_port"`
-	OS                string         `gorm:"column:os"`
-	Status            string         `gorm:"column:status"`
-	BusinessScopeID   uint64         `gorm:"column:business_scope_id"`
-	BusinessScopeName string         `gorm:"column:business_scope_name"`
-	LabelValues       datatypes.JSON `gorm:"column:label_values"`
-	DeptID            uint64         `gorm:"column:dept_id"`
+	StateVersion        uint64
+	UpdatedAt           time.Time
+	InstalledComponents datatypes.JSON
+	ID                  uint64         `gorm:"column:id"`
+	Hostname            string         `gorm:"column:hostname"`
+	IP                  string         `gorm:"column:ip"`
+	SSHPort             int            `gorm:"column:ssh_port"`
+	OS                  string         `gorm:"column:os"`
+	Status              string         `gorm:"column:status"`
+	BusinessScopeID     uint64         `gorm:"column:business_scope_id"`
+	BusinessScopeName   string         `gorm:"column:business_scope_name"`
+	LabelValues         datatypes.JSON `gorm:"column:label_values"`
+	DeptID              uint64         `gorm:"column:dept_id"`
 }
 
 // deployPackageSnapshot is the immutable execution-definition view of a package
@@ -335,9 +344,12 @@ type deployTargetHostSnapshot struct {
 
 // deployTargetSnapshot is the immutable target intent frozen at Start.
 type deployTargetSnapshot struct {
-	TargetType string                     `json:"targetType"`
-	ResolvedAt string                     `json:"resolvedAt"`
-	Hosts      []deployTargetHostSnapshot `json:"hosts"`
+	Selection    *cmdb.TargetSelection      `json:"selection,omitempty"`
+	ScopeVersion string                     `json:"scopeVersion,omitempty"`
+	Sources      map[string]int             `json:"sources,omitempty"`
+	TargetType   string                     `json:"targetType"`
+	ResolvedAt   string                     `json:"resolvedAt"`
+	Hosts        []deployTargetHostSnapshot `json:"hosts"`
 }
 
 // --- FZ-03: Persisted step and event models for checkpoint recovery ---
@@ -417,10 +429,11 @@ func (DeployTaskEvent) TableName() string { return "biz_deploy_task_event" }
 //nolint:revive // Public model name retains the deploy domain prefix for compatibility.
 type DeployTaskLogChunk struct {
 	ID         uint64    `gorm:"primaryKey;autoIncrement" json:"id"`
-	TaskID     uint64    `gorm:"not null;index:idx_deploy_task_log_chunk_task" json:"taskId"`
+	TaskID     uint64    `gorm:"not null;index:idx_deploy_task_log_chunk_task;uniqueIndex:uk_deploy_task_log_chunk_seq,priority:1" json:"taskId"`
 	TaskHostID uint64    `gorm:"not null;default:0;index:idx_deploy_task_log_chunk_host" json:"taskHostId"`
 	TaskStepID uint64    `gorm:"not null;default:0" json:"taskStepId"`
-	Sequence   uint64    `gorm:"not null;uniqueIndex:uk_deploy_task_log_chunk_seq" json:"sequence"`
+	AttemptNo  int       `gorm:"not null;default:0" json:"attemptNo"`
+	Sequence   uint64    `gorm:"not null;uniqueIndex:uk_deploy_task_log_chunk_seq,priority:2" json:"sequence"`
 	Stream     string    `gorm:"size:16;not null;default:stdout" json:"stream"`
 	Content    string    `gorm:"type:text;not null" json:"content"`
 	CreatedAt  time.Time `json:"createdAt"`
