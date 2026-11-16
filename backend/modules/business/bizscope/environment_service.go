@@ -22,6 +22,7 @@ const (
 
 var validEnvTypes = map[string]bool{"dev": true, "test": true, "prod": true}
 
+// ListEnvironments returns a filtered, paged set of environments for a scope.
 func (s *Service) ListEnvironments(scopeID uint64, query *EnvironmentListQuery) (*EnvironmentListPageResp, error) {
 	if s.db == nil {
 		return nil, errors.New("database.not_initialized")
@@ -88,6 +89,7 @@ func (s *Service) ListEnvironmentOptions(scopeID uint64, activeOnly bool) ([]Env
 	return items, nil
 }
 
+// CreateEnvironment validates and creates an environment for a business scope.
 func (s *Service) CreateEnvironment(scopeID uint64, req *CreateEnvironmentRequest) (*EnvironmentListResp, error) {
 	if s.db == nil {
 		return nil, errors.New("database.not_initialized")
@@ -138,6 +140,7 @@ func (s *Service) CreateEnvironment(scopeID uint64, req *CreateEnvironmentReques
 	return &resp, nil
 }
 
+// UpdateEnvironment updates the provided fields of an existing environment.
 func (s *Service) UpdateEnvironment(scopeID uint64, id uint64, req *UpdateEnvironmentRequest) (*EnvironmentListResp, error) {
 	if s.db == nil {
 		return nil, errors.New("database.not_initialized")
@@ -199,6 +202,7 @@ func (s *Service) UpdateEnvironment(scopeID uint64, id uint64, req *UpdateEnviro
 	return &resp, nil
 }
 
+// DeleteEnvironment removes an environment; it fails if none exists.
 func (s *Service) DeleteEnvironment(scopeID uint64, id uint64) error {
 	if s.db == nil {
 		return errors.New("database.not_initialized")
@@ -213,6 +217,7 @@ func (s *Service) DeleteEnvironment(scopeID uint64, id uint64) error {
 	return nil
 }
 
+// GetEnvironment returns a single environment for a business scope.
 func (s *Service) GetEnvironment(scopeID uint64, id uint64) (*EnvironmentListResp, error) {
 	if s.db == nil {
 		return nil, errors.New("database.not_initialized")

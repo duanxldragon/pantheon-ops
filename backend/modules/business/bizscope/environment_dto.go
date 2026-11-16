@@ -1,5 +1,6 @@
 package bizscope
 
+// EnvironmentListResp is one environment definition returned to clients.
 type EnvironmentListResp struct {
 	ID              uint64 `json:"id"`
 	BusinessScopeID uint64 `json:"businessScopeId"`
@@ -11,6 +12,7 @@ type EnvironmentListResp struct {
 	CreatedAt       string `json:"createdAt"`
 }
 
+// EnvironmentListPageResp is a paged set of environment definitions.
 type EnvironmentListPageResp struct {
 	Items    []EnvironmentListResp `json:"items"`
 	Total    int64                 `json:"total"`
@@ -18,6 +20,7 @@ type EnvironmentListPageResp struct {
 	PageSize int                   `json:"pageSize"`
 }
 
+// EnvironmentListQuery carries list filters and pagination for environments.
 type EnvironmentListQuery struct {
 	Code     string `form:"code" json:"code"`
 	Name     string `form:"name" json:"name"`
@@ -26,6 +29,7 @@ type EnvironmentListQuery struct {
 	PageSize int    `form:"pageSize" json:"pageSize"`
 }
 
+// CreateEnvironmentRequest holds fields for creating an environment.
 type CreateEnvironmentRequest struct {
 	Code    string `json:"code" binding:"required"`
 	Name    string `json:"name" binding:"required"`
@@ -34,6 +38,7 @@ type CreateEnvironmentRequest struct {
 	Remark  string `json:"remark"`
 }
 
+// UpdateEnvironmentRequest holds optional fields for updating an environment.
 type UpdateEnvironmentRequest struct {
 	Code    *string `json:"code"`
 	Name    *string `json:"name"`
@@ -42,6 +47,7 @@ type UpdateEnvironmentRequest struct {
 	Remark  *string `json:"remark"`
 }
 
+// EnvironmentOptionItem is an environment option (code + name) for dropdowns.
 type EnvironmentOptionItem struct {
 	Label string `json:"label"`
 	Value string `json:"value"`

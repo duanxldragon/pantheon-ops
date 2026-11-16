@@ -28,9 +28,12 @@ const (
 
 var menuSeeds = []menuSeed{
 	{Key: "service", ParentPath: "", TitleKey: menuTitleKeyService, Path: "/business/service-catalog", Component: "business/service/ServiceCatalog", PagePerm: "business:service:list", Type: "C", Icon: "apps", RouteName: "service-list", Module: serviceModuleKey, Sort: 2},
-	{Key: "service-applications", ParentKey: "service", TitleKey: menuTitleKeyServiceApplication, Path: "/business/service-catalog/applications", Component: "business/service/ServiceCatalog", PagePerm: "business:service:list", Type: "C", Icon: "apps", RouteName: "service-applications", Module: serviceModuleKey, Sort: 3},
-	{Key: "service-services", ParentKey: "service", TitleKey: menuTitleKeyServiceService, Path: "/business/service-catalog/services", Component: "business/service/ServiceCatalog", PagePerm: "business:service:list", Type: "C", Icon: "apps", RouteName: "service-services", Module: serviceModuleKey, Sort: 4},
-	{Key: "service-instances", ParentKey: "service", TitleKey: menuTitleKeyServiceInstance, Path: "/business/service-catalog/instances", Component: "business/service/ServiceCatalog", PagePerm: "business:service:list", Type: "C", Icon: "apps", RouteName: "service-instances", Module: serviceModuleKey, Sort: 5},
+	// Children are tab anchors for the single ServiceCatalog page; only the
+	// parent owns the page permission so the RBAC permission tree keeps one
+	// pagePerm per C-node (see RoleList pagePermissionTree keying).
+	{Key: "service-applications", ParentKey: "service", TitleKey: menuTitleKeyServiceApplication, Path: "/business/service-catalog/applications", Component: "business/service/ServiceCatalog", Type: "C", Icon: "apps", RouteName: "service-applications", Module: serviceModuleKey, Sort: 3},
+	{Key: "service-services", ParentKey: "service", TitleKey: menuTitleKeyServiceService, Path: "/business/service-catalog/services", Component: "business/service/ServiceCatalog", Type: "C", Icon: "apps", RouteName: "service-services", Module: serviceModuleKey, Sort: 4},
+	{Key: "service-instances", ParentKey: "service", TitleKey: menuTitleKeyServiceInstance, Path: "/business/service-catalog/instances", Component: "business/service/ServiceCatalog", Type: "C", Icon: "apps", RouteName: "service-instances", Module: serviceModuleKey, Sort: 5},
 	{Key: "service-view", ParentKey: "service", TitleKey: permKeyServiceView, Perms: "business:service:view", Type: "F", Module: serviceModuleKey, Sort: 1},
 	{Key: "service-create", ParentKey: "service", TitleKey: permKeyServiceCreate, Perms: "business:service:create", Type: "F", Module: serviceModuleKey, Sort: 2},
 	{Key: "service-update", ParentKey: "service", TitleKey: permKeyServiceUpdate, Perms: "business:service:update", Type: "F", Module: serviceModuleKey, Sort: 3},

@@ -26,6 +26,7 @@ func parseEnvID(c *gin.Context) (uint64, bool) {
 	return id, true
 }
 
+// ListEnvironments returns a paged list of environments for a business scope.
 func (h *Handler) ListEnvironments(c *gin.Context) {
 	scopeID, ok := parseScopeID(c)
 	if !ok {
@@ -44,6 +45,7 @@ func (h *Handler) ListEnvironments(c *gin.Context) {
 	common.Success(c, items)
 }
 
+// EnvironmentOptions returns environment options (code + name) for a scope.
 func (h *Handler) EnvironmentOptions(c *gin.Context) {
 	scopeID, ok := parseScopeID(c)
 	if !ok {
@@ -58,6 +60,7 @@ func (h *Handler) EnvironmentOptions(c *gin.Context) {
 	common.Success(c, items)
 }
 
+// CreateEnvironment creates a new environment for a business scope.
 func (h *Handler) CreateEnvironment(c *gin.Context) {
 	common.SetAuditMetadata(c, "business.bizscope.audit.environment_create", common.BusinessInsert)
 	scopeID, ok := parseScopeID(c)
@@ -77,6 +80,7 @@ func (h *Handler) CreateEnvironment(c *gin.Context) {
 	common.Success(c, item)
 }
 
+// UpdateEnvironment updates an environment for a business scope.
 func (h *Handler) UpdateEnvironment(c *gin.Context) {
 	common.SetAuditMetadata(c, "business.bizscope.audit.environment_update", common.BusinessUpdate)
 	scopeID, ok := parseScopeID(c)
@@ -100,6 +104,7 @@ func (h *Handler) UpdateEnvironment(c *gin.Context) {
 	common.Success(c, item)
 }
 
+// DeleteEnvironment deletes an environment for a business scope.
 func (h *Handler) DeleteEnvironment(c *gin.Context) {
 	common.SetAuditMetadata(c, "business.bizscope.audit.environment_delete", common.BusinessDelete)
 	scopeID, ok := parseScopeID(c)
@@ -117,6 +122,7 @@ func (h *Handler) DeleteEnvironment(c *gin.Context) {
 	common.Success(c, gin.H{"deleted": true})
 }
 
+// GetEnvironment returns a single environment for a business scope.
 func (h *Handler) GetEnvironment(c *gin.Context) {
 	scopeID, ok := parseScopeID(c)
 	if !ok {

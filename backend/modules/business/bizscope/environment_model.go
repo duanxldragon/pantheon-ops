@@ -23,6 +23,7 @@ type BusinessEnvironment struct {
 	DeletedAt       gorm.DeletedAt `gorm:"index" json:"-"`
 }
 
+// TableName returns the environment storage table.
 func (BusinessEnvironment) TableName() string {
 	return "biz_business_environment"
 }
