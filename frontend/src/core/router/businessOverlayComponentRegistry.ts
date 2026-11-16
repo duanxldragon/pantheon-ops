@@ -14,6 +14,8 @@ function defineRegistryEntry(loader: ComponentLoader): RegistryEntry {
 export const businessOverlayComponentRegistry = {
   'business/bizscope/BizScopeList': defineRegistryEntry(() => import('../../modules/business/bizscope/BizScopeList')),
   'business/bizscope/BizScopeDetail': defineRegistryEntry(() => import('../../modules/business/bizscope/BizScopeDetail')),
+  'business/bizscope/HostBinding': defineRegistryEntry(() => import('../../modules/business/bizscope/HostBinding')),
+  'business/bizscope/EnvironmentList': defineRegistryEntry(() => import('../../modules/business/bizscope/EnvironmentList')),
   'business/cmdb/host/CmdbHostList': defineRegistryEntry(() => import('../../modules/business/cmdb/host/CmdbHostList')),
   'business/cmdb/host/CmdbHostDetail': defineRegistryEntry(() => import('../../modules/business/cmdb/host/CmdbHostDetail')),
   'business/cmdb/group/CmdbGroupList': defineRegistryEntry(() => import('../../modules/business/cmdb/group/CmdbGroupList')),

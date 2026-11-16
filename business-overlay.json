@@ -190,6 +190,14 @@
       "importPath": "../../modules/business/bizscope/BizScopeDetail"
     },
     {
+      "key": "business/bizscope/HostBinding",
+      "importPath": "../../modules/business/bizscope/HostBinding"
+    },
+    {
+      "key": "business/bizscope/EnvironmentList",
+      "importPath": "../../modules/business/bizscope/EnvironmentList"
+    },
+    {
       "key": "business/cmdb/host/CmdbHostList",
       "importPath": "../../modules/business/cmdb/host/CmdbHostList"
     },
@@ -308,6 +316,8 @@
     "test:smoke:business:k8s"
   ],
   "businessMigrations": [
+    "backend/modules/business/bizscope/migrations/000040_biz_business_environment.down.sql",
+    "backend/modules/business/bizscope/migrations/000040_biz_business_environment.up.sql",
     "backend/modules/business/cmdb/host/migrations/000032_backfill_cmdb_host_state_version.down.sql",
     "backend/modules/business/cmdb/host/migrations/000032_backfill_cmdb_host_state_version.up.sql",
     "backend/modules/business/deploy/migrations/000034_deploy_log_attempt.down.sql",

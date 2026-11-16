@@ -3,6 +3,8 @@ package menu
 var businessOverlayMenuComponentKeys = map[string]struct{}{
 	"business/bizscope/BizScopeList":              {},
 	"business/bizscope/BizScopeDetail":            {},
+	"business/bizscope/HostBinding":               {},
+	"business/bizscope/EnvironmentList":           {},
 	"business/cmdb/host/CmdbHostList":             {},
 	"business/cmdb/host/CmdbHostDetail":           {},
 	"business/cmdb/group/CmdbGroupList":           {},

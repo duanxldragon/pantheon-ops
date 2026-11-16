@@ -231,7 +231,8 @@ func failBizScopeError(c *gin.Context, err error) {
 
 func resolveBizScopeErrorKey(err error) string {
 	switch message := common.ErrMessage(err); message {
-	case bizScopeCodeExistsKey, bizScopeInUseKey, bizScopeNotFoundKey, msgParamInvalid:
+	case bizScopeCodeExistsKey, bizScopeInUseKey, bizScopeNotFoundKey, msgParamInvalid,
+		envCodeExistsKey, envNotFoundKey, envStatusInvalid, envCodeInvalid, envNameRequired, envStatusRequired:
 		return message
 	default:
 		return "request.failed"

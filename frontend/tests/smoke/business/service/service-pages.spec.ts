@@ -101,8 +101,8 @@ test.describe('Service business module smoke', () => {
       instanceId = Number(instance.id);
       expect(instanceId).toBeGreaterThan(0);
 
-      await page.goto('/business/service', { waitUntil: 'domcontentloaded' });
-      await expect(page).toHaveURL(/\/business\/service$/);
+      await page.goto('/business/service-catalog', { waitUntil: 'domcontentloaded' });
+      await expect(page).toHaveURL(/\/business\/service-catalog$/);
       await expect(page.locator('.governance-summary-bar')).toContainText('服务目录');
       await expect(page.locator('.system-list__table-card:visible')).toContainText(`${token}-application`);
 
@@ -158,7 +158,7 @@ test.describe('Service business module smoke', () => {
 
   test('service page remains usable in a phone viewport', async ({ page }, testInfo) => {
     await page.setViewportSize({ width: 390, height: 844 });
-    await page.goto('/business/service', { waitUntil: 'domcontentloaded' });
+    await page.goto('/business/service-catalog', { waitUntil: 'domcontentloaded' });
     await expect(page.locator('.governance-summary-bar')).toBeVisible();
     await expect(page.getByRole('tab', { name: '服务实例', exact: true })).toBeVisible();
     await expect
