@@ -465,7 +465,9 @@ func TestOwnershipEveryProjectionEntryBeginsRCBeforeRead(t *testing.T) {
 }
 
 func (p ownershipCommitPool) BeginTx(ctx context.Context, opts *sql.TxOptions) (gorm.ConnPool, error) {
-	tx, err := p.sqlDB.BeginTx(ctx, opts)
+	// godre:S8168 suppressed: this mock returns a live sql.Tx the caller
+	// commits/rolls back; a deferred Rollback here would fire before use.
+	tx, err := p.sqlDB.BeginTx(ctx, opts) // NOSONAR godre:S8168
 	if err != nil {
 		return nil, err
 	}

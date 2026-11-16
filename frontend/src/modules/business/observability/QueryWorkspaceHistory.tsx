@@ -59,7 +59,7 @@ export default function QueryWorkspaceHistory({ sourceId, kind, sources, recipe,
   const canHistory = hasPerm(`${prefix}query-history:view`);
   const canViews = hasPerm(`${prefix}saved-view:view`);
   const safeRecipe = recipe ? copyQueryRecipe(recipe, kind) : null;
-  const sourceKey = JSON.stringify(sources.map(({ id, type }) => [id, type]).sort());
+  const sourceKey = JSON.stringify(sources.map(({ id, type }): [number, string] => [id, type]).sort((a, b) => a[0] - b[0] || a[1].localeCompare(b[1])));
   const sourceAvailable = sources.some((source) => source.id === sourceId && source.type === kind);
   const recipeKey = JSON.stringify(recipe);
 

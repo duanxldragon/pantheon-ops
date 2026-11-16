@@ -15,6 +15,10 @@ import (
 	"gorm.io/gorm/clause"
 )
 
+// errPermissionDenied is the API message key returned for authorization
+// failures across create/execute/validate paths in this module.
+const errPermissionDenied = "permission.denied"
+
 // FileDistributionAuthorizer is a composition port for current actor policy and
 // source-file permission. It must refresh authority on every call, including
 // scheduled execution. Creation-time scopes and stored usernames are not grants.
@@ -111,7 +115,7 @@ func fileOwnerVisible(file FileRecord, scope *common.DataScopeReq) bool {
 }
 
 func (s *DistributionService) resolveAuthorizedTargets(ctx context.Context, tx *gorm.DB, actorID, fileID uint64, action string, selection *cmdb.TargetSelection, version string, targets []TargetConfig) ([]TargetConfig, *common.DataScopeReq, error) {
-	denied := common.NewForbidden("permission.denied")
+	denied := common.NewForbidden(errPermissionDenied)
 	if ctx == nil || ctx.Err() != nil || tx == nil || actorID == 0 || s.authorizer == nil || s.targetSelection == nil || selection == nil || version == "" || len(targets) == 0 {
 		return nil, nil, denied
 	}
@@ -171,7 +175,7 @@ func (s *DistributionService) resolveAuthorizedTargets(ctx context.Context, tx *
 func (s *DistributionService) revalidateTask(ctx context.Context, tx *gorm.DB, task DistributionTask, targets []DistributionTarget, action string) error {
 	var selection cmdb.TargetSelection
 	if task.OwnerID == 0 || task.ScopeVersion == "" || len(task.Selection) == 0 || json.Unmarshal(task.Selection, &selection) != nil {
-		return common.NewForbidden("permission.denied")
+		return common.NewForbidden(errPermissionDenied)
 	}
 	configs := make([]TargetConfig, len(targets))
 	for i, target := range targets {
@@ -185,7 +189,7 @@ func (s *DistributionService) authorizeQueuedTarget(ctx context.Context, taskID 
 	return s.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		var task DistributionTask
 		if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).First(&task, taskID).Error; err != nil || task.Status != statusRunning {
-			return common.NewForbidden("permission.denied")
+			return common.NewForbidden(errPermissionDenied)
 		}
 		var targets []DistributionTarget
 		if err := tx.Where(whereTaskByID, taskID).Find(&targets).Error; err != nil {
@@ -214,5 +218,5 @@ func safeDistributionFailure(err error) string {
 	if errors.Is(err, cmdb.ErrTargetSelectionConflict) {
 		return "business.cmdb.selection.conflict"
 	}
-	return "permission.denied"
+	return errPermissionDenied
 }
