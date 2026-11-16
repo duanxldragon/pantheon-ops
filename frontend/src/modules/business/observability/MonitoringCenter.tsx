@@ -6,6 +6,7 @@ import type { ColumnProps } from '@arco-design/web-react/es/Table/interface';
 import {
   AppModal,
   AppTable,
+  buildStandardPagination,
   GovernanceSummaryBar,
   PageContainer,
   PageEmpty,
@@ -167,7 +168,7 @@ function MetricsQueryWorkspace({ sources }: { sources: DatasourceRow[] }) {
       {forbidden && <PageEmpty description={t(key('forbidden'))} />}
       {error && !forbidden && <PageError onRetry={() => void run()} />}
       {!loading && !error && !forbidden && !rows.length && <PageEmpty description={t(key(!source ? 'metricsNoSource' : completed ? 'metricsEmpty' : 'metricsReady'))} />}
-      {!loading && !error && !forbidden && rows.length > 0 && <AppTable rowKey="id" columns={columns} data={rows} pagination={{ pageSize: 20, total: rows.length }} scroll={{ x: 'max-content' }} />}
+      {!loading && !error && !forbidden && rows.length > 0 && <AppTable rowKey="id" columns={columns} data={rows} pagination={buildStandardPagination(t, { pageSize: 20, total: rows.length })} scroll={{ x: 'max-content' }} />}
     </Card>
   </Space>;
 }

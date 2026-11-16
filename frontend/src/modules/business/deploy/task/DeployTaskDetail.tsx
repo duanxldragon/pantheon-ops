@@ -32,6 +32,7 @@ import {
 import { isForbiddenRequestError, isRequestError } from '../../../../api/request';
 import {
   AppModal,
+  buildStandardPagination,
   PageEmpty,
   PageError,
   PageForbidden,
@@ -1324,7 +1325,7 @@ export default function DeployTaskDetail() {
                 className="system-list__table"
                 columns={columns}
                 data={task.hosts}
-                pagination={{ pageSize: 50 }}
+                pagination={buildStandardPagination(t, { pageSize: 50 })}
               />
             </AsyncContentState>
           </Space>
