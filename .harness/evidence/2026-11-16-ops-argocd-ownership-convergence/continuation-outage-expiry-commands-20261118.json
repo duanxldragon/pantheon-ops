@@ -1,0 +1,53 @@
+{
+  "taskId": "2026-11-16-ops-argocd-ownership-convergence",
+  "amendment": "persistent-server-outage local pending expiry",
+  "sourceBinding": "continuation-outage-expiry-source-binding-20261118.json",
+  "preAmendmentBinding": "continuation-outage-expiry-before-20261118/source-binding.json",
+  "environment": {
+    "PATH_prefix": "D:\\msys64\\mingw64\\bin;",
+    "CGO_ENABLED": "1",
+    "GOFLAGS": "-p=1 -mod=readonly"
+  },
+  "commands": [
+    {
+      "stage": "dispatcher-outage-red",
+      "command": "go test -race -count=1 -timeout=10m ./modules/business/cicd/argocd -v -run '^TestReconcileExpiresPendingHistoryDuringServerOutage$'",
+      "reportedBy": "/root",
+      "result": "FAILURE_BASELINE_CONFIRMED_BY_ROOT",
+      "exitCode": 1,
+      "receipt": "../2026-11-17-ops-history-audit/continuation-e02-server-outage-red-20261118-01.log.receipt.json",
+      "log": "../2026-11-17-ops-history-audit/continuation-e02-server-outage-red-20261118-01.log",
+      "outputExcerpt": "server outage left pending history unresolved: application Status=Progressing, history Status=Running, FinishedAt=nil; FAIL package 0.193s",
+      "completedAtUtc": "2026-11-18T07:13:17.774Z",
+      "sourceHashBeforeAndAfter": "AAAFED7B3CF51B848539FD4E4C82F35FB5C8B4921FA2780D73E39D0033953584",
+      "note": "Executor read root's actual central receipt/log after the run: exit1, disposableMySQL=true, testDsnRequired=1, sourceUnchanged=true. Executor did not execute a DB test."
+    },
+    {
+      "stage": "amendment-pure-green",
+      "command": "go test -race -count=1 -timeout=2m -run '^(TestObservedApplicationOutcome|TestHistoryMatchesObservation|TestReconcilerStopIsIdempotent|TestReconcilerStartAlreadyStoppedOrCanceled|TestObservedRemoteMissingIsDistinctFromOutage|TestSyncRejectionIsDistinctFromUncertainResponse|TestReconciliationErrorClassOmitsProviderDetails)$' ./modules/business/cicd/argocd",
+      "exitCode": 0,
+      "output": "ok github.com/duanxldragon/pantheon-base/backend/modules/business/cicd/argocd 1.103s",
+      "toolChunkId": "0b446e"
+    },
+    {
+      "stage": "amendment-diagnostics",
+      "command": "gopls check modules/business/cicd/argocd/argocd_service.go modules/business/cicd/argocd/argocd_client.go modules/business/cicd/argocd/argocd_reconciler.go modules/business/cicd/argocd/argocd_observation.go modules/business/cicd/argocd/argocd_observation_test.go modules/business/cicd/argocd/argocd_sync_lifecycle_test.go",
+      "exitCode": 0,
+      "output": "",
+      "toolChunkId": "dd0142"
+    },
+    {
+      "stage": "amendment-diff-check",
+      "command": "git diff --check -- backend/modules/business/cicd/argocd",
+      "exitCode": 0,
+      "output": "",
+      "toolChunkId": "45a774"
+    },
+    {
+      "stage": "amendment-db-green-handoff",
+      "command": "go test -race -count=1 -timeout=5m -run '^(TestReconcileExpiresPendingHistoryDuringServerOutage|TestReconcileServerOutagePreservesRecentPendingHistory|TestReconcilerStopCancelsInFlightServerProbe)$' ./modules/business/cicd/argocd",
+      "result": "PENDING_ROOT_DISPOSABLE_MYSQL",
+      "note": "PANTHEON_TEST_DSN_REQUIRED=1 required; source frozen for root run. Skips are not GREEN."
+    }
+  ]
+}

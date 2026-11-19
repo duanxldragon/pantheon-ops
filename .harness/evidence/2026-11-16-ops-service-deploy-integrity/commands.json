@@ -1,0 +1,946 @@
+{
+  "taskId": "2026-11-16-ops-service-deploy-integrity",
+  "repo": "pantheon-ops",
+  "agent": {
+    "tool": "codex",
+    "adapter": "Codex native; independent code-reviewer and architect lanes"
+  },
+  "commands": [
+    {
+      "command": "go test -race -count=1 -timeout=10m ./modules/business/deploy -v -run ^TestWorkerHandoff|^TestCancellationUnclaimed|^TestControlTransitionsRecordEvents$|^TestDeployTaskRoutesServiceInstanceStateThroughTypedCommand$|^TestServiceLinkControlSupersededCancellationRemainsLive$",
+      "cwd": "backend",
+      "status": "passed",
+      "exitCode": 0,
+      "notes": ".harness/evidence/2026-11-17-ops-history-audit/continuation-c01-owned-resume-final-settlement-fixed.log.receipt.json; CGO=1; GOFLAGS=-p=1 -mod=readonly; disposable MySQL=true; 18 top-level PASS; no 1213/ERROR/DATA RACE",
+      "receipt": {
+        "finishedAt": "2026-11-17T16:06:47.3503572Z",
+        "testDsnRequired": "1",
+        "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\backend",
+        "args": [
+          "test",
+          "-race",
+          "-count=1",
+          "-timeout=10m",
+          "./modules/business/deploy",
+          "-v",
+          "-run",
+          "^TestWorkerHandoff|^TestCancellationUnclaimed|^TestControlTransitionsRecordEvents$|^TestDeployTaskRoutesServiceInstanceStateThroughTypedCommand$|^TestServiceLinkControlSupersededCancellationRemainsLive$"
+        ],
+        "startedAt": "2026-11-17T16:05:53.5560039Z",
+        "cgoEnabled": "1",
+        "log": "continuation-c01-owned-resume-final-settlement-fixed.log",
+        "disposableMySQL": true,
+        "exitCode": 0,
+        "goFlags": "-p=1 -mod=readonly"
+      }
+    },
+    {
+      "command": "go test -race -count=1 -timeout=10m ./modules/business/deploy -v -run ^TestWorkerHandoffFixtureWaitsForFinalSettlement$",
+      "cwd": "backend",
+      "status": "failed",
+      "exitCode": 1,
+      "notes": ".harness/evidence/2026-11-17-ops-history-audit/continuation-c01-worker-final-settlement-red.log.receipt.json; CGO=1; GOFLAGS=-p=1 -mod=readonly; disposable MySQL=true",
+      "receipt": {
+        "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\backend",
+        "exitCode": 1,
+        "startedAt": "2026-11-17T15:28:42.2973145Z",
+        "goFlags": "-p=1 -mod=readonly",
+        "disposableMySQL": true,
+        "cgoEnabled": "1",
+        "testDsnRequired": "1",
+        "finishedAt": "2026-11-17T15:28:55.8103396Z",
+        "log": "continuation-c01-worker-final-settlement-red.log",
+        "args": [
+          "test",
+          "-race",
+          "-count=1",
+          "-timeout=10m",
+          "./modules/business/deploy",
+          "-v",
+          "-run",
+          "^TestWorkerHandoffFixtureWaitsForFinalSettlement$"
+        ]
+      }
+    },
+    {
+      "command": "go test -race -count=1 -timeout=10m ./modules/business/deploy -v -run ^TestWorkerHandoffOwnedPauseResumeDispatch$",
+      "cwd": "backend",
+      "status": "failed",
+      "exitCode": 1,
+      "notes": ".harness/evidence/2026-11-17-ops-history-audit/continuation-c01-owned-resume-handoff-red.log.receipt.json; CGO=1; GOFLAGS=-p=1 -mod=readonly; disposable MySQL=true",
+      "receipt": {
+        "args": [
+          "test",
+          "-race",
+          "-count=1",
+          "-timeout=10m",
+          "./modules/business/deploy",
+          "-v",
+          "-run",
+          "^TestWorkerHandoffOwnedPauseResumeDispatch$"
+        ],
+        "startedAt": "2026-11-17T14:55:51.3945514Z",
+        "exitCode": 1,
+        "log": "continuation-c01-owned-resume-handoff-red.log",
+        "goFlags": "-p=1 -mod=readonly",
+        "testDsnRequired": "1",
+        "disposableMySQL": true,
+        "finishedAt": "2026-11-17T14:56:10.5173279Z",
+        "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\backend",
+        "cgoEnabled": "1"
+      }
+    },
+    {
+      "command": "go test -race -count=1 -timeout=10m ./modules/business/deploy -v -run ^TestServiceLinkControl|^TestServiceTransaction|^TestCancellationUnclaimed",
+      "cwd": "backend",
+      "status": "passed",
+      "exitCode": 0,
+      "notes": ".harness/evidence/2026-11-17-ops-history-audit/continuation-c01-control-compile-fixed.log.receipt.json; CGO=1; GOFLAGS=-p=1 -mod=readonly; disposable MySQL=true",
+      "receipt": {
+        "args": [
+          "test",
+          "-race",
+          "-count=1",
+          "-timeout=10m",
+          "./modules/business/deploy",
+          "-v",
+          "-run",
+          "^TestServiceLinkControl|^TestServiceTransaction|^TestCancellationUnclaimed"
+        ],
+        "goFlags": "-p=1 -mod=readonly",
+        "disposableMySQL": true,
+        "testDsnRequired": "1",
+        "cgoEnabled": "1",
+        "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\backend",
+        "finishedAt": "2026-11-17T12:37:22.5234415Z",
+        "exitCode": 0,
+        "startedAt": "2026-11-17T12:36:13.1751067Z",
+        "log": "continuation-c01-control-compile-fixed.log"
+      }
+    },
+    {
+      "command": "go test -race -count=1 -timeout=10m ./modules/business/deploy -v -run ^TestServiceLinkControl|^TestServiceTransaction|^TestCancellationUnclaimed",
+      "cwd": "backend",
+      "status": "failed",
+      "exitCode": 1,
+      "notes": ".harness/evidence/2026-11-17-ops-history-audit/continuation-c01-control-initial-green.log.receipt.json; CGO=1; GOFLAGS=-p=1 -mod=readonly; disposable MySQL=true",
+      "receipt": {
+        "finishedAt": "2026-11-17T12:35:44.0127541Z",
+        "startedAt": "2026-11-17T12:35:42.7075049Z",
+        "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\backend",
+        "exitCode": 1,
+        "cgoEnabled": "1",
+        "log": "continuation-c01-control-initial-green.log",
+        "goFlags": "-p=1 -mod=readonly",
+        "args": [
+          "test",
+          "-race",
+          "-count=1",
+          "-timeout=10m",
+          "./modules/business/deploy",
+          "-v",
+          "-run",
+          "^TestServiceLinkControl|^TestServiceTransaction|^TestCancellationUnclaimed"
+        ],
+        "testDsnRequired": "1",
+        "disposableMySQL": true
+      }
+    },
+    {
+      "command": "go test -race -count=1 -timeout=10m ./modules/business/deploy -v -run ^TestServiceLinkControl",
+      "cwd": "backend",
+      "status": "failed",
+      "exitCode": 1,
+      "notes": ".harness/evidence/2026-11-17-ops-history-audit/continuation-c01-control-red.log.receipt.json; CGO=1; GOFLAGS=-p=1 -mod=readonly; disposable MySQL=true",
+      "receipt": {
+        "args": [
+          "test",
+          "-race",
+          "-count=1",
+          "-timeout=10m",
+          "./modules/business/deploy",
+          "-v",
+          "-run",
+          "^TestServiceLinkControl"
+        ],
+        "disposableMySQL": true,
+        "cgoEnabled": "1",
+        "finishedAt": "2026-11-17T12:34:09.1563139Z",
+        "log": "continuation-c01-control-red.log",
+        "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\backend",
+        "goFlags": "-p=1 -mod=readonly",
+        "testDsnRequired": "1",
+        "exitCode": 1,
+        "startedAt": "2026-11-17T12:33:40.1514299Z"
+      }
+    },
+    {
+      "command": "go test -race -count=1 -timeout=10m ./modules/business/deploy ./modules/business/service",
+      "cwd": "backend",
+      "status": "failed",
+      "exitCode": 1,
+      "notes": ".harness/evidence/2026-11-17-ops-history-audit/continuation-c01-deploy-service-race.log.receipt.json; CGO=1; GOFLAGS=-p=1 -mod=readonly; disposable MySQL=true",
+      "receipt": {
+        "disposableMySQL": true,
+        "log": "continuation-c01-deploy-service-race.log",
+        "cgoEnabled": "1",
+        "exitCode": 1,
+        "args": [
+          "test",
+          "-race",
+          "-count=1",
+          "-timeout=10m",
+          "./modules/business/deploy",
+          "./modules/business/service"
+        ],
+        "testDsnRequired": "1",
+        "goFlags": "-p=1 -mod=readonly",
+        "startedAt": "2026-11-17T11:40:15.5487925Z",
+        "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\backend",
+        "finishedAt": "2026-11-17T11:50:47.6566454Z"
+      }
+    },
+    {
+      "command": "go test -race -count=1 -timeout=10m ./modules/business/deploy ./modules/business/service -v -run TestServiceTransaction|TestIndependentO2Service|TestStateTransactionValidationRevisionAndLifecycle|TestServiceLinkAdmissionMatched",
+      "cwd": "backend",
+      "status": "passed",
+      "exitCode": 0,
+      "notes": ".harness/evidence/2026-11-17-ops-history-audit/continuation-c01-freeze-fixture-fixed.log.receipt.json; CGO=1; GOFLAGS=-p=1 -mod=readonly; disposable MySQL=true",
+      "receipt": {
+        "cgoEnabled": "1",
+        "log": "continuation-c01-freeze-fixture-fixed.log",
+        "goFlags": "-p=1 -mod=readonly",
+        "startedAt": "2026-11-17T12:31:09.3529461Z",
+        "args": [
+          "test",
+          "-race",
+          "-count=1",
+          "-timeout=10m",
+          "./modules/business/deploy",
+          "./modules/business/service",
+          "-v",
+          "-run",
+          "TestServiceTransaction|TestIndependentO2Service|TestStateTransactionValidationRevisionAndLifecycle|TestServiceLinkAdmissionMatched"
+        ],
+        "exitCode": 0,
+        "disposableMySQL": true,
+        "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\backend",
+        "testDsnRequired": "1",
+        "finishedAt": "2026-11-17T12:32:16.6630786Z"
+      }
+    },
+    {
+      "command": "go test -race -count=1 -timeout=10m ./modules/business/deploy -v -run ^TestDeployTaskRoutesServiceInstanceStateThroughTypedCommand$|^TestControlTransitionsRecordEvents$",
+      "cwd": "backend",
+      "status": "failed",
+      "exitCode": 1,
+      "notes": ".harness/evidence/2026-11-17-ops-history-audit/continuation-c01-full-failures-red.log.receipt.json; CGO=1; GOFLAGS=-p=1 -mod=readonly; disposable MySQL=true",
+      "receipt": {
+        "disposableMySQL": true,
+        "args": [
+          "test",
+          "-race",
+          "-count=1",
+          "-timeout=10m",
+          "./modules/business/deploy",
+          "-v",
+          "-run",
+          "^TestDeployTaskRoutesServiceInstanceStateThroughTypedCommand$|^TestControlTransitionsRecordEvents$"
+        ],
+        "cgoEnabled": "1",
+        "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\backend",
+        "finishedAt": "2026-11-17T13:46:40.0732144Z",
+        "testDsnRequired": "1",
+        "exitCode": 1,
+        "log": "continuation-c01-full-failures-red.log",
+        "startedAt": "2026-11-17T13:46:29.5133889Z",
+        "goFlags": "-p=1 -mod=readonly"
+      }
+    },
+    {
+      "command": "go test -race -count=1 -timeout=10m ./...",
+      "cwd": "backend",
+      "status": "failed",
+      "exitCode": 1,
+      "notes": ".harness/evidence/2026-11-17-ops-history-audit/continuation-c01-full-race-http-final.log.receipt.json; CGO=1; GOFLAGS=-p=1 -mod=readonly; disposable MySQL=true",
+      "receipt": {
+        "testDsnRequired": "1",
+        "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\backend",
+        "exitCode": 1,
+        "finishedAt": "2026-11-17T13:32:11.1034764Z",
+        "startedAt": "2026-11-17T13:04:14.6377738Z",
+        "args": [
+          "test",
+          "-race",
+          "-count=1",
+          "-timeout=10m",
+          "./..."
+        ],
+        "goFlags": "-p=1 -mod=readonly",
+        "log": "continuation-c01-full-race-http-final.log",
+        "cgoEnabled": "1",
+        "disposableMySQL": true
+      }
+    },
+    {
+      "command": "go test -race -count=1 -timeout=10m ./modules/business/deploy -v -run ^TestServiceLinkHTTP|^TestServiceLinkAdmissionOwnerMismatch",
+      "cwd": "backend",
+      "status": "passed",
+      "exitCode": 0,
+      "notes": ".harness/evidence/2026-11-17-ops-history-audit/continuation-c01-http-cause-fixed.log.receipt.json; CGO=1; GOFLAGS=-p=1 -mod=readonly; disposable MySQL=true",
+      "receipt": {
+        "goFlags": "-p=1 -mod=readonly",
+        "log": "continuation-c01-http-cause-fixed.log",
+        "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\backend",
+        "args": [
+          "test",
+          "-race",
+          "-count=1",
+          "-timeout=10m",
+          "./modules/business/deploy",
+          "-v",
+          "-run",
+          "^TestServiceLinkHTTP|^TestServiceLinkAdmissionOwnerMismatch"
+        ],
+        "exitCode": 0,
+        "disposableMySQL": true,
+        "finishedAt": "2026-11-17T12:59:33.1551869Z",
+        "cgoEnabled": "1",
+        "testDsnRequired": "1",
+        "startedAt": "2026-11-17T12:58:48.7121501Z"
+      }
+    },
+    {
+      "command": "go test -race -count=1 -timeout=10m ./modules/business/deploy -v -run ^TestServiceLinkHTTP",
+      "cwd": "backend",
+      "status": "failed",
+      "exitCode": 1,
+      "notes": ".harness/evidence/2026-11-17-ops-history-audit/continuation-c01-http-cause-red.log.receipt.json; CGO=1; GOFLAGS=-p=1 -mod=readonly; disposable MySQL=true",
+      "receipt": {
+        "exitCode": 1,
+        "finishedAt": "2026-11-17T12:57:47.5072405Z",
+        "testDsnRequired": "1",
+        "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\backend",
+        "goFlags": "-p=1 -mod=readonly",
+        "cgoEnabled": "1",
+        "log": "continuation-c01-http-cause-red.log",
+        "disposableMySQL": true,
+        "args": [
+          "test",
+          "-race",
+          "-count=1",
+          "-timeout=10m",
+          "./modules/business/deploy",
+          "-v",
+          "-run",
+          "^TestServiceLinkHTTP"
+        ],
+        "startedAt": "2026-11-17T12:57:24.6254875Z"
+      }
+    },
+    {
+      "command": "go test -race -count=1 -timeout=10m ./modules/business/deploy -v -run ^TestServiceLinkHTTPResultHonors",
+      "cwd": "backend",
+      "status": "passed",
+      "exitCode": 0,
+      "notes": ".harness/evidence/2026-11-17-ops-history-audit/continuation-c01-http-context.log.receipt.json; CGO=1; GOFLAGS=-p=1 -mod=readonly; disposable MySQL=true",
+      "receipt": {
+        "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\backend",
+        "exitCode": 0,
+        "finishedAt": "2026-11-17T13:00:53.9129529Z",
+        "args": [
+          "test",
+          "-race",
+          "-count=1",
+          "-timeout=10m",
+          "./modules/business/deploy",
+          "-v",
+          "-run",
+          "^TestServiceLinkHTTPResultHonors"
+        ],
+        "cgoEnabled": "1",
+        "startedAt": "2026-11-17T13:00:40.4267350Z",
+        "disposableMySQL": true,
+        "log": "continuation-c01-http-context.log",
+        "goFlags": "-p=1 -mod=readonly",
+        "testDsnRequired": "1"
+      }
+    },
+    {
+      "command": "go test -race -count=1 -timeout=10m ./modules/business/deploy -v -run ^TestServiceLinkControlDeletion|^TestServiceLinkControlCancellationDoes",
+      "cwd": "backend",
+      "status": "passed",
+      "exitCode": 0,
+      "notes": ".harness/evidence/2026-11-17-ops-history-audit/continuation-c01-refusal-guards-race.log.receipt.json; CGO=1; GOFLAGS=-p=1 -mod=readonly; disposable MySQL=true",
+      "receipt": {
+        "disposableMySQL": true,
+        "startedAt": "2026-11-17T12:48:39.8781206Z",
+        "log": "continuation-c01-refusal-guards-race.log",
+        "testDsnRequired": "1",
+        "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\backend",
+        "cgoEnabled": "1",
+        "args": [
+          "test",
+          "-race",
+          "-count=1",
+          "-timeout=10m",
+          "./modules/business/deploy",
+          "-v",
+          "-run",
+          "^TestServiceLinkControlDeletion|^TestServiceLinkControlCancellationDoes"
+        ],
+        "goFlags": "-p=1 -mod=readonly",
+        "exitCode": 0,
+        "finishedAt": "2026-11-17T12:49:14.9492643Z"
+      }
+    },
+    {
+      "command": "go test -race -count=1 -timeout=10m ./modules/business/deploy ./modules/business/service -v -run ^TestServiceLink|^TestServiceTransaction|^TestCancellationUnclaimed|^TestIndependentO2Service|^TestStateTransaction",
+      "cwd": "backend",
+      "status": "passed",
+      "exitCode": 0,
+      "notes": ".harness/evidence/2026-11-17-ops-history-audit/continuation-c01-report-version-race.log.receipt.json; CGO=1; GOFLAGS=-p=1 -mod=readonly; disposable MySQL=true",
+      "receipt": {
+        "startedAt": "2026-11-17T12:40:05.2455974Z",
+        "args": [
+          "test",
+          "-race",
+          "-count=1",
+          "-timeout=10m",
+          "./modules/business/deploy",
+          "./modules/business/service",
+          "-v",
+          "-run",
+          "^TestServiceLink|^TestServiceTransaction|^TestCancellationUnclaimed|^TestIndependentO2Service|^TestStateTransaction"
+        ],
+        "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\backend",
+        "testDsnRequired": "1",
+        "disposableMySQL": true,
+        "cgoEnabled": "1",
+        "finishedAt": "2026-11-17T12:42:00.8548913Z",
+        "exitCode": 0,
+        "log": "continuation-c01-report-version-race.log",
+        "goFlags": "-p=1 -mod=readonly"
+      }
+    },
+    {
+      "command": "go test -race -count=1 -timeout=10m ./modules/business/deploy -v -run ^TestServiceLinkControl|^TestServiceTransaction|^TestCancellationUnclaimed|^TestIndependentO2Service",
+      "cwd": "backend",
+      "status": "passed",
+      "exitCode": 0,
+      "notes": ".harness/evidence/2026-11-17-ops-history-audit/continuation-c01-review-fixes-race.log.receipt.json; CGO=1; GOFLAGS=-p=1 -mod=readonly; disposable MySQL=true",
+      "receipt": {
+        "testDsnRequired": "1",
+        "finishedAt": "2026-11-17T12:47:34.6870306Z",
+        "exitCode": 0,
+        "startedAt": "2026-11-17T12:46:10.0721624Z",
+        "goFlags": "-p=1 -mod=readonly",
+        "log": "continuation-c01-review-fixes-race.log",
+        "disposableMySQL": true,
+        "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\backend",
+        "cgoEnabled": "1",
+        "args": [
+          "test",
+          "-race",
+          "-count=1",
+          "-timeout=10m",
+          "./modules/business/deploy",
+          "-v",
+          "-run",
+          "^TestServiceLinkControl|^TestServiceTransaction|^TestCancellationUnclaimed|^TestIndependentO2Service"
+        ]
+      }
+    },
+    {
+      "command": "go test -race -count=1 -timeout=10m ./modules/business/deploy -v -run ^TestServiceLinkControlRetire|^TestServiceLinkControlResume",
+      "cwd": "backend",
+      "status": "failed",
+      "exitCode": 1,
+      "notes": ".harness/evidence/2026-11-17-ops-history-audit/continuation-c01-review-regressions-red.log.receipt.json; CGO=1; GOFLAGS=-p=1 -mod=readonly; disposable MySQL=true",
+      "receipt": {
+        "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\backend",
+        "disposableMySQL": true,
+        "args": [
+          "test",
+          "-race",
+          "-count=1",
+          "-timeout=10m",
+          "./modules/business/deploy",
+          "-v",
+          "-run",
+          "^TestServiceLinkControlRetire|^TestServiceLinkControlResume"
+        ],
+        "finishedAt": "2026-11-17T12:45:02.1073508Z",
+        "testDsnRequired": "1",
+        "cgoEnabled": "1",
+        "exitCode": 1,
+        "log": "continuation-c01-review-regressions-red.log",
+        "startedAt": "2026-11-17T12:44:48.3659769Z",
+        "goFlags": "-p=1 -mod=readonly"
+      }
+    },
+    {
+      "command": "go test -race -count=1 -timeout=10m ./modules/business/deploy -v -run ^TestServiceLinkAdmission",
+      "cwd": "backend",
+      "status": "failed",
+      "exitCode": 1,
+      "notes": ".harness/evidence/2026-11-17-ops-history-audit/continuation-c01-service-link-expanded.log.receipt.json; CGO=1; GOFLAGS=-p=1 -mod=readonly; disposable MySQL=true",
+      "receipt": {
+        "log": "continuation-c01-service-link-expanded.log",
+        "goFlags": "-p=1 -mod=readonly",
+        "finishedAt": "2026-11-17T11:32:27.7769793Z",
+        "cgoEnabled": "1",
+        "testDsnRequired": "1",
+        "disposableMySQL": true,
+        "args": [
+          "test",
+          "-race",
+          "-count=1",
+          "-timeout=10m",
+          "./modules/business/deploy",
+          "-v",
+          "-run",
+          "^TestServiceLinkAdmission"
+        ],
+        "startedAt": "2026-11-17T11:30:57.4462688Z",
+        "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\backend",
+        "exitCode": 1
+      }
+    },
+    {
+      "command": "go test -race -count=1 -timeout=10m ./modules/business/deploy -v -run ^TestServiceLinkAdmission",
+      "cwd": "backend",
+      "status": "passed",
+      "exitCode": 0,
+      "notes": ".harness/evidence/2026-11-17-ops-history-audit/continuation-c01-service-link-initial-green.log.receipt.json; CGO=1; GOFLAGS=-p=1 -mod=readonly; disposable MySQL=true",
+      "receipt": {
+        "exitCode": 0,
+        "disposableMySQL": true,
+        "testDsnRequired": "1",
+        "cgoEnabled": "1",
+        "log": "continuation-c01-service-link-initial-green.log",
+        "finishedAt": "2026-11-17T11:28:18.4787161Z",
+        "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\backend",
+        "startedAt": "2026-11-17T11:27:38.4788241Z",
+        "goFlags": "-p=1 -mod=readonly",
+        "args": [
+          "test",
+          "-race",
+          "-count=1",
+          "-timeout=10m",
+          "./modules/business/deploy",
+          "-v",
+          "-run",
+          "^TestServiceLinkAdmission"
+        ]
+      }
+    },
+    {
+      "command": "go test -race -count=1 -timeout=10m ./modules/business/deploy -v -run ^TestServiceLinkAdmission",
+      "cwd": "backend",
+      "status": "failed",
+      "exitCode": 1,
+      "notes": ".harness/evidence/2026-11-17-ops-history-audit/continuation-c01-service-link-red.log.receipt.json; CGO=1; GOFLAGS=-p=1 -mod=readonly; disposable MySQL=true",
+      "receipt": {
+        "log": "continuation-c01-service-link-red.log",
+        "goFlags": "-p=1 -mod=readonly",
+        "cgoEnabled": "1",
+        "finishedAt": "2026-11-17T11:19:45.3415892Z",
+        "args": [
+          "test",
+          "-race",
+          "-count=1",
+          "-timeout=10m",
+          "./modules/business/deploy",
+          "-v",
+          "-run",
+          "^TestServiceLinkAdmission"
+        ],
+        "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\backend",
+        "disposableMySQL": true,
+        "testDsnRequired": "1",
+        "startedAt": "2026-11-17T11:18:59.3529735Z",
+        "exitCode": 1
+      }
+    },
+    {
+      "command": "go test -race -count=1 -timeout=10m ./modules/business/deploy -v -run ^TestServiceLinkAdmission",
+      "cwd": "backend",
+      "status": "passed",
+      "exitCode": 0,
+      "notes": ".harness/evidence/2026-11-17-ops-history-audit/continuation-c01-service-link-replay-fixed.log.receipt.json; CGO=1; GOFLAGS=-p=1 -mod=readonly; disposable MySQL=true",
+      "receipt": {
+        "args": [
+          "test",
+          "-race",
+          "-count=1",
+          "-timeout=10m",
+          "./modules/business/deploy",
+          "-v",
+          "-run",
+          "^TestServiceLinkAdmission"
+        ],
+        "log": "continuation-c01-service-link-replay-fixed.log",
+        "finishedAt": "2026-11-17T11:36:04.0501821Z",
+        "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\backend",
+        "cgoEnabled": "1",
+        "goFlags": "-p=1 -mod=readonly",
+        "startedAt": "2026-11-17T11:34:33.4364385Z",
+        "testDsnRequired": "1",
+        "exitCode": 0,
+        "disposableMySQL": true
+      }
+    },
+    {
+      "command": "go test -race -count=1 -timeout=10m ./modules/business/deploy -v -run ^TestServiceLinkControlSupersededCancelRequiresStateFactory|^TestServiceLinkControlSupersededCancellation|^TestServiceLinkControlCancellationDoes",
+      "cwd": "backend",
+      "status": "passed",
+      "exitCode": 0,
+      "notes": ".harness/evidence/2026-11-17-ops-history-audit/continuation-c01-state-factory-fixed.log.receipt.json; CGO=1; GOFLAGS=-p=1 -mod=readonly; disposable MySQL=true",
+      "receipt": {
+        "finishedAt": "2026-11-17T12:53:45.3704785Z",
+        "disposableMySQL": true,
+        "startedAt": "2026-11-17T12:53:13.4508622Z",
+        "args": [
+          "test",
+          "-race",
+          "-count=1",
+          "-timeout=10m",
+          "./modules/business/deploy",
+          "-v",
+          "-run",
+          "^TestServiceLinkControlSupersededCancelRequiresStateFactory|^TestServiceLinkControlSupersededCancellation|^TestServiceLinkControlCancellationDoes"
+        ],
+        "cgoEnabled": "1",
+        "log": "continuation-c01-state-factory-fixed.log",
+        "testDsnRequired": "1",
+        "goFlags": "-p=1 -mod=readonly",
+        "exitCode": 0,
+        "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\backend"
+      }
+    },
+    {
+      "command": "go test -race -count=1 -timeout=10m ./modules/business/deploy -v -run ^TestServiceLinkControlSupersededCancelRequiresStateFactory",
+      "cwd": "backend",
+      "status": "failed",
+      "exitCode": 1,
+      "notes": ".harness/evidence/2026-11-17-ops-history-audit/continuation-c01-state-factory-red.log.receipt.json; CGO=1; GOFLAGS=-p=1 -mod=readonly; disposable MySQL=true",
+      "receipt": {
+        "goFlags": "-p=1 -mod=readonly",
+        "finishedAt": "2026-11-17T12:52:48.7031954Z",
+        "startedAt": "2026-11-17T12:52:31.1662878Z",
+        "cgoEnabled": "1",
+        "exitCode": 1,
+        "disposableMySQL": true,
+        "log": "continuation-c01-state-factory-red.log",
+        "args": [
+          "test",
+          "-race",
+          "-count=1",
+          "-timeout=10m",
+          "./modules/business/deploy",
+          "-v",
+          "-run",
+          "^TestServiceLinkControlSupersededCancelRequiresStateFactory"
+        ],
+        "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\backend",
+        "testDsnRequired": "1"
+      }
+    },
+    {
+      "command": "node --import=file:///D:/workspace/go/pantheon-platform/pantheon-ops/.local/manual-preview-20261116/hide-child-windows.mjs scripts/business-overlay/rebuild-from-base.mjs --target .local/manual-preview-20261116/overlay-history-continuation-final-c01-http-final-cache-access-approved",
+      "cwd": ".",
+      "status": "passed",
+      "exitCode": 0,
+      "notes": ".harness/evidence/2026-11-17-ops-history-audit/continuation-rebuild-cache-c01-http-final-cache-access-approved-verification.json",
+      "receipt": {
+        "name": "official-rebuild-final-c01-http-final-cache-access-approved",
+        "executable": "D:\\nodejs\\node.exe",
+        "args": [
+          "--import=file:///D:/workspace/go/pantheon-platform/pantheon-ops/.local/manual-preview-20261116/hide-child-windows.mjs",
+          "scripts/business-overlay/rebuild-from-base.mjs",
+          "--target",
+          ".local/manual-preview-20261116/overlay-history-continuation-final-c01-http-final-cache-access-approved"
+        ],
+        "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+        "startedAt": "2026-11-17T13:18:21.901Z",
+        "finishedAt": "2026-11-17T13:18:44.252Z",
+        "exitCode": 0,
+        "status": "passed",
+        "log": ".harness/evidence/2026-11-17-ops-history-audit/continuation-official-rebuild-final-c01-http-final-cache-access-approved.log",
+        "errorCode": null
+      }
+    },
+    {
+      "command": "node --import=file:///D:/workspace/go/pantheon-platform/pantheon-ops/.local/manual-preview-20261116/hide-child-windows.mjs scripts/business-overlay/check-business-overlay.mjs --root .local/manual-preview-20261116/overlay-history-continuation-final-c01-http-final-cache-access-approved",
+      "cwd": ".",
+      "status": "passed",
+      "exitCode": 0,
+      "notes": ".harness/evidence/2026-11-17-ops-history-audit/continuation-rebuild-cache-c01-http-final-cache-access-approved-verification.json",
+      "receipt": {
+        "name": "staged-overlay-final-c01-http-final-cache-access-approved",
+        "executable": "D:\\nodejs\\node.exe",
+        "args": [
+          "--import=file:///D:/workspace/go/pantheon-platform/pantheon-ops/.local/manual-preview-20261116/hide-child-windows.mjs",
+          "scripts/business-overlay/check-business-overlay.mjs",
+          "--root",
+          ".local/manual-preview-20261116/overlay-history-continuation-final-c01-http-final-cache-access-approved"
+        ],
+        "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+        "startedAt": "2026-11-17T13:18:44.254Z",
+        "finishedAt": "2026-11-17T13:18:44.379Z",
+        "exitCode": 0,
+        "status": "passed",
+        "log": ".harness/evidence/2026-11-17-ops-history-audit/continuation-staged-overlay-final-c01-http-final-cache-access-approved.log",
+        "errorCode": null
+      }
+    },
+    {
+      "command": "node --import=file:///D:/workspace/go/pantheon-platform/pantheon-ops/.local/manual-preview-20261116/hide-child-windows.mjs .local/manual-preview-20261116/check-staged-official-cache-drift.mjs .local/manual-preview-20261116/overlay-history-continuation-final-c01-http-final-cache-access-approved",
+      "cwd": ".",
+      "status": "passed",
+      "exitCode": 0,
+      "notes": ".harness/evidence/2026-11-17-ops-history-audit/continuation-rebuild-cache-c01-http-final-cache-access-approved-verification.json",
+      "receipt": {
+        "name": "staged-drift-official-cache-final-c01-http-final-cache-access-approved",
+        "executable": "D:\\nodejs\\node.exe",
+        "args": [
+          "--import=file:///D:/workspace/go/pantheon-platform/pantheon-ops/.local/manual-preview-20261116/hide-child-windows.mjs",
+          ".local/manual-preview-20261116/check-staged-official-cache-drift.mjs",
+          ".local/manual-preview-20261116/overlay-history-continuation-final-c01-http-final-cache-access-approved"
+        ],
+        "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+        "startedAt": "2026-11-17T13:18:44.380Z",
+        "finishedAt": "2026-11-17T13:18:55.826Z",
+        "exitCode": 0,
+        "status": "passed",
+        "log": ".harness/evidence/2026-11-17-ops-history-audit/continuation-staged-drift-official-cache-final-c01-http-final-cache-access-approved.log",
+        "errorCode": null
+      }
+    },
+    {
+      "command": "go test -race -count=1 -timeout=10m ./modules/business/deploy -v -run ^TestServiceRetireAdmissionCallerRepeatableReadSnapshot$",
+      "cwd": "backend",
+      "status": "failed",
+      "exitCode": 1,
+      "evidence": ".harness/evidence/2026-11-17-ops-history-audit/continuation-retire-caller-snapshot-red-20261118-01.log.receipt.json",
+      "notes": "CGO=1; disposable MySQL=true; GOFLAGS=-p=1 -mod=readonly; source unchanged=true. Actual failed and successful attempts retained separately."
+    },
+    {
+      "command": "go test -race -count=1 -timeout=10m ./modules/business/capability ./modules/business/service ./modules/business/deploy -v -run Test(ReadCommitted|ServiceRetire)",
+      "cwd": "backend",
+      "status": "failed",
+      "exitCode": 1,
+      "evidence": ".harness/evidence/2026-11-17-ops-history-audit/continuation-retire-isolation-core-green-20261118-01.log.receipt.json",
+      "notes": "CGO=1; disposable MySQL=true; GOFLAGS=-p=1 -mod=readonly; source unchanged=true. Actual failed and successful attempts retained separately."
+    },
+    {
+      "command": "go test -race -count=1 -timeout=10m ./modules/business/capability -v -run ^TestReadCommittedRejectsTypedNilBegin$",
+      "cwd": "backend",
+      "status": "passed",
+      "exitCode": 0,
+      "evidence": ".harness/evidence/2026-11-17-ops-history-audit/continuation-retire-isolation-typednil-red-20261118-01.log.receipt.json",
+      "notes": "CGO=1; disposable MySQL=true; GOFLAGS=-p=1 -mod=readonly; source unchanged=true. This file name contains red, but the actual test passed; no RED-to-GREEN claim."
+    },
+    {
+      "command": "go test -race -count=1 -timeout=10m ./modules/business/capability ./modules/business/service ./modules/business/deploy -v -run Test(ReadCommitted|ServiceRetire|ServiceTransaction|ServiceInstance|ServiceLink|ServiceReference|Service.*Delete|Delete.*Reference|DeploymentTransaction|DeploymentProjection|Retire)",
+      "cwd": "backend",
+      "status": "passed",
+      "exitCode": 0,
+      "evidence": ".harness/evidence/2026-11-17-ops-history-audit/continuation-retire-isolation-core-compat-green-20261118-02.log.receipt.json",
+      "notes": "CGO=1; disposable MySQL=true; GOFLAGS=-p=1 -mod=readonly; source unchanged=true. Actual failed and successful attempts retained separately."
+    },
+    {
+      "command": "go test -race -count=1 -timeout=10m ./...",
+      "cwd": "backend",
+      "status": "failed",
+      "exitCode": 1,
+      "evidence": ".harness/evidence/2026-11-17-ops-history-audit/continuation-retire-isolation-full-race-20261118-01.log.receipt.json",
+      "notes": "CGO=1; disposable MySQL=true; GOFLAGS=-p=2 -mod=readonly; source unchanged=true. Actual failed and successful attempts retained separately."
+    },
+    {
+      "command": "go test -race -count=1 -timeout=10m ./modules/business/service",
+      "cwd": "backend",
+      "status": "passed",
+      "exitCode": 0,
+      "evidence": ".harness/evidence/2026-11-17-ops-history-audit/continuation-retire-isolation-service-full-green-20261118-03.log.receipt.json",
+      "notes": "CGO=1; disposable MySQL=true; GOFLAGS=-p=1 -mod=readonly; source unchanged=true. Actual failed and successful attempts retained separately."
+    },
+    {
+      "command": "go test -race -count=1 -timeout=10m ./...",
+      "cwd": "backend",
+      "status": "passed",
+      "exitCode": 0,
+      "evidence": ".harness/evidence/2026-11-17-ops-history-audit/continuation-retire-isolation-full-race-20261118-02.log.receipt.json",
+      "notes": "CGO=1; disposable MySQL=true; GOFLAGS=-p=2 -mod=readonly; source unchanged=true. Actual failed and successful attempts retained separately."
+    },
+    {
+      "command": "go test -race -count=1 -timeout=10m ./...",
+      "cwd": "backend",
+      "status": "failed",
+      "exitCode": 1,
+      "evidence": ".harness/evidence/2026-11-17-ops-history-audit/continuation-retire-isolation-full-race-20261118-03.log.receipt.json",
+      "notes": "CGO=1; disposable MySQL=true; GOFLAGS=-p=2 -mod=readonly; source unchanged=true. Actual failed and successful attempts retained separately."
+    },
+    {
+      "command": "go test -race -count=1 -timeout=10m ./...",
+      "cwd": "backend",
+      "status": "passed",
+      "exitCode": 0,
+      "evidence": ".harness/evidence/2026-11-17-ops-history-audit/continuation-retire-isolation-full-race-20261118-04.log.receipt.json",
+      "notes": "CGO=1; disposable MySQL=true; GOFLAGS=-p=2 -mod=readonly; source unchanged=true. Actual failed and successful attempts retained separately."
+    },
+    {
+      "command": "go test -race -count=1 -timeout=10m ./modules/business/deploy -v -run '^TestWorker(ClaimParent|QueueRecovery)'",
+      "cwd": "backend",
+      "status": "passed",
+      "exitCode": 0,
+      "runnerExitCode": 1,
+      "sourceUnchangedDuringRun": false,
+      "evidence": ".harness/evidence/2026-11-17-ops-history-audit/continuation-c01-parent-claim-green-20261118-01.log.receipt.json",
+      "phase": "recorded-scoped-checkpoint",
+      "notes": "Recorded run, not re-run by documentation lane. CGO=1; GOFLAGS=-p=1 -mod=readonly; disposableMySQL=true; sourceUnchangedDuringRun=false. Go exit 0; runner exit 1 because parallel Claude changed helm.go. Three C01 owned source hashes were stable; this is not a complete frozen-source gate PASS."
+    },
+    {
+      "command": "go test -race -count=1 ./modules/business/deploy/... ./modules/business/service/...",
+      "cwd": "backend",
+      "status": "not-run",
+      "exitCode": null,
+      "phase": "final-combined-candidate-required",
+      "notes": "NOT_RUN for the final combined candidate. A prior scoped/history/preparation PASS is listed separately and does not certify the current changing tree."
+    },
+    {
+      "command": "node scripts/check-business-module-boundaries.mjs",
+      "cwd": ".",
+      "status": "not-run",
+      "exitCode": null,
+      "phase": "final-combined-candidate-required",
+      "notes": "NOT_RUN for the final combined candidate. A prior scoped/history/preparation PASS is listed separately and does not certify the current changing tree."
+    },
+    {
+      "command": "go test -race -count=1 -timeout=10m ./modules/business/deploy ./modules/business/k8s/helm -v -run '^(Test.*ClaimParent.*|Test.*QueueRecovery.*|TestCreateForcedMisleadingStatusIsRegistrationOnly|TestListResponseNormalizesLegacyStoredStatus|TestHelmRegistrationCapabilityBoundaryHTTP)$'",
+      "cwd": "backend",
+      "status": "passed",
+      "exitCode": 0,
+      "runnerExitCode": 0,
+      "evidence": ".harness/evidence/2026-11-17-ops-history-audit/continuation-c01-e03-frozen-green-20261118-01.log.receipt.json",
+      "phase": "recorded-scoped-freeze-confirmation",
+      "notes": "CGO=1/actual MySQL; 744 backend source files unchanged during run. Deploy 6.737s: two ClaimParent tests and four QueueRecovery scenarios passed. Helm old-partial 3 tests passed 1.403s, but primary legacy status remains misleading; stronger projection requires separate RED/fix and review. This is not whole-package acceptance or final combined-candidate full race."
+    },
+    {
+      "command": "go test -race -count=1 -timeout=10m ./...",
+      "cwd": "backend",
+      "status": "passed",
+      "exitCode": 0,
+      "phase": "recorded-current-source-integration",
+      "evidence": ".harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-full-race-20261118-01.log.receipt.json",
+      "notes": "74 PASS packages/16 no-tests;748 source stable;nonverbose does not prove all conditional subtests zero skip;not package acceptance."
+    },
+    {
+      "command": "npm run lint",
+      "recordedExecutable": "D:\\nodejs\\node.exe",
+      "recordedArgs": [
+        "--import",
+        "file:///D:/workspace/go/pantheon-platform/pantheon-ops/.local/manual-preview-20261116/hide-child-windows.mjs",
+        "D:/nodejs/node_modules/npm/bin/npm-cli.js",
+        "run",
+        "lint"
+      ],
+      "cwd": "frontend",
+      "status": "passed",
+      "exitCode": 0,
+      "phase": "recorded-current-source-integration",
+      "evidence": ".harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-20261118-e01-final-frontend-quality.json",
+      "notes": "Actual coordinator source-bound receipt execution;count is the latest canonical summary,not accumulated historical unique coverage;product/role/provider acceptance remains open."
+    },
+    {
+      "command": "npm run type-check",
+      "recordedExecutable": "D:\\nodejs\\node.exe",
+      "recordedArgs": [
+        "--import",
+        "file:///D:/workspace/go/pantheon-platform/pantheon-ops/.local/manual-preview-20261116/hide-child-windows.mjs",
+        "D:/nodejs/node_modules/npm/bin/npm-cli.js",
+        "run",
+        "type-check"
+      ],
+      "cwd": "frontend",
+      "status": "passed",
+      "exitCode": 0,
+      "phase": "recorded-current-source-integration",
+      "evidence": ".harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-20261118-e01-final-frontend-quality.json",
+      "notes": "Actual coordinator source-bound receipt execution;count is the latest canonical summary,not accumulated historical unique coverage;product/role/provider acceptance remains open."
+    },
+    {
+      "command": "npm run build",
+      "recordedExecutable": "D:\\nodejs\\node.exe",
+      "recordedArgs": [
+        "--import",
+        "file:///D:/workspace/go/pantheon-platform/pantheon-ops/.local/manual-preview-20261116/hide-child-windows.mjs",
+        "D:/nodejs/node_modules/npm/bin/npm-cli.js",
+        "run",
+        "build"
+      ],
+      "cwd": "frontend",
+      "status": "passed",
+      "exitCode": 0,
+      "phase": "recorded-current-source-integration",
+      "evidence": ".harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-20261118-e01-final-frontend-quality.json",
+      "notes": "Actual coordinator source-bound receipt execution;count is the latest canonical summary,not accumulated historical unique coverage;product/role/provider acceptance remains open."
+    },
+    {
+      "command": "D:\\nodejs\\node.exe --import file:///D:/workspace/go/pantheon-platform/pantheon-ops/.local/manual-preview-20261116/hide-child-windows.mjs node_modules/vitest/vitest.mjs run tests/unit/business/service/useCatalogOptions.test.ts tests/unit/business/filedist/FiledistLifetime.test.ts --pool=threads --maxWorkers=1 --no-file-parallelism --reporter=verbose",
+      "recordedExecutable": "D:\\nodejs\\node.exe",
+      "recordedArgs": [
+        "--import",
+        "file:///D:/workspace/go/pantheon-platform/pantheon-ops/.local/manual-preview-20261116/hide-child-windows.mjs",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "tests/unit/business/service/useCatalogOptions.test.ts",
+        "tests/unit/business/filedist/FiledistLifetime.test.ts",
+        "--pool=threads",
+        "--maxWorkers=1",
+        "--no-file-parallelism",
+        "--reporter=verbose"
+      ],
+      "cwd": "frontend",
+      "status": "passed",
+      "exitCode": 0,
+      "phase": "recorded-current-source-integration",
+      "evidence": ".harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-20261118-e01-final-frontend-quality.json",
+      "notes": "Actual coordinator source-bound receipt execution;count is the latest canonical summary,not accumulated historical unique coverage;product/role/provider acceptance remains open."
+    },
+    {
+      "command": "go build -mod=readonly -o D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\manual-preview-20261116\\current-preview-ten-packages-20261118-e01-final\\pantheon-ops.exe ./cmd/server",
+      "cwd": "backend",
+      "status": "passed",
+      "exitCode": 0,
+      "phase": "recorded-current-source-build",
+      "evidence": ".harness/evidence/2026-11-17-ops-history-audit/continuation-current-preview-ten-packages-20261118-e01-final-build.json",
+      "notes": "Actual receipt command with exact output path; source-bound build and local preview readiness only."
+    }
+  ],
+  "knownGaps": [
+    "host策略/交错、真实角色/provider与当前HTTP/UI、四条原验收和维护者验收仍未完成。",
+    "Whole-package original acceptance and human gate remain unmet."
+  ],
+  "linkage": {
+    "taskManifest": ".harness/tasks/2026-11-16-ops-service-deploy-integrity/manifest.json",
+    "evidenceDir": ".harness/evidence/2026-11-16-ops-service-deploy-integrity/",
+    "reviewFile": ".harness/evidence/2026-11-16-ops-service-deploy-integrity/review.md",
+    "changeRef": "none",
+    "planRefs": [
+      ".harness/tasks/2026-11-16-ops-service-deploy-integrity/continuation-plan.md",
+      ".harness/tasks/2026-11-16-ops-pilot-delivery/plan.md"
+    ]
+  },
+  "sourceManifest": ".harness/evidence/2026-11-16-ops-service-deploy-integrity/source-manifest.json",
+  "verificationFile": ".harness/evidence/2026-11-16-ops-service-deploy-integrity/verification.json",
+  "updatedAt": "2026-11-19T00:11:15.272Z",
+  "continuationCheckpoint": {
+    "at": "2026-11-19T00:11:15.272Z",
+    "progressReceipt": ".harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-progress-final-20261118.json",
+    "currentTechnicalIntegrationPassed": true,
+    "finalCombinedCandidateCertified": false,
+    "accepted": false
+  }
+}

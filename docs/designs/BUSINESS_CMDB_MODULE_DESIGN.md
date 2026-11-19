@@ -5,7 +5,7 @@ layer: business/cmdb
 status: Active
 linked_contracts:
   - docs/PROJECT_INHERITANCE.md
-updated_at: 2026-07-17
+updated_at: 2026-11-17
 ---
 
 # CMDB 业务模块设计
@@ -53,13 +53,13 @@ CMDB 是业务模块，属于运维平台能力域。它负责承载基础资源
 
 ## 2. 边界与依赖
 
-| 类别 | 允许依赖 | 禁止依赖 |
-| :--- | :--- | :--- |
-| platform | `pkg/common`、统一响应、审计元数据、数据权限上下文 | 直接修改平台壳层或工作台聚合逻辑 |
-| system/auth | `gin.Context` 中的登录主体、会话上下文 | 直接 import `modules/auth` Service |
-| system/iam | 权限点、页面权限、Casbin 接口鉴权结果 | 在业务模块内直接写角色授权逻辑 |
-| system/org | 用户的组织归属、部门维度数据范围 | 直接依赖 org 内部 repository |
-| system/config | 字典、配置、i18n key、加密配置能力 | 在业务模块内重复造字典、配置或上传协议 |
+| 类别          | 允许依赖                                           | 禁止依赖                               |
+| :------------ | :------------------------------------------------- | :------------------------------------- |
+| platform      | `pkg/common`、统一响应、审计元数据、数据权限上下文 | 直接修改平台壳层或工作台聚合逻辑       |
+| system/auth   | `gin.Context` 中的登录主体、会话上下文             | 直接 import `modules/auth` Service     |
+| system/iam    | 权限点、页面权限、Casbin 接口鉴权结果              | 在业务模块内直接写角色授权逻辑         |
+| system/org    | 用户的组织归属、部门维度数据范围                   | 直接依赖 org 内部 repository           |
+| system/config | 字典、配置、i18n key、加密配置能力                 | 在业务模块内重复造字典、配置或上传协议 |
 
 跨模块约束：
 
@@ -69,12 +69,12 @@ CMDB 是业务模块，属于运维平台能力域。它负责承载基础资源
 
 ## 3. 核心业务对象
 
-| 对象 | 说明 | 关键属性 |
-| :--- | :--- | :--- |
-| **Host** | 主机、虚拟机或物理机资源 | hostname、IP、OS、SSH 端口、CPU/内存/磁盘、标签、业务域、已装组件、状态 |
-| **Group** | 主机分组，由标签过滤条件动态计算成员 | 名称、条件表达式 (AND/OR + key-op-value 规则)、说明 |
-| **Label** | 键值对标签，附属于 Host，分组过滤的数据源 | key (如 env/biz)、value (如 production/order) |
-| **LabelSchema** | 标签规范，治理可用标签 key 和取值来源 | key、name、value_mode、dict_code、options、required、status |
+| 对象            | 说明                                      | 关键属性                                                                |
+| :-------------- | :---------------------------------------- | :---------------------------------------------------------------------- |
+| **Host**        | 主机、虚拟机或物理机资源                  | hostname、IP、OS、SSH 端口、CPU/内存/磁盘、标签、业务域、已装组件、状态 |
+| **Group**       | 主机分组，由标签过滤条件动态计算成员      | 名称、条件表达式 (AND/OR + key-op-value 规则)、说明                     |
+| **Label**       | 键值对标签，附属于 Host，分组过滤的数据源 | key (如 env/biz)、value (如 production/order)                           |
+| **LabelSchema** | 标签规范，治理可用标签 key 和取值来源     | key、name、value_mode、dict_code、options、required、status             |
 
 Label 不设独立数据库表，以 JSON 字段存储在 Host 记录上。Group 的 conditions 同样以 JSON 字段存储，成员列表实时计算得出。
 
@@ -84,14 +84,14 @@ LabelSchema 可以维护 `options` 作为 CMDB 业务域内的常用值清单。
 
 **标签预置 Key（可扩展）：**
 
-| Key | 含义 | 示例值 |
-| :--- | :--- | :--- |
-| `env` | 环境 | `production`、`test`、`dev` |
-| `biz` | 业务系统 | `order-system`、`user-system` |
-| `cluster` | 集群归属 | `cluster-shanghai`、`cluster-beijing` |
-| `region` | 区域/机房 | `east-1`、`west-2` |
-| `db_type` | 部署数据库类型 | `mysql`、`postgresql` |
-| `os` | 操作系统大类 | `linux`、`windows` |
+| Key       | 含义           | 示例值                                |
+| :-------- | :------------- | :------------------------------------ |
+| `env`     | 环境           | `production`、`test`、`dev`           |
+| `biz`     | 业务系统       | `order-system`、`user-system`         |
+| `cluster` | 集群归属       | `cluster-shanghai`、`cluster-beijing` |
+| `region`  | 区域/机房      | `east-1`、`west-2`                    |
+| `db_type` | 部署数据库类型 | `mysql`、`postgresql`                 |
+| `os`      | 操作系统大类   | `linux`、`windows`                    |
 
 标签 key 不做硬枚举，用户可以扩展自定义 key。预置 key 仅提供约定俗成的语义。
 
@@ -107,11 +107,11 @@ LabelSchema 可以维护 `options` 作为 CMDB 业务域内的常用值清单。
 
 主机支持三种配置获取模式：
 
-| 模式 | 说明 | 当前状态 | 安全约束 |
-| :--- | :--- | :--- | :--- |
-| **手动录入** | 用户在表单中直接填写主机信息 | 实现 | 无凭据风险 |
-| **SSH 探测** | 输入 SSH 凭据 → 连接 → 采集 (`lscpu`/`free`/`df`/`uname`) → 写入 CMDB → 凭据释放 | 实现 | 凭据仅存在于请求内存，不写库不落盘 |
-| **Agent 上报** | 主机侧 Agent 定期推送配置信息 | 预留 | Token 认证、单向只读上报 |
+| 模式           | 说明                                                                             | 当前状态 | 安全约束                           |
+| :------------- | :------------------------------------------------------------------------------- | :------- | :--------------------------------- |
+| **手动录入**   | 用户在表单中直接填写主机信息                                                     | 实现     | 无凭据风险                         |
+| **SSH 探测**   | 输入 SSH 凭据 → 连接 → 采集 (`lscpu`/`free`/`df`/`uname`) → 写入 CMDB → 凭据释放 | 实现     | 凭据仅存在于请求内存，不写库不落盘 |
+| **Agent 上报** | 主机侧 Agent 定期推送配置信息                                                    | 预留     | Token 认证、单向只读上报           |
 
 **SSH 采集流程：**
 
@@ -209,13 +209,13 @@ pending（待上线） → assigned（已分配） → online（可运维）
 
 `status` 表示运维状态，不表示实时网络连通性：
 
-| status | 展示语义 | 运维含义 |
-| :--- | :--- | :--- |
-| `pending` | 待上线 | 已录入但尚未纳入正式运维目标 |
-| `assigned` | 已分配 | 已绑定业务域，等待安装部署 |
-| `online` | 可运维 | 部署完成，可作为常规运维任务目标 |
-| `offline` | 已下线 | 不应作为常规运维任务目标 |
-| `maintenance` | 维护中 | 默认排除自动化批量任务，除非显式选择 |
+| status        | 展示语义 | 运维含义                             |
+| :------------ | :------- | :----------------------------------- |
+| `pending`     | 待上线   | 已录入但尚未纳入正式运维目标         |
+| `assigned`    | 已分配   | 已绑定业务域，等待安装部署           |
+| `online`      | 可运维   | 部署完成，可作为常规运维任务目标     |
+| `offline`     | 已下线   | 不应作为常规运维任务目标             |
+| `maintenance` | 维护中   | 默认排除自动化批量任务，除非显式选择 |
 
 实时连通性应由后续监控、Agent 或连接探测能力维护，建议独立字段为 `connectivity_status`、`last_reachable_at`、`last_check_at`、`last_check_error`。不要把 `online/offline` 当作 SSH 是否可连接的判断。
 
@@ -224,71 +224,71 @@ pending（待上线） → assigned（已分配） → online（可运维）
 ### 5.1 Host 表
 
 | 表名 | `biz_cmdb_host` |
-| :--- | :--- |
+| :--- | :-------------- |
 
-| 字段 | 类型 | 说明 | 约束 |
-| :--- | :--- | :--- | :--- |
-| `id` | bigint | 主键 | PK, AUTO_INCREMENT |
-| `hostname` | varchar(128) | 主机名 | NOT NULL |
-| `ip` | varchar(45) | 管理 IP（v4/v6） | NOT NULL, INDEX |
-| `ssh_port` | int | SSH 端口 | DEFAULT 22 |
-| `os` | varchar(32) | 操作系统大类 | NOT NULL，`linux` / `windows` |
-| `os_version` | varchar(128) | 操作系统版本 | 采集或手动填写 |
-| `cpu_cores` | int | CPU 核数 | 采集或手动填写 |
-| `memory_gb` | decimal(8,1) | 内存 (GB) | 采集或手动填写 |
-| `disk_gb` | decimal(10,1) | 磁盘总容量 (GB) | 采集或手动填写 |
-| `label_values` | json | 标签键值对 | `[{"key":"env","val":"production"}]` |
-| `installed_components` | json | 已装组件 | `[{"name":"mysql","version":"8.0.35"}]` |
-| `status` | varchar(32) | 主机状态 | DEFAULT `pending`，`online`/`offline`/`maintenance` |
-| `business_scope_id` | bigint | 绑定的业务域 ID 快照 | INDEX |
-| `business_scope_code` | varchar(64) | 绑定的业务域编码快照 | 可选 |
-| `business_scope_name` | varchar(128) | 绑定的业务域名称快照 | 可选 |
-| `dept_id` | bigint | 数据范围归属部门 | INDEX，新增时默认取当前登录主体部门 |
-| `owner` | varchar(64) | 负责人 | 可选 |
-| `remark` | text | 备注 | 可选 |
-| `created_at` | datetime | 创建时间 | NOT NULL |
-| `updated_at` | datetime | 更新时间 | NOT NULL |
-| `created_by` | varchar(64) | 创建人 | |
-| `updated_by` | varchar(64) | 更新人 | |
-| `deleted_at` | datetime | 软删时间 | INDEX |
+| 字段                   | 类型          | 说明                 | 约束                                                |
+| :--------------------- | :------------ | :------------------- | :-------------------------------------------------- |
+| `id`                   | bigint        | 主键                 | PK, AUTO_INCREMENT                                  |
+| `hostname`             | varchar(128)  | 主机名               | NOT NULL                                            |
+| `ip`                   | varchar(45)   | 管理 IP（v4/v6）     | NOT NULL, INDEX                                     |
+| `ssh_port`             | int           | SSH 端口             | DEFAULT 22                                          |
+| `os`                   | varchar(32)   | 操作系统大类         | NOT NULL，`linux` / `windows`                       |
+| `os_version`           | varchar(128)  | 操作系统版本         | 采集或手动填写                                      |
+| `cpu_cores`            | int           | CPU 核数             | 采集或手动填写                                      |
+| `memory_gb`            | decimal(8,1)  | 内存 (GB)            | 采集或手动填写                                      |
+| `disk_gb`              | decimal(10,1) | 磁盘总容量 (GB)      | 采集或手动填写                                      |
+| `label_values`         | json          | 标签键值对           | `[{"key":"env","val":"production"}]`                |
+| `installed_components` | json          | 已装组件             | `[{"name":"mysql","version":"8.0.35"}]`             |
+| `status`               | varchar(32)   | 主机状态             | DEFAULT `pending`，`online`/`offline`/`maintenance` |
+| `business_scope_id`    | bigint        | 绑定的业务域 ID 快照 | INDEX                                               |
+| `business_scope_code`  | varchar(64)   | 绑定的业务域编码快照 | 可选                                                |
+| `business_scope_name`  | varchar(128)  | 绑定的业务域名称快照 | 可选                                                |
+| `dept_id`              | bigint        | 数据范围归属部门     | INDEX，新增时默认取当前登录主体部门                 |
+| `owner`                | varchar(64)   | 负责人               | 可选                                                |
+| `remark`               | text          | 备注                 | 可选                                                |
+| `created_at`           | datetime      | 创建时间             | NOT NULL                                            |
+| `updated_at`           | datetime      | 更新时间             | NOT NULL                                            |
+| `created_by`           | varchar(64)   | 创建人               |                                                     |
+| `updated_by`           | varchar(64)   | 更新人               |                                                     |
+| `deleted_at`           | datetime      | 软删时间             | INDEX                                               |
 
 索引：`uk_ip_deleted` UNIQUE (`ip`, `deleted_at`)，`idx_status`，`idx_os`。
 
 ### 5.2 Group 表
 
 | 表名 | `biz_cmdb_group` |
-| :--- | :--- |
+| :--- | :--------------- |
 
-| 字段 | 类型 | 说明 | 约束 |
-| :--- | :--- | :--- | :--- |
-| `id` | bigint | 主键 | PK, AUTO_INCREMENT |
-| `parent_id` | bigint | 上级分组 ID，`0` 表示根分组 | INDEX, DEFAULT 0 |
-| `name` | varchar(128) | 分组名称 | NOT NULL |
-| `conditions` | json | 过滤条件表达式 | NOT NULL |
-| `description` | varchar(512) | 说明 | 可选 |
-| `created_at` | datetime | 创建时间 | NOT NULL |
-| `updated_at` | datetime | 更新时间 | NOT NULL |
-| `deleted_at` | datetime | 软删时间 | INDEX |
+| 字段          | 类型         | 说明                        | 约束               |
+| :------------ | :----------- | :-------------------------- | :----------------- |
+| `id`          | bigint       | 主键                        | PK, AUTO_INCREMENT |
+| `parent_id`   | bigint       | 上级分组 ID，`0` 表示根分组 | INDEX, DEFAULT 0   |
+| `name`        | varchar(128) | 分组名称                    | NOT NULL           |
+| `conditions`  | json         | 过滤条件表达式              | NOT NULL           |
+| `description` | varchar(512) | 说明                        | 可选               |
+| `created_at`  | datetime     | 创建时间                    | NOT NULL           |
+| `updated_at`  | datetime     | 更新时间                    | NOT NULL           |
+| `deleted_at`  | datetime     | 软删时间                    | INDEX              |
 
 ### 5.3 LabelSchema 表
 
 | 表名 | `biz_cmdb_label_schema` |
-| :--- | :--- |
+| :--- | :---------------------- |
 
-| 字段 | 类型 | 说明 | 约束 |
-| :--- | :--- | :--- | :--- |
-| `id` | bigint | 主键 | PK, AUTO_INCREMENT |
-| `key` | varchar(64) | 标签键 | UNIQUE, NOT NULL |
-| `name` | varchar(128) | 展示名称 | NOT NULL |
-| `value_mode` | varchar(16) | 取值模式：`free` / `enum` / `dict` | NOT NULL |
-| `dict_code` | varchar(64) | 当 `value_mode=dict` 时引用的业务字典编码 | 可选 |
-| `options` | json | CMDB 标签常用值清单 | `["西安开发环境","西安测试环境"]` |
-| `required` | boolean | 是否建议主机必须填写 | DEFAULT false |
-| `status` | varchar(16) | `enabled` / `disabled` | INDEX |
-| `description` | varchar(512) | 说明 | 可选 |
-| `created_at` | datetime | 创建时间 | NOT NULL |
-| `updated_at` | datetime | 更新时间 | NOT NULL |
-| `deleted_at` | datetime | 软删时间 | INDEX |
+| 字段          | 类型         | 说明                                      | 约束                              |
+| :------------ | :----------- | :---------------------------------------- | :-------------------------------- |
+| `id`          | bigint       | 主键                                      | PK, AUTO_INCREMENT                |
+| `key`         | varchar(64)  | 标签键                                    | UNIQUE, NOT NULL                  |
+| `name`        | varchar(128) | 展示名称                                  | NOT NULL                          |
+| `value_mode`  | varchar(16)  | 取值模式：`free` / `enum` / `dict`        | NOT NULL                          |
+| `dict_code`   | varchar(64)  | 当 `value_mode=dict` 时引用的业务字典编码 | 可选                              |
+| `options`     | json         | CMDB 标签常用值清单                       | `["西安开发环境","西安测试环境"]` |
+| `required`    | boolean      | 是否建议主机必须填写                      | DEFAULT false                     |
+| `status`      | varchar(16)  | `enabled` / `disabled`                    | INDEX                             |
+| `description` | varchar(512) | 说明                                      | 可选                              |
+| `created_at`  | datetime     | 创建时间                                  | NOT NULL                          |
+| `updated_at`  | datetime     | 更新时间                                  | NOT NULL                          |
+| `deleted_at`  | datetime     | 软删时间                                  | INDEX                             |
 
 ### 5.4 设计约束
 
@@ -312,15 +312,15 @@ API 前缀：`/api/v1/business/cmdb`
 
 ### 6.1 Host API
 
-| 方法 | 路径 | 说明 | 权限点 |
-| :--- | :--- | :--- | :--- |
-| `GET` | `/hosts` | 主机列表（支持标签筛选） | `business:cmdb:host:list` |
-| `GET` | `/hosts/:id` | 主机详情 | `business:cmdb:host:detail` |
-| `POST` | `/hosts` | 手动录入主机 | `business:cmdb:host:create` |
-| `PUT` | `/hosts/:id` | 编辑主机信息 | `business:cmdb:host:update` |
-| `DELETE` | `/hosts/:id` | 删除主机（软删） | `business:cmdb:host:delete` |
-| `POST` | `/hosts/:id/collect` | SSH 一次性配置采集 | `business:cmdb:host:collect` |
-| `PATCH` | `/hosts/:id/status` | 更新主机状态（下游系统调用） | `business:cmdb:host:status` |
+| 方法     | 路径                 | 说明                         | 权限点                       |
+| :------- | :------------------- | :--------------------------- | :--------------------------- |
+| `GET`    | `/hosts`             | 主机列表（支持标签筛选）     | `business:cmdb:host:list`    |
+| `GET`    | `/hosts/:id`         | 主机详情                     | `business:cmdb:host:detail`  |
+| `POST`   | `/hosts`             | 手动录入主机                 | `business:cmdb:host:create`  |
+| `PUT`    | `/hosts/:id`         | 编辑主机信息                 | `business:cmdb:host:update`  |
+| `DELETE` | `/hosts/:id`         | 删除主机（软删）             | `business:cmdb:host:delete`  |
+| `POST`   | `/hosts/:id/collect` | SSH 一次性配置采集           | `business:cmdb:host:collect` |
+| `PATCH`  | `/hosts/:id/status`  | 更新主机状态（下游系统调用） | `business:cmdb:host:status`  |
 
 列表查询参数：`?keyword=&status=&os=&label.env=&label.biz=&page=&pageSize=`。
 
@@ -340,24 +340,24 @@ API 前缀：`/api/v1/business/cmdb`
 
 ### 6.2 Group API
 
-| 方法 | 路径 | 说明 | 权限点 |
-| :--- | :--- | :--- | :--- |
-| `GET` | `/groups` | 分组列表 | `business:cmdb:group:list` |
-| `GET` | `/groups/:id` | 分组详情（含成员列表） | `business:cmdb:group:detail` |
-| `GET` | `/groups/:id/members` | 分组内主机列表（实时计算） | `business:cmdb:group:detail` |
-| `POST` | `/groups` | 创建分组 | `business:cmdb:group:create` |
-| `PUT` | `/groups/:id` | 编辑分组条件 | `business:cmdb:group:update` |
-| `DELETE` | `/groups/:id` | 删除分组 | `business:cmdb:group:delete` |
+| 方法     | 路径                  | 说明                       | 权限点                       |
+| :------- | :-------------------- | :------------------------- | :--------------------------- |
+| `GET`    | `/groups`             | 分组列表                   | `business:cmdb:group:list`   |
+| `GET`    | `/groups/:id`         | 分组详情（含成员列表）     | `business:cmdb:group:detail` |
+| `GET`    | `/groups/:id/members` | 分组内主机列表（实时计算） | `business:cmdb:group:detail` |
+| `POST`   | `/groups`             | 创建分组                   | `business:cmdb:group:create` |
+| `PUT`    | `/groups/:id`         | 编辑分组条件               | `business:cmdb:group:update` |
+| `DELETE` | `/groups/:id`         | 删除分组                   | `business:cmdb:group:delete` |
 
 ### 6.3 Label API
 
-| 方法 | 路径 | 说明 | 权限点 |
-| :--- | :--- | :--- | :--- |
-| `GET` | `/labels` | 标签规范列表 | `business:cmdb:label:list` |
-| `GET` | `/labels/options` | 标签规范下拉选项 | 权限映射缺口：路由已实现，但 `business:cmdb:label:list` 当前只映射 `GET /labels`，未覆盖本路由；见任务卡 `2026-07-17-business-permission-gaps` |
-| `POST` | `/labels` | 创建标签规范 | `business:cmdb:label:create` |
-| `PUT` | `/labels/:id` | 编辑标签规范 | `business:cmdb:label:update` |
-| `DELETE` | `/labels/:id` | 删除标签规范 | `business:cmdb:label:delete` |
+| 方法     | 路径              | 说明             | 权限点                                                                                                                                                               |
+| :------- | :---------------- | :--------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `GET`    | `/labels`         | 标签规范列表     | `business:cmdb:label:view`                                                                                                                                           |
+| `GET`    | `/labels/options` | 标签规范下拉选项 | 当前由 `business:cmdb:label:view` 显式绑定，与 `GET /labels` 同权；旧 `label:list` 缺口已由现行权限契约替代，见 `backend/modules/business/cmdb/permission_routes.go` |
+| `POST`   | `/labels`         | 创建标签规范     | `business:cmdb:label:create`                                                                                                                                         |
+| `PUT`    | `/labels/:id`     | 编辑标签规范     | `business:cmdb:label:update`                                                                                                                                         |
+| `DELETE` | `/labels/:id`     | 删除标签规范     | `business:cmdb:label:delete`                                                                                                                                         |
 
 ### 6.4 错误 Key
 
@@ -372,21 +372,21 @@ API 前缀：`/api/v1/business/cmdb`
 - 标签规范：`business.cmdb.label.*`
 - 采集链路：`business.cmdb.collect.*`
 
-| Key | 说明 |
-| :--- | :--- |
-| `business.cmdb.host.notFound` | 主机不存在 |
-| `business.cmdb.host.ipExists` | IP 已存在 |
-| `business.cmdb.host.invalidLabel` | 标签格式无效 |
-| `business.cmdb.host.unsupportedOs` | 不支持的操作系统 |
-| `business.cmdb.collect.sshConnectFailed` | SSH 连接失败 |
-| `business.cmdb.collect.sshAuthFailed` | SSH 认证失败 |
-| `business.cmdb.collect.executionFailed` | 配置采集执行失败 |
-| `business.cmdb.group.notFound` | 分组不存在 |
-| `business.cmdb.group.invalidConditions` | 过滤条件表达式无效 |
-| `business.cmdb.label.keyExists` | 标签键已存在 |
-| `business.cmdb.label.invalid` | 标签规范配置无效 |
-| `business.cmdb.label.inUse` | 标签已被主机或分组引用 |
-| `business.cmdb.label.notFound` | 标签规范不存在 |
+| Key                                      | 说明                   |
+| :--------------------------------------- | :--------------------- |
+| `business.cmdb.host.notFound`            | 主机不存在             |
+| `business.cmdb.host.ipExists`            | IP 已存在              |
+| `business.cmdb.host.invalidLabel`        | 标签格式无效           |
+| `business.cmdb.host.unsupportedOs`       | 不支持的操作系统       |
+| `business.cmdb.collect.sshConnectFailed` | SSH 连接失败           |
+| `business.cmdb.collect.sshAuthFailed`    | SSH 认证失败           |
+| `business.cmdb.collect.executionFailed`  | 配置采集执行失败       |
+| `business.cmdb.group.notFound`           | 分组不存在             |
+| `business.cmdb.group.invalidConditions`  | 过滤条件表达式无效     |
+| `business.cmdb.label.keyExists`          | 标签键已存在           |
+| `business.cmdb.label.invalid`            | 标签规范配置无效       |
+| `business.cmdb.label.inUse`              | 标签已被主机或分组引用 |
+| `business.cmdb.label.notFound`           | 标签规范不存在         |
 
 ## 7. 权限模型
 
@@ -398,37 +398,36 @@ API 前缀：`/api/v1/business/cmdb`
 
 ### 7.1 Host 权限点
 
-| 权限点 | 控制粒度 |
-| :--- | :--- |
-| `business:cmdb:host:view` | 主机列表页进入权限 / 导航可见性 |
-| `business:cmdb:host:list` | 主机列表查询接口 |
-| `business:cmdb:host:detail` | 详情按钮 + 接口 |
-| `business:cmdb:host:create` | 新增按钮 + 接口 |
-| `business:cmdb:host:update` | 编辑按钮 + 接口 |
-| `business:cmdb:host:delete` | 删除按钮 + 接口 |
-| `business:cmdb:host:collect` | 采集配置按钮 + 接口 |
-| `business:cmdb:host:status` | 状态更新接口（供下游系统） |
+| 权限点                       | 控制粒度                        |
+| :--------------------------- | :------------------------------ |
+| `business:cmdb:host:view`    | 主机列表页进入权限 / 导航可见性 |
+| `business:cmdb:host:list`    | 主机列表查询接口                |
+| `business:cmdb:host:detail`  | 详情按钮 + 接口                 |
+| `business:cmdb:host:create`  | 新增按钮 + 接口                 |
+| `business:cmdb:host:update`  | 编辑按钮 + 接口                 |
+| `business:cmdb:host:delete`  | 删除按钮 + 接口                 |
+| `business:cmdb:host:collect` | 采集配置按钮 + 接口             |
+| `business:cmdb:host:status`  | 状态更新接口（供下游系统）      |
 
 ### 7.2 Group 权限点
 
-| 权限点 | 控制粒度 |
-| :--- | :--- |
-| `business:cmdb:group:view` | 分组列表页进入权限 / 导航可见性 |
-| `business:cmdb:group:list` | 分组列表查询接口 |
-| `business:cmdb:group:detail` | 详情按钮 + 接口 |
-| `business:cmdb:group:create` | 新增按钮 + 接口 |
-| `business:cmdb:group:update` | 编辑按钮 + 接口 |
-| `business:cmdb:group:delete` | 删除按钮 + 接口 |
+| 权限点                       | 控制粒度                        |
+| :--------------------------- | :------------------------------ |
+| `business:cmdb:group:view`   | 分组列表页进入权限 / 导航可见性 |
+| `business:cmdb:group:list`   | 分组列表查询接口                |
+| `business:cmdb:group:detail` | 详情按钮 + 接口                 |
+| `business:cmdb:group:create` | 新增按钮 + 接口                 |
+| `business:cmdb:group:update` | 编辑按钮 + 接口                 |
+| `business:cmdb:group:delete` | 删除按钮 + 接口                 |
 
 ### 7.3 Label 权限点
 
-| 权限点 | 控制粒度 |
-| :--- | :--- |
-| `business:cmdb:label:view` | 标签规范页进入权限 / 导航可见性 |
-| `business:cmdb:label:list` | 标签规范列表查询接口 |
-| `business:cmdb:label:create` | 新增标签规范 |
-| `business:cmdb:label:update` | 编辑标签规范 |
-| `business:cmdb:label:delete` | 删除标签规范 |
+| 权限点                       | 控制粒度                                            |
+| :--------------------------- | :-------------------------------------------------- |
+| `business:cmdb:label:view`   | 标签规范页进入权限 / 导航可见性，以及列表与选项查询 |
+| `business:cmdb:label:create` | 新增标签规范                                        |
+| `business:cmdb:label:update` | 编辑标签规范                                        |
+| `business:cmdb:label:delete` | 删除标签规范                                        |
 
 约束：
 
@@ -441,13 +440,13 @@ API 前缀：`/api/v1/business/cmdb`
 
 CMDB 归属一级导航"运维平台"（`operations`），作为运维平台第一个子模块。
 
-| 菜单 key | 路径 | 标题 key | routeName | module | 组件键 | pagePermission | activeMenu | 类型 |
-| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| `operations` | `/operations` | `operations.menu` | `operations-root` | `platform.operations` | — | — | — | `D` |
-| `operations.cmdb` | `/business/cmdb` | `operations.cmdb.menu` | `operations-cmdb-root` | `business.cmdb` | — | — | — | `M` |
-| `operations.cmdb.host` | `/business/cmdb/host` | `operations.cmdb.host.menu` | `operations-cmdb-host-list` | `business.cmdb` | `business/cmdb/host/CmdbHostList` | `business:cmdb:host:view` | — | `C` |
-| `operations.cmdb.group` | `/business/cmdb/group` | `operations.cmdb.group.menu` | `operations-cmdb-group-list` | `business.cmdb` | `business/cmdb/group/CmdbGroupList` | `business:cmdb:group:view` | — | `C` |
-| `operations.cmdb.label` | `/business/cmdb/label` | `operations.cmdb.label.menu` | `operations-cmdb-label-list` | `business.cmdb` | `business/cmdb/label/CmdbLabelSchemaList` | `business:cmdb:label:view` | — | `C` |
+| 菜单 key                | 路径                   | 标题 key                     | routeName                    | module                | 组件键                                    | pagePermission             | activeMenu | 类型 |
+| :---------------------- | :--------------------- | :--------------------------- | :--------------------------- | :-------------------- | :---------------------------------------- | :------------------------- | :--------- | :--- |
+| `operations`            | `/operations`          | `operations.menu`            | `operations-root`            | `platform.operations` | —                                         | —                          | —          | `D`  |
+| `operations.cmdb`       | `/business/cmdb`       | `operations.cmdb.menu`       | `operations-cmdb-root`       | `business.cmdb`       | —                                         | —                          | —          | `M`  |
+| `operations.cmdb.host`  | `/business/cmdb/host`  | `operations.cmdb.host.menu`  | `operations-cmdb-host-list`  | `business.cmdb`       | `business/cmdb/host/CmdbHostList`         | `business:cmdb:host:view`  | —          | `C`  |
+| `operations.cmdb.group` | `/business/cmdb/group` | `operations.cmdb.group.menu` | `operations-cmdb-group-list` | `business.cmdb`       | `business/cmdb/group/CmdbGroupList`       | `business:cmdb:group:view` | —          | `C`  |
+| `operations.cmdb.label` | `/business/cmdb/label` | `operations.cmdb.label.menu` | `operations-cmdb-label-list` | `business.cmdb`       | `business/cmdb/label/CmdbLabelSchemaList` | `business:cmdb:label:view` | —          | `C`  |
 
 - 一级 `operations` 是目录（`D`），不绑定组件。
 - 主机详情页/编辑页不作为侧边栏菜单，从列表页内跳转。
@@ -533,13 +532,13 @@ i18n key 前缀：`business.cmdb.*`。
 
 按层级：
 
-| 层级 | 前缀 | 覆盖内容 |
-| :--- | :--- | :--- |
-| 菜单 | `operations.cmdb.*` | 导航标题 |
-| 主机 | `business.cmdb.host.*` | 页面标题、表格列、表单字段、按钮、空态、错误 |
-| 分组 | `business.cmdb.group.*` | 页面标题、表单字段、按钮、空态、错误 |
-| 标签 | `business.cmdb.label.*` | 标签编辑、预置 key 名称 |
-| 采集 | `business.cmdb.collect.*` | SSH 弹窗、连接错误、成功提示 |
+| 层级 | 前缀                      | 覆盖内容                                     |
+| :--- | :------------------------ | :------------------------------------------- |
+| 菜单 | `operations.cmdb.*`       | 导航标题                                     |
+| 主机 | `business.cmdb.host.*`    | 页面标题、表格列、表单字段、按钮、空态、错误 |
+| 分组 | `business.cmdb.group.*`   | 页面标题、表单字段、按钮、空态、错误         |
+| 标签 | `business.cmdb.label.*`   | 标签编辑、预置 key 名称                      |
+| 采集 | `business.cmdb.collect.*` | SSH 弹窗、连接错误、成功提示                 |
 
 至少补齐：
 
@@ -559,37 +558,65 @@ i18n key 前缀：`business.cmdb.*`。
 
 ### 11.1 依赖字典
 
-| 字典类型 | 用途 | 字典项 |
-| :--- | :--- | :--- |
+| 字典类型           | 用途         | 字典项                                        |
+| :----------------- | :----------- | :-------------------------------------------- |
 | `cmdb_host_status` | 主机状态枚举 | `pending`、`online`、`offline`、`maintenance` |
-| `cmdb_os_type` | 操作系统类型 | `linux`、`windows` |
-| `cmdb_label_key` | 预置标签 key | `env`、`biz`、`cluster`、`region`、`db_type` |
-| `cmdb_env` | 环境标签取值 | `dev`、`test`、`prod` |
+| `cmdb_os_type`     | 操作系统类型 | `linux`、`windows`                            |
+| `cmdb_label_key`   | 预置标签 key | `env`、`biz`、`cluster`、`region`、`db_type`  |
+| `cmdb_env`         | 环境标签取值 | `dev`、`test`、`prod`                         |
 
 CMDB 的标签规范归 `business/cmdb` 所有。它可以通过 `dict_code` 引用系统字典项作为候选值，但字典模块不理解"哪些标签用于分组、哪些标签必填、哪些标签被主机引用"这些业务规则。
 
 ### 11.2 依赖配置
 
-| 配置 key | 目标用途 | 当前实现 |
-| :--- | :--- | :--- |
-| `cmdb.ssh.collect_timeout` | 通过 `system/config` 管理 SSH 采集连接超时（秒），默认 `10` | 尚未接入配置读取；`host_service.go` 当前硬编码 `10s` |
-| `cmdb.ssh.default_port` | 通过 `system/config` 管理默认 SSH 端口，默认 `22` | 尚未接入配置读取；模型/服务层当前直接回落 `22` |
+| 配置 key                   | 目标用途                                                    | 当前实现                                                                                                                                                                                                                                                           |
+| :------------------------- | :---------------------------------------------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `cmdb.ssh.collect_timeout` | 通过 `system/config` 管理 SSH 采集连接超时（秒），默认 `10` | 已被 `host/host_config.go` 解析逻辑读取：缺失回落默认 `10s`，非法/超大值有界回落（上限 10 分钟）；`host_service.go` `Collect` 已使用 `collectTimeout()`。解析先在整数秒内与上限比较再转 `time.Duration`，避免 MaxInt64 数量秒乘 duration 溢出为负数                |
+| `cmdb.ssh.default_port`    | 通过 `system/config` 管理默认 SSH 端口，默认 `22`           | 已被 `host/host_config.go` 解析逻辑读取：缺失回落 `22`，无效端口有界回落；显式 Host 端口优先。`host_service.go` `Create` 在主机未显式填端口时持久化 `defaultSSHPort()`（回落 `22`），使配置 default_port 在运行时真正生效，而不只是 `effectiveSSHPort(0)` 的死分支 |
 
-目标态仍是通过 base 提供的配置能力读取上述业务配置，不直接依赖 `system/config` 内部 Service，也不以环境变量替代。配置化属于待办，见任务卡 `2026-07-17-cmdb-ssh-config-externalize`。
+目标态仍是通过 base 提供的配置能力读取上述业务配置：CMDB 依赖 `GetByKey` 形状的
+`ConfigReader`（与公开 `tenant.SettingFlagReader` 一致）注入到 `HostService`，不直接
+import `system/config` 内部 Service，也不以环境变量替代。
+
+当前状态与剩余 gap：
+
+- 已实现 (business 边界内)：`cmdb/` host 包的配置解析/边界/回落逻辑（`host_config.go`）与
+  `Collect` 接线；配套回归测试（配置生效、默认回落、显式端口优先、非法值有界回落、
+  超大溢出回落到上限、配置变更随注入 reader 下次 collect 生效）。`Create` 持久化配置
+  default_port（见表格），使 default_port 运行时生效。
+- 业务边界内不假关闭、也未实现（2026-11-16 历史收尾批如实保留，不本地绕过）：
+  1. 共享层需一个面向业务模块的**取值侧**公共 seam：业务不能 import `system/config/setting`
+     内部 Service（本设计 §2 边界），而现有 `tenant.SettingFlagReader` 只是接口形状、
+     `pkg/contracts RegisterRuntimeSettingReloader` 只是变更刷新回调，两者都不提供
+     "注入一次 tenant 作用域 setting view 后业务可读取" 的供应端。
+  2. 业务配置 seed 注册：Base `setting_seed.go` 的 `defaultSettingSeeds` 为硬编码清单，
+     无 `RegisterSettingSeed` 消费者 API，`cmdb.ssh.*` 两 key 无法随系统配置面生成。
+- **最小所需公共 contract（Base canonical 落点，不在此仓本地复制）：**
+  1. 取值 seam：参照 `pkg/contracts` 既有 `RegisterBusinessAuthorizationReader` /
+     `RegisteredBusinessTenantModeReader` 单例注册模式，在 Base `backend/pkg/contracts`
+     增加 `RegisterBusinessSettingReader(r tenant.SettingFlagReader)` +
+     `RegisteredBusinessSettingReader()`；`opsinit` 装配点将 `*setting.SettingService`
+     的 tenant 作用域 view 一次性注册到此 seam，业务（cmdb/host）经
+     `RegisteredBusinessSettingReader()` 取用，不 import 内部 Service。
+  2. seed 注册：Base `backend/modules/system/config/setting/setting_seed.go` 暴露
+     `RegisterSettingSeed(...)` 消费者 API（或直接纳入 `cmdb.ssh.collect_timeout` /
+     `cmdb.ssh.default_port`：valueType=number, module=business.cmdb）。
+     这两个 contract 落在 Base，需 pantheon-base 最小修复并重新锁 foundation 后再接线。
+     此 gap 由 `2026-07-17-cmdb-ssh-config-externalize` 跟踪，Codex 验收关闭前任务保持 in-progress。
 
 ## 12. 审计与安全要求
 
 ### 12.1 审计点
 
-| 动作 | 审计 action | 记录内容 |
-| :--- | :--- | :--- |
-| 新增主机 | `business.cmdb.host.audit.create` | 主机名、IP |
-| 编辑主机 | `business.cmdb.host.audit.update` | 变更字段 |
-| 删除主机 | `business.cmdb.host.audit.delete` | 主机名、IP |
+| 动作     | 审计 action                        | 记录内容             |
+| :------- | :--------------------------------- | :------------------- |
+| 新增主机 | `business.cmdb.host.audit.create`  | 主机名、IP           |
+| 编辑主机 | `business.cmdb.host.audit.update`  | 变更字段             |
+| 删除主机 | `business.cmdb.host.audit.delete`  | 主机名、IP           |
 | SSH 采集 | `business.cmdb.host.audit.collect` | 主机名、IP、采集结果 |
-| 新增分组 | `business.cmdb.group.audit.create` | 分组名 |
-| 编辑分组 | `business.cmdb.group.audit.update` | 变更条件 |
-| 删除分组 | `business.cmdb.group.audit.delete` | 分组名 |
+| 新增分组 | `business.cmdb.group.audit.create` | 分组名               |
+| 编辑分组 | `business.cmdb.group.audit.update` | 变更条件             |
+| 删除分组 | `business.cmdb.group.audit.delete` | 分组名               |
 
 后续导入、导出、批量操作必须补对应审计点。
 
@@ -606,13 +633,13 @@ CMDB 的标签规范归 `business/cmdb` 所有。它可以通过 `dict_code` 引
 
 CMDB 模块需要以下 seed：
 
-| 类别 | 内容 | 说明 |
-| :--- | :--- | :--- |
+| 类别 | 内容                                                                                                      | 说明              |
+| :--- | :-------------------------------------------------------------------------------------------------------- | :---------------- |
 | 菜单 | `operations`、`operations.cmdb`、`operations.cmdb.host`、`operations.cmdb.group`、`operations.cmdb.label` | 一级导航 + 子模块 |
-| 权限 | `business:cmdb:host:*`（8 项）、`business:cmdb:group:*`（6 项）、`business:cmdb:label:*`（5 项） | 见第 7 节 |
-| i18n | `business.cmdb.*`、`operations.*` | 中英文语言包 |
-| 字典 | `cmdb_host_status`、`cmdb_os_type`、`cmdb_label_key` | 见 11.1 节 |
-| 配置 | `cmdb.ssh.collect_timeout`、`cmdb.ssh.default_port` | 见 11.2 节 |
+| 权限 | `business:cmdb:host:*`（8 项）、`business:cmdb:group:*`（6 项）、`business:cmdb:label:*`（5 项）          | 见第 7 节         |
+| i18n | `business.cmdb.*`、`operations.*`                                                                         | 中英文语言包      |
+| 字典 | `cmdb_host_status`、`cmdb_os_type`、`cmdb_label_key`                                                      | 见 11.1 节        |
+| 配置 | `cmdb.ssh.collect_timeout`、`cmdb.ssh.default_port`                                                       | 见 11.2 节        |
 
 组件键注册：
 
@@ -633,12 +660,12 @@ CMDB 模块需要以下 seed：
 
 ### 14.2 风险
 
-| 风险 | 缓解 |
-| :--- | :--- |
-| SSH 采集依赖网络可达 | 手动录入作为降级方案，采集失败不影响 CMDB 可用性 |
+| 风险                      | 缓解                                                       |
+| :------------------------ | :--------------------------------------------------------- |
+| SSH 采集依赖网络可达      | 手动录入作为降级方案，采集失败不影响 CMDB 可用性           |
 | 标签 key 自由扩展导致混乱 | 预置 key 提供语义约定，管理视图可展示未使用 key 的清理建议 |
-| 分组条件复杂度膨胀 | 首版仅支持 AND/OR + eq/neq/in/notIn，不引入嵌套子表达式 |
-| 多数据库兼容性 | 所有查询走 GORM，不使用原生 SQL 或数据库特定语法 |
+| 分组条件复杂度膨胀        | 首版仅支持 AND/OR + eq/neq/in/notIn，不引入嵌套子表达式    |
+| 多数据库兼容性            | 所有查询走 GORM，不使用原生 SQL 或数据库特定语法           |
 
 ## 15. 测试与验收
 

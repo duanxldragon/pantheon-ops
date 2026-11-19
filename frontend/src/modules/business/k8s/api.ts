@@ -402,18 +402,20 @@ export function deleteK8sSecret(clusterId: number, namespace: string, name: stri
 export interface K8sServicePort {
   name?: string;
   port: number;
-  targetPort: number;
+  targetPort: number | string;
   nodePort?: number;
   protocol: string;
 }
 
 export interface K8sServiceRow {
+  uid: string;
+  resourceVersion: string;
   name: string;
   namespace: string;
   type: string;
   clusterIP: string;
   ports: K8sServicePort[];
-  selector: Record<string, string>;
+  selector: Record<string, string> | null;
   loadBalancerIP?: string;
 }
 
@@ -425,20 +427,40 @@ export function getK8sServiceList(clusterId: number, params?: { namespace?: stri
   });
 }
 
-export function createK8sService(clusterId: number, namespace: string, data: { name: string; type: string; ports: K8sServicePort[]; selector: Record<string, string> }) {
+export function createK8sService(clusterId: number, namespace: string, data: { name: string; type: string; ports: K8sServicePort[]; selector: Record<string, string> }, options?: { skipErrorMessage?: boolean }) {
   return apiRequest<K8sServiceRow>({
     url: `/business/k8s/clusters/${clusterId}/services`,
     method: 'post',
     params: { namespace },
     data,
+    skipErrorMessage: options?.skipErrorMessage,
   });
 }
 
-export function deleteK8sService(clusterId: number, namespace: string, name: string) {
+export function updateK8sService(clusterId: number, namespace: string, name: string, data: {
+  type: string;
+  ports: K8sServicePort[];
+  selector: Record<string, string>;
+  resourceVersion: string;
+  uid: string;
+}, options?: { skipErrorMessage?: boolean }) {
+  return apiRequest<K8sServiceRow>({
+    url: `/business/k8s/clusters/${clusterId}/services/${encodeURIComponent(name)}`,
+    method: 'put',
+    params: { namespace },
+    data,
+    skipErrorMessage: options?.skipErrorMessage,
+  });
+}
+
+export function deleteK8sService(clusterId: number, namespace: string, name: string, identity: {
+  resourceVersion: string;
+  uid: string;
+}) {
   return apiRequest<void>({
     url: `/business/k8s/clusters/${clusterId}/services/${encodeURIComponent(name)}`,
     method: 'delete',
-    params: { namespace },
+    params: { namespace, ...identity },
   });
 }
 

@@ -1,0 +1,11 @@
+{
+  "command": "node --import=../.local/manual-preview-20261116/hide-child-windows.mjs node_modules/@playwright/test/cli.js test --config playwright.config.ts --list --grep \"a stale instance update\" tests/smoke/business/service/service-pages.spec.ts",
+  "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\frontend",
+  "startedAt": "2026-11-17T14:50:28.1567476Z",
+  "finishedAt": "2026-11-17T14:50:29.3192118Z",
+  "exitCode": 0,
+  "status": "passed",
+  "log": "ui-stale-envelope-discovery.log",
+  "sourceManifest": "ui-stale-envelope-source-manifest.json",
+  "note": "Fixture-only change; no browser/DB test execution or background process startup."
+}

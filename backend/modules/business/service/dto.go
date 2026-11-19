@@ -140,9 +140,22 @@ type CreateInstanceRequest struct {
 
 // UpdateInstanceRequest contains mutable service-instance fields.
 type UpdateInstanceRequest struct {
-	DesiredVersion *string `json:"desiredVersion"`
-	CurrentVersion *string `json:"currentVersion"`
-	Status         *string `json:"status"`
+	ExpectedLifecycleVersion *uint64                `json:"expectedLifecycleVersion"`
+	Target                   *InstanceTargetRequest `json:"target"`
+	DesiredVersion           *string                `json:"desiredVersion"`
+	CurrentVersion           *string                `json:"currentVersion"`
+	Status                   *string                `json:"status"`
+}
+
+// InstanceTargetRequest replaces a target atomically, including empty fields
+// belonging to the other runtime type.
+type InstanceTargetRequest struct {
+	TargetType   string `json:"targetType"`
+	HostID       uint64 `json:"hostId"`
+	K8sClusterID uint64 `json:"k8sClusterId"`
+	Namespace    string `json:"namespace"`
+	WorkloadKind string `json:"workloadKind"`
+	WorkloadName string `json:"workloadName"`
 }
 
 // InstanceStateTransitionRequest describes a service-instance state transition.

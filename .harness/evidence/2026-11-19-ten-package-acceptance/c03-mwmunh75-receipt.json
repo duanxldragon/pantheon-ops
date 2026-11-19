@@ -1,0 +1,2997 @@
+{
+  "schemaVersion": 1,
+  "taskId": "2026-11-19-ten-package-acceptance",
+  "packageCode": "C03",
+  "tag": "c03-mwmunh75",
+  "startedAt": "2026-11-19T01:06:24.594Z",
+  "scenarios": [
+    {
+      "id": "C03-101",
+      "intent": "Each real catalog list returns server totals, page six and editable rows beyond first 100",
+      "userModel": "Authenticated administrator",
+      "harness": ".local/acceptance-20261119/c03-live.spec.ts",
+      "expected": "Each real catalog list returns server totals, page six and editable rows beyond first 100",
+      "startedAt": "2026-11-19T01:06:35.311Z",
+      "fixesApplied": [],
+      "cleanup": "pending",
+      "status": "FAIL",
+      "error": "TimeoutError: locator.click: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('tabpanel', { name: '应用', exact: true }).locator('tbody tr').filter({ hasText: 'c03-mwmunh75-app-005' }).getByRole('button', { name: '编辑', exact: true })\u001b[22m\n",
+      "finishedAt": "2026-11-19T01:06:55.191Z"
+    },
+    {
+      "id": "C03-READ",
+      "intent": "Real service:list reader can read all tabs without CMDB/K8s calls or mutation controls",
+      "userModel": "Least-privilege reader with only service list permission",
+      "harness": ".local/acceptance-20261119/c03-live.spec.ts",
+      "expected": "Real service:list reader can read all tabs without CMDB/K8s calls or mutation controls",
+      "startedAt": "2026-11-19T01:06:55.193Z",
+      "fixesApplied": [],
+      "cleanup": "pending",
+      "status": "FAIL",
+      "error": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m403\u001b[39m\nReceived: \u001b[31m200\u001b[39m",
+      "finishedAt": "2026-11-19T01:06:55.275Z"
+    },
+    {
+      "id": "C03-DENY",
+      "intent": "Backend rejects reader writes and leaves all owner facts unchanged",
+      "userModel": "Reader forging API mutation calls",
+      "harness": ".local/acceptance-20261119/c03-live.spec.ts",
+      "expected": "Backend rejects reader writes and leaves all owner facts unchanged",
+      "startedAt": "2026-11-19T01:06:55.276Z",
+      "fixesApplied": [],
+      "cleanup": "pending",
+      "status": "FAIL",
+      "error": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m403\u001b[39m\nReceived: \u001b[31m200\u001b[39m",
+      "finishedAt": "2026-11-19T01:06:55.311Z"
+    },
+    {
+      "id": "C03-OWNER",
+      "intent": "Department-restricted editor cannot read or edit foreign-owner version/target",
+      "userModel": "Service update permission holder in a distinct task-owned department",
+      "harness": ".local/acceptance-20261119/c03-live.spec.ts",
+      "expected": "Department-restricted editor cannot read or edit foreign-owner version/target",
+      "startedAt": "2026-11-19T01:06:55.312Z",
+      "fixesApplied": [],
+      "cleanup": "pending",
+      "status": "FAIL",
+      "error": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m\"\u001b[7mbusiness.service.instance_not_foun\u001b[27md\"\u001b[39m\nReceived: \u001b[31m\"\u001b[7mpermission.denie\u001b[27md\"\u001b[39m",
+      "finishedAt": "2026-11-19T01:06:55.352Z"
+    },
+    {
+      "id": "C03-TARGET",
+      "intent": "Valid target rebind persists atomically; foreign scope and duplicate targets reject without mutation",
+      "userModel": "Owner administrator and hostile cross-scope/duplicate target edits",
+      "harness": ".local/acceptance-20261119/c03-live.spec.ts",
+      "expected": "Valid target rebind persists atomically; foreign scope and duplicate targets reject without mutation",
+      "startedAt": "2026-11-19T01:06:55.354Z",
+      "fixesApplied": [],
+      "cleanup": "pending",
+      "actual": {
+        "validRebind": {
+          "id": 17,
+          "fromHost": 534,
+          "toHost": 535,
+          "persistedVersion": "3.0.0",
+          "lifecycleVersion": 1
+        },
+        "foreign": {
+          "http": 200,
+          "code": 404,
+          "message": "business.service.target_not_found"
+        },
+        "duplicate": {
+          "http": 200,
+          "code": 409,
+          "message": "business.service.target_conflict"
+        },
+        "rejectedUpdatesUnchanged": true
+      },
+      "status": "PASS",
+      "finishedAt": "2026-11-19T01:06:55.596Z"
+    },
+    {
+      "id": "C03-STALE",
+      "intent": "Real concurrent update returns stale conflict and preserves open dialog value without spinner",
+      "userModel": "Administrator editing from an outdated browser row",
+      "harness": ".local/acceptance-20261119/c03-live.spec.ts",
+      "expected": "Real concurrent update returns stale conflict and preserves open dialog value without spinner",
+      "startedAt": "2026-11-19T01:06:55.597Z",
+      "fixesApplied": [],
+      "cleanup": "pending",
+      "actual": {
+        "id": 18,
+        "browserExpectedLifecycleVersion": 0,
+        "winnerLifecycleVersion": 1,
+        "conflict": {
+          "http": 200,
+          "code": 409,
+          "message": "business.service.state_stale"
+        },
+        "dialogInputRetained": true,
+        "submitLoadingCleared": true,
+        "winnerPersisted": true,
+        "screenshot": {
+          "path": ".harness/evidence/2026-11-19-ten-package-acceptance/c03-mwmunh75-stale-conflict-dialog.png",
+          "viewport": {
+            "width": 1440,
+            "height": 900
+          },
+          "bodyWidth": 1440,
+          "noPageOverflow": true
+        }
+      },
+      "status": "PASS",
+      "finishedAt": "2026-11-19T01:06:59.852Z"
+    },
+    {
+      "id": "C03-MALFORMED",
+      "intent": "Missing CAS and forged currentVersion reject without persisted changes",
+      "userModel": "Owner sending malformed or observed-fact mutation payloads",
+      "harness": ".local/acceptance-20261119/c03-live.spec.ts",
+      "expected": "Missing CAS and forged currentVersion reject without persisted changes",
+      "startedAt": "2026-11-19T01:06:59.854Z",
+      "fixesApplied": [],
+      "cleanup": "pending",
+      "actual": {
+        "outcomes": [
+          {
+            "request": {
+              "desiredVersion": "missing-cas"
+            },
+            "http": 200,
+            "code": 400,
+            "message": "common.param_invalid"
+          },
+          {
+            "request": {
+              "expectedLifecycleVersion": 0,
+              "currentVersion": "forged-observation",
+              "desiredVersion": "must-not-persist"
+            },
+            "http": 200,
+            "code": 400,
+            "message": "common.param_invalid"
+          },
+          {
+            "request": {
+              "expectedLifecycleVersion": 0,
+              "target": {
+                "targetType": "vm",
+                "hostId": 535,
+                "namespace": "../foreign"
+              }
+            },
+            "http": 200,
+            "code": 400,
+            "message": "business.service.target_invalid"
+          }
+        ],
+        "ownerFactsUnchanged": true
+      },
+      "status": "PASS",
+      "finishedAt": "2026-11-19T01:06:59.985Z"
+    }
+  ],
+  "sourcesBefore": [
+    {
+      "file": "foundation-release.lock.json",
+      "sha256": "14417d10b6ac9fc6eb0c24069b8c2b099abef2f0ad22536c402df06de4eaf1fc"
+    },
+    {
+      "file": "frontend/src/modules/business/service/ServiceCatalog.tsx",
+      "sha256": "24f60723ab9765e4909be3ce60c23a5c10eb7529f8f0f800c5cf0941c549a6ad"
+    },
+    {
+      "file": "frontend/src/modules/business/service/api.ts",
+      "sha256": "6206773022d1ba4774e66cab246a2b568e42a7dd668995aac8682bfb638eee57"
+    },
+    {
+      "file": "frontend/src/modules/business/service/useCatalogOptions.ts",
+      "sha256": "25a2e2e4b798d9b430307f28758b57dd366015e36e835c5bf58480b9c9edf85d"
+    },
+    {
+      "file": "backend/modules/business/service/service.go",
+      "sha256": "08483efa0f60f7e042b7982ca81f3bdff9241135026ce02ec7cdfbceeb8930f8"
+    },
+    {
+      "file": "backend/modules/business/service/handler.go",
+      "sha256": "69c09edbed726dcff749110c9399a20efbef5d38facee2acc097038f6220d527"
+    },
+    {
+      "file": "backend/modules/business/service/permission_routes.go",
+      "sha256": "8bb22ce1082d0bfa8b6cc2235550bae1535750566dc490ba45ac0ae0e98bdd97"
+    }
+  ],
+  "fixtures": {
+    "applications": [
+      20,
+      21,
+      22,
+      23,
+      24,
+      25,
+      26,
+      27,
+      28,
+      29,
+      30,
+      31,
+      32,
+      33,
+      34,
+      35,
+      36,
+      37,
+      38,
+      39,
+      40,
+      41,
+      42,
+      43,
+      44,
+      45,
+      46,
+      47,
+      48,
+      49,
+      50,
+      51,
+      52,
+      53,
+      54,
+      55,
+      56,
+      57,
+      58,
+      59,
+      60,
+      61,
+      62,
+      63,
+      64,
+      65,
+      66,
+      67,
+      68,
+      69,
+      70,
+      71,
+      72,
+      73,
+      74,
+      75,
+      76,
+      77,
+      78,
+      79,
+      80,
+      81,
+      82,
+      83,
+      84,
+      85,
+      86,
+      87,
+      88,
+      89,
+      90,
+      91,
+      92,
+      93,
+      94,
+      95,
+      96,
+      97,
+      98,
+      99,
+      100,
+      101,
+      102,
+      103,
+      104,
+      105,
+      106,
+      107,
+      108,
+      109,
+      110,
+      111,
+      112,
+      113,
+      114,
+      115,
+      116,
+      117,
+      118,
+      119,
+      120,
+      121,
+      122,
+      123,
+      124
+    ],
+    "services": [
+      20,
+      21,
+      22,
+      23,
+      24,
+      25,
+      26,
+      27,
+      28,
+      29,
+      30,
+      31,
+      32,
+      33,
+      34,
+      35,
+      36,
+      37,
+      38,
+      39,
+      40,
+      41,
+      42,
+      43,
+      44,
+      45,
+      46,
+      47,
+      48,
+      49,
+      50,
+      51,
+      52,
+      53,
+      54,
+      55,
+      56,
+      57,
+      58,
+      59,
+      60,
+      61,
+      62,
+      63,
+      64,
+      65,
+      66,
+      67,
+      68,
+      69,
+      70,
+      71,
+      72,
+      73,
+      74,
+      75,
+      76,
+      77,
+      78,
+      79,
+      80,
+      81,
+      82,
+      83,
+      84,
+      85,
+      86,
+      87,
+      88,
+      89,
+      90,
+      91,
+      92,
+      93,
+      94,
+      95,
+      96,
+      97,
+      98,
+      99,
+      100,
+      101,
+      102,
+      103,
+      104,
+      105,
+      106,
+      107,
+      108,
+      109,
+      110,
+      111,
+      112,
+      113,
+      114,
+      115,
+      116,
+      117,
+      118,
+      119,
+      120,
+      121,
+      122,
+      123,
+      124
+    ],
+    "instances": [
+      17,
+      18,
+      19,
+      20,
+      21,
+      22,
+      23,
+      24,
+      25,
+      26,
+      27,
+      28,
+      29,
+      30,
+      31,
+      32,
+      33,
+      34,
+      35,
+      36,
+      37,
+      38,
+      39,
+      40,
+      41,
+      42,
+      43,
+      44,
+      45,
+      46,
+      47,
+      48,
+      49,
+      50,
+      51,
+      52,
+      53,
+      54,
+      55,
+      56,
+      57,
+      58,
+      59,
+      60,
+      61,
+      62,
+      63,
+      64,
+      65,
+      66,
+      67,
+      68,
+      69,
+      70,
+      71,
+      72,
+      73,
+      74,
+      75,
+      76,
+      77,
+      78,
+      79,
+      80,
+      81,
+      82,
+      83,
+      84,
+      85,
+      86,
+      87,
+      88,
+      89,
+      90,
+      91,
+      92,
+      93,
+      94,
+      95,
+      96,
+      97,
+      98,
+      99,
+      100,
+      101,
+      102,
+      103,
+      104,
+      105,
+      106,
+      107,
+      108,
+      109,
+      110,
+      111,
+      112,
+      113,
+      114,
+      115,
+      116,
+      117,
+      118,
+      119,
+      120,
+      121,
+      122
+    ],
+    "hosts": [
+      534,
+      535,
+      536
+    ],
+    "scopes": [
+      499,
+      500
+    ],
+    "roles": [
+      6,
+      7
+    ],
+    "users": [
+      6,
+      7
+    ],
+    "depts": [
+      5
+    ],
+    "bindings": [
+      {
+        "scopeId": 499,
+        "hostId": 534
+      },
+      {
+        "scopeId": 499,
+        "hostId": 535
+      },
+      {
+        "scopeId": 500,
+        "hostId": 536
+      }
+    ]
+  },
+  "boundary": "Real authenticated local API and browser; no mocked routes/auth data, no SSH/deployment/providers, source edits or process restarts.",
+  "admin": {
+    "id": 1,
+    "isAdmin": true
+  },
+  "baselineapplications": {
+    "items": [],
+    "total": 0,
+    "page": 1,
+    "pageSize": 20
+  },
+  "baselineservices": {
+    "items": [],
+    "total": 0,
+    "page": 1,
+    "pageSize": 20
+  },
+  "baselineinstances": {
+    "items": [],
+    "total": 0,
+    "page": 1,
+    "pageSize": 20
+  },
+  "reader": {
+    "id": 6,
+    "roles": [
+      "c03_mwmunh75_reader"
+    ],
+    "perms": [
+      "business:service:list"
+    ],
+    "configuredPermissionKeys": [
+      "business:service:list"
+    ],
+    "configuredDataScope": "all"
+  },
+  "editor": {
+    "id": 7,
+    "roles": [
+      "c03_mwmunh75_editor"
+    ],
+    "perms": [
+      "business:service:list",
+      "business:service:view",
+      "business:service:update"
+    ],
+    "configuredPermissionKeys": [
+      "business:service:list",
+      "business:service:view",
+      "business:service:update"
+    ],
+    "configuredDataScope": "dept"
+  },
+  "setup": {
+    "status": "PASS",
+    "realObjectCount": {
+      "applications": 105,
+      "services": 105,
+      "instances": 105
+    },
+    "scopeId": 499,
+    "hostId": 534,
+    "foreignHostId": 536
+  },
+  "helmRestrictedRoleWitness": {
+    "userId": 6,
+    "actualPermissions": [
+      "business:service:list"
+    ],
+    "outcomes": [
+      {
+        "method": "GET",
+        "endpoint": "/business/k8s/helm/releases",
+        "http": 200,
+        "code": 403,
+        "message": "permission.denied"
+      },
+      {
+        "method": "POST",
+        "endpoint": "/business/k8s/helm/releases",
+        "http": 200,
+        "code": 403,
+        "message": "permission.denied"
+      },
+      {
+        "method": "DELETE",
+        "endpoint": "/business/k8s/helm/releases/999999999",
+        "http": 200,
+        "code": 403,
+        "message": "permission.denied"
+      }
+    ]
+  },
+  "cleanup": {
+    "status": "PASS",
+    "operations": [
+      {
+        "endpoint": "/business/service/instances/122",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/instances/121",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/instances/120",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/instances/119",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/instances/118",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/instances/117",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/instances/116",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/instances/115",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/instances/114",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/instances/113",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/instances/112",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/instances/111",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/instances/110",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/instances/109",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/instances/108",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/instances/107",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/instances/106",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/instances/105",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/instances/104",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/instances/103",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/instances/102",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/instances/101",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/instances/100",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/instances/99",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/instances/98",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/instances/97",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/instances/96",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/instances/95",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/instances/94",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/instances/93",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/instances/92",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/instances/91",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/instances/90",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/instances/89",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/instances/88",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/instances/87",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/instances/86",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/instances/85",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/instances/84",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/instances/83",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/instances/82",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/instances/81",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/instances/80",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/instances/79",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/instances/78",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/instances/77",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/instances/76",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/instances/75",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/instances/74",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/instances/73",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/instances/72",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/instances/71",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/instances/70",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/instances/69",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/instances/68",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/instances/67",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/instances/66",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/instances/65",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/instances/64",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/instances/63",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/instances/62",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/instances/61",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/instances/60",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/instances/59",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/instances/58",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/instances/57",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/instances/56",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/instances/55",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/instances/54",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/instances/53",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/instances/52",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/instances/51",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/instances/50",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/instances/49",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/instances/48",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/instances/47",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/instances/46",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/instances/45",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/instances/44",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/instances/43",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/instances/42",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/instances/41",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/instances/40",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/instances/39",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/instances/38",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/instances/37",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/instances/36",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/instances/35",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/instances/34",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/instances/33",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/instances/32",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/instances/31",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/instances/30",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/instances/29",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/instances/28",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/instances/27",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/instances/26",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/instances/25",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/instances/24",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/instances/23",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/instances/22",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/instances/21",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/instances/20",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/instances/19",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/instances/18",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/instances/17",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/services/124",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/services/123",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/services/122",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/services/121",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/services/120",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/services/119",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/services/118",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/services/117",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/services/116",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/services/115",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/services/114",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/services/113",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/services/112",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/services/111",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/services/110",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/services/109",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/services/108",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/services/107",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/services/106",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/services/105",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/services/104",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/services/103",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/services/102",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/services/101",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/services/100",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/services/99",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/services/98",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/services/97",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/services/96",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/services/95",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/services/94",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/services/93",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/services/92",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/services/91",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/services/90",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/services/89",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/services/88",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/services/87",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/services/86",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/services/85",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/services/84",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/services/83",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/services/82",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/services/81",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/services/80",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/services/79",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/services/78",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/services/77",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/services/76",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/services/75",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/services/74",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/services/73",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/services/72",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/services/71",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/services/70",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/services/69",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/services/68",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/services/67",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/services/66",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/services/65",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/services/64",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/services/63",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/services/62",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/services/61",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/services/60",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/services/59",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/services/58",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/services/57",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/services/56",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/services/55",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/services/54",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/services/53",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/services/52",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/services/51",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/services/50",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/services/49",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/services/48",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/services/47",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/services/46",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/services/45",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/services/44",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/services/43",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/services/42",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/services/41",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/services/40",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/services/39",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/services/38",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/services/37",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/services/36",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/services/35",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/services/34",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/services/33",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/services/32",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/services/31",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/services/30",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/services/29",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/services/28",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/services/27",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/services/26",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/services/25",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/services/24",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/services/23",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/services/22",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/services/21",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/services/20",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/applications/124",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/applications/123",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/applications/122",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/applications/121",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/applications/120",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/applications/119",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/applications/118",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/applications/117",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/applications/116",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/applications/115",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/applications/114",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/applications/113",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/applications/112",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/applications/111",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/applications/110",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/applications/109",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/applications/108",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/applications/107",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/applications/106",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/applications/105",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/applications/104",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/applications/103",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/applications/102",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/applications/101",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/applications/100",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/applications/99",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/applications/98",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/applications/97",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/applications/96",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/applications/95",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/applications/94",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/applications/93",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/applications/92",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/applications/91",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/applications/90",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/applications/89",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/applications/88",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/applications/87",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/applications/86",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/applications/85",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/applications/84",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/applications/83",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/applications/82",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/applications/81",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/applications/80",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/applications/79",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/applications/78",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/applications/77",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/applications/76",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/applications/75",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/applications/74",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/applications/73",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/applications/72",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/applications/71",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/applications/70",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/applications/69",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/applications/68",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/applications/67",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/applications/66",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/applications/65",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/applications/64",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/applications/63",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/applications/62",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/applications/61",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/applications/60",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/applications/59",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/applications/58",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/applications/57",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/applications/56",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/applications/55",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/applications/54",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/applications/53",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/applications/52",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/applications/51",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/applications/50",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/applications/49",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/applications/48",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/applications/47",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/applications/46",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/applications/45",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/applications/44",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/applications/43",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/applications/42",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/applications/41",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/applications/40",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/applications/39",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/applications/38",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/applications/37",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/applications/36",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/applications/35",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/applications/34",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/applications/33",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/applications/32",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/applications/31",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/applications/30",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/applications/29",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/applications/28",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/applications/27",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/applications/26",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/applications/25",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/applications/24",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/applications/23",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/applications/22",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/applications/21",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/service/applications/20",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/bizscope/500/hosts/536",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/bizscope/499/hosts/535",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/bizscope/499/hosts/534",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/cmdb/hosts/536",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/cmdb/hosts/535",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/cmdb/hosts/534",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/bizscope/500",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/business/bizscope/499",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/system/user/7",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/system/user/6",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/system/role/7",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/system/role/6",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      },
+      {
+        "endpoint": "/system/dept/5",
+        "http": 200,
+        "code": 200,
+        "message": "success",
+        "status": "PASS"
+      }
+    ]
+  },
+  "sourcesAfter": [
+    {
+      "file": "foundation-release.lock.json",
+      "sha256": "14417d10b6ac9fc6eb0c24069b8c2b099abef2f0ad22536c402df06de4eaf1fc"
+    },
+    {
+      "file": "frontend/src/modules/business/service/ServiceCatalog.tsx",
+      "sha256": "24f60723ab9765e4909be3ce60c23a5c10eb7529f8f0f800c5cf0941c549a6ad"
+    },
+    {
+      "file": "frontend/src/modules/business/service/api.ts",
+      "sha256": "6206773022d1ba4774e66cab246a2b568e42a7dd668995aac8682bfb638eee57"
+    },
+    {
+      "file": "frontend/src/modules/business/service/useCatalogOptions.ts",
+      "sha256": "25a2e2e4b798d9b430307f28758b57dd366015e36e835c5bf58480b9c9edf85d"
+    },
+    {
+      "file": "backend/modules/business/service/service.go",
+      "sha256": "08483efa0f60f7e042b7982ca81f3bdff9241135026ce02ec7cdfbceeb8930f8"
+    },
+    {
+      "file": "backend/modules/business/service/handler.go",
+      "sha256": "69c09edbed726dcff749110c9399a20efbef5d38facee2acc097038f6220d527"
+    },
+    {
+      "file": "backend/modules/business/service/permission_routes.go",
+      "sha256": "8bb22ce1082d0bfa8b6cc2235550bae1535750566dc490ba45ac0ae0e98bdd97"
+    }
+  ],
+  "sourceUnchanged": true,
+  "finishedAt": "2026-11-19T01:07:08.101Z",
+  "status": "FAIL"
+}

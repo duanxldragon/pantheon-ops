@@ -1,0 +1,72 @@
+{
+  "schema": "pantheon-e01-regular-unit-verification/v1",
+  "observedAtUTC": "2026-11-18T08:07:12Z",
+  "sourceSHA256": {
+    "business-overlay.json": "7f7257853b1b6de1d6721040bef0ef03619c8296ca478540350b23dec9fd4aee",
+    "frontend/tests/unit/business/filedist/FiledistLifetime.test.ts": "bb6d4712a0b00c994ab95be96f651c0315ef2ba8802b7a13b97962fdf3c3a2fb",
+    ".harness/evidence/2026-11-16-ops-filedist-product-closure/ui-lifetime.regression-20261118.test.ts": "0d3d66ea394e3c92dea41b5ce8fb19da5395fac4a23ff66b7a44ee54a0554256",
+    "frontend/src/modules/business/filedist/useTaskDetail.ts": "e87f2e2b4fa403e4dd2d8a1f87e6d878670f4338756c4c3c087de7564e69aebe",
+    "frontend/src/modules/business/filedist/useFileChoices.ts": "a08129ff631210f17ab6989feaf554ddbb6999be94f57d4630de6043f64970b2",
+    "frontend/src/modules/business/filedist/taskState.ts": "14d31aa7be0b64dd27b42619297dabb507adfab027ef3e6c1c47b56e62df4cc3",
+    "frontend/src/modules/business/filedist/createTaskPayload.ts": "e479cf0fec6897f6851b30dd4e0e45c7c19d7677c94b572c4e5252ffa1ee7e95",
+    "frontend/src/modules/business/filedist/FiledistDetail.tsx": "592da075658906b6e40dafc49c1364275b5d122e6734bd85394265bf6b7ba1ba",
+    "frontend/src/modules/business/filedist/FiledistList.tsx": "584d6320c510588945d52bab1505c915f28a39e3aa4dfdef16ef24bb0edc4842",
+    "frontend/src/modules/business/deploy/api.ts": "ef0e88677e801404e345dd2a0a6f71ef6944056eb4f03ab33a8f64e088720d49"
+  },
+  "verification": [
+    {
+      "name": "vitest",
+      "command": "node --import ../.local/manual-preview-20261116/hide-child-windows.mjs node_modules/vitest/vitest.mjs run tests/unit/business/filedist/FiledistLifetime.test.ts --pool=threads --maxWorkers=1 --fileParallelism=false --reporter=verbose",
+      "cwd": "frontend",
+      "exitCode": 0,
+      "output": "(!) Your Vite config uses features that are unsupported by `configLoader: 'native'`, which is planned to become the default in a future major version of Vite:\n  - `__dirname` (vitest.config.ts:10:25). Use `import.meta.dirname` instead\nSet `VITE_CONFIG_NATIVE_IGNORE_WARNING=true` to suppress this warning.\n\n RUN  v5.0.5 D:/workspace/go/pantheon-platform/pantheon-ops/frontend\n\n ✓ tests/unit/business/filedist/FiledistLifetime.test.ts > FileDist detail request lifetime > does not restart polling while a sibling GET remains unsettled after early failure 108ms\n ✓ tests/unit/business/filedist/FiledistLifetime.test.ts > FileDist detail request lifetime > drops old task content immediately and ignores an aborted late response 17ms\n ✓ tests/unit/business/filedist/FiledistLifetime.test.ts > FileDist detail request lifetime > never overlaps progress polls and stops after terminal status 13ms\n ✓ tests/unit/business/filedist/FiledistLifetime.test.ts > FileDist detail request lifetime > retains progress but surfaces a background failure and its recovery 10ms\n ✓ tests/unit/business/filedist/FiledistLifetime.test.ts > FileDist detail request lifetime > cancels outstanding requests and future polls on unmount 12ms\n ✓ tests/unit/business/filedist/FiledistLifetime.test.ts > FileDist detail request lifetime > rejects malformed task identity 0 before HTTP 17ms\n ✓ tests/unit/business/filedist/FiledistLifetime.test.ts > FileDist detail request lifetime > rejects malformed task identity -1 before HTTP 8ms\n ✓ tests/unit/business/filedist/FiledistLifetime.test.ts > FileDist detail request lifetime > rejects malformed task identity NaN before HTTP 17ms\n ✓ tests/unit/business/filedist/FiledistLifetime.test.ts > FileDist detail request lifetime > rejects malformed task identity 1.5 before HTTP 7ms\n ✓ tests/unit/business/filedist/FiledistLifetime.test.ts > FileDist detail action mutual exclusion > classifies 404 without mixing forbidden, missing and generic errors 114ms\n ✓ tests/unit/business/filedist/FiledistLifetime.test.ts > FileDist detail action mutual exclusion > classifies 403 without mixing forbidden, missing and generic errors 17ms\n ✓ tests/unit/business/filedist/FiledistLifetime.test.ts > FileDist detail action mutual exclusion > classifies 503 without mixing forbidden, missing and generic errors 18ms\n ✓ tests/unit/business/filedist/FiledistLifetime.test.ts > FileDist detail action mutual exclusion > does not report task missing for an initial connectivity failure 14ms\n ✓ tests/unit/business/filedist/FiledistLifetime.test.ts > FileDist detail action mutual exclusion > submits cancel only once while its request is unsettled 62ms\n ✓ tests/unit/business/filedist/FiledistLifetime.test.ts > FileDist detail action mutual exclusion > does not offer control actions without update permission 37ms\n ✓ tests/unit/business/filedist/FiledistLifetime.test.ts > FileDist intent and schedule > uses only resolved identities/endpoints, per-host fingerprints and the selected auth mode 15ms\n ✓ tests/unit/business/filedist/FiledistLifetime.test.ts > FileDist intent and schedule > rejects stale scope, rejected targets, duplicate IDs and missing per-host fingerprints 5ms\n ✓ tests/unit/business/filedist/FiledistLifetime.test.ts > FileDist intent and schedule > keeps explicit schedules and refuses malformed dates rather than running immediately 3ms\n ✓ tests/unit/business/filedist/FiledistLifetime.test.ts > FileDist bounded file picker > reaches files beyond the first 100 through bounded paging and remote search 14ms\n ✓ tests/unit/business/filedist/FiledistLifetime.test.ts > FileDist bounded file picker > cancels superseded search and prevents late rows or totals from returning 7ms\n ✓ tests/unit/business/filedist/FiledistLifetime.test.ts > FileDist bounded file picker > clears prior options immediately when the create dialog reopens 10ms\n ✓ tests/unit/business/filedist/FiledistLifetime.test.ts > FileDist list current-query refresh lifetime > ignores superseded manual file refresh success 76ms\n ✓ tests/unit/business/filedist/FiledistLifetime.test.ts > FileDist list current-query refresh lifetime > ignores superseded manual file refresh error 101ms\n ✓ tests/unit/business/filedist/FiledistLifetime.test.ts > FileDist list current-query refresh lifetime > ignores superseded manual task refresh success 105ms\n ✓ tests/unit/business/filedist/FiledistLifetime.test.ts > FileDist list current-query refresh lifetime > ignores superseded manual task refresh error 78ms\n ✓ tests/unit/business/filedist/FiledistLifetime.test.ts > FileDist list current-query refresh lifetime > shares the same in-flight task GET between mutation refresh and active polling 74ms\n ✓ tests/unit/business/filedist/FiledistLifetime.test.ts > FileDist list current-query refresh lifetime > refreshes the latest query when a mutation from an older render finishes 83ms\n ✓ tests/unit/business/filedist/FiledistLifetime.test.ts > FileDist list current-query refresh lifetime > serializes a fresh mutation read behind a GET that started before deletion 87ms\n\n Test Files  1 passed (1)\n      Tests  28 passed (28)\n   Start at  16:06:24\n   Duration  12.39s (import 47%, environment 34%, tests 10%, transform 8%, worker 1%)\n\n"
+    },
+    {
+      "name": "typecheck",
+      "command": "node --import ../.local/manual-preview-20261116/hide-child-windows.mjs node_modules/typescript/bin/tsc -p ../.harness/evidence/2026-11-16-ops-filedist-product-closure/regular-unit-typecheck-20261118.json --pretty false",
+      "cwd": "frontend",
+      "exitCode": 0,
+      "output": ""
+    },
+    {
+      "name": "eslint",
+      "command": "node --import ../.local/manual-preview-20261116/hide-child-windows.mjs node_modules/eslint/bin/eslint.js tests/unit/business/filedist/FiledistLifetime.test.ts --max-warnings 0",
+      "cwd": "frontend",
+      "exitCode": 0,
+      "output": ""
+    },
+    {
+      "name": "overlay",
+      "command": "node --import ./.local/manual-preview-20261116/hide-child-windows.mjs scripts/business-overlay/check-business-overlay.mjs",
+      "cwd": ".",
+      "exitCode": 0,
+      "output": "OK business overlay contract (55 declared paths, rebuilt tree)\n"
+    },
+    {
+      "name": "diff",
+      "command": "git diff --check -- business-overlay.json frontend/tests/unit/business/filedist/FiledistLifetime.test.ts",
+      "cwd": ".",
+      "exitCode": 0,
+      "output": ""
+    }
+  ],
+  "fixtureComparison": {
+    "result": "PASS",
+    "difference": "resolvedAt/sources, status/businessScopeId/source for each host, and removal of as DeployTargetResolution; no assertion/case/import changes"
+  },
+  "tests": {
+    "filesPassed": 1,
+    "testsPassed": 28,
+    "testsSkipped": 0,
+    "durationSeconds": 12.39,
+    "standardConfig": true,
+    "includeOverridden": false
+  },
+  "processLaunch": {
+    "existingHiddenChildPreloadUsed": true,
+    "pool": "threads",
+    "maxWorkers": 1,
+    "fileParallelism": false,
+    "visibleWindowObservationPerformed": false
+  }
+}

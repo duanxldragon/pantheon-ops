@@ -1,6 +1,7 @@
 package filedist
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"io"
@@ -8,6 +9,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/pkg/sftp"
@@ -24,6 +26,8 @@ type SFTPClient struct {
 	hostFingerprint string
 	sshClient       *ssh.Client
 	sftpClient      *sftp.Client
+	mu              sync.Mutex
+	closed          bool
 }
 
 // SFTPConfig represents SFTP connection configuration.
@@ -65,6 +69,14 @@ func hostFingerprintCallback(expectedFingerprint string) ssh.HostKeyCallback {
 
 // Connect establishes SFTP connection.
 func (c *SFTPClient) Connect() error {
+	return c.ConnectContext(context.Background())
+}
+
+// ConnectContext bounds dialing, SSH handshake and SFTP subsystem setup.
+func (c *SFTPClient) ConnectContext(ctx context.Context) error {
+	if ctx == nil {
+		return errors.New("business.filedist.task.invalidContext")
+	}
 	var authMethods []ssh.AuthMethod
 
 	// Password authentication
@@ -94,13 +106,24 @@ func (c *SFTPClient) Connect() error {
 		Timeout:         30 * time.Second,
 	}
 
-	// Connect to SSH
-	addr := fmt.Sprintf("%s:%d", c.host, c.port)
-	sshClient, err := ssh.Dial("tcp", addr, config)
+	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
+	defer cancel()
+	addr := net.JoinHostPort(c.host, fmt.Sprint(c.port))
+	connection, err := (&net.Dialer{}).DialContext(ctx, "tcp", addr)
 	if err != nil {
 		return fmt.Errorf("ssh_dial_failed: %w", err)
 	}
-	c.sshClient = sshClient
+	stop := context.AfterFunc(ctx, func() { _ = connection.Close() })
+	defer stop()
+	clientConn, channels, requests, err := ssh.NewClientConn(connection, addr, config)
+	if err != nil {
+		_ = connection.Close()
+		if ctx.Err() != nil {
+			return ctx.Err()
+		}
+		return fmt.Errorf("ssh_dial_failed: %w", err)
+	}
+	sshClient := ssh.NewClient(clientConn, channels, requests)
 
 	// Open SFTP session
 	sftpClient, err := sftp.NewClient(sshClient)
@@ -108,27 +131,59 @@ func (c *SFTPClient) Connect() error {
 		_ = sshClient.Close()
 		return fmt.Errorf("sftp_session_failed: %w", err)
 	}
-	c.sftpClient = sftpClient
-
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	if c.closed || ctx.Err() != nil {
+		_ = sshClient.Close()
+		_ = sftpClient.Close()
+		if ctx.Err() != nil {
+			return ctx.Err()
+		}
+		return errors.New("not_connected")
+	}
+	c.sshClient, c.sftpClient = sshClient, sftpClient
 	return nil
 }
 
 // Close closes SFTP connection.
 func (c *SFTPClient) Close() error {
-	if c.sftpClient != nil {
-		_ = c.sftpClient.Close()
+	c.mu.Lock()
+	client, sshClient := c.sftpClient, c.sshClient
+	c.closed = true
+	c.sftpClient, c.sshClient = nil, nil
+	c.mu.Unlock()
+	// Close the transport first to interrupt blocked SFTP requests.
+	if sshClient != nil {
+		_ = sshClient.Close()
 	}
-	if c.sshClient != nil {
-		return c.sshClient.Close()
+	if client != nil {
+		return client.Close()
 	}
 	return nil
 }
 
 // Upload uploads a file to remote server.
 func (c *SFTPClient) Upload(localPath, remotePath string) error {
-	if c.sftpClient == nil {
+	return c.UploadContext(context.Background(), localPath, remotePath)
+}
+
+// UploadContext interrupts the owned transport on cancellation. Already
+// accepted remote bytes may remain; cancelling is not remote-file rollback.
+func (c *SFTPClient) UploadContext(ctx context.Context, localPath, remotePath string) error {
+	if ctx == nil {
+		return errors.New("business.filedist.task.invalidContext")
+	}
+	if err := ctx.Err(); err != nil {
+		return err
+	}
+	c.mu.Lock()
+	client := c.sftpClient
+	c.mu.Unlock()
+	if client == nil {
 		return fmt.Errorf("not_connected")
 	}
+	stop := context.AfterFunc(ctx, func() { _ = c.Close() })
+	defer stop()
 
 	// Open local file
 	localFile, err := os.Open(localPath) // #nosec G304 -- localPath comes from the transfer engine, which derives it from a stored filedist record path under the configured storage root.
@@ -139,38 +194,62 @@ func (c *SFTPClient) Upload(localPath, remotePath string) error {
 
 	// Create remote directory
 	remoteDir := filepath.Dir(remotePath)
-	if err := c.sftpClient.MkdirAll(remoteDir); err != nil {
+	if err := client.MkdirAll(remoteDir); err != nil {
+		if ctx.Err() != nil {
+			return ctx.Err()
+		}
 		return fmt.Errorf("create_remote_dir_failed: %w", err)
 	}
 
 	// Create remote file
-	remoteFile, err := c.sftpClient.Create(remotePath)
+	remoteFile, err := client.Create(remotePath)
 	if err != nil {
 		return fmt.Errorf("create_remote_file_failed: %w", err)
 	}
 
 	// Copy data
-	if _, err := io.Copy(remoteFile, localFile); err != nil {
+	if _, err := io.Copy(remoteFile, &contextReader{ctx: ctx, reader: localFile}); err != nil {
 		_ = remoteFile.Close()
+		if ctx.Err() != nil {
+			return ctx.Err()
+		}
 		return fmt.Errorf("copy_failed: %w", err)
 	}
 	// Closing flushes the remote handle; a failed close means the upload did
 	// not land, so it must not be reported as success.
 	if err := remoteFile.Close(); err != nil {
+		if ctx.Err() != nil {
+			return ctx.Err()
+		}
 		return fmt.Errorf("close_remote_file_failed: %w", err)
 	}
 
-	return nil
+	return ctx.Err()
+}
+
+type contextReader struct {
+	ctx    context.Context
+	reader io.Reader
+}
+
+func (r *contextReader) Read(buffer []byte) (int, error) {
+	if err := r.ctx.Err(); err != nil {
+		return 0, err
+	}
+	return r.reader.Read(buffer)
 }
 
 // Download downloads a file from remote server.
 func (c *SFTPClient) Download(remotePath, localPath string) error {
-	if c.sftpClient == nil {
+	c.mu.Lock()
+	client := c.sftpClient
+	c.mu.Unlock()
+	if client == nil {
 		return fmt.Errorf("not_connected")
 	}
 
 	// Open remote file
-	remoteFile, err := c.sftpClient.Open(remotePath)
+	remoteFile, err := client.Open(remotePath)
 	if err != nil {
 		return fmt.Errorf("open_remote_file_failed: %w", err)
 	}
@@ -204,26 +283,35 @@ func (c *SFTPClient) Download(remotePath, localPath string) error {
 
 // Stat gets file information.
 func (c *SFTPClient) Stat(remotePath string) (os.FileInfo, error) {
-	if c.sftpClient == nil {
+	c.mu.Lock()
+	client := c.sftpClient
+	c.mu.Unlock()
+	if client == nil {
 		return nil, fmt.Errorf("not_connected")
 	}
-	return c.sftpClient.Stat(remotePath)
+	return client.Stat(remotePath)
 }
 
 // Remove deletes a remote file.
 func (c *SFTPClient) Remove(remotePath string) error {
-	if c.sftpClient == nil {
+	c.mu.Lock()
+	client := c.sftpClient
+	c.mu.Unlock()
+	if client == nil {
 		return fmt.Errorf("not_connected")
 	}
-	return c.sftpClient.Remove(remotePath)
+	return client.Remove(remotePath)
 }
 
 // List lists files in a remote directory.
 func (c *SFTPClient) List(remotePath string) ([]os.FileInfo, error) {
-	if c.sftpClient == nil {
+	c.mu.Lock()
+	client := c.sftpClient
+	c.mu.Unlock()
+	if client == nil {
 		return nil, fmt.Errorf("not_connected")
 	}
-	return c.sftpClient.ReadDir(remotePath)
+	return client.ReadDir(remotePath)
 }
 
 // TestSFTPConnection tests SFTP connectivity.

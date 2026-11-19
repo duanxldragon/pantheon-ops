@@ -1,0 +1,17 @@
+{
+  "taskId": "2026-11-16-ops-service-catalog-usability",
+  "checkedAt": "2026-11-17T15:01:59.8764884Z",
+  "sourceState": "Working-tree checkpoint, no commit",
+  "change": "Add two reusable rendered-state tests; production UI unchanged",
+  "grep": "catalog desktop and mobile rendered states",
+  "files": [
+    {
+      "path": "frontend/src/modules/business/service/ServiceCatalog.tsx",
+      "sha256": "21299fee2258954b6c0408d7abdea71130952d2a4557af3b8679cfcb54646f7e"
+    },
+    {
+      "path": "frontend/tests/smoke/business/service/service-pages.spec.ts",
+      "sha256": "b8ecd7db897b66f227ffb9ed86874ca90877ea0ce4b2f9490432e5b4eaec3e0d"
+    }
+  ]
+}

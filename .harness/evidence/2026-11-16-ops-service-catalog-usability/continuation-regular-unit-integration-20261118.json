@@ -1,0 +1,86 @@
+{
+  "schema": "pantheon-c03-regular-unit-integration/v1",
+  "taskId": "2026-11-16-ops-service-catalog-usability",
+  "implementer": "/root/e03_claude_partial_closeout",
+  "observedAtUTC": "2026-11-18T07:42:38Z",
+  "sourceFrozen": true,
+  "wholePackageClosed": false,
+  "plan": ".harness/tasks/2026-11-16-ops-service-catalog-usability/continuation-regular-unit-integration-plan-20261118.md",
+  "changes": {
+    "regularUnitTest": "frontend/tests/unit/business/service/useCatalogOptions.test.ts",
+    "overlayDeclaration": "businessPaths exact regular unit test path",
+    "productionSourceChanged": false,
+    "originalEvidenceFixturePreserved": true,
+    "originalRunnerPreserved": true,
+    "normalizedFixtureDifference": "source import only",
+    "newDependencies": false,
+    "localeDelta": {}
+  },
+  "verification": [
+    {
+      "command":"node --import ../.local/manual-preview-20261116/hide-child-windows.mjs node_modules/vitest/vitest.mjs run tests/unit/business/service/useCatalogOptions.test.ts --pool=threads --maxWorkers=1 --fileParallelism=false --reporter=verbose",
+      "cwd":"frontend",
+      "exitCode":0,
+      "vitestVersion":"5.0.5",
+      "standardConfig":true,
+      "includeOverridden":false,
+      "filesPassed":1,
+      "testsPassed":7,
+      "testsSkipped":0,
+      "durationSeconds":1.71,
+      "warning":"Pre-existing vitest.config.ts __dirname is unsupported by future native config loader; config not modified or warning suppressed."
+    },
+    {
+      "command":"node --import ../.local/manual-preview-20261116/hide-child-windows.mjs node_modules/typescript/bin/tsc --ignoreConfig --noEmit --skipLibCheck --strict --module esnext --moduleResolution bundler --jsx react-jsx --target es2023 tests/unit/business/service/useCatalogOptions.test.ts",
+      "cwd":"frontend",
+      "exitCode":0,
+      "output":"",
+      "scope":"isolated regular test and imported hook; not full application type-check"
+    },
+    {
+      "command":"node --import ../.local/manual-preview-20261116/hide-child-windows.mjs node_modules/eslint/bin/eslint.js tests/unit/business/service/useCatalogOptions.test.ts --max-warnings 0",
+      "cwd":"frontend",
+      "exitCode":0,
+      "output":""
+    },
+    {
+      "command":"node --import ./.local/manual-preview-20261116/hide-child-windows.mjs scripts/business-overlay/check-business-overlay.mjs",
+      "cwd":".",
+      "exitCode":0,
+      "output":"OK business overlay contract (54 declared paths, rebuilt tree)",
+      "officialRebuildPerformed":false
+    },
+    {"command":"git diff --check -- business-overlay.json frontend/tests/unit/business/service/useCatalogOptions.test.ts","cwd":".","exitCode":0,"output":""},
+    {"check":"original fixture vs regular fixture after authorized import substitution and line-ending normalization","result":"PASS"}
+  ],
+  "sourceSHA256": {
+    "business-overlay.json":"da49be1fb9b8fe7e046c022e0da8afd0336ffebf32c6d09870e1d038c9226c1b",
+    "frontend/tests/unit/business/service/useCatalogOptions.test.ts":"1077a2c66b726a7f12302208581a83bd60cdfb32a57e08c5f184edf398df9bbc",
+    "frontend/src/modules/business/service/useCatalogOptions.ts":"25a2e2e4b798d9b430307f28758b57dd366015e36e835c5bf58480b9c9edf85d",
+    ".harness/evidence/2026-11-16-ops-service-catalog-usability/catalog-options-lifetime.regression.test.ts":"4227007eecad41e1f65e61c1963b4c3ce004f3d33af45fb58561ee52a5b86ae6"
+  },
+  "processLaunch": {
+    "existingHiddenChildPreloadUsed":true,
+    "vitestPool":"threads",
+    "maxWorkers":1,
+    "fileParallelism":false,
+    "visibleWindowObservationPerformed":false
+  },
+  "impeccableCompletionGate": {
+    "surface":"catalog form target option lifecycle",
+    "intendedBehavior":"fresh loading/empty/error state with no superseded target candidates after reopen",
+    "productionLayoutChanged":false,
+    "renderedEvidenceProduced":false,
+    "reason":"Test/overlay integration only; coordinator owns final current-candidate desktop/mobile rendering.",
+    "uiPolishClaimed":false
+  },
+  "remainingGates": [
+    "original backend target lifetime and NamespaceBinding/environment/action",
+    "actual provider and roles",
+    "C02 prerequisite acceptance",
+    "final full frontend type/build/smoke",
+    "official locked-release reconstruction and drift",
+    "desktop/mobile current-candidate rendering",
+    "independent review and whole C03 human acceptance"
+  ]
+}

@@ -1,0 +1,358 @@
+{
+  "recordedAt": "2026-11-17T17:29:09.674Z",
+  "taskId": "2026-11-16-ops-k8s-service-mutations",
+  "receipt": {
+    "file": ".harness/evidence/2026-11-17-ops-history-audit/continuation-c04-ui-toast-identity-fixed.receipt.json",
+    "sha256": "c79c361cb94555975549f8e375a82c940e9c245f2c16915e299ab536e3e4c271",
+    "browserPassed": 13,
+    "sourceCount": 17
+  },
+  "sourceBindings": [
+    {
+      "file": "frontend/src/modules/business/k8s/api.ts",
+      "sha256": "b5da34dbaf6741ebb5025527596746d804eb238cec45f232ae94c2fde15c6fe9"
+    },
+    {
+      "file": "frontend/src/modules/business/k8s/service/ServiceList.tsx",
+      "sha256": "4b6b583935122d03b80ea53895cc88d1c406afac61813b31ed289b737c904072"
+    },
+    {
+      "file": "frontend/src/modules/business/k8s/service/ServiceEditor.tsx",
+      "sha256": "a805d7558bcf94a6a1a33e80f1b9078907fd3f597ec052cfb54c80a5d9efbc6c"
+    },
+    {
+      "file": "frontend/src/modules/business/k8s/service/serviceDraft.ts",
+      "sha256": "a537a941695469d3001a46ef39c3e01a81afc26bc2826bda289fc238bdbfb522"
+    },
+    {
+      "file": "frontend/src/modules/business/k8s/service/service-editor.css",
+      "sha256": "e4365e2e6929efeb3dd7b160cb4a4faf2d69902a90e3768066b053ca5bca030a"
+    },
+    {
+      "file": "frontend/tests/smoke/business/k8s/k8s-pages.spec.ts",
+      "sha256": "11d380dfc3a75adaf7ad6cf377caa5be0fdc3e722ba89a2a153b73b991014c8b"
+    },
+    {
+      "file": "docs/designs/BUSINESS_ERROR_SEMANTICS_APPENDIX.md",
+      "sha256": "ab7ca8b39a71328bcbc265a58ceaff0bcbf7d38e2a42b9a4532435b853bc4d4d"
+    },
+    {
+      "file": "frontend/src/modules/business/v12locales/zh-CN.json",
+      "sha256": "227775201f7ef0600efa9bbeecaa59987755af373bd5f55aea69fb3568f9a497"
+    },
+    {
+      "file": "frontend/src/modules/business/v12locales/en-US.json",
+      "sha256": "d26f80a51a58ab04365a41303131ea3afb4eb582d4f224a82eeaed1c3097c7cb"
+    },
+    {
+      "file": "frontend/src/modules/business/v12locales/ja-JP.json",
+      "sha256": "ff1c96664e32767092497bbb65bbc953fceb804bcaf3db26c34391c98573ff66"
+    },
+    {
+      "file": "frontend/src/modules/business/v12locales/ko-KR.json",
+      "sha256": "ea55b0eb1e03caa62668b7cdbd19645c73b372c74454e68200d6cc3eb133ecf8"
+    },
+    {
+      "file": "frontend/src/modules/business/v12locales/fr-FR.json",
+      "sha256": "94405937f248745cf252d5f7a4f46878f9b6402a6dfa76f6f89fdb2b6702fb9f"
+    },
+    {
+      "file": "frontend/src/i18n/resources/business/zh-CN.ts",
+      "sha256": "8afaf31a4802897c811033b3d455cc9dcf178a925a26249db542ff572005cb6b"
+    },
+    {
+      "file": "frontend/src/i18n/resources/business/en-US.ts",
+      "sha256": "b23daa06a55d7456903f0f634e12571c4895daa101f319bcc307587bf836502d"
+    },
+    {
+      "file": "frontend/src/i18n/resources/business/ja-JP.ts",
+      "sha256": "428a8832aa32a19d5309dd0656829386eb9ad64d657ffed1040d207ce707253d"
+    },
+    {
+      "file": "frontend/src/i18n/resources/business/ko-KR.ts",
+      "sha256": "8805f78453d00c46f4b256c432966b406f953cab00fdab4fb52a8ab99cc228e5"
+    },
+    {
+      "file": "frontend/src/i18n/resources/business/fr-FR.ts",
+      "sha256": "fd1d3089f4798928d070277d85dc8c64fdd2256249de92a2fae790aaf1168768"
+    }
+  ],
+  "screenshots": [
+    {
+      "file": ".harness/evidence/2026-11-17-ops-history-audit/continuation-c04-ui-toast-identity-fixed-artifacts/smoke-business-k8s-k8s-pag-1857a--hide-each-Service-mutation/c04-read-only.png",
+      "sha256": "d1f48792f47c14fe7afaacf5994b0fa88570edc526158a491f0941769ba6a4e2",
+      "width": 1280,
+      "height": 720
+    },
+    {
+      "file": ".harness/evidence/2026-11-17-ops-history-audit/continuation-c04-ui-toast-identity-fixed-artifacts/smoke-business-k8s-k8s-pag-1b9e1-D-and-version-preconditions/c04-delete-empty.png",
+      "sha256": "c93ac3c640ca1132c5e7b93bf239f5dd96a4a9c1c79e618edddb31ad8b091712",
+      "width": 1280,
+      "height": 720
+    },
+    {
+      "file": ".harness/evidence/2026-11-17-ops-history-audit/continuation-c04-ui-toast-identity-fixed-artifacts/smoke-business-k8s-k8s-pag-3f30c-and-empty-recovery-at-390px/c04-390-list-empty.png",
+      "sha256": "80628c958c8652f3335051c0078adfbbc187935a6e59e6ff4ff52d64eca5a4f7",
+      "width": 390,
+      "height": 844
+    },
+    {
+      "file": ".harness/evidence/2026-11-17-ops-history-audit/continuation-c04-ui-toast-identity-fixed-artifacts/smoke-business-k8s-k8s-pag-3f30c-and-empty-recovery-at-390px/c04-390-list-error.png",
+      "sha256": "3ee2f2c2c21715654ac14d0cede53e9a169de93c49c70d442fccd2176a0379e0",
+      "width": 390,
+      "height": 844
+    },
+    {
+      "file": ".harness/evidence/2026-11-17-ops-history-audit/continuation-c04-ui-toast-identity-fixed-artifacts/smoke-business-k8s-k8s-pag-636ae-ed-primary-states-at-1440px/c04-1440-conflict.png",
+      "sha256": "4f8e644b8e63b4fdb528a00e8ecbbc851b71e6b2d65d7dd8a04e6356ef268c22",
+      "width": 1440,
+      "height": 900
+    },
+    {
+      "file": ".harness/evidence/2026-11-17-ops-history-audit/continuation-c04-ui-toast-identity-fixed-artifacts/smoke-business-k8s-k8s-pag-636ae-ed-primary-states-at-1440px/c04-1440-create.png",
+      "sha256": "0dc028e7cbb10e8463ff70ede5190d9be6aa13790b605a6ced14952244151d9c",
+      "width": 1440,
+      "height": 900
+    },
+    {
+      "file": ".harness/evidence/2026-11-17-ops-history-audit/continuation-c04-ui-toast-identity-fixed-artifacts/smoke-business-k8s-k8s-pag-636ae-ed-primary-states-at-1440px/c04-1440-editor-ports.png",
+      "sha256": "178379ccbda2cc7d788eedc0fcca66c3562163880a734f52548a65e7f049bfe3",
+      "width": 1440,
+      "height": 900
+    },
+    {
+      "file": ".harness/evidence/2026-11-17-ops-history-audit/continuation-c04-ui-toast-identity-fixed-artifacts/smoke-business-k8s-k8s-pag-636ae-ed-primary-states-at-1440px/c04-1440-editor-top.png",
+      "sha256": "cd69c1008db19c7bace715732b39210fe3cb47c99a0776e492bfa7a482086969",
+      "width": 1440,
+      "height": 900
+    },
+    {
+      "file": ".harness/evidence/2026-11-17-ops-history-audit/continuation-c04-ui-toast-identity-fixed-artifacts/smoke-business-k8s-k8s-pag-636ae-ed-primary-states-at-1440px/c04-1440-loading.png",
+      "sha256": "70c56a301d50fff577ef4e1755dfb3e026ecd3e18dffffd7c1bfa1f8e5166315",
+      "width": 1440,
+      "height": 900
+    },
+    {
+      "file": ".harness/evidence/2026-11-17-ops-history-audit/continuation-c04-ui-toast-identity-fixed-artifacts/smoke-business-k8s-k8s-pag-636ae-ed-primary-states-at-1440px/c04-1440-submitting.png",
+      "sha256": "4e79aecefa591b7d8fa8d01d88bc92ca7eda3faadb5cba90dda6b1a56c4aa092",
+      "width": 1440,
+      "height": 900
+    },
+    {
+      "file": ".harness/evidence/2026-11-17-ops-history-audit/continuation-c04-ui-toast-identity-fixed-artifacts/smoke-business-k8s-k8s-pag-9557e--draft-and-original-version/c04-edit-conflict.png",
+      "sha256": "d5836015582b1b2cfaa3bf1b3d90e1293233e6dcb1c226182bcf17d9e7887f03",
+      "width": 1280,
+      "height": 720
+    },
+    {
+      "file": ".harness/evidence/2026-11-17-ops-history-audit/continuation-c04-ui-toast-identity-fixed-artifacts/smoke-business-k8s-k8s-pag-b1b90-nd-empty-recovery-at-1440px/c04-1440-list-empty.png",
+      "sha256": "698a74a2ac19da60d173316258b10e91a29114c79b951ab2130ed284c4fee3c9",
+      "width": 1440,
+      "height": 900
+    },
+    {
+      "file": ".harness/evidence/2026-11-17-ops-history-audit/continuation-c04-ui-toast-identity-fixed-artifacts/smoke-business-k8s-k8s-pag-b1b90-nd-empty-recovery-at-1440px/c04-1440-list-error.png",
+      "sha256": "48da4f53640105b6463bc9892650cec47bbd35235f5828957083002b1295c68d",
+      "width": 1440,
+      "height": 900
+    },
+    {
+      "file": ".harness/evidence/2026-11-17-ops-history-audit/continuation-c04-ui-toast-identity-fixed-artifacts/smoke-business-k8s-k8s-pag-d313e-D-and-version-preconditions/c04-delete-conflict.png",
+      "sha256": "6f7d9bd6e83c9c85a64d85649917217784c073c999021f11e6b89eef3cb6af2f",
+      "width": 1280,
+      "height": 720
+    },
+    {
+      "file": ".harness/evidence/2026-11-17-ops-history-audit/continuation-c04-ui-toast-identity-fixed-artifacts/smoke-business-k8s-k8s-pag-f798f-red-primary-states-at-390px/c04-390-conflict.png",
+      "sha256": "e5f8b5e7e2f25cb1108a3b4acd2fbc3d706366eab7c825d41439aa5d85a03d5d",
+      "width": 390,
+      "height": 844
+    },
+    {
+      "file": ".harness/evidence/2026-11-17-ops-history-audit/continuation-c04-ui-toast-identity-fixed-artifacts/smoke-business-k8s-k8s-pag-f798f-red-primary-states-at-390px/c04-390-create.png",
+      "sha256": "fe482fcc4d752db58b7405bbaf0c5561fe9345c55b7d2f9459bdf79e543826fd",
+      "width": 390,
+      "height": 844
+    },
+    {
+      "file": ".harness/evidence/2026-11-17-ops-history-audit/continuation-c04-ui-toast-identity-fixed-artifacts/smoke-business-k8s-k8s-pag-f798f-red-primary-states-at-390px/c04-390-editor-ports.png",
+      "sha256": "251fd9408eaf3230fc85ef850dd1e79fa6d755647ce76248aaa9f14ba852b21d",
+      "width": 390,
+      "height": 844
+    },
+    {
+      "file": ".harness/evidence/2026-11-17-ops-history-audit/continuation-c04-ui-toast-identity-fixed-artifacts/smoke-business-k8s-k8s-pag-f798f-red-primary-states-at-390px/c04-390-editor-top.png",
+      "sha256": "4787c140448e1850ab5996f3269d68b4ed3ff9aeccbd04159ea6f1988f55b970",
+      "width": 390,
+      "height": 844
+    },
+    {
+      "file": ".harness/evidence/2026-11-17-ops-history-audit/continuation-c04-ui-toast-identity-fixed-artifacts/smoke-business-k8s-k8s-pag-f798f-red-primary-states-at-390px/c04-390-loading.png",
+      "sha256": "521d24ff41de5639912da0ad34b1f4c263affd136017d7d800722603b2aefc36",
+      "width": 390,
+      "height": 844
+    },
+    {
+      "file": ".harness/evidence/2026-11-17-ops-history-audit/continuation-c04-ui-toast-identity-fixed-artifacts/smoke-business-k8s-k8s-pag-f798f-red-primary-states-at-390px/c04-390-submitting.png",
+      "sha256": "8183c61de7a6cd5c8689894cdadf1a13d367faaab53567a9b6aa8288e7a6c452",
+      "width": 390,
+      "height": 844
+    }
+  ],
+  "identicalPlaywrightAttachmentCopies": [
+    {
+      "file": ".harness/evidence/2026-11-17-ops-history-audit/continuation-c04-ui-toast-identity-fixed-artifacts/smoke-business-k8s-k8s-pag-1857a--hide-each-Service-mutation/attachments/c04-read-only-498caf83dbdaa252a56a14c15e3623cf8b67ceef.png",
+      "sha256": "d1f48792f47c14fe7afaacf5994b0fa88570edc526158a491f0941769ba6a4e2",
+      "width": 1280,
+      "height": 720
+    },
+    {
+      "file": ".harness/evidence/2026-11-17-ops-history-audit/continuation-c04-ui-toast-identity-fixed-artifacts/smoke-business-k8s-k8s-pag-1b9e1-D-and-version-preconditions/attachments/c04-delete-empty-123b1579c91cb3fe23573e6dc8ae037e314b4c14.png",
+      "sha256": "c93ac3c640ca1132c5e7b93bf239f5dd96a4a9c1c79e618edddb31ad8b091712",
+      "width": 1280,
+      "height": 720
+    },
+    {
+      "file": ".harness/evidence/2026-11-17-ops-history-audit/continuation-c04-ui-toast-identity-fixed-artifacts/smoke-business-k8s-k8s-pag-3f30c-and-empty-recovery-at-390px/attachments/c04-390-list-empty-810ac57bbf0ac80b88fad688ba2b60c61e3620a3.png",
+      "sha256": "80628c958c8652f3335051c0078adfbbc187935a6e59e6ff4ff52d64eca5a4f7",
+      "width": 390,
+      "height": 844
+    },
+    {
+      "file": ".harness/evidence/2026-11-17-ops-history-audit/continuation-c04-ui-toast-identity-fixed-artifacts/smoke-business-k8s-k8s-pag-3f30c-and-empty-recovery-at-390px/attachments/c04-390-list-error-438bec86810f01be073c6da17072f5b9462775df.png",
+      "sha256": "3ee2f2c2c21715654ac14d0cede53e9a169de93c49c70d442fccd2176a0379e0",
+      "width": 390,
+      "height": 844
+    },
+    {
+      "file": ".harness/evidence/2026-11-17-ops-history-audit/continuation-c04-ui-toast-identity-fixed-artifacts/smoke-business-k8s-k8s-pag-636ae-ed-primary-states-at-1440px/attachments/c04-1440-conflict-34707d714565f45707b30c6c45ab87d61a5ff464.png",
+      "sha256": "4f8e644b8e63b4fdb528a00e8ecbbc851b71e6b2d65d7dd8a04e6356ef268c22",
+      "width": 1440,
+      "height": 900
+    },
+    {
+      "file": ".harness/evidence/2026-11-17-ops-history-audit/continuation-c04-ui-toast-identity-fixed-artifacts/smoke-business-k8s-k8s-pag-636ae-ed-primary-states-at-1440px/attachments/c04-1440-create-846fb38373eea681b6e61d7f3bdba6eea942ec93.png",
+      "sha256": "0dc028e7cbb10e8463ff70ede5190d9be6aa13790b605a6ced14952244151d9c",
+      "width": 1440,
+      "height": 900
+    },
+    {
+      "file": ".harness/evidence/2026-11-17-ops-history-audit/continuation-c04-ui-toast-identity-fixed-artifacts/smoke-business-k8s-k8s-pag-636ae-ed-primary-states-at-1440px/attachments/c04-1440-editor-ports-0bf3c950824409ec159727f5da6051bebaa0b922.png",
+      "sha256": "178379ccbda2cc7d788eedc0fcca66c3562163880a734f52548a65e7f049bfe3",
+      "width": 1440,
+      "height": 900
+    },
+    {
+      "file": ".harness/evidence/2026-11-17-ops-history-audit/continuation-c04-ui-toast-identity-fixed-artifacts/smoke-business-k8s-k8s-pag-636ae-ed-primary-states-at-1440px/attachments/c04-1440-editor-top-a0cbbaf8c0d44cd86ce7428bc4dcb7f6b162ce71.png",
+      "sha256": "cd69c1008db19c7bace715732b39210fe3cb47c99a0776e492bfa7a482086969",
+      "width": 1440,
+      "height": 900
+    },
+    {
+      "file": ".harness/evidence/2026-11-17-ops-history-audit/continuation-c04-ui-toast-identity-fixed-artifacts/smoke-business-k8s-k8s-pag-636ae-ed-primary-states-at-1440px/attachments/c04-1440-loading-91cd6b8866d36e40be8a2c7c328b23b68ad12272.png",
+      "sha256": "70c56a301d50fff577ef4e1755dfb3e026ecd3e18dffffd7c1bfa1f8e5166315",
+      "width": 1440,
+      "height": 900
+    },
+    {
+      "file": ".harness/evidence/2026-11-17-ops-history-audit/continuation-c04-ui-toast-identity-fixed-artifacts/smoke-business-k8s-k8s-pag-636ae-ed-primary-states-at-1440px/attachments/c04-1440-submitting-53b7239eb740fbf515164c5aea9709b093e70649.png",
+      "sha256": "4e79aecefa591b7d8fa8d01d88bc92ca7eda3faadb5cba90dda6b1a56c4aa092",
+      "width": 1440,
+      "height": 900
+    },
+    {
+      "file": ".harness/evidence/2026-11-17-ops-history-audit/continuation-c04-ui-toast-identity-fixed-artifacts/smoke-business-k8s-k8s-pag-9557e--draft-and-original-version/attachments/c04-edit-conflict-93f2539c7d716f44d35161179020c456446ece08.png",
+      "sha256": "d5836015582b1b2cfaa3bf1b3d90e1293233e6dcb1c226182bcf17d9e7887f03",
+      "width": 1280,
+      "height": 720
+    },
+    {
+      "file": ".harness/evidence/2026-11-17-ops-history-audit/continuation-c04-ui-toast-identity-fixed-artifacts/smoke-business-k8s-k8s-pag-b1b90-nd-empty-recovery-at-1440px/attachments/c04-1440-list-empty-20fe304019f432613e8699ad03206320b57a1793.png",
+      "sha256": "698a74a2ac19da60d173316258b10e91a29114c79b951ab2130ed284c4fee3c9",
+      "width": 1440,
+      "height": 900
+    },
+    {
+      "file": ".harness/evidence/2026-11-17-ops-history-audit/continuation-c04-ui-toast-identity-fixed-artifacts/smoke-business-k8s-k8s-pag-b1b90-nd-empty-recovery-at-1440px/attachments/c04-1440-list-error-b180177960498c530d1f57cf82df1325a45d1e65.png",
+      "sha256": "48da4f53640105b6463bc9892650cec47bbd35235f5828957083002b1295c68d",
+      "width": 1440,
+      "height": 900
+    },
+    {
+      "file": ".harness/evidence/2026-11-17-ops-history-audit/continuation-c04-ui-toast-identity-fixed-artifacts/smoke-business-k8s-k8s-pag-d313e-D-and-version-preconditions/attachments/c04-delete-conflict-8c20f218ea7ff9eabab38a1c9956c05bf0cb1f63.png",
+      "sha256": "6f7d9bd6e83c9c85a64d85649917217784c073c999021f11e6b89eef3cb6af2f",
+      "width": 1280,
+      "height": 720
+    },
+    {
+      "file": ".harness/evidence/2026-11-17-ops-history-audit/continuation-c04-ui-toast-identity-fixed-artifacts/smoke-business-k8s-k8s-pag-f798f-red-primary-states-at-390px/attachments/c04-390-conflict-436566c0ffd99b3b38d0aaabb946a3d38228e863.png",
+      "sha256": "e5f8b5e7e2f25cb1108a3b4acd2fbc3d706366eab7c825d41439aa5d85a03d5d",
+      "width": 390,
+      "height": 844
+    },
+    {
+      "file": ".harness/evidence/2026-11-17-ops-history-audit/continuation-c04-ui-toast-identity-fixed-artifacts/smoke-business-k8s-k8s-pag-f798f-red-primary-states-at-390px/attachments/c04-390-create-2780f89df1802661ab164f1309d4b3f6832efd13.png",
+      "sha256": "fe482fcc4d752db58b7405bbaf0c5561fe9345c55b7d2f9459bdf79e543826fd",
+      "width": 390,
+      "height": 844
+    },
+    {
+      "file": ".harness/evidence/2026-11-17-ops-history-audit/continuation-c04-ui-toast-identity-fixed-artifacts/smoke-business-k8s-k8s-pag-f798f-red-primary-states-at-390px/attachments/c04-390-editor-ports-d1f0d8eadd507767ecbc7db3ae59b30cd8b35801.png",
+      "sha256": "251fd9408eaf3230fc85ef850dd1e79fa6d755647ce76248aaa9f14ba852b21d",
+      "width": 390,
+      "height": 844
+    },
+    {
+      "file": ".harness/evidence/2026-11-17-ops-history-audit/continuation-c04-ui-toast-identity-fixed-artifacts/smoke-business-k8s-k8s-pag-f798f-red-primary-states-at-390px/attachments/c04-390-editor-top-149c877ad876963864c6b038dbebbd3355e352be.png",
+      "sha256": "4787c140448e1850ab5996f3269d68b4ed3ff9aeccbd04159ea6f1988f55b970",
+      "width": 390,
+      "height": 844
+    },
+    {
+      "file": ".harness/evidence/2026-11-17-ops-history-audit/continuation-c04-ui-toast-identity-fixed-artifacts/smoke-business-k8s-k8s-pag-f798f-red-primary-states-at-390px/attachments/c04-390-loading-50cbe35fddfcee7c0cc49ce02a3b954e4c94213a.png",
+      "sha256": "521d24ff41de5639912da0ad34b1f4c263affd136017d7d800722603b2aefc36",
+      "width": 390,
+      "height": 844
+    },
+    {
+      "file": ".harness/evidence/2026-11-17-ops-history-audit/continuation-c04-ui-toast-identity-fixed-artifacts/smoke-business-k8s-k8s-pag-f798f-red-primary-states-at-390px/attachments/c04-390-submitting-44859ef9b6ccf08c661a1aa711ddec44f0fe0d13.png",
+      "sha256": "8183c61de7a6cd5c8689894cdadf1a13d367faaab53567a9b6aa8288e7a6c452",
+      "width": 390,
+      "height": 844
+    }
+  ],
+  "visualReview": {
+    "reviewer": "root coordinator",
+    "evidenceOrigin": "Actual viewing completed in the same root continuation before context compaction; recorded from preserved inspection findings.",
+    "inspectedCount": 20,
+    "viewports": [
+      "1440x900",
+      "390x844",
+      "1280x720 for default cases"
+    ],
+    "findings": "Single complete conflict notice; retained draft/version; create reopen has no stale owned notice; primary controls and scrolling remain usable. Empty recovery capture includes a short-lived prior global load-error notice, retained as observed.",
+    "limitations": [
+      "Notice temporarily covers the modal heading",
+      "Business APIs and role responses mocked; no live provider or actual authorization acceptance",
+      "Generic shared Message/AppModal stacking remains Base-first follow-up"
+    ]
+  },
+  "measurementRetention": {
+    "file": ".harness/evidence/2026-11-17-ops-history-audit/continuation-c04-ui-toast-readability-retained-20261118-measurements.json",
+    "sha256": "91b94acd6fbf6ec1fbe011a3aa6fdcfbed8a3a4d7b59ac7061a3870b7bb15f74",
+    "receipt": ".harness/evidence/2026-11-17-ops-history-audit/continuation-c04-ui-toast-readability-retained-20261118.receipt.json",
+    "freshTests": 3,
+    "pointsPerNotice": 5,
+    "originalLineOnlyRunBodyAttachmentsPersisted": false,
+    "historicalMeasurementsReconstructed": false
+  },
+  "finalStaticChecks": {
+    "file": ".harness/evidence/2026-11-17-ops-history-audit/continuation-frontend-c04-toast-identity-final-verification.json",
+    "sha256": "9b1bd6b7f2414e870e9fdf4113818cdcb306d8f9e71105f533b52eaede15dd16",
+    "lint": "passed",
+    "typecheck": "passed",
+    "build": "passed"
+  },
+  "wholeTaskComplete": false,
+  "archiveApproved": false
+}

@@ -1,0 +1,99 @@
+{
+  "sourceBefore": [
+    {
+      "sha256": "3d417008d14ee2d8f199cecee76d017dd171481e1032546baee279f1c787c88f",
+      "path": "frontend/src/modules/business/filedist/api.ts"
+    },
+    {
+      "sha256": "e479cf0fec6897f6851b30dd4e0e45c7c19d7677c94b572c4e5252ffa1ee7e95",
+      "path": "frontend/src/modules/business/filedist/createTaskPayload.ts"
+    },
+    {
+      "sha256": "14d31aa7be0b64dd27b42619297dabb507adfab027ef3e6c1c47b56e62df4cc3",
+      "path": "frontend/src/modules/business/filedist/taskState.ts"
+    },
+    {
+      "sha256": "72c5891d5765c6154071fee36e1c47053b0a47125023f1c6cfaf0f88d685dde7",
+      "path": "frontend/src/modules/business/filedist/useTaskDetail.ts"
+    },
+    {
+      "sha256": "505ffa920874eec1bbe060b6179504f14da9660288d3fd2889e02fdd1a3f5847",
+      "path": "frontend/src/modules/business/filedist/FiledistList.tsx"
+    },
+    {
+      "sha256": "4a8d799eb67ea9eeec459e6aecb2dd11e52e896fada8e86e19967e26888aea90",
+      "path": "frontend/src/modules/business/filedist/FiledistDetail.tsx"
+    },
+    {
+      "sha256": "0099f2cc83b247069fa784eaedb3aa7b87eb15229d2462cb1a623aaac022c2df",
+      "path": "frontend/src/modules/business/filedist/filedist.css"
+    }
+  ],
+  "sourceUnchanged": true,
+  "commands": [
+    {
+      "log": ".harness/evidence/2026-11-16-ops-filedist-product-closure/ui-final-eslint-20261118-01.log",
+      "command": "node node_modules/eslint/bin/eslint.js src/modules/business/filedist",
+      "startedAt": "2026-11-18T07:40:07.7838558Z",
+      "finishedAt": "2026-11-18T07:40:20.7863325Z",
+      "exitCode": 0,
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\frontend"
+    },
+    {
+      "log": ".harness/evidence/2026-11-16-ops-filedist-product-closure/ui-final-app-typecheck-20261118-01.log",
+      "command": "node node_modules/typescript/bin/tsc -b --pretty false",
+      "startedAt": "2026-11-18T07:40:20.8044938Z",
+      "finishedAt": "2026-11-18T07:40:59.2408975Z",
+      "exitCode": 0,
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\frontend"
+    },
+    {
+      "log": ".harness/evidence/2026-11-16-ops-filedist-product-closure/ui-final-regressions-20261118-01.log",
+      "command": "node .harness/evidence/2026-11-16-ops-filedist-product-closure/run-ui-lifetime-regression-20261118.mjs",
+      "startedAt": "2026-11-18T07:40:59.2434677Z",
+      "finishedAt": "2026-11-18T07:41:03.1789836Z",
+      "exitCode": 0,
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops"
+    },
+    {
+      "log": ".harness/evidence/2026-11-16-ops-filedist-product-closure/ui-final-diff-20261118-01.log",
+      "command": "git diff --check -- frontend/src/modules/business/filedist",
+      "startedAt": "2026-11-18T07:41:03.1819863Z",
+      "finishedAt": "2026-11-18T07:41:03.2683481Z",
+      "exitCode": 0,
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops"
+    }
+  ],
+  "verifiedAtUTC": "2026-11-18T07:41:03.3088920Z",
+  "sourceAfter": [
+    {
+      "sha256": "3d417008d14ee2d8f199cecee76d017dd171481e1032546baee279f1c787c88f",
+      "path": "frontend/src/modules/business/filedist/api.ts"
+    },
+    {
+      "sha256": "e479cf0fec6897f6851b30dd4e0e45c7c19d7677c94b572c4e5252ffa1ee7e95",
+      "path": "frontend/src/modules/business/filedist/createTaskPayload.ts"
+    },
+    {
+      "sha256": "14d31aa7be0b64dd27b42619297dabb507adfab027ef3e6c1c47b56e62df4cc3",
+      "path": "frontend/src/modules/business/filedist/taskState.ts"
+    },
+    {
+      "sha256": "72c5891d5765c6154071fee36e1c47053b0a47125023f1c6cfaf0f88d685dde7",
+      "path": "frontend/src/modules/business/filedist/useTaskDetail.ts"
+    },
+    {
+      "sha256": "505ffa920874eec1bbe060b6179504f14da9660288d3fd2889e02fdd1a3f5847",
+      "path": "frontend/src/modules/business/filedist/FiledistList.tsx"
+    },
+    {
+      "sha256": "4a8d799eb67ea9eeec459e6aecb2dd11e52e896fada8e86e19967e26888aea90",
+      "path": "frontend/src/modules/business/filedist/FiledistDetail.tsx"
+    },
+    {
+      "sha256": "0099f2cc83b247069fa784eaedb3aa7b87eb15229d2462cb1a623aaac022c2df",
+      "path": "frontend/src/modules/business/filedist/filedist.css"
+    }
+  ],
+  "scope": "Seven FileDist UI files; no assertion of full-tree stability"
+}

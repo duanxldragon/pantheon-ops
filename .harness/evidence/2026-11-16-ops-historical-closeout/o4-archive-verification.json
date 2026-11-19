@@ -1,0 +1,24 @@
+{
+  "accepted": true,
+  "taskId": "2026-11-17-ops-o4-recovery-regression",
+  "archivedAt": "2026-11-17",
+  "pairs": [
+    {
+      "Source": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.harness\\tasks\\2026-11-17-ops-o4-recovery-regression",
+      "Target": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.harness\\archive\\2026-11\\tasks\\2026-11-17-ops-o4-recovery-regression",
+      "Hashes": {
+        "manifest.json": "EB3881A8A0057D59B25C507DC74177D778613984321239CB9C84BE6ABAC0707A"
+      }
+    },
+    {
+      "Source": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.harness\\evidence\\2026-11-17-ops-o4-recovery-regression",
+      "Target": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.harness\\archive\\2026-11\\evidence\\2026-11-17-ops-o4-recovery-regression",
+      "Hashes": {
+        "commands.json": "F7D646BF5906E7782C3AEA8C40D69A7D91D6194F22F43CEF6779E904F00712A1",
+        "review.md": "41934F0D04F10C1F5B6CBDCBC041D9C820B30D76FD6DB930CED810823C99F0EF",
+        "summary.md": "D883DB4F233D43420ED5DB95604CF144F313804B95C16305CFF34E94CCE69430",
+        "codex-o4-migrations-race.log": "7AD4A846E26B09E572EFA44ADF4A2FE2490C7EED4714F16C6975FCB12AADD924"
+      }
+    }
+  ]
+}

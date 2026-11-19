@@ -17,6 +17,7 @@ const (
 	statusRetrying     = "retrying"
 	statusCompleted    = "completed"
 	statusFailed       = "failed"
+	statusCancelled    = "cancelled"
 )
 
 // DistributionTask represents a file distribution task.

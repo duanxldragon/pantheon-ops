@@ -110,5 +110,21 @@
     "planRefs": [
       ".harness/tasks/2026-11-16-ops-pilot-delivery/plan.md"
     ]
+  },
+  "continuationCheckpoint": {
+    "at": "2026-11-19T00:11:15.272Z",
+    "packageCode": "C02",
+    "stage": "dependency-planned",
+    "deliveryVerdict": "PARTIAL",
+    "accepted": false,
+    "evidenceRefs": [
+      ".harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-full-race-20261118-01.log.receipt.json",
+      ".harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-20261118-e01-final-frontend-quality.json",
+      ".harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-20261118-e01-final-source-equivalence.json",
+      ".harness/evidence/2026-11-17-ops-history-audit/continuation-current-preview-ten-packages-20261118-e01-final-build.json",
+      ".harness/evidence/2026-11-17-ops-history-audit/continuation-current-preview-ten-packages-e01-final-started-20261118.json"
+    ],
+    "progressReceipt": ".harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-progress-final-20261118.json",
+    "currentTechnicalIntegrationPassed": true
   }
 }

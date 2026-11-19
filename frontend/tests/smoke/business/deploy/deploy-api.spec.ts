@@ -1,4 +1,6 @@
 import { expect, request as playwrightRequest, test, type APIRequestContext, type APIResponse } from '@playwright/test';
+import { randomUUID } from 'node:crypto';
+import type { DeployTaskPreviewResponse, StartDeployTaskPayload } from '../../../../src/modules/business/deploy/api';
 import {
   adminCredentials,
   apiBaseUrl,
@@ -47,6 +49,7 @@ type TaskRow = {
     status: string;
     hostId: number;
     stdout?: string;
+    errorMessage?: string;
     traceSteps?: Array<{ phase?: string; message?: string }>;
   }>;
 };
@@ -58,15 +61,43 @@ type UploadResult = {
 };
 
 async function expectSuccess<T>(response: APIResponse): Promise<T> {
-  expect(response.ok()).toBeTruthy();
   const payload = await response.json() as ApiEnvelope<T>;
+  expect(response.ok(), `HTTP ${response.status()}: ${payload.message ?? 'no error key'}`).toBeTruthy();
   expect(payload.code).toBe(200);
   return payload.data;
 }
 
+async function previewAndStartTask(
+  apiContext: APIRequestContext,
+  taskId: number,
+  data: StartDeployTaskPayload = {},
+): Promise<TaskRow> {
+  const preview = await expectSuccess<DeployTaskPreviewResponse>(
+    await apiContext.post(`${apiBaseUrl}/business/deploy/tasks/${taskId}/preview`, { data }),
+  );
+  expect(preview.intentId).toBe(`deploy:${taskId}`);
+  expect(preview.intentVersion).toBeTruthy();
+  expect(preview.targetCount).toBeGreaterThan(0);
+  return expectSuccess<TaskRow>(
+    await apiContext.post(`${apiBaseUrl}/business/deploy/tasks/${taskId}/start`, {
+      headers: { 'X-Idempotency-Key': randomUUID() },
+      data: { ...data, intentVersion: preview.intentVersion },
+    }),
+  );
+}
+
+type FixtureResource = 'deploy/tasks' | 'cmdb/hosts' | 'deploy/packages' | 'deploy/credentials' | 'bizscope';
+
 test.describe.serial('Deploy business api smoke', () => {
   let login: BrowserLoginResult;
   let apiContext: APIRequestContext;
+  const createdFixtures: Array<{ resource: FixtureResource; id: number }> = [];
+
+  async function createFixture<T extends { id: number }>(resource: FixtureResource, response: APIResponse): Promise<T> {
+    const fixture = await expectSuccess<T>(response);
+    createdFixtures.push({ resource, id: fixture.id });
+    return fixture;
+  }
 
   test.beforeAll(async () => {
     const loginContext = await playwrightRequest.newContext();
@@ -85,9 +116,27 @@ test.describe.serial('Deploy business api smoke', () => {
     await apiContext?.dispose();
   });
 
+  test.afterEach(async () => {
+    const priority: FixtureResource[] = ['deploy/tasks', 'cmdb/hosts', 'deploy/packages', 'deploy/credentials', 'bizscope'];
+    const fixtures = createdFixtures.splice(0).sort((a, b) => priority.indexOf(a.resource) - priority.indexOf(b.resource));
+    const gaps: string[] = [];
+    for (const { resource, id } of fixtures) {
+      try {
+        const response = await apiContext.delete(`${apiBaseUrl}/business/${resource}/${id}`);
+        const payload = await response.json() as ApiEnvelope<unknown>;
+        if (payload.code !== 200 && payload.code !== 404) {
+          gaps.push(`${resource}/${id}: HTTP ${response.status()}, code ${payload.code}`);
+        }
+      } catch {
+        gaps.push(`${resource}/${id}: cleanup request failed`);
+      }
+    }
+    expect(gaps, 'Cleanup only addresses IDs created by this test; unresolved fixtures remain explicit').toEqual([]);
+  });
+
   test('deploy api creates starts and marks a manual task', async () => {
     const token = `deploy-smoke-${Date.now()}`;
-    const scope = await expectSuccess<BizScopeRow>(
+    const scope = await createFixture<BizScopeRow>('bizscope',
       await apiContext.post(`${apiBaseUrl}/business/bizscope`, {
         data: {
           code: token,
@@ -98,7 +147,7 @@ test.describe.serial('Deploy business api smoke', () => {
       }),
     );
 
-    const host = await expectSuccess<HostRow>(
+    const host = await createFixture<HostRow>('cmdb/hosts',
       await apiContext.post(`${apiBaseUrl}/business/cmdb/hosts`, {
         data: {
           hostname: token,
@@ -111,7 +160,7 @@ test.describe.serial('Deploy business api smoke', () => {
     );
     expect(host.status).toBe('assigned');
 
-    const pkg = await expectSuccess<PackageRow>(
+    const pkg = await createFixture<PackageRow>('deploy/packages',
       await apiContext.post(`${apiBaseUrl}/business/deploy/packages`, {
         data: {
           name: token,
@@ -122,7 +171,7 @@ test.describe.serial('Deploy business api smoke', () => {
       }),
     );
 
-    const task = await expectSuccess<TaskRow>(
+    const task = await createFixture<TaskRow>('deploy/tasks',
       await apiContext.post(`${apiBaseUrl}/business/deploy/tasks`, {
         data: {
           name: token,
@@ -136,9 +185,7 @@ test.describe.serial('Deploy business api smoke', () => {
     );
     expect(task.status).toBe('draft');
 
-    const started = await expectSuccess<TaskRow>(
-      await apiContext.post(`${apiBaseUrl}/business/deploy/tasks/${task.id}/start`),
-    );
+    const started = await previewAndStartTask(apiContext, task.id);
     expect(started.status).toBe('running');
     expect(started.hosts).toHaveLength(1);
 
@@ -158,15 +205,12 @@ test.describe.serial('Deploy business api smoke', () => {
     );
     expect(hostDetail.status).toBe('online');
 
-    await apiContext.delete(`${apiBaseUrl}/business/cmdb/hosts/${host.id}`).catch(() => undefined);
-    await apiContext.delete(`${apiBaseUrl}/business/bizscope/${scope.id}`).catch(() => undefined);
-    await apiContext.delete(`${apiBaseUrl}/business/deploy/packages/${pkg.id}`).catch(() => undefined);
   });
 
   test('deploy api updates a draft task before execution', async () => {
     const token = `deploy-update-${Date.now()}`;
 
-    const scopeA = await expectSuccess<BizScopeRow>(
+    const scopeA = await createFixture<BizScopeRow>('bizscope',
       await apiContext.post(`${apiBaseUrl}/business/bizscope`, {
         data: {
           code: `${token}-a`,
@@ -176,7 +220,7 @@ test.describe.serial('Deploy business api smoke', () => {
         },
       }),
     );
-    const scopeB = await expectSuccess<BizScopeRow>(
+    const scopeB = await createFixture<BizScopeRow>('bizscope',
       await apiContext.post(`${apiBaseUrl}/business/bizscope`, {
         data: {
           code: `${token}-b`,
@@ -187,7 +231,7 @@ test.describe.serial('Deploy business api smoke', () => {
       }),
     );
 
-    const hostA = await expectSuccess<HostRow>(
+    const hostA = await createFixture<HostRow>('cmdb/hosts',
       await apiContext.post(`${apiBaseUrl}/business/cmdb/hosts`, {
         data: {
           hostname: `${token}-host-a`,
@@ -198,7 +242,7 @@ test.describe.serial('Deploy business api smoke', () => {
         },
       }),
     );
-    const hostB = await expectSuccess<HostRow>(
+    const hostB = await createFixture<HostRow>('cmdb/hosts',
       await apiContext.post(`${apiBaseUrl}/business/cmdb/hosts`, {
         data: {
           hostname: `${token}-host-b`,
@@ -215,7 +259,7 @@ test.describe.serial('Deploy business api smoke', () => {
       }),
     );
 
-    const pkgA = await expectSuccess<PackageRow>(
+    const pkgA = await createFixture<PackageRow>('deploy/packages',
       await apiContext.post(`${apiBaseUrl}/business/deploy/packages`, {
         data: {
           name: `${token}-pkg-a`,
@@ -225,7 +269,7 @@ test.describe.serial('Deploy business api smoke', () => {
         },
       }),
     );
-    const pkgB = await expectSuccess<PackageRow>(
+    const pkgB = await createFixture<PackageRow>('deploy/packages',
       await apiContext.post(`${apiBaseUrl}/business/deploy/packages`, {
         data: {
           name: `${token}-pkg-b`,
@@ -236,7 +280,7 @@ test.describe.serial('Deploy business api smoke', () => {
       }),
     );
 
-    const task = await expectSuccess<TaskRow>(
+    const task = await createFixture<TaskRow>('deploy/tasks',
       await apiContext.post(`${apiBaseUrl}/business/deploy/tasks`, {
         data: {
           name: `${token}-task`,
@@ -282,18 +326,12 @@ test.describe.serial('Deploy business api smoke', () => {
     await expectSuccess<null>(
       await apiContext.delete(`${apiBaseUrl}/business/deploy/tasks/${task.id}`),
     );
-    await apiContext.delete(`${apiBaseUrl}/business/cmdb/hosts/${hostA.id}`).catch(() => undefined);
-    await apiContext.delete(`${apiBaseUrl}/business/cmdb/hosts/${hostB.id}`).catch(() => undefined);
-    await apiContext.delete(`${apiBaseUrl}/business/bizscope/${scopeA.id}`).catch(() => undefined);
-    await apiContext.delete(`${apiBaseUrl}/business/bizscope/${scopeB.id}`).catch(() => undefined);
-    await apiContext.delete(`${apiBaseUrl}/business/deploy/packages/${pkgA.id}`).catch(() => undefined);
-    await apiContext.delete(`${apiBaseUrl}/business/deploy/packages/${pkgB.id}`).catch(() => undefined);
   });
 
   test('deploy api deletes draft and terminal tasks but rejects active execution', async () => {
     const token = `deploy-delete-${Date.now()}`;
 
-    const scope = await expectSuccess<BizScopeRow>(
+    const scope = await createFixture<BizScopeRow>('bizscope',
       await apiContext.post(`${apiBaseUrl}/business/bizscope`, {
         data: {
           code: token,
@@ -304,7 +342,7 @@ test.describe.serial('Deploy business api smoke', () => {
       }),
     );
 
-    const host = await expectSuccess<HostRow>(
+    const host = await createFixture<HostRow>('cmdb/hosts',
       await apiContext.post(`${apiBaseUrl}/business/cmdb/hosts`, {
         data: {
           hostname: `${token}-host`,
@@ -316,7 +354,7 @@ test.describe.serial('Deploy business api smoke', () => {
       }),
     );
 
-    const pkg = await expectSuccess<PackageRow>(
+    const pkg = await createFixture<PackageRow>('deploy/packages',
       await apiContext.post(`${apiBaseUrl}/business/deploy/packages`, {
         data: {
           name: token,
@@ -327,7 +365,7 @@ test.describe.serial('Deploy business api smoke', () => {
       }),
     );
 
-    const draftTask = await expectSuccess<TaskRow>(
+    const draftTask = await createFixture<TaskRow>('deploy/tasks',
       await apiContext.post(`${apiBaseUrl}/business/deploy/tasks`, {
         data: {
           name: `${token}-draft`,
@@ -349,7 +387,7 @@ test.describe.serial('Deploy business api smoke', () => {
     const draftDetailPayload = await draftDetailResponse.json() as ApiEnvelope<unknown>;
     expect(draftDetailPayload.code).not.toBe(200);
 
-    const runningTask = await expectSuccess<TaskRow>(
+    const runningTask = await createFixture<TaskRow>('deploy/tasks',
       await apiContext.post(`${apiBaseUrl}/business/deploy/tasks`, {
         data: {
           name: `${token}-running`,
@@ -363,9 +401,7 @@ test.describe.serial('Deploy business api smoke', () => {
     );
     expect(runningTask.status).toBe('draft');
 
-    const started = await expectSuccess<TaskRow>(
-      await apiContext.post(`${apiBaseUrl}/business/deploy/tasks/${runningTask.id}/start`),
-    );
+    const started = await previewAndStartTask(apiContext, runningTask.id);
     expect(started.status).toBe('running');
 
     const deleteRunningResponse = await apiContext.delete(`${apiBaseUrl}/business/deploy/tasks/${runningTask.id}`);
@@ -386,9 +422,6 @@ test.describe.serial('Deploy business api smoke', () => {
     const terminalDetailPayload = await terminalDetailResponse.json() as ApiEnvelope<unknown>;
     expect(terminalDetailPayload.code).not.toBe(200);
 
-    await apiContext.delete(`${apiBaseUrl}/business/cmdb/hosts/${host.id}`).catch(() => undefined);
-    await apiContext.delete(`${apiBaseUrl}/business/bizscope/${scope.id}`).catch(() => undefined);
-    await apiContext.delete(`${apiBaseUrl}/business/deploy/packages/${pkg.id}`).catch(() => undefined);
   });
 
   test('deploy api records uploaded package metadata and failed ssh trace', async () => {
@@ -397,7 +430,7 @@ test.describe.serial('Deploy business api smoke', () => {
     const smokeIp = `127.0.0.${Math.floor(Math.random() * 200) + 20}`;
     const sourceBuffer = Buffer.from('fake nginx source archive for api smoke', 'utf8');
 
-    const scope = await expectSuccess<BizScopeRow>(
+    const scope = await createFixture<BizScopeRow>('bizscope',
       await apiContext.post(`${apiBaseUrl}/business/bizscope`, {
         data: {
           code: token,
@@ -408,7 +441,7 @@ test.describe.serial('Deploy business api smoke', () => {
       }),
     );
 
-    const host = await expectSuccess<HostRow>(
+    const host = await createFixture<HostRow>('cmdb/hosts',
       await apiContext.post(`${apiBaseUrl}/business/cmdb/hosts`, {
         data: {
           hostname: `${token}-host`,
@@ -439,7 +472,7 @@ test.describe.serial('Deploy business api smoke', () => {
     );
     expect(uploadPayload.originalName).toBe('nginx-1.30.2.tar.gz');
 
-    const pkg = await expectSuccess<PackageRow>(
+    const pkg = await createFixture<PackageRow>('deploy/packages',
       await apiContext.post(`${apiBaseUrl}/business/deploy/packages`, {
         data: {
           name: `${token}-nginx`,
@@ -457,7 +490,7 @@ test.describe.serial('Deploy business api smoke', () => {
     );
     expect(pkg.sourceFileName).toBe('nginx-1.30.2.tar.gz');
 
-    const task = await expectSuccess<TaskRow>(
+    const task = await createFixture<TaskRow>('deploy/tasks',
       await apiContext.post(`${apiBaseUrl}/business/deploy/tasks`, {
         data: {
           name: `${token}-task`,
@@ -476,7 +509,7 @@ test.describe.serial('Deploy business api smoke', () => {
     );
     expect(task.status).toBe('draft');
 
-    const credential = await expectSuccess<{ id: number }>(
+    const credential = await createFixture<{ id: number }>('deploy/credentials',
       await apiContext.post(`${apiBaseUrl}/business/deploy/credentials`, {
         data: {
           name: `${token}-credential`,
@@ -487,14 +520,10 @@ test.describe.serial('Deploy business api smoke', () => {
       }),
     );
 
-    await expectSuccess<TaskRow>(
-      await apiContext.post(`${apiBaseUrl}/business/deploy/tasks/${task.id}/start`, {
-        data: {
-          credentialRefId: credential.id,
-          hostFingerprint: 'SHA256:test',
-        },
-      }),
-    );
+    await previewAndStartTask(apiContext, task.id, {
+      credentialRefId: credential.id,
+      hostFingerprint: 'SHA256:test',
+    });
     await expect.poll(async () => {
       const response = await apiContext.get(`${apiBaseUrl}/business/deploy/tasks/${task.id}`);
       const payload = await response.json() as ApiEnvelope<TaskRow>;
@@ -504,25 +533,35 @@ test.describe.serial('Deploy business api smoke', () => {
     const failedTask = await expectSuccess<TaskRow>(
       await apiContext.get(`${apiBaseUrl}/business/deploy/tasks/${task.id}`),
     );
+    expect(failedTask.status).toBe('failed');
     expect(failedTask.businessScopeName).toContain(token);
     expect(failedTask.hosts).toHaveLength(1);
-    expect(failedTask.hosts[0].traceSteps?.length || 0).toBeGreaterThan(0);
-
-    const detail = await expectSuccess<TaskRow>(
-      await apiContext.get(`${apiBaseUrl}/business/deploy/tasks/${task.id}`),
+    const failedHost = failedTask.hosts[0];
+    expect(failedHost.hostId).toBe(host.id);
+    expect(failedHost.status).toBe('failed');
+    expect(failedHost.errorMessage).toBe('business.deploy.task.sshConnectFailed');
+    // Connection setup commits a failed result; legacy traceSteps have no required error phase.
+    expect(failedHost.traceSteps?.map((step) => step.phase)).toEqual(
+      expect.arrayContaining(['start', 'result']),
     );
-    expect(detail.hosts[0].traceSteps?.map((step) => step.phase)).toEqual(
-      expect.arrayContaining(['start', 'result', 'error']),
-    );
+    expect(failedHost.traceSteps).toContainEqual(expect.objectContaining({ phase: 'result', message: 'status=failed' }));
+    expect(JSON.stringify(failedTask)).not.toContain('smoke-secret');
+    await test.info().attach('failed-ssh-result', {
+      body: JSON.stringify({
+        taskId: task.id,
+        taskStatus: failedTask.status,
+        hostStatus: failedHost.status,
+        errorMessage: failedHost.errorMessage,
+        tracePhases: failedHost.traceSteps?.map((step) => step.phase),
+        fixtureSecretRedacted: true,
+      }),
+      contentType: 'application/json',
+    });
 
     const hostDetail = await expectSuccess<HostRow>(
       await apiContext.get(`${apiBaseUrl}/business/cmdb/hosts/${host.id}`),
     );
     expect(hostDetail.status).toBe('assigned');
 
-    await apiContext.delete(`${apiBaseUrl}/business/cmdb/hosts/${host.id}`).catch(() => undefined);
-    await apiContext.delete(`${apiBaseUrl}/business/bizscope/${scope.id}`).catch(() => undefined);
-    await apiContext.delete(`${apiBaseUrl}/business/deploy/packages/${pkg.id}`).catch(() => undefined);
-    await apiContext.delete(`${apiBaseUrl}/business/deploy/credentials/${credential.id}`).catch(() => undefined);
   });
 });

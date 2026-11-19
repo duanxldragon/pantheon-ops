@@ -1,0 +1,137 @@
+{
+  "at": "2026-11-17T11:45:00.717Z",
+  "originals": [
+    {
+      "file": ".harness/evidence/2026-11-16-ops-service-deploy-integrity/commands.json",
+      "backup": ".harness/evidence/2026-11-16-ops-service-deploy-integrity/checkpoints/schema-corrected/commands.json.raw",
+      "beforeSHA256": "00e69f182b85ae6638f06a9175974542ea203324cf9f284190637eaf2645f2ad",
+      "afterSHA256": "33e4e1c8c36b0ea12797668b937af5d096f35b371056227c1ec6a3bd565c95f8"
+    },
+    {
+      "file": ".harness/evidence/2026-11-16-ops-service-deploy-integrity/review.md",
+      "backup": ".harness/evidence/2026-11-16-ops-service-deploy-integrity/checkpoints/schema-corrected/review.md.raw",
+      "beforeSHA256": "d4c04e57ffa60d2158f94647702306c248afa3f0df1298542f13735ac2abce4d",
+      "afterSHA256": "e6d495bb2b58ea9eae06c8e6e4508be8d998cc1e37b14beb19c3b3c572c19f22"
+    },
+    {
+      "file": ".harness/evidence/2026-11-16-ops-service-deploy-integrity/summary.md",
+      "backup": ".harness/evidence/2026-11-16-ops-service-deploy-integrity/checkpoints/schema-corrected/summary.md.raw",
+      "beforeSHA256": "7eebe78db9236285e622d9bd3208f7978d58edcca687cef88e7a78440d44af4c",
+      "afterSHA256": "7cddf8359e7170ef07190f3a73da1e194c49fa37c1b7c93aac9e2e265a18fa90"
+    }
+  ],
+  "commands": [
+    {
+      "command": "go test -race -count=1 -timeout=10m ./modules/business/deploy -v -run ^TestServiceLinkAdmission",
+      "cwd": "backend",
+      "status": "failed",
+      "exitCode": 1,
+      "notes": "Windows MinGW/cgo=1; GOFLAGS=-p=1 -mod=readonly; isolated MySQL required=1; disposable=true; .harness/evidence/2026-11-17-ops-history-audit/continuation-c01-service-link-expanded.log; .harness/evidence/2026-11-17-ops-history-audit/continuation-c01-service-link-expanded.log.receipt.json",
+      "receipt": {
+        "log": "continuation-c01-service-link-expanded.log",
+        "goFlags": "-p=1 -mod=readonly",
+        "finishedAt": "2026-11-17T11:32:27.7769793Z",
+        "cgoEnabled": "1",
+        "testDsnRequired": "1",
+        "disposableMySQL": true,
+        "args": [
+          "test",
+          "-race",
+          "-count=1",
+          "-timeout=10m",
+          "./modules/business/deploy",
+          "-v",
+          "-run",
+          "^TestServiceLinkAdmission"
+        ],
+        "startedAt": "2026-11-17T11:30:57.4462688Z",
+        "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\backend",
+        "exitCode": 1
+      }
+    },
+    {
+      "command": "go test -race -count=1 -timeout=10m ./modules/business/deploy -v -run ^TestServiceLinkAdmission",
+      "cwd": "backend",
+      "status": "passed",
+      "exitCode": 0,
+      "notes": "Windows MinGW/cgo=1; GOFLAGS=-p=1 -mod=readonly; isolated MySQL required=1; disposable=true; .harness/evidence/2026-11-17-ops-history-audit/continuation-c01-service-link-initial-green.log; .harness/evidence/2026-11-17-ops-history-audit/continuation-c01-service-link-initial-green.log.receipt.json",
+      "receipt": {
+        "exitCode": 0,
+        "disposableMySQL": true,
+        "testDsnRequired": "1",
+        "cgoEnabled": "1",
+        "log": "continuation-c01-service-link-initial-green.log",
+        "finishedAt": "2026-11-17T11:28:18.4787161Z",
+        "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\backend",
+        "startedAt": "2026-11-17T11:27:38.4788241Z",
+        "goFlags": "-p=1 -mod=readonly",
+        "args": [
+          "test",
+          "-race",
+          "-count=1",
+          "-timeout=10m",
+          "./modules/business/deploy",
+          "-v",
+          "-run",
+          "^TestServiceLinkAdmission"
+        ]
+      }
+    },
+    {
+      "command": "go test -race -count=1 -timeout=10m ./modules/business/deploy -v -run ^TestServiceLinkAdmission",
+      "cwd": "backend",
+      "status": "failed",
+      "exitCode": 1,
+      "notes": "Windows MinGW/cgo=1; GOFLAGS=-p=1 -mod=readonly; isolated MySQL required=1; disposable=true; .harness/evidence/2026-11-17-ops-history-audit/continuation-c01-service-link-red.log; .harness/evidence/2026-11-17-ops-history-audit/continuation-c01-service-link-red.log.receipt.json",
+      "receipt": {
+        "log": "continuation-c01-service-link-red.log",
+        "goFlags": "-p=1 -mod=readonly",
+        "cgoEnabled": "1",
+        "finishedAt": "2026-11-17T11:19:45.3415892Z",
+        "args": [
+          "test",
+          "-race",
+          "-count=1",
+          "-timeout=10m",
+          "./modules/business/deploy",
+          "-v",
+          "-run",
+          "^TestServiceLinkAdmission"
+        ],
+        "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\backend",
+        "disposableMySQL": true,
+        "testDsnRequired": "1",
+        "startedAt": "2026-11-17T11:18:59.3529735Z",
+        "exitCode": 1
+      }
+    },
+    {
+      "command": "go test -race -count=1 -timeout=10m ./modules/business/deploy -v -run ^TestServiceLinkAdmission",
+      "cwd": "backend",
+      "status": "passed",
+      "exitCode": 0,
+      "notes": "Windows MinGW/cgo=1; GOFLAGS=-p=1 -mod=readonly; isolated MySQL required=1; disposable=true; .harness/evidence/2026-11-17-ops-history-audit/continuation-c01-service-link-replay-fixed.log; .harness/evidence/2026-11-17-ops-history-audit/continuation-c01-service-link-replay-fixed.log.receipt.json",
+      "receipt": {
+        "args": [
+          "test",
+          "-race",
+          "-count=1",
+          "-timeout=10m",
+          "./modules/business/deploy",
+          "-v",
+          "-run",
+          "^TestServiceLinkAdmission"
+        ],
+        "log": "continuation-c01-service-link-replay-fixed.log",
+        "finishedAt": "2026-11-17T11:36:04.0501821Z",
+        "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\backend",
+        "cgoEnabled": "1",
+        "goFlags": "-p=1 -mod=readonly",
+        "startedAt": "2026-11-17T11:34:33.4364385Z",
+        "testDsnRequired": "1",
+        "exitCode": 0,
+        "disposableMySQL": true
+      }
+    }
+  ]
+}

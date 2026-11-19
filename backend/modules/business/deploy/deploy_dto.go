@@ -285,15 +285,16 @@ type DeployCredentialResponse struct {
 }
 
 type MarkHostResultRequest struct {
-	Status         string `json:"status" binding:"required"`
-	Stdout         string `json:"stdout"`
-	Stderr         string `json:"stderr"`
-	ErrorMessage   string `json:"errorMessage"`
-	ExecutorID     string `json:"executorId"`
-	ReportKey      string `json:"reportKey"`
-	HealthState    string `json:"healthState"`
-	HealthMessage  string `json:"healthMessage"`
-	HealthRevision string `json:"healthRevision"`
+	ExecutionVersion string `json:"executionVersion"`
+	Status           string `json:"status" binding:"required"`
+	Stdout           string `json:"stdout"`
+	Stderr           string `json:"stderr"`
+	ErrorMessage     string `json:"errorMessage"`
+	ExecutorID       string `json:"executorId"`
+	ReportKey        string `json:"reportKey"`
+	HealthState      string `json:"healthState"`
+	HealthMessage    string `json:"healthMessage"`
+	HealthRevision   string `json:"healthRevision"`
 }
 
 // TaskStepResponse exposes persisted execution state, never commands or conditions.
@@ -378,28 +379,29 @@ type TaskResponse struct {
 }
 
 type TaskHostResponse struct {
-	ID              uint64           `json:"id"`
-	TaskID          uint64           `json:"taskId"`
-	HostID          uint64           `json:"hostId"`
-	Hostname        string           `json:"hostname"`
-	HostIP          string           `json:"hostIp"`
-	SSHPort         int              `json:"sshPort"`
-	OS              string           `json:"os"`
-	BusinessScopeID uint64           `json:"businessScopeId"`
-	Status          string           `json:"status"`
-	Stdout          string           `json:"stdout"`
-	Stderr          string           `json:"stderr"`
-	ErrorMessage    string           `json:"errorMessage"`
-	ExecutorID      string           `json:"executorId"`
-	ReportKey       string           `json:"reportKey"`
-	TraceSteps      []map[string]any `json:"traceSteps"`
-	StartedAt       *time.Time       `json:"startedAt"`
-	FinishedAt      *time.Time       `json:"finishedAt"`
-	ReportedAt      *time.Time       `json:"reportedAt"`
-	ResolvedAt      *time.Time       `json:"resolvedAt"`
-	DurationSeconds int64            `json:"durationSeconds"`
-	UpdatedAt       time.Time        `json:"updatedAt"`
-	UpdatedBy       string           `json:"updatedBy"`
+	ExecutionVersion string           `json:"executionVersion,omitempty"`
+	ID               uint64           `json:"id"`
+	TaskID           uint64           `json:"taskId"`
+	HostID           uint64           `json:"hostId"`
+	Hostname         string           `json:"hostname"`
+	HostIP           string           `json:"hostIp"`
+	SSHPort          int              `json:"sshPort"`
+	OS               string           `json:"os"`
+	BusinessScopeID  uint64           `json:"businessScopeId"`
+	Status           string           `json:"status"`
+	Stdout           string           `json:"stdout"`
+	Stderr           string           `json:"stderr"`
+	ErrorMessage     string           `json:"errorMessage"`
+	ExecutorID       string           `json:"executorId"`
+	ReportKey        string           `json:"reportKey"`
+	TraceSteps       []map[string]any `json:"traceSteps"`
+	StartedAt        *time.Time       `json:"startedAt"`
+	FinishedAt       *time.Time       `json:"finishedAt"`
+	ReportedAt       *time.Time       `json:"reportedAt"`
+	ResolvedAt       *time.Time       `json:"resolvedAt"`
+	DurationSeconds  int64            `json:"durationSeconds"`
+	UpdatedAt        time.Time        `json:"updatedAt"`
+	UpdatedBy        string           `json:"updatedBy"`
 }
 
 type TaskListResponse struct {

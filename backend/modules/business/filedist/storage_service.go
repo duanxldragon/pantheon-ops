@@ -1,6 +1,7 @@
 package filedist
 
 import (
+	"context"
 	"crypto/md5" // #nosec G501 -- MD5 is a non-security integrity fingerprint here; SHA-256 is computed alongside it.
 	"crypto/sha256"
 	"encoding/hex"
@@ -465,13 +466,18 @@ func (s *StorageService) DeleteFile(id uint64) error {
 
 // GetFilePath returns the full path to a file.
 func (s *StorageService) GetFilePath(id uint64) (string, error) {
+	return s.getFilePathContext(context.Background(), id)
+}
+
+func (s *StorageService) getFilePathContext(ctx context.Context, id uint64) (string, error) {
+	db := s.db.WithContext(ctx)
 	var record FileRecord
-	if err := s.db.First(&record, id).Error; err != nil {
+	if err := db.First(&record, id).Error; err != nil {
 		return "", err
 	}
 
 	var storage FileStorage
-	if err := s.db.First(&storage, record.StorageID).Error; err != nil {
+	if err := db.First(&storage, record.StorageID).Error; err != nil {
 		return "", err
 	}
 

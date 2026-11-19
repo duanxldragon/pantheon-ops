@@ -13,6 +13,13 @@ const (
 	permKeyServiceUpdate = "business.service.permission.update"
 	permKeyServiceDelete = "business.service.permission.delete"
 	wherePathEq          = "path = ?"
+
+	// Current + upgraded-legacy parent paths. The legacy /business/service row
+	// (old id, no registered page route -> 404) is converged onto the current
+	// parent path while keeping the old id, so existing role-menu bindings
+	// survive an upgrade.
+	serviceMenuPathCurrent = "/business/service-catalog"
+	serviceMenuPathLegacy  = "/business/service"
 )
 
 type menuSeed struct {
@@ -27,7 +34,7 @@ const (
 )
 
 var menuSeeds = []menuSeed{
-	{Key: "service", ParentPath: "", TitleKey: menuTitleKeyService, Path: "/business/service-catalog", Component: "business/service/ServiceCatalog", PagePerm: "business:service:list", Type: "C", Icon: "apps", RouteName: "service-list", Module: serviceModuleKey, Sort: 2},
+	{Key: "service", ParentPath: "", TitleKey: menuTitleKeyService, Path: "/business/service-catalog", Component: "business/service/ServiceCatalog", PagePerm: "business:service:list", Type: "C", Icon: "apps", RouteName: "service-list", Module: serviceModuleKey, Sort: 3},
 	// Children are tab anchors for the single ServiceCatalog page; only the
 	// parent owns the page permission so the RBAC permission tree keeps one
 	// pagePerm per C-node (see RoleList pagePermissionTree keying).
@@ -45,6 +52,9 @@ func seedMenus(db *gorm.DB) error {
 		return nil
 	}
 	return db.Transaction(func(tx *gorm.DB) error {
+		if err := mergeLegacyServiceMenu(tx); err != nil {
+			return err
+		}
 		ids := map[string]uint64{}
 		for _, seed := range menuSeeds {
 			id := findSeedMenuID(tx, seed)
@@ -59,6 +69,58 @@ func seedMenus(db *gorm.DB) error {
 		}
 		return nil
 	})
+}
+
+// mergeLegacyServiceMenu converges the upgraded legacy single-row service
+// parent onto the current path while keeping the OLD menu id, so pre-existing
+// role-menu bindings (incl. tenant_id) survive. Only module=business.service
+// rows are ever touched, and it never deletes a same-named custom menu.
+// Idempotent over consecutive seeds/starts.
+func mergeLegacyServiceMenu(tx *gorm.DB) error {
+	type row struct{ ID uint64 }
+	canonical, legacy := row{}, row{}
+	if err := tx.Table("system_menu").Where("path = ? AND module = ?", serviceMenuPathCurrent, serviceModuleKey).Limit(1).Scan(&canonical).Error; err != nil {
+		return err
+	}
+	if err := tx.Table("system_menu").Where("path = ? AND module = ?", serviceMenuPathLegacy, serviceModuleKey).Limit(1).Scan(&legacy).Error; err != nil {
+		return err
+	}
+
+	// Both coexist and differ -> reparent ALL children (incl user-custom ones,
+	// so none dangles under the soon-deleted parent) + absorb bindings onto legacy.
+	if legacy.ID != 0 && canonical.ID != 0 && legacy.ID != canonical.ID {
+		if err := tx.Table("system_menu").
+			Where("parent_id = ?", canonical.ID).
+			Update("parent_id", legacy.ID).Error; err != nil {
+			return err
+		}
+		// Composite PK (tenant_id, role_id, menu_id) — keep tenant_id.
+		if err := tx.Exec("INSERT INTO system_role_menu (tenant_id, role_id, menu_id) "+
+			"SELECT s.tenant_id, s.role_id, ? FROM system_role_menu s "+
+			"WHERE s.menu_id = ? AND NOT EXISTS (SELECT 1 FROM system_role_menu d "+
+			"WHERE d.tenant_id = s.tenant_id AND d.role_id = s.role_id AND d.menu_id = ?)",
+			legacy.ID, canonical.ID, legacy.ID).Error; err != nil {
+			return err
+		}
+		if err := tx.Table("system_role_menu").Where("menu_id = ?", canonical.ID).Delete(nil).Error; err != nil {
+			return err
+		}
+		if err := tx.Table("system_menu").Where("id = ? AND module = ?", canonical.ID, serviceModuleKey).Delete(nil).Error; err != nil {
+			return err
+		}
+		canonical.ID = 0
+	}
+
+	// A surviving legacy row (whether promoted alone or the merge target) owns
+	// the canonical path going forward so findSeedMenuID resolves to its old id.
+	if legacy.ID != 0 && canonical.ID == 0 {
+		if err := tx.Table("system_menu").
+			Where("id = ? AND module = ?", legacy.ID, serviceModuleKey).
+			Update("path", serviceMenuPathCurrent).Error; err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func findSeedMenuID(tx *gorm.DB, seed menuSeed) uint64 {
@@ -130,6 +192,20 @@ func seedI18n(db *gorm.DB) error {
 		{Locale: "en-US", Group: "permission", Key: permKeyServiceUpdate, Value: "Update services"},
 		{Locale: "zh-CN", Group: "permission", Key: permKeyServiceDelete, Value: "删除服务"},
 		{Locale: "en-US", Group: "permission", Key: permKeyServiceDelete, Value: "Delete services"},
+		{Locale: "zh-CN", Group: "error", Key: errStateStale, Value: "实例状态已变化，请刷新列表并重新核对后操作。"},
+		{Locale: "en-US", Group: "error", Key: errStateStale, Value: "The instance state has changed. Refresh the list and review it before retrying."},
+		{Locale: "zh-CN", Group: "error", Key: errStateInvalid, Value: "当前实例状态不允许此操作。"},
+		{Locale: "en-US", Group: "error", Key: errStateInvalid, Value: "The current instance state does not allow this operation."},
+		{Locale: "zh-CN", Group: "error", Key: errTargetInvalid, Value: "目标信息无效，请按服务类型选择完整且属于同一业务域的目标。"},
+		{Locale: "en-US", Group: "error", Key: errTargetInvalid, Value: "Invalid target. Select a complete target compatible with the service in the same business scope."},
+		{Locale: "zh-CN", Group: "error", Key: errTargetNotFound, Value: "目标不可用或无权访问，请重新选择。"},
+		{Locale: "en-US", Group: "error", Key: errTargetNotFound, Value: "The target is unavailable or inaccessible. Select another target."},
+		{Locale: "zh-CN", Group: "error", Key: errTargetConflict, Value: "目标绑定存在冲突或当前不能安全更换，请检查已有绑定、运行状态和部署引用。"},
+		{Locale: "en-US", Group: "error", Key: errTargetConflict, Value: "The binding conflicts or cannot be safely changed. Check existing bindings, lifecycle state, and deployment references."},
+		{Locale: "zh-CN", Group: "error", Key: "business.service.instance_in_use", Value: "实例仍被执行中的部署引用，不能删除或退役"},
+		{Locale: "en-US", Group: "error", Key: "business.service.instance_in_use", Value: "The instance is referenced by an executing deployment and cannot be deleted or retired"},
+		{Locale: "zh-CN", Group: "error", Key: "business.service.deployment_reader_not_configured", Value: "部署引用校验未配置，不能删除或退役"},
+		{Locale: "en-US", Group: "error", Key: "business.service.deployment_reader_not_configured", Value: "Deployment reference validation is unavailable; deletion and retirement are blocked"},
 	}
 	return db.Transaction(func(tx *gorm.DB) error {
 		for _, item := range seeds {

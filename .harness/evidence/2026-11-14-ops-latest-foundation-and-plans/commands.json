@@ -1,0 +1,99 @@
+{
+  "taskId": "2026-11-14-ops-latest-foundation-and-plans",
+  "repo": "pantheon-ops",
+  "agent": {
+    "tool": "codex",
+    "adapter": "Historical r7 latest-foundation executor (per repo role contract); evidence packaging recorded by Claude 2026-11-17; independent acceptance review pending (Codex)"
+  },
+  "commands": [
+    {
+      "command": "latest-foundation apply against pantheon-base-v0.18.8 (baseCommit 34428814a9efc997fd93d4434406a53df6460323; writes 165 -> 2; rollbackArchiveSHA256 recorded; gitIndexUnchanged true; productMatchesValidatedStage true) — result pass",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+      "exitCode": null,
+      "status": "passed",
+      "log": ".harness/evidence/2026-11-14-ops-latest-foundation-and-plans/verification/apply-r7.log",
+      "notes": "final pass in apply-final.log (writes 2); verification timestamp 2026-11-14 (retained log); not re-run",
+      "provenance": "Retrospective output-only packaging: passed describes the retained log. Exact historical shell invocation, process exit code and execution metadata were not captured.",
+      "sourceLogs": [
+        ".harness/evidence/2026-11-14-ops-latest-foundation-and-plans/verification/apply-r7.log",
+        ".harness/evidence/2026-11-14-ops-latest-foundation-and-plans/verification/apply-final.log"
+      ]
+    },
+    {
+      "command": "npm run check:business-overlay (OK business overlay contract, 60 declared paths, rebuilt tree)",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+      "exitCode": null,
+      "status": "passed",
+      "log": ".harness/evidence/2026-11-14-ops-latest-foundation-and-plans/verification/overlay-final.log",
+      "provenance": "Retrospective output-only packaging: passed describes the retained log. Exact historical shell invocation, process exit code and execution metadata were not captured.",
+      "sourceLogs": [
+        ".harness/evidence/2026-11-14-ops-latest-foundation-and-plans/verification/overlay-final.log"
+      ]
+    },
+    {
+      "command": "npm run check:shared-drift (857 shared files, 856 identical to base, 1 allowlisted drift, 288 business-overlay skipped, 14 derived business migrations verified)",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+      "exitCode": null,
+      "status": "passed",
+      "log": ".harness/evidence/2026-11-14-ops-latest-foundation-and-plans/verification/shared-drift-final.log",
+      "notes": "legacy allowlist entries printed LEGACY_ALLOWLIST_SUPERSEDED (canonical assembly verified)",
+      "provenance": "Retrospective output-only packaging: passed describes the retained log. Exact historical shell invocation, process exit code and execution metadata were not captured.",
+      "sourceLogs": [
+        ".harness/evidence/2026-11-14-ops-latest-foundation-and-plans/verification/shared-drift-final.log"
+      ]
+    },
+    {
+      "command": "npm run test:business-overlay (node --test tests/scripts/business-overlay/*.test.mjs) — 66/66 passed",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+      "exitCode": null,
+      "status": "passed",
+      "log": ".harness/evidence/2026-11-14-ops-latest-foundation-and-plans/verification/overlay-tests-final.log",
+      "provenance": "Retrospective output-only packaging: passed describes the retained log. Exact historical shell invocation, process exit code and execution metadata were not captured.",
+      "sourceLogs": [
+        ".harness/evidence/2026-11-14-ops-latest-foundation-and-plans/verification/overlay-tests-final.log"
+      ]
+    },
+    {
+      "command": "node --test tests/docs/frontmatter-check.test.mjs — 15/15 passed; check:docs-frontmatter final pass (466 docs, 303 with frontmatter)",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+      "exitCode": null,
+      "status": "passed",
+      "log": ".harness/evidence/2026-11-14-ops-latest-foundation-and-plans/verification/frontmatter-tests-final.log",
+      "notes": "candidate-frontmatter-final.log; earlier gate-frontmatter.log captured intermediate contract related_designs/related_acceptances mismatches resolved by the candidate pass",
+      "provenance": "Retrospective output-only packaging: passed describes the retained log. Exact historical shell invocation, process exit code and execution metadata were not captured.",
+      "sourceLogs": [
+        ".harness/evidence/2026-11-14-ops-latest-foundation-and-plans/verification/frontmatter-tests-final.log",
+        ".harness/evidence/2026-11-14-ops-latest-foundation-and-plans/verification/candidate-frontmatter-final.log"
+      ]
+    },
+    {
+      "command": "r7 final harne gates: check-evidence (commands.json, 1 file, 0 errors), check-task-packet (task card, 0 errors), check-review (review.md, 0 errors)",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+      "exitCode": null,
+      "status": "passed",
+      "log": ".harness/evidence/2026-11-14-ops-latest-foundation-and-plans/verification/r7-final-evidence.log",
+      "notes": "also gate-evidence/gate-task-packet/gate-review logs, all 0 errors; the evidence/task/review logs reference commands.json, the owning task card, and review.md that were not resident — commands.json and the task card are materialized by this round; review.md remains the Codex acceptance step's output",
+      "provenance": "Retrospective output-only packaging: passed describes the retained log. Exact historical shell invocation, process exit code and execution metadata were not captured.",
+      "sourceLogs": [
+        ".harness/evidence/2026-11-14-ops-latest-foundation-and-plans/verification/r7-final-evidence.log",
+        ".harness/evidence/2026-11-14-ops-latest-foundation-and-plans/verification/r7-final-task.log",
+        ".harness/evidence/2026-11-14-ops-latest-foundation-and-plans/verification/r7-final-review.log"
+      ]
+    }
+  ],
+  "knownGaps": [
+    "Independent acceptance review (review.md) is not authored in this packaging round; it is the Codex acceptance step's output, so the task remains in-progress / awaiting-review.",
+    "This 2026-11-14 round is superseded by the later base v0.18.x consumption directories; recorded as dangling/superseded, not completed.",
+    "Pre-existing inheritance-contract findings (docs/WORKSPACE_INHERITANCE.md, pantheon-ops/CLAUDE.md, docs/PROJECT_INHERITANCE.md missing at repository root) are out of this task's scope and unchanged.",
+    "Verification timestamps are read from retained 2026-11-14 logs; no command in this round was re-run.",
+    "Correction 2026-11-17: process exit codes not preserved are null; composite descriptions identify each source log. The v0.18.8 baseline successor is the committed 07d53988 official v0.18.9 consumption, not the earlier v0.18.7 packet."
+  ],
+  "linkage": {
+    "taskManifest": ".harness/tasks/2026-11-14-ops-latest-foundation-and-plans/manifest.json",
+    "evidenceDir": ".harness/evidence/2026-11-14-ops-latest-foundation-and-plans/",
+    "reviewFile": "none",
+    "summaryFile": ".harness/evidence/2026-11-14-ops-latest-foundation-and-plans/summary.md",
+    "changeRef": "none",
+    "planRefs": []
+  }
+}

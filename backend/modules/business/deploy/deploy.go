@@ -7,6 +7,7 @@ import (
 	bizscope "github.com/duanxldragon/pantheon-base/backend/modules/business/bizscope"
 	bizcap "github.com/duanxldragon/pantheon-base/backend/modules/business/capability"
 	"github.com/duanxldragon/pantheon-base/backend/modules/business/cmdb"
+	"github.com/duanxldragon/pantheon-base/backend/modules/business/service"
 	"github.com/duanxldragon/pantheon-base/backend/pkg/contracts"
 	"github.com/duanxldragon/pantheon-base/backend/pkg/database"
 
@@ -16,17 +17,26 @@ import (
 
 // InitDeployModule registers the deploy business module.
 func InitDeployModule(r *gin.RouterGroup, db *gorm.DB, cmdbCapability cmdb.DeployCMDBCapability, readers ...bizcap.BizScopeReader) {
-	initDeployModule(r, db, cmdbCapability, nil, nil, readers...)
+	initDeployModule(r, db, cmdbCapability, nil, nil, nil, readers...)
 }
 
 // InitDeployModuleWithServiceState registers deploy with state callbacks and
 // their same-owner transaction factory, configured before reconciliation starts.
 func InitDeployModuleWithServiceState(r *gin.RouterGroup, db *gorm.DB, cmdbCapability cmdb.DeployCMDBCapability, stateApplier bizcap.ServiceInstanceStateApplier, stateTransaction func(*gorm.DB) bizcap.ServiceInstanceStateApplier, readers ...bizcap.BizScopeReader) {
-	initDeployModule(r, db, cmdbCapability, stateApplier, stateTransaction, readers...)
+	initDeployModule(r, db, cmdbCapability, nil, stateApplier, stateTransaction, readers...)
 }
 
-func initDeployModule(r *gin.RouterGroup, db *gorm.DB, cmdbCapability cmdb.DeployCMDBCapability, stateApplier bizcap.ServiceInstanceStateApplier, stateTransaction func(*gorm.DB) bizcap.ServiceInstanceStateApplier, readers ...bizcap.BizScopeReader) {
+// InitDeployModuleWithServiceOwner connects admission, state commands and the
+// reverse deletion guard before any queue recovery can access the owners.
+func InitDeployModuleWithServiceOwner(r *gin.RouterGroup, db *gorm.DB, cmdbCapability cmdb.DeployCMDBCapability, serviceReader service.Reader, stateApplier bizcap.ServiceInstanceStateApplier, stateTransaction func(*gorm.DB) bizcap.ServiceInstanceStateApplier, readers ...bizcap.BizScopeReader) {
+	initDeployModule(r, db, cmdbCapability, serviceReader, stateApplier, stateTransaction, readers...)
+}
+
+func initDeployModule(r *gin.RouterGroup, db *gorm.DB, cmdbCapability cmdb.DeployCMDBCapability, serviceReader service.Reader, stateApplier bizcap.ServiceInstanceStateApplier, stateTransaction func(*gorm.DB) bizcap.ServiceInstanceStateApplier, readers ...bizcap.BizScopeReader) {
 	if err := registerDeployLogPolicies(); err != nil {
+		panic(err)
+	}
+	if err := registerDeployPermissionRoutes(); err != nil {
 		panic(err)
 	}
 	var bizScopeReader bizcap.BizScopeReader
@@ -39,6 +49,12 @@ func initDeployModule(r *gin.RouterGroup, db *gorm.DB, cmdbCapability cmdb.Deplo
 	svc := NewDeployService(db, cmdbCapability, bizScopeReader)
 	svc.SetAsyncExecution(true)
 	svc.SetServiceInstanceStateApplierWithTransaction(stateApplier, stateTransaction)
+	svc.SetServiceReader(serviceReader)
+	if owner, ok := serviceReader.(interface {
+		SetDeploymentReferenceReader(bizcap.DeploymentReferenceReader)
+	}); ok {
+		owner.SetDeploymentReferenceReader(svc)
+	}
 	// Recover leases and queued work from a prior process before accepting new
 	// deploy starts. Each host is still claimed atomically by the worker.
 	go func() {
@@ -60,6 +76,7 @@ func initDeployModule(r *gin.RouterGroup, db *gorm.DB, cmdbCapability cmdb.Deplo
 		contracts.FuncModule{
 			ModuleName:    "business.deploy",
 			MigrateFunc:   func(db *gorm.DB) error { return svc.Migrate() },
+			BootstrapFunc: func(db *gorm.DB) error { return svc.Migrate() },
 			SeedMenusFunc: seedDeployMenus,
 			SeedI18nFunc:  seedDeployI18n,
 			Register: func(r *gin.RouterGroup) {

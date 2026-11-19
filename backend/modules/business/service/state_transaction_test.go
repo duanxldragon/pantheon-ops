@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	bizcap "github.com/duanxldragon/pantheon-base/backend/modules/business/capability"
+	biztx "github.com/duanxldragon/pantheon-base/backend/modules/business/shared/transaction"
 	"github.com/duanxldragon/pantheon-base/backend/pkg/common"
 	"gorm.io/gorm"
 )
@@ -31,8 +32,8 @@ func TestStateTransactionValidationRevisionAndLifecycle(t *testing.T) {
 	var bound bizcap.ServiceInstanceStateApplier
 	type contextKey struct{}
 	ctx := context.WithValue(context.Background(), contextKey{}, "owner-command")
-	readCount, writeCount := 0, 0
-	err := m.db.Transaction(func(tx *gorm.DB) error {
+	readCount, writeCount, referenceBinds := 0, 0, 0
+	err := biztx.ReadCommittedTransaction(ctx, m.db, func(tx *gorm.DB) error {
 		// Neither original owner DB nor an independent connection can see these
 		// uncommitted validation/revision facts.
 		if err := tx.Model(&Application{}).Where("id = ?", app.ID).Update("dept_id", 8).Error; err != nil {
@@ -52,6 +53,14 @@ func TestStateTransactionValidationRevisionAndLifecycle(t *testing.T) {
 				t.Error("owner validation lost command context")
 			}
 		}
+		m.SetDeploymentReferenceReader(&retireReferenceReader{bind: func(db *gorm.DB) bizcap.DeploymentReferenceReader {
+			checkDB(db)
+			referenceBinds++
+			if err := biztx.RequireReadCommittedTransaction(db); err != nil {
+				return &retireReferenceReader{err: err}
+			}
+			return &retireReferenceReader{}
+		}})
 		if err := m.db.Callback().Query().Before("gorm:query").Register("bound_read", func(db *gorm.DB) { checkDB(db); readCount++ }); err != nil {
 			return err
 		}
@@ -96,12 +105,15 @@ func TestStateTransactionValidationRevisionAndLifecycle(t *testing.T) {
 			t.Fatalf("bound writes/replay: %+v", after)
 		}
 		return injected
-	}, &sql.TxOptions{Isolation: sql.LevelReadCommitted})
+	}, nil)
 	if !errors.Is(err, injected) {
 		t.Fatalf("outer transaction: %v", err)
 	}
 	if readCount == 0 || writeCount != 2 {
 		t.Fatalf("owner SQL evidence reads=%d writes=%d", readCount, writeCount)
+	}
+	if referenceBinds != 1 {
+		t.Fatalf("Retire reference admission bound %d times, want 1", referenceBinds)
 	}
 	if m.db != rootDB {
 		t.Fatal("binding replaced long-lived owner DB")

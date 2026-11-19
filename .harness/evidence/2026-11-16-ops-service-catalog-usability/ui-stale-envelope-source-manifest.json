@@ -1,0 +1,16 @@
+{
+  "taskId": "2026-11-16-ops-service-catalog-usability",
+  "checkedAt": "2026-11-17T14:49:37.1206249Z",
+  "sourceState": "Working-tree checkpoint, no commit",
+  "change": "Fix stale instance mock to actual shared business envelope and scope localized assertion to error feedback",
+  "files": [
+    {
+      "path": "frontend/src/modules/business/service/ServiceCatalog.tsx",
+      "sha256": "21299fee2258954b6c0408d7abdea71130952d2a4557af3b8679cfcb54646f7e"
+    },
+    {
+      "path": "frontend/tests/smoke/business/service/service-pages.spec.ts",
+      "sha256": "9486c5f5c97ab1ab69d84075dcb3bbb66f2fc9ecab4f90ebde25fa0d7dcb417a"
+    }
+  ]
+}

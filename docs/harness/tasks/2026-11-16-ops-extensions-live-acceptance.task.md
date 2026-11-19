@@ -168,6 +168,24 @@ business/*
 
 ## Status
 
-planned；首期默认裁剪，启用时转为必验。
+in-progress；首期默认裁剪，启用时转为必验。
 
 条件依赖：无硬依赖；按实际开放能力检查 conditionalDependencies。
+
+## 2026-11-18T07:31:44.466Z Continuation checkpoint
+
+Status: planned. 实际开放扩展的真实外部验收尚未执行；按启用能力条件承接E01/E02/E03。
+
+Original acceptance and dependencies remain unchanged. Whole-package acceptance is incomplete; see [summary](../../../.harness/evidence/2026-11-16-ops-extensions-live-acceptance/summary.md) and [progress receipt](../../../.harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-progress-20261118.json).
+
+## 2026-11-18T07:58:38.569Z Integration continuation
+
+Status: in-progress. 本地readiness plan/matrix和commands handoff已完成并freeze，进入in-progress准备；9行live provider全部NOT_RUN。loopback HTTP200仅旧binary/preview，当前MySQL PID/executable/startTime与identity receipt一致；旧startup parent PID差异已解释，未验证provider/auth/schema。
+
+Implementer local preparation self-review有receipt；独立provider/product评审PENDING，整个E04未验收。 Original acceptance, dependencies and human gates remain unmet. See [summary](../../../.harness/evidence/2026-11-16-ops-extensions-live-acceptance/summary.md) and [latest progress](../../../.harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-progress-integration-20261118.json).
+
+## 2026-11-19T00:11:15.272Z Verified continuation checkpoint
+
+Status: in-progress. 本地readiness plan/matrix/commands已准备，9条live provider全部NOT_RUN；当前新binary身份/hash和数据库/migrations/redis/frontend readiness已实际记录，原旧binary HTTP200仅历史。
+
+本地准备和新preview readiness已记录，独立真实provider/role/product评审及原验收PENDING。 Original acceptance and human gates remain unmet. See [summary](../../../.harness/evidence/2026-11-16-ops-extensions-live-acceptance/summary.md) and [structured progress](../../../.harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-progress-final-20261118.json).

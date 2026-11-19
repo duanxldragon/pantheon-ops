@@ -1,0 +1,69 @@
+{
+  "taskId": "2026-11-07-ops-planned-task-closeout",
+  "taskDoc": "docs/harness/tasks/2026-11-07-ops-planned-task-closeout.task.md",
+  "title": "Ops planned-task closeout evidence packaging",
+  "goal": "Materialize the retained closeout verification evidence (summary.md, commands.json) and the owning task card for the 2026-11-07 ops planned-task closeout round, restoring the governance chain that the retained gate logs already reference.",
+  "primaryLayer": "business/*",
+  "status": "in-progress",
+  "priority": "P1",
+  "type": "evidence-orphan-closeout",
+  "dependencies": [],
+  "scope": {
+    "in": [
+      "Materialize .harness/evidence/2026-11-07-ops-planned-task-closeout/summary.md and commands.json from the retained verification/final logs (no invented runs)",
+      "Create the minimal owning task card docs/harness/tasks/2026-11-07-ops-planned-task-closeout.task.md linking to the evidence",
+      "Record real verification timestamps and the retained-log provenance for each command"
+    ],
+    "out": [
+      "Any business/release/source code change",
+      "Changing or deleting the original retained logs",
+      "Authoring a self-approved review.md (independent acceptance review is owned by the Codex acceptance step, not this packaging round)",
+      "Any foundation-release.lock.json / VERSION change"
+    ]
+  },
+  "dependencyLayers": [
+    "business/*"
+  ],
+  "contractAnchors": [
+    "docs/contracts/PLATFORM_CONTRACT.md"
+  ],
+  "expectedFiles": {
+    "create": [
+      "docs/harness/tasks/2026-11-07-ops-planned-task-closeout.task.md",
+      ".harness/tasks/2026-11-07-ops-planned-task-closeout/manifest.json",
+      ".harness/evidence/2026-11-07-ops-planned-task-closeout/summary.md",
+      ".harness/evidence/2026-11-07-ops-planned-task-closeout/commands.json"
+    ],
+    "modify": [
+      "config/review-loop-legacy-artifacts.json (stale legacy-review allowlist entries superseded/shrunk)"
+    ],
+    "doNotTouch": [
+      "backend/ and frontend/src/ source",
+      "foundation-release.lock.json / VERSION",
+      "Original historical .log evidence files"
+    ]
+  },
+  "harnessProfile": {
+    "template": "admin-platform",
+    "overlay": "pantheon-ops",
+    "qualityProfile": "ci-workflow",
+    "portableFailureClass": "governance-evidence-packaging",
+    "ownerLayer": "business/*",
+    "coverageDimensions": [
+      "behaviour"
+    ]
+  },
+  "implementationNotes": [
+    "Evidence-only closeout: every command record is drawn from the retained .log files already present under .harness/evidence/2026-11-07-ops-planned-task-closeout/ (backend-race-final.log, business-foundation-final.log, business-runtime-final.log, shared-drift-final.log, staged-* logs, cmdb/smoke-final.log, d5/*, frontend-* logs, review/evidence/task-packet-final logs). No run was repeated and no command line or status was invented.",
+    "The historical review-final.log reports 8 FAILs that are stale legacy review-allowlist entries (artifacts no longer in the tree), not content failures; those stale entries are superseded/shrunk in config/review-loop-legacy-artifacts.json this round.",
+    "A self-approved review.md is deliberately not authored: independent CODE/ARCH acceptance and review.md are owned by the Codex acceptance step, so this task stays in-progress/awaiting-review."
+  ],
+  "linkage": {
+    "taskManifest": ".harness/tasks/2026-11-07-ops-planned-task-closeout/manifest.json",
+    "evidenceDir": ".harness/evidence/2026-11-07-ops-planned-task-closeout/",
+    "reviewFile": "none",
+    "summaryFile": ".harness/evidence/2026-11-07-ops-planned-task-closeout/summary.md",
+    "changeRef": "none",
+    "planRefs": []
+  }
+}

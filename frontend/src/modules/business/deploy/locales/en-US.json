@@ -448,5 +448,7 @@
   "business.deploy.logs.download": "Download log snapshot",
   "business.deploy.logs.downloadFailed": "Unable to download logs",
   "business.deploy.logs.downloadLimited": "This snapshot is partial because a log limit was reached.",
-  "business.deploy.logs.knownRedaction": "Known task secrets are masked. Other sensitive application output may remain."
+  "business.deploy.logs.knownRedaction": "Known task secrets are masked. Other sensitive application output may remain.",
+  "business.deploy.package.latestDeployedAt": "Last Deployed At",
+  "business.deploy.package.latestTask": "Latest Task"
 }

@@ -70,9 +70,6 @@
   "business.bizscope.environment.field.name": "Environment Name",
   "business.bizscope.environment.field.envType": "Environment Type",
   "business.bizscope.environment.field.remark": "Remark",
-  "business.bizscope.environment.dev": "Development",
-  "business.bizscope.environment.test": "Testing",
-  "business.bizscope.environment.prod": "Production",
   "business.bizscope.environment.empty": "No environments",
   "business.bizscope.environment.createTitle": "Create Environment",
   "business.bizscope.environment.editTitle": "Edit Environment",
@@ -89,5 +86,6 @@
   "business.bizscope.environment.nameRequired": "Environment name is required",
   "business.bizscope.environment.scopeRequired": "Business scope is required",
   "business.bizscope.environment.envTypeInvalid": "Invalid environment type",
-  "business.bizscope.environment.statusInvalid": "Invalid environment status"
+  "business.bizscope.environment.statusInvalid": "Invalid environment status",
+  "business.bizscope.permission.hostView": "View host bindings"
 }

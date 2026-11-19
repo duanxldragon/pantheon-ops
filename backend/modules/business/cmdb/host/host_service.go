@@ -35,6 +35,12 @@ type HostService struct {
 	db             *gorm.DB
 	bizScopeReader bizcap.BizScopeReader
 	serviceRefs    bizcap.ServiceInstanceReferenceReader
+	// configReader is the injected platform config seam for SSH-collect settings
+	// (design §11.2). A nil reader disables externalization and falls back to the
+	// documented defaults (10s / 22) — identical to the pre-configuration
+	// behavior. It must be a tenant-scoped view consistent with the host's
+	// owning tenant; see SetConfigReader.
+	configReader ConfigReader
 }
 
 // NewHostService creates the CMDB host service with its optional BizScope reader.
@@ -44,6 +50,15 @@ func NewHostService(db *gorm.DB, readers ...bizcap.BizScopeReader) *HostService 
 		service.bizScopeReader = readers[0]
 	}
 	return service
+}
+
+// SetConfigReader injects the platform config reader used to externalize
+// SSH-collect settings (cmdb.ssh.collect_timeout / cmdb.ssh.default_port). The
+// reader should be a tenant-scoped setting view so config resolution stays
+// consistent with the host's owning tenant. A nil reader keeps the documented
+// defaults. Wiring it at assembly is the business-owner's seam, outside cmdb.
+func (s *HostService) SetConfigReader(reader ConfigReader) {
+	s.configReader = reader
 }
 
 // SetServiceInstanceReferenceReader configures the owner-module reader used before host retirement.
@@ -182,7 +197,12 @@ func (s *HostService) Create(req CreateHostRequest, createdBy string) (*HostResp
 		UpdatedBy:         createdBy,
 	}
 	if host.SSHPort == 0 {
-		host.SSHPort = 22
+		// No explicit port: persist the platform-configured default (fallback 22)
+		// so the externalized cmdb.ssh.default_port actually reaches the host's
+		// dial address. A persisted port is always >0, which effectiveSSHPort
+		// defers to, so materializing the default here is the only path that
+		// makes the config default take effect at runtime.
+		host.SSHPort = s.defaultSSHPort()
 	}
 
 	if err := s.db.Create(&host).Error; err != nil {
@@ -370,7 +390,7 @@ func (s *HostService) Collect(id uint64, req CollectRequest, dataScope *common.D
 		return nil, err
 	}
 
-	addr := fmt.Sprintf("%s:%d", host.IP, host.SSHPort)
+	addr := fmt.Sprintf("%s:%d", host.IP, s.effectiveSSHPort(host.SSHPort))
 	fingerprint := strings.TrimSpace(req.HostFingerprint)
 	if fingerprint == "" {
 		return nil, errors.New("cmdbhost.ssh_host_key_required")
@@ -378,7 +398,7 @@ func (s *HostService) Collect(id uint64, req CollectRequest, dataScope *common.D
 	config := &ssh.ClientConfig{
 		User:            req.SSHUser,
 		HostKeyCallback: hostKeyCallback(fingerprint),
-		Timeout:         10 * time.Second,
+		Timeout:         s.collectTimeout(),
 	}
 	if req.AuthMode == "private_key" {
 		signer, err := ssh.ParsePrivateKey([]byte(req.SSHPrivateKey))

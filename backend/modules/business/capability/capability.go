@@ -148,3 +148,10 @@ type ServiceInstanceStateApplier interface {
 type ServiceInstanceReferenceReader interface {
 	HasActiveHostReferences(ctx context.Context, hostID uint64, scope *common.DataScopeReq) (bool, error)
 }
+
+// DeploymentReferenceReader is owned by Deploy. Service authorizes its owner
+// row before checking references; execution references are not caller-filtered.
+// instanceID zero checks all executing references to the service.
+type DeploymentReferenceReader interface {
+	HasExecutingServiceReferences(ctx context.Context, serviceID, instanceID uint64) (bool, error)
+}

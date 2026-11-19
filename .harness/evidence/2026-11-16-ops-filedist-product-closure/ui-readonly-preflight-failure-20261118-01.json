@@ -1,0 +1,16 @@
+{
+  "recordedAtUTC": "2026-11-18T08:35:10.8094404Z",
+  "phase": "independent-CIM-runtime-preflight-before-browser",
+  "command": "node .local/manual-preview-20261116/verify-ten-packages-ui-20261118.mjs ten-packages-20261118 ten-packages-20261118-01 ten-packages-started-20261118 ten-packages-20261118-02",
+  "actualExecCommandExitCode": 1,
+  "independentProbeExitCode": 2,
+  "actualAssertion": "2 !== 0 at verify-ten-packages-ui-20261118.mjs:71",
+  "diagnosticCause": "Nested PowerShell Get-NetTCPConnection denied with HRESULT 0x80041003; separate PowerShell/pwsh diagnostic confirmed PermissionDenied",
+  "provenance": "Recorded after direct tool output; no prior receipt or log had been created by the runner",
+  "browserLaunched": false,
+  "loginPerformed": false,
+  "businessRequestsPerformed": false,
+  "independentProbeSucceeded": false,
+  "rootDecision": "Keep original CIM probe; root executes same command using approved local path, escalation if sandbox rejection persists",
+  "rawRunnerLogAvailable": false
+}

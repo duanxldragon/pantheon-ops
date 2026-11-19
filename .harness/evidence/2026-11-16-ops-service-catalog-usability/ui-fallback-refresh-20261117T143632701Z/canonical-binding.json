@@ -1,0 +1,153 @@
+{
+  "candidate": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\manual-preview-20261116\\overlay-history-continuation-final-c01-c03-final-cache-approved",
+  "checkedAt": "2026-11-17T14:36:32.9184767Z",
+  "liveCount": 24,
+  "candidateCount": 24,
+  "pathSetDifferences": [],
+  "files": [
+    {
+      "path": "frontend/src/modules/business/bizscope/locales/en-US.json",
+      "liveSha256": "a706e0d2f8af1997c42ef02d975e2cd670016ac86ed171b38dc35d9cef245460",
+      "candidateSha256": "a706e0d2f8af1997c42ef02d975e2cd670016ac86ed171b38dc35d9cef245460",
+      "byteEqual": true
+    },
+    {
+      "path": "frontend/src/modules/business/bizscope/locales/fr-FR.json",
+      "liveSha256": "ec901983d033c0883f22fa643757ab464d75b6fd4c1a4d216173090842edc0e6",
+      "candidateSha256": "ec901983d033c0883f22fa643757ab464d75b6fd4c1a4d216173090842edc0e6",
+      "byteEqual": true
+    },
+    {
+      "path": "frontend/src/modules/business/bizscope/locales/ja-JP.json",
+      "liveSha256": "a702ee79d763ac097fa9e81b934637c74bb985e7168a385572dea894c288f49b",
+      "candidateSha256": "a702ee79d763ac097fa9e81b934637c74bb985e7168a385572dea894c288f49b",
+      "byteEqual": true
+    },
+    {
+      "path": "frontend/src/modules/business/bizscope/locales/ko-KR.json",
+      "liveSha256": "e885fee4d818faca3d392a2212cfd955ac7f6fe28f041f8cb6dce28630d52240",
+      "candidateSha256": "e885fee4d818faca3d392a2212cfd955ac7f6fe28f041f8cb6dce28630d52240",
+      "byteEqual": true
+    },
+    {
+      "path": "frontend/src/modules/business/bizscope/locales/zh-CN.json",
+      "liveSha256": "9698963e34fda8de31bdea1ce5d53b8db83e33d3b7afd524169305cc6204dea6",
+      "candidateSha256": "9698963e34fda8de31bdea1ce5d53b8db83e33d3b7afd524169305cc6204dea6",
+      "byteEqual": true
+    },
+    {
+      "path": "frontend/src/modules/business/cmdb/locales/en-US.json",
+      "liveSha256": "b6741e8b7bdf037eb57cf1eac634817599d15e0f9f7d7de4e63410387319768b",
+      "candidateSha256": "b6741e8b7bdf037eb57cf1eac634817599d15e0f9f7d7de4e63410387319768b",
+      "byteEqual": true
+    },
+    {
+      "path": "frontend/src/modules/business/cmdb/locales/zh-CN.json",
+      "liveSha256": "d8441c54634a08f7ce96ea17387f448770a33e1a6157c634d3689afc53289abe",
+      "candidateSha256": "d8441c54634a08f7ce96ea17387f448770a33e1a6157c634d3689afc53289abe",
+      "byteEqual": true
+    },
+    {
+      "path": "frontend/src/modules/business/deploy/locales/en-US.json",
+      "liveSha256": "a87bd58f6995638bdfe44360ed96c8d0bec9a4c0bcea282d1b03009d2eb0233b",
+      "candidateSha256": "a87bd58f6995638bdfe44360ed96c8d0bec9a4c0bcea282d1b03009d2eb0233b",
+      "byteEqual": true
+    },
+    {
+      "path": "frontend/src/modules/business/deploy/locales/fr-FR.json",
+      "liveSha256": "8489a01ca9353fd0a5cfd687349d31d00f49a01f3b5bf41dd9eec6416c9505bb",
+      "candidateSha256": "8489a01ca9353fd0a5cfd687349d31d00f49a01f3b5bf41dd9eec6416c9505bb",
+      "byteEqual": true
+    },
+    {
+      "path": "frontend/src/modules/business/deploy/locales/ja-JP.json",
+      "liveSha256": "0a349bbea0498e757e13a78a3f7341b63a89fc725846917cbb67b7e4b19755e7",
+      "candidateSha256": "0a349bbea0498e757e13a78a3f7341b63a89fc725846917cbb67b7e4b19755e7",
+      "byteEqual": true
+    },
+    {
+      "path": "frontend/src/modules/business/deploy/locales/ko-KR.json",
+      "liveSha256": "5b5452a5728ef070bb2cf1cc4a727dc59b7a837565a656102df6a54bb9d1f613",
+      "candidateSha256": "5b5452a5728ef070bb2cf1cc4a727dc59b7a837565a656102df6a54bb9d1f613",
+      "byteEqual": true
+    },
+    {
+      "path": "frontend/src/modules/business/deploy/locales/zh-CN.json",
+      "liveSha256": "346cdb82324aa73b9655e081a3801f76758e1f1c948854bdff1ad7cf0fe79cb2",
+      "candidateSha256": "346cdb82324aa73b9655e081a3801f76758e1f1c948854bdff1ad7cf0fe79cb2",
+      "byteEqual": true
+    },
+    {
+      "path": "frontend/src/modules/business/observability/locales/en-US.json",
+      "liveSha256": "84a3d47bb67fc5dad33a77c38a3164f56daae98a48b5bae26bd6b0448178710d",
+      "candidateSha256": "84a3d47bb67fc5dad33a77c38a3164f56daae98a48b5bae26bd6b0448178710d",
+      "byteEqual": true
+    },
+    {
+      "path": "frontend/src/modules/business/observability/locales/fr-FR.json",
+      "liveSha256": "762de33b819129af98dd448e56c1a18d145d4e94d8041c5feaa3b40a81950fe2",
+      "candidateSha256": "762de33b819129af98dd448e56c1a18d145d4e94d8041c5feaa3b40a81950fe2",
+      "byteEqual": true
+    },
+    {
+      "path": "frontend/src/modules/business/observability/locales/ja-JP.json",
+      "liveSha256": "7c6ec32d3528e5a8a9310f0cedd9809b5a7a7e63bfbdc074f53e4ae5c97b4576",
+      "candidateSha256": "7c6ec32d3528e5a8a9310f0cedd9809b5a7a7e63bfbdc074f53e4ae5c97b4576",
+      "byteEqual": true
+    },
+    {
+      "path": "frontend/src/modules/business/observability/locales/ko-KR.json",
+      "liveSha256": "0e41cc84b2e095564aa300f92f95bce68aefce670f5b2f168683d65fe3d18dff",
+      "candidateSha256": "0e41cc84b2e095564aa300f92f95bce68aefce670f5b2f168683d65fe3d18dff",
+      "byteEqual": true
+    },
+    {
+      "path": "frontend/src/modules/business/observability/locales/zh-CN.json",
+      "liveSha256": "49c4ec440b7a73934a3d3e93a407af3556f50bf814b6ac95240d4122c7aa80c9",
+      "candidateSha256": "49c4ec440b7a73934a3d3e93a407af3556f50bf814b6ac95240d4122c7aa80c9",
+      "byteEqual": true
+    },
+    {
+      "path": "frontend/src/modules/business/shared/locales/en-US.json",
+      "liveSha256": "42a9175721c2dd93b7b9147ba12d0cefc7ccb7cd07951acb2492fc9090236800",
+      "candidateSha256": "42a9175721c2dd93b7b9147ba12d0cefc7ccb7cd07951acb2492fc9090236800",
+      "byteEqual": true
+    },
+    {
+      "path": "frontend/src/modules/business/shared/locales/zh-CN.json",
+      "liveSha256": "98f36f5230998e2a810d65a4bf3479c8bf6ae681bc95d36a557ce16195bc2e00",
+      "candidateSha256": "98f36f5230998e2a810d65a4bf3479c8bf6ae681bc95d36a557ce16195bc2e00",
+      "byteEqual": true
+    },
+    {
+      "path": "frontend/src/modules/business/v12locales/en-US.json",
+      "liveSha256": "b2c0940dfbaac0cd241930461ad1642a7086459e9531544fef04a0c8d795c70a",
+      "candidateSha256": "b2c0940dfbaac0cd241930461ad1642a7086459e9531544fef04a0c8d795c70a",
+      "byteEqual": true
+    },
+    {
+      "path": "frontend/src/modules/business/v12locales/fr-FR.json",
+      "liveSha256": "3d2d6d90580f878b396462b268dd33bde567255fefc18b1a60b55797757d0538",
+      "candidateSha256": "3d2d6d90580f878b396462b268dd33bde567255fefc18b1a60b55797757d0538",
+      "byteEqual": true
+    },
+    {
+      "path": "frontend/src/modules/business/v12locales/ja-JP.json",
+      "liveSha256": "ca5bf2b3bceea48bfff05c9ae4a1432ce39caba50a657d27d01b2e5106e860b7",
+      "candidateSha256": "ca5bf2b3bceea48bfff05c9ae4a1432ce39caba50a657d27d01b2e5106e860b7",
+      "byteEqual": true
+    },
+    {
+      "path": "frontend/src/modules/business/v12locales/ko-KR.json",
+      "liveSha256": "4a305e6fcbff9bea0b7b379a2c85784e5863690ab98bfd5c54d7b5fceeba7024",
+      "candidateSha256": "4a305e6fcbff9bea0b7b379a2c85784e5863690ab98bfd5c54d7b5fceeba7024",
+      "byteEqual": true
+    },
+    {
+      "path": "frontend/src/modules/business/v12locales/zh-CN.json",
+      "liveSha256": "dba12dc43044c4ef666d82ff5c89705eeee4ff634e51edc075ee66cf07bc0c40",
+      "candidateSha256": "dba12dc43044c4ef666d82ff5c89705eeee4ff634e51edc075ee66cf07bc0c40",
+      "byteEqual": true
+    }
+  ]
+}

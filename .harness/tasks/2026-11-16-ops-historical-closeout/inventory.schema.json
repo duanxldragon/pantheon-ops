@@ -1,0 +1,22 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Pantheon Ops historical-closeout inventory record",
+  "description": "One row per historical task ID or O/D subitem. Covers original acceptance, current evidence from the source tree/evidence dirs, and a single disposition. Subitems are counted once at child level; container parents are marked idType=container and are not re-counted.",
+  "type": "object",
+  "required": ["id", "idType", "sourcePaths", "originalAcceptance", "currentEvidence", "disposition"],
+  "properties": {
+    "id": { "type": "string" },
+    "idType": { "enum": ["historical-task", "archived-package", "container", "workbench-subitem", "delivery-subitem", "infra-tool-record", "evidence-orphan"] },
+    "sourcePaths": { "type": "array", "items": { "type": "string" } },
+    "originalAcceptance": { "type": "string" },
+    "currentEvidence": { "type": "string" },
+    "disposition": { "enum": ["verified-complete", "missing-implementation", "missing-verification", "insufficient-evidence", "obsolete-with-proof", "upstream-owned", "external-gate", "deferred-forward", "container"] },
+    "remainingWork": { "type": "string" },
+    "ownerFiles": { "type": "array", "items": { "type": "string" } },
+    "dependencies": { "type": "string" },
+    "validationCommands": { "type": "array", "items": { "type": "string" } },
+    "readOriginal": { "type": "boolean" },
+    "note": { "type": "string" }
+  },
+  "additionalProperties": true
+}

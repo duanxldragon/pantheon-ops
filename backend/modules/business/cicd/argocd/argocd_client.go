@@ -20,6 +20,11 @@ import (
 // mistyped bundle fails at save time instead of turning every request into a TLS error.
 var ErrInvalidCACert = errors.New("ca_cert_contains_no_valid_certificate")
 
+// ErrApplicationNotFound denotes an observed remote deletion, not a server outage.
+var ErrApplicationNotFound = errors.New("app.not_found")
+
+var errSyncRequestRejected = errors.New(appSyncFailedKey)
+
 // authorizationBearerPrefix is the RFC 6750 scheme Argo CD expects in front of the API token.
 const authorizationBearerPrefix = "Bearer "
 
@@ -150,6 +155,11 @@ type ArgoCDApplicationStatus struct {
 		Phase     string     `json:"phase"`
 		Message   string     `json:"message"`
 		StartedAt *time.Time `json:"startedAt"`
+		Operation struct {
+			Sync struct {
+				Revision string `json:"revision"`
+			} `json:"sync"`
+		} `json:"operation"`
 	} `json:"operationState,omitempty"`
 }
 
@@ -168,6 +178,9 @@ func (c *ArgoCDClient) GetApplicationStatus(ctx context.Context, appName string)
 	}
 	defer func() { _ = resp.Body.Close() }()
 
+	if resp.StatusCode == http.StatusNotFound {
+		return nil, ErrApplicationNotFound
+	}
 	if resp.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("unexpected status %d", resp.StatusCode)
 	}
@@ -211,8 +224,10 @@ func (c *ArgoCDClient) SyncApplication(ctx context.Context, appName, revision st
 	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode != http.StatusOK {
-		body, _ := io.ReadAll(resp.Body)
-		return fmt.Errorf("sync failed with status %d: %s", resp.StatusCode, string(body))
+		if resp.StatusCode >= 400 && resp.StatusCode < 500 {
+			return fmt.Errorf("%w: HTTP %d", errSyncRequestRejected, resp.StatusCode)
+		}
+		return fmt.Errorf("sync response uncertain: HTTP %d", resp.StatusCode)
 	}
 
 	return nil

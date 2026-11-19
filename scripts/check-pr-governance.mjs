@@ -6,6 +6,7 @@ import {
   extractTaskIdFromManifestPath,
   normalizeRepoRelativePath,
   readTaskManifest,
+  resolveArchiveAwarePath,
 } from './task-manifest.mjs';
 
 const root = process.cwd();
@@ -120,7 +121,7 @@ function hasExistingRepoFile(rootDir, value) {
   if (!normalized || path.isAbsolute(value) || normalized.startsWith('..')) {
     return false;
   }
-  return fs.existsSync(path.join(rootDir, normalized));
+  return resolveArchiveAwarePath(rootDir, normalized) !== null;
 }
 
 function extractTaskIdFromArtifactPath(value, suffix) {

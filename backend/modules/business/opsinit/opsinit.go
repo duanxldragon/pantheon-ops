@@ -6,9 +6,16 @@
 package opsinit
 
 import (
+	"context"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
+
 	bizscope "github.com/duanxldragon/pantheon-base/backend/modules/business/bizscope"
 	bizcap "github.com/duanxldragon/pantheon-base/backend/modules/business/capability"
 	cicd "github.com/duanxldragon/pantheon-base/backend/modules/business/cicd"
+	"github.com/duanxldragon/pantheon-base/backend/modules/business/cicd/argocd"
 	cmdb "github.com/duanxldragon/pantheon-base/backend/modules/business/cmdb"
 	deploy "github.com/duanxldragon/pantheon-base/backend/modules/business/deploy"
 	filedist "github.com/duanxldragon/pantheon-base/backend/modules/business/filedist"
@@ -66,11 +73,11 @@ func Init(r *gin.RouterGroup, db *gorm.DB) {
 		K8sReader:      k8sReader,
 	})
 	if manager, ok := serviceReader.(*opsservice.Manager); ok && manager != nil {
-		deploy.InitDeployModuleWithServiceState(r, db, cmdbCapability, manager, manager.WithServiceInstanceStateTransaction, bizScopeService)
+		deploy.InitDeployModuleWithServiceOwner(r, db, cmdbCapability, serviceReader, manager, manager.WithServiceInstanceStateTransaction, bizScopeService)
 	} else if stateApplier, ok := serviceReader.(bizcap.ServiceInstanceStateApplier); ok {
-		deploy.InitDeployModuleWithServiceState(r, db, cmdbCapability, stateApplier, nil, bizScopeService)
+		deploy.InitDeployModuleWithServiceOwner(r, db, cmdbCapability, serviceReader, stateApplier, nil, bizScopeService)
 	} else {
-		deploy.InitDeployModule(r, db, cmdbCapability, bizScopeService)
+		deploy.InitDeployModuleWithServiceOwner(r, db, cmdbCapability, serviceReader, nil, nil, bizScopeService)
 	}
 	if referenceReader, ok := serviceReader.(bizcap.ServiceInstanceReferenceReader); ok {
 		hostService.SetServiceInstanceReferenceReader(referenceReader)
@@ -94,5 +101,28 @@ func Init(r *gin.RouterGroup, db *gorm.DB) {
 	if err := fileDistModule.Migrate(db); err != nil {
 		panic(err)
 	}
+	// The locked Base Init adapter has no lifecycle context/cleanup callback.
+	// Own cancellation here without changing Base or claiming that its HTTP
+	// shutdown waits for business cleanup. Job authorization stays fail-closed
+	// until the public current-job/source authority contract is available.
+	extensionCtx, cancelExtensions := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	stopExtensions, err := startExtensionRuntime(extensionCtx, fileDistModule, argocd.NewReconciler(db, 30*time.Second))
+	if err != nil {
+		cancelExtensions()
+		panic(err)
+	}
+	routesRegistered := false
+	defer func() {
+		if !routesRegistered {
+			cancelExtensions()
+			stopExtensions()
+		}
+	}()
 	fileDistModule.RegisterRoutes(r)
+	routesRegistered = true
+	go func() {
+		<-extensionCtx.Done()
+		stopExtensions()
+		cancelExtensions()
+	}()
 }

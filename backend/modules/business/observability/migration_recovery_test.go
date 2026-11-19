@@ -2,11 +2,34 @@ package observability
 
 import (
 	"context"
+	"os"
 	"strings"
 	"testing"
 
 	"github.com/duanxldragon/pantheon-base/backend/pkg/testmysql"
+	mysqlDriver "github.com/go-sql-driver/mysql"
 )
+
+// rebindO4DisposableDSN makes testmysql seed the disposable fixture from a base
+// DBName that satisfies the production disposableO4Database whitelist, so
+// RecoverO4Migration37's ownership guard accepts it. When no DSN is configured
+// the env is left untouched, so testmysql keeps its skip/required behavior.
+func rebindO4DisposableDSN(t *testing.T) {
+	t.Helper()
+	dsn := strings.TrimSpace(os.Getenv("PANTHEON_TEST_DSN"))
+	if dsn == "" {
+		dsn = strings.TrimSpace(os.Getenv("PANTHEON_DSN"))
+	}
+	if dsn == "" {
+		return
+	}
+	cfg, err := mysqlDriver.ParseDSN(dsn)
+	if err != nil {
+		return // malformed DSN: let testmysql surface the skip/fail decision
+	}
+	cfg.DBName = "ops_p0_acceptance"
+	t.Setenv("PANTHEON_TEST_DSN", cfg.FormatDSN())
+}
 
 func TestO4_LegacyCiphertextAndIndexUpgrade(t *testing.T) {
 	db := testmysql.Open(t)
@@ -115,6 +138,7 @@ func TestO4_FreshAndRetainedMigrationRecipe(t *testing.T) {
 func TestO4_KnownPartialRecoveryAndUnknownRefusal(t *testing.T) {
 	for _, step := range []string{"-- O4 STEP revision", "-- O4 STEP index idx_datasource_tenant_default", "-- O4 STEP obs_saved_view"} {
 		t.Run(strings.TrimPrefix(step, "-- O4 STEP "), func(t *testing.T) {
+			rebindO4DisposableDSN(t)
 			db := testmysql.Open(t)
 			ctx := context.Background()
 			sqlDB, _ := db.DB()
@@ -138,6 +162,9 @@ func TestO4_KnownPartialRecoveryAndUnknownRefusal(t *testing.T) {
 			}
 			var name string
 			db.Raw("SELECT DATABASE()").Scan(&name)
+			if !disposableO4Database.MatchString(name) {
+				t.Fatalf("fixture database %q fails disposableO4Database whitelist", name)
+			}
 			before, err := DatasourceRetentionSHA256(db)
 			if err != nil {
 				t.Fatal(err)

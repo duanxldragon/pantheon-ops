@@ -1,0 +1,343 @@
+{
+  "schemaVersion": 1,
+  "taskId": "2026-11-16-ops-extensions-live-acceptance",
+  "recordedAt": "2026-11-18T07:43:03.0695493Z",
+  "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+  "preparationStatus": "VERIFIED_LOCAL_PREPARATION",
+  "accepted": false,
+  "taskStatusChanged": false,
+  "linkage": {
+    "taskManifest": ".harness/tasks/2026-11-16-ops-extensions-live-acceptance/manifest.json",
+    "plan": ".harness/tasks/2026-11-16-ops-extensions-live-acceptance/local-readiness-plan-20261118.md",
+    "matrix": ".harness/tasks/2026-11-16-ops-extensions-live-acceptance/local-provider-acceptance-matrix-20261118.json",
+    "summary": ".harness/evidence/2026-11-16-ops-extensions-live-acceptance/local-readiness-commands-handoff-20261118.md"
+  },
+  "commands": [
+    {
+      "command": "Get-Content -LiteralPath <listed receipt path> -Raw | ConvertFrom-Json; project only PID/startTime/executable and loopback endpoint metadata",
+      "receiptPaths": [
+        ".local/manual-preview-20261116/processes.json",
+        ".local/manual-preview-20261116/continuation-mysql/ownership.json",
+        ".harness/evidence/2026-11-17-ops-history-audit/continuation-mysql-identity.json",
+        ".local/manual-preview-20261116/continuation-redis/ownership.json",
+        ".harness/evidence/2026-11-17-ops-history-audit/continuation-retire-shared-transaction-final-readiness-20261118.json"
+      ],
+      "exitCode": 0,
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+      "secretFieldsOmitted": [
+        "testDSN",
+        "commandLine",
+        "configReadback",
+        "credentials",
+        "sessions",
+        "process environment"
+      ]
+    },
+    {
+      "command": "Get-CimInstance Win32_Process -Filter \"ProcessId = <listed PID>\" | Select-Object ProcessId,Name,ExecutablePath,ParentProcessId,CreationDate",
+      "processIds": [
+        4308,
+        2260,
+        20328,
+        10812,
+        7928
+      ],
+      "exitCode": 0,
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+      "result": [
+        {
+          "ProcessId": 4308,
+          "Name": "pantheon-ops.exe",
+          "ExecutablePath": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\manual-preview-20261116\\current-preview-retire-shared-transaction-final-20261118\\pantheon-ops.exe",
+          "ParentProcessId": 26948,
+          "CreationDate": "2026-11-18T13:38:55.735666+08:00"
+        },
+        {
+          "ProcessId": 2260,
+          "Name": "node.exe",
+          "ExecutablePath": "D:\\nodejs\\node.exe",
+          "ParentProcessId": 26948,
+          "CreationDate": "2026-11-18T13:38:55.785602+08:00"
+        },
+        {
+          "ProcessId": 20328,
+          "Name": "mysqld.exe",
+          "ExecutablePath": "D:\\MySQL\\mysql\\bin\\mysqld.exe",
+          "ParentProcessId": 10812,
+          "CreationDate": "2026-11-17T20:28:15.315464+08:00"
+        },
+        {
+          "ProcessId": 10812,
+          "Name": "mysqld.exe",
+          "ExecutablePath": "D:\\MySQL\\mysql\\bin\\mysqld.exe",
+          "ParentProcessId": 6388,
+          "CreationDate": "2026-11-17T20:28:15.230246+08:00"
+        },
+        {
+          "ProcessId": 7928,
+          "Name": "redis-server.exe",
+          "ExecutablePath": "D:\\Redis\\redis-server.exe",
+          "ParentProcessId": 2556,
+          "CreationDate": "2026-11-17T21:45:39.236807+08:00"
+        }
+      ]
+    },
+    {
+      "command": "Get-NetTCPConnection -State Listen | Where-Object { $_.LocalPort -in @(8080,5173,33317,26316) } | Select-Object LocalAddress,LocalPort,OwningProcess",
+      "exitCode": 0,
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+      "result": [
+        {
+          "LocalAddress": "::",
+          "LocalPort": 8080,
+          "OwningProcess": 4308
+        },
+        {
+          "LocalAddress": "127.0.0.1",
+          "LocalPort": 33317,
+          "OwningProcess": 20328
+        },
+        {
+          "LocalAddress": "127.0.0.1",
+          "LocalPort": 26316,
+          "OwningProcess": 7928
+        },
+        {
+          "LocalAddress": "127.0.0.1",
+          "LocalPort": 5173,
+          "OwningProcess": 2260
+        }
+      ]
+    },
+    {
+      "command": "Invoke-WebRequest -Uri <listed loopback URI> -Method Get -MaximumRedirection 0 -TimeoutSec 5 -SkipHttpErrorCheck | Select-Object StatusCode",
+      "uris": [
+        "http://127.0.0.1:8080/api/v1/health",
+        "http://127.0.0.1:5173/"
+      ],
+      "exitCode": 0,
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+      "result": [
+        {
+          "uri": "http://127.0.0.1:8080/api/v1/health",
+          "method": "GET",
+          "statusCode": 200,
+          "bodyRecorded": false,
+          "authUsed": false,
+          "redirectsAllowed": 0,
+          "timeoutSeconds": 5
+        },
+        {
+          "uri": "http://127.0.0.1:5173/",
+          "method": "GET",
+          "statusCode": 200,
+          "bodyRecorded": false,
+          "authUsed": false,
+          "redirectsAllowed": 0,
+          "timeoutSeconds": 5
+        }
+      ]
+    },
+    {
+      "command": "Get-Process -Id 20328; canonicalize receipt and observed startTime to UTC at 6-digit receipt precision; compare processId/executable/startTime",
+      "exitCode": 0,
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops"
+    },
+    {
+      "command": "Get-FileHash -LiteralPath <old readiness binary and listed source/receipt paths> -Algorithm SHA256",
+      "exitCode": 0,
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops"
+    }
+  ],
+  "readiness": {
+    "backendPublicHealth": "HTTP200_OLD_CANDIDATE_ONLY",
+    "frontendPublicHealth": "HTTP200_PREVIEW_ONLY",
+    "mysqlIdentity": "MATCH_CURRENT_IDENTITY_RECEIPT",
+    "mysqlAuthenticationOrSchema": "NOT_RUN",
+    "redisOwnership": "RECEIPT_PID_LISTENER_MATCH_ONLY",
+    "redisAuthenticationOrNamespace": "NOT_RUN",
+    "liveProviders": "NOT_RUN_NO_OWNED_PROVIDER_RECEIPTS_VERIFIED"
+  },
+  "mysqlIdentity": {
+    "initialObservation": {
+      "ownershipStartupPid": 10812,
+      "listenerPid": 20328,
+      "provisionalFinding": "Historical receipt PID differs; requires current identity receipt before classifying issue"
+    },
+    "followup": {
+      "identityPid": 20328,
+      "listenerPid": 20328,
+      "parentStartupPid": 10812,
+      "executableMatches": true,
+      "identityStartUTC": "2026-11-17T12:28:15.315464Z",
+      "observedStartUTC": "2026-11-17T12:28:15.315464Z",
+      "startTimeMatchesAtReceiptPrecision": true,
+      "verdict": "IDENTITY_MATCH_NO_ACTUAL_OWNERSHIP_MISMATCH"
+    },
+    "comparisonCorrection": "PowerShell ConvertFrom-Json decoded processStartTime as DateTime; raw string comparison false was type mismatch; UTC normalization proves equal at receipt precision"
+  },
+  "runtimeCandidate": {
+    "binaryPath": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\manual-preview-20261116\\current-preview-retire-shared-transaction-final-20261118\\pantheon-ops.exe",
+    "actualBinarySHA256": "c11f09f9d3360461025aa7c27233f8f0d784b6633be72359f660261ef0ecb3a4",
+    "receiptBinarySHA256": "c11f09f9d3360461025aa7c27233f8f0d784b6633be72359f660261ef0ecb3a4",
+    "binaryMatchesOldReceipt": true,
+    "processId": 4308,
+    "oldReadinessRecordedAt": "2026-11-18T06:04:24.893Z",
+    "oldSourceCandidate": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\manual-preview-20261116\\overlay-history-continuation-final-retire-shared-transaction-final-20261118",
+    "oldSourceCount": 1221,
+    "oldSourceSetSHA256": "28031c9735a926509aec1138f82f63cfad7aaac48128c383625f1b1d5790e8f0",
+    "currentSourceComparisons": [
+      {
+        "path": "backend/modules/business/opsinit/opsinit.go",
+        "currentSha256": "98a8337428967d09b360a5fd6f21f225b3954623005c29d5b02b5347aac5b895",
+        "oldCandidateSha256": "e3af4d2db1bc372e86b70db29fe7b7cc51d61c610668989919f7379578b7aeab",
+        "matches": false
+      },
+      {
+        "path": "backend/modules/business/k8s/helm/helm.go",
+        "currentSha256": "45efa777ca4a9daefb364c953dcc8e5a206a6a0ee0d58a6972bac8eaa11613d5",
+        "oldCandidateSha256": "5fb0d5c1890e2ab56796d25ea42e6b3899ed82ab03ca72c12477c715f974aacb",
+        "matches": false
+      }
+    ],
+    "currentSourceCertification": "NOT_CERTIFIED; current E/C source edits are not the old source/binary candidate"
+  },
+  "sourceHashes": [
+    {
+      "path": ".harness/tasks/2026-11-16-ops-extensions-live-acceptance/manifest.json",
+      "sha256": "4c342b6d5ce535490e5684e265ff027163cfbe00195189ec2498398f591c7a01"
+    },
+    {
+      "path": "docs/harness/tasks/2026-11-16-ops-extensions-live-acceptance.task.md",
+      "sha256": "4dce3e8674be61d9288a7bcefd40674a2485e24ad06ef9c906d6f48820b22571"
+    },
+    {
+      "path": "docs/designs/BUSINESS_QA_ACCEPTANCE_PLAN.md",
+      "sha256": "2bdd323351b6de9bbcc3403ef8d402d9990e4080753f16123db0d845dcafae7a"
+    },
+    {
+      "path": "frontend/package.json",
+      "sha256": "3f7784aa58fcbcbf3261c914834a751380e0f870c19de420ae931399691b9c03"
+    },
+    {
+      "path": "frontend/playwright.config.ts",
+      "sha256": "20c2b4453fec77e7bb112f676e756f3c6183de70d31de436541ea71a926c4423"
+    },
+    {
+      "path": "frontend/tests/smoke/business/observability-filedist-pages.spec.ts",
+      "sha256": "1d9e49732010725dc4f03fab2584241dde4097865c4e9de9a9efabb9a97f1d86"
+    },
+    {
+      "path": "frontend/tests/smoke/business/observability-menu.spec.ts",
+      "sha256": "21d0fede314b2b0dea49d927a84b633d4b7f708ad14771774d2590c3fa9c022b"
+    },
+    {
+      "path": "frontend/tests/smoke/business/cmdb/cmdb-pages.spec.ts",
+      "sha256": "33c272d24504d07071f18c9dae27d5e57d727d06bd50b29fe1ae8c026a0f1f3c"
+    },
+    {
+      "path": "frontend/tests/smoke/business/k8s/k8s-pages.spec.ts",
+      "sha256": "11d380dfc3a75adaf7ad6cf377caa5be0fdc3e722ba89a2a153b73b991014c8b"
+    },
+    {
+      "path": "backend/modules/business/observability/datasource_live_acceptance_test.go",
+      "sha256": "6457d002e0f04df98c09d0c4923a71da376842dd48a8d917b39e01c81f4eb4fd"
+    },
+    {
+      "path": "backend/modules/business/observability/query_permit_test.go",
+      "sha256": "252500025233104225165560ed6b0c07b92278822586f6edf94a342befdb1169"
+    },
+    {
+      "path": "backend/modules/business/observability/query_workspace_owner_lifecycle_test.go",
+      "sha256": "0c1e6a79d8c7e150cd6d78cb0fdc8086300af5a6af4ee4f6b094a142ba971d2f"
+    },
+    {
+      "path": "backend/modules/business/k8s/backup/velero_client.go",
+      "sha256": "800a650cad83b3aa3e71b26d8e2bcbbe644b3df7a58e9b8494dd203f4129536d"
+    },
+    {
+      "path": "backend/modules/business/k8s/backup/reconciler.go",
+      "sha256": "044fccce5bf558a6542d33f7d4dcfd7ddd65937d820cde2cb217814de3bbff5c"
+    },
+    {
+      "path": "backend/modules/business/k8s/backup/velero_client_test.go",
+      "sha256": "0272dd81e1e6dee02185d8fbba9119c8767f796edc7073cfecf31d86fcc0a3d9"
+    },
+    {
+      "path": "backend/modules/business/k8s/helm/helm.go",
+      "sha256": "45efa777ca4a9daefb364c953dcc8e5a206a6a0ee0d58a6972bac8eaa11613d5"
+    },
+    {
+      "path": "backend/modules/business/opsinit/opsinit.go",
+      "sha256": "98a8337428967d09b360a5fd6f21f225b3954623005c29d5b02b5347aac5b895"
+    },
+    {
+      "path": ".harness/tasks/2026-11-16-ops-extensions-live-acceptance/local-readiness-plan-20261118.md",
+      "sha256": "7a136f741d6c6c5d10054d23cf1e3a433a0a1bd27ef6d4ba617d35fcf087f205"
+    },
+    {
+      "path": ".harness/tasks/2026-11-16-ops-extensions-live-acceptance/local-provider-acceptance-matrix-20261118.json",
+      "sha256": "f192a1cb3774b6a37b1a90a40013d7d28b7de3f6976c4d45daeedffa6d025a3c"
+    }
+  ],
+  "receiptHashes": [
+    {
+      "path": ".local/manual-preview-20261116/processes.json",
+      "sha256": "a68d39b454f53b3dbc393585414c3d4ac088aef319ab23ba29fecf0d3be00089",
+      "secretBearingFieldsRecorded": false
+    },
+    {
+      "path": ".local/manual-preview-20261116/continuation-mysql/ownership.json",
+      "sha256": "f3991c9afb8fa20b6630b55679426a105f5b7ebcbbb883ab7b47bebac96dab74",
+      "secretBearingFieldsRecorded": false
+    },
+    {
+      "path": ".harness/evidence/2026-11-17-ops-history-audit/continuation-mysql-identity.json",
+      "sha256": "54587669a6ab27c211d0842ed810bdaad940454e1bf13310d9cd520352ceeb9d",
+      "secretBearingFieldsRecorded": false
+    },
+    {
+      "path": ".local/manual-preview-20261116/continuation-redis/ownership.json",
+      "sha256": "a744209560f8703d33977d4f8881ff5e8fd293abb959cfdd97f2d94eb3cadf4e",
+      "secretBearingFieldsRecorded": false
+    },
+    {
+      "path": ".harness/evidence/2026-11-17-ops-history-audit/continuation-retire-shared-transaction-final-readiness-20261118.json",
+      "sha256": "e8a0951c8973430279ac87a96a9eaf1579f16de947725e9a785b190da655b14b",
+      "secretBearingFieldsRecorded": false
+    }
+  ],
+  "acceptance": {
+    "currentProviderEvidence": "NOT_RUN",
+    "twoDomainNarrowRoles": "NOT_RUN",
+    "providerFailureRecovery": "NOT_RUN",
+    "desktopMobileRenderedEvidence": "NOT_RUN",
+    "selectedCapabilities": "UNRECORDED",
+    "conditionalE01E02E03": "Observed in-progress; require completed only when exposed",
+    "finalMaintainerAcceptance": "NOT_RUN"
+  },
+  "review": "Implementer preparation self-review only; coordinator independent review pending",
+  "validation": {
+    "newJSONAndLinks": "PASS",
+    "acceptanceMappings": 3,
+    "conditionalDependencies": 3,
+    "actualStaticValidation": {
+      "command": "node -e (E04 artifact/linkage/acceptance/conditional-dependency/NOT_RUN/current-identity/old-source assertions)",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+      "exitCode": 0,
+      "acceptanceMapped": 3,
+      "conditionalDependenciesPreserved": 3,
+      "liveRowsNotRun": 9,
+      "sourceReferenceCount": 19,
+      "currentIdentityMatched": true,
+      "oldCandidateSourceMismatches": 2
+    }
+  },
+  "limitations": [
+    "No Go/browser/heavy test/service restart/credential request/external provider operation performed",
+    "HTTP200 and listeners do not prove provider/query/role/schema behavior",
+    "No receipt absence claim proves provider absent; only no task-owned provider provenance verified",
+    "Existing historic external-host live test not executed in local-only scope",
+    "No manifest/trio/status/source changes by this worker"
+  ]
+}

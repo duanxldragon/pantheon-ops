@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"sync"
 	"time"
 
 	"github.com/duanxldragon/pantheon-base/backend/modules/business/cmdb"
@@ -12,6 +13,7 @@ import (
 
 	"gorm.io/datatypes"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 // SQL fragments shared by the distribution target queries below.
@@ -22,11 +24,18 @@ const (
 
 // DistributionService manages file distribution tasks.
 type DistributionService struct {
-	db              *gorm.DB
-	storageService  *StorageService
-	transferEngine  *TransferEngine
-	targetSelection cmdb.TargetSelectionCapability
-	authorizer      FileDistributionAuthorizer
+	db               *gorm.DB
+	storageService   *StorageService
+	transferEngine   *TransferEngine
+	targetSelection  cmdb.TargetSelectionCapability
+	authorizer       FileDistributionAuthorizer
+	runtimeMu        sync.Mutex
+	runtimeCtx       context.Context
+	runtimeCancel    context.CancelFunc
+	runtimeDone      chan struct{}
+	runtimeLeaseDone chan struct{}
+	releaseLease     func()
+	runtimeStopped   bool
 }
 
 // NewDistributionService creates a new DistributionService.
@@ -202,6 +211,9 @@ func (s *DistributionService) StartTask(id uint64) error {
 			return err
 		}
 	}
+	if task.ScheduledAt != nil && task.ScheduledAt.After(time.Now()) {
+		return errors.New("business.filedist.task.notDue")
+	}
 	go s.executeTask(id)
 	return nil
 }
@@ -251,7 +263,37 @@ func (s *DistributionService) GetTaskProgress(taskID uint64) (map[string]interfa
 
 // CancelTask cancels a running task.
 func (s *DistributionService) CancelTask(id uint64) error {
-	return s.db.Model(&DistributionTask{}).Where("id = ?", id).Update("status", "cancelled").Error
+	err := s.db.Transaction(func(tx *gorm.DB) error {
+		var task DistributionTask
+		if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).First(&task, id).Error; err != nil {
+			return err
+		}
+		if task.Status == statusCancelled {
+			return nil
+		}
+		if task.Status != statusPending && task.Status != statusRunning {
+			return errors.New("business.filedist.task.notCancellable")
+		}
+		now := time.Now()
+		if err := tx.Model(&task).Updates(map[string]interface{}{"status": statusCancelled, "finished_at": now}).Error; err != nil {
+			return err
+		}
+		if err := tx.Model(&DistributionTarget{}).Where("task_id = ? AND status IN ?", id, unfinishedTargetStatuses()).Updates(map[string]interface{}{"status": statusCancelled, "finished_at": now}).Error; err != nil {
+			return err
+		}
+		var completed, failed int64
+		if err := tx.Model(&DistributionTarget{}).Where(whereTaskAndStatus, id, statusCompleted).Count(&completed).Error; err != nil {
+			return err
+		}
+		if err := tx.Model(&DistributionTarget{}).Where(whereTaskAndStatus, id, statusFailed).Count(&failed).Error; err != nil {
+			return err
+		}
+		return tx.Model(&task).Updates(map[string]interface{}{"success_count": completed, "failed_count": failed}).Error
+	})
+	if err == nil && s.transferEngine != nil {
+		s.transferEngine.CancelDistribution(id)
+	}
+	return err
 }
 
 // RetryTask retries a failed task.
@@ -270,31 +312,27 @@ func (s *DistributionService) RetryTask(id uint64) error {
 		}
 	}
 
-	// Reset task status
-	updates := map[string]interface{}{
-		"status":        statusPending,
-		"progress":      0,
-		"success_count": 0,
-		"failed_count":  0,
-		"error":         "",
-		"started_at":    nil,
-		"finished_at":   nil,
-	}
-	if err := s.db.Model(&task).Updates(updates).Error; err != nil {
+	if err := s.db.Transaction(func(tx *gorm.DB) error {
+		var current DistributionTask
+		if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).First(&current, id).Error; err != nil {
+			return err
+		}
+		if current.Status != statusFailed {
+			return fmt.Errorf("task_not_failed")
+		}
+		if err := tx.Model(&current).Updates(map[string]interface{}{
+			"status": statusPending, "progress": 0, "success_count": 0, "failed_count": 0,
+			"error": "", "started_at": nil, "finished_at": nil,
+		}).Error; err != nil {
+			return err
+		}
+		return tx.Model(&DistributionTarget{}).Where(whereTaskAndStatus, id, statusFailed).Updates(map[string]interface{}{
+			"status": statusPending, "progress": 0, "error": "", "retry_count": 0,
+			"started_at": nil, "finished_at": nil,
+		}).Error
+	}); err != nil {
 		return err
 	}
-
-	// Reset failed targets
-	_ = s.db.Model(&DistributionTarget{}).
-		Where(whereTaskAndStatus, id, statusFailed).
-		Updates(map[string]interface{}{
-			"status":      statusPending,
-			"progress":    0,
-			"error":       "",
-			"retry_count": 0,
-			"started_at":  nil,
-			"finished_at": nil,
-		}).Error
 
 	// Restart execution
 	go s.executeTask(id)
@@ -306,14 +344,14 @@ func (s *DistributionService) RetryTask(id uint64) error {
 // tasks are protected to avoid deleting records while workers are updating
 // targets.
 func (s *DistributionService) DeleteTask(id uint64) error {
-	var task DistributionTask
-	if err := s.db.First(&task, id).Error; err != nil {
-		return err
-	}
-	if task.Status == statusRunning {
-		return fmt.Errorf("task_running")
-	}
 	return s.db.Transaction(func(tx *gorm.DB) error {
+		var task DistributionTask
+		if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).First(&task, id).Error; err != nil {
+			return err
+		}
+		if task.Status == statusRunning {
+			return fmt.Errorf("task_running")
+		}
 		if err := tx.Where(whereTaskByID, id).Delete(&DistributionTarget{}).Error; err != nil {
 			return err
 		}
@@ -323,8 +361,19 @@ func (s *DistributionService) DeleteTask(id uint64) error {
 
 // executeTask executes a distribution task.
 func (s *DistributionService) executeTask(taskID uint64) {
+	s.executeTaskContext(s.executionContext(), taskID)
+}
+
+func (s *DistributionService) executeTaskContext(ctx context.Context, taskID uint64) {
+	if ctx.Err() != nil {
+		return
+	}
+	db := s.db.WithContext(ctx)
 	var subject DistributionTask
-	if err := s.db.First(&subject, taskID).Error; err != nil {
+	if err := db.First(&subject, taskID).Error; err != nil {
+		return
+	}
+	if subject.Status != statusPending || (subject.ScheduledAt != nil && subject.ScheduledAt.After(time.Now())) {
 		return
 	}
 	if len(subject.Selection) != 0 {
@@ -334,7 +383,7 @@ func (s *DistributionService) executeTask(taskID uint64) {
 		}
 	}
 	now := time.Now()
-	claim := s.db.Model(&DistributionTask{}).Where("id = ? AND status = ?", taskID, statusPending).Updates(map[string]interface{}{
+	claim := db.Model(&DistributionTask{}).Where("id = ? AND status = ? AND (scheduled_at IS NULL OR scheduled_at <= ?)", taskID, statusPending, now).Updates(map[string]interface{}{
 		"status":     statusRunning,
 		"started_at": now,
 	})
@@ -344,28 +393,32 @@ func (s *DistributionService) executeTask(taskID uint64) {
 
 	// Get all pending targets
 	var targets []DistributionTarget
-	if err := s.db.Where(whereTaskAndStatus, taskID, statusPending).Find(&targets).Error; err != nil {
+	if err := db.Where(whereTaskAndStatus, taskID, statusPending).Find(&targets).Error; err != nil {
 		s.markTaskFailed(taskID, err.Error())
 		return
 	}
 
 	// Submit transfer tasks
 	for _, target := range targets {
+		if ctx.Err() != nil {
+			return
+		}
 		// Decrypt credentials
 		password, err := secrets.Decrypt(target.Password)
 		if err != nil {
-			_ = s.db.Model(&target).Updates(map[string]interface{}{"status": statusFailed, "error": err.Error()}).Error
+			s.transferEngine.finishTarget(target.ID, statusFailed, 0, "business.filedist.task.transferFailed")
 			continue
 		}
 		privateKey, err := secrets.Decrypt(target.PrivateKey)
 		if err != nil {
-			_ = s.db.Model(&target).Updates(map[string]interface{}{"status": statusFailed, "error": err.Error()}).Error
+			s.transferEngine.finishTarget(target.ID, statusFailed, 0, "business.filedist.task.transferFailed")
 			continue
 		}
 
 		transferTask := &TransferTask{
 			ID:              target.ID,
-			FileID:          0, // Will be filled by engine
+			TaskID:          taskID,
+			FileID:          subject.FileID,
 			TargetHost:      target.Host,
 			TargetPort:      target.Port,
 			TargetPath:      target.TargetPath,
@@ -379,35 +432,34 @@ func (s *DistributionService) executeTask(taskID uint64) {
 			transferTask.Authorize = func(ctx context.Context) error { return s.authorizeQueuedTarget(ctx, taskID) }
 		}
 
-		// Get task file ID
-		var task DistributionTask
-		if err := s.db.First(&task, taskID).Error; err == nil {
-			transferTask.FileID = task.FileID
-		}
-
 		if err := s.transferEngine.SubmitTask(transferTask); err != nil {
 			// Mark target as failed if can't submit
-			_ = s.db.Model(&target).Updates(map[string]interface{}{
-				"status": statusFailed,
-				"error":  err.Error(),
-			}).Error
+			s.transferEngine.finishTarget(target.ID, statusFailed, 0, "business.filedist.task.transferFailed")
 		}
 	}
 
 	// Monitor task progress (in background)
-	go s.monitorTaskProgress(taskID)
+	go s.monitorTaskProgressContext(ctx, taskID)
 }
 
 func (s *DistributionService) monitorTaskProgress(taskID uint64) {
+	s.monitorTaskProgressContext(s.executionContext(), taskID)
+}
+
+func (s *DistributionService) monitorTaskProgressContext(ctx context.Context, taskID uint64) {
 	ticker := time.NewTicker(5 * time.Second)
 	defer ticker.Stop()
 
 	for {
-		<-ticker.C
+		select {
+		case <-ticker.C:
+		case <-ctx.Done():
+			return
+		}
 
 		// Check if task is still running
 		var task DistributionTask
-		if err := s.db.First(&task, taskID).Error; err != nil {
+		if err := s.db.WithContext(ctx).First(&task, taskID).Error; err != nil {
 			return
 		}
 
@@ -422,9 +474,16 @@ func (s *DistributionService) monitorTaskProgress(taskID uint64) {
 			Failed    int64
 		}
 
-		s.db.Model(&DistributionTarget{}).Where(whereTaskByID, taskID).Count(&stats.Total)
-		s.db.Model(&DistributionTarget{}).Where(whereTaskAndStatus, taskID, statusCompleted).Count(&stats.Completed)
-		s.db.Model(&DistributionTarget{}).Where(whereTaskAndStatus, taskID, statusFailed).Count(&stats.Failed)
+		db := s.db.WithContext(ctx)
+		for _, query := range []*gorm.DB{
+			db.Model(&DistributionTarget{}).Where(whereTaskByID, taskID).Count(&stats.Total),
+			db.Model(&DistributionTarget{}).Where(whereTaskAndStatus, taskID, statusCompleted).Count(&stats.Completed),
+			db.Model(&DistributionTarget{}).Where(whereTaskAndStatus, taskID, statusFailed).Count(&stats.Failed),
+		} {
+			if query.Error != nil {
+				return
+			}
+		}
 
 		// Calculate progress
 		progress := 0
@@ -452,17 +511,17 @@ func (s *DistributionService) monitorTaskProgress(taskID uint64) {
 				updates["status"] = "partial"
 			}
 
-			_ = s.db.Model(&task).Updates(updates).Error
+			_ = db.Model(&DistributionTask{}).Where("id = ? AND status = ?", taskID, statusRunning).Updates(updates).Error
 			return
 		}
 
-		_ = s.db.Model(&task).Updates(updates).Error
+		_ = db.Model(&DistributionTask{}).Where("id = ? AND status = ?", taskID, statusRunning).Updates(updates).Error
 	}
 }
 
 func (s *DistributionService) markTaskFailed(taskID uint64, errorMsg string) {
 	now := time.Now()
-	_ = s.db.Model(&DistributionTask{}).Where("id = ?", taskID).Updates(map[string]interface{}{
+	_ = s.db.Model(&DistributionTask{}).Where("id = ? AND status IN ?", taskID, []string{statusPending, statusRunning}).Updates(map[string]interface{}{
 		"status":      statusFailed,
 		"error":       errorMsg,
 		"finished_at": now,

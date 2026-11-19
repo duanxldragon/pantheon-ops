@@ -5,7 +5,7 @@ layer: business/cmdb
 status: Active
 linked_contracts:
   - docs/PROJECT_INHERITANCE.md
-updated_at: 2026-07-17
+updated_at: 2026-11-17
 ---
 
 # CMDB Business Module Design
@@ -26,24 +26,24 @@ It does not own authentication, IAM, organization, system configuration, realtim
 
 ## 2. Boundaries and Dependencies
 
-| Area | Allowed | Forbidden |
-| :--- | :--- | :--- |
-| platform | shared responses, audit metadata, data-scope context | changing platform-shell or dashboard logic |
-| system/auth | principal and session context | importing auth services |
-| system/iam | page/action permissions and Casbin results | implementing role policy inside CMDB |
-| system/org | department ownership and data scope | importing org repositories |
+| Area          | Allowed                                                    | Forbidden                                  |
+| :------------ | :--------------------------------------------------------- | :----------------------------------------- |
+| platform      | shared responses, audit metadata, data-scope context       | changing platform-shell or dashboard logic |
+| system/auth   | principal and session context                              | importing auth services                    |
+| system/iam    | page/action permissions and Casbin results                 | implementing role policy inside CMDB       |
+| system/org    | department ownership and data scope                        | importing org repositories                 |
 | system/config | dictionary, setting, i18n, and encrypted-setting contracts | duplicating system configuration protocols |
 
 Downstream modules consume CMDB through APIs or explicit capabilities, never direct table access. `assigned` means bound to a business scope and ready for deployment; `online` means deployment completed and the host is available for normal operations.
 
 ## 3. Core Business Objects
 
-| Object | Purpose | Key attributes |
-| :--- | :--- | :--- |
-| `Host` | physical or virtual host inventory | hostname, IP, OS, SSH port, capacity, labels, business scope, installed components, status |
-| `Group` | dynamically calculated host view | name, parent, AND/OR condition expression, description |
-| `Label` | key-value data stored on a host | key and value |
-| `LabelSchema` | governance for label keys and values | key, name, value mode, dictionary code, options, required flag, status |
+| Object        | Purpose                              | Key attributes                                                                             |
+| :------------ | :----------------------------------- | :----------------------------------------------------------------------------------------- |
+| `Host`        | physical or virtual host inventory   | hostname, IP, OS, SSH port, capacity, labels, business scope, installed components, status |
+| `Group`       | dynamically calculated host view     | name, parent, AND/OR condition expression, description                                     |
+| `Label`       | key-value data stored on a host      | key and value                                                                              |
+| `LabelSchema` | governance for label keys and values | key, name, value mode, dictionary code, options, required flag, status                     |
 
 Host labels and group conditions are JSON-backed; groups do not persist a physical member list. `LabelSchema` supports `free`, `enum`, and reserved `dict` value modes. Recommended keys include `env`, `biz`, `cluster`, `region`, `db_type`, and `os`, while custom keys remain allowed.
 
@@ -51,11 +51,11 @@ Host labels and group conditions are JSON-backed; groups do not persist a physic
 
 ### 4.1 Host Entry and Configuration Collection
 
-| Mode | Current status | Security boundary |
-| :--- | :--- | :--- |
-| manual entry | implemented | no credential exposure |
-| SSH collection | implemented | credentials exist only for the request and are never persisted |
-| Agent report | reserved | future token-authenticated, read-only reporting |
+| Mode           | Current status | Security boundary                                              |
+| :------------- | :------------- | :------------------------------------------------------------- |
+| manual entry   | implemented    | no credential exposure                                         |
+| SSH collection | implemented    | credentials exist only for the request and are never persisted |
+| Agent report   | reserved       | future token-authenticated, read-only reporting                |
 
 SSH collection calls `POST /api/v1/business/cmdb/hosts/:id/collect`, connects with `ssh.Dial`, runs inspection commands, updates capacity and OS fields, and releases credentials when the request ends. Windows hosts are manual-only for now; WinRM remains future work.
 
@@ -73,13 +73,13 @@ pending -> assigned -> online
                       \-> maintenance
 ```
 
-| Status | Display meaning | Operations meaning |
-| :--- | :--- | :--- |
-| `pending` | pending onboarding | inventoried but not yet a formal operations target |
-| `assigned` | assigned | bound to a business scope and waiting for deployment |
-| `online` | operations-ready | deployment completed and eligible for normal operations tasks |
-| `offline` | offline | excluded from normal operations targets |
-| `maintenance` | under maintenance | excluded from automated batches unless explicitly selected |
+| Status        | Display meaning    | Operations meaning                                            |
+| :------------ | :----------------- | :------------------------------------------------------------ |
+| `pending`     | pending onboarding | inventoried but not yet a formal operations target            |
+| `assigned`    | assigned           | bound to a business scope and waiting for deployment          |
+| `online`      | operations-ready   | deployment completed and eligible for normal operations tasks |
+| `offline`     | offline            | excluded from normal operations targets                       |
+| `maintenance` | under maintenance  | excluded from automated batches unless explicitly selected    |
 
 This is an operations lifecycle state, not realtime connectivity. Future monitoring or Agent capabilities should maintain separate connectivity fields.
 
@@ -89,24 +89,24 @@ This is an operations lifecycle state, not realtime connectivity. Future monitor
 
 Table: `biz_cmdb_host`
 
-| Field | Type | Notes |
-| :--- | :--- | :--- |
-| `id` | bigint | primary key |
-| `hostname` | varchar(128) | required |
-| `ip` | varchar(45) | required, indexed |
-| `ssh_port` | int | default `22` |
-| `os` / `os_version` | varchar | OS family and version |
-| `cpu_cores` | int | collected or manual |
-| `memory_gb` / `disk_gb` | decimal | collected or manual |
-| `label_values` | json | host label instances |
-| `installed_components` | json | downstream component snapshots |
-| `status` | varchar(32) | default `pending` |
-| `business_scope_id` | bigint | business-scope binding snapshot, indexed |
-| `business_scope_code` | varchar(64) | business-scope code snapshot |
-| `business_scope_name` | varchar(128) | business-scope name snapshot |
-| `dept_id` | bigint | data-scope ownership, indexed |
-| `owner` / `remark` | varchar/text | optional metadata |
-| audit and soft-delete fields | datetime/varchar | timestamps and actors |
+| Field                        | Type             | Notes                                    |
+| :--------------------------- | :--------------- | :--------------------------------------- |
+| `id`                         | bigint           | primary key                              |
+| `hostname`                   | varchar(128)     | required                                 |
+| `ip`                         | varchar(45)      | required, indexed                        |
+| `ssh_port`                   | int              | default `22`                             |
+| `os` / `os_version`          | varchar          | OS family and version                    |
+| `cpu_cores`                  | int              | collected or manual                      |
+| `memory_gb` / `disk_gb`      | decimal          | collected or manual                      |
+| `label_values`               | json             | host label instances                     |
+| `installed_components`       | json             | downstream component snapshots           |
+| `status`                     | varchar(32)      | default `pending`                        |
+| `business_scope_id`          | bigint           | business-scope binding snapshot, indexed |
+| `business_scope_code`        | varchar(64)      | business-scope code snapshot             |
+| `business_scope_name`        | varchar(128)     | business-scope name snapshot             |
+| `dept_id`                    | bigint           | data-scope ownership, indexed            |
+| `owner` / `remark`           | varchar/text     | optional metadata                        |
+| audit and soft-delete fields | datetime/varchar | timestamps and actors                    |
 
 Key indexes include unique `uk_ip_deleted`, `idx_status`, and `idx_os`.
 
@@ -136,38 +136,38 @@ Prefix: `/api/v1/business/cmdb`
 
 ### 6.1 Host API
 
-| Method | Path | Purpose | Permission |
-| :--- | :--- | :--- | :--- |
-| `GET` | `/hosts` | host list | `business:cmdb:host:list` |
-| `GET` | `/hosts/:id` | host detail | `business:cmdb:host:detail` |
-| `POST` | `/hosts` | create host | `business:cmdb:host:create` |
-| `PUT` | `/hosts/:id` | update host | `business:cmdb:host:update` |
-| `DELETE` | `/hosts/:id` | soft-delete host | `business:cmdb:host:delete` |
-| `POST` | `/hosts/:id/collect` | one-shot SSH collection | `business:cmdb:host:collect` |
-| `PATCH` | `/hosts/:id/status` | downstream status update | `business:cmdb:host:status` |
+| Method   | Path                 | Purpose                  | Permission                   |
+| :------- | :------------------- | :----------------------- | :--------------------------- |
+| `GET`    | `/hosts`             | host list                | `business:cmdb:host:list`    |
+| `GET`    | `/hosts/:id`         | host detail              | `business:cmdb:host:detail`  |
+| `POST`   | `/hosts`             | create host              | `business:cmdb:host:create`  |
+| `PUT`    | `/hosts/:id`         | update host              | `business:cmdb:host:update`  |
+| `DELETE` | `/hosts/:id`         | soft-delete host         | `business:cmdb:host:delete`  |
+| `POST`   | `/hosts/:id/collect` | one-shot SSH collection  | `business:cmdb:host:collect` |
+| `PATCH`  | `/hosts/:id/status`  | downstream status update | `business:cmdb:host:status`  |
 
 SSH collection accepts password or private-key authentication. Credentials must not be persisted, logged, cached, or returned.
 
 ### 6.2 Group API
 
-| Method | Path | Purpose | Permission |
-| :--- | :--- | :--- | :--- |
-| `GET` | `/groups` | group list | `business:cmdb:group:list` |
-| `GET` | `/groups/:id` | group detail with members | `business:cmdb:group:detail` |
-| `GET` | `/groups/:id/members` | calculated member list | `business:cmdb:group:detail` |
-| `POST` | `/groups` | create group | `business:cmdb:group:create` |
-| `PUT` | `/groups/:id` | update conditions | `business:cmdb:group:update` |
-| `DELETE` | `/groups/:id` | delete group | `business:cmdb:group:delete` |
+| Method   | Path                  | Purpose                   | Permission                   |
+| :------- | :-------------------- | :------------------------ | :--------------------------- |
+| `GET`    | `/groups`             | group list                | `business:cmdb:group:list`   |
+| `GET`    | `/groups/:id`         | group detail with members | `business:cmdb:group:detail` |
+| `GET`    | `/groups/:id/members` | calculated member list    | `business:cmdb:group:detail` |
+| `POST`   | `/groups`             | create group              | `business:cmdb:group:create` |
+| `PUT`    | `/groups/:id`         | update conditions         | `business:cmdb:group:update` |
+| `DELETE` | `/groups/:id`         | delete group              | `business:cmdb:group:delete` |
 
 ### 6.3 Label API
 
-| Method | Path | Purpose | Permission |
-| :--- | :--- | :--- | :--- |
-| `GET` | `/labels` | label-schema list | `business:cmdb:label:list` |
-| `GET` | `/labels/options` | label-schema select options | **Permission mapping gap:** the route exists, but `business:cmdb:label:list` currently maps only `GET /labels`, not this route. Track in `2026-07-17-business-permission-gaps`. |
-| `POST` | `/labels` | create schema | `business:cmdb:label:create` |
-| `PUT` | `/labels/:id` | update schema | `business:cmdb:label:update` |
-| `DELETE` | `/labels/:id` | delete schema | `business:cmdb:label:delete` |
+| Method   | Path              | Purpose                     | Permission                                                                                                                                                                                                                |
+| :------- | :---------------- | :-------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `GET`    | `/labels`         | label-schema list           | `business:cmdb:label:view`                                                                                                                                                                                                |
+| `GET`    | `/labels/options` | label-schema select options | Explicitly bound to `business:cmdb:label:view`, the same permission as `GET /labels`. The current permission contract replaces the historical `label:list` gap; see `backend/modules/business/cmdb/permission_routes.go`. |
+| `POST`   | `/labels`         | create schema               | `business:cmdb:label:create`                                                                                                                                                                                              |
+| `PUT`    | `/labels/:id`     | update schema               | `business:cmdb:label:update`                                                                                                                                                                                              |
+| `DELETE` | `/labels/:id`     | delete schema               | `business:cmdb:label:delete`                                                                                                                                                                                              |
 
 ### 6.4 Error Keys
 
@@ -193,10 +193,10 @@ Label permissions cover `view`, `list`, `create`, `update`, and `delete`.
 
 ## 8. Menu and Route Design
 
-| Menu key | Path | Component key | Page permission |
-| :--- | :--- | :--- | :--- |
-| `operations.cmdb.host` | `/business/cmdb/host` | `business/cmdb/host/CmdbHostList` | `business:cmdb:host:view` |
-| `operations.cmdb.group` | `/business/cmdb/group` | `business/cmdb/group/CmdbGroupList` | `business:cmdb:group:view` |
+| Menu key                | Path                   | Component key                             | Page permission            |
+| :---------------------- | :--------------------- | :---------------------------------------- | :------------------------- |
+| `operations.cmdb.host`  | `/business/cmdb/host`  | `business/cmdb/host/CmdbHostList`         | `business:cmdb:host:view`  |
+| `operations.cmdb.group` | `/business/cmdb/group` | `business/cmdb/group/CmdbGroupList`       | `business:cmdb:group:view` |
 | `operations.cmdb.label` | `/business/cmdb/label` | `business/cmdb/label/CmdbLabelSchemaList` | `business:cmdb:label:view` |
 
 Detail/edit routes are reached from list pages. Menu titles use i18n keys, and component keys must be registered in frontend and backend allowlists.
@@ -251,12 +251,12 @@ Expected dictionaries include `cmdb_host_status`, `cmdb_os_type`, `cmdb_label_ke
 
 ### 11.2 Configuration
 
-| Key | Target state | Current truth |
-| :--- | :--- | :--- |
-| `cmdb.ssh.collect_timeout` | read from `system/config`, default `10` seconds | **not externalized:** `host_service.go` hard-codes `10s` |
-| `cmdb.ssh.default_port` | read from `system/config`, default `22` | **not externalized:** the model/service falls back directly to `22` |
+| Key                        | Target state                                    | Current truth                                                                                                                                                                                          |
+| :------------------------- | :---------------------------------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `cmdb.ssh.collect_timeout` | read from `system/config`, default `10` seconds | `host/host_config.go` parses the injected reader value with bounded fallback (maximum 10 minutes); `Collect` uses `collectTimeout()`. Bounds are checked before converting seconds to `time.Duration`. |
+| `cmdb.ssh.default_port`    | read from `system/config`, default `22`         | The injected reader value has bounded fallback to `22`; an explicit host port takes precedence. `Create` persists the configured default when no port is supplied.                                     |
 
-Externalization remains a target, not an implemented fact. Track it in `2026-07-17-cmdb-ssh-config-externalize`.
+Business parsing, fallback, and Create/Collect wiring are implemented through an injected `ConfigReader`; the business module does not import the internal settings service. The shared supplier and seed-registration contracts still require Base implementation, formal release and Ops consumption, followed by tenant-context and live SSH validation. Track those open requirements in `2026-07-17-cmdb-ssh-config-externalize`; local parsing tests do not close them.
 
 ## 12. Audit and Security Requirements
 

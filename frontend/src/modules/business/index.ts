@@ -1,21 +1,23 @@
 import type { ModuleConfig } from '@duanxldragon/pantheon-base-ui';
 
-import { BizScopeModule } from './bizscope';
+import { CICDModule } from './cicd';
 import { CmdbModule } from './cmdb';
 import { DeployModule } from './deploy';
-import { K8sModule } from './k8s';
-import { ServiceModule } from './service';
-import { CICDModule } from './cicd';
 import { FiledistModule } from './filedist';
+import { K8sModule } from './k8s';
 import { ObservabilityModule } from './observability';
+import { ServiceModule } from './service';
+import { BizScopeModule } from './bizscope';
 
+// Registration order mirrors the backend seed menu Sort so the sidebar shows
+// business entries as one continuous block before system governance.
 export const businessModules: ModuleConfig[] = [
-  BizScopeModule,
   CmdbModule,
-  DeployModule,
-  K8sModule,
+  BizScopeModule,
   ServiceModule,
-  CICDModule,
+  DeployModule,
   FiledistModule,
+  K8sModule,
+  CICDModule,
   ObservabilityModule,
 ];

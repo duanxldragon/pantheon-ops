@@ -1,0 +1,52 @@
+{
+  "recordedAtUTC": "2026-11-17T17:08:24.5968760Z",
+  "validationStatus": "rbac-cancellation-green-awaiting-root",
+  "productionChanges": "rbac.go request context seam only",
+  "allRegex": "^Test(K8sRBACRequestContext|K8sService(Mutation|PermissionRoutes))",
+  "files": [
+    {
+      "path": "backend/modules/business/k8s/service/service.go",
+      "sha256": "38956b4db476fa365fa2daf49c42bab5c8e52184a19c3312c1918bfb25e35f56"
+    },
+    {
+      "path": "backend/modules/business/k8s/service/handler.go",
+      "sha256": "a6240fdbcef3287bb5a8087c083bb90ee49fc0542917f8db7ab34e16a7ac1765"
+    },
+    {
+      "path": "backend/modules/business/k8s/service/mutation_contract_test.go",
+      "sha256": "973eb427879e1d9aec05ce0880b09aaf097fd4a7ab85d4b466daaa4bcca4eacf"
+    },
+    {
+      "path": "backend/modules/business/k8s/namespace/namespace_service.go",
+      "sha256": "2af0d803d4ab5b477b19222645ab3a8c48174fa183413ce7d449ce3342cfa9d3"
+    },
+    {
+      "path": "backend/modules/business/k8s/cluster/cluster_service.go",
+      "sha256": "f50af80184bdee9b8e50555c9a33dcef6581c3b35f84c68eaa293cdbb2f27bd6"
+    },
+    {
+      "path": "backend/modules/business/k8s/k8s.go",
+      "sha256": "fccfbcf7afc471632a29f43d950998e74193147682f247221a77c9b0c475dbb2"
+    },
+    {
+      "path": "backend/modules/business/k8s/permission_routes.go",
+      "sha256": "ef2798ea5f1a70790b3a58d1d00d840c2eff92fd6147f1d155b34348e951c132"
+    },
+    {
+      "path": "backend/modules/business/k8s/permission_routes_test.go",
+      "sha256": "d0ec4e8228970b5a35384488127d5754c226dd147d81d36c854ac8eefec85c39"
+    },
+    {
+      "path": "backend/modules/business/k8s/k8s_seed.go",
+      "sha256": "eaa84c72137075289a492412501c1c5276695a0fa7f2b11e89931cbda49c290a"
+    },
+    {
+      "path": "backend/modules/business/k8s/rbac/rbac.go",
+      "sha256": "a61ab76d11d5a0a410678062bfe1326b75c31aebcb4bf9e475005a8b1dbd68e3"
+    },
+    {
+      "path": "backend/modules/business/k8s/rbac/request_context_test.go",
+      "sha256": "162a38294829c61a64a546f887639bce83b4d5a5af487b6d5be87d95181b78dc"
+    }
+  ]
+}

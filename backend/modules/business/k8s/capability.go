@@ -9,6 +9,7 @@ import (
 	"github.com/duanxldragon/pantheon-base/backend/modules/business/k8s/cluster"
 	"github.com/duanxldragon/pantheon-base/backend/pkg/common"
 
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 )
@@ -36,19 +37,19 @@ func (r *targetReader) ResolveTarget(ctx context.Context, req bizcap.K8sTargetQu
 	kind := normalizeWorkloadKind(req.WorkloadKind)
 	switch kind {
 	case "Deployment":
-		if _, err = client.AppsV1().Deployments(req.Namespace).Get(ctx, req.WorkloadName, metav1.GetOptions{}); err != nil {
-			return bizcap.K8sTargetRef{}, errors.New("business.service.k8s_target_not_found")
-		}
+		_, err = client.AppsV1().Deployments(req.Namespace).Get(ctx, req.WorkloadName, metav1.GetOptions{})
 	case "StatefulSet":
-		if _, err = client.AppsV1().StatefulSets(req.Namespace).Get(ctx, req.WorkloadName, metav1.GetOptions{}); err != nil {
-			return bizcap.K8sTargetRef{}, errors.New("business.service.k8s_target_not_found")
-		}
+		_, err = client.AppsV1().StatefulSets(req.Namespace).Get(ctx, req.WorkloadName, metav1.GetOptions{})
 	case "DaemonSet":
-		if _, err = client.AppsV1().DaemonSets(req.Namespace).Get(ctx, req.WorkloadName, metav1.GetOptions{}); err != nil {
-			return bizcap.K8sTargetRef{}, errors.New("business.service.k8s_target_not_found")
-		}
+		_, err = client.AppsV1().DaemonSets(req.Namespace).Get(ctx, req.WorkloadName, metav1.GetOptions{})
 	default:
 		return bizcap.K8sTargetRef{}, errors.New("business.service.target_invalid")
+	}
+	if err != nil {
+		if apierrors.IsNotFound(err) {
+			return bizcap.K8sTargetRef{}, errors.New("business.service.k8s_target_not_found")
+		}
+		return bizcap.K8sTargetRef{}, err
 	}
 	scopeID, deptID, err := r.clusters.GetMeta(req.ClusterID, req.DataScope)
 	if err != nil {

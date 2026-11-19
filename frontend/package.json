@@ -126,7 +126,7 @@
     "test:smoke:business:deploy": "node scripts/run-smoke-suite.mjs --host 127.0.0.1 --port 5173 --config playwright.config.ts -- tests/smoke/business/deploy/deploy-pages.spec.ts",
     "test:smoke:business:deploy:api": "playwright test tests/smoke/business/deploy/deploy-api.spec.ts --config=playwright.api.config.ts",
     "test:smoke:business:observability": "node scripts/run-smoke-suite.mjs --host 127.0.0.1 --port 5173 --config playwright.config.ts -- tests/smoke/business/observability-filedist-pages.spec.ts tests/smoke/business/observability-menu.spec.ts",
-    "test:smoke:business:service": "node scripts/run-smoke-suite.mjs --host 127.0.0.1 --port 5173 --config playwright.config.ts -- tests/smoke/business/service/service-pages.spec.ts",
+    "test:smoke:business:service": "node scripts/run-smoke-suite.mjs --host 127.0.0.1 --port 5173 --config playwright.config.ts -- tests/smoke/business/service/service-pages.spec.ts tests/smoke/business/service/ServiceCatalog.nav.spec.ts",
     "test:smoke:business:k8s": "node scripts/run-smoke-suite.mjs --host 127.0.0.1 --port 5173 --config playwright.config.ts -- tests/smoke/business/k8s/k8s-pages.spec.ts"
   },
   "dependencies": {

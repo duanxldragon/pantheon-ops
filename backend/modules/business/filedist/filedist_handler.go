@@ -1,6 +1,7 @@
 package filedist
 
 import (
+	"errors"
 	"io"
 	"net/http"
 	"os"
@@ -295,7 +296,7 @@ func (h *FileDistHandler) CreateTask(c *gin.Context) {
 		resp, err = h.distributionService.CreateTask(dto, createdBy)
 	}
 	if err != nil {
-		common.FailWithCode(c, http.StatusInternalServerError, "create_failed")
+		failFileDistTaskError(c, err, http.StatusInternalServerError, "create_failed")
 		return
 	}
 
@@ -336,7 +337,7 @@ func (h *FileDistHandler) GetTask(c *gin.Context) {
 func (h *FileDistHandler) StartTask(c *gin.Context) {
 	id, _ := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err := h.distributionService.StartTask(id); err != nil {
-		common.FailWithCode(c, http.StatusConflict, "start_failed")
+		failFileDistTaskError(c, err, http.StatusConflict, "start_failed")
 		return
 	}
 	common.Success(c, gin.H{"started": true})
@@ -392,7 +393,7 @@ func (h *FileDistHandler) CancelTask(c *gin.Context) {
 	id, _ := strconv.ParseUint(c.Param("id"), 10, 64)
 
 	if err := h.distributionService.CancelTask(id); err != nil {
-		common.FailWithCode(c, http.StatusInternalServerError, "cancel_failed")
+		failFileDistTaskError(c, err, http.StatusInternalServerError, "cancel_failed")
 		return
 	}
 
@@ -404,9 +405,36 @@ func (h *FileDistHandler) RetryTask(c *gin.Context) {
 	id, _ := strconv.ParseUint(c.Param("id"), 10, 64)
 
 	if err := h.distributionService.RetryTask(id); err != nil {
-		common.FailWithCode(c, http.StatusInternalServerError, "retry_failed")
+		failFileDistTaskError(c, err, http.StatusInternalServerError, "retry_failed")
 		return
 	}
 
 	common.Success(c, gin.H{"message": "retrying"})
+}
+
+// The locked common resolver excludes camel-case segments. Preserve only
+// declared lifecycle keys explicitly and keep typed error classes authoritative.
+func failFileDistTaskError(c *gin.Context, err error, status int, fallback string) {
+	message := common.ResolveErrorMessageKey(err, fallback)
+	switch key := common.ErrMessage(err); key {
+	case executionInterruptedKey, "business.filedist.task.transferFailed":
+		message = key
+	case "business.filedist.task.executionBusy", "business.filedist.task.notDue", "business.filedist.task.notCancellable":
+		message, status = key, http.StatusConflict
+	case "business.filedist.task.invalidContext":
+		message, status = key, http.StatusBadRequest
+	}
+	switch {
+	case errors.Is(err, common.ErrForbidden):
+		status = http.StatusForbidden
+	case errors.Is(err, common.ErrUnauthorized):
+		status = http.StatusUnauthorized
+	case errors.Is(err, common.ErrBadRequest):
+		status = http.StatusBadRequest
+	case errors.Is(err, common.ErrNotFound):
+		status = http.StatusNotFound
+	case errors.Is(err, common.ErrConflict):
+		status = http.StatusConflict
+	}
+	common.FailWithCode(c, status, message)
 }

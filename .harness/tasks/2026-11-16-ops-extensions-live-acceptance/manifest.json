@@ -3,7 +3,7 @@
   "title": "已启用扩展真实外部验收",
   "goal": "已启用扩展真实外部验收",
   "primaryLayer": "business/*",
-  "status": "planned",
+  "status": "in-progress",
   "priority": "P1",
   "deliveryTier": "L2",
   "taskDoc": "docs/harness/tasks/2026-11-16-ops-extensions-live-acceptance.task.md",
@@ -113,5 +113,23 @@
     "2026-11-16-ops-filedist-product-closure": "FileDist exposed",
     "2026-11-16-ops-argocd-ownership-convergence": "ArgoCD exposed",
     "2026-11-16-ops-helm-capability-truth": "Helm exposed"
+  },
+  "continuationCheckpoint": {
+    "at": "2026-11-19T00:11:15.272Z",
+    "packageCode": "E04",
+    "stage": "local-preparation",
+    "deliveryVerdict": "PARTIAL",
+    "accepted": false,
+    "evidenceRefs": [
+      ".harness/evidence/2026-11-16-ops-extensions-live-acceptance/local-readiness-commands-handoff-20261118.json",
+      ".harness/tasks/2026-11-16-ops-extensions-live-acceptance/local-provider-acceptance-matrix-20261118.json",
+      ".harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-full-race-20261118-01.log.receipt.json",
+      ".harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-20261118-e01-final-frontend-quality.json",
+      ".harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-20261118-e01-final-source-equivalence.json",
+      ".harness/evidence/2026-11-17-ops-history-audit/continuation-current-preview-ten-packages-20261118-e01-final-build.json",
+      ".harness/evidence/2026-11-17-ops-history-audit/continuation-current-preview-ten-packages-e01-final-started-20261118.json"
+    ],
+    "progressReceipt": ".harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-progress-final-20261118.json",
+    "currentTechnicalIntegrationPassed": true
   }
 }

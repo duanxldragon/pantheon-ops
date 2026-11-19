@@ -3,26 +3,17 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
-import { fileURLToPath } from 'node:url';
 import test from 'node:test';
+import { resolveBaseFromLock } from '../../scripts/business-overlay/foundation-release.mjs';
 
-const currentFilePath = fileURLToPath(import.meta.url);
-const repoRoot = path.resolve(path.dirname(currentFilePath), '..', '..');
-const sourceScript = path.join(repoRoot, 'scripts', 'check-inheritance-contract.mjs');
-
-const requiredFrontendPaths = [
-  'frontend/src/App.tsx',
-  'frontend/src/main.tsx',
-  'frontend/src/vite-env.d.ts',
-  'frontend/src/api',
-  'frontend/src/hooks',
-];
+const sourceScript = path.resolve('scripts/harness/check-inheritance-contract.mjs');
 
 function withTempDir(callback) {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'pantheon-inheritance-contract-'));
   try {
     callback(root);
   } finally {
+    assert.equal(path.dirname(path.resolve(root)), path.resolve(os.tmpdir()));
     fs.rmSync(root, { recursive: true, force: true });
   }
 }
@@ -33,51 +24,59 @@ function writeText(root, relativePath, content) {
   fs.writeFileSync(filePath, content, 'utf8');
 }
 
-function writeFixture(root, frontendPaths = requiredFrontendPaths) {
-  writeText(root, 'scripts/check-inheritance-contract.mjs', fs.readFileSync(sourceScript, 'utf8'));
-  writeText(root, 'AGENTS.md', 'pantheon-base\nbusiness/*\n先判断是否应在 `pantheon-base` 修复，再同步到 ops\n');
-  writeText(root, 'docs/README.md', 'PROJECT_INHERITANCE.md\nTASK_PACKET_OPS_TEMPLATE.md\n');
-  writeText(root, 'docs/README.en.md', 'PROJECT_INHERITANCE.md\nTASK_PACKET_OPS_TEMPLATE.md\n');
-  writeText(root, 'docs/PROJECT_INHERITANCE.md', [
-    'Base repository：当前继承源是 `../pantheon-base`',
-    'Base release line：当前跟随 `release/0.10`',
-    'Base version：当前锁定到 `pantheon-base-v0.10.13`（`aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa`）',
-    'business/cmdb', 'business/deploy', '如果 foundation 规则必须变更，先改 `pantheon-base`，再升级 `pantheon-ops`',
-    '这次共享改动对应的 base commit 是什么', '共享路径哪些已同步，哪些故意未同步',
-    '是否分别验证了 base 和 ops 的最小启动、build 或 smoke', '`foundation-release.lock.json`', '`npm run check:base-sync:workspace`',
+function writeFixture(root) {
+  writeText(root, 'docs/WORKSPACE_INHERITANCE.md', [
+    '`pantheon-base`: the only authority', '`pantheon-ops`: a derived business repository',
+    'Change base rules in `pantheon-base`, then let business repositories upgrade',
   ].join('\n'));
-  writeText(root, 'docs/PROJECT_INHERITANCE.en.md', [
-    'Base repository: `../pantheon-base`', 'Base release line: `release/0.10`',
-    'Base version: `pantheon-base-v0.10.13` (`aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa`)',
-    'business/cmdb', 'business/deploy', 'update `pantheon-base` first and then upgrade `pantheon-ops`',
-    'which base commit introduced the shared change', 'which shared paths were synced and which were intentionally left out',
-    'whether base and ops each received their minimum validation pass', '`foundation-release.lock.json`', '`npm run check:base-sync:workspace`',
+  writeText(root, 'pantheon-ops/CLAUDE.md', [
+    'pantheon-ops inherits pantheon-base as its foundation', 'Business work reading order',
+    '../docs/WORKSPACE_INHERITANCE.md', 'docs/PROJECT_INHERITANCE.md', '../pantheon-base/DESIGN.md',
+    '../pantheon-base/AGENTS.md', 'Do not fix platform or system-domain drift locally in pantheon-ops',
   ].join('\n'));
-  writeText(root, 'foundation-release.lock.json', `${JSON.stringify({
-    releaseLine: 'release/0.10', releaseVersion: 'pantheon-base-v0.10.13',
-    baseCommit: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa', consumerMode: 'foundation-release-consumer',
-    releaseArtifact: { localPath: '.foundation/releases/pantheon-base-v0.10.13' },
-    sharedPaths: { frontend: frontendPaths },
-  }, null, 2)}\n`);
+  writeText(root, 'pantheon-ops/docs/PROJECT_INHERITANCE.md', [
+    'Base repository: `../pantheon-base`', 'Base version: `pantheon-base-v0.18.9` (`' + 'a'.repeat(40) + '`)',
+    'business/cmdb', 'business/deploy', 'If a foundation rule must change, update `pantheon-base` first',
+  ].join('\n'));
+  writeText(root, '.github/pull_request_template.md', 'Base/ops inheritance\nBase version checked\ngeneric drift\npseudo-drift\nbusiness-only\n');
 }
 
 function runCheck(root) {
-  return spawnSync(process.execPath, ['scripts/check-inheritance-contract.mjs'], { cwd: root, encoding: 'utf8' });
+  const result = spawnSync(process.execPath, [sourceScript, '--root', root, '--json', '--strict'], { encoding: 'utf8', windowsHide: true, shell: false });
+  assert.ifError(result.error);
+  return { ...result, report: JSON.parse(result.stdout) };
 }
 
-test('check-inheritance-contract accepts complete generic frontend ownership', () => {
+test('workspace inheritance accepts pinned Base-first business boundaries', () => {
   withTempDir((root) => {
     writeFixture(root);
     const result = runCheck(root);
     assert.equal(result.status, 0, result.stderr || result.stdout);
+    assert.equal(result.report.findingCount, 0);
   });
 });
 
-test('check-inheritance-contract rejects a lock missing shared API ownership', () => {
+test('workspace inheritance rejects a missing Base-first boundary and floating version', () => {
   withTempDir((root) => {
-    writeFixture(root, requiredFrontendPaths.filter((entry) => entry !== 'frontend/src/api'));
+    writeFixture(root);
+    writeText(root, 'pantheon-ops/docs/PROJECT_INHERITANCE.md', 'Base repository: `../pantheon-base`\nBase version: `latest`\nbusiness/cmdb\nbusiness/deploy\n');
     const result = runCheck(root);
     assert.notEqual(result.status, 0);
-    assert.match(result.stderr, /sharedPaths\.frontend must include frontend\/src\/api/);
+    assert.ok(result.report.findings.some(r => r.reason.includes('update `pantheon-base` first')));
+    assert.ok(result.report.findings.some(r => r.reason.includes('explicit tag or commit hash')));
+  });
+});
+
+test('official snapshot consumption rejects legacy partial-path locks without accessing the network', () => {
+  withTempDir((root) => {
+    const legacy = JSON.stringify({ releaseVersion: 'pantheon-base-v0.10.13', releaseLine: 'release/0.10',
+      baseCommit: 'a'.repeat(40), consumerMode: 'foundation-release-consumer',
+      releaseArtifact: { localPath: '.foundation/releases/pantheon-base-v0.10.13' },
+      sharedPaths: { frontend: ['frontend/src/api'] } });
+    writeText(root, 'foundation-release.lock.json', legacy);
+    let externalCalls = 0;
+    assert.throws(() => resolveBaseFromLock(root, { run: () => { externalCalls++; throw new Error('unexpected external access'); } }), /official GitHub Base release/);
+    assert.equal(externalCalls, 0);
+    assert.equal(fs.readFileSync(path.join(root, 'foundation-release.lock.json'), 'utf8'), legacy);
   });
 });

@@ -1,0 +1,134 @@
+{
+  "schemaVersion": 1,
+  "taskId": "2026-11-16-ops-pilot-release-closeout",
+  "recordedAt": "2026-11-18T07:12:29.8521237Z",
+  "scope": "Local delivery plan/checklist only",
+  "preparationStatus": "verified-local-document-preparation",
+  "overallTaskStatusChanged": false,
+  "observedHead": "71c86cfe664ef9fde310cc68efbf2e8992e648f2",
+  "candidateCertification": "not-certified",
+  "linkage": {
+    "taskManifest": ".harness/tasks/2026-11-16-ops-pilot-release-closeout/manifest.json",
+    "plan": ".harness/tasks/2026-11-16-ops-pilot-release-closeout/continuation-local-delivery-plan-20261118.md",
+    "checklist": ".harness/tasks/2026-11-16-ops-pilot-release-closeout/continuation-local-delivery-checklist-20261118.md",
+    "summary": ".harness/evidence/2026-11-16-ops-pilot-release-closeout/local-preparation-handoff-20261118.md",
+    "review": "Coordinator independent review pending; implementer self-review recorded in summary"
+  },
+  "sourceHashes": [
+    {
+      "path": "AGENTS.md",
+      "sha256": "a173ea5a9c8b9aa48132ae78cca0d5be91da1a6ed7326c8e03eba8b5262c8a18"
+    },
+    {
+      "path": "docs/PROJECT_INHERITANCE.md",
+      "sha256": "227df7c427b092385334210ed6f635eb00db0adf4b17816cb14a411f8af5fedc"
+    },
+    {
+      "path": "business-overlay.json",
+      "sha256": "a96182ddcb1e9a070439f5f33a4483a4942b6af82de0e79e24887c80b561a624"
+    },
+    {
+      "path": "foundation-release.lock.json",
+      "sha256": "14417d10b6ac9fc6eb0c24069b8c2b099abef2f0ad22536c402df06de4eaf1fc"
+    },
+    {
+      "path": ".business-overlay-report.json",
+      "sha256": "604f6c705431fd28186a7a8df8985335647cfc9c75dd04afd7ded136d4159080"
+    },
+    {
+      "path": "Dockerfile",
+      "sha256": "3f4f397e70b922c04bb9f961e79092e5c4285fa547b1dda03b68315607b56ee5"
+    },
+    {
+      "path": "docker-compose.yml",
+      "sha256": "c815a1296070885baf540e1aa7cc5927cfb7428da9b5b85fc8b011fb183a8a6c"
+    },
+    {
+      "path": "scripts/business-overlay/rebuild-from-base.mjs",
+      "sha256": "fe49198f585962aa8cb75d089506eefc270c540339acb3944b2da1975695c70d"
+    },
+    {
+      "path": "scripts/business-overlay/check-business-overlay.mjs",
+      "sha256": "89149cdf554b6f10b3b4d79cf734938127ca3438c543eb83c8184cb8d1c66730"
+    },
+    {
+      "path": "scripts/business-overlay/check-shared-drift.mjs",
+      "sha256": "b60ceb39cb309761d928252da22442e4c05ee507f85f199cc7a17b92b469c085"
+    },
+    {
+      "path": "scripts/business-overlay/foundation-release.mjs",
+      "sha256": "e6a9de8d5afcbcfbfb949f8cdb6da78395cb33b0e88ea158443062608b99175b"
+    },
+    {
+      "path": "backend/cmd/server/main.go",
+      "sha256": "2bf764ab3d49bdd2bb59c2ba5166864b26c0a64e605fe18a9f61e9fd48e17f42"
+    },
+    {
+      "path": "frontend/package.json",
+      "sha256": "3f7784aa58fcbcbf3261c914834a751380e0f870c19de420ae931399691b9c03"
+    },
+    {
+      "path": ".harness/tasks/2026-11-16-ops-pilot-release-closeout/manifest.json",
+      "sha256": "4947dfd0ce776cae1b490e5c06b38c13a1aec648de87423600b1bac1d4927f7c"
+    },
+    {
+      "path": ".harness/tasks/2026-11-16-ops-business-runtime-acceptance/manifest.json",
+      "sha256": "aee559542afe0f2193b3200e78cb5e1013db19686cd10a893f8b1acbbcd27a65"
+    },
+    {
+      "path": ".harness/tasks/2026-11-16-ops-pilot-release-closeout/continuation-local-delivery-plan-20261118.md",
+      "sha256": "e09879567ea7bea3c42698b756136749963c29680259794bbad230547f8c44b3"
+    },
+    {
+      "path": ".harness/tasks/2026-11-16-ops-pilot-release-closeout/continuation-local-delivery-checklist-20261118.md",
+      "sha256": "87e26c7785efbdb19a0dcfd3f059191e166499052c93f804af14369397e921dc"
+    }
+  ],
+  "acceptanceMapping": [
+    {
+      "criterion": 1,
+      "sections": "1,3,4,5",
+      "status": "not-run"
+    },
+    {
+      "criterion": 2,
+      "sections": "1,4,5",
+      "status": "not-run"
+    },
+    {
+      "criterion": 3,
+      "sections": "2,3,4",
+      "status": "not-run"
+    },
+    {
+      "criterion": 4,
+      "sections": "1,4",
+      "status": "not-run"
+    }
+  ],
+  "validation": {
+    "sourceReferenceFilesChecked": 17,
+    "missingReferenceFiles": 0,
+    "method": "Test-Path -LiteralPath on every source reference and SHA256 capture",
+    "packaging": "not-run",
+    "install": "not-run",
+    "upgrade": "not-run",
+    "failureRecovery": "not-run",
+    "rollback": "not-run",
+    "offlineAcceptance": "not-run",
+    "publication": "not-run",
+    "maintainerAcceptance": "not-run",
+    "staticArtifactValidation": {
+      "command": "node -e (artifact/linkage/acceptance/not-run assertions)",
+      "exitCode": 0,
+      "result": "Both JSON artifacts parse; 4/4 acceptance criteria mapped; 8/8 dependent operations not-run; all linked files exist"
+    }
+  },
+  "observedGaps": [
+    "C05 has not completed current-candidate hosted/live/role/render acceptance",
+    "Ops compose only supplies MySQL/Redis and retains fixed resource identity/ports, plaintext development credentials and legacy SQL mount",
+    "Dockerfile copy of dist is not proof of served SPA/static/API proxy; exact install/upgrade/rollback runner not established",
+    "Existing overlay report Base commit differs from locked Foundation; fresh candidate report required",
+    "Business version/previous Ops rollback package/target runtime and immutable hashes not yet selected"
+  ]
+}

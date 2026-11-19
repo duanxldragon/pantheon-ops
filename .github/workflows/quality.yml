@@ -2,7 +2,16 @@ name: Code Quality Gates
 
 on:
   workflow_dispatch:
+    inputs:
+      sha:
+        description: >-
+          Exact commit SHA to validate on demand (6-40 hex). When set, every
+          checkout is pinned to this commit and verified with `git rev-parse
+          HEAD`. Empty validates the dispatch ref (default branch).
+        required: false
+        type: string
   pull_request:
+    types: [opened, synchronize, reopened, edited, ready_for_review]
   push:
     branches:
       - main
@@ -28,14 +37,62 @@ jobs:
       contents: read
       pull-requests: read
     outputs:
-      frontend_contract: ${{ steps.scope.outputs.frontend_contract || 'false' }}
-      smoke_sanity: ${{ steps.scope.outputs.smoke_sanity || 'false' }}
+      candidate_sha: ${{ steps.candidate.outputs.sha }}
+      frontend_contract: ${{ steps.scope.outputs.frontend_contract }}
+      smoke_sanity: ${{ steps.scope.outputs.smoke_sanity }}
       overlay_sensitive: ${{ steps.scope.outputs.overlay_sensitive || 'false' }}
     steps:
+      - name: Resolve requested candidate before checkout
+        id: requested
+        shell: bash
+        env:
+          REQUESTED_SHA: ${{ inputs.sha }}
+          DEFAULT_SHA: ${{ github.sha }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          CANDIDATE="$DEFAULT_SHA"
+          if [ -n "$REQUESTED_SHA" ]; then
+            if ! [[ "$REQUESTED_SHA" =~ ^[[:xdigit:]]{6,40}$ ]]; then
+              echo "Invalid candidate SHA (expected 6-40 hex)" >&2
+              exit 1
+            fi
+            CANDIDATE="$(gh api "repos/${GITHUB_REPOSITORY}/commits/${REQUESTED_SHA}" --jq .sha)"
+            if ! [[ "${CANDIDATE,,}" = "${REQUESTED_SHA,,}"* ]]; then
+              echo "Resolved commit does not match requested SHA prefix" >&2
+              exit 1
+            fi
+          fi
+          if ! [[ "$CANDIDATE" =~ ^[[:xdigit:]]{40}$ ]]; then
+            echo "Candidate did not resolve to a full commit SHA" >&2
+            exit 1
+          fi
+          echo "sha=${CANDIDATE,,}" >> "$GITHUB_OUTPUT"
+
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           persist-credentials: false
+          ref: ${{ steps.requested.outputs.sha }}
+
+      - name: Resolve and verify candidate commit
+        id: candidate
+        shell: bash
+        env:
+          REQUESTED_SHA: ${{ inputs.sha }}
+        run: |
+          ACTUAL="$(git rev-parse HEAD)"
+          if [ -n "$REQUESTED_SHA" ]; then
+            if ! [[ "$REQUESTED_SHA" =~ ^[[:xdigit:]]{6,40}$ ]]; then
+              echo "Invalid candidate SHA (expected 6-40 hex)" >&2
+              exit 1
+            fi
+            EXPECTED="$(git rev-parse --verify "$REQUESTED_SHA^{commit}")"
+            if [ "$ACTUAL" != "$EXPECTED" ]; then
+              echo "HEAD does not match requested commit" >&2
+              exit 1
+            fi
+          fi
+          echo "sha=$ACTUAL" >> "$GITHUB_OUTPUT"
 
       - name: Detect changed scope
         id: scope
@@ -69,6 +126,7 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           persist-credentials: false
+          ref: ${{ needs.change-scope.outputs.candidate_sha }}
 
       - name: Setup Node
         uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1
@@ -124,6 +182,11 @@ jobs:
       - name: Check generated modules
         run: npm run check:generated-modules
 
+      - name: Run tests/scripts catch-all
+        # Without it every test file lacking a dedicated npm script silently
+        # never runs in CI — keep the real governance suite gating the commit.
+        run: npm run test:scripts
+
       - name: Check UI quality gate
         run: npm run check:ui-quality-gate
 
@@ -140,6 +203,7 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           persist-credentials: false
+          ref: ${{ needs.change-scope.outputs.candidate_sha }}
 
       - name: Setup Node
         uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1
@@ -167,14 +231,29 @@ jobs:
 
   backend-tests:
     name: Backend Tests
+    needs:
+      - change-scope
     runs-on: ubuntu-latest
     permissions:
       contents: read
+    services:
+      observability-redis:
+        image: redis:7-alpine
+        ports:
+          - 26316:6379
+        options: >-
+          --health-cmd="redis-cli ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=12
+    env:
+      PANTHEON_OBSERVABILITY_TEST_REDIS_ADDR: 127.0.0.1:26316
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           persist-credentials: false
+          ref: ${{ needs.change-scope.outputs.candidate_sha }}
 
       - name: Setup Go
         uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e
@@ -188,6 +267,8 @@ jobs:
 
   go-lint:
     name: Go Lint
+    needs:
+      - change-scope
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -196,6 +277,7 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           persist-credentials: false
+          ref: ${{ needs.change-scope.outputs.candidate_sha }}
           fetch-depth: 0
 
       - name: Setup Go
@@ -249,6 +331,8 @@ jobs:
 
   duplication:
     name: Duplication Gate
+    needs:
+      - change-scope
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -257,6 +341,7 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           persist-credentials: false
+          ref: ${{ needs.change-scope.outputs.candidate_sha }}
 
       - name: Setup Node
         uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1
@@ -338,11 +423,16 @@ jobs:
       PANTHEON_PORT: "8080"
       PANTHEON_API_BASE_URL: http://127.0.0.1:8080/api/v1
       PANTHEON_API_PROXY_TARGET: http://127.0.0.1:8080
+      # 32-byte (64 hex) AES keys for business-suite credential encryption in
+      # the isolated smoke backend only; never a production value.
+      PANTHEON_DEPLOY_CREDENTIAL_KEY: 00112233445566778899aabbccddeeff00112233445566778899aabbccddeeff
+      PANTHEON_K8S_KUBECONFIG_KEY: 00112233445566778899aabbccddeeff00112233445566778899aabbccddeeff
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           persist-credentials: false
+          ref: ${{ needs.change-scope.outputs.candidate_sha }}
 
       - name: Setup Go
         uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e
@@ -395,6 +485,17 @@ jobs:
         working-directory: frontend
         run: npm run test:smoke:platform:contracts && npm run test:smoke:system
 
+      - name: Run Ops core business smoke
+        working-directory: frontend
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm run test:smoke:business:cmdb
+          npm run test:smoke:business:deploy:api
+          npm run test:smoke:business:deploy
+          npm run test:smoke:business:service
+          npm run test:smoke:business:k8s
+
       - name: Upload smoke artifacts
         if: failure()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
@@ -432,6 +533,7 @@ jobs:
         shell: bash
         env:
           EVENT_NAME: ${{ github.event_name }}
+          CHANGE_SCOPE_RESULT: ${{ needs.change-scope.result }}
           FRONTEND_CONTRACT_SCOPE: ${{ needs.change-scope.outputs.frontend_contract }}
           SMOKE_SANITY_SCOPE: ${{ needs.change-scope.outputs.smoke_sanity }}
           DOCS_GOVERNANCE_RESULT: ${{ needs.docs-governance.result }}
@@ -444,10 +546,10 @@ jobs:
         run: |
           FRONTEND_CONTRACT_REQUIRED=true
           SMOKE_SANITY_REQUIRED=true
-          if [ "${EVENT_NAME}" = "pull_request" ] && [ "${FRONTEND_CONTRACT_SCOPE}" != "true" ]; then
+          if [ "${EVENT_NAME}" = "pull_request" ] && [ "${FRONTEND_CONTRACT_SCOPE}" = "false" ]; then
             FRONTEND_CONTRACT_REQUIRED=false
           fi
-          if [ "${EVENT_NAME}" = "pull_request" ] && [ "${SMOKE_SANITY_SCOPE}" != "true" ]; then
+          if [ "${EVENT_NAME}" = "pull_request" ] && [ "${SMOKE_SANITY_SCOPE}" = "false" ]; then
             SMOKE_SANITY_REQUIRED=false
           fi
           echo "Docs Governance: ${DOCS_GOVERNANCE_RESULT}"
@@ -458,7 +560,8 @@ jobs:
           echo "Smoke Sanity: ${SMOKE_SANITY_RESULT}"
           echo "Frontend Contract Required: ${FRONTEND_CONTRACT_REQUIRED}"
           echo "Smoke Sanity Required: ${SMOKE_SANITY_REQUIRED}"
-          if [ "${DOCS_GOVERNANCE_RESULT}" != "${EXPECTED_RESULT}" ] || \
+          if [ "${CHANGE_SCOPE_RESULT}" != "${EXPECTED_RESULT}" ] || \
+             [ "${DOCS_GOVERNANCE_RESULT}" != "${EXPECTED_RESULT}" ] || \
              [ "${DUPLICATION_RESULT}" != "${EXPECTED_RESULT}" ] || \
              [ "${BACKEND_TESTS_RESULT}" != "${EXPECTED_RESULT}" ]; then
             exit 1
@@ -466,9 +569,15 @@ jobs:
           if [ "${FRONTEND_CONTRACT_REQUIRED}" = "true" ] && [ "${FRONTEND_CONTRACT_RESULT}" != "${EXPECTED_RESULT}" ]; then
             exit 1
           fi
+          if [ "${FRONTEND_CONTRACT_REQUIRED}" = "false" ] && [ "${FRONTEND_CONTRACT_RESULT}" != "${EXPECTED_RESULT}" ] && [ "${FRONTEND_CONTRACT_RESULT}" != "skipped" ]; then
+            exit 1
+          fi
           if [ "${EVENT_NAME}" != "push" ] && [ "${GO_LINT_RESULT}" != "${EXPECTED_RESULT}" ]; then
             exit 1
           fi
           if [ "${SMOKE_SANITY_REQUIRED}" = "true" ] && [ "${SMOKE_SANITY_RESULT}" != "${EXPECTED_RESULT}" ]; then
+            exit 1
+          fi
+          if [ "${SMOKE_SANITY_REQUIRED}" = "false" ] && [ "${SMOKE_SANITY_RESULT}" != "${EXPECTED_RESULT}" ] && [ "${SMOKE_SANITY_RESULT}" != "skipped" ]; then
             exit 1
           fi

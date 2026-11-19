@@ -1,0 +1,38 @@
+# C01 review — implementation in progress
+
+## Machine Readable
+
+```json
+{
+  "taskId": "2026-11-16-ops-service-deploy-integrity",
+  "verdict": "changes requested",
+  "structuralReview": {
+    "affectedSubgraph": [
+      "business/deploy -> Service owner reader/state",
+      "Service deletion -> Deploy-owned execution references"
+    ],
+    "checks": [
+      "sensitive-flow",
+      "cycle",
+      "hub"
+    ],
+    "findings": [
+      "Initial independent architecture report is BLOCK and preserved verbatim; subsequent fixes await fresh independent review.",
+      "Current implementation and tests are in progress; no completion approval exists."
+    ],
+    "notes": ".harness/evidence/2026-11-17-ops-history-audit/continuation-c01-initial-design-architecture.md"
+  },
+  "linkage": {
+    "taskManifest": ".harness/tasks/2026-11-16-ops-service-deploy-integrity/manifest.json",
+    "evidence": ".harness/evidence/2026-11-16-ops-service-deploy-integrity/commands.json",
+    "reviewFile": ".harness/evidence/2026-11-16-ops-service-deploy-integrity/review.md",
+    "changeRef": "none",
+    "planRefs": [
+      ".harness/tasks/2026-11-16-ops-service-deploy-integrity/continuation-plan.md",
+      ".harness/tasks/2026-11-16-ops-pilot-delivery/plan.md"
+    ]
+  }
+}
+```
+
+Historical initial architecture BLOCK is preserved; later fixes do not rewrite that report. Fresh implementation review is pending.

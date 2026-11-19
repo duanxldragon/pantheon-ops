@@ -1,0 +1,121 @@
+{
+  "schema": "pantheon-extension-startup-semantics-handoff/v1",
+  "parentTasks": [
+    "2026-11-16-ops-filedist-product-closure",
+    "2026-11-16-ops-argocd-ownership-convergence"
+  ],
+  "implementer": "/root/extension_startup_integration",
+  "sourceFreeze": true,
+  "observedAt": "2026-11-18T07:45:10.0286998Z",
+  "wholePackagesClosed": false,
+  "backendSources": 9,
+  "totalBoundFiles": 17,
+  "sourceSHA256": {
+    "frontend/src/modules/business/v12locales/en-US.json": "47135a7b091a3492f3eec387e59c18d3ae13b1fe6e55448f8b698883547b1612",
+    "docs/designs/BUSINESS_ERROR_SEMANTICS_APPENDIX.en.md": "d479786ee5c0f38e2b8f2c150cb034c2fad77884691174f3ce0ddf913e667264",
+    "backend/modules/business/filedist/filedist_handler.go": "3e6a34a97ef93bc8b06ed13fa883db538da93f7364b26e42bdb1769007261cdb",
+    "frontend/src/modules/business/v12locales/fr-FR.json": "e0ca196edd78634b11abf55c55dbf85136518eed6833f0101857500da3254452",
+    "backend/modules/business/opsinit/extension_lifecycle.go": "150f000b987b4c959762c4a550f6c026b816b8a657e0414abe0fe88990988d4e",
+    "docs/designs/BUSINESS_ERROR_SEMANTICS_APPENDIX.md": "26d328dbdfdca14ee41c6b6d465a677c7dfb45fefe10f7a4d74bd0a1cb452588",
+    "backend/modules/business/cicd/argocd/sync_error_handler_test.go": "79cf3c6b61b7408ce726bae7cfa92ccfbcab57dac1648f3608b0050a02838564",
+    "backend/modules/business/cicd/argocd/argocd_handler.go": "c86e78e04931b3f643c8adbf0b263d8f0e9f836cc02ac97ee108f4742076a8f2",
+    "frontend/src/modules/business/v12locales/ja-JP.json": "84c273d57f9cafe4fe370d68645f857b76f089af224fc4b57926c804ecc6749c",
+    "backend/modules/business/filedist/seed.go": "7a0d3da63a16324289a763476644402b1623259badb767b673864e5d7a270d0d",
+    "frontend/src/modules/business/v12locales/zh-CN.json": "a6e31aed755285d8da9da168cffbb32c2261d1a6bab9a1a1129fe8742c9d903c",
+    "backend/modules/business/cicd/seed.go": "078a2319646f102e8d3c9e80b697d05c7bf4c15829f8297fa57e1dc64df93084",
+    "frontend/src/modules/business/v12locales/ko-KR.json": "e32b63c7aecdb15ffc6092faf5fcacbde024d5efaf1fa80c0664599963bde1e4",
+    "backend/modules/business/opsinit/opsinit.go": "98a8337428967d09b360a5fd6f21f225b3954623005c29d5b02b5347aac5b895",
+    "backend/modules/business/filedist/lifecycle_error_handler_test.go": "b8e19cdea98a1e7babd406c3e5a62bdfa9cfe8fabe1406bedb40d8ba709b0818",
+    "frontend/src/modules/business/v12locales/README.md": "484d0e7ecb043528ed2161b43eaf8bb72fe448f05047bc91cccbeb27e4d19b03",
+    "backend/modules/business/opsinit/extension_lifecycle_test.go": "20d7bba55bf9c5599465c2b5a4239c9296ff1600cfd502c02936462691af6411"
+  },
+  "implementation": {
+    "startup": "Existing void Init propagates FileDist Start failure by panic after cancellation and Stop; provider wiring/migration precede Start. Routes register after startup, with cleanup on registration panic.",
+    "cancellation": "Business-owned signal context; owned Argo NewReconciler Start/Stop handle joins the observer before FileDist Stop. This does not establish Base main awaiting callback completion.",
+    "authorization": "No FileDistributionAuthorizer production adapter added. Nil fail-closed retained; registered OwnerLifecycle capability proves existence only and cannot grant access.",
+    "handlers": "Public common sentinel classes take precedence; explicit known canonical-key mapping covers camel-case keys excluded by the locked generic parser. Raw provider/SQL errors are omitted from public responses; Argo fallback logging records only subsystem and error type.",
+    "locale": "9 canonical keys plus 44 UI keys in 5 declared v12 locales; zh-CN/en-US runtime seed agrees with locale source. fr-FR/ja-JP/ko-KR use explicit English fallback for this increment."
+  },
+  "verification": [
+    {
+      "command": "gofmt -w <9 bound backend sources>",
+      "cwd": "backend",
+      "exitCode": 0,
+      "toolChunk": "c5ac2c"
+    },
+    {
+      "command": "go test -race -mod=readonly -count=1 -timeout=2m -run '^(TestExtensionLifecycle|TestFileDistLifecycleErrorHTTPContract|TestSyncActionErrorHTTPContract)' ./modules/business/opsinit ./modules/business/filedist ./modules/business/cicd/argocd",
+      "cwd": "backend",
+      "environment": {
+        "CGO_ENABLED": "1",
+        "PATHPrefix": "D:\\msys64\\mingw64\\bin;"
+      },
+      "exitCode": 0,
+      "packageDurations": {
+        "opsinit": "1.217s",
+        "filedist": "1.139s",
+        "argocd": "1.275s"
+      },
+      "toolChunks": [
+        "5d5745",
+        "a78ebc"
+      ],
+      "actualMySQL": false,
+      "fullRace": false
+    },
+    {
+      "command": "gopls check <9 bound backend sources>",
+      "cwd": "backend",
+      "exitCode": 0,
+      "output": "",
+      "toolChunks": [
+        "558d86",
+        "2ef542"
+      ]
+    },
+    {
+      "command": "go vet -mod=readonly ./modules/business/opsinit ./modules/business/filedist ./modules/business/cicd/argocd",
+      "cwd": "backend",
+      "exitCode": 0,
+      "output": "",
+      "toolChunks": [
+        "9dda31",
+        "a418da"
+      ]
+    },
+    {
+      "check": "53 integration keys in five locale JSON; 106 bilingual seed/source rows equal; 88 UI delta rows unchanged",
+      "exitCode": 0,
+      "toolChunk": "d4f913"
+    },
+    {
+      "command": "git diff --check -- <owned application/docs/locales scope>",
+      "cwd": ".",
+      "exitCode": 0,
+      "toolChunks": [
+        "d39d40",
+        "d4f913"
+      ]
+    }
+  ],
+  "notRun": [
+    "actual MySQL startup/lease/runtime seed persistence",
+    "official locked Base rebuild/fallback regeneration",
+    "full Windows CGO race",
+    "frontend app lint/type/build/render",
+    "live provider tests",
+    "independent review",
+    "maintainer final acceptance"
+  ],
+  "remainingGaps": [
+    "FileDist job/source authority needs an upstream public contract suitable for scheduled actor authorization; current session-only Reader and existence-only OwnerLifecycle cannot safely adapt the actor/file/action port.",
+    "Unchanged Base main does not await this business signal callback; ordered process shutdown/join and server-bind failure cancellation remain unproved.",
+    "Actual OS signal behavior, provider transport behavior and task/source authorization remain runtime acceptance gates.",
+    "Existing Argo ownership/legacy/UID/token/webhook/dual-write gaps remain outside this scope.",
+    "Remote file writes cannot be rolled back and no remote SSH fencing is introduced."
+  ],
+  "historicalEditsPreserved": [
+    "Existing opsinit Deploy InitDeployModuleWithServiceOwner wiring belonged to the incoming working tree; not implemented or reverted by this lane.",
+    "Frozen FileDist engine/lifecycle/service and Argo service/reconciler/observation sources untouched."
+  ]
+}

@@ -1,0 +1,380 @@
+{
+  "taskId": "2026-11-16-ops-service-deploy-integrity",
+  "repo": "pantheon-ops",
+  "checkpoint": "owned-pause-resume-final-settlement",
+  "capturedAt": "2026-11-17T16:36:01Z",
+  "hashAlgorithm": "SHA256",
+  "scope": "All 56 Go files in backend/modules/business/deploy. Service-owner dependencies and the complete rebuilt product tree are outside this manifest.",
+  "binding": {
+    "method": "Post-run snapshot of frozen source; root owned the test execution and source freeze.",
+    "greenLog": ".harness/evidence/2026-11-17-ops-history-audit/continuation-c01-owned-resume-final-settlement-fixed.log",
+    "greenReceipt": ".harness/evidence/2026-11-17-ops-history-audit/continuation-c01-owned-resume-final-settlement-fixed.log.receipt.json",
+    "filesModifiedAfterGreenStarted": [],
+    "fullDependencyClosureBound": false,
+    "officialRebuildBound": false,
+    "commitBound": false
+  },
+  "criticalFiles": [
+    "backend/modules/business/deploy/deploy_service.go",
+    "backend/modules/business/deploy/deploy_service_test.go",
+    "backend/modules/business/deploy/cancel_unclaimed_test.go",
+    "backend/modules/business/deploy/worker_handoff_test.go"
+  ],
+  "fileCount": 56,
+  "files": [
+    {
+      "path": "backend/modules/business/deploy/attempt_ownership.go",
+      "sha256": "767da276e8686a56046f830b4c5f06946197cb91d563ca188f13b638b7d8680e",
+      "bytes": 33346,
+      "modifiedAt": "2026-11-17T12:35:37.9859353Z"
+    },
+    {
+      "path": "backend/modules/business/deploy/attempt_ownership_test.go",
+      "sha256": "226f95dc67a06de55d041c778ee6da655116cec0d99d52a5a0cd7d27b9c2f476",
+      "bytes": 41403,
+      "modifiedAt": "2026-11-16T02:36:00.4508331Z"
+    },
+    {
+      "path": "backend/modules/business/deploy/cancel_unclaimed_test.go",
+      "sha256": "b064bbef402afe6fb52fe4bdf3134e25696152eef740df5e50c963130da58a5b",
+      "bytes": 9755,
+      "modifiedAt": "2026-11-17T14:58:25.3322297Z"
+    },
+    {
+      "path": "backend/modules/business/deploy/dashboard_summary.go",
+      "sha256": "187b87588cf8dc15d5aeec2890c438d843ce556ac0d8b4b09950790712ccea42",
+      "bytes": 3763,
+      "modifiedAt": "2026-11-15T23:09:56.6827792Z"
+    },
+    {
+      "path": "backend/modules/business/deploy/dashboard_summary_test.go",
+      "sha256": "4b61a6e8f05a6ee2738cf8ef088e5125b8e5ee835d6a9ce05cea2c8585846c38",
+      "bytes": 4423,
+      "modifiedAt": "2026-11-15T23:09:56.6827792Z"
+    },
+    {
+      "path": "backend/modules/business/deploy/deploy.go",
+      "sha256": "c7aa8d6503671060201b77687e16579c13c5abf04b79bc395fbe3ea06e8d7eda",
+      "bytes": 4093,
+      "modifiedAt": "2026-11-17T11:27:32.2264792Z"
+    },
+    {
+      "path": "backend/modules/business/deploy/deploy_credential.go",
+      "sha256": "de2b491e4106bb0775599f878b6d837c1677c355984f5bec6afcdc5ffae5819b",
+      "bytes": 6790,
+      "modifiedAt": "2026-11-16T02:36:00.4520997Z"
+    },
+    {
+      "path": "backend/modules/business/deploy/deploy_dto.go",
+      "sha256": "38e30dd68320e131b9aeb01510d2afb1427732941abdc4354cde537f9e2f9ed8",
+      "bytes": 19874,
+      "modifiedAt": "2026-11-17T12:40:00.8328425Z"
+    },
+    {
+      "path": "backend/modules/business/deploy/deploy_executor_test.go",
+      "sha256": "9e26f4638b57384d26d65cde9771f99ca915bd91da693153a1fa5c35e3841194",
+      "bytes": 1385,
+      "modifiedAt": "2026-10-21T02:08:03.0000000Z"
+    },
+    {
+      "path": "backend/modules/business/deploy/deploy_fixed_templates.go",
+      "sha256": "e934086958e0c25f1d2844876df4bbc0985e0927dd83b2a7b76c0e6255d4caa0",
+      "bytes": 29836,
+      "modifiedAt": "2026-10-27T05:46:08.0000000Z"
+    },
+    {
+      "path": "backend/modules/business/deploy/deploy_handler.go",
+      "sha256": "902b1b5323a15587e319ca7f35f737164b722c82cc8d8aaab95180b8fe79df15",
+      "bytes": 30311,
+      "modifiedAt": "2026-11-17T12:58:43.8824994Z"
+    },
+    {
+      "path": "backend/modules/business/deploy/deploy_helpers.go",
+      "sha256": "5b0388796b15e221202b94a5e0c686b10551764b5fe6c6166cf3e6e6f023e00f",
+      "bytes": 8789,
+      "modifiedAt": "2026-10-30T06:38:25.9642005Z"
+    },
+    {
+      "path": "backend/modules/business/deploy/deploy_import_export.go",
+      "sha256": "df28382a892080138f09d0aa056e5495399d4f18316ed0bea454bbd34f258da8",
+      "bytes": 13761,
+      "modifiedAt": "2026-10-30T06:38:25.9642005Z"
+    },
+    {
+      "path": "backend/modules/business/deploy/deploy_import_export_test.go",
+      "sha256": "d18f8312b1c118023eaa1f81460e1a740435bf2fffab5c29b8bb54507f2154e4",
+      "bytes": 1522,
+      "modifiedAt": "2026-10-21T02:08:03.0000000Z"
+    },
+    {
+      "path": "backend/modules/business/deploy/deploy_live_acceptance_test.go",
+      "sha256": "20f650c74d5ae83fde928ab6ad669990513086baab37132b526faa748f03a99f",
+      "bytes": 7948,
+      "modifiedAt": "2026-11-15T23:09:56.6844625Z"
+    },
+    {
+      "path": "backend/modules/business/deploy/deploy_metrics.go",
+      "sha256": "70745280bdab9d6c19c4f8167f2f89e1846a3cf9ccbf5c22f62338c9555688f3",
+      "bytes": 295,
+      "modifiedAt": "2026-10-21T02:08:03.0000000Z"
+    },
+    {
+      "path": "backend/modules/business/deploy/deploy_model.go",
+      "sha256": "d67603ea143b97897e10533169c1e79a0779046df1885330e151ef11539e08e0",
+      "bytes": 24374,
+      "modifiedAt": "2026-11-17T12:46:05.3670235Z"
+    },
+    {
+      "path": "backend/modules/business/deploy/deploy_reliability_test.go",
+      "sha256": "5dc1066896bee97eca62c512fbd05d3e4544c8e468dd4bcae60ef8ea394a24c3",
+      "bytes": 14743,
+      "modifiedAt": "2026-11-15T23:09:56.6845339Z"
+    },
+    {
+      "path": "backend/modules/business/deploy/deploy_rollback.go",
+      "sha256": "ea34d00b4a67b2f125e479f135d7af63573c8eec316ad383af3e3aaf8596bfee",
+      "bytes": 9525,
+      "modifiedAt": "2026-11-15T23:09:56.6845339Z"
+    },
+    {
+      "path": "backend/modules/business/deploy/deploy_seed.go",
+      "sha256": "e2645f5f4faa6fee3e25ecd4e779c334a4bdab4f9ee1e657cd24c068978ff2df",
+      "bytes": 45084,
+      "modifiedAt": "2026-11-17T11:41:49.6444766Z"
+    },
+    {
+      "path": "backend/modules/business/deploy/deploy_seed_test.go",
+      "sha256": "1f865ee21c4d2ea98a7bbfa727e6d98857bd699543da674dc9bd0dfaa6318c8c",
+      "bytes": 5015,
+      "modifiedAt": "2026-10-21T02:08:03.0000000Z"
+    },
+    {
+      "path": "backend/modules/business/deploy/deploy_service.go",
+      "sha256": "6d23de28303ce416cae65088ba67db31abe0d5031a5bda27d0983ecb91a52800",
+      "bytes": 182566,
+      "modifiedAt": "2026-11-17T15:56:16.6913972Z"
+    },
+    {
+      "path": "backend/modules/business/deploy/deploy_service_test.go",
+      "sha256": "77ceee05d1ded83e84d943b758dab284c65d325e2a663520aea790f7cf5464c7",
+      "bytes": 156273,
+      "modifiedAt": "2026-11-17T13:49:07.8906870Z"
+    },
+    {
+      "path": "backend/modules/business/deploy/deploy_ssh_transport_test.go",
+      "sha256": "d8f9c5fb3b0d9a48ab99bc55dfc69cec7c0ee59f66502d9991a0c88409fa2a2f",
+      "bytes": 18808,
+      "modifiedAt": "2026-11-15T23:09:56.6845339Z"
+    },
+    {
+      "path": "backend/modules/business/deploy/deploy_template_service.go",
+      "sha256": "b530734655773f22d66e4e653e89bb10bedc21077d50e7f635e6becfef3235ce",
+      "bytes": 19267,
+      "modifiedAt": "2026-10-21T02:08:03.0000000Z"
+    },
+    {
+      "path": "backend/modules/business/deploy/executor/executor.go",
+      "sha256": "54da900e8ed41783a961cab745b0779bfc473e5e886db009de2993439f9052df",
+      "bytes": 3752,
+      "modifiedAt": "2026-10-30T06:38:25.9683014Z"
+    },
+    {
+      "path": "backend/modules/business/deploy/independent_o2_regression_test.go",
+      "sha256": "956bf999f115d68a20a709d132771a326d12cf03e76e99c49e0c58a42f0b0301",
+      "bytes": 4114,
+      "modifiedAt": "2026-11-17T12:26:09.9720760Z"
+    },
+    {
+      "path": "backend/modules/business/deploy/log_attempt_migration_test.go",
+      "sha256": "da6e67c00bf545e1a60b0a5b7fdc3fcba28f51993be18b511b53f54a50c3c0cb",
+      "bytes": 2392,
+      "modifiedAt": "2026-11-15T23:09:56.6845339Z"
+    },
+    {
+      "path": "backend/modules/business/deploy/log_download.go",
+      "sha256": "e5330e6f4e241ba81b4faf9220966a5842aa1230bc0424c69e085d9e91ef05d8",
+      "bytes": 6694,
+      "modifiedAt": "2026-11-16T02:36:00.4651406Z"
+    },
+    {
+      "path": "backend/modules/business/deploy/log_download_test.go",
+      "sha256": "1af7d796c52e45aef4d011c30b340c8794bf39a956547e45ed254e52ade6220f",
+      "bytes": 5542,
+      "modifiedAt": "2026-11-15T23:09:56.6845339Z"
+    },
+    {
+      "path": "backend/modules/business/deploy/log_sequence_test.go",
+      "sha256": "a01a8bf86a2e3dd4639b7c3dedec3dbba5099fb06e5d3a9d2f03ca784200080f",
+      "bytes": 5046,
+      "modifiedAt": "2026-11-15T23:09:56.6845339Z"
+    },
+    {
+      "path": "backend/modules/business/deploy/orchestrator/orchestrator.go",
+      "sha256": "05fc364a0e978eee7a83a9ce12b0dfce0639fac458e5173b2ddac042bc08c0fe",
+      "bytes": 11893,
+      "modifiedAt": "2026-10-30T06:38:25.9683014Z"
+    },
+    {
+      "path": "backend/modules/business/deploy/permission_route_actions_test.go",
+      "sha256": "3e96b0ff47f768f67ac254a5dfe0b6b46fa0fdd6866876383c432152f426c79a",
+      "bytes": 5731,
+      "modifiedAt": "2026-11-17T02:06:41.8462741Z"
+    },
+    {
+      "path": "backend/modules/business/deploy/permission_routes.go",
+      "sha256": "40a621fcd034715d5f2314050c52abb55c6dd36522b6d5e4c05725d03c99ad5f",
+      "bytes": 1701,
+      "modifiedAt": "2026-11-17T01:46:22.3799003Z"
+    },
+    {
+      "path": "backend/modules/business/deploy/read_scope.go",
+      "sha256": "7e03927b4f301131fba9674135ea3dc383e87715b41f12fa56c9a24c5284debc",
+      "bytes": 2355,
+      "modifiedAt": "2026-11-15T23:09:56.6845339Z"
+    },
+    {
+      "path": "backend/modules/business/deploy/read_scope_test.go",
+      "sha256": "2c11f916fd519e76354425472ce185894d24b17272810bc371c53ec06ab60055",
+      "bytes": 11182,
+      "modifiedAt": "2026-11-15T23:09:56.6845339Z"
+    },
+    {
+      "path": "backend/modules/business/deploy/resume_scope_revocation_test.go",
+      "sha256": "79851cc192136dff8d1fc13464d668a55c880c208a19c2464f2ad933717ca60b",
+      "bytes": 13986,
+      "modifiedAt": "2026-11-15T23:09:56.6845339Z"
+    },
+    {
+      "path": "backend/modules/business/deploy/service_link.go",
+      "sha256": "fd636428774a5cc7985c0906a3dff16bb212119490b9858b9baf740cef1b9e1f",
+      "bytes": 8005,
+      "modifiedAt": "2026-11-17T12:58:42.8153104Z"
+    },
+    {
+      "path": "backend/modules/business/deploy/service_link_admission_test.go",
+      "sha256": "aaa1b0ce9a07733a4729dd0c53dcc7a288b563bb3bf0bf9ad5f2e6c27289ba81",
+      "bytes": 19849,
+      "modifiedAt": "2026-11-17T12:39:55.9179666Z"
+    },
+    {
+      "path": "backend/modules/business/deploy/service_link_control_test.go",
+      "sha256": "44b8ffc5a1126a7a5aa8a7933e16c306d8ea6d400652391767f32462850f1725",
+      "bytes": 15522,
+      "modifiedAt": "2026-11-17T12:50:44.8074382Z"
+    },
+    {
+      "path": "backend/modules/business/deploy/service_link_http_test.go",
+      "sha256": "49e7be4c339845c4fdcce8dc5c8e4c661c68a809bf37e5e7b2c516e3fc690f85",
+      "bytes": 7165,
+      "modifiedAt": "2026-11-17T13:00:35.5136065Z"
+    },
+    {
+      "path": "backend/modules/business/deploy/service_reference.go",
+      "sha256": "73a12baa165b825cba9adcd0d539f3e3530c7a2b8e66e9c7246d735329f43b49",
+      "bytes": 1671,
+      "modifiedAt": "2026-11-17T11:44:57.4976406Z"
+    },
+    {
+      "path": "backend/modules/business/deploy/service_transaction_test.go",
+      "sha256": "29a955f6f3b45ddb9679c51bdcbd3ed0f326cad7641c8a6d1479e6492e97685b",
+      "bytes": 17575,
+      "modifiedAt": "2026-11-17T12:46:05.3686455Z"
+    },
+    {
+      "path": "backend/modules/business/deploy/step_history.go",
+      "sha256": "03fa2697607d42bf7fd1b0f323e03add2b2e9bb2d2ee6a93f3f3bd6a8f5986ca",
+      "bytes": 5028,
+      "modifiedAt": "2026-11-16T02:36:00.4661380Z"
+    },
+    {
+      "path": "backend/modules/business/deploy/step_history_test.go",
+      "sha256": "f8e995bb49f713bed20600252bc6ce946bb89f06c261e899c9df2fd288cf32f7",
+      "bytes": 12505,
+      "modifiedAt": "2026-11-16T02:36:00.4671370Z"
+    },
+    {
+      "path": "backend/modules/business/deploy/target_selection.go",
+      "sha256": "ce5041bacf74db0ddf0409f82ff9d0bc62310f1e116fdbae2378365a24f79b0f",
+      "bytes": 11774,
+      "modifiedAt": "2026-11-17T11:27:32.2284739Z"
+    },
+    {
+      "path": "backend/modules/business/deploy/task_command.go",
+      "sha256": "14a944a69e82a768b060a0882c170ab76c4dfbe5c4fb3cab9c4212363bc48f8a",
+      "bytes": 9860,
+      "modifiedAt": "2026-11-17T12:34:52.2541811Z"
+    },
+    {
+      "path": "backend/modules/business/deploy/task_command_test.go",
+      "sha256": "7e885249ea4c078af8d158c6be1adb36a52106f8731c0f2b9601036daab5ef8b",
+      "bytes": 12610,
+      "modifiedAt": "2026-11-15T23:09:56.6985448Z"
+    },
+    {
+      "path": "backend/modules/business/deploy/task_preview.go",
+      "sha256": "d796d69a1ccc39b82b00798d45f4e82c392ef483161f4c8b4a470e0a0c87bfb1",
+      "bytes": 11560,
+      "modifiedAt": "2026-11-16T02:36:00.4728751Z"
+    },
+    {
+      "path": "backend/modules/business/deploy/task_preview_plan.go",
+      "sha256": "dd23e11bcda926ae143c0932f25356dfa7be3d65bff8a5122470106b83732d5d",
+      "bytes": 5501,
+      "modifiedAt": "2026-11-16T02:36:00.4748759Z"
+    },
+    {
+      "path": "backend/modules/business/deploy/task_preview_test.go",
+      "sha256": "78288f6914f16b531db798a63534053385c5462e6b2efa341771088d7756a2d0",
+      "bytes": 21316,
+      "modifiedAt": "2026-11-15T23:09:56.6995537Z"
+    },
+    {
+      "path": "backend/modules/business/deploy/task_rollback_snapshot.go",
+      "sha256": "3d0a60fa0c9f388ab4faccd742bd443cc838bd8386fcce0475a14745a15deb87",
+      "bytes": 5019,
+      "modifiedAt": "2026-11-15T23:09:56.6995537Z"
+    },
+    {
+      "path": "backend/modules/business/deploy/task_rollback_snapshot_test.go",
+      "sha256": "df3c8671e98998777ba6aaf7dabcb3c0765258d78fed93a3f71ccc89d5942767",
+      "bytes": 8468,
+      "modifiedAt": "2026-11-15T23:09:56.6995537Z"
+    },
+    {
+      "path": "backend/modules/business/deploy/task_write_scope_test.go",
+      "sha256": "918dabfb3fbbc954072151c9c53f5d7b1343f334901e072a9bb25ccac3a9bdab",
+      "bytes": 3847,
+      "modifiedAt": "2026-11-17T04:51:03.4578879Z"
+    },
+    {
+      "path": "backend/modules/business/deploy/workbench_test.go",
+      "sha256": "38ac2ef1ec9ae8b8108faa69cce2189cee4ec6e062c1672b9f16aeee0aa7b77b",
+      "bytes": 11550,
+      "modifiedAt": "2026-11-15T23:09:56.6995537Z"
+    },
+    {
+      "path": "backend/modules/business/deploy/worker_handoff_test.go",
+      "sha256": "dee06ffc35063d6cc722ebdec63ffc52dd3fa2d08b8937168405049e0162faa6",
+      "bytes": 18219,
+      "modifiedAt": "2026-11-17T15:57:05.8306946Z"
+    }
+  ],
+  "proofFiles": [
+    {
+      "path": ".harness/evidence/2026-11-17-ops-history-audit/continuation-c01-owned-resume-final-settlement-fixed.log",
+      "sha256": "12970b598122625a10ba934e70ae698a25f4e044db3177ae5c07840d156916b8"
+    },
+    {
+      "path": ".harness/evidence/2026-11-17-ops-history-audit/continuation-c01-owned-resume-final-settlement-fixed.log.receipt.json",
+      "sha256": "03b6f05f60c517e7866dbcb1975b3f91b2970e57b51491dec559ebdc5488b7d9"
+    },
+    {
+      "path": ".harness/evidence/2026-11-17-ops-history-audit/continuation-c01-worker-final-settlement-red.log",
+      "sha256": "6c075899e563a6993c3548f20eb6457b581ef27e6aa8d398f9bb846f990526dc"
+    },
+    {
+      "path": ".harness/evidence/2026-11-17-ops-history-audit/continuation-c01-worker-final-settlement-red.log.receipt.json",
+      "sha256": "a8367ebae2ae214ef46287332959506dc34f1ac6588989066b58da8817e50221"
+    }
+  ]
+}

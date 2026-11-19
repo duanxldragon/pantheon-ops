@@ -68,7 +68,7 @@ type i18nSeed struct {
 
 func seedDeployMenus(db *gorm.DB) error {
 	return ensureDeployMenuSeeds(db, []deployMenuSeed{
-		{Key: "business-deploy", ParentKey: "", TitleKey: deployMenuTitleKey, Path: "/business/deploy", Type: "M", Module: deployModuleKey, Icon: "tool", RouteName: "deploy", Sort: 3},
+		{Key: "business-deploy", ParentKey: "", TitleKey: deployMenuTitleKey, Path: "/business/deploy", Type: "M", Module: deployModuleKey, Icon: "tool", RouteName: "deploy", Sort: 4},
 		{Key: "business-deploy-package", ParentKey: "deploy", TitleKey: deployPackageMenuTitleKey, Path: "/business/deploy/package", Component: "business/deploy/package/DeployPackageList", PagePerm: "business:deploy:package:view", Type: "C", Icon: "file", Module: deployModuleKey, RouteName: deployPackageListRoute, Sort: 1},
 		{Key: "business-deploy-template", ParentKey: "deploy", TitleKey: deployTemplateMenuTitleKey, Path: "/business/deploy/template", Component: "business/deploy/template/DeployTemplateList", PagePerm: "business:deploy:template:list", Type: "C", Icon: "book", Module: deployModuleKey, RouteName: deployTemplateListRoute, Sort: 2},
 		{Key: "operations-deploy-template-create", ParentKey: deployTemplateListRoute, TitleKey: deployTemplatePermCreateKey, Perms: "business:deploy:template:create", Type: "F", Module: deployModuleKey, Sort: 1},
@@ -209,6 +209,8 @@ func seedDeployI18n(db *gorm.DB) error {
 		return nil
 	}
 	entries := []i18nSeed{
+		{Module: deployModuleKey, Locale: "zh-CN", Group: "error", Key: errDeployServiceLinkInvalid, Value: "服务与实例必须有效、属于同一业务域并匹配实际部署主机"},
+		{Module: deployModuleKey, Locale: "en-US", Group: "error", Key: errDeployServiceLinkInvalid, Value: "Service and instance must be active, belong to the same business scope and match the deployment host"},
 		{Module: deployModuleKey, Locale: "en-US", Group: "page", Key: "business.deploy.task.commandConflict", Value: "The task changed. Refresh completed; review its current state before trying the action again."},
 		{Module: deployModuleKey, Locale: "en-US", Group: "page", Key: "business.deploy.task.commandVersionRequired", Value: "Refresh the task before performing this action."},
 		{Module: deployModuleKey, Locale: "en-US", Group: "page", Key: "business.deploy.task.commandPartialFailure", Value: "Some selected tasks could not be canceled. The list has refreshed; review the remaining selection before trying again."},

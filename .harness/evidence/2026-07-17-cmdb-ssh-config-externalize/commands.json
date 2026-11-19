@@ -1,0 +1,46 @@
+{
+  "taskId": "2026-07-17-cmdb-ssh-config-externalize",
+  "status": "in-progress",
+  "commands": [
+    {
+      "command": "go test ./modules/business/cmdb/host/ -run 'TestResolveCollectTimeout|TestResolveDefaultPort|TestEffectiveSSHPort|TestDifferentTenant|TestCollectDial' -count=1 -race",
+      "cwd": ".",
+      "status": "passed",
+      "notes": "Codex 验收复核：纯配置回归 PASS（codex-config-race.log: `ok github.com/duanxldragon/pantheon-base/backend/modules/business/cmdb/host 1.111s`）。该轮为溢出修复 / Create 落库 / 配置变更追加前之纯配置子集。"
+    },
+    {
+      "command": "go test ./modules/business/cmdb/host/ -count=1",
+      "cwd": ".",
+      "status": "not-run",
+      "notes": "追加 MaxInt64 溢出、巨大正数、读取错误、有效 override 边界、Create 持久化 default_port、配置变更生效等回归后，本会话无批准面，go 命令被环境拒绝无法复核；交由 Codex 在可编译环境（真实 MySQL 隔离，pkg/testmysql）统一复核后再判 passed。"
+    },
+    {
+      "command": "gofmt -l modules/business/cmdb/host/",
+      "cwd": ".",
+      "status": "not-run",
+      "notes": "本会话无批准面，命令被拒绝；源码已手工对齐 gofmt 风格，最终以 Codex gofmt 复核为准。"
+    },
+    {
+      "command": "go vet ./modules/business/cmdb/host/",
+      "cwd": ".",
+      "status": "not-run",
+      "notes": "本会话无批准面，命令被拒绝；交由 Codex 复核。"
+    },
+    {
+      "command": "go build ./modules/business/cmdb/...",
+      "cwd": ".",
+      "status": "not-run",
+      "notes": "本会话无批准面，命令被拒绝；交由 Codex 复核。"
+    },
+    {
+      "command": "go test -race -v ./modules/business/cmdb/host -run 'TestResolveCollect|TestResolveDefaultPort|TestEffectiveSSHPort|TestDifferentTenant|TestCollectDial|TestConfigChangeAffectsCollectReapplied|TestCreatePersistsConfiguredDefaultPort' -count=1",
+      "cwd": "backend",
+      "status": "passed",
+      "notes": "2026-11-17 Codex actual verification; Windows mingw PATH, CGO_ENABLED=1, required isolated MySQL; package ok 1.291s. ../2026-11-16-ops-navigation-repair/go-race-ssh-config-current.log. Stubs do not prove real tenant isolation; production reader/seed/live SSH remain open."
+    }
+  ],
+  "blockedReasons": [
+    "本会话无审批面，Bash/go 命令被自动拒绝；go 构建缓存 Access denied 的历史阻断记录保留，未将 not-run 写为 passed。",
+    "生产接线（opsinit 装配注入）与业务配置 seed 注册为 Base-first 缺口，需 pantheon-base 最小修复（§11.2 记录 canonical 落点）后随锁版接线，不在本仓本地绕过。"
+  ]
+}

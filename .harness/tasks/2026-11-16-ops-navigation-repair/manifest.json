@@ -1,0 +1,133 @@
+{
+  "taskId": "2026-11-16-ops-navigation-repair",
+  "title": "2026-11-16-ops-navigation-repair",
+  "goal": "Repair the entire business navigation of pantheon-ops: converge the duplicated/404 service-directory menu, make the in-page ServiceCatalog tabs actually drive the URL, reorder filedist & ArgoCD so all business menus form one stable continuous block before system governance, and remove the ArgoCD broadcast label collision with the K8s release child.",
+  "primaryLayer": "business/*",
+  "implementationOwner": "Claude (sole executor for this task; Codex dispatches/reproduces/independently accepts)",
+  "taskDoc": "docs/harness/tasks/2026-11-16-ops-navigation-repair.task.md",
+  "scope": {
+    "in": [
+      "converge legacy upgraded `/business/service` (id159, 404 dead route) with current `/business/service-catalog` (id1818) into one menu, preserving the OLD menu ID and all existing role-menu bindings (incl. tenant_id), idempotent over consecutive seeds, only touching module=business.service-owned rows",
+      "make ServiceCatalog in-page Tabs controlled by the URL and sync the URL back on tab change (onChange -> navigate) so submenu/tab clicks respond",
+      "reorder business menus via source seed Sort so ALL business entries (cmdb, bizscope, service, deploy, filedist, k8s, argocd, observability) form a stable continuous block before system settings/platform governance; filedist follows deploy, argocd sits adjacent to k8s/release",
+      "give ArgoCD a distinct label (not the K8s-release-colliding '应用发布') so the sidebar has no duplicate '应用发布' button and the ArgoCD entry is unambiguously clickable; final zh-CN label is 'ArgoCD 应用交付', en 'ArgoCD App Delivery'",
+      "fix the K8s workload page's bare business.k8s.workload.* keys by mirroring the full workload i18n set into the business zh-CN + en-US resources",
+      "align frontend registration (index.ts) and business-overlay frontendModules/businessOverlay.ts order with the backend seed Sort without extending the shared ModuleMenuMeta sort field",
+      "write migration regression (real upgraded-old-menu fixture: binding preservation incl. tenant_id, duplicate convergence, two consecutive seeds, ownership boundary) and meaningful Playwright navigation regression",
+      "record the full business menu order + service 3-page/404 fix with real desktop 1440x900 and mobile 390x844 screenshots and a per-leaf navigation matrix"
+    ],
+    "out": [
+      "touching backend/modules/business/cmdb/host/** (SSH fix already in progress elsewhere)",
+      "any lock upgrade, commit, push, PR, or release",
+      "wholesale deletion of menus or local-only SQL rewriting existing DB business data",
+      "weakening the RBAC permission tree (pagePerm count per C-node stays 1)",
+      "auto-closing the SSH, historical-workbench, or other C/E business packages",
+      "user Claude settings/credential files, browser profiles, or localStorage/cookies"
+    ]
+  },
+  "rootCause": [
+    "Service directory duplicate: the upgraded legacy tree carries id159 `/business/service` (top-level C leaf, pagePerm business:service:list, no registered page route -> 404) alongside the current id1818 `/business/service-catalog` (with children 1819/1820/1821). The service seed's findSeedMenuID only matches `/business/service-catalog`, so id159 is never merged and recurs on every start.",
+    "Service in-page tab click no response: ServiceCatalog uses `<Tabs defaultActiveTab={activeTab}>` (uncontrolled) and never calls navigate() on change, so a mounted page only reads the initial URL once; clicking a submenu/tab changes nothing.",
+    "Ordering: filedist (id1039 sort50) and argocd (id1409 sort60) sort after the system block (sorts 20-50), pushing them to the very bottom.",
+    "ArgoCD label collision: titleKey operations.cicd.argocd.menu renders '应用发布', identical to the K8s release child, so the sidebar has two '应用发布' buttons -> strict-mode click failure and ambiguity (confirmed by before-all all-business-clicks.json id134)."
+  ],
+  "contractAnchors": [
+    "../docs/WORKSPACE_INHERITANCE.md",
+    "AGENTS.md",
+    "docs/PROJECT_INHERITANCE.md",
+    "../pantheon-base/DESIGN.md",
+    "../pantheon-base/AGENTS.md",
+    "../pantheon-base/docs/README.md"
+  ],
+  "expectedFiles": {
+    "create": [
+      ".harness/tasks/2026-11-16-ops-navigation-repair/plan.md",
+      ".harness/evidence/2026-11-16-ops-navigation-repair/summary.md",
+      ".harness/evidence/2026-11-16-ops-navigation-repair/commands.json",
+      ".harness/evidence/2026-11-16-ops-navigation-repair/NAVIGATION_MATRIX.md",
+      "backend/modules/business/service/seed_migrate_test.go",
+      "frontend/tests/smoke/business/service/ServiceCatalog.nav.spec.ts"
+    ],
+    "modify": [
+      "backend/modules/business/service/seed.go",
+      "backend/modules/business/deploy/deploy_seed.go",
+      "backend/modules/business/k8s/k8s_seed.go",
+      "backend/modules/business/filedist/seed.go",
+      "backend/modules/business/cicd/seed.go",
+      "backend/modules/business/observability/seed.go",
+      "frontend/src/modules/business/service/ServiceCatalog.tsx",
+      "frontend/src/modules/business/index.ts",
+      "frontend/src/modules/businessOverlay.ts",
+      "frontend/src/i18n/resources/business/zh-CN.ts",
+      "frontend/src/i18n/resources/business/en-US.ts",
+      "frontend/tests/smoke/README.md",
+      "frontend/package.json",
+      "business-overlay.json"
+    ],
+    "doNotTouch": [
+      "backend/modules/business/cmdb/host/**"
+    ]
+  },
+  "harnessProfile": {
+    "template": "custom",
+    "overlay": "none",
+    "qualityProfile": "ui-runtime",
+    "portableFailureClass": "nav-no-response",
+    "ownerLayer": "business",
+    "coverageDimensions": [
+      "behaviour",
+      "maintainability",
+      "architecture-fitness"
+    ]
+  },
+  "executionRoles": {
+    "implementerPosture": "implementer",
+    "reviewerPosture": [
+      "architecture",
+      "mechanical",
+      "independent-acceptance"
+    ]
+  },
+  "verificationPlan": {
+    "commands": [
+      "go test -race ./backend/modules/business/service/... (cgo enabled, mingw64 in PATH)",
+      "npm run typecheck && lint && build (frontend)",
+      "menu-contract + business-overlay/boundary checks (check-business-overlay, check-shared-drift, check:docs-governance)",
+      "staged overlay rebuild via rebuild-from-base.mjs (must not overwrite working tree)",
+      "Codex: restart backend with fresh seed on the real upgraded DB, then Playwright nav regression + desktop/mobile screenshots"
+    ],
+    "runtimeEvidence": [
+      "service seed migration regression output",
+      "frontend typecheck/lint/build output",
+      "menu-contract/business-overlay gate output",
+      "Playwright navigation regression (sidebar parent + children, in-page tabs, deep-link refresh, forward/back, all business leaves rendered)",
+      "real rendered screenshots desktop 1440x900 and mobile 390x844"
+    ]
+  },
+  "runtimeSensitive": true,
+  "linkage": {
+    "evidenceDir": ".harness/evidence/2026-11-16-ops-navigation-repair/",
+    "reviewFile": ".harness/evidence/2026-11-16-ops-navigation-repair/review.md",
+    "summaryFile": ".harness/evidence/2026-11-16-ops-navigation-repair/summary.md",
+    "changeRef": "none",
+    "planRefs": [
+      ".harness/tasks/2026-11-16-ops-navigation-repair/plan.md"
+    ]
+  },
+  "evidenceRequired": [
+    "service seed migration regression output",
+    "frontend build/typecheck output",
+    "menu-contract + business-overlay gate output",
+    "Playwright navigation regression output",
+    "real rendered desktop + mobile screenshots"
+  ],
+  "completionChecklist": [
+    "duplicate service menu converged to one, old id + role bindings preserved, no recursion over two seeds",
+    "ServiceCatalog in-page tabs drive URL; deep-link/refresh/forward/back consistent",
+    "all business menus in one continuous block before system; filedist follows deploy, argocd near k8s/release",
+    "ArgoCD label distinct from K8s release (no duplicate '应用发布')",
+    "migration + navigation regression written and passing",
+    "full navigation matrix + desktop/mobile screenshots recorded",
+    "task left awaiting-review for Codex independent acceptance"
+  ]
+}

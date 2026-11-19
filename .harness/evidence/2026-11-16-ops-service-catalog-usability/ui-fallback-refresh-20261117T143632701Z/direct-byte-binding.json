@@ -1,0 +1,123 @@
+{
+  "checkedAt": "2026-11-17T14:37:16.877Z",
+  "canonicalCount": 24,
+  "generatedFallbackCount": 5,
+  "files": [
+    {
+      "path": "frontend/src/modules/business/bizscope/locales/en-US.json",
+      "byteEqual": true
+    },
+    {
+      "path": "frontend/src/modules/business/bizscope/locales/fr-FR.json",
+      "byteEqual": true
+    },
+    {
+      "path": "frontend/src/modules/business/bizscope/locales/ja-JP.json",
+      "byteEqual": true
+    },
+    {
+      "path": "frontend/src/modules/business/bizscope/locales/ko-KR.json",
+      "byteEqual": true
+    },
+    {
+      "path": "frontend/src/modules/business/bizscope/locales/zh-CN.json",
+      "byteEqual": true
+    },
+    {
+      "path": "frontend/src/modules/business/cmdb/locales/en-US.json",
+      "byteEqual": true
+    },
+    {
+      "path": "frontend/src/modules/business/cmdb/locales/zh-CN.json",
+      "byteEqual": true
+    },
+    {
+      "path": "frontend/src/modules/business/deploy/locales/en-US.json",
+      "byteEqual": true
+    },
+    {
+      "path": "frontend/src/modules/business/deploy/locales/fr-FR.json",
+      "byteEqual": true
+    },
+    {
+      "path": "frontend/src/modules/business/deploy/locales/ja-JP.json",
+      "byteEqual": true
+    },
+    {
+      "path": "frontend/src/modules/business/deploy/locales/ko-KR.json",
+      "byteEqual": true
+    },
+    {
+      "path": "frontend/src/modules/business/deploy/locales/zh-CN.json",
+      "byteEqual": true
+    },
+    {
+      "path": "frontend/src/modules/business/observability/locales/en-US.json",
+      "byteEqual": true
+    },
+    {
+      "path": "frontend/src/modules/business/observability/locales/fr-FR.json",
+      "byteEqual": true
+    },
+    {
+      "path": "frontend/src/modules/business/observability/locales/ja-JP.json",
+      "byteEqual": true
+    },
+    {
+      "path": "frontend/src/modules/business/observability/locales/ko-KR.json",
+      "byteEqual": true
+    },
+    {
+      "path": "frontend/src/modules/business/observability/locales/zh-CN.json",
+      "byteEqual": true
+    },
+    {
+      "path": "frontend/src/modules/business/shared/locales/en-US.json",
+      "byteEqual": true
+    },
+    {
+      "path": "frontend/src/modules/business/shared/locales/zh-CN.json",
+      "byteEqual": true
+    },
+    {
+      "path": "frontend/src/modules/business/v12locales/en-US.json",
+      "byteEqual": true
+    },
+    {
+      "path": "frontend/src/modules/business/v12locales/fr-FR.json",
+      "byteEqual": true
+    },
+    {
+      "path": "frontend/src/modules/business/v12locales/ja-JP.json",
+      "byteEqual": true
+    },
+    {
+      "path": "frontend/src/modules/business/v12locales/ko-KR.json",
+      "byteEqual": true
+    },
+    {
+      "path": "frontend/src/modules/business/v12locales/zh-CN.json",
+      "byteEqual": true
+    },
+    {
+      "path": "frontend/src/i18n/resources/business/zh-CN.ts",
+      "byteEqual": true
+    },
+    {
+      "path": "frontend/src/i18n/resources/business/en-US.ts",
+      "byteEqual": true
+    },
+    {
+      "path": "frontend/src/i18n/resources/business/ja-JP.ts",
+      "byteEqual": true
+    },
+    {
+      "path": "frontend/src/i18n/resources/business/ko-KR.ts",
+      "byteEqual": true
+    },
+    {
+      "path": "frontend/src/i18n/resources/business/fr-FR.ts",
+      "byteEqual": true
+    }
+  ]
+}

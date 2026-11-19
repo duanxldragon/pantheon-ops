@@ -8,6 +8,8 @@ Pantheon Ops 消费 Pantheon Base 的正式 foundation release，扩展运维业
 
 当前提交锁定 Base v0.18.9；业务审查基于升级前提交，候选版本验收须重新采证。前端采用 React、TypeScript、Arco Design、Vite；后端采用 Go、Gin、GORM，依赖 MySQL 和 Redis。
 
+Helm 专用接口只提供发布记录登记、查询和删除登记，不执行 Chart 安装、升级、回滚或卸载；这些执行能力当前延期且未开放。新建记录固定为 `registered`，请求中的运行状态不作为执行结果保存。所有响应的 `status` 和兼容字段 `effectiveStatus` 均为 `registered`，历史原始状态在 `storedStatus` 中保留，数据库历史行不改写；历史 `deployed` 值和 K8s 镜像 Release 均不能证明 Chart 已安装。删除登记也不会卸载集群资源。
+
 ## 当前计划
 
 - [试点交付计划](./.harness/tasks/2026-11-16-ops-pilot-delivery/plan.md)：6 个首期必交包、4 个条件扩展包，含依赖与可检验退出条件。

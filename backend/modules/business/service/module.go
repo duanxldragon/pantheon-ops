@@ -15,11 +15,15 @@ const (
 
 // InitServiceModule registers the service business module and returns its reader capability.
 func InitServiceModule(r *gin.RouterGroup, db *gorm.DB, deps Dependencies) Reader {
+	if err := registerServiceReadPermissionRoutes(); err != nil {
+		panic(err)
+	}
 	manager := NewManager(db, deps)
 	handler := NewHandler(manager)
 	contracts.RegisterBackendModules(r, db, contracts.FuncModule{
 		ModuleName:    serviceModuleKey,
 		MigrateFunc:   func(_ *gorm.DB) error { return manager.Migrate() },
+		BootstrapFunc: func(_ *gorm.DB) error { return manager.Migrate() },
 		SeedMenusFunc: seedMenus,
 		SeedI18nFunc:  seedI18n,
 		Register: func(r *gin.RouterGroup) {

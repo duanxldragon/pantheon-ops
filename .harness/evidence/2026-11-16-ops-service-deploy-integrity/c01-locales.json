@@ -1,0 +1,77 @@
+{
+  "at": "2026-11-17T11:41:20.342Z",
+  "keys": [
+    "business.deploy.task.serviceLinkInvalid",
+    "business.service.instance_in_use",
+    "business.service.deployment_reader_not_configured"
+  ],
+  "locales": [
+    "zh-CN",
+    "en-US",
+    "ja-JP",
+    "ko-KR",
+    "fr-FR"
+  ],
+  "originals": [
+    {
+      "file": "frontend/src/modules/business/v12locales/zh-CN.json",
+      "backup": ".harness/evidence/2026-11-16-ops-service-deploy-integrity/c01-locale-originals/frontend/src/modules/business/v12locales/zh-CN.json.raw",
+      "beforeSHA256": "95d3e4844da4e7e5fa7b1c131611f71dade00ead49ea151ff7329cc7a842a7c6",
+      "afterSHA256": "5333836d67aa7db45e9d1c2e6aaca88ca397487d5b0c24815d2a9518169777b8"
+    },
+    {
+      "file": "frontend/src/modules/business/v12locales/en-US.json",
+      "backup": ".harness/evidence/2026-11-16-ops-service-deploy-integrity/c01-locale-originals/frontend/src/modules/business/v12locales/en-US.json.raw",
+      "beforeSHA256": "9c251811a68437a7ac19e96831507423df5421cb0c0ab1308e5fe72bde8bbc66",
+      "afterSHA256": "2fd7e67b649d35867b8ab8ab6ce8e0550e5a2d0892db803e39c168f4bbb4dbfd"
+    },
+    {
+      "file": "frontend/src/modules/business/v12locales/ja-JP.json",
+      "backup": ".harness/evidence/2026-11-16-ops-service-deploy-integrity/c01-locale-originals/frontend/src/modules/business/v12locales/ja-JP.json.raw",
+      "beforeSHA256": "1da410be2bde943e5af7a0188732604a1439be0de6fb07b64d95970a4c0e0e2a",
+      "afterSHA256": "b562fbaf83c55d368cd57bdd94e6c0aa9e19e14ab5af848ada126f25b4355f29"
+    },
+    {
+      "file": "frontend/src/modules/business/v12locales/ko-KR.json",
+      "backup": ".harness/evidence/2026-11-16-ops-service-deploy-integrity/c01-locale-originals/frontend/src/modules/business/v12locales/ko-KR.json.raw",
+      "beforeSHA256": "90f4f62fa276714cb97dd4eeae0fe800a6760922ad30e93b23d512d2ad9c8cf1",
+      "afterSHA256": "84623aeac6857556e69b914d282c81af83f0e36d5c8ffd0756ee16a017273aae"
+    },
+    {
+      "file": "frontend/src/modules/business/v12locales/fr-FR.json",
+      "backup": ".harness/evidence/2026-11-16-ops-service-deploy-integrity/c01-locale-originals/frontend/src/modules/business/v12locales/fr-FR.json.raw",
+      "beforeSHA256": "77ccc760bd219cff7ed66964834684789469ce0aa4952ed133876bcc5316457c",
+      "afterSHA256": "b81c9838c4a8cd1c1533885b1c71faaa5414673ad9b26fdaff2fe4dea2a41363"
+    },
+    {
+      "file": "frontend/src/i18n/resources/business/zh-CN.ts",
+      "backup": ".harness/evidence/2026-11-16-ops-service-deploy-integrity/c01-locale-originals/frontend/src/i18n/resources/business/zh-CN.ts.raw",
+      "beforeSHA256": "ad46fdb17d12a5b18bd7671f1342f0fdc7617f4c25cba68eee53f631abe27a0a",
+      "afterSHA256": "ce8f1d718d9062614179d937ce91024fc9631a902734d4d123e5428d98ad5ceb"
+    },
+    {
+      "file": "frontend/src/i18n/resources/business/en-US.ts",
+      "backup": ".harness/evidence/2026-11-16-ops-service-deploy-integrity/c01-locale-originals/frontend/src/i18n/resources/business/en-US.ts.raw",
+      "beforeSHA256": "2ed3d064559e9365b802d465a6a4fe10f29c8467e7ff208843266fad3ab01dcc",
+      "afterSHA256": "9d5de7be3a0564d1964f373c99fb5de0e49f19b7bf0a7443bad6bd3aec0f5be6"
+    },
+    {
+      "file": "frontend/src/i18n/resources/business/ja-JP.ts",
+      "backup": ".harness/evidence/2026-11-16-ops-service-deploy-integrity/c01-locale-originals/frontend/src/i18n/resources/business/ja-JP.ts.raw",
+      "beforeSHA256": "7d5b1f235f0ec2f2cbf470b0d7a5c4661b772c5661756299919b6b73b355e8a3",
+      "afterSHA256": "0c3730ad3eff5ea2ddaa8c767b9a97d96c980d6359c7d49485904424f5253d70"
+    },
+    {
+      "file": "frontend/src/i18n/resources/business/ko-KR.ts",
+      "backup": ".harness/evidence/2026-11-16-ops-service-deploy-integrity/c01-locale-originals/frontend/src/i18n/resources/business/ko-KR.ts.raw",
+      "beforeSHA256": "7880865f683498611f0af9a569126f7012439284bc6fec0aa5518fb85c9e8041",
+      "afterSHA256": "46b2864bd9a8a46ce3e42e7ad26e102f1daf41f8591b6c40095d0ffe721c77a2"
+    },
+    {
+      "file": "frontend/src/i18n/resources/business/fr-FR.ts",
+      "backup": ".harness/evidence/2026-11-16-ops-service-deploy-integrity/c01-locale-originals/frontend/src/i18n/resources/business/fr-FR.ts.raw",
+      "beforeSHA256": "e7b291579802e8cf45d384c09b2d77c0ed62d605d4007d47fcc1ef97b6926970",
+      "afterSHA256": "262bbcf0c1b78c39e91bb4a5eca82294ab8f5c40f3358f9052febe355cad0fcb"
+    }
+  ]
+}

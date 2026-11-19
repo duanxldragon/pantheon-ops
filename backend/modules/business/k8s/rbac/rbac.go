@@ -5,6 +5,7 @@
 package rbac
 
 import (
+	"context"
 	"strings"
 
 	"github.com/duanxldragon/pantheon-base/backend/modules/business/k8s/cluster"
@@ -108,24 +109,34 @@ func (s *K8sRBACService) CheckHandlerPermission(c *gin.Context, clusterID uint64
 	}
 	// Platform-level permission is enforced by the Casbin middleware; here we
 	// only verify the namespace-scoped allow list.
-	allowed := s.namespaceAllows(clusterID, namespaceName, resourceType, action)
+	ctx := context.Background()
+	if c != nil && c.Request != nil {
+		ctx = c.Request.Context()
+	}
+	allowed := s.namespaceAllowsWithContext(ctx, clusterID, namespaceName, resourceType, action)
 	if allowed {
 		return true
 	}
 	// Fall back to the generic namespace write action when the resource type
 	// has no specific entry (configmap:create style lists use the type prefix).
-	return s.namespaceAllows(clusterID, namespaceName, resourceType, action)
+	return s.namespaceAllowsWithContext(ctx, clusterID, namespaceName, resourceType, action)
 }
 
 // namespaceAllows checks the namespace binding allow list for a resource:action
 // entry (e.g. "configmap:create"). Missing bindings deny.
 func (s *K8sRBACService) namespaceAllows(clusterID uint64, namespaceName, resourceType, action string) bool {
+	return s.namespaceAllowsWithContext(context.Background(), clusterID, namespaceName, resourceType, action)
+}
+
+// namespaceAllowsWithContext retains the caller's cancellation at admission.
+// SQL errors continue to deny through the existing boolean permission contract.
+func (s *K8sRBACService) namespaceAllowsWithContext(ctx context.Context, clusterID uint64, namespaceName, resourceType, action string) bool {
 	if s == nil || s.db == nil {
 		return true
 	}
 	key := strings.TrimSpace(resourceType) + ":" + strings.TrimSpace(action)
 	var count int64
-	err := s.db.Table("biz_k8s_namespace_binding").
+	err := s.db.WithContext(ctx).Table("biz_k8s_namespace_binding").
 		Where("cluster_id = ? AND namespace = ? AND allowed_actions LIKE ?", clusterID, namespaceName, "%"+key+"%").
 		Count(&count).Error
 	return err == nil && count > 0

@@ -1,0 +1,92 @@
+[
+  {
+    "key": "business.k8s.service.selectorUpdateHint",
+    "zh": "修改类型、端口和选择器；其他配置保持原样。若服务已变化，请关闭后刷新列表并重新编辑。",
+    "en": "Edit the type, ports and selector while keeping other settings. If the Service changes, close the editor, refresh the list and edit again."
+  },
+  {
+    "key": "business.k8s.service.requiredFields",
+    "zh": "请填写服务名称和命名空间。",
+    "en": "Enter the Service name and namespace."
+  },
+  {
+    "key": "business.k8s.service.selectorInvalid",
+    "zh": "选择器格式无效或键重复，请使用 key=value 并以逗号分隔。",
+    "en": "The selector is malformed or has duplicate keys. Use comma-separated key=value pairs."
+  },
+  {
+    "key": "business.k8s.service.portsInvalid",
+    "zh": "请检查端口范围、名称和目标端口；多个端口必须使用互不重复的名称。",
+    "en": "Check port ranges, names and target ports. Multiple ports must have unique names."
+  },
+  {
+    "key": "business.k8s.service.selectorPlaceholder",
+    "zh": "app=example, component=api",
+    "en": "app=example, component=api"
+  },
+  {
+    "key": "business.k8s.service.selectorHint",
+    "zh": "使用逗号分隔 key=value；留空表示不使用选择器。",
+    "en": "Separate key=value pairs with commas. Leave blank for a selectorless Service."
+  },
+  {
+    "key": "business.k8s.service.portsHint",
+    "zh": "目标端口可填写数字或容器端口名称，留空则使用服务端口。多个端口必须命名；节点端口留空可由集群分配。",
+    "en": "Target ports accept numbers or container port names; blank uses the Service port. Name each port when using multiple ports. Leave node ports blank for cluster allocation."
+  },
+  {
+    "key": "business.k8s.service.portNumber",
+    "zh": "端口 {{number}}",
+    "en": "Port {{number}}"
+  },
+  {
+    "key": "business.k8s.service.removePortNumber",
+    "zh": "移除端口 {{number}}",
+    "en": "Remove port {{number}}"
+  },
+  {
+    "key": "business.k8s.service.removePort",
+    "zh": "移除端口",
+    "en": "Remove port"
+  },
+  {
+    "key": "business.k8s.service.addPort",
+    "zh": "添加端口",
+    "en": "Add port"
+  },
+  {
+    "key": "business.k8s.service.field.portName",
+    "zh": "端口名称",
+    "en": "Port name"
+  },
+  {
+    "key": "business.k8s.service.field.nodePort",
+    "zh": "节点端口",
+    "en": "Node port"
+  },
+  {
+    "key": "k8s.service.resource_version_conflict",
+    "zh": "服务已变化，请刷新列表并重新核对后操作。",
+    "en": "The Service has changed. Refresh the list and review it before trying again."
+  },
+  {
+    "key": "k8s.service.resource_version_required",
+    "zh": "服务标识或资源版本不完整，请刷新列表后重试。",
+    "en": "The Service identity or resource version is incomplete. Refresh the list and try again."
+  },
+  {
+    "key": "k8s.service.update_failed",
+    "zh": "Kubernetes Service 更新失败",
+    "en": "Failed to update the Kubernetes Service"
+  },
+  {
+    "key": "k8s.service.audit.update",
+    "zh": "更新 Kubernetes Service",
+    "en": "Update Kubernetes Service"
+  },
+  {
+    "key": "k8s.namespace.binding_invalid",
+    "zh": "命名空间绑定与集群的业务域或环境不匹配。",
+    "en": "The namespace binding does not match the cluster business scope or environment."
+  }
+]

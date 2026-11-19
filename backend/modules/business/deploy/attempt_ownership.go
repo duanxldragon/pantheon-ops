@@ -2,7 +2,6 @@ package deploy
 
 import (
 	"context"
-	"database/sql"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -11,6 +10,7 @@ import (
 	"time"
 
 	"github.com/duanxldragon/pantheon-base/backend/modules/business/cmdb"
+	biztx "github.com/duanxldragon/pantheon-base/backend/modules/business/shared/transaction"
 	"gorm.io/datatypes"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -142,42 +142,6 @@ func (o *executionOwnership) confirm(start time.Time, remaining time.Duration, t
 
 type deploymentTxKey struct{}
 
-// Cancel at the first commit error, before GORM's deferred rollback can wait.
-type ownershipTransactionPool struct {
-	gorm.ConnPool
-	commit    gorm.TxCommitter
-	ownership *executionOwnership
-	ctx       context.Context
-}
-
-func (p *ownershipTransactionPool) Commit() error {
-	if err := p.ownership.check(); err != nil {
-		return err
-	}
-	err := p.commit.Commit()
-	if err == nil {
-		err = p.ctx.Err()
-	}
-	p.ownership.fail(err)
-	return err
-}
-func (p *ownershipTransactionPool) Rollback() error { return p.commit.Rollback() }
-func (p *ownershipTransactionPool) ExecContext(ctx context.Context, query string, args ...any) (sql.Result, error) {
-	result, err := p.ConnPool.ExecContext(ctx, query, args...)
-	p.ownership.fail(err)
-	return result, err
-}
-func (p *ownershipTransactionPool) QueryContext(ctx context.Context, query string, args ...any) (*sql.Rows, error) {
-	rows, err := p.ConnPool.QueryContext(ctx, query, args...)
-	p.ownership.fail(err)
-	return rows, err
-}
-func (p *ownershipTransactionPool) QueryRowContext(ctx context.Context, query string, args ...any) *sql.Row {
-	row := p.ConnPool.QueryRowContext(ctx, query, args...)
-	p.ownership.fail(row.Err())
-	return row
-}
-
 var errExecutionInterrupted = errors.New("deploy execution interrupted")
 
 // Projection isolation is set at the OUTERMOST BEGIN, before any read.
@@ -211,26 +175,23 @@ func (s *DeployService) deploymentTransaction(write func(*gorm.DB) error) error 
 	} else {
 		defer cancel()
 	}
-	db := s.db.WithContext(ctx)
+	db := s.db.WithContext(biztx.WithReadCommittedContext(ctx, s.db))
 	if _, nested := db.Statement.ConnPool.(gorm.TxCommitter); nested {
-		if ctx.Value(deploymentTxKey{}) != true {
+		if !biztx.IsReadCommittedTransaction(db) {
 			return errors.New("deploy.projection.transactionIsolationUnknown")
 		}
-		err := db.Transaction(write)
+		err := biztx.ReadCommittedTransaction(ctx, db, write, nil)
 		if s.ownership != nil && !errors.Is(err, errExecutionInterrupted) {
 			s.ownership.fail(err)
 		}
 		return err
 	}
 	ctx = context.WithValue(ctx, deploymentTxKey{}, true)
-	err := db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
-		if s.ownership != nil {
-			committer, ok := tx.Statement.ConnPool.(gorm.TxCommitter)
-			if !ok {
-				return errors.New("deploy.ownership.transactionMissing")
-			}
-			tx.Statement.ConnPool = &ownershipTransactionPool{ConnPool: tx.Statement.ConnPool, commit: committer, ownership: s.ownership, ctx: ctx}
-		}
+	var hooks *biztx.ReadCommittedTransactionHooks
+	if s.ownership != nil {
+		hooks = &biztx.ReadCommittedTransactionHooks{BeforeCommit: s.ownership.check, OnError: s.ownership.fail}
+	}
+	err := biztx.ReadCommittedTransaction(ctx, db, func(tx *gorm.DB) error {
 		if s.ownership != nil {
 			if err := s.ownership.check(); err != nil {
 				return err
@@ -249,7 +210,7 @@ func (s *DeployService) deploymentTransaction(write func(*gorm.DB) error) error 
 			return s.ownership.check()
 		}
 		return nil
-	}, &sql.TxOptions{Isolation: sql.LevelReadCommitted})
+	}, hooks)
 	// A driver may return a success after a canceled request. It cannot restore
 	// local execution ownership, even if the DB outcome was ambiguous.
 	if err == nil {
@@ -288,7 +249,8 @@ func lockDeployment(tx *gorm.DB, taskID uint64, reserve ...bool) (lockedDeployme
 	}
 	sort.Slice(ids, func(i, j int) bool { return ids[i] < ids[j] })
 	for _, id := range ids {
-		if len(reserve) > 0 && reserve[0] {
+		// A terminal replay must not recreate a released physical lease row.
+		if len(reserve) > 0 && reserve[0] && !isTerminalTaskStatus(state.task.Status) {
 			now, err := databaseNow(tx)
 			if err != nil {
 				return state, err
@@ -410,6 +372,8 @@ func (s *DeployService) ownedService(o *executionOwnership) *DeployService {
 	inner.hostReader = s.hostReader
 	inner.serviceState = s.serviceState
 	inner.serviceStateTransaction = s.serviceStateTransaction
+	inner.serviceReader = s.serviceReader
+	inner.serviceReaderTransaction = s.serviceReaderTransaction
 	inner.sshRunnerFactory = s.sshRunnerFactory
 	if _, ssh := s.executor.(*sshDeployExecutor); !ssh {
 		inner.executor = s.executor
@@ -577,7 +541,8 @@ func appendTaskEventTx(tx *gorm.DB, event taskEventInput) error {
 }
 
 func (s *DeployService) runOwnedHost(parent context.Context, task DeployTask, host DeployTaskHost, req StartTaskRequest, actor, worker string, retry bool) (bool, error) {
-	a, err := s.claimOwnedAttempt(task.ID, host.ID, worker)
+	// A canceled worker must stop its claim even while waiting for a task lock.
+	a, err := s.targetRequestService(parent).claimOwnedAttempt(task.ID, host.ID, worker)
 	if err != nil {
 		return false, err
 	}
@@ -650,7 +615,7 @@ func (s *DeployService) commitHostResult(tx *gorm.DB, host DeployTaskHost, task 
 	return s.writebackMarkedHostResult(host, task, req, actor, summary, now)
 }
 
-func recomputeTaskStatusTx(tx *gorm.DB, task DeployTask, actor string) error {
+func (s *DeployService) recomputeTaskStatusTx(tx *gorm.DB, task DeployTask, actor string, result ...MarkHostResultRequest) error {
 	var hosts []DeployTaskHost
 	if err := tx.Where("task_id = ?", task.ID).Order("id ASC").Find(&hosts).Error; err != nil {
 		return err
@@ -696,6 +661,25 @@ func recomputeTaskStatusTx(tx *gorm.DB, task DeployTask, actor string) error {
 	if err := tx.Model(&DeployTask{}).Where("id = ?", task.ID).Updates(updates).Error; err != nil {
 		return err
 	}
+	if isTerminalTaskStatus(status) && (task.ServiceID != 0 || task.ServiceInstanceID != 0) {
+		ids := make([]uint64, 0, len(hosts))
+		for _, host := range hosts {
+			ids = append(ids, host.HostID)
+		}
+		provider, err := s.boundCMDB(tx, ids)
+		if err != nil {
+			return err
+		}
+		completed := task
+		completed.Status = status
+		var report MarkHostResultRequest
+		if len(result) > 0 {
+			report = result[0]
+		}
+		if err := s.targetTransactionService(tx, provider).finishServiceInstanceState(completed, report, actor, nil); err != nil {
+			return err
+		}
+	}
 	eventType := "task.completed"
 	if status == TaskStatusPaused {
 		eventType = "task.paused"
@@ -718,6 +702,9 @@ func (s *DeployService) claimOwnedAttempt(taskID, hostID uint64, worker string) 
 		}
 		if state.task.Status != TaskStatusRunning {
 			return errors.New("business.deploy.attempt.active")
+		}
+		if err := validateRetireRemoteIntent(state.task); err != nil {
+			return err
 		}
 		var host DeployTaskHost
 		for _, h := range state.hosts {
@@ -874,7 +861,11 @@ func (s *DeployService) completeOwnedAttempt(status string, runErr error, actor 
 			} else if err := releaseHostLease(tx, o.physicalHostID, o.taskLeaseOwner); err != nil {
 				return err
 			}
-			if err := recomputeTaskStatusTx(tx, state.task, actor); err != nil {
+			var report MarkHostResultRequest
+			if result != nil {
+				report = *result
+			}
+			if err := s.recomputeTaskStatusTx(tx, state.task, actor, report); err != nil {
 				return err
 			}
 			var finalTask DeployTask
@@ -886,11 +877,6 @@ func (s *DeployService) completeOwnedAttempt(status string, runErr error, actor 
 			if result != nil {
 				finishedHost = host
 				finishedHost.Status = result.Status
-			}
-			if isTerminalTaskStatus(finalTask.Status) && result != nil {
-				if err := s.targetTransactionService(tx, s.cmdbCapability).finishServiceInstanceState(finalTask, *result, actor, nil); err != nil {
-					return err
-				}
 			}
 			return nil
 		})
@@ -985,7 +971,7 @@ func (s *DeployService) reconcileOwnership() (int64, error) {
 					}
 				}
 			}
-			return recomputeTaskStatusTx(tx, state.task, "system")
+			return s.recomputeTaskStatusTx(tx, state.task, "system")
 		})
 		if err != nil {
 			return total, err

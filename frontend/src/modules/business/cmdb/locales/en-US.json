@@ -205,5 +205,10 @@
   "business.cmdb.collect.hint": "Credentials are used only for this collection and will not be stored on the server.",
   "business.cmdb.collect.start": "Start Collection",
   "business.cmdb.component.name": "Component Name",
-  "business.cmdb.component.version": "Version"
+  "business.cmdb.component.version": "Version",
+  "business.cmdb.host.matchedGroups": "Matched Groups",
+  "business.cmdb.host.matchedGroupsHint": "Number of groups this host matches via its label conditions.",
+  "business.cmdb.host.matchedGroupsEmpty": "No matched groups",
+  "business.cmdb.selection.invalid": "Target selection is invalid or exceeds its budget",
+  "business.cmdb.selection.conflict": "Targets or scope changed; resolve again"
 }

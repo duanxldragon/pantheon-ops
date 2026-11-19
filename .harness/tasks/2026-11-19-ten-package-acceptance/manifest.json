@@ -1,0 +1,25 @@
+{
+  "taskId": "2026-11-19-ten-package-acceptance",
+  "title": "Accept ten business packages and resolve historical governance failures",
+  "goal": "Meet original business acceptance criteria with real provider/role/UI/installation evidence and green historical governance gates.",
+  "status": "in-progress",
+  "deliveryTier": "L2",
+  "primaryLayer": "business/*",
+  "parentTask": "2026-11-16-ops-pilot-delivery",
+  "scope": {
+    "in": ["C01-C06/E01-E04 original 32 acceptance criteria", "Historical task/evidence/review/link remediation", "Source-bound real provider/role/browser/package verification"],
+    "out": ["Production writes", "Waivers or fabricated approvals", "Unrelated user edits", "Hand-copying Base shared implementations"]
+  },
+  "linkage": {
+    "taskManifest": ".harness/tasks/2026-11-19-ten-package-acceptance/manifest.json",
+    "evidenceDir": ".harness/evidence/2026-11-19-ten-package-acceptance/",
+    "reviewFile": ".harness/evidence/2026-11-19-ten-package-acceptance/review.md",
+    "changeRef": "none",
+    "planRefs": [".harness/tasks/2026-11-19-ten-package-acceptance/plan.md"]
+  },
+  "verificationPlan": {
+    "commands": ["Per-package actual acceptance scenarios", "Full required-MySQL/Redis Windows CGO race", "Frontend lint/type-check/build and live business smoke", "Official overlay rebuild/drift", "Strict task/evidence/review/link gates and original archive hashes"]
+  },
+  "humanGates": ["Final maintainer visual/functional acceptance", "Unapproved publication, production or external-risk acceptance"],
+  "executionRoles": {"coordinator": "Current agent", "implementation": "Explicitly owned executor lanes", "review": "Independent code-reviewer and architect"}
+}

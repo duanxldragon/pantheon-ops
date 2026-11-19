@@ -5,7 +5,7 @@ layer: business/deploy
 status: Active
 linked_contracts:
   - docs/PROJECT_INHERITANCE.md
-updated_at: 2026-08-24
+updated_at: 2026-11-17
 ---
 
 # 安装部署业务模块设计
@@ -177,17 +177,17 @@ Deploy 允许消费的最小能力面建议固定为：
 
 #### 5.5.1 概念映射（Ansible 价值 ↔ pantheon-ops 对应）
 
-| Ansible 概念             | pantheon-ops 对应                                             | 状态 |
-| :----------------------- | :------------------------------------------------------------ | :--- |
-| Playbook                 | `DeployTemplate`（`execution_mode=orchestrated`，组件编排图）   | 已有 |
-| Inventory（hosts/groups）| CMDB 主机 + 标签动态分组 + 业务域                               | 已有 |
-| Task                     | `DeployTemplateStep`（引用组件类型 + 参数）                    | 已有 |
-| Module                   | `ComponentProvider`（幂等组件 provider）                       | V1 补 |
-| Variable                 | 受控 `{{ var }}` 字面替换（白名单参数 + CMDB 快照）             | V1 补 |
-| Condition（when）        | typed condition 枚举 + 新增 `on_changed`                       | 半有 |
-| Changed/Ok（幂等）       | `StepResult.Changed` + 组件 healthcheck                         | V1 补 |
-| Handler/notify           | 用 `on_changed` 条件 + DAG 依赖替代（不引入 handler 对象）       | 替代 |
-| 任意自动化逃生舱         | `script` 步骤（裸 shell，可跑 `ansible-playbook`）              | 已有 |
+| Ansible 概念              | pantheon-ops 对应                                             | 状态  |
+| :------------------------ | :------------------------------------------------------------ | :---- |
+| Playbook                  | `DeployTemplate`（`execution_mode=orchestrated`，组件编排图） | 已有  |
+| Inventory（hosts/groups） | CMDB 主机 + 标签动态分组 + 业务域                             | 已有  |
+| Task                      | `DeployTemplateStep`（引用组件类型 + 参数）                   | 已有  |
+| Module                    | `ComponentProvider`（幂等组件 provider）                      | V1 补 |
+| Variable                  | 受控 `{{ var }}` 字面替换（白名单参数 + CMDB 快照）           | V1 补 |
+| Condition（when）         | typed condition 枚举 + 新增 `on_changed`                      | 半有  |
+| Changed/Ok（幂等）        | `StepResult.Changed` + 组件 healthcheck                       | V1 补 |
+| Handler/notify            | 用 `on_changed` 条件 + DAG 依赖替代（不引入 handler 对象）    | 替代  |
+| 任意自动化逃生舱          | `script` 步骤（裸 shell，可跑 `ansible-playbook`）            | 已有  |
 
 **明确不在 V1**：loops、tags、blocks/rescue/always、roles、register、通用模板引擎（text/template / Jinja2）——这些是 Ansible 的重量，不是安装部署的刚需。
 
@@ -206,18 +206,18 @@ Deploy 允许消费的最小能力面建议固定为：
 
 #### 5.5.4 幂等组件 provider（ComponentProvider）
 
-| 组件类型     | 用途                                    | 幂等判定（healthcheck）        |
-| :----------- | :-------------------------------------- | :----------------------------- |
-| `nginx`      | Nginx 源码安装 / systemd 服务           | 服务 active + 端口 / 版本探测   |
-| `redis`      | Redis 安装 / 配置（requirepass + 绑定） | `AUTH` 后 PONG + 端口探测       |
-| `jdk`        | JDK 安装 / 环境变量 / `java -version`    | 版本探测 + `JAVA_HOME` 存在     |
-| `mysql`      | MySQL 离线初始化 / root 密码            | 连接探测 + 数据目录存在         |
-| `minio`      | MinIO 单机 / API 端口                   | 端口探测 + 进程存在             |
-| `harbor`     | Harbor 离线部署                         | 服务 active + 健康端点          |
-| `prometheus` | Prometheus 安装 / systemd               | 端口探测 + `/metrics` 可达      |
-| `script`     | 任意自动化逃生舱（裸 shell，可 ansible）| 由脚本退出码 / 用户声明         |
-| `file`       | 文件 / 配置上传（SFTP mode 0600）        | 目标文件内容比对                |
-| `service`    | systemd 服务控制（enable/start/stop）    | 服务状态探测                    |
+| 组件类型     | 用途                                     | 幂等判定（healthcheck）       |
+| :----------- | :--------------------------------------- | :---------------------------- |
+| `nginx`      | Nginx 源码安装 / systemd 服务            | 服务 active + 端口 / 版本探测 |
+| `redis`      | Redis 安装 / 配置（requirepass + 绑定）  | `AUTH` 后 PONG + 端口探测     |
+| `jdk`        | JDK 安装 / 环境变量 / `java -version`    | 版本探测 + `JAVA_HOME` 存在   |
+| `mysql`      | MySQL 离线初始化 / root 密码             | 连接探测 + 数据目录存在       |
+| `minio`      | MinIO 单机 / API 端口                    | 端口探测 + 进程存在           |
+| `harbor`     | Harbor 离线部署                          | 服务 active + 健康端点        |
+| `prometheus` | Prometheus 安装 / systemd                | 端口探测 + `/metrics` 可达    |
+| `script`     | 任意自动化逃生舱（裸 shell，可 ansible） | 由脚本退出码 / 用户声明       |
+| `file`       | 文件 / 配置上传（SFTP mode 0600）        | 目标文件内容比对              |
+| `service`    | systemd 服务控制（enable/start/stop）    | 服务状态探测                  |
 
 - 每个组件 provider 实现统一契约：`Resolve` 产出幂等的 install / uninstall 计划，`HealthCheck` 判定 `changed/ok`。
 - 组件不得持久化 secret；日志经 `LogSink` 脱敏。
@@ -383,31 +383,31 @@ Deploy 允许消费的最小能力面建议固定为：
 
 ### 7.2 接口清单
 
-| 接口                     | 方法   | 说明                                                                                            | 权限                                                                                                                                                 |
-| :----------------------- | :----- | :---------------------------------------------------------------------------------------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `/packages`              | GET    | 软件组件列表                                                                                    | `business:deploy:package:list`                                                                                                                       |
-| `/packages/:id`          | GET    | 软件组件详情                                                                                    | 权限映射缺口：路由已实现，但 `business:deploy:package:list` 当前只映射 `GET /packages`，未覆盖本路由；见任务卡 `2026-07-17-business-permission-gaps` |
-| `/packages`              | POST   | 新建软件组件                                                                                    | `business:deploy:package:create`                                                                                                                     |
-| `/packages/:id`          | PUT    | 编辑软件组件                                                                                    | `business:deploy:package:update`                                                                                                                     |
-| `/packages/:id`          | DELETE | 删除软件组件                                                                                    | `business:deploy:package:delete`                                                                                                                     |
-| `/templates`             | GET    | 任务模板列表                                                                                    | `business:deploy:template:list`                                                                                                                      |
-| `/templates`             | POST   | 新建任务模板                                                                                    | `business:deploy:template:create`                                                                                                                    |
-| `/templates/:id`         | GET    | 任务模板详情                                                                                    | `business:deploy:template:list`                                                                                                                      |
-| `/templates/:id`         | PUT    | 编辑任务模板                                                                                    | `business:deploy:template:update`                                                                                                                    |
-| `/templates/:id`         | DELETE | 删除任务模板                                                                                    | `business:deploy:template:delete`                                                                                                                    |
-| `/tasks`                 | GET    | 部署任务列表                                                                                    | `business:deploy:task:list`                                                                                                                          |
-| `/tasks`                 | POST   | 创建部署任务                                                                                    | `business:deploy:task:create`                                                                                                                        |
-| `/tasks/:id`             | GET    | 任务详情                                                                                        | `business:deploy:task:detail`                                                                                                                        |
-| `/tasks/:id`             | PUT    | 编辑未启动任务                                                                                  | `business:deploy:task:update`                                                                                                                        |
-| `/tasks/:id`             | DELETE | 删除未启动任务（`draft / pending`，同步清理 task-host 明细）                                    | `business:deploy:task:delete`                                                                                                                        |
-| `/tasks/:id/start`       | POST   | 启动任务                                                                                        | `business:deploy:task:start`                                                                                                                         |
-| `/tasks/:id/pause`       | POST   | 请求暂停；当前步骤返回后进入 paused                                                             | `business:deploy:task:pause`                                                                                                                         |
-| `/tasks/:id/resume`      | POST   | 从 checkpoint 恢复调度                                                                          | `business:deploy:task:resume`                                                                                                                        |
-| `/tasks/:id/cancel`      | POST   | 取消任务                                                                                        | `business:deploy:task:cancel`                                                                                                                        |
-| `/tasks/:id/retry`       | POST   | 按 failed_step/failed_host 创建新 attempt                                                       | `business:deploy:task:retry`                                                                                                                         |
-| `/tasks/:id/events`      | GET    | 认证 SSE；支持 after sequence 重连                                                              | `business:deploy:task:detail`                                                                                                                        |
-| `/task-hosts/:id/result` | POST   | 标记主机执行结果                                                                                | `business:deploy:task:mark-result`                                                                                                                   |
-| `/task-hosts/:id/report` | POST   | Agent 结果回写预留；当前与 `/result` 绑定同一 handler，“人工标记 vs 执行器上报”来源区分尚未实现 | Agent 阶段待办，第一版不挂菜单                                                                                                                       |
+| 接口                     | 方法   | 说明                                                                                            | 权限                                                                                                                                                                                                           |
+| :----------------------- | :----- | :---------------------------------------------------------------------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `/packages`              | GET    | 软件组件列表                                                                                    | `business:deploy:package:view`                                                                                                                                                                                 |
+| `/packages/:id`          | GET    | 软件组件详情                                                                                    | 受限角色详情授权仍开放：当前 `business:deploy:package:view` 只绑定列表；直接绑定 `/:id` 会让 Base 的 `keyMatch2` 同时放行 `/packages/export`，需 Base 修复并正式消费；见 `2026-07-17-business-permission-gaps` |
+| `/packages`              | POST   | 新建软件组件                                                                                    | `business:deploy:package:create`                                                                                                                                                                               |
+| `/packages/:id`          | PUT    | 编辑软件组件                                                                                    | `business:deploy:package:update`                                                                                                                                                                               |
+| `/packages/:id`          | DELETE | 删除软件组件                                                                                    | `business:deploy:package:delete`                                                                                                                                                                               |
+| `/templates`             | GET    | 任务模板列表                                                                                    | `business:deploy:template:list`                                                                                                                                                                                |
+| `/templates`             | POST   | 新建任务模板                                                                                    | `business:deploy:template:create`                                                                                                                                                                              |
+| `/templates/:id`         | GET    | 任务模板详情                                                                                    | `business:deploy:template:list`                                                                                                                                                                                |
+| `/templates/:id`         | PUT    | 编辑任务模板                                                                                    | `business:deploy:template:update`                                                                                                                                                                              |
+| `/templates/:id`         | DELETE | 删除任务模板                                                                                    | `business:deploy:template:delete`                                                                                                                                                                              |
+| `/tasks`                 | GET    | 部署任务列表                                                                                    | `business:deploy:task:list`                                                                                                                                                                                    |
+| `/tasks`                 | POST   | 创建部署任务                                                                                    | `business:deploy:task:create`                                                                                                                                                                                  |
+| `/tasks/:id`             | GET    | 任务详情                                                                                        | `business:deploy:task:detail`                                                                                                                                                                                  |
+| `/tasks/:id`             | PUT    | 编辑未启动任务                                                                                  | `business:deploy:task:update`                                                                                                                                                                                  |
+| `/tasks/:id`             | DELETE | 删除未启动任务（`draft / pending`，同步清理 task-host 明细）                                    | `business:deploy:task:delete`                                                                                                                                                                                  |
+| `/tasks/:id/start`       | POST   | 启动任务                                                                                        | `business:deploy:task:start`                                                                                                                                                                                   |
+| `/tasks/:id/pause`       | POST   | 请求暂停；当前步骤返回后进入 paused                                                             | `business:deploy:task:pause`                                                                                                                                                                                   |
+| `/tasks/:id/resume`      | POST   | 从 checkpoint 恢复调度                                                                          | `business:deploy:task:resume`                                                                                                                                                                                  |
+| `/tasks/:id/cancel`      | POST   | 取消任务                                                                                        | `business:deploy:task:cancel`                                                                                                                                                                                  |
+| `/tasks/:id/retry`       | POST   | 按 failed_step/failed_host 创建新 attempt                                                       | `business:deploy:task:retry`                                                                                                                                                                                   |
+| `/tasks/:id/events`      | GET    | 认证 SSE；支持 after sequence 重连                                                              | `business:deploy:task:detail`                                                                                                                                                                                  |
+| `/task-hosts/:id/result` | POST   | 标记主机执行结果                                                                                | `business:deploy:task:mark-result`                                                                                                                                                                             |
+| `/task-hosts/:id/report` | POST   | Agent 结果回写预留；当前与 `/result` 绑定同一 handler，“人工标记 vs 执行器上报”来源区分尚未实现 | Agent 阶段待办，第一版不挂菜单                                                                                                                                                                                 |
 
 ### 7.3 请求 / 响应要点
 
@@ -697,9 +697,9 @@ Deploy 允许消费的最小能力面建议固定为：
 
 模板权限现状：
 
-- `business:deploy:template:list/create/update/delete` 四项均已在 `backend/pkg/contracts/permission_policies.go` 定义 API 路由映射
-- `deploy_seed.go` 当前只 seed 模板列表 C 菜单（`PagePerm=business:deploy:template:list`）
-- `create/update/delete` 三项 F 按钮 seed 缺失，不能写成已完成的角色授权事实；缺口见任务卡 `2026-07-17-business-permission-gaps`
+- `business:deploy:template:list/create/update/delete` 四项 key 已随菜单 seed；旧 `backend/pkg/contracts/permission_policies.go` 已不存在，当前 `deploy/permission_routes.go` 尚未注册模板 API 绑定，受限角色授权保持开放
+- `deploy_seed.go` 已 seed 模板列表 C 菜单（`PagePerm=business:deploy:template:list`）及 `create/update/delete` 三项 F 按钮权限
+- 旧任务卡的模板 seed 缺口已由当前实现覆盖；软件组件详情的受限角色授权仍按上述 Base 依赖开放，不能据此关闭整包
 
 审计动作：
 

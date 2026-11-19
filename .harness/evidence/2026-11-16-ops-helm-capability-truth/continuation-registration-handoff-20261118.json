@@ -1,0 +1,59 @@
+{
+  "schema": "pantheon-e03-registration-handoff/v1",
+  "taskId": "2026-11-16-ops-helm-capability-truth",
+  "implementer": "/root/e03_claude_partial_closeout",
+  "observedAtUTC": "2026-11-18T07:29:16Z",
+  "sourceFrozen": true,
+  "wholePackageClosed": false,
+  "plan": ".harness/tasks/2026-11-16-ops-helm-capability-truth/continuation-registration-closeout-plan-20261118.md",
+  "changedBehavior": {
+    "newStoredStatus": "registered",
+    "effectiveResponseStatus": "registered",
+    "legacyStoredStatusPreserved": true,
+    "legacyResponseStatusRemainsRawProvenance": true,
+    "requestedRuntimeStatusIgnoredOnCreate": true,
+    "effectiveFieldStoredInDatabase": false,
+    "schemaMigration": false,
+    "chartExecutionImplemented": false,
+    "deletingRecordUninstallsResources": false,
+    "frontendSourceChanged": false,
+    "localeDelta": {}
+  },
+  "verification": [
+    {"command":"gofmt -w modules/business/k8s/helm/helm.go modules/business/k8s/helm/helm_test.go","cwd":"backend","exitCode":0,"output":""},
+    {"command":"go test -mod=readonly -run '^$' ./modules/business/k8s/helm","cwd":"backend","exitCode":0,"durationSeconds":0.028,"output":"[no tests to run]","actualBehaviorTestsRun":false},
+    {"command":"go build -mod=readonly ./modules/business/k8s/helm","cwd":"backend","exitCode":0,"output":""},
+    {"command":"go vet -mod=readonly ./modules/business/k8s/helm","cwd":"backend","exitCode":0,"output":""},
+    {"command":"gopls check modules/business/k8s/helm/helm.go modules/business/k8s/helm/helm_test.go","cwd":"backend","exitCode":0,"output":""},
+    {"command":"git diff --check -- backend/modules/business/k8s/helm README.md README.en.md .harness/tasks/2026-11-16-ops-helm-capability-truth/continuation-registration-closeout-plan-20261118.md","cwd":".","exitCode":0,"output":""}
+  ],
+  "sourceSHA256": {
+    "backend/modules/business/k8s/helm/helm.go": "3cbe7f56ca38c895ad41b679b611873521568e5be425b26a794324712d01264e",
+    "backend/modules/business/k8s/helm/helm_test.go": "de2ae48658dd593ad26b5746fdd0d64e2e65d844cb2c54edb46568efb9afcda3",
+    "README.md": "34667415d5c053db5c801b66d013bb78407d45887095a63f9c4fe81cf197b358",
+    "README.en.md": "ab4b0146ec31b725c8c9364387ace06e7493ff8240d520e718e1af36e73eca14"
+  },
+  "centralDatabaseVerification": {
+    "status":"NOT_RUN_BY_IMPLEMENTER",
+    "package":"./modules/business/k8s/helm",
+    "runFilter":"^(TestCreateForcedMisleadingStatusIsRegistrationOnly|TestListResponseNormalizesLegacyStoredStatus|TestHelmRegistrationCapabilityBoundaryHTTP)$",
+    "requiredDSN": true,
+    "requiredRace": true,
+    "requiredCGO": true,
+    "actualRedGreenClaimed": false
+  },
+  "advisorAttempts": [
+    {"statusFile":".omx/artifacts/ask-claude-e03-registration-20261118.status.json","exitCode":1,"timedOut":false,"sourceWrites":0},
+    {"statusFile":".omx/artifacts/ask-claude-e03-registration-resume-20261118.status.json","exitCode":124,"timedOut":true,"finishedAt":"2026-11-18T15:10:16.8961641+08:00","partialWrites":["backend/modules/business/k8s/helm/helm.go","backend/modules/business/k8s/helm/helm_test.go"]}
+  ],
+  "remainingGates": [
+    "mandatory-DSN actual MySQL regression and CGO race",
+    "original full K8s race and final full backend race",
+    "official locked-release overlay rebuild and drift",
+    "original frontend type-check and K8s smoke",
+    "current-candidate runtime capability-boundary evidence",
+    "independent review",
+    "external consumers must use effectiveStatus rather than raw legacy status",
+    "human acceptance of E03 original scope"
+  ]
+}

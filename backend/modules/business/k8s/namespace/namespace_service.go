@@ -11,8 +11,10 @@ import (
 	"github.com/duanxldragon/pantheon-base/backend/pkg/common"
 
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/kubernetes"
 )
 
 const syncTimeout = 30 * time.Second
@@ -71,6 +73,63 @@ func (s *NamespaceService) RequireWriteWithContext(ctx context.Context, clusterI
 	if err != nil {
 		return err
 	}
+	return requireBindingAction(binding, action)
+}
+
+// RequireWriteForClusterWithContext validates namespace ownership against the
+// scoped Cluster owner projection before checking the requested action. It
+// does not change older callers' admission contract or add a cross-owner lock.
+func (s *NamespaceService) RequireWriteForClusterWithContext(ctx context.Context, clusterID uint64, name, action string, dataScope *common.DataScopeReq) error {
+	if s.clusterSvc == nil {
+		return common.ErrDatabaseNotInitialized
+	}
+	if ctx == nil {
+		ctx = context.Background()
+	}
+	cluster, err := s.clusterSvc.GetByIDWithContext(ctx, clusterID, dataScope)
+	if err != nil {
+		return err
+	}
+	binding, err := s.bindingWithContext(ctx, clusterID, name)
+	if err != nil {
+		return err
+	}
+	if cluster.BusinessScopeID == 0 || binding.BusinessScopeID != cluster.BusinessScopeID || strings.TrimSpace(cluster.Environment) == "" || binding.Environment != cluster.Environment {
+		return common.NewForbidden("k8s.namespace.binding_invalid")
+	}
+	return requireBindingAction(binding, action)
+}
+
+// WithWriteForClusterWithContext keeps Cluster and Binding ownership stable
+// through a bounded caller operation. The lock order is Cluster then Binding;
+// authorization is checked against those locked rows before provider dispatch.
+func (s *NamespaceService) WithWriteForClusterWithContext(ctx context.Context, clusterID uint64, name, action string, dataScope *common.DataScopeReq, write func(kubernetes.Interface) error) error {
+	if s.db == nil || s.clusterSvc == nil {
+		return common.ErrDatabaseNotInitialized
+	}
+	if write == nil {
+		return common.NewBadRequest("common.param_invalid")
+	}
+	return s.clusterSvc.WithClientsetLockWithContext(ctx, clusterID, dataScope, func(tx *gorm.DB, item *cluster.Cluster, clientset kubernetes.Interface) error {
+		var binding NamespaceBinding
+		err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).Where(whereClusterAndNamespace, clusterID, name).First(&binding).Error
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return errors.New("k8s.namespace.binding_required")
+		}
+		if err != nil {
+			return err
+		}
+		if item.BusinessScopeID == 0 || binding.BusinessScopeID != item.BusinessScopeID || strings.TrimSpace(item.Environment) == "" || binding.Environment != item.Environment {
+			return common.NewForbidden("k8s.namespace.binding_invalid")
+		}
+		if err := requireBindingAction(&binding, action); err != nil {
+			return err
+		}
+		return write(clientset)
+	})
+}
+
+func requireBindingAction(binding *NamespaceBinding, action string) error {
 	var actions []string
 	if err := json.Unmarshal([]byte(binding.AllowedActions), &actions); err != nil {
 		return errors.New("k8s.namespace.binding_invalid")

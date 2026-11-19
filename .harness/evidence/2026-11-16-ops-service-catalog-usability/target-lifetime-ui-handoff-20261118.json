@@ -1,0 +1,111 @@
+{
+  "taskId": "2026-11-16-ops-service-catalog-usability",
+  "packageId": "C03",
+  "date": "2026-11-18",
+  "owner": "/root/c03_catalog_target_executor",
+  "status": "bounded_frontend_fix_locally_verified_integration_pending",
+  "layer": "business/service",
+  "finding": "State keyed only by lookup callback exposed previous rows/denial with loading=false during the 250ms debounce after reopening an unchanged form lookup.",
+  "change": "Extracted useCatalogOptions and keyed state to memoized enabled/lookup request identity. Reopened forms immediately present empty rows, cleared prior error and loading=true until this activation resolves. Existing debounce, abort and context-change protections remain.",
+  "exactSourceDelta": {
+    "frontend/src/modules/business/service/ServiceCatalog.tsx": "Added ./useCatalogOptions import and removed previous inline hook only. All other uncommitted catalog changes predate this task; preserve them.",
+    "frontend/src/modules/business/service/useCatalogOptions.ts": "New business-local hook, extracted original then corrected activation identity."
+  },
+  "localeDelta": {
+    "zh-CN": {},
+    "en-US": {}
+  },
+  "files": [
+    {
+      "path": "frontend/src/modules/business/service/ServiceCatalog.tsx",
+      "sha256": "24F60723AB9765E4909BE3CE60C23A5C10EB7529F8F0F800C5CF0941C549A6AD"
+    },
+    {
+      "path": "frontend/src/modules/business/service/useCatalogOptions.ts",
+      "sha256": "25A2E2E4B798D9B430307F28758B57DD366015E36E835C5BF58480B9C9EDF85D"
+    },
+    {
+      "path": ".harness/tasks/2026-11-16-ops-service-catalog-usability/continuation-target-lifetime-ui-plan-20261118.md",
+      "sha256": "AE99E4BF3F79F172E12B2B4D55EE5D786F8B911ED4B9258884A2CCE44A740DA9"
+    },
+    {
+      "path": ".harness/evidence/2026-11-16-ops-service-catalog-usability/catalog-options-lifetime.regression.test.ts",
+      "sha256": "4227007EECAD41E1F65E61C1963B4C3CE004F3D33AF45FB58561EE52A5B86AE6"
+    },
+    {
+      "path": ".harness/evidence/2026-11-16-ops-service-catalog-usability/run-catalog-options-lifetime-regression.mjs",
+      "sha256": "065E8880275BF2297A5A85045E250DE9AF73D5089390711B43F1D9CA3A268297"
+    },
+    {
+      "path": ".harness/evidence/2026-11-16-ops-service-catalog-usability/target-lifetime-ui-red-20261118.log",
+      "sha256": "A26969100B4000A999313C7C8478DABF9C01BA1BEAC132DDF866CCBC37D12A6A"
+    },
+    {
+      "path": ".harness/evidence/2026-11-16-ops-service-catalog-usability/target-lifetime-ui-green-20261118.log",
+      "sha256": "2B85C07B585A20F37D8D195779F340C61D08F01943A7F37D6624314F743FB05B"
+    },
+    {
+      "path": ".harness/evidence/2026-11-16-ops-service-catalog-usability/target-lifetime-ui-checks-20261118.json",
+      "sha256": "F38F445D302C7A54BC39DA439C570DD9B46CA04E76A537050A3D6AF4C14C83D5"
+    }
+  ],
+  "validation": {
+    "command": "node ../.harness/evidence/2026-11-16-ops-service-catalog-usability/run-catalog-options-lifetime-regression.mjs",
+    "cwd": "frontend",
+    "originalHookSha256": "E626D6287CDE8FA899D3FFB05B16FA33198EBE57B57030C378C8CEFE8D9E5FF5",
+    "red": {
+      "exitCode": 1,
+      "failed": 2,
+      "passed": 5
+    },
+    "green": {
+      "exitCode": 0,
+      "passed": 7
+    },
+    "sourceEslint": {
+      "exitCode": 0,
+      "files": [
+        "ServiceCatalog.tsx",
+        "useCatalogOptions.ts"
+      ],
+      "maxWarnings": 0
+    },
+    "isolatedHookStrictTypecheck": {
+      "exitCode": 0,
+      "compiler": "TypeScript 6",
+      "ignoreConfig": true,
+      "noEmit": true
+    },
+    "runnerSyntax": {
+      "exitCode": 0
+    },
+    "trackedSourceDiffCheck": {
+      "exitCode": 0
+    },
+    "details": ".harness/evidence/2026-11-16-ops-service-catalog-usability/target-lifetime-ui-checks-20261118.json"
+  },
+  "impeccableCompletionGate": {
+    "visualLayoutChanged": false,
+    "renderedEvidenceProduced": false,
+    "reason": "Parent prohibits browser/heavy frontend checks while concurrent writers are active; this task verifies state behavior only.",
+    "uiPolishClaim": false
+  },
+  "rootIntegrationRequired": [
+    "Optionally relocate regression fixture (standard @/ / vitest / RTL imports) to frontend/tests/unit/business/service/useCatalogOptions.test.ts and declare narrow unit path in business-overlay; ownership approval was pending when root became unavailable. Current evidence fixture runs explicitly and is not covered by ordinary unit-suite glob.",
+    "Run full lint, app typecheck/build, business overlay contract/rebuild and service smoke on a frozen combined candidate.",
+    "Perform desktop/mobile rendered checks for catalog forms and fresh targets.",
+    "Verify backend target lifetime, NamespaceBinding/environment/action admission and actual provider/role behavior separately; this fix establishes none of those contracts.",
+    "Independent review and whole-package status/acceptance stay with root."
+  ],
+  "ownershipReleased": [
+    "frontend/src/modules/business/service/ServiceCatalog.tsx",
+    "frontend/src/modules/business/service/useCatalogOptions.ts"
+  ],
+  "noWrites": [
+    "backend",
+    "shared locales",
+    "business-overlay.json",
+    "task manifest/status/goals",
+    "pantheon-base"
+  ]
+}

@@ -70,9 +70,6 @@
   "business.bizscope.environment.field.name": "环境名称",
   "business.bizscope.environment.field.envType": "环境类型",
   "business.bizscope.environment.field.remark": "备注",
-  "business.bizscope.environment.dev": "开发",
-  "business.bizscope.environment.test": "测试",
-  "business.bizscope.environment.prod": "生产",
   "business.bizscope.environment.empty": "暂无环境",
   "business.bizscope.environment.createTitle": "新建环境",
   "business.bizscope.environment.editTitle": "编辑环境",
@@ -89,5 +86,6 @@
   "business.bizscope.environment.nameRequired": "请输入环境名称",
   "business.bizscope.environment.scopeRequired": "请选择业务域",
   "business.bizscope.environment.envTypeInvalid": "环境类型无效",
-  "business.bizscope.environment.statusInvalid": "环境状态无效"
+  "business.bizscope.environment.statusInvalid": "环境状态无效",
+  "business.bizscope.permission.hostView": "查看主机绑定"
 }

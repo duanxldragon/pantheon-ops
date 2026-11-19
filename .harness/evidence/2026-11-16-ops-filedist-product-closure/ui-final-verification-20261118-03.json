@@ -1,0 +1,108 @@
+{
+  "sourceAfter": [
+    {
+      "sha256": "3d417008d14ee2d8f199cecee76d017dd171481e1032546baee279f1c787c88f",
+      "path": "frontend/src/modules/business/filedist/api.ts"
+    },
+    {
+      "sha256": "e479cf0fec6897f6851b30dd4e0e45c7c19d7677c94b572c4e5252ffa1ee7e95",
+      "path": "frontend/src/modules/business/filedist/createTaskPayload.ts"
+    },
+    {
+      "sha256": "14d31aa7be0b64dd27b42619297dabb507adfab027ef3e6c1c47b56e62df4cc3",
+      "path": "frontend/src/modules/business/filedist/taskState.ts"
+    },
+    {
+      "sha256": "e87f2e2b4fa403e4dd2d8a1f87e6d878670f4338756c4c3c087de7564e69aebe",
+      "path": "frontend/src/modules/business/filedist/useTaskDetail.ts"
+    },
+    {
+      "sha256": "a08129ff631210f17ab6989feaf554ddbb6999be94f57d4630de6043f64970b2",
+      "path": "frontend/src/modules/business/filedist/useFileChoices.ts"
+    },
+    {
+      "sha256": "123049c70d6de873805b5841ba75e687ca652d32e4007f12e56ba08f9b196272",
+      "path": "frontend/src/modules/business/filedist/useFiledistListQuery.ts"
+    },
+    {
+      "sha256": "584d6320c510588945d52bab1505c915f28a39e3aa4dfdef16ef24bb0edc4842",
+      "path": "frontend/src/modules/business/filedist/FiledistList.tsx"
+    },
+    {
+      "sha256": "592da075658906b6e40dafc49c1364275b5d122e6734bd85394265bf6b7ba1ba",
+      "path": "frontend/src/modules/business/filedist/FiledistDetail.tsx"
+    },
+    {
+      "sha256": "0099f2cc83b247069fa784eaedb3aa7b87eb15229d2462cb1a623aaac022c2df",
+      "path": "frontend/src/modules/business/filedist/filedist.css"
+    }
+  ],
+  "commands": [
+    {
+      "log": ".harness/evidence/2026-11-16-ops-filedist-product-closure/ui-final-eslint-20261118-03.log",
+      "command": "node node_modules/eslint/bin/eslint.js src/modules/business/filedist --max-warnings 0",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\frontend",
+      "exitCode": 0,
+      "startedAt": "2026-11-18T08:02:16.8651303Z",
+      "finishedAt": "2026-11-18T08:02:26.3085348Z"
+    },
+    {
+      "log": ".harness/evidence/2026-11-16-ops-filedist-product-closure/ui-final-regressions-20261118-03.log",
+      "command": "node .harness/evidence/2026-11-16-ops-filedist-product-closure/run-ui-lifetime-regression-20261118.mjs",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+      "exitCode": 0,
+      "startedAt": "2026-11-18T08:02:26.3354730Z",
+      "finishedAt": "2026-11-18T08:02:37.1650122Z"
+    },
+    {
+      "log": ".harness/evidence/2026-11-16-ops-filedist-product-closure/ui-final-diff-20261118-03.log",
+      "command": "git diff --check -- frontend/src/modules/business/filedist",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+      "exitCode": 0,
+      "startedAt": "2026-11-18T08:02:37.1715829Z",
+      "finishedAt": "2026-11-18T08:02:37.2451763Z"
+    }
+  ],
+  "verifiedAtUTC": "2026-11-18T08:02:37.3132872Z",
+  "scope": "Nine FileDist UI files; no assertion of full-tree stability",
+  "appTypecheckDeferredToRoot": true,
+  "sourceUnchanged": true,
+  "sourceBefore": [
+    {
+      "sha256": "3d417008d14ee2d8f199cecee76d017dd171481e1032546baee279f1c787c88f",
+      "path": "frontend/src/modules/business/filedist/api.ts"
+    },
+    {
+      "sha256": "e479cf0fec6897f6851b30dd4e0e45c7c19d7677c94b572c4e5252ffa1ee7e95",
+      "path": "frontend/src/modules/business/filedist/createTaskPayload.ts"
+    },
+    {
+      "sha256": "14d31aa7be0b64dd27b42619297dabb507adfab027ef3e6c1c47b56e62df4cc3",
+      "path": "frontend/src/modules/business/filedist/taskState.ts"
+    },
+    {
+      "sha256": "e87f2e2b4fa403e4dd2d8a1f87e6d878670f4338756c4c3c087de7564e69aebe",
+      "path": "frontend/src/modules/business/filedist/useTaskDetail.ts"
+    },
+    {
+      "sha256": "a08129ff631210f17ab6989feaf554ddbb6999be94f57d4630de6043f64970b2",
+      "path": "frontend/src/modules/business/filedist/useFileChoices.ts"
+    },
+    {
+      "sha256": "123049c70d6de873805b5841ba75e687ca652d32e4007f12e56ba08f9b196272",
+      "path": "frontend/src/modules/business/filedist/useFiledistListQuery.ts"
+    },
+    {
+      "sha256": "584d6320c510588945d52bab1505c915f28a39e3aa4dfdef16ef24bb0edc4842",
+      "path": "frontend/src/modules/business/filedist/FiledistList.tsx"
+    },
+    {
+      "sha256": "592da075658906b6e40dafc49c1364275b5d122e6734bd85394265bf6b7ba1ba",
+      "path": "frontend/src/modules/business/filedist/FiledistDetail.tsx"
+    },
+    {
+      "sha256": "0099f2cc83b247069fa784eaedb3aa7b87eb15229d2462cb1a623aaac022c2df",
+      "path": "frontend/src/modules/business/filedist/filedist.css"
+    }
+  ]
+}

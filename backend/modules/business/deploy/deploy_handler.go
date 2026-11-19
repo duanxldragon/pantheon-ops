@@ -584,7 +584,7 @@ func (h *DeployHandler) MarkHostResult(c *gin.Context) {
 		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
 		return
 	}
-	resp, err := h.svc.MarkHostResult(id, req, currentActor(c), common.GetDataScope(c))
+	resp, err := h.svc.targetRequestService(c.Request.Context()).MarkHostResult(id, req, currentActor(c), common.GetDataScope(c))
 	if err != nil {
 		failDeployTaskHostError(c, err, "deploytask.result_failed")
 		return
@@ -625,6 +625,7 @@ func failDeployTaskHostError(c *gin.Context, err error, fallback string) {
 func deployTaskConflictError(err error) bool {
 	switch strings.TrimSpace(errorText(err)) {
 	case ErrTaskCommandConflict.Error(), ErrTaskPreviewConflict.Error(), cmdb.ErrTargetSelectionConflict.Error(),
+		stateStaleKey,
 		"business.deploy.task.invalidStartState",
 		"business.deploy.task.invalidCancelState",
 		errDeployTaskInvalidUpdateState,
@@ -647,6 +648,7 @@ func deployTaskConflictError(err error) bool {
 func deployTaskValidationError(err error) bool {
 	switch strings.TrimSpace(errorText(err)) {
 	case ErrTaskCommandVersionRequired.Error(), ErrTaskPreviewRequired.Error(), cmdb.ErrTargetSelectionInvalid.Error(),
+		errDeployServiceLinkInvalid,
 		"business.deploy.task.nameRequired",
 		"business.deploy.task.packageRequired",
 		"business.deploy.task.packageDisabled",

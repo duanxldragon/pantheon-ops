@@ -1,0 +1,351 @@
+import fs from 'node:fs';
+import path from 'node:path';
+import crypto from 'node:crypto';
+import assert from 'node:assert/strict';
+import { spawnSync } from 'node:child_process';
+import { pathToFileURL } from 'node:url';
+
+const root = fs.realpathSync(process.cwd());
+assert.equal(path.basename(root), 'pantheon-ops');
+const script = path.resolve('.local/manual-preview-20261116/verify-ten-packages-ui-20261118.mjs');
+const preload = pathToFileURL(path.resolve('.local/manual-preview-20261116/hide-child-windows.mjs')).href;
+const uiEvidence = '.harness/evidence/2026-11-16-ops-filedist-product-closure';
+const audit = '.harness/evidence/2026-11-17-ops-history-audit';
+const web = 'http://127.0.0.1:5173';
+const apiBase = 'http://127.0.0.1:8080/api/v1';
+const sha = file => crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex');
+const readJson = file => JSON.parse(fs.readFileSync(file, 'utf8').replace(/^\uFEFF/, ''));
+const writeJson = (file, value) => fs.writeFileSync(file, JSON.stringify(value, null, 2) + '\n', { flag: 'wx' });
+const relative = file => path.relative(root, file).replaceAll('\\', '/');
+const boundary = 'Real local login, live FileDist reads and live missing-task render are distinct from browser-only business fixtures. One POST target-resolver fixture is fulfilled locally; every real business write and external URL is blocked. No distribution submit, transfer, provider admission or production acceptance.';
+
+function requestPolicy(url, method, fixtureKind) {
+  if (!['http:', 'https:'].includes(url.protocol) || !['127.0.0.1', 'localhost'].includes(url.hostname) || !['5173', '8080'].includes(url.port)) return 'blocked-external';
+  if (method === 'POST' && fixtureKind === 'catalog' && url.pathname === '/api/v1/business/deploy/targets/resolve') return 'resolver-fixture';
+  if (!['GET', 'HEAD'].includes(method)) return 'blocked-write';
+  return 'read';
+}
+
+if (process.argv.includes('--prepare-only')) {
+  const output = `${uiEvidence}/ui-readonly-script-preparation-20261118-01.json`;
+  const { chromium } = await import(pathToFileURL(path.resolve('frontend/node_modules/@playwright/test/index.mjs')).href);
+  const auth = await import(pathToFileURL(path.resolve('frontend/tests/smoke/helpers/auth.ts')).href);
+  for (const name of ['loginByApi', 'installClientSession', 'primeChineseLocale', 'apiRequestHeaders']) assert.equal(typeof auth[name], 'function');
+  assert.ok(fs.existsSync(chromium.executablePath()), 'Installed Chromium is required; no installation performed');
+  assert.equal(requestPolicy(new URL(web), 'GET', 'live'), 'read');
+  assert.equal(requestPolicy(new URL(`${apiBase}/business/filedist/tasks`), 'POST', 'live'), 'blocked-write');
+  assert.equal(requestPolicy(new URL(`${apiBase}/business/deploy/targets/resolve`), 'POST', 'catalog'), 'resolver-fixture');
+  assert.equal(requestPolicy(new URL('https://example.com'), 'GET', 'live'), 'blocked-external');
+  writeJson(output, { preparedAt: new Date().toISOString(), script, scriptSHA256: sha(script), helper: 'frontend/tests/smoke/helpers/auth.ts', helperSHA256: sha('frontend/tests/smoke/helpers/auth.ts'), installedChromiumExists: true, policyChecks: 4, browserLaunched: false, runtimeRequestsPerformed: false, boundary });
+  console.log(JSON.stringify({ prepared: true, output }));
+} else {
+  const worker = process.argv[2] === '--worker';
+  const args = process.argv.slice(worker ? 3 : 2);
+  const [candidateSuffix = 'ten-packages-20261118', suffix, runtimeSuffix = 'ten-packages-started-20261118', qualitySuffix = 'ten-packages-20261118-02'] = args;
+  for (const value of [candidateSuffix, suffix, runtimeSuffix, qualitySuffix]) assert.match(value ?? '', /^[a-z0-9-]+$/);
+  const base = `${uiEvidence}/ui-readonly-${suffix}`;
+  const artifacts = `${base}-artifacts`;
+  if (worker) {
+    assert.equal(process.env.PANTHEON_READONLY_UI_WORKER_BOUND, candidateSuffix, 'Only the source-bound parent may launch this worker');
+    await renderReadonly(base, artifacts);
+  } else {
+    for (const file of [`${base}.log`, `${base}.json`, artifacts]) assert.ok(!fs.existsSync(file), 'Preserve prior evidence: ' + file);
+    const proofPath = `${audit}/continuation-${candidateSuffix}-source-equivalence.json`;
+    const buildPath = `${audit}/continuation-current-preview-${candidateSuffix}-build.json`;
+    const qualityPath = `${audit}/continuation-${qualitySuffix}-frontend-quality.json`;
+    const runtimePath = `${audit}/continuation-current-preview-${runtimeSuffix}.json`;
+    const proof = readJson(proofPath), build = readJson(buildPath), quality = readJson(qualityPath), runtime = readJson(runtimePath);
+    assert.equal(proof.passed, true);
+    assert.equal(build.exitCode, 0); assert.equal(build.sourceUnchanged, true);
+    assert.equal(build.candidateProofSHA256, sha(proofPath));
+    assert.equal(quality.passed, true); assert.equal(quality.sourceUnchanged, true);
+    assert.equal(quality.candidateProofSHA256, sha(proofPath));
+    assert.ok(quality.checks.some(check => check.name === 'build' && check.exitCode === 0));
+    assert.equal(runtime.binarySHA256, build.binarySHA256);
+    assert.equal(sha(build.binary), build.binarySHA256);
+    assert.equal(path.resolve(runtime.runtimeProcess.path), path.resolve(build.binary));
+    assert.equal(runtime.health.code, 200);
+    for (const dependency of ['database', 'migrations', 'redis']) assert.equal(runtime.health.data.dependencies[dependency].status, 'ok');
+    assert.equal(runtime.frontend.observedStatusCode, 200);
+    const processCheck = spawnSync('powershell.exe', ['-NoProfile', '-NonInteractive', '-Command', "$ids=@(Get-NetTCPConnection -LocalPort 8080 -State Listen | Select-Object -ExpandProperty OwningProcess -Unique); if($ids.Count -ne 1){exit 2}; $p=Get-CimInstance Win32_Process -Filter ('ProcessId=' + $ids[0]); @{id=$p.ProcessId;path=$p.ExecutablePath}|ConvertTo-Json -Compress"], { windowsHide: true, encoding: 'utf8', timeout: 30000 });
+    assert.equal(processCheck.status, 0);
+    const actualProcess = JSON.parse(processCheck.stdout.trim());
+    assert.equal(actualProcess.id, runtime.runtimeProcess.id);
+    assert.equal(path.resolve(actualProcess.path), path.resolve(build.binary));
+    const sourceFiles = [...new Set([...proof.sources.map(row => row.file), ...quality.after.map(row => row.file)])].sort();
+    const snapshot = () => sourceFiles.map(file => ({ file, sha256: sha(file) }));
+    for (const row of proof.sources) assert.equal(sha(row.file), row.sha256, 'Current source differs from candidate proof: ' + row.file);
+    for (const row of quality.after) assert.equal(sha(row.file), row.sha256, 'Current source differs from frontend verification: ' + row.file);
+    const before = snapshot();
+    fs.mkdirSync(artifacts);
+    const log = fs.openSync(`${base}.log`, 'wx');
+    const startedAt = new Date().toISOString();
+    let result;
+    const childArgs = ['--import', preload, script, '--worker', candidateSuffix, suffix, runtimeSuffix, qualitySuffix];
+    try {
+      result = spawnSync(process.execPath, childArgs, { cwd: root, windowsHide: true, stdio: ['ignore', log, log], timeout: 8 * 60 * 1000, env: { ...process.env, PANTHEON_API_BASE_URL: apiBase, PANTHEON_WEB_BASE_URL: web, PANTHEON_READONLY_UI_WORKER_BOUND: candidateSuffix } });
+    } finally { fs.closeSync(log); }
+    const after = snapshot();
+    const stable = JSON.stringify(before) === JSON.stringify(after);
+    const renderPath = `${artifacts}/render.json`;
+    const render = fs.existsSync(renderPath) ? readJson(renderPath) : null;
+    const receipt = { startedAt, finishedAt: new Date().toISOString(), executable: process.execPath, args: childArgs, exitCode: result.status, signal: result.signal, errorCode: result.error?.code ?? null, sourceCount: before.length, sourceUnchanged: stable, before, after, scriptSHA256: sha(script), proof: { path: proofPath, sha256: sha(proofPath), sourceSetSHA256: proof.sourceSetSHA256 }, build: { path: buildPath, sha256: sha(buildPath), binarySHA256: build.binarySHA256 }, frontendQuality: { path: qualityPath, sha256: sha(qualityPath) }, runtime: { path: runtimePath, sha256: sha(runtimePath), process: actualProcess }, render: render ? { path: renderPath, sha256: sha(renderPath), passed: render.passed, screenshots: render.screenshots, checks: render.checks, blockedRequests: render.blockedRequests, externalOrWriteReachedBackend: false } : null, boundary, passed: result.status === 0 && !result.error && stable && render?.passed === true };
+    writeJson(`${base}.json`, receipt);
+    console.log(JSON.stringify({ output: `${base}.json`, passed: receipt.passed, sourceUnchanged: stable, screenshots: render?.screenshots?.length ?? 0, exitCode: result.status }));
+    process.exitCode = receipt.passed ? 0 : 1;
+  }
+}
+
+async function renderReadonly(base, artifacts) {
+  // Import after the parent's Windows descendant-hiding preload has patched spawn.
+  const { chromium, expect: playwrightExpect } = await import(pathToFileURL(path.resolve('frontend/node_modules/@playwright/test/index.mjs')).href);
+  // Standalone assertions have no test-runner timeout context. Set it explicitly
+  // so the resolver response and React commit finish before field assertions.
+  const expect = playwrightExpect.configure({ timeout: 12000 });
+  const { loginByApi, installClientSession, primeChineseLocale, apiRequestHeaders, adminCredentials } = await import(pathToFileURL(path.resolve('frontend/tests/smoke/helpers/auth.ts')).href);
+  const report = { startedAt: new Date().toISOString(), passed: false, checks: [], screenshots: [], requests: [], blockedRequests: [], browserErrors: [], boundary, auth: 'Existing local loginByApi/installClientSession helper; auth POST is the only real POST. Tokens/passwords/headers/storage are not exported.' };
+  let browser, context, page, phase = 'browser-start', expectedFieldLabel = null;
+  let fixture = { kind: 'live' };
+  const taskId = 98001;
+  const tasks = [{ id: taskId, name: 'QA render fixture task', fileId: 1, fileName: 'fixture-file-1', status: 'completed', progress: 100, totalTargets: 1, successCount: 1, failedCount: 0 }];
+  const files = Array.from({ length: 125 }, (_, index) => ({ id: index + 1, storageId: 1, name: `fixture-file-${index + 1}`, size: 256, storageType: 'local', status: 'active' }));
+  const scope = { id: 41, code: 'ui-fixture', name: 'QA fixture scope', status: 'active' };
+  const host = { id: 71, hostname: 'QA fixture host', ip: '192.0.2.71', sshPort: 22, status: 'assigned', businessScopeId: scope.id, stateVersion: 1, businessScopeName: scope.name };
+  const check = (name, evidenceKind, data = {}) => report.checks.push({ name, evidenceKind, ...data });
+  try {
+    browser = await chromium.launch({ headless: true });
+    context = await browser.newContext({ baseURL: web, viewport: { width: 1440, height: 900 }, serviceWorkers: 'block', reducedMotion: 'reduce' });
+    context.setDefaultTimeout(12000);
+    await context.route('**/*', async route => {
+      const request = route.request(), url = new URL(request.url()), method = request.method();
+      const policy = requestPolicy(url, method, fixture.kind);
+      const row = { at: new Date().toISOString(), path: url.pathname, query: url.search, method, evidenceKind: fixture.kind === 'live' ? 'live-read' : 'browser-fixture' };
+      if (policy.startsWith('blocked-')) {
+        report.blockedRequests.push({ ...row, reason: policy });
+        return route.abort('blockedbyclient');
+      }
+      if (url.pathname.startsWith('/api/v1/')) report.requests.push(row);
+      const success = data => route.fulfill({ json: { code: 200, data } });
+      if (policy === 'resolver-fixture') {
+        row.evidenceKind = 'browser-fixture-only-POST-not-forwarded';
+        const selection = request.postDataJSON();
+        assert.equal(selection.businessScopeId, scope.id);
+        assert.equal(selection.includeScope, true);
+        return success({ selection, scopeVersion: 'ui-fixture-v1', hosts: [{ ...host, source: 'scope' }], sources: { scope: 1 }, unavailableCount: 0, ineligibleCount: 0, duplicateCount: 0, excludedCount: 0, resolvedAt: '2026-11-18T00:00:00Z' });
+      }
+      if (fixture.kind === 'catalog') {
+        if (url.pathname === '/api/v1/business/filedist/files') {
+          const page = Number(url.searchParams.get('page') || 1), pageSize = Number(url.searchParams.get('pageSize') || 20), keyword = url.searchParams.get('keyword') || '';
+          const matched = files.filter(file => file.name.includes(keyword));
+          return success({ items: matched.slice((page - 1) * pageSize, page * pageSize), total: matched.length, page, pageSize });
+        }
+        if (url.pathname === '/api/v1/business/filedist/tasks') return success({ items: tasks, total: 1, page: 1, pageSize: 20 });
+        if (url.pathname === '/api/v1/business/bizscope/options') return success([scope]);
+        if (url.pathname === '/api/v1/business/cmdb/groups') return success([]);
+        if (url.pathname === '/api/v1/business/cmdb/hosts') return success({ items: [host], total: 1, page: 1, pageSize: 25 });
+      }
+      if (fixture.kind === 'detail' && url.pathname.startsWith(`/api/v1/business/filedist/tasks/${taskId}`)) {
+        if (url.pathname.endsWith('/targets')) return success({ items: [] });
+        if (url.pathname.endsWith('/events')) return success([]);
+        if (fixture.fault === 'offline') return route.abort('internetdisconnected');
+        if (fixture.fault === 'loading') { await fixture.gate; return success(tasks[0]); }
+        if ([403, 503].includes(fixture.fault)) return route.fulfill({ status: fixture.fault, json: { code: fixture.fault, message: fixture.fault === 403 ? 'business.filedist.createForbidden' : 'server_error' } });
+        return success({ ...tasks[0], status: fixture.status, scheduledAt: fixture.status === 'pending' ? '2099-01-01T00:00:00Z' : undefined });
+      }
+      return route.continue();
+    });
+    page = await context.newPage();
+    page.on('pageerror', error => report.browserErrors.push({ phase, name: error.name }));
+    // Count every inserted Arco toast for this document. A toast disappearing
+    // before the final screenshot must not make a 404 look correctly handled.
+    await page.addInitScript(() => {
+      globalThis.__e01ArcoToastCount = 0;
+      const seen = new WeakSet();
+      const observer = new MutationObserver(() => {
+        for (const node of document.querySelectorAll('.arco-message')) {
+          if (!seen.has(node)) { seen.add(node); globalThis.__e01ArcoToastCount += 1; }
+        }
+      });
+      observer.observe(document, { childList: true, subtree: true, attributes: true, attributeFilter: ['class'] });
+    });
+    phase = 'local-admin-login';
+    const login = await loginByApi(context.request, adminCredentials);
+    await installClientSession(page, login); await primeChineseLocale(page);
+    check('existing admin API session installed', 'live-auth', { endpoint: `${apiBase}/auth/login`, method: 'POST' });
+    const missingId = Number.MAX_SAFE_INTEGER;
+    const missing = await context.request.get(`${apiBase}/business/filedist/tasks/${missingId}`, { headers: apiRequestHeaders(login) });
+    assert.equal(missing.status(), 404, 'Live missing-task GET must return 404');
+    check('live absent detail response', 'live-read', { status: missing.status(), method: 'GET' });
+
+    const field = (dialog, label) => {
+      expectedFieldLabel = label;
+      // Authentication mode's selected option has the same text as the secret
+      // field. Match the label column, not arbitrary text inside a form item.
+      return dialog.locator('.arco-form-item').filter({ has: page.locator('.arco-form-label-item').getByText(label, { exact: true }) });
+    };
+    const select = async (dialog, label, option) => {
+      await field(dialog, label).locator('.arco-select').click();
+      await page.locator('.arco-select-option:visible').filter({ hasText: option }).click();
+    };
+    const capture = async (name, evidenceKind) => {
+      await expect.poll(() => page.evaluate(() => Math.max(document.documentElement.scrollWidth, document.body.scrollWidth) <= innerWidth + 1)).toBe(true);
+      const text = await page.locator('body').innerText();
+      assert.ok(!/\b(?:business|operations)\.filedist\.[A-Za-z0-9_.-]+\b/.test(text), 'Visible FileDist translation key');
+      assert.ok(!/\bcommon\.view\b/.test(text), 'Visible untranslated common.view key');
+      const file = `${artifacts}/${name}.png`;
+      await page.screenshot({ path: file, animations: 'disabled' });
+      report.screenshots.push({ name, path: file, sha256: sha(file), evidenceKind, viewport: page.viewportSize(), horizontalOverflow: false, primary: !name.includes('fixture') });
+      check(name, evidenceKind, { horizontalOverflow: false });
+      console.log(name + ' PASS');
+    };
+    for (const viewport of [{ name: 'desktop', width: 1440, height: 900 }, { name: 'mobile', width: 390, height: 844 }]) {
+      await page.setViewportSize({ width: viewport.width, height: viewport.height });
+      phase = `${viewport.name}-live-list`; fixture = { kind: 'live' };
+      const liveList = page.waitForResponse(response => new URL(response.url()).pathname === '/api/v1/business/filedist/tasks' && response.request().method() === 'GET');
+      await page.goto('/business/filedist/tasks', { waitUntil: 'domcontentloaded' });
+      const response = await liveList; assert.equal(response.status(), 200);
+      const payload = await response.json(); assert.equal(payload.code, 200);
+      await expect(page.locator('.system-list__table-card')).toBeVisible();
+      await expect(page.locator('.page-loading')).toHaveCount(0);
+      if (payload.data.items.length > 0) await expect(page.getByRole('button', { name: '详情', exact: true }).first()).toBeVisible();
+      check(`${viewport.name} live task list data`, 'live-read', { total: payload.data.total, empty: payload.data.items.length === 0, method: 'GET' });
+      await capture(`${viewport.name}-live-task-list`, 'live-read');
+      phase = `${viewport.name}-live-create-modal`;
+      await page.getByRole('button', { name: '创建分发任务', exact: true }).click();
+      let dialog = page.getByRole('dialog'); await expect(dialog).toBeVisible();
+      for (const label of ['任务名称', '分发文件', '业务域']) await expect(field(dialog, label)).toBeVisible();
+      await capture(`${viewport.name}-live-create-modal`, 'live-read-basic-fields-only');
+      await dialog.getByRole('button', { name: '取消', exact: true }).click();
+      phase = `${viewport.name}-live-404`;
+      await page.goto(`/business/filedist/tasks/${missingId}`, { waitUntil: 'domcontentloaded' });
+      await expect(page.getByText('任务不存在', { exact: true })).toBeVisible();
+      await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+      assert.equal(await page.evaluate(() => globalThis.__e01ArcoToastCount), 0, 'A handled detail 404 inserted a shared Arco toast');
+      assert.equal(await page.locator('.arco-message:visible, .arco-message-wrapper:visible .arco-message-content').count(), 0, 'A handled detail 404 has a visible shared Arco toast');
+      check(`${viewport.name} handled live detail 404 without shared toast`, 'live-read', { toastInsertions: 0 });
+      await capture(`${viewport.name}-live-detail-404`, 'live-read');
+
+      phase = `${viewport.name}-fixture-catalog`; fixture = { kind: 'catalog' };
+      await page.goto('/business/filedist/tasks', { waitUntil: 'domcontentloaded' });
+      await expect(page.getByText(tasks[0].name, { exact: true })).toBeVisible();
+      await capture(`${viewport.name}-fixture-task-list`, 'browser-fixture');
+      await page.getByRole('button', { name: '创建分发任务', exact: true }).click();
+      dialog = page.getByRole('dialog'); await expect(dialog).toBeVisible();
+      const picker = field(dialog, '分发文件');
+      await expect(picker.locator('.arco-select-option')).toHaveCount(0);
+      const pagination = dialog.locator('.arco-pagination').first();
+      await expect(pagination).toBeVisible();
+      for (let next = 2; next <= 6; next++) {
+        const previousReads = report.requests.filter(row => row.path.endsWith('/filedist/files') && new URLSearchParams(row.query).get('page') === String(next)).length;
+        await pagination.locator('.arco-pagination-item-next').click();
+        await expect.poll(() => report.requests.filter(row => row.path.endsWith('/filedist/files') && new URLSearchParams(row.query).get('page') === String(next)).length).toBeGreaterThan(previousReads);
+        await expect(picker.locator('.arco-select-loading')).toHaveCount(0);
+      }
+      await picker.locator('.arco-select').click();
+      await expect(page.locator('.arco-select-option:visible').filter({ hasText: 'fixture-file-101' })).toBeVisible();
+      await picker.locator('input').fill('fixture-file-125');
+      await expect(page.locator('.arco-select-option:visible').filter({ hasText: 'fixture-file-125' })).toBeVisible();
+      await page.locator('.arco-select-option:visible').filter({ hasText: 'fixture-file-125' }).click();
+      check(`${viewport.name} bounded picker page six and remote keyword`, 'browser-fixture', { firstBeyond100: 101, selectedId: 125, pageSize: 20 });
+      phase = `${viewport.name}-fixture-select-scope`;
+      await select(dialog, '业务域', scope.name);
+      await dialog.getByText('包含当前业务范围的全部主机', { exact: true }).click();
+      phase = `${viewport.name}-fixture-resolve-targets`;
+      const resolved = page.waitForResponse(response => new URL(response.url()).pathname === '/api/v1/business/deploy/targets/resolve' && response.request().method() === 'POST');
+      await dialog.getByRole('button', { name: '解析并核对目标', exact: true }).click();
+      const resolutionResponse = await resolved;
+      assert.equal(resolutionResponse.status(), 200);
+      await field(dialog, 'SSH 用户名').waitFor({ state: 'visible' });
+      phase = `${viewport.name}-fixture-auth-fields`;
+      await expect(field(dialog, 'SSH 用户名')).toBeVisible();
+      check(`${viewport.name} authentication labels disambiguated`, 'browser-fixture', {
+        broadPasswordTextMatches: await dialog.locator('.arco-form-item').filter({ has: page.getByText('SSH 密码', { exact: true }) }).count(),
+        passwordLabelMatches: await field(dialog, 'SSH 密码').count(),
+      });
+      for (const label of ['目标路径', 'SSH 认证方式', 'SSH 密码', '最大重试次数', '计划执行时间']) {
+        const item = field(dialog, label);
+        await expect(item).toHaveCount(1);
+        await item.scrollIntoViewIfNeeded();
+        await expect(item).toBeVisible();
+      }
+      assert.equal(await dialog.locator('input[type=password]').count(), 1);
+      await dialog.locator('input[type=password]').fill('ui-fixture-do-not-submit');
+      await select(dialog, 'SSH 认证方式', 'SSH 私钥');
+      await expect(field(dialog, 'SSH 私钥')).toBeVisible(); await expect(field(dialog, 'SSH 密码')).toHaveCount(0);
+      await expect(field(dialog, 'SSH 私钥').locator('textarea')).toHaveValue('');
+      await field(dialog, 'SSH 私钥').locator('textarea').fill('ui-fixture-do-not-submit');
+      await select(dialog, 'SSH 认证方式', 'SSH 密码');
+      await expect(field(dialog, 'SSH 私钥')).toHaveCount(0); await expect(dialog.locator('input[type=password]')).toHaveValue('');
+      await expect(dialog.locator('input[placeholder="SHA256 主机指纹"]')).toHaveCount(1);
+      await field(dialog, 'SSH 密码').scrollIntoViewIfNeeded();
+      await capture(`${viewport.name}-fixture-create-auth-password`, 'browser-fixture-only-resolver-POST');
+      await select(dialog, 'SSH 认证方式', 'SSH 私钥');
+      await expect(field(dialog, 'SSH 私钥')).toHaveCount(1);
+      await field(dialog, 'SSH 私钥').scrollIntoViewIfNeeded();
+      await capture(`${viewport.name}-fixture-create-auth-private-key`, 'browser-fixture-only-resolver-POST');
+      await dialog.getByRole('button', { name: '取消', exact: true }).click();
+    }
+
+    await page.setViewportSize({ width: 1440, height: 900 });
+    for (const fault of ['loading', 403, 503, 'offline']) {
+      phase = `desktop-fixture-detail-${fault}`;
+      let release;
+      fixture = { kind: 'detail', fault, gate: new Promise(resolve => { release = resolve; }) };
+      await page.goto(`/business/filedist/tasks/${taskId}`, { waitUntil: 'domcontentloaded' });
+      if (fault === 'loading') await expect(page.locator('.page-loading')).toBeVisible();
+      else {
+        await expect(page.locator('.page-result')).toBeVisible();
+        if (fault === 403) await expect(page.getByText('当前权限不允许此操作', { exact: true })).toBeVisible();
+        else await expect(page.getByText('任务不存在', { exact: true })).toHaveCount(0);
+        await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+        assert.equal(await page.evaluate(() => globalThis.__e01ArcoToastCount), 0, 'A handled detail fixture error inserted a shared Arco toast');
+        assert.equal(await page.locator('.arco-message:visible, .arco-message-wrapper:visible .arco-message-content').count(), 0, 'A handled detail fixture error has a visible shared Arco toast');
+        check(`${phase} without shared toast`, 'browser-fixture', { toastInsertions: 0 });
+      }
+      await capture(phase, 'browser-fixture');
+      release();
+      if (fault === 'loading') await expect(page.locator('.page-loading')).toHaveCount(0);
+    }
+    for (const status of ['pending', 'partial', 'completed']) {
+      phase = `desktop-fixture-detail-${status}`; fixture = { kind: 'detail', status };
+      await page.goto(`/business/filedist/tasks/${taskId}`, { waitUntil: 'domcontentloaded' });
+      await expect(page.locator('.filedist-detail__toolbar')).toBeVisible();
+      if (status === 'pending') await expect(page.getByRole('button', { name: '开始分发', exact: true })).toBeDisabled();
+      if (status === 'partial') await expect(page.locator('.filedist-detail__toolbar').getByRole('button', { name: '重试', exact: true })).toBeVisible();
+      if (status === 'completed') await expect(page.getByRole('button', { name: '开始分发', exact: true })).toHaveCount(0);
+      await capture(phase, 'browser-fixture');
+    }
+    assert.equal(report.blockedRequests.length, 0, 'Unexpected external or real write request attempted');
+    assert.equal(report.browserErrors.length, 0, 'Unhandled browser page error');
+    report.passed = true;
+  } catch (error) {
+    const safeLines = String(error.message).replace(/\u001b\[[0-9;]*m/g, '').split('\n');
+    const locator = safeLines.find(line => line.trim().startsWith('Locator:') || line.includes('waiting for locator('));
+    // Keep assertion/locator diagnostics, but never values, headers, tokens or
+    // raw page HTML. Auth setup failures retain the first line only.
+    report.error = {
+      phase, name: error.name, code: error.code ?? null,
+      message: safeLines[0].slice(0, 300),
+      locator: phase === 'local-admin-login' ? null : locator?.slice(0, 1200) ?? null,
+      expectedFieldLabel: phase.includes('fixture') ? expectedFieldLabel : null,
+      scriptFrames: String(error.stack || '').split('\n').filter(line => line.includes('verify-ten-packages-ui-20261118.mjs:')).map(line => line.trim()).slice(0, 4),
+    };
+    if (page && !page.isClosed()) {
+      try {
+        const failurePath = `${artifacts}/failed-${phase}.png`;
+        await page.screenshot({ path: failurePath, animations: 'disabled', mask: [page.locator('input[type="password"], textarea')], timeout: 15000 });
+        report.screenshots.push({ name: `failed-${phase}`, path: failurePath, sha256: sha(failurePath), evidenceKind: fixture.kind === 'live' ? 'live-failed-diagnostic' : 'browser-fixture-failed-diagnostic', viewport: page.viewportSize(), assertionPassed: false, credentialFieldsMasked: true, primary: false });
+        report.error.failureScreenshot = failurePath;
+      } catch (captureError) { report.error.failureCaptureError = { name: captureError.name, code: captureError.code ?? null }; }
+    }
+    console.log('ASSERTION ' + report.error.message);
+    if (report.error.locator) console.log(report.error.locator);
+    for (const frame of report.error.scriptFrames) console.log(frame);
+    console.log('FAILED phase=' + phase + ' kind=' + error.name);
+    process.exitCode = 1;
+  } finally {
+    await context?.close(); await browser?.close();
+    report.finishedAt = new Date().toISOString();
+    writeJson(`${artifacts}/render.json`, report);
+  }
+}

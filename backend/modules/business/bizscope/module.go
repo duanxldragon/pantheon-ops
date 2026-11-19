@@ -372,6 +372,7 @@ func InitBizScopeModule(r *gin.RouterGroup, db *gorm.DB, dependencies ...Service
 	contracts.RegisterBackendModules(r, db, contracts.FuncModule{
 		ModuleName:    bizScopeModuleKey,
 		MigrateFunc:   func(_ *gorm.DB) error { return service.Migrate() },
+		BootstrapFunc: func(_ *gorm.DB) error { return service.Migrate() },
 		SeedMenusFunc: seedMenus,
 		SeedI18nFunc:  seedI18n,
 		Register: func(r *gin.RouterGroup) {

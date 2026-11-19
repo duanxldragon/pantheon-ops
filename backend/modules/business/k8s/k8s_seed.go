@@ -47,7 +47,7 @@ var seeds = []menuSeed{
 		Icon:      "cloud",
 		RouteName: "k8s",
 		Module:    k8sModuleKey,
-		Sort:      4,
+		Sort:      6,
 	},
 	{
 		Key:       menuKeyCluster,
@@ -514,6 +514,34 @@ var i18nSeeds = []i18nSeed{
 	{Module: k8sModuleKey, Locale: "en-US", Group: "menu", Key: operationsK8sIngressMenu, Value: "Ingress"},
 	{Module: k8sModuleKey, Locale: "zh-CN", Group: "menu", Key: operationsK8sStorageMenu, Value: "存储管理"},
 	{Module: k8sModuleKey, Locale: "en-US", Group: "menu", Key: operationsK8sStorageMenu, Value: "Storage"},
+
+	// Service routing forms
+	{Module: k8sModuleKey, Locale: "zh-CN", Group: "page", Key: "business.k8s.service.selectorUpdateHint", Value: "修改类型、端口和选择器；其他配置保持原样。若服务已变化，请关闭后刷新列表并重新编辑。"},
+	{Module: k8sModuleKey, Locale: "en-US", Group: "page", Key: "business.k8s.service.selectorUpdateHint", Value: "Edit the type, ports and selector while keeping other settings. If the Service changes, close the editor, refresh the list and edit again."},
+	{Module: k8sModuleKey, Locale: "zh-CN", Group: "page", Key: "business.k8s.service.requiredFields", Value: "请填写服务名称和命名空间。"},
+	{Module: k8sModuleKey, Locale: "en-US", Group: "page", Key: "business.k8s.service.requiredFields", Value: "Enter the Service name and namespace."},
+	{Module: k8sModuleKey, Locale: "zh-CN", Group: "page", Key: "business.k8s.service.selectorInvalid", Value: "选择器格式无效或键重复，请使用 key=value 并以逗号分隔。"},
+	{Module: k8sModuleKey, Locale: "en-US", Group: "page", Key: "business.k8s.service.selectorInvalid", Value: "The selector is malformed or has duplicate keys. Use comma-separated key=value pairs."},
+	{Module: k8sModuleKey, Locale: "zh-CN", Group: "page", Key: "business.k8s.service.portsInvalid", Value: "请检查端口范围、名称和目标端口；多个端口必须使用互不重复的名称。"},
+	{Module: k8sModuleKey, Locale: "en-US", Group: "page", Key: "business.k8s.service.portsInvalid", Value: "Check port ranges, names and target ports. Multiple ports must have unique names."},
+	{Module: k8sModuleKey, Locale: "zh-CN", Group: "page", Key: "business.k8s.service.selectorPlaceholder", Value: "app=example, component=api"},
+	{Module: k8sModuleKey, Locale: "en-US", Group: "page", Key: "business.k8s.service.selectorPlaceholder", Value: "app=example, component=api"},
+	{Module: k8sModuleKey, Locale: "zh-CN", Group: "page", Key: "business.k8s.service.selectorHint", Value: "使用逗号分隔 key=value；留空表示不使用选择器。"},
+	{Module: k8sModuleKey, Locale: "en-US", Group: "page", Key: "business.k8s.service.selectorHint", Value: "Separate key=value pairs with commas. Leave blank for a selectorless Service."},
+	{Module: k8sModuleKey, Locale: "zh-CN", Group: "page", Key: "business.k8s.service.portsHint", Value: "目标端口可填写数字或容器端口名称，留空则使用服务端口。多个端口必须命名；节点端口留空可由集群分配。"},
+	{Module: k8sModuleKey, Locale: "en-US", Group: "page", Key: "business.k8s.service.portsHint", Value: "Target ports accept numbers or container port names; blank uses the Service port. Name each port when using multiple ports. Leave node ports blank for cluster allocation."},
+	{Module: k8sModuleKey, Locale: "zh-CN", Group: "page", Key: "business.k8s.service.portNumber", Value: "端口 {{number}}"},
+	{Module: k8sModuleKey, Locale: "en-US", Group: "page", Key: "business.k8s.service.portNumber", Value: "Port {{number}}"},
+	{Module: k8sModuleKey, Locale: "zh-CN", Group: "page", Key: "business.k8s.service.removePortNumber", Value: "移除端口 {{number}}"},
+	{Module: k8sModuleKey, Locale: "en-US", Group: "page", Key: "business.k8s.service.removePortNumber", Value: "Remove port {{number}}"},
+	{Module: k8sModuleKey, Locale: "zh-CN", Group: "page", Key: "business.k8s.service.removePort", Value: "移除端口"},
+	{Module: k8sModuleKey, Locale: "en-US", Group: "page", Key: "business.k8s.service.removePort", Value: "Remove port"},
+	{Module: k8sModuleKey, Locale: "zh-CN", Group: "page", Key: "business.k8s.service.addPort", Value: "添加端口"},
+	{Module: k8sModuleKey, Locale: "en-US", Group: "page", Key: "business.k8s.service.addPort", Value: "Add port"},
+	{Module: k8sModuleKey, Locale: "zh-CN", Group: "page", Key: "business.k8s.service.field.portName", Value: "端口名称"},
+	{Module: k8sModuleKey, Locale: "en-US", Group: "page", Key: "business.k8s.service.field.portName", Value: "Port name"},
+	{Module: k8sModuleKey, Locale: "zh-CN", Group: "page", Key: "business.k8s.service.field.nodePort", Value: "节点端口"},
+	{Module: k8sModuleKey, Locale: "en-US", Group: "page", Key: "business.k8s.service.field.nodePort", Value: "Node port"},
 
 	// Ingress page i18n
 	{Module: k8sModuleKey, Locale: "zh-CN", Group: "page", Key: "business.k8s.ingress.hero.eyebrow", Value: "运维平台 / Ingress 管理"},
@@ -1048,6 +1076,8 @@ var i18nSeeds = []i18nSeed{
 	{Module: k8sModuleKey, Locale: "en-US", Group: "page", Key: "business.k8s.backup.empty", Value: "No backup records"},
 
 	// Audit
+	{Module: k8sModuleKey, Locale: "zh-CN", Group: "audit", Key: "k8s.service.audit.update", Value: "更新 Kubernetes Service"},
+	{Module: k8sModuleKey, Locale: "en-US", Group: "audit", Key: "k8s.service.audit.update", Value: "Update Kubernetes Service"},
 	{Module: k8sModuleKey, Locale: "zh-CN", Group: "audit", Key: "k8s.cluster.audit.create", Value: "注册集群"},
 	{Module: k8sModuleKey, Locale: "en-US", Group: "audit", Key: "k8s.cluster.audit.create", Value: "Create cluster"},
 	{Module: k8sModuleKey, Locale: "zh-CN", Group: "audit", Key: "k8s.cluster.audit.update", Value: "编辑集群"},
@@ -1150,6 +1180,14 @@ var i18nSeeds = []i18nSeed{
 	{Module: k8sModuleKey, Locale: "en-US", Group: "error", Key: "k8s.kubeconfig_key_missing", Value: "K8s encryption key not configured"},
 	{Module: k8sModuleKey, Locale: "zh-CN", Group: "error", Key: "k8s.workload.not_found", Value: "工作负载不存在"},
 	{Module: k8sModuleKey, Locale: "en-US", Group: "error", Key: "k8s.workload.not_found", Value: "Workload does not exist"},
+	{Module: k8sModuleKey, Locale: "zh-CN", Group: "error", Key: "k8s.service.resource_version_conflict", Value: "服务已变化，请刷新列表并重新核对后操作。"},
+	{Module: k8sModuleKey, Locale: "en-US", Group: "error", Key: "k8s.service.resource_version_conflict", Value: "The Service has changed. Refresh the list and review it before trying again."},
+	{Module: k8sModuleKey, Locale: "zh-CN", Group: "error", Key: "k8s.service.resource_version_required", Value: "服务标识或资源版本不完整，请刷新列表后重试。"},
+	{Module: k8sModuleKey, Locale: "en-US", Group: "error", Key: "k8s.service.resource_version_required", Value: "The Service identity or resource version is incomplete. Refresh the list and try again."},
+	{Module: k8sModuleKey, Locale: "zh-CN", Group: "error", Key: "k8s.service.update_failed", Value: "Kubernetes Service 更新失败"},
+	{Module: k8sModuleKey, Locale: "en-US", Group: "error", Key: "k8s.service.update_failed", Value: "Failed to update the Kubernetes Service"},
+	{Module: k8sModuleKey, Locale: "zh-CN", Group: "error", Key: "k8s.namespace.binding_invalid", Value: "命名空间绑定与集群的业务域或环境不匹配。"},
+	{Module: k8sModuleKey, Locale: "en-US", Group: "error", Key: "k8s.namespace.binding_invalid", Value: "The namespace binding does not match the cluster business scope or environment."},
 }
 
 func seedMenus(db *gorm.DB) error {

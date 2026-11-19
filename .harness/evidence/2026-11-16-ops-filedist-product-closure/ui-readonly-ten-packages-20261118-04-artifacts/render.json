@@ -1,0 +1,1413 @@
+{
+  "startedAt": "2026-11-18T10:19:34.931Z",
+  "passed": true,
+  "checks": [
+    {
+      "name": "existing admin API session installed",
+      "evidenceKind": "live-auth",
+      "endpoint": "http://127.0.0.1:8080/api/v1/auth/login",
+      "method": "POST"
+    },
+    {
+      "name": "live absent detail response",
+      "evidenceKind": "live-read",
+      "status": 404,
+      "method": "GET"
+    },
+    {
+      "name": "desktop live task list data",
+      "evidenceKind": "live-read",
+      "total": 4,
+      "empty": false,
+      "method": "GET"
+    },
+    {
+      "name": "desktop-live-task-list",
+      "evidenceKind": "live-read",
+      "horizontalOverflow": false
+    },
+    {
+      "name": "desktop-live-create-modal",
+      "evidenceKind": "live-read-basic-fields-only",
+      "horizontalOverflow": false
+    },
+    {
+      "name": "desktop handled live detail 404 without shared toast",
+      "evidenceKind": "live-read",
+      "toastInsertions": 0
+    },
+    {
+      "name": "desktop-live-detail-404",
+      "evidenceKind": "live-read",
+      "horizontalOverflow": false
+    },
+    {
+      "name": "desktop-fixture-task-list",
+      "evidenceKind": "browser-fixture",
+      "horizontalOverflow": false
+    },
+    {
+      "name": "desktop bounded picker page six and remote keyword",
+      "evidenceKind": "browser-fixture",
+      "firstBeyond100": 101,
+      "selectedId": 125,
+      "pageSize": 20
+    },
+    {
+      "name": "desktop authentication labels disambiguated",
+      "evidenceKind": "browser-fixture",
+      "broadPasswordTextMatches": 2,
+      "passwordLabelMatches": 1
+    },
+    {
+      "name": "desktop-fixture-create-auth-password",
+      "evidenceKind": "browser-fixture-only-resolver-POST",
+      "horizontalOverflow": false
+    },
+    {
+      "name": "desktop-fixture-create-auth-private-key",
+      "evidenceKind": "browser-fixture-only-resolver-POST",
+      "horizontalOverflow": false
+    },
+    {
+      "name": "desktop private-key footer buttons fully visible",
+      "evidenceKind": "browser-fixture",
+      "createBounds": {
+        "x": 1039,
+        "y": 814.796875,
+        "width": 116,
+        "height": 32
+      },
+      "cancelBounds": {
+        "x": 969,
+        "y": 814.796875,
+        "width": 60,
+        "height": 32
+      },
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      }
+    },
+    {
+      "name": "desktop-fixture-private-key-footer",
+      "evidenceKind": "browser-fixture-only-resolver-POST",
+      "horizontalOverflow": false
+    },
+    {
+      "name": "mobile live task list data",
+      "evidenceKind": "live-read",
+      "total": 4,
+      "empty": false,
+      "method": "GET"
+    },
+    {
+      "name": "mobile-live-task-list",
+      "evidenceKind": "live-read",
+      "horizontalOverflow": false
+    },
+    {
+      "name": "mobile-live-create-modal",
+      "evidenceKind": "live-read-basic-fields-only",
+      "horizontalOverflow": false
+    },
+    {
+      "name": "mobile handled live detail 404 without shared toast",
+      "evidenceKind": "live-read",
+      "toastInsertions": 0
+    },
+    {
+      "name": "mobile-live-detail-404",
+      "evidenceKind": "live-read",
+      "horizontalOverflow": false
+    },
+    {
+      "name": "mobile-fixture-task-list",
+      "evidenceKind": "browser-fixture",
+      "horizontalOverflow": false
+    },
+    {
+      "name": "mobile bounded picker page six and remote keyword",
+      "evidenceKind": "browser-fixture",
+      "firstBeyond100": 101,
+      "selectedId": 125,
+      "pageSize": 20
+    },
+    {
+      "name": "mobile authentication labels disambiguated",
+      "evidenceKind": "browser-fixture",
+      "broadPasswordTextMatches": 2,
+      "passwordLabelMatches": 1
+    },
+    {
+      "name": "mobile-fixture-create-auth-password",
+      "evidenceKind": "browser-fixture-only-resolver-POST",
+      "horizontalOverflow": false
+    },
+    {
+      "name": "mobile-fixture-create-auth-private-key",
+      "evidenceKind": "browser-fixture-only-resolver-POST",
+      "horizontalOverflow": false
+    },
+    {
+      "name": "mobile private-key footer buttons fully visible",
+      "evidenceKind": "browser-fixture",
+      "createBounds": {
+        "x": 189,
+        "y": 762.984375,
+        "width": 172,
+        "height": 32
+      },
+      "cancelBounds": {
+        "x": 119,
+        "y": 762.984375,
+        "width": 60,
+        "height": 32
+      },
+      "viewport": {
+        "width": 390,
+        "height": 844
+      }
+    },
+    {
+      "name": "mobile-fixture-private-key-footer",
+      "evidenceKind": "browser-fixture-only-resolver-POST",
+      "horizontalOverflow": false
+    },
+    {
+      "name": "desktop-fixture-detail-loading",
+      "evidenceKind": "browser-fixture",
+      "horizontalOverflow": false
+    },
+    {
+      "name": "desktop-fixture-detail-403 without shared toast",
+      "evidenceKind": "browser-fixture",
+      "toastInsertions": 0
+    },
+    {
+      "name": "desktop-fixture-detail-403",
+      "evidenceKind": "browser-fixture",
+      "horizontalOverflow": false
+    },
+    {
+      "name": "desktop-fixture-detail-503 without shared toast",
+      "evidenceKind": "browser-fixture",
+      "toastInsertions": 0
+    },
+    {
+      "name": "desktop-fixture-detail-503",
+      "evidenceKind": "browser-fixture",
+      "horizontalOverflow": false
+    },
+    {
+      "name": "desktop-fixture-detail-offline without shared toast",
+      "evidenceKind": "browser-fixture",
+      "toastInsertions": 0
+    },
+    {
+      "name": "desktop-fixture-detail-offline",
+      "evidenceKind": "browser-fixture",
+      "horizontalOverflow": false
+    },
+    {
+      "name": "desktop-fixture-detail-pending",
+      "evidenceKind": "browser-fixture",
+      "horizontalOverflow": false
+    },
+    {
+      "name": "desktop-fixture-detail-partial",
+      "evidenceKind": "browser-fixture",
+      "horizontalOverflow": false
+    },
+    {
+      "name": "desktop-fixture-detail-completed",
+      "evidenceKind": "browser-fixture",
+      "horizontalOverflow": false
+    }
+  ],
+  "screenshots": [
+    {
+      "name": "desktop-live-task-list",
+      "path": ".harness/evidence/2026-11-16-ops-filedist-product-closure/ui-readonly-ten-packages-20261118-04-artifacts/desktop-live-task-list.png",
+      "sha256": "4d920f75c71aec051178a3295332e5468865c8008809e7d84b36b23ffc876115",
+      "evidenceKind": "live-read",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "horizontalOverflow": false,
+      "primary": true
+    },
+    {
+      "name": "desktop-live-create-modal",
+      "path": ".harness/evidence/2026-11-16-ops-filedist-product-closure/ui-readonly-ten-packages-20261118-04-artifacts/desktop-live-create-modal.png",
+      "sha256": "15010b70c38445fe6503c105f67c26facebf0451c0dc6ce3eb3c580a21d5fc38",
+      "evidenceKind": "live-read-basic-fields-only",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "horizontalOverflow": false,
+      "primary": true
+    },
+    {
+      "name": "desktop-live-detail-404",
+      "path": ".harness/evidence/2026-11-16-ops-filedist-product-closure/ui-readonly-ten-packages-20261118-04-artifacts/desktop-live-detail-404.png",
+      "sha256": "53d52c4cecc5758dc5b18416e70869c2226ed4a5ea3f6abf7e77de3e4cf1546e",
+      "evidenceKind": "live-read",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "horizontalOverflow": false,
+      "primary": true
+    },
+    {
+      "name": "desktop-fixture-task-list",
+      "path": ".harness/evidence/2026-11-16-ops-filedist-product-closure/ui-readonly-ten-packages-20261118-04-artifacts/desktop-fixture-task-list.png",
+      "sha256": "a1127ab960f968006da7640290fb3f322da17d0dd64bddeb9663aa962f208813",
+      "evidenceKind": "browser-fixture",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "horizontalOverflow": false,
+      "primary": false
+    },
+    {
+      "name": "desktop-fixture-create-auth-password",
+      "path": ".harness/evidence/2026-11-16-ops-filedist-product-closure/ui-readonly-ten-packages-20261118-04-artifacts/desktop-fixture-create-auth-password.png",
+      "sha256": "2cfe45d9ee7ee24605e3c69c6e5dc030987cd72550d851134076e7636718f5bd",
+      "evidenceKind": "browser-fixture-only-resolver-POST",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "horizontalOverflow": false,
+      "primary": false
+    },
+    {
+      "name": "desktop-fixture-create-auth-private-key",
+      "path": ".harness/evidence/2026-11-16-ops-filedist-product-closure/ui-readonly-ten-packages-20261118-04-artifacts/desktop-fixture-create-auth-private-key.png",
+      "sha256": "83b6e899ce4945e224cf143a112f712035958948267ab7fc3a86760bf0c5612d",
+      "evidenceKind": "browser-fixture-only-resolver-POST",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "horizontalOverflow": false,
+      "primary": false
+    },
+    {
+      "name": "desktop-fixture-private-key-footer",
+      "path": ".harness/evidence/2026-11-16-ops-filedist-product-closure/ui-readonly-ten-packages-20261118-04-artifacts/desktop-fixture-private-key-footer.png",
+      "sha256": "eb8e637b02d95ed2adbd466461c5f2a8cf3be2c7eae6d963e2dbbf5665abe3d6",
+      "evidenceKind": "browser-fixture-only-resolver-POST",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "horizontalOverflow": false,
+      "primary": false
+    },
+    {
+      "name": "mobile-live-task-list",
+      "path": ".harness/evidence/2026-11-16-ops-filedist-product-closure/ui-readonly-ten-packages-20261118-04-artifacts/mobile-live-task-list.png",
+      "sha256": "8a38c9f4e20aa217059f2775ac09e2102c588068b3772adf537c0c41c772689c",
+      "evidenceKind": "live-read",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "horizontalOverflow": false,
+      "primary": true
+    },
+    {
+      "name": "mobile-live-create-modal",
+      "path": ".harness/evidence/2026-11-16-ops-filedist-product-closure/ui-readonly-ten-packages-20261118-04-artifacts/mobile-live-create-modal.png",
+      "sha256": "fd4ec8c084b11990d5b9ee04363d9c649180b9b9a6e5385db82e776c49ac813e",
+      "evidenceKind": "live-read-basic-fields-only",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "horizontalOverflow": false,
+      "primary": true
+    },
+    {
+      "name": "mobile-live-detail-404",
+      "path": ".harness/evidence/2026-11-16-ops-filedist-product-closure/ui-readonly-ten-packages-20261118-04-artifacts/mobile-live-detail-404.png",
+      "sha256": "e17c8b3a7c26ca8769ec02606222831827acc360433b920246d9c14ca54918c4",
+      "evidenceKind": "live-read",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "horizontalOverflow": false,
+      "primary": true
+    },
+    {
+      "name": "mobile-fixture-task-list",
+      "path": ".harness/evidence/2026-11-16-ops-filedist-product-closure/ui-readonly-ten-packages-20261118-04-artifacts/mobile-fixture-task-list.png",
+      "sha256": "65a7b193d044bd21eff09f6d64123106f8eec093a6dd67f9d99ad95178b68574",
+      "evidenceKind": "browser-fixture",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "horizontalOverflow": false,
+      "primary": false
+    },
+    {
+      "name": "mobile-fixture-create-auth-password",
+      "path": ".harness/evidence/2026-11-16-ops-filedist-product-closure/ui-readonly-ten-packages-20261118-04-artifacts/mobile-fixture-create-auth-password.png",
+      "sha256": "b4054260b7f430ffe38b14b7e65b0dfe79c42d12f8056dbf1a20a9e722ccb37a",
+      "evidenceKind": "browser-fixture-only-resolver-POST",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "horizontalOverflow": false,
+      "primary": false
+    },
+    {
+      "name": "mobile-fixture-create-auth-private-key",
+      "path": ".harness/evidence/2026-11-16-ops-filedist-product-closure/ui-readonly-ten-packages-20261118-04-artifacts/mobile-fixture-create-auth-private-key.png",
+      "sha256": "f0590bcdec4d9432e0f2a288f03409efd74db398212c9ee1ade3a15d6a7850d1",
+      "evidenceKind": "browser-fixture-only-resolver-POST",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "horizontalOverflow": false,
+      "primary": false
+    },
+    {
+      "name": "mobile-fixture-private-key-footer",
+      "path": ".harness/evidence/2026-11-16-ops-filedist-product-closure/ui-readonly-ten-packages-20261118-04-artifacts/mobile-fixture-private-key-footer.png",
+      "sha256": "21e53aa9fa8b6c0f013a4efd2fccea33ba1fdb48995a04c965eb835e55479338",
+      "evidenceKind": "browser-fixture-only-resolver-POST",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "horizontalOverflow": false,
+      "primary": false
+    },
+    {
+      "name": "desktop-fixture-detail-loading",
+      "path": ".harness/evidence/2026-11-16-ops-filedist-product-closure/ui-readonly-ten-packages-20261118-04-artifacts/desktop-fixture-detail-loading.png",
+      "sha256": "132693db11e6587069e559e7c0403a038abda20e8cf04deefb25642163babaab",
+      "evidenceKind": "browser-fixture",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "horizontalOverflow": false,
+      "primary": false
+    },
+    {
+      "name": "desktop-fixture-detail-403",
+      "path": ".harness/evidence/2026-11-16-ops-filedist-product-closure/ui-readonly-ten-packages-20261118-04-artifacts/desktop-fixture-detail-403.png",
+      "sha256": "45ae5bbcd5496a9a6fe47ca910d945379a867d7c1308cb437456de791ce45d27",
+      "evidenceKind": "browser-fixture",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "horizontalOverflow": false,
+      "primary": false
+    },
+    {
+      "name": "desktop-fixture-detail-503",
+      "path": ".harness/evidence/2026-11-16-ops-filedist-product-closure/ui-readonly-ten-packages-20261118-04-artifacts/desktop-fixture-detail-503.png",
+      "sha256": "7bd4c255edaeb73e57f9fad922266a58436dc1287d947dc9df32eb204bf0b722",
+      "evidenceKind": "browser-fixture",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "horizontalOverflow": false,
+      "primary": false
+    },
+    {
+      "name": "desktop-fixture-detail-offline",
+      "path": ".harness/evidence/2026-11-16-ops-filedist-product-closure/ui-readonly-ten-packages-20261118-04-artifacts/desktop-fixture-detail-offline.png",
+      "sha256": "7bd4c255edaeb73e57f9fad922266a58436dc1287d947dc9df32eb204bf0b722",
+      "evidenceKind": "browser-fixture",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "horizontalOverflow": false,
+      "primary": false
+    },
+    {
+      "name": "desktop-fixture-detail-pending",
+      "path": ".harness/evidence/2026-11-16-ops-filedist-product-closure/ui-readonly-ten-packages-20261118-04-artifacts/desktop-fixture-detail-pending.png",
+      "sha256": "e5ba531bcd15303b9d9d3b16909d4b5178521332ee5ef23cbc76c3ccb8ff9b41",
+      "evidenceKind": "browser-fixture",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "horizontalOverflow": false,
+      "primary": false
+    },
+    {
+      "name": "desktop-fixture-detail-partial",
+      "path": ".harness/evidence/2026-11-16-ops-filedist-product-closure/ui-readonly-ten-packages-20261118-04-artifacts/desktop-fixture-detail-partial.png",
+      "sha256": "5790195121d0341373b2af5d9791ffa8684ec058b9c82e45b8398257c89f1863",
+      "evidenceKind": "browser-fixture",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "horizontalOverflow": false,
+      "primary": false
+    },
+    {
+      "name": "desktop-fixture-detail-completed",
+      "path": ".harness/evidence/2026-11-16-ops-filedist-product-closure/ui-readonly-ten-packages-20261118-04-artifacts/desktop-fixture-detail-completed.png",
+      "sha256": "df39d2e58cc2d2754c5b9aa23e8f106a1752134067340e66f98471dd6820618b",
+      "evidenceKind": "browser-fixture",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "horizontalOverflow": false,
+      "primary": false
+    }
+  ],
+  "requests": [
+    {
+      "at": "2026-11-18T10:19:36.461Z",
+      "path": "/api/v1/system/setting/public",
+      "query": "",
+      "method": "GET",
+      "evidenceKind": "live-read"
+    },
+    {
+      "at": "2026-11-18T10:19:36.640Z",
+      "path": "/api/v1/auth/me",
+      "query": "",
+      "method": "GET",
+      "evidenceKind": "live-read"
+    },
+    {
+      "at": "2026-11-18T10:19:36.654Z",
+      "path": "/api/v1/system/menu/tree",
+      "query": "?scope=nav",
+      "method": "GET",
+      "evidenceKind": "live-read"
+    },
+    {
+      "at": "2026-11-18T10:19:37.239Z",
+      "path": "/api/v1/auth/tenants/current",
+      "query": "",
+      "method": "GET",
+      "evidenceKind": "live-read"
+    },
+    {
+      "at": "2026-11-18T10:19:37.239Z",
+      "path": "/api/v1/system/refresh/state",
+      "query": "?topics=system:dept:changed,system:dict:changed,system:i18n:changed,system:menu:changed,system:permission:changed,system:post:changed,system:role:changed,system:setting:changed,system:user:changed",
+      "method": "GET",
+      "evidenceKind": "live-read"
+    },
+    {
+      "at": "2026-11-18T10:19:37.240Z",
+      "path": "/api/v1/system/refresh/state",
+      "query": "?topics=system:dept:changed,system:dict:changed,system:i18n:changed,system:menu:changed,system:permission:changed,system:post:changed,system:role:changed,system:setting:changed,system:user:changed",
+      "method": "GET",
+      "evidenceKind": "live-read"
+    },
+    {
+      "at": "2026-11-18T10:19:37.486Z",
+      "path": "/api/v1/business/filedist/files",
+      "query": "?keyword=&page=1&pageSize=20",
+      "method": "GET",
+      "evidenceKind": "live-read"
+    },
+    {
+      "at": "2026-11-18T10:19:37.488Z",
+      "path": "/api/v1/business/filedist/tasks",
+      "query": "?keyword=&status=&page=1&pageSize=20",
+      "method": "GET",
+      "evidenceKind": "live-read"
+    },
+    {
+      "at": "2026-11-18T10:19:38.176Z",
+      "path": "/api/v1/business/bizscope/options",
+      "query": "",
+      "method": "GET",
+      "evidenceKind": "live-read"
+    },
+    {
+      "at": "2026-11-18T10:19:38.177Z",
+      "path": "/api/v1/business/cmdb/groups",
+      "query": "",
+      "method": "GET",
+      "evidenceKind": "live-read"
+    },
+    {
+      "at": "2026-11-18T10:19:38.407Z",
+      "path": "/api/v1/business/filedist/files",
+      "query": "?keyword=&page=1&pageSize=20",
+      "method": "GET",
+      "evidenceKind": "live-read"
+    },
+    {
+      "at": "2026-11-18T10:19:40.131Z",
+      "path": "/api/v1/system/setting/public",
+      "query": "",
+      "method": "GET",
+      "evidenceKind": "live-read"
+    },
+    {
+      "at": "2026-11-18T10:19:40.251Z",
+      "path": "/api/v1/system/menu/tree",
+      "query": "?scope=nav",
+      "method": "GET",
+      "evidenceKind": "live-read"
+    },
+    {
+      "at": "2026-11-18T10:19:40.734Z",
+      "path": "/api/v1/auth/tenants/current",
+      "query": "",
+      "method": "GET",
+      "evidenceKind": "live-read"
+    },
+    {
+      "at": "2026-11-18T10:19:40.734Z",
+      "path": "/api/v1/system/refresh/state",
+      "query": "?topics=system:dept:changed,system:dict:changed,system:i18n:changed,system:menu:changed,system:permission:changed,system:post:changed,system:role:changed,system:setting:changed,system:user:changed",
+      "method": "GET",
+      "evidenceKind": "live-read"
+    },
+    {
+      "at": "2026-11-18T10:19:40.735Z",
+      "path": "/api/v1/system/refresh/state",
+      "query": "?topics=system:dept:changed,system:dict:changed,system:i18n:changed,system:menu:changed,system:permission:changed,system:post:changed,system:role:changed,system:setting:changed,system:user:changed",
+      "method": "GET",
+      "evidenceKind": "live-read"
+    },
+    {
+      "at": "2026-11-18T10:19:40.951Z",
+      "path": "/api/v1/business/filedist/tasks/9007199254740991",
+      "query": "",
+      "method": "GET",
+      "evidenceKind": "live-read"
+    },
+    {
+      "at": "2026-11-18T10:19:40.952Z",
+      "path": "/api/v1/business/filedist/tasks/9007199254740991/targets",
+      "query": "",
+      "method": "GET",
+      "evidenceKind": "live-read"
+    },
+    {
+      "at": "2026-11-18T10:19:40.952Z",
+      "path": "/api/v1/business/filedist/tasks/9007199254740991/events",
+      "query": "",
+      "method": "GET",
+      "evidenceKind": "live-read"
+    },
+    {
+      "at": "2026-11-18T10:19:42.423Z",
+      "path": "/api/v1/system/setting/public",
+      "query": "",
+      "method": "GET",
+      "evidenceKind": "browser-fixture"
+    },
+    {
+      "at": "2026-11-18T10:19:42.546Z",
+      "path": "/api/v1/system/menu/tree",
+      "query": "?scope=nav",
+      "method": "GET",
+      "evidenceKind": "browser-fixture"
+    },
+    {
+      "at": "2026-11-18T10:19:43.370Z",
+      "path": "/api/v1/auth/tenants/current",
+      "query": "",
+      "method": "GET",
+      "evidenceKind": "browser-fixture"
+    },
+    {
+      "at": "2026-11-18T10:19:43.371Z",
+      "path": "/api/v1/system/refresh/state",
+      "query": "?topics=system:dept:changed,system:dict:changed,system:i18n:changed,system:menu:changed,system:permission:changed,system:post:changed,system:role:changed,system:setting:changed,system:user:changed",
+      "method": "GET",
+      "evidenceKind": "browser-fixture"
+    },
+    {
+      "at": "2026-11-18T10:19:43.372Z",
+      "path": "/api/v1/system/refresh/state",
+      "query": "?topics=system:dept:changed,system:dict:changed,system:i18n:changed,system:menu:changed,system:permission:changed,system:post:changed,system:role:changed,system:setting:changed,system:user:changed",
+      "method": "GET",
+      "evidenceKind": "browser-fixture"
+    },
+    {
+      "at": "2026-11-18T10:19:43.376Z",
+      "path": "/api/v1/business/filedist/files",
+      "query": "?keyword=&page=1&pageSize=20",
+      "method": "GET",
+      "evidenceKind": "browser-fixture"
+    },
+    {
+      "at": "2026-11-18T10:19:43.379Z",
+      "path": "/api/v1/business/filedist/tasks",
+      "query": "?keyword=&status=&page=1&pageSize=20",
+      "method": "GET",
+      "evidenceKind": "browser-fixture"
+    },
+    {
+      "at": "2026-11-18T10:19:44.650Z",
+      "path": "/api/v1/business/bizscope/options",
+      "query": "",
+      "method": "GET",
+      "evidenceKind": "browser-fixture"
+    },
+    {
+      "at": "2026-11-18T10:19:44.651Z",
+      "path": "/api/v1/business/cmdb/groups",
+      "query": "",
+      "method": "GET",
+      "evidenceKind": "browser-fixture"
+    },
+    {
+      "at": "2026-11-18T10:19:44.790Z",
+      "path": "/api/v1/business/filedist/files",
+      "query": "?keyword=&page=1&pageSize=20",
+      "method": "GET",
+      "evidenceKind": "browser-fixture"
+    },
+    {
+      "at": "2026-11-18T10:19:45.488Z",
+      "path": "/api/v1/business/filedist/files",
+      "query": "?keyword=&page=2&pageSize=20",
+      "method": "GET",
+      "evidenceKind": "browser-fixture"
+    },
+    {
+      "at": "2026-11-18T10:19:46.109Z",
+      "path": "/api/v1/business/filedist/files",
+      "query": "?keyword=&page=3&pageSize=20",
+      "method": "GET",
+      "evidenceKind": "browser-fixture"
+    },
+    {
+      "at": "2026-11-18T10:19:46.683Z",
+      "path": "/api/v1/business/filedist/files",
+      "query": "?keyword=&page=4&pageSize=20",
+      "method": "GET",
+      "evidenceKind": "browser-fixture"
+    },
+    {
+      "at": "2026-11-18T10:19:47.276Z",
+      "path": "/api/v1/business/filedist/files",
+      "query": "?keyword=&page=5&pageSize=20",
+      "method": "GET",
+      "evidenceKind": "browser-fixture"
+    },
+    {
+      "at": "2026-11-18T10:19:47.883Z",
+      "path": "/api/v1/business/filedist/files",
+      "query": "?keyword=&page=6&pageSize=20",
+      "method": "GET",
+      "evidenceKind": "browser-fixture"
+    },
+    {
+      "at": "2026-11-18T10:19:48.261Z",
+      "path": "/api/v1/system/refresh/state",
+      "query": "?topics=system:dept:changed,system:dict:changed,system:i18n:changed,system:menu:changed,system:permission:changed,system:post:changed,system:role:changed,system:setting:changed,system:user:changed",
+      "method": "GET",
+      "evidenceKind": "browser-fixture"
+    },
+    {
+      "at": "2026-11-18T10:19:48.673Z",
+      "path": "/api/v1/business/filedist/files",
+      "query": "?keyword=fixture-file-125&page=1&pageSize=20",
+      "method": "GET",
+      "evidenceKind": "browser-fixture"
+    },
+    {
+      "at": "2026-11-18T10:19:49.909Z",
+      "path": "/api/v1/business/deploy/targets/resolve",
+      "query": "",
+      "method": "POST",
+      "evidenceKind": "browser-fixture-only-POST-not-forwarded"
+    },
+    {
+      "at": "2026-11-18T10:19:50.136Z",
+      "path": "/api/v1/business/cmdb/hosts",
+      "query": "?page=1&pageSize=25&keyword=&businessScopeId=41",
+      "method": "GET",
+      "evidenceKind": "browser-fixture"
+    },
+    {
+      "at": "2026-11-18T10:19:53.244Z",
+      "path": "/api/v1/system/refresh/state",
+      "query": "?topics=system:dept:changed,system:dict:changed,system:i18n:changed,system:menu:changed,system:permission:changed,system:post:changed,system:role:changed,system:setting:changed,system:user:changed",
+      "method": "GET",
+      "evidenceKind": "browser-fixture"
+    },
+    {
+      "at": "2026-11-18T10:19:54.821Z",
+      "path": "/api/v1/system/setting/public",
+      "query": "",
+      "method": "GET",
+      "evidenceKind": "live-read"
+    },
+    {
+      "at": "2026-11-18T10:19:54.952Z",
+      "path": "/api/v1/system/menu/tree",
+      "query": "?scope=nav",
+      "method": "GET",
+      "evidenceKind": "live-read"
+    },
+    {
+      "at": "2026-11-18T10:19:55.624Z",
+      "path": "/api/v1/auth/tenants/current",
+      "query": "",
+      "method": "GET",
+      "evidenceKind": "live-read"
+    },
+    {
+      "at": "2026-11-18T10:19:55.624Z",
+      "path": "/api/v1/system/refresh/state",
+      "query": "?topics=system:dept:changed,system:dict:changed,system:i18n:changed,system:menu:changed,system:permission:changed,system:post:changed,system:role:changed,system:setting:changed,system:user:changed",
+      "method": "GET",
+      "evidenceKind": "live-read"
+    },
+    {
+      "at": "2026-11-18T10:19:55.625Z",
+      "path": "/api/v1/system/refresh/state",
+      "query": "?topics=system:dept:changed,system:dict:changed,system:i18n:changed,system:menu:changed,system:permission:changed,system:post:changed,system:role:changed,system:setting:changed,system:user:changed",
+      "method": "GET",
+      "evidenceKind": "live-read"
+    },
+    {
+      "at": "2026-11-18T10:19:55.630Z",
+      "path": "/api/v1/business/filedist/files",
+      "query": "?keyword=&page=1&pageSize=20",
+      "method": "GET",
+      "evidenceKind": "live-read"
+    },
+    {
+      "at": "2026-11-18T10:19:55.632Z",
+      "path": "/api/v1/business/filedist/tasks",
+      "query": "?keyword=&status=&page=1&pageSize=20",
+      "method": "GET",
+      "evidenceKind": "live-read"
+    },
+    {
+      "at": "2026-11-18T10:19:56.125Z",
+      "path": "/api/v1/business/bizscope/options",
+      "query": "",
+      "method": "GET",
+      "evidenceKind": "live-read"
+    },
+    {
+      "at": "2026-11-18T10:19:56.126Z",
+      "path": "/api/v1/business/cmdb/groups",
+      "query": "",
+      "method": "GET",
+      "evidenceKind": "live-read"
+    },
+    {
+      "at": "2026-11-18T10:19:56.326Z",
+      "path": "/api/v1/business/filedist/files",
+      "query": "?keyword=&page=1&pageSize=20",
+      "method": "GET",
+      "evidenceKind": "live-read"
+    },
+    {
+      "at": "2026-11-18T10:19:57.833Z",
+      "path": "/api/v1/system/setting/public",
+      "query": "",
+      "method": "GET",
+      "evidenceKind": "live-read"
+    },
+    {
+      "at": "2026-11-18T10:19:57.979Z",
+      "path": "/api/v1/system/menu/tree",
+      "query": "?scope=nav",
+      "method": "GET",
+      "evidenceKind": "live-read"
+    },
+    {
+      "at": "2026-11-18T10:19:58.533Z",
+      "path": "/api/v1/auth/tenants/current",
+      "query": "",
+      "method": "GET",
+      "evidenceKind": "live-read"
+    },
+    {
+      "at": "2026-11-18T10:19:58.547Z",
+      "path": "/api/v1/system/refresh/state",
+      "query": "?topics=system:dept:changed,system:dict:changed,system:i18n:changed,system:menu:changed,system:permission:changed,system:post:changed,system:role:changed,system:setting:changed,system:user:changed",
+      "method": "GET",
+      "evidenceKind": "live-read"
+    },
+    {
+      "at": "2026-11-18T10:19:58.548Z",
+      "path": "/api/v1/system/refresh/state",
+      "query": "?topics=system:dept:changed,system:dict:changed,system:i18n:changed,system:menu:changed,system:permission:changed,system:post:changed,system:role:changed,system:setting:changed,system:user:changed",
+      "method": "GET",
+      "evidenceKind": "live-read"
+    },
+    {
+      "at": "2026-11-18T10:19:58.745Z",
+      "path": "/api/v1/business/filedist/tasks/9007199254740991",
+      "query": "",
+      "method": "GET",
+      "evidenceKind": "live-read"
+    },
+    {
+      "at": "2026-11-18T10:19:58.746Z",
+      "path": "/api/v1/business/filedist/tasks/9007199254740991/targets",
+      "query": "",
+      "method": "GET",
+      "evidenceKind": "live-read"
+    },
+    {
+      "at": "2026-11-18T10:19:58.746Z",
+      "path": "/api/v1/business/filedist/tasks/9007199254740991/events",
+      "query": "",
+      "method": "GET",
+      "evidenceKind": "live-read"
+    },
+    {
+      "at": "2026-11-18T10:20:00.365Z",
+      "path": "/api/v1/system/setting/public",
+      "query": "",
+      "method": "GET",
+      "evidenceKind": "browser-fixture"
+    },
+    {
+      "at": "2026-11-18T10:20:00.484Z",
+      "path": "/api/v1/system/menu/tree",
+      "query": "?scope=nav",
+      "method": "GET",
+      "evidenceKind": "browser-fixture"
+    },
+    {
+      "at": "2026-11-18T10:20:00.951Z",
+      "path": "/api/v1/auth/tenants/current",
+      "query": "",
+      "method": "GET",
+      "evidenceKind": "browser-fixture"
+    },
+    {
+      "at": "2026-11-18T10:20:00.952Z",
+      "path": "/api/v1/system/refresh/state",
+      "query": "?topics=system:dept:changed,system:dict:changed,system:i18n:changed,system:menu:changed,system:permission:changed,system:post:changed,system:role:changed,system:setting:changed,system:user:changed",
+      "method": "GET",
+      "evidenceKind": "browser-fixture"
+    },
+    {
+      "at": "2026-11-18T10:20:00.952Z",
+      "path": "/api/v1/system/refresh/state",
+      "query": "?topics=system:dept:changed,system:dict:changed,system:i18n:changed,system:menu:changed,system:permission:changed,system:post:changed,system:role:changed,system:setting:changed,system:user:changed",
+      "method": "GET",
+      "evidenceKind": "browser-fixture"
+    },
+    {
+      "at": "2026-11-18T10:20:01.219Z",
+      "path": "/api/v1/business/filedist/files",
+      "query": "?keyword=&page=1&pageSize=20",
+      "method": "GET",
+      "evidenceKind": "browser-fixture"
+    },
+    {
+      "at": "2026-11-18T10:20:01.221Z",
+      "path": "/api/v1/business/filedist/tasks",
+      "query": "?keyword=&status=&page=1&pageSize=20",
+      "method": "GET",
+      "evidenceKind": "browser-fixture"
+    },
+    {
+      "at": "2026-11-18T10:20:01.532Z",
+      "path": "/api/v1/business/bizscope/options",
+      "query": "",
+      "method": "GET",
+      "evidenceKind": "browser-fixture"
+    },
+    {
+      "at": "2026-11-18T10:20:01.532Z",
+      "path": "/api/v1/business/cmdb/groups",
+      "query": "",
+      "method": "GET",
+      "evidenceKind": "browser-fixture"
+    },
+    {
+      "at": "2026-11-18T10:20:01.696Z",
+      "path": "/api/v1/business/filedist/files",
+      "query": "?keyword=&page=1&pageSize=20",
+      "method": "GET",
+      "evidenceKind": "browser-fixture"
+    },
+    {
+      "at": "2026-11-18T10:20:02.331Z",
+      "path": "/api/v1/business/filedist/files",
+      "query": "?keyword=&page=2&pageSize=20",
+      "method": "GET",
+      "evidenceKind": "browser-fixture"
+    },
+    {
+      "at": "2026-11-18T10:20:02.952Z",
+      "path": "/api/v1/business/filedist/files",
+      "query": "?keyword=&page=3&pageSize=20",
+      "method": "GET",
+      "evidenceKind": "browser-fixture"
+    },
+    {
+      "at": "2026-11-18T10:20:03.480Z",
+      "path": "/api/v1/business/filedist/files",
+      "query": "?keyword=&page=4&pageSize=20",
+      "method": "GET",
+      "evidenceKind": "browser-fixture"
+    },
+    {
+      "at": "2026-11-18T10:20:04.026Z",
+      "path": "/api/v1/business/filedist/files",
+      "query": "?keyword=&page=5&pageSize=20",
+      "method": "GET",
+      "evidenceKind": "browser-fixture"
+    },
+    {
+      "at": "2026-11-18T10:20:04.617Z",
+      "path": "/api/v1/business/filedist/files",
+      "query": "?keyword=&page=6&pageSize=20",
+      "method": "GET",
+      "evidenceKind": "browser-fixture"
+    },
+    {
+      "at": "2026-11-18T10:20:05.391Z",
+      "path": "/api/v1/business/filedist/files",
+      "query": "?keyword=fixture-file-125&page=1&pageSize=20",
+      "method": "GET",
+      "evidenceKind": "browser-fixture"
+    },
+    {
+      "at": "2026-11-18T10:20:05.822Z",
+      "path": "/api/v1/system/refresh/state",
+      "query": "?topics=system:dept:changed,system:dict:changed,system:i18n:changed,system:menu:changed,system:permission:changed,system:post:changed,system:role:changed,system:setting:changed,system:user:changed",
+      "method": "GET",
+      "evidenceKind": "browser-fixture"
+    },
+    {
+      "at": "2026-11-18T10:20:06.540Z",
+      "path": "/api/v1/business/cmdb/hosts",
+      "query": "?page=1&pageSize=25&keyword=&businessScopeId=41",
+      "method": "GET",
+      "evidenceKind": "browser-fixture"
+    },
+    {
+      "at": "2026-11-18T10:20:06.696Z",
+      "path": "/api/v1/business/deploy/targets/resolve",
+      "query": "",
+      "method": "POST",
+      "evidenceKind": "browser-fixture-only-POST-not-forwarded"
+    },
+    {
+      "at": "2026-11-18T10:20:10.733Z",
+      "path": "/api/v1/system/setting/public",
+      "query": "",
+      "method": "GET",
+      "evidenceKind": "browser-fixture"
+    },
+    {
+      "at": "2026-11-18T10:20:10.849Z",
+      "path": "/api/v1/system/menu/tree",
+      "query": "?scope=nav",
+      "method": "GET",
+      "evidenceKind": "browser-fixture"
+    },
+    {
+      "at": "2026-11-18T10:20:11.315Z",
+      "path": "/api/v1/auth/tenants/current",
+      "query": "",
+      "method": "GET",
+      "evidenceKind": "browser-fixture"
+    },
+    {
+      "at": "2026-11-18T10:20:11.316Z",
+      "path": "/api/v1/system/refresh/state",
+      "query": "?topics=system:dept:changed,system:dict:changed,system:i18n:changed,system:menu:changed,system:permission:changed,system:post:changed,system:role:changed,system:setting:changed,system:user:changed",
+      "method": "GET",
+      "evidenceKind": "browser-fixture"
+    },
+    {
+      "at": "2026-11-18T10:20:11.316Z",
+      "path": "/api/v1/system/refresh/state",
+      "query": "?topics=system:dept:changed,system:dict:changed,system:i18n:changed,system:menu:changed,system:permission:changed,system:post:changed,system:role:changed,system:setting:changed,system:user:changed",
+      "method": "GET",
+      "evidenceKind": "browser-fixture"
+    },
+    {
+      "at": "2026-11-18T10:20:11.593Z",
+      "path": "/api/v1/business/filedist/tasks/98001",
+      "query": "",
+      "method": "GET",
+      "evidenceKind": "browser-fixture"
+    },
+    {
+      "at": "2026-11-18T10:20:11.593Z",
+      "path": "/api/v1/business/filedist/tasks/98001/targets",
+      "query": "",
+      "method": "GET",
+      "evidenceKind": "browser-fixture"
+    },
+    {
+      "at": "2026-11-18T10:20:11.594Z",
+      "path": "/api/v1/business/filedist/tasks/98001/events",
+      "query": "",
+      "method": "GET",
+      "evidenceKind": "browser-fixture"
+    },
+    {
+      "at": "2026-11-18T10:20:12.924Z",
+      "path": "/api/v1/system/setting/public",
+      "query": "",
+      "method": "GET",
+      "evidenceKind": "browser-fixture"
+    },
+    {
+      "at": "2026-11-18T10:20:13.040Z",
+      "path": "/api/v1/system/menu/tree",
+      "query": "?scope=nav",
+      "method": "GET",
+      "evidenceKind": "browser-fixture"
+    },
+    {
+      "at": "2026-11-18T10:20:13.519Z",
+      "path": "/api/v1/auth/tenants/current",
+      "query": "",
+      "method": "GET",
+      "evidenceKind": "browser-fixture"
+    },
+    {
+      "at": "2026-11-18T10:20:13.520Z",
+      "path": "/api/v1/system/refresh/state",
+      "query": "?topics=system:dept:changed,system:dict:changed,system:i18n:changed,system:menu:changed,system:permission:changed,system:post:changed,system:role:changed,system:setting:changed,system:user:changed",
+      "method": "GET",
+      "evidenceKind": "browser-fixture"
+    },
+    {
+      "at": "2026-11-18T10:20:13.520Z",
+      "path": "/api/v1/system/refresh/state",
+      "query": "?topics=system:dept:changed,system:dict:changed,system:i18n:changed,system:menu:changed,system:permission:changed,system:post:changed,system:role:changed,system:setting:changed,system:user:changed",
+      "method": "GET",
+      "evidenceKind": "browser-fixture"
+    },
+    {
+      "at": "2026-11-18T10:20:13.762Z",
+      "path": "/api/v1/business/filedist/tasks/98001",
+      "query": "",
+      "method": "GET",
+      "evidenceKind": "browser-fixture"
+    },
+    {
+      "at": "2026-11-18T10:20:13.763Z",
+      "path": "/api/v1/business/filedist/tasks/98001/targets",
+      "query": "",
+      "method": "GET",
+      "evidenceKind": "browser-fixture"
+    },
+    {
+      "at": "2026-11-18T10:20:13.765Z",
+      "path": "/api/v1/business/filedist/tasks/98001/events",
+      "query": "",
+      "method": "GET",
+      "evidenceKind": "browser-fixture"
+    },
+    {
+      "at": "2026-11-18T10:20:14.884Z",
+      "path": "/api/v1/system/setting/public",
+      "query": "",
+      "method": "GET",
+      "evidenceKind": "browser-fixture"
+    },
+    {
+      "at": "2026-11-18T10:20:15.008Z",
+      "path": "/api/v1/system/menu/tree",
+      "query": "?scope=nav",
+      "method": "GET",
+      "evidenceKind": "browser-fixture"
+    },
+    {
+      "at": "2026-11-18T10:20:15.510Z",
+      "path": "/api/v1/auth/tenants/current",
+      "query": "",
+      "method": "GET",
+      "evidenceKind": "browser-fixture"
+    },
+    {
+      "at": "2026-11-18T10:20:15.511Z",
+      "path": "/api/v1/system/refresh/state",
+      "query": "?topics=system:dept:changed,system:dict:changed,system:i18n:changed,system:menu:changed,system:permission:changed,system:post:changed,system:role:changed,system:setting:changed,system:user:changed",
+      "method": "GET",
+      "evidenceKind": "browser-fixture"
+    },
+    {
+      "at": "2026-11-18T10:20:15.511Z",
+      "path": "/api/v1/system/refresh/state",
+      "query": "?topics=system:dept:changed,system:dict:changed,system:i18n:changed,system:menu:changed,system:permission:changed,system:post:changed,system:role:changed,system:setting:changed,system:user:changed",
+      "method": "GET",
+      "evidenceKind": "browser-fixture"
+    },
+    {
+      "at": "2026-11-18T10:20:15.727Z",
+      "path": "/api/v1/business/filedist/tasks/98001",
+      "query": "",
+      "method": "GET",
+      "evidenceKind": "browser-fixture"
+    },
+    {
+      "at": "2026-11-18T10:20:15.728Z",
+      "path": "/api/v1/business/filedist/tasks/98001/targets",
+      "query": "",
+      "method": "GET",
+      "evidenceKind": "browser-fixture"
+    },
+    {
+      "at": "2026-11-18T10:20:15.728Z",
+      "path": "/api/v1/business/filedist/tasks/98001/events",
+      "query": "",
+      "method": "GET",
+      "evidenceKind": "browser-fixture"
+    },
+    {
+      "at": "2026-11-18T10:20:16.964Z",
+      "path": "/api/v1/system/setting/public",
+      "query": "",
+      "method": "GET",
+      "evidenceKind": "browser-fixture"
+    },
+    {
+      "at": "2026-11-18T10:20:17.093Z",
+      "path": "/api/v1/system/menu/tree",
+      "query": "?scope=nav",
+      "method": "GET",
+      "evidenceKind": "browser-fixture"
+    },
+    {
+      "at": "2026-11-18T10:20:17.624Z",
+      "path": "/api/v1/auth/tenants/current",
+      "query": "",
+      "method": "GET",
+      "evidenceKind": "browser-fixture"
+    },
+    {
+      "at": "2026-11-18T10:20:17.625Z",
+      "path": "/api/v1/system/refresh/state",
+      "query": "?topics=system:dept:changed,system:dict:changed,system:i18n:changed,system:menu:changed,system:permission:changed,system:post:changed,system:role:changed,system:setting:changed,system:user:changed",
+      "method": "GET",
+      "evidenceKind": "browser-fixture"
+    },
+    {
+      "at": "2026-11-18T10:20:17.626Z",
+      "path": "/api/v1/system/refresh/state",
+      "query": "?topics=system:dept:changed,system:dict:changed,system:i18n:changed,system:menu:changed,system:permission:changed,system:post:changed,system:role:changed,system:setting:changed,system:user:changed",
+      "method": "GET",
+      "evidenceKind": "browser-fixture"
+    },
+    {
+      "at": "2026-11-18T10:20:17.855Z",
+      "path": "/api/v1/business/filedist/tasks/98001",
+      "query": "",
+      "method": "GET",
+      "evidenceKind": "browser-fixture"
+    },
+    {
+      "at": "2026-11-18T10:20:17.856Z",
+      "path": "/api/v1/business/filedist/tasks/98001/targets",
+      "query": "",
+      "method": "GET",
+      "evidenceKind": "browser-fixture"
+    },
+    {
+      "at": "2026-11-18T10:20:17.856Z",
+      "path": "/api/v1/business/filedist/tasks/98001/events",
+      "query": "",
+      "method": "GET",
+      "evidenceKind": "browser-fixture"
+    },
+    {
+      "at": "2026-11-18T10:20:18.859Z",
+      "path": "/api/v1/system/setting/public",
+      "query": "",
+      "method": "GET",
+      "evidenceKind": "browser-fixture"
+    },
+    {
+      "at": "2026-11-18T10:20:18.965Z",
+      "path": "/api/v1/system/menu/tree",
+      "query": "?scope=nav",
+      "method": "GET",
+      "evidenceKind": "browser-fixture"
+    },
+    {
+      "at": "2026-11-18T10:20:19.512Z",
+      "path": "/api/v1/auth/tenants/current",
+      "query": "",
+      "method": "GET",
+      "evidenceKind": "browser-fixture"
+    },
+    {
+      "at": "2026-11-18T10:20:19.513Z",
+      "path": "/api/v1/system/refresh/state",
+      "query": "?topics=system:dept:changed,system:dict:changed,system:i18n:changed,system:menu:changed,system:permission:changed,system:post:changed,system:role:changed,system:setting:changed,system:user:changed",
+      "method": "GET",
+      "evidenceKind": "browser-fixture"
+    },
+    {
+      "at": "2026-11-18T10:20:19.515Z",
+      "path": "/api/v1/system/refresh/state",
+      "query": "?topics=system:dept:changed,system:dict:changed,system:i18n:changed,system:menu:changed,system:permission:changed,system:post:changed,system:role:changed,system:setting:changed,system:user:changed",
+      "method": "GET",
+      "evidenceKind": "browser-fixture"
+    },
+    {
+      "at": "2026-11-18T10:20:19.768Z",
+      "path": "/api/v1/business/filedist/tasks/98001",
+      "query": "",
+      "method": "GET",
+      "evidenceKind": "browser-fixture"
+    },
+    {
+      "at": "2026-11-18T10:20:19.769Z",
+      "path": "/api/v1/business/filedist/tasks/98001/targets",
+      "query": "",
+      "method": "GET",
+      "evidenceKind": "browser-fixture"
+    },
+    {
+      "at": "2026-11-18T10:20:19.770Z",
+      "path": "/api/v1/business/filedist/tasks/98001/events",
+      "query": "",
+      "method": "GET",
+      "evidenceKind": "browser-fixture"
+    },
+    {
+      "at": "2026-11-18T10:20:20.797Z",
+      "path": "/api/v1/system/setting/public",
+      "query": "",
+      "method": "GET",
+      "evidenceKind": "browser-fixture"
+    },
+    {
+      "at": "2026-11-18T10:20:20.927Z",
+      "path": "/api/v1/system/menu/tree",
+      "query": "?scope=nav",
+      "method": "GET",
+      "evidenceKind": "browser-fixture"
+    },
+    {
+      "at": "2026-11-18T10:20:21.514Z",
+      "path": "/api/v1/auth/tenants/current",
+      "query": "",
+      "method": "GET",
+      "evidenceKind": "browser-fixture"
+    },
+    {
+      "at": "2026-11-18T10:20:21.516Z",
+      "path": "/api/v1/system/refresh/state",
+      "query": "?topics=system:dept:changed,system:dict:changed,system:i18n:changed,system:menu:changed,system:permission:changed,system:post:changed,system:role:changed,system:setting:changed,system:user:changed",
+      "method": "GET",
+      "evidenceKind": "browser-fixture"
+    },
+    {
+      "at": "2026-11-18T10:20:21.516Z",
+      "path": "/api/v1/system/refresh/state",
+      "query": "?topics=system:dept:changed,system:dict:changed,system:i18n:changed,system:menu:changed,system:permission:changed,system:post:changed,system:role:changed,system:setting:changed,system:user:changed",
+      "method": "GET",
+      "evidenceKind": "browser-fixture"
+    },
+    {
+      "at": "2026-11-18T10:20:21.768Z",
+      "path": "/api/v1/business/filedist/tasks/98001",
+      "query": "",
+      "method": "GET",
+      "evidenceKind": "browser-fixture"
+    },
+    {
+      "at": "2026-11-18T10:20:21.768Z",
+      "path": "/api/v1/business/filedist/tasks/98001/targets",
+      "query": "",
+      "method": "GET",
+      "evidenceKind": "browser-fixture"
+    },
+    {
+      "at": "2026-11-18T10:20:21.770Z",
+      "path": "/api/v1/business/filedist/tasks/98001/events",
+      "query": "",
+      "method": "GET",
+      "evidenceKind": "browser-fixture"
+    },
+    {
+      "at": "2026-11-18T10:20:22.915Z",
+      "path": "/api/v1/system/setting/public",
+      "query": "",
+      "method": "GET",
+      "evidenceKind": "browser-fixture"
+    },
+    {
+      "at": "2026-11-18T10:20:23.056Z",
+      "path": "/api/v1/system/menu/tree",
+      "query": "?scope=nav",
+      "method": "GET",
+      "evidenceKind": "browser-fixture"
+    },
+    {
+      "at": "2026-11-18T10:20:23.517Z",
+      "path": "/api/v1/auth/tenants/current",
+      "query": "",
+      "method": "GET",
+      "evidenceKind": "browser-fixture"
+    },
+    {
+      "at": "2026-11-18T10:20:23.518Z",
+      "path": "/api/v1/system/refresh/state",
+      "query": "?topics=system:dept:changed,system:dict:changed,system:i18n:changed,system:menu:changed,system:permission:changed,system:post:changed,system:role:changed,system:setting:changed,system:user:changed",
+      "method": "GET",
+      "evidenceKind": "browser-fixture"
+    },
+    {
+      "at": "2026-11-18T10:20:23.518Z",
+      "path": "/api/v1/system/refresh/state",
+      "query": "?topics=system:dept:changed,system:dict:changed,system:i18n:changed,system:menu:changed,system:permission:changed,system:post:changed,system:role:changed,system:setting:changed,system:user:changed",
+      "method": "GET",
+      "evidenceKind": "browser-fixture"
+    },
+    {
+      "at": "2026-11-18T10:20:23.757Z",
+      "path": "/api/v1/business/filedist/tasks/98001",
+      "query": "",
+      "method": "GET",
+      "evidenceKind": "browser-fixture"
+    },
+    {
+      "at": "2026-11-18T10:20:23.758Z",
+      "path": "/api/v1/business/filedist/tasks/98001/targets",
+      "query": "",
+      "method": "GET",
+      "evidenceKind": "browser-fixture"
+    },
+    {
+      "at": "2026-11-18T10:20:23.759Z",
+      "path": "/api/v1/business/filedist/tasks/98001/events",
+      "query": "",
+      "method": "GET",
+      "evidenceKind": "browser-fixture"
+    }
+  ],
+  "blockedRequests": [],
+  "browserErrors": [],
+  "boundary": "Real local login, live FileDist reads and live missing-task render are distinct from browser-only business fixtures. One POST target-resolver fixture is fulfilled locally; every real business write and external URL is blocked. No distribution submit, transfer, provider admission or production acceptance.",
+  "auth": "Existing local loginByApi/installClientSession helper; auth POST is the only real POST. Tokens/passwords/headers/storage are not exported.",
+  "finishedAt": "2026-11-18T10:20:24.146Z"
+}

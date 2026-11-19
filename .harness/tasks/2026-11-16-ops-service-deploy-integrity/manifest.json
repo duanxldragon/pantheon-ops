@@ -3,7 +3,7 @@
   "title": "部署与服务实例关联及引用保护",
   "goal": "部署与服务实例关联及引用保护",
   "primaryLayer": "business/*",
-  "status": "planned",
+  "status": "in-progress",
   "priority": "P0",
   "deliveryTier": "L2",
   "taskDoc": "docs/harness/tasks/2026-11-16-ops-service-deploy-integrity.task.md",
@@ -105,5 +105,24 @@
     "planRefs": [
       ".harness/tasks/2026-11-16-ops-pilot-delivery/plan.md"
     ]
+  },
+  "continuationCheckpoint": {
+    "at": "2026-11-19T00:11:15.272Z",
+    "packageCode": "C01",
+    "stage": "implementation",
+    "deliveryVerdict": "PARTIAL",
+    "accepted": false,
+    "evidenceRefs": [
+      ".harness/evidence/2026-11-17-ops-history-audit/continuation-c01-parent-claim-green-20261118-01.log.receipt.json",
+      ".harness/evidence/2026-11-17-ops-history-audit/continuation-c01-e03-frozen-green-20261118-01.log.receipt.json",
+      ".harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-full-race-20261118-01.log.receipt.json",
+      ".harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-20261118-e01-final-frontend-quality.json",
+      ".harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-20261118-e01-final-source-equivalence.json",
+      ".harness/evidence/2026-11-17-ops-history-audit/continuation-current-preview-ten-packages-20261118-e01-final-build.json",
+      ".harness/evidence/2026-11-17-ops-history-audit/continuation-current-preview-ten-packages-e01-final-started-20261118.json",
+      ".harness/evidence/2026-11-17-ops-history-audit/continuation-c01-queue-claim-independent-review-20261118.json"
+    ],
+    "progressReceipt": ".harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-progress-final-20261118.json",
+    "currentTechnicalIntegrationPassed": true
   }
 }

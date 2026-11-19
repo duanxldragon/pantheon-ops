@@ -91,6 +91,9 @@ const k8sRoutePath = "/business/k8s"
 
 // InitK8sModule registers Kubernetes business modules and returns target capabilities.
 func InitK8sModule(r *gin.RouterGroup, db *gorm.DB, hostService *host.HostService, readers ...bizcap.BizScopeReader) bizcap.K8sTargetReader {
+	if err := registerK8sServicePermissionRoutes(); err != nil {
+		panic(err)
+	}
 	clusterSvc := cluster.NewClusterService(db, readers...)
 	clusterHandler := cluster.NewClusterHandler(clusterSvc)
 	namespaceSvc := namespace.NewNamespaceService(clusterSvc, db)
@@ -130,6 +133,9 @@ func InitK8sModule(r *gin.RouterGroup, db *gorm.DB, hostService *host.HostServic
 	contracts.RegisterBackendModules(r, db, contracts.FuncModule{
 		ModuleName: k8sModuleKey,
 		MigrateFunc: func(_ *gorm.DB) error {
+			return migrateAll(db, clusterSvc, namespaceSvc, releaseSvc, helmSvc, ingressSvc, storageSvc, rbacSvc, installSvc)
+		},
+		BootstrapFunc: func(_ *gorm.DB) error {
 			return migrateAll(db, clusterSvc, namespaceSvc, releaseSvc, helmSvc, ingressSvc, storageSvc, rbacSvc, installSvc)
 		},
 		SeedMenusFunc: seedMenus,

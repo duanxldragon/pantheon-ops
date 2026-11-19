@@ -111,6 +111,9 @@ func (s *DeployService) validateExecutionHosts(ctx context.Context, task *Deploy
 }
 
 func (s *DeployService) validateTaskExecutionAdmission(task *DeployTask, scope *common.DataScopeReq) error {
+	if err := validateRetireTaskIntent(*task); err != nil {
+		return err
+	}
 	if err := s.validateActiveExecutionScope(s.requestContext(), task, scope); err != nil {
 		return err
 	}
@@ -127,7 +130,14 @@ func (s *DeployService) validateTaskExecutionAdmission(task *DeployTask, scope *
 			ids = append(ids, host.ID)
 		}
 	}
-	return s.validateExecutionHosts(s.requestContext(), task, ids, scope)
+	if err := s.validateExecutionHosts(s.requestContext(), task, ids, scope); err != nil {
+		return err
+	}
+	resolved := make([]cmdbHostSnapshot, 0, len(ids))
+	for _, id := range common.NormalizeUint64IDs(ids) {
+		resolved = append(resolved, cmdbHostSnapshot{ID: id, BusinessScopeID: task.BusinessScopeID})
+	}
+	return s.validateServiceLink(task, scope, resolved)
 }
 
 // Every SSH command, including probes and pre/post checks, gets a fresh source
@@ -141,6 +151,9 @@ type executionScopeSSHRunner struct {
 }
 
 func (r *executionScopeSSHRunner) RunScript(ctx context.Context, script string) (string, string, error) {
+	if err := validateRetireRemoteIntent(r.task); err != nil {
+		return "", "", err
+	}
 	if err := r.service.assertCommandOwnership(); err != nil {
 		return "", "", err
 	}

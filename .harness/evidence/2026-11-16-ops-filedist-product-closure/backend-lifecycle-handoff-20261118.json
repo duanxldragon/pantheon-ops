@@ -1,0 +1,38 @@
+{
+  "task_id": "2026-11-16-ops-filedist-product-closure",
+  "date": "2026-11-18",
+  "implementer": "/root/e01_transfer_lifecycle_executor",
+  "status": "implementation-frozen-for-coordinated-verification",
+  "independent_review": "pending-coordinator",
+  "whole_package_closed": false,
+  "verification": [
+    {"command": "go test -mod=readonly -run '^$' ./modules/business/filedist", "cwd": "backend", "exit_code": 0, "result": "compile-pass; no tests to run; 0.042s"},
+    {"command": "go test -mod=readonly -run '^TestDistribution(ActiveCancellation|ContextReader|SFTPHandshake|LeaseLoss)' -count=1 ./modules/business/filedist", "cwd": "backend", "exit_code": 0, "result": "four non-database cases pass; 0.044s"},
+    {"command": "go vet -mod=readonly ./modules/business/filedist", "cwd": "backend", "exit_code": 0, "result": "no diagnostics"},
+    {"command": "git diff --check -- backend/modules/business/filedist .harness/tasks/2026-11-16-ops-filedist-product-closure/continuation-backend-lifecycle-plan-20261118.md", "cwd": ".", "exit_code": 0, "result": "no whitespace diagnostics"}
+  ],
+  "mysql_tests_not_run_here": [
+    "TestDistributionCancelStopsInFlightAndPreservesTerminalState",
+    "TestDistributionDueDispatchDoesNotStartFutureOrDuplicateTasks",
+    "TestDistributionRecoveryFailsInterruptedWorkWithoutReplaying",
+    "TestDistributionLifecycleLeasePreventsConcurrentRecovery",
+    "TestDistributionLifecycleLeaseHealthDetectsReleasedOwnership"
+  ],
+  "sha256": {
+    "backend/modules/business/filedist/distribution_model.go": "7bffb82d45d290e1ec6682f4b973f61ace7a73e72a35ece15f29cd95c1e45011",
+    "backend/modules/business/filedist/distribution_service.go": "9a24fc378a900b67cffba333d16e22b153aab600559487aaea5bd51d5c6e1b64",
+    "backend/modules/business/filedist/distribution_lifecycle.go": "9e8bce867f9a9a22b086f1f8cec98899090c6189722ea4e908806c713a0eb79c",
+    "backend/modules/business/filedist/distribution_lifecycle_test.go": "160895837873f9c5e0addac770b0ac6328ffe2b78b9e02bca882af7903e15b4f",
+    "backend/modules/business/filedist/module.go": "e4169e86d80e47edebd9cbd00346d1d9f293e307023d0e18b1236c03f6fc8ddb",
+    "backend/modules/business/filedist/transfer_engine.go": "67a47438f3b9b4af5861209ba5bed17630fff99a32d568609822dbc29dc2354d",
+    "backend/modules/business/filedist/sftp_client.go": "85c5e0c7f915324534155152e181f53d80c244ef8af1b19b438d344e738e7930",
+    "backend/modules/business/filedist/storage_service.go": "0b1adc002e71309fc5b881cc94533c8e0acd17eda13526a578867a2f521f8d33"
+  },
+  "coordinator_owned_gaps": [
+    "startup Start(ctx) wiring after migration and policy composition",
+    "canonical business error keys and locale integration",
+    "actual MySQL validation and complete Windows CGO race",
+    "integrated runtime/product smoke and independent review",
+    "remote provider/network-partition behavior and human acceptance"
+  ]
+}

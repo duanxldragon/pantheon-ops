@@ -1,0 +1,13 @@
+{
+  "globalSettingsChanged": false,
+  "launch": {
+    "startedByTask": true,
+    "id": 27396,
+    "path": "C:\\Users\\xiaolong\\AppData\\Local\\Programs\\DockerDesktop\\Docker Desktop.exe"
+  },
+  "command": "Start-Process installed Docker Desktop -WindowStyle Hidden",
+  "recordedAtUTC": "2026-11-19T01:01:43.5539496Z",
+  "taskId": "2026-11-19-ten-package-acceptance",
+  "scope": "Local provider readiness only. Existing Docker Desktop retained after validation; task containers/clusters use separate identities.",
+  "productServicesRestarted": false
+}

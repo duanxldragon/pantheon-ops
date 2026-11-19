@@ -2,17 +2,33 @@ package observability
 
 import (
 	"context"
-	"github.com/redis/go-redis/v9"
+	"os"
+	"strings"
 	"testing"
 	"time"
+
+	"github.com/duanxldragon/pantheon-base/backend/pkg/testredis"
+	"github.com/redis/go-redis/v9"
 )
 
-func TestQueryPermitActualRedisActorAndTenantCaps(t *testing.T) {
-	rdb := redis.NewClient(&redis.Options{Addr: "127.0.0.1:26316"})
-	t.Cleanup(func() { _ = rdb.Close() })
-	if err := rdb.Ping(context.Background()).Err(); err != nil {
-		t.Skip("isolated Redis reference missing")
+func openQueryTestRedis(t *testing.T) *redis.Client {
+	t.Helper()
+	addr := strings.TrimSpace(os.Getenv("PANTHEON_OBSERVABILITY_TEST_REDIS_ADDR"))
+	if addr == "" {
+		addr = "127.0.0.1:26316"
 	}
+	// This package owns its Redis instance; its cleanup must not flush a generic
+	// test database or inherit credentials from the application Redis instance.
+	t.Setenv("PANTHEON_TEST_REDIS_REQUIRED", "1")
+	t.Setenv("PANTHEON_TEST_REDIS_ADDR", addr)
+	t.Setenv("PANTHEON_TEST_REDIS_PASSWORD", os.Getenv("PANTHEON_OBSERVABILITY_TEST_REDIS_PASSWORD"))
+	t.Setenv("PANTHEON_REDIS_PASSWORD", "")
+	t.Setenv("REDIS_PASSWORD", "")
+	return testredis.OpenDB(t, testredis.DBDefault)
+}
+
+func TestQueryPermitActualRedisActorAndTenantCaps(t *testing.T) {
+	rdb := openQueryTestRedis(t)
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 	tenant := uint64(time.Now().UnixNano())

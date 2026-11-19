@@ -1,0 +1,32 @@
+{
+  "recordedAtUTC": "2026-11-18T09:50:53.8905953Z",
+  "owner": "/root/e01_ui_partial_closeout",
+  "script": ".local/manual-preview-20261116/verify-ten-packages-ui-20261118.mjs",
+  "scriptSHA256": "1e88ebebc59195d6fb277d75c3ba5c5f3d3c5b1c238c107b31da8549549fab5e",
+  "priorRun": ".harness/evidence/2026-11-16-ops-filedist-product-closure/ui-readonly-ten-packages-20261118-01.json",
+  "priorRunPreserved": true,
+  "syntaxCheck": {
+    "command": "node --check .local/manual-preview-20261116/verify-ten-packages-ui-20261118.mjs",
+    "actualExitCode": 0
+  },
+  "state": "awaiting-root-new-proof-build-runtime-quality-before-run02",
+  "productionFilesEditedByLane": false,
+  "diagnostics": [
+    "standalone expectation timeout and explicit resolver response/field wait",
+    "safe assertion locator and script frames without values or secrets",
+    "masked failed-phase screenshot",
+    "no common.view raw key",
+    "404 zero Arco toast insertions and zero visible shared messages",
+    "nonempty live list renders canonical 详情 button and fixture403/503/offline have zero shared toasts"
+  ],
+  "originalGatesPreserved": [
+    "source proof/current hashes",
+    "backend and frontend build success",
+    "independent CIM actual runtime process/binary",
+    "local read policy and fixture-only resolver POST",
+    "hidden child/headless browser",
+    "source-before-after"
+  ],
+  "detail": ".harness/evidence/2026-11-16-ops-filedist-product-closure/ui-readonly-script-repair-20261118-02.md",
+  "nextRunArtifactSuffix": "ten-packages-20261118-02"
+}

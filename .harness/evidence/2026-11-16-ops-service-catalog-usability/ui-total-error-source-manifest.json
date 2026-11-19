@@ -1,0 +1,8 @@
+{
+  "taskId": "2026-11-16-ops-service-catalog-usability",
+  "checkedAt": "2026-11-17T16:54:58.9185152Z",
+  "sourceState": "Frozen working-tree checkpoint, no commit",
+  "change": "Add total error-toast count=1 beside exact localized stale count=1 after submit spinner ends",
+  "path": "frontend/tests/smoke/business/service/service-pages.spec.ts",
+  "sha256": "70fe8d4176011e72f902ac3ebf454f005b5e769d463df9fa5ff7b17eed1237dd"
+}

@@ -1,6 +1,8 @@
 // Package helm provides DB-snapshot records of Helm releases. Kubernetes
 // remains the runtime source of truth; these rows track releases registered
-// through the platform.
+// through the platform. A row is a registration snapshot only: it never
+// proves that a Helm Chart was installed, upgraded or rolled back in a
+// cluster.
 package helm
 
 import (
@@ -18,25 +20,44 @@ import (
 
 const msgParamInvalid = "common.param_invalid"
 
+// registeredStatus is the only status a registration snapshot records. Helm
+// runtime states such as "deployed" describe an actual Chart execution, which
+// this module does not perform; a registration row must never be presented as
+// proof of one.
+const registeredStatus = "registered"
+
 // HelmRelease is the DB record of a Helm release.
+//
+// Status stores the original database value; service responses project it to
+// registeredStatus and preserve the original in response-only StoredStatus.
+// EffectiveStatus also returns registeredStatus for compatible clients.
+// The historical database default is unchanged to avoid altering existing
+// tables; Create always supplies registeredStatus explicitly.
 //
 //nolint:revive // the exported type name keeps the Helm domain prefix for API clarity.
 type HelmRelease struct {
-	ID        uint64    `gorm:"primaryKey;autoIncrement" json:"id"`
-	Name      string    `gorm:"size:255;not null;index" json:"name"`
-	ClusterID uint64    `gorm:"column:cluster_id;index" json:"clusterId"`
-	Namespace string    `gorm:"size:255;not null;index" json:"namespace"`
-	Chart     string    `gorm:"size:255" json:"chart"`
-	Version   string    `gorm:"size:128" json:"version"`
-	Status    string    `gorm:"size:64;default:deployed;index" json:"status"`
-	CreatedAt time.Time `json:"createdAt"`
-	UpdatedAt time.Time `json:"updatedAt"`
+	ID              uint64    `gorm:"primaryKey;autoIncrement" json:"id"`
+	Name            string    `gorm:"size:255;not null;index" json:"name"`
+	ClusterID       uint64    `gorm:"column:cluster_id;index" json:"clusterId"`
+	Namespace       string    `gorm:"size:255;not null;index" json:"namespace"`
+	Chart           string    `gorm:"size:255" json:"chart"`
+	Version         string    `gorm:"size:128" json:"version"`
+	Status          string    `gorm:"size:64;default:deployed;index" json:"status"`
+	StoredStatus    string    `gorm:"-" json:"storedStatus"`
+	EffectiveStatus string    `gorm:"-" json:"effectiveStatus"`
+	CreatedAt       time.Time `json:"createdAt"`
+	UpdatedAt       time.Time `json:"updatedAt"`
 }
 
 // TableName returns the Helm release table name.
 func (HelmRelease) TableName() string { return "biz_k8s_helm_release" }
 
 // CreateHelmReleaseRequest contains Helm release creation fields.
+//
+// Status is accepted for wire compatibility with earlier clients but is
+// ignored: the service always persists registeredStatus, so a caller-supplied
+// runtime state ("deployed", "failed", ...) can never be recorded or returned
+// as an effective status.
 type CreateHelmReleaseRequest struct {
 	Name      string `json:"name" binding:"required"`
 	ClusterID uint64 `json:"clusterId" binding:"required"`
@@ -80,6 +101,9 @@ func (s *HelmService) Migrate() error {
 }
 
 // List returns Helm release records.
+//
+// Response status fields report registration only. StoredStatus preserves
+// legacy database provenance without changing the persisted row.
 func (s *HelmService) List(query ListQuery, dataScope *common.DataScopeReq) (*ListResponse, error) {
 	if s.db == nil {
 		return nil, errors.New("database.not_initialized")
@@ -102,10 +126,19 @@ func (s *HelmService) List(query ListQuery, dataScope *common.DataScopeReq) (*Li
 	if err := db.Order("id DESC").Find(&items).Error; err != nil {
 		return nil, err
 	}
+	for i := range items {
+		items[i].StoredStatus = items[i].Status
+		items[i].Status = registeredStatus
+		items[i].EffectiveStatus = registeredStatus
+	}
 	return &ListResponse{Items: items, Total: total}, nil
 }
 
-// Create records a Helm release.
+// Create records a Helm release registration.
+//
+// The returned and persisted Status is always registeredStatus; a submitted
+// request Status is ignored, so a caller cannot make a registration row claim
+// a Helm runtime state.
 func (s *HelmService) Create(req CreateHelmReleaseRequest, createdBy string) (*HelmRelease, error) {
 	if s.db == nil {
 		return nil, errors.New("database.not_initialized")
@@ -114,15 +147,14 @@ func (s *HelmService) Create(req CreateHelmReleaseRequest, createdBy string) (*H
 		return nil, errors.New("common.param_invalid")
 	}
 	record := HelmRelease{
-		Name:      strings.TrimSpace(req.Name),
-		ClusterID: req.ClusterID,
-		Namespace: strings.TrimSpace(req.Namespace),
-		Chart:     req.Chart,
-		Version:   req.Version,
-		Status:    req.Status,
-	}
-	if record.Status == "" {
-		record.Status = "deployed"
+		Name:            strings.TrimSpace(req.Name),
+		ClusterID:       req.ClusterID,
+		Namespace:       strings.TrimSpace(req.Namespace),
+		Chart:           req.Chart,
+		Version:         req.Version,
+		Status:          registeredStatus,
+		StoredStatus:    registeredStatus,
+		EffectiveStatus: registeredStatus,
 	}
 	_ = createdBy // retained for audit symmetry with other k8s modules
 	if err := s.db.Create(&record).Error; err != nil {
