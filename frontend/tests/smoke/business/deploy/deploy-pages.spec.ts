@@ -1,4 +1,6 @@
-import { expect, test, type APIResponse } from '@playwright/test';
+import { expect, test, type APIRequestContext, type APIResponse } from '@playwright/test';
+import { randomUUID } from 'node:crypto';
+import type { DeployTaskPreviewResponse, StartDeployTaskPayload } from '../../../../src/modules/business/deploy/api';
 import {
   apiBaseUrl,
   apiRequestHeaders,
@@ -55,6 +57,28 @@ async function expectSuccess<T>(response: APIResponse): Promise<T> {
   const payload = await response.json() as ApiEnvelope<T>;
   expect(payload.code).toBe(200);
   return payload.data;
+}
+
+// StartTask requires a preview (RequirePreview=true) that returns an
+// intentVersion; the actual start must echo it. Mirrors deploy-api.spec.ts.
+async function previewAndStartTask(
+  request: APIRequestContext,
+  headers: Record<string, string>,
+  taskId: number,
+  data: StartDeployTaskPayload = {},
+): Promise<TaskRow> {
+  const preview = await expectSuccess<DeployTaskPreviewResponse>(
+    await request.post(`${apiBaseUrl}/business/deploy/tasks/${taskId}/preview`, { headers, data }),
+  );
+  expect(preview.intentId).toBe(`deploy:${taskId}`);
+  expect(preview.intentVersion).toBeTruthy();
+  expect(preview.targetCount).toBeGreaterThan(0);
+  return expectSuccess<TaskRow>(
+    await request.post(`${apiBaseUrl}/business/deploy/tasks/${taskId}/start`, {
+      headers: { ...headers, 'X-Idempotency-Key': randomUUID() },
+      data: { ...data, intentVersion: preview.intentVersion },
+    }),
+  );
 }
 
 test.describe('Deploy business module smoke', () => {
@@ -165,9 +189,7 @@ test.describe('Deploy business module smoke', () => {
     );
 
     try {
-      const started = await expectSuccess<TaskRow>(
-        await request.post(`${apiBaseUrl}/business/deploy/tasks/${task.id}/start`, { headers }),
-      );
+      const started = await previewAndStartTask(request, headers, task.id);
       expect(started.hosts).toHaveLength(1);
 
       await expectSuccess(
@@ -457,9 +479,7 @@ test.describe('Deploy business module smoke', () => {
     );
 
     try {
-      const started = await expectSuccess<TaskRow>(
-        await request.post(`${apiBaseUrl}/business/deploy/tasks/${task.id}/start`, { headers }),
-      );
+      const started = await previewAndStartTask(request, headers, task.id);
       expect(started.hosts).toHaveLength(1);
 
       await page.goto(`/business/deploy/task/${task.id}`, { waitUntil: 'domcontentloaded' });
@@ -674,7 +694,7 @@ test.describe('Deploy business module smoke', () => {
       await expect(modal).toBeVisible();
       await expect(modal).toContainText('编辑任务');
       await expect(modal.locator('input').first()).toHaveValue(`${token}-task`);
-      await modal.locator('textarea').fill('detail edit smoke updated');
+      await modal.getByLabel('备注', { exact: true }).fill('detail edit smoke updated');
       await modal.getByRole('button', { name: '保存' }).click();
       await expect(modal).toBeHidden();
       await expect(page).toHaveURL(/\/business\/deploy\/task$/);
@@ -795,15 +815,10 @@ test.describe('Deploy business module smoke', () => {
       }),
     );
 
-    await expectSuccess<TaskRow>(
-      await request.post(`${apiBaseUrl}/business/deploy/tasks/${task.id}/start`, {
-        headers,
-        data: {
-          credentialRefId: credential.id,
-          hostFingerprint: 'SHA256:test',
-        },
-      }),
-    );
+    await previewAndStartTask(request, headers, task.id, {
+      credentialRefId: credential.id,
+      hostFingerprint: 'SHA256:test',
+    });
     await expect.poll(async () => {
       const response = await request.get(`${apiBaseUrl}/business/deploy/tasks/${task.id}`, { headers });
       const payload = await response.json() as ApiEnvelope<TaskRow>;
