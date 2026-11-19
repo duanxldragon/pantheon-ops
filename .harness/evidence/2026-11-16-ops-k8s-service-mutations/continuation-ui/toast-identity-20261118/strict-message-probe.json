@@ -1,0 +1,43 @@
+{
+  "reactVersion": "19.3.1",
+  "strictMode": true,
+  "actualInstalledMessage": true,
+  "results": [
+    {
+      "withId": false,
+      "calls": 1,
+      "noticeCount": 2,
+      "notices": [
+        {
+          "className": "arco-message arco-message-error",
+          "text": "服务已变化，请刷新列表并重新核对后操作。",
+          "parentClass": "fadeMessage-enter fadeMessage-enter-active"
+        },
+        {
+          "className": "arco-message arco-message-error",
+          "text": "服务已变化，请刷新列表并重新核对后操作。",
+          "parentClass": "fadeMessage-enter fadeMessage-enter-active"
+        }
+      ],
+      "afterUnmountCount": 0
+    },
+    {
+      "withId": true,
+      "calls": 1,
+      "noticeCount": 1,
+      "notices": [
+        {
+          "className": "arco-message arco-message-error",
+          "text": "服务已变化，请刷新列表并重新核对后操作。",
+          "parentClass": "fadeMessage-enter fadeMessage-enter-active"
+        }
+      ],
+      "sameIdUpdateCount": 1,
+      "sameIdUpdatedText": "第二次错误",
+      "afterUnmountCount": 0
+    }
+  ],
+  "warnings": [
+    "Each child in a list should have a unique \"key\" prop.%s%s See https://react.dev/link/warning-keys for more information. \n\nCheck the render method of `Harness`. "
+  ]
+}

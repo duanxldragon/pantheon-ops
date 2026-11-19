@@ -1,0 +1,10 @@
+{
+  "recordedAtUTC": "2026-11-18T10:18:16.1939100Z",
+  "source": ".local/manual-preview-20261116/verify-ten-packages-ui-20261118.mjs",
+  "raw": ".harness/evidence/2026-11-16-ops-filedist-product-closure/ui-readonly-ten-packages-20261118-03-script.mjs.raw",
+  "sha256": "c9a2b36d1c4f627b3cc2db904c30fbad3a573d186883a42aff855ec436010762",
+  "successfulRunReceipt": ".harness/evidence/2026-11-16-ops-filedist-product-closure/ui-readonly-ten-packages-20261118-03.json",
+  "receiptSHA256": "32d3aa20e4a721b4d34b5afe49ba060cd9e583a98c47637f3ca10330b59f0404",
+  "rawEqualsSuccessfulRunScript": true,
+  "boundary": "Exact script from successful run03 preserved before adding footer viewport evidence; run03 artifacts remain unchanged."
+}

@@ -1,0 +1,262 @@
+{
+  "checkedAtUTC": "2026-11-17T15:36:50.7696212Z",
+  "canonicalKeys": 18,
+  "comparisons": 36,
+  "failures": 0,
+  "canonicalSha256": "2da6d06dcb8f2495dc67ff2fa6029408faeb509e2222e39a60153c6f28bafc38",
+  "seedSha256": "eaa84c72137075289a492412501c1c5276695a0fa7f2b11e89931cbda49c290a",
+  "checks": [
+    {
+      "key": "business.k8s.service.selectorUpdateHint",
+      "locale": "zh-CN",
+      "seedCount": 1,
+      "seedMatches": true,
+      "localeMatches": true
+    },
+    {
+      "key": "business.k8s.service.requiredFields",
+      "locale": "zh-CN",
+      "seedCount": 1,
+      "seedMatches": true,
+      "localeMatches": true
+    },
+    {
+      "key": "business.k8s.service.selectorInvalid",
+      "locale": "zh-CN",
+      "seedCount": 1,
+      "seedMatches": true,
+      "localeMatches": true
+    },
+    {
+      "key": "business.k8s.service.portsInvalid",
+      "locale": "zh-CN",
+      "seedCount": 1,
+      "seedMatches": true,
+      "localeMatches": true
+    },
+    {
+      "key": "business.k8s.service.selectorPlaceholder",
+      "locale": "zh-CN",
+      "seedCount": 1,
+      "seedMatches": true,
+      "localeMatches": true
+    },
+    {
+      "key": "business.k8s.service.selectorHint",
+      "locale": "zh-CN",
+      "seedCount": 1,
+      "seedMatches": true,
+      "localeMatches": true
+    },
+    {
+      "key": "business.k8s.service.portsHint",
+      "locale": "zh-CN",
+      "seedCount": 1,
+      "seedMatches": true,
+      "localeMatches": true
+    },
+    {
+      "key": "business.k8s.service.portNumber",
+      "locale": "zh-CN",
+      "seedCount": 1,
+      "seedMatches": true,
+      "localeMatches": true
+    },
+    {
+      "key": "business.k8s.service.removePortNumber",
+      "locale": "zh-CN",
+      "seedCount": 1,
+      "seedMatches": true,
+      "localeMatches": true
+    },
+    {
+      "key": "business.k8s.service.removePort",
+      "locale": "zh-CN",
+      "seedCount": 1,
+      "seedMatches": true,
+      "localeMatches": true
+    },
+    {
+      "key": "business.k8s.service.addPort",
+      "locale": "zh-CN",
+      "seedCount": 1,
+      "seedMatches": true,
+      "localeMatches": true
+    },
+    {
+      "key": "business.k8s.service.field.portName",
+      "locale": "zh-CN",
+      "seedCount": 1,
+      "seedMatches": true,
+      "localeMatches": true
+    },
+    {
+      "key": "business.k8s.service.field.nodePort",
+      "locale": "zh-CN",
+      "seedCount": 1,
+      "seedMatches": true,
+      "localeMatches": true
+    },
+    {
+      "key": "k8s.service.resource_version_conflict",
+      "locale": "zh-CN",
+      "seedCount": 1,
+      "seedMatches": true,
+      "localeMatches": true
+    },
+    {
+      "key": "k8s.service.resource_version_required",
+      "locale": "zh-CN",
+      "seedCount": 1,
+      "seedMatches": true,
+      "localeMatches": true
+    },
+    {
+      "key": "k8s.service.update_failed",
+      "locale": "zh-CN",
+      "seedCount": 1,
+      "seedMatches": true,
+      "localeMatches": true
+    },
+    {
+      "key": "k8s.service.audit.update",
+      "locale": "zh-CN",
+      "seedCount": 1,
+      "seedMatches": true,
+      "localeMatches": true
+    },
+    {
+      "key": "k8s.namespace.binding_invalid",
+      "locale": "zh-CN",
+      "seedCount": 1,
+      "seedMatches": true,
+      "localeMatches": true
+    },
+    {
+      "key": "business.k8s.service.selectorUpdateHint",
+      "locale": "en-US",
+      "seedCount": 1,
+      "seedMatches": true,
+      "localeMatches": true
+    },
+    {
+      "key": "business.k8s.service.requiredFields",
+      "locale": "en-US",
+      "seedCount": 1,
+      "seedMatches": true,
+      "localeMatches": true
+    },
+    {
+      "key": "business.k8s.service.selectorInvalid",
+      "locale": "en-US",
+      "seedCount": 1,
+      "seedMatches": true,
+      "localeMatches": true
+    },
+    {
+      "key": "business.k8s.service.portsInvalid",
+      "locale": "en-US",
+      "seedCount": 1,
+      "seedMatches": true,
+      "localeMatches": true
+    },
+    {
+      "key": "business.k8s.service.selectorPlaceholder",
+      "locale": "en-US",
+      "seedCount": 1,
+      "seedMatches": true,
+      "localeMatches": true
+    },
+    {
+      "key": "business.k8s.service.selectorHint",
+      "locale": "en-US",
+      "seedCount": 1,
+      "seedMatches": true,
+      "localeMatches": true
+    },
+    {
+      "key": "business.k8s.service.portsHint",
+      "locale": "en-US",
+      "seedCount": 1,
+      "seedMatches": true,
+      "localeMatches": true
+    },
+    {
+      "key": "business.k8s.service.portNumber",
+      "locale": "en-US",
+      "seedCount": 1,
+      "seedMatches": true,
+      "localeMatches": true
+    },
+    {
+      "key": "business.k8s.service.removePortNumber",
+      "locale": "en-US",
+      "seedCount": 1,
+      "seedMatches": true,
+      "localeMatches": true
+    },
+    {
+      "key": "business.k8s.service.removePort",
+      "locale": "en-US",
+      "seedCount": 1,
+      "seedMatches": true,
+      "localeMatches": true
+    },
+    {
+      "key": "business.k8s.service.addPort",
+      "locale": "en-US",
+      "seedCount": 1,
+      "seedMatches": true,
+      "localeMatches": true
+    },
+    {
+      "key": "business.k8s.service.field.portName",
+      "locale": "en-US",
+      "seedCount": 1,
+      "seedMatches": true,
+      "localeMatches": true
+    },
+    {
+      "key": "business.k8s.service.field.nodePort",
+      "locale": "en-US",
+      "seedCount": 1,
+      "seedMatches": true,
+      "localeMatches": true
+    },
+    {
+      "key": "k8s.service.resource_version_conflict",
+      "locale": "en-US",
+      "seedCount": 1,
+      "seedMatches": true,
+      "localeMatches": true
+    },
+    {
+      "key": "k8s.service.resource_version_required",
+      "locale": "en-US",
+      "seedCount": 1,
+      "seedMatches": true,
+      "localeMatches": true
+    },
+    {
+      "key": "k8s.service.update_failed",
+      "locale": "en-US",
+      "seedCount": 1,
+      "seedMatches": true,
+      "localeMatches": true
+    },
+    {
+      "key": "k8s.service.audit.update",
+      "locale": "en-US",
+      "seedCount": 1,
+      "seedMatches": true,
+      "localeMatches": true
+    },
+    {
+      "key": "k8s.namespace.binding_invalid",
+      "locale": "en-US",
+      "seedCount": 1,
+      "seedMatches": true,
+      "localeMatches": true
+    }
+  ]
+}

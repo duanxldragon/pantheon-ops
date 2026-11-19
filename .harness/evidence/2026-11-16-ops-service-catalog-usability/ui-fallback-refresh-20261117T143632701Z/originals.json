@@ -1,0 +1,42 @@
+[
+  {
+    "path": "frontend/src/i18n/resources/business/zh-CN.ts",
+    "originalSha256": "ce8f1d718d9062614179d937ce91024fc9631a902734d4d123e5428d98ad5ceb",
+    "backup": "original-zh-CN.ts",
+    "backupSha256": "ce8f1d718d9062614179d937ce91024fc9631a902734d4d123e5428d98ad5ceb",
+    "candidateSha256": "ef6812f06e9cff1190a969d66c31b2b9a7cfba71f2e3aaec0753faf9e50e1844",
+    "originalBytes": 112833
+  },
+  {
+    "path": "frontend/src/i18n/resources/business/en-US.ts",
+    "originalSha256": "9d5de7be3a0564d1964f373c99fb5de0e49f19b7bf0a7443bad6bd3aec0f5be6",
+    "backup": "original-en-US.ts",
+    "backupSha256": "9d5de7be3a0564d1964f373c99fb5de0e49f19b7bf0a7443bad6bd3aec0f5be6",
+    "candidateSha256": "5554909703d0d616d8c8ae68f35a74efa1683e7654309dc7208a10926076d461",
+    "originalBytes": 115871
+  },
+  {
+    "path": "frontend/src/i18n/resources/business/ja-JP.ts",
+    "originalSha256": "0c3730ad3eff5ea2ddaa8c767b9a97d96c980d6359c7d49485904424f5253d70",
+    "backup": "original-ja-JP.ts",
+    "backupSha256": "0c3730ad3eff5ea2ddaa8c767b9a97d96c980d6359c7d49485904424f5253d70",
+    "candidateSha256": "f96d07bd4684b1a1816716d90b982a4df7d9e171fa3c8136c2acbd0690393d2a",
+    "originalBytes": 16398
+  },
+  {
+    "path": "frontend/src/i18n/resources/business/ko-KR.ts",
+    "originalSha256": "46b2864bd9a8a46ce3e42e7ad26e102f1daf41f8591b6c40095d0ffe721c77a2",
+    "backup": "original-ko-KR.ts",
+    "backupSha256": "46b2864bd9a8a46ce3e42e7ad26e102f1daf41f8591b6c40095d0ffe721c77a2",
+    "candidateSha256": "8602d11f7d0686220f6205fb1fc094dec74e8fbfa90d8357fdc51d8b8b4686da",
+    "originalBytes": 15668
+  },
+  {
+    "path": "frontend/src/i18n/resources/business/fr-FR.ts",
+    "originalSha256": "262bbcf0c1b78c39e91bb4a5eca82294ab8f5c40f3358f9052febe355cad0fcb",
+    "backup": "original-fr-FR.ts",
+    "backupSha256": "262bbcf0c1b78c39e91bb4a5eca82294ab8f5c40f3358f9052febe355cad0fcb",
+    "candidateSha256": "33c4cd48e9036be67ff132a8edb0d845a3af246726e4057a09c77ef1f2257e26",
+    "originalBytes": 15834
+  }
+]

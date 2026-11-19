@@ -1,0 +1,68 @@
+{
+  "taskId": "2026-11-14-ops-latest-foundation-and-plans",
+  "taskDoc": "docs/harness/tasks/2026-11-14-ops-latest-foundation-and-plans.task.md",
+  "title": "Ops latest-foundation apply + plans verification packaging",
+  "goal": "Materialize the missing governance chain for the 2026-11-14 latest-foundation apply + plan task-packet verification round (summary.md, commands.json, owning task card) and explicitly record that the round's captured artifacts were superseded by the later base v0.18.x consumption entries.",
+  "primaryLayer": "business/*",
+  "status": "in-progress",
+  "priority": "P1",
+  "type": "evidence-orphan-closeout",
+  "dependencies": [],
+  "scope": {
+    "in": [
+      "Materialize .harness/evidence/2026-11-14-ops-latest-foundation-and-plans/summary.md and commands.json from the retained verification/*.log files (no invented runs)",
+      "Create the minimal owning task card docs/harness/tasks/2026-11-14-ops-latest-foundation-and-plans.task.md linking to the evidence",
+      "Declare in the summary that referenced final artifacts are superseded by the composed base-v0-18-x consumption directories"
+    ],
+    "out": [
+      "Any business/release/source code change",
+      "Changing or deleting the original retained verification logs",
+      "Authoring a self-approved review.md (independent acceptance review is Codex-owned)",
+      "Any foundation-release.lock.json / VERSION change"
+    ]
+  },
+  "dependencyLayers": [
+    "business/*",
+    "inheritance-sync"
+  ],
+  "contractAnchors": [
+    "docs/contracts/PLATFORM_CONTRACT.md"
+  ],
+  "expectedFiles": {
+    "create": [
+      "docs/harness/tasks/2026-11-14-ops-latest-foundation-and-plans.task.md",
+      ".harness/tasks/2026-11-14-ops-latest-foundation-and-plans/manifest.json",
+      ".harness/evidence/2026-11-14-ops-latest-foundation-and-plans/summary.md",
+      ".harness/evidence/2026-11-14-ops-latest-foundation-and-plans/commands.json"
+    ],
+    "modify": [],
+    "doNotTouch": [
+      "backend/ and frontend/src/ source",
+      "Original historical verification logs",
+      "foundation-release.lock.json / VERSION"
+    ]
+  },
+  "harnessProfile": {
+    "template": "admin-platform",
+    "overlay": "pantheon-ops",
+    "qualityProfile": "ci-workflow",
+    "portableFailureClass": "governance-evidence-packaging",
+    "ownerLayer": "business/*",
+    "coverageDimensions": [
+      "behaviour"
+    ]
+  },
+  "implementationNotes": [
+    "Evidence-only closeout on 2026-11-17. The retained verification/*.log files show an r7 latest-foundation apply against pantheon-base-v0.18.8 (34428814, 165 writes) with overlay (60 declared paths), shared-drift (857/856:1), business-overlay tests 66/66, frontmatter tests 15/15, and r7-final/gate evidence/task/review logs all at 0 errors.",
+    "The v0.18.8 foundation baseline is superseded by the committed 2026-11-16 official v0.18.9 consumption, commit `07d53988a13073d0293e44c906cee076d6d375c3`, with `foundation-release.lock.json` and `.harness/tasks/2026-11-16-ops-pilot-delivery/plan.md` as current anchors; business-plan acceptance and missing independent review remain open. Original 11/13-v0.18.7 reference was chronologically incorrect; the prior materialized manifest is retained in the dated correction backup.",
+    "No self-approved review.md is authored; independent acceptance review.review is Codex-owned, so this task stays in-progress / awaiting-review."
+  ],
+  "linkage": {
+    "taskManifest": ".harness/tasks/2026-11-14-ops-latest-foundation-and-plans/manifest.json",
+    "evidenceDir": ".harness/evidence/2026-11-14-ops-latest-foundation-and-plans/",
+    "reviewFile": "none",
+    "summaryFile": ".harness/evidence/2026-11-14-ops-latest-foundation-and-plans/summary.md",
+    "changeRef": "none",
+    "planRefs": []
+  }
+}

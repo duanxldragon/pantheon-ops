@@ -109,9 +109,16 @@ jobs:
       - name: Enable squash auto-merge
         shell: bash
         env:
-          GH_TOKEN: ${{ github.token }}
+          GH_TOKEN: ${{ secrets.RELEASE_GATE_TOKEN }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
           GH_REPO: ${{ github.repository }}
         run: |
           set -euo pipefail
+          # The release-gate token authorizes the merge so GitHub fires the
+          # post-merge push workflow on main; the default steps token would
+          # suppress it. Fail closed rather than falling back.
+          if [ -z "${GH_TOKEN:-}" ]; then
+            echo 'RELEASE_GATE_TOKEN is required to enable auto-merge' >&2
+            exit 1
+          fi
           gh pr merge "$PR_NUMBER" --repo "$GH_REPO" --auto --squash --delete-branch

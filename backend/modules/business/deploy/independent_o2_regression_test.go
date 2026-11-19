@@ -58,13 +58,16 @@ func TestIndependentO2ServiceProjectionRollsBackWithFinish(t *testing.T) {
 	if err := db.Create(&instance).Error; err != nil {
 		t.Fatal(err)
 	}
-	if err := db.Model(&DeployTask{}).Where("id = ?", task.ID).Update("service_instance_id", instance.ID).Error; err != nil {
+	task.ServiceID, task.ServiceInstanceID = service.ID, instance.ID
+	setLinkedFixtureSnapshot(t, &task, host, instance)
+	if err := db.Save(&task).Error; err != nil {
 		t.Fatal(err)
 	}
 	if err := db.First(&task, task.ID).Error; err != nil {
 		t.Fatal(err)
 	}
 	a.SetServiceInstanceStateApplierWithTransaction(manager, manager.WithServiceInstanceStateTransaction)
+	a.SetServiceReader(manager)
 	inner, ctx := ownedClaim(t, a, task, host, "independent-finish")
 	before := ownershipFacts(t, db)
 	injected := errors.New("independent injected outer commit failure")

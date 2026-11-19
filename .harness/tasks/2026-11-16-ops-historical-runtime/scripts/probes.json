@@ -1,0 +1,16 @@
+{
+  "_comment": "Credential-free TCP reachability targets for pantheon-ops runtime matrix. Reachability != service health. Enterprise endpoints must be supplied by the runner from approved inventories (host:port only, no credentials in this file).",
+  "targets": [
+    { "host": "127.0.0.1", "port": 3306, "service": "mysql" },
+    { "host": "127.0.0.1", "port": 6379, "service": "redis" },
+    { "host": "127.0.0.1", "port": 8080, "service": "pantheon-ops-app" },
+    { "host": "127.0.0.1", "port": 9090, "service": "prometheus" },
+    { "host": "127.0.0.1", "port": 8428, "service": "victoria-metrics" },
+    { "host": "127.0.0.1", "port": 3100, "service": "loki" },
+    { "host": "127.0.0.1", "port": 3200, "service": "tempo" },
+    { "host": "127.0.0.1", "port": 3000, "service": "grafana" },
+    { "host": "127.0.0.1", "port": 6443, "service": "kubernetes-api" },
+    { "host": "127.0.0.1", "port": 8085, "service": "argocd-server" },
+    { "host": "127.0.0.1", "port": 9000, "service": "minio-s3" }
+  ]
+}

@@ -1,0 +1,31 @@
+# E01/E02 startup and semantic integration handoff
+
+Implementer: `/root/extension_startup_integration`. L2 business-only; FileDist and ArgoCD parent packets apply. Plan: `../../tasks/2026-11-16-ops-filedist-product-closure/continuation-extension-integration-plan-20261118.md`. Source frozen at `2026-11-18T07:45:10.0286998Z`; adjacent JSON binds nine backend sources and eight locale/document sources. Neither whole package is closed.
+
+## Implemented
+
+- Ops composition starts FileDist after migration and CMDB target-provider wiring, before registering its HTTP routes. Start failure cancels the owned context, stops the distributor and propagates the original error through the existing void Init/panic adapter. Registration panic also cleans up the started extension components.
+- A business-owned signal context is shared with an owned ArgoCD NewReconciler handle. Cleanup cancels and stops the observer, joins its Start goroutine, then stops FileDist. This reuses the frozen observer implementation without altering its StartAll API.
+- Task handlers preserve the six canonical FileDist lifecycle keys and typed public error classes. Sync/rollback preserve the declared Argo state-conflict keys. The explicit mapping is needed because the locked generic key parser excludes camel-case segments. No Base resolver/checker was changed. Argo fallback diagnostics contain only subsystem and error type, not provider/SQL text.
+- Nine lifecycle/observation error keys and the UI executor's 44-key delta are present in all five declared v12 locale sources. Chinese/English runtime seed values match. French/Japanese/Korean use documented English fallback for this increment; corresponding translations are not claimed.
+
+## Fresh verification
+
+| Check                                                                                                                                                                                                                                                                     | Result                                                                                                    |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| Windows MinGW + CGO=1, `go test -race -mod=readonly -count=1 -timeout=2m -run '^(TestExtensionLifecycle\|TestFileDistLifecycleErrorHTTPContract\|TestSyncActionErrorHTTPContract)' ./modules/business/opsinit ./modules/business/filedist ./modules/business/cicd/argocd` | Exit 0. Packages 1.217s, 1.139s and 1.275s. Pure tests; no MySQL or full-suite race.                      |
+| gopls check all nine bound backend files                                                                                                                                                                                                                                  | Exit 0, no diagnostics.                                                                                   |
+| `go vet -mod=readonly ./modules/business/opsinit ./modules/business/filedist ./modules/business/cicd/argocd`                                                                                                                                                              | Exit 0, no diagnostics.                                                                                   |
+| Locale/seed consistency                                                                                                                                                                                                                                                   | 53 keys present in five JSON sources; 106/106 bilingual seed values agree; 88/88 UI delta rows unchanged. |
+| gofmt and scoped diff check                                                                                                                                                                                                                                               | Exit 0.                                                                                                   |
+
+Regression coverage includes failed-start resource cleanup, invalid-parent rejection, cancellation plus observer join and idempotent cleanup, exact camel-case public keys, typed authorization precedence, real HTTP conflict codes and secret omission from responses/Argo request diagnostics. No RED→GREEN claim is made for new startup tests. JSON records actual tool chunks and commands.
+
+## Required coordinator gates and explicit gaps
+
+1. Production FileDistributionAuthorizer remains nil and fail-closed. The available public authorization Reader requires a session-backed identity; the current FileDist port supplies only actor/file/action for scheduled work. Registered OwnerLifecycle is explicitly existence-only, never a grant. A suitable upstream public job/source authority contract is a prerequisite; no allow-all, stored-username grant or system-table adapter was invented.
+2. Locked Base main has no business context/cleanup callback and does not await this signal callback. Owned-component unit join is proven; ordered process shutdown, actual OS signal behavior and server-bind failure cancellation are not. Do not represent this as Base graceful-shutdown integration.
+3. Root must run actual MySQL startup/lease/runtime-seed persistence, official rebuild/fallback regeneration, complete Windows CGO race, final frontend quality/rendering, independent review and provider/human acceptance on the final candidate. Current preview and prior tests do not prove these new bytes.
+4. Argo ownership/legacy/UID/token/webhook/dual-write issues remain outside this scope. FileDist cancellation does not roll back remote bytes or create SSH fencing.
+
+Existing incoming opsinit Deploy service-owner wiring was preserved and is not attributed to this lane. Frozen FileDist engine/lifecycle/service and Argo service/reconciler/observation sources were not edited. No credentials, restart, commit, push, release or production operation was performed.

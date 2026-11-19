@@ -1,0 +1,23 @@
+{
+  "stamp": "2026-11-17T12:36:58.465Z",
+  "receipts": [
+    {
+      "file": ".harness/STATUS.md",
+      "backup": ".harness/evidence/2026-11-16-ops-service-deploy-integrity/checkpoints/controls-in-progress/STATUS.md.raw",
+      "beforeSHA256": "ef2e7666bd4e7ff6afd611d7efb1a788633a2edc997cefb9ba59916ac993b403",
+      "afterSHA256": "9bba85c7d9442d8e474f7c9545053900f7efb7da2093a3208e6a001c00b6c7f9"
+    },
+    {
+      "file": ".harness/tasks/2026-11-16-ops-pilot-delivery/EXECUTION_QUEUE.md",
+      "backup": ".harness/evidence/2026-11-16-ops-service-deploy-integrity/checkpoints/controls-in-progress/EXECUTION_QUEUE.md.raw",
+      "beforeSHA256": "6b488da050e8861ed818e68bc0d243a01eafbc37ad8e4c59ab05c9f5f3338a32",
+      "afterSHA256": "c539e339819ad5176ec8bad16e8d2abb00fb5d55c59902ba4f4354b721e16df1"
+    },
+    {
+      "file": "docs/harness/tasks/2026-11-16-ops-service-deploy-integrity.task.md",
+      "backup": ".harness/evidence/2026-11-16-ops-service-deploy-integrity/checkpoints/controls-in-progress/2026-11-16-ops-service-deploy-integrity.task.md.raw",
+      "beforeSHA256": "9955fa96d58a4291d3531f41e69d32ccdb0ce1d57e68987ae3bfbff1c3b084bc",
+      "afterSHA256": "dc6d293ad3ec85c7c38bf43dfb7bb4f5c6fd2ab5f1df933321d0d4b1800f1fbe"
+    }
+  ]
+}

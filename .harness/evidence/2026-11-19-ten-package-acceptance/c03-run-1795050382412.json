@@ -1,0 +1,21 @@
+{
+  "taskId": "2026-11-19-ten-package-acceptance",
+  "packageCode": "C03",
+  "startedAt": "2026-11-19T01:06:22.415Z",
+  "finishedAt": "2026-11-19T01:07:08.518Z",
+  "command": {
+    "executable": "D:\\nodejs\\node.exe",
+    "args": [
+      "--import=file:///D:/workspace/go/pantheon-platform/pantheon-ops/.local/manual-preview-20261116/hide-child-windows.mjs",
+      "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\frontend\\node_modules\\@playwright\\test\\cli.js",
+      "test",
+      "--config=D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\acceptance-20261119\\c03-live.config.ts"
+    ],
+    "cwd": "D:/workspace/go/pantheon-platform/pantheon-ops",
+    "windowsHide": true
+  },
+  "exitCode": 1,
+  "signal": null,
+  "error": null,
+  "log": ".harness/evidence/2026-11-19-ten-package-acceptance/c03-run-1795050382412.log"
+}

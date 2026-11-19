@@ -1,0 +1,109 @@
+{
+  "taskId": "2026-11-16-ops-historical-runtime",
+  "title": "Ops historical D1/D4 runtime verification — commands for a permissioned runner",
+  "generatedBy": "runtime-verification Claude, 2026-11-16",
+  "sessionNote": "This session is headless with no approval surface; docker/git/kubectl/curl/mysql are auto-denied. The probes below were instead run via node, whose outputs are saved under .harness/evidence/2026-11-16-ops-historical-runtime/raw/. To close the remaining gaps, run these in a NORMAL (interactive) session where approvals are possible, or as the named owner.",
+  "verifiedAlready": [
+    {
+      "cmd": "node .harness/tasks/2026-11-16-ops-historical-runtime/scripts/probe-reachability.mjs --config .harness/tasks/2026-11-16-ops-historical-runtime/scripts/probes.json --timeout 1500",
+      "cwd": ".",
+      "result": "PASS — MySQL:3306 OPEN, Redis:6379 OPEN, app:8080 OPEN; observability/k8s/argo/s3 CLOSED (not local). raw: evidence/.../raw/reachability_localhost_20261116.txt"
+    },
+    {
+      "cmd": "node -e \"fetch('http://127.0.0.1:8080/api/v1/health').then(r=>r.text()).then(t=>require('fs').writeFileSync('.harness/evidence/2026-11-16-ops-historical-runtime/raw/health_1926080110808_20261116T1037.txt','HTTP '+200+'\\n'+t))\"",
+      "cwd": ".",
+      "result": "PASS — HTTP 200, service=pantheon-platform, database/ok, migrations/ok, redis/ok"
+    },
+    {
+      "cmd": "node scripts/business-overlay/check-business-overlay.mjs",
+      "cwd": ".",
+      "result": "PASS — OK business overlay contract (53 declared paths, rebuilt tree)"
+    }
+  ],
+  "closeGaps": [
+    {
+      "gate": "D1 Prometheus/VictoriaMetrics",
+      "prereq": "observability owner supplies read endpoint host:port (mark creds available/unavailable, do not echo).",
+      "commands": [
+        "docker compose -f docker-compose.yml up -d",
+        "curl -fsS http://127.0.0.1:9090/-/ready",
+        "curl -fsS http://127.0.0.1:8428/metrics | head -40"
+      ],
+      "owner": "observability owner + maintainer"
+    },
+    {
+      "gate": "D1 Loki / Tempo",
+      "prereq": "Loki/Tempo query endpoints.",
+      "commands": [
+        "curl -fsS 'http://127.0.0.1:3100/loki/api/v1/query?query=sum(rate({job=\"pantheon-ops\"}[5m]))' -H 'X-Scope-OrgID: pantheon-ops'",
+        "curl -fsS 'http://127.0.0.1:3200/ready'"
+      ],
+      "owner": "observability owner"
+    },
+    {
+      "gate": "D1 Kubernetes / ArgoCD",
+      "prereq": "kubeconfig + isolated dev/test cluster context; kubectl/argocd permission.",
+      "commands": [
+        "kubectl --context <dev-cluster> get ns",
+        "kubectl --context <dev-cluster> get pods -A",
+        "argocd app list --server <argocd-host:port>"
+      ],
+      "owner": "platform owner + maintainer"
+    },
+    {
+      "gate": "D1 S3/MinIO",
+      "prereq": "isolated bucket + provider creds (available/unavailable).",
+      "commands": [
+        "mc alias set devs3 <endpoint> <id> <secret>",
+        "mc ls devs3/pantheon-ops-test/",
+        "mc mb devs3/pantheon-ops-test-afe && mc rb devs3/pantheon-ops-test-afe   # isolated create+cleanup only"
+      ],
+      "owner": "cloud owner"
+    },
+    {
+      "gate": "D1/D2 SSRF negative acceptance",
+      "prereq": "running deploy target in isolated dev/test + outbound egress allowlist/private-network/redirect/DNS rules.",
+      "commands": [
+        "npm run test:smoke:business:deploy:api",
+        "npm run test:smoke:business:k8s",
+        "# negative scenarios against the isolated target; record redirect/DNS/private-IP rejection outputs"
+      ],
+      "owner": "deliverable owner"
+    },
+    {
+      "gate": "D4/G2 production backup-restore (REAL DRILL)",
+      "prereq": "DBA + maintainer; production backup storage; isolated MySQL 8.0.36 staging host (>=2x prod volume); xtrabackup/mysqlbinlog; prod read-only queries; measured RPO/RTO; signature. Follow docs/runbooks/PRODUCTION_BACKUP_RESTORE_DRILL_G2.md sections 3-5.",
+      "commands": [
+        "crontab -l | grep -i backup",
+        "ls -lh <backup-dir> | tail -30",
+        "sha256sum <latest-full-backup>",
+        "# staging: mysql --init-command=\"SET SESSION sql_log_bin=0\" < full_backup.sql",
+        "mysqlbinlog --start-position=<full-backup-position> <binlog-files...> | mysql",
+        "curl -fsS http://<staging-backend>/api/v1/health   # expect database: ok",
+        "# fill G2 record template; DBA signs; maintainer flips G2 GRANTED in TENANT_MIGRATION_RUNBOOK.md \u00a78.1"
+      ],
+      "owner": "DBA + maintainer (NOT me)"
+    },
+    {
+      "gate": "D4/G3 production volume / migration window",
+      "prereq": "independent of G2; prod table row counts + runbook \u00a74.2 window calc.",
+      "commands": [
+        "SELECT table_name, table_rows FROM information_schema.tables WHERE table_schema='<prod>';",
+        "# compute window per TENANT_MIGRATION_RUNBOOK.md \u00a74.2"
+      ],
+      "owner": "DBA + maintainer (NOT me)"
+    }
+  ],
+  "envToConfirm": [
+    "MySQL version == 8.0.36 (confirmed on this host)",
+    "Redis requirepass profile (confirmed -NOAUTH PING)",
+    "App health: database/ok, migrations/ok, redis/ok (confirmed HTTP 200)"
+  ],
+  "securityRulesHonored": [
+    "No credentials echoed; availability marked only available/unavailable",
+    "No production write; read-only queries only (health / banner / PING)",
+    "No bypass of permission denials; denials recorded as evidence",
+    "Isolated test-bucket create/cleanup only if a real one is provided",
+    "D4/G2 and D4/G3 left EXT-GATE open; not self-signed"
+  ]
+}

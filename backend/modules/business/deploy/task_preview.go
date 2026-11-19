@@ -169,6 +169,9 @@ func (s *DeployService) previewTask(id uint64, req StartTaskRequest, actor strin
 	if task.Status != TaskStatusDraft && task.Status != TaskStatusPending {
 		return nil, ErrTaskPreviewConflict
 	}
+	if err := validateRetireTaskIntent(*task); err != nil {
+		return nil, err
+	}
 	credentialVersion := uint64(0)
 	if task.ExecutorType == ExecutorTypeSSH {
 		resolved, version, err := s.prepareStartCredential(req)
@@ -230,9 +233,15 @@ func (s *DeployService) previewTask(id uint64, req StartTaskRequest, actor strin
 		} else if current == target {
 			kind = "unchanged"
 		}
-		if task.Action == TaskActionUninstall || task.Action == TaskActionRetire {
+		switch task.Action {
+		case TaskActionUninstall:
 			kind = "removed"
 			target = ""
+		case TaskActionRetire:
+			if known {
+				kind = "unchanged"
+			}
+			target = current
 		}
 		result.Changes = append(result.Changes, TaskPreviewChange{ID: fmt.Sprintf("host:%d", host.ID), Field: host.Hostname + " / " + task.PackageName, Kind: kind, Before: current, After: target})
 	}

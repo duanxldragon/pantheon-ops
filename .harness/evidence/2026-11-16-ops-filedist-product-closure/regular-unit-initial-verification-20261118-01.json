@@ -1,0 +1,49 @@
+{
+  "schema": "pantheon-e01-regular-unit-initial-verification/v1",
+  "taskId": "2026-11-16-ops-filedist-product-closure",
+  "sourceSHA256BeforeFix": "0d3d66ea394e3c92dea41b5ce8fb19da5395fac4a23ff66b7a44ee54a0554256",
+  "actualObservationInheritedFromPriorTurn": true,
+  "completedToolSessions": [
+    45579,
+    95477
+  ],
+  "rawOutputFileCaptured": false,
+  "verification": [
+    {
+      "command": "node --import ../.local/manual-preview-20261116/hide-child-windows.mjs node_modules/vitest/vitest.mjs run tests/unit/business/filedist/FiledistLifetime.test.ts --pool=threads --maxWorkers=1 --fileParallelism=false --reporter=verbose",
+      "cwd": "frontend",
+      "exitCode": 0,
+      "filesPassed": 1,
+      "testsPassed": 28,
+      "testsSkipped": 0,
+      "durationSeconds": 14.63
+    },
+    {
+      "command": "node --import ../.local/manual-preview-20261116/hide-child-windows.mjs node_modules/typescript/bin/tsc -p ../.harness/evidence/2026-11-16-ops-filedist-product-closure/regular-unit-typecheck-20261118.json --pretty false",
+      "cwd": "frontend",
+      "exitCode": 1,
+      "diagnosticSummary": {
+        "code": "TS2352",
+        "file": "frontend/tests/unit/business/filedist/FiledistLifetime.test.ts",
+        "line": 163,
+        "column": 46,
+        "message": "Conversion to DeployTargetResolution: missing resolvedAt and sources."
+      },
+      "rawOutputReconstructed": false
+    },
+    {
+      "command": "node --import ../.local/manual-preview-20261116/hide-child-windows.mjs node_modules/eslint/bin/eslint.js tests/unit/business/filedist/FiledistLifetime.test.ts --max-warnings 0",
+      "exitCode": 0
+    },
+    {
+      "command": "node --import ./.local/manual-preview-20261116/hide-child-windows.mjs scripts/business-overlay/check-business-overlay.mjs",
+      "exitCode": 0,
+      "declaredPaths": 55
+    },
+    {
+      "command": "git diff --check -- business-overlay.json frontend/tests/unit/business/filedist/FiledistLifetime.test.ts",
+      "exitCode": 0
+    }
+  ],
+  "preservationNote": "The initial actual TypeScript exit1 is retained as observed metadata. No full raw initial output was captured in a file; it is not invented or replaced with the final green."
+}

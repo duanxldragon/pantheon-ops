@@ -1,0 +1,10 @@
+{
+  "command": "node --import=../.local/manual-preview-20261116/hide-child-windows.mjs node_modules/typescript/bin/tsc -b",
+  "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\frontend",
+  "startedAt": "2026-11-17T15:01:49.4177006Z",
+  "finishedAt": "2026-11-17T15:02:19.8908239Z",
+  "exitCode": 0,
+  "status": "passed",
+  "log": "ui-render-states-typecheck.log",
+  "note": "Rendered-state specs added only; browser execution and actual screenshot inspection are parent-owned. --list discovery only."
+}

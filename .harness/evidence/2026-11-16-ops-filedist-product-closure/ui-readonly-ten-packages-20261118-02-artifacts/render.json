@@ -1,0 +1,406 @@
+{
+  "startedAt": "2026-11-18T10:07:21.623Z",
+  "passed": false,
+  "checks": [
+    {
+      "name": "existing admin API session installed",
+      "evidenceKind": "live-auth",
+      "endpoint": "http://127.0.0.1:8080/api/v1/auth/login",
+      "method": "POST"
+    },
+    {
+      "name": "live absent detail response",
+      "evidenceKind": "live-read",
+      "status": 404,
+      "method": "GET"
+    },
+    {
+      "name": "desktop live task list data",
+      "evidenceKind": "live-read",
+      "total": 4,
+      "empty": false,
+      "method": "GET"
+    },
+    {
+      "name": "desktop-live-task-list",
+      "evidenceKind": "live-read",
+      "horizontalOverflow": false
+    },
+    {
+      "name": "desktop-live-create-modal",
+      "evidenceKind": "live-read-basic-fields-only",
+      "horizontalOverflow": false
+    },
+    {
+      "name": "desktop handled live detail 404 without shared toast",
+      "evidenceKind": "live-read",
+      "toastInsertions": 0
+    },
+    {
+      "name": "desktop-live-detail-404",
+      "evidenceKind": "live-read",
+      "horizontalOverflow": false
+    },
+    {
+      "name": "desktop-fixture-task-list",
+      "evidenceKind": "browser-fixture",
+      "horizontalOverflow": false
+    },
+    {
+      "name": "desktop bounded picker page six and remote keyword",
+      "evidenceKind": "browser-fixture",
+      "firstBeyond100": 101,
+      "selectedId": 125,
+      "pageSize": 20
+    }
+  ],
+  "screenshots": [
+    {
+      "name": "desktop-live-task-list",
+      "path": ".harness/evidence/2026-11-16-ops-filedist-product-closure/ui-readonly-ten-packages-20261118-02-artifacts/desktop-live-task-list.png",
+      "sha256": "4d920f75c71aec051178a3295332e5468865c8008809e7d84b36b23ffc876115",
+      "evidenceKind": "live-read",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "horizontalOverflow": false,
+      "primary": true
+    },
+    {
+      "name": "desktop-live-create-modal",
+      "path": ".harness/evidence/2026-11-16-ops-filedist-product-closure/ui-readonly-ten-packages-20261118-02-artifacts/desktop-live-create-modal.png",
+      "sha256": "15010b70c38445fe6503c105f67c26facebf0451c0dc6ce3eb3c580a21d5fc38",
+      "evidenceKind": "live-read-basic-fields-only",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "horizontalOverflow": false,
+      "primary": true
+    },
+    {
+      "name": "desktop-live-detail-404",
+      "path": ".harness/evidence/2026-11-16-ops-filedist-product-closure/ui-readonly-ten-packages-20261118-02-artifacts/desktop-live-detail-404.png",
+      "sha256": "53d52c4cecc5758dc5b18416e70869c2226ed4a5ea3f6abf7e77de3e4cf1546e",
+      "evidenceKind": "live-read",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "horizontalOverflow": false,
+      "primary": true
+    },
+    {
+      "name": "desktop-fixture-task-list",
+      "path": ".harness/evidence/2026-11-16-ops-filedist-product-closure/ui-readonly-ten-packages-20261118-02-artifacts/desktop-fixture-task-list.png",
+      "sha256": "a1127ab960f968006da7640290fb3f322da17d0dd64bddeb9663aa962f208813",
+      "evidenceKind": "browser-fixture",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "horizontalOverflow": false,
+      "primary": false
+    },
+    {
+      "name": "failed-desktop-fixture-auth-fields",
+      "path": ".harness/evidence/2026-11-16-ops-filedist-product-closure/ui-readonly-ten-packages-20261118-02-artifacts/failed-desktop-fixture-auth-fields.png",
+      "sha256": "960061e5fbf10482e5a18a32495989e4bc9fc6c09c1e24d7bfce509bf4f7dc47",
+      "evidenceKind": "browser-fixture-failed-diagnostic",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "assertionPassed": false,
+      "credentialFieldsMasked": true,
+      "primary": false
+    }
+  ],
+  "requests": [
+    {
+      "at": "2026-11-18T10:07:23.623Z",
+      "path": "/api/v1/system/setting/public",
+      "query": "",
+      "method": "GET",
+      "evidenceKind": "live-read"
+    },
+    {
+      "at": "2026-11-18T10:07:23.839Z",
+      "path": "/api/v1/auth/me",
+      "query": "",
+      "method": "GET",
+      "evidenceKind": "live-read"
+    },
+    {
+      "at": "2026-11-18T10:07:23.840Z",
+      "path": "/api/v1/system/menu/tree",
+      "query": "?scope=nav",
+      "method": "GET",
+      "evidenceKind": "live-read"
+    },
+    {
+      "at": "2026-11-18T10:07:24.286Z",
+      "path": "/api/v1/auth/tenants/current",
+      "query": "",
+      "method": "GET",
+      "evidenceKind": "live-read"
+    },
+    {
+      "at": "2026-11-18T10:07:24.287Z",
+      "path": "/api/v1/system/refresh/state",
+      "query": "?topics=system:dept:changed,system:dict:changed,system:i18n:changed,system:menu:changed,system:permission:changed,system:post:changed,system:role:changed,system:setting:changed,system:user:changed",
+      "method": "GET",
+      "evidenceKind": "live-read"
+    },
+    {
+      "at": "2026-11-18T10:07:24.288Z",
+      "path": "/api/v1/system/refresh/state",
+      "query": "?topics=system:dept:changed,system:dict:changed,system:i18n:changed,system:menu:changed,system:permission:changed,system:post:changed,system:role:changed,system:setting:changed,system:user:changed",
+      "method": "GET",
+      "evidenceKind": "live-read"
+    },
+    {
+      "at": "2026-11-18T10:07:24.737Z",
+      "path": "/api/v1/business/filedist/files",
+      "query": "?keyword=&page=1&pageSize=20",
+      "method": "GET",
+      "evidenceKind": "live-read"
+    },
+    {
+      "at": "2026-11-18T10:07:24.739Z",
+      "path": "/api/v1/business/filedist/tasks",
+      "query": "?keyword=&status=&page=1&pageSize=20",
+      "method": "GET",
+      "evidenceKind": "live-read"
+    },
+    {
+      "at": "2026-11-18T10:07:25.292Z",
+      "path": "/api/v1/business/bizscope/options",
+      "query": "",
+      "method": "GET",
+      "evidenceKind": "live-read"
+    },
+    {
+      "at": "2026-11-18T10:07:25.293Z",
+      "path": "/api/v1/business/cmdb/groups",
+      "query": "",
+      "method": "GET",
+      "evidenceKind": "live-read"
+    },
+    {
+      "at": "2026-11-18T10:07:25.475Z",
+      "path": "/api/v1/business/filedist/files",
+      "query": "?keyword=&page=1&pageSize=20",
+      "method": "GET",
+      "evidenceKind": "live-read"
+    },
+    {
+      "at": "2026-11-18T10:07:26.751Z",
+      "path": "/api/v1/system/setting/public",
+      "query": "",
+      "method": "GET",
+      "evidenceKind": "live-read"
+    },
+    {
+      "at": "2026-11-18T10:07:26.884Z",
+      "path": "/api/v1/system/menu/tree",
+      "query": "?scope=nav",
+      "method": "GET",
+      "evidenceKind": "live-read"
+    },
+    {
+      "at": "2026-11-18T10:07:27.435Z",
+      "path": "/api/v1/auth/tenants/current",
+      "query": "",
+      "method": "GET",
+      "evidenceKind": "live-read"
+    },
+    {
+      "at": "2026-11-18T10:07:27.435Z",
+      "path": "/api/v1/system/refresh/state",
+      "query": "?topics=system:dept:changed,system:dict:changed,system:i18n:changed,system:menu:changed,system:permission:changed,system:post:changed,system:role:changed,system:setting:changed,system:user:changed",
+      "method": "GET",
+      "evidenceKind": "live-read"
+    },
+    {
+      "at": "2026-11-18T10:07:27.436Z",
+      "path": "/api/v1/system/refresh/state",
+      "query": "?topics=system:dept:changed,system:dict:changed,system:i18n:changed,system:menu:changed,system:permission:changed,system:post:changed,system:role:changed,system:setting:changed,system:user:changed",
+      "method": "GET",
+      "evidenceKind": "live-read"
+    },
+    {
+      "at": "2026-11-18T10:07:27.438Z",
+      "path": "/api/v1/business/filedist/tasks/9007199254740991",
+      "query": "",
+      "method": "GET",
+      "evidenceKind": "live-read"
+    },
+    {
+      "at": "2026-11-18T10:07:27.438Z",
+      "path": "/api/v1/business/filedist/tasks/9007199254740991/targets",
+      "query": "",
+      "method": "GET",
+      "evidenceKind": "live-read"
+    },
+    {
+      "at": "2026-11-18T10:07:27.439Z",
+      "path": "/api/v1/business/filedist/tasks/9007199254740991/events",
+      "query": "",
+      "method": "GET",
+      "evidenceKind": "live-read"
+    },
+    {
+      "at": "2026-11-18T10:07:28.899Z",
+      "path": "/api/v1/system/setting/public",
+      "query": "",
+      "method": "GET",
+      "evidenceKind": "browser-fixture"
+    },
+    {
+      "at": "2026-11-18T10:07:29.037Z",
+      "path": "/api/v1/system/menu/tree",
+      "query": "?scope=nav",
+      "method": "GET",
+      "evidenceKind": "browser-fixture"
+    },
+    {
+      "at": "2026-11-18T10:07:29.595Z",
+      "path": "/api/v1/auth/tenants/current",
+      "query": "",
+      "method": "GET",
+      "evidenceKind": "browser-fixture"
+    },
+    {
+      "at": "2026-11-18T10:07:29.596Z",
+      "path": "/api/v1/system/refresh/state",
+      "query": "?topics=system:dept:changed,system:dict:changed,system:i18n:changed,system:menu:changed,system:permission:changed,system:post:changed,system:role:changed,system:setting:changed,system:user:changed",
+      "method": "GET",
+      "evidenceKind": "browser-fixture"
+    },
+    {
+      "at": "2026-11-18T10:07:29.597Z",
+      "path": "/api/v1/system/refresh/state",
+      "query": "?topics=system:dept:changed,system:dict:changed,system:i18n:changed,system:menu:changed,system:permission:changed,system:post:changed,system:role:changed,system:setting:changed,system:user:changed",
+      "method": "GET",
+      "evidenceKind": "browser-fixture"
+    },
+    {
+      "at": "2026-11-18T10:07:29.918Z",
+      "path": "/api/v1/business/filedist/files",
+      "query": "?keyword=&page=1&pageSize=20",
+      "method": "GET",
+      "evidenceKind": "browser-fixture"
+    },
+    {
+      "at": "2026-11-18T10:07:29.920Z",
+      "path": "/api/v1/business/filedist/tasks",
+      "query": "?keyword=&status=&page=1&pageSize=20",
+      "method": "GET",
+      "evidenceKind": "browser-fixture"
+    },
+    {
+      "at": "2026-11-18T10:07:30.726Z",
+      "path": "/api/v1/business/bizscope/options",
+      "query": "",
+      "method": "GET",
+      "evidenceKind": "browser-fixture"
+    },
+    {
+      "at": "2026-11-18T10:07:30.727Z",
+      "path": "/api/v1/business/cmdb/groups",
+      "query": "",
+      "method": "GET",
+      "evidenceKind": "browser-fixture"
+    },
+    {
+      "at": "2026-11-18T10:07:30.883Z",
+      "path": "/api/v1/business/filedist/files",
+      "query": "?keyword=&page=1&pageSize=20",
+      "method": "GET",
+      "evidenceKind": "browser-fixture"
+    },
+    {
+      "at": "2026-11-18T10:07:31.531Z",
+      "path": "/api/v1/business/filedist/files",
+      "query": "?keyword=&page=2&pageSize=20",
+      "method": "GET",
+      "evidenceKind": "browser-fixture"
+    },
+    {
+      "at": "2026-11-18T10:07:32.194Z",
+      "path": "/api/v1/business/filedist/files",
+      "query": "?keyword=&page=3&pageSize=20",
+      "method": "GET",
+      "evidenceKind": "browser-fixture"
+    },
+    {
+      "at": "2026-11-18T10:07:32.818Z",
+      "path": "/api/v1/business/filedist/files",
+      "query": "?keyword=&page=4&pageSize=20",
+      "method": "GET",
+      "evidenceKind": "browser-fixture"
+    },
+    {
+      "at": "2026-11-18T10:07:33.371Z",
+      "path": "/api/v1/business/filedist/files",
+      "query": "?keyword=&page=5&pageSize=20",
+      "method": "GET",
+      "evidenceKind": "browser-fixture"
+    },
+    {
+      "at": "2026-11-18T10:07:33.971Z",
+      "path": "/api/v1/business/filedist/files",
+      "query": "?keyword=&page=6&pageSize=20",
+      "method": "GET",
+      "evidenceKind": "browser-fixture"
+    },
+    {
+      "at": "2026-11-18T10:07:34.451Z",
+      "path": "/api/v1/system/refresh/state",
+      "query": "?topics=system:dept:changed,system:dict:changed,system:i18n:changed,system:menu:changed,system:permission:changed,system:post:changed,system:role:changed,system:setting:changed,system:user:changed",
+      "method": "GET",
+      "evidenceKind": "browser-fixture"
+    },
+    {
+      "at": "2026-11-18T10:07:34.703Z",
+      "path": "/api/v1/business/filedist/files",
+      "query": "?keyword=fixture-file-125&page=1&pageSize=20",
+      "method": "GET",
+      "evidenceKind": "browser-fixture"
+    },
+    {
+      "at": "2026-11-18T10:07:35.936Z",
+      "path": "/api/v1/business/deploy/targets/resolve",
+      "query": "",
+      "method": "POST",
+      "evidenceKind": "browser-fixture-only-POST-not-forwarded"
+    },
+    {
+      "at": "2026-11-18T10:07:36.123Z",
+      "path": "/api/v1/business/cmdb/hosts",
+      "query": "?page=1&pageSize=25&keyword=&businessScopeId=41",
+      "method": "GET",
+      "evidenceKind": "browser-fixture"
+    }
+  ],
+  "blockedRequests": [],
+  "browserErrors": [],
+  "boundary": "Real local login, live FileDist reads and live missing-task render are distinct from browser-only business fixtures. One POST target-resolver fixture is fulfilled locally; every real business write and external URL is blocked. No distribution submit, transfer, provider admission or production acceptance.",
+  "auth": "Existing local loginByApi/installClientSession helper; auth POST is the only real POST. Tokens/passwords/headers/storage are not exported.",
+  "error": {
+    "phase": "desktop-fixture-auth-fields",
+    "name": "Error",
+    "code": null,
+    "message": "expect(locator).toBeVisible() failed",
+    "locator": "Locator: getByRole('dialog').locator('.arco-form-item').filter({ has: getByText('SSH 密码', { exact: true }) })",
+    "expectedFieldLabel": "SSH 密码",
+    "scriptFrames": [
+      "at renderReadonly (D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\manual-preview-20261116\\verify-ten-packages-ui-20261118.mjs:259:114)",
+      "at async file:///D:/workspace/go/pantheon-platform/pantheon-ops/.local/manual-preview-20261116/verify-ten-packages-ui-20261118.mjs:50:5"
+    ],
+    "failureScreenshot": ".harness/evidence/2026-11-16-ops-filedist-product-closure/ui-readonly-ten-packages-20261118-02-artifacts/failed-desktop-fixture-auth-fields.png"
+  },
+  "finishedAt": "2026-11-18T10:07:36.629Z"
+}

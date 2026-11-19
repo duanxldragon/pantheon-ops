@@ -1,0 +1,20 @@
+# C01 execution evidence
+
+Updated 2026-11-17T11:45:00.717Z; status in-progress. Original packet and scope retained; no new historical archives.
+
+- failed, exit 1: go test -race -count=1 -timeout=10m ./modules/business/deploy -v -run ^TestServiceLinkAdmission; receipt .harness/evidence/2026-11-17-ops-history-audit/continuation-c01-service-link-expanded.log.receipt.json
+- passed, exit 0: go test -race -count=1 -timeout=10m ./modules/business/deploy -v -run ^TestServiceLinkAdmission; receipt .harness/evidence/2026-11-17-ops-history-audit/continuation-c01-service-link-initial-green.log.receipt.json
+- failed, exit 1: go test -race -count=1 -timeout=10m ./modules/business/deploy -v -run ^TestServiceLinkAdmission; receipt .harness/evidence/2026-11-17-ops-history-audit/continuation-c01-service-link-red.log.receipt.json
+- passed, exit 0: go test -race -count=1 -timeout=10m ./modules/business/deploy -v -run ^TestServiceLinkAdmission; receipt .harness/evidence/2026-11-17-ops-history-audit/continuation-c01-service-link-replay-fixed.log.receipt.json
+
+Original red proves 6 invalid create/update paths; initial-green passed 6. Expanded red retained reasonRequired fixture failure plus terminal-replay lease recreation; replay-fixed run passed. Current package results only apply when their receipts exist. New final-owner-change and group/independent cases must execute before acceptance.
+
+Implementation reuses owner projections and lifecycle/fencing: both IDs zero remain independent; linked IDs must be visible/active/same-scope and match one VM host; start state and claims share a transaction; deletion uses owner locks plus nonlocking READ COMMITTED reference reads; terminal IDs/snapshots retained. New 3 canonical errors have 5 locale sources and generated fallbacks; previous ja/ko/fr runtime wiring WATCH remains Base-owned.
+
+Current Deploy/Service package race is running until its final receipt exists.
+
+Full CGO race and official-lock rebuild/source binding must be refreshed after C01 changes.
+
+Two independent implementation review lanes and original C01 acceptance remain open.
+
+External provider, production and final maintainer acceptance are not inferred.

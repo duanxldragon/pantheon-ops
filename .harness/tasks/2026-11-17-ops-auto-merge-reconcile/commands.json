@@ -1,0 +1,44 @@
+{
+  "taskId": "2026-11-17-ops-auto-merge-reconcile",
+  "title": "Auto-merge reconcile — commands for a permissioned runner",
+  "generatedBy": "ops-closeout Claude (G1), 2026-11-17",
+  "sessionNote": "This headless session has NO approval surface: node and npm executions (including node --test / npm run) are auto-denied. Edits were made with the file tools and the test contract was verified STATICALLY against the precise regex assertions in tests/scripts/*.test.mjs, but nothing was executed here. Run these in a normal interactive session (or as Codex) and record the outputs before acceptance.",
+  "verifiedStatically": [
+    {
+      "item": ".github/workflows/pr-automation.yml · Enable squash auto-merge step",
+      "result": "env GH_TOKEN=${{ secrets.RELEASE_GATE_TOKEN }}; fail-closed guard `if [ -z \"${GH_TOKEN:-}\" ]; then echo 'RELEASE_GATE_TOKEN is required to enable auto-merge' >&2; exit 1; fi`; no `github.token` literal in the step; gh pr merge command preserved.",
+      "note": "Matches every regex assertion in tests/scripts/pr-automation-workflow.test.mjs (from github.token-fallback absence to fail-closed and RELEASE_GATE_TOKEN presence)."
+    },
+    {
+      "item": ".github/workflows/ci.yml vs quality.yml",
+      "result": "No ci.yml created. quality.yml already declares `on: workflow_dispatch:` and `push:` on `branches: main/release/**` — the exact-commit manual + post-merge triggers. ci-workflow-dispatch.test.mjs repointed at quality.yml and asserts both.",
+      "note": "Avoids inventing an empty CI workflow solely to satisfy an old hard-coded filename."
+    }
+  ],
+  "toRun": [
+    {
+      "cmd": "npm run test:pr-automation-workflow",
+      "cwd": ".",
+      "expect": "pass — both test/scripts pass: pr-automation-workflow.test.mjs + ci-workflow-dispatch.test.mjs",
+      "owner": "permissioned runner / Codex acceptance"
+    },
+    {
+      "cmd": "npm run check:docs-frontmatter",
+      "cwd": ".",
+      "expect": "pass — only task docs changed (token→Superseded with superseded_by; push-trigger→Active, updated_at 2026-11-17)",
+      "owner": "permissioned runner / Codex acceptance"
+    },
+    {
+      "cmd": "npm run check:task-packet-template",
+      "cwd": ".",
+      "expect": "pass — template files untouched",
+      "owner": "permissioned runner / Codex acceptance"
+    },
+    {
+      "cmd": "npm run check:docs-governance",
+      "cwd": ".",
+      "expect": "pass — full CI docs-governance job",
+      "owner": "permissioned runner / Codex acceptance"
+    }
+  ]
+}

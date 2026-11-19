@@ -138,6 +138,7 @@ export interface DeployTemplatePayload {
 }
 
 export interface DeployTaskHostRow {
+  executionVersion?: string;
   id: number;
   taskId: number;
   hostId: number;
@@ -273,6 +274,7 @@ export interface StartDeployTaskPayload {
 }
 
 export interface MarkHostResultPayload {
+  executionVersion?: string;
   status: 'success' | 'failed' | 'skipped';
   stdout?: string;
   stderr?: string;

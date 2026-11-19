@@ -1,0 +1,65 @@
+{
+  "task": "2026-11-16-ops-navigation-repair",
+  "date": "2026-11-16",
+  "role": "claude (sole executor); codex = dispatch/independent acceptance",
+  "commands": [
+    {
+      "cmd": "go build ./modules/business/...",
+      "fromRepoRoot": true,
+      "note": "first attempt failed (cwd frontend/src, module root is backend); rerun with -C",
+      "result": "attempted"
+    },
+    {
+      "cmd": "go build -C backend ./modules/business/...",
+      "result": "PASS (no output)"
+    },
+    {
+      "cmd": "go vet -C backend ./modules/business/...",
+      "result": "PASS (no output)"
+    },
+    {
+      "cmd": "go test -C backend -v ./modules/business/service/...",
+      "result": "SKIP (PANTHEON_TEST_DSN / PANTHEON_DSN unset in this shell) - NOT a pass; real-MySQL regression is Codex acceptance gate (see codex go-race-service.log / go-race-full.log in this dir)"
+    },
+    {
+      "cmd": "go test -C backend -run TestSeedMigrate -v ./modules/business/service/...",
+      "result": "SKIP - no DSN (mysql.go:67)"
+    },
+    {
+      "cmd": "npx --prefix frontend tsc -b",
+      "result": "DENIED - no approval surface in this session; not run"
+    },
+    {
+      "cmd": "frontend/node_modules/.bin/tsc -b",
+      "result": "DENIED - no approval surface in this session; not run"
+    },
+    {
+      "cmd": "eslint .",
+      "result": "not run by claude (approval-denied class); Codex gate logs codex-frontend-lint.log (0 errors, 1 unrelated warning)"
+    },
+    {
+      "cmd": "node scripts/check-menu-contract.mjs",
+      "result": "not run by claude; Codex gate log codex-menu-contract.log PASS (45 menus / 55 routes / 250 perms / 54 component keys)"
+    },
+    {
+      "cmd": "node scripts/business-overlay/check-business-overlay.mjs",
+      "result": "Codex gate log codex-business-overlay.log PASS (53 declared paths)"
+    },
+    {
+      "cmd": "node scripts/check-business-module-boundaries.mjs",
+      "result": "Codex gate log codex-business-boundaries.log PASS"
+    },
+    {
+      "cmd": "playwright nav regression",
+      "result": "Codex independent acceptance (real upgraded old-DB backend restart + Playwright + desktop 1440x900 / mobile 390x844 screenshots); not run by claude"
+    }
+  ],
+  "gate_summary": {
+    "claude_self_passed": ["go build backend business modules", "go vet backend business modules"],
+    "claude_skipped_no_dsn": ["service seed migration regression (needs real MySQL)"],
+    "claude_denied_no_approval_surface": ["frontend tsc -b", "frontend build", "eslint"],
+    "codex_gate_logs_present": ["codex-frontend-typecheck.log", "codex-frontend-lint.log", "codex-menu-contract.log", "codex-business-overlay.log", "codex-business-boundaries.log", "codex-overlay-tests.log", "go-race-service.log", "go-race-full.log"],
+    "rendered_evidence": "NOT produced by claude (no real DB / no localhost curl); delegated to Codex acceptance via Playwright screenshots"
+  },
+  "note": "Final claude edits in this window are string-only bundle/label values (k8s workload keys, ArgoCD menu + hero titles) and frontend module-registration order; they carry no structural/type change, so the existing Codex gate logs remain representative. Task left awaiting-review; claude did not self-approve."
+}

@@ -1,0 +1,99 @@
+{
+  "commands": [
+    {
+      "log": ".harness/evidence/2026-11-16-ops-filedist-product-closure/ui-final-eslint-20261118-02.log",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\frontend",
+      "finishedAt": "2026-11-18T07:43:08.1679800Z",
+      "exitCode": 0,
+      "command": "node node_modules/eslint/bin/eslint.js src/modules/business/filedist",
+      "startedAt": "2026-11-18T07:43:05.1479891Z"
+    },
+    {
+      "log": ".harness/evidence/2026-11-16-ops-filedist-product-closure/ui-final-app-typecheck-20261118-02.log",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\frontend",
+      "finishedAt": "2026-11-18T07:43:36.9773657Z",
+      "exitCode": 0,
+      "command": "node node_modules/typescript/bin/tsc -b --pretty false",
+      "startedAt": "2026-11-18T07:43:08.1846986Z"
+    },
+    {
+      "log": ".harness/evidence/2026-11-16-ops-filedist-product-closure/ui-final-regressions-20261118-02.log",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+      "finishedAt": "2026-11-18T07:43:39.4141896Z",
+      "exitCode": 0,
+      "command": "node .harness/evidence/2026-11-16-ops-filedist-product-closure/run-ui-lifetime-regression-20261118.mjs",
+      "startedAt": "2026-11-18T07:43:36.9787472Z"
+    },
+    {
+      "log": ".harness/evidence/2026-11-16-ops-filedist-product-closure/ui-final-diff-20261118-02.log",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+      "finishedAt": "2026-11-18T07:43:39.4866165Z",
+      "exitCode": 0,
+      "command": "git diff --check -- frontend/src/modules/business/filedist",
+      "startedAt": "2026-11-18T07:43:39.4431275Z"
+    }
+  ],
+  "sourceAfter": [
+    {
+      "path": "frontend/src/modules/business/filedist/api.ts",
+      "sha256": "3d417008d14ee2d8f199cecee76d017dd171481e1032546baee279f1c787c88f"
+    },
+    {
+      "path": "frontend/src/modules/business/filedist/createTaskPayload.ts",
+      "sha256": "e479cf0fec6897f6851b30dd4e0e45c7c19d7677c94b572c4e5252ffa1ee7e95"
+    },
+    {
+      "path": "frontend/src/modules/business/filedist/taskState.ts",
+      "sha256": "14d31aa7be0b64dd27b42619297dabb507adfab027ef3e6c1c47b56e62df4cc3"
+    },
+    {
+      "path": "frontend/src/modules/business/filedist/useTaskDetail.ts",
+      "sha256": "72c5891d5765c6154071fee36e1c47053b0a47125023f1c6cfaf0f88d685dde7"
+    },
+    {
+      "path": "frontend/src/modules/business/filedist/FiledistList.tsx",
+      "sha256": "505ffa920874eec1bbe060b6179504f14da9660288d3fd2889e02fdd1a3f5847"
+    },
+    {
+      "path": "frontend/src/modules/business/filedist/FiledistDetail.tsx",
+      "sha256": "592da075658906b6e40dafc49c1364275b5d122e6734bd85394265bf6b7ba1ba"
+    },
+    {
+      "path": "frontend/src/modules/business/filedist/filedist.css",
+      "sha256": "0099f2cc83b247069fa784eaedb3aa7b87eb15229d2462cb1a623aaac022c2df"
+    }
+  ],
+  "scope": "Seven FileDist UI files; no assertion of full-tree stability",
+  "sourceUnchanged": true,
+  "verifiedAtUTC": "2026-11-18T07:43:39.5189970Z",
+  "sourceBefore": [
+    {
+      "path": "frontend/src/modules/business/filedist/api.ts",
+      "sha256": "3d417008d14ee2d8f199cecee76d017dd171481e1032546baee279f1c787c88f"
+    },
+    {
+      "path": "frontend/src/modules/business/filedist/createTaskPayload.ts",
+      "sha256": "e479cf0fec6897f6851b30dd4e0e45c7c19d7677c94b572c4e5252ffa1ee7e95"
+    },
+    {
+      "path": "frontend/src/modules/business/filedist/taskState.ts",
+      "sha256": "14d31aa7be0b64dd27b42619297dabb507adfab027ef3e6c1c47b56e62df4cc3"
+    },
+    {
+      "path": "frontend/src/modules/business/filedist/useTaskDetail.ts",
+      "sha256": "72c5891d5765c6154071fee36e1c47053b0a47125023f1c6cfaf0f88d685dde7"
+    },
+    {
+      "path": "frontend/src/modules/business/filedist/FiledistList.tsx",
+      "sha256": "505ffa920874eec1bbe060b6179504f14da9660288d3fd2889e02fdd1a3f5847"
+    },
+    {
+      "path": "frontend/src/modules/business/filedist/FiledistDetail.tsx",
+      "sha256": "592da075658906b6e40dafc49c1364275b5d122e6734bd85394265bf6b7ba1ba"
+    },
+    {
+      "path": "frontend/src/modules/business/filedist/filedist.css",
+      "sha256": "0099f2cc83b247069fa784eaedb3aa7b87eb15229d2462cb1a623aaac022c2df"
+    }
+  ]
+}

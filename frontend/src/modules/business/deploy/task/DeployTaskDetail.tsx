@@ -1071,7 +1071,7 @@ export default function DeployTaskDetail() {
     ) => {
       setSubmitting(true);
       try {
-        await markDeployHostResult(host.id, payload);
+        await markDeployHostResult(host.id, { ...payload, executionVersion: host.executionVersion });
         Message.success(t('business.deploy.task.markSuccess'));
         closeResultModal();
         await loadData();

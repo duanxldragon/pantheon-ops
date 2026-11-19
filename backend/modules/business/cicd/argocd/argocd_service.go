@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 // SQL fragments shared by the Argo CD registry queries. They stay package constants so every
@@ -21,12 +22,13 @@ const (
 //
 //nolint:revive // the exported service name keeps the Argo CD domain prefix for API clarity.
 type ArgoCDService struct {
-	db *gorm.DB
+	db        *gorm.DB
+	newClient func(string, string, string) (*ArgoCDClient, error)
 }
 
 // NewArgoCDService creates a new ArgoCDService.
 func NewArgoCDService(db *gorm.DB) *ArgoCDService {
-	return &ArgoCDService{db: db}
+	return &ArgoCDService{db: db, newClient: NewArgoCDClient}
 }
 
 // Migrate creates or updates database schema.
@@ -443,8 +445,8 @@ func (s *ArgoCDService) DeleteApplication(id uint64) error {
 	return s.db.Delete(&ArgoCDApplication{}, id).Error
 }
 
-// SyncApplication triggers a real sync on the remote ArgoCD server and
-// records the outcome in the sync history.
+// SyncApplication records request acceptance. Only reconciliation of the remote
+// operation and health can complete its history successfully.
 func (s *ArgoCDService) SyncApplication(id uint64, revision string) (*SyncHistoryResponse, error) {
 	var record ArgoCDApplication
 	if err := s.db.First(&record, id).Error; err != nil {
@@ -460,51 +462,66 @@ func (s *ArgoCDService) SyncApplication(id uint64, revision string) (*SyncHistor
 		return nil, fmt.Errorf("decryption_failed: %w", err)
 	}
 
-	now := time.Now()
-	history := &ArgoCDSyncHistory{
-		ApplicationID: id,
-		Revision:      revision,
-		Status:        "Running",
-		StartedAt:     now,
+	newClient := s.newClient
+	if newClient == nil {
+		newClient = NewArgoCDClient
 	}
-	if err := s.db.Create(history).Error; err != nil {
-		return nil, err
-	}
-
-	client, err := NewArgoCDClient(server.Endpoint, authToken, server.CACert)
+	client, err := newClient(server.Endpoint, authToken, server.CACert)
 	if err != nil {
 		return nil, err
 	}
 	opCtx, cancel := withCustomTimeout(context.TODO(), 30*time.Second)
 	defer cancel()
-
-	finished := time.Now()
-	status := "Succeeded"
-	var message string
-	if err := client.SyncApplication(opCtx, record.Name, revision); err != nil {
-		status = "Failed"
-		message = err.Error()
-	}
-	history.Status = status
-	history.Message = message
-	history.FinishedAt = &finished
-	_ = s.db.Model(history).Updates(map[string]interface{}{
-		"status": status, "message": message, "finished_at": finished,
-	}).Error
-
-	updates := map[string]interface{}{"last_synced_at": finished}
-	if status == "Succeeded" {
-		updates["status"] = AppStatusSynced
-		updates["sync_status"] = "Synced"
-	} else {
-		updates["status"] = AppStatusError
-		updates["sync_status"] = "OutOfSync"
-		updates["last_error"] = message
-	}
-	_ = s.db.Model(&record).Updates(updates).Error
-
+	history := &ArgoCDSyncHistory{}
+	var requestErr error
+	err = s.db.WithContext(opCtx).Transaction(func(tx *gorm.DB) error {
+		var current ArgoCDApplication
+		if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).First(&current, id).Error; err != nil {
+			return err
+		}
+		if !sameApplicationSource(&current, &record) {
+			return errors.New("business.cicd.application.sourceChanged")
+		}
+		var pending ArgoCDSyncHistory
+		if err := tx.Where("application_id = ? AND status = ?", id, syncHistoryRunning).Order("id DESC").First(&pending).Error; err == nil {
+			if pending.Revision != revision {
+				return errors.New("business.cicd.application.syncInProgress")
+			}
+			*history = pending
+			return nil
+		} else if !errors.Is(err, gorm.ErrRecordNotFound) {
+			return err
+		}
+		*history = ArgoCDSyncHistory{ApplicationID: id, Revision: revision, Status: syncHistoryRunning, StartedAt: time.Now().UTC()}
+		if err := tx.Create(history).Error; err != nil {
+			return err
+		}
+		updates := map[string]interface{}{"status": appStatusProgressing, "sync_status": AppStatusUnknown, "health_status": HealthUnknown, "last_error": ""}
+		// Leave time to persist the request result after the HTTP budget expires.
+		requestCtx, requestCancel := withCustomTimeout(opCtx, 10*time.Second)
+		requestErr = client.SyncApplication(requestCtx, current.Name, revision)
+		requestCancel()
+		if requestErr != nil {
+			history.Message = appSyncFailedKey
+			if errors.Is(requestErr, errSyncRequestRejected) {
+				finished := time.Now().UTC()
+				history.Status, history.FinishedAt = syncHistoryFailed, &finished
+				updates["status"] = AppStatusError
+			}
+			// Transport/5xx failures may lose an acceptance response. Keep them
+			// pending so later observation can establish the actual outcome.
+			if err := tx.Model(history).Updates(map[string]interface{}{"status": history.Status, "message": history.Message, "finished_at": history.FinishedAt}).Error; err != nil {
+				return err
+			}
+			updates["last_error"] = history.Message
+		}
+		return tx.Model(&current).Updates(updates).Error
+	})
 	if err != nil {
 		return nil, err
+	}
+	if requestErr != nil {
+		return nil, errors.New(appSyncFailedKey)
 	}
 	return &SyncHistoryResponse{
 		ID:         history.ID,
@@ -547,26 +564,8 @@ func (s *ArgoCDService) RefreshApplication(id uint64) error {
 		return err
 	}
 
-	// Get updated status
-	status, err := client.GetApplicationStatus(opCtx, record.Name)
-	if err != nil {
-		return err
-	}
-
-	// Update database
-	updates := map[string]interface{}{
-		"health_status": status.Health.Status,
-		"sync_status":   status.Sync.Status,
-	}
-
-	if status.OperationState != nil {
-		updates["status"] = status.OperationState.Phase
-		if status.OperationState.Message != "" {
-			updates["last_error"] = status.OperationState.Message
-		}
-	}
-
-	return s.db.Model(&record).Updates(updates).Error
+	// Refresh and background reconciliation share the same success and ordering rules.
+	return NewReconciler(s.db, 30*time.Second).reconcileApplication(opCtx, client, &record)
 }
 
 // RollbackApplication records a rollback sync event.

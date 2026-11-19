@@ -125,12 +125,26 @@ func (s *ClusterService) List(query ClusterListQuery, dataScope *common.DataScop
 
 // GetByID returns one Kubernetes cluster visible in the supplied data scope.
 func (s *ClusterService) GetByID(id uint64, dataScope *common.DataScopeReq) (*ClusterResponse, error) {
-	cluster, err := s.findCluster(id, dataScope)
+	return s.GetByIDWithContext(context.Background(), id, dataScope)
+}
+
+// GetByIDWithContext preserves the request deadline for scoped identity and
+// credential metadata reads used by other Kubernetes owners.
+func (s *ClusterService) GetByIDWithContext(ctx context.Context, id uint64, dataScope *common.DataScopeReq) (*ClusterResponse, error) {
+	if s.db == nil {
+		return nil, common.ErrDatabaseNotInitialized
+	}
+	if ctx == nil {
+		ctx = context.Background()
+	}
+	reader := *s
+	reader.db = s.db.WithContext(ctx)
+	cluster, err := reader.findClusterWithContext(ctx, id, dataScope)
 	if err != nil {
 		return nil, err
 	}
 	resp := toResponse(cluster)
-	s.enrichCredentialMetadata(&resp, cluster.KubeconfigCredentialRefID)
+	reader.enrichCredentialMetadata(&resp, cluster.KubeconfigCredentialRefID)
 	return &resp, nil
 }
 
@@ -310,14 +324,8 @@ func (s *ClusterService) WithClusterLock(id uint64, dataScope *common.DataScopeR
 		return errors.New("database.not_initialized")
 	}
 	return s.db.Transaction(func(tx *gorm.DB) error {
-		var item Cluster
-		query := tx.Model(&Cluster{}).Scopes(database.WithDataScope(dataScope)).
-			Clauses(clause.Locking{Strength: "UPDATE"}).
-			Where(idWhereClause, id)
-		if err := query.First(&item).Error; err != nil {
-			if errors.Is(err, gorm.ErrRecordNotFound) {
-				return errors.New("k8s.cluster.not_found")
-			}
+		item, err := lockClusterRow(tx, id, dataScope)
+		if err != nil {
 			return err
 		}
 
@@ -337,8 +345,50 @@ func (s *ClusterService) WithClusterLock(id uint64, dataScope *common.DataScopeR
 			}()
 		}
 		_ = locked
-		return action(tx, &item)
+		return action(tx, item)
 	})
+}
+
+// WithClientsetLockWithContext holds the scoped registration row while an
+// owner dispatches an operation. Credential reads share the transaction's
+// connection. The row fence also serializes older WithClusterLock writers;
+// this cancellable path does not acquire a session-scoped advisory lock.
+func (s *ClusterService) WithClientsetLockWithContext(ctx context.Context, id uint64, dataScope *common.DataScopeReq, action func(*gorm.DB, *Cluster, kubernetes.Interface) error) error {
+	if s.db == nil {
+		return common.ErrDatabaseNotInitialized
+	}
+	if action == nil {
+		return common.NewBadRequest("common.param_invalid")
+	}
+	if ctx == nil {
+		ctx = context.Background()
+	}
+	return s.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		item, err := lockClusterRow(tx, id, dataScope)
+		if err != nil {
+			return err
+		}
+		reader := *s
+		reader.db = tx
+		clientset, err := reader.clientsetForClusterWithContext(ctx, item)
+		if err != nil {
+			return err
+		}
+		return action(tx, item, clientset)
+	})
+}
+
+func lockClusterRow(tx *gorm.DB, id uint64, dataScope *common.DataScopeReq) (*Cluster, error) {
+	var item Cluster
+	query := tx.Model(&Cluster{}).Scopes(database.WithDataScope(dataScope)).
+		Clauses(clause.Locking{Strength: "UPDATE"}).Where(idWhereClause, id)
+	if err := query.First(&item).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, errors.New("k8s.cluster.not_found")
+		}
+		return nil, err
+	}
+	return &item, nil
 }
 
 // Sync reconnects to the cluster, refreshes its version, node and pod counts,

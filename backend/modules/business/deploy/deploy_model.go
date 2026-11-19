@@ -323,6 +323,7 @@ type deployStepSnapshot struct {
 
 // deployExecutionSnapshot is the immutable execution intent persisted on a task.
 type deployExecutionSnapshot struct {
+	Kind            string               `json:"kind,omitempty"`
 	TemplateID      uint64               `json:"templateId"`
 	TemplateName    string               `json:"templateName"`
 	TemplateVersion string               `json:"templateVersion"`
@@ -344,12 +345,20 @@ type deployTargetHostSnapshot struct {
 
 // deployTargetSnapshot is the immutable target intent frozen at Start.
 type deployTargetSnapshot struct {
-	Selection    *cmdb.TargetSelection      `json:"selection,omitempty"`
-	ScopeVersion string                     `json:"scopeVersion,omitempty"`
-	Sources      map[string]int             `json:"sources,omitempty"`
-	TargetType   string                     `json:"targetType"`
-	ResolvedAt   string                     `json:"resolvedAt"`
-	Hosts        []deployTargetHostSnapshot `json:"hosts"`
+	ExecutionGeneration uint64                      `json:"executionGeneration,omitempty"`
+	ServiceState        *deployServiceStateSnapshot `json:"serviceState,omitempty"`
+	Selection           *cmdb.TargetSelection       `json:"selection,omitempty"`
+	ScopeVersion        string                      `json:"scopeVersion,omitempty"`
+	Sources             map[string]int              `json:"sources,omitempty"`
+	TargetType          string                      `json:"targetType"`
+	ResolvedAt          string                      `json:"resolvedAt"`
+	Hosts               []deployTargetHostSnapshot  `json:"hosts"`
+}
+
+type deployServiceStateSnapshot struct {
+	InstanceID       uint64 `json:"instanceId"`
+	LifecycleVersion uint64 `json:"lifecycleVersion"`
+	TransitionID     string `json:"transitionId"`
 }
 
 // --- FZ-03: Persisted step and event models for checkpoint recovery ---

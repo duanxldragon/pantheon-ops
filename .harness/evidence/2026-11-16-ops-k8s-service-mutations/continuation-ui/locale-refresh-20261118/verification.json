@@ -1,0 +1,752 @@
+{
+  "taskId": "2026-11-16-ops-k8s-service-mutations",
+  "scope": "Copy only five generated business locales from the official locale checkpoint; not the final C01/appProtocol revision.",
+  "generatedUTC": "2026-11-17T16:10:12.734Z",
+  "commands": [
+    {
+      "name": "generated-eslint",
+      "executable": "D:\\nodejs\\node.exe",
+      "args": [
+        "node_modules/eslint/bin/eslint.js",
+        "src/i18n/resources/business/zh-CN.ts",
+        "src/i18n/resources/business/en-US.ts",
+        "src/i18n/resources/business/ja-JP.ts",
+        "src/i18n/resources/business/ko-KR.ts",
+        "src/i18n/resources/business/fr-FR.ts"
+      ],
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\frontend",
+      "startedUTC": "2026-11-17T16:09:43.760Z",
+      "finishedUTC": "2026-11-17T16:09:46.225Z",
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "type-check",
+      "executable": "D:\\nodejs\\node.exe",
+      "args": [
+        "node_modules/typescript/bin/tsc",
+        "-b"
+      ],
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\frontend",
+      "startedUTC": "2026-11-17T16:09:43.768Z",
+      "finishedUTC": "2026-11-17T16:10:12.706Z",
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "generated-diff-check",
+      "executable": "git",
+      "args": [
+        "diff",
+        "--check",
+        "--",
+        "frontend/src/i18n/resources/business/zh-CN.ts",
+        "frontend/src/i18n/resources/business/en-US.ts",
+        "frontend/src/i18n/resources/business/ja-JP.ts",
+        "frontend/src/i18n/resources/business/ko-KR.ts",
+        "frontend/src/i18n/resources/business/fr-FR.ts"
+      ],
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+      "startedUTC": "2026-11-17T16:09:43.772Z",
+      "finishedUTC": "2026-11-17T16:09:43.954Z",
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": ""
+    }
+  ],
+  "before": [
+    {
+      "path": "frontend/src/modules/business/bizscope/locales/en-US.json",
+      "sha256": "a706e0d2f8af1997c42ef02d975e2cd670016ac86ed171b38dc35d9cef245460"
+    },
+    {
+      "path": "frontend/src/modules/business/bizscope/locales/fr-FR.json",
+      "sha256": "ec901983d033c0883f22fa643757ab464d75b6fd4c1a4d216173090842edc0e6"
+    },
+    {
+      "path": "frontend/src/modules/business/bizscope/locales/ja-JP.json",
+      "sha256": "a702ee79d763ac097fa9e81b934637c74bb985e7168a385572dea894c288f49b"
+    },
+    {
+      "path": "frontend/src/modules/business/bizscope/locales/ko-KR.json",
+      "sha256": "e885fee4d818faca3d392a2212cfd955ac7f6fe28f041f8cb6dce28630d52240"
+    },
+    {
+      "path": "frontend/src/modules/business/bizscope/locales/zh-CN.json",
+      "sha256": "9698963e34fda8de31bdea1ce5d53b8db83e33d3b7afd524169305cc6204dea6"
+    },
+    {
+      "path": "frontend/src/modules/business/cmdb/locales/en-US.json",
+      "sha256": "b6741e8b7bdf037eb57cf1eac634817599d15e0f9f7d7de4e63410387319768b"
+    },
+    {
+      "path": "frontend/src/modules/business/cmdb/locales/zh-CN.json",
+      "sha256": "d8441c54634a08f7ce96ea17387f448770a33e1a6157c634d3689afc53289abe"
+    },
+    {
+      "path": "frontend/src/modules/business/deploy/locales/en-US.json",
+      "sha256": "a87bd58f6995638bdfe44360ed96c8d0bec9a4c0bcea282d1b03009d2eb0233b"
+    },
+    {
+      "path": "frontend/src/modules/business/deploy/locales/fr-FR.json",
+      "sha256": "8489a01ca9353fd0a5cfd687349d31d00f49a01f3b5bf41dd9eec6416c9505bb"
+    },
+    {
+      "path": "frontend/src/modules/business/deploy/locales/ja-JP.json",
+      "sha256": "0a349bbea0498e757e13a78a3f7341b63a89fc725846917cbb67b7e4b19755e7"
+    },
+    {
+      "path": "frontend/src/modules/business/deploy/locales/ko-KR.json",
+      "sha256": "5b5452a5728ef070bb2cf1cc4a727dc59b7a837565a656102df6a54bb9d1f613"
+    },
+    {
+      "path": "frontend/src/modules/business/deploy/locales/zh-CN.json",
+      "sha256": "346cdb82324aa73b9655e081a3801f76758e1f1c948854bdff1ad7cf0fe79cb2"
+    },
+    {
+      "path": "frontend/src/modules/business/observability/locales/en-US.json",
+      "sha256": "84a3d47bb67fc5dad33a77c38a3164f56daae98a48b5bae26bd6b0448178710d"
+    },
+    {
+      "path": "frontend/src/modules/business/observability/locales/fr-FR.json",
+      "sha256": "762de33b819129af98dd448e56c1a18d145d4e94d8041c5feaa3b40a81950fe2"
+    },
+    {
+      "path": "frontend/src/modules/business/observability/locales/ja-JP.json",
+      "sha256": "7c6ec32d3528e5a8a9310f0cedd9809b5a7a7e63bfbdc074f53e4ae5c97b4576"
+    },
+    {
+      "path": "frontend/src/modules/business/observability/locales/ko-KR.json",
+      "sha256": "0e41cc84b2e095564aa300f92f95bce68aefce670f5b2f168683d65fe3d18dff"
+    },
+    {
+      "path": "frontend/src/modules/business/observability/locales/zh-CN.json",
+      "sha256": "49c4ec440b7a73934a3d3e93a407af3556f50bf814b6ac95240d4122c7aa80c9"
+    },
+    {
+      "path": "frontend/src/modules/business/shared/locales/en-US.json",
+      "sha256": "42a9175721c2dd93b7b9147ba12d0cefc7ccb7cd07951acb2492fc9090236800"
+    },
+    {
+      "path": "frontend/src/modules/business/shared/locales/zh-CN.json",
+      "sha256": "98f36f5230998e2a810d65a4bf3479c8bf6ae681bc95d36a557ce16195bc2e00"
+    },
+    {
+      "path": "frontend/src/modules/business/v12locales/en-US.json",
+      "sha256": "d26f80a51a58ab04365a41303131ea3afb4eb582d4f224a82eeaed1c3097c7cb"
+    },
+    {
+      "path": "frontend/src/modules/business/v12locales/fr-FR.json",
+      "sha256": "94405937f248745cf252d5f7a4f46878f9b6402a6dfa76f6f89fdb2b6702fb9f"
+    },
+    {
+      "path": "frontend/src/modules/business/v12locales/ja-JP.json",
+      "sha256": "ff1c96664e32767092497bbb65bbc953fceb804bcaf3db26c34391c98573ff66"
+    },
+    {
+      "path": "frontend/src/modules/business/v12locales/ko-KR.json",
+      "sha256": "ea55b0eb1e03caa62668b7cdbd19645c73b372c74454e68200d6cc3eb133ecf8"
+    },
+    {
+      "path": "frontend/src/modules/business/v12locales/zh-CN.json",
+      "sha256": "227775201f7ef0600efa9bbeecaa59987755af373bd5f55aea69fb3568f9a497"
+    },
+    {
+      "path": "frontend/src/i18n/resources/business/zh-CN.ts",
+      "sha256": "8afaf31a4802897c811033b3d455cc9dcf178a925a26249db542ff572005cb6b"
+    },
+    {
+      "path": "frontend/src/i18n/resources/business/en-US.ts",
+      "sha256": "b23daa06a55d7456903f0f634e12571c4895daa101f319bcc307587bf836502d"
+    },
+    {
+      "path": "frontend/src/i18n/resources/business/ja-JP.ts",
+      "sha256": "428a8832aa32a19d5309dd0656829386eb9ad64d657ffed1040d207ce707253d"
+    },
+    {
+      "path": "frontend/src/i18n/resources/business/ko-KR.ts",
+      "sha256": "8805f78453d00c46f4b256c432966b406f953cab00fdab4fb52a8ab99cc228e5"
+    },
+    {
+      "path": "frontend/src/i18n/resources/business/fr-FR.ts",
+      "sha256": "fd1d3089f4798928d070277d85dc8c64fdd2256249de92a2fae790aaf1168768"
+    }
+  ],
+  "after": [
+    {
+      "path": "frontend/src/modules/business/bizscope/locales/en-US.json",
+      "sha256": "a706e0d2f8af1997c42ef02d975e2cd670016ac86ed171b38dc35d9cef245460"
+    },
+    {
+      "path": "frontend/src/modules/business/bizscope/locales/fr-FR.json",
+      "sha256": "ec901983d033c0883f22fa643757ab464d75b6fd4c1a4d216173090842edc0e6"
+    },
+    {
+      "path": "frontend/src/modules/business/bizscope/locales/ja-JP.json",
+      "sha256": "a702ee79d763ac097fa9e81b934637c74bb985e7168a385572dea894c288f49b"
+    },
+    {
+      "path": "frontend/src/modules/business/bizscope/locales/ko-KR.json",
+      "sha256": "e885fee4d818faca3d392a2212cfd955ac7f6fe28f041f8cb6dce28630d52240"
+    },
+    {
+      "path": "frontend/src/modules/business/bizscope/locales/zh-CN.json",
+      "sha256": "9698963e34fda8de31bdea1ce5d53b8db83e33d3b7afd524169305cc6204dea6"
+    },
+    {
+      "path": "frontend/src/modules/business/cmdb/locales/en-US.json",
+      "sha256": "b6741e8b7bdf037eb57cf1eac634817599d15e0f9f7d7de4e63410387319768b"
+    },
+    {
+      "path": "frontend/src/modules/business/cmdb/locales/zh-CN.json",
+      "sha256": "d8441c54634a08f7ce96ea17387f448770a33e1a6157c634d3689afc53289abe"
+    },
+    {
+      "path": "frontend/src/modules/business/deploy/locales/en-US.json",
+      "sha256": "a87bd58f6995638bdfe44360ed96c8d0bec9a4c0bcea282d1b03009d2eb0233b"
+    },
+    {
+      "path": "frontend/src/modules/business/deploy/locales/fr-FR.json",
+      "sha256": "8489a01ca9353fd0a5cfd687349d31d00f49a01f3b5bf41dd9eec6416c9505bb"
+    },
+    {
+      "path": "frontend/src/modules/business/deploy/locales/ja-JP.json",
+      "sha256": "0a349bbea0498e757e13a78a3f7341b63a89fc725846917cbb67b7e4b19755e7"
+    },
+    {
+      "path": "frontend/src/modules/business/deploy/locales/ko-KR.json",
+      "sha256": "5b5452a5728ef070bb2cf1cc4a727dc59b7a837565a656102df6a54bb9d1f613"
+    },
+    {
+      "path": "frontend/src/modules/business/deploy/locales/zh-CN.json",
+      "sha256": "346cdb82324aa73b9655e081a3801f76758e1f1c948854bdff1ad7cf0fe79cb2"
+    },
+    {
+      "path": "frontend/src/modules/business/observability/locales/en-US.json",
+      "sha256": "84a3d47bb67fc5dad33a77c38a3164f56daae98a48b5bae26bd6b0448178710d"
+    },
+    {
+      "path": "frontend/src/modules/business/observability/locales/fr-FR.json",
+      "sha256": "762de33b819129af98dd448e56c1a18d145d4e94d8041c5feaa3b40a81950fe2"
+    },
+    {
+      "path": "frontend/src/modules/business/observability/locales/ja-JP.json",
+      "sha256": "7c6ec32d3528e5a8a9310f0cedd9809b5a7a7e63bfbdc074f53e4ae5c97b4576"
+    },
+    {
+      "path": "frontend/src/modules/business/observability/locales/ko-KR.json",
+      "sha256": "0e41cc84b2e095564aa300f92f95bce68aefce670f5b2f168683d65fe3d18dff"
+    },
+    {
+      "path": "frontend/src/modules/business/observability/locales/zh-CN.json",
+      "sha256": "49c4ec440b7a73934a3d3e93a407af3556f50bf814b6ac95240d4122c7aa80c9"
+    },
+    {
+      "path": "frontend/src/modules/business/shared/locales/en-US.json",
+      "sha256": "42a9175721c2dd93b7b9147ba12d0cefc7ccb7cd07951acb2492fc9090236800"
+    },
+    {
+      "path": "frontend/src/modules/business/shared/locales/zh-CN.json",
+      "sha256": "98f36f5230998e2a810d65a4bf3479c8bf6ae681bc95d36a557ce16195bc2e00"
+    },
+    {
+      "path": "frontend/src/modules/business/v12locales/en-US.json",
+      "sha256": "d26f80a51a58ab04365a41303131ea3afb4eb582d4f224a82eeaed1c3097c7cb"
+    },
+    {
+      "path": "frontend/src/modules/business/v12locales/fr-FR.json",
+      "sha256": "94405937f248745cf252d5f7a4f46878f9b6402a6dfa76f6f89fdb2b6702fb9f"
+    },
+    {
+      "path": "frontend/src/modules/business/v12locales/ja-JP.json",
+      "sha256": "ff1c96664e32767092497bbb65bbc953fceb804bcaf3db26c34391c98573ff66"
+    },
+    {
+      "path": "frontend/src/modules/business/v12locales/ko-KR.json",
+      "sha256": "ea55b0eb1e03caa62668b7cdbd19645c73b372c74454e68200d6cc3eb133ecf8"
+    },
+    {
+      "path": "frontend/src/modules/business/v12locales/zh-CN.json",
+      "sha256": "227775201f7ef0600efa9bbeecaa59987755af373bd5f55aea69fb3568f9a497"
+    },
+    {
+      "path": "frontend/src/i18n/resources/business/zh-CN.ts",
+      "sha256": "8afaf31a4802897c811033b3d455cc9dcf178a925a26249db542ff572005cb6b"
+    },
+    {
+      "path": "frontend/src/i18n/resources/business/en-US.ts",
+      "sha256": "b23daa06a55d7456903f0f634e12571c4895daa101f319bcc307587bf836502d"
+    },
+    {
+      "path": "frontend/src/i18n/resources/business/ja-JP.ts",
+      "sha256": "428a8832aa32a19d5309dd0656829386eb9ad64d657ffed1040d207ce707253d"
+    },
+    {
+      "path": "frontend/src/i18n/resources/business/ko-KR.ts",
+      "sha256": "8805f78453d00c46f4b256c432966b406f953cab00fdab4fb52a8ab99cc228e5"
+    },
+    {
+      "path": "frontend/src/i18n/resources/business/fr-FR.ts",
+      "sha256": "fd1d3089f4798928d070277d85dc8c64fdd2256249de92a2fae790aaf1168768"
+    }
+  ],
+  "sourcesStable": true,
+  "boundToCopyReceipt": true,
+  "generatedTranslationComparisons": 90,
+  "translations": [
+    {
+      "locale": "zh-CN",
+      "key": "business.k8s.service.selectorUpdateHint",
+      "matchedCanonical": true
+    },
+    {
+      "locale": "zh-CN",
+      "key": "business.k8s.service.requiredFields",
+      "matchedCanonical": true
+    },
+    {
+      "locale": "zh-CN",
+      "key": "business.k8s.service.selectorInvalid",
+      "matchedCanonical": true
+    },
+    {
+      "locale": "zh-CN",
+      "key": "business.k8s.service.portsInvalid",
+      "matchedCanonical": true
+    },
+    {
+      "locale": "zh-CN",
+      "key": "business.k8s.service.selectorPlaceholder",
+      "matchedCanonical": true
+    },
+    {
+      "locale": "zh-CN",
+      "key": "business.k8s.service.selectorHint",
+      "matchedCanonical": true
+    },
+    {
+      "locale": "zh-CN",
+      "key": "business.k8s.service.portsHint",
+      "matchedCanonical": true
+    },
+    {
+      "locale": "zh-CN",
+      "key": "business.k8s.service.portNumber",
+      "matchedCanonical": true
+    },
+    {
+      "locale": "zh-CN",
+      "key": "business.k8s.service.removePortNumber",
+      "matchedCanonical": true
+    },
+    {
+      "locale": "zh-CN",
+      "key": "business.k8s.service.removePort",
+      "matchedCanonical": true
+    },
+    {
+      "locale": "zh-CN",
+      "key": "business.k8s.service.addPort",
+      "matchedCanonical": true
+    },
+    {
+      "locale": "zh-CN",
+      "key": "business.k8s.service.field.portName",
+      "matchedCanonical": true
+    },
+    {
+      "locale": "zh-CN",
+      "key": "business.k8s.service.field.nodePort",
+      "matchedCanonical": true
+    },
+    {
+      "locale": "zh-CN",
+      "key": "k8s.service.resource_version_conflict",
+      "matchedCanonical": true
+    },
+    {
+      "locale": "zh-CN",
+      "key": "k8s.service.resource_version_required",
+      "matchedCanonical": true
+    },
+    {
+      "locale": "zh-CN",
+      "key": "k8s.service.update_failed",
+      "matchedCanonical": true
+    },
+    {
+      "locale": "zh-CN",
+      "key": "k8s.service.audit.update",
+      "matchedCanonical": true
+    },
+    {
+      "locale": "zh-CN",
+      "key": "k8s.namespace.binding_invalid",
+      "matchedCanonical": true
+    },
+    {
+      "locale": "en-US",
+      "key": "business.k8s.service.selectorUpdateHint",
+      "matchedCanonical": true
+    },
+    {
+      "locale": "en-US",
+      "key": "business.k8s.service.requiredFields",
+      "matchedCanonical": true
+    },
+    {
+      "locale": "en-US",
+      "key": "business.k8s.service.selectorInvalid",
+      "matchedCanonical": true
+    },
+    {
+      "locale": "en-US",
+      "key": "business.k8s.service.portsInvalid",
+      "matchedCanonical": true
+    },
+    {
+      "locale": "en-US",
+      "key": "business.k8s.service.selectorPlaceholder",
+      "matchedCanonical": true
+    },
+    {
+      "locale": "en-US",
+      "key": "business.k8s.service.selectorHint",
+      "matchedCanonical": true
+    },
+    {
+      "locale": "en-US",
+      "key": "business.k8s.service.portsHint",
+      "matchedCanonical": true
+    },
+    {
+      "locale": "en-US",
+      "key": "business.k8s.service.portNumber",
+      "matchedCanonical": true
+    },
+    {
+      "locale": "en-US",
+      "key": "business.k8s.service.removePortNumber",
+      "matchedCanonical": true
+    },
+    {
+      "locale": "en-US",
+      "key": "business.k8s.service.removePort",
+      "matchedCanonical": true
+    },
+    {
+      "locale": "en-US",
+      "key": "business.k8s.service.addPort",
+      "matchedCanonical": true
+    },
+    {
+      "locale": "en-US",
+      "key": "business.k8s.service.field.portName",
+      "matchedCanonical": true
+    },
+    {
+      "locale": "en-US",
+      "key": "business.k8s.service.field.nodePort",
+      "matchedCanonical": true
+    },
+    {
+      "locale": "en-US",
+      "key": "k8s.service.resource_version_conflict",
+      "matchedCanonical": true
+    },
+    {
+      "locale": "en-US",
+      "key": "k8s.service.resource_version_required",
+      "matchedCanonical": true
+    },
+    {
+      "locale": "en-US",
+      "key": "k8s.service.update_failed",
+      "matchedCanonical": true
+    },
+    {
+      "locale": "en-US",
+      "key": "k8s.service.audit.update",
+      "matchedCanonical": true
+    },
+    {
+      "locale": "en-US",
+      "key": "k8s.namespace.binding_invalid",
+      "matchedCanonical": true
+    },
+    {
+      "locale": "ja-JP",
+      "key": "business.k8s.service.selectorUpdateHint",
+      "matchedCanonical": true
+    },
+    {
+      "locale": "ja-JP",
+      "key": "business.k8s.service.requiredFields",
+      "matchedCanonical": true
+    },
+    {
+      "locale": "ja-JP",
+      "key": "business.k8s.service.selectorInvalid",
+      "matchedCanonical": true
+    },
+    {
+      "locale": "ja-JP",
+      "key": "business.k8s.service.portsInvalid",
+      "matchedCanonical": true
+    },
+    {
+      "locale": "ja-JP",
+      "key": "business.k8s.service.selectorPlaceholder",
+      "matchedCanonical": true
+    },
+    {
+      "locale": "ja-JP",
+      "key": "business.k8s.service.selectorHint",
+      "matchedCanonical": true
+    },
+    {
+      "locale": "ja-JP",
+      "key": "business.k8s.service.portsHint",
+      "matchedCanonical": true
+    },
+    {
+      "locale": "ja-JP",
+      "key": "business.k8s.service.portNumber",
+      "matchedCanonical": true
+    },
+    {
+      "locale": "ja-JP",
+      "key": "business.k8s.service.removePortNumber",
+      "matchedCanonical": true
+    },
+    {
+      "locale": "ja-JP",
+      "key": "business.k8s.service.removePort",
+      "matchedCanonical": true
+    },
+    {
+      "locale": "ja-JP",
+      "key": "business.k8s.service.addPort",
+      "matchedCanonical": true
+    },
+    {
+      "locale": "ja-JP",
+      "key": "business.k8s.service.field.portName",
+      "matchedCanonical": true
+    },
+    {
+      "locale": "ja-JP",
+      "key": "business.k8s.service.field.nodePort",
+      "matchedCanonical": true
+    },
+    {
+      "locale": "ja-JP",
+      "key": "k8s.service.resource_version_conflict",
+      "matchedCanonical": true
+    },
+    {
+      "locale": "ja-JP",
+      "key": "k8s.service.resource_version_required",
+      "matchedCanonical": true
+    },
+    {
+      "locale": "ja-JP",
+      "key": "k8s.service.update_failed",
+      "matchedCanonical": true
+    },
+    {
+      "locale": "ja-JP",
+      "key": "k8s.service.audit.update",
+      "matchedCanonical": true
+    },
+    {
+      "locale": "ja-JP",
+      "key": "k8s.namespace.binding_invalid",
+      "matchedCanonical": true
+    },
+    {
+      "locale": "ko-KR",
+      "key": "business.k8s.service.selectorUpdateHint",
+      "matchedCanonical": true
+    },
+    {
+      "locale": "ko-KR",
+      "key": "business.k8s.service.requiredFields",
+      "matchedCanonical": true
+    },
+    {
+      "locale": "ko-KR",
+      "key": "business.k8s.service.selectorInvalid",
+      "matchedCanonical": true
+    },
+    {
+      "locale": "ko-KR",
+      "key": "business.k8s.service.portsInvalid",
+      "matchedCanonical": true
+    },
+    {
+      "locale": "ko-KR",
+      "key": "business.k8s.service.selectorPlaceholder",
+      "matchedCanonical": true
+    },
+    {
+      "locale": "ko-KR",
+      "key": "business.k8s.service.selectorHint",
+      "matchedCanonical": true
+    },
+    {
+      "locale": "ko-KR",
+      "key": "business.k8s.service.portsHint",
+      "matchedCanonical": true
+    },
+    {
+      "locale": "ko-KR",
+      "key": "business.k8s.service.portNumber",
+      "matchedCanonical": true
+    },
+    {
+      "locale": "ko-KR",
+      "key": "business.k8s.service.removePortNumber",
+      "matchedCanonical": true
+    },
+    {
+      "locale": "ko-KR",
+      "key": "business.k8s.service.removePort",
+      "matchedCanonical": true
+    },
+    {
+      "locale": "ko-KR",
+      "key": "business.k8s.service.addPort",
+      "matchedCanonical": true
+    },
+    {
+      "locale": "ko-KR",
+      "key": "business.k8s.service.field.portName",
+      "matchedCanonical": true
+    },
+    {
+      "locale": "ko-KR",
+      "key": "business.k8s.service.field.nodePort",
+      "matchedCanonical": true
+    },
+    {
+      "locale": "ko-KR",
+      "key": "k8s.service.resource_version_conflict",
+      "matchedCanonical": true
+    },
+    {
+      "locale": "ko-KR",
+      "key": "k8s.service.resource_version_required",
+      "matchedCanonical": true
+    },
+    {
+      "locale": "ko-KR",
+      "key": "k8s.service.update_failed",
+      "matchedCanonical": true
+    },
+    {
+      "locale": "ko-KR",
+      "key": "k8s.service.audit.update",
+      "matchedCanonical": true
+    },
+    {
+      "locale": "ko-KR",
+      "key": "k8s.namespace.binding_invalid",
+      "matchedCanonical": true
+    },
+    {
+      "locale": "fr-FR",
+      "key": "business.k8s.service.selectorUpdateHint",
+      "matchedCanonical": true
+    },
+    {
+      "locale": "fr-FR",
+      "key": "business.k8s.service.requiredFields",
+      "matchedCanonical": true
+    },
+    {
+      "locale": "fr-FR",
+      "key": "business.k8s.service.selectorInvalid",
+      "matchedCanonical": true
+    },
+    {
+      "locale": "fr-FR",
+      "key": "business.k8s.service.portsInvalid",
+      "matchedCanonical": true
+    },
+    {
+      "locale": "fr-FR",
+      "key": "business.k8s.service.selectorPlaceholder",
+      "matchedCanonical": true
+    },
+    {
+      "locale": "fr-FR",
+      "key": "business.k8s.service.selectorHint",
+      "matchedCanonical": true
+    },
+    {
+      "locale": "fr-FR",
+      "key": "business.k8s.service.portsHint",
+      "matchedCanonical": true
+    },
+    {
+      "locale": "fr-FR",
+      "key": "business.k8s.service.portNumber",
+      "matchedCanonical": true
+    },
+    {
+      "locale": "fr-FR",
+      "key": "business.k8s.service.removePortNumber",
+      "matchedCanonical": true
+    },
+    {
+      "locale": "fr-FR",
+      "key": "business.k8s.service.removePort",
+      "matchedCanonical": true
+    },
+    {
+      "locale": "fr-FR",
+      "key": "business.k8s.service.addPort",
+      "matchedCanonical": true
+    },
+    {
+      "locale": "fr-FR",
+      "key": "business.k8s.service.field.portName",
+      "matchedCanonical": true
+    },
+    {
+      "locale": "fr-FR",
+      "key": "business.k8s.service.field.nodePort",
+      "matchedCanonical": true
+    },
+    {
+      "locale": "fr-FR",
+      "key": "k8s.service.resource_version_conflict",
+      "matchedCanonical": true
+    },
+    {
+      "locale": "fr-FR",
+      "key": "k8s.service.resource_version_required",
+      "matchedCanonical": true
+    },
+    {
+      "locale": "fr-FR",
+      "key": "k8s.service.update_failed",
+      "matchedCanonical": true
+    },
+    {
+      "locale": "fr-FR",
+      "key": "k8s.service.audit.update",
+      "matchedCanonical": true
+    },
+    {
+      "locale": "fr-FR",
+      "key": "k8s.namespace.binding_invalid",
+      "matchedCanonical": true
+    }
+  ],
+  "testsExecuted": false,
+  "renderedEvidenceInspected": false
+}

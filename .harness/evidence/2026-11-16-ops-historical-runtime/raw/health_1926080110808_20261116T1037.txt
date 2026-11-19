@@ -1,0 +1,2 @@
+HTTP 200
+{"code":200,"data":{"status":"ok","service":"pantheon-platform","timestamp":"2026-11-16T10:38:46Z","requestId":"c3e4ea01-eedf-463e-8e23-55a9a0679371","dependencies":{"database":{"status":"ok"},"migrations":{"status":"ok"},"redis":{"status":"ok"}}},"message":"success"}

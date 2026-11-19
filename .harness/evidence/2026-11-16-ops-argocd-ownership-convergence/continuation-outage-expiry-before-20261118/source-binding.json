@@ -1,0 +1,10 @@
+[
+  {
+    "Path": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.harness\\evidence\\2026-11-16-ops-argocd-ownership-convergence\\continuation-outage-expiry-before-20261118\\argocd_reconciler.go.raw",
+    "Hash": "AAAFED7B3CF51B848539FD4E4C82F35FB5C8B4921FA2780D73E39D0033953584"
+  },
+  {
+    "Path": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.harness\\evidence\\2026-11-16-ops-argocd-ownership-convergence\\continuation-outage-expiry-before-20261118\\argocd_sync_lifecycle_test.go.raw",
+    "Hash": "D60EC49DE32F974B9B14FEAFE24641D1D6FA1701E2CB7765D36959D8C4BE7FAC"
+  }
+]

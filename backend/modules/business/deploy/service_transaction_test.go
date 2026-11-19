@@ -41,11 +41,29 @@ func linkedServiceFixture(t *testing.T, uninstall bool) (*gorm.DB, *DeployServic
 		t.Fatal(err)
 	}
 	task.ServiceID, task.ServiceInstanceID = svc.ID, instance.ID
+	setLinkedFixtureSnapshot(t, &task, host, instance)
 	if err := db.Save(&task).Error; err != nil {
 		t.Fatal(err)
 	}
 	s.SetServiceInstanceStateApplierWithTransaction(owner, owner.WithServiceInstanceStateTransaction)
+	s.SetServiceReader(owner)
+	owner.SetDeploymentReferenceReader(s)
 	return db, s, task, host, instance
+}
+
+// These fault fixtures represent a task already admitted before claiming a
+// worker. Preserve the same frozen host/owner facts as the real start path.
+func setLinkedFixtureSnapshot(t *testing.T, task *DeployTask, host DeployTaskHost, instance serviceowner.ServiceInstance) {
+	t.Helper()
+	raw, err := json.Marshal(deployTargetSnapshot{
+		ExecutionGeneration: 1,
+		Hosts:               []deployTargetHostSnapshot{{HostID: host.HostID, BusinessScopeID: task.BusinessScopeID}},
+		ServiceState:        &deployServiceStateSnapshot{InstanceID: instance.ID, LifecycleVersion: instance.LifecycleVersion, TransitionID: instance.LastTransitionID},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	task.TargetSnapshot = raw
 }
 
 func linkedServiceFacts(t *testing.T, db *gorm.DB) string {
@@ -118,7 +136,7 @@ func TestServiceTransactionLinkedCompletionRollback(t *testing.T) {
 				if mode == "owned" {
 					err = s.completeOwnedAttempt("success", nil, "test", false)
 				} else {
-					_, err = s.MarkHostResult(host.ID, MarkHostResultRequest{Status: TaskHostStatusSuccess}, "test", nil)
+					_, err = s.MarkHostResult(host.ID, MarkHostResultRequest{Status: TaskHostStatusSuccess, ExecutionVersion: taskExecutionVersion(&task)}, "test", nil)
 				}
 				if err == nil {
 					t.Fatal("fault did not refuse outer completion")
@@ -157,7 +175,7 @@ func TestServiceTransactionLinkedCompletionCommit(t *testing.T) {
 						t.Fatal(err)
 					}
 				} else {
-					if _, err := s.MarkHostResult(host.ID, MarkHostResultRequest{Status: TaskHostStatusSuccess}, "test", nil); err != nil {
+					if _, err := s.MarkHostResult(host.ID, MarkHostResultRequest{Status: TaskHostStatusSuccess, ExecutionVersion: taskExecutionVersion(&task)}, "test", nil); err != nil {
 						t.Fatal(err)
 					}
 				}
@@ -226,6 +244,7 @@ func TestServiceTransactionNilBindingAndLinkCompatibility(t *testing.T) {
 			fake := &nilbindingServiceState{}
 			s.SetServiceInstanceStateApplierWithTransaction(fake, fake.WithServiceInstanceStateTransaction)
 			if mode == "no-link" {
+				task.ServiceID = 0
 				task.ServiceInstanceID = 0
 				if err := db.Save(&task).Error; err != nil {
 					t.Fatal(err)
@@ -237,7 +256,7 @@ func TestServiceTransactionNilBindingAndLinkCompatibility(t *testing.T) {
 			inner, _ := ownedClaim(t, s, task, host, "nil-binding")
 			before := linkedServiceFacts(t, db)
 			err := inner.completeOwnedAttempt("success", nil, "test", false)
-			if mode == "nil-bound" {
+			if mode == "nil-bound" || mode == "no-owner" {
 				if err == nil || linkedServiceFacts(t, db) != before {
 					t.Fatalf("nil binding failed open: %v", err)
 				}
@@ -272,7 +291,7 @@ func TestServiceTransactionNonbindingRefusedBeforeMutation(t *testing.T) {
 			if mode == "owned" {
 				err = s.completeOwnedAttempt("success", nil, "test", false)
 			} else {
-				_, err = s.MarkHostResult(host.ID, MarkHostResultRequest{Status: TaskHostStatusSuccess}, "test", nil)
+				_, err = s.MarkHostResult(host.ID, MarkHostResultRequest{Status: TaskHostStatusSuccess, ExecutionVersion: taskExecutionVersion(&task)}, "test", nil)
 			}
 			if err == nil || fake.calls != 0 {
 				t.Fatalf("unknown owner reached mutation: err=%v calls=%d", err, fake.calls)
@@ -317,7 +336,7 @@ func TestServiceTransactionFactoryRefusesInvalidOwnerBeforeMutation(t *testing.T
 				if mode == "owned" {
 					err = s.completeOwnedAttempt("success", nil, "test", false)
 				} else {
-					_, err = s.MarkHostResult(host.ID, MarkHostResultRequest{Status: TaskHostStatusSuccess}, "test", nil)
+					_, err = s.MarkHostResult(host.ID, MarkHostResultRequest{Status: TaskHostStatusSuccess, ExecutionVersion: taskExecutionVersion(&task)}, "test", nil)
 				}
 				if err == nil || err.Error() != "deploy.serviceState.transactionNotSupported" {
 					t.Fatalf("invalid owner/factory did not return fixed rejection: %v", err)
@@ -387,7 +406,7 @@ func TestServiceTransactionFactoryPreservesClonesAndCallerTransaction(t *testing
 			if mode == "owned" {
 				err = s.completeOwnedAttempt("success", nil, "test", false)
 			} else {
-				_, err = s.MarkHostResult(host.ID, MarkHostResultRequest{Status: TaskHostStatusSuccess}, "test", nil)
+				_, err = s.MarkHostResult(host.ID, MarkHostResultRequest{Status: TaskHostStatusSuccess, ExecutionVersion: taskExecutionVersion(&task)}, "test", nil)
 			}
 			if err != nil || ownerWrites != 2 || factoryCalls < 2 {
 				t.Fatalf("actual uninstall/retire factory binding: err=%v ownerWrites=%d factoryCalls=%d", err, ownerWrites, factoryCalls)
@@ -409,8 +428,12 @@ func TestServiceTransactionNilReplacementClearsOldOwnerFactory(t *testing.T) {
 	if s.serviceStateTransaction != nil {
 		t.Fatal("nil owner replacement kept former owner's factory")
 	}
-	if _, err := s.MarkHostResult(host.ID, MarkHostResultRequest{Status: TaskHostStatusSuccess}, "test", nil); err != nil {
-		t.Fatalf("no-owner compatibility: %v", err)
+	before := linkedServiceFacts(t, db)
+	if _, err := s.MarkHostResult(host.ID, MarkHostResultRequest{Status: TaskHostStatusSuccess, ExecutionVersion: taskExecutionVersion(&task)}, "test", nil); err == nil {
+		t.Fatal("linked completion without owner accepted")
+	}
+	if after := linkedServiceFacts(t, db); after != before {
+		t.Fatal("missing owner committed completion")
 	}
 	var after serviceowner.ServiceInstance
 	if err := db.First(&after, instance.ID).Error; err != nil {
@@ -419,7 +442,7 @@ func TestServiceTransactionNilReplacementClearsOldOwnerFactory(t *testing.T) {
 	if factoryCalls != 0 || after.ObservedState != instance.ObservedState || after.LifecycleVersion != instance.LifecycleVersion {
 		t.Fatal("nil owner replacement wrote through the old owner")
 	}
-	if err := db.First(&task, task.ID).Error; err != nil || task.Status != TaskStatusSuccess {
-		t.Fatalf("no-owner task did not retain completion compatibility: %v status=%s", err, task.Status)
+	if err := db.First(&task, task.ID).Error; err != nil || task.Status != TaskStatusRunning {
+		t.Fatalf("missing owner task changed: %v status=%s", err, task.Status)
 	}
 }

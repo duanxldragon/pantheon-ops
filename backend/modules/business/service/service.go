@@ -2,15 +2,19 @@ package service
 
 import (
 	"context"
+	"database/sql"
 	"errors"
+	"maps"
 	"strings"
 	"time"
 
 	bizcap "github.com/duanxldragon/pantheon-base/backend/modules/business/capability"
+	biztx "github.com/duanxldragon/pantheon-base/backend/modules/business/shared/transaction"
 	"github.com/duanxldragon/pantheon-base/backend/pkg/common"
 	"github.com/duanxldragon/pantheon-base/backend/pkg/database"
 
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 const (
@@ -37,10 +41,13 @@ const (
 
 // Manager owns application, service, and service-instance persistence operations.
 type Manager struct {
-	db         *gorm.DB
-	bizScope   bizcap.BizScopeReader
-	cmdbReader bizcap.CMDBHostReader
-	k8sReader  bizcap.K8sTargetReader
+	db                          *gorm.DB
+	bizScope                    bizcap.BizScopeReader
+	cmdbReader                  bizcap.CMDBHostReader
+	k8sReader                   bizcap.K8sTargetReader
+	lockReads                   bool
+	deploymentReader            bizcap.DeploymentReferenceReader
+	deploymentReaderTransaction func(*gorm.DB) bizcap.DeploymentReferenceReader
 }
 
 // NewManager creates the service domain manager with its cross-module readers.
@@ -150,11 +157,10 @@ func (m *Manager) CreateApplication(req CreateApplicationRequest, actor string, 
 
 // GetApplication returns an application reference visible in the supplied data scope.
 func (m *Manager) GetApplication(ctx context.Context, id uint64, scope *common.DataScopeReq) (ApplicationRef, error) {
-	var row Application
-	if err := m.db.WithContext(ctx).Model(&Application{}).Scopes(database.WithDataScope(scope)).First(&row, id).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return ApplicationRef{}, errors.New(errApplicationNotFound)
-		}
+	owner := *m
+	owner.db = m.db.WithContext(ctx)
+	row, err := owner.findApplication(id, scope)
+	if err != nil {
 		return ApplicationRef{}, err
 	}
 	return ApplicationRef{ID: row.ID, Code: row.Code, Name: row.Name, BusinessScopeID: row.BusinessScopeID, DeptID: row.DeptID, Status: row.Status}, nil
@@ -295,22 +301,63 @@ func (m *Manager) CreateService(req CreateServiceRequest, actor string, scope *c
 
 // GetService returns a service reference visible in the supplied data scope.
 func (m *Manager) GetService(ctx context.Context, id uint64, scope *common.DataScopeReq) (ServiceRef, error) {
-	var row Service
-	if err := m.serviceQuery(scope).WithContext(ctx).First(&row, id).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return ServiceRef{}, errors.New(errServiceNotFound)
-		}
+	owner := *m
+	owner.db = m.db.WithContext(ctx)
+	row, err := owner.findService(id, scope)
+	if err != nil {
 		return ServiceRef{}, err
 	}
-	app, err := m.findApplication(row.ApplicationID, scope)
+	app, err := owner.findApplication(row.ApplicationID, scope)
 	if err != nil {
 		return ServiceRef{}, err
 	}
 	return ServiceRef{ID: row.ID, ApplicationID: row.ApplicationID, Code: row.Code, Name: row.Name, RuntimeType: row.RuntimeType, BusinessScopeID: app.BusinessScopeID, DeptID: app.DeptID, Status: row.Status}, nil
 }
 
+// GetServiceDetail returns the catalog response within the caller's data scope.
+func (m *Manager) GetServiceDetail(ctx context.Context, id uint64, scope *common.DataScopeReq) (*ServiceResponse, error) {
+	if m.db == nil {
+		return nil, errors.New(errNotInitialized)
+	}
+	owner := *m
+	owner.db = m.db.WithContext(ctx)
+	row, err := owner.findService(id, scope)
+	if err != nil {
+		return nil, err
+	}
+	response, err := owner.serviceResponse(row, scope)
+	return &response, err
+}
+
 // UpdateService updates a service visible in the supplied data scope.
 func (m *Manager) UpdateService(id uint64, req UpdateServiceRequest, actor string, scope *common.DataScopeReq) (*ServiceResponse, error) {
+	ctx := context.Background()
+	if m.db != nil && m.db.Statement != nil {
+		ctx = m.db.Statement.Context
+	}
+	return m.UpdateServiceWithContext(ctx, id, req, actor, scope)
+}
+
+// UpdateServiceWithContext validates runtime compatibility after acquiring the
+// Service owner lock shared by creation and target rebinding. Instance counts
+// stay nonlocking so this path never reverses instance -> service lock order.
+func (m *Manager) UpdateServiceWithContext(ctx context.Context, id uint64, req UpdateServiceRequest, actor string, scope *common.DataScopeReq) (*ServiceResponse, error) {
+	if m.db == nil {
+		return nil, errors.New(errNotInitialized)
+	}
+	var response *ServiceResponse
+	err := m.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		owner, err := m.transactionManager(ctx, tx)
+		if err != nil {
+			return err
+		}
+		response, err = owner.updateService(id, req, actor, scope)
+		return err
+	}, &sql.TxOptions{Isolation: sql.LevelReadCommitted})
+	return response, err
+}
+
+func (m *Manager) updateService(id uint64, req UpdateServiceRequest, actor string, scope *common.DataScopeReq) (*ServiceResponse, error) {
 	row, err := m.findService(id, scope)
 	if err != nil {
 		return nil, err
@@ -354,18 +401,7 @@ func (m *Manager) UpdateService(id uint64, req UpdateServiceRequest, actor strin
 
 // DeleteService deletes a service when it has no service instances.
 func (m *Manager) DeleteService(id uint64, scope *common.DataScopeReq) error {
-	row, err := m.findService(id, scope)
-	if err != nil {
-		return err
-	}
-	var count int64
-	if err := m.db.Model(&ServiceInstance{}).Where(whereServiceIDEq, row.ID).Count(&count).Error; err != nil {
-		return err
-	}
-	if count > 0 {
-		return errors.New(errServiceInUse)
-	}
-	return m.db.Delete(row).Error
+	return m.deleteServiceWithReferences(id, scope)
 }
 
 // ListInstances returns service instances visible in the supplied data scope.
@@ -405,6 +441,22 @@ func (m *Manager) ListInstances(q InstanceQuery, scope *common.DataScopeReq) (*I
 
 // CreateInstance creates a VM or Kubernetes-targeted service instance.
 func (m *Manager) CreateInstance(ctx context.Context, req CreateInstanceRequest, actor string, scope *common.DataScopeReq) (InstanceRef, error) {
+	if m.db == nil {
+		return InstanceRef{}, errors.New(errNotInitialized)
+	}
+	var result InstanceRef
+	err := m.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		owner, err := m.transactionManager(ctx, tx)
+		if err != nil {
+			return err
+		}
+		result, err = owner.createInstance(ctx, req, actor, scope)
+		return err
+	})
+	return result, err
+}
+
+func (m *Manager) createInstance(ctx context.Context, req CreateInstanceRequest, actor string, scope *common.DataScopeReq) (InstanceRef, error) {
 	serviceRef, err := m.GetService(ctx, req.ServiceID, scope)
 	if err != nil {
 		return InstanceRef{}, err
@@ -454,9 +506,34 @@ func validRuntimeType(runtimeType string) bool {
 
 // UpdateInstance updates a service instance visible in the supplied data scope.
 func (m *Manager) UpdateInstance(id uint64, req UpdateInstanceRequest, actor string, scope *common.DataScopeReq) (*InstanceResponse, error) {
+	return m.UpdateInstanceWithContext(context.Background(), id, req, actor, scope)
+}
+
+// UpdateInstanceWithContext serializes catalog edits with owner transitions and
+// deployment admission. A supplied lifecycle version is exact, including zero.
+func (m *Manager) UpdateInstanceWithContext(ctx context.Context, id uint64, req UpdateInstanceRequest, actor string, scope *common.DataScopeReq) (*InstanceResponse, error) {
+	if m.db == nil {
+		return nil, errors.New(errNotInitialized)
+	}
+	var result *InstanceResponse
+	err := biztx.ReadCommittedTransaction(ctx, m.db, func(tx *gorm.DB) error {
+		owner, err := m.transactionManager(ctx, tx)
+		if err != nil {
+			return err
+		}
+		result, err = owner.updateInstance(ctx, id, req, actor, scope)
+		return err
+	}, nil)
+	return result, err
+}
+
+func (m *Manager) updateInstance(ctx context.Context, id uint64, req UpdateInstanceRequest, actor string, scope *common.DataScopeReq) (*InstanceResponse, error) {
 	row, err := m.findInstance(id, scope)
 	if err != nil {
 		return nil, err
+	}
+	if req.ExpectedLifecycleVersion != nil && row.LifecycleVersion != *req.ExpectedLifecycleVersion {
+		return nil, errors.New(errStateStale)
 	}
 	updates := map[string]any{"updated_by": actor, "updated_at": time.Now(), "lifecycle_version": gorm.Expr("lifecycle_version + 1")}
 	if req.DesiredVersion != nil {
@@ -468,24 +545,82 @@ func (m *Manager) UpdateInstance(id uint64, req UpdateInstanceRequest, actor str
 	if req.Status != nil {
 		updates["status"] = *req.Status
 	}
-	if err := m.db.Model(row).Updates(updates).Error; err != nil {
-		return nil, err
+	if req.Target != nil {
+		targetUpdates, err := m.instanceTargetUpdates(ctx, row, *req.Target, scope)
+		if err != nil {
+			return nil, err
+		}
+		maps.Copy(updates, targetUpdates)
+	}
+	result := m.db.Model(row).Where("lifecycle_version = ?", row.LifecycleVersion).Updates(updates)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	if result.RowsAffected != 1 {
+		return nil, errors.New(errStateStale)
 	}
 	updated, err := m.findInstance(id, scope)
 	if err != nil {
 		return nil, err
 	}
-	resp, err := m.instanceResponse(updated, scope)
+	resp, err := m.instanceResponseWithContext(ctx, updated, scope)
 	return &resp, err
+}
+
+func (m *Manager) instanceTargetUpdates(ctx context.Context, row *ServiceInstance, req InstanceTargetRequest, scope *common.DataScopeReq) (map[string]any, error) {
+	svc, err := m.GetService(ctx, row.ServiceID, scope)
+	if err != nil {
+		return nil, err
+	}
+	if svc.Status != StatusActive {
+		return nil, errors.New("business.service.service_inactive")
+	}
+	target := *row
+	target.TargetType = strings.ToLower(strings.TrimSpace(req.TargetType))
+	target.HostID = req.HostID
+	target.K8sClusterID = req.K8sClusterID
+	target.Namespace = strings.TrimSpace(req.Namespace)
+	target.WorkloadKind = strings.TrimSpace(req.WorkloadKind)
+	target.WorkloadName = strings.TrimSpace(req.WorkloadName)
+	if svc.RuntimeType != RuntimeTypeHybrid && svc.RuntimeType != target.TargetType {
+		return nil, errors.New(errTargetInvalid)
+	}
+	// These owner reads validate the current target projection. The capability
+	// does not hold the target owner's lifetime lock through this transaction.
+	if err := m.validateAndNormalizeTarget(ctx, &target, svc.BusinessScopeID, scope); err != nil {
+		return nil, err
+	}
+	changed := target.TargetType != row.TargetType || target.HostID != row.HostID || target.K8sClusterID != row.K8sClusterID || target.Namespace != row.Namespace || target.WorkloadKind != row.WorkloadKind || target.WorkloadName != row.WorkloadName
+	if changed {
+		if row.DesiredState == DesiredStateRunning || row.DesiredState == DesiredStateRetired {
+			return nil, errors.New(errTargetConflict)
+		}
+		switch row.ObservedState {
+		case ObservedStateRunning, ObservedStateInstalling, ObservedStateStarting, ObservedStateStopping, ObservedStateUpgrading, ObservedStateRetired:
+			return nil, errors.New(errTargetConflict)
+		}
+		if err := m.checkDeploymentReferences(ctx, row.ServiceID, row.ID, errTargetConflict); err != nil {
+			return nil, err
+		}
+	}
+	if err := m.ensureTargetUnique(&target); err != nil {
+		return nil, err
+	}
+	return map[string]any{
+		"target_type": target.TargetType, "host_id": target.HostID, "k8s_cluster_id": target.K8sClusterID,
+		"namespace": target.Namespace, "workload_kind": target.WorkloadKind, "workload_name": target.WorkloadName,
+	}, nil
 }
 
 // GetInstance returns a service instance reference visible in the supplied data scope.
 func (m *Manager) GetInstance(ctx context.Context, id uint64, scope *common.DataScopeReq) (InstanceRef, error) {
-	row, err := m.findInstance(id, scope)
+	owner := *m
+	owner.db = m.db.WithContext(ctx)
+	row, err := owner.findInstance(id, scope)
 	if err != nil {
 		return InstanceRef{}, err
 	}
-	svc, err := m.GetService(ctx, row.ServiceID, scope)
+	svc, err := owner.GetService(ctx, row.ServiceID, scope)
 	if err != nil {
 		return InstanceRef{}, err
 	}
@@ -494,15 +629,12 @@ func (m *Manager) GetInstance(ctx context.Context, id uint64, scope *common.Data
 
 // DeleteInstance deletes a service instance visible in the supplied data scope.
 func (m *Manager) DeleteInstance(id uint64, scope *common.DataScopeReq) error {
-	row, err := m.findInstance(id, scope)
-	if err != nil {
-		return err
-	}
-	return m.db.Delete(row).Error
+	return m.deleteInstanceWithReferences(id, scope)
 }
 
 func (m *Manager) validateAndNormalizeTarget(ctx context.Context, row *ServiceInstance, scopeID uint64, dataScope *common.DataScopeReq) error {
-	switch strings.ToLower(row.TargetType) {
+	row.TargetType = strings.ToLower(strings.TrimSpace(row.TargetType))
+	switch row.TargetType {
 	case TargetTypeVM:
 		return m.validateVMTarget(ctx, row, scopeID, dataScope)
 	case TargetTypeK8s:
@@ -523,7 +655,11 @@ func (m *Manager) validateVMTarget(ctx context.Context, row *ServiceInstance, sc
 	if err != nil {
 		return err
 	}
-	if len(hosts.Items) != 1 || hosts.Items[0].BusinessScopeID != scopeID {
+	if len(hosts.Items) != 1 || hosts.Items[0].ID != row.HostID || hosts.Items[0].BusinessScopeID != scopeID {
+		return errors.New(errTargetNotFound)
+	}
+	switch strings.ToLower(strings.TrimSpace(hosts.Items[0].Status)) {
+	case "retired", "deleted":
 		return errors.New(errTargetNotFound)
 	}
 	return nil
@@ -541,9 +677,12 @@ func (m *Manager) validateK8sTarget(ctx context.Context, row *ServiceInstance, s
 		WorkloadName: row.WorkloadName, DataScope: dataScope,
 	})
 	if err != nil {
+		if err.Error() == "business.service.k8s_target_not_found" {
+			return errors.New(errTargetNotFound)
+		}
 		return err
 	}
-	if target.BusinessScopeID != scopeID {
+	if target.BusinessScopeID != scopeID || target.ClusterID != row.K8sClusterID || target.Namespace != row.Namespace || !strings.EqualFold(target.WorkloadKind, row.WorkloadKind) || target.WorkloadName != row.WorkloadName {
 		return errors.New(errTargetNotFound)
 	}
 	row.WorkloadKind = target.WorkloadKind
@@ -552,6 +691,9 @@ func (m *Manager) validateK8sTarget(ctx context.Context, row *ServiceInstance, s
 
 func (m *Manager) ensureTargetUnique(row *ServiceInstance) error {
 	db := m.db.Model(&ServiceInstance{}).Where(whereServiceIDEq, row.ServiceID)
+	if row.ID != 0 {
+		db = db.Where("id <> ?", row.ID)
+	}
 	switch row.TargetType {
 	case TargetTypeVM:
 		db = db.Where("target_type = ? AND host_id = ?", TargetTypeVM, row.HostID)
@@ -582,7 +724,11 @@ func (m *Manager) instanceQuery(scope *common.DataScopeReq) *gorm.DB {
 
 func (m *Manager) findApplication(id uint64, scope *common.DataScopeReq) (*Application, error) {
 	var row Application
-	if err := m.db.Model(&Application{}).Scopes(database.WithDataScope(scope)).First(&row, id).Error; err != nil {
+	query := m.db.Model(&Application{}).Scopes(database.WithDataScope(scope))
+	if m.lockReads {
+		query = query.Clauses(clause.Locking{Strength: "UPDATE"})
+	}
+	if err := query.First(&row, id).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, errors.New(errApplicationNotFound)
 		}
@@ -593,22 +739,48 @@ func (m *Manager) findApplication(id uint64, scope *common.DataScopeReq) (*Appli
 
 func (m *Manager) findService(id uint64, scope *common.DataScopeReq) (*Service, error) {
 	var row Service
-	if err := m.serviceQuery(scope).First(&row, id).Error; err != nil {
+	query := m.serviceQuery(scope)
+	if m.lockReads {
+		// Do not authorize through a snapshot subquery after waiting on an owner
+		// lock. Read the parent with its current scoped row below.
+		query = m.db.Model(&Service{}).Clauses(clause.Locking{Strength: "UPDATE"})
+	}
+	if err := query.First(&row, id).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, errors.New(errServiceNotFound)
 		}
 		return nil, err
+	}
+	if m.lockReads {
+		if _, err := m.findApplication(row.ApplicationID, scope); err != nil {
+			if err.Error() == errApplicationNotFound {
+				return nil, errors.New(errServiceNotFound)
+			}
+			return nil, err
+		}
 	}
 	return &row, nil
 }
 
 func (m *Manager) findInstance(id uint64, scope *common.DataScopeReq) (*ServiceInstance, error) {
 	var row ServiceInstance
-	if err := m.instanceQuery(scope).First(&row, id).Error; err != nil {
+	query := m.instanceQuery(scope)
+	if m.lockReads {
+		query = m.db.Model(&ServiceInstance{}).Clauses(clause.Locking{Strength: "UPDATE"})
+	}
+	if err := query.First(&row, id).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, errors.New(errInstanceNotFound)
 		}
 		return nil, err
+	}
+	if m.lockReads {
+		if _, err := m.findService(row.ServiceID, scope); err != nil {
+			if err.Error() == errServiceNotFound {
+				return nil, errors.New(errInstanceNotFound)
+			}
+			return nil, err
+		}
 	}
 	return &row, nil
 }
@@ -634,8 +806,12 @@ func (m *Manager) serviceResponse(row *Service, scope *common.DataScopeReq) (Ser
 }
 
 func (m *Manager) instanceResponse(row *ServiceInstance, scope *common.DataScopeReq) (InstanceResponse, error) {
+	return m.instanceResponseWithContext(context.Background(), row, scope)
+}
+
+func (m *Manager) instanceResponseWithContext(ctx context.Context, row *ServiceInstance, scope *common.DataScopeReq) (InstanceResponse, error) {
 	normalizeInstanceState(row)
-	svc, err := m.GetService(context.Background(), row.ServiceID, scope)
+	svc, err := m.GetService(ctx, row.ServiceID, scope)
 	if err != nil {
 		return InstanceResponse{}, err
 	}

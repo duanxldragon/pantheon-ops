@@ -1,0 +1,26 @@
+[
+  {
+    "Path": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\backend\\modules\\business\\cicd\\argocd\\argocd_service.go",
+    "Hash": "9D1C7F0468416326E380AE1EEB19AB994FCC3DAB815325BA7B9FB5B1054008CC"
+  },
+  {
+    "Path": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\backend\\modules\\business\\cicd\\argocd\\argocd_client.go",
+    "Hash": "B00CE6A49E080A86CB3574490BB48E71FF449B40BD004A0516DA54BA555EFF8A"
+  },
+  {
+    "Path": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\backend\\modules\\business\\cicd\\argocd\\argocd_reconciler.go",
+    "Hash": "99B8C2C16179F45100B2B094CE3E5C4CAF0B472239237E3C142C3460A04FB920"
+  },
+  {
+    "Path": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\backend\\modules\\business\\cicd\\argocd\\argocd_observation.go",
+    "Hash": "58631D58F4D2E9815C8A110A7E90BEAFE1AD4CE65154DB5D116F068A28228632"
+  },
+  {
+    "Path": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\backend\\modules\\business\\cicd\\argocd\\argocd_observation_test.go",
+    "Hash": "38E20DAA9475C49B61681C965667549D1BD56CBB9A6110055982E642DB55FED7"
+  },
+  {
+    "Path": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\backend\\modules\\business\\cicd\\argocd\\argocd_sync_lifecycle_test.go",
+    "Hash": "B7A7F9ED7942BA195ABE8A8E5576B63E0377862EDFC1FB78AA9EC8261C92A670"
+  }
+]

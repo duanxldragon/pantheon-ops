@@ -2,6 +2,7 @@ package filedist
 
 import (
 	"context"
+	"errors"
 	"strings"
 
 	"github.com/duanxldragon/pantheon-base/backend/modules/business/cmdb"
@@ -46,10 +47,6 @@ func InitFileDistModule(r *gin.RouterGroup, db *gorm.DB, uploadDir string) *File
 	}
 	module.handler = NewFileDistHandler(storageService, distributionService)
 
-	// Start workers once during server assembly so tasks created through the
-	// HTTP API are processed without requiring a second lifecycle hook.
-	transferEngine.Start(context.Background())
-
 	return module
 }
 
@@ -75,9 +72,17 @@ func (m *FileDistModule) RegisterRoutes(r *gin.RouterGroup) {
 
 // Stop terminates transfer workers. It is safe to call more than once.
 func (m *FileDistModule) Stop() {
-	if m != nil && m.transferEngine != nil {
-		m.transferEngine.Stop()
+	if m != nil && m.distributionService != nil {
+		m.distributionService.Stop()
 	}
+}
+
+// Start enables exclusive recovery/scheduling after migration and policy wiring.
+func (m *FileDistModule) Start(ctx context.Context) error {
+	if m == nil || m.distributionService == nil {
+		return errors.New("database.not_initialized")
+	}
+	return m.distributionService.Start(ctx)
 }
 
 // SetTargetSelectionCapability wires the provider-owned stable-ID resolver.

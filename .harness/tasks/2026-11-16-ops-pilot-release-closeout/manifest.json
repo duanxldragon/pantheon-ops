@@ -3,7 +3,7 @@
   "title": "试点交付包、安装回滚与状态收口",
   "goal": "试点交付包、安装回滚与状态收口",
   "primaryLayer": "business/*",
-  "status": "planned",
+  "status": "in-progress",
   "priority": "P0",
   "deliveryTier": "L2",
   "taskDoc": "docs/harness/tasks/2026-11-16-ops-pilot-release-closeout.task.md",
@@ -118,5 +118,24 @@
   },
   "conditionalDependencies": {
     "2026-11-16-ops-extensions-live-acceptance": "Any extension capability exposed in pilot delivery"
+  },
+  "continuationCheckpoint": {
+    "at": "2026-11-19T00:11:15.272Z",
+    "packageCode": "C06",
+    "stage": "local-preparation",
+    "deliveryVerdict": "PARTIAL",
+    "accepted": false,
+    "evidenceRefs": [
+      ".harness/evidence/2026-11-16-ops-pilot-release-closeout/local-preparation-handoff-20261118.json",
+      ".harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-full-race-20261118-01.log.receipt.json",
+      ".harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-20261118-e01-final-frontend-quality.json",
+      ".harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-20261118-e01-final-source-equivalence.json",
+      ".harness/evidence/2026-11-17-ops-history-audit/continuation-current-preview-ten-packages-20261118-e01-final-build.json",
+      ".harness/evidence/2026-11-17-ops-history-audit/continuation-current-preview-ten-packages-e01-final-started-20261118.json",
+      ".harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-official-rebuild-20261118-03.log",
+      ".harness/evidence/2026-11-17-ops-history-audit/continuation-overlay-history-continuation-final-ten-packages-20261118-e01-final-official-cache-drift-identity.json"
+    ],
+    "progressReceipt": ".harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-progress-final-20261118.json",
+    "currentTechnicalIntegrationPassed": true
   }
 }

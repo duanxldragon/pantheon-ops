@@ -33,7 +33,9 @@ func (s *DeployService) CreateTaskContext(ctx context.Context, req CreateTaskReq
 	if err := ctx.Err(); err != nil {
 		return nil, err
 	}
-	return s.targetRequestService(ctx).createSelectedTask(req, actor, scope)
+	return s.taskMutationTransaction(ctx, 0, func(inner *DeployService) (*TaskResponse, error) {
+		return inner.createSelectedTask(req, actor, scope)
+	}, scope)
 }
 func (s *DeployService) createSelectedTask(req CreateTaskRequest, actor string, scope *common.DataScopeReq) (*TaskResponse, error) {
 	if req.TargetSelection == nil {
@@ -98,7 +100,9 @@ func (s *DeployService) UpdateTaskContext(ctx context.Context, id uint64, req Up
 	if err := ctx.Err(); err != nil {
 		return nil, err
 	}
-	return s.targetRequestService(ctx).updateSelectedTask(id, req, actor, scope)
+	return s.taskMutationTransaction(ctx, id, func(inner *DeployService) (*TaskResponse, error) {
+		return inner.updateSelectedTask(id, req, actor, scope)
+	}, scope)
 }
 func (s *DeployService) updateSelectedTask(id uint64, req UpdateTaskRequest, actor string, scope *common.DataScopeReq) (*TaskResponse, error) {
 	if req.TargetSelection == nil {
@@ -175,6 +179,16 @@ func (s *DeployService) targetTransactionService(tx *gorm.DB, provider cmdb.Depl
 	inner.bizScopeReader = reader
 	inner.serviceState = s.serviceState
 	inner.serviceStateTransaction = s.serviceStateTransaction
+	inner.serviceReader = s.serviceReader
+	inner.serviceReaderTransaction = s.serviceReaderTransaction
+	if _, transaction := tx.Statement.ConnPool.(gorm.TxCommitter); transaction && !nilServiceCapability(s.serviceReader) {
+		inner.serviceReader = unboundServiceReader{}
+		if s.serviceReaderTransaction != nil {
+			if bound := s.serviceReaderTransaction(tx); !nilServiceCapability(bound) {
+				inner.serviceReader = bound
+			}
+		}
+	}
 	if _, transaction := tx.Statement.ConnPool.(gorm.TxCommitter); transaction && s.serviceState != nil {
 		// Unknown injected owners must never escape the transaction through a
 		// fallback to their original DB. Refuse at invocation so unlinked tasks
@@ -193,10 +207,14 @@ func (s *DeployService) targetTransactionService(tx *gorm.DB, provider cmdb.Depl
 }
 
 func nilServiceInstanceState(applier bizcap.ServiceInstanceStateApplier) bool {
-	if applier == nil {
+	return nilServiceCapability(applier)
+}
+
+func nilServiceCapability(capability any) bool {
+	if capability == nil {
 		return true
 	}
-	value := reflect.ValueOf(applier)
+	value := reflect.ValueOf(capability)
 	switch value.Kind() {
 	case reflect.Chan, reflect.Func, reflect.Interface, reflect.Map, reflect.Pointer, reflect.Slice:
 		return value.IsNil()
@@ -244,7 +262,44 @@ func (s *DeployService) targetDiscoveryService(ctx context.Context) *DeployServi
 	inner.hostReader = s.hostReader
 	inner.serviceState = s.serviceState
 	inner.serviceStateTransaction = s.serviceStateTransaction
+	inner.serviceReader = s.serviceReader
+	inner.serviceReaderTransaction = s.serviceReaderTransaction
 	return inner
+}
+
+// Plain and selection mutations share an outer transaction. Any nested owner
+// selection savepoint stays on this transaction and cannot commit separately.
+func (s *DeployService) taskMutationTransaction(ctx context.Context, id uint64, write func(*DeployService) (*TaskResponse, error), scope *common.DataScopeReq) (*TaskResponse, error) {
+	if s.db == nil {
+		return nil, errors.New("database.not_initialized")
+	}
+	var taskID uint64
+	err := s.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		if id != 0 {
+			var task DeployTask
+			if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).First(&task, id).Error; err != nil {
+				return err
+			}
+		}
+		provider := s.cmdbCapability
+		if owner, ok := provider.(cmdb.TargetSelectionCapability); ok {
+			bound, ok := owner.WithTargetTransaction(tx).(cmdb.DeployCMDBCapability)
+			if !ok {
+				return errors.New("business.cmdb.selection.notConfigured")
+			}
+			provider = bound
+		}
+		task, err := write(s.targetTransactionService(tx, provider))
+		if err != nil {
+			return err
+		}
+		taskID = task.ID
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	return s.targetRequestService(ctx).GetTask(taskID, scope)
 }
 func (s *DeployService) requestContext() context.Context {
 	if s.db != nil && s.db.Statement != nil && s.db.Statement.Context != nil {

@@ -1,0 +1,36 @@
+{
+  "taskId": "2026-11-16-ops-service-catalog-usability",
+  "checkpointAt": "2026-11-17T14:37:17.3963866Z",
+  "change": "Reviewer item 3 cross-tab filtered parent availability fix + official candidate generated business fallback refresh",
+  "sourceState": "Working-tree checkpoint, no commit",
+  "files": [
+    {
+      "path": "frontend/src/modules/business/service/ServiceCatalog.tsx",
+      "sha256": "21299fee2258954b6c0408d7abdea71130952d2a4557af3b8679cfcb54646f7e"
+    },
+    {
+      "path": "frontend/tests/smoke/business/service/service-pages.spec.ts",
+      "sha256": "2c7fa03908c9696569d7c86e6cd4704a1fbff9dd7015ba745a9e53190a55c9e9"
+    },
+    {
+      "path": "frontend/src/i18n/resources/business/zh-CN.ts",
+      "sha256": "ef6812f06e9cff1190a969d66c31b2b9a7cfba71f2e3aaec0753faf9e50e1844"
+    },
+    {
+      "path": "frontend/src/i18n/resources/business/en-US.ts",
+      "sha256": "5554909703d0d616d8c8ae68f35a74efa1683e7654309dc7208a10926076d461"
+    },
+    {
+      "path": "frontend/src/i18n/resources/business/ja-JP.ts",
+      "sha256": "f96d07bd4684b1a1816716d90b982a4df7d9e171fa3c8136c2acbd0690393d2a"
+    },
+    {
+      "path": "frontend/src/i18n/resources/business/ko-KR.ts",
+      "sha256": "8602d11f7d0686220f6205fb1fc094dec74e8fbfa90d8357fdc51d8b8b4686da"
+    },
+    {
+      "path": "frontend/src/i18n/resources/business/fr-FR.ts",
+      "sha256": "33c4cd48e9036be67ff132a8edb0d845a3af246726e4057a09c77ef1f2257e26"
+    }
+  ]
+}

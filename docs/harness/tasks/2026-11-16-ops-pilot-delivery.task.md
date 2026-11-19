@@ -5,7 +5,7 @@ layer: business
 status: Active
 linked_contracts:
   - docs/PROJECT_INHERITANCE.md
-updated_at: 2026-11-16
+updated_at: 2026-11-18
 ---
 
 # Task Packet: 2026-11-16-ops-pilot-delivery
@@ -157,4 +157,4 @@ business/*
 
 ## Status
 
-planned；只在依赖与实际验收完成后转 completed。
+in-progress；C01/C03/C04 正在实施。只在依赖与实际验收完成后转 completed；当前证据见 .harness/evidence/2026-11-17-ops-history-audit/progress.md。

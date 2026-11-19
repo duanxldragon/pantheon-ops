@@ -1,0 +1,61 @@
+[
+  {
+    "name": "business order and old ID retained",
+    "passed": true
+  },
+  {
+    "name": "all business parents and leaves show expected page",
+    "passed": true
+  },
+  {
+    "name": "sidebar applications",
+    "passed": false,
+    "failure": "locator.click: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('.app-shell__sider .app-shell__menu-entry--level-1:visible').getByText('应用', { exact: true })\u001b[22m\n"
+  },
+  {
+    "name": "sidebar services",
+    "passed": false,
+    "failure": "locator.click: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('.app-shell__sider .app-shell__menu-entry--level-1:visible').getByText('服务', { exact: true })\u001b[22m\n"
+  },
+  {
+    "name": "sidebar instances",
+    "passed": false,
+    "failure": "locator.click: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('.app-shell__sider .app-shell__menu-entry--level-1:visible').getByText('服务实例', { exact: true })\u001b[22m\n"
+  },
+  {
+    "name": "page tab applications",
+    "passed": true
+  },
+  {
+    "name": "page tab services",
+    "passed": true
+  },
+  {
+    "name": "page tab instances",
+    "passed": true
+  },
+  {
+    "name": "browser back services",
+    "passed": true
+  },
+  {
+    "name": "browser forward instances",
+    "passed": true
+  },
+  {
+    "name": "deep link and refresh applications",
+    "passed": true
+  },
+  {
+    "name": "deep link and refresh services",
+    "passed": true
+  },
+  {
+    "name": "deep link and refresh instances",
+    "passed": true
+  },
+  {
+    "name": "mobile catalog and navigation",
+    "passed": true
+  }
+]

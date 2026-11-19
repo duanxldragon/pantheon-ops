@@ -1,0 +1,12 @@
+{
+  "preparedAt": "2026-11-18T08:30:29.804Z",
+  "script": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\manual-preview-20261116\\verify-ten-packages-ui-20261118.mjs",
+  "scriptSHA256": "fab0e3e1ce75bd9beef29cbd9f54a7a5144c780398bf4ad64d319c209935b370",
+  "helper": "frontend/tests/smoke/helpers/auth.ts",
+  "helperSHA256": "94bf1321f23e67ad7aafe4bbd5fdcca4d9a844ed30e4c1867479e6f5008d057c",
+  "installedChromiumExists": true,
+  "policyChecks": 4,
+  "browserLaunched": false,
+  "runtimeRequestsPerformed": false,
+  "boundary": "Real local login, live FileDist reads and live missing-task render are distinct from browser-only business fixtures. One POST target-resolver fixture is fulfilled locally; every real business write and external URL is blocked. No distribution submit, transfer, provider admission or production acceptance."
+}

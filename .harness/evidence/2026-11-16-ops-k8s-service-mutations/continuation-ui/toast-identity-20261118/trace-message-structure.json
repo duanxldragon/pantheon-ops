@@ -1,0 +1,161 @@
+[
+  {
+    "scenario": "smoke-business-k8s-k8s-pag-9557e--draft-and-original-version",
+    "tracePath": ".harness/evidence/2026-11-17-ops-history-audit/continuation-c04-ui-toast-visibility-fixed-artifacts/smoke-business-k8s-k8s-pag-9557e--draft-and-original-version/trace.zip",
+    "sha256": "bf6c91ce2a855034feccac1b1c81c61372711b4551e9dac088901a21326cff39",
+    "writes": [
+      {
+        "method": "PUT",
+        "url": "http://127.0.0.1:5173/api/v1/business/k8s/clusters/41/services/c04-routing?namespace=prod"
+      }
+    ],
+    "firstDuplicateSnapshot": {
+      "callId": "bici@638",
+      "timestamp": 26754.999,
+      "noticeCount": 2,
+      "wrapperCount": 1,
+      "notices": [
+        {
+          "tag": "DIV",
+          "className": "arco-message arco-message-error",
+          "parentClasses": [
+            "",
+            "",
+            "",
+            "arco-modal-wrapper arco-modal-wrapper-align-center",
+            "arco-modal app-dialog zoomModal-appear-done zoomModal-enter-done",
+            "",
+            "arco-modal-header",
+            "arco-modal-title",
+            "arco-message-wrapper arco-message-wrapper-top",
+            "fadeMessage-enter fadeMessage-enter-active"
+          ],
+          "text": true
+        },
+        {
+          "tag": "DIV",
+          "className": "arco-message arco-message-error",
+          "parentClasses": [
+            "",
+            "",
+            "",
+            "arco-modal-wrapper arco-modal-wrapper-align-center",
+            "arco-modal app-dialog zoomModal-appear-done zoomModal-enter-done",
+            "",
+            "arco-modal-header",
+            "arco-modal-title",
+            "arco-message-wrapper arco-message-wrapper-top",
+            "fadeMessage-enter fadeMessage-enter-active"
+          ],
+          "text": true
+        }
+      ]
+    }
+  },
+  {
+    "scenario": "smoke-business-k8s-k8s-pag-636ae-ed-primary-states-at-1440px",
+    "tracePath": ".harness/evidence/2026-11-17-ops-history-audit/continuation-c04-ui-toast-visibility-fixed-artifacts/smoke-business-k8s-k8s-pag-636ae-ed-primary-states-at-1440px/trace.zip",
+    "sha256": "fc04332be5af4a70a48056960399e61197ef19e54e6410ca6b1a6834c853feea",
+    "writes": [
+      {
+        "method": "PUT",
+        "url": "http://127.0.0.1:5173/api/v1/business/k8s/clusters/41/services/c04-routing?namespace=prod"
+      }
+    ],
+    "firstDuplicateSnapshot": {
+      "callId": "kvlk@866",
+      "timestamp": 64829.024,
+      "noticeCount": 2,
+      "wrapperCount": 1,
+      "notices": [
+        {
+          "tag": "DIV",
+          "className": "arco-message arco-message-error",
+          "parentClasses": [
+            "",
+            "",
+            "",
+            "arco-modal-wrapper arco-modal-wrapper-align-center",
+            "arco-modal app-dialog zoomModal-appear-done zoomModal-enter-done",
+            "",
+            "arco-modal-header",
+            "arco-modal-title",
+            "arco-message-wrapper arco-message-wrapper-top",
+            "fadeMessage-enter fadeMessage-enter-active"
+          ],
+          "text": true
+        },
+        {
+          "tag": "DIV",
+          "className": "arco-message arco-message-error",
+          "parentClasses": [
+            "",
+            "",
+            "",
+            "arco-modal-wrapper arco-modal-wrapper-align-center",
+            "arco-modal app-dialog zoomModal-appear-done zoomModal-enter-done",
+            "",
+            "arco-modal-header",
+            "arco-modal-title",
+            "arco-message-wrapper arco-message-wrapper-top",
+            "fadeMessage-enter fadeMessage-enter-active"
+          ],
+          "text": true
+        }
+      ]
+    }
+  },
+  {
+    "scenario": "smoke-business-k8s-k8s-pag-f798f-red-primary-states-at-390px",
+    "tracePath": ".harness/evidence/2026-11-17-ops-history-audit/continuation-c04-ui-toast-visibility-fixed-artifacts/smoke-business-k8s-k8s-pag-f798f-red-primary-states-at-390px/trace.zip",
+    "sha256": "6d3f1c491582b799159dbe0226b18a826a32fdb7caab0e3c144d3dede11a285f",
+    "writes": [
+      {
+        "method": "PUT",
+        "url": "http://127.0.0.1:5173/api/v1/business/k8s/clusters/41/services/c04-routing?namespace=prod"
+      }
+    ],
+    "firstDuplicateSnapshot": {
+      "callId": "wilk@304",
+      "timestamp": 86807.779,
+      "noticeCount": 2,
+      "wrapperCount": 1,
+      "notices": [
+        {
+          "tag": "DIV",
+          "className": "arco-message arco-message-error",
+          "parentClasses": [
+            "",
+            "",
+            "",
+            "arco-modal-wrapper arco-modal-wrapper-align-center",
+            "arco-modal app-dialog zoomModal-appear-done zoomModal-enter-done",
+            "",
+            "arco-modal-header",
+            "arco-modal-title",
+            "arco-message-wrapper arco-message-wrapper-top",
+            "fadeMessage-enter fadeMessage-enter-active"
+          ],
+          "text": true
+        },
+        {
+          "tag": "DIV",
+          "className": "arco-message arco-message-error",
+          "parentClasses": [
+            "",
+            "",
+            "",
+            "arco-modal-wrapper arco-modal-wrapper-align-center",
+            "arco-modal app-dialog zoomModal-appear-done zoomModal-enter-done",
+            "",
+            "arco-modal-header",
+            "arco-modal-title",
+            "arco-message-wrapper arco-message-wrapper-top",
+            "fadeMessage-enter fadeMessage-enter-active"
+          ],
+          "text": true
+        }
+      ]
+    }
+  }
+]

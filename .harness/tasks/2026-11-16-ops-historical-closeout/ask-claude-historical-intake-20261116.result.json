@@ -1,0 +1,75 @@
+{
+  "command": "ask-claude-historical-intake-20261116",
+  "intakeDate": "2026-11-16",
+  "taskId": "2026-11-16-ops-historical-closeout",
+  "role": "Claude intake (planner/reviewer); Codex dispatch+acceptance",
+  "coverage": {
+    "historicalTaskRecords": 60,
+    "workbenchO1toO7": 7,
+    "deliveryD1toD5": 6,
+    "infraOrphanRecords": 9,
+    "archivedPackagesReferenceChecked": 12
+  },
+  "dispositions": {
+    "verifiedComplete": 23,
+    "missingImplementation": 4,
+    "missingVerification": 7,
+    "insufficientEvidence": 7,
+    "obsoleteWithProof": 23,
+    "upstreamOwned": 12,
+    "externalGate": 5,
+    "deferredForward": 1
+  },
+  "missingImplementation": [
+    "S1: cmdb-ssh-config-externalize (SSH collect_timeout/default_port 配置缺；硬编码 22/10s 实测)",
+    "G1: pr-auto-merge-push-trigger (RELEASE_GATE_TOKEN fail-closed + ci.yml 缺；与 pr-auto-merge-token 树内矛盾)",
+    "W1: O1 统一上下文/目标选择器（仅 Deploy 专用子集存在）",
+    "W2: O3 K8s/ArgoCD 版本树 diff 预览（仅 Deploy 预览存在）"
+  ],
+  "missingVerification": [
+    "dependabot-pr-governance（声明 manifest/evidence 从未创建）",
+    "pr-auto-merge-token（与 push-trigger 矛盾，缺 fail-on-enable guard）",
+    "closure-permission-scope（代码分层但无证据/全端点审计）",
+    "D1 六系统外部验收（仅 SSH+K3s 有真实验收）",
+    "D2 SSRF 验收证据（代码在 base-shared，验收/策略待）",
+    "D5 治理债务（基线需对当前树重跑）",
+    "2026-11-14-ops-latest-foundation-and-plans（悬空引用）"
+  ],
+  "archivableWithEvidence": [
+    "已验证可归档/收口：2026-06-17/06-18 治理三分支、06-21 deploy 三件、07-17 error-key/docs-truthing、08-10 csrf、08-13 clean rebuild、10-29/10-30 sonar、workbench O2/O4/O5/O6、cmdb-host-import-export、k8s-recovery、v0.18.6/v0.18.7 及 12 已归档引用完整",
+    "特别注意：2026-11-13-base-v0187-consumption live manifest status 仍 in-progress（记录滞后，非重开）",
+    "2026-11-07-ops-planned-task-closeout 实质验证绿，缺 summary/卡物料"
+  ],
+  "productionExternalPrerequisites": [
+    "D4-G2 RPO/RTO + 生产恢复演练 + DBA/维护者签署（§8.1 OPEN）",
+    "D4-G3 生产量级 sizing + 迁移窗口（tenantsizing 未对生产跑）",
+    "D1 六系统 scoped 端点/凭证 + 有限窗口",
+    "D2 出站策略（Option A/B/C）维护者决定",
+    "SONAR_TOKEN 轮换、生产 DDL/冻结签署、Base FR028（上游）",
+    "O7 关系成熟度门禁（deferred-forward）"
+  ],
+  "generatedPrompts": [
+    "P0-closeout-packaging.md",
+    "G1-auto-merge-reconcile.md",
+    "G2-evidence-closeouts.md",
+    "S1-ssh-config-externalize.md",
+    "P1-permission-packages-route.md",
+    "W1-o1-context-selector.md",
+    "W2-o3-k8s-argocd-preview.md",
+    "X1-d2-ssrf-evidence.md",
+    "X2-d1-external-acceptance.md",
+    "X4-d4-production-gates.md"
+  ],
+  "toolsBlocked": [
+    "一项含 shell 变量的复合核查命令被权限拒绝（变量无法在运行时预检）。改用 Glob 逐个核验 12 个已归档包的 manifest+summary，引用完整。除此外无工具被拒。"
+  ],
+  "status": "intake-accounted-not-implemented",
+  "artifacts": [
+    ".harness/tasks/2026-11-16-ops-historical-closeout/INVENTORY.json",
+    ".harness/tasks/2026-11-16-ops-historical-closeout/inventory.schema.json",
+    ".harness/tasks/2026-11-16-ops-historical-closeout/PLAN.md",
+    ".harness/tasks/2026-11-16-ops-historical-closeout/prompts/*.md",
+    ".harness/evidence/2026-11-16-ops-historical-closeout/intake-summary.md",
+    "ask-claude-historical-intake-20261116.result.json (this file)"
+  ]
+}

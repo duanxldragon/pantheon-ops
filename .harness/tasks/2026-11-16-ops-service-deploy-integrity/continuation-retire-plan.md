@@ -1,0 +1,19 @@
+# C01 Retire metadata continuation
+
+Parent scope: C01 / G003-c01-c04-e01-e03. Business Deploy and Service owner boundaries only; no new aggregate goal. First-stage architect verdict is narrowly RED-ready CLEAR; whole lifecycle remains WATCH.
+
+Retire expresses lifecycle metadata, preserving installed components and software versions. It must not acquire worker attempts or execute installation, removal, pre/post, probe, template or custom scripts. Uninstall retains its existing removal and STOP-to-Retire behavior.
+
+The minimal snapshot extension is an optional JSON `kind` with one new value, `metadata_only`. It is valid only with Retire, exact Manual executor, a complete Service association and explicit non-null `steps: []`. Only server Create generates it. Package/template references retain identity metadata without authorizing commands. Explicit executable input is rejected, not silently discarded. Unknown kind, nonempty steps, wrong action/executor and legacy Retire executable snapshots fail admission. Old records remain readable/cancellable; Update cannot convert them into metadata records or rewrite their frozen history.
+
+Reference clarification from the independent architect: a TemplateID remains a valid metadata reference even if the referenced template contains Steps, just as PackageID may reference a package containing installation commands. The metadata branch does not expand either reference into an execution plan. Rejection targets caller-supplied executable parameters and polluted snapshots, not the existence of commands in the referenced historical object.
+
+Stage one uses four RED groups: representation/admission and laundering; actual resolver/renderer/remote-step bypasses with no software effects; manual metadata completion preserving CMDB and all three versions with component-report atomic rejection, no-begin Retry and replay; real Uninstall compatibility. Tests use existing real MySQL fixtures and raw JSON so the RED candidate compiles before adding the field. Existing guards are reused rather than copied. The executor owns `retire_lifecycle_test.go` and narrowly necessary existing control tests; Root runs tests serially with all backend source frozen and before/after hashes. Production files are not authorized until meaningful RED evidence is recorded.
+
+The implementation stage reuses typed Service reader/state ports, current execution-version fencing and transaction lock order: task -> hosts -> attempts/physical leases -> CMDB -> Service. Metadata success skips the entire CMDB host-result write, rejects component-changing summaries, and omits desired/current/rollback version updates. Do not add arbitrary task exclusions, a parallel lifecycle engine or a new lease type. Retry rotates execution generation without beginning the owner transition.
+
+The executor additionally owns the narrow Retire projection in `task_preview.go`: metadata-only Retire keeps component Before/After unchanged rather than showing removed; Uninstall removal remains. Backend preview assertions do not constitute current-binary UI rendering or final visual acceptance.
+
+Stopped-only is this iteration's conservative supported source state, not a claim that every unknown/failed retirement violates Active design. Service PATCH retirement admission and any broader host-level foreign-lease policy remain separate open owner work. Existing self reservation is safe only in the same fenced transaction with matching task/host and no running attempt; no physical lease locks may be introduced after Service locks.
+
+Stop conditions for this stage: retained compile-valid RED, minimal GREEN implementation, relevant compatibility and CGO race checks with stable source manifests, then independent code-reviewer and architect evidence. Whole C01, G003 and the aggregate remain open pending remaining owner, full race/rebuild, current binary and runtime acceptance.

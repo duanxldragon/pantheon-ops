@@ -19,7 +19,7 @@ function isWithin(candidate, parent) {
 }
 
 function runGit(root, args) {
-  const result = spawnSync('git', args, { cwd: root, encoding: 'utf8' });
+  const result = spawnSync('git', args, { cwd: root, encoding: 'utf8', windowsHide: true });
   if (result.status !== 0) {
     throw new Error(result.stderr.trim() || `git ${args.join(' ')} failed`);
   }
@@ -56,10 +56,13 @@ function decodeGitPath(rawPath) {
 }
 
 function trackedFiles(root) {
+  const deleted = new Set(runGit(root, ['ls-files', '--deleted'])
+    .split(/\r?\n/u).filter(Boolean).map((file) => repoPath(decodeGitPath(file))));
   return runGit(root, ['ls-files', '--cached', '--others', '--exclude-standard'])
     .split(/\r?\n/u)
     .filter(Boolean)
-    .map((file) => repoPath(decodeGitPath(file)));
+    .map((file) => repoPath(decodeGitPath(file)))
+    .filter((file) => !deleted.has(file));
 }
 
 function snapshotFiles(root) {
@@ -425,7 +428,7 @@ function mergePackages(baseRoot, opsRoot, targetRoot, manifest) {
     }
   }
   for (const scriptName of Object.keys(basePackage.scripts)) {
-    if (scriptName.startsWith('release:foundation') || scriptName === 'test:foundation-release') {
+    if (scriptName.startsWith('release:foundation') || ['test:foundation-release', 'test:release-gate-workflow', 'test:ci-bench-perf-smoke-workflow'].includes(scriptName)) {
       delete basePackage.scripts[scriptName];
     }
   }
@@ -516,6 +519,7 @@ function mergeGoDependencies(opsRoot, targetRoot, manifest) {
     const result = spawnSync('go', ['mod', 'edit', `-require=${modulePath}@${version}`], {
       cwd: path.dirname(goMod),
       encoding: 'utf8',
+      windowsHide: true,
     });
     if (result.status !== 0) throw new Error(result.stderr.trim() || `Cannot add ${modulePath}@${version}`);
   }
@@ -537,6 +541,7 @@ export function normalizeGoDependencies(targetRoot) {
     cwd: path.join(targetRoot, 'backend'),
     encoding: 'utf8',
     stdio: ['ignore', 'ignore', 'pipe'],
+    windowsHide: true,
   });
   if (result.status !== 0) {
     throw new Error('Cannot normalize consumer Go dependencies: ' +

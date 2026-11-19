@@ -8,6 +8,7 @@ import (
 	"time"
 
 	bizcap "github.com/duanxldragon/pantheon-base/backend/modules/business/capability"
+	biztx "github.com/duanxldragon/pantheon-base/backend/modules/business/shared/transaction"
 	"github.com/duanxldragon/pantheon-base/backend/pkg/common"
 
 	"gorm.io/gorm"
@@ -29,19 +30,10 @@ func (b *transactionInstanceState) WithServiceInstanceStateTransaction(tx *gorm.
 }
 
 func (b *transactionInstanceState) ApplyServiceInstanceState(ctx context.Context, req bizcap.ServiceInstanceStateTransition, actor string, scope *common.DataScopeReq) error {
-	if b.owner == nil || b.tx == nil || b.tx.Statement == nil {
-		return errors.New(errNotInitialized)
-	}
-	if _, ok := b.tx.Statement.ConnPool.(gorm.TxCommitter); !ok {
-		return errors.New("service.state.transactionRequired")
-	}
-	if err := ctx.Err(); err != nil {
+	owner, err := b.owner.transactionManager(ctx, b.tx)
+	if err != nil {
 		return err
 	}
-	owner := *b.owner
-	// All validation/ref reads inherit this DB and context. GORM's per-write
-	// default transaction must not attempt a separate begin/commit.
-	owner.db = b.tx.Session(&gorm.Session{SkipDefaultTransaction: true}).WithContext(ctx)
 	return owner.ApplyServiceInstanceState(ctx, req, actor, scope)
 }
 
@@ -61,6 +53,36 @@ const (
 
 // TransitionState applies a validated service-instance state transition.
 func (m *Manager) TransitionState(ctx context.Context, req InstanceStateTransitionRequest, actor string, scope *common.DataScopeReq) (InstanceRef, error) {
+	if strings.TrimSpace(req.Action) == TransitionActionRetire {
+		return m.transitionRetireState(ctx, req, actor, scope)
+	}
+	return m.transitionState(ctx, req, actor, scope)
+}
+
+func (m *Manager) transitionRetireState(ctx context.Context, req InstanceStateTransitionRequest, actor string, scope *common.DataScopeReq) (InstanceRef, error) {
+	if m == nil || m.db == nil || m.db.Statement == nil {
+		return InstanceRef{}, errors.New(errNotInitialized)
+	}
+	if _, bound := m.db.Statement.ConnPool.(gorm.TxCommitter); bound {
+		owner, err := m.transactionManager(ctx, m.db)
+		if err != nil {
+			return InstanceRef{}, err
+		}
+		return owner.transitionState(ctx, req, actor, scope)
+	}
+	var ref InstanceRef
+	err := biztx.ReadCommittedTransaction(ctx, m.db.WithContext(ctx), func(tx *gorm.DB) error {
+		owner, err := m.transactionManager(ctx, tx)
+		if err != nil {
+			return err
+		}
+		ref, err = owner.transitionState(ctx, req, actor, scope)
+		return err
+	}, nil)
+	return ref, err
+}
+
+func (m *Manager) transitionState(ctx context.Context, req InstanceStateTransitionRequest, actor string, scope *common.DataScopeReq) (InstanceRef, error) {
 	row, err := m.findInstance(req.InstanceID, scope)
 	if err != nil {
 		return InstanceRef{}, err
@@ -86,6 +108,14 @@ func (m *Manager) TransitionState(ctx context.Context, req InstanceStateTransiti
 	if err := validateInstanceTransition(row, &next, action); err != nil {
 		return InstanceRef{}, err
 	}
+	if action == TransitionActionRetire {
+		if err := biztx.RequireReadCommittedTransaction(m.db); err != nil {
+			return InstanceRef{}, err
+		}
+		if err := m.checkDeploymentReferences(ctx, row.ServiceID, row.ID, "business.service.instance_in_use"); err != nil {
+			return InstanceRef{}, err
+		}
+	}
 	now := time.Now()
 	updates := map[string]any{
 		"desired_state":      next.DesiredState,
@@ -106,7 +136,9 @@ func (m *Manager) TransitionState(ctx context.Context, req InstanceStateTransiti
 		updates["health_observed_at"] = now
 	}
 	query := m.db.WithContext(ctx).Model(&ServiceInstance{}).Where("id = ?", row.ID)
-	if req.ExpectedLifecycleVersion > 0 {
+	if action == TransitionActionRetire {
+		query = query.Where("lifecycle_version = ?", row.LifecycleVersion)
+	} else if req.ExpectedLifecycleVersion > 0 {
 		query = query.Where("lifecycle_version = ?", req.ExpectedLifecycleVersion)
 	}
 	result := query.Updates(updates)

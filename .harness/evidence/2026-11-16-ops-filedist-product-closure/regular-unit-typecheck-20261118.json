@@ -1,0 +1,17 @@
+{
+  "extends": "../../../frontend/tsconfig.app.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "strict": true,
+    "skipLibCheck": true,
+    "types": [],
+    "paths": {
+      "@/*": ["../../../frontend/src/*"]
+    }
+  },
+  "include": [
+    "../../../frontend/tests/unit/business/filedist/FiledistLifetime.test.ts",
+    "../../../frontend/src/vite-env.d.ts"
+  ],
+  "exclude": []
+}

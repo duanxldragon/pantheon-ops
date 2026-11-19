@@ -1,0 +1,38 @@
+{
+  "recordedAtUTC": "2026-11-17T15:07:20.4570725Z",
+  "validationStatus": "pending-expanded-race",
+  "files": [
+    {
+      "path": "backend/modules/business/k8s/service/service.go",
+      "sha256": "c570f777cc02e6fa29a4229d8762b0661020ac6df9aa26cbf3abda0e7f9555d5"
+    },
+    {
+      "path": "backend/modules/business/k8s/service/handler.go",
+      "sha256": "2b231425dc1fd8bbab47edf6af24112d3efc2f6a76f70b8cc9853e8993cb7740"
+    },
+    {
+      "path": "backend/modules/business/k8s/service/mutation_contract_test.go",
+      "sha256": "bd1911b73f23cc434ad09ba555da814fb8af483fb0c0616d2d41b21b1d21d2c8"
+    },
+    {
+      "path": "backend/modules/business/k8s/namespace/namespace_service.go",
+      "sha256": "2af0d803d4ab5b477b19222645ab3a8c48174fa183413ce7d449ce3342cfa9d3"
+    },
+    {
+      "path": "backend/modules/business/k8s/cluster/cluster_service.go",
+      "sha256": "f50af80184bdee9b8e50555c9a33dcef6581c3b35f84c68eaa293cdbb2f27bd6"
+    },
+    {
+      "path": "backend/modules/business/k8s/k8s.go",
+      "sha256": "fccfbcf7afc471632a29f43d950998e74193147682f247221a77c9b0c475dbb2"
+    },
+    {
+      "path": "backend/modules/business/k8s/permission_routes.go",
+      "sha256": "ef2798ea5f1a70790b3a58d1d00d840c2eff92fd6147f1d155b34348e951c132"
+    },
+    {
+      "path": "backend/modules/business/k8s/permission_routes_test.go",
+      "sha256": "d0ec4e8228970b5a35384488127d5754c226dd147d81d36c854ac8eefec85c39"
+    }
+  ]
+}

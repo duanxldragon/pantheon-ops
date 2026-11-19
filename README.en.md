@@ -8,6 +8,8 @@ The product is preparing for a pilot and has not passed pilot acceptance. CMDB, 
 
 The current commit locks Base v0.18.9. The business audit predates that upgrade, so acceptance evidence must be collected again for the delivery candidate. The frontend uses React, TypeScript, Arco Design and Vite; the backend uses Go, Gin and GORM with MySQL and Redis.
 
+The dedicated Helm API registers, lists and deletes release records only. Chart install, upgrade, rollback and uninstall are deferred and unavailable. New records always store `registered`; a requested runtime status is not saved as an execution result. Every response reports `status=registered` and compatible `effectiveStatus=registered`; `storedStatus` preserves the original source value without rewriting historical database rows. Neither a historical `deployed` value nor a K8s image Release proves Chart installation. Deleting a registration does not uninstall cluster resources.
+
 ## Current plan
 
 - [Pilot delivery plan](./.harness/tasks/2026-11-16-ops-pilot-delivery/plan.md): six required core packages and four conditional extension packages, with dependencies and testable exit criteria.

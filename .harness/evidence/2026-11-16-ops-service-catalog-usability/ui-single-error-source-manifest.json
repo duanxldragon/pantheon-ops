@@ -1,0 +1,16 @@
+{
+  "taskId": "2026-11-16-ops-service-catalog-usability",
+  "checkedAt": "2026-11-17T15:11:39.1503456Z",
+  "sourceState": "Working-tree checkpoint, no commit",
+  "change": "C03 default API feedback deduplication with exact single localized error regressions",
+  "files": [
+    {
+      "path": "frontend/src/modules/business/service/ServiceCatalog.tsx",
+      "sha256": "f748584a67685c25d219d715a904cd941cf27350561e8679d56028bab2282d97"
+    },
+    {
+      "path": "frontend/tests/smoke/business/service/service-pages.spec.ts",
+      "sha256": "f1cd15bbe8c7934b9e34c78ac7380c708e2819f8fbc61cfc5b6c5bc3bb9da0db"
+    }
+  ]
+}

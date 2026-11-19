@@ -9,6 +9,7 @@ import (
 	bizcap "github.com/duanxldragon/pantheon-base/backend/modules/business/capability"
 	"github.com/duanxldragon/pantheon-base/backend/pkg/common"
 	"github.com/duanxldragon/pantheon-base/backend/pkg/testmysql"
+	"gorm.io/gorm"
 )
 
 func TestInstanceRefUsesPublicJSONContract(t *testing.T) {
@@ -308,7 +309,18 @@ func setupServiceTestDB(t *testing.T) *Manager {
 	if err := manager.Migrate(); err != nil {
 		t.Fatalf("migrate service schema: %v", err)
 	}
+	manager.SetDeploymentReferenceReader(emptyTestDeploymentReferences{})
 	return manager
+}
+
+// Explicit standalone fixture owner; nil capabilities must not permit deletion.
+type emptyTestDeploymentReferences struct{}
+
+func (emptyTestDeploymentReferences) HasExecutingServiceReferences(context.Context, uint64, uint64) (bool, error) {
+	return false, nil
+}
+func (r emptyTestDeploymentReferences) WithDeploymentReferenceTransaction(*gorm.DB) bizcap.DeploymentReferenceReader {
+	return r
 }
 
 func TestServiceFoundationRejectsDuplicateCodesAndMixedTargets(t *testing.T) {

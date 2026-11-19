@@ -1,0 +1,245 @@
+{
+  "taskId": "2026-11-16-ops-k8s-service-mutations",
+  "owner": "c04_k8s_service_ui_executor",
+  "scope": "C04-owned modal feedback and draft removal semantics; no shared Base or generated resource changes",
+  "generatedUTC": "2026-11-17T16:57:55.065Z",
+  "commands": [
+    {
+      "name": "eslint",
+      "executable": "D:\\nodejs\\node.exe",
+      "args": [
+        "node_modules/eslint/bin/eslint.js",
+        "src/modules/business/k8s/service/ServiceList.tsx",
+        "src/modules/business/k8s/service/ServiceEditor.tsx",
+        "src/modules/business/k8s/api.ts",
+        "tests/smoke/business/k8s/k8s-pages.spec.ts"
+      ],
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\frontend",
+      "startedUTC": "2026-11-17T16:57:21.797Z",
+      "finishedUTC": "2026-11-17T16:57:24.068Z",
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "type-check",
+      "executable": "D:\\nodejs\\node.exe",
+      "args": [
+        "node_modules/typescript/bin/tsc",
+        "-b"
+      ],
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\frontend",
+      "startedUTC": "2026-11-17T16:57:21.807Z",
+      "finishedUTC": "2026-11-17T16:57:55.060Z",
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "shell-visual-contract",
+      "executable": "D:\\nodejs\\node.exe",
+      "args": [
+        "scripts/check-shell-visual-contract.mjs"
+      ],
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\frontend",
+      "startedUTC": "2026-11-17T16:57:21.813Z",
+      "finishedUTC": "2026-11-17T16:57:22.210Z",
+      "exitCode": 0,
+      "stdout": "Shell visual contract passed.\n",
+      "stderr": ""
+    },
+    {
+      "name": "playwright-discovery",
+      "executable": "D:\\nodejs\\node.exe",
+      "args": [
+        "node_modules/@playwright/test/cli.js",
+        "test",
+        "tests/smoke/business/k8s/k8s-pages.spec.ts",
+        "--config",
+        "playwright.config.ts",
+        "--list"
+      ],
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\frontend",
+      "startedUTC": "2026-11-17T16:57:21.816Z",
+      "finishedUTC": "2026-11-17T16:57:22.903Z",
+      "exitCode": 0,
+      "stdout": "Listing tests:\n  smoke\\business\\k8s\\k8s-pages.spec.ts:23:3 › K8s business module smoke › cluster, release, and Kubernetes Service pages load on business routes\n  smoke\\business\\k8s\\k8s-pages.spec.ts:50:3 › K8s business module smoke › cluster list remains usable in a phone viewport\n  smoke\\business\\k8s\\k8s-pages.spec.ts:235:3 › C04 Kubernetes Service UI contract › editing preserves named target ports, allocated node ports and read identity\n  smoke\\business\\k8s\\k8s-pages.spec.ts:264:3 › C04 Kubernetes Service UI contract › creating accepts a named target port and blocks an invalid target name\n  smoke\\business\\k8s\\k8s-pages.spec.ts:289:3 › C04 Kubernetes Service UI contract › malformed or duplicate selectors block writes and empty selector remains valid\n  smoke\\business\\k8s\\k8s-pages.spec.ts:306:3 › C04 Kubernetes Service UI contract › multi-port names validate and switching to ClusterIP removes node ports\n  smoke\\business\\k8s\\k8s-pages.spec.ts:336:3 › C04 Kubernetes Service UI contract › stale edit shows one translated error and keeps draft and original version\n  smoke\\business\\k8s\\k8s-pages.spec.ts:362:5 › C04 Kubernetes Service UI contract › successful delete sends UID and version preconditions\n  smoke\\business\\k8s\\k8s-pages.spec.ts:362:5 › C04 Kubernetes Service UI contract › stale delete sends UID and version preconditions\n  smoke\\business\\k8s\\k8s-pages.spec.ts:393:3 › C04 Kubernetes Service UI contract › incomplete read identity disables edit and delete\n  smoke\\business\\k8s\\k8s-pages.spec.ts:402:3 › C04 Kubernetes Service UI contract › read-only permissions hide each Service mutation\n  smoke\\business\\k8s\\k8s-pages.spec.ts:423:5 › C04 Kubernetes Service UI contract › rendered list error and empty recovery at 1440px\n  smoke\\business\\k8s\\k8s-pages.spec.ts:451:5 › C04 Kubernetes Service UI contract › rendered primary states at 1440px\n  smoke\\business\\k8s\\k8s-pages.spec.ts:423:5 › C04 Kubernetes Service UI contract › rendered list error and empty recovery at 390px\n  smoke\\business\\k8s\\k8s-pages.spec.ts:451:5 › C04 Kubernetes Service UI contract › rendered primary states at 390px\nTotal: 15 tests in 1 file\n",
+      "stderr": ""
+    },
+    {
+      "name": "diff-check",
+      "executable": "git",
+      "args": [
+        "diff",
+        "--check",
+        "--",
+        "frontend/src/modules/business/k8s/api.ts",
+        "frontend/src/modules/business/k8s/service/ServiceList.tsx",
+        "frontend/src/modules/business/k8s/service/ServiceEditor.tsx",
+        "frontend/src/modules/business/k8s/service/serviceDraft.ts",
+        "frontend/src/modules/business/k8s/service/service-editor.css",
+        "frontend/tests/smoke/business/k8s/k8s-pages.spec.ts",
+        "docs/designs/BUSINESS_ERROR_SEMANTICS_APPENDIX.md",
+        "frontend/src/modules/business/v12locales/zh-CN.json",
+        "frontend/src/i18n/resources/business/zh-CN.ts",
+        "frontend/src/modules/business/v12locales/en-US.json",
+        "frontend/src/i18n/resources/business/en-US.ts",
+        "frontend/src/modules/business/v12locales/ja-JP.json",
+        "frontend/src/i18n/resources/business/ja-JP.ts",
+        "frontend/src/modules/business/v12locales/ko-KR.json",
+        "frontend/src/i18n/resources/business/ko-KR.ts",
+        "frontend/src/modules/business/v12locales/fr-FR.json",
+        "frontend/src/i18n/resources/business/fr-FR.ts"
+      ],
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+      "startedUTC": "2026-11-17T16:57:21.820Z",
+      "finishedUTC": "2026-11-17T16:57:21.926Z",
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": ""
+    }
+  ],
+  "before": [
+    {
+      "path": "frontend/src/modules/business/k8s/api.ts",
+      "sha256": "b5da34dbaf6741ebb5025527596746d804eb238cec45f232ae94c2fde15c6fe9"
+    },
+    {
+      "path": "frontend/src/modules/business/k8s/service/ServiceList.tsx",
+      "sha256": "05b888983b870c006e197d1f8e70765b4f879f86a050e07a8a858df0ba2afc91"
+    },
+    {
+      "path": "frontend/src/modules/business/k8s/service/ServiceEditor.tsx",
+      "sha256": "a805d7558bcf94a6a1a33e80f1b9078907fd3f597ec052cfb54c80a5d9efbc6c"
+    },
+    {
+      "path": "frontend/src/modules/business/k8s/service/serviceDraft.ts",
+      "sha256": "a537a941695469d3001a46ef39c3e01a81afc26bc2826bda289fc238bdbfb522"
+    },
+    {
+      "path": "frontend/src/modules/business/k8s/service/service-editor.css",
+      "sha256": "e4365e2e6929efeb3dd7b160cb4a4faf2d69902a90e3768066b053ca5bca030a"
+    },
+    {
+      "path": "frontend/tests/smoke/business/k8s/k8s-pages.spec.ts",
+      "sha256": "11d380dfc3a75adaf7ad6cf377caa5be0fdc3e722ba89a2a153b73b991014c8b"
+    },
+    {
+      "path": "docs/designs/BUSINESS_ERROR_SEMANTICS_APPENDIX.md",
+      "sha256": "ab7ca8b39a71328bcbc265a58ceaff0bcbf7d38e2a42b9a4532435b853bc4d4d"
+    },
+    {
+      "path": "frontend/src/modules/business/v12locales/zh-CN.json",
+      "sha256": "227775201f7ef0600efa9bbeecaa59987755af373bd5f55aea69fb3568f9a497"
+    },
+    {
+      "path": "frontend/src/i18n/resources/business/zh-CN.ts",
+      "sha256": "8afaf31a4802897c811033b3d455cc9dcf178a925a26249db542ff572005cb6b"
+    },
+    {
+      "path": "frontend/src/modules/business/v12locales/en-US.json",
+      "sha256": "d26f80a51a58ab04365a41303131ea3afb4eb582d4f224a82eeaed1c3097c7cb"
+    },
+    {
+      "path": "frontend/src/i18n/resources/business/en-US.ts",
+      "sha256": "b23daa06a55d7456903f0f634e12571c4895daa101f319bcc307587bf836502d"
+    },
+    {
+      "path": "frontend/src/modules/business/v12locales/ja-JP.json",
+      "sha256": "ff1c96664e32767092497bbb65bbc953fceb804bcaf3db26c34391c98573ff66"
+    },
+    {
+      "path": "frontend/src/i18n/resources/business/ja-JP.ts",
+      "sha256": "428a8832aa32a19d5309dd0656829386eb9ad64d657ffed1040d207ce707253d"
+    },
+    {
+      "path": "frontend/src/modules/business/v12locales/ko-KR.json",
+      "sha256": "ea55b0eb1e03caa62668b7cdbd19645c73b372c74454e68200d6cc3eb133ecf8"
+    },
+    {
+      "path": "frontend/src/i18n/resources/business/ko-KR.ts",
+      "sha256": "8805f78453d00c46f4b256c432966b406f953cab00fdab4fb52a8ab99cc228e5"
+    },
+    {
+      "path": "frontend/src/modules/business/v12locales/fr-FR.json",
+      "sha256": "94405937f248745cf252d5f7a4f46878f9b6402a6dfa76f6f89fdb2b6702fb9f"
+    },
+    {
+      "path": "frontend/src/i18n/resources/business/fr-FR.ts",
+      "sha256": "fd1d3089f4798928d070277d85dc8c64fdd2256249de92a2fae790aaf1168768"
+    }
+  ],
+  "after": [
+    {
+      "path": "frontend/src/modules/business/k8s/api.ts",
+      "sha256": "b5da34dbaf6741ebb5025527596746d804eb238cec45f232ae94c2fde15c6fe9"
+    },
+    {
+      "path": "frontend/src/modules/business/k8s/service/ServiceList.tsx",
+      "sha256": "05b888983b870c006e197d1f8e70765b4f879f86a050e07a8a858df0ba2afc91"
+    },
+    {
+      "path": "frontend/src/modules/business/k8s/service/ServiceEditor.tsx",
+      "sha256": "a805d7558bcf94a6a1a33e80f1b9078907fd3f597ec052cfb54c80a5d9efbc6c"
+    },
+    {
+      "path": "frontend/src/modules/business/k8s/service/serviceDraft.ts",
+      "sha256": "a537a941695469d3001a46ef39c3e01a81afc26bc2826bda289fc238bdbfb522"
+    },
+    {
+      "path": "frontend/src/modules/business/k8s/service/service-editor.css",
+      "sha256": "e4365e2e6929efeb3dd7b160cb4a4faf2d69902a90e3768066b053ca5bca030a"
+    },
+    {
+      "path": "frontend/tests/smoke/business/k8s/k8s-pages.spec.ts",
+      "sha256": "11d380dfc3a75adaf7ad6cf377caa5be0fdc3e722ba89a2a153b73b991014c8b"
+    },
+    {
+      "path": "docs/designs/BUSINESS_ERROR_SEMANTICS_APPENDIX.md",
+      "sha256": "ab7ca8b39a71328bcbc265a58ceaff0bcbf7d38e2a42b9a4532435b853bc4d4d"
+    },
+    {
+      "path": "frontend/src/modules/business/v12locales/zh-CN.json",
+      "sha256": "227775201f7ef0600efa9bbeecaa59987755af373bd5f55aea69fb3568f9a497"
+    },
+    {
+      "path": "frontend/src/i18n/resources/business/zh-CN.ts",
+      "sha256": "8afaf31a4802897c811033b3d455cc9dcf178a925a26249db542ff572005cb6b"
+    },
+    {
+      "path": "frontend/src/modules/business/v12locales/en-US.json",
+      "sha256": "d26f80a51a58ab04365a41303131ea3afb4eb582d4f224a82eeaed1c3097c7cb"
+    },
+    {
+      "path": "frontend/src/i18n/resources/business/en-US.ts",
+      "sha256": "b23daa06a55d7456903f0f634e12571c4895daa101f319bcc307587bf836502d"
+    },
+    {
+      "path": "frontend/src/modules/business/v12locales/ja-JP.json",
+      "sha256": "ff1c96664e32767092497bbb65bbc953fceb804bcaf3db26c34391c98573ff66"
+    },
+    {
+      "path": "frontend/src/i18n/resources/business/ja-JP.ts",
+      "sha256": "428a8832aa32a19d5309dd0656829386eb9ad64d657ffed1040d207ce707253d"
+    },
+    {
+      "path": "frontend/src/modules/business/v12locales/ko-KR.json",
+      "sha256": "ea55b0eb1e03caa62668b7cdbd19645c73b372c74454e68200d6cc3eb133ecf8"
+    },
+    {
+      "path": "frontend/src/i18n/resources/business/ko-KR.ts",
+      "sha256": "8805f78453d00c46f4b256c432966b406f953cab00fdab4fb52a8ab99cc228e5"
+    },
+    {
+      "path": "frontend/src/modules/business/v12locales/fr-FR.json",
+      "sha256": "94405937f248745cf252d5f7a4f46878f9b6402a6dfa76f6f89fdb2b6702fb9f"
+    },
+    {
+      "path": "frontend/src/i18n/resources/business/fr-FR.ts",
+      "sha256": "fd1d3089f4798928d070277d85dc8c64fdd2256249de92a2fae790aaf1168768"
+    }
+  ],
+  "sourcesStable": true,
+  "testsExecuted": false,
+  "newRenderedEvidenceInspected": false
+}

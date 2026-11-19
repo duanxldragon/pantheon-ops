@@ -1,0 +1,315 @@
+{
+  "taskId": "2026-11-16-ops-service-catalog-usability",
+  "repo": "pantheon-ops",
+  "status": "in-progress",
+  "linkage": {
+    "taskPacket": "docs/harness/tasks/2026-11-16-ops-service-catalog-usability.task.md",
+    "taskManifest": ".harness/tasks/2026-11-16-ops-service-catalog-usability/manifest.json",
+    "evidenceDirectory": ".harness/evidence/2026-11-16-ops-service-catalog-usability",
+    "summary": ".harness/evidence/2026-11-16-ops-service-catalog-usability/ui-summary.md",
+    "review": "Parent-owned independent review pending"
+  },
+  "sourceManifest": "ui-source-manifest.json",
+  "commands": [
+    {
+      "command": "node --import=../.local/manual-preview-20261116/hide-child-windows.mjs node_modules/eslint/bin/eslint.js src/modules/business/service/ServiceCatalog.tsx src/modules/business/service/api.ts tests/smoke/business/service/service-pages.spec.ts",
+      "cwd": "frontend",
+      "status": "failed",
+      "exitCode": 1,
+      "log": "ui-intermediate-jsx-lint.log",
+      "evidenceKind": "Exact tool-output transcription",
+      "toolChunk": "f81ef4",
+      "resolution": "Incomplete JSX conditional corrected; superseded by passing ui-scoped-lint receipt"
+    },
+    {
+      "command": "node --import=../.local/manual-preview-20261116/hide-child-windows.mjs node_modules/typescript/bin/tsc -b",
+      "cwd": "frontend",
+      "status": "failed",
+      "exitCode": 1,
+      "log": "ui-intermediate-jsx-typecheck.log",
+      "evidenceKind": "Exact tool-output transcription",
+      "toolChunk": "decdb5",
+      "resolution": "Incomplete JSX conditional corrected; superseded by passing ui-typecheck receipt"
+    },
+    {
+      "command": "node --import=../.local/manual-preview-20261116/hide-child-windows.mjs node_modules/eslint/bin/eslint.js src/modules/business/service/ServiceCatalog.tsx src/modules/business/service/api.ts tests/smoke/business/service/service-pages.spec.ts",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\frontend",
+      "startedAt": "2026-11-17T14:06:09.7519644Z",
+      "finishedAt": "2026-11-17T14:06:12.0797582Z",
+      "exitCode": 0,
+      "status": "passed",
+      "log": "ui-scoped-lint.log",
+      "externalWebServer": true,
+      "note": "No preview/DB test execution or process start/stop. --list, when used, discovers tests only."
+    },
+    {
+      "command": "node --import=../.local/manual-preview-20261116/hide-child-windows.mjs node_modules/typescript/bin/tsc -b",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\frontend",
+      "startedAt": "2026-11-17T14:06:09.7600942Z",
+      "finishedAt": "2026-11-17T14:06:36.6187357Z",
+      "exitCode": 0,
+      "status": "passed",
+      "log": "ui-typecheck.log",
+      "externalWebServer": true,
+      "note": "No preview/DB test execution or process start/stop. --list, when used, discovers tests only."
+    },
+    {
+      "command": "node --import=../.local/manual-preview-20261116/hide-child-windows.mjs node_modules/@playwright/test/cli.js test --config playwright.config.ts --list tests/smoke/business/service/service-pages.spec.ts",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\frontend",
+      "startedAt": "2026-11-17T14:06:09.778276Z",
+      "finishedAt": "2026-11-17T14:06:10.9469706Z",
+      "exitCode": 0,
+      "status": "passed",
+      "log": "ui-smoke-discovery.log",
+      "externalWebServer": true,
+      "note": "No preview/DB test execution or process start/stop. --list, when used, discovers tests only."
+    },
+    {
+      "command": "node --import=../.local/manual-preview-20261116/hide-child-windows.mjs node_modules/eslint/bin/eslint.js src/modules/business/service/ServiceCatalog.tsx tests/smoke/business/service/service-pages.spec.ts",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\frontend",
+      "startedAt": "2026-11-17T14:34:14.3784332Z",
+      "finishedAt": "2026-11-17T14:34:16.7410761Z",
+      "exitCode": 0,
+      "status": "passed",
+      "log": "ui-cross-tab-lint.log",
+      "note": "No browser/DB test execution or background process startup. Test discovery only for --list."
+    },
+    {
+      "command": "node --import=../.local/manual-preview-20261116/hide-child-windows.mjs node_modules/typescript/bin/tsc -b",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\frontend",
+      "startedAt": "2026-11-17T14:34:14.3804997Z",
+      "finishedAt": "2026-11-17T14:34:41.2108616Z",
+      "exitCode": 0,
+      "status": "passed",
+      "log": "ui-cross-tab-typecheck.log",
+      "note": "No browser/DB test execution or background process startup. Test discovery only for --list."
+    },
+    {
+      "command": "node --import=../.local/manual-preview-20261116/hide-child-windows.mjs node_modules/@playwright/test/cli.js test --config playwright.config.ts --list --grep \"ignores an empty .* search in another tab\" tests/smoke/business/service/service-pages.spec.ts",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\frontend",
+      "startedAt": "2026-11-17T14:34:14.3791777Z",
+      "finishedAt": "2026-11-17T14:34:15.4825422Z",
+      "exitCode": 0,
+      "status": "passed",
+      "log": "ui-cross-tab-test-discovery.log",
+      "note": "No browser/DB test execution or background process startup. Test discovery only for --list."
+    },
+    {
+      "command": "node --import=../.local/manual-preview-20261116/hide-child-windows.mjs node_modules/eslint/bin/eslint.js src/modules/business/service/ServiceCatalog.tsx tests/smoke/business/service/service-pages.spec.ts src/i18n/resources/business/zh-CN.ts src/i18n/resources/business/en-US.ts src/i18n/resources/business/ja-JP.ts src/i18n/resources/business/ko-KR.ts src/i18n/resources/business/fr-FR.ts",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\frontend",
+      "startedAt": "2026-11-17T14:37:55.8033479Z",
+      "finishedAt": "2026-11-17T14:37:58.6326253Z",
+      "exitCode": 0,
+      "status": "passed",
+      "log": "ui-cross-tab-refreshed-lint.log",
+      "sourceManifest": "ui-cross-tab-source-manifest.json",
+      "note": "Final source after copying five candidate-generated business fallbacks; no browser/DB test execution or background process startup."
+    },
+    {
+      "command": "node --import=../.local/manual-preview-20261116/hide-child-windows.mjs node_modules/typescript/bin/tsc -b",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\frontend",
+      "startedAt": "2026-11-17T14:37:55.8245489Z",
+      "finishedAt": "2026-11-17T14:38:25.6817863Z",
+      "exitCode": 0,
+      "status": "passed",
+      "log": "ui-cross-tab-refreshed-typecheck.log",
+      "sourceManifest": "ui-cross-tab-source-manifest.json",
+      "note": "Final source after copying five candidate-generated business fallbacks; no browser/DB test execution or background process startup."
+    },
+    {
+      "command": "node --import=../.local/manual-preview-20261116/hide-child-windows.mjs node_modules/eslint/bin/eslint.js tests/smoke/business/service/service-pages.spec.ts",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\frontend",
+      "startedAt": "2026-11-17T14:50:28.1808887Z",
+      "finishedAt": "2026-11-17T14:50:30.8391766Z",
+      "exitCode": 0,
+      "status": "passed",
+      "log": "ui-stale-envelope-lint.log",
+      "sourceManifest": "ui-stale-envelope-source-manifest.json",
+      "note": "Fixture-only change; no browser/DB test execution or background process startup."
+    },
+    {
+      "command": "node --import=../.local/manual-preview-20261116/hide-child-windows.mjs node_modules/typescript/bin/tsc -b",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\frontend",
+      "startedAt": "2026-11-17T14:50:28.1915648Z",
+      "finishedAt": "2026-11-17T14:51:04.4506427Z",
+      "exitCode": 0,
+      "status": "passed",
+      "log": "ui-stale-envelope-typecheck.log",
+      "sourceManifest": "ui-stale-envelope-source-manifest.json",
+      "note": "Fixture-only change; no browser/DB test execution or background process startup."
+    },
+    {
+      "command": "node --import=../.local/manual-preview-20261116/hide-child-windows.mjs node_modules/@playwright/test/cli.js test --config playwright.config.ts --list --grep \"a stale instance update\" tests/smoke/business/service/service-pages.spec.ts",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\frontend",
+      "startedAt": "2026-11-17T14:50:28.1567476Z",
+      "finishedAt": "2026-11-17T14:50:29.3192118Z",
+      "exitCode": 0,
+      "status": "passed",
+      "log": "ui-stale-envelope-discovery.log",
+      "sourceManifest": "ui-stale-envelope-source-manifest.json",
+      "note": "Fixture-only change; no browser/DB test execution or background process startup."
+    },
+    {
+      "command": "node --import=../.local/manual-preview-20261116/hide-child-windows.mjs node_modules/eslint/bin/eslint.js tests/smoke/business/service/service-pages.spec.ts",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\frontend",
+      "startedAt": "2026-11-17T15:01:49.4237632Z",
+      "finishedAt": "2026-11-17T15:01:52.0179295Z",
+      "exitCode": 0,
+      "status": "passed",
+      "log": "ui-render-states-lint.log",
+      "note": "Rendered-state specs added only; browser execution and actual screenshot inspection are parent-owned. --list discovery only."
+    },
+    {
+      "command": "node --import=../.local/manual-preview-20261116/hide-child-windows.mjs node_modules/typescript/bin/tsc -b",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\frontend",
+      "startedAt": "2026-11-17T15:01:49.4177006Z",
+      "finishedAt": "2026-11-17T15:02:19.8908239Z",
+      "exitCode": 0,
+      "status": "passed",
+      "log": "ui-render-states-typecheck.log",
+      "note": "Rendered-state specs added only; browser execution and actual screenshot inspection are parent-owned. --list discovery only."
+    },
+    {
+      "command": "node --import=../.local/manual-preview-20261116/hide-child-windows.mjs node_modules/@playwright/test/cli.js test --config playwright.config.ts --list --grep \"catalog desktop and mobile rendered states\" tests/smoke/business/service/service-pages.spec.ts",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\frontend",
+      "startedAt": "2026-11-17T15:01:49.4324781Z",
+      "finishedAt": "2026-11-17T15:01:50.6567078Z",
+      "exitCode": 0,
+      "status": "passed",
+      "log": "ui-render-states-discovery.log",
+      "note": "Rendered-state specs added only; browser execution and actual screenshot inspection are parent-owned. --list discovery only."
+    },
+    {
+      "command": "node --import=../.local/manual-preview-20261116/hide-child-windows.mjs node_modules/eslint/bin/eslint.js src/modules/business/service/ServiceCatalog.tsx tests/smoke/business/service/service-pages.spec.ts",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\frontend",
+      "startedAt": "2026-11-17T15:11:28.571172Z",
+      "finishedAt": "2026-11-17T15:11:32.3213382Z",
+      "exitCode": 0,
+      "status": "passed",
+      "log": "ui-single-error-lint.log",
+      "note": "Narrow C03 local duplicate-feedback fix; no browser execution or shared source changes. Parent owns fresh 8 mock + 2 rendered tests and screenshot inspection."
+    },
+    {
+      "command": "node --import=../.local/manual-preview-20261116/hide-child-windows.mjs node_modules/typescript/bin/tsc -b",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\frontend",
+      "startedAt": "2026-11-17T15:11:28.5994355Z",
+      "finishedAt": "2026-11-17T15:11:56.5202064Z",
+      "exitCode": 0,
+      "status": "passed",
+      "log": "ui-single-error-typecheck.log",
+      "note": "Narrow C03 local duplicate-feedback fix; no browser execution or shared source changes. Parent owns fresh 8 mock + 2 rendered tests and screenshot inspection."
+    },
+    {
+      "command": "node --import=../.local/manual-preview-20261116/hide-child-windows.mjs node_modules/@playwright/test/cli.js test --config playwright.config.ts --list --grep \"a stale instance update|catalog desktop and mobile rendered states\" tests/smoke/business/service/service-pages.spec.ts",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\frontend",
+      "startedAt": "2026-11-17T15:11:28.5763157Z",
+      "finishedAt": "2026-11-17T15:11:29.7504362Z",
+      "exitCode": 0,
+      "status": "passed",
+      "log": "ui-single-error-discovery.log",
+      "note": "Narrow C03 local duplicate-feedback fix; no browser execution or shared source changes. Parent owns fresh 8 mock + 2 rendered tests and screenshot inspection."
+    },
+    {
+      "command": "node --import=../.local/manual-preview-20261116/hide-child-windows.mjs node_modules/eslint/bin/eslint.js tests/smoke/business/service/service-pages.spec.ts",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\frontend",
+      "startedAt": "2026-11-17T16:54:57.1380121Z",
+      "finishedAt": "2026-11-17T16:54:58.4983745Z",
+      "exitCode": 0,
+      "status": "passed",
+      "log": "ui-total-error-lint.log",
+      "note": "Two-line spec-only assertion strengthening; no browser execution or C03 UI/C04 changes. Parent owns fresh tests."
+    },
+    {
+      "command": "node --import=../.local/manual-preview-20261116/hide-child-windows.mjs node_modules/@playwright/test/cli.js test --config playwright.config.ts --list --grep \"a stale instance update|catalog desktop and mobile rendered states\" tests/smoke/business/service/service-pages.spec.ts",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\frontend",
+      "startedAt": "2026-11-17T16:54:57.1328625Z",
+      "finishedAt": "2026-11-17T16:54:58.2688896Z",
+      "exitCode": 0,
+      "status": "passed",
+      "log": "ui-total-error-discovery.log",
+      "note": "Two-line spec-only assertion strengthening; no browser execution or C03 UI/C04 changes. Parent owns fresh tests."
+    }
+  ],
+  "notRun": [
+    "Full build (parent owns consolidated build)",
+    "Playwright execution/rendered desktop/mobile acceptance (parent runtime lane)",
+    "Backend owner/CAS/provider tests (backend lane)",
+    "Independent review (parent lane)"
+  ],
+  "gateOutcomes": "Scoped lint/typecheck caught incomplete JSX conditional; fixed and verified",
+  "latestSourceManifest": "ui-total-error-source-manifest.json",
+  "fallbackRefreshEvidence": "ui-fallback-refresh-20261117T143632701Z/refresh-receipt.json",
+  "directByteBinding": "ui-fallback-refresh-20261117T143632701Z/direct-byte-binding.json",
+  "reviewerFollowup": "Item 3 cross-tab filtered parent availability fixed; independent re-review pending",
+  "parentMockFailure": ".harness/evidence/2026-11-17-ops-history-audit/continuation-c03-ui-optimizer-refreshed.receipt.json",
+  "parentMockPass": {
+    "receipt": ".harness/evidence/2026-11-17-ops-history-audit/continuation-c03-ui-envelope-fixed.receipt.json",
+    "exitCode": 0,
+    "testCount": 8,
+    "sourceUnchanged": true,
+    "sources": [
+      {
+        "file": "frontend/src/modules/business/service/ServiceCatalog.tsx",
+        "sha256": "21299fee2258954b6c0408d7abdea71130952d2a4557af3b8679cfcb54646f7e"
+      },
+      {
+        "file": "frontend/src/modules/business/service/api.ts",
+        "sha256": "6206773022d1ba4774e66cab246a2b568e42a7dd668995aac8682bfb638eee57"
+      },
+      {
+        "file": "frontend/tests/smoke/business/service/service-pages.spec.ts",
+        "sha256": "9486c5f5c97ab1ab69d84075dcb3bbb66f2fc9ecab4f90ebde25fa0d7dcb417a"
+      }
+    ],
+    "boundary": "Real local login and live frontend; business API data mocked. Does not prove production routes, authorization or providers."
+  },
+  "renderPlan": {
+    "grep": "catalog desktop and mobile rendered states",
+    "viewports": [
+      "1440x900",
+      "390x844"
+    ],
+    "states": [
+      "catalog",
+      "instance-editor",
+      "stale-error-input-retained",
+      "read-only",
+      "read-only-empty"
+    ],
+    "screenshotsExpected": 10,
+    "execution": "Previous two-case capture passed; final local deduplication candidate 8 mock + 2 rendered tests pending with parent",
+    "screenshotInspection": "Root reported duplicate toasts in previous desktop/mobile stale screenshots; ten refreshed screenshots will be inspected after rerun"
+  },
+  "parentPreviousRenderPass": {
+    "receipt": ".harness/evidence/2026-11-17-ops-history-audit/continuation-c03-ui-rendered-states.receipt.json",
+    "exitCode": 0,
+    "testCount": 2,
+    "sourceUnchanged": true,
+    "sources": [
+      {
+        "file": "frontend/src/modules/business/service/ServiceCatalog.tsx",
+        "sha256": "21299fee2258954b6c0408d7abdea71130952d2a4557af3b8679cfcb54646f7e"
+      },
+      {
+        "file": "frontend/src/modules/business/service/api.ts",
+        "sha256": "6206773022d1ba4774e66cab246a2b568e42a7dd668995aac8682bfb638eee57"
+      },
+      {
+        "file": "frontend/tests/smoke/business/service/service-pages.spec.ts",
+        "sha256": "b8ecd7db897b66f227ffb9ed86874ca90877ea0ce4b2f9490432e5b4eaec3e0d"
+      }
+    ],
+    "rootScreenshotFinding": "Duplicate identical stale-error toasts in desktop/mobile capture; final deduplication candidate rerun pending"
+  },
+  "priorFinalDeduplicationVerification": {
+    "mockReceipt": ".harness/evidence/2026-11-17-ops-history-audit/continuation-c03-ui-single-error-fixed.receipt.json",
+    "mockTests": 8,
+    "renderReceipt": ".harness/evidence/2026-11-17-ops-history-audit/continuation-c03-ui-single-error-rendered.receipt.json",
+    "renderTests": 2,
+    "exitCode": 0,
+    "reviewedScreenshotsByRoot": 10,
+    "sourceSpecSha256": "f1cd15bbe8c7934b9e34c78ac7380c708e2819f8fbc61cfc5b6c5bc3bb9da0db",
+    "boundary": "Mocked business responses and local browser UI; not live backend acceptance",
+    "remaining": "Parent fresh execution of two-line total error-toast assertions"
+  }
+}

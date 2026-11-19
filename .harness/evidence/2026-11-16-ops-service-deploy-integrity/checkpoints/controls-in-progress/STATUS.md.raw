@@ -1,0 +1,32 @@
+# Pantheon Ops 当前任务状态
+
+更新：2026-11-17；历史清查执行中，试点交付尚未验收完成。
+
+- 当前历史清查：[brief](./tasks/2026-11-17-ops-history-audit/brief.md)、[85项逐项处置](./evidence/2026-11-17-ops-history-audit/CONTINUATION_DISPOSITIONS.md)。85个历史对象（原84＋额外8/19组）；20 completed、10 abandoned、26 upstream-owned、26 keep-open、2 container、1 deferred。全部已复审；分类完成不等于项目交付完成。
+- 实际归档：历史清查累计24组配对处置：22组新归档＋2组既有归档的重复live副本保全。历史第三批新增5组（3 completed、2 abandoned），当前续轮没有新增归档，16份原证据逐文件SHA-256保全，前两批冻结结果不变。其余6个 completed/abandoned 对象仅作记录处置，不补造缺失任务包。目录为 `.harness/archive/2026-11/tasks/<task-id>/` 和 `.harness/archive/2026-11/evidence/<task-id>/`，见[本次5组结果](./evidence/2026-11-17-ops-history-audit/continuation-archive-result.json)。八月Sonar及原CSRF失败仍按历史事实保留。
+- 当前候选验证：完整 Windows CGO race exit 0，-p=1 -mod=readonly，隔离 MySQL=true；真实结果见 continuation-full-race-disposable-serial.log.receipt.json。本轮前端：frontend-lint-final-locale-current: passed (exit 0); frontend-typecheck-final-locale-current: passed (exit 0); frontend-build-final-locale-current: passed (exit 0)。本轮重建：official-rebuild-final-locale-current-title-cache-approved: passed (exit 0); staged-overlay-final-locale-current-title-cache-approved: passed (exit 0); staged-drift-final-locale-current-title-cache-approved: failed (exit 1)。官方缓存共享比较：staged-drift-official-cache-final-locale-current-title-network-approved: passed (exit 0)。本轮导航：navigation-smoke-final-locale-current-title: passed (exit 0); navigation-render-final-locale-current-title: passed (exit 0)。导航smoke3/3、render14/14通过，30个业务入口；标题精确可见、目标URL及工作台退出均检查，1440x900/390x844截图已实际查看，详见continuation-navigation-title-binding.json。1197源文件与新正式候选字节相同；测试Spec另与候选绑定。旧渲染红灯、错误heading定位器、Go-cache拒绝、TLS失败和候选CLI真实结果分别保留；当前项目、业务运行和最终验收仍开放。
+
+- 当前业务计划：[plan.md](./tasks/2026-11-16-ops-pilot-delivery/plan.md)
+- 父任务：[manifest](./tasks/2026-11-16-ops-pilot-delivery/manifest.json)
+- 执行队列：[EXECUTION_QUEUE.md](./tasks/2026-11-16-ops-pilot-delivery/EXECUTION_QUEUE.md)
+- 全量开放任务及历史记录：[OPEN_TASKS.md](./tasks/2026-11-16-ops-pilot-delivery/OPEN_TASKS.md)
+- 归档索引：[ARCHIVE.md](./ARCHIVE.md)
+
+首期6包＋条件扩展4包均 planned；历史对账和局部修复/验证已推进，业务包尚未完成原范围验收。C01优先，C03/C04可独立；C01→C02→汇合C05→C06。
+
+已提交基线 07d53988a13073d0293e44c906cee076d6d375c3 / pantheon-base-v0.18.9；当前工作树锁为 pantheon-base-v0.18.9，与最新消费提交一致；Ops 业务仍须验收。业务审查基线为 691dd4553c6e47c6eebe8e13a44af71cfdf7ebb5。
+
+最新 menu-m3c 实现已合并；本轮30入口和服务目录局部导航/截图验证通过，更广的受限角色/业务状态与C05验收仍开放。日志目录无 completion summary 不归档。旧生产/S3/维护冻结/租户迁移风险不自动关闭。此前12包归档属于历史批次；当前累计口径为22组新归档＋2组重复live副本保全。
+
+本轮计划/归档治理包 2026-11-16-ops-readiness-plan-closeout 已 completed；证据与独立 review 保存在 .harness/evidence/2026-11-16-ops-readiness-plan-closeout/。这不改变首期业务任务 planned 与菜单任务 in-progress。
+
+2026-11-17 本轮 CMD 复发处理：Claude 进程内禁用用户/插件钩子及 Chrome 集成，保留默认模型/认证，去掉恢复脚本额外 Node 启动。两次30秒连续采样共744次未发现新增可见控制台；Claude Read 实际成功，但3轮上限导致 exit1，未宣称该 CLI 任务通过。现存cmd父链分别为Chrome通信及Codex MCP，未捕获瞬时窗口的明确来源，也未停止这些常驻进程。证据见历史清查 cmd-hookless-read-watch.json 与 hidden-hookless-read-check.status.json。
+
+2026-11-17T11:15:23.839Z 续轮进度：[最新检查点](./evidence/2026-11-17-ops-history-audit/progress.md)。本轮修复 Git cached inventory 中已归档删除路径引发的 ENOENT；显式声明缺失路径仍失败。既有 root scripts 238/238、overlay 59/59 通过，当前正式锁仍为 v0.18.9。718 个缺失 key/locale pairs 回迁到15份 canonical JSON，10处差异按原 fallback 保留，14份已有文件原件/哈希保全；五个 fallback 已按现有生成器逐字节核对。businessOverlay.ts仅补末尾LF，与生成器输出一致。三项旧 MEDIUM 文档问题已修正；原当前候选 REQUEST CHANGES/WATCH独立报告完整保留。导航标题就绪追加复审：code-reviewer COMMENT / architect WATCH，continuation-navigation-title-code-review.md；continuation-navigation-title-architecture.md。未获得整包最终批准。
+
+仍开放：ja-JP/ko-KR/fr-FR 业务 fallback 的共享运行时接线（Base-first）、既有1199次跨文件重复key和20处异值的owner治理；package detail/template API的keyMatch2授权边界；正式SSH supplier/seed发布消费和live/tenant验收；C01-C06/E01-E04与O1-O6原范围、外部provider、D4生产签署及维护者终验。API smoke4/4及21项tracked资源清理保留；上传源码object清理仍有gap。最新全仓治理title-before-progress检查仍红灯（task547/evidence129/review91/links6，相对07:30 UTC快照四项零新增，见continuation-title-before-progress-checks及gate-delta），delta不是豁免。
+
+
+## 2026-11-17T11:23:22.312Z C01 开工检查点
+
+G001 complete；G002-ssh 未完成，steeringStatus=blocked；G003-c01-c04-e01-e03 in_progress，G004 pending，native aggregate goal active。C01 的真实 MySQL CGO race 已复现6个创建/更新关联准入失败，原红灯见 continuation-c01-service-link-red.log 及 receipt.json；实施与验收尚未完成。历史仍为85个对象、24组配对处置（22组新归档＋2组重复live副本保全），本轮无新增归档。此前1197源文件相等仅对应导航候选检查点；新增C01测试/实现后必须重新重建与绑定，不能作为当前工作树等价证明。

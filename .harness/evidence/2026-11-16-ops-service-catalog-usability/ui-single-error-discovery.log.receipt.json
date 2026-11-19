@@ -1,0 +1,10 @@
+{
+  "command": "node --import=../.local/manual-preview-20261116/hide-child-windows.mjs node_modules/@playwright/test/cli.js test --config playwright.config.ts --list --grep \"a stale instance update|catalog desktop and mobile rendered states\" tests/smoke/business/service/service-pages.spec.ts",
+  "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\frontend",
+  "startedAt": "2026-11-17T15:11:28.5763157Z",
+  "finishedAt": "2026-11-17T15:11:29.7504362Z",
+  "exitCode": 0,
+  "status": "passed",
+  "log": "ui-single-error-discovery.log",
+  "note": "Narrow C03 local duplicate-feedback fix; no browser execution or shared source changes. Parent owns fresh 8 mock + 2 rendered tests and screenshot inspection."
+}

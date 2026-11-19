@@ -286,6 +286,8 @@ func TestDeployTaskRoutesServiceInstanceStateThroughTypedCommand(t *testing.T) {
 	svc.SetServiceInstanceStateApplierWithTransaction(stateApplier, stateApplier.WithServiceInstanceStateTransaction)
 
 	scopeID, hostID := seedDeployReliabilityFixture(t, db, "state-host", "10.40.0.250")
+	_, instance := configureServiceLinkFixture(t, db, svc, scopeID, hostID)
+	svc.SetServiceInstanceStateApplierWithTransaction(stateApplier, stateApplier.WithServiceInstanceStateTransaction)
 	pkg, err := svc.CreatePackage(CreatePackageRequest{
 		Name: "state-pkg", Version: "1.0.0", InstallCommand: "echo install", Status: PackageStatusEnabled,
 	}, "1")
@@ -294,7 +296,7 @@ func TestDeployTaskRoutesServiceInstanceStateThroughTypedCommand(t *testing.T) {
 	}
 	task, err := svc.CreateTask(CreateTaskRequest{
 		Name: "state task", PackageID: pkg.ID, BusinessScopeID: scopeID,
-		ServiceID: 10, ServiceInstanceID: 20, Action: TaskActionInstall,
+		ServiceID: instance.ServiceID, ServiceInstanceID: instance.ID, Action: TaskActionInstall,
 		TargetType: TargetTypeHost, TargetIDs: []uint64{hostID}, ExecutorType: ExecutorTypeManual,
 	}, "1", nil)
 	if err != nil {
@@ -308,7 +310,7 @@ func TestDeployTaskRoutesServiceInstanceStateThroughTypedCommand(t *testing.T) {
 		t.Fatalf("expected install begin transition, got %+v", stateApplier.transitions)
 	}
 	if _, err := svc.MarkHostResult(started.Hosts[0].ID, MarkHostResultRequest{
-		Status: TaskHostStatusSuccess, ReportKey: "state-report-1",
+		Status: TaskHostStatusSuccess, ReportKey: "state-report-1", ExecutionVersion: started.Hosts[0].ExecutionVersion,
 	}, "1", nil); err != nil {
 		t.Fatalf("mark host success: %v", err)
 	}

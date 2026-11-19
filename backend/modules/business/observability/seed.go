@@ -62,7 +62,7 @@ type obsMenuSeed struct {
 // the stale seed rows previously used plural paths (/metric-sources, /alert-rules,
 // /alert-records) which produced client-side 404s on menu click.
 var obsMenuSeeds = []obsMenuSeed{
-	{Key: "observability", TitleKey: observabilityMenuTitle, Path: observabilityMenuPath, Type: "M", Icon: "radar", RouteName: "observability", Module: observabilityModuleKey, Sort: 5},
+	{Key: "observability", TitleKey: observabilityMenuTitle, Path: observabilityMenuPath, Type: "M", Icon: "radar", RouteName: "observability", Module: observabilityModuleKey, Sort: 8},
 	{Key: "observability-monitoring", ParentPath: observabilityMenuPath, TitleKey: monitoringMenuTitle, Path: monitoringMenuPath, Component: "business/observability/MonitoringCenter", PagePerm: "business:observability:metric_source:view", Type: "C", Icon: "storage", RouteName: "observability-monitoring", Module: observabilityModuleKey, Sort: 1},
 	{Key: "observability-alerts", ParentPath: observabilityMenuPath, TitleKey: alertCenterMenuTitle, Path: alertCenterMenuPath, Component: "business/observability/AlertCenter", PagePerm: "business:observability:alert_rule:view", Type: "C", Icon: "book", RouteName: "observability-alert-center", Module: observabilityModuleKey, Sort: 2},
 	{Key: "observability-logs", ParentPath: observabilityMenuPath, TitleKey: logsMenuTitle, Path: logsMenuPath, Component: "business/observability/LogExplorer", PagePerm: "business:observability:logs:view", Type: "C", Icon: "tags", RouteName: "observability-logs", Module: observabilityModuleKey, Sort: 3},

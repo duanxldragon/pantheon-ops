@@ -208,5 +208,7 @@
   "business.cmdb.collect.hint": "凭据仅用于本次采集，不会保存到服务器",
   "business.cmdb.collect.start": "开始采集",
   "business.cmdb.component.name": "组件名称",
-  "business.cmdb.component.version": "版本"
+  "business.cmdb.component.version": "版本",
+  "business.cmdb.selection.invalid": "目标选择无效或超出预算",
+  "business.cmdb.selection.conflict": "目标或业务范围已变化，请重新解析"
 }

@@ -1,0 +1,68 @@
+{
+  "schema": "pantheon-e03-response-projection-amendment/v1",
+  "taskId": "2026-11-16-ops-helm-capability-truth",
+  "implementer": "/root/e03_claude_partial_closeout",
+  "observedAtUTC": "2026-11-18T07:37:13Z",
+  "sourceFrozen": true,
+  "wholePackageClosed": false,
+  "historicalHandoffPreserved": true,
+  "historicalCentralGreenPreserved": true,
+  "plan": ".harness/tasks/2026-11-16-ops-helm-capability-truth/continuation-response-projection-plan-20261118.md",
+  "red": {
+    "receipt": ".harness/evidence/2026-11-17-ops-history-audit/continuation-e03-status-projection-red-20261118-01.log.receipt.json",
+    "log": ".harness/evidence/2026-11-17-ops-history-audit/continuation-e03-status-projection-red-20261118-01.log",
+    "exitCode": 1,
+    "packageSeconds": 0.136,
+    "sourceCount": 745,
+    "sourceUnchangedDuringRun": true,
+    "actualMySQL": true,
+    "requiredDSN": "1",
+    "cgoEnabled": "1",
+    "goFlags": "-p=1 -mod=readonly",
+    "runFilter": "^TestHelmResponsesProjectRegistrationStatusAndPreserveStoredStatus$",
+    "failedSubcases": ["create", "legacy-list"],
+    "sourceSHA256": {
+      "backend/modules/business/k8s/helm/helm.go": "3cbe7f56ca38c895ad41b679b611873521568e5be425b26a794324712d01264e",
+      "backend/modules/business/k8s/helm/helm_test.go": "cd4685aeaae433cb342ec809ee969ee593d4bae3ba907356e27efaa8d8f36946"
+    }
+  },
+  "behavior": {
+    "responseStatus": "registered",
+    "compatibleEffectiveStatus": "registered",
+    "storedStatus": "original persisted database value",
+    "newPersistedStatus": "registered",
+    "legacyDatabaseStatusPreserved": true,
+    "responseOnlyFieldsPersisted": false,
+    "migrationAdded": false,
+    "chartExecutionAdded": false,
+    "frontendSourceChanged": false
+  },
+  "verification": [
+    {"command":"gofmt -w modules/business/k8s/helm/helm.go modules/business/k8s/helm/helm_test.go","cwd":"backend","exitCode":0},
+    {"command":"go test -mod=readonly -run '^$' ./modules/business/k8s/helm","cwd":"backend","exitCode":0,"packageSeconds":0.041,"actualBehaviorTestsRun":false},
+    {"command":"go build -mod=readonly ./modules/business/k8s/helm","cwd":"backend","exitCode":0,"output":""},
+    {"command":"go vet -mod=readonly ./modules/business/k8s/helm","cwd":"backend","exitCode":0,"output":""},
+    {"command":"gopls check modules/business/k8s/helm/helm.go modules/business/k8s/helm/helm_test.go","cwd":"backend","exitCode":0,"output":""},
+    {"command":"git diff --check -- backend/modules/business/k8s/helm README.md README.en.md","cwd":".","exitCode":0,"output":""}
+  ],
+  "sourceSHA256": {
+    "backend/modules/business/k8s/helm/helm.go": "45efa777ca4a9daefb364c953dcc8e5a206a6a0ee0d58a6972bac8eaa11613d5",
+    "backend/modules/business/k8s/helm/helm_test.go": "3196170a8cb126342c1b9acb06a65c5228f58bdb0924e99d639f5366556ed2e1",
+    "README.md": "4c7e683a1f6eb0cd11caa8070baf29329fffb9c638cf8b76511c440075f07a17",
+    "README.en.md": "c17d8f5e3eb7cefefb27b9c77d819c90137969cf9da56e4be0d307c3fadcee3f"
+  },
+  "centralGreen": {
+    "status": "PENDING_AT_HANDOFF",
+    "package": "./modules/business/k8s/helm",
+    "runFilter": "^(TestCreateForcedMisleadingStatusIsRegistrationOnly|TestListResponseNormalizesLegacyStoredStatus|TestHelmRegistrationCapabilityBoundaryHTTP|TestHelmResponsesProjectRegistrationStatusAndPreserveStoredStatus)$"
+  },
+  "remainingGates": [
+    "all four actual MySQL CGO/race regression groups on final source",
+    "independent review",
+    "original full K8s/full backend race",
+    "official locked release assembly and drift",
+    "original frontend type-check and K8s smoke",
+    "current candidate runtime capability evidence",
+    "human acceptance"
+  ]
+}

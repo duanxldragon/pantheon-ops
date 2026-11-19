@@ -3,7 +3,7 @@
   "title": "Ops 首期试点业务交付计划",
   "goal": "关闭首期核心业务闭环、当前版本验收与可复现交付物；扩展按条件单独验收。",
   "primaryLayer": "business/*",
-  "status": "planned",
+  "status": "in-progress",
   "priority": "P0",
   "deliveryTier": "L2",
   "taskDoc": "docs/harness/tasks/2026-11-16-ops-pilot-delivery.task.md",
@@ -120,5 +120,30 @@
     "2026-11-16-ops-extensions-live-acceptance",
     "2026-11-16-ops-filedist-product-closure",
     "2026-11-16-ops-helm-capability-truth"
-  ]
+  ],
+  "continuationCheckpoint": {
+    "at": "2026-11-19T00:11:15.272Z",
+    "progressReceipt": ".harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-progress-final-20261118.json",
+    "totalPackages": 10,
+    "acceptedPackages": 0,
+    "inProgress": 9,
+    "planned": 1,
+    "packageStatuses": {
+      "C01": "in-progress",
+      "C02": "planned",
+      "C03": "in-progress",
+      "C04": "in-progress",
+      "C05": "in-progress",
+      "C06": "in-progress",
+      "E01": "in-progress",
+      "E02": "in-progress",
+      "E03": "in-progress",
+      "E04": "in-progress"
+    },
+    "finalCombinedCandidateCertified": false,
+    "historicalObjectsClassified": 85,
+    "newArchivePairs": 22,
+    "preservedDuplicatePairs": 2,
+    "currentTechnicalIntegrationPassed": true
+  }
 }

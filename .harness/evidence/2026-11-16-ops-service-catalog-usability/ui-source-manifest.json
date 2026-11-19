@@ -1,0 +1,40 @@
+{
+  "taskId": "2026-11-16-ops-service-catalog-usability",
+  "checkpointAt": "2026-11-17T14:06:51.5214137Z",
+  "gitHead": "71c86cfe664ef9fde310cc68efbf2e8992e648f2",
+  "sourceState": "Working-tree checkpoint, no commit",
+  "files": [
+    {
+      "path": "frontend/src/modules/business/service/ServiceCatalog.tsx",
+      "sha256": "58d893ea6227c00185897470fa297e358e67a7ae459fb7a3c756c897e7cefa11"
+    },
+    {
+      "path": "frontend/src/modules/business/service/api.ts",
+      "sha256": "6206773022d1ba4774e66cab246a2b568e42a7dd668995aac8682bfb638eee57"
+    },
+    {
+      "path": "frontend/tests/smoke/business/service/service-pages.spec.ts",
+      "sha256": "fa214302a3c165212964b31c70a7fbe5044117fae59c20c46c7dfbc80ef6f496"
+    },
+    {
+      "path": "frontend/src/modules/business/v12locales/zh-CN.json",
+      "sha256": "dba12dc43044c4ef666d82ff5c89705eeee4ff634e51edc075ee66cf07bc0c40"
+    },
+    {
+      "path": "frontend/src/modules/business/v12locales/en-US.json",
+      "sha256": "b2c0940dfbaac0cd241930461ad1642a7086459e9531544fef04a0c8d795c70a"
+    },
+    {
+      "path": "frontend/src/modules/business/v12locales/ja-JP.json",
+      "sha256": "ca5bf2b3bceea48bfff05c9ae4a1432ce39caba50a657d27d01b2e5106e860b7"
+    },
+    {
+      "path": "frontend/src/modules/business/v12locales/ko-KR.json",
+      "sha256": "4a305e6fcbff9bea0b7b379a2c85784e5863690ab98bfd5c54d7b5fceeba7024"
+    },
+    {
+      "path": "frontend/src/modules/business/v12locales/fr-FR.json",
+      "sha256": "3d2d6d90580f878b396462b268dd33bde567255fefc18b1a60b55797757d0538"
+    }
+  ]
+}

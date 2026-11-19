@@ -1,0 +1,304 @@
+{
+  "schemaVersion": 1,
+  "taskId": "2026-11-16-ops-extensions-live-acceptance",
+  "recordedAt": "2026-11-18T07:41:51.4647745Z",
+  "preparationOnly": true,
+  "accepted": false,
+  "selectedCapabilities": null,
+  "selectionReason": "Final pilot exposure inventory has not been frozen; source registration is not selection or runtime proof",
+  "linkage": {
+    "taskManifest": ".harness/tasks/2026-11-16-ops-extensions-live-acceptance/manifest.json",
+    "plan": ".harness/tasks/2026-11-16-ops-extensions-live-acceptance/local-readiness-plan-20261118.md",
+    "commands": ".harness/evidence/2026-11-16-ops-extensions-live-acceptance/local-readiness-commands-handoff-20261118.json",
+    "summary": ".harness/evidence/2026-11-16-ops-extensions-live-acceptance/local-readiness-commands-handoff-20261118.md"
+  },
+  "conditionalDependencies": {
+    "2026-11-16-ops-filedist-product-closure": "FileDist exposed",
+    "2026-11-16-ops-argocd-ownership-convergence": "ArgoCD exposed",
+    "2026-11-16-ops-helm-capability-truth": "Helm exposed"
+  },
+  "conditionalRule": "Require only exposed capabilities completed; excluded capabilities need C06 same-candidate menu/route/permission/visible capability/documentation cropping proof; Observability/Velero do not wait for unselected E01-E03",
+  "providers": [
+    {
+      "id": "metrics",
+      "capability": "Observability Prometheus/VictoriaMetrics",
+      "conditionalDependency": null,
+      "selection": "UNRECORDED",
+      "liveStatus": "NOT_RUN",
+      "readiness": "NO_TASK_OWNED_PROVIDER_RECEIPT_VERIFIED",
+      "requiredFacts": [
+        "Native provider/version and owned endpoint identity",
+        "Public Ops POST query returns fixture sentinel; malformed query safe failure",
+        "Two-scope narrow role/denied/source revocation and provider outage/recovery"
+      ],
+      "commandRefs": [
+        "manifest-backend-race",
+        "manifest-observability-web",
+        "legacy-observability-live"
+      ]
+    },
+    {
+      "id": "logs-cmdb",
+      "capability": "Loki logs and CMDB/log ownership boundary",
+      "conditionalDependency": null,
+      "selection": "UNRECORDED",
+      "liveStatus": "NOT_RUN",
+      "readiness": "NO_TASK_OWNED_PROVIDER_RECEIPT_VERIFIED",
+      "requiredFacts": [
+        "Native Loki ingested sentinel and time/range/pagination query",
+        "CMDB host/business-scope association is current and cannot disclose other scope logs",
+        "Host visibility UI is not SSH streaming or Loki query proof; no unscoped raw host/provider query",
+        "Authenticated denied access, safe failure and recovery"
+      ],
+      "commandRefs": [
+        "manifest-backend-race",
+        "manifest-observability-web",
+        "legacy-observability-live"
+      ]
+    },
+    {
+      "id": "traces",
+      "capability": "Tempo trace query/detail",
+      "conditionalDependency": null,
+      "selection": "UNRECORDED",
+      "liveStatus": "NOT_RUN",
+      "readiness": "NO_TASK_OWNED_PROVIDER_RECEIPT_VERIFIED",
+      "requiredFacts": [
+        "Native Tempo ingested synthetic trace and query/detail match same trace",
+        "Versioned query recipe, unknown intent denied, cross-scope/noncurrent source denied",
+        "Bounded outputs and provider unavailable/recovery"
+      ],
+      "commandRefs": [
+        "manifest-backend-race",
+        "manifest-observability-web",
+        "legacy-observability-live"
+      ]
+    },
+    {
+      "id": "alerts",
+      "capability": "Observability alert evaluation/send",
+      "conditionalDependency": null,
+      "selection": "UNRECORDED",
+      "liveStatus": "NOT_RUN",
+      "readiness": "NO_TASK_OWNED_RECEIVER_VERIFIED",
+      "requiredFacts": [
+        "Real owned datasource and owned receiver with delivery receipt",
+        "Alert evaluates/sends expected synthetic event; repeat/retry/disable and failure recovery documented",
+        "Cross-scope/narrow action denied; no production destination"
+      ],
+      "commandRefs": [
+        "manifest-backend-race",
+        "manifest-observability-web"
+      ],
+      "liveCommandStatus": "No independent live send command established in this lane; protocol evidence required"
+    },
+    {
+      "id": "filedist",
+      "capability": "FileDist SFTP",
+      "conditionalDependency": "2026-11-16-ops-filedist-product-closure",
+      "dependencyCondition": "FileDist exposed",
+      "dependencyObservedStatus": "in-progress",
+      "selection": "UNRECORDED",
+      "liveStatus": "NOT_RUN",
+      "readiness": "NO_TASK_OWNED_SSH_SFTP_RECEIPT_VERIFIED",
+      "requiredFacts": [
+        "E01 completed when exposed",
+        "Task-owned SSH/SFTP host key fingerprint, destination and synthetic artifact hash",
+        "Public transfer result and remote readback SHA256 agree",
+        "Target/source/current authority, cross-scope denial, repeat/retry/interrupted failure recovery",
+        "Port1 deliberate failure in Web suite is not successful SFTP"
+      ],
+      "commandRefs": [
+        "manifest-backend-race",
+        "manifest-observability-web"
+      ]
+    },
+    {
+      "id": "argocd",
+      "capability": "ArgoCD",
+      "conditionalDependency": "2026-11-16-ops-argocd-ownership-convergence",
+      "dependencyCondition": "ArgoCD exposed",
+      "dependencyObservedStatus": "in-progress",
+      "selection": "UNRECORDED",
+      "liveStatus": "NOT_RUN",
+      "readiness": "NO_TASK_OWNED_ARGOCD_RECEIPT_VERIFIED",
+      "requiredFacts": [
+        "E02 completed when exposed",
+        "Owned ArgoCD/version/application/project/target namespace and genuine application/revision facts",
+        "Create/sync/rollback/delete outcomes observed natively and reflected through Ops",
+        "Two-domain ownership, denied actions, reconciliation, failure recovery; encrypted material not output"
+      ],
+      "commandRefs": [
+        "manifest-backend-race"
+      ]
+    },
+    {
+      "id": "helm",
+      "capability": "Helm registration capability truth",
+      "conditionalDependency": "2026-11-16-ops-helm-capability-truth",
+      "dependencyCondition": "Helm exposed",
+      "dependencyObservedStatus": "in-progress",
+      "selection": "UNRECORDED",
+      "liveStatus": "NOT_RUN",
+      "readiness": "NO_CURRENT_CANDIDATE_CAPABILITY_ACCEPTANCE",
+      "requiredFacts": [
+        "E03 completed when exposed",
+        "Existing Helm source describes DB registration snapshot only, not Chart execution",
+        "Current UI/API state registration labeling must agree; no claim of native installed/upgraded/rolled-back release",
+        "If runtime execution is exposed/advertised require actual owned cluster/chart evidence; missing capability cannot pass as snapshot"
+      ],
+      "commandRefs": [
+        "manifest-k8s-web"
+      ],
+      "liveCommandStatus": "No native Helm execution command claimed by current registration module"
+    },
+    {
+      "id": "velero",
+      "capability": "Velero backup/restore/schedule/PVC",
+      "conditionalDependency": null,
+      "selection": "UNRECORDED",
+      "liveStatus": "NOT_RUN",
+      "readiness": "NO_TASK_OWNED_CLUSTER_CRD_STORAGE_RECEIPT_VERIFIED",
+      "requiredFacts": [
+        "Existing velero.io/v1 backups/restores/schedules/backupstoragelocations and reconciler implementation retained as facts",
+        "Actual owned cluster with Velero controller/CRDs, usable storage and synthetic namespace/PVC checksum",
+        "Native backup and restore complete with same data checksum; schedule actual behavior",
+        "Failure status converges via reconciler and retry; two-domain/namespace/action denial has no external write",
+        "Dynamic/kubernetes fake client success does not prove real CRDs/storage/PVC"
+      ],
+      "commandRefs": [
+        "manifest-backend-race",
+        "manifest-k8s-web"
+      ]
+    },
+    {
+      "id": "k8s-boundary",
+      "capability": "Core K8s namespace/ownership boundary consumed by extensions",
+      "kind": "boundary",
+      "conditionalDependency": null,
+      "selection": "BOUNDARY_REQUIRED_FOR_SELECTED_K8S_EXTENSIONS",
+      "liveStatus": "NOT_RUN",
+      "readiness": "NO_TASK_OWNED_K8S_RECEIPT_VERIFIED",
+      "requiredFacts": [
+        "Real cluster/namespace ownership identity matches current scope",
+        "Cross-scope and unmapped namespace/action denied before native mutation",
+        "Secrets/logs/audit never disclose material; fixture cleanup limited to task-owned resources"
+      ],
+      "commandRefs": [
+        "manifest-k8s-web"
+      ]
+    }
+  ],
+  "commands": [
+    {
+      "id": "manifest-backend-race",
+      "command": "go test -race -count=1 -json ./modules/business/observability/... ./modules/business/k8s/backup/... ./modules/business/cicd/... ./modules/business/filedist/...",
+      "cwd": "backend",
+      "status": "NOT_RUN",
+      "prerequisites": [
+        "Current source/candidate provenance; Windows mingw64 PATH and CGO_ENABLED=1",
+        "Separate task-owned test MySQL and test Redis; no shared fixture cleanup",
+        "PANTHEON_TEST_DSN and PANTHEON_TEST_DSN_REQUIRED are configured privately; do not print values",
+        "Observability test Redis reference may default to loopback26316; verify dedicated test ownership and cleanup before execution",
+        "No inherited external acceptance selector/session; optional live skips reported separately"
+      ],
+      "proves": "Scoped test behavior only; fake Kubernetes/provider tests are not live acceptance"
+    },
+    {
+      "id": "manifest-observability-web",
+      "command": "npm run test:smoke:business:observability",
+      "cwd": "frontend",
+      "status": "NOT_RUN",
+      "prerequisites": [
+        "Current built backend/frontend; fixture-created scopes/resources; browser installed",
+        "Existing suite includes FileDist and fixed experiment-host CMDB visibility assertion",
+        "Require every existing fixture before whole suite; no fake pass or skipped provider acceptance",
+        "This lane does not contact external host or start smoke Vite"
+      ],
+      "proves": "Composed UI lifecycle/navigation at desktop/mobile; port1 sources do not prove provider success"
+    },
+    {
+      "id": "selected-observability-menu-web",
+      "command": "node scripts/run-smoke-suite.mjs --host 127.0.0.1 --port 5173 --config playwright.config.ts -- tests/smoke/business/observability-menu.spec.ts",
+      "cwd": "frontend",
+      "status": "NOT_RUN",
+      "prerequisites": [
+        "Existing current-candidate frontend/backend with task-owned synthetic scope/target",
+        "Private authorized session fixture; browser available",
+        "Does not require selecting FileDist/ArgoCD/Helm; does not replace unrun original whole-suite acceptance"
+      ],
+      "proves": "Only real menu/page navigation and target fixture visibility"
+    },
+    {
+      "id": "manifest-k8s-web",
+      "command": "npm run test:smoke:business:k8s",
+      "cwd": "frontend",
+      "status": "NOT_RUN",
+      "prerequisites": [
+        "Current-candidate frontend/backend and all suite fixtures",
+        "Native K8s/Velero acceptance requires separate owned cluster, CRDs/controllers and storage",
+        "page.route/fulfill assertions remain mock-level evidence"
+      ],
+      "proves": "K8s UI/composed or intercepted behavior; not actual cluster/Velero facts"
+    },
+    {
+      "id": "legacy-observability-live",
+      "command": "go test -race -count=1 -json ./modules/business/observability -run ^TestDatasourceLiveAcceptance$",
+      "cwd": "backend",
+      "status": "NOT_RUN",
+      "scopeGuard": "DO_NOT_EXECUTE_IN_THIS_LANE",
+      "prerequisites": [
+        "Existing test explicitly permits only historical external experiment host; outside this local-only scope",
+        "PANTHEON_ACCEPTANCE_HOST selector; exact PANTHEON_O4_ACCEPTANCE_API_URL; four public-created PANTHEON_O4_ACCEPTANCE_SOURCE_IDS",
+        "Separate real narrow-grant and authenticated-denied sessions configured privately; values never recorded",
+        "Four genuine provider fixtures with synthetic metrics/logs/trace and current product provenance"
+      ],
+      "proves": "Only when actually run in authorized provider scope; missing-host skip is not acceptance"
+    }
+  ],
+  "acceptanceMapping": [
+    {
+      "criterion": 1,
+      "requirement": "All exposed extensions have independently repeatable real provider evidence, unexposed cropped",
+      "providerRows": [
+        "metrics",
+        "logs-cmdb",
+        "traces",
+        "alerts",
+        "filedist",
+        "argocd",
+        "helm",
+        "velero",
+        "k8s-boundary"
+      ],
+      "status": "NOT_RUN"
+    },
+    {
+      "criterion": 2,
+      "requirement": "Assess existing Velero CRD/reconciler against real facts, no historical downscope assertion",
+      "providerRows": [
+        "velero"
+      ],
+      "status": "NOT_RUN"
+    },
+    {
+      "criterion": 3,
+      "requirement": "Automatic exporter/file_sd, realtime health platform, commercial License/runtime ModuleGate remain Out",
+      "scopeOut": [
+        "automatic exporter/file_sd",
+        "realtime health platform",
+        "commercial License/runtime ModuleGate"
+      ],
+      "status": "PRESERVED_SCOPE_ONLY"
+    }
+  ],
+  "stopConditions": [
+    "Selected conditional package not completed",
+    "No current source/binary/foundation/migration/fixture hash binding",
+    "No genuine task-owned provider/receiver/storage/session scope",
+    "Identity mismatch after current identity receipt verification",
+    "External production/credential/destructive action outside authorization",
+    "Missing exact live command/protocol: do not synthesize LIVE_PASS"
+  ],
+  "review": "Coordinator independent review pending; implementer preparation self-check only"
+}

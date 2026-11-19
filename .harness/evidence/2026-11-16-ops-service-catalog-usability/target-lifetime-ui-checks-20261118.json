@@ -1,0 +1,116 @@
+{
+  "taskId": "2026-11-16-ops-service-catalog-usability",
+  "packageId": "C03",
+  "boundary": "business/service frontend option activation lifetime",
+  "command": "node ../.harness/evidence/2026-11-16-ops-service-catalog-usability/run-catalog-options-lifetime-regression.mjs",
+  "cwd": "D:/workspace/go/pantheon-platform/pantheon-ops/frontend",
+  "originalHookSha256": "E626D6287CDE8FA899D3FFB05B16FA33198EBE57B57030C378C8CEFE8D9E5FF5",
+  "red": {
+    "chunk_id": "46137e",
+    "wall_time_seconds": 2.4254423,
+    "exit_code": 1,
+    "original_token_count": 970,
+    "output": "(!) Your Vite config uses features that are unsupported by `configLoader: 'native'`, which is planned to become the default in a future major version of Vite:\n  - `__dirname` (vitest.config.ts:10:25). Use `import.meta.dirname` instead\nSet `VITE_CONFIG_NATIVE_IGNORE_WARNING=true` to suppress this warning.\n\n RUN  v5.0.5 D:/workspace/go/pantheon-platform/pantheon-ops\n\n × .harness/evidence/2026-11-16-ops-service-catalog-usability/catalog-options-lifetime.regression.test.ts > catalog option activation lifetime > hides previous rows immediately when an unchanged lookup is re-enabled 30ms\n   → expected [ 'old-target' ] to deeply equal []\n × .harness/evidence/2026-11-16-ops-service-catalog-usability/catalog-options-lifetime.regression.test.ts > catalog option activation lifetime > hides an earlier denial while the reopened activation awaits fresh authorization 4ms\n   → expected Error: denied to be null\n ✓ .harness/evidence/2026-11-16-ops-service-catalog-usability/catalog-options-lifetime.regression.test.ts > catalog option activation lifetime > does not query or show pending state while initially disabled 3ms\n ✓ .harness/evidence/2026-11-16-ops-service-catalog-usability/catalog-options-lifetime.regression.test.ts > catalog option activation lifetime > cancels an activation closed before its debounce fires 2ms\n ✓ .harness/evidence/2026-11-16-ops-service-catalog-usability/catalog-options-lifetime.regression.test.ts > catalog option activation lifetime > ignores a late resolve from the aborted activation after reopening 3ms\n ✓ .harness/evidence/2026-11-16-ops-service-catalog-usability/catalog-options-lifetime.regression.test.ts > catalog option activation lifetime > ignores a late reject from the aborted activation after reopening 2ms\n ✓ .harness/evidence/2026-11-16-ops-service-catalog-usability/catalog-options-lifetime.regression.test.ts > catalog option activation lifetime > hides results immediately when the target lookup changes and preserves current errors 2ms\n\n⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯\n\n FAIL  .harness/evidence/2026-11-16-ops-service-catalog-usability/catalog-options-lifetime.regression.test.ts > catalog option activation lifetime > hides previous rows immediately when an unchanged lookup is re-enabled\nAssertionError: expected [ 'old-target' ] to deeply equal []\n\n- Expected\n+ Received\n\n- []\n+ [\n+   \"old-target\",\n+ ]\n\n ❯ .harness/evidence/2026-11-16-ops-service-catalog-usability/catalog-options-lifetime.regression.test.ts:29:33\n     27|     rerender({ enabled: false });\n     28|     rerender({ enabled: true });\n     29|     expect(result.current.rows).toEqual([]);\n       |                                 ^\n     30|     expect(result.current.loading).toBe(true);\n     31|     expect(result.current.error).toBeNull();\n\n⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯\n\n FAIL  .harness/evidence/2026-11-16-ops-service-catalog-usability/catalog-options-lifetime.regression.test.ts > catalog option activation lifetime > hides an earlier denial while the reopened activation awaits fresh authorization\nAssertionError: expected Error: denied to be null\n\n- Expected:\nnull\n\n+ Received:\nError {\n  \"message\": \"denied\",\n}\n\n ❯ .harness/evidence/2026-11-16-ops-service-catalog-usability/catalog-options-lifetime.regression.test.ts:50:34\n     48|     rerender({ enabled: false });\n     49|     rerender({ enabled: true });\n     50|     expect(result.current.error).toBeNull();\n       |                                  ^\n     51|     expect(result.current.loading).toBe(true);\n     52|     await startLookup();\n\n⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯\n\n\n Test Files  1 failed (1)\n      Tests  2 failed | 5 passed (7)\n   Start at  14:55:17\n   Duration  1.67s (environment 85%, import 9%, tests 3%, worker 1%, transform 1%)\n\n"
+  },
+  "green": {
+    "chunk_id": "75c247",
+    "wall_time_seconds": 2.5458866,
+    "exit_code": 0,
+    "original_token_count": 520,
+    "output": "(!) Your Vite config uses features that are unsupported by `configLoader: 'native'`, which is planned to become the default in a future major version of Vite:\n  - `__dirname` (vitest.config.ts:10:25). Use `import.meta.dirname` instead\nSet `VITE_CONFIG_NATIVE_IGNORE_WARNING=true` to suppress this warning.\n\n RUN  v5.0.5 D:/workspace/go/pantheon-platform/pantheon-ops\n\n ✓ .harness/evidence/2026-11-16-ops-service-catalog-usability/catalog-options-lifetime.regression.test.ts > catalog option activation lifetime > hides previous rows immediately when an unchanged lookup is re-enabled 43ms\n ✓ .harness/evidence/2026-11-16-ops-service-catalog-usability/catalog-options-lifetime.regression.test.ts > catalog option activation lifetime > hides an earlier denial while the reopened activation awaits fresh authorization 14ms\n ✓ .harness/evidence/2026-11-16-ops-service-catalog-usability/catalog-options-lifetime.regression.test.ts > catalog option activation lifetime > does not query or show pending state while initially disabled 10ms\n ✓ .harness/evidence/2026-11-16-ops-service-catalog-usability/catalog-options-lifetime.regression.test.ts > catalog option activation lifetime > cancels an activation closed before its debounce fires 10ms\n ✓ .harness/evidence/2026-11-16-ops-service-catalog-usability/catalog-options-lifetime.regression.test.ts > catalog option activation lifetime > ignores a late resolve from the aborted activation after reopening 13ms\n ✓ .harness/evidence/2026-11-16-ops-service-catalog-usability/catalog-options-lifetime.regression.test.ts > catalog option activation lifetime > ignores a late reject from the aborted activation after reopening 9ms\n ✓ .harness/evidence/2026-11-16-ops-service-catalog-usability/catalog-options-lifetime.regression.test.ts > catalog option activation lifetime > hides results immediately when the target lookup changes and preserves current errors 7ms\n\n Test Files  1 passed (1)\n      Tests  7 passed (7)\n   Start at  14:56:11\n   Duration  1.71s (environment 81%, import 9%, tests 7%, transform 2%, worker 1%)\n\n"
+  },
+  "checks": [
+    {
+      "status": "fulfilled",
+      "value": {
+        "name": "lint",
+        "args": {
+          "cmd": "node node_modules/eslint/bin/eslint.js src/modules/business/service/useCatalogOptions.ts src/modules/business/service/ServiceCatalog.tsx --max-warnings=0",
+          "workdir": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\frontend",
+          "max_output_tokens": 5000
+        },
+        "result": {
+          "chunk_id": "bf47dd",
+          "wall_time_seconds": 7.3424249,
+          "exit_code": 0,
+          "original_token_count": 0,
+          "output": ""
+        }
+      }
+    },
+    {
+      "status": "fulfilled",
+      "value": {
+        "name": "hookTypecheck",
+        "args": {
+          "cmd": "node node_modules/typescript/bin/tsc --noEmit --skipLibCheck --target ES2022 --module ESNext --moduleResolution bundler src/modules/business/service/useCatalogOptions.ts",
+          "workdir": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\frontend",
+          "max_output_tokens": 3000
+        },
+        "result": {
+          "chunk_id": "9fb73b",
+          "wall_time_seconds": 0.4329269,
+          "exit_code": 1,
+          "original_token_count": 36,
+          "output": "error TS5112: tsconfig.json is present but will not be loaded if files are specified on commandline. Use '--ignoreConfig' to skip this error.\r\n"
+        }
+      }
+    },
+    {
+      "status": "fulfilled",
+      "value": {
+        "name": "runnerSyntax",
+        "args": {
+          "cmd": "node --check .harness/evidence/2026-11-16-ops-service-catalog-usability/run-catalog-options-lifetime-regression.mjs",
+          "workdir": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+          "max_output_tokens": 1000
+        },
+        "result": {
+          "chunk_id": "876f07",
+          "wall_time_seconds": 0.448818,
+          "exit_code": 0,
+          "original_token_count": 0,
+          "output": ""
+        }
+      }
+    },
+    {
+      "status": "fulfilled",
+      "value": {
+        "name": "diffCheck",
+        "args": {
+          "cmd": "git diff --check -- frontend/src/modules/business/service/ServiceCatalog.tsx frontend/src/modules/business/service/useCatalogOptions.ts",
+          "workdir": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+          "max_output_tokens": 2000
+        },
+        "result": {
+          "chunk_id": "645131",
+          "wall_time_seconds": 0.4216925,
+          "exit_code": 0,
+          "original_token_count": 0,
+          "output": ""
+        }
+      }
+    }
+  ],
+  "hookTypecheckFinal": {
+    "command": "node node_modules/typescript/bin/tsc --ignoreConfig --noEmit --skipLibCheck --strict --target ES2022 --module ESNext --moduleResolution bundler src/modules/business/service/useCatalogOptions.ts",
+    "chunk_id": "6b7360",
+    "wall_time_seconds": 1.2321564,
+    "exit_code": 0,
+    "original_token_count": 0,
+    "output": ""
+  },
+  "setupCorrection": {
+    "initialRunnerRoot": "frontend",
+    "initialRunnerExitCode": 1,
+    "initialRunnerOutcome": "Test artifact outside frontend root produced ERR_MODULE_NOT_FOUND /@fs path; no tests executed. Runner now uses repository root with the existing frontend config and explicit installed RTL/Vitest aliases.",
+    "typecheckCorrection": "TS6 refused explicit source arguments beside tsconfig (TS5112). Added --ignoreConfig for isolated hook check; full project typecheck is deferred to root."
+  },
+  "limitations": [
+    "Only hook isolated typecheck; full app typecheck/build/full lint and service smoke deferred to root during concurrent edits.",
+    "No browser rendered evidence: root prohibited browser/full frontend checks while source writers are active. No UI polish claim.",
+    "Regression retained as runnable C03 evidence; not included in normal frontend/tests/unit glob. Canonical unit test path and business-overlay ownership require root integration.",
+    "No backend target-lifetime, NamespaceBinding/environment/action contract or real provider/role acceptance is established by hook tests."
+  ]
+}

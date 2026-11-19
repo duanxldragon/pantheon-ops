@@ -1,0 +1,10 @@
+{
+  "command": "node --import=../.local/manual-preview-20261116/hide-child-windows.mjs node_modules/@playwright/test/cli.js test --config playwright.config.ts --list --grep \"catalog desktop and mobile rendered states\" tests/smoke/business/service/service-pages.spec.ts",
+  "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\frontend",
+  "startedAt": "2026-11-17T15:01:49.4324781Z",
+  "finishedAt": "2026-11-17T15:01:50.6567078Z",
+  "exitCode": 0,
+  "status": "passed",
+  "log": "ui-render-states-discovery.log",
+  "note": "Rendered-state specs added only; browser execution and actual screenshot inspection are parent-owned. --list discovery only."
+}

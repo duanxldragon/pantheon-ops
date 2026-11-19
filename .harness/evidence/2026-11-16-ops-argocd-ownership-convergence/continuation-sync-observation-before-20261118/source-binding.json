@@ -1,0 +1,22 @@
+[
+  {
+    "backup": ".harness\\evidence\\2026-11-16-ops-argocd-ownership-convergence\\continuation-sync-observation-before-20261118\\argocd_service.go.raw",
+    "sha256": "ca04f7c89bee50af327c2fef5b8c8ee38a9170e2a6b133c53a4703d559f66d2f",
+    "file": "backend\\modules\\business\\cicd\\argocd\\argocd_service.go"
+  },
+  {
+    "backup": ".harness\\evidence\\2026-11-16-ops-argocd-ownership-convergence\\continuation-sync-observation-before-20261118\\argocd_reconciler.go.raw",
+    "sha256": "4acd862ef57e56e7f935627b4fe97d7a62841cd4c011b3b6c66b51468f055831",
+    "file": "backend\\modules\\business\\cicd\\argocd\\argocd_reconciler.go"
+  },
+  {
+    "backup": ".harness\\evidence\\2026-11-16-ops-argocd-ownership-convergence\\continuation-sync-observation-before-20261118\\argocd_client.go.raw",
+    "sha256": "d9405e950c5a924e2d2f36b1cbe882e92c71b9302d55b1304fb75fc2fe68ff2c",
+    "file": "backend\\modules\\business\\cicd\\argocd\\argocd_client.go"
+  },
+  {
+    "backup": ".harness\\evidence\\2026-11-16-ops-argocd-ownership-convergence\\continuation-sync-observation-before-20261118\\argocd_observation_test.go.raw",
+    "sha256": "e925cf7ba6e358a43b8f226d53cb8c3847de3a3c7b0175e725c1611e281dc0ca",
+    "file": "backend\\modules\\business\\cicd\\argocd\\argocd_observation_test.go"
+  }
+]

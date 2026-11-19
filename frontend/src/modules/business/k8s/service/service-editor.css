@@ -1,0 +1,39 @@
+.k8s-service-editor {
+  display: grid;
+  gap: var(--space-lg);
+}
+
+.k8s-service-editor__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-md);
+}
+
+.k8s-service-editor__field {
+  display: grid;
+  gap: var(--space-xs);
+  min-width: 0;
+}
+
+.k8s-service-editor__field .arco-input-number {
+  width: 100%;
+}
+
+.k8s-service-editor__port {
+  margin: 0 0 var(--space-md);
+  padding: var(--space-md);
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius-md);
+  min-width: 0;
+}
+
+.k8s-service-editor__port legend {
+  padding: 0 var(--space-xs);
+  color: var(--text-secondary);
+}
+
+@media (max-width: 600px) {
+  .k8s-service-editor__grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

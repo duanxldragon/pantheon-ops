@@ -1,0 +1,115 @@
+package deploy
+
+import (
+	"context"
+	"testing"
+	"time"
+
+	serviceowner "github.com/duanxldragon/pantheon-base/backend/modules/business/service"
+	"gorm.io/gorm"
+)
+
+func startedServiceLink(t *testing.T) (*gorm.DB, *DeployService, *TaskResponse, *serviceowner.Manager, serviceowner.ServiceInstance) {
+	t.Helper()
+	db, svc, task, owner, instance := serviceLinkDraftFixture(t)
+	linkDraft(t, svc, task, instance)
+	started, err := svc.StartTask(task.ID, StartTaskRequest{}, "1", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return db, svc, started, owner, instance
+}
+
+func TestServiceLinkControlRetryRejectsDeletedOrChangedOwner(t *testing.T) {
+	for _, kind := range []string{"deleted", "host", "disabled"} {
+		t.Run(kind, func(t *testing.T) {
+			db, svc, task, owner, instance := startedServiceLink(t)
+			if _, err := svc.MarkHostResult(task.Hosts[0].ID, MarkHostResultRequest{Status: TaskHostStatusFailed, ErrorMessage: "first failed"}, "1", nil); err != nil {
+				t.Fatal(err)
+			}
+			switch kind {
+			case "deleted":
+				if err := owner.DeleteInstance(instance.ID, nil); err != nil {
+					t.Fatal(err)
+				}
+			case "host":
+				if err := db.Model(&instance).Update("host_id", instance.HostID+100).Error; err != nil {
+					t.Fatal(err)
+				}
+			case "disabled":
+				status := "disabled"
+				if _, err := owner.UpdateInstance(instance.ID, serviceowner.UpdateInstanceRequest{Status: &status}, "2", nil); err != nil {
+					t.Fatal(err)
+				}
+			}
+			before := linkedServiceFacts(t, db)
+			if _, err := svc.RetryTask(task.ID, "1", nil); err == nil {
+				t.Fatal("retry admitted an unavailable/mismatched Service owner")
+			}
+			if linkedServiceFacts(t, db) != before {
+				t.Fatal("rejected retry changed persisted facts")
+			}
+		})
+	}
+}
+
+func TestServiceLinkControlCompletionPreservesNewerOwner(t *testing.T) {
+	for _, change := range []string{"update", "reconcile"} {
+		t.Run(change, func(t *testing.T) {
+			db, svc, task, owner, instance := startedServiceLink(t)
+			if change == "update" {
+				version := "operator-new-version"
+				if _, err := owner.UpdateInstance(instance.ID, serviceowner.UpdateInstanceRequest{DesiredVersion: &version}, "2", nil); err != nil {
+					t.Fatal(err)
+				}
+			} else {
+				if err := db.Model(&instance).Update("last_transition_at", time.Now().Add(-time.Hour)).Error; err != nil {
+					t.Fatal(err)
+				}
+				if _, err := owner.ReconcileInstanceState(context.Background(), instance.ID, serviceowner.ReconcileInstanceRequest{MaxAgeSeconds: 1}, "2", nil); err != nil {
+					t.Fatal(err)
+				}
+			}
+			before := linkedServiceFacts(t, db)
+			_, err := svc.MarkHostResult(task.Hosts[0].ID, MarkHostResultRequest{Status: TaskHostStatusSuccess}, "1", nil)
+			if err == nil || err.Error() != "business.service.state_stale" {
+				t.Fatalf("late owner completion: %v", err)
+			}
+			if linkedServiceFacts(t, db) != before {
+				t.Fatal("late completion overwrote newer owner or published CMDB/task result")
+			}
+		})
+	}
+}
+
+func TestServiceLinkControlMalformedReferencesStillProtectInstance(t *testing.T) {
+	for _, status := range []string{TaskStatusRunning, TaskStatusPauseRequested, TaskStatusPaused, TaskStatusCancelRequested} {
+		t.Run(status, func(t *testing.T) {
+			db, svc, task, owner, instance := serviceLinkDraftFixture(t)
+			if err := db.Model(&DeployTask{}).Where("id = ?", task.ID).Updates(map[string]any{"service_id": instance.ServiceID + 100, "service_instance_id": instance.ID, "status": status}).Error; err != nil {
+				t.Fatal(err)
+			}
+			before := linkedServiceFacts(t, db)
+			if err := owner.DeleteInstance(instance.ID, nil); err == nil || err.Error() != "business.service.instance_in_use" {
+				t.Fatalf("malformed executing reference: %v", err)
+			}
+			if linkedServiceFacts(t, db) != before {
+				t.Fatal("guarded deletion changed history")
+			}
+			svc.SetServiceReader(nil)
+		})
+	}
+}
+
+func TestServiceLinkControlCancelSettlesOwner(t *testing.T) {
+	db, svc, task, _, instance := startedServiceLink(t)
+	if _, err := svc.CancelTask(task.ID, "1", nil); err != nil {
+		t.Fatal(err)
+	}
+	if err := db.First(&instance, instance.ID).Error; err != nil {
+		t.Fatal(err)
+	}
+	if instance.ObservedState != "failed" || instance.LifecycleVersion != 3 {
+		t.Fatalf("cancel left owner in flight: %+v", instance)
+	}
+}

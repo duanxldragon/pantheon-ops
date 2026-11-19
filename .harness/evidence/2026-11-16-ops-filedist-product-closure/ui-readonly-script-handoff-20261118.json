@@ -1,0 +1,13 @@
+{
+  "recordedAtUTC": "2026-11-18T08:35:10.8951130Z",
+  "owner": "/root/e01_ui_partial_closeout",
+  "script": ".local/manual-preview-20261116/verify-ten-packages-ui-20261118.mjs",
+  "scriptSHA256": "ee1529121d39522dc69b97e28d836bcfdfeae21f5f805edafe2186a7945e891b",
+  "status": "prepared-awaiting-root-authorized-run",
+  "command": "node .local/manual-preview-20261116/verify-ten-packages-ui-20261118.mjs ten-packages-20261118 ten-packages-20261118-01 ten-packages-started-20261118 ten-packages-20261118-02",
+  "preparationReceipt": ".harness/evidence/2026-11-16-ops-filedist-product-closure/ui-readonly-script-preparation-20261118-01.json",
+  "failedPreflightRecord": ".harness/evidence/2026-11-16-ops-filedist-product-closure/ui-readonly-preflight-failure-20261118-01.json",
+  "detail": ".harness/evidence/2026-11-16-ops-filedist-product-closure/ui-readonly-script-handoff-20261118.md",
+  "renderedEvidenceProduced": false,
+  "productionFilesEdited": false
+}

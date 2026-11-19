@@ -19,7 +19,9 @@
   "baseExcludedPaths": [
     "scripts/foundation-release",
     "tests/scripts/foundation-release",
-    "docs/harness/tasks"
+    "docs/harness/tasks",
+    "tests/scripts/release-gate-workflow.test.mjs",
+    "tests/scripts/ci-bench-perf-smoke-workflow.test.mjs"
   ],
   "businessPaths": [
     "backend/modules/business/bizscope",
@@ -40,6 +42,8 @@
     "frontend/src/modules/business/serviceinstance",
     "frontend/tests/smoke/business/cmdb",
     "frontend/tests/smoke/business/deploy",
+    "frontend/tests/unit/business/service/useCatalogOptions.test.ts",
+    "frontend/tests/unit/business/filedist/FiledistLifetime.test.ts",
     "docs/designs/BUSINESS_BIZSCOPE_MODULE_DESIGN.en.md",
     "docs/designs/BUSINESS_BIZSCOPE_MODULE_DESIGN.md",
     "docs/designs/BUSINESS_CMDB_MODULE_DESIGN.en.md",
@@ -137,7 +141,13 @@
     "tests/scripts/check-business-module-boundaries.test.mjs",
     "tests/scripts/check-inheritance-contract.test.mjs",
     "docs/V1_RELEASE_CHECKLIST.md",
-    "docs/migrations/legacy-ops-business-v010x"
+    "docs/migrations/legacy-ops-business-v010x",
+    "tests/scripts/branch-hygiene-workflow.test.mjs",
+    "tests/scripts/security-audit-exit.test.mjs",
+    "tests/scripts/check-task-packet-template.test.mjs",
+    "tests/scripts/ci-workflow-dispatch.test.mjs",
+    "tests/scripts/quality-workflow.test.mjs",
+    "config/review-loop-legacy-artifacts.json"
   ],
   "backendModules": [
     {
@@ -148,32 +158,32 @@
   ],
   "frontendModules": [
     {
-      "export": "BizScopeModule",
-      "importPath": "./business/bizscope"
-    },
-    {
       "export": "CmdbModule",
       "importPath": "./business/cmdb"
     },
     {
-      "export": "DeployModule",
-      "importPath": "./business/deploy"
-    },
-    {
-      "export": "K8sModule",
-      "importPath": "./business/k8s"
+      "export": "BizScopeModule",
+      "importPath": "./business/bizscope"
     },
     {
       "export": "ServiceModule",
       "importPath": "./business/service"
     },
     {
-      "export": "CICDModule",
-      "importPath": "./business/cicd"
+      "export": "DeployModule",
+      "importPath": "./business/deploy"
     },
     {
       "export": "FiledistModule",
       "importPath": "./business/filedist"
+    },
+    {
+      "export": "K8sModule",
+      "importPath": "./business/k8s"
+    },
+    {
+      "export": "CICDModule",
+      "importPath": "./business/cicd"
     },
     {
       "export": "ObservabilityModule",

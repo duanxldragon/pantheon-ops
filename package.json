@@ -53,8 +53,6 @@
     "test:security-workflow": "node --test tests/scripts/security-workflow.test.mjs",
     "test:quality-workflow": "node --test tests/scripts/quality-workflow.test.mjs",
     "test:ui-quality-gate": "node --test tests/scripts/check-ui-quality-gate.test.mjs",
-    "test:release-gate-workflow": "node --test tests/scripts/release-gate-workflow.test.mjs",
-    "test:ci-bench-perf-smoke-workflow": "node --test tests/scripts/ci-bench-perf-smoke-workflow.test.mjs",
     "test:scripts": "node --test tests/scripts/*.test.mjs",
     "prepare": "husky",
     "fetch:base-release": "node scripts/business-overlay/foundation-release.mjs",

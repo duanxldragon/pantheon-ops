@@ -39,7 +39,7 @@ type argocdMenuSeed struct {
 }
 
 var argocdMenuSeeds = []argocdMenuSeed{
-	{Key: "cicd-argocd", TitleKey: argocdMenuTitleKey, Path: argocdMenuPath, Component: argocdComponentKey, PagePerm: argocdPagePermission, Type: "C", Icon: "code", RouteName: argocdRouteName, Module: cicdModuleKey, Sort: 60},
+	{Key: "cicd-argocd", TitleKey: argocdMenuTitleKey, Path: argocdMenuPath, Component: argocdComponentKey, PagePerm: argocdPagePermission, Type: "C", Icon: "code", RouteName: argocdRouteName, Module: cicdModuleKey, Sort: 7},
 }
 
 // SeedMenus seeds the ArgoCD menu, admin role binding and menu i18n entries.
@@ -96,8 +96,14 @@ func seedArgocdI18n(db *gorm.DB) error {
 		return nil
 	}
 	seeds := []argocdI18nSeed{
-		{Locale: "zh-CN", Group: "menu", Key: argocdMenuTitleKey, Value: "应用发布"},
-		{Locale: "en-US", Group: "menu", Key: argocdMenuTitleKey, Value: "Application Delivery"},
+		{Locale: "zh-CN", Group: "menu", Key: argocdMenuTitleKey, Value: "ArgoCD 应用交付"},
+		{Locale: "en-US", Group: "menu", Key: argocdMenuTitleKey, Value: "ArgoCD App Delivery"},
+		{Locale: "zh-CN", Group: "error", Key: "business.cicd.application.syncInProgress", Value: "应用正在同步，请等待当前操作完成"},
+		{Locale: "en-US", Group: "error", Key: "business.cicd.application.syncInProgress", Value: "The application is syncing. Wait for the current operation to finish."},
+		{Locale: "zh-CN", Group: "error", Key: "business.cicd.application.syncObservationTimeout", Value: "同步结果观察超时；结果未知，请核对 ArgoCD 实际状态"},
+		{Locale: "en-US", Group: "error", Key: "business.cicd.application.syncObservationTimeout", Value: "Sync observation timed out. The result is unknown; check the actual ArgoCD state."},
+		{Locale: "zh-CN", Group: "error", Key: "business.cicd.application.sourceChanged", Value: "应用来源已改变，请刷新后重新提交同步"},
+		{Locale: "en-US", Group: "error", Key: "business.cicd.application.sourceChanged", Value: "The application source changed. Refresh before submitting another sync."},
 	}
 	return db.Transaction(func(tx *gorm.DB) error {
 		for _, item := range seeds {

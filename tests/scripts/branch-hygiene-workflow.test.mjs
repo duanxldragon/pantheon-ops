@@ -14,14 +14,12 @@ test('branch hygiene workflow runs independently of pull_request.closed and invo
     /name:\s*Branch Hygiene/i,
     'branch hygiene workflow should be clearly named',
   );
-  // The push-to-main trigger was intentionally removed in #142 ("simplify
-  // workflows for solo developer"); the scheduled fallback now carries the
-  // job. This test previously still required the removed trigger because it
-  // was never run in CI.
-  assert.doesNotMatch(
+  // Branch hygiene keeps its own independent entry points (scheduled, manual,
+  // and a post-merge push to main) so it does not ride on the PR lifecycle.
+  assert.match(
     workflowSource,
-    /^\s*push:/m,
-    'branch hygiene no longer runs on push (intentionally removed in #142)',
+    /\n\s*push:\s*\n[\s\S]*?branches:\s*\n\s*-\s*main/i,
+    'branch hygiene should run on a post-merge push to main',
   );
   assert.match(
     workflowSource,

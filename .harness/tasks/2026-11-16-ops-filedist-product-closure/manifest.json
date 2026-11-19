@@ -3,7 +3,7 @@
   "title": "文件分发创建入口与可靠控制",
   "goal": "文件分发创建入口与可靠控制",
   "primaryLayer": "business/*",
-  "status": "planned",
+  "status": "in-progress",
   "priority": "P1",
   "deliveryTier": "L2",
   "taskDoc": "docs/harness/tasks/2026-11-16-ops-filedist-product-closure.task.md",
@@ -102,5 +102,37 @@
     "planRefs": [
       ".harness/tasks/2026-11-16-ops-pilot-delivery/plan.md"
     ]
+  },
+  "continuationCheckpoint": {
+    "at": "2026-11-19T00:11:15.272Z",
+    "packageCode": "E01",
+    "stage": "implementation",
+    "deliveryVerdict": "PARTIAL",
+    "accepted": false,
+    "evidenceRefs": [
+      ".harness/evidence/2026-11-16-ops-filedist-product-closure/backend-lifecycle-amendment-20261118.json",
+      ".harness/evidence/2026-11-17-ops-history-audit/continuation-e01-e02-lifecycle-green-20261118-01.log.receipt.json",
+      ".omx/artifacts/ask-claude-e01-ui-resume-20261118.status.json",
+      ".harness/evidence/2026-11-17-ops-history-audit/continuation-e01-e02-independent-review-round1-20261118.json",
+      ".harness/evidence/2026-11-17-ops-history-audit/continuation-e01-independent-review-round2-20261118.json",
+      ".harness/evidence/2026-11-16-ops-filedist-product-closure/extension-integration-handoff-20261118.json",
+      ".harness/evidence/2026-11-17-ops-history-audit/continuation-extensions-integration-green-20261118-01.log.receipt.json",
+      ".harness/evidence/2026-11-16-ops-filedist-product-closure/ui-final-verification-20261118-02.json",
+      ".harness/evidence/2026-11-17-ops-history-audit/continuation-e01-ui-independent-review-round1-20261118.json",
+      ".harness/evidence/2026-11-17-ops-history-audit/continuation-extension-helm-independent-review-20261118.json",
+      ".harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-full-race-20261118-01.log.receipt.json",
+      ".harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-20261118-e01-final-frontend-quality.json",
+      ".harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-20261118-e01-final-source-equivalence.json",
+      ".harness/evidence/2026-11-17-ops-history-audit/continuation-current-preview-ten-packages-20261118-e01-final-build.json",
+      ".harness/evidence/2026-11-17-ops-history-audit/continuation-current-preview-ten-packages-e01-final-started-20261118.json",
+      ".harness/evidence/2026-11-17-ops-history-audit/continuation-e01-ui-detail-error-policy-independent-review-20261118.json",
+      ".harness/evidence/2026-11-16-ops-filedist-product-closure/ui-final-verification-20261118-03.json",
+      ".harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-generated-business-i18n-verification-20261118-01.json",
+      ".harness/evidence/2026-11-16-ops-filedist-product-closure/ui-readonly-ten-packages-20261118-04.json",
+      ".harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-20261118-04-root-render-review.json",
+      ".harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-20261118-04-final-readiness.json"
+    ],
+    "progressReceipt": ".harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-progress-final-20261118.json",
+    "currentTechnicalIntegrationPassed": true
   }
 }

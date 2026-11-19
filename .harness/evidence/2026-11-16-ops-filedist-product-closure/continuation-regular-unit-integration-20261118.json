@@ -1,0 +1,68 @@
+{
+  "schema": "pantheon-e01-regular-unit-integration/v1",
+  "taskId": "2026-11-16-ops-filedist-product-closure",
+  "implementer": "/root/e03_claude_partial_closeout",
+  "observedAtUTC": "2026-11-18T08:07:12Z",
+  "sourceFrozen": true,
+  "wholePackageClosed": false,
+  "plan": ".harness/tasks/2026-11-16-ops-filedist-product-closure/continuation-regular-unit-integration-plan-20261118.md",
+  "changes": {
+    "regularUnitTest": "frontend/tests/unit/business/filedist/FiledistLifetime.test.ts",
+    "overlayDeclaration": "businessPaths exact regular unit test path",
+    "productionSourceChanged": false,
+    "originalEvidenceFixturePreserved": true,
+    "originalRunnerPreserved": true,
+    "assertionsChanged": false,
+    "newDependencies": false,
+    "localeDelta": {},
+    "initialByteCopy": true,
+    "initialSHA256": "0d3d66ea394e3c92dea41b5ce8fb19da5395fac4a23ff66b7a44ee54a0554256",
+    "typedFixtureCorrection": "resolvedAt/sources, status/businessScopeId/source for each host, and removal of as DeployTargetResolution; no assertion/case/import changes"
+  },
+  "sourceSHA256": {
+    "business-overlay.json": "7f7257853b1b6de1d6721040bef0ef03619c8296ca478540350b23dec9fd4aee",
+    "frontend/tests/unit/business/filedist/FiledistLifetime.test.ts": "bb6d4712a0b00c994ab95be96f651c0315ef2ba8802b7a13b97962fdf3c3a2fb",
+    ".harness/evidence/2026-11-16-ops-filedist-product-closure/ui-lifetime.regression-20261118.test.ts": "0d3d66ea394e3c92dea41b5ce8fb19da5395fac4a23ff66b7a44ee54a0554256",
+    "frontend/src/modules/business/filedist/useTaskDetail.ts": "e87f2e2b4fa403e4dd2d8a1f87e6d878670f4338756c4c3c087de7564e69aebe",
+    "frontend/src/modules/business/filedist/useFileChoices.ts": "a08129ff631210f17ab6989feaf554ddbb6999be94f57d4630de6043f64970b2",
+    "frontend/src/modules/business/filedist/taskState.ts": "14d31aa7be0b64dd27b42619297dabb507adfab027ef3e6c1c47b56e62df4cc3",
+    "frontend/src/modules/business/filedist/createTaskPayload.ts": "e479cf0fec6897f6851b30dd4e0e45c7c19d7677c94b572c4e5252ffa1ee7e95",
+    "frontend/src/modules/business/filedist/FiledistDetail.tsx": "592da075658906b6e40dafc49c1364275b5d122e6734bd85394265bf6b7ba1ba",
+    "frontend/src/modules/business/filedist/FiledistList.tsx": "584d6320c510588945d52bab1505c915f28a39e3aa4dfdef16ef24bb0edc4842",
+    "frontend/src/modules/business/deploy/api.ts": "ef0e88677e801404e345dd2a0a6f71ef6944056eb4f03ab33a8f64e088720d49"
+  },
+  "initialVerification": "regular-unit-initial-verification-20261118-01.json",
+  "finalVerification": "regular-unit-verification-20261118-02.json",
+  "results": {
+    "standardVitest": "28/28 PASS; zero skip; 12.39s",
+    "targetedStrictTypeScript": "exit0; no diagnostics; test plus imported production only",
+    "scopedESLint": "exit0; no diagnostics",
+    "businessOverlay": "PASS; 55 declared paths, rebuilt tree",
+    "scopedDiff": "exit0",
+    "fixtureComparison": "PASS; typed data completion only"
+  },
+  "warning": "Pre-existing Vitest/Vite __dirname future native config-loader warning retained; shared config not modified/suppressed.",
+  "processLaunch": {
+    "existingHiddenChildPreloadUsed": true,
+    "pool": "threads",
+    "maxWorkers": 1,
+    "fileParallelism": false,
+    "visibleWindowObservationPerformed": false
+  },
+  "impeccableCompletionGate": {
+    "surface": "FileDist detail/list/control and picker request lifecycle",
+    "productionLayoutChanged": false,
+    "renderedEvidenceProduced": false,
+    "reason": "Canonical test/overlay integration only; coordinator owns current-candidate desktop/mobile rendering.",
+    "uiPolishClaimed": false
+  },
+  "remainingGates": [
+    "full frontend type/build/smoke with assembled candidate",
+    "official locked-release reconstruction and drift",
+    "backend lifecycle/partition and current runtime/provider proof",
+    "role permission and actual provider checks",
+    "desktop/mobile current-candidate rendering",
+    "independent review and whole E01 human acceptance"
+  ],
+  "historicalEvidencePreserved": true
+}

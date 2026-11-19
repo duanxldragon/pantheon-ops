@@ -21,6 +21,7 @@ import (
 	"github.com/duanxldragon/pantheon-base/backend/modules/business/cmdb"
 	executorprovider "github.com/duanxldragon/pantheon-base/backend/modules/business/deploy/executor"
 	deployorchestrator "github.com/duanxldragon/pantheon-base/backend/modules/business/deploy/orchestrator"
+	"github.com/duanxldragon/pantheon-base/backend/modules/business/service"
 	"github.com/duanxldragon/pantheon-base/backend/pkg/common"
 
 	"golang.org/x/crypto/ssh"
@@ -30,20 +31,22 @@ import (
 )
 
 type DeployService struct {
-	db                      *gorm.DB
-	cmdbCapability          cmdb.DeployCMDBCapability
-	bizScopeReader          bizcap.BizScopeReader
-	hostReader              bizcap.CMDBHostReader
-	serviceState            bizcap.ServiceInstanceStateApplier
-	serviceStateTransaction func(*gorm.DB) bizcap.ServiceInstanceStateApplier
-	sshRunnerFactory        func(ctx context.Context, host cmdbHostSnapshot, req StartTaskRequest) (deploySSHRunner, error)
-	executor                DeployExecutor
-	asyncExecution          bool
-	taskCancels             sync.Map
-	taskWorkers             sync.Map
-	ownership               *executionOwnership
-	leaseTiming             *ownershipTiming
-	executionRoot           *DeployService
+	db                       *gorm.DB
+	cmdbCapability           cmdb.DeployCMDBCapability
+	bizScopeReader           bizcap.BizScopeReader
+	hostReader               bizcap.CMDBHostReader
+	serviceState             bizcap.ServiceInstanceStateApplier
+	serviceStateTransaction  func(*gorm.DB) bizcap.ServiceInstanceStateApplier
+	serviceReader            service.Reader
+	serviceReaderTransaction func(*gorm.DB) service.Reader
+	sshRunnerFactory         func(ctx context.Context, host cmdbHostSnapshot, req StartTaskRequest) (deploySSHRunner, error)
+	executor                 DeployExecutor
+	asyncExecution           bool
+	taskCancels              sync.Map
+	taskWorkers              sync.Map
+	ownership                *executionOwnership
+	leaseTiming              *ownershipTiming
+	executionRoot            *DeployService
 }
 
 const deployAttemptMax = 3
@@ -500,18 +503,30 @@ func (s *DeployService) createTask(req CreateTaskRequest, actor string, dataScop
 	if !validTaskAction(action) {
 		return nil, errors.New("business.deploy.task.invalidAction")
 	}
+	metadata := action == TaskActionRetire
+	if metadata && (req.ExecutorType != ExecutorTypeManual || req.ServiceID == 0 || req.ServiceInstanceID == 0 || retireParamsHaveExecution(req.TemplateParams)) {
+		return nil, errors.New(errDeployTaskTemplateInvalid)
+	}
 	if err := validateDeployStructuralParams(req.TemplateParams); err != nil {
 		return nil, err
 	}
 	if err := validateDeploySecretParams(req.SecretParams); err != nil {
 		return nil, err
 	}
-	pkg, err := s.loadTaskPackage(req.PackageID, template, req.TemplateParams)
+	var pkg DeployPackage
+	if metadata {
+		pkg, err = s.loadTaskPackageReference(req.PackageID)
+	} else {
+		pkg, err = s.loadTaskPackage(req.PackageID, template, req.TemplateParams)
+	}
 	if err != nil {
 		return nil, err
 	}
 	scopeName, err := s.resolveCreateTaskScopeName(&req, targetIDs, action, dataScope)
 	if err != nil {
+		return nil, err
+	}
+	if err := s.validateServiceLink(serviceLinkTask(req.BusinessScopeID, req.ServiceID, req.ServiceInstanceID, req.TargetType, targetIDs), dataScope, nil); err != nil {
 		return nil, err
 	}
 	task, err := s.buildCreateTask(&req, pkg, template, targetIDs, action, scopeName, actor)
@@ -565,7 +580,7 @@ func (s *DeployService) applyTemplateToCreateRequest(req *CreateTaskRequest) (*T
 	if strings.TrimSpace(req.Action) == "" {
 		req.Action = templateDetail.DefaultAction
 	}
-	if len(req.TemplateParams) == 0 && len(templateDetail.ParameterSchema) > 0 {
+	if normalizeTaskAction(req.Action) != TaskActionRetire && len(req.TemplateParams) == 0 && len(templateDetail.ParameterSchema) > 0 {
 		req.TemplateParams = templateDetail.ParameterSchema
 	}
 	return templateDetail, nil
@@ -616,9 +631,15 @@ func (s *DeployService) buildCreateTask(req *CreateTaskRequest, pkg DeployPackag
 	// The in-memory view still carries decrypted secrets so required-parameter
 	// validation inside the snapshot builder can see them. The snapshot is
 	// redacted to sentinels below and the persisted params are stripped.
-	executionSnapshot, err := s.buildDeployExecutionSnapshot(pkg, template, action, req.TemplateParams)
-	if err != nil {
-		return nil, err
+	var executionSnapshot deployExecutionSnapshot
+	if normalizeTaskAction(action) == TaskActionRetire {
+		executionSnapshot = retireMetadataExecutionSnapshot(template)
+	} else {
+		var err error
+		executionSnapshot, err = s.buildDeployExecutionSnapshot(pkg, template, action, req.TemplateParams)
+		if err != nil {
+			return nil, err
+		}
 	}
 	redactExecutionSnapshotSecrets(&executionSnapshot, req.SecretParams)
 	persistParams := make(map[string]any, len(req.TemplateParams))
@@ -834,7 +855,27 @@ func (s *DeployService) updateTask(id uint64, req UpdateTaskRequest, actor strin
 	if err != nil {
 		return nil, err
 	}
-	pkg, err := s.loadTaskPackage(values.packageID, template, values.templateParams)
+	// Evaluate the final action after template defaults, including indirect
+	// attempts to turn an existing executable task into lifecycle metadata.
+	if normalizeTaskAction(task.Action) == TaskActionRetire || values.action == TaskActionRetire {
+		// Only Create introduces metadata intent. An old executable record cannot
+		// become safe merely by changing its action, executor or references.
+		if normalizeTaskAction(task.Action) != TaskActionRetire || values.action != TaskActionRetire {
+			return nil, errors.New(errDeployTaskTemplateInvalid)
+		}
+		if _, err := s.resolveTaskExecutionPlan(*task); err != nil {
+			return nil, err
+		}
+		if values.executorType != ExecutorTypeManual || values.serviceID == 0 || values.serviceInstanceID == 0 || retireParamsHaveExecution(values.templateParams) {
+			return nil, errors.New(errDeployTaskTemplateInvalid)
+		}
+	}
+	var pkg DeployPackage
+	if values.action == TaskActionRetire {
+		pkg, err = s.loadTaskPackageReference(values.packageID)
+	} else {
+		pkg, err = s.loadTaskPackage(values.packageID, template, values.templateParams)
+	}
 	if err != nil {
 		return nil, err
 	}
@@ -844,6 +885,9 @@ func (s *DeployService) updateTask(id uint64, req UpdateTaskRequest, actor strin
 	}
 	scopeName, err := s.resolveTaskUpdateScopeName(&values, dataScope)
 	if err != nil {
+		return nil, err
+	}
+	if err := s.validateServiceLink(serviceLinkTask(values.businessScopeID, values.serviceID, values.serviceInstanceID, values.targetType, values.targetIDs), dataScope, nil); err != nil {
 		return nil, err
 	}
 	if err := s.persistTaskUpdate(task, &values, pkg, template, scopeName, actor); err != nil {
@@ -966,10 +1010,10 @@ func (s *DeployService) applyTemplateToTaskUpdate(values *taskUpdateValues, req 
 			values.packageID = templateDetail.Steps[0].PackageID
 		}
 	}
-	if req.Action == nil {
+	if req.Action == nil && values.action != TaskActionRetire {
 		values.action = normalizeTaskAction(templateDetail.DefaultAction)
 	}
-	if req.TemplateParams == nil && len(templateDetail.ParameterSchema) > 0 {
+	if values.action != TaskActionRetire && req.TemplateParams == nil && len(templateDetail.ParameterSchema) > 0 {
 		values.templateParams = templateDetail.ParameterSchema
 	}
 	return templateDetail, nil
@@ -982,6 +1026,23 @@ func (s *DeployService) loadTaskPackage(packageID uint64, template *TemplateResp
 		}
 		return DeployPackage{}, errors.New("business.deploy.task.packageRequired")
 	}
+	pkg, err := s.loadTaskPackageReference(packageID)
+	if err != nil {
+		return pkg, err
+	}
+	if template == nil {
+		if err := validateTemplateParams(pkg.ExecutionMode, pkg.TemplateCode, pkg.TemplateConfig, templateParams); err != nil {
+			return DeployPackage{}, err
+		}
+	}
+	return pkg, nil
+}
+
+// A lifecycle metadata reference does not require install parameters or scripts.
+func (s *DeployService) loadTaskPackageReference(packageID uint64) (DeployPackage, error) {
+	if packageID == 0 {
+		return DeployPackage{}, nil
+	}
 	var pkg DeployPackage
 	if err := s.db.First(&pkg, packageID).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -991,11 +1052,6 @@ func (s *DeployService) loadTaskPackage(packageID uint64, template *TemplateResp
 	}
 	if pkg.Status != PackageStatusEnabled {
 		return DeployPackage{}, errors.New("business.deploy.task.packageDisabled")
-	}
-	if template == nil {
-		if err := validateTemplateParams(pkg.ExecutionMode, pkg.TemplateCode, pkg.TemplateConfig, templateParams); err != nil {
-			return DeployPackage{}, err
-		}
 	}
 	return pkg, nil
 }
@@ -1014,7 +1070,9 @@ func templateHasOnlyScriptSteps(steps []TemplateStepResponse) bool {
 
 func (s *DeployService) resolveTaskUpdateScopeName(values *taskUpdateValues, dataScope *common.DataScopeReq) (string, error) {
 	if values.targetType != TargetTypeHost {
-		values.businessScopeID = 0
+		if values.serviceID == 0 && values.serviceInstanceID == 0 {
+			values.businessScopeID = 0
+		}
 		return "", nil
 	}
 	return s.resolveDeployScopeName(values.businessScopeID, values.targetIDs, values.action, dataScope)
@@ -1023,9 +1081,16 @@ func (s *DeployService) resolveTaskUpdateScopeName(values *taskUpdateValues, dat
 func (s *DeployService) persistTaskUpdate(task *DeployTask, values *taskUpdateValues, pkg DeployPackage, template *TemplateResponse, scopeName, actor string) error {
 	targetJSON, _ := json.Marshal(values.targetIDs)
 	templateParamsJSON, _ := json.Marshal(values.templateParams)
-	executionSnapshot, err := s.buildDeployExecutionSnapshot(pkg, template, values.action, values.templateParams)
-	if err != nil {
-		return err
+	var executionSnapshot deployExecutionSnapshot
+	if values.action == TaskActionRetire {
+		// The existing marker was validated above; this only updates draft metadata.
+		executionSnapshot = retireMetadataExecutionSnapshot(template)
+	} else {
+		var err error
+		executionSnapshot, err = s.buildDeployExecutionSnapshot(pkg, template, values.action, values.templateParams)
+		if err != nil {
+			return err
+		}
 	}
 	executionSnapshotJSON, _ := json.Marshal(executionSnapshot)
 	updates := map[string]interface{}{
@@ -1170,6 +1235,9 @@ func (s *DeployService) StartTaskContext(ctx context.Context, id uint64, req Sta
 		TaskStatusPauseRequested, TaskStatusPaused, TaskStatusCancelRequested:
 		return nil, errors.New("business.deploy.task.invalidStartState")
 	}
+	if err := validateRetireTaskIntent(*task); err != nil {
+		return nil, err
+	}
 	if task.ExecutorType == ExecutorTypeSSH {
 		resolvedReq, version, err := reads.prepareStartCredential(req)
 		if err != nil {
@@ -1217,10 +1285,6 @@ func (s *DeployService) StartTaskContext(ctx context.Context, id uint64, req Sta
 	}
 	task, hosts = claim.task, claim.hosts
 
-	if err := s.beginServiceInstanceState(*task, actor, dataScope); err != nil {
-		s.failStartedTask(task, hosts, actor, err)
-		return nil, err
-	}
 	if err := s.dispatchStartedTask(task, hosts, req, actor); err != nil {
 		return nil, err
 	}
@@ -1257,6 +1321,9 @@ func (s *DeployService) prepareStartTargets(task *DeployTask, req StartTaskReque
 	if len(hosts) == 0 {
 		return nil, errors.New("business.deploy.task.emptyResolvedTargets")
 	}
+	if err := s.validateServiceLink(task, dataScope, hosts); err != nil {
+		return nil, err
+	}
 	if task.ExecutorType == ExecutorTypeSSH {
 		if err := validateDeploySSHStartRequest(req); err != nil {
 			return nil, err
@@ -1271,17 +1338,18 @@ func (s *DeployService) prepareStartTargets(task *DeployTask, req StartTaskReque
 // startTaskClaim carries the resolved start request of the claiming
 // transaction so the transaction keeps its inputs in one place.
 type startTaskClaim struct {
-	service           *DeployService
-	dataScope         *common.DataScopeReq
-	task              *DeployTask
-	req               StartTaskRequest
-	hosts             []cmdbHostSnapshot
-	actor             string
-	key               string
-	now               time.Time
-	timeout           time.Duration
-	leaseOwner        string
-	credentialVersion uint64
+	service              *DeployService
+	dataScope            *common.DataScopeReq
+	task                 *DeployTask
+	req                  StartTaskRequest
+	hosts                []cmdbHostSnapshot
+	actor                string
+	key                  string
+	now                  time.Time
+	timeout              time.Duration
+	leaseOwner           string
+	credentialVersion    uint64
+	serviceStateSnapshot *deployServiceStateSnapshot
 }
 
 // claim flips the task to running, freezes the target snapshot and creates the
@@ -1314,6 +1382,15 @@ func (c *startTaskClaim) claim(tx *gorm.DB) error {
 	if err := c.validatePreview(tx); err != nil {
 		return err
 	}
+	inner := c.service.targetTransactionService(tx, c.service.cmdbCapability)
+	if c.task.ServiceInstanceID != 0 && inner.serviceState == nil {
+		return errors.New(errDeployServiceLinkInvalid)
+	}
+	stateSnapshot, err := inner.beginServiceStateSnapshot(*c.task, c.actor, c.dataScope)
+	if err != nil {
+		return err
+	}
+	c.serviceStateSnapshot = stateSnapshot
 
 	result := tx.Model(&DeployTask{}).
 		Where(idWhereClause, c.task.ID).
@@ -1337,6 +1414,10 @@ func (c *startTaskClaim) claim(tx *gorm.DB) error {
 	}
 
 	targetSnapshot := buildDeployTargetSnapshot(c.task, c.hosts, c.now)
+	targetSnapshot.ServiceState = c.serviceStateSnapshot
+	if c.serviceStateSnapshot != nil {
+		targetSnapshot.ExecutionGeneration = 1
+	}
 	var selectionSnapshot deployTargetSnapshot
 	if err := json.Unmarshal(c.task.TargetSnapshot, &selectionSnapshot); err == nil {
 		targetSnapshot.Selection = selectionSnapshot.Selection
@@ -1407,7 +1488,9 @@ func (s *DeployService) rejectFailedStartClaim(id uint64, claimErr error, key st
 // failStartedTask marks the claimed task and its hosts failed when the service
 // instance could not be opened, and releases their leases.
 func (s *DeployService) failStartedTask(task *DeployTask, _ []cmdbHostSnapshot, actor string, reason error) {
-	s.failQueuedTask(task.ID, actor, reason)
+	if err := s.failQueuedTask(task.ID, actor, reason); err != nil {
+		slog.Error("settle failed deploy start", "task_id", task.ID, "reason", reason, "error", err)
+	}
 }
 
 // dispatchStartedTask hands the claimed task to the async worker or runs it
@@ -1425,11 +1508,65 @@ func (s *DeployService) dispatchStartedTask(task *DeployTask, hosts []cmdbHostSn
 	return s.executeSSHTask(*task, hosts, req, actor)
 }
 
+type taskWorkerSlot struct {
+	mu      sync.Mutex
+	retired bool
+	pending bool
+	done    chan struct{}
+}
+
+func (slot *taskWorkerSlot) reserveDispatch() bool {
+	slot.mu.Lock()
+	defer slot.mu.Unlock()
+	if slot.retired {
+		return false
+	}
+	slot.pending = true
+	return true
+}
+
+func (s *DeployService) reserveTaskWorker(taskID uint64) *taskWorkerSlot {
+	for {
+		slot := &taskWorkerSlot{done: make(chan struct{})}
+		current, loaded := s.taskWorkers.LoadOrStore(taskID, slot)
+		if !loaded {
+			return slot
+		}
+		if worker, ok := current.(*taskWorkerSlot); ok && worker.reserveDispatch() {
+			return nil
+		}
+		// A dispatcher can load an old pointer before retirement and acquire
+		// its lock after retirement. Retry the current map slot in that case.
+	}
+}
+
+func (s *DeployService) releaseTaskWorker(taskID uint64, slot *taskWorkerSlot, cancel context.CancelFunc) bool {
+	slot.mu.Lock()
+	defer slot.mu.Unlock()
+	if cancel != nil {
+		cancel()
+		s.taskCancels.Delete(taskID)
+	}
+	slot.retired = true
+	pending := slot.pending
+	s.taskWorkers.CompareAndDelete(taskID, slot)
+	return pending
+}
+
 func (s *DeployService) runAsyncTask(taskID uint64, actor string) {
-	if _, loaded := s.taskWorkers.LoadOrStore(taskID, struct{}{}); loaded {
+	slot := s.reserveTaskWorker(taskID)
+	if slot == nil {
 		return
 	}
-	defer s.taskWorkers.Delete(taskID)
+	// Reservation retirement precedes final settlement. Signal complete exit
+	// only after every deferred cleanup and database operation has returned.
+	defer close(slot.done)
+	var cancelTask context.CancelFunc
+	var pending bool
+	releaseWorker := sync.OnceFunc(func() {
+		pending = s.releaseTaskWorker(taskID, slot, cancelTask)
+	})
+	defer releaseWorker()
 	workerID := fmt.Sprintf("deploy-worker:%d", time.Now().UnixNano())
 	if _, err := s.ReconcileDeployAttempts(time.Now()); err != nil {
 		return
@@ -1438,9 +1575,18 @@ func (s *DeployService) runAsyncTask(taskID uint64, actor string) {
 	if err := s.db.First(&task, taskID).Error; err != nil {
 		return
 	}
+	if err := validateRetireRemoteIntent(task); err != nil {
+		slog.Error("reject queued deploy execution intent", "task_id", taskID, "error", err)
+		if settlementErr := s.failQueuedTask(taskID, actor, err); settlementErr != nil {
+			slog.Error("settle rejected deploy execution intent failed", "task_id", taskID, "reason", err, "error", settlementErr)
+		}
+		return
+	}
 	req, err := s.startRequestForTask(task)
 	if err != nil {
-		s.failQueuedTask(taskID, actor, err)
+		if settlementErr := s.failQueuedTask(taskID, actor, err); settlementErr != nil {
+			slog.Error("settle queued deploy credential failure", "task_id", taskID, "reason", err, "error", settlementErr)
+		}
 		return
 	}
 	var hosts []DeployTaskHost
@@ -1450,10 +1596,6 @@ func (s *DeployService) runAsyncTask(taskID uint64, actor string) {
 
 	taskContext, cancelTask := context.WithCancel(context.Background())
 	s.taskCancels.Store(taskID, cancelTask)
-	defer func() {
-		cancelTask()
-		s.taskCancels.Delete(taskID)
-	}()
 	maxParallelHosts := deployMaxParallelHosts(task)
 	continueOnHostFailure := taskContinueOnHostFailure(task)
 	semaphore := make(chan struct{}, maxParallelHosts)
@@ -1477,11 +1619,80 @@ func (s *DeployService) runAsyncTask(taskID uint64, actor string) {
 		}(host)
 	}
 	waitGroup.Wait()
+	// Retire the reservation after hosts drain, preserving any Resume dispatch
+	// received while an owned completion's pause commit reply was in flight.
+	releaseWorker()
+	// A pause or cancel can stop dispatch before any host claims an attempt.
+	// Acknowledge it after draining through the same fenced completion path.
+	if err := s.recomputeTaskStatus(taskID, actor); err != nil {
+		slog.Error("settle drained deploy worker failed", "task_id", taskID, "error", err)
+		return
+	}
+	if pending {
+		if err := s.dispatchPendingTask(taskID, actor); err != nil {
+			slog.Error("dispatch pending deploy worker failed", "task_id", taskID, "error", err)
+		}
+	}
+}
 
+func (s *DeployService) dispatchPendingTask(taskID uint64, actor string) error {
+	var dispatch bool
+	err := s.fencedTransaction(taskID, func(tx *gorm.DB, state lockedDeployment) error {
+		if state.task.Status != TaskStatusRunning || state.task.ExecutorType != ExecutorTypeSSH {
+			return nil
+		}
+		ids := make([]uint64, 0, len(state.hosts))
+		for _, host := range state.hosts {
+			if host.Status == TaskHostStatusPending || host.Status == TaskHostStatusRunning {
+				ids = append(ids, host.HostID)
+			}
+		}
+		if len(ids) == 0 {
+			return nil
+		}
+		now, err := databaseNow(tx)
+		if err != nil {
+			return err
+		}
+		for _, attempt := range state.attempts {
+			if attempt.Status == TaskHostStatusRunning && attempt.LeaseExpiresAt != nil && attempt.LeaseExpiresAt.After(now) {
+				return nil
+			}
+		}
+		for _, lease := range state.leases {
+			if lease.ExpiresAt.After(now) && (lease.TaskID != taskID || lease.Owner != deployHostLeaseOwner(taskID)) {
+				return nil
+			}
+		}
+		if state.task.ServiceID != 0 || state.task.ServiceInstanceID != 0 {
+			provider, err := s.boundCMDB(tx, ids)
+			if err != nil {
+				return err
+			}
+			_, err = s.targetTransactionService(tx, provider).serviceInstanceForCallback(state.task, true, nil)
+			if errors.Is(err, errServiceExecutionSuperseded) {
+				return nil
+			}
+			if err != nil {
+				return err
+			}
+		}
+		dispatch = true
+		return nil
+	})
+	if err == nil && dispatch {
+		go s.runAsyncTask(taskID, actor)
+	}
+	return err
 }
 
 func (s *DeployService) runAsyncTaskHost(taskContext context.Context, task DeployTask, host DeployTaskHost, req StartTaskRequest, actor, workerID string) bool {
 	for i := 0; i < deployAttemptMax; i++ {
+		// A Resume may already be running while the paused attempt's commit
+		// reply drains. The canceled old worker must leave retries to its successor.
+		if taskContext.Err() != nil {
+			return false
+		}
 		failed, err := s.runOwnedHost(taskContext, task, host, req, actor, workerID, true)
 		if err != nil || !failed {
 			return failed
@@ -1563,8 +1774,8 @@ func (s *DeployService) startRequestForTask(task DeployTask) (StartTaskRequest, 
 	return req, nil
 }
 
-func (s *DeployService) failQueuedTask(taskID uint64, actor string, reason error) {
-	_ = s.fencedTransaction(taskID, func(tx *gorm.DB, state lockedDeployment) error {
+func (s *DeployService) failQueuedTask(taskID uint64, actor string, reason error) error {
+	return s.fencedTransaction(taskID, func(tx *gorm.DB, state lockedDeployment) error {
 		if state.task.Status != TaskStatusRunning {
 			return nil
 		}
@@ -1585,7 +1796,7 @@ func (s *DeployService) failQueuedTask(taskID uint64, actor string, reason error
 				return err
 			}
 		}
-		return recomputeTaskStatusTx(tx, state.task, actor)
+		return s.recomputeTaskStatusTx(tx, state.task, actor)
 	})
 }
 
@@ -1663,6 +1874,20 @@ func (s *DeployService) finishAttemptWithStatus(o *executionOwnership, status st
 }
 
 func (s *DeployService) CancelTask(id uint64, actor string, dataScope *common.DataScopeReq) (*TaskResponse, error) {
+	response, err := s.taskControlTransaction(id, func(inner *DeployService) (*TaskResponse, error) {
+		return inner.cancelTask(id, actor, dataScope)
+	})
+	if err == nil {
+		if cancel, ok := s.taskCancels.Load(id); ok {
+			if cancelFunc, ok := cancel.(context.CancelFunc); ok {
+				cancelFunc()
+			}
+		}
+	}
+	return response, err
+}
+
+func (s *DeployService) cancelTask(id uint64, actor string, dataScope *common.DataScopeReq) (*TaskResponse, error) {
 	now := time.Now()
 	task, err := s.loadVisibleTask(id, dataScope)
 	if err != nil {
@@ -1709,9 +1934,22 @@ func (s *DeployService) CancelTask(id uint64, actor string, dataScope *common.Da
 	}).Error; err != nil {
 		return nil, err
 	}
-	if cancel, ok := s.taskCancels.Load(id); ok {
-		if cancelFunc, ok := cancel.(context.CancelFunc); ok {
-			cancelFunc()
+	if nextStatus == TaskStatusCanceled {
+		if task.Status != TaskStatusPending {
+			settled := *task
+			settled.Status = TaskStatusCanceled
+			if err := s.finishServiceInstanceState(settled, MarkHostResultRequest{}, actor, dataScope); err != nil {
+				return nil, err
+			}
+		}
+		var hosts []DeployTaskHost
+		if err := s.db.Where(taskIDWhereClause, id).Find(&hosts).Error; err != nil {
+			return nil, err
+		}
+		for _, host := range hosts {
+			if err := releaseHostLease(s.db, host.HostID, deployHostLeaseOwner(id)); err != nil {
+				return nil, err
+			}
 		}
 	}
 	eventType := "task.cancel_requested"
@@ -1772,6 +2010,19 @@ func (s *DeployService) PauseTask(id uint64, actor string, dataScope *common.Dat
 // ResumeTask resumes a paused task. The task re-enters running and the worker
 // re-schedules unfinished hosts from the last checkpoint.
 func (s *DeployService) ResumeTask(id uint64, actor string, dataScope *common.DataScopeReq) (*TaskResponse, error) {
+	response, err := s.taskControlTransaction(id, func(inner *DeployService) (*TaskResponse, error) {
+		return inner.resumeTask(id, actor, dataScope)
+	})
+	if err != nil {
+		return nil, err
+	}
+	if s.asyncExecution && response.ExecutorType == ExecutorTypeSSH {
+		go s.runAsyncTask(id, actor)
+	}
+	return response, nil
+}
+
+func (s *DeployService) resumeTask(id uint64, actor string, dataScope *common.DataScopeReq) (*TaskResponse, error) {
 	task, err := s.loadVisibleTask(id, dataScope)
 	if err != nil {
 		return nil, err
@@ -1781,6 +2032,11 @@ func (s *DeployService) ResumeTask(id uint64, actor string, dataScope *common.Da
 	}
 	if err := s.validateTaskExecutionAdmission(task, dataScope); err != nil {
 		return nil, err
+	}
+	if task.ServiceID != 0 || task.ServiceInstanceID != 0 {
+		if _, err := s.serviceInstanceForCallback(*task, true, dataScope); err != nil {
+			return nil, err
+		}
 	}
 	now := time.Now()
 	transition := s.db.Model(&DeployTask{}).
@@ -1810,6 +2066,21 @@ func (s *DeployService) ResumeTask(id uint64, actor string, dataScope *common.Da
 // results are retained; only failed, canceled, or not-started hosts are
 // scheduled again.
 func (s *DeployService) RetryTask(id uint64, actor string, dataScope *common.DataScopeReq) (*TaskResponse, error) {
+	response, err := s.taskControlTransaction(id, func(inner *DeployService) (*TaskResponse, error) {
+		return inner.retryTask(id, actor, dataScope)
+	})
+	if err != nil {
+		return nil, err
+	}
+	if s.asyncExecution && response.ExecutorType == ExecutorTypeSSH {
+		go s.runAsyncTask(id, actor)
+	}
+	return response, nil
+}
+
+// Direct controls and versioned ControlTask use the same transaction seam.
+// The inner service has no worker maps; side effects run after commit.
+func (s *DeployService) taskControlTransaction(id uint64, command func(*DeployService) (*TaskResponse, error)) (*TaskResponse, error) {
 	var response *TaskResponse
 	err := s.deploymentTransaction(func(tx *gorm.DB) error {
 		var task DeployTask
@@ -1830,14 +2101,11 @@ func (s *DeployService) RetryTask(id uint64, actor string, dataScope *common.Dat
 		}
 		inner := s.targetTransactionService(tx, provider)
 		var err error
-		response, err = inner.retryTask(id, actor, dataScope)
+		response, err = command(inner)
 		return err
 	})
 	if err != nil {
 		return nil, err
-	}
-	if s.asyncExecution && response.ExecutorType == ExecutorTypeSSH {
-		go s.runAsyncTask(id, actor)
 	}
 	return response, nil
 }
@@ -1877,14 +2145,33 @@ func (s *DeployService) retryTask(id uint64, actor string, dataScope *common.Dat
 	if err := s.validateRetryAttemptBudget(task); err != nil {
 		return nil, err
 	}
+	snapshot := task.TargetSnapshot
+	if task.ServiceID != 0 || task.ServiceInstanceID != 0 {
+		var frozen deployTargetSnapshot
+		if json.Unmarshal(task.TargetSnapshot, &frozen) != nil || len(frozen.Hosts) != 1 || frozen.ExecutionGeneration == 0 || frozen.ExecutionGeneration == ^uint64(0) {
+			return nil, errors.New(errDeployServiceLinkInvalid)
+		}
+		state, err := s.beginServiceStateSnapshot(*task, actor, dataScope)
+		if err != nil {
+			return nil, err
+		}
+		frozen.ServiceState = state
+		frozen.ExecutionGeneration++
+		raw, err := json.Marshal(frozen)
+		if err != nil {
+			return nil, err
+		}
+		snapshot = raw
+	}
 	now := time.Now()
 	transition := s.db.Model(&DeployTask{}).
 		Where(idAndStatusWhereClause, task.ID, TaskStatusFailed).
 		Updates(map[string]interface{}{
-			"status":      TaskStatusRunning,
-			"finished_at": nil,
-			"updated_by":  actor,
-			"updated_at":  now,
+			"target_snapshot": snapshot,
+			"status":          TaskStatusRunning,
+			"finished_at":     nil,
+			"updated_by":      actor,
+			"updated_at":      now,
 		})
 	if transition.Error != nil {
 		return nil, transition.Error
@@ -2184,6 +2471,16 @@ func (s *DeployService) markHostResultWithSummary(hostID uint64, req MarkHostRes
 		if err != nil {
 			return err
 		}
+		if req.Status == TaskHostStatusSuccess {
+			if err := validateRetireTaskIntent(state.task); err != nil {
+				return err
+			}
+			if normalizeTaskAction(state.task.Action) == TaskActionRetire {
+				if err := validateRetireResult(state.task, summary); err != nil {
+					return err
+				}
+			}
+		}
 		if err := s.requireHostWriter(tx, hint.TaskID, hostID); err != nil {
 			return err
 		}
@@ -2215,6 +2512,12 @@ func (s *DeployService) markHostResultWithSummary(hostID uint64, req MarkHostRes
 			return errDeployTaskForbidden
 		}
 		// Public/manual reports cannot impersonate a durable worker.
+		if state.task.ServiceID != 0 || state.task.ServiceInstanceID != 0 {
+			version := taskExecutionVersion(&state.task)
+			if version == "" || req.ExecutionVersion != version {
+				return errors.New(errDeployTaskHostStaleReport)
+			}
+		}
 		for _, a := range state.attempts {
 			if a.TaskHostID == hostID && a.Status == TaskHostStatusRunning {
 				return errExecutionOwnership
@@ -2222,6 +2525,9 @@ func (s *DeployService) markHostResultWithSummary(hostID uint64, req MarkHostRes
 		}
 		if isTerminalTaskHostStatus(host.Status) {
 			response, err = s.hostResultReplayOrStale(host, req, strings.TrimSpace(req.ReportKey))
+			if response != nil {
+				response.ExecutionVersion = taskExecutionVersion(&state.task)
+			}
 			return err
 		}
 		now, err := databaseNow(tx)
@@ -2231,7 +2537,7 @@ func (s *DeployService) markHostResultWithSummary(hostID uint64, req MarkHostRes
 		if err := inner.commitHostResult(tx, host, &state.task, req, actor, summary, now); err != nil {
 			return err
 		}
-		if err := recomputeTaskStatusTx(tx, state.task, actor); err != nil {
+		if err := inner.recomputeTaskStatusTx(tx, state.task, actor, req); err != nil {
 			return err
 		}
 		var finalTask DeployTask
@@ -2240,11 +2546,6 @@ func (s *DeployService) markHostResultWithSummary(hostID uint64, req MarkHostRes
 		}
 		finished = finalTask
 		settled = isTerminalTaskStatus(finalTask.Status) && finalTask.Status != state.task.Status
-		if isTerminalTaskStatus(finalTask.Status) {
-			if err := inner.finishServiceInstanceState(finalTask, req, actor, dataScope); err != nil {
-				return err
-			}
-		}
 
 		if err := releaseHostLease(tx, host.HostID, deployHostLeaseOwner(host.TaskID)); err != nil {
 			return err
@@ -2253,6 +2554,7 @@ func (s *DeployService) markHostResultWithSummary(hostID uint64, req MarkHostRes
 			return err
 		}
 		r := taskHostToResponse(&host)
+		r.ExecutionVersion = taskExecutionVersion(&state.task)
 		response = &r
 		return nil
 	})
@@ -2333,6 +2635,15 @@ func (s *DeployService) writebackMarkedHostResult(host DeployTaskHost, task *Dep
 	if _, tx := s.db.Statement.ConnPool.(gorm.TxCommitter); !tx || s.requestContext().Value(deploymentTxKey{}) != true {
 		return errors.New("deploy.projection.transactionIsolationUnknown")
 	}
+	if err := validateRetireTaskIntent(*task); err != nil {
+		return err
+	}
+	if normalizeTaskAction(task.Action) == TaskActionRetire {
+		if s.ownership != nil {
+			return errors.New(errDeployTaskTemplateInvalid)
+		}
+		return validateRetireResult(*task, summary)
+	}
 	writeback := cmdb.DeployHostWritebackRequest{
 		HostID: host.HostID,
 		Status: hostStatusForAction(task.Action),
@@ -2362,54 +2673,83 @@ func isTerminalTaskStatus(status string) bool {
 }
 
 func (s *DeployService) beginServiceInstanceState(task DeployTask, actor string, scope *common.DataScopeReq) error {
-	if s.serviceState == nil || task.ServiceInstanceID == 0 {
+	if task.ServiceID == 0 && task.ServiceInstanceID == 0 {
 		return nil
+	}
+	instance, err := s.serviceInstanceForCallback(task, false, scope)
+	if err != nil {
+		return err
+	}
+	if normalizeTaskAction(task.Action) == TaskActionRetire && (instance.DesiredState != observedStateStopped || instance.ObservedState != observedStateStopped) {
+		// Stopped-only is the conservative source supported by this coordinator.
+		return errors.New("business.service.state_invalid")
 	}
 	action, observed, desired, ok := deployStateBegin(task.Action)
 	if !ok {
 		return nil
 	}
 	return s.serviceState.ApplyServiceInstanceState(s.requestContext(), bizcap.ServiceInstanceStateTransition{
-		InstanceID:     task.ServiceInstanceID,
-		Action:         action,
-		DesiredState:   desired,
-		ObservedState:  observed,
-		DesiredVersion: strings.TrimSpace(task.PackageVersion),
-		CurrentVersion: "",
-		CorrelationID:  fmt.Sprintf("deploy:%d:begin", task.ID),
+		InstanceID:               task.ServiceInstanceID,
+		ExpectedLifecycleVersion: instance.LifecycleVersion,
+		Action:                   action,
+		DesiredState:             desired,
+		ObservedState:            observed,
+		DesiredVersion:           strings.TrimSpace(task.PackageVersion),
+		CurrentVersion:           "",
+		CorrelationID:            fmt.Sprintf("deploy:%d:begin:%d", task.ID, instance.LifecycleVersion),
 	}, actor, scope)
 }
 
 func (s *DeployService) finishServiceInstanceState(task DeployTask, result MarkHostResultRequest, actor string, scope *common.DataScopeReq) error {
-	if s.serviceState == nil || task.ServiceInstanceID == 0 {
+	if task.ServiceID == 0 && task.ServiceInstanceID == 0 {
 		return nil
+	}
+	instance, err := s.serviceInstanceForCallback(task, true, scope)
+	if task.Status == TaskStatusCanceled && errors.Is(err, errServiceExecutionSuperseded) {
+		return nil
+	}
+	if err != nil {
+		return err
+	}
+	if normalizeTaskAction(task.Action) == TaskActionRetire && task.Status == TaskStatusSuccess && (instance.DesiredState != observedStateStopped || instance.ObservedState != observedStateStopped) {
+		return errors.New("business.service.state_invalid")
 	}
 	action, observed, desired, health, currentVersion, ok := deployStateFinish(task.Action, task.Status, task.PackageVersion, result.HealthState)
 	if !ok {
 		return nil
 	}
-	err := s.serviceState.ApplyServiceInstanceState(s.requestContext(), bizcap.ServiceInstanceStateTransition{
-		InstanceID:     task.ServiceInstanceID,
-		Action:         action,
-		DesiredState:   desired,
-		ObservedState:  observed,
-		HealthState:    health,
-		DesiredVersion: strings.TrimSpace(task.PackageVersion),
-		CurrentVersion: currentVersion,
-		HealthMessage:  firstNonBlank(result.HealthMessage, stateResultMessage(task)),
-		HealthRevision: strings.TrimSpace(result.HealthRevision),
-		CorrelationID:  fmt.Sprintf("deploy:%d:finish:%s", task.ID, task.Status),
+	desiredVersion := strings.TrimSpace(task.PackageVersion)
+	if normalizeTaskAction(task.Action) == TaskActionRetire {
+		desiredVersion = ""
+	}
+	err = s.serviceState.ApplyServiceInstanceState(s.requestContext(), bizcap.ServiceInstanceStateTransition{
+		InstanceID:               task.ServiceInstanceID,
+		ExpectedLifecycleVersion: instance.LifecycleVersion,
+		Action:                   action,
+		DesiredState:             desired,
+		ObservedState:            observed,
+		HealthState:              health,
+		DesiredVersion:           desiredVersion,
+		CurrentVersion:           currentVersion,
+		HealthMessage:            firstNonBlank(result.HealthMessage, stateResultMessage(task)),
+		HealthRevision:           strings.TrimSpace(result.HealthRevision),
+		CorrelationID:            fmt.Sprintf("deploy:%d:finish:%s", task.ID, task.Status),
 	}, actor, scope)
 	if err != nil || task.Status != TaskStatusSuccess || normalizeTaskAction(task.Action) != TaskActionUninstall {
 		return err
 	}
+	instance, err = s.serviceInstanceForCallback(task, false, scope)
+	if err != nil {
+		return err
+	}
 	return s.serviceState.ApplyServiceInstanceState(s.requestContext(), bizcap.ServiceInstanceStateTransition{
-		InstanceID:    task.ServiceInstanceID,
-		Action:        "retire",
-		DesiredState:  "retired",
-		ObservedState: "retired",
-		HealthState:   "unknown",
-		CorrelationID: fmt.Sprintf("deploy:%d:retire", task.ID),
+		InstanceID:               task.ServiceInstanceID,
+		ExpectedLifecycleVersion: instance.LifecycleVersion,
+		Action:                   "retire",
+		DesiredState:             "retired",
+		ObservedState:            "retired",
+		HealthState:              "unknown",
+		CorrelationID:            fmt.Sprintf("deploy:%d:retire", task.ID),
 	}, actor, scope)
 }
 
@@ -2724,7 +3064,7 @@ func (s *DeployService) recomputeTaskStatus(taskID uint64, actor string) error {
 	var finished DeployTask
 	var settled bool
 	err := s.fencedTransaction(taskID, func(tx *gorm.DB, state lockedDeployment) error {
-		if err := recomputeTaskStatusTx(tx, state.task, actor); err != nil {
+		if err := s.recomputeTaskStatusTx(tx, state.task, actor); err != nil {
 			return err
 		}
 		if err := tx.First(&finished, taskID).Error; err != nil {
@@ -3155,6 +3495,9 @@ type deployInstalledComponent struct {
 }
 
 func (s *DeployService) executeSSHTask(task DeployTask, hosts []cmdbHostSnapshot, req StartTaskRequest, actor string) error {
+	if err := validateRetireRemoteIntent(task); err != nil {
+		return err
+	}
 	if _, err := s.resolveTaskExecutionPlan(task); err != nil {
 		return mapDeployTaskExecutionPlanError(err)
 	}
@@ -3200,6 +3543,9 @@ func (e *taskHostExecution) recordOutput(step deployExecutionStep, phase, stdout
 }
 
 func (e *taskHostExecution) recordComponent(step deployExecutionStep, task DeployTask) {
+	if normalizeTaskAction(task.Action) == TaskActionRetire || normalizeTaskAction(step.Action) == TaskActionRetire {
+		return
+	}
 	if step.Package.ID == 0 {
 		return
 	}
@@ -3220,6 +3566,9 @@ func (e *taskHostExecution) recordComponent(step deployExecutionStep, task Deplo
 // executeTaskHost executes the full plan against one target host and persists
 // the host result, returning a fatal error only when result persistence fails.
 func (s *DeployService) executeTaskHostContext(ctx context.Context, task DeployTask, target cmdbHostSnapshot, taskHost TaskHostResponse, req StartTaskRequest, actor string) error {
+	if err := validateRetireRemoteIntent(task); err != nil {
+		return err
+	}
 	if s.ownership == nil {
 		return errExecutionOwnership
 	}
@@ -3380,6 +3729,9 @@ func (s *DeployService) updateTaskStepStatus(checkpoint *DeployTaskStep, status,
 }
 
 func (s *DeployService) executeOrchestratedSSHHost(ctx context.Context, task DeployTask, target cmdbHostSnapshot, taskHost TaskHostResponse, req StartTaskRequest, actor string) error {
+	if err := validateRetireRemoteIntent(task); err != nil {
+		return err
+	}
 	if s.ownership == nil {
 		return errExecutionOwnership
 	}
@@ -3538,6 +3890,9 @@ func conditionType(condition map[string]any) string {
 }
 
 func (s *DeployService) executeSSHHost(ctx context.Context, task DeployTask, target cmdbHostSnapshot, taskHost TaskHostResponse, req StartTaskRequest, actor string) error {
+	if err := validateRetireRemoteIntent(task); err != nil {
+		return err
+	}
 	if s.ownership == nil {
 		return errExecutionOwnership
 	}
@@ -3593,6 +3948,10 @@ type taskStepHostRun struct {
 func (s *DeployService) executeTaskStep(ctx context.Context, run taskStepHostRun, step deployExecutionStep) (bool, bool) {
 	task, target := run.task, run.target
 	taskHost, runner, execution := run.taskHost, run.runner, run.execution
+	if normalizeTaskAction(task.Action) == TaskActionRetire || normalizeTaskAction(step.Action) == TaskActionRetire {
+		execution.executionErr = errors.New(errDeployTaskTemplateInvalid)
+		return true, false
+	}
 	stepLabel := buildDeployStepLabel(step)
 	var script string
 	var probeCommand string
@@ -3662,6 +4021,10 @@ type taskStepCheckConfig struct {
 // returning true when the host loop must stop.
 func (s *DeployService) runTaskStepCheck(ctx context.Context, run taskStepHostRun, step deployExecutionStep, check taskStepCheckConfig) bool {
 	task, taskHost, execution := run.task, run.taskHost, run.execution
+	if normalizeTaskAction(task.Action) == TaskActionRetire || normalizeTaskAction(step.Action) == TaskActionRetire {
+		execution.executionErr = errors.New(errDeployTaskTemplateInvalid)
+		return true
+	}
 	script, hasCheck, checkErr := renderDeployCheckSnippet(step, task, run.target, check.configKey)
 	if checkErr != nil {
 		execution.executionErr = mapDeployTaskExecutionPlanError(checkErr)
@@ -3761,10 +4124,77 @@ func (s *DeployService) resolveTaskExecutionPlan(task DeployTask) ([]deployExecu
 	if err != nil {
 		return nil, err
 	}
+	if err := validateRetireSnapshot(task, snapshot); err != nil {
+		return nil, err
+	}
+	if snapshot.Kind == deploySnapshotMetadataOnly {
+		return []deployExecutionStep{}, nil
+	}
 	if len(snapshot.Steps) == 0 {
 		return nil, errors.New(errDeployTaskSnapshotMissing)
 	}
 	return executionSnapshotToPlan(snapshot), nil
+}
+
+const deploySnapshotMetadataOnly = "metadata_only"
+
+func retireMetadataExecutionSnapshot(template *TemplateResponse) deployExecutionSnapshot {
+	snapshot := deployExecutionSnapshot{Kind: deploySnapshotMetadataOnly, Steps: []deployStepSnapshot{}}
+	if template != nil {
+		snapshot.TemplateID, snapshot.TemplateName, snapshot.TemplateVersion = template.ID, template.Name, template.Version
+	}
+	return snapshot
+}
+
+func retireParamsHaveExecution(params map[string]any) bool {
+	for _, key := range []string{"script", "platformScripts", "installCommand", "uninstallCommand", "precheckCommand", "postcheckCommand", "healthCheckCommand", "uninstallHealthCheckCommand"} {
+		if value, exists := params[key]; exists && value != nil && strings.TrimSpace(anyToString(value)) != "" {
+			return true
+		}
+	}
+	return false
+}
+
+func validateRetireSnapshot(task DeployTask, snapshot deployExecutionSnapshot) error {
+	if normalizeTaskAction(task.Action) == TaskActionRetire || snapshot.Kind != "" {
+		if normalizeTaskAction(task.Action) != TaskActionRetire || task.ExecutorType != ExecutorTypeManual || task.ServiceID == 0 || task.ServiceInstanceID == 0 || snapshot.Kind != deploySnapshotMetadataOnly || snapshot.Steps == nil || len(snapshot.Steps) != 0 || retireParamsHaveExecution(decodeJSONMap(task.TemplateParams)) {
+			return errors.New(errDeployTaskTemplateInvalid)
+		}
+		return nil
+	}
+	for _, step := range snapshot.Steps {
+		if normalizeTaskAction(step.Action) == TaskActionRetire {
+			return errors.New(errDeployTaskTemplateInvalid)
+		}
+	}
+	return nil
+}
+
+func validateRetireTaskIntent(task DeployTask) error {
+	snapshot, err := decodeExecutionSnapshot(task.ExecutionSnapshot)
+	if err != nil {
+		return err
+	}
+	return validateRetireSnapshot(task, snapshot)
+}
+
+// Metadata can reserve a host for manual coordination, but never claim a worker.
+// Ordinary legacy tasks retain their existing missing-snapshot worker contract.
+func validateRetireRemoteIntent(task DeployTask) error {
+	if normalizeTaskAction(task.Action) == TaskActionRetire {
+		return errors.New(errDeployTaskTemplateInvalid)
+	}
+	return validateRetireTaskIntent(task)
+}
+
+func validateRetireResult(task DeployTask, summary deployExecutionSummary) error {
+	if err := validateRetireTaskIntent(task); err != nil {
+		return err
+	}
+	if len(summary.InstalledComponents) != 0 || len(summary.RemovedComponentNames) != 0 {
+		return errors.New(errDeployTaskTemplateInvalid)
+	}
+	return nil
 }
 
 // buildDeployExecutionSnapshot resolves the live package/template definition and
@@ -3778,6 +4208,9 @@ func (s *DeployService) buildDeployExecutionSnapshot(pkg DeployPackage, template
 		snapshot.TemplateVersion = template.Version
 	}
 	normalizedAction := normalizeTaskAction(action)
+	if normalizedAction == TaskActionRetire {
+		return deployExecutionSnapshot{}, errors.New(errDeployTaskTemplateInvalid)
+	}
 	if template == nil || template.ID == 0 {
 		steps, err := s.defaultExecutionSnapshotSteps(pkg, deployStepSnapshotPackageDefault, pkg.Name, normalizedAction, taskParams)
 		if err != nil {
@@ -3836,6 +4269,9 @@ func (s *DeployService) defaultExecutionSnapshotSteps(pkg DeployPackage, stepCod
 // buildTemplateStepSnapshot freezes a single template step: its type, effective
 // action, resolved package and validated parameters.
 func (s *DeployService) buildTemplateStepSnapshot(step TemplateStepResponse, pkg DeployPackage, normalizedAction string, taskParams map[string]any, cache map[uint64]DeployPackage) (deployStepSnapshot, error) {
+	if normalizeTaskAction(step.Action) == TaskActionRetire || normalizedAction == TaskActionRetire {
+		return deployStepSnapshot{}, errors.New(errDeployTaskTemplateInvalid)
+	}
 	stepType := strings.TrimSpace(step.StepType)
 	if stepType == "" {
 		stepType = TemplateStepTypePackage
@@ -4069,6 +4505,9 @@ func mergeDeployTemplateParams(base, override map[string]any) map[string]any {
 }
 
 func (s *DeployService) renderExecutionStepScript(step deployExecutionStep, task DeployTask, host cmdbHostSnapshot) (string, error) {
+	if normalizeTaskAction(task.Action) == TaskActionRetire || normalizeTaskAction(step.Action) == TaskActionRetire {
+		return "", errors.New(errDeployTaskTemplateInvalid)
+	}
 	if step.StepType == TemplateStepTypeScript {
 		script := readDeployConfigString(step.StepConfig, "script")
 		if platformScripts := deployPlatformScripts(step.StepConfig); len(platformScripts) > 0 {
@@ -4216,6 +4655,9 @@ func buildDeployRenderContext(step deployExecutionStep, task DeployTask, host cm
 }
 
 func renderDeployCheckSnippet(step deployExecutionStep, task DeployTask, host cmdbHostSnapshot, key string) (string, bool, error) {
+	if normalizeTaskAction(task.Action) == TaskActionRetire || normalizeTaskAction(step.Action) == TaskActionRetire {
+		return "", false, errors.New(errDeployTaskTemplateInvalid)
+	}
 	command := readDeployConfigString(step.StepConfig, key)
 	if command == "" {
 		return "", false, nil
@@ -4399,6 +4841,9 @@ func packageToResponse(item *DeployPackage, stat packageDeploymentStat) PackageR
 }
 
 func taskToResponse(task *DeployTask, hosts []TaskHostResponse) TaskResponse {
+	for i := range hosts {
+		hosts[i].ExecutionVersion = taskExecutionVersion(task)
+	}
 	hostCount := len(hosts)
 	successCount := 0
 	failedCount := 0
@@ -4572,6 +5017,9 @@ func (s *DeployService) validateTaskExecutionPlan(task DeployTask, hosts []cmdbH
 }
 
 func (s *DeployService) resolveInstallScript(pkg DeployPackage, task DeployTask) (string, error) {
+	if normalizeTaskAction(task.Action) == TaskActionRetire {
+		return "", errors.New(errDeployTaskTemplateInvalid)
+	}
 	if strings.TrimSpace(pkg.TemplateCode) != "" && pkg.ExecutionMode == ExecutionModeFixed {
 		return renderFixedTemplateScript(pkg, task)
 	}

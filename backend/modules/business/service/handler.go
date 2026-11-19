@@ -1,6 +1,7 @@
 package service
 
 import (
+	"net/http"
 	"strconv"
 
 	"github.com/duanxldragon/pantheon-base/backend/pkg/common"
@@ -47,6 +48,7 @@ func (h *Handler) RegisterRoutes(r gin.IRoutes) {
 	r.DELETE("/applications/:id", h.deleteApplication)
 	r.GET("/services", h.listServices)
 	r.GET("/services/options", h.serviceOptions)
+	r.GET("/services/:id", h.getService)
 	r.POST("/services", h.createService)
 	r.PUT("/services/:id", h.updateService)
 	r.DELETE("/services/:id", h.deleteService)
@@ -175,6 +177,23 @@ func (h *Handler) serviceOptions(c *gin.Context) {
 	common.Success(c, resp)
 }
 
+func (h *Handler) getService(c *gin.Context) {
+	id, ok := parseID(c)
+	if !ok {
+		return
+	}
+	response, err := h.manager.GetServiceDetail(c.Request.Context(), id, common.GetDataScope(c))
+	if err != nil {
+		code := common.CodeError
+		if err.Error() == errServiceNotFound || err.Error() == errApplicationNotFound {
+			code = common.CodeNotFound
+		}
+		common.FailWithError(c, code, err, "request.failed")
+		return
+	}
+	common.Success(c, response)
+}
+
 func (h *Handler) createService(c *gin.Context) {
 	var req CreateServiceRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -199,7 +218,7 @@ func (h *Handler) updateService(c *gin.Context) {
 		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
 		return
 	}
-	resp, err := h.manager.UpdateService(id, req, actor(c), common.GetDataScope(c))
+	resp, err := h.manager.UpdateServiceWithContext(c.Request.Context(), id, req, actor(c), common.GetDataScope(c))
 	if err != nil {
 		fail(c, err, "business.service.service_update_failed")
 		return
@@ -266,13 +285,22 @@ func (h *Handler) updateInstance(c *gin.Context) {
 		return
 	}
 	var req UpdateInstanceRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
+	if err := c.ShouldBindJSON(&req); err != nil || req.ExpectedLifecycleVersion == nil || req.CurrentVersion != nil {
 		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
 		return
 	}
-	resp, err := h.manager.UpdateInstance(id, req, actor(c), common.GetDataScope(c))
+	resp, err := h.manager.UpdateInstanceWithContext(c.Request.Context(), id, req, actor(c), common.GetDataScope(c))
 	if err != nil {
-		fail(c, err, "business.service.instance_update_failed")
+		code := common.CodeError
+		switch err.Error() {
+		case errTargetInvalid:
+			code = common.CodeParamInvalid
+		case errInstanceNotFound, errServiceNotFound, errTargetNotFound:
+			code = common.CodeNotFound
+		case errStateStale, errTargetConflict, "business.service.service_inactive":
+			code = http.StatusConflict
+		}
+		common.FailWithError(c, code, err, "business.service.instance_update_failed")
 		return
 	}
 	common.Success(c, resp)

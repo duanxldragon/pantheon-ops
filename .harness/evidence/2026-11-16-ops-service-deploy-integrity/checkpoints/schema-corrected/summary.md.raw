@@ -1,0 +1,12 @@
+# C01 evidence
+
+Task: 2026-11-16-ops-service-deploy-integrity
+
+
+
+## 2026-11-17T11:23:22.312Z C01 开工检查点
+
+G001 complete；G002-ssh 未完成，steeringStatus=blocked；G003-c01-c04-e01-e03 in_progress，G004 pending，native aggregate goal active。C01 的真实 MySQL CGO race 已复现6个创建/更新关联准入失败，原红灯见 continuation-c01-service-link-red.log 及 receipt.json；实施与验收尚未完成。历史仍为85个对象、24组配对处置（22组新归档＋2组重复live副本保全），本轮无新增归档。此前1197源文件相等仅对应导航候选检查点；新增C01测试/实现后必须重新重建与绑定，不能作为当前工作树等价证明。
+
+
+Red: ../../evidence/2026-11-17-ops-history-audit/continuation-c01-service-link-red.log; unchanged receipt records exit1, CGO_ENABLED=1, -race -count=1 -timeout=10m, disposable MySQL required. No production implementation passed yet. Transaction, reference-race, callback/replay, full race, overlay/rebuild and independent review remain open.

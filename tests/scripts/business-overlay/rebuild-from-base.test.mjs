@@ -55,7 +55,7 @@ test('rebuilds a deterministic Base snapshot with generated business registries'
   const targetRoot = path.join(temp, 'target');
   try {
     fixtureRepository(baseRoot, {
-      'package.json': '{"scripts":{}}\n',
+      'package.json': '{"scripts":{"test:scripts":"node --test tests/scripts/*.test.mjs","test:release-gate-workflow":"node --test tests/scripts/release-gate-workflow.test.mjs","test:ci-bench-perf-smoke-workflow":"node --test tests/scripts/ci-bench-perf-smoke-workflow.test.mjs"}}\n',
       'frontend/package.json': '{"scripts":{}}\n',
       'frontend/tests/smoke/README.md': '# Smoke\n',
       'frontend/scripts/cleanup-generated-modules.mjs': [
@@ -95,6 +95,8 @@ test('rebuilds a deterministic Base snapshot with generated business registries'
       'frontend/src/i18n/resources/en-US.ts': 'const enUSFallback = {};\nexport default enUSFallback;\n',
       'docs/base-only.md': 'base docs\n',
       'scripts/foundation-release/publish.mjs': 'throw new Error();\n',
+      'tests/scripts/release-gate-workflow.test.mjs': 'producer-only release test\n',
+      'tests/scripts/ci-bench-perf-smoke-workflow.test.mjs': 'producer-only benchmark test\n',
     });
     const manifest = {
       schemaVersion: 1,
@@ -102,10 +104,10 @@ test('rebuilds a deterministic Base snapshot with generated business registries'
       sourceModule: 'pantheon-ops/backend',
       goDependencies: { 'gorm.io/datatypes': 'v1.2.7' },
       replaceRoots: ['docs'],
-      baseExcludedPaths: ['scripts/foundation-release'],
+      baseExcludedPaths: ['scripts/foundation-release', 'tests/scripts/release-gate-workflow.test.mjs', 'tests/scripts/ci-bench-perf-smoke-workflow.test.mjs'],
       businessPaths: ['backend/modules/business/cmdb', 'frontend/src/modules/business/cmdb'],
       businessMigrations: ['backend/modules/business/cmdb/host/migrations/000032_backfill.up.sql', 'backend/modules/business/cmdb/host/migrations/000032_backfill.down.sql'],
-      repositoryOverlayPaths: ['scripts/business-overlay'],
+      repositoryOverlayPaths: ['scripts/business-overlay', '.harness'],
       backendModules: [{ alias: 'cmdb', importPath: 'pantheon-base/modules/business/cmdb', init: 'InitCmdbModule' }],
       frontendModules: [{ export: 'CmdbModule', importPath: './business/cmdb' }],
       components: [{ key: 'business/cmdb/CmdbList', importPath: '../../modules/business/cmdb/CmdbList' }],
@@ -127,9 +129,14 @@ test('rebuilds a deterministic Base snapshot with generated business registries'
       'frontend/src/modules/business/cmdb/locales/zh-CN.json': '{"business.cmdb.title":"CMDB"}\n',
       'frontend/tests/smoke/business/cmdb/pages.spec.ts': 'export {};\n',
       'scripts/business-overlay/rebuild-from-base.mjs': '// fixture\n',
+      '.harness/evidence/history/commands.json': '{"original":"preserved"}\n',
     });
-
+    const archivePath = '.harness/archive/2026-11/evidence/history/commands.json';
+    fs.mkdirSync(path.dirname(path.join(opsRoot, archivePath)), { recursive: true });
+    fs.renameSync(path.join(opsRoot, '.harness/evidence/history/commands.json'), path.join(opsRoot, archivePath));
     const first = rebuildFixture({ opsRoot, baseRoot, targetRoot });
+    assert.equal(fs.existsSync(path.join(targetRoot, '.harness/evidence/history/commands.json')), false);
+    assert.equal(fs.readFileSync(path.join(targetRoot, archivePath), 'utf8'), '{"original":"preserved"}\n');
     const firstReport = fs.readFileSync(path.join(targetRoot, '.business-overlay-report.json'), 'utf8');
     assert.equal(fs.readFileSync(path.join(targetRoot, 'backend/pkg/database/migrations/000031_foundation.up.sql'), 'utf8'), 'SELECT 31;\n');
     for (const direction of ['up', 'down']) {
@@ -170,6 +177,14 @@ test('rebuilds a deterministic Base snapshot with generated business registries'
     assert.equal(fs.readFileSync(path.join(targetRoot, 'backend/modules/business/business_overlay_registry.go'), 'utf8'), overlayRegistry);
     assert.equal(fs.existsSync(path.join(targetRoot, 'docs/base-only.md')), false);
     assert.equal(fs.existsSync(path.join(targetRoot, 'scripts/foundation-release/publish.mjs')), false);
+    const rootScripts = JSON.parse(fs.readFileSync(path.join(targetRoot, 'package.json'), 'utf8')).scripts;
+    assert.equal(rootScripts['test:scripts'], 'node --test tests/scripts/*.test.mjs');
+    for (const name of ['test:release-gate-workflow', 'test:ci-bench-perf-smoke-workflow']) {
+      assert.equal(Object.hasOwn(rootScripts, name), false, 'consumer must not revive a producer-only test command');
+    }
+    for (const file of ['tests/scripts/release-gate-workflow.test.mjs', 'tests/scripts/ci-bench-perf-smoke-workflow.test.mjs']) {
+      assert.equal(fs.existsSync(path.join(targetRoot, file)), false, 'consumer must exclude the retired producer test');
+    }
     assert.equal(checkOverlay(opsRoot).status, 0, checkOverlay(opsRoot).stderr);
     assert.equal(checkOverlay(targetRoot).status, 0, checkOverlay(targetRoot).stderr);
     const second = rebuildFixture({ opsRoot, baseRoot, targetRoot });
@@ -181,6 +196,9 @@ test('rebuilds a deterministic Base snapshot with generated business registries'
     ], { encoding: 'utf8' });
     assert.equal(drift.status, 0, drift.stderr);
     assert.match(drift.stdout, /2 derived business migrations verified/u);
+    write(opsRoot, 'business-overlay.json', JSON.stringify({ ...manifest, repositoryOverlayPaths: [...manifest.repositoryOverlayPaths, '.harness/evidence/history/commands.json'] }));
+    assert.throws(() => rebuildFixture({ opsRoot, baseRoot, targetRoot }), /Declared overlay path does not exist/u);
+    write(opsRoot, 'business-overlay.json', JSON.stringify(manifest));
     write(opsRoot, 'backend/modules/business/cmdb/broken.go', 'package cmdb\nimport _ "gorm.io/datatypes/missing"\n');
     assert.throws(() => rebuildFixture({ opsRoot, baseRoot, targetRoot }), /Cannot normalize consumer Go dependencies/u);
     assert.equal(fs.existsSync(path.join(targetRoot, '.business-overlay-report.json')), false);

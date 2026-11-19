@@ -1,6 +1,10 @@
 package argocd
 
 import (
+	"errors"
+	"fmt"
+	"log/slog"
+	"net/http"
 	"strconv"
 
 	"github.com/duanxldragon/pantheon-base/backend/pkg/common"
@@ -330,7 +334,7 @@ func (h *ArgoCDHandler) SyncApplication(c *gin.Context) {
 
 	resp, err := h.service.SyncApplication(id, req.Revision)
 	if err != nil {
-		common.FailWithError(c, common.CodeError, err, "cicd.argocd.app_sync_failed")
+		failSyncAction(c, err, appSyncFailedKey)
 		return
 	}
 	common.Success(c, resp)
@@ -368,10 +372,27 @@ func (h *ArgoCDHandler) RollbackApplication(c *gin.Context) {
 
 	resp, err := h.service.RollbackApplication(id, req.Revision)
 	if err != nil {
-		common.FailWithError(c, common.CodeError, err, "cicd.argocd.app_rollback_failed")
+		failSyncAction(c, err, "cicd.argocd.app_rollback_failed")
 		return
 	}
 	common.Success(c, resp)
+}
+
+func failSyncAction(c *gin.Context, err error, fallback string) {
+	message := common.ResolveErrorMessageKey(err, fallback)
+	if errors.Is(err, common.ErrForbidden) || errors.Is(err, common.ErrUnauthorized) || errors.Is(err, common.ErrBadRequest) || errors.Is(err, common.ErrNotFound) {
+		common.Fail(c, common.CodeForError(err), message)
+		return
+	}
+	switch key := common.ErrMessage(err); key {
+	case "business.cicd.application.syncInProgress", "business.cicd.application.sourceChanged":
+		common.FailWithCode(c, http.StatusConflict, key)
+	default:
+		if message == fallback {
+			slog.Error("ArgoCD sync request failed", "subsystem", "business.cicd.application", "error_type", fmt.Sprintf("%T", err))
+		}
+		common.Fail(c, common.CodeForError(err), message)
+	}
 }
 
 // GetSyncHistory returns the recorded sync operations of the application identified by the path id.

@@ -17,7 +17,6 @@ import (
 	"github.com/duanxldragon/pantheon-base/backend/pkg/tenant"
 	"github.com/duanxldragon/pantheon-base/backend/pkg/testmysql"
 	"github.com/gin-gonic/gin"
-	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
 )
 
@@ -61,13 +60,10 @@ func newQueryTestRouter(t *testing.T, db *gorm.DB, service *DatasourceService, o
 	if err := RegisterQueryPolicies(); err != nil {
 		t.Fatal(err)
 	}
-	rdb := redis.NewClient(&redis.Options{Addr: "127.0.0.1:26316"})
-	if rdb.Ping(context.Background()).Err() != nil {
-		t.Fatal("required Redis unavailable")
-	}
+	rdb := openQueryTestRedis(t)
 	old := database.RDB
 	database.RDB = rdb
-	t.Cleanup(func() { database.RDB = old; _ = rdb.Close() })
+	t.Cleanup(func() { database.RDB = old })
 	if err := db.AutoMigrate(&QueryHistory{}, &SavedView{}, &QueryOwnerBudget{}); err != nil {
 		t.Fatal(err)
 	}

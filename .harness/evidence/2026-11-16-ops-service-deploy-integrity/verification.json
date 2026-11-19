@@ -1,0 +1,156 @@
+{
+  "taskId": "2026-11-16-ops-service-deploy-integrity",
+  "repo": "pantheon-ops",
+  "updatedAt": "2026-11-17T16:36:01Z",
+  "status": "targeted-passed-review-pending",
+  "taskAcceptanceApproved": false,
+  "archiveApproved": false,
+  "sourceManifest": ".harness/evidence/2026-11-16-ops-service-deploy-integrity/source-manifest.json",
+  "linkage": {
+    "taskManifest": ".harness/tasks/2026-11-16-ops-service-deploy-integrity/manifest.json",
+    "evidenceDir": ".harness/evidence/2026-11-16-ops-service-deploy-integrity/",
+    "reviewFile": ".harness/evidence/2026-11-16-ops-service-deploy-integrity/review.md",
+    "changeRef": "none",
+    "planRefs": [
+      ".harness/tasks/2026-11-16-ops-service-deploy-integrity/continuation-plan.md",
+      ".harness/tasks/2026-11-16-ops-pilot-delivery/plan.md"
+    ]
+  },
+  "green": {
+    "log": ".harness/evidence/2026-11-17-ops-history-audit/continuation-c01-owned-resume-final-settlement-fixed.log",
+    "receipt": {
+      "finishedAt": "2026-11-17T16:06:47.3503572Z",
+      "testDsnRequired": "1",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\backend",
+      "args": [
+        "test",
+        "-race",
+        "-count=1",
+        "-timeout=10m",
+        "./modules/business/deploy",
+        "-v",
+        "-run",
+        "^TestWorkerHandoff|^TestCancellationUnclaimed|^TestControlTransitionsRecordEvents$|^TestDeployTaskRoutesServiceInstanceStateThroughTypedCommand$|^TestServiceLinkControlSupersededCancellationRemainsLive$"
+      ],
+      "startedAt": "2026-11-17T16:05:53.5560039Z",
+      "cgoEnabled": "1",
+      "log": "continuation-c01-owned-resume-final-settlement-fixed.log",
+      "disposableMySQL": true,
+      "exitCode": 0,
+      "goFlags": "-p=1 -mod=readonly"
+    },
+    "topLevelTestsPassed": 18,
+    "tests": [
+      "TestCancellationUnclaimedRecoveryRollsBackAndReplays",
+      "TestCancellationUnclaimedRecoveryWaitsForLiveOwner",
+      "TestCancellationUnclaimedWorkerDrainSettlesAndReplays",
+      "TestCancellationUnclaimedWorkerDrainPreservesSupersededOwner",
+      "TestCancellationUnclaimedWorkerDrainPauseResumeHandoff",
+      "TestDeployTaskRoutesServiceInstanceStateThroughTypedCommand",
+      "TestControlTransitionsRecordEvents",
+      "TestServiceLinkControlSupersededCancellationRemainsLive",
+      "TestWorkerHandoffFixtureWaitsForFinalSettlement",
+      "TestWorkerHandoffOwnedPauseResumeDispatch",
+      "TestWorkerHandoffOwnedPauseResumeAsyncDispatch",
+      "TestWorkerHandoffOwnedPauseResumeCancel",
+      "TestWorkerHandoffOwnedPauseResumeSuperseded",
+      "TestWorkerHandoffOwnedPauseResumeForeignLease",
+      "TestWorkerHandoffOwnedPauseResumeForeignAttempt",
+      "TestWorkerHandoffReservationRetirementOrders",
+      "TestWorkerHandoffManualResumeDoesNotCreateWorker",
+      "TestWorkerHandoffPendingReadPreservesDatabaseError"
+    ],
+    "packageSeconds": 43.248,
+    "logChecks": {
+      "patterns": [
+        "1213",
+        "ERROR",
+        "DATA RACE"
+      ],
+      "matchingLines": 0
+    },
+    "scope": "Targeted worker cancellation and pause/Resume handoff; not full backend race."
+  },
+  "red": {
+    "log": ".harness/evidence/2026-11-17-ops-history-audit/continuation-c01-worker-final-settlement-red.log",
+    "receipt": {
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\backend",
+      "exitCode": 1,
+      "startedAt": "2026-11-17T15:28:42.2973145Z",
+      "goFlags": "-p=1 -mod=readonly",
+      "disposableMySQL": true,
+      "cgoEnabled": "1",
+      "testDsnRequired": "1",
+      "finishedAt": "2026-11-17T15:28:55.8103396Z",
+      "log": "continuation-c01-worker-final-settlement-red.log",
+      "args": [
+        "test",
+        "-race",
+        "-count=1",
+        "-timeout=10m",
+        "./modules/business/deploy",
+        "-v",
+        "-run",
+        "^TestWorkerHandoffFixtureWaitsForFinalSettlement$"
+      ]
+    },
+    "packageSeconds": 1.035,
+    "failure": "fixture cleanup returned while final settlement commit reply was pending"
+  },
+  "ownedHandoffRed": {
+    "log": ".harness/evidence/2026-11-17-ops-history-audit/continuation-c01-owned-resume-handoff-red.log",
+    "receipt": {
+      "args": [
+        "test",
+        "-race",
+        "-count=1",
+        "-timeout=10m",
+        "./modules/business/deploy",
+        "-v",
+        "-run",
+        "^TestWorkerHandoffOwnedPauseResumeDispatch$"
+      ],
+      "startedAt": "2026-11-17T14:55:51.3945514Z",
+      "exitCode": 1,
+      "log": "continuation-c01-owned-resume-handoff-red.log",
+      "goFlags": "-p=1 -mod=readonly",
+      "testDsnRequired": "1",
+      "disposableMySQL": true,
+      "finishedAt": "2026-11-17T14:56:10.5173279Z",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\backend",
+      "cgoEnabled": "1"
+    },
+    "failure": "pending Resume replacement never entered without queue recovery"
+  },
+  "precedingAttempts": {
+    "firstFixedLog": ".harness/evidence/2026-11-17-ops-history-audit/continuation-c01-owned-resume-handoff-first-fixed.log",
+    "firstFixedSourceBound": false,
+    "narrowFixedLog": ".harness/evidence/2026-11-17-ops-history-audit/continuation-c01-owned-resume-handoff-guard-fixed.log",
+    "narrowFixedHadSettlement1213": true,
+    "innodbSnapshot": ".harness/evidence/2026-11-17-ops-history-audit/continuation-c01-handoff-innodb-deadlock.log",
+    "innodbWaitCycleCaptured": false,
+    "metadataLockDiagnosis": "Source-supported teardown hypothesis; no actual metadata wait cycle captured. Final whole-worker cleanup gate has no 1213."
+  },
+  "validatedBehaviour": [
+    "Cancel-before-claim settles without queue recovery and preserves superseded Service owner facts.",
+    "Owned pause ACK followed by synchronous or actual async Resume starts a successor without recovery; the paused attempt is preserved and the attempt number increments exactly once.",
+    "Captured pending dispatch rechecks running/SSH/unfinished intent, Service frozen snapshot and live attempt/foreign physical lease guards in a fenced transaction before dispatch.",
+    "Cancel, superseding Service intent and foreign live ownership prevent new remote execution and preserve owner facts.",
+    "Manual Resume creates no worker or cancellation; database admission failure remains an error.",
+    "Whole-worker done closes only after final settlement/deferred cleanup; fixture cleanup waits old and successor workers before database teardown."
+  ],
+  "evidenceBoundaries": [
+    "Retirement primitive tests fix both operation orders with a retained stale pointer; they do not freeze the LoadOrStore-to-mutex instruction interval.",
+    "Process-local reservation is not a cross-process mutex; existing persisted lease fencing and queue recovery remain responsible for cross-process protection.",
+    "The source manifest binds the frozen Deploy package checkpoint, not the full Service-owner dependency graph or official rebuilt tree."
+  ],
+  "independentCodeReview": "pending",
+  "independentArchitectureReview": "pending",
+  "remainingGaps": [
+    "Inherited Retire lifecycle/command/projection WATCH remains open; Retire is not uninstall.",
+    "Fresh full backend CGO race after all final source changes.",
+    "Final official v0.18.9 rebuild/overlay/drift and complete source binding after all lanes stabilize.",
+    "Current binary/API acceptance, desktop/mobile rendering and final maintainer acceptance.",
+    "SSH formal upstream publication/consumption and external-provider/production gates remain open."
+  ]
+}
