@@ -39,6 +39,7 @@ func InitCmdbModule(r *gin.RouterGroup, db *gorm.DB, readers ...bizcap.BizScopeR
 		contracts.FuncModule{
 			ModuleName:    "business.cmdb.host",
 			MigrateFunc:   func(db *gorm.DB) error { return hostSvc.Migrate() },
+			BootstrapFunc: func(db *gorm.DB) error { return hostSvc.Migrate() },
 			SeedMenusFunc: seedHostMenus,
 			SeedI18nFunc:  seedHostI18n,
 			Register: func(r *gin.RouterGroup) {
@@ -49,6 +50,7 @@ func InitCmdbModule(r *gin.RouterGroup, db *gorm.DB, readers ...bizcap.BizScopeR
 		contracts.FuncModule{
 			ModuleName:    "business.cmdb.group",
 			MigrateFunc:   func(db *gorm.DB) error { return groupSvc.Migrate() },
+			BootstrapFunc: func(db *gorm.DB) error { return groupSvc.Migrate() },
 			SeedMenusFunc: seedGroupMenus,
 			SeedI18nFunc:  seedGroupI18n,
 			Register: func(r *gin.RouterGroup) {
@@ -59,6 +61,7 @@ func InitCmdbModule(r *gin.RouterGroup, db *gorm.DB, readers ...bizcap.BizScopeR
 		contracts.FuncModule{
 			ModuleName:    "business.cmdb.label",
 			MigrateFunc:   func(db *gorm.DB) error { return labelSvc.Migrate() },
+			BootstrapFunc: func(db *gorm.DB) error { return labelSvc.Migrate() },
 			SeedMenusFunc: seedLabelMenus,
 			SeedI18nFunc:  seedLabelI18n,
 			Register: func(r *gin.RouterGroup) {

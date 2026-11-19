@@ -23,6 +23,7 @@ func InitServiceModule(r *gin.RouterGroup, db *gorm.DB, deps Dependencies) Reade
 	contracts.RegisterBackendModules(r, db, contracts.FuncModule{
 		ModuleName:    serviceModuleKey,
 		MigrateFunc:   func(_ *gorm.DB) error { return manager.Migrate() },
+		BootstrapFunc: func(_ *gorm.DB) error { return manager.Migrate() },
 		SeedMenusFunc: seedMenus,
 		SeedI18nFunc:  seedI18n,
 		Register: func(r *gin.RouterGroup) {

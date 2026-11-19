@@ -135,6 +135,9 @@ func InitK8sModule(r *gin.RouterGroup, db *gorm.DB, hostService *host.HostServic
 		MigrateFunc: func(_ *gorm.DB) error {
 			return migrateAll(db, clusterSvc, namespaceSvc, releaseSvc, helmSvc, ingressSvc, storageSvc, rbacSvc, installSvc)
 		},
+		BootstrapFunc: func(_ *gorm.DB) error {
+			return migrateAll(db, clusterSvc, namespaceSvc, releaseSvc, helmSvc, ingressSvc, storageSvc, rbacSvc, installSvc)
+		},
 		SeedMenusFunc: seedMenus,
 		SeedI18nFunc:  seedI18n,
 		Register: func(r *gin.RouterGroup) {

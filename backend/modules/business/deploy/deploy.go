@@ -76,6 +76,7 @@ func initDeployModule(r *gin.RouterGroup, db *gorm.DB, cmdbCapability cmdb.Deplo
 		contracts.FuncModule{
 			ModuleName:    "business.deploy",
 			MigrateFunc:   func(db *gorm.DB) error { return svc.Migrate() },
+			BootstrapFunc: func(db *gorm.DB) error { return svc.Migrate() },
 			SeedMenusFunc: seedDeployMenus,
 			SeedI18nFunc:  seedDeployI18n,
 			Register: func(r *gin.RouterGroup) {
