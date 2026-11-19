@@ -1,0 +1,36 @@
+{
+  "timestamp": "2026-11-18T06:16:58.022Z",
+  "notePath": ".local/manual-preview-20261116/checkpoint-20261118-retire-shared-transaction-final.md",
+  "noteSHA256": "faafbbfea2b7ec8ad2e3c890f2d5cdd35063ce6f01264172662cdd677d147dde",
+  "historicalObjects": 85,
+  "newArchiveGroupsThisCheckpoint": 0,
+  "cumulativeNewArchiveGroups": 22,
+  "preservedDuplicateLiveGroups": 2,
+  "aggregateGoalStatus": "blocked",
+  "originals": [
+    {
+      "file": ".harness/STATUS.md",
+      "backup": ".harness/evidence/2026-11-17-ops-history-audit/continuation-progress-retire-shared-transaction-final-20261118-originals/.harness/STATUS.md.raw",
+      "beforeSHA256": "44849abc992d5bff10be7dd82c4d13438933f38f93b38425843d0540147e420d",
+      "afterSHA256": "b123256ad9a5d561d83714e21bec1c8ecaa7a91a3ab7771d51f54fd9bacc997b"
+    },
+    {
+      "file": ".harness/evidence/2026-11-17-ops-history-audit/progress.md",
+      "backup": ".harness/evidence/2026-11-17-ops-history-audit/continuation-progress-retire-shared-transaction-final-20261118-originals/.harness/evidence/2026-11-17-ops-history-audit/progress.md.raw",
+      "beforeSHA256": "84c26fac5389c4a500e25a4b6e8e14b70d6122379f7033d3e15ec234e7febff4",
+      "afterSHA256": "de1246866673fb527826d28b23cd3dce47fa87c40a3a9edfcb511215fbb0fac7"
+    },
+    {
+      "file": ".harness/evidence/2026-11-17-ops-history-audit/summary.md",
+      "backup": ".harness/evidence/2026-11-17-ops-history-audit/continuation-progress-retire-shared-transaction-final-20261118-originals/.harness/evidence/2026-11-17-ops-history-audit/summary.md.raw",
+      "beforeSHA256": "e3c1263a2a02f23c0fbf0e46f902ec1ba65864c00d85da47c933c6c457dd3243",
+      "afterSHA256": "2a2bc0a5146a3f8654eef7827dcc33a3fe6a5d4e63f861fdd60de8948ac88c07"
+    },
+    {
+      "file": ".harness/tasks/2026-11-16-ops-pilot-delivery/OPEN_TASKS.md",
+      "backup": ".harness/evidence/2026-11-17-ops-history-audit/continuation-progress-retire-shared-transaction-final-20261118-originals/.harness/tasks/2026-11-16-ops-pilot-delivery/OPEN_TASKS.md.raw",
+      "beforeSHA256": "66b87165ff942781cba9cd8a76b5429fa261a54a60e763912837fb51a23a7342",
+      "afterSHA256": "f40060d5b35c3c3b949e2edb0832af0123d92fc8c84c7c9fcf2948c88fb567e8"
+    }
+  ]
+}

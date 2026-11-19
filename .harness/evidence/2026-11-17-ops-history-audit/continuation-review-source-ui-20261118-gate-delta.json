@@ -1,0 +1,43 @@
+{
+  "at": "2026-11-17T17:07:54.290Z",
+  "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+  "results": [
+    {
+      "gate": "task",
+      "beforePath": ".harness/evidence/2026-11-17-ops-history-audit/continuation-current-task.json",
+      "afterPath": ".harness/evidence/2026-11-17-ops-history-audit/continuation-review-source-ui-20261118-task.json",
+      "beforeCount": 547,
+      "afterCount": 547,
+      "added": [],
+      "removed": []
+    },
+    {
+      "gate": "evidence",
+      "beforePath": ".harness/evidence/2026-11-17-ops-history-audit/continuation-current-evidence.json",
+      "afterPath": ".harness/evidence/2026-11-17-ops-history-audit/continuation-review-source-ui-20261118-evidence.json",
+      "beforeCount": 129,
+      "afterCount": 129,
+      "added": [],
+      "removed": []
+    },
+    {
+      "gate": "review",
+      "beforePath": ".harness/evidence/2026-11-17-ops-history-audit/continuation-current-review.json",
+      "afterPath": ".harness/evidence/2026-11-17-ops-history-audit/continuation-review-source-ui-20261118-review.json",
+      "beforeCount": 91,
+      "afterCount": 91,
+      "added": [],
+      "removed": []
+    },
+    {
+      "gate": "links",
+      "beforePath": ".harness/evidence/2026-11-17-ops-history-audit/continuation-current-links.json",
+      "afterPath": ".harness/evidence/2026-11-17-ops-history-audit/continuation-review-source-ui-20261118-links.json",
+      "beforeCount": 6,
+      "afterCount": 6,
+      "added": [],
+      "removed": []
+    }
+  ],
+  "boundary": "Full checks remain authoritative; this delta does not waive existing failures."
+}

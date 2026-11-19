@@ -1,0 +1,161 @@
+{
+  "startedAt": "2026-11-17T16:34:59.760Z",
+  "finishedAt": "2026-11-17T16:35:58.747Z",
+  "executable": "D:\\nodejs\\node.exe",
+  "args": [
+    "--import=file:///D:/workspace/go/pantheon-platform/pantheon-ops/.local/manual-preview-20261116/hide-child-windows.mjs",
+    "node_modules/@playwright/test/cli.js",
+    "test",
+    "tests/smoke/business/k8s/k8s-pages.spec.ts",
+    "--config=playwright.config.ts",
+    "--grep",
+    "C04 Kubernetes Service UI contract",
+    "--reporter=line",
+    "--output=../.harness/evidence/2026-11-17-ops-history-audit/continuation-c04-ui-locale-refreshed-first-artifacts"
+  ],
+  "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\frontend",
+  "exitCode": 0,
+  "errorCode": null,
+  "sourceUnchanged": true,
+  "sourcesBefore": [
+    {
+      "file": "frontend/src/modules/business/k8s/api.ts",
+      "sha256": "d3d6a25a9863cf5c7532318bc4e2ef49cb8e4bcb1f382e0c524a6803425d7c2d"
+    },
+    {
+      "file": "frontend/src/modules/business/k8s/service/ServiceList.tsx",
+      "sha256": "e45baa66c1a71c463145edb9c22c0599a89d909b92a79d6a41e788af326a02c1"
+    },
+    {
+      "file": "frontend/src/modules/business/k8s/service/ServiceEditor.tsx",
+      "sha256": "c459d7748fad4faf0a899608ae7e6e6be11ce9ebfb778bcede6c0fe852c6dcf5"
+    },
+    {
+      "file": "frontend/src/modules/business/k8s/service/serviceDraft.ts",
+      "sha256": "a537a941695469d3001a46ef39c3e01a81afc26bc2826bda289fc238bdbfb522"
+    },
+    {
+      "file": "frontend/src/modules/business/k8s/service/service-editor.css",
+      "sha256": "e4365e2e6929efeb3dd7b160cb4a4faf2d69902a90e3768066b053ca5bca030a"
+    },
+    {
+      "file": "frontend/tests/smoke/business/k8s/k8s-pages.spec.ts",
+      "sha256": "86f12b9e702ac347bba6852d008e5890e665ba73c616f5035ff1323608cd4e4d"
+    },
+    {
+      "file": "docs/designs/BUSINESS_ERROR_SEMANTICS_APPENDIX.md",
+      "sha256": "ab7ca8b39a71328bcbc265a58ceaff0bcbf7d38e2a42b9a4532435b853bc4d4d"
+    },
+    {
+      "file": "frontend/src/modules/business/v12locales/zh-CN.json",
+      "sha256": "227775201f7ef0600efa9bbeecaa59987755af373bd5f55aea69fb3568f9a497"
+    },
+    {
+      "file": "frontend/src/modules/business/v12locales/en-US.json",
+      "sha256": "d26f80a51a58ab04365a41303131ea3afb4eb582d4f224a82eeaed1c3097c7cb"
+    },
+    {
+      "file": "frontend/src/modules/business/v12locales/ja-JP.json",
+      "sha256": "ff1c96664e32767092497bbb65bbc953fceb804bcaf3db26c34391c98573ff66"
+    },
+    {
+      "file": "frontend/src/modules/business/v12locales/ko-KR.json",
+      "sha256": "ea55b0eb1e03caa62668b7cdbd19645c73b372c74454e68200d6cc3eb133ecf8"
+    },
+    {
+      "file": "frontend/src/modules/business/v12locales/fr-FR.json",
+      "sha256": "94405937f248745cf252d5f7a4f46878f9b6402a6dfa76f6f89fdb2b6702fb9f"
+    },
+    {
+      "file": "frontend/src/i18n/resources/business/zh-CN.ts",
+      "sha256": "8afaf31a4802897c811033b3d455cc9dcf178a925a26249db542ff572005cb6b"
+    },
+    {
+      "file": "frontend/src/i18n/resources/business/en-US.ts",
+      "sha256": "b23daa06a55d7456903f0f634e12571c4895daa101f319bcc307587bf836502d"
+    },
+    {
+      "file": "frontend/src/i18n/resources/business/ja-JP.ts",
+      "sha256": "428a8832aa32a19d5309dd0656829386eb9ad64d657ffed1040d207ce707253d"
+    },
+    {
+      "file": "frontend/src/i18n/resources/business/ko-KR.ts",
+      "sha256": "8805f78453d00c46f4b256c432966b406f953cab00fdab4fb52a8ab99cc228e5"
+    },
+    {
+      "file": "frontend/src/i18n/resources/business/fr-FR.ts",
+      "sha256": "fd1d3089f4798928d070277d85dc8c64fdd2256249de92a2fae790aaf1168768"
+    }
+  ],
+  "sourcesAfter": [
+    {
+      "file": "frontend/src/modules/business/k8s/api.ts",
+      "sha256": "d3d6a25a9863cf5c7532318bc4e2ef49cb8e4bcb1f382e0c524a6803425d7c2d"
+    },
+    {
+      "file": "frontend/src/modules/business/k8s/service/ServiceList.tsx",
+      "sha256": "e45baa66c1a71c463145edb9c22c0599a89d909b92a79d6a41e788af326a02c1"
+    },
+    {
+      "file": "frontend/src/modules/business/k8s/service/ServiceEditor.tsx",
+      "sha256": "c459d7748fad4faf0a899608ae7e6e6be11ce9ebfb778bcede6c0fe852c6dcf5"
+    },
+    {
+      "file": "frontend/src/modules/business/k8s/service/serviceDraft.ts",
+      "sha256": "a537a941695469d3001a46ef39c3e01a81afc26bc2826bda289fc238bdbfb522"
+    },
+    {
+      "file": "frontend/src/modules/business/k8s/service/service-editor.css",
+      "sha256": "e4365e2e6929efeb3dd7b160cb4a4faf2d69902a90e3768066b053ca5bca030a"
+    },
+    {
+      "file": "frontend/tests/smoke/business/k8s/k8s-pages.spec.ts",
+      "sha256": "86f12b9e702ac347bba6852d008e5890e665ba73c616f5035ff1323608cd4e4d"
+    },
+    {
+      "file": "docs/designs/BUSINESS_ERROR_SEMANTICS_APPENDIX.md",
+      "sha256": "ab7ca8b39a71328bcbc265a58ceaff0bcbf7d38e2a42b9a4532435b853bc4d4d"
+    },
+    {
+      "file": "frontend/src/modules/business/v12locales/zh-CN.json",
+      "sha256": "227775201f7ef0600efa9bbeecaa59987755af373bd5f55aea69fb3568f9a497"
+    },
+    {
+      "file": "frontend/src/modules/business/v12locales/en-US.json",
+      "sha256": "d26f80a51a58ab04365a41303131ea3afb4eb582d4f224a82eeaed1c3097c7cb"
+    },
+    {
+      "file": "frontend/src/modules/business/v12locales/ja-JP.json",
+      "sha256": "ff1c96664e32767092497bbb65bbc953fceb804bcaf3db26c34391c98573ff66"
+    },
+    {
+      "file": "frontend/src/modules/business/v12locales/ko-KR.json",
+      "sha256": "ea55b0eb1e03caa62668b7cdbd19645c73b372c74454e68200d6cc3eb133ecf8"
+    },
+    {
+      "file": "frontend/src/modules/business/v12locales/fr-FR.json",
+      "sha256": "94405937f248745cf252d5f7a4f46878f9b6402a6dfa76f6f89fdb2b6702fb9f"
+    },
+    {
+      "file": "frontend/src/i18n/resources/business/zh-CN.ts",
+      "sha256": "8afaf31a4802897c811033b3d455cc9dcf178a925a26249db542ff572005cb6b"
+    },
+    {
+      "file": "frontend/src/i18n/resources/business/en-US.ts",
+      "sha256": "b23daa06a55d7456903f0f634e12571c4895daa101f319bcc307587bf836502d"
+    },
+    {
+      "file": "frontend/src/i18n/resources/business/ja-JP.ts",
+      "sha256": "428a8832aa32a19d5309dd0656829386eb9ad64d657ffed1040d207ce707253d"
+    },
+    {
+      "file": "frontend/src/i18n/resources/business/ko-KR.ts",
+      "sha256": "8805f78453d00c46f4b256c432966b406f953cab00fdab4fb52a8ab99cc228e5"
+    },
+    {
+      "file": "frontend/src/i18n/resources/business/fr-FR.ts",
+      "sha256": "fd1d3089f4798928d070277d85dc8c64fdd2256249de92a2fae790aaf1168768"
+    }
+  ],
+  "boundary": "Real local login and live frontend; business API data and browser role responses mocked. Does not prove live provider or actual role admission."
+}

@@ -1,0 +1,107 @@
+{
+  "schema": "pantheon.independent-review.v1",
+  "taskId": "2026-11-16-ops-filedist-product-closure",
+  "reviewer": "/root/e01_e02_independent_review",
+  "round": "ui-round1",
+  "reviewedAtUTC": "2026-11-18T07:51:03Z",
+  "verdict": "REQUEST CHANGES",
+  "filesReviewed": 7,
+  "severityCounts": {
+    "CRITICAL": 0,
+    "HIGH": 0,
+    "MEDIUM": 2,
+    "LOW": 0
+  },
+  "candidate": {
+    "status": "historical-final02",
+    "receipt": ".harness/evidence/2026-11-16-ops-filedist-product-closure/ui-final-verification-20261118-02.json",
+    "receiptVerifiedAtUTC": "2026-11-18T07:43:39.5189970Z",
+    "hashOrigin": "Recorded sourceBefore/sourceAfter final02; not independently rehashed during later edits",
+    "receiptSourceUnchanged": true,
+    "wholeTreeStabilityClaimed": false,
+    "sourceSHA256": {
+      "frontend/src/modules/business/filedist/api.ts": "3d417008d14ee2d8f199cecee76d017dd171481e1032546baee279f1c787c88f",
+      "frontend/src/modules/business/filedist/createTaskPayload.ts": "e479cf0fec6897f6851b30dd4e0e45c7c19d7677c94b572c4e5252ffa1ee7e95",
+      "frontend/src/modules/business/filedist/taskState.ts": "14d31aa7be0b64dd27b42619297dabb507adfab027ef3e6c1c47b56e62df4cc3",
+      "frontend/src/modules/business/filedist/useTaskDetail.ts": "72c5891d5765c6154071fee36e1c47053b0a47125023f1c6cfaf0f88d685dde7",
+      "frontend/src/modules/business/filedist/FiledistList.tsx": "505ffa920874eec1bbe060b6179504f14da9660288d3fd2889e02fdd1a3f5847",
+      "frontend/src/modules/business/filedist/FiledistDetail.tsx": "592da075658906b6e40dafc49c1364275b5d122e6734bd85394265bf6b7ba1ba",
+      "frontend/src/modules/business/filedist/filedist.css": "0099f2cc83b247069fa784eaedb3aa7b87eb15229d2462cb1a623aaac022c2df"
+    }
+  },
+  "issues": [
+    {
+      "id": "E01-UI-R1",
+      "severity": "MEDIUM",
+      "file": "frontend/src/modules/business/filedist/useTaskDetail.ts",
+      "line": 51,
+      "relatedLine": 76,
+      "issue": "Promise.all early rejection allows subsequent poll before siblings settle",
+      "fix": "Await complete batch settlement while retaining failure then schedule poll",
+      "regressionRequired": "Early endpoint failure and pending sibling forbid next poll before settlement"
+    },
+    {
+      "id": "E01-UI-R2",
+      "severity": "MEDIUM",
+      "file": "frontend/src/modules/business/filedist/FiledistList.tsx",
+      "line": 147,
+      "relatedLines": [
+        125,
+        169,
+        248,
+        260,
+        272,
+        603,
+        671
+      ],
+      "issue": "Manual/post-mutation loads bypass current effect ownership; old query closure overwrites newer results",
+      "fix": "Unify query generation/controller across initial/filter/pagination/retry/mutation/poll",
+      "regressionRequired": "Late old-query success/error cannot affect new query; manual and polling coordinate"
+    }
+  ],
+  "verification": {
+    "independentFixtureRun": false,
+    "reasonNotRun": "Historical candidate under active amendment",
+    "centralFinal02": {
+      "eslintExitCode": 0,
+      "applicationTypecheckExitCode": 0,
+      "scopedDiffExitCode": 0,
+      "testsPassed": 14,
+      "testDurationSeconds": 1.74,
+      "actualLogsRead": true,
+      "toolChunk": "f7ef20"
+    },
+    "localeSourceCheck": {
+      "independent": true,
+      "toolChunk": "1974ee",
+      "deltaKeys": 44,
+      "presencePerLocale": {
+        "zh-CN": 44,
+        "en-US": 44,
+        "fr-FR": 44,
+        "ja-JP": 44,
+        "ko-KR": 44
+      },
+      "bilingualValuesCompared": 88,
+      "missing": 0,
+      "mismatches": 0,
+      "runtimeIntegrationClaimed": false
+    },
+    "nativeLspDiagnosticsAvailable": false,
+    "nativeAstGrepAvailable": false,
+    "codeGraphAvailable": false
+  },
+  "remainingGaps": [
+    "404/forbidden classifiers mocked false",
+    "First100 filepicker pending search/pagination repair",
+    "Final rendered states",
+    "Public job authorizer missing",
+    "Actual SSH/cancel/restart/human",
+    "Official runtime overlay/build"
+  ],
+  "wholePackageClosed": false,
+  "renderedEvidenceProducedByReviewer": false,
+  "actualFileDeliveryCertified": false,
+  "stopCondition": "Preserve first REQUEST CHANGES; amended freeze requires separate review"
+}
+

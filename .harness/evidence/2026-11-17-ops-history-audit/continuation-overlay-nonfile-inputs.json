@@ -1,0 +1,822 @@
+[
+  {
+    "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/fixtures/ops-candidate-1Pq8gb/base/",
+    "directory": true,
+    "symlink": false
+  },
+  {
+    "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/fixtures/ops-candidate-1Pq8gb/ops/",
+    "directory": true,
+    "symlink": false
+  },
+  {
+    "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/fixtures/ops-candidate-3VQB4V/base/",
+    "directory": true,
+    "symlink": false
+  },
+  {
+    "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/fixtures/ops-candidate-3VQB4V/ops/",
+    "directory": true,
+    "symlink": false
+  },
+  {
+    "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/fixtures/ops-candidate-70Xv89/base/",
+    "directory": true,
+    "symlink": false
+  },
+  {
+    "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/fixtures/ops-candidate-70Xv89/ops/",
+    "directory": true,
+    "symlink": false
+  },
+  {
+    "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/fixtures/ops-candidate-8xsOyb/base/",
+    "directory": true,
+    "symlink": false
+  },
+  {
+    "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/fixtures/ops-candidate-8xsOyb/ops/",
+    "directory": true,
+    "symlink": false
+  },
+  {
+    "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/fixtures/ops-candidate-9X0cRS/base/",
+    "directory": true,
+    "symlink": false
+  },
+  {
+    "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/fixtures/ops-candidate-9X0cRS/ops/",
+    "directory": true,
+    "symlink": false
+  },
+  {
+    "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/fixtures/ops-candidate-AAYCDS/base/",
+    "directory": true,
+    "symlink": false
+  },
+  {
+    "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/fixtures/ops-candidate-AAYCDS/ops/",
+    "directory": true,
+    "symlink": false
+  },
+  {
+    "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/fixtures/ops-candidate-BXNOS0/base/",
+    "directory": true,
+    "symlink": false
+  },
+  {
+    "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/fixtures/ops-candidate-BXNOS0/ops/",
+    "directory": true,
+    "symlink": false
+  },
+  {
+    "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/fixtures/ops-candidate-CH6MYI/base/",
+    "directory": true,
+    "symlink": false
+  },
+  {
+    "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/fixtures/ops-candidate-CH6MYI/ops/",
+    "directory": true,
+    "symlink": false
+  },
+  {
+    "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/fixtures/ops-candidate-D23vsZ/base/",
+    "directory": true,
+    "symlink": false
+  },
+  {
+    "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/fixtures/ops-candidate-D23vsZ/ops/",
+    "directory": true,
+    "symlink": false
+  },
+  {
+    "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/fixtures/ops-candidate-ELvxv7/base/",
+    "directory": true,
+    "symlink": false
+  },
+  {
+    "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/fixtures/ops-candidate-ELvxv7/ops/",
+    "directory": true,
+    "symlink": false
+  },
+  {
+    "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/fixtures/ops-candidate-F5gIck/base/",
+    "directory": true,
+    "symlink": false
+  },
+  {
+    "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/fixtures/ops-candidate-F5gIck/ops/",
+    "directory": true,
+    "symlink": false
+  },
+  {
+    "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/fixtures/ops-candidate-FYmzNx/base/",
+    "directory": true,
+    "symlink": false
+  },
+  {
+    "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/fixtures/ops-candidate-FYmzNx/ops/",
+    "directory": true,
+    "symlink": false
+  },
+  {
+    "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/fixtures/ops-candidate-G31no3/base/",
+    "directory": true,
+    "symlink": false
+  },
+  {
+    "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/fixtures/ops-candidate-G31no3/ops/",
+    "directory": true,
+    "symlink": false
+  },
+  {
+    "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/fixtures/ops-candidate-Gw4Nyu/base/",
+    "directory": true,
+    "symlink": false
+  },
+  {
+    "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/fixtures/ops-candidate-Gw4Nyu/ops/",
+    "directory": true,
+    "symlink": false
+  },
+  {
+    "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/fixtures/ops-candidate-H0tob7/base/",
+    "directory": true,
+    "symlink": false
+  },
+  {
+    "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/fixtures/ops-candidate-H0tob7/ops/",
+    "directory": true,
+    "symlink": false
+  },
+  {
+    "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/fixtures/ops-candidate-IKSpi3/base/",
+    "directory": true,
+    "symlink": false
+  },
+  {
+    "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/fixtures/ops-candidate-IKSpi3/ops/",
+    "directory": true,
+    "symlink": false
+  },
+  {
+    "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/fixtures/ops-candidate-Ib4uyq/base/",
+    "directory": true,
+    "symlink": false
+  },
+  {
+    "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/fixtures/ops-candidate-Ib4uyq/ops/",
+    "directory": true,
+    "symlink": false
+  },
+  {
+    "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/fixtures/ops-candidate-JXPZPl/base/",
+    "directory": true,
+    "symlink": false
+  },
+  {
+    "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/fixtures/ops-candidate-JXPZPl/ops/",
+    "directory": true,
+    "symlink": false
+  },
+  {
+    "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/fixtures/ops-candidate-KViQNr/base/",
+    "directory": true,
+    "symlink": false
+  },
+  {
+    "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/fixtures/ops-candidate-KViQNr/ops/",
+    "directory": true,
+    "symlink": false
+  },
+  {
+    "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/fixtures/ops-candidate-KfX0yu/base/",
+    "directory": true,
+    "symlink": false
+  },
+  {
+    "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/fixtures/ops-candidate-KfX0yu/ops/",
+    "directory": true,
+    "symlink": false
+  },
+  {
+    "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/fixtures/ops-candidate-KfXuoW/base/",
+    "directory": true,
+    "symlink": false
+  },
+  {
+    "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/fixtures/ops-candidate-KfXuoW/ops/",
+    "directory": true,
+    "symlink": false
+  },
+  {
+    "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/fixtures/ops-candidate-L6JRzN/base/",
+    "directory": true,
+    "symlink": false
+  },
+  {
+    "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/fixtures/ops-candidate-L6JRzN/ops/",
+    "directory": true,
+    "symlink": false
+  },
+  {
+    "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/fixtures/ops-candidate-LnOM6O/base/",
+    "directory": true,
+    "symlink": false
+  },
+  {
+    "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/fixtures/ops-candidate-LnOM6O/ops/",
+    "directory": true,
+    "symlink": false
+  },
+  {
+    "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/fixtures/ops-candidate-LzGHNY/base/",
+    "directory": true,
+    "symlink": false
+  },
+  {
+    "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/fixtures/ops-candidate-LzGHNY/ops/",
+    "directory": true,
+    "symlink": false
+  },
+  {
+    "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/fixtures/ops-candidate-Nj9R3Y/base/",
+    "directory": true,
+    "symlink": false
+  },
+  {
+    "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/fixtures/ops-candidate-Nj9R3Y/ops/",
+    "directory": true,
+    "symlink": false
+  },
+  {
+    "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/fixtures/ops-candidate-P6UP7M/base/",
+    "directory": true,
+    "symlink": false
+  },
+  {
+    "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/fixtures/ops-candidate-P6UP7M/ops/",
+    "directory": true,
+    "symlink": false
+  },
+  {
+    "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/fixtures/ops-candidate-PLHmGg/base/",
+    "directory": true,
+    "symlink": false
+  },
+  {
+    "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/fixtures/ops-candidate-PLHmGg/ops/",
+    "directory": true,
+    "symlink": false
+  },
+  {
+    "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/fixtures/ops-candidate-RIqsa5/base/",
+    "directory": true,
+    "symlink": false
+  },
+  {
+    "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/fixtures/ops-candidate-RIqsa5/ops/",
+    "directory": true,
+    "symlink": false
+  },
+  {
+    "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/fixtures/ops-candidate-Trs0bk/base/",
+    "directory": true,
+    "symlink": false
+  },
+  {
+    "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/fixtures/ops-candidate-Trs0bk/ops/",
+    "directory": true,
+    "symlink": false
+  },
+  {
+    "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/fixtures/ops-candidate-UIwWjG/base/",
+    "directory": true,
+    "symlink": false
+  },
+  {
+    "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/fixtures/ops-candidate-UIwWjG/ops/",
+    "directory": true,
+    "symlink": false
+  },
+  {
+    "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/fixtures/ops-candidate-UnvjgU/base/",
+    "directory": true,
+    "symlink": false
+  },
+  {
+    "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/fixtures/ops-candidate-UnvjgU/ops/",
+    "directory": true,
+    "symlink": false
+  },
+  {
+    "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/fixtures/ops-candidate-V4C22p/base/",
+    "directory": true,
+    "symlink": false
+  },
+  {
+    "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/fixtures/ops-candidate-V4C22p/ops/",
+    "directory": true,
+    "symlink": false
+  },
+  {
+    "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/fixtures/ops-candidate-V4EB3q/base/",
+    "directory": true,
+    "symlink": false
+  },
+  {
+    "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/fixtures/ops-candidate-V4EB3q/ops/",
+    "directory": true,
+    "symlink": false
+  },
+  {
+    "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/fixtures/ops-candidate-VXpAQq/base/",
+    "directory": true,
+    "symlink": false
+  },
+  {
+    "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/fixtures/ops-candidate-VXpAQq/ops/",
+    "directory": true,
+    "symlink": false
+  },
+  {
+    "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/fixtures/ops-candidate-WDmXRG/base/",
+    "directory": true,
+    "symlink": false
+  },
+  {
+    "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/fixtures/ops-candidate-WDmXRG/ops/",
+    "directory": true,
+    "symlink": false
+  },
+  {
+    "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/fixtures/ops-candidate-WqijNT/base/",
+    "directory": true,
+    "symlink": false
+  },
+  {
+    "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/fixtures/ops-candidate-WqijNT/ops/",
+    "directory": true,
+    "symlink": false
+  },
+  {
+    "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/fixtures/ops-candidate-WysfxJ/base/",
+    "directory": true,
+    "symlink": false
+  },
+  {
+    "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/fixtures/ops-candidate-WysfxJ/ops/",
+    "directory": true,
+    "symlink": false
+  },
+  {
+    "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/fixtures/ops-candidate-XI3izQ/base/",
+    "directory": true,
+    "symlink": false
+  },
+  {
+    "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/fixtures/ops-candidate-XI3izQ/ops/",
+    "directory": true,
+    "symlink": false
+  },
+  {
+    "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/fixtures/ops-candidate-ZSOh2s/base/",
+    "directory": true,
+    "symlink": false
+  },
+  {
+    "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/fixtures/ops-candidate-ZSOh2s/ops/",
+    "directory": true,
+    "symlink": false
+  },
+  {
+    "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/fixtures/ops-candidate-a1tGeV/base/",
+    "directory": true,
+    "symlink": false
+  },
+  {
+    "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/fixtures/ops-candidate-a1tGeV/ops/",
+    "directory": true,
+    "symlink": false
+  },
+  {
+    "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/fixtures/ops-candidate-a8WxFL/base/",
+    "directory": true,
+    "symlink": false
+  },
+  {
+    "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/fixtures/ops-candidate-a8WxFL/ops/",
+    "directory": true,
+    "symlink": false
+  },
+  {
+    "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/fixtures/ops-candidate-aAzPO5/base/",
+    "directory": true,
+    "symlink": false
+  },
+  {
+    "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/fixtures/ops-candidate-aAzPO5/ops/",
+    "directory": true,
+    "symlink": false
+  },
+  {
+    "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/fixtures/ops-candidate-c3eLSX/base/",
+    "directory": true,
+    "symlink": false
+  },
+  {
+    "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/fixtures/ops-candidate-c3eLSX/ops/",
+    "directory": true,
+    "symlink": false
+  },
+  {
+    "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/fixtures/ops-candidate-cDqLpu/base/",
+    "directory": true,
+    "symlink": false
+  },
+  {
+    "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/fixtures/ops-candidate-cDqLpu/ops/",
+    "directory": true,
+    "symlink": false
+  },
+  {
+    "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/fixtures/ops-candidate-crSu1r/base/",
+    "directory": true,
+    "symlink": false
+  },
+  {
+    "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/fixtures/ops-candidate-crSu1r/ops/",
+    "directory": true,
+    "symlink": false
+  },
+  {
+    "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/fixtures/ops-candidate-e0L1Nk/base/",
+    "directory": true,
+    "symlink": false
+  },
+  {
+    "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/fixtures/ops-candidate-e0L1Nk/ops/",
+    "directory": true,
+    "symlink": false
+  },
+  {
+    "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/fixtures/ops-candidate-fWSEmf/base/",
+    "directory": true,
+    "symlink": false
+  },
+  {
+    "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/fixtures/ops-candidate-fWSEmf/ops/",
+    "directory": true,
+    "symlink": false
+  },
+  {
+    "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/fixtures/ops-candidate-gUhqzk/base/",
+    "directory": true,
+    "symlink": false
+  },
+  {
+    "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/fixtures/ops-candidate-gUhqzk/ops/",
+    "directory": true,
+    "symlink": false
+  },
+  {
+    "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/fixtures/ops-candidate-h4m4uQ/base/",
+    "directory": true,
+    "symlink": false
+  },
+  {
+    "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/fixtures/ops-candidate-h4m4uQ/ops/",
+    "directory": true,
+    "symlink": false
+  },
+  {
+    "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/fixtures/ops-candidate-hmQPvp/base/",
+    "directory": true,
+    "symlink": false
+  },
+  {
+    "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/fixtures/ops-candidate-hmQPvp/ops/",
+    "directory": true,
+    "symlink": false
+  },
+  {
+    "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/fixtures/ops-candidate-j3tDkI/base/",
+    "directory": true,
+    "symlink": false
+  },
+  {
+    "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/fixtures/ops-candidate-j3tDkI/ops/",
+    "directory": true,
+    "symlink": false
+  },
+  {
+    "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/fixtures/ops-candidate-lYH5Qu/base/",
+    "directory": true,
+    "symlink": false
+  },
+  {
+    "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/fixtures/ops-candidate-lYH5Qu/ops/",
+    "directory": true,
+    "symlink": false
+  },
+  {
+    "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/fixtures/ops-candidate-ludSNW/base/",
+    "directory": true,
+    "symlink": false
+  },
+  {
+    "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/fixtures/ops-candidate-ludSNW/ops/",
+    "directory": true,
+    "symlink": false
+  },
+  {
+    "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/fixtures/ops-candidate-nBD7K6/base/",
+    "directory": true,
+    "symlink": false
+  },
+  {
+    "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/fixtures/ops-candidate-nBD7K6/ops/",
+    "directory": true,
+    "symlink": false
+  },
+  {
+    "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/fixtures/ops-candidate-nTfF4W/base/",
+    "directory": true,
+    "symlink": false
+  },
+  {
+    "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/fixtures/ops-candidate-nTfF4W/ops/",
+    "directory": true,
+    "symlink": false
+  },
+  {
+    "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/fixtures/ops-candidate-oOKio5/base/",
+    "directory": true,
+    "symlink": false
+  },
+  {
+    "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/fixtures/ops-candidate-oOKio5/ops/",
+    "directory": true,
+    "symlink": false
+  },
+  {
+    "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/fixtures/ops-candidate-og4OiZ/base/",
+    "directory": true,
+    "symlink": false
+  },
+  {
+    "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/fixtures/ops-candidate-og4OiZ/ops/",
+    "directory": true,
+    "symlink": false
+  },
+  {
+    "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/fixtures/ops-candidate-orjoXL/base/",
+    "directory": true,
+    "symlink": false
+  },
+  {
+    "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/fixtures/ops-candidate-orjoXL/ops/",
+    "directory": true,
+    "symlink": false
+  },
+  {
+    "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/fixtures/ops-candidate-pV36PJ/base/",
+    "directory": true,
+    "symlink": false
+  },
+  {
+    "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/fixtures/ops-candidate-pV36PJ/ops/",
+    "directory": true,
+    "symlink": false
+  },
+  {
+    "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/fixtures/ops-candidate-pf1Efl/base/",
+    "directory": true,
+    "symlink": false
+  },
+  {
+    "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/fixtures/ops-candidate-pf1Efl/ops/",
+    "directory": true,
+    "symlink": false
+  },
+  {
+    "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/fixtures/ops-candidate-q7H1Tx/base/",
+    "directory": true,
+    "symlink": false
+  },
+  {
+    "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/fixtures/ops-candidate-q7H1Tx/ops/",
+    "directory": true,
+    "symlink": false
+  },
+  {
+    "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/fixtures/ops-candidate-r4xCaO/base/",
+    "directory": true,
+    "symlink": false
+  },
+  {
+    "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/fixtures/ops-candidate-r4xCaO/ops/",
+    "directory": true,
+    "symlink": false
+  },
+  {
+    "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/fixtures/ops-candidate-r6YFFe/base/",
+    "directory": true,
+    "symlink": false
+  },
+  {
+    "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/fixtures/ops-candidate-r6YFFe/ops/",
+    "directory": true,
+    "symlink": false
+  },
+  {
+    "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/fixtures/ops-candidate-rqrShZ/base/",
+    "directory": true,
+    "symlink": false
+  },
+  {
+    "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/fixtures/ops-candidate-rqrShZ/ops/",
+    "directory": true,
+    "symlink": false
+  },
+  {
+    "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/fixtures/ops-candidate-tF6OuF/base/",
+    "directory": true,
+    "symlink": false
+  },
+  {
+    "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/fixtures/ops-candidate-tF6OuF/ops/",
+    "directory": true,
+    "symlink": false
+  },
+  {
+    "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/fixtures/ops-candidate-ttXwzi/base/",
+    "directory": true,
+    "symlink": false
+  },
+  {
+    "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/fixtures/ops-candidate-ttXwzi/ops/",
+    "directory": true,
+    "symlink": false
+  },
+  {
+    "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/fixtures/ops-candidate-uaCxp2/base/",
+    "directory": true,
+    "symlink": false
+  },
+  {
+    "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/fixtures/ops-candidate-uaCxp2/ops/",
+    "directory": true,
+    "symlink": false
+  },
+  {
+    "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/fixtures/ops-candidate-uafDAO/base/",
+    "directory": true,
+    "symlink": false
+  },
+  {
+    "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/fixtures/ops-candidate-uafDAO/ops/",
+    "directory": true,
+    "symlink": false
+  },
+  {
+    "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/fixtures/ops-candidate-vEjMDb/base/",
+    "directory": true,
+    "symlink": false
+  },
+  {
+    "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/fixtures/ops-candidate-vEjMDb/ops/",
+    "directory": true,
+    "symlink": false
+  },
+  {
+    "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/fixtures/ops-candidate-vOZqpR/base/",
+    "directory": true,
+    "symlink": false
+  },
+  {
+    "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/fixtures/ops-candidate-vOZqpR/ops/",
+    "directory": true,
+    "symlink": false
+  },
+  {
+    "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/fixtures/ops-candidate-vdV5aZ/base/",
+    "directory": true,
+    "symlink": false
+  },
+  {
+    "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/fixtures/ops-candidate-vdV5aZ/ops/",
+    "directory": true,
+    "symlink": false
+  },
+  {
+    "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/fixtures/ops-candidate-vtmen3/base/",
+    "directory": true,
+    "symlink": false
+  },
+  {
+    "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/fixtures/ops-candidate-vtmen3/ops/",
+    "directory": true,
+    "symlink": false
+  },
+  {
+    "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/fixtures/ops-candidate-x0kdNU/base/",
+    "directory": true,
+    "symlink": false
+  },
+  {
+    "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/fixtures/ops-candidate-x0kdNU/ops/",
+    "directory": true,
+    "symlink": false
+  },
+  {
+    "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/fixtures/ops-candidate-xOj7rS/base/",
+    "directory": true,
+    "symlink": false
+  },
+  {
+    "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/fixtures/ops-candidate-xOj7rS/ops/",
+    "directory": true,
+    "symlink": false
+  },
+  {
+    "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/fixtures/ops-candidate-xRo4DX/base/",
+    "directory": true,
+    "symlink": false
+  },
+  {
+    "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/fixtures/ops-candidate-xRo4DX/ops/",
+    "directory": true,
+    "symlink": false
+  },
+  {
+    "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/fixtures/ops-candidate-xu8UGs/base/",
+    "directory": true,
+    "symlink": false
+  },
+  {
+    "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/fixtures/ops-candidate-xu8UGs/ops/",
+    "directory": true,
+    "symlink": false
+  },
+  {
+    "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/fixtures/ops-candidate-y5f6lV/base/",
+    "directory": true,
+    "symlink": false
+  },
+  {
+    "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/fixtures/ops-candidate-y5f6lV/ops/",
+    "directory": true,
+    "symlink": false
+  },
+  {
+    "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/fixtures/ops-candidate-z6ZMVt/base/",
+    "directory": true,
+    "symlink": false
+  },
+  {
+    "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/fixtures/ops-candidate-z6ZMVt/ops/",
+    "directory": true,
+    "symlink": false
+  },
+  {
+    "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/fixtures/ops-candidate-zQEFeU/base/",
+    "directory": true,
+    "symlink": false
+  },
+  {
+    "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/fixtures/ops-candidate-zQEFeU/ops/",
+    "directory": true,
+    "symlink": false
+  },
+  {
+    "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/fixtures/pantheon-drift-9vn9LQ/base/",
+    "directory": true,
+    "symlink": false
+  },
+  {
+    "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/fixtures/pantheon-drift-coverage-VHseNQ/base/",
+    "directory": true,
+    "symlink": false
+  },
+  {
+    "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/fixtures/pantheon-drift-migrations-A7IifS/base/",
+    "directory": true,
+    "symlink": false
+  },
+  {
+    "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/fixtures/pantheon-drift-migrations-FDpRAO/base/",
+    "directory": true,
+    "symlink": false
+  },
+  {
+    "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/fixtures/pantheon-drift-migrations-HuA52t/base/",
+    "directory": true,
+    "symlink": false
+  },
+  {
+    "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/fixtures/pantheon-drift-migrations-nvTXeD/base/",
+    "directory": true,
+    "symlink": false
+  }
+]

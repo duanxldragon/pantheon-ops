@@ -1,0 +1,21 @@
+{
+  "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\backend",
+  "goFlags": "-p=1 -mod=readonly",
+  "testDsnRequired": "1",
+  "exitCode": 0,
+  "startedAt": "2026-11-17T14:03:00.7170364Z",
+  "finishedAt": "2026-11-17T14:03:35.2342357Z",
+  "log": "continuation-c01-pause-handoff-fixed.log",
+  "args": [
+    "test",
+    "-race",
+    "-count=1",
+    "-timeout=10m",
+    "./modules/business/deploy",
+    "-v",
+    "-run",
+    "^TestCancellationUnclaimed|^TestControlTransitionsRecordEvents$|^TestDeployTaskRoutesServiceInstanceStateThroughTypedCommand$|^TestServiceLinkControlSupersededCancellationRemainsLive$"
+  ],
+  "cgoEnabled": "1",
+  "disposableMySQL": true
+}

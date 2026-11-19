@@ -1,0 +1,50 @@
+{
+  "fixtureParent": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\manual-preview-20261116\\continuation-archive-recovery-1794897710168",
+  "reports": [
+    {
+      "phase": "prepare",
+      "injectedFailureExit": 1,
+      "resumeExit": 0,
+      "repeatExit": 0,
+      "allFiveOriginalEvidenceVerified": true
+    },
+    {
+      "phase": "one-move",
+      "injectedFailureExit": 1,
+      "resumeExit": 0,
+      "repeatExit": 0,
+      "allFiveOriginalEvidenceVerified": true
+    },
+    {
+      "phase": "document",
+      "injectedFailureExit": 1,
+      "resumeExit": 0,
+      "repeatExit": 0,
+      "allFiveOriginalEvidenceVerified": true
+    },
+    {
+      "phase": "partial-stage",
+      "injectedFailureExit": 1,
+      "resumeExit": 0,
+      "repeatExit": 0,
+      "allFiveOriginalEvidenceVerified": true
+    },
+    {
+      "phase": "after-document",
+      "injectedFailureExit": 1,
+      "resumeExit": 0,
+      "repeatExit": 0,
+      "allFiveOriginalEvidenceVerified": true
+    },
+    {
+      "phase": "extra-evidence",
+      "refusedExit": 1,
+      "originalsUntouched": true
+    },
+    {
+      "phase": "preflight-path",
+      "refusedExit": 1,
+      "originalsUntouched": true
+    }
+  ]
+}

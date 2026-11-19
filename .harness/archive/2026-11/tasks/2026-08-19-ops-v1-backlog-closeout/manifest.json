@@ -1,0 +1,96 @@
+{
+  "schemaVersion": 1,
+  "taskId": "2026-08-19-ops-v1-backlog-closeout",
+  "title": "Close Pantheon Ops V1 backlog",
+  "status": "completed",
+  "priority": "P0-P1",
+  "deliveryTier": "L2",
+  "primaryLayer": "business/*",
+  "taskDoc": "docs/harness/tasks/2026-08-19-ops-v1-backlog-closeout.task.md",
+  "statusDoc": ".harness/tasks/2026-08-19-ops-v1-backlog-closeout/STATUS.md",
+  "evidenceDir": ".harness/evidence/2026-08-19-ops-v1-backlog-closeout/",
+  "reviewFile": ".harness/evidence/2026-08-19-ops-v1-backlog-closeout/review.md",
+  "goal": "Close the remaining Pantheon Ops V1 business-domain delivery and release acceptance tasks.",
+  "scope": {
+    "in": [
+      "F-01 QA acceptance",
+      "F-02 test plan and business smoke",
+      "F-03 release and rollback rehearsal"
+    ],
+    "out": [
+      "pantheon-base changes",
+      "production or live-cluster mutation"
+    ]
+  },
+  "linkage": {
+    "taskDoc": "docs/harness/tasks/2026-08-19-ops-v1-backlog-closeout.task.md",
+    "evidenceDir": ".harness/evidence/2026-08-19-ops-v1-backlog-closeout/",
+    "reviewFile": ".harness/evidence/2026-08-19-ops-v1-backlog-closeout/review.md",
+    "changeRef": "none",
+    "planRefs": [
+      "docs/designs/BUSINESS_DEVELOPMENT_PLAN.md",
+      "docs/designs/BUSINESS_QA_ACCEPTANCE_PLAN.md",
+      "docs/designs/BUSINESS_TEST_PLAN.md"
+    ]
+  },
+  "batches": [
+    "legacy-business-migration",
+    "deploy-worker-lifecycle",
+    "k8s-ownership-credentials-permissions",
+    "deploy-import-export",
+    "release-evidence-closeout",
+    "v1-high-risk-gates"
+  ],
+  "externalHumanGates": [
+    "production database mutation",
+    "live Kubernetes mutation",
+    "credentialed production SSH or browser execution"
+  ],
+  "historyCloseout": {
+    "date": "2026-11-17",
+    "originalStatus": "complete-with-explicit-gates",
+    "disposition": "completed",
+    "basis": "规范化 complete-with-explicit-gates；仅授权隔离F阶段完成，保留生产与人工门禁。",
+    "residuals": [
+      {
+        "finding": "current migration/runtime/UI",
+        "owner": "Ops business",
+        "successor": "2026-11-16-ops-business-runtime-acceptance",
+        "state": "open",
+        "proof": null
+      },
+      {
+        "finding": "enabled external integration",
+        "owner": "Ops business",
+        "successor": "2026-11-16-ops-extensions-live-acceptance",
+        "state": "open",
+        "proof": null
+      },
+      {
+        "finding": "installation/rollback/final acceptance",
+        "owner": "Ops delivery/maintainer",
+        "successor": "2026-11-16-ops-pilot-release-closeout",
+        "state": "open",
+        "proof": null
+      },
+      {
+        "finding": "production rollback/K8s mutations/DBA signatures",
+        "owner": "DBA/maintainer",
+        "successor": "2026-09-28-ops-delivery-readiness-gap-closure",
+        "state": "open",
+        "proof": null
+      },
+      {
+        "finding": "historical Base release dependency",
+        "owner": "Ops inheritance",
+        "successor": "2026-11-05-base-v0183-consumption",
+        "state": "successor-evidence",
+        "proof": ".harness/evidence/2026-11-05-base-v0183-consumption/commands.json"
+      }
+    ],
+    "evidence": ".harness/evidence/2026-11-17-ops-history-audit/dispositions.json",
+    "decisionSha256": "b1fe312c6e0e9a9a6ee3513b245196973c7559a322ffe53bf6cb378ea4dd07df",
+    "taskDoc": "docs/harness/tasks/2026-08-19-ops-v1-backlog-closeout.task.md",
+    "taskDocGap": null
+  }
+}

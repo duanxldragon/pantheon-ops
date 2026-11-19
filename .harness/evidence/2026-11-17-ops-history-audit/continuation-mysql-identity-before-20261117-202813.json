@@ -1,0 +1,29 @@
+{
+  "probe": {
+    "dropped": true,
+    "insertedCount": 1,
+    "created": true
+  },
+  "localAddress": "127.0.0.1",
+  "parentProcessId": 26280,
+  "processStartTime": "2026-11-17T07:04:23.0467770Z",
+  "commandLine": "D:\\MySQL\\mysql\\bin\\mysqld.exe --no-defaults --datadir=D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\manual-preview-20261116\\continuation-mysql\\data --port=33317 --bind-address=127.0.0.1 --mysqlx=0 --skip-log-bin --innodb-flush-log-at-trx-commit=2 --console",
+  "limitations": [
+    "Disposable functional/race fixture; flush=2 and binary logging disabled do not prove production durability.",
+    "Startup readiness alone was not treated as identity proof; actual listener and SQL identity were verified here.",
+    "Initial identity check rejected the launch PID: Windows mysqld listener runs in its child process. Parent linkage, executable, datadir, listener, start time and SQL identity verified here; original ownership record retained."
+  ],
+  "processId": 35096,
+  "configReadback": [
+    "33317\tD:\\\\workspace\\\\go\\\\pantheon-platform\\\\pantheon-ops\\\\.local\\\\manual-preview-20261116\\\\continuation-mysql\\\\data\\\\\t8.0.36\t2\t0\tREPEATABLE-READ\t50",
+    "information_schema",
+    "mysql",
+    "ops_history_race",
+    "performance_schema",
+    "sys"
+  ],
+  "ancestorReparsePoints": false,
+  "recordedAt": "2026-11-17T07:13:34.1742693Z",
+  "startupProcessId": 26280,
+  "executable": "D:\\MySQL\\mysql\\bin\\mysqld.exe"
+}

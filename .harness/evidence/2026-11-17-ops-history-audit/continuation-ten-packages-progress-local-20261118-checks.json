@@ -1,0 +1,121 @@
+[
+  {
+    "name": "task",
+    "executable": "D:\\nodejs\\node.exe",
+    "args": [
+      "scripts/harness/check-task-packet.mjs",
+      "--json"
+    ],
+    "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+    "startedAt": "2026-11-18T07:40:25.385Z",
+    "finishedAt": "2026-11-18T07:40:25.971Z",
+    "exitCode": 1,
+    "status": "failed",
+    "evidence": ".harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-progress-local-20261118-task.json",
+    "errorCode": null
+  },
+  {
+    "name": "evidence",
+    "executable": "D:\\nodejs\\node.exe",
+    "args": [
+      "scripts/harness/check-evidence.mjs",
+      "--json",
+      "--strict"
+    ],
+    "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+    "startedAt": "2026-11-18T07:40:25.972Z",
+    "finishedAt": "2026-11-18T07:40:29.943Z",
+    "exitCode": 1,
+    "status": "failed",
+    "evidence": ".harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-progress-local-20261118-evidence.json",
+    "errorCode": null
+  },
+  {
+    "name": "review",
+    "executable": "D:\\nodejs\\node.exe",
+    "args": [
+      "scripts/harness/check-review.mjs",
+      "--json",
+      "--strict"
+    ],
+    "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+    "startedAt": "2026-11-18T07:40:29.944Z",
+    "finishedAt": "2026-11-18T07:40:31.409Z",
+    "exitCode": 1,
+    "status": "failed",
+    "evidence": ".harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-progress-local-20261118-review.json",
+    "errorCode": null
+  },
+  {
+    "name": "links",
+    "executable": "D:\\nodejs\\node.exe",
+    "args": [
+      "scripts/harness/check-doc-links.mjs",
+      "--json",
+      "--strict"
+    ],
+    "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+    "startedAt": "2026-11-18T07:40:31.409Z",
+    "finishedAt": "2026-11-18T07:40:32.028Z",
+    "exitCode": 1,
+    "status": "failed",
+    "evidence": ".harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-progress-local-20261118-links.json",
+    "errorCode": null
+  },
+  {
+    "name": "frontmatter",
+    "executable": "D:\\nodejs\\node.exe",
+    "args": [
+      "scripts/frontmatter-check.mjs"
+    ],
+    "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+    "startedAt": "2026-11-18T07:40:32.028Z",
+    "finishedAt": "2026-11-18T07:40:32.473Z",
+    "exitCode": 0,
+    "status": "passed",
+    "evidence": ".harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-progress-local-20261118-frontmatter.log",
+    "errorCode": null
+  },
+  {
+    "name": "template",
+    "executable": "D:\\nodejs\\node.exe",
+    "args": [
+      "scripts/check-task-packet-template.mjs"
+    ],
+    "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+    "startedAt": "2026-11-18T07:40:32.474Z",
+    "finishedAt": "2026-11-18T07:40:32.593Z",
+    "exitCode": 0,
+    "status": "passed",
+    "evidence": ".harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-progress-local-20261118-template.log",
+    "errorCode": null
+  },
+  {
+    "name": "overlay",
+    "executable": "D:\\nodejs\\node.exe",
+    "args": [
+      "scripts/business-overlay/check-business-overlay.mjs"
+    ],
+    "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+    "startedAt": "2026-11-18T07:40:32.594Z",
+    "finishedAt": "2026-11-18T07:40:32.839Z",
+    "exitCode": 0,
+    "status": "passed",
+    "evidence": ".harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-progress-local-20261118-overlay.log",
+    "errorCode": null
+  },
+  {
+    "name": "boundaries",
+    "executable": "D:\\nodejs\\node.exe",
+    "args": [
+      "scripts/check-business-module-boundaries.mjs"
+    ],
+    "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+    "startedAt": "2026-11-18T07:40:32.840Z",
+    "finishedAt": "2026-11-18T07:40:32.983Z",
+    "exitCode": 0,
+    "status": "passed",
+    "evidence": ".harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-progress-local-20261118-boundaries.log",
+    "errorCode": null
+  }
+]

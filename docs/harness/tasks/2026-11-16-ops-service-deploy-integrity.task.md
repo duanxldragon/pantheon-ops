@@ -123,6 +123,7 @@ business/*
 - 同一用户均有权访问 Host A 与 Instance B 时，错配创建/更新/启动被拒绝，任务、实例、远端均无部分副作用。
 - 匹配任务完成及失败只更新对应实例；重复/乱序回调和并发删除不破坏状态或历史。
 - 真实 MySQL 事务、幂等及引用竞态用例执行而非 SKIP。
+- 显式独立部署两关联字段均0且不回写实例；关联部署任一字段缺失/0、实体错配被拒绝，兼容历史记录有模式与审计追溯。
 
 ## Dependencies
 
@@ -164,6 +165,22 @@ business/*
 
 ## Status
 
-planned；只在依赖与实际验收完成后转 completed。
+in-progress；只在依赖与实际验收完成后转 completed。
 
 关联模式验收：显式独立部署两关联字段均0且不回写实例；关联部署任一字段缺失/0或错配在副作用前拒绝。历史记录按兼容独立语义追溯，不默认关联。
+
+## 2026-11-17T12:36:58.465Z Current execution checkpoint
+
+Status: in-progress. Original In/Out and acceptance retained. C01 changes require new full race, formal lock rebuild/source binding and two independent review lanes. Historical failed receipts remain intact; no archive closure is claimed.
+
+## 2026-11-18T07:31:44.466Z Continuation checkpoint
+
+Status: in-progress. 父 context 初始 claim 和四种队列恢复已补同freeze认证：中央真实MySQL/CGO race exit0，744源运行内稳定，Deploy6.737s。先前Goexit0/runnerexit1的Helm并行漂移记录保留；旧Retire候选为历史。
+
+Original acceptance and dependencies remain unchanged. Whole-package acceptance is incomplete; see [summary](../../../.harness/evidence/2026-11-16-ops-service-deploy-integrity/summary.md) and [progress receipt](../../../.harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-progress-20261118.json).
+
+## 2026-11-19T00:11:15.272Z Verified continuation checkpoint
+
+Status: in-progress. 父context初始claim/四种队列恢复修订已获3文件独立COMMENT/PASS、无新问题；冻结窄Deploy6.737s/3顶层6场景证据和首次Go0/runner1源漂移历史保留。完整CGO/race当前748后端源通过。
+
+当前3文件独立COMMENT/PASS；原C01四条验收及维护者gate仍未通过。 Original acceptance and human gates remain unmet. See [summary](../../../.harness/evidence/2026-11-16-ops-service-deploy-integrity/summary.md) and [structured progress](../../../.harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-progress-final-20261118.json).

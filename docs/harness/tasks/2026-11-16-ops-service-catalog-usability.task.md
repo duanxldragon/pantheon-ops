@@ -82,6 +82,10 @@ business/*
 - frontend/src/modules/business/service/ServiceCatalog.tsx
 - frontend/src/modules/business/service/api.ts
 - frontend/tests/smoke/business/service/service-pages.spec.ts
+- backend/modules/business/service/dto.go
+- backend/modules/business/service/service.go
+- backend/modules/business/service/handler.go
+- backend/modules/business/service/seed.go
 
 ### Do Not Touch
 
@@ -92,7 +96,7 @@ business/*
 
 ## Implementation Notes
 
-- Owner: business/service UI
+- Owner: business/service owner + UI
 - Minimum Complexity Rung: reuse
 - 开始实现前重新读取当前候选与结构；本审查行号绑定旧基线，不能覆盖并发升级。
 - Windows race 必须 PATH 前置 D:\msys64\mingw64\bin，CGO_ENABLED=1；普通 Go tests 不替代。
@@ -163,4 +167,32 @@ business/*
 
 ## Status
 
-planned；只在依赖与实际验收完成后转 completed。
+in-progress；只在依赖与实际验收完成后转 completed。
+
+## C03 owner contract continuation
+
+The original version/target edit acceptance requires owner-side validation and conflict semantics. Exact additional business owner files: backend/modules/business/service/dto.go, backend/modules/business/service/service.go, backend/modules/business/service/handler.go, backend/modules/business/service/seed.go; focused real-MySQL regression: backend/modules/business/service/instance_update_test.go. Five canonical v12locale sources and the business error appendix synchronize existing error keys. Plan: .harness/tasks/2026-11-16-ops-service-catalog-usability/continuation-plan.md.
+
+HTTP edits require expectedLifecycleVersion (zero is valid), reject currentVersion publication, and accept an optional atomic target replacement. Internal compatibility keeps existing owner calls. Exact CAS, request context, target identity/scope/locator and active-reference refusal must be dynamically verified. Typed target lifetime coordination and full K8s NamespaceBinding/environment/action validation remain explicitly open; this contract checkpoint does not establish completion or waive them.
+
+## 2026-11-17 owner continuation scope
+
+Original In/Out and acceptance are retained. Additional modified owner files: backend/modules/business/service/module.go, backend/modules/business/k8s/capability.go. Additional created route/provider regression files: backend/modules/business/service/permission_routes.go, backend/modules/business/service/catalog_review_test.go, backend/modules/business/k8s/capability_error_test.go. Plan: .harness/tasks/2026-11-16-ops-service-catalog-usability/continuation-plan.md. Real red/green and remaining runtime/provider gaps are recorded in .harness/evidence/2026-11-17-ops-history-audit/; no archive or completion is implied.
+
+## 2026-11-18T07:31:44.466Z Continuation checkpoint
+
+Status: in-progress. 表单重新激活立即清空旧选项/错误并进入 loading；回归 RED 2失败/5通过，GREEN 7/7；scoped lint和隔离 strict typecheck通过。
+
+Original acceptance and dependencies remain unchanged. Whole-package acceptance is incomplete; see [summary](../../../.harness/evidence/2026-11-16-ops-service-catalog-usability/summary.md) and [progress receipt](../../../.harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-progress-20261118.json).
+
+## 2026-11-18T07:58:38.569Z Integration continuation
+
+Status: in-progress. 常规Vitest配置已发现新useCatalogOptions测试并通过7/7、0skip/1.71s；精确business-overlay路径与本地overlay检查通过。完整app/build/render、backend target lifetime及真实provider/角色仍未验收。
+
+常规unit/overlay集成有实际receipt；独立完整产品验收仍PENDING，历史activation和owner窄评审保留。 Original acceptance, dependencies and human gates remain unmet. See [summary](../../../.harness/evidence/2026-11-16-ops-service-catalog-usability/summary.md) and [latest progress](../../../.harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-progress-integration-20261118.json).
+
+## 2026-11-19T00:11:15.272Z Verified continuation checkpoint
+
+Status: in-progress. 当前C03与E01两个canonical suite集中Vitest共35PASS/8.68s，frontend lint/type/build均通过；精确overlay路径、正式重建与1242源等价通过。当前桌面/手机render2/2通过、root实际查看editor/stale4图，business data mock；额外live admin lifecycle单行中文期望修后1PASS/0skip/5.7s、finally cleanup全部通过，executor查看主机#533截图；原错误fixture失败和两个未改transitive strict TypeScript诊断保留。
+
+原activation/owner窄评审保留；整包真实provider/角色和维护者验收未完成。 Original acceptance and human gates remain unmet. See [summary](../../../.harness/evidence/2026-11-16-ops-service-catalog-usability/summary.md) and [structured progress](../../../.harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-progress-final-20261118.json).

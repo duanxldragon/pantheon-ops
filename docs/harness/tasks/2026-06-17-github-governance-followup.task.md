@@ -1,3 +1,13 @@
+---
+title: 2026-06-17-github-governance-followup
+doc_type: Remediation
+layer: business
+status: Archived
+linked_contracts:
+  - docs/PROJECT_INHERITANCE.md
+updated_at: 2026-11-17
+---
+
 # Task Packet: github-governance-followup
 
 ## Goal
@@ -157,3 +167,11 @@ platform/governance
 - [ ] Workflow posture validated
 - [ ] Governance scripts re-verified
 - [ ] PR body updated to real artifact paths
+
+## Result — History Closeout 2026-11-17
+
+Manifest disposition: completed
+
+原治理、模板和工作流姿态已获批准；补记摘要，不扩大为产品完成。
+
+Residual finding/owner/successor/proof: .harness/evidence/2026-11-17-ops-history-audit/dispositions.json. Canonical references remain archive-aware. Historical body/evidence retained. Current candidate, production and maintainer gates remain separate.

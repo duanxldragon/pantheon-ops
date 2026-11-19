@@ -1,0 +1,17 @@
+{
+  "taskId": "2026-11-16-ops-k8s-service-mutations",
+  "reviewId": "c04-rbac-cancellation-architecture",
+  "reviewedAtUTC": "2026-11-17T17:24:40Z",
+  "reviewer": "c03_owner_architecture",
+  "savedBy": "root coordinator",
+  "provenance": "Coordinator transcription of independent architect response; accompanying Markdown is condensed, not verbatim.",
+  "reviewedFixStatus": "CLEAR",
+  "wholeTaskStatus": "WATCH",
+  "wholeTaskComplete": false,
+  "archiveApproved": false,
+  "reviewerModifiedFiles": false,
+  "reviewerExecutedTests": false,
+  "sourceBinding": { "receiptBeforeCount": 729, "receiptAfterCount": 729, "receiptChangedCount": 0, "currentCandidateMatchedCount": 11, "currentCandidateTotalCount": 11, "receiptSha256": "7936f60397fc37ac2902651de82ab9dcdf6246164dc57b13adec39733431d8c2" },
+  "recordedExecution": { "executor": "coordinator", "exitCode": 0, "cgoEnabled": true, "raceEnabled": true, "disposableMySQL": true, "mutationTopLevelPassed": 13, "permissionTopLevelPassed": 1, "rbacTopLevelPassed": 3, "totalTopLevelPassed": 17, "servicePackageSeconds": 7.613, "rbacPackageSeconds": 1.355 },
+  "notEstablished": ["Already blocked SQL driver cancellation", "Provider-accepted write rollback", "Revocation/rebind atomicity through external commit", "Live Kubernetes or actual role acceptance", "New whole-stack timeout"]
+}

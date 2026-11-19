@@ -2,10 +2,10 @@
 title: Consume pantheon-base-v0.10.5 smoke runner contract
 doc_type: Remediation
 layer: inheritance-sync
-status: Active
+status: Archived
 linked_contracts:
   - docs/PROJECT_INHERITANCE.md
-updated_at: 2026-08-08
+updated_at: 2026-11-17
 ---
 
 # Task Packet: 2026-08-08-foundation-upgrade-base-v0-10-5
@@ -49,3 +49,9 @@ Base owns the release producer and shared smoke closure. Ops owns the exact cons
 - Task manifest: `.harness/tasks/2026-08-08-foundation-upgrade-base-v0-10-5/manifest.json`
 - Evidence: `.harness/evidence/2026-08-08-foundation-upgrade-base-v0-10-5/`
 - PR: `https://github.com/duanxldragon/pantheon-ops/pull/75`
+
+## Result — Historical Disposition 2026-11-17
+
+abandoned. Stop repeating the superseded exact target. Missing historical evidence and acceptance failures remain facts; no retrospective success.
+
+Owner / successor / independent original-scope reviews: .harness/evidence/2026-11-17-ops-history-audit/continuation-dispositions.json. Original card body retained; only historical scope archived.

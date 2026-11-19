@@ -1,0 +1,85 @@
+{
+  "taskId": "2026-11-17-ops-history-audit",
+  "recordedAt": "2026-11-17T06:07:53.359Z",
+  "originals": [
+    {
+      "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/commands.json",
+      "backup": ".harness/evidence/2026-11-17-ops-history-audit/packaging-before-correction/.harness/evidence/2026-11-07-ops-planned-task-closeout/commands.json",
+      "sha256": "c0258889dc7ee5ce03aca96d17148f4f37499fa395c747fc466ee03f0aeb70ff"
+    },
+    {
+      "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/summary.md",
+      "backup": ".harness/evidence/2026-11-17-ops-history-audit/packaging-before-correction/.harness/evidence/2026-11-07-ops-planned-task-closeout/summary.md",
+      "sha256": "77520df276f31aebe0ae46295fdb15f17bd287ef96b13bfac43e28ab97b72233"
+    },
+    {
+      "file": ".harness/evidence/2026-11-14-ops-latest-foundation-and-plans/summary.md",
+      "backup": ".harness/evidence/2026-11-17-ops-history-audit/packaging-before-correction/.harness/evidence/2026-11-14-ops-latest-foundation-and-plans/summary.md",
+      "sha256": "c9eddf2106331137bc4bda50553e65d243f8f2ed3ffca4cc236dfd8a17efc9a0"
+    },
+    {
+      "file": ".harness/tasks/2026-11-14-ops-latest-foundation-and-plans/manifest.json",
+      "backup": ".harness/evidence/2026-11-17-ops-history-audit/packaging-before-correction/.harness/tasks/2026-11-14-ops-latest-foundation-and-plans/manifest.json",
+      "sha256": "1f32b50f85e213f096ab9e8dc9279daa68fe35e6c4185d9ec00f0c23ed97787d"
+    },
+    {
+      "file": "docs/harness/tasks/2026-11-14-ops-latest-foundation-and-plans.task.md",
+      "backup": ".harness/evidence/2026-11-17-ops-history-audit/packaging-before-correction/docs/harness/tasks/2026-11-14-ops-latest-foundation-and-plans.task.md",
+      "sha256": "42190f0f2a308ce42a45c69521e9b87fc6d741741b0bf3974e90c0c9e56683c2"
+    }
+  ],
+  "originalLogs": [
+    {
+      "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/review-final.log",
+      "sha256": "d48a8b7d1c74c78a800e603c68108ab1dda6035e882920f287fcd51255bff371"
+    },
+    {
+      "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/d2-red.log",
+      "sha256": "a0cc7f9129553d1ff09384f44c00bf4e999b7cd600fa7636f29a4626fcaa4bd3"
+    },
+    {
+      "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/d2-green.log",
+      "sha256": "35d80607f927c7452db615bea9aba46c2e2a67fdca6486ee401654fc92d38a40"
+    },
+    {
+      "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/d2-complete.log",
+      "sha256": "28369292bc55685be75484c7705aeb2382a0bb356b4e50a38816403b298fb3e1"
+    },
+    {
+      "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/evidence-final.log",
+      "sha256": "710e4a8bbb2c55925e470a3bc0ddc5c938c95c9bbb078890553bf31a559e6979"
+    },
+    {
+      "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/task-packet-final.log",
+      "sha256": "d1a0ea6bf4ea4a7506d886bbc33a9f770e055eec7c1da617e682e98ca497d718"
+    },
+    {
+      "file": ".harness/evidence/2026-11-14-ops-latest-foundation-and-plans/verification/apply-final.log",
+      "sha256": "f9c1529b97db1c9cc66f560c61437beabbb13c44c8709e8c78ec7ffcb43df457"
+    }
+  ],
+  "originalLogsUnchanged": true,
+  "corrected": [
+    {
+      "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/commands.json",
+      "sha256": "319b2ee0811ed6417561048649d5ddc9818ad4a4553e65f844c2bef1bbf8c3ce"
+    },
+    {
+      "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/summary.md",
+      "sha256": "fd9163c838099b7b9b5d343cce44a2448959213d2147e448c26e45b9533eaa31"
+    },
+    {
+      "file": ".harness/evidence/2026-11-14-ops-latest-foundation-and-plans/summary.md",
+      "sha256": "a01294eee2ea6538a6e6b46e3824054020f5cac26f954f3c99cbef2e723d523c"
+    },
+    {
+      "file": ".harness/tasks/2026-11-14-ops-latest-foundation-and-plans/manifest.json",
+      "sha256": "2465e9f7eae6b3bb68239a91c0b4f1a593148fe67da389f489343747da2c22f4"
+    },
+    {
+      "file": "docs/harness/tasks/2026-11-14-ops-latest-foundation-and-plans.task.md",
+      "sha256": "818d8c92eb650c88de3025375e365f04a86dc562cb9c2eb19c49932577962c51"
+    }
+  ],
+  "note": "Only newly materialized 2026-11-17 packaging corrected; older verification logs and frozen disposition batches preserved."
+}

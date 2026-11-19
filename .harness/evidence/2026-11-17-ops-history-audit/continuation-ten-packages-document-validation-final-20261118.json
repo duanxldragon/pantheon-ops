@@ -1,0 +1,355 @@
+{
+  "schema": "pantheon-ten-packages-document-validation/v1",
+  "recordedAtUTC": "2026-11-19T00:11:18.601Z",
+  "owner": "/root/ten_packages_progress_evidence",
+  "checks": [
+    {
+      "check": "10 child statuses,32 unchanged original criteria,task-doc superset,10 child trios,1 parent trio and new evidence/Markdown linkage",
+      "status": "passed",
+      "exitCode": 0,
+      "newMarkdownLinks": 266
+    },
+    {
+      "check": "58 original raw backups present and hashed; all written JSON parses",
+      "status": "passed",
+      "exitCode": 0
+    },
+    {
+      "check": "frontmatter",
+      "command": "D:\\nodejs\\node.exe scripts/frontmatter-check.mjs",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+      "startedAt": "2026-11-19T00:11:17.329Z",
+      "finishedAt": "2026-11-19T00:11:18.219Z",
+      "status": "passed",
+      "exitCode": 0,
+      "log": ".harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-doc-frontmatter-final-20261118.log"
+    },
+    {
+      "check": "evidence",
+      "command": "D:\\nodejs\\node.exe scripts/harness/check-evidence.mjs --strict .harness/evidence/2026-11-16-ops-service-deploy-integrity/commands.json .harness/evidence/2026-11-16-ops-service-deploy-user-flow/commands.json .harness/evidence/2026-11-16-ops-service-catalog-usability/commands.json .harness/evidence/2026-11-16-ops-k8s-service-mutations/commands.json .harness/evidence/2026-11-16-ops-business-runtime-acceptance/commands.json .harness/evidence/2026-11-16-ops-pilot-release-closeout/commands.json .harness/evidence/2026-11-16-ops-filedist-product-closure/commands.json .harness/evidence/2026-11-16-ops-argocd-ownership-convergence/commands.json .harness/evidence/2026-11-16-ops-helm-capability-truth/commands.json .harness/evidence/2026-11-16-ops-extensions-live-acceptance/commands.json .harness/evidence/2026-11-16-ops-pilot-delivery/commands.json",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+      "startedAt": "2026-11-19T00:11:18.219Z",
+      "finishedAt": "2026-11-19T00:11:18.390Z",
+      "status": "passed",
+      "exitCode": 0,
+      "log": ".harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-doc-evidence-final-20261118.log"
+    },
+    {
+      "check": "review",
+      "command": "D:\\nodejs\\node.exe scripts/harness/check-review.mjs --strict .harness/evidence/2026-11-16-ops-service-deploy-integrity/review.md .harness/evidence/2026-11-16-ops-service-deploy-user-flow/review.md .harness/evidence/2026-11-16-ops-service-catalog-usability/review.md .harness/evidence/2026-11-16-ops-k8s-service-mutations/review.md .harness/evidence/2026-11-16-ops-business-runtime-acceptance/review.md .harness/evidence/2026-11-16-ops-pilot-release-closeout/review.md .harness/evidence/2026-11-16-ops-filedist-product-closure/review.md .harness/evidence/2026-11-16-ops-argocd-ownership-convergence/review.md .harness/evidence/2026-11-16-ops-helm-capability-truth/review.md .harness/evidence/2026-11-16-ops-extensions-live-acceptance/review.md .harness/evidence/2026-11-16-ops-pilot-delivery/review.md",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+      "startedAt": "2026-11-19T00:11:18.390Z",
+      "finishedAt": "2026-11-19T00:11:18.509Z",
+      "status": "passed",
+      "exitCode": 0,
+      "log": ".harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-doc-review-final-20261118.log"
+    },
+    {
+      "check": "diff",
+      "command": "git diff --check -- .harness/tasks/2026-11-16-ops-service-deploy-integrity/manifest.json .harness/evidence/2026-11-16-ops-service-deploy-integrity/summary.md .harness/evidence/2026-11-16-ops-service-deploy-integrity/review.md .harness/evidence/2026-11-16-ops-service-deploy-integrity/commands.json docs/harness/tasks/2026-11-16-ops-service-deploy-integrity.task.md .harness/tasks/2026-11-16-ops-service-deploy-user-flow/manifest.json .harness/evidence/2026-11-16-ops-service-deploy-user-flow/summary.md .harness/evidence/2026-11-16-ops-service-deploy-user-flow/review.md .harness/evidence/2026-11-16-ops-service-deploy-user-flow/commands.json docs/harness/tasks/2026-11-16-ops-service-deploy-user-flow.task.md .harness/tasks/2026-11-16-ops-service-catalog-usability/manifest.json .harness/evidence/2026-11-16-ops-service-catalog-usability/summary.md .harness/evidence/2026-11-16-ops-service-catalog-usability/review.md .harness/evidence/2026-11-16-ops-service-catalog-usability/commands.json docs/harness/tasks/2026-11-16-ops-service-catalog-usability.task.md .harness/tasks/2026-11-16-ops-k8s-service-mutations/manifest.json .harness/evidence/2026-11-16-ops-k8s-service-mutations/summary.md .harness/evidence/2026-11-16-ops-k8s-service-mutations/review.md .harness/evidence/2026-11-16-ops-k8s-service-mutations/commands.json docs/harness/tasks/2026-11-16-ops-k8s-service-mutations.task.md .harness/tasks/2026-11-16-ops-business-runtime-acceptance/manifest.json .harness/evidence/2026-11-16-ops-business-runtime-acceptance/summary.md .harness/evidence/2026-11-16-ops-business-runtime-acceptance/review.md .harness/evidence/2026-11-16-ops-business-runtime-acceptance/commands.json docs/harness/tasks/2026-11-16-ops-business-runtime-acceptance.task.md .harness/tasks/2026-11-16-ops-pilot-release-closeout/manifest.json .harness/evidence/2026-11-16-ops-pilot-release-closeout/summary.md .harness/evidence/2026-11-16-ops-pilot-release-closeout/review.md .harness/evidence/2026-11-16-ops-pilot-release-closeout/commands.json docs/harness/tasks/2026-11-16-ops-pilot-release-closeout.task.md .harness/tasks/2026-11-16-ops-filedist-product-closure/manifest.json .harness/evidence/2026-11-16-ops-filedist-product-closure/summary.md .harness/evidence/2026-11-16-ops-filedist-product-closure/review.md .harness/evidence/2026-11-16-ops-filedist-product-closure/commands.json docs/harness/tasks/2026-11-16-ops-filedist-product-closure.task.md .harness/tasks/2026-11-16-ops-argocd-ownership-convergence/manifest.json .harness/evidence/2026-11-16-ops-argocd-ownership-convergence/summary.md .harness/evidence/2026-11-16-ops-argocd-ownership-convergence/review.md .harness/evidence/2026-11-16-ops-argocd-ownership-convergence/commands.json docs/harness/tasks/2026-11-16-ops-argocd-ownership-convergence.task.md .harness/tasks/2026-11-16-ops-helm-capability-truth/manifest.json .harness/evidence/2026-11-16-ops-helm-capability-truth/summary.md .harness/evidence/2026-11-16-ops-helm-capability-truth/review.md .harness/evidence/2026-11-16-ops-helm-capability-truth/commands.json docs/harness/tasks/2026-11-16-ops-helm-capability-truth.task.md .harness/tasks/2026-11-16-ops-extensions-live-acceptance/manifest.json .harness/evidence/2026-11-16-ops-extensions-live-acceptance/summary.md .harness/evidence/2026-11-16-ops-extensions-live-acceptance/review.md .harness/evidence/2026-11-16-ops-extensions-live-acceptance/commands.json docs/harness/tasks/2026-11-16-ops-extensions-live-acceptance.task.md .harness/tasks/2026-11-16-ops-pilot-delivery/manifest.json .harness/evidence/2026-11-16-ops-pilot-delivery/summary.md .harness/evidence/2026-11-16-ops-pilot-delivery/review.md .harness/evidence/2026-11-16-ops-pilot-delivery/commands.json .harness/tasks/2026-11-16-ops-pilot-delivery/OPEN_TASKS.md .harness/tasks/2026-11-16-ops-pilot-delivery/EXECUTION_QUEUE.md .harness/evidence/2026-11-17-ops-history-audit/progress.md .harness/STATUS.md .harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-progress-final-20261118.json",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+      "startedAt": "2026-11-19T00:11:18.510Z",
+      "finishedAt": "2026-11-19T00:11:18.600Z",
+      "status": "passed",
+      "exitCode": 0,
+      "log": ".harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-doc-diff-final-20261118.log"
+    }
+  ],
+  "originals": [
+    {
+      "file": ".harness/tasks/2026-11-16-ops-service-deploy-integrity/manifest.json",
+      "raw": ".harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-final-originals-20261118/.harness/tasks/2026-11-16-ops-service-deploy-integrity/manifest.json.raw",
+      "sha256": "3fbb8573f84413c9dbb5479e6562e34b776d6db920675f54349e8b5432d9c810"
+    },
+    {
+      "file": ".harness/evidence/2026-11-16-ops-service-deploy-integrity/summary.md",
+      "raw": ".harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-final-originals-20261118/.harness/evidence/2026-11-16-ops-service-deploy-integrity/summary.md.raw",
+      "sha256": "cb6780116929f5ac3315744ae99e7feba6821bf7592d716326977fd020c26dee"
+    },
+    {
+      "file": ".harness/evidence/2026-11-16-ops-service-deploy-integrity/review.md",
+      "raw": ".harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-final-originals-20261118/.harness/evidence/2026-11-16-ops-service-deploy-integrity/review.md.raw",
+      "sha256": "c50c9b2241732d2a3ec06ec71208c480fc32dbb74a3e7f7c9807e6102f4b9e85"
+    },
+    {
+      "file": ".harness/evidence/2026-11-16-ops-service-deploy-integrity/commands.json",
+      "raw": ".harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-final-originals-20261118/.harness/evidence/2026-11-16-ops-service-deploy-integrity/commands.json.raw",
+      "sha256": "d75cd45ae01d5cfb17436719c461d554e8c73135bf6facdd677b678ecadc11b7"
+    },
+    {
+      "file": "docs/harness/tasks/2026-11-16-ops-service-deploy-integrity.task.md",
+      "raw": ".harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-final-originals-20261118/docs/harness/tasks/2026-11-16-ops-service-deploy-integrity.task.md.raw",
+      "sha256": "b5e9bb499cd410f243fe8ed2ebecff2edc81e0d9dc4c8af22efc55c434935d9c"
+    },
+    {
+      "file": ".harness/tasks/2026-11-16-ops-service-deploy-user-flow/manifest.json",
+      "raw": ".harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-final-originals-20261118/.harness/tasks/2026-11-16-ops-service-deploy-user-flow/manifest.json.raw",
+      "sha256": "3de69f38c56c695e3e5ac5843c97ad6ee2adf423f4a722ea823d2a2d5b236eba"
+    },
+    {
+      "file": ".harness/evidence/2026-11-16-ops-service-deploy-user-flow/summary.md",
+      "raw": ".harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-final-originals-20261118/.harness/evidence/2026-11-16-ops-service-deploy-user-flow/summary.md.raw",
+      "sha256": "b04ce8a626c4557ba259621f6f3418efb32f211508f1110671c8540607c3ee9d"
+    },
+    {
+      "file": ".harness/evidence/2026-11-16-ops-service-deploy-user-flow/review.md",
+      "raw": ".harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-final-originals-20261118/.harness/evidence/2026-11-16-ops-service-deploy-user-flow/review.md.raw",
+      "sha256": "dc017f929baac317fee64791fad617b46590ba1c11ccb86da584e1adf774a620"
+    },
+    {
+      "file": ".harness/evidence/2026-11-16-ops-service-deploy-user-flow/commands.json",
+      "raw": ".harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-final-originals-20261118/.harness/evidence/2026-11-16-ops-service-deploy-user-flow/commands.json.raw",
+      "sha256": "e8448e321c1a8fa7bf02f4f0eba069019fc8fb7753ee3b13478083d012663dcd"
+    },
+    {
+      "file": "docs/harness/tasks/2026-11-16-ops-service-deploy-user-flow.task.md",
+      "raw": ".harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-final-originals-20261118/docs/harness/tasks/2026-11-16-ops-service-deploy-user-flow.task.md.raw",
+      "sha256": "e093a0151268cae0b66f4da8c5c9d54e08e9a3e78ab36257a03ba06deeb30eec"
+    },
+    {
+      "file": ".harness/tasks/2026-11-16-ops-service-catalog-usability/manifest.json",
+      "raw": ".harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-final-originals-20261118/.harness/tasks/2026-11-16-ops-service-catalog-usability/manifest.json.raw",
+      "sha256": "936af5023ff43da13dbf13002feea2d902bc6f120aff1c2ae882ca910e4d622f"
+    },
+    {
+      "file": ".harness/evidence/2026-11-16-ops-service-catalog-usability/summary.md",
+      "raw": ".harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-final-originals-20261118/.harness/evidence/2026-11-16-ops-service-catalog-usability/summary.md.raw",
+      "sha256": "10d5b28542b7c52cca7cf4f47265738b9040ffb1a5ac131e59687ee76bc8d1d4"
+    },
+    {
+      "file": ".harness/evidence/2026-11-16-ops-service-catalog-usability/review.md",
+      "raw": ".harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-final-originals-20261118/.harness/evidence/2026-11-16-ops-service-catalog-usability/review.md.raw",
+      "sha256": "7202e62d7e12885ef1697cd569be17827ce03d0f4d6aef932224ac37f84fa408"
+    },
+    {
+      "file": ".harness/evidence/2026-11-16-ops-service-catalog-usability/commands.json",
+      "raw": ".harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-final-originals-20261118/.harness/evidence/2026-11-16-ops-service-catalog-usability/commands.json.raw",
+      "sha256": "1a6fa26044e00de57ee74a48a65eba09cc1f80cb59d82276a24e161a8446fae9"
+    },
+    {
+      "file": "docs/harness/tasks/2026-11-16-ops-service-catalog-usability.task.md",
+      "raw": ".harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-final-originals-20261118/docs/harness/tasks/2026-11-16-ops-service-catalog-usability.task.md.raw",
+      "sha256": "e51224a36c77231e8cb2e2082f858fdde47b1cd548d8310d96e3c14d541e06fb"
+    },
+    {
+      "file": ".harness/tasks/2026-11-16-ops-k8s-service-mutations/manifest.json",
+      "raw": ".harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-final-originals-20261118/.harness/tasks/2026-11-16-ops-k8s-service-mutations/manifest.json.raw",
+      "sha256": "df9e28a3daf84b087255e0943b39d36aaae0a652372a3e484b39f072abed0aa3"
+    },
+    {
+      "file": ".harness/evidence/2026-11-16-ops-k8s-service-mutations/summary.md",
+      "raw": ".harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-final-originals-20261118/.harness/evidence/2026-11-16-ops-k8s-service-mutations/summary.md.raw",
+      "sha256": "2c4d3fe39e27fdaa9679a45424a95e24cf837c525cb6222d729bddda89bceeaf"
+    },
+    {
+      "file": ".harness/evidence/2026-11-16-ops-k8s-service-mutations/review.md",
+      "raw": ".harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-final-originals-20261118/.harness/evidence/2026-11-16-ops-k8s-service-mutations/review.md.raw",
+      "sha256": "5c2337e192b0c0f3e1a3a6e1dc321111db88b5ce0f939b5a65488d2f6ddb2656"
+    },
+    {
+      "file": ".harness/evidence/2026-11-16-ops-k8s-service-mutations/commands.json",
+      "raw": ".harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-final-originals-20261118/.harness/evidence/2026-11-16-ops-k8s-service-mutations/commands.json.raw",
+      "sha256": "07d0855a94c02e2b2009758b9d6e1e0180d21a692c9ad2ddc0ae9f40c7fc925d"
+    },
+    {
+      "file": "docs/harness/tasks/2026-11-16-ops-k8s-service-mutations.task.md",
+      "raw": ".harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-final-originals-20261118/docs/harness/tasks/2026-11-16-ops-k8s-service-mutations.task.md.raw",
+      "sha256": "39717e780edffc9342757a239f473a6a809dcb5d3c12026d4ac4955ef3def3a0"
+    },
+    {
+      "file": ".harness/tasks/2026-11-16-ops-business-runtime-acceptance/manifest.json",
+      "raw": ".harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-final-originals-20261118/.harness/tasks/2026-11-16-ops-business-runtime-acceptance/manifest.json.raw",
+      "sha256": "6a364789461c51fca7baade585555f5e776914f3372af7376d81d54399b9727d"
+    },
+    {
+      "file": ".harness/evidence/2026-11-16-ops-business-runtime-acceptance/summary.md",
+      "raw": ".harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-final-originals-20261118/.harness/evidence/2026-11-16-ops-business-runtime-acceptance/summary.md.raw",
+      "sha256": "56e2a3989072a634b3ac166ff35a04691aa3f7a14535893fbcb59f9a57153337"
+    },
+    {
+      "file": ".harness/evidence/2026-11-16-ops-business-runtime-acceptance/review.md",
+      "raw": ".harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-final-originals-20261118/.harness/evidence/2026-11-16-ops-business-runtime-acceptance/review.md.raw",
+      "sha256": "0fc2f151696ec170ac5dc1f3dee4dcacc6c609c8700682495d83f8dc98f457c6"
+    },
+    {
+      "file": ".harness/evidence/2026-11-16-ops-business-runtime-acceptance/commands.json",
+      "raw": ".harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-final-originals-20261118/.harness/evidence/2026-11-16-ops-business-runtime-acceptance/commands.json.raw",
+      "sha256": "1bc6b4eac2f6d6f477ccda40157a0b28609879a0b62ee5dfd0904de259780f4c"
+    },
+    {
+      "file": "docs/harness/tasks/2026-11-16-ops-business-runtime-acceptance.task.md",
+      "raw": ".harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-final-originals-20261118/docs/harness/tasks/2026-11-16-ops-business-runtime-acceptance.task.md.raw",
+      "sha256": "e8a4fa03f10dbc4fe11b57bcbd50fc80ddb619b9289c76925ea27f859b99367e"
+    },
+    {
+      "file": ".harness/tasks/2026-11-16-ops-pilot-release-closeout/manifest.json",
+      "raw": ".harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-final-originals-20261118/.harness/tasks/2026-11-16-ops-pilot-release-closeout/manifest.json.raw",
+      "sha256": "af4c60bde748d5b3c70064029a6b9709266dfedd37fa9bb50e0f268eb665fa09"
+    },
+    {
+      "file": ".harness/evidence/2026-11-16-ops-pilot-release-closeout/summary.md",
+      "raw": ".harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-final-originals-20261118/.harness/evidence/2026-11-16-ops-pilot-release-closeout/summary.md.raw",
+      "sha256": "e825fd1a2e3e191b539db5a0cee7cbebd6fd4b12908469f73573424aff6accc3"
+    },
+    {
+      "file": ".harness/evidence/2026-11-16-ops-pilot-release-closeout/review.md",
+      "raw": ".harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-final-originals-20261118/.harness/evidence/2026-11-16-ops-pilot-release-closeout/review.md.raw",
+      "sha256": "c03e0773932628c1b7faa745b80ab9a8d44fbf75f5a164b66a9aef13456c64bf"
+    },
+    {
+      "file": ".harness/evidence/2026-11-16-ops-pilot-release-closeout/commands.json",
+      "raw": ".harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-final-originals-20261118/.harness/evidence/2026-11-16-ops-pilot-release-closeout/commands.json.raw",
+      "sha256": "53ca6888566c02c34631947bfe4be4f7e6c7fb0ecc072be56a714d52f03b077d"
+    },
+    {
+      "file": "docs/harness/tasks/2026-11-16-ops-pilot-release-closeout.task.md",
+      "raw": ".harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-final-originals-20261118/docs/harness/tasks/2026-11-16-ops-pilot-release-closeout.task.md.raw",
+      "sha256": "8a00eeb6b1cf3bcff9e710451581b5ba6f1e05cf956a3bd4fedbe2f48f685a15"
+    },
+    {
+      "file": ".harness/tasks/2026-11-16-ops-filedist-product-closure/manifest.json",
+      "raw": ".harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-final-originals-20261118/.harness/tasks/2026-11-16-ops-filedist-product-closure/manifest.json.raw",
+      "sha256": "c61e169997af5e4666ac0617483f78363b694741e850cf6c3112032a662a9c46"
+    },
+    {
+      "file": ".harness/evidence/2026-11-16-ops-filedist-product-closure/summary.md",
+      "raw": ".harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-final-originals-20261118/.harness/evidence/2026-11-16-ops-filedist-product-closure/summary.md.raw",
+      "sha256": "0c1ee3e87b9b7f5670eaf5a8ab0209bbbe4dc588147e91e4629d197172cfac7a"
+    },
+    {
+      "file": ".harness/evidence/2026-11-16-ops-filedist-product-closure/review.md",
+      "raw": ".harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-final-originals-20261118/.harness/evidence/2026-11-16-ops-filedist-product-closure/review.md.raw",
+      "sha256": "349a788e06e11bfeb2e96e0d8cbe1f6b565cd77cbaca3fac7c930bfa40f7c8e5"
+    },
+    {
+      "file": ".harness/evidence/2026-11-16-ops-filedist-product-closure/commands.json",
+      "raw": ".harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-final-originals-20261118/.harness/evidence/2026-11-16-ops-filedist-product-closure/commands.json.raw",
+      "sha256": "5e241969526295f8d82025c3bb595e8d75d91bc0a4bd28ebc99a8f85390030fb"
+    },
+    {
+      "file": "docs/harness/tasks/2026-11-16-ops-filedist-product-closure.task.md",
+      "raw": ".harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-final-originals-20261118/docs/harness/tasks/2026-11-16-ops-filedist-product-closure.task.md.raw",
+      "sha256": "93cb81feed829899d37dea5a678d44f5f5dbb5883ceb22d8257bf59118d63e75"
+    },
+    {
+      "file": ".harness/tasks/2026-11-16-ops-argocd-ownership-convergence/manifest.json",
+      "raw": ".harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-final-originals-20261118/.harness/tasks/2026-11-16-ops-argocd-ownership-convergence/manifest.json.raw",
+      "sha256": "53a1ac7f1097050fecab98312da23f0f9d61a87348aced223eb9ee7a00313ddd"
+    },
+    {
+      "file": ".harness/evidence/2026-11-16-ops-argocd-ownership-convergence/summary.md",
+      "raw": ".harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-final-originals-20261118/.harness/evidence/2026-11-16-ops-argocd-ownership-convergence/summary.md.raw",
+      "sha256": "74a4927576e5ce72f26c53a15c83346271be28332e20d9f957448291573a2fb4"
+    },
+    {
+      "file": ".harness/evidence/2026-11-16-ops-argocd-ownership-convergence/review.md",
+      "raw": ".harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-final-originals-20261118/.harness/evidence/2026-11-16-ops-argocd-ownership-convergence/review.md.raw",
+      "sha256": "4af26c93ab31bb9f318d9b861b5fda95943f033bf34aac8a61283c8a45e99871"
+    },
+    {
+      "file": ".harness/evidence/2026-11-16-ops-argocd-ownership-convergence/commands.json",
+      "raw": ".harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-final-originals-20261118/.harness/evidence/2026-11-16-ops-argocd-ownership-convergence/commands.json.raw",
+      "sha256": "f301611876db5d982ccaf1bd181091e2006aae15492bc908117466cb76feb2d0"
+    },
+    {
+      "file": "docs/harness/tasks/2026-11-16-ops-argocd-ownership-convergence.task.md",
+      "raw": ".harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-final-originals-20261118/docs/harness/tasks/2026-11-16-ops-argocd-ownership-convergence.task.md.raw",
+      "sha256": "7241812915876fe4ef415a966c3db05877512efcc43e4feb2f04ba52e4adc2bb"
+    },
+    {
+      "file": ".harness/tasks/2026-11-16-ops-helm-capability-truth/manifest.json",
+      "raw": ".harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-final-originals-20261118/.harness/tasks/2026-11-16-ops-helm-capability-truth/manifest.json.raw",
+      "sha256": "c36b8a6368f9b1883b42bd925a3da202de13dcefaf04b4a4540f42a1bb7ac96e"
+    },
+    {
+      "file": ".harness/evidence/2026-11-16-ops-helm-capability-truth/summary.md",
+      "raw": ".harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-final-originals-20261118/.harness/evidence/2026-11-16-ops-helm-capability-truth/summary.md.raw",
+      "sha256": "d8677ff031c49d3839fcb20d97f89d3f94ee315831ef27947e59f27a06a715e2"
+    },
+    {
+      "file": ".harness/evidence/2026-11-16-ops-helm-capability-truth/review.md",
+      "raw": ".harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-final-originals-20261118/.harness/evidence/2026-11-16-ops-helm-capability-truth/review.md.raw",
+      "sha256": "97f2eb2c5b8d22ca1cabc837ca5727e60a3c3502f7aa17aa37810f8260c41c21"
+    },
+    {
+      "file": ".harness/evidence/2026-11-16-ops-helm-capability-truth/commands.json",
+      "raw": ".harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-final-originals-20261118/.harness/evidence/2026-11-16-ops-helm-capability-truth/commands.json.raw",
+      "sha256": "904ddf416b190c37182d1f850f2033a846a61b261e513eddd7478729b08b88df"
+    },
+    {
+      "file": "docs/harness/tasks/2026-11-16-ops-helm-capability-truth.task.md",
+      "raw": ".harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-final-originals-20261118/docs/harness/tasks/2026-11-16-ops-helm-capability-truth.task.md.raw",
+      "sha256": "060865b2a6849e60502e63d35db072717318c4e75a91100f49db9525b7c440ee"
+    },
+    {
+      "file": ".harness/tasks/2026-11-16-ops-extensions-live-acceptance/manifest.json",
+      "raw": ".harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-final-originals-20261118/.harness/tasks/2026-11-16-ops-extensions-live-acceptance/manifest.json.raw",
+      "sha256": "b3985368fc4a4a9cfe540771f813a823094b80e01d8032881a644f916c61941d"
+    },
+    {
+      "file": ".harness/evidence/2026-11-16-ops-extensions-live-acceptance/summary.md",
+      "raw": ".harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-final-originals-20261118/.harness/evidence/2026-11-16-ops-extensions-live-acceptance/summary.md.raw",
+      "sha256": "e913ee722aa7511be1ea933124a9c5d406fa27401d3e9af1f8fb930b6c069026"
+    },
+    {
+      "file": ".harness/evidence/2026-11-16-ops-extensions-live-acceptance/review.md",
+      "raw": ".harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-final-originals-20261118/.harness/evidence/2026-11-16-ops-extensions-live-acceptance/review.md.raw",
+      "sha256": "c98d704c938cc9f530f9a6c8d4267ec791816288c5e073847cc3be7fe85a77ee"
+    },
+    {
+      "file": ".harness/evidence/2026-11-16-ops-extensions-live-acceptance/commands.json",
+      "raw": ".harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-final-originals-20261118/.harness/evidence/2026-11-16-ops-extensions-live-acceptance/commands.json.raw",
+      "sha256": "7fb637b14afb6106d18204d47ba9a1e28135ca79352870efc7252b9cbba45628"
+    },
+    {
+      "file": "docs/harness/tasks/2026-11-16-ops-extensions-live-acceptance.task.md",
+      "raw": ".harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-final-originals-20261118/docs/harness/tasks/2026-11-16-ops-extensions-live-acceptance.task.md.raw",
+      "sha256": "17647b4e0921e6262b0bf97e41cacbb8915c3208da8ee2a5283c898ebefee0f3"
+    },
+    {
+      "file": ".harness/tasks/2026-11-16-ops-pilot-delivery/manifest.json",
+      "raw": ".harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-final-originals-20261118/.harness/tasks/2026-11-16-ops-pilot-delivery/manifest.json.raw",
+      "sha256": "f7a0802668984aa67ed84cc52e4cbed8f5d56ef2a2a4e4c102e5dec3a13c6fdb"
+    },
+    {
+      "file": ".harness/evidence/2026-11-16-ops-pilot-delivery/summary.md",
+      "raw": ".harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-final-originals-20261118/.harness/evidence/2026-11-16-ops-pilot-delivery/summary.md.raw",
+      "sha256": "09abd467ab87b691e9046abd12f575176721086b9034761cd44e28cdcdd81035"
+    },
+    {
+      "file": ".harness/evidence/2026-11-16-ops-pilot-delivery/review.md",
+      "raw": ".harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-final-originals-20261118/.harness/evidence/2026-11-16-ops-pilot-delivery/review.md.raw",
+      "sha256": "aee87bb24159505b7ef727238feae53079dc39e68a04ded790997668582b45fe"
+    },
+    {
+      "file": ".harness/evidence/2026-11-16-ops-pilot-delivery/commands.json",
+      "raw": ".harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-final-originals-20261118/.harness/evidence/2026-11-16-ops-pilot-delivery/commands.json.raw",
+      "sha256": "6bdecf62b63a7978885bd972b65ae407c75121fa61e1f4b0b80f4dda4a7153be"
+    },
+    {
+      "file": ".harness/tasks/2026-11-16-ops-pilot-delivery/OPEN_TASKS.md",
+      "raw": ".harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-final-originals-20261118/.harness/tasks/2026-11-16-ops-pilot-delivery/OPEN_TASKS.md.raw",
+      "sha256": "824f5a80a041359b3b06adddc3c3de51de2010208160883c5068b15b0a338eef"
+    },
+    {
+      "file": ".harness/tasks/2026-11-16-ops-pilot-delivery/EXECUTION_QUEUE.md",
+      "raw": ".harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-final-originals-20261118/.harness/tasks/2026-11-16-ops-pilot-delivery/EXECUTION_QUEUE.md.raw",
+      "sha256": "e608664af00565a14be5afa58e58abd5aef2a1446e5b626d27886214fe74c34a"
+    },
+    {
+      "file": ".harness/evidence/2026-11-17-ops-history-audit/progress.md",
+      "raw": ".harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-final-originals-20261118/.harness/evidence/2026-11-17-ops-history-audit/progress.md.raw",
+      "sha256": "4fb984c3e94c1de32c21b39529c790cdb46f321ad226f3604b60b2efc7b31278"
+    },
+    {
+      "file": ".harness/STATUS.md",
+      "raw": ".harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-final-originals-20261118/.harness/STATUS.md.raw",
+      "sha256": "1a5bf61f72dbf38a83b5fb039d4b184332cb00de42061183c9f2baab6b5e6b1f"
+    }
+  ],
+  "allDocumentationChecksPass": true,
+  "productTestsRerunByWriter": false,
+  "allPackagesAccepted": false,
+  "wholeRepositoryGovernanceCertified": false,
+  "finalSourceFreezeCertified": false
+}

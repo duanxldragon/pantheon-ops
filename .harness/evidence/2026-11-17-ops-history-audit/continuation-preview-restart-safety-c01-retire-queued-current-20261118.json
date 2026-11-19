@@ -1,0 +1,1 @@
+{"boundary":"Read-only point-in-time local preview check; no production operation and no task mutation.","counts":{"executingTasks":0,"hostLeases":0,"runningAttempts":0},"database":"ops_manual_preview_20261111_v1","endpoint":"127.0.0.1:33316","recordedAt":"2026-11-17T23:04:20.5175556Z","safeToRestart":true}

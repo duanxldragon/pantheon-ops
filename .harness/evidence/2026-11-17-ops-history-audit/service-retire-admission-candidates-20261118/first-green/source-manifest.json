@@ -1,0 +1,31 @@
+{
+  "recordedAt": "2026-11-18T00:39:50.708Z",
+  "stage": "first-green",
+  "rows": [
+    {
+      "file": "backend/modules/business/service/state.go",
+      "raw": ".harness/evidence/2026-11-17-ops-history-audit/service-retire-admission-candidates-20261118/first-green/backend/modules/business/service/state.go.raw",
+      "sha256": "e3ae0c4a9b3892e914b442646a6364e6492cf06334dfcc3541672041d684a48b"
+    },
+    {
+      "file": "backend/modules/business/service/reader_transaction.go",
+      "raw": ".harness/evidence/2026-11-17-ops-history-audit/service-retire-admission-candidates-20261118/first-green/backend/modules/business/service/reader_transaction.go.raw",
+      "sha256": "8f563229ff147b4ee2dd6a7a949eaa1ece2719b65d325fe7002fdfe126c3b397"
+    },
+    {
+      "file": "backend/modules/business/service/deployment_reference.go",
+      "raw": ".harness/evidence/2026-11-17-ops-history-audit/service-retire-admission-candidates-20261118/first-green/backend/modules/business/service/deployment_reference.go.raw",
+      "sha256": "df876c9677e0332eb74ced88205195a0a21769025e68331192cab54759e2e432"
+    },
+    {
+      "file": "backend/modules/business/service/retire_admission_test.go",
+      "raw": ".harness/evidence/2026-11-17-ops-history-audit/service-retire-admission-candidates-20261118/first-green/backend/modules/business/service/retire_admission_test.go.raw",
+      "sha256": "9947de5f88224b2b0847aae7a88a6335fb9b53e2a0e59a964c87a0d6dd08cfca"
+    },
+    {
+      "file": "backend/modules/business/deploy/service_retire_admission_test.go",
+      "raw": ".harness/evidence/2026-11-17-ops-history-audit/service-retire-admission-candidates-20261118/first-green/backend/modules/business/deploy/service_retire_admission_test.go.raw",
+      "sha256": "a7e47961b93ce1cb8cd7c9a6c5dd4f7299d5ebb04259dc02b77de3ab825b11b7"
+    }
+  ]
+}

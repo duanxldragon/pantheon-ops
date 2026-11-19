@@ -1,0 +1,5 @@
+{
+  "exitCode": 0,
+  "stdout": "{\r\n  \"outsideJobSentinelSurvived\": true,\r\n  \"ownedDescendantExited\": true,\r\n  \"noSharedProcessesStopped\": true,\r\n  \"status\": \"passed\",\r\n  \"ownedRootExited\": true\r\n}\r\n",
+  "stderr": ""
+}

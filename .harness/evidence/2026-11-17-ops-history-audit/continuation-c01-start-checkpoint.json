@@ -1,0 +1,56 @@
+{
+  "at": "2026-11-17T11:23:22.312Z",
+  "receipt": {
+    "log": "continuation-c01-service-link-red.log",
+    "goFlags": "-p=1 -mod=readonly",
+    "cgoEnabled": "1",
+    "finishedAt": "2026-11-17T11:19:45.3415892Z",
+    "args": [
+      "test",
+      "-race",
+      "-count=1",
+      "-timeout=10m",
+      "./modules/business/deploy",
+      "-v",
+      "-run",
+      "^TestServiceLinkAdmission"
+    ],
+    "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\backend",
+    "disposableMySQL": true,
+    "testDsnRequired": "1",
+    "startedAt": "2026-11-17T11:18:59.3529735Z",
+    "exitCode": 1
+  },
+  "originals": [
+    {
+      "file": ".harness/tasks/2026-11-16-ops-service-deploy-integrity/manifest.json",
+      "backup": ".harness/evidence/2026-11-17-ops-history-audit/continuation-c01-start-originals/.harness/tasks/2026-11-16-ops-service-deploy-integrity/manifest.json.raw",
+      "beforeSHA256": "e6b1372572c7551c4e7b9129e6b6a19c39a66660d4aaa397fb115817c96e2773",
+      "afterSHA256": "794dae060662909462554b024c234554eca0539bebc5b9dacc4aaa2c9c2b87ed"
+    },
+    {
+      "file": ".harness/STATUS.md",
+      "backup": ".harness/evidence/2026-11-17-ops-history-audit/continuation-c01-start-originals/.harness/STATUS.md.raw",
+      "beforeSHA256": "cc4c7f67e419826161eb4be07e2125a193e0d0c44afef4fb727894e23fb61186",
+      "afterSHA256": "ef2e7666bd4e7ff6afd611d7efb1a788633a2edc997cefb9ba59916ac993b403"
+    },
+    {
+      "file": ".harness/evidence/2026-11-17-ops-history-audit/progress.md",
+      "backup": ".harness/evidence/2026-11-17-ops-history-audit/continuation-c01-start-originals/.harness/evidence/2026-11-17-ops-history-audit/progress.md.raw",
+      "beforeSHA256": "dd4c5eb037b1c46ad50cd1fe45bcad88e2da6541622eb9553f2dd5d42ca18c42",
+      "afterSHA256": "7015e2651d6fb452005de21a399a6334f890fe8bc24a28e9a43d79305d5bc1d5"
+    },
+    {
+      "file": ".harness/evidence/2026-11-17-ops-history-audit/summary.md",
+      "backup": ".harness/evidence/2026-11-17-ops-history-audit/continuation-c01-start-originals/.harness/evidence/2026-11-17-ops-history-audit/summary.md.raw",
+      "beforeSHA256": "bd4ba0087ec32e7c2c3eea8c7908648ed687a6a707116559776faf3685cbfb51",
+      "afterSHA256": "ac38b5c1ef7f131887d619fc0421cd8665f459edb7ac2c87b9a46ac5d7b32c4d"
+    },
+    {
+      "file": ".harness/tasks/2026-11-16-ops-pilot-delivery/OPEN_TASKS.md",
+      "backup": ".harness/evidence/2026-11-17-ops-history-audit/continuation-c01-start-originals/.harness/tasks/2026-11-16-ops-pilot-delivery/OPEN_TASKS.md.raw",
+      "beforeSHA256": "c507f608291d218514e34ad62f4c4bac414770b91f0a2f64096a4d63c011197d",
+      "afterSHA256": "b3082c546a8780079311a71a4dd1fd5092c51b36bbb991c2132062e991a07bb2"
+    }
+  ]
+}

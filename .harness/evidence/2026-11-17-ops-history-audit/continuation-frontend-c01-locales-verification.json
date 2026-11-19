@@ -1,0 +1,53 @@
+[
+  {
+    "name": "frontend-lint-final-c01-locales",
+    "executable": "D:\\nodejs\\node.exe",
+    "args": [
+      "--import=file:///D:/workspace/go/pantheon-platform/pantheon-ops/.local/manual-preview-20261116/hide-child-windows.mjs",
+      "D:/nodejs/node_modules/npm/bin/npm-cli.js",
+      "run",
+      "lint"
+    ],
+    "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\frontend",
+    "startedAt": "2026-11-17T11:45:27.153Z",
+    "finishedAt": "2026-11-17T11:47:09.976Z",
+    "exitCode": 0,
+    "status": "passed",
+    "log": ".harness/evidence/2026-11-17-ops-history-audit/continuation-frontend-lint-final-c01-locales.log",
+    "errorCode": null
+  },
+  {
+    "name": "frontend-typecheck-final-c01-locales",
+    "executable": "D:\\nodejs\\node.exe",
+    "args": [
+      "--import=file:///D:/workspace/go/pantheon-platform/pantheon-ops/.local/manual-preview-20261116/hide-child-windows.mjs",
+      "D:/nodejs/node_modules/npm/bin/npm-cli.js",
+      "run",
+      "type-check"
+    ],
+    "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\frontend",
+    "startedAt": "2026-11-17T11:47:09.979Z",
+    "finishedAt": "2026-11-17T11:47:56.625Z",
+    "exitCode": 0,
+    "status": "passed",
+    "log": ".harness/evidence/2026-11-17-ops-history-audit/continuation-frontend-typecheck-final-c01-locales.log",
+    "errorCode": null
+  },
+  {
+    "name": "frontend-build-final-c01-locales",
+    "executable": "D:\\nodejs\\node.exe",
+    "args": [
+      "--import=file:///D:/workspace/go/pantheon-platform/pantheon-ops/.local/manual-preview-20261116/hide-child-windows.mjs",
+      "D:/nodejs/node_modules/npm/bin/npm-cli.js",
+      "run",
+      "build"
+    ],
+    "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\frontend",
+    "startedAt": "2026-11-17T11:47:56.626Z",
+    "finishedAt": "2026-11-17T11:48:57.478Z",
+    "exitCode": 0,
+    "status": "passed",
+    "log": ".harness/evidence/2026-11-17-ops-history-audit/continuation-frontend-build-final-c01-locales.log",
+    "errorCode": null
+  }
+]

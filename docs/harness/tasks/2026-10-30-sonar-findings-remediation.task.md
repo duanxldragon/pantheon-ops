@@ -2,11 +2,11 @@
 title: Remediate the open SonarCloud security and reliability findings on business scope
 doc_type: Remediation
 layer: business-scope
-status: Active
+status: Archived
 linked_contracts:
   - docs/PROJECT_INHERITANCE.md
   - docs/designs/BUSINESS_ARGOCD_MODULE_DESIGN.md
-updated_at: 2026-10-30
+updated_at: 2026-11-17
 ---
 
 # Task Packet: 2026-10-30-sonar-findings-remediation
@@ -465,3 +465,11 @@ business/*
 - [x] Verification run or exception recorded
 - [x] Evidence saved or summarized
 - [x] Review completed
+
+## Result — History Closeout 2026-11-17
+
+Manifest disposition: completed
+
+main430a9f0 的原定量目标证据成立：全部facet零问题、gate OK、dup2.0。
+
+Residual finding/owner/successor/proof: .harness/evidence/2026-11-17-ops-history-audit/dispositions.json. Canonical references remain archive-aware. Historical body/evidence retained. Current candidate, production and maintainer gates remain separate.

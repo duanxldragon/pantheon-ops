@@ -1,0 +1,35 @@
+{
+  "recordedAt": "2026-11-18T10:02:13.2576704Z",
+  "buildReceipt": ".harness/evidence/2026-11-17-ops-history-audit/continuation-current-preview-ten-packages-20261118-e01-final-build.json",
+  "runtimeProcess": {
+    "path": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\manual-preview-20261116\\current-preview-ten-packages-20261118-e01-final\\pantheon-ops.exe",
+    "id": 16528
+  },
+  "frontend": {
+    "url": "http://127.0.0.1:5173",
+    "observedStatusCode": 200
+  },
+  "binarySHA256": "ac1f97711816d74ffb533bef095acb801484e061edc4d99d98ce45b4aa633bee",
+  "boundary": "Local preview binary identity and dependency readiness only; actual business/provider/role and rendered visual acceptance remain open.",
+  "health": {
+    "code": 200,
+    "data": {
+      "status": "ok",
+      "service": "pantheon-platform",
+      "timestamp": "2026-11-18T10:02:12Z",
+      "requestId": "e1b81837-54e9-4508-9d26-28400e94f233",
+      "dependencies": {
+        "database": {
+          "status": "ok"
+        },
+        "migrations": {
+          "status": "ok"
+        },
+        "redis": {
+          "status": "ok"
+        }
+      }
+    },
+    "message": "success"
+  }
+}

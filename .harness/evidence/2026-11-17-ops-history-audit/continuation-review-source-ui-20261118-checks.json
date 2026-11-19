@@ -1,0 +1,121 @@
+[
+  {
+    "name": "task",
+    "executable": "D:\\nodejs\\node.exe",
+    "args": [
+      "scripts/harness/check-task-packet.mjs",
+      "--json"
+    ],
+    "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+    "startedAt": "2026-11-17T17:07:49.503Z",
+    "finishedAt": "2026-11-17T17:07:49.919Z",
+    "exitCode": 1,
+    "status": "failed",
+    "evidence": ".harness/evidence/2026-11-17-ops-history-audit/continuation-review-source-ui-20261118-task.json",
+    "errorCode": null
+  },
+  {
+    "name": "evidence",
+    "executable": "D:\\nodejs\\node.exe",
+    "args": [
+      "scripts/harness/check-evidence.mjs",
+      "--json",
+      "--strict"
+    ],
+    "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+    "startedAt": "2026-11-17T17:07:49.920Z",
+    "finishedAt": "2026-11-17T17:07:52.102Z",
+    "exitCode": 1,
+    "status": "failed",
+    "evidence": ".harness/evidence/2026-11-17-ops-history-audit/continuation-review-source-ui-20261118-evidence.json",
+    "errorCode": null
+  },
+  {
+    "name": "review",
+    "executable": "D:\\nodejs\\node.exe",
+    "args": [
+      "scripts/harness/check-review.mjs",
+      "--json",
+      "--strict"
+    ],
+    "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+    "startedAt": "2026-11-17T17:07:52.102Z",
+    "finishedAt": "2026-11-17T17:07:53.038Z",
+    "exitCode": 1,
+    "status": "failed",
+    "evidence": ".harness/evidence/2026-11-17-ops-history-audit/continuation-review-source-ui-20261118-review.json",
+    "errorCode": null
+  },
+  {
+    "name": "links",
+    "executable": "D:\\nodejs\\node.exe",
+    "args": [
+      "scripts/harness/check-doc-links.mjs",
+      "--json",
+      "--strict"
+    ],
+    "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+    "startedAt": "2026-11-17T17:07:53.039Z",
+    "finishedAt": "2026-11-17T17:07:53.636Z",
+    "exitCode": 1,
+    "status": "failed",
+    "evidence": ".harness/evidence/2026-11-17-ops-history-audit/continuation-review-source-ui-20261118-links.json",
+    "errorCode": null
+  },
+  {
+    "name": "frontmatter",
+    "executable": "D:\\nodejs\\node.exe",
+    "args": [
+      "scripts/frontmatter-check.mjs"
+    ],
+    "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+    "startedAt": "2026-11-17T17:07:53.636Z",
+    "finishedAt": "2026-11-17T17:07:53.966Z",
+    "exitCode": 0,
+    "status": "passed",
+    "evidence": ".harness/evidence/2026-11-17-ops-history-audit/continuation-review-source-ui-20261118-frontmatter.log",
+    "errorCode": null
+  },
+  {
+    "name": "template",
+    "executable": "D:\\nodejs\\node.exe",
+    "args": [
+      "scripts/check-task-packet-template.mjs"
+    ],
+    "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+    "startedAt": "2026-11-17T17:07:53.966Z",
+    "finishedAt": "2026-11-17T17:07:54.073Z",
+    "exitCode": 0,
+    "status": "passed",
+    "evidence": ".harness/evidence/2026-11-17-ops-history-audit/continuation-review-source-ui-20261118-template.log",
+    "errorCode": null
+  },
+  {
+    "name": "overlay",
+    "executable": "D:\\nodejs\\node.exe",
+    "args": [
+      "scripts/business-overlay/check-business-overlay.mjs"
+    ],
+    "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+    "startedAt": "2026-11-17T17:07:54.073Z",
+    "finishedAt": "2026-11-17T17:07:54.181Z",
+    "exitCode": 0,
+    "status": "passed",
+    "evidence": ".harness/evidence/2026-11-17-ops-history-audit/continuation-review-source-ui-20261118-overlay.log",
+    "errorCode": null
+  },
+  {
+    "name": "boundaries",
+    "executable": "D:\\nodejs\\node.exe",
+    "args": [
+      "scripts/check-business-module-boundaries.mjs"
+    ],
+    "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+    "startedAt": "2026-11-17T17:07:54.182Z",
+    "finishedAt": "2026-11-17T17:07:54.280Z",
+    "exitCode": 0,
+    "status": "passed",
+    "evidence": ".harness/evidence/2026-11-17-ops-history-audit/continuation-review-source-ui-20261118-boundaries.log",
+    "errorCode": null
+  }
+]

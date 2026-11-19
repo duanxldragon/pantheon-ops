@@ -1,0 +1,19 @@
+{
+  "disposableMySQL": true,
+  "log": "continuation-c01-deploy-service-race.log",
+  "cgoEnabled": "1",
+  "exitCode": 1,
+  "args": [
+    "test",
+    "-race",
+    "-count=1",
+    "-timeout=10m",
+    "./modules/business/deploy",
+    "./modules/business/service"
+  ],
+  "testDsnRequired": "1",
+  "goFlags": "-p=1 -mod=readonly",
+  "startedAt": "2026-11-17T11:40:15.5487925Z",
+  "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\backend",
+  "finishedAt": "2026-11-17T11:50:47.6566454Z"
+}

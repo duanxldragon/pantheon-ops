@@ -1,0 +1,36 @@
+{
+  "timestamp": "2026-11-18T06:17:59.135Z",
+  "notePath": ".local/manual-preview-20261116/checkpoint-20261118-retire-shared-transaction-verified.md",
+  "noteSHA256": "082dcd29b83014290a62c0e21d5121d64596cef34886dc375047c0d06403f017",
+  "historicalObjects": 85,
+  "newArchiveGroupsThisCheckpoint": 0,
+  "cumulativeNewArchiveGroups": 22,
+  "preservedDuplicateLiveGroups": 2,
+  "aggregateGoalStatus": "blocked",
+  "originals": [
+    {
+      "file": ".harness/STATUS.md",
+      "backup": ".harness/evidence/2026-11-17-ops-history-audit/continuation-progress-retire-shared-transaction-verified-20261118-originals/.harness/STATUS.md.raw",
+      "beforeSHA256": "b123256ad9a5d561d83714e21bec1c8ecaa7a91a3ab7771d51f54fd9bacc997b",
+      "afterSHA256": "5016eee894bad08f711d07a54371b63f162c378a6d4de6cd8516b593a55e3281"
+    },
+    {
+      "file": ".harness/evidence/2026-11-17-ops-history-audit/progress.md",
+      "backup": ".harness/evidence/2026-11-17-ops-history-audit/continuation-progress-retire-shared-transaction-verified-20261118-originals/.harness/evidence/2026-11-17-ops-history-audit/progress.md.raw",
+      "beforeSHA256": "de1246866673fb527826d28b23cd3dce47fa87c40a3a9edfcb511215fbb0fac7",
+      "afterSHA256": "75e5b699703ce4a0074e3fd816de91763760599a0376bb37dd39868e5f233786"
+    },
+    {
+      "file": ".harness/evidence/2026-11-17-ops-history-audit/summary.md",
+      "backup": ".harness/evidence/2026-11-17-ops-history-audit/continuation-progress-retire-shared-transaction-verified-20261118-originals/.harness/evidence/2026-11-17-ops-history-audit/summary.md.raw",
+      "beforeSHA256": "2a2bc0a5146a3f8654eef7827dcc33a3fe6a5d4e63f861fdd60de8948ac88c07",
+      "afterSHA256": "db69a9b0c66759dbded83bb6eac7c485eeff4d709619c6ddce22e37c793e40c8"
+    },
+    {
+      "file": ".harness/tasks/2026-11-16-ops-pilot-delivery/OPEN_TASKS.md",
+      "backup": ".harness/evidence/2026-11-17-ops-history-audit/continuation-progress-retire-shared-transaction-verified-20261118-originals/.harness/tasks/2026-11-16-ops-pilot-delivery/OPEN_TASKS.md.raw",
+      "beforeSHA256": "f40060d5b35c3c3b949e2edb0832af0123d92fc8c84c7c9fcf2948c88fb567e8",
+      "afterSHA256": "ba2331925ad81cb3871b455785716f3ab27dda665226c487f0b1ca5e0ba37377"
+    }
+  ]
+}

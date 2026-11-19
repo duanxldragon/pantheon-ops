@@ -1,0 +1,21 @@
+{
+  "disposableMySQL": true,
+  "goFlags": "-p=1 -mod=readonly",
+  "args": [
+    "test",
+    "-race",
+    "-count=1",
+    "-timeout=10m",
+    "./modules/business/service",
+    "-v",
+    "-run",
+    "^TestServiceCatalog(DetailRegisteredAndScoped|ReadGrantOnlyActualGETRoutes|RuntimeEditSerializesWithRebind|K8sKnownNotFoundAndFaultCause)$"
+  ],
+  "cgoEnabled": "1",
+  "startedAt": "2026-11-17T14:37:54.8727532Z",
+  "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\backend",
+  "log": "continuation-c03-review-round1-red.log",
+  "testDsnRequired": "1",
+  "finishedAt": "2026-11-17T14:38:02.2859432Z",
+  "exitCode": 1
+}

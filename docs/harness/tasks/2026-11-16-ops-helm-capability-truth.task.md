@@ -162,4 +162,22 @@ business/*
 
 ## Status
 
-planned；首期默认裁剪，启用时转为必验。
+in-progress；首期默认裁剪，启用时转为必验。
+
+## 2026-11-18T07:31:44.466Z Continuation checkpoint
+
+Status: in-progress. Claude partial已修改 Helm登记有效状态和测试，resume监督真实exit124/timeout600s；无final result和通过验证。native接手收口登记事实、文档与回归。
+
+Original acceptance and dependencies remain unchanged. Whole-package acceptance is incomplete; see [summary](../../../.harness/evidence/2026-11-16-ops-helm-capability-truth/summary.md) and [progress receipt](../../../.harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-progress-20261118.json).
+
+## 2026-11-18T07:58:38.569Z Integration continuation
+
+Status: in-progress. 加强登记状态投影真实RED exit1/0.136s/745稳定后已修；中央Helm4顶层groups PASS1.461s/748稳定，primary status=registered，storedStatus保留历史raw。原Claude timeout和old-partial语义缺陷保留；不声明Chart执行开放。
+
+加强投影已真实RED→GREEN；Startup/Helm独立窄CLEAR、整包WATCH，Helm4hash匹配，当前provider/UI/菜单说明及维护者验收仍PENDING。 Original acceptance, dependencies and human gates remain unmet. See [summary](../../../.harness/evidence/2026-11-16-ops-helm-capability-truth/summary.md) and [latest progress](../../../.harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-progress-integration-20261118.json).
+
+## 2026-11-19T00:11:15.272Z Verified continuation checkpoint
+
+Status: in-progress. 更强登记状态投影真实RED exit1/0.136s后已修；primary=registered、storedStatus保留历史raw，Helm窄4groups1.461s与当前完整race通过，4hash窄CLEAR。登记产品渲染与完整菜单/说明验收仍未记录。
+
+原Claude timeout/old-partial失败保留；窄CLEAR不证明Chart执行或全部登记UI/说明与维护者验收。 Original acceptance and human gates remain unmet. See [summary](../../../.harness/evidence/2026-11-16-ops-helm-capability-truth/summary.md) and [structured progress](../../../.harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-progress-final-20261118.json).

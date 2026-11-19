@@ -1,0 +1,42 @@
+{
+  "reviewRound": 2,
+  "reviewer": "/root/c04_e01_architecture_gate",
+  "architecturalStatus": "WATCH",
+  "wholePackagesClosed": false,
+  "historicalFailuresPreserved": true,
+  "c04": {
+    "narrowStatus": "CLEAR",
+    "packageStatus": "WATCH",
+    "providerCancelGreen02Exit": 0,
+    "providerCancelSeconds": 1.533,
+    "admissionLockGreen02Exit": 0,
+    "admissionLockSeconds": 4.837,
+    "cgoEnabled": "1",
+    "sourceCount": 744,
+    "sourceUnchangedDuringRuns": true,
+    "fixtureSHA256": "03a1b3b63fff4f9e2ce7e218baf411fb4b931070bb8b619810b842bc1b1075f7",
+    "fullManifestMismatchesAtReview": 3,
+    "mismatchScope": "subsequent E02 argocd changes"
+  },
+  "e01": {
+    "previousStatus": "BLOCK",
+    "currentStatus": "WATCH",
+    "claimErrorBlockerRepairedInCode": true,
+    "amendmentSourceCount": 9,
+    "amendmentHashMatches": 9,
+    "centralMySQLVerificationAtReview": "pending",
+    "fullWindowsCGORace": "pending",
+    "settlementOperationSeconds": 5,
+    "settlementWaitSeconds": 1,
+    "settlementTotalDurationBound": null,
+    "cancellable": true
+  },
+  "remainingGaps": [
+    "remote SSH fencing across partitions",
+    "remote bytes cannot be rolled back",
+    "progress cancellation without independent join",
+    "startup/translation integration",
+    "provider/product/human acceptance"
+  ]
+}
+

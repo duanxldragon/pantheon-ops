@@ -1,0 +1,36 @@
+{
+  "timestamp": "2026-11-18T05:11:38.781Z",
+  "notePath": ".local/manual-preview-20261116/checkpoint-20261118-retire-isolation-final.md",
+  "noteSHA256": "0c2d66751e9bcc84506e6176e76bb62aa6a490454d4123bef10a351bc10554f2",
+  "historicalObjects": 85,
+  "newArchiveGroupsThisCheckpoint": 0,
+  "cumulativeNewArchiveGroups": 22,
+  "preservedDuplicateLiveGroups": 2,
+  "aggregateGoalStatus": "blocked",
+  "originals": [
+    {
+      "file": ".harness/STATUS.md",
+      "backup": ".harness/evidence/2026-11-17-ops-history-audit/continuation-progress-retire-isolation-final-20261118-originals/.harness/STATUS.md.raw",
+      "beforeSHA256": "2356facbd092f5bbabba28ea8b1bb1ceae8a9a1e3162a888dc16584d4875e684",
+      "afterSHA256": "003cc24ea90eb0faa2c561776cf599c8f642094e743017d190b6057c2564a69e"
+    },
+    {
+      "file": ".harness/evidence/2026-11-17-ops-history-audit/progress.md",
+      "backup": ".harness/evidence/2026-11-17-ops-history-audit/continuation-progress-retire-isolation-final-20261118-originals/.harness/evidence/2026-11-17-ops-history-audit/progress.md.raw",
+      "beforeSHA256": "abd4cf95fcdd1b7caf16d7c119d071648fd99442a2102f74010016f67050749d",
+      "afterSHA256": "27aeb223a38aa8871082c1319ecadbe8b4fb2962bb76ab07075dbada98948267"
+    },
+    {
+      "file": ".harness/evidence/2026-11-17-ops-history-audit/summary.md",
+      "backup": ".harness/evidence/2026-11-17-ops-history-audit/continuation-progress-retire-isolation-final-20261118-originals/.harness/evidence/2026-11-17-ops-history-audit/summary.md.raw",
+      "beforeSHA256": "9684a80aa8af9a18543555cd52439818954d3c6eee0391b5398e240e382b2d5a",
+      "afterSHA256": "3a2c93aee5ddc4e32c13a60691a7b81dd6889571b50b7b1cc42cb797d6c5c9e4"
+    },
+    {
+      "file": ".harness/tasks/2026-11-16-ops-pilot-delivery/OPEN_TASKS.md",
+      "backup": ".harness/evidence/2026-11-17-ops-history-audit/continuation-progress-retire-isolation-final-20261118-originals/.harness/tasks/2026-11-16-ops-pilot-delivery/OPEN_TASKS.md.raw",
+      "beforeSHA256": "537df964d69d0cc91372f9f41a1599375510293728ac9dce32560094ffcb27bf",
+      "afterSHA256": "1fe2444ef7153bce0c4ec868151e5e20ec3b692d9897110d4c1b98c7a4640abc"
+    }
+  ]
+}

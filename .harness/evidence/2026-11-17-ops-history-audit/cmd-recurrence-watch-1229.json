@@ -1,0 +1,8 @@
+{
+  "startedAt": "2026-11-17T12:30:23.3894522+08:00",
+  "newVisibleConsoleWindows": [],
+  "baselineVisiblePids": [],
+  "limitation": "75ms polling can miss shorter windows. Existing user terminals are retained. No command lines, environment or window titles collected; no processes stopped.",
+  "samples": 371,
+  "finishedAt": "2026-11-17T12:30:53.4241604+08:00"
+}

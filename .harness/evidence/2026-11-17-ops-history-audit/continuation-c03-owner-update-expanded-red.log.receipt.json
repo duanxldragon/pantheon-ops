@@ -1,0 +1,21 @@
+{
+  "testDsnRequired": "1",
+  "finishedAt": "2026-11-17T14:00:44.4365571Z",
+  "log": "continuation-c03-owner-update-expanded-red.log",
+  "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\backend",
+  "exitCode": 1,
+  "cgoEnabled": "1",
+  "startedAt": "2026-11-17T14:00:34.0346850Z",
+  "goFlags": "-p=1 -mod=readonly",
+  "disposableMySQL": true,
+  "args": [
+    "test",
+    "-race",
+    "-count=1",
+    "-timeout=10m",
+    "./modules/business/service",
+    "-v",
+    "-run",
+    "^TestServiceInstanceUpdate"
+  ]
+}

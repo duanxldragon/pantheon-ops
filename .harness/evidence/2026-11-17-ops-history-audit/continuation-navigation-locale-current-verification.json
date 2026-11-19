@@ -1,0 +1,40 @@
+[
+  {
+    "name": "navigation-smoke-final-locale-current",
+    "executable": "D:\\nodejs\\node.exe",
+    "args": [
+      "--import=file:///D:/workspace/go/pantheon-platform/pantheon-ops/.local/manual-preview-20261116/hide-child-windows.mjs",
+      "node_modules/@playwright/test/cli.js",
+      "test",
+      "tests/smoke/business/service/ServiceCatalog.nav.spec.ts",
+      "--config=playwright.config.ts",
+      "--reporter=line",
+      "--output=../.harness/evidence/2026-11-17-ops-history-audit/continuation-navigation-artifacts-locale-current"
+    ],
+    "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\frontend",
+    "startedAt": "2026-11-17T08:22:08.459Z",
+    "finishedAt": "2026-11-17T08:24:51.769Z",
+    "exitCode": 0,
+    "status": "passed",
+    "log": ".harness/evidence/2026-11-17-ops-history-audit/continuation-navigation-smoke-final-locale-current.log",
+    "errorCode": null
+  },
+  {
+    "name": "navigation-render-final-locale-current",
+    "executable": "D:\\nodejs\\node.exe",
+    "args": [
+      "--import=file:///D:/workspace/go/pantheon-platform/pantheon-ops/.local/manual-preview-20261116/hide-child-windows.mjs",
+      ".local/manual-preview-20261116/probe-navigation.mjs",
+      "after-history-continuation-final-locale-current",
+      "--all-business",
+      "--screenshots"
+    ],
+    "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+    "startedAt": "2026-11-17T08:24:51.772Z",
+    "finishedAt": "2026-11-17T08:27:06.401Z",
+    "exitCode": 1,
+    "status": "failed",
+    "log": ".harness/evidence/2026-11-17-ops-history-audit/continuation-navigation-render-final-locale-current.log",
+    "errorCode": null
+  }
+]

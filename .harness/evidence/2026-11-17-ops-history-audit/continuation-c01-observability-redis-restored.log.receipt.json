@@ -1,0 +1,18 @@
+{
+  "args": [
+    "test",
+    "-race",
+    "-count=1",
+    "-timeout=10m",
+    "./modules/business/observability"
+  ],
+  "goFlags": "-p=1 -mod=readonly",
+  "cgoEnabled": "1",
+  "startedAt": "2026-11-17T13:49:19.6411462Z",
+  "finishedAt": "2026-11-17T13:50:27.3112206Z",
+  "testDsnRequired": "1",
+  "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\backend",
+  "disposableMySQL": true,
+  "log": "continuation-c01-observability-redis-restored.log",
+  "exitCode": 0
+}

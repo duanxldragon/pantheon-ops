@@ -1,6 +1,6 @@
 # Pantheon Ops 任务归档索引
 
-更新：2026-11-16。完成按原任务范围判断，不代表最新产品验收；原 evidence 字节保全，canonical 地址保持 archive-aware 可解析。
+更新：2026-11-17。完成按原任务范围判断，不代表最新产品验收；原 evidence 字节保全，canonical 地址保持 archive-aware 可解析。
 
 当前计划：.harness/tasks/2026-11-16-ops-pilot-delivery/plan.md；归档决策/文件 SHA-256 清单：.harness/evidence/2026-11-16-ops-readiness-plan-closeout/archive-inventory.json。
 
@@ -22,3 +22,58 @@
 未归档：新菜单验收、综合交付/生产/运行环境缺口、缺摘要日志目录与未核实关闭的旧任务。见当前 STATUS 与 archive-inventory retained；不按 readout 标题或旧 completed 字段批量抹除未完成事实。
 
 归档兼容说明：八月 8 个子包的旧文档文件名含日期，但机器 taskId 不含日期；文档地址保留为 Superseded 历史入口，机器任务/evidence 按真实 taskId 归档。原始 evidence 不复制、不改写。PR183 的本轮 GitHub 复查因认证/限流失败，合并事实由上一轮 hosted 观察及本轮本地 commit ancestry 支撑；不冒充新的 GitHub raw 证据。
+
+## 2026-11-17 历史清查新增归档
+
+按原范围处置16组新归档；另2组既有归档保留，重复live副本及逐文件哈希见[本轮结果](./evidence/2026-11-17-ops-history-audit/archive-result.json)。历史生产与运行缺口保留在后继任务。
+
+| Task                                               | 原范围处置                                                                                                                | Manifest                                                                                             | Evidence                                                                                            |
+| -------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
+| 2026-06-17-github-governance-followup              | completed：原治理、模板和工作流姿态已获批准；补记摘要，不扩大为产品完成。                                                 | [manifest](./archive/2026-11/tasks/2026-06-17-github-governance-followup/manifest.json)              | [summary](./archive/2026-11/evidence/2026-06-17-github-governance-followup/summary.md)              |
+| 2026-06-18-branch-hygiene-fallback                 | completed：原测试和独立批准保留；找回 hosted run27737850759/27738932286，证明真实 closed-PR residue 删除。                | [manifest](./archive/2026-11/tasks/2026-06-18-branch-hygiene-fallback/manifest.json)                 | [summary](./archive/2026-11/evidence/2026-06-18-branch-hygiene-fallback/summary.md)                 |
+| 2026-06-18-branch-hygiene-slash-path-fix           | completed：run27738932286 明确删除含斜杠的 PR58/59 分支，关闭原 hosted 缺证据；未重新执行删除。                           | [manifest](./archive/2026-11/tasks/2026-06-18-branch-hygiene-slash-path-fix/manifest.json)           | [summary](./archive/2026-11/evidence/2026-06-18-branch-hygiene-slash-path-fix/summary.md)           |
+| 2026-06-21-business-deploy-task-main-flow-closeout | completed：原 canonical 状态/重试/删除语义与定向验证获批准，当前候选运行与渲染单独验收。                                  | [manifest](./archive/2026-11/tasks/2026-06-21-business-deploy-task-main-flow-closeout/manifest.json) | [summary](./archive/2026-11/evidence/2026-06-21-business-deploy-task-main-flow-closeout/summary.md) |
+| 2026-08-10-security-csrf-closeout                  | completed：原 CSRF 修复、不可变消费和 hosted Security/Quality/Smoke 证据成立，不推断当前无漏洞。                          | [manifest](./archive/2026-11/tasks/2026-08-10-security-csrf-closeout/manifest.json)                  | [summary](./archive/2026-11/evidence/2026-08-10-security-csrf-closeout/summary.md)                  |
+| 2026-08-11-foundation-consumer-certification       | abandoned：旧 marker/tree-checksum 工具链由 8/13 clean rebuild 明确废弃，当前使用正式 lock/snapshot assembler。           | [manifest](./archive/2026-11/tasks/2026-08-11-foundation-consumer-certification/manifest.json)       | [summary](./archive/2026-11/evidence/2026-08-11-foundation-consumer-certification/summary.md)       |
+| 2026-08-11-sonarcloud-ops-remediation              | abandoned：原零问题目标未在八月完成，当时仍156项；10/30 main430a9f0 分析已零问题/gate OK/dup2.0，旧目标由其替代。         | [manifest](./archive/2026-11/tasks/2026-08-11-sonarcloud-ops-remediation/manifest.json)              | [summary](./archive/2026-11/evidence/2026-08-11-sonarcloud-ops-remediation/summary.md)              |
+| 2026-08-13-clean-base-business-overlay-rebuild     | completed：原锁定源码、原子替换和消费机制已落地；August本地repo.tar/未跑race保持历史事实，后续正式release消费提供新证据。 | [manifest](./archive/2026-11/tasks/2026-08-13-clean-base-business-overlay-rebuild/manifest.json)     | [summary](./archive/2026-11/evidence/2026-08-13-clean-base-business-overlay-rebuild/summary.md)     |
+| 2026-08-19-ops-v1-backlog-closeout                 | completed：规范化 complete-with-explicit-gates；仅授权隔离F阶段完成，保留生产与人工门禁。                                 | [manifest](./archive/2026-11/tasks/2026-08-19-ops-v1-backlog-closeout/manifest.json)                 | [summary](./archive/2026-11/evidence/2026-08-19-ops-v1-backlog-closeout/summary.md)                 |
+| 2026-10-27-foundation-upgrade-base-v0-17-6         | completed：保留批准的v0176消费范围；逐项保留C1/C2/C4责任，case-only改名方案为历史接受项。                                 | [manifest](./archive/2026-11/tasks/2026-10-27-foundation-upgrade-base-v0-17-6/manifest.json)         | [summary](./archive/2026-11/evidence/2026-10-27-foundation-upgrade-base-v0-17-6/summary.md)         |
+| 2026-10-27-foundation-upgrade-base-v0-17-7         | completed：保留批准的v0177消费；不重复旧版本，D3仍按22处迁移范围核对。                                                    | [manifest](./archive/2026-11/tasks/2026-10-27-foundation-upgrade-base-v0-17-7/manifest.json)         | [summary](./archive/2026-11/evidence/2026-10-27-foundation-upgrade-base-v0-17-7/summary.md)         |
+| 2026-10-29-foundation-upgrade-base-v0-18-1         | completed：批准的v0181消费已完成；原review D5记录10/31关闭，当前候选仍单独验收。                                          | [manifest](./archive/2026-11/tasks/2026-10-29-foundation-upgrade-base-v0-18-1/manifest.json)         | [summary](./archive/2026-11/evidence/2026-10-29-foundation-upgrade-base-v0-18-1/summary.md)         |
+| 2026-10-29-sonar-ci-analysis-restore               | completed：hosted分析恢复已证实，代码红灯基线由10/30处理；非替代当前扫描。                                                | [manifest](./archive/2026-11/tasks/2026-10-29-sonar-ci-analysis-restore/manifest.json)               | [summary](./archive/2026-11/evidence/2026-10-29-sonar-ci-analysis-restore/summary.md)               |
+| 2026-10-30-sonar-findings-remediation              | completed：main430a9f0 的原定量目标证据成立：全部facet零问题、gate OK、dup2.0。                                           | [manifest](./archive/2026-11/tasks/2026-10-30-sonar-findings-remediation/manifest.json)              | [summary](./archive/2026-11/evidence/2026-10-30-sonar-findings-remediation/summary.md)              |
+| 2026-10-31-foundation-upgrade-base-v0-18-2         | completed：保留v0182消费及source i18n/GORM gate修复，历史PR失败记录不改写。                                               | [manifest](./archive/2026-11/tasks/2026-10-31-foundation-upgrade-base-v0-18-2/manifest.json)         | [summary](./archive/2026-11/evidence/2026-10-31-foundation-upgrade-base-v0-18-2/summary.md)         |
+| 2026-11-05-base-v0183-consumption                  | completed：目录名v0183，实际最终消费v0185；manifest和PR177 fresh readback证明合并。                                       | [manifest](./archive/2026-11/tasks/2026-11-05-base-v0183-consumption/manifest.json)                  | [summary](./archive/2026-11/evidence/2026-11-05-base-v0183-consumption/summary.md)                  |
+
+## Base producer 测试保全
+
+两份读取 Base 专用工作流的测试已退出 Ops 执行队列，原文件 SHA-256 和原因保存在[退役记录](./archive/2026-11/producer-tests/2026-11-17-ops-history-audit/retirement.json)。正式快照消费、Quality SHA/汇总和 PR 自动化测试继续执行；装配测试保证旧 producer 测试及命令不会在升级后复活。
+
+## 2026-11-17 第二批最早任务收尾
+
+| Task                                    | 处置                    | Manifest                                                                                  | Evidence                                                                                           | 后续                                                |
+| --------------------------------------- | ----------------------- | ----------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- | --------------------------------------------------- |
+| 2026-06-18-pr-branch-cleanup-automation | abandoned，已被后继替代 | [manifest](./archive/2026-11/tasks/2026-06-18-pr-branch-cleanup-automation/manifest.json) | [历史处置](./archive/2026-11/evidence/2026-06-18-pr-branch-cleanup-automation/history-closeout.md) | 两个 branch-hygiene 后继；本地 divergent 分支仍开放 |
+
+独立审查：[report](./evidence/2026-11-17-ops-history-audit/pr-branch-cleanup-review.md)；独立冻结第二批 preflight/journal/result 保留在同审计目录。4份原 evidence SHA-256 保全，原 manifest/card 已备份；第一批 dispositions 与 archive-result 原哈希不变。
+
+## 2026-11-17 续轮五项归档
+
+历史清查累计24组配对处置：22组新归档＋2组既有归档的重复live副本保全。本次新增5组（3 completed、2 abandoned），16份原证据逐文件SHA-256保全，前两批冻结结果不变。其余6个 completed/abandoned 对象仅作记录处置，不补造缺失任务包。
+
+| Task                                          | 原范围处置 | Manifest                                                                                        | 原始Evidence                                                                                   |
+| --------------------------------------------- | ---------- | ----------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| 2026-08-07-foundation-upgrade-base-v0-10-3    | completed  | [manifest](./archive/2026-11/tasks/2026-08-07-foundation-upgrade-base-v0-10-3/manifest.json)    | [summary](./archive/2026-11/evidence/2026-08-07-foundation-upgrade-base-v0-10-3/summary.md)    |
+| 2026-10-12-foundation-upgrade-base-v0-16-1    | completed  | [manifest](./archive/2026-11/tasks/2026-10-12-foundation-upgrade-base-v0-16-1/manifest.json)    | [summary](./archive/2026-11/evidence/2026-10-12-foundation-upgrade-base-v0-16-1/summary.md)    |
+| cmdb-host-import-export                       | completed  | [manifest](./archive/2026-11/tasks/cmdb-host-import-export/manifest.json)                       | [summary](./archive/2026-11/evidence/cmdb-host-import-export/summary.md)                       |
+| 2026-08-08-foundation-upgrade-base-v0-10-5    | abandoned  | [manifest](./archive/2026-11/tasks/2026-08-08-foundation-upgrade-base-v0-10-5/manifest.json)    | [summary](./archive/2026-11/evidence/2026-08-08-foundation-upgrade-base-v0-10-5/summary.md)    |
+| 2026-08-12-foundation-v0-10-14-clean-consumer | abandoned  | [manifest](./archive/2026-11/tasks/2026-08-12-foundation-v0-10-14-clean-consumer/manifest.json) | [summary](./archive/2026-11/evidence/2026-08-12-foundation-v0-10-14-clean-consumer/summary.md) |
+
+CMDB使用原manifest/plan，未补造历史卡；k8s-recovery仅记录原本地范围完成，缺manifest而不进行配对归档。五个故障阶段恢复/重复执行和两个拒绝场景通过；实际apply及重复apply均exit0。归档不关闭当前业务、hosted、外部、生产和维护者最终验收。
+
+## 2026-11-19T00:21:32.049Z 归档保全复核
+
+累计口径保持22组新归档和2组重复live副本保全，本轮新增0组。2026-11-16清单核验发现9个原文件字节不符，现已从HEAD旧路径按原SHA恢复，恢复前差异文件保全。2026-11-17快照的三处canonical差异通过保全副本追溯。445份唯一历史文件核验和15项归档解析回归通过。
+
+[恢复收据](./evidence/2026-11-17-ops-history-audit/continuation-history-closeout-20261119-archive-recovery.json)、[恢复后全量核验](./evidence/2026-11-17-ops-history-audit/continuation-history-closeout-20261119-archive-integrity-verified.json)。

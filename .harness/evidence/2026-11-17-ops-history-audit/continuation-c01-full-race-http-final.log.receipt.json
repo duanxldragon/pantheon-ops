@@ -1,0 +1,18 @@
+{
+  "testDsnRequired": "1",
+  "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\backend",
+  "exitCode": 1,
+  "finishedAt": "2026-11-17T13:32:11.1034764Z",
+  "startedAt": "2026-11-17T13:04:14.6377738Z",
+  "args": [
+    "test",
+    "-race",
+    "-count=1",
+    "-timeout=10m",
+    "./..."
+  ],
+  "goFlags": "-p=1 -mod=readonly",
+  "log": "continuation-c01-full-race-http-final.log",
+  "cgoEnabled": "1",
+  "disposableMySQL": true
+}

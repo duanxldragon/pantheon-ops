@@ -1,0 +1,39 @@
+{
+  "date": "2026-11-17T04:35:58.028Z",
+  "changes": [
+    "Process-local disableAllHooks and no-chrome; default settings sources/model/auth retained",
+    "Native CreateNoWindow/UseShellExecute=false; durable resume uses PowerShell JSON instead of node shim"
+  ],
+  "observation": {
+    "samples": 744,
+    "newVisibleConsoleWindows": 0,
+    "claudeReadSucceeded": true,
+    "claudeExitCode": 1,
+    "claudeExitReason": "error_max_turns (limit3)"
+  },
+  "processParents": [
+    {
+      "cmdPid": 23776,
+      "parent": "chrome.exe",
+      "category": "browser native messaging"
+    },
+    {
+      "cmdPid": 32496,
+      "parent": "codex.exe",
+      "category": "MCP launch"
+    },
+    {
+      "cmdPid": 13880,
+      "parent": "codex.exe",
+      "category": "MCP launch"
+    }
+  ],
+  "remainingGap": "No reported transient popup was captured; exact source and full suppression unproven. Existing desktop terminal and app processes untouched.",
+  "subsequentValidation": {
+    "claudeExitCode": 0,
+    "claudeTurns": 6,
+    "actualReadTools": 5,
+    "statusFile": "claude-june21-closeout-readback.status.json",
+    "note": "No concurrent desktop sampling for this separate successful readback; do not infer absence of transient popup from exit0."
+  }
+}

@@ -1,0 +1,60 @@
+{
+  "version": 1,
+  "date": "2026-11-17T04:34:04.548Z",
+  "id": "2026-06-18-pr-branch-cleanup-automation",
+  "disposition": "abandoned",
+  "supersededBy": [
+    "2026-06-18-branch-hygiene-fallback",
+    "2026-06-18-branch-hygiene-slash-path-fix"
+  ],
+  "reason": "原 pull_request.closed 耦合被独立 branch-hygiene 工作流明确取代，后继 hosted 删除及保护机制已获独立原范围批准。",
+  "review": ".harness/evidence/2026-11-17-ops-history-audit/pr-branch-cleanup-review.md",
+  "reviewSha256": "e84bbff43caee6dd8fe1c42826cedefe078ad38a9346b698f88ad6396848fd29",
+  "source": {
+    "task": ".harness/tasks/2026-06-18-pr-branch-cleanup-automation",
+    "evidence": ".harness/evidence/2026-06-18-pr-branch-cleanup-automation"
+  },
+  "target": {
+    "task": ".harness/archive/2026-11/tasks/2026-06-18-pr-branch-cleanup-automation",
+    "evidence": ".harness/archive/2026-11/evidence/2026-06-18-pr-branch-cleanup-automation"
+  },
+  "taskFiles": [
+    {
+      "path": ".harness/tasks/2026-06-18-pr-branch-cleanup-automation/manifest.json",
+      "sha256": "5a7a4576664ff96bc4b095e7dddf3972991acbeab5f9cbba102505a4d5331662"
+    }
+  ],
+  "evidenceFiles": [
+    {
+      "path": ".harness/evidence/2026-06-18-pr-branch-cleanup-automation/commands.json",
+      "sha256": "3f8cf89e737c7cb72f7f344878785f1f19fd1696f475f62a594a28775e3bf84b"
+    },
+    {
+      "path": ".harness/evidence/2026-06-18-pr-branch-cleanup-automation/pr-body.md",
+      "sha256": "1cec23446ce59e94f2084caa2a2d77087efea2625739c9ca17c860005a4e6679"
+    },
+    {
+      "path": ".harness/evidence/2026-06-18-pr-branch-cleanup-automation/review.md",
+      "sha256": "70c3a73223355f484c821ede3b0eb06ff82c95bc17197a5eba50f689878d5edc"
+    },
+    {
+      "path": ".harness/evidence/2026-06-18-pr-branch-cleanup-automation/summary.md",
+      "sha256": "fd879eb435930268509126bec13f5f2c3b94896fdb39fe4280a8a78c623bc793"
+    }
+  ],
+  "card": {
+    "path": "docs/harness/tasks/2026-06-18-pr-branch-cleanup-automation.task.md",
+    "sha256": "ce10580ebeb735336a02db3ea6fe5e013c6484a001ccbb07ae0358fcff15c105"
+  },
+  "firstBatchHashes": {
+    "dispositions": "b1fe312c6e0e9a9a6ee3513b245196973c7559a322ffe53bf6cb378ea4dd07df",
+    "result": "7bcb4a5a33c9c89833e714516d25e6c0f0ea46ef5eb63f4084cc984f02e6ed8d"
+  },
+  "residuals": [
+    {
+      "finding": "local divergent/unpublished branch triage",
+      "owner": "workspace maintainer",
+      "state": "open"
+    }
+  ]
+}

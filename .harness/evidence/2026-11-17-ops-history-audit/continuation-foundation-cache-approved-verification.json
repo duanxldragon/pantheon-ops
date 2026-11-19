@@ -1,0 +1,53 @@
+[
+  {
+    "name": "overlay-tests-final-cache-approved",
+    "executable": "D:\\nodejs\\node.exe",
+    "args": [
+      "--import=file:///D:/workspace/go/pantheon-platform/pantheon-ops/.local/manual-preview-20261116/hide-child-windows.mjs",
+      "D:/nodejs/node_modules/npm/bin/npm-cli.js",
+      "run",
+      "test:business-overlay"
+    ],
+    "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+    "startedAt": "2026-11-17T06:45:24.230Z",
+    "finishedAt": "2026-11-17T06:45:40.268Z",
+    "exitCode": 0,
+    "status": "passed",
+    "log": ".harness/evidence/2026-11-17-ops-history-audit/continuation-overlay-tests-final-cache-approved.log",
+    "errorCode": null
+  },
+  {
+    "name": "scripts-final-cache-approved",
+    "executable": "D:\\nodejs\\node.exe",
+    "args": [
+      "--import=file:///D:/workspace/go/pantheon-platform/pantheon-ops/.local/manual-preview-20261116/hide-child-windows.mjs",
+      "D:/nodejs/node_modules/npm/bin/npm-cli.js",
+      "run",
+      "test:scripts"
+    ],
+    "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+    "startedAt": "2026-11-17T06:45:40.271Z",
+    "finishedAt": "2026-11-17T06:45:58.333Z",
+    "exitCode": 0,
+    "status": "passed",
+    "log": ".harness/evidence/2026-11-17-ops-history-audit/continuation-scripts-final-cache-approved.log",
+    "errorCode": null
+  },
+  {
+    "name": "official-rebuild-final-cache-approved",
+    "executable": "D:\\nodejs\\node.exe",
+    "args": [
+      "--import=file:///D:/workspace/go/pantheon-platform/pantheon-ops/.local/manual-preview-20261116/hide-child-windows.mjs",
+      "scripts/business-overlay/rebuild-from-base.mjs",
+      "--target",
+      ".local/manual-preview-20261116/overlay-history-continuation-final"
+    ],
+    "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+    "startedAt": "2026-11-17T06:45:58.333Z",
+    "finishedAt": "2026-11-17T06:46:25.707Z",
+    "exitCode": 1,
+    "status": "failed",
+    "log": ".harness/evidence/2026-11-17-ops-history-audit/continuation-official-rebuild-final-cache-approved.log",
+    "errorCode": null
+  }
+]

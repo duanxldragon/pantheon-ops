@@ -1,0 +1,650 @@
+{
+  "mode": "strict",
+  "fileCount": 57,
+  "errorCount": 129,
+  "warningCount": 0,
+  "historicalErrorCount": 128,
+  "currentSchemaFrom": "2026-10-26",
+  "results": [
+    {
+      "file": ".harness/archive/2026-08/evidence/2026-08-17-ops-foundation-hardening/commands.json",
+      "errors": [],
+      "warnings": [],
+      "historicalErrors": [
+        "root.repo must be a non-empty string.",
+        "root.agent must be an object.",
+        "root.commands[0].cwd must be a non-empty string.",
+        "root.commands[0].status must be a non-empty string.",
+        "root.commands[1].cwd must be a non-empty string.",
+        "root.commands[1].status must be a non-empty string.",
+        "root.commands[2].cwd must be a non-empty string.",
+        "root.commands[2].status must be a non-empty string.",
+        "root.commands[3].cwd must be a non-empty string.",
+        "root.commands[3].status must be a non-empty string.",
+        "root.commands[4].cwd must be a non-empty string.",
+        "root.commands[4].status must be a non-empty string.",
+        "root.knownGaps must be an array.",
+        "root.linkage must be an object."
+      ]
+    },
+    {
+      "file": ".harness/archive/2026-08/evidence/ops-architecture-quality-gates/commands.json",
+      "errors": [],
+      "warnings": [],
+      "historicalErrors": [
+        "root.repo must be a non-empty string.",
+        "root.agent must be an object.",
+        "root.commands[0].cwd must be a non-empty string.",
+        "root.commands[1].cwd must be a non-empty string.",
+        "root.commands[2].cwd must be a non-empty string.",
+        "root.commands[3].cwd must be a non-empty string.",
+        "root.commands[4].cwd must be a non-empty string.",
+        "root.commands[5].cwd must be a non-empty string.",
+        "root.commands[6].cwd must be a non-empty string.",
+        "root.commands[7].cwd must be a non-empty string.",
+        "root.commands[8].cwd must be a non-empty string.",
+        "root.commands[9].cwd must be a non-empty string.",
+        "root.commands[10].cwd must be a non-empty string.",
+        "root.commands[11].cwd must be a non-empty string.",
+        "root.commands[12].cwd must be a non-empty string.",
+        "root.commands[13].cwd must be a non-empty string.",
+        "root.commands[14].cwd must be a non-empty string.",
+        "root.commands[15].cwd must be a non-empty string.",
+        "root.knownGaps must be an array.",
+        "root.linkage must be an object."
+      ]
+    },
+    {
+      "file": ".harness/archive/2026-08/evidence/ops-bizscope-datascope-ownership/commands.json",
+      "errors": [],
+      "warnings": [],
+      "historicalErrors": [
+        "root.repo must be a non-empty string.",
+        "root.agent must be an object.",
+        "root.commands[0].cwd must be a non-empty string.",
+        "root.commands[0].status must be a non-empty string.",
+        "root.commands[1].cwd must be a non-empty string.",
+        "root.commands[1].status must be a non-empty string.",
+        "root.commands[2].cwd must be a non-empty string.",
+        "root.commands[2].status must be a non-empty string.",
+        "root.commands[3].cwd must be a non-empty string.",
+        "root.commands[3].status must be a non-empty string.",
+        "root.commands[4].cwd must be a non-empty string.",
+        "root.commands[4].status must be a non-empty string.",
+        "root.commands[5].cwd must be a non-empty string.",
+        "root.commands[5].status must be a non-empty string.",
+        "root.commands[6].cwd must be a non-empty string.",
+        "root.commands[6].status must be a non-empty string.",
+        "root.knownGaps must be an array.",
+        "root.linkage must be an object."
+      ]
+    },
+    {
+      "file": ".harness/archive/2026-08/evidence/ops-business-versioned-migrations/commands.json",
+      "errors": [],
+      "warnings": [],
+      "historicalErrors": [
+        "Evidence root must be a JSON object."
+      ]
+    },
+    {
+      "file": ".harness/archive/2026-08/evidence/ops-cross-module-capability-boundaries/commands.json",
+      "errors": [],
+      "warnings": [],
+      "historicalErrors": [
+        "Evidence root must be a JSON object."
+      ]
+    },
+    {
+      "file": ".harness/archive/2026-08/evidence/ops-deploy-immutability-idempotency/commands.json",
+      "errors": [],
+      "warnings": [],
+      "historicalErrors": [
+        "Evidence root must be a JSON object."
+      ]
+    },
+    {
+      "file": ".harness/archive/2026-08/evidence/ops-k8s-release-reliability/commands.json",
+      "errors": [],
+      "warnings": [],
+      "historicalErrors": [
+        "Evidence root must be a JSON object."
+      ]
+    },
+    {
+      "file": ".harness/archive/2026-08/evidence/ops-resource-service-state-machines/commands.json",
+      "errors": [],
+      "warnings": [],
+      "historicalErrors": [
+        "root.repo must be a non-empty string.",
+        "root.agent must be an object.",
+        "root.knownGaps must be an array.",
+        "root.linkage must be an object."
+      ]
+    },
+    {
+      "file": ".harness/archive/2026-08/evidence/ops-service-instance-foundation/commands.json",
+      "errors": [],
+      "warnings": [],
+      "historicalErrors": [
+        "Evidence root must be a JSON object."
+      ]
+    },
+    {
+      "file": ".harness/archive/2026-10/evidence/2026-10-31-frontend-follow-redirects-audit/commands.json",
+      "errors": [
+        "root.linkage.changeRef is required.",
+        "root.linkage.planRefs is required.",
+        "root.linkage.changeRef must be a non-empty string.",
+        "root.linkage.planRefs must be an array."
+      ],
+      "warnings": [],
+      "historicalErrors": []
+    },
+    {
+      "file": ".harness/archive/2026-11/evidence/2026-06-17-github-governance-followup/commands.json",
+      "errors": [],
+      "warnings": [],
+      "historicalErrors": []
+    },
+    {
+      "file": ".harness/archive/2026-11/evidence/2026-06-18-branch-hygiene-fallback/commands.json",
+      "errors": [],
+      "warnings": [],
+      "historicalErrors": []
+    },
+    {
+      "file": ".harness/archive/2026-11/evidence/2026-06-18-branch-hygiene-slash-path-fix/commands.json",
+      "errors": [],
+      "warnings": [],
+      "historicalErrors": []
+    },
+    {
+      "file": ".harness/archive/2026-11/evidence/2026-06-18-pr-branch-cleanup-automation/commands.json",
+      "errors": [],
+      "warnings": [],
+      "historicalErrors": [
+        "root.graphChecks.checks[0] must be one of: cycle, hub, call-depth, sensitive-flow."
+      ]
+    },
+    {
+      "file": ".harness/archive/2026-11/evidence/2026-06-21-business-deploy-task-main-flow-closeout/commands.json",
+      "errors": [],
+      "warnings": [],
+      "historicalErrors": [
+        "root.graphChecks.checks[0] must be one of: cycle, hub, call-depth, sensitive-flow.",
+        "root.graphChecks.checks[1] must be one of: cycle, hub, call-depth, sensitive-flow."
+      ]
+    },
+    {
+      "file": ".harness/archive/2026-11/evidence/2026-08-07-foundation-upgrade-base-v0-10-3/commands.json",
+      "errors": [],
+      "warnings": [],
+      "historicalErrors": [
+        "root.browserEvidence[0].viewport must be a non-empty string.",
+        "root.browserEvidence[0].url must be a non-empty string.",
+        "root.browserEvidence[0] must include a screenshot or explicit visualGap.",
+        "root.browserEvidence[0].consoleErrors must be an array.",
+        "root.graphChecks.checks[0] must be one of: cycle, hub, call-depth, sensitive-flow.",
+        "root.graphChecks.checks[1] must be one of: cycle, hub, call-depth, sensitive-flow.",
+        "root.graphChecks.checks[2] must be one of: cycle, hub, call-depth, sensitive-flow.",
+        "root.linkage.changeRef does not exist: d405d1f"
+      ]
+    },
+    {
+      "file": ".harness/archive/2026-11/evidence/2026-08-08-foundation-upgrade-base-v0-10-5/commands.json",
+      "errors": [],
+      "warnings": [],
+      "historicalErrors": [
+        "root.agent must be an object.",
+        "root.commands[0].cwd must be a non-empty string.",
+        "root.commands[1].cwd must be a non-empty string.",
+        "root.commands[2].cwd must be a non-empty string.",
+        "root.commands[3].cwd must be a non-empty string.",
+        "root.commands[4].cwd must be a non-empty string.",
+        "root.commands[5].cwd must be a non-empty string.",
+        "root.commands[6].cwd must be a non-empty string.",
+        "root.graphChecks.checks[0] must be one of: cycle, hub, call-depth, sensitive-flow.",
+        "root.graphChecks.checks[1] must be one of: cycle, hub, call-depth, sensitive-flow.",
+        "root.graphChecks.checks[2] must be one of: cycle, hub, call-depth, sensitive-flow.",
+        "root.linkage.changeRef is required.",
+        "root.linkage.planRefs is required.",
+        "root.linkage.changeRef must be a non-empty string.",
+        "root.linkage.planRefs must be an array."
+      ]
+    },
+    {
+      "file": ".harness/archive/2026-11/evidence/2026-08-10-security-csrf-closeout/commands.json",
+      "errors": [],
+      "warnings": [],
+      "historicalErrors": [
+        "root.repo must be a non-empty string.",
+        "root.agent must be an object.",
+        "root.commands[8].status must be one of: passed, failed, not-run.",
+        "root.knownGaps must be an array.",
+        "root.linkage must be an object."
+      ]
+    },
+    {
+      "file": ".harness/archive/2026-11/evidence/2026-08-11-foundation-consumer-certification/commands.json",
+      "errors": [],
+      "warnings": [],
+      "historicalErrors": [
+        "root.repo must be a non-empty string.",
+        "root.agent must be an object.",
+        "root.knownGaps must be an array.",
+        "root.linkage must be an object."
+      ]
+    },
+    {
+      "file": ".harness/archive/2026-11/evidence/2026-08-11-sonarcloud-ops-remediation/commands.json",
+      "errors": [],
+      "warnings": [],
+      "historicalErrors": [
+        "root.taskId must be a non-empty string.",
+        "root.repo must be a non-empty string.",
+        "root.agent must be an object.",
+        "root.commands must be an array.",
+        "root.knownGaps must be an array.",
+        "root.linkage must be an object."
+      ]
+    },
+    {
+      "file": ".harness/archive/2026-11/evidence/2026-08-12-foundation-v0-10-14-clean-consumer/commands.json",
+      "errors": [],
+      "warnings": [],
+      "historicalErrors": [
+        "root.repo must be a non-empty string.",
+        "root.agent must be an object.",
+        "root.linkage must be an object."
+      ]
+    },
+    {
+      "file": ".harness/archive/2026-11/evidence/2026-08-13-clean-base-business-overlay-rebuild/commands.json",
+      "errors": [],
+      "warnings": [],
+      "historicalErrors": [
+        "root.repo must be a non-empty string.",
+        "root.agent must be an object.",
+        "root.linkage must be an object."
+      ]
+    },
+    {
+      "file": ".harness/archive/2026-11/evidence/2026-08-19-ops-v1-backlog-closeout/commands.json",
+      "errors": [],
+      "warnings": [],
+      "historicalErrors": []
+    },
+    {
+      "file": ".harness/archive/2026-11/evidence/2026-10-12-foundation-upgrade-base-v0-16-1/commands.json",
+      "errors": [],
+      "warnings": [],
+      "historicalErrors": [
+        "Evidence root must be a JSON object."
+      ]
+    },
+    {
+      "file": ".harness/archive/2026-11/evidence/2026-10-27-foundation-upgrade-base-v0-17-6/commands.json",
+      "errors": [],
+      "warnings": [],
+      "historicalErrors": []
+    },
+    {
+      "file": ".harness/archive/2026-11/evidence/2026-10-27-foundation-upgrade-base-v0-17-7/commands.json",
+      "errors": [],
+      "warnings": [],
+      "historicalErrors": []
+    },
+    {
+      "file": ".harness/archive/2026-11/evidence/2026-10-29-foundation-upgrade-base-v0-18-1/commands.json",
+      "errors": [],
+      "warnings": [],
+      "historicalErrors": []
+    },
+    {
+      "file": ".harness/archive/2026-11/evidence/2026-10-29-sonar-ci-analysis-restore/commands.json",
+      "errors": [
+        "root.repo must be a non-empty string.",
+        "root.agent must be an object."
+      ],
+      "warnings": [],
+      "historicalErrors": []
+    },
+    {
+      "file": ".harness/archive/2026-11/evidence/2026-10-30-sonar-findings-remediation/commands.json",
+      "errors": [
+        "root.repo must be a non-empty string.",
+        "root.agent must be an object.",
+        "root.knownGaps must be an array.",
+        "root.linkage must be an object."
+      ],
+      "warnings": [],
+      "historicalErrors": []
+    },
+    {
+      "file": ".harness/archive/2026-11/evidence/2026-10-31-foundation-upgrade-base-v0-18-2/commands.json",
+      "errors": [],
+      "warnings": [],
+      "historicalErrors": []
+    },
+    {
+      "file": ".harness/archive/2026-11/evidence/2026-11-05-base-v0183-consumption/commands.json",
+      "errors": [
+        "root.commands[18].status must be a non-empty string.",
+        "root.commands[19].status must be a non-empty string.",
+        "root.commands[20].status must be a non-empty string.",
+        "root.commands[21].status must be a non-empty string.",
+        "root.commands[22].status must be a non-empty string.",
+        "root.commands[23].cwd must be a non-empty string.",
+        "root.commands[23].status must be a non-empty string.",
+        "root.commands[24].cwd must be a non-empty string.",
+        "root.commands[24].status must be a non-empty string.",
+        "root.commands[25].cwd must be a non-empty string.",
+        "root.commands[25].status must be a non-empty string.",
+        "root.commands[26].cwd must be a non-empty string.",
+        "root.commands[26].status must be a non-empty string.",
+        "root.commands[27].status must be a non-empty string.",
+        "root.commands[28].status must be a non-empty string."
+      ],
+      "warnings": [],
+      "historicalErrors": []
+    },
+    {
+      "file": ".harness/archive/2026-11/evidence/2026-11-07-base-v0186-consumption/commands.json",
+      "errors": [],
+      "warnings": [],
+      "historicalErrors": []
+    },
+    {
+      "file": ".harness/archive/2026-11/evidence/2026-11-13-base-v0187-consumption/commands.json",
+      "errors": [],
+      "warnings": [],
+      "historicalErrors": []
+    },
+    {
+      "file": ".harness/archive/2026-11/evidence/2026-11-17-ops-o4-recovery-regression/commands.json",
+      "errors": [],
+      "warnings": [],
+      "historicalErrors": []
+    },
+    {
+      "file": ".harness/archive/2026-11/evidence/cmdb-host-import-export/commands.json",
+      "errors": [
+        "root.repo must be a non-empty string.",
+        "root.agent must be an object.",
+        "root.commands[9].status must be one of: passed, failed, not-run.",
+        "root.linkage must be an object."
+      ],
+      "warnings": [],
+      "historicalErrors": []
+    },
+    {
+      "file": ".harness/evidence/2026-07-17-cmdb-ssh-config-externalize/commands.json",
+      "errors": [],
+      "warnings": [],
+      "historicalErrors": [
+        "root.repo must be a non-empty string.",
+        "root.agent must be an object.",
+        "root.knownGaps must be an array.",
+        "root.linkage must be an object."
+      ]
+    },
+    {
+      "file": ".harness/evidence/2026-08-17-ops-foundation-hardening/commands.json",
+      "errors": [],
+      "warnings": [],
+      "historicalErrors": [
+        "root.repo must be a non-empty string.",
+        "root.agent must be an object.",
+        "root.commands[0].cwd must be a non-empty string.",
+        "root.commands[0].status must be a non-empty string.",
+        "root.commands[1].cwd must be a non-empty string.",
+        "root.commands[1].status must be a non-empty string.",
+        "root.commands[2].cwd must be a non-empty string.",
+        "root.commands[2].status must be a non-empty string.",
+        "root.commands[3].cwd must be a non-empty string.",
+        "root.commands[3].status must be a non-empty string.",
+        "root.commands[4].cwd must be a non-empty string.",
+        "root.commands[4].status must be a non-empty string.",
+        "root.knownGaps must be an array.",
+        "root.linkage must be an object."
+      ]
+    },
+    {
+      "file": ".harness/evidence/2026-08-31-ops-operational-workbench-design/commands.json",
+      "errors": [],
+      "warnings": [],
+      "historicalErrors": []
+    },
+    {
+      "file": ".harness/evidence/2026-09-01-ops-foundation-upgrade-v0-10-25/commands.json",
+      "errors": [],
+      "warnings": [],
+      "historicalErrors": [
+        "Evidence root must be a JSON object."
+      ]
+    },
+    {
+      "file": ".harness/evidence/2026-09-28-ops-delivery-readiness-gap-closure/commands.json",
+      "errors": [],
+      "warnings": [],
+      "historicalErrors": []
+    },
+    {
+      "file": ".harness/evidence/2026-10-31-frontend-follow-redirects-audit/commands.json",
+      "errors": [
+        "root.linkage.changeRef is required.",
+        "root.linkage.planRefs is required.",
+        "root.linkage.changeRef must be a non-empty string.",
+        "root.linkage.planRefs must be an array."
+      ],
+      "warnings": [],
+      "historicalErrors": []
+    },
+    {
+      "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/commands.json",
+      "errors": [
+        "root.commands[11].cwd must be a non-empty string."
+      ],
+      "warnings": [],
+      "historicalErrors": []
+    },
+    {
+      "file": ".harness/evidence/2026-11-14-ops-latest-foundation-and-plans/commands.json",
+      "errors": [],
+      "warnings": [],
+      "historicalErrors": []
+    },
+    {
+      "file": ".harness/evidence/2026-11-16-ops-business-menu-m3c/commands.json",
+      "errors": [
+        "root.agent.tool must be one of: codex, claude-code, cursor, github-copilot, openhands, aider, human, other.",
+        "root.knownGaps must be an array.",
+        "root.linkage must be an object."
+      ],
+      "warnings": [],
+      "historicalErrors": []
+    },
+    {
+      "file": ".harness/evidence/2026-11-16-ops-navigation-repair/commands.json",
+      "errors": [
+        "root.taskId must be a non-empty string.",
+        "root.repo must be a non-empty string.",
+        "root.agent must be an object.",
+        "root.commands[0].command must be a non-empty string.",
+        "root.commands[0].cwd must be a non-empty string.",
+        "root.commands[0].status must be a non-empty string.",
+        "root.commands[1].command must be a non-empty string.",
+        "root.commands[1].cwd must be a non-empty string.",
+        "root.commands[1].status must be a non-empty string.",
+        "root.commands[2].command must be a non-empty string.",
+        "root.commands[2].cwd must be a non-empty string.",
+        "root.commands[2].status must be a non-empty string.",
+        "root.commands[3].command must be a non-empty string.",
+        "root.commands[3].cwd must be a non-empty string.",
+        "root.commands[3].status must be a non-empty string.",
+        "root.commands[4].command must be a non-empty string.",
+        "root.commands[4].cwd must be a non-empty string.",
+        "root.commands[4].status must be a non-empty string.",
+        "root.commands[5].command must be a non-empty string.",
+        "root.commands[5].cwd must be a non-empty string.",
+        "root.commands[5].status must be a non-empty string.",
+        "root.commands[6].command must be a non-empty string.",
+        "root.commands[6].cwd must be a non-empty string.",
+        "root.commands[6].status must be a non-empty string.",
+        "root.commands[7].command must be a non-empty string.",
+        "root.commands[7].cwd must be a non-empty string.",
+        "root.commands[7].status must be a non-empty string.",
+        "root.commands[8].command must be a non-empty string.",
+        "root.commands[8].cwd must be a non-empty string.",
+        "root.commands[8].status must be a non-empty string.",
+        "root.commands[9].command must be a non-empty string.",
+        "root.commands[9].cwd must be a non-empty string.",
+        "root.commands[9].status must be a non-empty string.",
+        "root.commands[10].command must be a non-empty string.",
+        "root.commands[10].cwd must be a non-empty string.",
+        "root.commands[10].status must be a non-empty string.",
+        "root.commands[11].command must be a non-empty string.",
+        "root.commands[11].cwd must be a non-empty string.",
+        "root.commands[11].status must be a non-empty string.",
+        "root.knownGaps must be an array.",
+        "root.linkage must be an object."
+      ],
+      "warnings": [],
+      "historicalErrors": []
+    },
+    {
+      "file": ".harness/evidence/2026-11-16-ops-readiness-plan-closeout/commands.json",
+      "errors": [],
+      "warnings": [],
+      "historicalErrors": []
+    },
+    {
+      "file": ".harness/evidence/2026-11-17-ops-history-audit/commands.json",
+      "errors": [],
+      "warnings": [],
+      "historicalErrors": []
+    },
+    {
+      "file": ".harness/evidence/2026-11-17-ops-history-audit/packaging-before-correction/.harness/evidence/2026-11-07-ops-planned-task-closeout/commands.json",
+      "errors": [
+        "root.linkage.evidenceDir must match the commands.json directory \".harness/evidence/2026-11-17-ops-history-audit/packaging-before-correction/.harness/evidence/2026-11-07-ops-planned-task-closeout/\"."
+      ],
+      "warnings": [],
+      "historicalErrors": []
+    },
+    {
+      "file": ".harness/evidence/k8s-recovery/commands.json",
+      "errors": [
+        "root.repo must be a non-empty string.",
+        "root.agent must be an object.",
+        "root.linkage must be an object."
+      ],
+      "warnings": [],
+      "historicalErrors": []
+    },
+    {
+      "file": ".harness/evidence/ops-architecture-quality-gates/commands.json",
+      "errors": [
+        "root.repo must be a non-empty string.",
+        "root.agent must be an object.",
+        "root.commands[0].cwd must be a non-empty string.",
+        "root.commands[1].cwd must be a non-empty string.",
+        "root.commands[2].cwd must be a non-empty string.",
+        "root.commands[3].cwd must be a non-empty string.",
+        "root.commands[4].cwd must be a non-empty string.",
+        "root.commands[5].cwd must be a non-empty string.",
+        "root.commands[6].cwd must be a non-empty string.",
+        "root.commands[7].cwd must be a non-empty string.",
+        "root.commands[8].cwd must be a non-empty string.",
+        "root.commands[9].cwd must be a non-empty string.",
+        "root.commands[10].cwd must be a non-empty string.",
+        "root.commands[11].cwd must be a non-empty string.",
+        "root.commands[12].cwd must be a non-empty string.",
+        "root.commands[13].cwd must be a non-empty string.",
+        "root.commands[14].cwd must be a non-empty string.",
+        "root.commands[15].cwd must be a non-empty string.",
+        "root.knownGaps must be an array.",
+        "root.linkage must be an object."
+      ],
+      "warnings": [],
+      "historicalErrors": []
+    },
+    {
+      "file": ".harness/evidence/ops-bizscope-datascope-ownership/commands.json",
+      "errors": [
+        "root.repo must be a non-empty string.",
+        "root.agent must be an object.",
+        "root.commands[0].cwd must be a non-empty string.",
+        "root.commands[0].status must be a non-empty string.",
+        "root.commands[1].cwd must be a non-empty string.",
+        "root.commands[1].status must be a non-empty string.",
+        "root.commands[2].cwd must be a non-empty string.",
+        "root.commands[2].status must be a non-empty string.",
+        "root.commands[3].cwd must be a non-empty string.",
+        "root.commands[3].status must be a non-empty string.",
+        "root.commands[4].cwd must be a non-empty string.",
+        "root.commands[4].status must be a non-empty string.",
+        "root.commands[5].cwd must be a non-empty string.",
+        "root.commands[5].status must be a non-empty string.",
+        "root.commands[6].cwd must be a non-empty string.",
+        "root.commands[6].status must be a non-empty string.",
+        "root.knownGaps must be an array.",
+        "root.linkage must be an object."
+      ],
+      "warnings": [],
+      "historicalErrors": []
+    },
+    {
+      "file": ".harness/evidence/ops-business-versioned-migrations/commands.json",
+      "errors": [
+        "Evidence root must be a JSON object."
+      ],
+      "warnings": [],
+      "historicalErrors": []
+    },
+    {
+      "file": ".harness/evidence/ops-cross-module-capability-boundaries/commands.json",
+      "errors": [
+        "Evidence root must be a JSON object."
+      ],
+      "warnings": [],
+      "historicalErrors": []
+    },
+    {
+      "file": ".harness/evidence/ops-deploy-immutability-idempotency/commands.json",
+      "errors": [
+        "Evidence root must be a JSON object."
+      ],
+      "warnings": [],
+      "historicalErrors": []
+    },
+    {
+      "file": ".harness/evidence/ops-k8s-release-reliability/commands.json",
+      "errors": [
+        "Evidence root must be a JSON object."
+      ],
+      "warnings": [],
+      "historicalErrors": []
+    },
+    {
+      "file": ".harness/evidence/ops-resource-service-state-machines/commands.json",
+      "errors": [
+        "root.repo must be a non-empty string.",
+        "root.agent must be an object.",
+        "root.knownGaps must be an array.",
+        "root.linkage must be an object."
+      ],
+      "warnings": [],
+      "historicalErrors": []
+    },
+    {
+      "file": ".harness/evidence/ops-service-instance-foundation/commands.json",
+      "errors": [
+        "Evidence root must be a JSON object."
+      ],
+      "warnings": [],
+      "historicalErrors": []
+    }
+  ]
+}

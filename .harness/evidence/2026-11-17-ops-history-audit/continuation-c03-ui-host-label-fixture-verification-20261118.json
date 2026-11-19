@@ -1,0 +1,200 @@
+{
+  "schema": "pantheon-c03-host-label-smoke-fixture-correction/v1",
+  "observedAtUTC": "2026-11-18T08:36:03Z",
+  "implementer": "/root/e03_claude_partial_closeout",
+  "scope": "test-only single outdated English host-label assertion at line 499",
+  "testPath": "frontend/tests/smoke/business/service/service-pages.spec.ts",
+  "sourceFrozen": true,
+  "wholePackageClosed": false,
+  "beforeSHA256": "70fe8d4176011e72f902ac3ebf454f005b5e769d463df9fa5ff7b17eed1237dd",
+  "afterSHA256": "ad0e5c0b32e3f78f47c620d3c23e7b7666d28e04861d312c10720b8f50f1c526",
+  "originalByteBackup": "continuation-c03-ui-host-label-fixture-before-20261118-01.spec.ts.before",
+  "originalByteBackupSHA256": "70fe8d4176011e72f902ac3ebf454f005b5e769d463df9fa5ff7b17eed1237dd",
+  "originalRED": {
+    "classification": "stale translated smoke fixture expectation, not product label regression",
+    "expected": "Host #532",
+    "actual": "主机 #532",
+    "exitCode": 1,
+    "sourceUnchanged": true,
+    "log": "continuation-c03-ui-ten-packages-20261118-live.log",
+    "logSHA256": "b44b45c902c3056dbf5491f4b60ee9dd986c2cc1b77a55753d0e3618026560fa",
+    "receipt": "continuation-c03-ui-ten-packages-20261118-live.receipt.json",
+    "receiptSHA256": "52314b956522058da5b0f76e92072d32eef9641d22b9f8abca0be09a2da60541",
+    "preserved": true,
+    "cleanupFailureReported": false
+  },
+  "change": {
+    "from": "Host #${hostId}",
+    "to": "主机 #${hostId}",
+    "fixedChineseSuite": "primeChineseLocale in beforeEach",
+    "dynamicIDPreserved": true,
+    "regexBroadened": false,
+    "productionModified": false,
+    "otherTestsModified": false,
+    "cleanupModified": false,
+    "otherAssertionsModified": false
+  },
+  "checks": [
+    {
+      "name": "lint",
+      "command": "node --import ../.local/manual-preview-20261116/hide-child-windows.mjs node_modules/eslint/bin/eslint.js tests/smoke/business/service/service-pages.spec.ts --max-warnings 0",
+      "cwd": "frontend",
+      "exitCode": 0,
+      "output": "",
+      "outputTruncated": false,
+      "configurationVariant": null
+    },
+    {
+      "name": "testtype",
+      "command": "node --import ../.local/manual-preview-20261116/hide-child-windows.mjs node_modules/typescript/bin/tsc --ignoreConfig --noEmit --skipLibCheck --strict --module esnext --moduleResolution bundler --target es2023 --jsx react-jsx --types node tests/smoke/business/service/service-pages.spec.ts",
+      "cwd": "frontend",
+      "exitCode": 1,
+      "output": "Warning: truncated output (original token count: 4352)\nTotal output lines: 106\n\nsrc/api/request.ts(218,21): error TS2339: Property 'env' does not exist on type 'ImportMeta'.\r\nsrc/api/request.ts(229,19): error TS2339: Property 'env' does not exist on type 'ImportMeta'.\r\nsrc/components/operational/ChangeDiff.tsx(4,8): error TS2882: Cannot find module or type declarations for side-effect import of './operational.css'.\r\nsrc/components/operational/ConditionBuilder.tsx(10,8): error TS2882: Cannot find module or type declarations for side-effect import of './operational.css'.\r\nsrc/components/operational/ContextSelector.tsx(4,8): error TS2882: Cannot find module or type declarations for side-effect import of './operational.css'.\r\nsrc/components/operational/ExecutionStepRail.tsx(4,8): error TS2882: Cannot find module or type declarations for side-effect import of './operational.css'.\r\nsrc/components/operational/TaskLogViewer.tsx(5,8): error TS2882: Cannot find module or type declarations for side-effect import of './operational.css'.\r\nsrc/components/patterns/filters/TimeRangeFilter.tsx(6,8): error TS2882: Cannot find module or type declarations for side-effect import of './TimeRangeFilter.css'.\r\nsrc/components/patterns/forms/PasswordInput.tsx(5,8): error TS2882: Cannot find module or type declarations for side-effect import of './password-input.css'.\r\nsrc/core/auth/sessionSnapshot.ts(1,36): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.\r\nsrc/core/layout/AppLayout.tsx(112,8): error TS2882: Cannot find module or type declarations for side-effect import of './index.css'.\r\nsrc/core/refresh/refreshBus.ts(174,5): error TS2322: Type 'Timeout' is not assignable to type 'number'.\r\nsrc/core/router/warmupPolicy.ts(1,50): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.\r\nsrc/i18n/index.ts(4,43): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.\r\nsrc/modules/auth/login/components/Login.tsx(51,8): error TS2882: Cannot find module or type declarations for side-effect import of './Login.css'.\r\nsrc/modules/auth/login/components/Login.tsx(87,17): error TS2339: Property 'env' does not exist on type 'ImportMeta'.\r\nsrc/modules/auth/security/components/LoginLogList.tsx(47,8): error TS2882: Cannot find module or type declarations for side-effect import of '../../../../assets/list-page.css'.\r\nsrc/modules/auth/security/components/LoginLogList.tsx(48,8): error TS2882: Cannot find module or type declarations for side-effect import of '../../auth.css'.\r\nsrc/modules/auth/security/components/SecurityCenter.tsx(50,8): error TS2882: Cannot find module or type declarations for side-effect import of '../../../../assets/list-page.css'.\r\nsrc/modules/auth/security/components/SecurityCenter.tsx(51,8): error TS2882: Cannot find module or type declarations for side-effect import of '../../auth.css'.\r\nsrc/modules/auth/security/components/SecurityEventList.tsx(44,8): error TS2882: Cannot find module or type declarations for side-effect import of '../../auth.css'.\r\nsrc/modules/auth/security/components/SecurityEventList.tsx(45,8): error TS2882: Cannot find module or type declarations for side-effect import of '../../../../assets/list-page.css'.\r\nsrc/modules/auth/session/components/SessionDetailModal.tsx(7,8): error TS2882: Cannot find module or type declarations for side-effect import of '../../auth.css'.\r\nsrc/modules/auth/session/components/SessionList.tsx(49,8): error TS2882: Cannot find module or type declarations for side-effect import of '../../../../assets/list-page.css'.\r\nsrc/modules/auth/session/components/SessionList.tsx(50,8): error TS2882: Cannot find module or type declarations for side-effect import of '../../auth.css'.\r\nsrc/modules/business/bizscope/BizScopeDetail.tsx(37,8): error TS2882: Cannot find module or type declarations for side-effect import of '../../../assets/list-page.css'.\r\nsrc/modules/business/bizscope/BizScopeDetail.tsx(38,8): error TS2882: Cann…2352 tokens truncated…larations for side-effect import of '../../../../assets/list-page.css'.\r\nsrc/modules/system/config/dict/DictTypeTab.tsx(57,8): error TS2882: Cannot find module or type declarations for side-effect import of '../../../../assets/list-page.css'.\r\nsrc/modules/system/config/setting/SettingGroupPage.tsx(22,8): error TS2882: Cannot find module or type declarations for side-effect import of '../../../../assets/list-page.css'.\r\nsrc/modules/system/config/setting/SettingOverviewPage.tsx(17,8): error TS2882: Cannot find module or type declarations for side-effect import of '../../../../assets/list-page.css'.\r\nsrc/modules/system/i18n/I18nList.tsx(99,8): error TS2882: Cannot find module or type declarations for side-effect import of '../../../assets/list-page.css'.\r\nsrc/modules/system/iam/menu/MenuList.tsx(73,8): error TS2882: Cannot find module or type declarations for side-effect import of '../../../../assets/list-page.css'.\r\nsrc/modules/system/iam/permission/PermissionList.tsx(81,8): error TS2882: Cannot find module or type declarations for side-effect import of '../../../../assets/list-page.css'.\r\nsrc/modules/system/iam/permission/PermissionWorkbenchTab.tsx(38,8): error TS2882: Cannot find module or type declarations for side-effect import of '../../../../assets/list-page.css'.\r\nsrc/modules/system/iam/role/RoleList.tsx(81,8): error TS2882: Cannot find module or type declarations for side-effect import of '../../../../assets/list-page.css'.\r\nsrc/modules/system/iam/role/RoleMemberDrawer.tsx(31,8): error TS2882: Cannot find module or type declarations for side-effect import of '../../../../assets/list-page.css'.\r\nsrc/modules/system/iam/tenant/QuotaRatio.tsx(4,8): error TS2882: Cannot find module or type declarations for side-effect import of './QuotaRatio.css'.\r\nsrc/modules/system/iam/tenant/TenantList.tsx(70,8): error TS2882: Cannot find module or type declarations for side-effect import of '../../../../assets/list-page.css'.\r\nsrc/modules/system/iam/tenant/TenantMemberList.tsx(14,8): error TS2882: Cannot find module or type declarations for side-effect import of '../../../../assets/list-page.css'.\r\nsrc/modules/system/iam/tenant/TenantMemberList.tsx(29,8): error TS2882: Cannot find module or type declarations for side-effect import of './TenantMemberList.css'.\r\nsrc/modules/system/iam/tenant/TenantOverview.tsx(19,8): error TS2882: Cannot find module or type declarations for side-effect import of '../../../../assets/list-page.css'.\r\nsrc/modules/system/iam/tenant/TenantOverview.tsx(38,8): error TS2882: Cannot find module or type declarations for side-effect import of './TenantOverview.css'.\r\nsrc/modules/system/iam/tenant/TenantPlanMatrix.tsx(10,8): error TS2882: Cannot find module or type declarations for side-effect import of './TenantPlanMatrix.css'.\r\nsrc/modules/system/iam/user/UserList.tsx(59,8): error TS2882: Cannot find module or type declarations for side-effect import of '../../../../assets/list-page.css'.\r\nsrc/modules/system/iam/user/UserList.tsx(60,8): error TS2882: Cannot find module or type declarations for side-effect import of './UserList.css'.\r\nsrc/modules/system/org/dept/DeptList.tsx(91,8): error TS2882: Cannot find module or type declarations for side-effect import of '../../../../assets/list-page.css'.\r\nsrc/modules/system/org/post/PostList.tsx(75,8): error TS2882: Cannot find module or type declarations for side-effect import of '../../../../assets/list-page.css'.\r\nsrc/modules/system/profile/ProfileCenter.tsx(29,8): error TS2882: Cannot find module or type declarations for side-effect import of './ProfileCenter.css'.\r\ntests/smoke/helpers/auth.ts(2,39): error TS7016: Could not find a declaration file for module '../../../scripts/lib/auth-cookie-session.mjs'. 'D:/workspace/go/pantheon-platform/pantheon-ops/frontend/scripts/lib/auth-cookie-session.mjs' implicitly has an 'any' type.\r\ntests/smoke/helpers/auth.ts(3,42): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.\r\n",
+      "outputTruncated": true,
+      "configurationVariant": null
+    },
+    {
+      "name": "testtype02",
+      "command": "node --import ../.local/manual-preview-20261116/hide-child-windows.mjs node_modules/typescript/bin/tsc -p ../.harness/evidence/2026-11-17-ops-history-audit/continuation-c03-host-label-testtype-20261118.json --pretty false",
+      "cwd": "frontend",
+      "exitCode": 1,
+      "output": "error TS2688: Cannot find type definition file for 'vite/client'.\r\n  The file is in the program because:\r\n    Entry point of type library 'vite/client' specified in compilerOptions\r\n",
+      "outputTruncated": false,
+      "configurationVariant": "app extends + allowJs + types vite/client from evidence root"
+    },
+    {
+      "name": "testtype03",
+      "command": "node --import ../.local/manual-preview-20261116/hide-child-windows.mjs node_modules/typescript/bin/tsc -p ../.harness/evidence/2026-11-17-ops-history-audit/continuation-c03-host-label-testtype-20261118.json --pretty false",
+      "cwd": "frontend",
+      "exitCode": 1,
+      "output": "tests/smoke/helpers/auth.ts(6,27): error TS2591: Cannot find name 'process'. Do you need to install type definitions for node? Try `npm i --save-dev @types/node` and then add 'node' to the types field in your tsconfig.\r\ntests/smoke/helpers/auth.ts(7,27): error TS2591: Cannot find name 'process'. Do you need to install type definitions for node? Try `npm i --save-dev @types/node` and then add 'node' to the types field in your tsconfig.\r\ntests/smoke/helpers/auth.ts(24,13): error TS2591: Cannot find name 'process'. Do you need to install type definitions for node? Try `npm i --save-dev @types/node` and then add 'node' to the types field in your tsconfig.\r\ntests/smoke/helpers/auth.ts(25,13): error TS2591: Cannot find name 'process'. Do you need to install type definitions for node? Try `npm i --save-dev @types/node` and then add 'node' to the types field in your tsconfig.\r\ntests/smoke/helpers/auth.ts(68,27): error TS2339: Property 'refreshToken' does not exist on type '{ accessToken: string; csrfToken: any; }'.\r\n",
+      "outputTruncated": false,
+      "configurationVariant": "app extends + allowJs + types [] + frontend vite-env"
+    },
+    {
+      "name": "testtype04",
+      "command": "node --import ../.local/manual-preview-20261116/hide-child-windows.mjs node_modules/typescript/bin/tsc -p ../.harness/evidence/2026-11-17-ops-history-audit/continuation-c03-host-label-testtype-20261118.json --pretty false",
+      "cwd": "frontend",
+      "exitCode": 1,
+      "output": "src/core/refresh/refreshBus.ts(174,5): error TS2322: Type 'Timeout' is not assignable to type 'number'.\r\ntests/smoke/helpers/auth.ts(68,27): error TS2339: Property 'refreshToken' does not exist on type '{ accessToken: string; csrfToken: any; }'.\r\n",
+      "outputTruncated": false,
+      "configurationVariant": "app extends + allowJs + types node with frontend @types + frontend vite-env"
+    },
+    {
+      "name": "diff",
+      "command": "git diff --check -- frontend/tests/smoke/business/service/service-pages.spec.ts",
+      "cwd": "pantheon-ops",
+      "exitCode": 0,
+      "output": "",
+      "outputTruncated": false,
+      "configurationVariant": null
+    },
+    {
+      "name": "comparison",
+      "command": "Original/current normalized one-line assertion comparison",
+      "cwd": "pantheon-ops",
+      "exitCode": 0,
+      "output": "PASS only Host -> 主机 in the exact hostId assertion changed; cleanup and all other assertions unchanged\r\n{\r\n  \"Path\": \"D:\\\\workspace\\\\go\\\\pantheon-platform\\\\pantheon-ops\\\\frontend\\\\tests\\\\smoke\\\\business\\\\service\\\\service-pages.spec.ts\",\r\n  \"Hash\": \"AD0E5C0B32E3F78F47C620D3C23E7B7666D28E04861D312C10720B8F50F1C526\"\r\n}\r\n",
+      "outputTruncated": false,
+      "configurationVariant": null
+    }
+  ],
+  "targetedTypeScript": {
+    "passed": false,
+    "finalConfig": "continuation-c03-host-label-testtype-20261118.json",
+    "finalConfigSHA256": "8d76f9f27696ae8c5ef4b736de68b5156789f46e0f6ce247d2e5f8e4b5dea0e2",
+    "finalExitCode": 1,
+    "finalDiagnosticCount": 2,
+    "diagnostics": [
+      {
+        "file": "frontend/src/core/refresh/refreshBus.ts",
+        "line": 174,
+        "code": "TS2322",
+        "message": "Type Timeout is not assignable to type number in combined browser/Node test program."
+      },
+      {
+        "file": "frontend/tests/smoke/helpers/auth.ts",
+        "line": 68,
+        "code": "TS2339",
+        "message": "refreshToken is absent from inferred auth-cookie-session.mjs return shape."
+      }
+    ],
+    "scopeGap": "Unchanged transitive browser/Node helper/source diagnostics; no diagnostic on modified service-pages.spec.ts. Shared source/helper fixes are outside this ownership.",
+    "claimGreen": false
+  },
+  "liveVerification": {
+    "command": "node --import ./.local/manual-preview-20261116/hide-child-windows.mjs .local/manual-preview-20261116/run-c03-ui-verification.mjs ten-packages-20261118-live-02 live",
+    "exitCode": 0,
+    "output": "{\"startedAt\":\"2026-11-18T08:34:04.638Z\",\"finishedAt\":\"2026-11-18T08:34:11.364Z\",\"executable\":\"D:\\\\nodejs\\\\node.exe\",\"args\":[\"--import=file:///D:/workspace/go/pantheon-platform/pantheon-ops/.local/manual-preview-20261116/hide-child-windows.mjs\",\"node_modules/@playwright/test/cli.js\",\"test\",\"tests/smoke/business/service/service-pages.spec.ts\",\"--config=playwright.config.ts\",\"--grep\",\"application, service, and VM instance complete the catalog lifecycle\",\"--reporter=line\",\"--output=../.harness/evidence/2026-11-17-ops-history-audit/continuation-c03-ui-ten-packages-20261118-live-02-artifacts\"],\"cwd\":\"D:\\\\workspace\\\\go\\\\pantheon-platform\\\\pantheon-ops\\\\frontend\",\"exitCode\":0,\"errorCode\":null,\"sourceUnchanged\":true,\"sourcesBefore\":[{\"file\":\"frontend/src/modules/business/service/ServiceCatalog.tsx\",\"sha256\":\"24f60723ab9765e4909be3ce60c23a5c10eb7529f8f0f800c5cf0941c549a6ad\"},{\"file\":\"frontend/src/modules/business/service/api.ts\",\"sha256\":\"6206773022d1ba4774e66cab246a2b568e42a7dd668995aac8682bfb638eee57\"},{\"file\":\"frontend/tests/smoke/business/service/service-pages.spec.ts\",\"sha256\":\"ad0e5c0b32e3f78f47c620d3c23e7b7666d28e04861d312c10720b8f50f1c526\"}],\"sourcesAfter\":[{\"file\":\"frontend/src/modules/business/service/ServiceCatalog.tsx\",\"sha256\":\"24f60723ab9765e4909be3ce60c23a5c10eb7529f8f0f800c5cf0941c549a6ad\"},{\"file\":\"frontend/src/modules/business/service/api.ts\",\"sha256\":\"6206773022d1ba4774e66cab246a2b568e42a7dd668995aac8682bfb638eee57\"},{\"file\":\"frontend/tests/smoke/business/service/service-pages.spec.ts\",\"sha256\":\"ad0e5c0b32e3f78f47c620d3c23e7b7666d28e04861d312c10720b8f50f1c526\"}],\"boundary\":\"Real local admin/API/UI catalog lifecycle with task-owned temporary scope, CMDB registration, application, service and VM instance; cleanup asserted. No SSH/deploy/provider execution and no least-privilege role or production acceptance.\"}\n",
+    "startedAt": "2026-11-18T08:34:04.638Z",
+    "finishedAt": "2026-11-18T08:34:11.364Z",
+    "executable": "D:\\nodejs\\node.exe",
+    "args": [
+      "--import=file:///D:/workspace/go/pantheon-platform/pantheon-ops/.local/manual-preview-20261116/hide-child-windows.mjs",
+      "node_modules/@playwright/test/cli.js",
+      "test",
+      "tests/smoke/business/service/service-pages.spec.ts",
+      "--config=playwright.config.ts",
+      "--grep",
+      "application, service, and VM instance complete the catalog lifecycle",
+      "--reporter=line",
+      "--output=../.harness/evidence/2026-11-17-ops-history-audit/continuation-c03-ui-ten-packages-20261118-live-02-artifacts"
+    ],
+    "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\frontend",
+    "errorCode": null,
+    "sourceUnchanged": true,
+    "sourcesBefore": [
+      {
+        "file": "frontend/src/modules/business/service/ServiceCatalog.tsx",
+        "sha256": "24f60723ab9765e4909be3ce60c23a5c10eb7529f8f0f800c5cf0941c549a6ad"
+      },
+      {
+        "file": "frontend/src/modules/business/service/api.ts",
+        "sha256": "6206773022d1ba4774e66cab246a2b568e42a7dd668995aac8682bfb638eee57"
+      },
+      {
+        "file": "frontend/tests/smoke/business/service/service-pages.spec.ts",
+        "sha256": "ad0e5c0b32e3f78f47c620d3c23e7b7666d28e04861d312c10720b8f50f1c526"
+      }
+    ],
+    "sourcesAfter": [
+      {
+        "file": "frontend/src/modules/business/service/ServiceCatalog.tsx",
+        "sha256": "24f60723ab9765e4909be3ce60c23a5c10eb7529f8f0f800c5cf0941c549a6ad"
+      },
+      {
+        "file": "frontend/src/modules/business/service/api.ts",
+        "sha256": "6206773022d1ba4774e66cab246a2b568e42a7dd668995aac8682bfb638eee57"
+      },
+      {
+        "file": "frontend/tests/smoke/business/service/service-pages.spec.ts",
+        "sha256": "ad0e5c0b32e3f78f47c620d3c23e7b7666d28e04861d312c10720b8f50f1c526"
+      }
+    ],
+    "boundary": "Real local admin/API/UI catalog lifecycle with task-owned temporary scope, CMDB registration, application, service and VM instance; cleanup asserted. No SSH/deploy/provider execution and no least-privilege role or production acceptance.",
+    "testsPassed": 1,
+    "testsSkipped": 0,
+    "testDurationSeconds": 5.7,
+    "log": "continuation-c03-ui-ten-packages-20261118-live-02.log",
+    "logSHA256": "dd2a2dd09fffcb21dfd8218c9a81ab3e74b449880f1c6364f84b5a6b143e3309",
+    "receipt": "continuation-c03-ui-ten-packages-20261118-live-02.receipt.json",
+    "receiptSHA256": "2c2d89388dfa7925fb9e8a059d93db51a2c7c1f280debc83b2bd177d7b261130",
+    "realTemporaryAPIAndDBLifecycle": true,
+    "originalFinallyCleanupAssertionsPassed": true
+  },
+  "renderedEvidence": {
+    "screenshot": "continuation-c03-ui-ten-packages-20261118-live-02-artifacts/smoke-business-service-ser-26279-plete-the-catalog-lifecycle/service-catalog-desktop.png",
+    "SHA256": "2e6be6de6580bc2f07910aec9912bf87fdacad0e020415887910576adc1b4aef",
+    "visuallyInspected": true,
+    "observedLabel": "主机 #533",
+    "surface": "existing service-instance desktop table",
+    "layoutChanged": false,
+    "visualPolishClaimed": false,
+    "mobileRendered": false
+  },
+  "remainingGates": [
+    "targeted combined test-program type diagnostics remain explicit gap",
+    "whole C03 independent review and acceptance",
+    "least-privilege roles and actual provider/SSH acceptance remain separate"
+  ]
+}

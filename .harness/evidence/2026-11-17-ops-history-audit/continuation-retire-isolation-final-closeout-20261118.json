@@ -1,0 +1,156 @@
+{
+  "recordedAt": "2026-11-18T05:11:08.506Z",
+  "taskId": "2026-11-17-ops-history-audit",
+  "parentBusinessTaskId": "2026-11-16-ops-service-deploy-integrity",
+  "readiness": {
+    "file": ".harness/evidence/2026-11-17-ops-history-audit/continuation-retire-isolation-final-readiness-20261118.json",
+    "sha256": "528faa569bfccbf2dee9d09d1d8d151a72aaa9da3d380d58f56414de962483c6"
+  },
+  "fullRace": {
+    "file": ".harness/evidence/2026-11-17-ops-history-audit/continuation-retire-isolation-full-race-20261118-02.log.receipt.json",
+    "sha256": "01e52ced7b362cedadcbf7ef2b8f128d7ad2fd4f346368973bfdfa1574b1d5ad",
+    "log": {
+      "file": ".harness/evidence/2026-11-17-ops-history-audit/continuation-retire-isolation-full-race-20261118-02.log",
+      "sha256": "87e02dff13bbd8d9ffc0b9f32f7e13ea990bb599df10e2bcfa77e18cac863d0a"
+    },
+    "exitCode": 0,
+    "args": [
+      "test",
+      "-race",
+      "-count=1",
+      "-timeout=10m",
+      "./..."
+    ],
+    "goFlags": "-p=2 -mod=readonly",
+    "cgoEnabled": "1",
+    "disposableMySQL": true,
+    "durationSeconds": 1011.134,
+    "sourceCount": 734,
+    "sourceUnchanged": true,
+    "passedPackageRows": 72,
+    "noTestPackageRows": 17,
+    "limitation": "Non-verbose complete race proves package success. It does not prove every conditional subtest ran, role middleware, live provider or maintainer acceptance."
+  },
+  "sourceSetSHA256": "94815b5181fa2a981fefa6023c8c9699e6b2f338d54eff639eb879865955fd6b",
+  "sourceCount": 1221,
+  "narrowCode": "APPROVE",
+  "narrowArchitecture": "CLEAR",
+  "wholeC01": "WATCH",
+  "aggregateApproved": false,
+  "unfinishedPackages": 10,
+  "packages": [
+    {
+      "code": "C01",
+      "file": ".harness/tasks/2026-11-16-ops-service-deploy-integrity/manifest.json",
+      "sha256": "794dae060662909462554b024c234554eca0539bebc5b9dacc4aaa2c9c2b87ed",
+      "status": "in-progress"
+    },
+    {
+      "code": "C02",
+      "file": ".harness/tasks/2026-11-16-ops-service-deploy-user-flow/manifest.json",
+      "sha256": "ed1ef74a7c0a8236e25f1d86232e8b634391a2705cc77be76a5564175ab58d3c",
+      "status": "planned"
+    },
+    {
+      "code": "C03",
+      "file": ".harness/tasks/2026-11-16-ops-service-catalog-usability/manifest.json",
+      "sha256": "c8353be37676f082711bb66bc1acd36cf2e6b5fee25cd6d913a34ebb440a7db0",
+      "status": "in-progress"
+    },
+    {
+      "code": "C04",
+      "file": ".harness/tasks/2026-11-16-ops-k8s-service-mutations/manifest.json",
+      "sha256": "20a554fc3b6588e0fb01876b925bdb796cd8a62ae813cdad8003837a3ef5132f",
+      "status": "in-progress"
+    },
+    {
+      "code": "C05",
+      "file": ".harness/tasks/2026-11-16-ops-business-runtime-acceptance/manifest.json",
+      "sha256": "aee559542afe0f2193b3200e78cb5e1013db19686cd10a893f8b1acbbcd27a65",
+      "status": "planned"
+    },
+    {
+      "code": "C06",
+      "file": ".harness/tasks/2026-11-16-ops-pilot-release-closeout/manifest.json",
+      "sha256": "4947dfd0ce776cae1b490e5c06b38c13a1aec648de87423600b1bac1d4927f7c",
+      "status": "planned"
+    },
+    {
+      "code": "E01",
+      "file": ".harness/tasks/2026-11-16-ops-filedist-product-closure/manifest.json",
+      "sha256": "d74100926fe2f50f56b5920892b8ffdc1d1a64dc8921b6dc47a28e80b1b62070",
+      "status": "planned"
+    },
+    {
+      "code": "E02",
+      "file": ".harness/tasks/2026-11-16-ops-argocd-ownership-convergence/manifest.json",
+      "sha256": "ad39f632c86fc8d4d529eda910b9feeb36691c680f39600c4f4eae2defe2f0ee",
+      "status": "planned"
+    },
+    {
+      "code": "E03",
+      "file": ".harness/tasks/2026-11-16-ops-helm-capability-truth/manifest.json",
+      "sha256": "6fa01620699ea47795dc97f1a4597a8b5471acc683ca95ae18ee4d8e8ab7480b",
+      "status": "planned"
+    },
+    {
+      "code": "E04",
+      "file": ".harness/tasks/2026-11-16-ops-extensions-live-acceptance/manifest.json",
+      "sha256": "5785d4aef14f5190d0485b0eec5d3bf942ce8152bdee1edc93d98b5fdc8d5a36",
+      "status": "planned"
+    }
+  ],
+  "newArchiveGroups": 0,
+  "cumulativeNewArchiveGroups": 22,
+  "preservedDuplicateLiveGroups": 2,
+  "nativeGoalObservation": {
+    "file": ".harness/evidence/2026-11-17-ops-history-audit/continuation-native-goal-observed-retire-20261118.json",
+    "sha256": "4e1e5e2f304eb3d93ed515acd1ea48fdd9b6a83e0e8b69c3c1802f53a6143e30"
+  },
+  "nativeGoalStatusObserved": "blocked",
+  "durableGoals": {
+    "file": ".omx/ultragoal/goals.json",
+    "sha256": "8d5bd2fcab715e1740859c0ee51cd356252cfdc3cf3cfbd43fcec2ff8bd538df"
+  },
+  "originals": [
+    {
+      "file": ".harness/evidence/2026-11-17-ops-history-audit/review.md",
+      "backup": ".harness/evidence/2026-11-17-ops-history-audit/continuation-retire-isolation-final-20261118-originals/.harness/evidence/2026-11-17-ops-history-audit/review.md.raw",
+      "beforeSHA256": "d49f2a38eecbe7e5811854b7c5d642802300df5f13d1b4b8e649d8730705fe56",
+      "afterSHA256": "07e64423d71dac857b6e12296747cb443cccedde5121d0abf3150316c31877fb"
+    },
+    {
+      "file": ".harness/evidence/2026-11-16-ops-service-deploy-integrity/review.md",
+      "backup": ".harness/evidence/2026-11-17-ops-history-audit/continuation-retire-isolation-final-20261118-originals/.harness/evidence/2026-11-16-ops-service-deploy-integrity/review.md.raw",
+      "beforeSHA256": "27f0211c8875b9ca0cf8f40845fc9b32606f08c46816b9cb6c04ced4e635e7ef",
+      "afterSHA256": "ad2109ad64cfa86ce8533440c5ae4c3881940ce7538ebfc5bb6f9dcee09d1461"
+    },
+    {
+      "file": ".harness/evidence/2026-11-16-ops-service-deploy-integrity/summary.md",
+      "backup": ".harness/evidence/2026-11-17-ops-history-audit/continuation-retire-isolation-final-20261118-originals/.harness/evidence/2026-11-16-ops-service-deploy-integrity/summary.md.raw",
+      "beforeSHA256": "87116f598e194f5938d5f8b2a2dae19c3049d5e9689a1f8425f60bbcb02b0c7d",
+      "afterSHA256": "d2341497720c0e899d6f5371e6447ef0f30eee256cf3b0f813f766670d3da9f5"
+    },
+    {
+      "file": ".harness/evidence/2026-11-17-ops-history-audit/commands.json",
+      "backup": ".harness/evidence/2026-11-17-ops-history-audit/continuation-retire-isolation-final-20261118-originals/.harness/evidence/2026-11-17-ops-history-audit/commands.json.raw",
+      "beforeSHA256": "6d201c50229f67fce52e6c20b1563c9357e5883ece498501d9d7d77e4e20d6fb",
+      "afterSHA256": "32394825385fc2ecbd74d617f2e8708f63bbb7f77026663b0fceda941a716b30"
+    },
+    {
+      "file": ".harness/evidence/2026-11-16-ops-service-deploy-integrity/commands.json",
+      "backup": ".harness/evidence/2026-11-17-ops-history-audit/continuation-retire-isolation-final-20261118-originals/.harness/evidence/2026-11-16-ops-service-deploy-integrity/commands.json.raw",
+      "beforeSHA256": "ff8df16deced06a23e948554d9fbc1c861aa170e44fbdd6c0dd3b94b9d74434b",
+      "afterSHA256": "068eb41569a1e677d2ccbd077efad9a9e330f965a47d1567ce726ae87f56c0ea"
+    }
+  ],
+  "linkage": {
+    "taskManifest": ".harness/tasks/2026-11-17-ops-history-audit/manifest.json",
+    "evidence": ".harness/evidence/2026-11-17-ops-history-audit/commands.json",
+    "reviewFile": ".harness/evidence/2026-11-17-ops-history-audit/review.md",
+    "changeRef": "none",
+    "planRefs": [
+      ".harness/tasks/2026-11-16-ops-service-deploy-integrity/continuation-retire-isolation-plan.md"
+    ]
+  }
+}

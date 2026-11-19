@@ -1,0 +1,338 @@
+# Instructions
+
+- Following Playwright test failed.
+- Explain why, be concise, respect Playwright best practices.
+- Provide a snippet of code with the fix, if possible.
+
+# Test info
+
+- Name: smoke\business\service\service-pages.spec.ts >> Service business module smoke >> a stale instance update retains the form and the user version input
+- Location: tests\smoke\business\service\service-pages.spec.ts:297:3
+
+# Error details
+
+```
+Error: expect(locator).toBeVisible() failed
+
+Locator: getByText('实例状态已变化，请刷新列表并重新核对后操作。', { exact: true })
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+  - Expect "toBeVisible" getByText('实例状态已变化，请刷新列表并重新核对后操作。', { exact: true }) with timeout 10000ms
+  - waiting for getByText('实例状态已变化，请刷新列表并重新核对后操作。', { exact: true })
+
+```
+
+```yaml
+- complementary:
+    - text: P Pantheon Base
+    - menu:
+        - menuitem "工作台":
+            - button "工作台"
+        - button "CMDB"
+        - button "业务域"
+        - button "服务目录"
+        - button "安装部署"
+        - menuitem "文件分发":
+            - button "文件分发"
+        - button "Kubernetes"
+        - menuitem "ArgoCD 应用交付":
+            - button "ArgoCD 应用交付"
+        - button "可观测中心"
+        - button "访问控制"
+        - button "组织架构"
+        - button "安全审计"
+        - button "低代码平台"
+        - button "平台配置"
+- button "切换导航"
+- list:
+    - listitem: 首页
+    - listitem: 服务目录
+    - listitem: 服务实例
+- button "平台功能台": 搜索菜单、页面、功能… Ctrl K
+- button "通知中心"
+- button "平台偏好"
+- 'button "用户: Administrator"': A Administrator admin
+- tablist "已打开页面":
+    - tab "工作台"
+    - tab "服务实例" [selected]
+- main:
+    - text: 运维平台 / 服务目录 服务目录 应用
+    - strong: "2"
+    - text: 服务
+    - strong: "2"
+    - text: 服务实例
+    - strong: "2"
+    - text: 当前页健康实例
+    - strong: "2"
+    - tab "应用"
+    - tab "服务"
+    - tab "服务实例" [selected]
+    - tabpanel "服务实例":
+        - search "筛选":
+            - button "新增服务实例"
+        - table:
+            - rowgroup:
+                - row "服务 环境 目标 运行目标 观测状态 健康状态 操作":
+                    - columnheader "服务"
+                    - columnheader "环境"
+                    - columnheader "目标"
+                    - columnheader "运行目标"
+                    - columnheader "观测状态"
+                    - columnheader "健康状态"
+                    - columnheader "操作"
+            - rowgroup:
+                - 'row "catalog-service-1 prod vm 主机 #1 running healthy 编辑 协调卡住状态 删除"':
+                    - cell "catalog-service-1"
+                    - cell "prod"
+                    - cell "vm"
+                    - 'cell "主机 #1"'
+                    - cell "running"
+                    - cell "healthy"
+                    - cell "编辑 协调卡住状态 删除":
+                        - button "编辑"
+                        - button "协调卡住状态"
+                        - button "删除"
+                - 'row "catalog-service-2 prod vm 主机 #2 running healthy 编辑 协调卡住状态 删除"':
+                    - cell "catalog-service-2"
+                    - cell "prod"
+                    - cell "vm"
+                    - 'cell "主机 #2"'
+                    - cell "running"
+                    - cell "healthy"
+                    - cell "编辑 协调卡住状态 删除":
+                        - button "编辑"
+                        - button "协调卡住状态"
+                        - button "删除"
+        - text: 总数
+        - strong: "2"
+        - list:
+            - listitem "上一页": .
+            - listitem "第 1 页": "1"
+            - listitem "下一页": .
+        - combobox: 20 条/页
+- text: Pantheon Platform · Enterprise Admin Foundation
+- dialog "编辑服务实例":
+    - text: 编辑服务实例 服务
+    - textbox: catalog-service-1
+    - text: 运行目标
+    - textbox: "主机 #1"
+    - text: 当前版本
+    - textbox: 1.1.0
+    - text: 更换绑定目标
+    - switch
+    - text: 版本
+    - textbox "版本": 3.0.0
+    - button "取消"
+    - button "确定"
+    - button "Close"
+```
+
+# Test source
+
+```ts
+  211 |     await dialog.getByRole('button', { name: '取消', exact: true }).click();
+  212 |     await expect(panel.locator('tbody tr')).toHaveCount(2);
+  213 |     await expectNoVisibleServiceI18nKeys(page);
+  214 |   });
+  215 |
+  216 |   test('K8s options are scope-bound and namespace changes clear stale workloads', async ({ page }) => {
+  217 |     await installCatalogFixture(page, 2);
+  218 |     const clusterQueries: URL[] = [];
+  219 |     const workloadQueries: URL[] = [];
+  220 |     await page.route(/\/api\/v1\/business\/k8s\/clusters(?:\?.*)?$/, async (route) => {
+  221 |       clusterQueries.push(new URL(route.request().url()));
+  222 |       await route.fulfill({ json: { code: 200, data: { items: [
+  223 |         { id: 11, businessScopeId: 41, name: 'allowed-cluster' },
+  224 |         { id: 12, businessScopeId: 42, name: 'other-scope-cluster' },
+  225 |       ], total: 2 } } });
+  226 |     });
+  227 |     await page.route('**/api/v1/business/k8s/clusters/11/namespaces', async (route) => {
+  228 |       await route.fulfill({ json: { code: 200, data: { items: [{ name: 'ns-one' }, { name: 'ns-two' }] } } });
+  229 |     });
+  230 |     await page.route(/\/api\/v1\/business\/k8s\/workloads(?:\?.*)?$/, async (route) => {
+  231 |       const url = new URL(route.request().url());
+  232 |       workloadQueries.push(url);
+  233 |       const namespace = url.searchParams.get('namespace');
+  234 |       await route.fulfill({ json: { code: 200, data: { items: [
+  235 |         { namespace, kind: 'Deployment', name: `${namespace}-workload` },
+  236 |         { namespace: 'other-namespace', kind: 'Deployment', name: 'other-namespace-workload' },
+  237 |         { namespace, kind: 'StatefulSet', name: 'other-kind-workload' },
+  238 |       ] } } });
+  239 |     });
+  240 |     await page.goto('/business/service-catalog/instances', { waitUntil: 'domcontentloaded' });
+  241 |     await page.getByRole('button', { name: '新增服务实例', exact: true }).click();
+  242 |     const dialog = page.getByRole('dialog');
+  243 |     await chooseOption(page, dialog, '服务', 'catalog-application-1 / catalog-service-1');
+  244 |     await chooseOption(page, dialog, '目标', 'Kubernetes');
+  245 |     await formField(page, dialog, 'Kubernetes 集群').locator('.arco-select').click();
+  246 |     await expect(page.locator('.arco-select-option:visible').filter({ hasText: 'other-scope-cluster' })).toHaveCount(0);
+  247 |     await page.locator('.arco-select-option:visible').filter({ hasText: /^allowed-cluster$/ }).click();
+  248 |     await chooseOption(page, dialog, '命名空间', 'ns-one');
+  249 |     await chooseOption(page, dialog, '工作负载类型', 'Deployment');
+  250 |     await formField(page, dialog, '工作负载名称').locator('.arco-select').click();
+  251 |     await expect(page.locator('.arco-select-option:visible').filter({ hasText: /other-namespace-workload|other-kind-workload/ })).toHaveCount(0);
+  252 |     await page.locator('.arco-select-option:visible').filter({ hasText: /^ns-one-workload$/ }).click();
+  253 |     await chooseOption(page, dialog, '命名空间', 'ns-two');
+  254 |     await expect(formField(page, dialog, '工作负载名称').locator('.arco-select')).not.toContainText('ns-one-workload');
+  255 |     await expect(formField(page, dialog, '工作负载类型').locator('.arco-select')).not.toContainText('Deployment');
+  256 |     await expect(formField(page, dialog, '工作负载名称').locator('.arco-select')).toHaveClass(/arco-select-disabled/);
+  257 |     expect(clusterQueries).toHaveLength(1);
+  258 |     expect(clusterQueries[0].searchParams.get('businessScopeId')).toBe('41');
+  259 |     expect(clusterQueries[0].searchParams.get('pageSize')).toBe('25');
+  260 |     expect(workloadQueries).toHaveLength(1);
+  261 |     expect(workloadQueries[0].searchParams.get('clusterId')).toBe('11');
+  262 |     expect(workloadQueries[0].searchParams.get('namespace')).toBe('ns-one');
+  263 |     expect(workloadQueries[0].searchParams.get('kind')).toBe('Deployment');
+  264 |     await dialog.getByRole('button', { name: '取消', exact: true }).click();
+  265 |   });
+  266 |
+  267 |   test('instance rebind is explicit, resolves its owner, and submits a versioned complete target', async ({ page }) => {
+  268 |     const fixture = await installCatalogFixture(page, 2);
+  269 |     const targets: URL[] = [];
+  270 |     await page.route(/\/api\/v1\/business\/cmdb\/hosts(?:\?.*)?$/, async (route) => {
+  271 |       targets.push(new URL(route.request().url()));
+  272 |       await route.fulfill({ json: { code: 200, data: { items: [
+  273 |         { id: 201, businessScopeId: 41, hostname: 'allowed-host', ip: '10.0.0.1' },
+  274 |         { id: 202, businessScopeId: 42, hostname: 'other-scope-host', ip: '10.0.0.2' },
+  275 |       ], total: 2 } } });
+  276 |     });
+  277 |     await page.goto('/business/service-catalog/instances', { waitUntil: 'domcontentloaded' });
+  278 |     const panel = page.getByRole('tabpanel', { name: '服务实例', exact: true });
+  279 |     await panel.locator('tbody tr').filter({ hasText: 'catalog-service-1' }).getByRole('button', { name: '编辑', exact: true }).click();
+  280 |     const dialog = page.getByRole('dialog');
+  281 |     await expect(formField(page, dialog, '当前版本').locator('input')).toHaveAttribute('readonly', '');
+  282 |     expect(targets).toEqual([]);
+  283 |     expect(fixture.reads.some((url) => url.pathname.endsWith('/services/1'))).toBe(false);
+  284 |     await formField(page, dialog, '更换绑定目标').getByRole('switch').click();
+  285 |     await formField(page, dialog, 'CMDB 主机').locator('.arco-select').click();
+  286 |     await expect(page.locator('.arco-select-option:visible').filter({ hasText: 'other-scope-host' })).toHaveCount(0);
+  287 |     await page.locator('.arco-select-option:visible').filter({ hasText: /^allowed-host \(10\.0\.0\.1\)$/ }).click();
+  288 |     await formField(page, dialog, '版本').locator('input').fill('2.1.0');
+  289 |     await dialog.getByRole('button', { name: /确定|确认/, exact: true }).click();
+  290 |     await expect(dialog).toBeHidden();
+  291 |     expect(fixture.writes.at(-1)?.data).toEqual({ desiredVersion: '2.1.0', expectedLifecycleVersion: 7, target: { targetType: 'vm', hostId: 201 } });
+  292 |     expect(fixture.reads.some((url) => url.pathname.endsWith('/services/1'))).toBe(true);
+  293 |     expect(targets[0].searchParams.get('businessScopeId')).toBe('41');
+  294 |     await expectNoVisibleServiceI18nKeys(page);
+  295 |   });
+  296 |
+  297 |   test('a stale instance update retains the form and the user version input', async ({ page }) => {
+  298 |     await installCatalogFixture(page, 2);
+  299 |     const conflicts: Record<string, unknown>[] = [];
+  300 |     await page.route('**/api/v1/business/service/instances/1', async (route) => {
+  301 |       conflicts.push(route.request().postDataJSON() as Record<string, unknown>);
+  302 |       await route.fulfill({ status: 409, json: { code: 409, messageKey: 'business.service.state_stale', message: 'Lifecycle version conflict' } });
+  303 |     });
+  304 |     await page.goto('/business/service-catalog/instances', { waitUntil: 'domcontentloaded' });
+  305 |     const panel = page.getByRole('tabpanel', { name: '服务实例', exact: true });
+  306 |     await panel.locator('tbody tr').filter({ hasText: 'catalog-service-1' }).getByRole('button', { name: '编辑', exact: true }).click();
+  307 |     const dialog = page.getByRole('dialog');
+  308 |     await formField(page, dialog, '版本').locator('input').fill('3.0.0');
+  309 |     await dialog.getByRole('button', { name: /确定|确认/, exact: true }).click();
+  310 |     await expect.poll(() => conflicts.length).toBe(1);
+> 311 |     await expect(page.getByText('实例状态已变化，请刷新列表并重新核对后操作。', { exact: true })).toBeVisible();
+      |                                                                             ^ Error: expect(locator).toBeVisible() failed
+  312 |     await expect(dialog).toBeVisible();
+  313 |     await expect(formField(page, dialog, '版本').locator('input')).toHaveValue('3.0.0');
+  314 |     expect(conflicts[0]).toEqual({ desiredVersion: '3.0.0', expectedLifecycleVersion: 7 });
+  315 |     await dialog.getByRole('button', { name: '取消', exact: true }).click();
+  316 |   });
+  317 |
+  318 |   test('application, service, and VM instance complete the catalog lifecycle', async ({ page, request }, testInfo) => {
+  319 |     await page.setViewportSize({ width: 1440, height: 900 });
+  320 |     const consoleErrors: string[] = [];
+  321 |     page.on('console', (message) => {
+  322 |       if (message.type() === 'error') consoleErrors.push(message.text());
+  323 |     });
+  324 |     const login = await loginByApi(request, adminCredentials);
+  325 |     const headers = apiRequestHeaders(login);
+  326 |     const token = `service-smoke-${Date.now()}`;
+  327 |     let scopeId = 0;
+  328 |     let hostId = 0;
+  329 |     let applicationId = 0;
+  330 |     let serviceId = 0;
+  331 |     let instanceId = 0;
+  332 |
+  333 |     try {
+  334 |       const scope = await expectSuccess<{ id: number }>(
+  335 |         await request.post(`${apiBaseUrl}/business/bizscope`, {
+  336 |           headers,
+  337 |           data: { code: token, name: token, environment: 'prod', status: 'active' },
+  338 |         }),
+  339 |       );
+  340 |       scopeId = scope.id;
+  341 |       const host = await expectSuccess<{ id: number }>(
+  342 |         await request.post(`${apiBaseUrl}/business/cmdb/hosts`, {
+  343 |           headers,
+  344 |           data: {
+  345 |             hostname: `${token}-host`,
+  346 |             ip: `10.251.${Math.floor(Math.random() * 200) + 20}.${Math.floor(Math.random() * 200) + 20}`,
+  347 |             sshPort: 22,
+  348 |             os: 'linux',
+  349 |             osVersion: 'Ubuntu 24.04',
+  350 |             cpuCores: 2,
+  351 |             memoryGb: 4,
+  352 |             diskGb: 40,
+  353 |             labels: [{ key: 'service', val: token }],
+  354 |             owner: 'service-smoke',
+  355 |             remark: token,
+  356 |           },
+  357 |         }),
+  358 |       );
+  359 |       hostId = host.id;
+  360 |       await expectSuccess(
+  361 |         await request.post(`${apiBaseUrl}/business/bizscope/${scopeId}/hosts/bind`, {
+  362 |           headers,
+  363 |           data: { hostIds: [hostId] },
+  364 |         }),
+  365 |       );
+  366 |       const application = await expectSuccess<{ id: number }>(
+  367 |         await request.post(`${apiBaseUrl}/business/service/applications`, {
+  368 |           headers,
+  369 |           data: { code: `${token}-app`, name: `${token}-application`, businessScopeId: scopeId, owner: 'service-smoke' },
+  370 |         }),
+  371 |       );
+  372 |       applicationId = application.id;
+  373 |       const service = await expectSuccess<{ id: number }>(
+  374 |         await request.post(`${apiBaseUrl}/business/service/services`, {
+  375 |           headers,
+  376 |           data: { applicationId, code: `${token}-svc`, name: `${token}-service`, runtimeType: 'vm' },
+  377 |         }),
+  378 |       );
+  379 |       serviceId = service.id;
+  380 |       const instance = await expectSuccess<{ id: number }>(
+  381 |         await request.post(`${apiBaseUrl}/business/service/instances`, {
+  382 |           headers,
+  383 |           data: { serviceId, environment: 'prod', targetType: 'vm', hostId, desiredVersion: '1.2.0' },
+  384 |         }),
+  385 |       );
+  386 |       instanceId = Number(instance.id);
+  387 |       expect(instanceId).toBeGreaterThan(0);
+  388 |
+  389 |       await page.goto('/business/service-catalog', { waitUntil: 'domcontentloaded' });
+  390 |       await expect(page).toHaveURL(/\/business\/service-catalog$/);
+  391 |       await expect(page.locator('.governance-summary-bar')).toContainText('服务目录');
+  392 |       await expect(page.locator('.system-list__table-card:visible')).toContainText(`${token}-application`);
+  393 |
+  394 |       await page.getByRole('tab', { name: '服务', exact: true }).click();
+  395 |       const servicePanel = page.getByRole('tabpanel', { name: '服务', exact: true });
+  396 |       await expect(servicePanel).toContainText(`${token}-service`);
+  397 |       await page.getByRole('tab', { name: '服务实例', exact: true }).click();
+  398 |       const instancePanel = page.getByRole('tabpanel', { name: '服务实例', exact: true });
+  399 |       await expect(instancePanel).toContainText(`${token}-service`);
+  400 |       await expect(instancePanel).toContainText(`Host #${hostId}`);
+  401 |       await expectNoVisibleServiceI18nKeys(page);
+  402 |       await page.screenshot({ path: testInfo.outputPath('service-catalog-desktop.png') });
+  403 |       expect(consoleErrors).toEqual([]);
+  404 |     } finally {
+  405 |       const cleanupFailures: string[] = [];
+  406 |       const cleanup = async (label: string, responsePromise: Promise<APIResponse>) => {
+  407 |         try {
+  408 |           const response = await responsePromise;
+  409 |           const payload = await response.json().catch(() => null) as ApiEnvelope<unknown> | null;
+  410 |           if (!response.ok() || payload?.code !== 200) {
+  411 |             cleanupFailures.push(
+```

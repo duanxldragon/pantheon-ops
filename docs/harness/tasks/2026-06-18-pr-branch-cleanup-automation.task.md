@@ -1,3 +1,13 @@
+---
+title: 2026-06-18-pr-branch-cleanup-automation
+doc_type: Remediation
+layer: business
+status: Archived
+linked_contracts:
+  - docs/PROJECT_INHERITANCE.md
+updated_at: 2026-11-17
+---
+
 # Task Packet: 2026-06-18-pr-branch-cleanup-automation
 
 ## Goal
@@ -105,3 +115,14 @@ platform/governance
 - [ ] Verification run or exception recorded
 - [ ] Evidence saved or summarized
 - [ ] Review completed
+
+## Result — History Closeout 2026-11-17
+
+Manifest disposition: abandoned
+
+原 pull_request.closed 耦合被独立 branch-hygiene 工作流明确取代，后继 hosted 删除及保护机制已获独立原范围批准。
+
+Superseded by: 2026-06-18-branch-hygiene-fallback, 2026-06-18-branch-hygiene-slash-path-fix。原任务正文/evidence 保全；本地 divergent/未发布分支维护责任仍开放。
+
+Review: .harness/evidence/2026-11-17-ops-history-audit/pr-branch-cleanup-review.md
+Evidence: .harness/evidence/2026-11-17-ops-history-audit/second-batch-preflight.json

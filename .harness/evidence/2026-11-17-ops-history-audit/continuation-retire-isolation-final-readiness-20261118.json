@@ -1,0 +1,148 @@
+{
+  "recordedAt": "2026-11-18T05:01:09.215Z",
+  "taskId": "2026-11-17-ops-history-audit",
+  "parentBusinessTaskId": "2026-11-16-ops-service-deploy-integrity",
+  "sourceEquivalence": {
+    "file": ".harness/evidence/2026-11-17-ops-history-audit/continuation-retire-isolation-final-compat-20261118-source-equivalence.json",
+    "sha256": "3975c82f8fd5c0a5f8a9e37232308f3e9e00e0fde18d7bca1cdd112337490ee0",
+    "candidate": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\manual-preview-20261116\\overlay-history-continuation-final-retire-isolation-final-compat-20261118",
+    "sourceCount": 1221,
+    "sourceSetSHA256": "94815b5181fa2a981fefa6023c8c9699e6b2f338d54eff639eb879865955fd6b",
+    "currentSourceRechecked": true
+  },
+  "finalBuild": {
+    "file": ".harness/evidence/2026-11-17-ops-history-audit/continuation-current-preview-retire-isolation-final-compat-20261118-build.json",
+    "sha256": "13788f4c1e69becb944de34f53a0b3f4cdd489f5130f530097d8ac34348162e4",
+    "exitCode": 0,
+    "sourceUnchanged": true,
+    "binary": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\manual-preview-20261116\\current-preview-retire-isolation-final-compat-20261118\\pantheon-ops.exe",
+    "binarySHA256": "64f97cec9b74bed3fa27b04a95f850b3ea7ecfbd5d333b169c2b8919f869fb9c"
+  },
+  "runtimeBinding": {
+    "file": ".harness/evidence/2026-11-17-ops-history-audit/continuation-current-preview-retire-isolation-started-20261118.json",
+    "sha256": "7aa555dcc1f7e8512f93cd33691e41ce5c85e5d89dd2bfbc01c1c5a07bd11bff",
+    "priorReadinessRecordedAt": "2026-11-18T04:45:58.7226363Z",
+    "binaryMatchesFinalBuild": true,
+    "binaryBytesRechecked": true,
+    "changedSinceRuntimeBuild": [
+      {
+        "file": "backend/modules/business/service/state_transaction_test.go",
+        "sha256": "ed6c3767efa80de590d9e80cc99c5efa22e1c050f07b956bd29421d8acb10574"
+      }
+    ],
+    "restartNeededForThisTestOnlyChange": false,
+    "freshProcessOrHealthObservation": false
+  },
+  "reviewBinding": {
+    "independentCodeRecommendation": "APPROVE",
+    "independentArchitectureStatus": "CLEAR",
+    "reviewedFileCount": 11,
+    "productionFileCount": 7,
+    "testFileCount": 4,
+    "reviewedSHA256": {
+      "backend/modules/business/capability/transaction.go": "208adcf662c1c3b25046f675d9b7bd29c5acfc067c90f4d5b45a2b0f7b631fb7",
+      "backend/modules/business/capability/transaction_test.go": "30871a5a1061f17b82fc1315e0851c0a47372ef1c530e72b0d9974184f38dc14",
+      "backend/modules/business/service/state.go": "8ea4aaf71dd9140546b05d90175ab40d72dd7396409c5a6bf22342dafab88610",
+      "backend/modules/business/service/reader_transaction.go": "90b202dd369148c8227b3bb1a8791d211557e67b9a073dcf0f0d564ff6a4b3b6",
+      "backend/modules/business/service/deployment_reference.go": "ff0da116b1b750cb7eabf6afe90cbac920c63bbba00b48f16f8c3ed2ab3a1fb0",
+      "backend/modules/business/service/service.go": "20fb15768099b7774016e81e6da53b15418c61db82938e6f633bd8fa053962b6",
+      "backend/modules/business/service/retire_admission_test.go": "fe3fc9e9f9a99f486f0c90ccb91b4122a988804e926fe9ff0c70ea43194a2fc8",
+      "backend/modules/business/deploy/attempt_ownership.go": "f92249ffa2bcf177a91131098b3786c05c51d60fc3e148bc3f255c00d65ee490",
+      "backend/modules/business/deploy/service_reference.go": "6e64f2c42d09bf5293f85ac089e41cae35c9fcce37a2681e10c97024221face1",
+      "backend/modules/business/deploy/service_retire_admission_test.go": "1f2db8a3374b3e9bcd5675510b302523440000cbc8ec9af5a21a83796f37d13c",
+      "backend/modules/business/service/state_transaction_test.go": "ed6c3767efa80de590d9e80cc99c5efa22e1c050f07b956bd29421d8acb10574"
+    },
+    "reports": [
+      {
+        "file": ".harness/evidence/2026-11-17-ops-history-audit/continuation-service-retire-review-binding-20261118.json",
+        "sha256": "93dae983e7220acc018e7ec6ceed56ff31be696df6cc53049fd76d12701bab1f"
+      },
+      {
+        "file": ".harness/evidence/2026-11-17-ops-history-audit/continuation-service-retire-code-review-test-addendum-20261118.md",
+        "sha256": "115ef7b6f0f4ac67daac8f5900fc41d315108733320a8d99605e765f2d4131c0"
+      },
+      {
+        "file": ".harness/evidence/2026-11-17-ops-history-audit/continuation-service-retire-architecture-test-addendum-20261118.md",
+        "sha256": "766016e20391387dd24ded1ea56477a3b15927a69b3d05bece62ce89cc1186e2"
+      }
+    ],
+    "terminologyCorrection": "The architecture addendum describes ten production files; the original ten-file review actually covered seven production files and three tests. This addendum adds one test.",
+    "wholeC01": "WATCH",
+    "aggregateApproved": false
+  },
+  "serviceRace": {
+    "file": ".harness/evidence/2026-11-17-ops-history-audit/continuation-retire-isolation-service-full-green-20261118-03.log.receipt.json",
+    "sha256": "1ae56f92b325d13e298634969f92fc897325e1071c46c346a80a8414d4975f6b",
+    "exitCode": 0,
+    "cgoEnabled": "1",
+    "disposableMySQL": true,
+    "sourceUnchanged": true,
+    "sourceCount": 734
+  },
+  "navigation": {
+    "verification": {
+      "file": ".harness/evidence/2026-11-17-ops-history-audit/continuation-navigation-retire-isolation-live-20261118-verification.json",
+      "sha256": "227e15e9999cf3c07e00913c554129b220bda5bac0a642911f7c11a3c2e29a40"
+    },
+    "acceptance": {
+      "file": ".harness/evidence/2026-11-16-ops-navigation-repair/after-history-continuation-final-retire-isolation-live-20261118/acceptance.json",
+      "sha256": "7d4ca0039d81a2f27420de19d347824572142a0b8d243d8a3e4066c50fc5533d"
+    },
+    "probe": {
+      "file": ".harness/evidence/2026-11-16-ops-navigation-repair/after-history-continuation-final-retire-isolation-live-20261118/probe.json",
+      "sha256": "4a2d1a1f901ba64cbb0fc95bbccef1f957690456515a59b52b0a3ab49fdcbbd2"
+    },
+    "passedChecks": 14,
+    "businessEntries": 30,
+    "pageErrors": 0
+  },
+  "visualInspection": {
+    "skill": "impeccable",
+    "surface": "Operational service catalog and business navigation",
+    "intendedFeel": "Dense, calm, readable operations surfaces following the Base design system.",
+    "viewports": [
+      "1440x900",
+      "390x844"
+    ],
+    "actuallyViewedScreenshots": [
+      {
+        "file": ".harness/evidence/2026-11-16-ops-navigation-repair/after-history-continuation-final-retire-isolation-live-20261118/catalog-instances-desktop.png",
+        "sha256": "77f3e341656b65839c9e8b08bfc2dfb1cf6bb0e4e7504a85ae24956bd85e74f4"
+      },
+      {
+        "file": ".harness/evidence/2026-11-16-ops-navigation-repair/after-history-continuation-final-retire-isolation-live-20261118/catalog-mobile.png",
+        "sha256": "f293bc26b58117f877e2e537d3b94928d467c92c6c9fc08e922da4361559215f"
+      },
+      {
+        "file": ".harness/evidence/2026-11-16-ops-navigation-repair/after-history-continuation-final-retire-isolation-live-20261118/navigation-desktop.png",
+        "sha256": "14278cf126711d6dc17c9efe72595ce5bc1f88b0bf3a65792be9035c8d2a0d35"
+      },
+      {
+        "file": ".harness/evidence/2026-11-16-ops-navigation-repair/after-history-continuation-final-retire-isolation-live-20261118/navigation-mobile.png",
+        "sha256": "1e93ff8bd7d76b4b1578b8ba555e61a29ab4198d15fea25a5bf1bc775e743760"
+      }
+    ],
+    "result": "The root session inspected these four rendered images. Service instance empty state and primary create control are readable on desktop and phone; the mobile navigation drawer is readable.",
+    "limitations": [
+      "The desktop navigation image shows a loading skeleton; stable workbench data is not accepted.",
+      "The mobile navigation image shows an open drawer.",
+      "Other generated screenshots were not all inspected.",
+      "Retire error rendering, restricted roles, real providers and broader C05 acceptance remain open."
+    ]
+  },
+  "fullBackendRace": {
+    "status": "running-at-this-checkpoint",
+    "expectedReceipt": ".harness/evidence/2026-11-17-ops-history-audit/continuation-retire-isolation-full-race-20261118-02.log.receipt.json",
+    "accepted": false
+  },
+  "linkage": {
+    "taskManifest": ".harness/tasks/2026-11-17-ops-history-audit/manifest.json",
+    "evidence": ".harness/evidence/2026-11-17-ops-history-audit/commands.json",
+    "reviewFile": ".harness/evidence/2026-11-17-ops-history-audit/review.md",
+    "changeRef": "none",
+    "planRefs": [
+      ".harness/tasks/2026-11-16-ops-service-deploy-integrity/continuation-retire-isolation-plan.md"
+    ]
+  },
+  "boundary": "Source/build/narrow review and bounded navigation evidence only; no whole-package, role/provider, release or final maintainer acceptance."
+}

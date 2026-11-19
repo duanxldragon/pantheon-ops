@@ -1,0 +1,20 @@
+{
+  "taskId": "2026-11-17-ops-history-audit",
+  "date": "2026-11-17",
+  "files": [
+    {
+      "source": "tests/scripts/release-gate-workflow.test.mjs",
+      "target": ".harness/archive/2026-11/producer-tests/2026-11-17-ops-history-audit/release-gate-workflow.test.mjs",
+      "sha256": "c0f08403ec169f501be9cdee33d75f86311243ab0ce87299455df92967ac836b",
+      "owner": "pantheon-base release producer",
+      "reason": "Reads Base-only ci/release-gate/lint-workflows/smoke-full workflows absent from Ops. Current Ops quality/SHA/PR automation and formal snapshot consumer tests remain active."
+    },
+    {
+      "source": "tests/scripts/ci-bench-perf-smoke-workflow.test.mjs",
+      "target": ".harness/archive/2026-11/producer-tests/2026-11-17-ops-history-audit/ci-bench-perf-smoke-workflow.test.mjs",
+      "sha256": "c8b77379814cbe273ef6ea8ef081d39e1cfdbb6bd0bc2538c137250cf46cb49e",
+      "owner": "pantheon-base release producer",
+      "reason": "Reads Base-only ci/release-gate/lint-workflows/smoke-full workflows absent from Ops. Current Ops quality/SHA/PR automation and formal snapshot consumer tests remain active."
+    }
+  ]
+}

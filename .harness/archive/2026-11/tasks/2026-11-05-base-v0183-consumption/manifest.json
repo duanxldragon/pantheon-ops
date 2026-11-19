@@ -1,0 +1,97 @@
+{
+  "taskId": "2026-11-05-base-v0183-consumption",
+  "goal": "Consume latest official GitHub Base release after v0.18.4 security publication, preserving Ops business corrections",
+  "primaryLayer": "business/*",
+  "status": "completed",
+  "runtimeSensitive": true,
+  "parentTask": "pantheon-base:2026-11-05-base-freeze-release",
+  "scope": {
+    "in": [
+      "Official foundation release lock and reproducible overlay rebuild",
+      "Preserve existing dbce4ae business corrections",
+      "Move unpublished business migration 000031 to 000032 and declare migration/test assets",
+      "Full race/frontend/business smoke/CI and independent review",
+      "GitHub latest stable release acquisition and lock; reject local Base CLI source/comparison",
+      "Verified snapshot bytes and git-archive/tag provenance; regressions for nested Ops Git HEAD and cache tampering"
+    ],
+    "out": [
+      "Production data operations",
+      "Shared Base source overrides",
+      "Gate weakening"
+    ]
+  },
+  "implementationNotes": [
+    "Root explicitly acts as scoped Generator for migration/overlay integration; independent reviewers retain approval ownership.",
+    "User already authorized official release consumption. Keep main Ops tree and preexisting untracked logs until staged rebuild validates.",
+    "Original task ID is retained for continuity; current final target is v0.18.4. v0.18.3 preparation approvals do not cover new consumer changes.",
+    "Network EACCES blocks official acquisition, final staged CGO race/smoke/CI and independent review; main Ops remains unchanged.",
+    "2026-11-07 scoped module graph correction approved by both independent lanes; full official v0.18.5 consumption remains required, original acceptance unchanged.",
+    "2026-11-07: corrective official v0.18.5, immutable1da0834b, four GitHub assets acquired and verified. Exact official snapshot rebuilt; readonly CGO race and required consumer validation underway. Previous test-source overlay is historical and is not used. Original scope and acceptance criteria unchanged.",
+    "2026-11-07: official readonly CGO race2170/0/1, FE218, scripts59, migration32clean and four standard generator smoke suites passed; exact source approved independently. Hosted CI/merge still required; QA-002 and extra host-import runtime table gap remain explicit, no waiver."
+  ],
+  "verificationPlan": {
+    "commands": [
+      "npm run fetch:base-release",
+      "npm run check:business-overlay",
+      "npm run test:business-overlay",
+      "go test -race ./...",
+      "npm run lint",
+      "npm run type-check",
+      "npm run build",
+      "business smoke"
+    ],
+    "runtimeEvidence": [
+      "Isolated MySQL/Redis migration and business tests; formal release checksums; consumer rebuild evidence"
+    ]
+  },
+  "linkage": {
+    "evidenceDir": ".harness/evidence/2026-11-05-base-v0183-consumption/",
+    "reviewFile": ".harness/evidence/2026-11-05-base-v0183-consumption/review.md",
+    "changeRef": "none",
+    "planRefs": [
+      ".harness/tasks/2026-11-05-base-v0183-consumption/plan.md"
+    ]
+  },
+  "targetRelease": "pantheon-base-v0.18.5",
+  "implementationStatus": "official-v0185-validated-and-merged",
+  "reviewStatus": "bounded-source-code-approved-architecture-clear",
+  "moduleGraphReview": "approved-bounded-only",
+  "verificationStatus": "full-readonly-cgo-race-frontend-assembler-migration-standard-smoke-required-ci-passed",
+  "closeout": {
+    "mergeCommit": {
+      "oid": "92c1efcfc4f754a7f0a4e9f181f446f4a2ddcfc2"
+    },
+    "mergedAt": "2026-11-07T03:12:14Z",
+    "state": "MERGED",
+    "url": "https://github.com/duanxldragon/pantheon-ops/pull/177",
+    "closedAt": "2026-11-07T06:19:25.619Z",
+    "basis": "Official185 acquired and rebuilt;2170/0/1 readonly CGO race, FE218, scripts59, migration32clean, four standard suites and required CI; separate QA002/host-import/runtime-policy gaps unchanged",
+    "successorTask": "2026-11-07-base-v0186-consumption"
+  },
+  "historyCloseout": {
+    "date": "2026-11-17",
+    "originalStatus": "completed",
+    "disposition": "completed",
+    "basis": "目录名v0183，实际最终消费v0185；manifest和PR177 fresh readback证明合并。",
+    "residuals": [
+      {
+        "finding": "QA002/host-import",
+        "owner": "Ops QA",
+        "successor": "2026-11-16-ops-business-runtime-acceptance",
+        "state": "open",
+        "proof": null
+      },
+      {
+        "finding": "real S3/freeze",
+        "owner": "provider/maintainer",
+        "successor": "2026-11-16-ops-pilot-release-closeout",
+        "state": "open",
+        "proof": null
+      }
+    ],
+    "evidence": ".harness/evidence/2026-11-17-ops-history-audit/dispositions.json",
+    "decisionSha256": "b1fe312c6e0e9a9a6ee3513b245196973c7559a322ffe53bf6cb378ea4dd07df",
+    "taskDoc": null,
+    "taskDocGap": "No standalone task document exists; manifest/plan plus PR177 and retained command/review evidence are the original owners. No historical card fabricated."
+  }
+}

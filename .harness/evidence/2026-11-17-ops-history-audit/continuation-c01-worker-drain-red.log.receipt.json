@@ -1,0 +1,21 @@
+{
+  "disposableMySQL": true,
+  "exitCode": 1,
+  "testDsnRequired": "1",
+  "startedAt": "2026-11-17T13:49:44.2978085Z",
+  "args": [
+    "test",
+    "-race",
+    "-count=1",
+    "-timeout=10m",
+    "./modules/business/deploy",
+    "-v",
+    "-run",
+    "^TestCancellationUnclaimedWorkerDrain"
+  ],
+  "finishedAt": "2026-11-17T13:49:58.8621966Z",
+  "goFlags": "-p=1 -mod=readonly",
+  "cgoEnabled": "1",
+  "log": "continuation-c01-worker-drain-red.log",
+  "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\backend"
+}

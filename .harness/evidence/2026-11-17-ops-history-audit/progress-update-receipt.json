@@ -1,0 +1,41 @@
+{
+  "at": "2026-11-17T06:57:51.809Z",
+  "counts": {
+    "upstream-owned": 26,
+    "completed": 20,
+    "abandoned": 10,
+    "keep-open": 26,
+    "container": 2,
+    "deferred": 1
+  },
+  "total": 85,
+  "newPairArchives": 5,
+  "cumulativeNewPairArchives": 22,
+  "existingPairsWithPreservedLiveCopies": 2,
+  "originals": [
+    {
+      "file": ".harness/STATUS.md",
+      "backup": ".harness/evidence/2026-11-17-ops-history-audit/progress-before-update/.harness/STATUS.md",
+      "originalSHA256": "cb2d98e20e540da45fa6455f1f05c787809f05081505637d4caa9250bb0efebe",
+      "updatedSHA256": "dcde554d28c0dc72350ab535b187b77d438ee41b19b277bbecf45ae5ee5fa1b5"
+    },
+    {
+      "file": ".harness/ARCHIVE.md",
+      "backup": ".harness/evidence/2026-11-17-ops-history-audit/progress-before-update/.harness/ARCHIVE.md",
+      "originalSHA256": "bf789db67ed5a14ef0e76c2d86f903b77b20dbafe31f009c5da1cb0089168b43",
+      "updatedSHA256": "ffec10318162741c2bd0630c17ceac8fc9a0c41cee7a38f25036bdcbcfeb1f3e"
+    },
+    {
+      "file": ".harness/tasks/2026-11-16-ops-pilot-delivery/OPEN_TASKS.md",
+      "backup": ".harness/evidence/2026-11-17-ops-history-audit/progress-before-update/.harness/tasks/2026-11-16-ops-pilot-delivery/OPEN_TASKS.md",
+      "originalSHA256": "bb426d5a44aa3775e7f3adff522a9118b78496eef99dd40d6f8bb422085173f5",
+      "updatedSHA256": "7ec57bc2f146bbe31dceb33bd61910c111263401461d83e8b7112e9b8b85a53c"
+    },
+    {
+      "file": ".harness/evidence/2026-11-17-ops-history-audit/progress.md",
+      "backup": ".harness/evidence/2026-11-17-ops-history-audit/progress-before-update/.harness/evidence/2026-11-17-ops-history-audit/progress.md",
+      "originalSHA256": "647a1696404fb07d58a6bf27156434734b2a2658994eb2ccc8fbc4cef7b50f12",
+      "updatedSHA256": "9e9862d36478938b78e07d3e6683de421287adde09d6302317fae9130d806037"
+    }
+  ]
+}

@@ -1,0 +1,330 @@
+{
+  "config": {
+    "argv": [
+      "D:\\nodejs\\node.exe",
+      "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\frontend\\node_modules\\@playwright\\test\\cli.js",
+      "test",
+      "tests/smoke/business/deploy/deploy-api.spec.ts",
+      "--config=playwright.api.config.ts",
+      "--reporter=line,json",
+      "--output=../.harness/evidence/2026-11-17-ops-history-audit/continuation-deploy-api-final-artifacts"
+    ],
+    "configFile": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\frontend\\playwright.api.config.ts",
+    "rootDir": "D:/workspace/go/pantheon-platform/pantheon-ops/frontend/tests/smoke",
+    "failOnFlakyTests": false,
+    "forbidOnly": false,
+    "fullyParallel": false,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "D:/workspace/go/pantheon-platform/pantheon-ops/.harness/evidence/2026-11-17-ops-history-audit/continuation-deploy-api-final-artifacts",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "",
+        "name": "",
+        "testDir": "D:/workspace/go/pantheon-platform/pantheon-ops/frontend/tests/smoke",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      }
+    ],
+    "filteredProjects": [
+      {
+        "grep": {},
+        "grepInvert": null,
+        "outputDir": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.harness\\evidence\\2026-11-17-ops-history-audit\\continuation-deploy-api-final-artifacts",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "name": "",
+        "testDir": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\frontend\\tests\\smoke",
+        "snapshotDir": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\frontend\\tests\\smoke",
+        "testIgnore": [],
+        "testMatch": "**/*.@(spec|test).?(c|m)[jt]s?(x)",
+        "timeout": 30000,
+        "use": {},
+        "dependencies": [],
+        "ignoreSnapshots": false,
+        "__projectId": ""
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "line"
+      ],
+      [
+        "json"
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "default",
+    "updateSourceMethod": "patch",
+    "version": "1.64.1",
+    "workers": 1,
+    "webServer": null
+  },
+  "suites": [
+    {
+      "title": "business\\deploy\\deploy-api.spec.ts",
+      "file": "business/deploy/deploy-api.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Deploy business api smoke",
+          "file": "business/deploy/deploy-api.spec.ts",
+          "line": 91,
+          "column": 15,
+          "specs": [
+            {
+              "title": "deploy api creates starts and marks a manual task",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [
+                    {
+                      "type": "serial",
+                      "location": {
+                        "file": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\frontend\\tests\\smoke\\business\\deploy\\deploy-api.spec.ts",
+                        "line": 91,
+                        "column": 15
+                      }
+                    }
+                  ],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 423,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-17T06:35:28.144Z",
+                      "annotations": [
+                        {
+                          "type": "serial",
+                          "location": {
+                            "file": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\frontend\\tests\\smoke\\business\\deploy\\deploy-api.spec.ts",
+                            "line": 91,
+                            "column": 15
+                          }
+                        }
+                      ],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "f991962143a0da8f56da-9e51139d4151bcfd637b",
+              "file": "business/deploy/deploy-api.spec.ts",
+              "line": 137,
+              "column": 3
+            },
+            {
+              "title": "deploy api updates a draft task before execution",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [
+                    {
+                      "type": "serial",
+                      "location": {
+                        "file": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\frontend\\tests\\smoke\\business\\deploy\\deploy-api.spec.ts",
+                        "line": 91,
+                        "column": 15
+                      }
+                    }
+                  ],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 411,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-17T06:35:28.899Z",
+                      "annotations": [
+                        {
+                          "type": "serial",
+                          "location": {
+                            "file": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\frontend\\tests\\smoke\\business\\deploy\\deploy-api.spec.ts",
+                            "line": 91,
+                            "column": 15
+                          }
+                        }
+                      ],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "f991962143a0da8f56da-9ddb7d593448879ac5d5",
+              "file": "business/deploy/deploy-api.spec.ts",
+              "line": 210,
+              "column": 3
+            },
+            {
+              "title": "deploy api deletes draft and terminal tasks but rejects active execution",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [
+                    {
+                      "type": "serial",
+                      "location": {
+                        "file": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\frontend\\tests\\smoke\\business\\deploy\\deploy-api.spec.ts",
+                        "line": 91,
+                        "column": 15
+                      }
+                    }
+                  ],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 933,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-17T06:35:29.320Z",
+                      "annotations": [
+                        {
+                          "type": "serial",
+                          "location": {
+                            "file": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\frontend\\tests\\smoke\\business\\deploy\\deploy-api.spec.ts",
+                            "line": 91,
+                            "column": 15
+                          }
+                        }
+                      ],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "f991962143a0da8f56da-34a595087b7f6ba816f6",
+              "file": "business/deploy/deploy-api.spec.ts",
+              "line": 331,
+              "column": 3
+            },
+            {
+              "title": "deploy api records uploaded package metadata and failed ssh trace",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [
+                    {
+                      "type": "serial",
+                      "location": {
+                        "file": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\frontend\\tests\\smoke\\business\\deploy\\deploy-api.spec.ts",
+                        "line": 91,
+                        "column": 15
+                      }
+                    }
+                  ],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 1550,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-17T06:35:30.270Z",
+                      "annotations": [
+                        {
+                          "type": "serial",
+                          "location": {
+                            "file": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\frontend\\tests\\smoke\\business\\deploy\\deploy-api.spec.ts",
+                            "line": 91,
+                            "column": 15
+                          }
+                        }
+                      ],
+                      "attachments": [
+                        {
+                          "name": "failed-ssh-result",
+                          "contentType": "application/json",
+                          "body": "eyJ0YXNrSWQiOjQzOSwidGFza1N0YXR1cyI6ImZhaWxlZCIsImhvc3RTdGF0dXMiOiJmYWlsZWQiLCJlcnJvck1lc3NhZ2UiOiJidXNpbmVzcy5kZXBsb3kudGFzay5zc2hDb25uZWN0RmFpbGVkIiwidHJhY2VQaGFzZXMiOlsic3RhcnQiLCJyZXN1bHQiLCJyZXN1bHQiLCJyZXN1bHQiXSwiZml4dHVyZVNlY3JldFJlZGFjdGVkIjp0cnVlfQ=="
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "f991962143a0da8f56da-4d4e51ca6f267c5aae3a",
+              "file": "business/deploy/deploy-api.spec.ts",
+              "line": 427,
+              "column": 3
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-11-17T06:35:27.429Z",
+    "duration": 4516.567999999999,
+    "expected": 4,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  }
+}

@@ -1,0 +1,36 @@
+{
+  "timestamp": "2026-11-17T17:30:12.434Z",
+  "notePath": ".local/manual-preview-20261116/checkpoint-20261118-final-local-reviews.md",
+  "noteSHA256": "c1fea9d4d1f21c3a468a34f6c5af661d068e93d01ec606e19b4d6e98f0ec4a52",
+  "historicalObjects": 85,
+  "newArchiveGroupsThisCheckpoint": 0,
+  "cumulativeNewArchiveGroups": 22,
+  "preservedDuplicateLiveGroups": 2,
+  "aggregateGoalStatus": "active",
+  "originals": [
+    {
+      "file": ".harness/STATUS.md",
+      "backup": ".harness/evidence/2026-11-17-ops-history-audit/continuation-progress-final-local-reviews-20261118-originals/.harness/STATUS.md.raw",
+      "beforeSHA256": "58a25cedd17f325752b5e9c1f5f65d813767011cc224aad2519ece264e7adac7",
+      "afterSHA256": "ab0325d369981c9ecde1b8a48e9739c66cd969c58a4e2ed7386f6acfe829702f"
+    },
+    {
+      "file": ".harness/evidence/2026-11-17-ops-history-audit/progress.md",
+      "backup": ".harness/evidence/2026-11-17-ops-history-audit/continuation-progress-final-local-reviews-20261118-originals/.harness/evidence/2026-11-17-ops-history-audit/progress.md.raw",
+      "beforeSHA256": "4e9507d81350c2c83f780697441a8f2b6ccba41e0f3698e3be041bf88788dba2",
+      "afterSHA256": "9e44b26603988ce89ebcabe26917dd06ca6d634d5bc4bc1d5f91deee71c65be2"
+    },
+    {
+      "file": ".harness/evidence/2026-11-17-ops-history-audit/summary.md",
+      "backup": ".harness/evidence/2026-11-17-ops-history-audit/continuation-progress-final-local-reviews-20261118-originals/.harness/evidence/2026-11-17-ops-history-audit/summary.md.raw",
+      "beforeSHA256": "aad0c60198255c69fe45e1f7ee174d6c39cca84d44916aa00238af0d3eea73b9",
+      "afterSHA256": "8d33645633a1195e1459baf3e82264ada367d6af54c386607c41a8b6a6dd7436"
+    },
+    {
+      "file": ".harness/tasks/2026-11-16-ops-pilot-delivery/OPEN_TASKS.md",
+      "backup": ".harness/evidence/2026-11-17-ops-history-audit/continuation-progress-final-local-reviews-20261118-originals/.harness/tasks/2026-11-16-ops-pilot-delivery/OPEN_TASKS.md.raw",
+      "beforeSHA256": "859205f375c096809dd3c4d219313002908d7aa1c1cde600d0e435dfebe57b1a",
+      "afterSHA256": "fb7465cb2294288e996246b7ae3a785ff1501511d2f9164881ae1cfb89d66601"
+    }
+  ]
+}

@@ -1,0 +1,74 @@
+[
+  {
+    "name": "task",
+    "command": "node scripts/harness/check-task-packet.mjs --json",
+    "cwd": ".",
+    "status": "failed",
+    "exitCode": 1,
+    "started": "2026-11-17T03:54:29.572Z",
+    "evidence": ".harness/evidence/2026-11-17-ops-history-audit/post-archive-01-task.json"
+  },
+  {
+    "name": "evidence",
+    "command": "node scripts/harness/check-evidence.mjs --json --strict",
+    "cwd": ".",
+    "status": "failed",
+    "exitCode": 1,
+    "started": "2026-11-17T03:54:29.790Z",
+    "evidence": ".harness/evidence/2026-11-17-ops-history-audit/post-archive-01-evidence.json"
+  },
+  {
+    "name": "review",
+    "command": "node scripts/harness/check-review.mjs --json --strict",
+    "cwd": ".",
+    "status": "failed",
+    "exitCode": 1,
+    "started": "2026-11-17T03:54:30.981Z",
+    "evidence": ".harness/evidence/2026-11-17-ops-history-audit/post-archive-01-review.json"
+  },
+  {
+    "name": "links",
+    "command": "node scripts/harness/check-doc-links.mjs --json --strict",
+    "cwd": ".",
+    "status": "failed",
+    "exitCode": 1,
+    "started": "2026-11-17T03:54:31.874Z",
+    "evidence": ".harness/evidence/2026-11-17-ops-history-audit/post-archive-01-links.json"
+  },
+  {
+    "name": "frontmatter",
+    "command": "node scripts/frontmatter-check.mjs",
+    "cwd": ".",
+    "status": "passed",
+    "exitCode": 0,
+    "started": "2026-11-17T03:54:32.161Z",
+    "evidence": ".harness/evidence/2026-11-17-ops-history-audit/post-archive-01-frontmatter.log"
+  },
+  {
+    "name": "template",
+    "command": "node scripts/check-task-packet-template.mjs",
+    "cwd": ".",
+    "status": "passed",
+    "exitCode": 0,
+    "started": "2026-11-17T03:54:32.488Z",
+    "evidence": ".harness/evidence/2026-11-17-ops-history-audit/post-archive-01-template.log"
+  },
+  {
+    "name": "overlay",
+    "command": "node scripts/business-overlay/check-business-overlay.mjs",
+    "cwd": ".",
+    "status": "passed",
+    "exitCode": 0,
+    "started": "2026-11-17T03:54:32.575Z",
+    "evidence": ".harness/evidence/2026-11-17-ops-history-audit/post-archive-01-overlay.log"
+  },
+  {
+    "name": "boundaries",
+    "command": "node scripts/check-business-module-boundaries.mjs",
+    "cwd": ".",
+    "status": "passed",
+    "exitCode": 0,
+    "started": "2026-11-17T03:54:32.700Z",
+    "evidence": ".harness/evidence/2026-11-17-ops-history-audit/post-archive-01-boundaries.log"
+  }
+]

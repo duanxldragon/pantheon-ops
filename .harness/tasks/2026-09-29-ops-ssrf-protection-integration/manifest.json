@@ -1,13 +1,28 @@
 {
   "id": "2026-09-29-ops-ssrf-protection-integration",
+  "taskId": "2026-09-29-ops-ssrf-protection-integration",
+  "goal": "Integrate and verify outbound SSRF protection across Ops business attack surfaces while consuming the shared implementation through the official Base release.",
+  "primaryLayer": "business/*",
   "title": "Integrate SSRF Protection in pantheon-ops",
   "created": "2026-09-29T00:00:00Z",
   "completed": "2026-09-29T10:30:00Z",
-  "status": "done",
+  "status": "in-progress",
+  "historyReconcile": {
+    "date": "2026-11-17",
+    "originalStatus": "done",
+    "basis": "Historical implementation declaration is retained; deployed allowlist/private-network/redirect/DNS policy, audit and complete negative acceptance remain open under D2. No passing historical summary/review is fabricated.",
+    "successor": "2026-09-28-ops-delivery-readiness-gap-closure/D2",
+    "sharedOwnership": "backend/pkg/security/ssrf remains Base-owned in the current official foundation snapshot; the September hand-copy approach is historical and must not be repeated.",
+    "evidenceGap": "The original standalone evidence directory is absent. These canonical linkage paths identify the missing packet; no historical review or command evidence was invented."
+  },
   "priority": "P0",
   "parent": "2026-09-28-ops-delivery-readiness-gap-closure",
   "assignee": "claude",
-  "tags": ["security", "ssrf", "D2"],
+  "tags": [
+    "security",
+    "ssrf",
+    "D2"
+  ],
   "description": "Integrate pantheon-base v0.13.1 SSRF protection across all 5 attack surfaces in pantheon-ops: observability datasource proxy, notification webhooks, ArgoCD API client, Kubernetes API client, and SMTP email.",
   "acceptance": [
     "✅ SSRF validator integrated in datasource_service.go (URL validation + HTTP client)",
@@ -63,5 +78,13 @@
     "All 5 attack surfaces from D2 analysis document are covered",
     "Allowed ports configured per service type: datasource (8080,9090,3000,3100,16686), notifications (80,443,8080,9090), ArgoCD (80,443,8080), K8s (443,6443,8443,16443)",
     "Test helper created for ArgoCD tests with relaxed SSRF validation for localhost"
-  ]
+  ],
+  "linkage": {
+    "evidenceDir": ".harness/evidence/2026-09-29-ops-ssrf-protection-integration/",
+    "reviewFile": ".harness/evidence/2026-09-29-ops-ssrf-protection-integration/review.md",
+    "changeRef": "none",
+    "planRefs": [
+      ".harness/tasks/2026-11-17-ops-history-audit/brief.md"
+    ]
+  }
 }

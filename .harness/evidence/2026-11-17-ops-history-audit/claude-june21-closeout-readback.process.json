@@ -1,0 +1,11 @@
+{
+  "createNoWindow": true,
+  "hooksDisabled": true,
+  "effort": "low",
+  "timeoutSeconds": 180,
+  "useShellExecute": false,
+  "startedAt": "2026-11-17T12:38:29.3317146+08:00",
+  "strictMcpConfig": true,
+  "maxTurns": 8,
+  "pid": 33304
+}

@@ -2,10 +2,10 @@
 title: SonarCloud Ops Remediation
 doc_type: Remediation
 layer: inheritance-sync
-status: Active
+status: Archived
 linked_contracts:
   - docs/PROJECT_INHERITANCE.md
-updated_at: 2026-08-11
+updated_at: 2026-11-17
 ---
 
 # SonarCloud Ops Remediation
@@ -46,3 +46,11 @@ SonarCloud's latest `pantheon-ops` analysis is revision `69c59f8151f3f0c856ab089
 ## Stop Points
 
 - Stop before changing a foundation version, deleting an inherited overlay, changing a business schema, or carrying a generic shared fix locally.
+
+## Result — History Closeout 2026-11-17
+
+Manifest disposition: abandoned
+
+原零问题目标未在八月完成，当时仍156项；10/30 main430a9f0 分析已零问题/gate OK/dup2.0，旧目标由其替代。
+
+Residual finding/owner/successor/proof: .harness/evidence/2026-11-17-ops-history-audit/dispositions.json. Canonical references remain archive-aware. Historical body/evidence retained. Current candidate, production and maintainer gates remain separate.

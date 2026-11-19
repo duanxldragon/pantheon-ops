@@ -1,0 +1,21 @@
+{
+  "goFlags": "-p=1 -mod=readonly",
+  "startedAt": "2026-11-17T15:54:37.9861228Z",
+  "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\backend",
+  "testDsnRequired": "1",
+  "disposableMySQL": true,
+  "exitCode": 1,
+  "finishedAt": "2026-11-17T15:54:46.6753268Z",
+  "args": [
+    "test",
+    "-race",
+    "-count=1",
+    "-timeout=10m",
+    "./modules/business/k8s/service",
+    "-v",
+    "-run",
+    "^TestK8sServiceMutationUpdatePreservesOpaquePortFields$"
+  ],
+  "log": "continuation-c04-opaque-port-red.log",
+  "cgoEnabled": "1"
+}

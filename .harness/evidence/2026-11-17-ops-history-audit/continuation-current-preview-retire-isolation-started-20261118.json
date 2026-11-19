@@ -1,0 +1,35 @@
+{
+  "recordedAt": "2026-11-18T04:45:58.7226363Z",
+  "boundary": "Local preview binary identity and dependency readiness only; actual business/provider/role and rendered visual acceptance remain open.",
+  "frontend": {
+    "url": "http://127.0.0.1:5173",
+    "observedStatusCode": 200
+  },
+  "runtimeProcess": {
+    "id": 28436,
+    "path": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\manual-preview-20261116\\current-preview-retire-isolation-final-20261118\\pantheon-ops.exe"
+  },
+  "buildReceipt": ".harness/evidence/2026-11-17-ops-history-audit/continuation-current-preview-retire-isolation-final-20261118-build.json",
+  "binarySHA256": "64f97cec9b74bed3fa27b04a95f850b3ea7ecfbd5d333b169c2b8919f869fb9c",
+  "health": {
+    "code": 200,
+    "data": {
+      "status": "ok",
+      "service": "pantheon-platform",
+      "timestamp": "2026-11-18T04:45:58Z",
+      "requestId": "adb9659b-7931-4ee3-bf27-395b9362ac1b",
+      "dependencies": {
+        "database": {
+          "status": "ok"
+        },
+        "migrations": {
+          "status": "ok"
+        },
+        "redis": {
+          "status": "ok"
+        }
+      }
+    },
+    "message": "success"
+  }
+}

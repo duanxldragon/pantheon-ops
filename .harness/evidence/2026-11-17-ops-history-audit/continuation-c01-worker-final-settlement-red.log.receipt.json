@@ -1,0 +1,21 @@
+{
+  "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\backend",
+  "exitCode": 1,
+  "startedAt": "2026-11-17T15:28:42.2973145Z",
+  "goFlags": "-p=1 -mod=readonly",
+  "disposableMySQL": true,
+  "cgoEnabled": "1",
+  "testDsnRequired": "1",
+  "finishedAt": "2026-11-17T15:28:55.8103396Z",
+  "log": "continuation-c01-worker-final-settlement-red.log",
+  "args": [
+    "test",
+    "-race",
+    "-count=1",
+    "-timeout=10m",
+    "./modules/business/deploy",
+    "-v",
+    "-run",
+    "^TestWorkerHandoffFixtureWaitsForFinalSettlement$"
+  ]
+}

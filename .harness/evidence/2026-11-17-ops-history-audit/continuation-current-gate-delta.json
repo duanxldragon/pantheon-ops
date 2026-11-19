@@ -1,0 +1,184 @@
+{
+  "recordedAt": "2026-11-17T07:30:47.944Z",
+  "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+  "results": [
+    {
+      "gate": "task",
+      "beforePath": ".harness\\evidence\\2026-11-17-ops-history-audit\\continuation-before-task.json",
+      "afterPath": ".harness\\evidence\\2026-11-17-ops-history-audit\\continuation-current-task.json",
+      "beforeCount": 549,
+      "afterCount": 547,
+      "added": [],
+      "removed": [
+        {
+          "file": "docs/harness/tasks/2026-08-07-foundation-upgrade-base-v0-10-3.task.md",
+          "reason": "evidence is complete (summary-readout) but status is \"Active\" — set status: Archived or close the evidence."
+        },
+        {
+          "file": "docs/harness/tasks/2026-10-12-foundation-upgrade-base-v0-16-1.task.md",
+          "reason": "evidence is complete (summary-readout) but status is \"Active\" — set status: Archived or close the evidence."
+        }
+      ]
+    },
+    {
+      "gate": "evidence",
+      "beforePath": ".harness\\evidence\\2026-11-17-ops-history-audit\\continuation-before-evidence.json",
+      "afterPath": ".harness\\evidence\\2026-11-17-ops-history-audit\\continuation-current-evidence.json",
+      "beforeCount": 127,
+      "afterCount": 129,
+      "added": [
+        {
+          "file": ".harness/archive/2026-11/evidence/cmdb-host-import-export/commands.json",
+          "reason": "root.repo must be a non-empty string."
+        },
+        {
+          "file": ".harness/archive/2026-11/evidence/cmdb-host-import-export/commands.json",
+          "reason": "root.agent must be an object."
+        },
+        {
+          "file": ".harness/archive/2026-11/evidence/cmdb-host-import-export/commands.json",
+          "reason": "root.commands[9].status must be one of: passed, failed, not-run."
+        },
+        {
+          "file": ".harness/archive/2026-11/evidence/cmdb-host-import-export/commands.json",
+          "reason": "root.linkage must be an object."
+        },
+        {
+          "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/commands.json",
+          "reason": "root.commands[11].cwd must be a non-empty string."
+        },
+        {
+          "file": ".harness/evidence/2026-11-17-ops-history-audit/packaging-before-correction/.harness/evidence/2026-11-07-ops-planned-task-closeout/commands.json",
+          "reason": "root.linkage.evidenceDir must match the commands.json directory \".harness/evidence/2026-11-17-ops-history-audit/packaging-before-correction/.harness/evidence/2026-11-07-ops-planned-task-closeout/\"."
+        }
+      ],
+      "removed": [
+        {
+          "file": ".harness/evidence/cmdb-host-import-export/commands.json",
+          "reason": "root.repo must be a non-empty string."
+        },
+        {
+          "file": ".harness/evidence/cmdb-host-import-export/commands.json",
+          "reason": "root.agent must be an object."
+        },
+        {
+          "file": ".harness/evidence/cmdb-host-import-export/commands.json",
+          "reason": "root.commands[9].status must be one of: passed, failed, not-run."
+        },
+        {
+          "file": ".harness/evidence/cmdb-host-import-export/commands.json",
+          "reason": "root.linkage must be an object."
+        }
+      ]
+    },
+    {
+      "gate": "review",
+      "beforePath": ".harness\\evidence\\2026-11-17-ops-history-audit\\continuation-before-review.json",
+      "afterPath": ".harness\\evidence\\2026-11-17-ops-history-audit\\continuation-current-review.json",
+      "beforeCount": 91,
+      "afterCount": 91,
+      "added": [
+        {
+          "file": ".harness/archive/2026-11/evidence/2026-08-07-foundation-upgrade-base-v0-10-3/review.md",
+          "reason": "missing ## Machine Readable JSON block"
+        },
+        {
+          "file": ".harness/archive/2026-11/evidence/2026-08-08-foundation-upgrade-base-v0-10-5/review.md",
+          "reason": "root.verdict must be one of: approved, changes requested, blocked, approved with documented P2 follow-up."
+        },
+        {
+          "file": ".harness/archive/2026-11/evidence/2026-08-08-foundation-upgrade-base-v0-10-5/review.md",
+          "reason": "root.structuralReview.checks[0] must be one of: cycle, hub, call-depth, sensitive-flow."
+        },
+        {
+          "file": ".harness/archive/2026-11/evidence/2026-08-08-foundation-upgrade-base-v0-10-5/review.md",
+          "reason": "root.structuralReview.checks[1] must be one of: cycle, hub, call-depth, sensitive-flow."
+        },
+        {
+          "file": ".harness/archive/2026-11/evidence/2026-08-08-foundation-upgrade-base-v0-10-5/review.md",
+          "reason": "root.structuralReview.checks[2] must be one of: cycle, hub, call-depth, sensitive-flow."
+        },
+        {
+          "file": ".harness/archive/2026-11/evidence/2026-08-08-foundation-upgrade-base-v0-10-5/review.md",
+          "reason": "root.linkage.changeRef must be a non-empty string."
+        },
+        {
+          "file": ".harness/archive/2026-11/evidence/2026-08-08-foundation-upgrade-base-v0-10-5/review.md",
+          "reason": "root.linkage.planRefs must be an array."
+        },
+        {
+          "file": ".harness/archive/2026-11/evidence/2026-08-12-foundation-v0-10-14-clean-consumer/review.md",
+          "reason": "missing ## Machine Readable JSON block"
+        },
+        {
+          "file": ".harness/archive/2026-11/evidence/2026-10-12-foundation-upgrade-base-v0-16-1/review.md",
+          "reason": "missing ## Machine Readable JSON block"
+        },
+        {
+          "file": ".harness/archive/2026-11/evidence/cmdb-host-import-export/review.md",
+          "reason": "root.verdict must be a non-empty string."
+        },
+        {
+          "file": ".harness/archive/2026-11/evidence/cmdb-host-import-export/review.md",
+          "reason": "root.linkage must be an object."
+        }
+      ],
+      "removed": [
+        {
+          "file": ".harness/evidence/2026-08-07-foundation-upgrade-base-v0-10-3/review.md",
+          "reason": "missing ## Machine Readable JSON block"
+        },
+        {
+          "file": ".harness/evidence/2026-08-08-foundation-upgrade-base-v0-10-5/review.md",
+          "reason": "root.verdict must be one of: approved, changes requested, blocked, approved with documented P2 follow-up."
+        },
+        {
+          "file": ".harness/evidence/2026-08-08-foundation-upgrade-base-v0-10-5/review.md",
+          "reason": "root.structuralReview.checks[0] must be one of: cycle, hub, call-depth, sensitive-flow."
+        },
+        {
+          "file": ".harness/evidence/2026-08-08-foundation-upgrade-base-v0-10-5/review.md",
+          "reason": "root.structuralReview.checks[1] must be one of: cycle, hub, call-depth, sensitive-flow."
+        },
+        {
+          "file": ".harness/evidence/2026-08-08-foundation-upgrade-base-v0-10-5/review.md",
+          "reason": "root.structuralReview.checks[2] must be one of: cycle, hub, call-depth, sensitive-flow."
+        },
+        {
+          "file": ".harness/evidence/2026-08-08-foundation-upgrade-base-v0-10-5/review.md",
+          "reason": "root.linkage.changeRef must be a non-empty string."
+        },
+        {
+          "file": ".harness/evidence/2026-08-08-foundation-upgrade-base-v0-10-5/review.md",
+          "reason": "root.linkage.planRefs must be an array."
+        },
+        {
+          "file": ".harness/evidence/2026-08-12-foundation-v0-10-14-clean-consumer/review.md",
+          "reason": "missing ## Machine Readable JSON block"
+        },
+        {
+          "file": ".harness/evidence/2026-10-12-foundation-upgrade-base-v0-16-1/review.md",
+          "reason": "missing ## Machine Readable JSON block"
+        },
+        {
+          "file": ".harness/evidence/cmdb-host-import-export/review.md",
+          "reason": "root.verdict must be a non-empty string."
+        },
+        {
+          "file": ".harness/evidence/cmdb-host-import-export/review.md",
+          "reason": "root.linkage must be an object."
+        }
+      ]
+    },
+    {
+      "gate": "links",
+      "beforePath": ".harness\\evidence\\2026-11-17-ops-history-audit\\continuation-before-links.json",
+      "afterPath": ".harness\\evidence\\2026-11-17-ops-history-audit\\continuation-current-links.json",
+      "beforeCount": 6,
+      "afterCount": 6,
+      "added": [],
+      "removed": []
+    }
+  ],
+  "limitation": "Delta comparison does not waive or close remaining full-repository failures."
+}

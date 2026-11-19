@@ -1,0 +1,66 @@
+{
+  "schema": "pantheon-extension-helm-independent-review/v1",
+  "reviewer": "/root/c04_e01_architecture_gate",
+  "readOnly": true,
+  "narrowStatus": "CLEAR",
+  "architecturalStatus": "WATCH",
+  "wholePackagesClosed": false,
+  "startupHandoff": ".harness/evidence/2026-11-16-ops-filedist-product-closure/extension-integration-handoff-20261118.json",
+  "startupFreezeUTC": "2026-11-18T07:45:10.0286998Z",
+  "startupCurrentHashMatches": 17,
+  "startupBoundFiles": 17,
+  "helmAmendment": ".harness/evidence/2026-11-16-ops-helm-capability-truth/continuation-response-projection-amendment-20261118.json",
+  "helmCurrentHashMatches": 4,
+  "helmBoundFiles": 4,
+  "centralGreen": {
+    "receipt": ".harness/evidence/2026-11-17-ops-history-audit/continuation-extensions-integration-green-20261118-01.log.receipt.json",
+    "log": ".harness/evidence/2026-11-17-ops-history-audit/continuation-extensions-integration-green-20261118-01.log",
+    "finishedAtUTC": "2026-11-18T07:45:28.7407344Z",
+    "exitCode": 0,
+    "cgoEnabled": "1",
+    "actualMySQL": true,
+    "race": true,
+    "filteredSuite": true,
+    "fullBackendRace": false,
+    "sourceCountBefore": 748,
+    "sourceCountAfter": 748,
+    "sourceUnchangedDuringRun": true,
+    "independentlyCheckedCurrentBackendHashes": 12,
+    "currentBackendHashMatches": 12,
+    "packageSeconds": {
+      "opsinit": 1.115,
+      "filedist": 5.021,
+      "argocd": 3.72,
+      "helm": 1.461
+    }
+  },
+  "redPreserved": {
+    "log": ".harness/evidence/2026-11-17-ops-history-audit/continuation-e03-status-projection-red-20261118-01.log",
+    "exitCode": 1,
+    "failedSubcases": [
+      "create",
+      "legacy-list"
+    ]
+  },
+  "verifiedBehavior": [
+    "FileDist provider wiring and migration precede Start",
+    "Start error cancels/stops before Init panic",
+    "Route registration panic deferred cleanup",
+    "Cleanup cancels/stops/joins observer before distributor Stop",
+    "Canonical key mapping preserves typed error precedence",
+    "Helm response registration projection with legacy DB provenance"
+  ],
+  "remainingGaps": [
+    "Base main does not await extension cleanup",
+    "Bind failure does not cancel independent extension context",
+    "Public scheduled job/source authority upstream prerequisite",
+    "Nil denial authorized selection only; legacy all/admin remains",
+    "Actual Init route-panic/OS signal/runtime seed persistence",
+    "Remote fencing/rollback/progress join",
+    "Fullsuite/officialoverlay/provider/frontend/human"
+  ],
+  "chartExecutionProven": false,
+  "filesWrittenByReviewer": false,
+  "testsRerunByReviewer": false
+}
+

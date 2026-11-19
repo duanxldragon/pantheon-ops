@@ -1,0 +1,104 @@
+{
+  "schema": "pantheon.coordinator-final-readiness.v1",
+  "recordedAtUTC": "2026-11-18T10:22:10.604Z",
+  "reviewer": "/root",
+  "readyForGovernanceFreeze": true,
+  "ui": {
+    "path": ".harness/evidence/2026-11-16-ops-filedist-product-closure/ui-readonly-ten-packages-20261118-04.json",
+    "sha256": "fe83d8b82bc2d3b36a5e705230af147bbd44b05f15bd3cd0d4cb62c10c0e23e8"
+  },
+  "rootRenderReview": {
+    "path": ".harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-20261118-04-root-render-review.json",
+    "sha256": "3ec7f2124ee47f2c1ace56f9658b233c7b76b851635f512147647c9318936dad"
+  },
+  "candidate": {
+    "path": ".harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-20261118-e01-final-source-equivalence.json",
+    "sha256": "5fabcfe2ab5d7ee459d7e40cb3f62be43ecfa0b20365aa1602b06e8f56ce1cb8"
+  },
+  "candidateSourceCount": 1242,
+  "candidateSourceSetSHA256": "184df53c8af9b416f8f3da3bab71383f8f1c21c269f95421eda78b5f7681c021",
+  "frontendQuality": {
+    "path": ".harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-20261118-e01-final-frontend-quality.json",
+    "sha256": "3dfe45e4a5b6a4b24bbb8b4366cf8335644e2bf9080ebde78eb6155dd86101b5"
+  },
+  "build": {
+    "path": ".harness/evidence/2026-11-17-ops-history-audit/continuation-current-preview-ten-packages-20261118-e01-final-build.json",
+    "sha256": "8480eb46b7cda88b8f498628ad0dc7cf2627ace93ba36761c6733420f5aa1600"
+  },
+  "runtime": {
+    "path": ".harness/evidence/2026-11-17-ops-history-audit/continuation-current-preview-ten-packages-e01-final-started-20261118.json",
+    "sha256": "9669a51ee8a5cd08c142a6389ba02a179af4aefb3e1801182d03dc019f980316"
+  },
+  "fullBackendRace": {
+    "path": ".harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-full-race-20261118-01.log.receipt.json",
+    "sha256": "f7f4f0ee8cb4a31cd68afb30a405ee5ca94c87a1298dc22481cea5e2df41b5fb",
+    "inventoryCount": 748,
+    "currentInventoryAndHashesStillMatch": true,
+    "rerun": false,
+    "boundary": "Nonverbose race output does not prove zero conditional subtest skips."
+  },
+  "independentReviews": [
+    {
+      "path": ".harness/evidence/2026-11-17-ops-history-audit/continuation-c01-queue-claim-independent-review-20261118.json",
+      "sha256": "b8619bfcde09ee3ac76fb3d0636fbfd9fdd7b148ce6b8658a7720a4c1146eb77"
+    },
+    {
+      "path": ".harness/evidence/2026-11-17-ops-history-audit/continuation-e01-ui-detail-error-policy-independent-review-20261118.json",
+      "sha256": "e35b8f4b676a0bdef8c01aee56317c8ff9ea7af357e147b284326ec535910d24"
+    }
+  ],
+  "screenshots": 21,
+  "viewedScreenshots": 21,
+  "failedRunsPreserved": [
+    {
+      "path": ".harness/evidence/2026-11-16-ops-filedist-product-closure/ui-readonly-ten-packages-20261118-01.json",
+      "sha256": "9843249beb0a8bd7166e9623f5073bc782a03b70b5fd314f8ad5a6f4f8261170",
+      "exitCode": 1,
+      "error": {
+        "phase": "desktop-fixture-catalog",
+        "name": "Error",
+        "code": null,
+        "message": "expect(locator).toBeVisible() failed"
+      }
+    },
+    {
+      "path": ".harness/evidence/2026-11-16-ops-filedist-product-closure/ui-readonly-ten-packages-20261118-02.json",
+      "sha256": "d85a6dc022acb7100c9527fb7f45a9efad1468aa7ab3e98f03d79092552a9104",
+      "exitCode": 1,
+      "error": {
+        "phase": "desktop-fixture-auth-fields",
+        "name": "Error",
+        "code": null,
+        "message": "expect(locator).toBeVisible() failed",
+        "locator": "Locator: getByRole('dialog').locator('.arco-form-item').filter({ has: getByText('SSH 密码', { exact: true }) })",
+        "expectedFieldLabel": "SSH 密码",
+        "scriptFrames": [
+          "at renderReadonly (D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\manual-preview-20261116\\verify-ten-packages-ui-20261118.mjs:259:114)",
+          "at async file:///D:/workspace/go/pantheon-platform/pantheon-ops/.local/manual-preview-20261116/verify-ten-packages-ui-20261118.mjs:50:5"
+        ],
+        "failureScreenshot": ".harness/evidence/2026-11-16-ops-filedist-product-closure/ui-readonly-ten-packages-20261118-02-artifacts/failed-desktop-fixture-auth-fields.png"
+      }
+    }
+  ],
+  "intermediateGreenPreserved": {
+    "path": ".harness/evidence/2026-11-16-ops-filedist-product-closure/ui-readonly-ten-packages-20261118-03.json",
+    "sha256": "32d3aa20e4a721b4d34b5afe49ba060cd9e583a98c47637f3ca10330b59f0404",
+    "scriptPreservation": {
+      "path": ".harness/evidence/2026-11-16-ops-filedist-product-closure/ui-readonly-ten-packages-20261118-03-script-preservation.json",
+      "sha256": "e0822509b7c3637f40ab548b05264215763ff7caffe9bde205e037eed5c92807"
+    },
+    "rawSHA256": "c9a2b36d1c4f627b3cc2db904c30fbad3a573d186883a42aff855ec436010762",
+    "boundary": "Run03 passed 19 captures; run04 additionally verifies both private-key footer buttons fit after scrolling. Scenarios are not added across runs."
+  },
+  "startupAttemptHistory": {
+    "toolChunk": "1649a3",
+    "exitCode": 1,
+    "reason": "Readiness helper ran before port 8080 listener was available; later same-parameter check passed.",
+    "originalOutput": "Tool transcript only; no invented file receipt.",
+    "runtimeReceipt": ".harness/evidence/2026-11-17-ops-history-audit/continuation-current-preview-ten-packages-e01-final-started-20261118.json"
+  },
+  "allPackagesAccepted": false,
+  "wholeRepositoryGovernanceCertified": false,
+  "providerAcceptance": false,
+  "boundary": "Local admin reads and browser fixtures only; governance may now record this candidate. Original roles/providers, package acceptance and human gates remain open."
+}

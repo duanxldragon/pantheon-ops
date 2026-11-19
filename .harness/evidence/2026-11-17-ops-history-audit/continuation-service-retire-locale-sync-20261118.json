@@ -1,0 +1,92 @@
+{
+  "recordedAt": "2026-11-18T00:46:07.406Z",
+  "keys": [
+    "business.service.instance_in_use",
+    "business.service.deployment_reader_not_configured"
+  ],
+  "values": {
+    "zh-CN": [
+      "实例仍被执行中的部署引用，不能删除或退役",
+      "部署引用校验未配置，不能删除或退役"
+    ],
+    "en-US": [
+      "The instance is referenced by an executing deployment and cannot be deleted or retired",
+      "Deployment reference validation is unavailable; deletion and retirement are blocked"
+    ],
+    "ja-JP": [
+      "実行中のデプロイが参照しているため、インスタンスを削除または退役できません",
+      "デプロイ参照の検証を利用できないため、削除と退役はできません"
+    ],
+    "ko-KR": [
+      "실행 중인 배포에서 참조하는 인스턴스는 삭제하거나 사용 종료할 수 없습니다",
+      "배포 참조를 검증할 수 없어 삭제 및 사용 종료가 차단되었습니다"
+    ],
+    "fr-FR": [
+      "Cette instance est référencée par un déploiement en cours et ne peut pas être supprimée ou retirée du service",
+      "La vérification des références de déploiement est indisponible ; la suppression et le retrait du service sont bloqués"
+    ]
+  },
+  "rows": [
+    {
+      "file": "frontend/src/modules/business/v12locales/zh-CN.json",
+      "backup": ".harness/evidence/2026-11-17-ops-history-audit/service-retire-locale-originals-20261118/frontend/src/modules/business/v12locales/zh-CN.json.raw",
+      "beforeSHA256": "227775201f7ef0600efa9bbeecaa59987755af373bd5f55aea69fb3568f9a497",
+      "afterSHA256": "34e612050a8a7efd3f21f8b237ceedef00ea445b82290fb1e6c50582f7c04298"
+    },
+    {
+      "file": "frontend/src/i18n/resources/business/zh-CN.ts",
+      "backup": ".harness/evidence/2026-11-17-ops-history-audit/service-retire-locale-originals-20261118/frontend/src/i18n/resources/business/zh-CN.ts.raw",
+      "beforeSHA256": "8afaf31a4802897c811033b3d455cc9dcf178a925a26249db542ff572005cb6b",
+      "afterSHA256": "5980287a989b51a0b5a2927903ff95e27eb31c5171c183c8b57e48a547fb4d8a"
+    },
+    {
+      "file": "frontend/src/modules/business/v12locales/en-US.json",
+      "backup": ".harness/evidence/2026-11-17-ops-history-audit/service-retire-locale-originals-20261118/frontend/src/modules/business/v12locales/en-US.json.raw",
+      "beforeSHA256": "d26f80a51a58ab04365a41303131ea3afb4eb582d4f224a82eeaed1c3097c7cb",
+      "afterSHA256": "384bc737355e0d4defd18db9a7b483f0dfeaa595cce07fc6832bd455ba124b4a"
+    },
+    {
+      "file": "frontend/src/i18n/resources/business/en-US.ts",
+      "backup": ".harness/evidence/2026-11-17-ops-history-audit/service-retire-locale-originals-20261118/frontend/src/i18n/resources/business/en-US.ts.raw",
+      "beforeSHA256": "b23daa06a55d7456903f0f634e12571c4895daa101f319bcc307587bf836502d",
+      "afterSHA256": "1775a00245ab47fe8cc40db973a1235e2ad38a54e26bdca2cfcff1312263496c"
+    },
+    {
+      "file": "frontend/src/modules/business/v12locales/ja-JP.json",
+      "backup": ".harness/evidence/2026-11-17-ops-history-audit/service-retire-locale-originals-20261118/frontend/src/modules/business/v12locales/ja-JP.json.raw",
+      "beforeSHA256": "ff1c96664e32767092497bbb65bbc953fceb804bcaf3db26c34391c98573ff66",
+      "afterSHA256": "068413290be96a9e2fddb830407e7bcbb2cd3e689199ab514b6de3f403b8519e"
+    },
+    {
+      "file": "frontend/src/i18n/resources/business/ja-JP.ts",
+      "backup": ".harness/evidence/2026-11-17-ops-history-audit/service-retire-locale-originals-20261118/frontend/src/i18n/resources/business/ja-JP.ts.raw",
+      "beforeSHA256": "428a8832aa32a19d5309dd0656829386eb9ad64d657ffed1040d207ce707253d",
+      "afterSHA256": "abd395e6c46ab1439f67a0586c8f904609a2c3ce277a48fbe6481d725f12e94c"
+    },
+    {
+      "file": "frontend/src/modules/business/v12locales/ko-KR.json",
+      "backup": ".harness/evidence/2026-11-17-ops-history-audit/service-retire-locale-originals-20261118/frontend/src/modules/business/v12locales/ko-KR.json.raw",
+      "beforeSHA256": "ea55b0eb1e03caa62668b7cdbd19645c73b372c74454e68200d6cc3eb133ecf8",
+      "afterSHA256": "d67701eb63f03f2a2c3563dfca3677fcc48f60dc7e9330c2237ed06af0fba8df"
+    },
+    {
+      "file": "frontend/src/i18n/resources/business/ko-KR.ts",
+      "backup": ".harness/evidence/2026-11-17-ops-history-audit/service-retire-locale-originals-20261118/frontend/src/i18n/resources/business/ko-KR.ts.raw",
+      "beforeSHA256": "8805f78453d00c46f4b256c432966b406f953cab00fdab4fb52a8ab99cc228e5",
+      "afterSHA256": "1feba808e8d1b6f8cb658ba97548ba73d38a484e4ba2172f0aeb9f6f5d4935b3"
+    },
+    {
+      "file": "frontend/src/modules/business/v12locales/fr-FR.json",
+      "backup": ".harness/evidence/2026-11-17-ops-history-audit/service-retire-locale-originals-20261118/frontend/src/modules/business/v12locales/fr-FR.json.raw",
+      "beforeSHA256": "94405937f248745cf252d5f7a4f46878f9b6402a6dfa76f6f89fdb2b6702fb9f",
+      "afterSHA256": "5e0ed88a58fbbf9743eaa317751d0eddf8761d956d2ef29daba76bffa0a2c64f"
+    },
+    {
+      "file": "frontend/src/i18n/resources/business/fr-FR.ts",
+      "backup": ".harness/evidence/2026-11-17-ops-history-audit/service-retire-locale-originals-20261118/frontend/src/i18n/resources/business/fr-FR.ts.raw",
+      "beforeSHA256": "fd1d3089f4798928d070277d85dc8c64fdd2256249de92a2fae790aaf1168768",
+      "afterSHA256": "248e02c313f594a5193be4eae7f76e464d84d5f5ac69e983584f09a8d1602392"
+    }
+  ],
+  "boundary": "Business canonical and generated fallback text synchronized; runtime locale wiring in Base remains an independent gap."
+}

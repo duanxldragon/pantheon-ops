@@ -1,0 +1,53 @@
+{
+  "url": "http://127.0.0.1:5173/business/service-catalog",
+  "ancestors": [
+    {
+      "tag": "SPAN",
+      "className": "app-shell__menu-entry-label",
+      "role": null,
+      "text": "服务目录"
+    },
+    {
+      "tag": "SPAN",
+      "className": "app-shell__menu-entry-copy",
+      "role": null,
+      "text": "服务目录"
+    },
+    {
+      "tag": "BUTTON",
+      "className": "app-shell__menu-entry app-shell__menu-entry--level-0 app-shell__menu-entry--group",
+      "role": null,
+      "text": "服务目录"
+    },
+    {
+      "tag": "SPAN",
+      "className": "",
+      "role": null,
+      "text": "服务目录"
+    },
+    {
+      "tag": "DIV",
+      "className": "arco-menu-inline-header",
+      "role": null,
+      "text": "服务目录"
+    },
+    {
+      "tag": "DIV",
+      "className": "arco-menu-inline",
+      "role": null,
+      "text": "服务目录应用服务服务实例"
+    },
+    {
+      "tag": "DIV",
+      "className": "arco-menu-inner",
+      "role": null,
+      "text": "工作台CMDB主机管理主机分组标签管理业务域主机绑定环境管理服务目录应用服务服务实例安装部署软件组件任务模板部署任务文件分发KubernetesK8s 集群工作负载服务应用发布Ingress存储管理Velero 备份ArgoCD 应用交付可观测中心监控中心告警中心日志中心链路追踪访问控制用户管理角色管理权限管理菜单管理组织架构部门管理岗位管理安全审计登录日志会话管理操作日志安全事件低代码平台模块管"
+    },
+    {
+      "tag": "DIV",
+      "className": "arco-menu arco-menu-light arco-menu-vertical app-shell__menu",
+      "role": "menu",
+      "text": "工作台CMDB主机管理主机分组标签管理业务域主机绑定环境管理服务目录应用服务服务实例安装部署软件组件任务模板部署任务文件分发KubernetesK8s 集群工作负载服务应用发布Ingress存储管理Velero 备份ArgoCD 应用交付可观测中心监控中心告警中心日志中心链路追踪访问控制用户管理角色管理权限管理菜单管理组织架构部门管理岗位管理安全审计登录日志会话管理操作日志安全事件低代码平台模块管"
+    }
+  ]
+}

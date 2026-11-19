@@ -1,0 +1,24 @@
+{
+  "taskId": "2026-11-17-ops-history-audit",
+  "date": "2026-11-17",
+  "changes": [
+    "Native Claude process launched with CreateNoWindow=true and UseShellExecute=false.",
+    "Strict empty MCP config; available tools limited to Read/Edit/Write/Grep/Glob.",
+    "Bounded max turns/timeouts; live output readable without clobbering earlier evidence.",
+    "Node validation runs preload windowsHide=true into child launches and descendants.",
+    "Workspace AGENTS.md records hidden Windows background launches and bounded owned-process diagnostics."
+  ],
+  "observations": [
+    "Audit-owned stalled Claude PID15120 and its owned child tree were terminated via taskkill after PowerShell Stop-Process failed.",
+    "Sandbox-contained Claude check retried its API and timed out exit124.",
+    "Escalated identical hidden launch returned HIDDEN_LAUNCH_OK, exit0, empty MCP list.",
+    "console-window-post-check.json records zero visible console windows in the sampled desktop."
+  ],
+  "remainingGap": "No transient window was captured during its visible interval; the exact origin of every reported CMD popup is not proven.",
+  "evidence": [
+    "hidden-launch-isolated-check.status.json",
+    "hidden-launch-isolated-check-retry.status.json",
+    "hidden-launch-isolated-check-retry.result.jsonl",
+    "console-window-post-check.json"
+  ]
+}

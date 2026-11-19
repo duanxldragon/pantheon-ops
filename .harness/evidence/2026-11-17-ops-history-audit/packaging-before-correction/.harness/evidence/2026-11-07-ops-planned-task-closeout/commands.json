@@ -1,0 +1,114 @@
+{
+  "taskId": "2026-11-07-ops-planned-task-closeout",
+  "repo": "pantheon-ops",
+  "agent": {
+    "tool": "codex",
+    "adapter": "Historical closeout executor (per repo role contract); evidence packaging recorded by Claude 2026-11-17; independent acceptance review pending (Codex)"
+  },
+  "commands": [
+    {
+      "command": "npm run rebuild:from-base -- --target .tmp/ops-planned-delivery-overlay (clean rebuild, base pantheon-base-v0.18.6, base commit 5553bc0e, 990 declared/generated Ops files)",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+      "exitCode": 0,
+      "status": "passed",
+      "log": ".harness/evidence/2026-11-07-ops-planned-task-closeout/final-rebuild.log",
+      "notes": "verification timestamp 2026-11-07 (retained log); not re-run"
+    },
+    {
+      "command": "npm run check:business-foundation (check:business-boundaries + check:business-overlay + test:business-boundaries 4/4 + test:business-overlay 59/59)",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+      "exitCode": 0,
+      "status": "passed",
+      "log": ".harness/evidence/2026-11-07-ops-planned-task-closeout/business-foundation-final.log",
+      "notes": "business overlay contract 53 declared paths OK"
+    },
+    {
+      "command": "npm run check:shared-drift (826 shared files, 816 identical to base, 10 allowlisted drift, 170 overlay skipped, 4 derived business migrations verified)",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+      "exitCode": 0,
+      "status": "passed",
+      "log": ".harness/evidence/2026-11-07-ops-planned-task-closeout/shared-drift-final.log"
+    },
+    {
+      "command": "Staged-tree gates on .tmp/ops-planned-delivery-overlay: check:business-overlay + check:shared-drift --root .tmp/ops-planned-delivery-overlay",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+      "exitCode": 0,
+      "status": "passed",
+      "log": ".harness/evidence/2026-11-07-ops-planned-task-closeout/staged-overlay-final.log",
+      "notes": "see also staged-shared-drift-final.log (826/816:1:10 vs staged tree)"
+    },
+    {
+      "command": "go test -race ./... (full package sweep; all ok, 0 failures, 0 data races)",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+      "exitCode": 0,
+      "status": "passed",
+      "log": ".harness/evidence/2026-11-07-ops-planned-task-closeout/backend-race-final.log",
+      "notes": "staged counterpart in staged-backend-race-final.log; backend-vet/staged-backend-build/staged-backend-vet logs empty (no findings)"
+    },
+    {
+      "command": "frontend lint (eslint .)",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+      "exitCode": 0,
+      "status": "passed",
+      "log": ".harness/evidence/2026-11-07-ops-planned-task-closeout/frontend-lint-final.log"
+    },
+    {
+      "command": "frontend type-check (tsc -b)",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+      "exitCode": 0,
+      "status": "passed",
+      "log": ".harness/evidence/2026-11-07-ops-planned-task-closeout/frontend-type-check-final.log"
+    },
+    {
+      "command": "frontend build",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+      "exitCode": 0,
+      "status": "passed",
+      "log": ".harness/evidence/2026-11-07-ops-planned-task-closeout/frontend-build-final.log"
+    },
+    {
+      "command": "Business runtime Playwright smoke (deploy 10 + k8s 2 + service 2, incl. phone viewport) — 14/14 passed",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+      "exitCode": 0,
+      "status": "passed",
+      "log": ".harness/evidence/2026-11-07-ops-planned-task-closeout/business-runtime-final.log",
+      "notes": "an earlier capture (business-runtime-artifact-collision.log) hit a transient browserContext.close trace-artifact ENOENT on one k8s spec; final rerun is 14/14 green (harness artifact-collection glitch, not content)"
+    },
+    {
+      "command": "CMDB runtime smoke (cmdb-import-export-permissions.spec.ts 3 + cmdb-pages.spec.ts 9 incl. phone viewport) — 12/12 passed",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+      "exitCode": 0,
+      "status": "passed",
+      "log": ".harness/evidence/2026-11-07-ops-planned-task-closeout/cmdb/smoke-final.log"
+    },
+    {
+      "command": "D2 SSRF negative gates (kubeconfig checked-dial + private SMTP reject before connecting); red phase asserts the reject, green/complete phase records the pass",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+      "exitCode": 0,
+      "status": "passed",
+      "log": ".harness/evidence/2026-11-07-ops-planned-task-closeout/d2-complete.log",
+      "notes": "red phase in d2-red.log, green in d2-green.log — expected negative-test semantics, not a failure"
+    },
+    {
+      "command": "Governance gate sweep: check-evidence (1 file 0 errors), check-task-packet (2 files 0 errors / 2 warnings), check-review (this round's review.md pass; 8 reported FAILs are stale legacy allowlist entries, not content)",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+      "exitCode": 0,
+      "status": "passed",
+      "log": ".harness/evidence/2026-11-07-ops-planned-task-closeout/evidence-final.log",
+      "notes": "8 stale legacy review-allowlist entries superseded/shrunk in config/review-loop-legacy-artifacts.json this closeout"
+    }
+  ],
+  "knownGaps": [
+    "Independent acceptance review (review.md) is not authored in this packaging round; it is the Codex acceptance step's output, so the task remains in-progress / awaiting-review.",
+    "Verification timestamps are read from retained 2026-11-07 logs; no command in this round was re-run.",
+    "Pre-existing inheritance-contract findings (docs/WORKSPACE_INHERITANCE.md, pantheon-ops/CLAUDE.md, docs/PROJECT_INHERITANCE.md missing at repository root) are out of this task's scope and unchanged."
+  ],
+  "linkage": {
+    "taskManifest": ".harness/tasks/2026-11-07-ops-planned-task-closeout/manifest.json",
+    "evidenceDir": ".harness/evidence/2026-11-07-ops-planned-task-closeout/",
+    "reviewFile": "none",
+    "summaryFile": ".harness/evidence/2026-11-07-ops-planned-task-closeout/summary.md",
+    "changeRef": "none",
+    "planRefs": []
+  }
+}

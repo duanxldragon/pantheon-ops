@@ -1,0 +1,26 @@
+{
+  "recordedAt": "2026-11-17T23:15:20.828Z",
+  "scope": "Task-list and progress document update; no backend source changed",
+  "checks": [
+    {
+      "command": "node scripts/frontmatter-check.mjs",
+      "chunk_id": "ce44e3",
+      "wall_time_seconds": 0.9982912,
+      "exit_code": 0,
+      "original_token_count": 97,
+      "output": "Frontmatter check passed. Checked 480 docs, 334 with frontmatter, 146 without (informational, not enforced).\nEnforced directories: docs/superpowers/specs/, docs/archive/examples/, docs/archive/baselines/, docs/archive/upgrade/ — 4 doc(s) must carry frontmatter.\nActive docs past the 90-day review window: 137 (informational, not enforced — see DOCUMENT_METADATA_AND_STATUS §6.5).\n"
+    },
+    {
+      "command": "node scripts/check-task-packet-template.mjs",
+      "chunk_id": "0b7d2e",
+      "wall_time_seconds": 0.3853396,
+      "exit_code": 0,
+      "original_token_count": 15,
+      "output": "OK pantheon-ops task-packet template is present and linked\n"
+    }
+  ],
+  "passed": true,
+  "fullRaceEvidence": ".harness/evidence/2026-11-17-ops-history-audit/continuation-c01-retire-queued-full-race-20261118.log.receipt.json",
+  "taskListReceipt": ".harness/evidence/2026-11-17-ops-history-audit/continuation-task-list-20261118.json",
+  "aggregateStatus": "active"
+}

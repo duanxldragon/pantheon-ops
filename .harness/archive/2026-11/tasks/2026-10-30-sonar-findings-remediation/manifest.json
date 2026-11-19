@@ -1,0 +1,350 @@
+{
+  "taskId": "2026-10-30-sonar-findings-remediation",
+  "title": "Remediate the open SonarCloud security and reliability findings on business scope",
+  "goal": "Clear the SonarCloud quality-gate blockers for duanxldragon_pantheon-ops by fixing every open vulnerability and bug in the touched scope with real code, turning the 33-issue gosecurity:S3649 family into a machine-checked CI invariant, and only then transitioning the verified false positives in Sonar with a recorded, reversible justification.",
+  "primaryLayer": "business/*",
+  "taskDoc": "docs/harness/tasks/2026-10-30-sonar-findings-remediation.task.md",
+  "status": "completed",
+  "priority": "P1",
+  "deliveryTier": "L2",
+  "dependsOn": [
+    "2026-10-29-sonar-ci-analysis-restore (the scan must run before its findings can be closed)"
+  ],
+  "blocks": [
+    "green SonarCloud quality gate on pantheon-ops main"
+  ],
+  "scope": {
+    "in": [
+      "ArgoCD client: always verify the server certificate; support private CAs through a stored PEM bundle instead of InsecureSkipVerify (go:S4830, go:S5527).",
+      "Filedist storage: confine resolved paths to the configured root and reduce upload names to one path element (gosecurity:S2083).",
+      "Add scripts/check-gorm-sql-literal.mjs plus node tests and a blocking docs-governance CI step so the S3649 false-positive argument is a checked invariant.",
+      "Fix the frontend floating-promise, nested-template, fixed-wait and cleartext-placeholder findings and the duplicated CI worker config in e2e-tests/playwright.config.ts.",
+      "Remove the hardcoded reachable target IP and implicit cleartext defaults from both e2e shell scripts by requiring explicit API_BASE_URL / WEB_BASE_URL.",
+      "Merge the byte-identical upgrade/rollback branches in service/state.go and move the CMDB import template example IP into the RFC 5737 documentation range.",
+      "Capture the S3649 issue keys, transition them with a written justification after the checker is merged, and read back the gate.",
+      "Clear the remaining 158 open CODE_SMELL findings on main so the hosted Issues counter reaches zero: go:S1192 x68, go:S3776 x27, typescript:S3358 x20, typescript:S3863 x10, godre:* x10, typescript:S3776 x6, typescript:S6571 x6, typescript:S6551 x3, go:S107 x2, go:S1135 x2, githubactions:S1192 x2, typescript:S7770 x1, typescript:S7755 x1, by real refactoring only (named constants, guard clauses, extracted helpers, named types, merged imports) with no suppression comment and no assertion weakened."
+    ],
+    "out": [
+      "Any change to SonarCloud quality-gate definitions, the new-code period, or the organization plan.",
+      "Provisioning Dependabot secrets or changing the Dependabot scan policy.",
+      "Removing the external Vercel deployment check, which requires a maintainer action in the GitHub UI.",
+      "Adding a UI form for ArgoCD CA-certificate storage; caCert is API-only in this round.",
+      "Any rename that changes a JSON payload, a database column, a route path, an i18n key or a menu seed value; the smell refactor is behaviour-preserving by construction and is checked by the existing contract gates.",
+      "Clearing smells under frontend/src and pkg/ that belong to the base foundation rather than to business/*; the 158-issue inventory is entirely inside business scope plus two workflow files."
+    ]
+  },
+  "expectedFiles": {
+    "create": [
+      ".harness/evidence/2026-10-30-sonar-findings-remediation/commands.json",
+      ".harness/evidence/2026-10-30-sonar-findings-remediation/pr-body.md",
+      ".harness/evidence/2026-10-30-sonar-findings-remediation/review.md",
+      ".harness/evidence/2026-10-30-sonar-findings-remediation/sonar-after-merge-vulnerabilities.json",
+      ".harness/evidence/2026-10-30-sonar-findings-remediation/sonar-s3649-keys.json",
+      ".harness/evidence/2026-10-30-sonar-findings-remediation/sonar-triage.json",
+      ".harness/evidence/2026-10-30-sonar-findings-remediation/summary.md",
+      ".harness/tasks/2026-10-30-sonar-findings-remediation/manifest.json",
+      "backend/modules/business/cicd/argocd/argocd_webhook_test.go",
+      "docs/harness/tasks/2026-10-30-sonar-findings-remediation.task.md",
+      "scripts/check-gorm-sql-literal.mjs",
+      "tests/scripts/check-gorm-sql-literal.test.mjs"
+    ],
+    "modify": [
+      ".github/PULL_REQUEST_TEMPLATE.md",
+      ".github/workflows/quality.yml",
+      ".github/workflows/security.yml",
+      ".harness/v1.2-tasks/generate_tasks.sh",
+      "backend/modules/business/bizscope/bizscope_service.go",
+      "backend/modules/business/capability/capability.go",
+      "backend/modules/business/cicd/argocd/argocd_client.go",
+      "backend/modules/business/cicd/argocd/argocd_client_test.go",
+      "backend/modules/business/cicd/argocd/argocd_dto.go",
+      "backend/modules/business/cicd/argocd/argocd_handler.go",
+      "backend/modules/business/cicd/argocd/argocd_model.go",
+      "backend/modules/business/cicd/argocd/argocd_reconciler.go",
+      "backend/modules/business/cicd/argocd/argocd_service.go",
+      "backend/modules/business/cicd/argocd/argocd_webhook.go",
+      "backend/modules/business/cicd/argocd/argocd_webhook_test.go",
+      "backend/modules/business/cicd/seed.go",
+      "backend/modules/business/cmdb/capability.go",
+      "backend/modules/business/cmdb/group/group_import_export.go",
+      "backend/modules/business/cmdb/host/host_import_export.go",
+      "backend/modules/business/cmdb/host/host_state.go",
+      "backend/modules/business/cmdb/label/label_import_export.go",
+      "backend/modules/business/deploy/deploy.go",
+      "backend/modules/business/deploy/deploy_handler.go",
+      "backend/modules/business/deploy/deploy_helpers.go",
+      "backend/modules/business/deploy/deploy_import_export.go",
+      "backend/modules/business/deploy/deploy_rollback.go",
+      "backend/modules/business/deploy/deploy_service.go",
+      "backend/modules/business/deploy/deploy_service_test.go",
+      "backend/modules/business/deploy/executor/executor.go",
+      "backend/modules/business/deploy/orchestrator/orchestrator.go",
+      "backend/modules/business/filedist/distribution_service.go",
+      "backend/modules/business/filedist/storage_service.go",
+      "backend/modules/business/filedist/storage_service_test.go",
+      "backend/modules/business/k8s/backup/backup_handler.go",
+      "backend/modules/business/k8s/backup/backup_service.go",
+      "backend/modules/business/k8s/backup/reconciler.go",
+      "backend/modules/business/k8s/backup/velero_client.go",
+      "backend/modules/business/k8s/cluster/cluster_service.go",
+      "backend/modules/business/k8s/ingress/ingress.go",
+      "backend/modules/business/k8s/install/install.go",
+      "backend/modules/business/k8s/k8s_seed.go",
+      "backend/modules/business/k8s/namespace/namespace_service.go",
+      "backend/modules/business/k8s/release/release_service.go",
+      "backend/modules/business/k8s/storage/storage.go",
+      "backend/modules/business/k8s/workload/workload_service.go",
+      "backend/modules/business/k8s/workload/workload_service_test.go",
+      "backend/modules/business/observability/notification_service.go",
+      "backend/modules/business/observability/observability.go",
+      "backend/modules/business/observability/seed.go",
+      "backend/modules/business/opsinit/opsinit.go",
+      "backend/modules/business/retired_modules.go",
+      "backend/modules/business/service/capability.go",
+      "backend/modules/business/service/handler.go",
+      "backend/modules/business/service/module.go",
+      "backend/modules/business/service/seed.go",
+      "backend/modules/business/service/service.go",
+      "backend/modules/business/service/state.go",
+      "docs/designs/BUSINESS_ARGOCD_MODULE_DESIGN.md",
+      "e2e-tests/auto-test.sh",
+      "e2e-tests/playwright.config.ts",
+      "e2e-tests/run-real-machine-test.sh",
+      "frontend/src/i18n/resources/business/en-US.ts",
+      "frontend/src/i18n/resources/business/zh-CN.ts",
+      "frontend/src/modules/business/bizscope/BizScopeDetail.tsx",
+      "frontend/src/modules/business/bizscope/BizScopeList.tsx",
+      "frontend/src/modules/business/bizscope/api.ts",
+      "frontend/src/modules/business/cicd/argocd/api.ts",
+      "frontend/src/modules/business/cmdb/host/CmdbHostList.tsx",
+      "frontend/src/modules/business/cmdb/label/CmdbLabelSchemaList.tsx",
+      "frontend/src/modules/business/deploy/api.ts",
+      "frontend/src/modules/business/deploy/package/DeployPackageList.tsx",
+      "frontend/src/modules/business/deploy/task/DeployTaskDetail.tsx",
+      "frontend/src/modules/business/deploy/task/DeployTaskList.tsx",
+      "frontend/src/modules/business/deploy/template/DeployTemplateList.tsx",
+      "frontend/src/modules/business/filedist/FiledistDetail.tsx",
+      "frontend/src/modules/business/filedist/FiledistList.tsx",
+      "frontend/src/modules/business/k8s/backup/BackupList.tsx",
+      "frontend/src/modules/business/k8s/cluster/ClusterDetail.tsx",
+      "frontend/src/modules/business/k8s/ingress/IngressList.tsx",
+      "frontend/src/modules/business/k8s/release/ReleaseList.tsx",
+      "frontend/src/modules/business/k8s/workload/WorkloadList.tsx",
+      "frontend/src/modules/business/observability/AlertCenter.tsx",
+      "frontend/src/modules/business/observability/AlertManagement.tsx",
+      "frontend/src/modules/business/observability/AlertRecordList.tsx",
+      "frontend/src/modules/business/observability/AlertRuleList.tsx",
+      "frontend/src/modules/business/observability/MetricSourceList.tsx",
+      "frontend/src/modules/business/observability/MonitoringCenter.tsx",
+      "frontend/src/modules/business/service/ServiceCatalog.tsx",
+      "frontend/src/modules/business/service/ServiceList.tsx",
+      "frontend/src/modules/business/serviceinstance/ServiceInstanceList.tsx",
+      "frontend/tests/smoke/business/observability-filedist-pages.spec.ts",
+      "package.json"
+    ],
+    "doNotTouch": [
+      "sonar-project.properties and .sonarcloud.properties (project identity and analysis scope are settled)",
+      "foundation-release.lock.json and .foundation/foundation-release.lock.json (no lock advance)",
+      ".github/workflows/sonarcloud.yml gate policy",
+      "any repository secret value inside the working tree; SONAR_TOKEN is only ever a shell variable"
+    ]
+  },
+  "contractAnchors": [
+    "AGENTS.md",
+    "docs/PROJECT_INHERITANCE.md",
+    "docs/designs/BUSINESS_ARGOCD_MODULE_DESIGN.md",
+    "scripts/check-business-module-boundaries.mjs",
+    "scripts/check-gorm-sql-literal.mjs",
+    ".github/workflows/quality.yml",
+    ".github/workflows/security.yml",
+    "sonar-project.properties"
+  ],
+  "implementationNotes": [
+    "SonarGo reports gosecurity:S3649 for any GORM condition argument that is not a source-level literal, including package-level constants that are provably literal. Arguing 33 findings by hand does not survive the next analysis, so the invariant behind the argument is now enforced by scripts/check-gorm-sql-literal.mjs, unit-tested by tests/scripts/check-gorm-sql-literal.test.mjs and blocking in the docs-governance job.",
+    "The checker distinguishes GORM sinks from same-named methods on other receivers (the Kubernetes clientset Update(ctx, object, opts) has a different arity) and treats line-scoped waivers as visible output, never as silence. An empty justification is not a waiver.",
+    "retired_modules.go previously passed a column name into a built clause; the three IN clauses became package constants, matching the condNameEquals and menuPathWhereClause convention already used by the CMDB modules, and the two remaining dynamic-looking call sites carry visible waivers.",
+    "ArgoCD server certificate verification is now unconditional. A stored CA bundle adds trust; an unparseable bundle fails construction with ErrInvalidCACert instead of silently downgrading. The tests inject the httptest server certificate as the stored bundle, so they exercise the production path rather than bypassing it.",
+    "biz_argocd_server.ca_cert needs no SQL migration: the argocd module owns Migrate() with GORM AutoMigrate and no versioned SQL references that table.",
+    "e2e-tests/auto-test.sh shipped a reachable production IP and http:// defaults; requiring API_BASE_URL and WEB_BASE_URL removes the shell:S5332 class instead of marking it won't-fix, and the same change makes the scripts refuse to run against an unintended host.",
+    "The checker is an Ops-only sensor: base ships no backend/modules/business, so it is deliberately not proposed upstream and must not be hand-copied into base.",
+    "Round 2 was driven by the first hosted CI run rather than by local review: Go Lint reported one new gosec G304 on the line this round introduced (os.Create of a path that is already proven to stay inside the storage root), annotated consistently with the three G304 waivers already in that module, and the SonarCloud gate stayed ERROR only on new-code duplication because the new checker test file repeated its twelve test bodies. The test file became a CASES table with one driver loop, so the duplication is removed rather than the metric suppressed; the gate's security and reliability conditions were already OK on that analysis.",
+    "Post-merge read-back (round 3): the squash-merge landed on main as 9522048 and the push-triggered scan took open issues from 242 to 194, bugs from 6 to 0, and new_reliability_rating to OK. The only remaining gate ERROR is new_security_rating, whose whole residue is 33 gosecurity:S3649 plus 3 gosecurity:S2083 on the os.Remove cleanup sites in UploadFile. SonarGo accepted resolveWithinRoot as a sanitizer for os.Create but not for os.Remove on the same value, so those three are backed by TestUploadPathStaysInsideRootForAdversarialNames, which pins the flagged data flow end to end, and by the checker for the S3649 family. Nothing was transitioned before that test was main-merged.",
+    "Round 4 executed the transition last, against the merged tree: the checker and its 13 tests were re-run green on 52dfe28, the packages hosting every still-open sink passed, and each of the 18 remaining S3649 lines was read to confirm it is an Updates(map) with quoted literal keys or a First(&model, id) primary-key lookup. All 36 keys are now RESOLVED/FALSE-POSITIVE, open vulnerabilities went 36 to 0, and the branch gate reads OK on every condition. POST /api/issues/comment is not exposed by SonarCloud (404 Unknown url), so the justification is carried by sonar-triage.json and this packet instead of the issue thread, and /api/issues/search ignores issueKeys while rejecting RESOLVED in issueStatuses, which is why live state is matched client-side. The transition driver stayed outside the repository because it authenticates with a maintainer token; reversibility is per key via transition=to_reopen and no metric, new-code baseline or gate definition was edited.",
+    "Round 5 targeted the maintainability residue instead of the gate: every one of the 158 open CODE_SMELL findings on main was mapped to a rule-specific fix and applied in the file that produced it. S1192 became package-level constants (never var, and never for the Updates(map) keys, because scripts/check-gorm-sql-literal.mjs requires those to stay quoted literals in place), S3776 became guard clauses and per-case helpers, S3358 became module-level if/else resolvers, S3863 became merged imports, S6571 became a named union with (string & {}), S6551 became typeof narrowing, S7755 became .at(-1), S8205 became named payload types, S8209 became grouped parameters, S8193 became inline expressions, and S8196 became agentive names for single-method interfaces (InstanceCreator, StateTransitioner, ServiceInstanceStateApplier, LogWriter).",
+    "The two go:S1135 TODO comments were resolved by their evidence, not by deleting the comment: the ArgoCD webhook auto-sync is now implemented behind an applicationSyncer seam with three tests (policy parsing, sync-only-automated, failure still marks the event processed), and the reconciler service-instance stub was deleted because biz_argocd_application carries no service-instance association, so faking it would have invented a data path the schema cannot express.",
+    "Two gate couplings were found the hard way and are now recorded rather than rediscovered. First, EXPECTED_RESULT in the aggregate steps is fail-closed: an unset env expands to an empty string, the comparison mismatches and the step exits 1, and the base-owned tests/scripts/security-workflow.test.mjs pins the literal \"success\" text in the dependency-vulnerabilities branch, so exactly one literal stays there and only the other four became ${EXPECTED_RESULT}. Second, frontend/scripts/check-menu-contract.mjs goConstTable() resolves a seed field identifier only from a `name = \"value\"` line inside a const block, so an inline const used by a menu seed silently resolves to an empty string; serviceModuleKey is therefore declared inside a const block and the generic checker improvement is a base-first follow-up.",
+    "Verification discipline for this round: a gocognit and duplicate-literal scan of HEAD versus the working tree is used as the resolution oracle, because SonarGo reports gocognit-equivalent complexity values that are never higher than gocognit, so a function that drops to 15 or fewer by gocognit cannot still be an S3776 finding; 27 of 27 Go S3776 targets are at or below the threshold and no new duplicate-literal candidate appeared anywhere in backend/modules/business.",
+    "Round 6 was driven by the PR-side analysis rather than by assumption: /api/issues/search?pullRequest=160 returns only new-code findings, and it reported 12 open issues on the lines this branch changes. Four were real regressions introduced by round 5 and are now fixed in place — go:S8242 (taskStepHostRun carried a context.Context as a struct field, so ctx is threaded through executeTaskStep and runTaskStepCheck instead), go:S3776 on buildDeployExecutionSnapshot (split into defaultExecutionSnapshotSteps, buildTemplateStepSnapshot, resolveStepSnapshotPackage and validateStepSnapshotParams with the two snapshot reason constants), go:S3776 on all three CMDB Import functions, and typescript:S6759 on the ClusterDetail hero and summary card props.",
+    "The CMDB Import refactor deliberately reuses the base-owned impexp primitives (BuildHeaderIndex, RequireHeaders, ForEachDataRow, AppendImportError) rather than adding three near-identical per-module header helpers, because a third copy of the same header-and-row loop would have raised new_duplicated_lines_density on the very analysis that is supposed to go green; only the per-module field parsing moved into parseGroupImportRows / parseLabelImportRows / parseHostImportRows.",
+    "Sonar tracks an issue instance by the text hash of its location, which is why round 4's FALSE_POSITIVE transitions are not free to rewrite: replacing a marked sink statement such as Where(\"id = ?\", id) with a constant creates a new open instance at that statement. Five marked sinks were candidates for restoration. The real bound is go:S1192 counting the constant declaration itself as an occurrence of the literal, so a file that declares the SQL constant can keep at most one inline copy of it (declaration + one inline use is two occurrences, declaration + two is three and re-raises the smell). Three sinks were restored verbatim (ArgoCD UpdateServer, backup UpdateStorageLocation, observability UpdateChannel, the last in a file that declares nothing and so keeps one inline copy without a duplicate count) and three stay on package constants (ArgoCD UpdateRepository, ArgoCD UpdateApplication, backup UpdateSchedule). Those three are the unavoidable post-merge re-triage, each covered by scripts/check-gorm-sql-literal.mjs and recorded per key so the transition stays reversible",
+    "Round 6 frontend: AlertCenter (cc 20 -> 8), ServiceCatalog (17 -> 5) and DeployTaskDetail (25 -> 9) became module-level subcomponents with readonly props shapes and FormInstance-typed form props, following the pattern already used by DeployTaskList and CmdbLabelSchemaList. The extraction is render-identical — the same JSX, the same conditions and the same callbacks — and is pinned by the 230-test unit suite plus the CI-mode build; a local TS-AST cognitive-complexity oracle calibrated against the Sonar HEAD values is used as the resolution bound because the hosted analysis of unchanged lines is only available after the merge.",
+    "Round 7 records two process facts that change how this task must be accepted. First, go:S1192 counts the constant declaration itself as an occurrence of the literal, so a file declaring the SQL constant may hold only one inline copy; with three sinks in one file there is no shape that both clears the smell and preserves every FALSE_POSITIVE mark, and the chosen shape restores one sink per declaring file and re-triages three. Second, PR #160 was merged by auto-merge enabled by app/github-actions the instant the required contexts went green, which landed the still-unfixed duplication findings on main and left the follow-up commit to become a second PR; and a merge performed by that automation produced no push-triggered run at all, so main at 7364a44 has no SonarCloud Scan while the earlier explicitly merged commits did. The acceptance analysis is therefore dispatched with gh workflow run sonarcloud.yml --ref main and never assumed, and the remaining PRs in this task are merged with an explicit gh pr merge --squash --delete-branch.",
+    "Round 8 closes the task at zero and corrects one rule model that shaped rounds 6 and 7. Acceptance read-back on main at 430a9f0 (analysis 2026-10-30T06:38:03+0000, dispatched by hand because the automation merge emits no push run) is 0 open issues with the type facet CODE_SMELL 0 / VULNERABILITY 0 / BUG 0, 0 hotspots TO_REVIEW, gate OK on all five conditions, false_positive_issues 36 and duplicated_lines_density 2.0. The correction: a FALSE_POSITIVE transition made on the matching pull-request instance is inherited by the branch analysis, so argocd_service.go:274 and backup_service.go:424 stay marked on main under their round-4 keys even though their text is now Where(idWhereClause, id) / Where(whereByID, id); the statement-hash rule only re-opens an instance when the text changes with no transition on record. The four transitions of this round (three PR instances plus the one branch instance at argocd_service.go:409) are recorded per key with HTTP 200 in sonar-triage.json transitionBatches and are reversible with transition=to_reopen. Merge discipline still fails: pr-automation.yml lets app/github-actions enable auto-merge within a minute of opening, so the explicit gh pr merge --squash --delete-branch lost the race for the second time; stale branches were verified to have no code diff against main before deletion, leaving main as the only branch locally and on the remote.",
+    "Round 8 evidence completed on the current main tip: PR #162 was merged explicitly because app/github-actions auto-merge was disabled through GraphQL before the required contexts turned green, and the resulting push trigger ran all four main workflows (SonarCloud Scan, Code Quality Gates, Branch Hygiene, Security Gates) to success, with the analysis 2026-10-30T06:56:45+0000 reading 0 open issues and an OK gate. That is the direct measurement behind the round-7 inference, and it also identifies the fix if the gap is ever closed upstream: the acceptance analysis has to be tied to the merge path, not assumed from it."
+  ],
+  "harnessProfile": {
+    "template": "api-service",
+    "overlay": "pantheon-ops",
+    "qualityProfile": "auth-security",
+    "portableFailureClass": "static-sensor-gap",
+    "ownerLayer": "business-boundary",
+    "coverageDimensions": [
+      "architecture-fitness",
+      "method-health",
+      "maintainability"
+    ]
+  },
+  "methodReadiness": {
+    "consumerSpecificControls": [
+      "SQL literalness in business GORM condition builders is a checked invariant, not a review convention",
+      "e2e scripts refuse to run without an explicitly supplied target"
+    ],
+    "requiredSensors": [
+      "command",
+      "hosted-workflow",
+      "external-analysis"
+    ],
+    "requiredEvidence": [
+      "commands.json",
+      "summary.md",
+      "review.md",
+      "sonar-s3649-keys.json",
+      "sonar-after-merge-vulnerabilities.json",
+      "sonar-triage.json"
+    ],
+    "ratchetDecision": "new-sensor",
+    "deferredCodeIssues": [
+      "Dependabot-triggered runs still cannot read SONAR_TOKEN, so SonarCloud Scan stays red on Dependabot PRs until Dependabot secrets are provisioned or the job skips that actor; that is a maintainer gate-policy decision.",
+      "The Vercel deployment check stays red and is out of scope by maintainer instruction: it is an external GitHub App integration with no committed configuration, its build log needs the Vercel team's credentials, and it is not a required status context on main, so disabling it is a GitHub App or Vercel dashboard action.",
+      "sonar.sources=. makes the scanner read PNG evidence files as source text; scoping that property is a Sonar configuration decision left with the maintainer.",
+      "No coverage report is produced, which is why sonar.coverage.exclusions=**/* stays in sonar-project.properties on the Free plan.",
+      "The ArgoCD UI has no server-registration form, so the new caCert field is reachable only through the API in this round.",
+      "The 158-finding CODE_SMELL backlog is addressed in this round rather than deferred; the acceptance oracle is the next hosted analysis, because local linters approximate SonarGo but are not the metric.",
+      "biz_argocd_application has no service-instance association, so the reconciler cannot propagate an ArgoCD status into the service-instance state machine without a schema change; the previous TODO stub was deleted instead of faked and the association is a separate design decision.",
+      "frontend/scripts/check-menu-contract.mjs resolves seed identifiers only from const blocks, which silently accepts an empty module key for an inline const. The generic checker improvement is base-owned and must be proposed in pantheon-base first (task #38); this round only keeps the ops-side declaration in the shape the current checker understands."
+    ]
+  },
+  "deliveryGovernance": {
+    "designGate": [
+      "each finding class mapped to the code path that actually produces it before editing",
+      "false-positive claims converted into an enforced invariant instead of a Sonar-only dismissal"
+    ],
+    "developmentGate": [
+      "verification-first fix ordering",
+      "no Sonar suppression, no new-code-period move, no gate change"
+    ],
+    "qaAcceptanceGate": [
+      "go build/vet/test, gorm checker plus checker unit tests, frontend lint/type-check/build, bash -n, governance suite",
+      "hosted workflows green on main and a fresh analysis dispatched on main"
+    ],
+    "githubGovernanceGate": [
+      "pr-governance",
+      "quality-gate read-back",
+      "recorded Sonar issue keys before transition"
+    ]
+  },
+  "structuralScope": {
+    "affectedSubgraph": [
+      "backend/modules/business GORM condition builders -> scripts/check-gorm-sql-literal.mjs -> docs-governance job -> SonarCloud new_security_rating",
+      "ArgoCD server record (ca_cert) -> NewArgoCDClient TLS config -> outbound Argo CD calls",
+      "filedist storage root -> resolveWithinRoot -> upload/download handlers",
+      "e2e scripts -> required target env -> Playwright run",
+      "frontend business pages -> i18n business resources -> placeholder rendering",
+      "business smell backlog -> rule-specific refactorings in 43 backend and 22 frontend files -> SonarCloud maintainability",
+      "aggregate CI steps -> EXPECTED_RESULT -> tests/scripts/{quality,security}-workflow.test.mjs"
+    ],
+    "riskNodes": [
+      "outbound TLS trust for registered Argo CD servers",
+      "filedist file storage path resolution",
+      "dynamic SQL construction across business modules",
+      "CI job composition in quality.yml"
+    ]
+  },
+  "verificationPlan": {
+    "commands": [
+      "cd backend && gofmt -l modules/business && go build ./... && go vet ./... && go test ./... -count=1",
+      "cd backend && golangci-lint run --new-from-rev=<main sha> ./... (same arguments and mode as the Go Lint job)",
+      "node scripts/check-gorm-sql-literal.mjs",
+      "node --test tests/scripts/check-gorm-sql-literal.test.mjs",
+      "cd frontend && npm run lint && npm run type-check && PANTHEON_CI=true npm run build",
+      "bash -n e2e-tests/auto-test.sh e2e-tests/run-real-machine-test.sh .harness/v1.2-tasks/generate_tasks.sh",
+      "node scripts/harness/check-structure-contract.mjs --root . --strict",
+      "node scripts/frontmatter-check.mjs",
+      "node scripts/business-overlay/check-business-overlay.mjs",
+      "node scripts/check-business-module-boundaries.mjs",
+      "node scripts/harness/check-ui-quality-gate.mjs --root . --strict",
+      "node scripts/check-encoding.mjs --strict",
+      "node scripts/create-pr.mjs --title ... --body-file .harness/evidence/2026-10-30-sonar-findings-remediation/pr-body.md",
+      "gh workflow run sonarcloud.yml --ref main",
+      "POST /api/issues/do_transition issue=<key> transition=falsepositive for each captured key, then re-read /api/qualitygates/project_status, /api/issues/search (OPEN,CONFIRMED,FALSE_POSITIVE,ACCEPTED,FIXED) and /api/hotspots/search?status=TO_REVIEW, recording every HTTP code in sonar-triage.json"
+    ],
+    "runtimeEvidence": [
+      "Sonar open-issue inventory before the change and the captured S3649 key list",
+      "quality-gate conditions read back before and after the transition",
+      "hosted workflow run conclusions on main",
+      "per-key post-transition status read back as RESOLVED/FALSE-POSITIVE with the issue keys retained for to_reopen"
+    ]
+  },
+  "runtimeSensitive": true,
+  "costProfile": {
+    "tokens": "medium",
+    "note": "one new sensor with its tests, plus targeted fixes across six business modules"
+  },
+  "linkage": {
+    "evidenceDir": ".harness/evidence/2026-10-30-sonar-findings-remediation/",
+    "reviewFile": ".harness/evidence/2026-10-30-sonar-findings-remediation/review.md",
+    "summaryFile": ".harness/evidence/2026-10-30-sonar-findings-remediation/summary.md",
+    "changeRef": "none",
+    "planRefs": [
+      "docs/harness/tasks/2026-10-30-sonar-findings-remediation.task.md",
+      "docs/harness/tasks/2026-10-29-sonar-ci-analysis-restore.task.md"
+    ]
+  },
+  "evidenceRequired": [
+    "issue inventory before and the gate reading after the change",
+    "command evidence for the Go, TypeScript, shell and governance matrices",
+    "recorded S3649 issue keys and the transition result",
+    "hosted workflow conclusions on main",
+    "review summary with explicit gaps"
+  ],
+  "completionChecklist": [
+    "Layer and boundary declared",
+    "Contract anchors read",
+    "Verification run or exception recorded",
+    "Evidence saved or summarized",
+    "Review completed"
+  ],
+  "historyCloseout": {
+    "date": "2026-11-17",
+    "originalStatus": "completed",
+    "disposition": "completed",
+    "basis": "main430a9f0 的原定量目标证据成立：全部facet零问题、gate OK、dup2.0。",
+    "residuals": [
+      {
+        "finding": "current candidate scan/coverage",
+        "owner": "Ops QA",
+        "successor": "2026-11-17-ops-history-audit",
+        "state": "open",
+        "proof": null
+      },
+      {
+        "finding": "Dependabot policy",
+        "owner": "maintainer",
+        "successor": "2026-11-17-ops-auto-merge-reconcile",
+        "state": "open",
+        "proof": null
+      },
+      {
+        "finding": "Vercel",
+        "owner": "external Vercel owner",
+        "successor": "2026-11-16-ops-pilot-release-closeout",
+        "state": "open",
+        "proof": null
+      }
+    ],
+    "evidence": ".harness/evidence/2026-11-17-ops-history-audit/dispositions.json",
+    "decisionSha256": "b1fe312c6e0e9a9a6ee3513b245196973c7559a322ffe53bf6cb378ea4dd07df",
+    "taskDoc": "docs/harness/tasks/2026-10-30-sonar-findings-remediation.task.md",
+    "taskDocGap": null
+  }
+}

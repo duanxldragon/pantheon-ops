@@ -1,3 +1,13 @@
+---
+title: 2026-06-18-branch-hygiene-slash-path-fix
+doc_type: Remediation
+layer: business
+status: Archived
+linked_contracts:
+  - docs/PROJECT_INHERITANCE.md
+updated_at: 2026-11-17
+---
+
 # Task Packet: 2026-06-18-branch-hygiene-slash-path-fix
 
 ## Goal
@@ -135,3 +145,11 @@ platform/governance
 - [ ] local branch-hygiene tests rerun
 - [ ] hosted residue cleanup rerun after merge
 - [ ] residual risk updated
+
+## Result — History Closeout 2026-11-17
+
+Manifest disposition: completed
+
+run27738932286 明确删除含斜杠的 PR58/59 分支，关闭原 hosted 缺证据；未重新执行删除。
+
+Residual finding/owner/successor/proof: .harness/evidence/2026-11-17-ops-history-audit/dispositions.json. Canonical references remain archive-aware. Historical body/evidence retained. Current candidate, production and maintainer gates remain separate.

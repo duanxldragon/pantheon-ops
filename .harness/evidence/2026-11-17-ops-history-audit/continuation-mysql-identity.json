@@ -1,0 +1,17 @@
+{
+  "parentProcessId": 10812,
+  "startupProcessId": 10812,
+  "configReadback": [
+    "33317\tD:\\\\workspace\\\\go\\\\pantheon-platform\\\\pantheon-ops\\\\.local\\\\manual-preview-20261116\\\\continuation-mysql\\\\data\\\\\t8.0.36\t2\t0\tREPEATABLE-READ\t50"
+  ],
+  "limitations": [
+    "Historical identity and ownership preserved before restart.",
+    "No production durability acceptance; flush=2 and binlog disabled."
+  ],
+  "recordedAt": "2026-11-17T12:30:39.4177782Z",
+  "processStartTime": "2026-11-17T12:28:15.3154640Z",
+  "localAddress": "127.0.0.1",
+  "processId": 20328,
+  "commandLine": "D:\\MySQL\\mysql\\bin\\mysqld.exe --no-defaults --datadir=D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\manual-preview-20261116\\continuation-mysql\\data --port=33317 --bind-address=127.0.0.1 --mysqlx=0 --skip-log-bin --upgrade=NONE --innodb-flush-log-at-trx-commit=2 --console",
+  "executable": "D:\\MySQL\\mysql\\bin\\mysqld.exe"
+}

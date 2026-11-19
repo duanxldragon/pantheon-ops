@@ -2,10 +2,10 @@
 title: Consume pantheon-base-v0.18.1 into pantheon-ops
 doc_type: Remediation
 layer: inheritance-sync
-status: Active
+status: Archived
 linked_contracts:
   - docs/PROJECT_INHERITANCE.md
-updated_at: 2026-10-29
+updated_at: 2026-11-17
 ---
 
 # Task Packet: 2026-10-29-foundation-upgrade-base-v0-18-1
@@ -222,3 +222,11 @@ inheritance-sync
 - [x] Verification run or exception recorded
 - [x] Evidence saved or summarized
 - [x] Review completed
+
+## Result — History Closeout 2026-11-17
+
+Manifest disposition: completed
+
+批准的v0181消费已完成；原review D5记录10/31关闭，当前候选仍单独验收。
+
+Residual finding/owner/successor/proof: .harness/evidence/2026-11-17-ops-history-audit/dispositions.json. Canonical references remain archive-aware. Historical body/evidence retained. Current candidate, production and maintainer gates remain separate.

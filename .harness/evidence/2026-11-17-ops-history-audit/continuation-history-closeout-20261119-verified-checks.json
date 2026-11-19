@@ -1,0 +1,82 @@
+[
+  {
+    "name": "task",
+    "command": "node scripts/harness/check-task-packet.mjs --json",
+    "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+    "status": "failed",
+    "exitCode": 1,
+    "started": "2026-11-19T00:21:34.071Z",
+    "finishedAt": "2026-11-19T00:21:34.475Z",
+    "evidence": ".harness/evidence/2026-11-17-ops-history-audit/continuation-history-closeout-20261119-verified-task.json"
+  },
+  {
+    "name": "evidence",
+    "command": "node scripts/harness/check-evidence.mjs --json --strict",
+    "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+    "status": "failed",
+    "exitCode": 1,
+    "started": "2026-11-19T00:21:34.479Z",
+    "finishedAt": "2026-11-19T00:21:36.200Z",
+    "evidence": ".harness/evidence/2026-11-17-ops-history-audit/continuation-history-closeout-20261119-verified-evidence.json"
+  },
+  {
+    "name": "review",
+    "command": "node scripts/harness/check-review.mjs --json --strict",
+    "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+    "status": "failed",
+    "exitCode": 1,
+    "started": "2026-11-19T00:21:36.201Z",
+    "finishedAt": "2026-11-19T00:21:37.072Z",
+    "evidence": ".harness/evidence/2026-11-17-ops-history-audit/continuation-history-closeout-20261119-verified-review.json"
+  },
+  {
+    "name": "links",
+    "command": "node scripts/harness/check-doc-links.mjs --json --strict",
+    "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+    "status": "failed",
+    "exitCode": 1,
+    "started": "2026-11-19T00:21:37.073Z",
+    "finishedAt": "2026-11-19T00:21:37.728Z",
+    "evidence": ".harness/evidence/2026-11-17-ops-history-audit/continuation-history-closeout-20261119-verified-links.json"
+  },
+  {
+    "name": "frontmatter",
+    "command": "node scripts/frontmatter-check.mjs",
+    "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+    "status": "passed",
+    "exitCode": 0,
+    "started": "2026-11-19T00:21:37.728Z",
+    "finishedAt": "2026-11-19T00:21:38.118Z",
+    "evidence": ".harness/evidence/2026-11-17-ops-history-audit/continuation-history-closeout-20261119-verified-frontmatter.log"
+  },
+  {
+    "name": "template",
+    "command": "node scripts/check-task-packet-template.mjs",
+    "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+    "status": "passed",
+    "exitCode": 0,
+    "started": "2026-11-19T00:21:38.118Z",
+    "finishedAt": "2026-11-19T00:21:38.264Z",
+    "evidence": ".harness/evidence/2026-11-17-ops-history-audit/continuation-history-closeout-20261119-verified-template.log"
+  },
+  {
+    "name": "overlay",
+    "command": "node scripts/business-overlay/check-business-overlay.mjs",
+    "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+    "status": "passed",
+    "exitCode": 0,
+    "started": "2026-11-19T00:21:38.264Z",
+    "finishedAt": "2026-11-19T00:21:38.547Z",
+    "evidence": ".harness/evidence/2026-11-17-ops-history-audit/continuation-history-closeout-20261119-verified-overlay.log"
+  },
+  {
+    "name": "boundaries",
+    "command": "node scripts/check-business-module-boundaries.mjs",
+    "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+    "status": "passed",
+    "exitCode": 0,
+    "started": "2026-11-19T00:21:38.547Z",
+    "finishedAt": "2026-11-19T00:21:38.672Z",
+    "evidence": ".harness/evidence/2026-11-17-ops-history-audit/continuation-history-closeout-20261119-verified-boundaries.log"
+  }
+]

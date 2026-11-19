@@ -1,0 +1,9 @@
+{
+  "ready": true,
+  "port": 26316,
+  "oldProcessId": 29520,
+  "reason": "Full CGO race observed task-owned Redis connection refused; restore isolated fixture without changing test behavior.",
+  "oldOwnershipBackup": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.harness\\evidence\\2026-11-17-ops-history-audit\\continuation-c01-redis-ownership-before-20261117-214539.json",
+  "newProcessId": 7928,
+  "recordedAt": "2026-11-17T13:45:39.8553732Z"
+}
