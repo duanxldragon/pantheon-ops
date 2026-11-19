@@ -1,0 +1,94 @@
+{
+  "taskId": "2026-11-17-ops-history-audit",
+  "recordedAtUTC": "2026-11-19T00:43:04.518Z",
+  "passed": true,
+  "command": {
+    "executable": "D:\\nodejs\\node.exe",
+    "args": [
+      "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\node_modules\\prettier\\bin\\prettier.cjs",
+      "--write",
+      ".harness/archive/2026-08/tasks/2026-08-17-ops-foundation-hardening/EXECUTION_QUEUE.md",
+      ".harness/archive/2026-08/tasks/2026-08-17-ops-foundation-hardening/STATUS.md",
+      ".harness/archive/2026-08/evidence/ops-deploy-immutability-idempotency/summary.md",
+      ".harness/archive/2026-08/evidence/ops-service-instance-foundation/review.md",
+      ".harness/archive/2026-08/evidence/ops-service-instance-foundation/summary.md",
+      ".harness/archive/2026-10/evidence/2026-10-31-frontend-follow-redirects-audit/review.md",
+      ".harness/archive/2026-11/evidence/2026-11-13-base-v0187-consumption/architect.md",
+      ".harness/archive/2026-11/evidence/2026-11-13-base-v0187-consumption/code-reviewer.md",
+      ".harness/archive/2026-11/evidence/2026-11-13-base-v0187-consumption/review.md"
+    ],
+    "cwd": "isolated temporary fixture",
+    "exitCode": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  "files": [
+    {
+      "file": ".harness/archive/2026-08/tasks/2026-08-17-ops-foundation-hardening/EXECUTION_QUEUE.md",
+      "expectedSHA256": "73912691c9fea761348644c4dcd3d599bcc813db1a58cf53f2ce574a18b5f43b",
+      "fixtureSHA256": "73912691c9fea761348644c4dcd3d599bcc813db1a58cf53f2ce574a18b5f43b",
+      "currentSHA256": "73912691c9fea761348644c4dcd3d599bcc813db1a58cf53f2ce574a18b5f43b"
+    },
+    {
+      "file": ".harness/archive/2026-08/tasks/2026-08-17-ops-foundation-hardening/STATUS.md",
+      "expectedSHA256": "feb542a688606dce99d9ba174288c200c9a4c0a78ad7069cf11f841aa8f71e29",
+      "fixtureSHA256": "feb542a688606dce99d9ba174288c200c9a4c0a78ad7069cf11f841aa8f71e29",
+      "currentSHA256": "feb542a688606dce99d9ba174288c200c9a4c0a78ad7069cf11f841aa8f71e29"
+    },
+    {
+      "file": ".harness/archive/2026-08/evidence/ops-deploy-immutability-idempotency/summary.md",
+      "expectedSHA256": "3c33627beee44251be79e97c98274139d4a5ac98b28fcc8b81db27585a817407",
+      "fixtureSHA256": "3c33627beee44251be79e97c98274139d4a5ac98b28fcc8b81db27585a817407",
+      "currentSHA256": "3c33627beee44251be79e97c98274139d4a5ac98b28fcc8b81db27585a817407"
+    },
+    {
+      "file": ".harness/archive/2026-08/evidence/ops-service-instance-foundation/review.md",
+      "expectedSHA256": "e3d98dfb09129c100f97d46472eeb728fadd3ff241ed79a8f8609ea3a01bcfec",
+      "fixtureSHA256": "e3d98dfb09129c100f97d46472eeb728fadd3ff241ed79a8f8609ea3a01bcfec",
+      "currentSHA256": "e3d98dfb09129c100f97d46472eeb728fadd3ff241ed79a8f8609ea3a01bcfec"
+    },
+    {
+      "file": ".harness/archive/2026-08/evidence/ops-service-instance-foundation/summary.md",
+      "expectedSHA256": "50e6264789dc4e018f441e240f9f944ea84bd9f87fb7445f4a51462fd6267bd1",
+      "fixtureSHA256": "50e6264789dc4e018f441e240f9f944ea84bd9f87fb7445f4a51462fd6267bd1",
+      "currentSHA256": "50e6264789dc4e018f441e240f9f944ea84bd9f87fb7445f4a51462fd6267bd1"
+    },
+    {
+      "file": ".harness/archive/2026-10/evidence/2026-10-31-frontend-follow-redirects-audit/review.md",
+      "expectedSHA256": "ab86e22e47d6936144ec9da85483e9291b0eaf2a98073943407c561603d4dbe7",
+      "fixtureSHA256": "ab86e22e47d6936144ec9da85483e9291b0eaf2a98073943407c561603d4dbe7",
+      "currentSHA256": "ab86e22e47d6936144ec9da85483e9291b0eaf2a98073943407c561603d4dbe7"
+    },
+    {
+      "file": ".harness/archive/2026-11/evidence/2026-11-13-base-v0187-consumption/architect.md",
+      "expectedSHA256": "1ada044eb2bc2d80d808d7888c4846ac831ab4798216d01a2767f2e46457fb4b",
+      "fixtureSHA256": "1ada044eb2bc2d80d808d7888c4846ac831ab4798216d01a2767f2e46457fb4b",
+      "currentSHA256": "1ada044eb2bc2d80d808d7888c4846ac831ab4798216d01a2767f2e46457fb4b"
+    },
+    {
+      "file": ".harness/archive/2026-11/evidence/2026-11-13-base-v0187-consumption/code-reviewer.md",
+      "expectedSHA256": "5e685e2718c0fc9601e38f55219b18d17b80bc2a74831b3ec10552ba8d8214a0",
+      "fixtureSHA256": "5e685e2718c0fc9601e38f55219b18d17b80bc2a74831b3ec10552ba8d8214a0",
+      "currentSHA256": "5e685e2718c0fc9601e38f55219b18d17b80bc2a74831b3ec10552ba8d8214a0"
+    },
+    {
+      "file": ".harness/archive/2026-11/evidence/2026-11-13-base-v0187-consumption/review.md",
+      "expectedSHA256": "6203106840d76612c7f9933f3eb159f7e53fb6186260d689669a7bd815dff3ca",
+      "fixtureSHA256": "6203106840d76612c7f9933f3eb159f7e53fb6186260d689669a7bd815dff3ca",
+      "currentSHA256": "6203106840d76612c7f9933f3eb159f7e53fb6186260d689669a7bd815dff3ca"
+    }
+  ],
+  "baseIgnore": {
+    "file": "../pantheon-base/.prettierignore",
+    "sha256": "e0a85208aee1dc01824062f70edb81292c45f2dbe2262f43e85ca836a23bbc56"
+  },
+  "foundationLock": {
+    "file": "foundation-release.lock.json",
+    "sha256": "14417d10b6ac9fc6eb0c24069b8c2b099abef2f0ad22536c402df06de4eaf1fc",
+    "unchanged": true
+  },
+  "currentOpsProtectedByDefault": false,
+  "downstreamAdopted": false,
+  "productTestsRerun": false,
+  "boundary": "Temporary fixture demonstrates the Base source fix against all nine recovered originals. Ops default formatting remains unprotected until formal release consumption; no current shared tree or lock change."
+}

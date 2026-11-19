@@ -1,0 +1,18 @@
+{
+  "testDsnRequired": "1",
+  "cgoEnabled": "1",
+  "exitCode": 0,
+  "log": "continuation-full-race-disposable-serial.log",
+  "args": [
+    "test",
+    "-race",
+    "-count=1",
+    "-timeout=10m",
+    "./..."
+  ],
+  "disposableMySQL": true,
+  "finishedAt": "2026-11-17T08:10:07.4405275Z",
+  "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\backend",
+  "goFlags": "-p=1 -mod=readonly",
+  "startedAt": "2026-11-17T07:46:53.3080953Z"
+}

@@ -1,0 +1,21 @@
+{
+  "log": "continuation-c01-service-link-expanded.log",
+  "goFlags": "-p=1 -mod=readonly",
+  "finishedAt": "2026-11-17T11:32:27.7769793Z",
+  "cgoEnabled": "1",
+  "testDsnRequired": "1",
+  "disposableMySQL": true,
+  "args": [
+    "test",
+    "-race",
+    "-count=1",
+    "-timeout=10m",
+    "./modules/business/deploy",
+    "-v",
+    "-run",
+    "^TestServiceLinkAdmission"
+  ],
+  "startedAt": "2026-11-17T11:30:57.4462688Z",
+  "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\backend",
+  "exitCode": 1
+}

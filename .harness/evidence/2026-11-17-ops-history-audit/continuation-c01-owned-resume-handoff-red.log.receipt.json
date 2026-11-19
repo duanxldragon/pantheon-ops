@@ -1,0 +1,21 @@
+{
+  "args": [
+    "test",
+    "-race",
+    "-count=1",
+    "-timeout=10m",
+    "./modules/business/deploy",
+    "-v",
+    "-run",
+    "^TestWorkerHandoffOwnedPauseResumeDispatch$"
+  ],
+  "startedAt": "2026-11-17T14:55:51.3945514Z",
+  "exitCode": 1,
+  "log": "continuation-c01-owned-resume-handoff-red.log",
+  "goFlags": "-p=1 -mod=readonly",
+  "testDsnRequired": "1",
+  "disposableMySQL": true,
+  "finishedAt": "2026-11-17T14:56:10.5173279Z",
+  "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\backend",
+  "cgoEnabled": "1"
+}

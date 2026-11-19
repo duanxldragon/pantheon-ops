@@ -1,0 +1,5 @@
+{
+  "exitCode": 1,
+  "stdout": "",
+  "stderr": "\u001b[31;1mParentContainsErrorRecordException: \u001b[0mD:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\manual-preview-20261116\\verify-advisor-owned-job.ps1:24\u001b[0m\r\n\u001b[31;1m\u001b[0m\u001b[36;1mLine |\u001b[0m\r\n\u001b[31;1m\u001b[0m\u001b[36;1m\u001b[36;1m  24 | \u001b[0m     \u001b[36;1m$ownedDescendant=[Diagnostics.Process]::GetProcessById($ownedDesc\u001b[0m ��\u001b[0m\r\n\u001b[31;1m\u001b[0m\u001b[36;1m\u001b[36;1m\u001b[0m\u001b[36;1m\u001b[0m\u001b[36;1m     | \u001b[31;1m     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\u001b[0m\r\n\u001b[31;1m\u001b[0m\u001b[36;1m\u001b[36;1m\u001b[0m\u001b[36;1m\u001b[0m\u001b[36;1m\u001b[31;1m\u001b[31;1m\u001b[36;1m     | \u001b[31;1m���á�GetProcessById�������롰1��������ʱ�����쳣����Process with an Id of 33936 is not running.��\u001b[0m\r\n"
+}

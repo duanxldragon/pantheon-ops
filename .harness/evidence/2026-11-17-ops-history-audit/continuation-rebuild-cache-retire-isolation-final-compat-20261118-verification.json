@@ -1,0 +1,52 @@
+[
+  {
+    "name": "official-rebuild-final-retire-isolation-final-compat-20261118",
+    "executable": "D:\\nodejs\\node.exe",
+    "args": [
+      "--import=file:///D:/workspace/go/pantheon-platform/pantheon-ops/.local/manual-preview-20261116/hide-child-windows.mjs",
+      "scripts/business-overlay/rebuild-from-base.mjs",
+      "--target",
+      ".local/manual-preview-20261116/overlay-history-continuation-final-retire-isolation-final-compat-20261118"
+    ],
+    "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+    "startedAt": "2026-11-18T04:52:17.571Z",
+    "finishedAt": "2026-11-18T04:52:43.930Z",
+    "exitCode": 0,
+    "status": "passed",
+    "log": ".harness/evidence/2026-11-17-ops-history-audit/continuation-official-rebuild-final-retire-isolation-final-compat-20261118.log",
+    "errorCode": null
+  },
+  {
+    "name": "staged-overlay-final-retire-isolation-final-compat-20261118",
+    "executable": "D:\\nodejs\\node.exe",
+    "args": [
+      "--import=file:///D:/workspace/go/pantheon-platform/pantheon-ops/.local/manual-preview-20261116/hide-child-windows.mjs",
+      "scripts/business-overlay/check-business-overlay.mjs",
+      "--root",
+      ".local/manual-preview-20261116/overlay-history-continuation-final-retire-isolation-final-compat-20261118"
+    ],
+    "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+    "startedAt": "2026-11-18T04:52:43.933Z",
+    "finishedAt": "2026-11-18T04:52:44.059Z",
+    "exitCode": 0,
+    "status": "passed",
+    "log": ".harness/evidence/2026-11-17-ops-history-audit/continuation-staged-overlay-final-retire-isolation-final-compat-20261118.log",
+    "errorCode": null
+  },
+  {
+    "name": "staged-drift-official-cache-final-retire-isolation-final-compat-20261118",
+    "executable": "D:\\nodejs\\node.exe",
+    "args": [
+      "--import=file:///D:/workspace/go/pantheon-platform/pantheon-ops/.local/manual-preview-20261116/hide-child-windows.mjs",
+      ".local/manual-preview-20261116/check-staged-official-cache-drift.mjs",
+      ".local/manual-preview-20261116/overlay-history-continuation-final-retire-isolation-final-compat-20261118"
+    ],
+    "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+    "startedAt": "2026-11-18T04:52:44.060Z",
+    "finishedAt": "2026-11-18T04:52:54.893Z",
+    "exitCode": 0,
+    "status": "passed",
+    "log": ".harness/evidence/2026-11-17-ops-history-audit/continuation-staged-drift-official-cache-final-retire-isolation-final-compat-20261118.log",
+    "errorCode": null
+  }
+]

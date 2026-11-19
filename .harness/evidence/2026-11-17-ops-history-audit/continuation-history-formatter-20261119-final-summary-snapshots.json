@@ -1,0 +1,14 @@
+[
+  {
+    "file": ".harness/evidence/2026-11-17-ops-history-audit/summary.md",
+    "backup": ".harness/evidence/2026-11-17-ops-history-audit/formatter-followup-originals-20261119/summary-before-final-link.md.raw",
+    "beforeSHA256": "da7e25afc248795ad2b28cfcfa02203504104f0da40d27bda885cc4ec7f9cfd8",
+    "afterSHA256": "62c890da2450ef50b59c67cd0f98446414baa61deabd53e80b0abfe1319043ac"
+  },
+  {
+    "file": "D:\\workspace\\go\\pantheon-platform\\pantheon-base\\.harness\\evidence\\2026-11-19-archive-formatter-protection\\summary.md",
+    "backup": "D:\\workspace\\go\\pantheon-platform\\pantheon-base\\.harness\\evidence\\2026-11-19-archive-formatter-protection\\metadata-originals\\summary-before-final-link.md.raw",
+    "beforeSHA256": "c523fed25837c8d3c55a5f41c834efd884388695408b0dfc470ff68f711c2515",
+    "afterSHA256": "96537cde353f09b5a2e8469b1e9de5e36b205fb6fa45264c10c6745f6d4060e0"
+  }
+]

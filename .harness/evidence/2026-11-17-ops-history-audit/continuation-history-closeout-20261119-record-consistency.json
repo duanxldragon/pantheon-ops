@@ -1,0 +1,52 @@
+{
+  "taskId": "2026-11-17-ops-history-audit",
+  "recordedAtUTC": "2026-11-19T00:21:32.049Z",
+  "written": [
+    ".harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-progress-final-20261118.json",
+    ".harness/evidence/2026-11-16-ops-pilot-delivery/commands.json",
+    ".harness/evidence/2026-11-17-ops-history-audit/summary.md",
+    ".harness/STATUS.md",
+    ".harness/evidence/2026-11-17-ops-history-audit/progress.md",
+    ".harness/ARCHIVE.md",
+    ".harness/tasks/2026-11-17-ops-history-audit/manifest.json"
+  ],
+  "preserved": [
+    {
+      "file": ".harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-progress-final-20261118.json",
+      "original": ".harness/evidence/2026-11-17-ops-history-audit/final-record-originals-20261119/.harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-progress-final-20261118.json.raw",
+      "sha256": "16701ef19810d76b3e26b24eae3e9f01f991207c9e66da9a09170055c043c657"
+    },
+    {
+      "file": ".harness/evidence/2026-11-16-ops-pilot-delivery/commands.json",
+      "original": ".harness/evidence/2026-11-17-ops-history-audit/final-record-originals-20261119/.harness/evidence/2026-11-16-ops-pilot-delivery/commands.json.raw",
+      "sha256": "35ffe63b7c9e6ba1f3a86686df687e0e8204bb5bbc816d9ae8762a62a4eaed6a"
+    },
+    {
+      "file": ".harness/evidence/2026-11-17-ops-history-audit/summary.md",
+      "original": ".harness/evidence/2026-11-17-ops-history-audit/final-record-originals-20261119/.harness/evidence/2026-11-17-ops-history-audit/summary.md.raw",
+      "sha256": "db69a9b0c66759dbded83bb6eac7c485eeff4d709619c6ddce22e37c793e40c8"
+    },
+    {
+      "file": ".harness/STATUS.md",
+      "original": ".harness/evidence/2026-11-17-ops-history-audit/final-record-originals-20261119/.harness/STATUS.md.raw",
+      "sha256": "e03c832b3cb0366ad490a50b3f24fa1c49ec02097ab34b258dcdf6f749ae22a2"
+    },
+    {
+      "file": ".harness/evidence/2026-11-17-ops-history-audit/progress.md",
+      "original": ".harness/evidence/2026-11-17-ops-history-audit/final-record-originals-20261119/.harness/evidence/2026-11-17-ops-history-audit/progress.md.raw",
+      "sha256": "404105fbe413e34ed20469ba08b1a059248476b0fe5af2cbd6284094711b9e84"
+    },
+    {
+      "file": ".harness/ARCHIVE.md",
+      "original": ".harness/evidence/2026-11-17-ops-history-audit/final-record-originals-20261119/.harness/ARCHIVE.md.raw",
+      "sha256": "ffec10318162741c2bd0630c17ceac8fc9a0c41cee7a38f25036bdcbcfeb1f3e"
+    },
+    {
+      "file": ".harness/tasks/2026-11-17-ops-history-audit/manifest.json",
+      "original": ".harness/evidence/2026-11-17-ops-history-audit/final-record-originals-20261119/.harness/tasks/2026-11-17-ops-history-audit/manifest.json.raw",
+      "sha256": "a2cc34ac758fae4277cd282661c949bba42f590d9f2c5e429c8616c39d4572b6"
+    }
+  ],
+  "progressFile": ".harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-progress-final-20261118.json",
+  "wholeProjectAccepted": false
+}

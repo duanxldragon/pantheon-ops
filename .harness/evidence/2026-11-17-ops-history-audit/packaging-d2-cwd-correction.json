@@ -1,0 +1,18 @@
+{
+  "recordedAt": "2026-11-17T06:35:41.252Z",
+  "original": {
+    "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/commands.json",
+    "backup": ".harness/evidence/2026-11-17-ops-history-audit/packaging-before-correction/nov7-commands-before-d2-cwd.json",
+    "sha256": "319b2ee0811ed6417561048649d5ddc9818ad4a4553e65f844c2bef1bbf8c3ce"
+  },
+  "correctedSha256": "bdc57da393593014fbe1daa21a849bcccc89fb0d0b02fb5e94ef6daffad2859a",
+  "oldCwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+  "newCwd": null,
+  "originalLogs": [
+    {
+      "file": ".harness/evidence/2026-11-07-ops-planned-task-closeout/d2-complete.log",
+      "sha256": "28369292bc55685be75484c7705aeb2382a0bb356b4e50a38816403b298fb3e1"
+    }
+  ],
+  "note": "Additive correction receipt. Earlier frozen receipt hashes remain unchanged and describe their own revision."
+}

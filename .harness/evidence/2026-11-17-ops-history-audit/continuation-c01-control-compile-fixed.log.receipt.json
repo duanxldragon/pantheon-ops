@@ -1,0 +1,21 @@
+{
+  "args": [
+    "test",
+    "-race",
+    "-count=1",
+    "-timeout=10m",
+    "./modules/business/deploy",
+    "-v",
+    "-run",
+    "^TestServiceLinkControl|^TestServiceTransaction|^TestCancellationUnclaimed"
+  ],
+  "goFlags": "-p=1 -mod=readonly",
+  "disposableMySQL": true,
+  "testDsnRequired": "1",
+  "cgoEnabled": "1",
+  "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\backend",
+  "finishedAt": "2026-11-17T12:37:22.5234415Z",
+  "exitCode": 0,
+  "startedAt": "2026-11-17T12:36:13.1751067Z",
+  "log": "continuation-c01-control-compile-fixed.log"
+}

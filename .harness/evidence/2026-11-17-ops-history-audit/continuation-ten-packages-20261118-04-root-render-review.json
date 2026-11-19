@@ -1,0 +1,57 @@
+{
+  "schema": "pantheon.coordinator-render-review.v1",
+  "reviewer": "/root",
+  "recordedAtUTC": "2026-11-18T10:21:26.2429333Z",
+  "uiReceipt": ".harness/evidence/2026-11-16-ops-filedist-product-closure/ui-readonly-ten-packages-20261118-04.json",
+  "uiReceiptSHA256": "fe83d8b82bc2d3b36a5e705230af147bbd44b05f15bd3cd0d4cb62c10c0e23e8",
+  "impeccableApplied": true,
+  "surface": "FileDist operational list, creation form and detail states",
+  "intendedFeel": "Dense, calm operational surfaces with clear actions and recoverable errors, following existing Base tokens.",
+  "renderedImagesActuallyViewed": true,
+  "viewedScreenshotNames": [
+    "desktop-live-task-list",
+    "desktop-live-create-modal",
+    "desktop-live-detail-404",
+    "desktop-fixture-task-list",
+    "desktop-fixture-create-auth-password",
+    "desktop-fixture-create-auth-private-key",
+    "desktop-fixture-private-key-footer",
+    "mobile-live-task-list",
+    "mobile-live-create-modal",
+    "mobile-live-detail-404",
+    "mobile-fixture-task-list",
+    "mobile-fixture-create-auth-password",
+    "mobile-fixture-create-auth-private-key",
+    "mobile-fixture-private-key-footer",
+    "desktop-fixture-detail-loading",
+    "desktop-fixture-detail-403",
+    "desktop-fixture-detail-503",
+    "desktop-fixture-detail-offline",
+    "desktop-fixture-detail-pending",
+    "desktop-fixture-detail-partial",
+    "desktop-fixture-detail-completed"
+  ],
+  "viewports": [ { "width": 1440, "height": 900 }, { "width": 390, "height": 844 } ],
+  "observations": [
+    "Live desktop task actions show translated 详情. Mobile uses an explicitly labelled horizontal data-table scroll region; it is not whole-page overflow.",
+    "Live 404 uses one page error with retry, with zero shared-toast insertions recorded by the browser observer. Fixture 403, 503 and offline errors preserve page feedback without duplicate shared toasts.",
+    "Creation controls remain labelled in desktop and single-column mobile layouts. Password/private-key switching is checked by the script for clearing the previous credential.",
+    "Private-key auth snapshots intentionally show the authentication region while footer buttons are partly beyond that scroll position. Separate desktop/mobile footer snapshots and bounds assertions demonstrate both buttons fully enter the viewport after scrolling; cancel is exercised, create is never clicked.",
+    "Loading and empty target-list states render. Pending/partial/completed fixtures exercise action visibility only; their counters do not establish real task-state/provider correctness."
+  ],
+  "priorEvidence": {
+    "run01": "Preserved failure; initial live images exposed the translation and duplicate-toast defects subsequently fixed.",
+    "run02": "Preserved failure; whole-form exact-text matching confused an auth-mode value with a field label. QA now restricts matching to label nodes and asserts uniqueness.",
+    "run03": "Preserved successful 19 captures and exact script bytes. Root viewed 17 images; footer reachability required additional evidence, supplied by run04. Runs are not summed as unique scenarios."
+  },
+  "narrowVisualVerification": "PASS",
+  "verdict": "COMMENT",
+  "remainingGaps": [
+    "Real SSH transfer, source authorizer/provider, restricted-role and full package acceptance are not exercised.",
+    "Dark mode, complete keyboard navigation and the full mobile detail-state matrix are not verified in this run.",
+    "Runtime reads use a local administrator. Resolver/catalog/detail fixtures are browser-only and do not prove provider execution, backend authorization or writes.",
+    "Final maintainer functional and visual acceptance remains open."
+  ],
+  "allPackagesAccepted": false,
+  "wholeProductVisualPolishClaimed": false
+}

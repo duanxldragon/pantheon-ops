@@ -2,10 +2,10 @@
 title: Consume pantheon-base-v0.17.6 into pantheon-ops
 doc_type: Remediation
 layer: inheritance-sync
-status: Active
+status: Archived
 linked_contracts:
   - docs/PROJECT_INHERITANCE.md
-updated_at: 2026-10-27
+updated_at: 2026-11-17
 ---
 
 # Task Packet: 2026-10-27-foundation-upgrade-base-v0-17-6
@@ -124,7 +124,7 @@ inheritance-sync
 
 - `rebuild-from-base.mjs` resolves the base from the lock when `--base` is omitted: it uses the
   materialized `.foundation/releases/pantheon-base-v0.17.6/` archive, verifies `releaseArtifact
-  .checksum` and `repoSnapshot.sha256`, extracts `repo.tar`, and asserts
+.checksum` and `repoSnapshot.sha256`, extracts `repo.tar`, and asserts
   `repoSnapshot.baseCommit === lock.baseCommit`. Nothing in this round reads `../pantheon-base`
   as a base source; only the drift gate compares against it.
 - The v0.17.6 materialization keeps the bundle inside the tgz, so it has no pre-extracted `bundle/`
@@ -192,3 +192,11 @@ inheritance-sync
 - [x] Verification run or exception recorded
 - [x] Evidence saved or summarized
 - [x] Review completed
+
+## Result — History Closeout 2026-11-17
+
+Manifest disposition: completed
+
+保留批准的v0176消费范围；逐项保留C1/C2/C4责任，case-only改名方案为历史接受项。
+
+Residual finding/owner/successor/proof: .harness/evidence/2026-11-17-ops-history-audit/dispositions.json. Canonical references remain archive-aware. Historical body/evidence retained. Current candidate, production and maintainer gates remain separate.

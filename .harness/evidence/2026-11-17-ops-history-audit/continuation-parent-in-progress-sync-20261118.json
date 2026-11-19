@@ -1,0 +1,28 @@
+{
+  "recordedAt": "2026-11-17T17:43:14.334Z",
+  "taskStatusBefore": "planned",
+  "taskStatusAfter": "in-progress",
+  "rationale": "Parent task manifest/doc lagged behind executing queue and real C01/C03/C04 evidence. No completion or scope change.",
+  "goalStatusesChanged": false,
+  "archivesAdded": 0,
+  "files": [
+    {
+      "file": ".harness/tasks/2026-11-16-ops-pilot-delivery/manifest.json",
+      "backup": ".harness/evidence/2026-11-17-ops-history-audit/continuation-parent-in-progress-originals-20261118/.harness/tasks/2026-11-16-ops-pilot-delivery/manifest.json.raw",
+      "beforeSha256": "5df115086494a617523563ca1e5d916cc0b7a88b2d7ba972579408a9374771c6",
+      "afterSha256": "9e72b5efa51930539a018bf9c4f36e44ad0e6f853cbe3f982abea447fd3c8713"
+    },
+    {
+      "file": "docs/harness/tasks/2026-11-16-ops-pilot-delivery.task.md",
+      "backup": ".harness/evidence/2026-11-17-ops-history-audit/continuation-parent-in-progress-originals-20261118/docs/harness/tasks/2026-11-16-ops-pilot-delivery.task.md.raw",
+      "beforeSha256": "7f082347afa7c4788ed75abd0af440c42f6386408ba843cb8c0d45bb302cf869",
+      "afterSha256": "e240f828296b257eed152ad6a021ae76d395f1b8717031388e5982be8164c2b7"
+    },
+    {
+      "file": ".harness/tasks/2026-11-16-ops-pilot-delivery/plan.md",
+      "backup": ".harness/evidence/2026-11-17-ops-history-audit/continuation-parent-in-progress-originals-20261118/.harness/tasks/2026-11-16-ops-pilot-delivery/plan.md.raw",
+      "beforeSha256": "0d44e16ea1e12ea025f2c6000d5204024f77e80637ec6abca08906aeb8b8151c",
+      "afterSha256": "262d7b47ec01ace88ce1262824095fe952febb00c99531f270e140d8d68bd482"
+    }
+  ]
+}

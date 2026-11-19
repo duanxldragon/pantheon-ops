@@ -1,0 +1,64 @@
+{
+  "recordedAt": "2026-11-17T04:53:50.458Z",
+  "parentTask": "2026-11-17-ops-history-audit",
+  "historicalSubject": "2026-06-20-business-closure-permission-scope",
+  "currentCandidate": "uncommitted workspace; source byte hashes below",
+  "prerequisites": {
+    "cgoEnabled": "1",
+    "mingwPath": "D:/msys64/mingw64/bin",
+    "requiredIsolatedTestMysql": true
+  },
+  "tests": {
+    "deployTopLevel": 8,
+    "bizscopeTopLevel": 4,
+    "newWriteRegressionSubcases": 3
+  },
+  "status": "partial evidence; historical task not closed",
+  "remaining": [
+    "current full race remains previously failed",
+    "runtime and final role/UI acceptance not complete"
+  ],
+  "sources": [
+    {
+      "path": "backend/modules/business/deploy/task_write_scope_test.go",
+      "sha256": "918dabfb3fbbc954072151c9c53f5d7b1343f334901e072a9bb25ccac3a9bdab"
+    },
+    {
+      "path": "backend/modules/business/deploy/deploy_handler.go",
+      "sha256": "50f1ccc7e17181b556d3fb97c2e31868324827e9deebe57ec26b65dfa52094d5"
+    },
+    {
+      "path": "backend/modules/business/deploy/target_selection.go",
+      "sha256": "886bceb5300111a04a42b297c03c9307c0fffbe9f25de8bdf9c433645ea56f0a"
+    },
+    {
+      "path": "backend/modules/business/deploy/deploy_service.go",
+      "sha256": "0707efe96f135cddbe8e1689517898b3b68068a8a7128eaad1a7f15d671db84c"
+    },
+    {
+      "path": "backend/modules/business/bizscope/bizscope_service.go",
+      "sha256": "bcad89797528e5154ead60667953c5e640092bb99f01dde8e674bc06fad79765"
+    },
+    {
+      "path": "frontend/src/modules/business/bizscope/index.ts",
+      "sha256": "ca06909583159c5343843ee72011fff07196c8ad6f5019eb4beab43ba23ba207"
+    },
+    {
+      "path": "backend/modules/business/bizscope/module.go",
+      "sha256": "cf44e3010bca064e0a5a365a49646368a8f93b2ac88aaa7ee4e38809639af989"
+    }
+  ],
+  "finalWriteRegression": {
+    "status": "passed",
+    "log": "../2026-11-16-ops-navigation-repair/go-race-june20-write-scope-final.log",
+    "positiveScope": "Dept20 non-admin",
+    "negativeScope": "Dept999",
+    "validFixtures": true,
+    "assertions": [
+      "same valid request succeeds in scope",
+      "denied request does not change task/all-host rows/event count"
+    ],
+    "review": ".harness/evidence/2026-11-17-ops-history-audit/june20-write-scope-review.md: COMMENT, static MEDIUM closed; final actual race independently read; LSP/AST/global final gate open"
+  },
+  "intentDisposition": "BizScope do-not-reuse-list subrequirement superseded by Active2026-07-18 design; rest of historical subject remains open"
+}

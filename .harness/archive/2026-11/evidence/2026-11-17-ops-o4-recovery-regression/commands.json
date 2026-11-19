@@ -1,0 +1,28 @@
+{
+  "taskId": "2026-11-17-ops-o4-recovery-regression",
+  "repo": "pantheon-ops",
+  "agent": {
+    "tool": "codex",
+    "adapter": "independent-acceptance"
+  },
+  "commands": [
+    {
+      "command": ".\\.local\\manual-preview-20261116\\check-go.ps1 -Package ./modules/business/observability -Run TestO4_ -LogName go-race-o4-migrations-final.log",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+      "status": "passed",
+      "exitCode": 0,
+      "output": ".harness/evidence/2026-11-17-ops-o4-recovery-regression/codex-o4-migrations-race.log"
+    }
+  ],
+  "knownGaps": [
+    "Only the O4 migration regression is accepted. Full repository race previously timed out in four other packages; full O4 workbench, hosted, live providers and production recovery are outside this acceptance."
+  ],
+  "linkage": {
+    "taskManifest": ".harness/tasks/2026-11-17-ops-o4-recovery-regression/manifest.json",
+    "evidenceDir": ".harness/evidence/2026-11-17-ops-o4-recovery-regression/",
+    "reviewFile": ".harness/evidence/2026-11-17-ops-o4-recovery-regression/review.md",
+    "summaryFile": ".harness/evidence/2026-11-17-ops-o4-recovery-regression/summary.md",
+    "changeRef": "none",
+    "planRefs": []
+  }
+}

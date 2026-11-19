@@ -1,0 +1,37 @@
+[
+  {
+    "source": "backend/modules/business/deploy/deploy_model.go",
+    "raw": ".harness/evidence/2026-11-17-ops-history-audit/retire-metadata-candidates-20261118/queued-green/deploy_model.go.raw",
+    "sha256": "1a774c3587f12bb36044e9c8c28536ea52165b261785d1ee8717355476b0318f"
+  },
+  {
+    "source": "backend/modules/business/deploy/deploy_service.go",
+    "raw": ".harness/evidence/2026-11-17-ops-history-audit/retire-metadata-candidates-20261118/queued-green/deploy_service.go.raw",
+    "sha256": "1cc0c8e17198fa268b0261809824d0f9cb2a4d73e2bcfe4d06da796ab58a4df9"
+  },
+  {
+    "source": "backend/modules/business/deploy/task_command.go",
+    "raw": ".harness/evidence/2026-11-17-ops-history-audit/retire-metadata-candidates-20261118/queued-green/task_command.go.raw",
+    "sha256": "05b8876df451612ca7f37f4803bc942be4412faa685c9cc283e10d17933d4825"
+  },
+  {
+    "source": "backend/modules/business/deploy/attempt_ownership.go",
+    "raw": ".harness/evidence/2026-11-17-ops-history-audit/retire-metadata-candidates-20261118/queued-green/attempt_ownership.go.raw",
+    "sha256": "09bc0f89dbf539905bd50781471c00f7c6596df5c69bdb2e756b60d60dd89410"
+  },
+  {
+    "source": "backend/modules/business/deploy/retire_lifecycle_test.go",
+    "raw": ".harness/evidence/2026-11-17-ops-history-audit/retire-metadata-candidates-20261118/queued-green/retire_lifecycle_test.go.raw",
+    "sha256": "04e9bb5ea52d96a33eccdbda1c00133c53c8697ccd2259334905e9be86f75a24"
+  },
+  {
+    "source": "backend/modules/business/deploy/service_link_control_test.go",
+    "raw": ".harness/evidence/2026-11-17-ops-history-audit/retire-metadata-candidates-20261118/queued-green/service_link_control_test.go.raw",
+    "sha256": "13b99592f61c1a5110a161936252058b90d9cfbb11b580870b1120f120acce78"
+  },
+  {
+    "source": "backend/modules/business/deploy/task_preview.go",
+    "raw": ".harness/evidence/2026-11-17-ops-history-audit/retire-metadata-candidates-20261118/queued-green/task_preview.go.raw",
+    "sha256": "9f415460dc8be26b80d976cf3dfd0b930ffd9787fda2e6889c077601c285a203"
+  }
+]

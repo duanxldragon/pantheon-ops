@@ -1,0 +1,74 @@
+{
+  "at": "2026-11-17T13:48:59.545Z",
+  "note": "Updated 2026-11-17T13:48:59.545Z. HTTP/factory correction: code-reviewer COMMENT, architect CLEAR; no project approval. Official v0.18.9 rebuild/overlay/official-cache drift passed, with 1204 sources equal at the recorded checkpoint. Full CGO race exit 1: old linked manual fixture lacks execution token; cancel-before-claim worker drain does not settle the task; observability failed while isolated Redis was unavailable. Redis restored with PONG. Targeted two-test red also exit 1. C01 cancellation repair and independent C03 implementation are now in progress, so the earlier candidate equality is not a claim about later source changes. History remains 85 objects, 22 new archive pairs and 2 preserved duplicate live pairs; no new archives.",
+  "originals": [
+    {
+      "file": ".harness/evidence/2026-11-16-ops-service-deploy-integrity/commands.json",
+      "backup": ".harness/evidence/2026-11-17-ops-history-audit/continuation-http-final-before-cancel-repair/.harness/evidence/2026-11-16-ops-service-deploy-integrity/commands.json.raw",
+      "beforeSHA256": "18168c84542c12e93f131e47e4bcfefcc11b419c227bd99abd4e21268bb87de0",
+      "afterSHA256": "95916a1cb2cca7808c9116b2586f1935bdadd2c32042365cba6a3f6a9f785300"
+    },
+    {
+      "file": ".harness/evidence/2026-11-16-ops-service-deploy-integrity/summary.md",
+      "backup": ".harness/evidence/2026-11-17-ops-history-audit/continuation-http-final-before-cancel-repair/.harness/evidence/2026-11-16-ops-service-deploy-integrity/summary.md.raw",
+      "beforeSHA256": "d527ddf2df59b095d7c3a5650e4190df06083f259f3c171f34e54fac7f781bb9",
+      "afterSHA256": "5406a4be4bc4438eac269fb76ce4123c16d7d080eb5606200f4b1800c6192973"
+    },
+    {
+      "file": ".harness/evidence/2026-11-16-ops-service-deploy-integrity/review.md",
+      "backup": ".harness/evidence/2026-11-17-ops-history-audit/continuation-http-final-before-cancel-repair/.harness/evidence/2026-11-16-ops-service-deploy-integrity/review.md.raw",
+      "beforeSHA256": "e6d495bb2b58ea9eae06c8e6e4508be8d998cc1e37b14beb19c3b3c572c19f22",
+      "afterSHA256": "27f0211c8875b9ca0cf8f40845fc9b32606f08c46816b9cb6c04ced4e635e7ef"
+    },
+    {
+      "file": ".harness/STATUS.md",
+      "backup": ".harness/evidence/2026-11-17-ops-history-audit/continuation-http-final-before-cancel-repair/.harness/STATUS.md.raw",
+      "beforeSHA256": "9bba85c7d9442d8e474f7c9545053900f7efb7da2093a3208e6a001c00b6c7f9",
+      "afterSHA256": "ae3e4337c0d7f51acd825366cea885ed14941e8af105548f74eac66b43432e68"
+    },
+    {
+      "file": ".harness/evidence/2026-11-17-ops-history-audit/progress.md",
+      "backup": ".harness/evidence/2026-11-17-ops-history-audit/continuation-http-final-before-cancel-repair/.harness/evidence/2026-11-17-ops-history-audit/progress.md.raw",
+      "beforeSHA256": "7015e2651d6fb452005de21a399a6334f890fe8bc24a28e9a43d79305d5bc1d5",
+      "afterSHA256": "099203324017f8e3973ec17745d52ced51c33c81704678e8fee7304896d3ee71"
+    },
+    {
+      "file": ".harness/evidence/2026-11-17-ops-history-audit/summary.md",
+      "backup": ".harness/evidence/2026-11-17-ops-history-audit/continuation-http-final-before-cancel-repair/.harness/evidence/2026-11-17-ops-history-audit/summary.md.raw",
+      "beforeSHA256": "ac38b5c1ef7f131887d619fc0421cd8665f459edb7ac2c87b9a46ac5d7b32c4d",
+      "afterSHA256": "08bdcc1db9f602d03e35fd4a5a5c28f84ab5e01c54a72343a404f8f359a0b7aa"
+    },
+    {
+      "file": ".harness/evidence/2026-11-17-ops-history-audit/review.md",
+      "backup": ".harness/evidence/2026-11-17-ops-history-audit/continuation-http-final-before-cancel-repair/.harness/evidence/2026-11-17-ops-history-audit/review.md.raw",
+      "beforeSHA256": "09cc0a1b76045b4775dd7da056e12257e6a09e4981a904d8e85b19653748af7d",
+      "afterSHA256": "d49f2a38eecbe7e5811854b7c5d642802300df5f13d1b4b8e649d8730705fe56"
+    },
+    {
+      "file": ".harness/tasks/2026-11-16-ops-pilot-delivery/OPEN_TASKS.md",
+      "backup": ".harness/evidence/2026-11-17-ops-history-audit/continuation-http-final-before-cancel-repair/.harness/tasks/2026-11-16-ops-pilot-delivery/OPEN_TASKS.md.raw",
+      "beforeSHA256": "b3082c546a8780079311a71a4dd1fd5092c51b36bbb991c2132062e991a07bb2",
+      "afterSHA256": "56bff314fac4c7e33ab6e1171c4483a6bbdbccaaf230961e6fff174e47849d50"
+    },
+    {
+      "file": "docs/harness/tasks/2026-11-16-ops-service-deploy-integrity.task.md",
+      "backup": ".harness/evidence/2026-11-17-ops-history-audit/continuation-http-final-before-cancel-repair/docs/harness/tasks/2026-11-16-ops-service-deploy-integrity.task.md.raw",
+      "beforeSHA256": "dc6d293ad3ec85c7c38bf43dfb7bb4f5c6fd2ab5f1df933321d0d4b1800f1fbe",
+      "afterSHA256": "919a7a4e349c9bd5f719957a61b420eeff342da60af62ae558f77dcd3ee0f5da"
+    },
+    {
+      "file": "docs/harness/tasks/2026-11-16-ops-service-catalog-usability.task.md",
+      "backup": ".harness/evidence/2026-11-17-ops-history-audit/continuation-http-final-before-cancel-repair/docs/harness/tasks/2026-11-16-ops-service-catalog-usability.task.md.raw",
+      "beforeSHA256": "a3e8154d4435cba1a61993949ed968faf87ce4cb82c8b66e1798ea04ab8d47b5",
+      "afterSHA256": "098d2952f5c19ea3eb9de5a7d8b2901906cebb08dcf1ee067e1e7b69760fc15c"
+    },
+    {
+      "file": ".harness/tasks/2026-11-16-ops-service-catalog-usability/manifest.json",
+      "backup": ".harness/evidence/2026-11-17-ops-history-audit/continuation-http-final-before-cancel-repair/.harness/tasks/2026-11-16-ops-service-catalog-usability/manifest.json.raw",
+      "beforeSHA256": "18ed8f5fa2cff9a65a68aba9518c676ee2a4020f062ebebd3322e575162abe16",
+      "afterSHA256": "e7ea001e60b05baa3be236e939ee2f6bf499724d03d67a9b4d9b38b6414b1d0a"
+    }
+  ],
+  "fullRaceReceipt": ".harness/evidence/2026-11-17-ops-history-audit/continuation-c01-full-race-http-final.log.receipt.json",
+  "sourceCheckpoint": "2e218b8c7c7dabe73822a822139f9fb4fe42bec956604b39eca7aac5f64fd453"
+}

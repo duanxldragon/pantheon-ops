@@ -1,0 +1,49 @@
+{
+  "startedAt": "2026-11-17T14:37:52.069Z",
+  "finishedAt": "2026-11-17T14:41:46.399Z",
+  "executable": "D:\\nodejs\\node.exe",
+  "args": [
+    "--import=file:///D:/workspace/go/pantheon-platform/pantheon-ops/.local/manual-preview-20261116/hide-child-windows.mjs",
+    "node_modules/@playwright/test/cli.js",
+    "test",
+    "tests/smoke/business/service/service-pages.spec.ts",
+    "--config=playwright.config.ts",
+    "--grep",
+    "server totals and page six|read-only catalog|denied optional target|K8s options are scope-bound|instance rebind is explicit|a stale instance update|ignores an empty",
+    "--reporter=line",
+    "--output=../.harness/evidence/2026-11-17-ops-history-audit/continuation-c03-ui-cross-tab-fixed-artifacts"
+  ],
+  "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\frontend",
+  "exitCode": 1,
+  "errorCode": null,
+  "sourceUnchanged": true,
+  "sourcesBefore": [
+    {
+      "file": "frontend/src/modules/business/service/ServiceCatalog.tsx",
+      "sha256": "21299fee2258954b6c0408d7abdea71130952d2a4557af3b8679cfcb54646f7e"
+    },
+    {
+      "file": "frontend/src/modules/business/service/api.ts",
+      "sha256": "6206773022d1ba4774e66cab246a2b568e42a7dd668995aac8682bfb638eee57"
+    },
+    {
+      "file": "frontend/tests/smoke/business/service/service-pages.spec.ts",
+      "sha256": "2c7fa03908c9696569d7c86e6cd4704a1fbff9dd7015ba745a9e53190a55c9e9"
+    }
+  ],
+  "sourcesAfter": [
+    {
+      "file": "frontend/src/modules/business/service/ServiceCatalog.tsx",
+      "sha256": "21299fee2258954b6c0408d7abdea71130952d2a4557af3b8679cfcb54646f7e"
+    },
+    {
+      "file": "frontend/src/modules/business/service/api.ts",
+      "sha256": "6206773022d1ba4774e66cab246a2b568e42a7dd668995aac8682bfb638eee57"
+    },
+    {
+      "file": "frontend/tests/smoke/business/service/service-pages.spec.ts",
+      "sha256": "2c7fa03908c9696569d7c86e6cd4704a1fbff9dd7015ba745a9e53190a55c9e9"
+    }
+  ],
+  "boundary": "Real local login and live frontend; business API data mocked. Does not prove production routes, authorization or providers."
+}

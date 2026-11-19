@@ -1,0 +1,21 @@
+{
+  "exitCode": 0,
+  "log": "continuation-c01-owned-resume-handoff-guard-fixed.log",
+  "goFlags": "-p=1 -mod=readonly",
+  "args": [
+    "test",
+    "-race",
+    "-count=1",
+    "-timeout=10m",
+    "./modules/business/deploy",
+    "-v",
+    "-run",
+    "^TestWorkerHandoffOwnedPauseResume(Dispatch|AsyncDispatch)$|^TestWorkerHandoffReservationRetirementOrders$"
+  ],
+  "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\backend",
+  "disposableMySQL": true,
+  "testDsnRequired": "1",
+  "startedAt": "2026-11-17T15:07:29.2888525Z",
+  "cgoEnabled": "1",
+  "finishedAt": "2026-11-17T15:07:48.0091383Z"
+}

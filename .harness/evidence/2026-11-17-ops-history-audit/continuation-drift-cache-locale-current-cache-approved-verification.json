@@ -1,0 +1,18 @@
+[
+  {
+    "name": "staged-drift-official-cache-final-locale-current-cache-approved",
+    "executable": "D:\\nodejs\\node.exe",
+    "args": [
+      "--import=file:///D:/workspace/go/pantheon-platform/pantheon-ops/.local/manual-preview-20261116/hide-child-windows.mjs",
+      ".local/manual-preview-20261116/check-staged-official-cache-drift.mjs",
+      ".local/manual-preview-20261116/overlay-history-continuation-final-locale-current-cache-approved"
+    ],
+    "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+    "startedAt": "2026-11-17T08:26:17.759Z",
+    "finishedAt": "2026-11-17T08:26:31.370Z",
+    "exitCode": 0,
+    "status": "passed",
+    "log": ".harness/evidence/2026-11-17-ops-history-audit/continuation-staged-drift-official-cache-final-locale-current-cache-approved.log",
+    "errorCode": null
+  }
+]

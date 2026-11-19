@@ -1,0 +1,21 @@
+{
+  "args": [
+    "test",
+    "-race",
+    "-count=1",
+    "-timeout=10m",
+    "./modules/business/k8s/...",
+    "-v",
+    "-run",
+    "^TestK8sService(Mutation|PermissionRoutes)"
+  ],
+  "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\backend",
+  "log": "continuation-c04-mutation-expanded-fixed.log",
+  "exitCode": 0,
+  "goFlags": "-p=1 -mod=readonly",
+  "cgoEnabled": "1",
+  "testDsnRequired": "1",
+  "startedAt": "2026-11-17T15:08:09.2251115Z",
+  "finishedAt": "2026-11-17T15:09:06.0473431Z",
+  "disposableMySQL": true
+}

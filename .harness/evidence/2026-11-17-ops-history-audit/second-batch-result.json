@@ -1,0 +1,17 @@
+{
+  "id": "2026-06-18-pr-branch-cleanup-automation",
+  "status": "passed",
+  "disposition": "abandoned",
+  "supersededBy": [
+    "2026-06-18-branch-hygiene-fallback",
+    "2026-06-18-branch-hygiene-slash-path-fix"
+  ],
+  "originalEvidenceHashesPreserved": true,
+  "originalManifestAndCardBackedUp": true,
+  "firstBatchArtifactsUnchanged": true,
+  "target": {
+    "task": ".harness/archive/2026-11/tasks/2026-06-18-pr-branch-cleanup-automation",
+    "evidence": ".harness/archive/2026-11/evidence/2026-06-18-pr-branch-cleanup-automation"
+  },
+  "completedAt": "2026-11-17T04:34:48.902Z"
+}

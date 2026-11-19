@@ -1,0 +1,30 @@
+{
+  "startedAt": "2026-11-17T14:42:04.481Z",
+  "errors": [],
+  "responses": [
+    {
+      "url": "http://127.0.0.1:5173/node_modules/.vite/deps/react.js",
+      "status": 504
+    },
+    {
+      "url": "http://127.0.0.1:5173/node_modules/.vite/deps/react-dom_client.js",
+      "status": 504
+    },
+    {
+      "url": "http://127.0.0.1:5173/node_modules/.vite/deps/@arco-design_web-react_es____util_react-19-adapter__js.js",
+      "status": 504
+    },
+    {
+      "url": "http://127.0.0.1:5173/node_modules/.vite/deps/react-router-dom.js",
+      "status": 504
+    },
+    {
+      "url": "http://127.0.0.1:5173/node_modules/.vite/deps/react_jsx-dev-runtime.js",
+      "status": 504
+    }
+  ],
+  "failure": "locator.fill: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByPlaceholder(/请输入用户名|username/i)\u001b[22m\n",
+  "url": "http://127.0.0.1:5173/login",
+  "bodyText": "",
+  "finishedAt": "2026-11-17T14:42:14.805Z"
+}

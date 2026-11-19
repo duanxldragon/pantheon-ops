@@ -1,0 +1,1363 @@
+{
+  "schema": "pantheon-ten-package-acceptance-map/v1",
+  "observedAt": "2026-11-18T06:37:17.845Z",
+  "reporter": "/root/ten_packages_acceptance_map",
+  "role": "verifier",
+  "tier": "L2",
+  "mappingVerdict": "PASS",
+  "deliveryVerdict": "PARTIAL",
+  "wholeDeliveryApproved": false,
+  "taskStatusesChanged": false,
+  "scope": "Read-only original acceptance/evidence/dependency mapping for C01-C06/E01-E04; only this MD and JSON created. No application edits, heavy tests, browser, credentials or runtime mutation.",
+  "userSteering": "Prioritize these ten work packages; Claude delegation permitted. Does not waive original acceptance, authorize external production, or automatically add Chart execution.",
+  "verifiedFrozenCheckpoint": {
+    "sourceSetSHA256": "28031c9735a926509aec1138f82f63cfad7aaac48128c383625f1b1d5790e8f0",
+    "sourceCount": 1221,
+    "backendSources": 734,
+    "fullRaceExit": 0,
+    "durationSeconds": 885.49,
+    "passedPackageRows": 72,
+    "noTestPackageRows": 18,
+    "cgoEnabled": "1",
+    "goFlags": "-p=2 -mod=readonly",
+    "navigationChecks": 14,
+    "businessEntries": 30,
+    "limitations": [
+      "Frozen prior candidate only; concurrent writers' later changes require fresh candidate/source/test/runtime binding.",
+      "Non-verbose race cannot prove no conditional subtest skipped.",
+      "Four screenshots were viewed by root at prior checkpoint; this mapping did not view images or certify visual polish.",
+      "Provider and browser role responses in C03/C04 retained tests are simulated."
+    ]
+  },
+  "verificationPerformed": [
+    {
+      "check": "Read all 10 .task.md and manifest acceptance/dependency fields",
+      "result": "PASS"
+    },
+    {
+      "check": "Full race receipt/log SHA match final-closeout; before/after 734 equal; log72ok and no failure/data-race banner",
+      "result": "PASS"
+    },
+    {
+      "check": "Readiness and source-equivalence artifact SHA; passed=true/sourceCount1221",
+      "result": "PASS"
+    },
+    {
+      "check": "Review actual C03/C04 raw logs and receipts",
+      "result": "PASS",
+      "facts": {
+        "c03OwnerTopLevelPass": 13,
+        "c03CauseTopLevelPass": 3,
+        "c04ExpandedTopLevelPass": 9,
+        "c04RbacTopLevelPass": 17,
+        "noTopLevelFailuresInSelectedLogs": true
+      }
+    },
+    {
+      "check": "Read original/current scope, C03/C04 narrow reports, UI mocked boundaries, package scripts",
+      "result": "PASS"
+    },
+    {
+      "check": "Direct source observations E02 ack-state/ownership and C05 smoke-sanity wiring",
+      "result": "PASS",
+      "runtimeReproduction": false
+    },
+    {
+      "check": "New dynamic/business/provider/browser tests",
+      "result": "NOT_RUN",
+      "reason": "Read-only mapping; concurrent source writers; root centralizes gates after freeze."
+    },
+    {
+      "check": "Source-line locator first shell quoting attempt",
+      "result": "FAILED_TOOLING_ONLY",
+      "reason": "Node -e received invalid quote escape; corrected line locator passed. No application/test failure inferred."
+    }
+  ],
+  "sourceFindings": [
+    {
+      "file": "backend/modules/business/cicd/argocd/argocd_service.go",
+      "line": 377,
+      "text": "func (s *ArgoCDService) GetApplication(id uint64) (*ApplicationResponse, error) {"
+    },
+    {
+      "file": "backend/modules/business/cicd/argocd/argocd_service.go",
+      "line": 482,
+      "text": "status := \"Succeeded\""
+    },
+    {
+      "file": "backend/modules/business/cicd/argocd/argocd_handler.go",
+      "line": 257,
+      "text": "func (h *ArgoCDHandler) ListApplications(c *gin.Context) {"
+    },
+    {
+      "file": "backend/modules/business/cicd/argocd/argocd_handler.go",
+      "line": 320,
+      "text": "func (h *ArgoCDHandler) SyncApplication(c *gin.Context) {"
+    },
+    {
+      "file": "backend/modules/business/cicd/argocd/argocd_model.go",
+      "line": 63,
+      "text": "type ArgoCDApplication struct {"
+    },
+    {
+      "file": ".github/workflows/quality.yml",
+      "line": 482,
+      "text": "run: npm run test:smoke:platform:contracts && npm run test:smoke:system"
+    },
+    {
+      "file": "backend/modules/business/deploy/deploy_live_acceptance_test.go",
+      "line": 18,
+      "text": "if host == \"\" {"
+    }
+  ],
+  "artifactBindings": [
+    {
+      "file": ".harness/evidence/2026-11-17-ops-history-audit/continuation-retire-shared-transaction-final-closeout-20261118.json",
+      "sha256": "3232bede4c5610e193f8179a6e2a6f3dd0432e87956fa168ca03eb1b5f359754"
+    },
+    {
+      "file": ".harness/evidence/2026-11-17-ops-history-audit/continuation-retire-shared-transaction-final-readiness-20261118.json",
+      "sha256": "e8a0951c8973430279ac87a96a9eaf1579f16de947725e9a785b190da655b14b"
+    },
+    {
+      "file": ".harness/evidence/2026-11-17-ops-history-audit/continuation-retire-shared-transaction-final-20261118-source-equivalence.json",
+      "sha256": "bff3f60f52873409197b3567983ca7c946eb6b1e7109686961f13b54b3b19f58"
+    },
+    {
+      "file": ".harness/evidence/2026-11-17-ops-history-audit/continuation-retire-isolation-full-race-20261118-04.log.receipt.json",
+      "sha256": "f82d6f87f25b848c4d5d4b417d0abe89ac014ddd47d102893037ce0393c8f169"
+    },
+    {
+      "file": ".harness/evidence/2026-11-17-ops-history-audit/continuation-retire-isolation-full-race-20261118-04.log",
+      "sha256": "9f1b0bc4f211e18d2bc827266446ff7a0bff788e048496eb16cc9c2634364b5e"
+    },
+    {
+      "file": ".harness/evidence/2026-11-17-ops-history-audit/continuation-retire-shared-transaction-verified-20261118-checks.json",
+      "sha256": "8574ec8b1b7f4138f1039a867e77689b1bed104598dd56bf86471f8e096ee5f3"
+    },
+    {
+      "file": ".harness/evidence/2026-11-17-ops-history-audit/continuation-retire-shared-transaction-verified-20261118-gate-delta.json",
+      "sha256": "2715f750ecd765a1c378930e94554674b070e32c2f306a390d998fd90b15e39e"
+    },
+    {
+      "file": ".harness/evidence/2026-11-17-ops-history-audit/continuation-c03-owner-update-fixed.log.receipt.json",
+      "sha256": "9c5337655463ec395b468e7fa59436d71c0a6a12cbbb9df74192ef194f50c9ba"
+    },
+    {
+      "file": ".harness/evidence/2026-11-17-ops-history-audit/continuation-c03-owner-update-fixed.log",
+      "sha256": "a3338195f3d8cc6ed58e9ba2e40b81b6d828bb8eb1d82d580c5ff5086bc1b8aa"
+    },
+    {
+      "file": ".harness/evidence/2026-11-17-ops-history-audit/continuation-c03-k8s-reader-cause-fixed.log.receipt.json",
+      "sha256": "f4af46ee073bcfc3c77000a5c900d5cf61d15b2ab64723c86c4758b1267d16b7"
+    },
+    {
+      "file": ".harness/evidence/2026-11-17-ops-history-audit/continuation-c03-k8s-reader-cause-fixed.log",
+      "sha256": "c5f9463a16dd8a8ebf1db0b5f42a474acc521796b642ee5ddc5fe4c08e47e096"
+    },
+    {
+      "file": ".harness/evidence/2026-11-17-ops-history-audit/continuation-c03-ui-envelope-fixed.receipt.json",
+      "sha256": "61d1565d082a536e891cefa15236bfb76d95ec8be8e6fd3e712ad4daa333148c"
+    },
+    {
+      "file": ".harness/evidence/2026-11-17-ops-history-audit/continuation-c03-ui-total-error-count-rendered.receipt.json",
+      "sha256": "f0db1725dc8f66b399d44e064f274ade32c1adf413865b4f05a94b4a6db9ffac"
+    },
+    {
+      "file": ".harness/evidence/2026-11-17-ops-history-audit/continuation-c03-independent-code-review-round3.md",
+      "sha256": "5ec6d54c128318c00bda85ac01ac51d569e89fd004f825f2b40a04cd9ed2ea4e"
+    },
+    {
+      "file": ".harness/evidence/2026-11-17-ops-history-audit/continuation-c03-independent-architecture-round3-summary-reconstructed-20261118.md",
+      "sha256": "6fb03e9ce95980fe671e3d3f7a590bf641fdfc4ad9aca84abd34eb5f3b1f6219"
+    },
+    {
+      "file": ".harness/evidence/2026-11-17-ops-history-audit/continuation-c04-mutation-expanded-fixed.log.receipt.json",
+      "sha256": "9c4d92904b8906de366ce6d18292252908a5d379c063d0172573ee3e7aabcae8"
+    },
+    {
+      "file": ".harness/evidence/2026-11-17-ops-history-audit/continuation-c04-mutation-expanded-fixed.log",
+      "sha256": "ba02391d97eeda2dca3c322a138813380b505d15a9d33c7ce565cdfb5d2b2476"
+    },
+    {
+      "file": ".harness/evidence/2026-11-17-ops-history-audit/continuation-c04-rbac-cancellation-fixed.log.receipt.json",
+      "sha256": "7936f60397fc37ac2902651de82ab9dcdf6246164dc57b13adec39733431d8c2"
+    },
+    {
+      "file": ".harness/evidence/2026-11-17-ops-history-audit/continuation-c04-rbac-cancellation-fixed.log",
+      "sha256": "c2963453a1ef3bcc9f3fe694fa6b14dd3e843e75eab092410e618c6f6ebd7562"
+    },
+    {
+      "file": ".harness/evidence/2026-11-17-ops-history-audit/continuation-c04-ui-toast-identity-fixed.receipt.json",
+      "sha256": "c79c361cb94555975549f8e375a82c940e9c245f2c16915e299ab536e3e4c271"
+    },
+    {
+      "file": ".harness/evidence/2026-11-17-ops-history-audit/continuation-c04-ui-toast-readability-retained-20261118.receipt.json",
+      "sha256": "569d9887ee9d93201434a80dccda18c1d22d1414e71e52d285cc84fa499f3977"
+    },
+    {
+      "file": ".harness/evidence/2026-11-17-ops-history-audit/continuation-c04-rbac-cancellation-architecture.md",
+      "sha256": "685198828867df2526c441ef6e6b017a680e1ac27c5d33306b9c1ee53b495f9b"
+    },
+    {
+      "file": ".harness/evidence/2026-11-17-ops-history-audit/continuation-c04-ui-toast-identity-architecture-appendix.md",
+      "sha256": "b4ab2e4774e2b5a8d426b433694d7a6ff2c8460058ef53b0d5b2f788db584f16"
+    },
+    {
+      "file": ".harness/evidence/2026-11-17-ops-history-audit/continuation-frontend-c04-toast-identity-final-verification.json",
+      "sha256": "9b1bd6b7f2414e870e9fdf4113818cdcb306d8f9e71105f533b52eaede15dd16"
+    },
+    {
+      "file": "package.json",
+      "sha256": "50a985c3a6a1a54929523aebe55597a3d80b52d277c62f9ba028a175234eb3f3"
+    },
+    {
+      "file": "frontend/package.json",
+      "sha256": "3f7784aa58fcbcbf3261c914834a751380e0f870c19de420ae931399691b9c03"
+    },
+    {
+      "file": ".github/workflows/quality.yml",
+      "sha256": "f1120442818290148694b7560807ecd5d2093ef9768f9aff2090d16fe20cde7e"
+    },
+    {
+      "file": "backend/modules/business/cicd/argocd/argocd_service.go",
+      "sha256": "ca04f7c89bee50af327c2fef5b8c8ee38a9170e2a6b133c53a4703d559f66d2f"
+    },
+    {
+      "file": "backend/modules/business/cicd/argocd/argocd_reconciler.go",
+      "sha256": "4acd862ef57e56e7f935627b4fe97d7a62841cd4c011b3b6c66b51468f055831"
+    },
+    {
+      "file": "backend/modules/business/cicd/argocd/argocd_model.go",
+      "sha256": "cb6d986924dd6c2fab6434d140d7c3052c8d1d6ed8c2ecf82ebe37e0080bf1fe"
+    },
+    {
+      "file": "backend/modules/business/cicd/argocd/argocd_handler.go",
+      "sha256": "e2e31b5c1ba92c97f2c85e810a2ee6522a6866549c3dcee39dea0806f522e054"
+    },
+    {
+      "file": "backend/modules/business/deploy/deploy_live_acceptance_test.go",
+      "sha256": "20f650c74d5ae83fde928ab6ad669990513086baab37132b526faa748f03a99f"
+    }
+  ],
+  "missingPackageEvidenceTrio": [
+    "C02",
+    "C03",
+    "C04",
+    "C05",
+    "C06",
+    "E01",
+    "E02",
+    "E03",
+    "E04"
+  ],
+  "packetIdentityGaps": [
+    {
+      "code": "C01",
+      "observation": "Manifest has fourth explicit independent/linked mode acceptance absent from task-doc Acceptance Criteria section.",
+      "treatment": "Preserve manifest superset; coordinator should sync doc without narrowing original approved scope."
+    },
+    {
+      "code": "C06",
+      "observation": "Manifest has fourth extension/cropping acceptance absent from task-doc Acceptance Criteria section; conditional E04 dependency remains explicit.",
+      "treatment": "Preserve manifest superset and conditional gate; coordinator sync required."
+    }
+  ],
+  "dependencyOrder": {
+    "independentImplementation": [
+      "C01",
+      "C03",
+      "C04",
+      "E01",
+      "E02",
+      "E03"
+    ],
+    "coreFlow": [
+      "C01",
+      "C02",
+      "C05",
+      "C06"
+    ],
+    "c05Requires": [
+      "C01",
+      "C02",
+      "C03",
+      "C04"
+    ],
+    "e04Conditional": {
+      "FileDist": "E01",
+      "ArgoCD": "E02",
+      "Helm": "E03"
+    },
+    "c06Requires": [
+      "C05"
+    ],
+    "c06Conditional": {
+      "anyExposedExtension": "E04"
+    },
+    "readOnlyPreparationCanStart": [
+      "C05",
+      "C06",
+      "E04"
+    ],
+    "fileOwnershipConstraints": [
+      "C01/C03 share Service owner files; C02/C03 share ServiceCatalog; C04/E03 share K8s/UI locale/registration; E02 opsinit integration and E03/C06 README edits stay coordinator-owned."
+    ]
+  },
+  "packages": [
+    {
+      "code": "C01",
+      "taskId": "2026-11-16-ops-service-deploy-integrity",
+      "statusObserved": "in-progress",
+      "manifest": {
+        "file": ".harness/tasks/2026-11-16-ops-service-deploy-integrity/manifest.json",
+        "sha256": "794dae060662909462554b024c234554eca0539bebc5b9dacc4aaa2c9c2b87ed"
+      },
+      "taskDoc": {
+        "file": "docs/harness/tasks/2026-11-16-ops-service-deploy-integrity.task.md",
+        "sha256": "919a7a4e349c9bd5f719957a61b420eeff342da60af62ae558f77dcd3ee0f5da"
+      },
+      "acceptanceCriteria": [
+        "同一用户均有权访问 Host A 与 Instance B 时，错配创建/更新/启动被拒绝，任务、实例、远端均无部分副作用。",
+        "匹配任务完成及失败只更新对应实例；重复/乱序回调和并发删除不破坏状态或历史。",
+        "真实 MySQL 事务、幂等及引用竞态用例执行而非 SKIP。",
+        "显式独立部署两关联字段均0且不回写实例；关联部署任一字段缺失/0、实体错配被拒绝，兼容历史记录有模式与审计追溯。"
+      ],
+      "taskDocAcceptanceSection": "- 同一用户均有权访问 Host A 与 Instance B 时，错配创建/更新/启动被拒绝，任务、实例、远端均无部分副作用。\n- 匹配任务完成及失败只更新对应实例；重复/乱序回调和并发删除不破坏状态或历史。\n- 真实 MySQL 事务、幂等及引用竞态用例执行而非 SKIP。",
+      "dependencies": [],
+      "conditionalDependencies": {},
+      "scope": {
+        "in": [
+          "复用 Service owner Reader/Command，在创建、更新、启动前校验 service、instance、host/cluster/namespace、业务域一致；不跨 owner 查询表。",
+          "区分显式独立部署（serviceId/serviceInstanceId 均为0，不做实例回写）与关联部署（两字段均必填且一致）。单字段缺失、已删除、inactive、跨域和目标错配在副作用前拒绝；旧无关联任务保留可追溯的独立模式，不能伪装关联部署。",
+          "增加执行中实例及服务删除的引用保护；保留历史快照，不静默级联。"
+        ],
+        "out": [
+          "platform/system/* 通用实现与规则副本；共享问题 Base-first",
+          "未授权生产操作、规则豁免与风险接受",
+          "自动 exporter/file_sd/商业 License 等后续产品扩张"
+        ]
+      },
+      "verificationPlan": {
+        "commands": [
+          "go test -race -count=1 ./modules/business/deploy/... ./modules/business/service/...",
+          "node scripts/check-business-module-boundaries.mjs"
+        ],
+        "runtimeEvidence": [
+          "当前候选、隔离环境、业务正反向及桌面/窄屏渲染；未跑必须记录 gap"
+        ],
+        "commandWorkingDirectories": {
+          "go test -race -count=1 ./modules/business/deploy/... ./modules/business/service/...": "backend",
+          "node scripts/check-business-module-boundaries.mjs": "."
+        }
+      },
+      "humanGates": [
+        "范围已由维护者确认：按业务设计评估试点；安全可逆步骤自主执行。",
+        "生产操作、门禁豁免、风险接受及最终视觉/功能验收由维护者决定；不得以等候时间作为批准。"
+      ],
+      "evidencePresence": {
+        "summary.md": true,
+        "review.md": true,
+        "commands.json": true
+      },
+      "title": "部署/服务实例关联与引用保护",
+      "deliveryVerdict": "PARTIAL",
+      "strongestProvedScope": "已验证上一冻结候选的 Service Retire RC 事务/引用保护窄修复及整个后端包级 race；整包 WATCH。",
+      "strongestEvidence": [
+        ".harness/evidence/2026-11-17-ops-history-audit/continuation-retire-shared-transaction-final-closeout-20261118.json",
+        ".harness/evidence/2026-11-17-ops-history-audit/continuation-retire-isolation-full-race-20261118-04.log.receipt.json",
+        ".harness/evidence/2026-11-16-ops-service-deploy-integrity/summary.md"
+      ],
+      "criterionAssessments": [
+        {
+          "criterion": "同一用户均有权访问 Host A 与 Instance B 时，错配创建/更新/启动被拒绝，任务、实例、远端均无部分副作用。",
+          "verdict": "PARTIAL",
+          "assessment": "目标错配拒绝已有历史实现/测试，当前映射未获得完整真实角色和远端零副作用矩阵。"
+        },
+        {
+          "criterion": "匹配任务完成及失败只更新对应实例；重复/乱序回调和并发删除不破坏状态或历史。",
+          "verdict": "PARTIAL",
+          "assessment": "Retire 引用保护窄验证通过；队列恢复、blocked claim 和更广 host 交错仍待 owner 闭环。"
+        },
+        {
+          "criterion": "真实 MySQL 事务、幂等及引用竞态用例执行而非 SKIP。",
+          "verdict": "PARTIAL",
+          "assessment": "真实 disposable MySQL、CGO race 已运行；非 verbose 完整日志不能证明每个条件子测无 skip。"
+        },
+        {
+          "criterion": "显式独立部署两关联字段均0且不回写实例；关联部署任一字段缺失/0、实体错配被拒绝，兼容历史记录有模式与审计追溯。",
+          "verdict": "PARTIAL",
+          "assessment": "manifest 中保留独立/关联模式验收；需要精确关联既有测试和当前浏览器/审计证据，不能以退役修复代替。"
+        }
+      ],
+      "remainingGates": {
+        "implementation": [
+          "先核对并补齐 queue recovery/blocked claim、host 交错原缺口；重复/乱序回写与历史兼容需逐标准映射。"
+        ],
+        "runtime": [
+          "两域/最小角色、目标错配/模式选择/回写/Retire 的真实 HTTP 和 UI 正反向矩阵。"
+        ],
+        "external": [
+          "task-owned SSH/K8s 正常和失败执行；provider 身份及 owned cleanup。"
+        ],
+        "maintainer": [
+          "最终功能/视觉验收。"
+        ]
+      },
+      "locallyAuthorizedNextSteps": [
+        "C01 owner 按旧回归和新确证缺口修复；源码冻结后重新绑定 MySQL/CGO race。"
+      ],
+      "stopCriterion": "四条 manifest 验收均有当前候选证据、owner/reviewer gaps 清零、最终功能/视觉验收；仅窄修复通过不得关闭整包。"
+    },
+    {
+      "code": "C02",
+      "taskId": "2026-11-16-ops-service-deploy-user-flow",
+      "statusObserved": "planned",
+      "manifest": {
+        "file": ".harness/tasks/2026-11-16-ops-service-deploy-user-flow/manifest.json",
+        "sha256": "ed1ef74a7c0a8236e25f1d86232e8b634391a2705cc77be76a5564175ab58d3c"
+      },
+      "taskDoc": {
+        "file": "docs/harness/tasks/2026-11-16-ops-service-deploy-user-flow.task.md",
+        "sha256": "556d6992385a8caa4b3a238ac4068999ca4abaebc62a18eb73a029ed5a92feab"
+      },
+      "acceptanceCriteria": [
+        "UI 提交的关联字段、预览目标与 C01 后端校验一致。",
+        "成功/失败部署后服务目录展示对应实例终态，日志及审计可按任务追溯。",
+        "桌面/窄屏及 loading/empty/error/forbidden/submitting 状态有当前 revision 渲染证据。"
+      ],
+      "taskDocAcceptanceSection": "- UI 提交的关联字段、预览目标与 C01 后端校验一致。\n- 成功/失败部署后服务目录展示对应实例终态，日志及审计可按任务追溯。\n- 桌面/窄屏及 loading/empty/error/forbidden/submitting 状态有当前 revision 渲染证据。",
+      "dependencies": [
+        "2026-11-16-ops-service-deploy-integrity"
+      ],
+      "conditionalDependencies": {},
+      "scope": {
+        "in": [
+          "复用现有部署表单与预览，选择可见服务实例并展示匹配的目标快照；提交关联字段。",
+          "保留不关联实例的显式独立部署入口，避免现有部署兼容性退化。",
+          "通过浏览器完成创建目录、绑定实例、创建/预览/执行部署和结果回读，不用 API 预造任务替代关键 UI 动作。"
+        ],
+        "out": [
+          "platform/system/* 通用实现与规则副本；共享问题 Base-first",
+          "未授权生产操作、规则豁免与风险接受",
+          "自动 exporter/file_sd/商业 License 等后续产品扩张"
+        ]
+      },
+      "verificationPlan": {
+        "commands": [
+          "npm run lint",
+          "npm run type-check",
+          "npm run test:smoke:business:deploy",
+          "npm run test:smoke:business:service"
+        ],
+        "runtimeEvidence": [
+          "当前候选、隔离环境、业务正反向及桌面/窄屏渲染；未跑必须记录 gap"
+        ],
+        "commandWorkingDirectories": {
+          "npm run lint": "frontend",
+          "npm run type-check": "frontend",
+          "npm run test:smoke:business:deploy": "frontend",
+          "npm run test:smoke:business:service": "frontend"
+        }
+      },
+      "humanGates": [
+        "范围已由维护者确认：按业务设计评估试点；安全可逆步骤自主执行。",
+        "生产操作、门禁豁免、风险接受及最终视觉/功能验收由维护者决定；不得以等候时间作为批准。"
+      ],
+      "evidencePresence": {
+        "summary.md": false,
+        "review.md": false,
+        "commands.json": false
+      },
+      "title": "页面部署与实例结果回写",
+      "deliveryVerdict": "PARTIAL",
+      "strongestProvedScope": "只有共用导航/readiness；没有本包 summary/review/commands，也没有关键 UI 部署全程验收。",
+      "strongestEvidence": [
+        ".harness/evidence/2026-11-17-ops-history-audit/continuation-retire-shared-transaction-final-readiness-20261118.json"
+      ],
+      "criterionAssessments": [
+        {
+          "criterion": "UI 提交的关联字段、预览目标与 C01 后端校验一致。",
+          "verdict": "PARTIAL",
+          "assessment": "待真实 UI 选择实例、预览及关联字段与 C01 后端规则对齐；导航进入页面不足。"
+        },
+        {
+          "criterion": "成功/失败部署后服务目录展示对应实例终态，日志及审计可按任务追溯。",
+          "verdict": "PARTIAL",
+          "assessment": "待从 UI 创建/执行成功和失败部署，验证对应实例终态、日志和审计追溯。"
+        },
+        {
+          "criterion": "桌面/窄屏及 loading/empty/error/forbidden/submitting 状态有当前 revision 渲染证据。",
+          "verdict": "PARTIAL",
+          "assessment": "四张通用截图只证明少量空态/抽屉；未覆盖本包完整交互状态。"
+        }
+      ],
+      "remainingGates": {
+        "implementation": [
+          "C01 闭环后核对和补齐关联实例/显式独立部署表单与结果回读，不重复已有 selector。"
+        ],
+        "runtime": [
+          "关键动作必须从浏览器完成；成功/失败/越权和所有规定 UI 状态均需当前候选证据。"
+        ],
+        "external": [
+          "部署执行需要 task-owned SSH/K8s 目标与明确执行范围。"
+        ],
+        "maintainer": [
+          "最终流程及视觉验收。"
+        ]
+      },
+      "locallyAuthorizedNextSteps": [
+        "依赖未完成时可准备验收方案和 fixture 设计；不提前执行或关闭依赖后的交付。"
+      ],
+      "stopCriterion": "C01 依赖完成且三条标准通过真实浏览器和目标执行证据。"
+    },
+    {
+      "code": "C03",
+      "taskId": "2026-11-16-ops-service-catalog-usability",
+      "statusObserved": "in-progress",
+      "manifest": {
+        "file": ".harness/tasks/2026-11-16-ops-service-catalog-usability/manifest.json",
+        "sha256": "c8353be37676f082711bb66bc1acd36cf2e6b5fee25cd6d913a34ebb440a7db0"
+      },
+      "taskDoc": {
+        "file": "docs/harness/tasks/2026-11-16-ops-service-catalog-usability.task.md",
+        "sha256": "a2e139f806907aee2efea126bd0778963e7b235d7c16ecf0951e7464263c6ff2"
+      },
+      "acceptanceCriteria": [
+        "101 条以上对象可分页查询、编辑，汇总使用服务端总数。",
+        "服务只读角色无需 CMDB/K8s 列表权限也可读目录；操作按钮按授权呈现，后端仍拒绝越权。",
+        "版本/目标编辑走 owner 校验及冲突语义；未默认要求新增实时健康探测。"
+      ],
+      "taskDocAcceptanceSection": "- 101 条以上对象可分页查询、编辑，汇总使用服务端总数。\n- 服务只读角色无需 CMDB/K8s 列表权限也可读目录；操作按钮按授权呈现，后端仍拒绝越权。\n- 版本/目标编辑走 owner 校验及冲突语义；未默认要求新增实时健康探测。",
+      "dependencies": [],
+      "conditionalDependencies": {},
+      "scope": {
+        "in": [
+          "复用已有 PUT 与共享表单补齐范围内应用/服务/实例编辑，服务端分页与目标选项按需查询。",
+          "服务目录读取与可选目标查询分离；缺 CMDB/K8s 操作权限不能使已授权目录整页失败。",
+          "按业务域过滤并结构化选择 K8s namespace/workload；权限失败和目标失效可解释。"
+        ],
+        "out": [
+          "platform/system/* 通用实现与规则副本；共享问题 Base-first",
+          "未授权生产操作、规则豁免与风险接受",
+          "自动 exporter/file_sd/商业 License 等后续产品扩张"
+        ]
+      },
+      "verificationPlan": {
+        "commands": [
+          "npm run lint",
+          "npm run type-check",
+          "npm run test:smoke:business:service",
+          "go test -race -count=1 ./modules/business/service/..."
+        ],
+        "runtimeEvidence": [
+          "当前候选、隔离环境、业务正反向及桌面/窄屏渲染；未跑必须记录 gap"
+        ],
+        "commandWorkingDirectories": {
+          "npm run lint": "frontend",
+          "npm run type-check": "frontend",
+          "npm run test:smoke:business:service": "frontend",
+          "go test -race -count=1 ./modules/business/service/...": "backend"
+        }
+      },
+      "humanGates": [
+        "范围已由维护者确认：按业务设计评估试点；安全可逆步骤自主执行。",
+        "生产操作、门禁豁免、风险接受及最终视觉/功能验收由维护者决定；不得以等候时间作为批准。"
+      ],
+      "evidencePresence": {
+        "summary.md": false,
+        "review.md": false,
+        "commands.json": false
+      },
+      "title": "服务目录编辑、分页、受限角色",
+      "deliveryVerdict": "PARTIAL",
+      "strongestProvedScope": "历史 13 个 owner-update MySQL 回归、3 个 K8s cause 回归通过；8 案 mocked UI 含125对象分页。窄 COMMENT/CLEAR，whole WATCH。",
+      "strongestEvidence": [
+        ".harness/evidence/2026-11-17-ops-history-audit/continuation-retire-shared-transaction-final-closeout-20261118.json",
+        ".harness/evidence/2026-11-17-ops-history-audit/continuation-c03-owner-update-fixed.log.receipt.json",
+        ".harness/evidence/2026-11-17-ops-history-audit/continuation-c03-k8s-reader-cause-fixed.log.receipt.json",
+        ".harness/evidence/2026-11-17-ops-history-audit/continuation-c03-ui-envelope-fixed.receipt.json",
+        ".harness/evidence/2026-11-17-ops-history-audit/continuation-c03-ui-total-error-count-rendered.receipt.json",
+        ".harness/evidence/2026-11-17-ops-history-audit/continuation-c03-independent-code-review-round3.md"
+      ],
+      "criterionAssessments": [
+        {
+          "criterion": "101 条以上对象可分页查询、编辑，汇总使用服务端总数。",
+          "verdict": "PARTIAL",
+          "assessment": "125对象 mock UI 证明渲染/分页交互，尚不能代替真实101+后端数据、服务端总数和编辑证据。"
+        },
+        {
+          "criterion": "服务只读角色无需 CMDB/K8s 列表权限也可读目录；操作按钮按授权呈现，后端仍拒绝越权。",
+          "verdict": "PARTIAL",
+          "assessment": "mocked 只读/no optional requests 通过；实际最小权限角色/后端越权拒绝仍待验证。"
+        },
+        {
+          "criterion": "版本/目标编辑走 owner 校验及冲突语义；未默认要求新增实时健康探测。",
+          "verdict": "PARTIAL",
+          "assessment": "owner CAS/target 回归通过；跨 owner target lifetime 和 NamespaceBinding/environment/action admission 仍 open。"
+        }
+      ],
+      "remainingGates": {
+        "implementation": [
+          "target lifetime、NamespaceBinding/environment/action 的 owner 合同补齐/确证；保留 C01 引用/CAS 保护。"
+        ],
+        "runtime": [
+          "真实101+对象、两域最小角色及目标失效/冲突矩阵；完整桌面/手机状态。"
+        ],
+        "external": [
+          "真实 K8s provider 和生命周期变化验收。"
+        ],
+        "maintainer": [
+          "完整目录功能/视觉验收。"
+        ]
+      },
+      "locallyAuthorizedNextSteps": [
+        "原计划无 C01 硬依赖，但 backend service.go、ServiceCatalog 和 shared locale 与其他包有文件重叠，须明确 lane ownership。"
+      ],
+      "stopCriterion": "三个原标准逐项真实证据通过；不能用8个 mock 案或错误cause修复扩大为全部目录验收。"
+    },
+    {
+      "code": "C04",
+      "taskId": "2026-11-16-ops-k8s-service-mutations",
+      "statusObserved": "in-progress",
+      "manifest": {
+        "file": ".harness/tasks/2026-11-16-ops-k8s-service-mutations/manifest.json",
+        "sha256": "20a554fc3b6588e0fb01876b925bdb796cd8a62ae813cdad8003837a3ef5132f"
+      },
+      "taskDoc": {
+        "file": "docs/harness/tasks/2026-11-16-ops-k8s-service-mutations.task.md",
+        "sha256": "18847e4a34ccd697c1fc703b789c25d777e318799a666802c048b9684123cc95"
+      },
+      "acceptanceCriteria": [
+        "已绑定 namespace 中有权限用户能创建、读取、编辑、删除 Service。",
+        "跨域/未绑定/缺操作权限在 Kubernetes mutation 前失败。",
+        "平台读取后 kubectl 修改，平台陈旧更新/删除返回冲突且对象未被覆盖或删错。"
+      ],
+      "taskDocAcceptanceSection": "- 已绑定 namespace 中有权限用户能创建、读取、编辑、删除 Service。\n- 跨域/未绑定/缺操作权限在 Kubernetes mutation 前失败。\n- 平台读取后 kubectl 修改，平台陈旧更新/删除返回冲突且对象未被覆盖或删错。",
+      "dependencies": [],
+      "conditionalDependencies": {},
+      "scope": {
+        "in": [
+          "复用 K8s 客户端与 ownership/namespace guard，补 selector/ports 更新及 API/UI 权限。",
+          "携带并校验 resourceVersion；删除使用适用的 UID/resourceVersion precondition，拒绝外部更新后的陈旧操作。",
+          "同步 API、菜单权限/i18n、错误语义和 smoke；不把镜像 Release 当 Helm Chart 安装。"
+        ],
+        "out": [
+          "platform/system/* 通用实现与规则副本；共享问题 Base-first",
+          "未授权生产操作、规则豁免与风险接受",
+          "自动 exporter/file_sd/商业 License 等后续产品扩张"
+        ]
+      },
+      "verificationPlan": {
+        "commands": [
+          "go test -race -count=1 ./modules/business/k8s/...",
+          "npm run test:smoke:business:k8s"
+        ],
+        "runtimeEvidence": [
+          "当前候选、隔离环境、业务正反向及桌面/窄屏渲染；未跑必须记录 gap"
+        ],
+        "commandWorkingDirectories": {
+          "go test -race -count=1 ./modules/business/k8s/...": "backend",
+          "npm run test:smoke:business:k8s": "frontend"
+        }
+      },
+      "humanGates": [
+        "范围已由维护者确认：按业务设计评估试点；安全可逆步骤自主执行。",
+        "生产操作、门禁豁免、风险接受及最终视觉/功能验收由维护者决定；不得以等候时间作为批准。"
+      ],
+      "evidencePresence": {
+        "summary.md": false,
+        "review.md": false,
+        "commands.json": false
+      },
+      "title": "K8s Service 更新及并发保护",
+      "deliveryVerdict": "PARTIAL",
+      "strongestProvedScope": "历史扩展 mutation 9 顶层、RBAC/cancellation17顶层回归通过；UI fixed-ID13/13及后续readability receipt通过，provider/role模拟。",
+      "strongestEvidence": [
+        ".harness/evidence/2026-11-17-ops-history-audit/continuation-retire-shared-transaction-final-closeout-20261118.json",
+        ".harness/evidence/2026-11-17-ops-history-audit/continuation-c04-mutation-expanded-fixed.log.receipt.json",
+        ".harness/evidence/2026-11-17-ops-history-audit/continuation-c04-rbac-cancellation-fixed.log.receipt.json",
+        ".harness/evidence/2026-11-17-ops-history-audit/continuation-c04-ui-toast-identity-fixed.receipt.json",
+        ".harness/evidence/2026-11-17-ops-history-audit/continuation-c04-ui-toast-readability-retained-20261118.receipt.json",
+        ".harness/evidence/2026-11-17-ops-history-audit/continuation-c04-rbac-cancellation-architecture.md"
+      ],
+      "criterionAssessments": [
+        {
+          "criterion": "已绑定 namespace 中有权限用户能创建、读取、编辑、删除 Service。",
+          "verdict": "PARTIAL",
+          "assessment": "allowed create 和CRUD契约已有 real client-go + httptest/MySQL证据；实际 bound namespace 最小权限操作未完成。"
+        },
+        {
+          "criterion": "跨域/未绑定/缺操作权限在 Kubernetes mutation 前失败。",
+          "verdict": "PARTIAL",
+          "assessment": "RBAC/cancellation拒绝及zero provider writes通过；Binding撤权/Cluster重绑到外部commit仍open。"
+        },
+        {
+          "criterion": "平台读取后 kubectl 修改，平台陈旧更新/删除返回冲突且对象未被覆盖或删错。",
+          "verdict": "PARTIAL",
+          "assessment": "UID/resourceVersion stale拒绝已有模拟provider证据；真实kubectl干扰后的对象完整性尚未证明。"
+        }
+      ],
+      "remainingGates": {
+        "implementation": [
+          "Binding revocation/Cluster rebind 的 admission→external commit 保护；不重做已修 stale UID/RV 和取消cause。"
+        ],
+        "runtime": [
+          "实际 role/environment/binding 的CRUD正反向；全UI状态当前revision证据。"
+        ],
+        "external": [
+          "task-owned真实K8s集群，kubectl修改/重建后平台旧写/旧删冲突且对象保全。"
+        ],
+        "maintainer": [
+          "最终功能/视觉验收；任何 shared UI stack风险决定留Base-first。"
+        ]
+      },
+      "locallyAuthorizedNextSteps": [
+        "k8s/service owner可独立实现；namespace/cluster共享文件新增修改需协调授权。"
+      ],
+      "stopCriterion": "三条原标准在真实集群与身份矩阵通过，窄模拟provider验证不得关闭整包。"
+    },
+    {
+      "code": "C05",
+      "taskId": "2026-11-16-ops-business-runtime-acceptance",
+      "statusObserved": "planned",
+      "manifest": {
+        "file": ".harness/tasks/2026-11-16-ops-business-runtime-acceptance/manifest.json",
+        "sha256": "aee559542afe0f2193b3200e78cb5e1013db19686cd10a893f8b1acbbcd27a65"
+      },
+      "taskDoc": {
+        "file": "docs/harness/tasks/2026-11-16-ops-business-runtime-acceptance.task.md",
+        "sha256": "d3f19b773c48a7d98c1b1a34a64ee09143f02d1267d4e94ac10126dbc9fc5389"
+      },
+      "acceptanceCriteria": [
+        "关键 MySQL、SSH、K8s、目标错配及引用保护用例零未解释 skip，所有 P0 通过。",
+        "两部门/业务域及最小权限角色均验证；正向、越权、重复、并发、失败恢复、回滚留证。",
+        "当前 revision 桌面/窄屏和主要交互状态截图，source/迁移/hash/命令/退出码对应同一候选。",
+        "旧菜单任务运行 gap 得到当前证据关闭；旧历史截图不替代。"
+      ],
+      "taskDocAcceptanceSection": "- 关键 MySQL、SSH、K8s、目标错配及引用保护用例零未解释 skip，所有 P0 通过。\n- 两部门/业务域及最小权限角色均验证；正向、越权、重复、并发、失败恢复、回滚留证。\n- 当前 revision 桌面/窄屏和主要交互状态截图，source/迁移/hash/命令/退出码对应同一候选。\n- 旧菜单任务运行 gap 得到当前证据关闭；旧历史截图不替代。",
+      "dependencies": [
+        "2026-11-16-ops-service-deploy-integrity",
+        "2026-11-16-ops-service-deploy-user-flow",
+        "2026-11-16-ops-service-catalog-usability",
+        "2026-11-16-ops-k8s-service-mutations"
+      ],
+      "conditionalDependencies": {},
+      "scope": {
+        "in": [
+          "固定实际候选 revision、已装配 Base release、业务迁移及 fixture；空库/升级/重复/故障/回滚隔离演练。",
+          "使用 task-owned MySQL/Redis/SSH/K8s，执行身份/归属、部署失败续跑、取消、实例回写及发布回滚；提供测试环境而不是访问生产。",
+          "在干净候选树运行 ops 核心业务 UI/API smoke；新环境管理、菜单和受限角色由浏览器驱动验收。",
+          "补业务 smoke 的 CI 接入或独立必过 release gate；现有 Smoke Sanity 只证明平台/系统域。"
+        ],
+        "out": [
+          "platform/system/* 通用实现与规则副本；共享问题 Base-first",
+          "未授权生产操作、规则豁免与风险接受",
+          "自动 exporter/file_sd/商业 License 等后续产品扩张"
+        ]
+      },
+      "verificationPlan": {
+        "commands": [
+          "go test -race -count=1 -json ./...",
+          "npm run check:business-foundation",
+          "npm run lint",
+          "npm run type-check",
+          "npm run build",
+          "npm run test:smoke:business:cmdb",
+          "npm run test:smoke:business:deploy:api",
+          "npm run test:smoke:business:deploy",
+          "npm run test:smoke:business:service",
+          "npm run test:smoke:business:k8s"
+        ],
+        "runtimeEvidence": [
+          "当前候选、隔离环境、业务正反向及桌面/窄屏渲染；未跑必须记录 gap"
+        ],
+        "commandWorkingDirectories": {
+          "go test -race -count=1 -json ./...": "backend",
+          "npm run check:business-foundation": ".",
+          "npm run lint": "frontend",
+          "npm run type-check": "frontend",
+          "npm run build": "frontend",
+          "npm run test:smoke:business:cmdb": "frontend",
+          "npm run test:smoke:business:deploy:api": "frontend",
+          "npm run test:smoke:business:deploy": "frontend",
+          "npm run test:smoke:business:service": "frontend",
+          "npm run test:smoke:business:k8s": "frontend"
+        }
+      },
+      "humanGates": [
+        "范围已由维护者确认：按业务设计评估试点；安全可逆步骤自主执行。",
+        "生产操作、门禁豁免、风险接受及最终视觉/功能验收由维护者决定；不得以等候时间作为批准。"
+      ],
+      "evidencePresence": {
+        "summary.md": false,
+        "review.md": false,
+        "commands.json": false
+      },
+      "title": "当前候选运行、权限与业务UI验收",
+      "deliveryVerdict": "PARTIAL",
+      "strongestProvedScope": "上一冻结候选完整CGO race72包、源码1221一致、API/MySQL/Redis/migrations/frontend readiness、导航14/14；非verbose和少量图证据有限。",
+      "strongestEvidence": [
+        ".harness/evidence/2026-11-17-ops-history-audit/continuation-retire-shared-transaction-final-closeout-20261118.json",
+        ".harness/evidence/2026-11-17-ops-history-audit/continuation-retire-shared-transaction-final-readiness-20261118.json",
+        ".harness/evidence/2026-11-17-ops-history-audit/continuation-frontend-c04-toast-identity-final-verification.json",
+        ".github/workflows/quality.yml",
+        "backend/modules/business/deploy/deploy_live_acceptance_test.go"
+      ],
+      "criterionAssessments": [
+        {
+          "criterion": "关键 MySQL、SSH、K8s、目标错配及引用保护用例零未解释 skip，所有 P0 通过。",
+          "verdict": "PARTIAL",
+          "assessment": "包级race通过不能证明条件SSH/K8s子测零未解释skip；需-json/verbose per-test清单及真正task-owned目标。"
+        },
+        {
+          "criterion": "两部门/业务域及最小权限角色均验证；正向、越权、重复、并发、失败恢复、回滚留证。",
+          "verdict": "PARTIAL",
+          "assessment": "两部门/业务域和真实最小权限正反向矩阵没有在现有绑定中被证明。"
+        },
+        {
+          "criterion": "当前 revision 桌面/窄屏和主要交互状态截图，source/迁移/hash/命令/退出码对应同一候选。",
+          "verdict": "PARTIAL",
+          "assessment": "同候选source/build/runtime已绑定，但只有四张实际查看图片且工作台局部仍loading；完整交互状态/迁移演练待补。"
+        },
+        {
+          "criterion": "旧菜单任务运行 gap 得到当前证据关闭；旧历史截图不替代。",
+          "verdict": "PARTIAL",
+          "assessment": "导航14/14证明入口；M3C原菜单runtime/权限/交互gap不得仅据入口通过关闭。"
+        }
+      ],
+      "remainingGates": {
+        "implementation": [
+          "quality.yml:482的smoke-sanity仅平台/系统域；按本包原范围接入独立必过business smoke/gate。"
+        ],
+        "runtime": [
+          "冻结新候选后C01-C04集成、真实角色、空库/升级/重复/故障/回滚、零未解释skip、完整UI状态及M3C原gap。"
+        ],
+        "external": [
+          "真正task-owned SSH/K8s目标；既有liveVM测试限定旧录入目标且缺host会skip，不能静默挪到新endpoint或据包PASS认为已跑。"
+        ],
+        "maintainer": [
+          "最终功能/视觉验收；P0不得豁免。"
+        ]
+      },
+      "locallyAuthorizedNextSteps": [
+        "可以准备CI接入、候选/fixtures/role矩阵和隔离环境方案；C01-C04未验收前不开展最终依赖验收。"
+      ],
+      "stopCriterion": "C01-C04完成，十条计划命令有真实当前receipt，关键子测零未解释skip，所有P0及身份/UI/迁移矩阵通过；最终人类验收。"
+    },
+    {
+      "code": "C06",
+      "taskId": "2026-11-16-ops-pilot-release-closeout",
+      "statusObserved": "planned",
+      "manifest": {
+        "file": ".harness/tasks/2026-11-16-ops-pilot-release-closeout/manifest.json",
+        "sha256": "4947dfd0ce776cae1b490e5c06b38c13a1aec648de87423600b1bac1d4927f7c"
+      },
+      "taskDoc": {
+        "file": "docs/harness/tasks/2026-11-16-ops-pilot-release-closeout.task.md",
+        "sha256": "303b64d1f3b53c984f687d5d18fc134eaf0d08a2051b6cc43ec3511eac4f6a71"
+      },
+      "acceptanceCriteria": [
+        "独立执行者从 clean checkout/交付包按文档完成安装、升级及回滚，校验和与候选一致。",
+        "C01-C05 完成且本包交付/回滚验收通过，P0 零遗留；P1 延期须有维护者决定、owner、截止日期及补偿控制。",
+        "业务包不能仅是 Base release；不以 GitHub merge、测试全绿或旧 GA 文案替代业务验收。",
+        "候选开放扩展通过 E04；不开放扩展的菜单、路由/权限、可见能力与说明已裁剪并验证。"
+      ],
+      "taskDocAcceptanceSection": "- 独立执行者从 clean checkout/交付包按文档完成安装、升级及回滚，校验和与候选一致。\n- C01-C05 完成且本包交付/回滚验收通过，P0 零遗留；P1 延期须有维护者决定、owner、截止日期及补偿控制。\n- 业务包不能仅是 Base release；不以 GitHub merge、测试全绿或旧 GA 文案替代业务验收。",
+      "dependencies": [
+        "2026-11-16-ops-business-runtime-acceptance"
+      ],
+      "conditionalDependencies": {
+        "2026-11-16-ops-extensions-live-acceptance": "Any extension capability exposed in pilot delivery"
+      },
+      "scope": {
+        "in": [
+          "从通过 C05 的 clean candidate 输出 Ops 交付包、SHA-256、业务版本和锁定 foundation/迁移信息。",
+          "对隔离环境执行离线/目标安装方式、备份、升级、失败恢复及回滚，复用 Base runner 与发布契约。",
+          "把真实已交付、裁剪扩展和已接受风险写进准确发布说明，最终功能/视觉验收后才声明试点完成。"
+        ],
+        "out": [
+          "platform/system/* 通用实现与规则副本；共享问题 Base-first",
+          "未授权生产操作、规则豁免与风险接受",
+          "自动 exporter/file_sd/商业 License 等后续产品扩张"
+        ]
+      },
+      "verificationPlan": {
+        "commands": [
+          "npm run check:business-overlay",
+          "npm run check:shared-drift",
+          "npm run rebuild:from-base -- --target .tmp/pilot-release-candidate",
+          "node scripts/harness/check-evidence.mjs --strict",
+          "node scripts/harness/check-review.mjs --strict"
+        ],
+        "runtimeEvidence": [
+          "当前候选、隔离环境、业务正反向及桌面/窄屏渲染；未跑必须记录 gap"
+        ],
+        "commandWorkingDirectories": {
+          "npm run check:business-overlay": ".",
+          "npm run check:shared-drift": ".",
+          "npm run rebuild:from-base -- --target .tmp/pilot-release-candidate": ".",
+          "node scripts/harness/check-evidence.mjs --strict": ".",
+          "node scripts/harness/check-review.mjs --strict": "."
+        }
+      },
+      "humanGates": [
+        "范围已由维护者确认：按业务设计评估试点；安全可逆步骤自主执行。",
+        "生产操作、门禁豁免、风险接受及最终视觉/功能验收由维护者决定；不得以等候时间作为批准。"
+      ],
+      "evidencePresence": {
+        "summary.md": false,
+        "review.md": false,
+        "commands.json": false
+      },
+      "title": "交付包、安装、升级、回滚及最终验收",
+      "deliveryVerdict": "PARTIAL",
+      "strongestProvedScope": "正式Base消费重建已通过，不能等同Ops业务交付包。原全仓evidence/review门禁仍红，delta0无豁免。",
+      "strongestEvidence": [
+        ".harness/evidence/2026-11-17-ops-history-audit/continuation-retire-shared-transaction-final-closeout-20261118.json",
+        ".harness/evidence/2026-11-17-ops-history-audit/continuation-retire-shared-transaction-verified-20261118-checks.json"
+      ],
+      "criterionAssessments": [
+        {
+          "criterion": "独立执行者从 clean checkout/交付包按文档完成安装、升级及回滚，校验和与候选一致。",
+          "verdict": "PARTIAL",
+          "assessment": "缺独立执行者从clean checkout/Ops bundle安装/升级/回滚的同候选校验和证据。"
+        },
+        {
+          "criterion": "C01-C05 完成且本包交付/回滚验收通过，P0 零遗留；P1 延期须有维护者决定、owner、截止日期及补偿控制。",
+          "verdict": "PARTIAL",
+          "assessment": "C01-C05均未完成；P0零遗留和P1维护者决定等条件未满足。"
+        },
+        {
+          "criterion": "业务包不能仅是 Base release；不以 GitHub merge、测试全绿或旧 GA 文案替代业务验收。",
+          "verdict": "PARTIAL",
+          "assessment": "当前只有Base官方消费/本地候选证据，没有本包Ops交付验收；不得用merge或测试绿替代。"
+        },
+        {
+          "criterion": "候选开放扩展通过 E04；不开放扩展的菜单、路由/权限、可见能力与说明已裁剪并验证。",
+          "verdict": "PARTIAL",
+          "assessment": "manifest额外标准要求开放扩展通过E04；关闭扩展还需menu/route/permission/能力说明裁剪验证，用户优先推进并非裁剪风险批准。"
+        }
+      ],
+      "remainingGates": {
+        "implementation": [
+          "复用现有Base runner/发布契约准备Ops包、校验和及精确release说明；shared文档归协调者。"
+        ],
+        "runtime": [
+          "独立执行者隔离安装/升级/失败恢复/回滚及清洁候选一致性。"
+        ],
+        "external": [
+          "目标安装方式/隔离基础设施；发布/生产动作不在此次实现授权内。"
+        ],
+        "maintainer": [
+          "最终功能/视觉验收；P1延期需owner/截止/补偿控制及显式决定；发布授权。"
+        ]
+      },
+      "locallyAuthorizedNextSteps": [
+        "准备交付清单、安装回滚方案、bundle manifest和checksum验证器，不预写通过或开始正式发布。"
+      ],
+      "stopCriterion": "C05完成，实际开放扩展E04通过或经过验证的裁剪决定，独立安装回滚通过且P0为0、最终验收签署。"
+    },
+    {
+      "code": "E01",
+      "taskId": "2026-11-16-ops-filedist-product-closure",
+      "statusObserved": "planned",
+      "manifest": {
+        "file": ".harness/tasks/2026-11-16-ops-filedist-product-closure/manifest.json",
+        "sha256": "d74100926fe2f50f56b5920892b8ffdc1d1a64dc8921b6dc47a28e80b1b62070"
+      },
+      "taskDoc": {
+        "file": "docs/harness/tasks/2026-11-16-ops-filedist-product-closure.task.md",
+        "sha256": "1c1c19f905c846751d1a997a575b368b0fd83667a4040de51794bbca2c2b27a1"
+      },
+      "acceptanceCriteria": [
+        "用户从上传/选文件到选目标、创建、传输校验、进度与结果回读全程走通 UI。",
+        "大文件开始后取消能按合同停止在途写入；未来 scheduledAt 到期执行，重启后的任务进入确定状态。",
+        "已取消队列项不再执行；受限角色行为与后端实际开放范围一致。"
+      ],
+      "taskDocAcceptanceSection": "- 用户从上传/选文件到选目标、创建、传输校验、进度与结果回读全程走通 UI。\n- 大文件开始后取消能按合同停止在途写入；未来 scheduledAt 到期执行，重启后的任务进入确定状态。\n- 已取消队列项不再执行；受限角色行为与后端实际开放范围一致。",
+      "dependencies": [],
+      "conditionalDependencies": {},
+      "scope": {
+        "in": [
+          "增加浏览器创建任务、目标选择、分页和进度刷新，复用后端 CreateTask。",
+          "按已声明 scope 与 authorizer 能力接入，保留 nil fail-closed；all/admin 限制不能被 UI 偷绕开。",
+          "建立在途传输可取消、未来任务触发及重启收敛；出队取消保护已存在，不重复实现。"
+        ],
+        "out": [
+          "platform/system/* 通用实现与规则副本；共享问题 Base-first",
+          "未授权生产操作、规则豁免与风险接受",
+          "自动 exporter/file_sd/商业 License 等后续产品扩张"
+        ]
+      },
+      "verificationPlan": {
+        "commands": [
+          "go test -race -count=1 ./modules/business/filedist/...",
+          "npm run test:smoke:business:observability"
+        ],
+        "runtimeEvidence": [
+          "当前候选、隔离环境、业务正反向及桌面/窄屏渲染；未跑必须记录 gap"
+        ],
+        "commandWorkingDirectories": {
+          "go test -race -count=1 ./modules/business/filedist/...": "backend",
+          "npm run test:smoke:business:observability": "frontend"
+        }
+      },
+      "humanGates": [
+        "范围已由维护者确认：按业务设计评估试点；安全可逆步骤自主执行。",
+        "生产操作、门禁豁免、风险接受及最终视觉/功能验收由维护者决定；不得以等候时间作为批准。"
+      ],
+      "evidencePresence": {
+        "summary.md": false,
+        "review.md": false,
+        "commands.json": false
+      },
+      "title": "文件分发创建入口与可靠控制",
+      "deliveryVerdict": "PARTIAL",
+      "strongestProvedScope": "完整race包含filedist包级PASS；没有E01本包验收trio，未证明UI全程或真实SFTP在途取消。",
+      "strongestEvidence": [
+        ".harness/evidence/2026-11-17-ops-history-audit/continuation-retire-shared-transaction-final-closeout-20261118.json"
+      ],
+      "criterionAssessments": [
+        {
+          "criterion": "用户从上传/选文件到选目标、创建、传输校验、进度与结果回读全程走通 UI。",
+          "verdict": "PARTIAL",
+          "assessment": "需真实浏览器上传/选文件→目标→创建→进度→校验/回读，通用导航不足。"
+        },
+        {
+          "criterion": "大文件开始后取消能按合同停止在途写入；未来 scheduledAt 到期执行，重启后的任务进入确定状态。",
+          "verdict": "PARTIAL",
+          "assessment": "需在途大文件取消、future scheduledAt到期及重启收敛实际行为证据。"
+        },
+        {
+          "criterion": "已取消队列项不再执行；受限角色行为与后端实际开放范围一致。",
+          "verdict": "PARTIAL",
+          "assessment": "已有出队取消保护不可重复实现；受限角色/实际后端scope一致性仍需正反向验收。"
+        }
+      ],
+      "remainingGates": {
+        "implementation": [
+          "复用CreateTask补浏览器创建、目标、分页/刷新；核对并补在途取消/未来触发/重启收敛，nil authorizer fail-closed保留。"
+        ],
+        "runtime": [
+          "实际两域最小角色、UI全程、大文件/取消/未来任务/重启/完整性矩阵。"
+        ],
+        "external": [
+          "task-owned真实SSH/SFTP目标、大文件fixture/checksum、owned cleanup。"
+        ],
+        "maintainer": [
+          "扩展开放/裁剪决定与最终验收；当前用户只授权推进，不批准风险豁免。"
+        ]
+      },
+      "locallyAuthorizedNextSteps": [
+        "原无硬依赖，可在filedist独占lane实现；原计划默认裁剪不应阻止已授权可逆代码工作。"
+      ],
+      "stopCriterion": "三条标准在当前候选真实UI/SFTP证据通过，或由维护者明确裁剪并验证所有可见能力；包级PASS不足。"
+    },
+    {
+      "code": "E02",
+      "taskId": "2026-11-16-ops-argocd-ownership-convergence",
+      "statusObserved": "planned",
+      "manifest": {
+        "file": ".harness/tasks/2026-11-16-ops-argocd-ownership-convergence/manifest.json",
+        "sha256": "ad39f632c86fc8d4d529eda910b9feeb36691c680f39600c4f4eae2defe2f0ee"
+      },
+      "taskDoc": {
+        "file": "docs/harness/tasks/2026-11-16-ops-argocd-ownership-convergence.task.md",
+        "sha256": "b3dca873f0a694ba575f30940865927648b10143d4db583d74598bdf46c0d232"
+      },
+      "acceptanceCriteria": [
+        "受限部门角色不能读取/操作其他业务域应用；请求在 Argo 副作用前拒绝。",
+        "同步请求已接受但镜像拉取失败时，平台不提前显示 Succeeded/Synced。",
+        "成功、失败、Progressing、超时、外部删除及恢复自动收敛，凭据不回显。"
+      ],
+      "taskDocAcceptanceSection": "- 受限部门角色不能读取/操作其他业务域应用；请求在 Argo 副作用前拒绝。\n- 同步请求已接受但镜像拉取失败时，平台不提前显示 Succeeded/Synced。\n- 成功、失败、Progressing、超时、外部删除及恢复自动收敛，凭据不回显。",
+      "dependencies": [],
+      "conditionalDependencies": {},
+      "scope": {
+        "in": [
+          "以专项业务归属合同实现列表/Get/Sync/Delete 的 scope 校验，复用 base DataScope，不改共享中间件。",
+          "Sync 接受不等于成功，状态来自实际 operation/health；在装配中启动有界 reconciler 并处理重启/乱序。",
+          "旧无归属记录设计显式迁移/隔离策略；不得以默认全量可见完成兼容。"
+        ],
+        "out": [
+          "platform/system/* 通用实现与规则副本；共享问题 Base-first",
+          "未授权生产操作、规则豁免与风险接受",
+          "自动 exporter/file_sd/商业 License 等后续产品扩张"
+        ]
+      },
+      "verificationPlan": {
+        "commands": [
+          "go test -race -count=1 ./modules/business/cicd/...",
+          "npm run lint",
+          "npm run type-check"
+        ],
+        "runtimeEvidence": [
+          "当前候选、隔离环境、业务正反向及桌面/窄屏渲染；未跑必须记录 gap"
+        ],
+        "commandWorkingDirectories": {
+          "go test -race -count=1 ./modules/business/cicd/...": "backend",
+          "npm run lint": "frontend",
+          "npm run type-check": "frontend"
+        }
+      },
+      "humanGates": [
+        "范围已由维护者确认：按业务设计评估试点；安全可逆步骤自主执行。",
+        "生产操作、门禁豁免、风险接受及最终视觉/功能验收由维护者决定；不得以等候时间作为批准。"
+      ],
+      "evidencePresence": {
+        "summary.md": false,
+        "review.md": false,
+        "commands.json": false
+      },
+      "title": "ArgoCD归属隔离与真实状态收敛",
+      "deliveryVerdict": "PARTIAL",
+      "strongestProvedScope": "完整race含argocd包PASS；直接源码观察到Sync ack即Succeeded/Synced及缺业务scope传递，未跑新的攻击或provider用例。",
+      "strongestEvidence": [
+        ".harness/evidence/2026-11-17-ops-history-audit/continuation-retire-shared-transaction-final-closeout-20261118.json",
+        "backend/modules/business/cicd/argocd/argocd_service.go",
+        "backend/modules/business/cicd/argocd/argocd_handler.go",
+        "backend/modules/business/cicd/argocd/argocd_model.go",
+        "backend/modules/business/cicd/argocd/argocd_reconciler.go"
+      ],
+      "criterionAssessments": [
+        {
+          "criterion": "受限部门角色不能读取/操作其他业务域应用；请求在 Argo 副作用前拒绝。",
+          "verdict": "PARTIAL",
+          "assessment": "应用model没有business scope/environment归属，handler List/Get/Sync/Delete不传DataScope给service；原跨域隔离未建立。未审计所有上游全局中间件，不扩大为通用认证绕过结论。"
+        },
+        {
+          "criterion": "同步请求已接受但镜像拉取失败时，平台不提前显示 Succeeded/Synced。",
+          "verdict": "FAIL",
+          "assessment": "FAIL_SOURCE: SyncApplication将client.SyncApplication返回接受直接写Succeeded/Synced，未观测operation/health，违反原标准；未声明动态复现。"
+        },
+        {
+          "criterion": "成功、失败、Progressing、超时、外部删除及恢复自动收敛，凭据不回显。",
+          "verdict": "PARTIAL",
+          "assessment": "已有Reconciler可复用但当前全注册应用扫描、remote状态更新不能证明重启/乱序/超时/外部删除的完整收敛；凭据字段json隐藏不代替回显验收。"
+        }
+      ],
+      "remainingGates": {
+        "implementation": [
+          "业务归属合同、旧无归属显式迁移/隔离、List/Get/Sync/Delete的owner+DataScope；Sync接受保持非终态，基于实际operation/health版本收敛；有界reconciler装配。"
+        ],
+        "runtime": [
+          "真实两域最小角色、接受后拉取失败、Progressing/超时/外部删除/恢复及凭据不回显。"
+        ],
+        "external": [
+          "task-owned ArgoCD实例及K8s/Git/image失败fixture；不使用未知生产endpoint。"
+        ],
+        "maintainer": [
+          "迁移/裁剪风险决定及最终验收。"
+        ]
+      },
+      "locallyAuthorizedNextSteps": [
+        "无硬依赖，cicd/argocd源和测试可派独立owner；opsinit启动接入、共享locale/注册/文档由协调者统一合入。状态修复和scope/migration相互相关，不宜两个Claude并写同一service/model。"
+      ],
+      "stopCriterion": "三条原标准通过scope拒绝/真实operation收敛证据，旧记录迁移有明确合同和审查；本轮源码分析不足以认证执行效果。"
+    },
+    {
+      "code": "E03",
+      "taskId": "2026-11-16-ops-helm-capability-truth",
+      "statusObserved": "planned",
+      "manifest": {
+        "file": ".harness/tasks/2026-11-16-ops-helm-capability-truth/manifest.json",
+        "sha256": "6fa01620699ea47795dc97f1a4597a8b5471acc683ca95ae18ee4d8e8ab7480b"
+      },
+      "taskDoc": {
+        "file": "docs/harness/tasks/2026-11-16-ops-helm-capability-truth.task.md",
+        "sha256": "7cccf2384c4462fd61750655e3dde3bab9cc7286e346ba90ef82df295cc81a2e"
+      },
+      "acceptanceCriteria": [
+        "未真正安装 Chart 的记录不显示已部署，不用 K8s 镜像 Release 为 Helm 能力背书。",
+        "若交付 Chart 执行，版本、values、权限、超时/冲突、历史和回滚具备真实集群证据；若延期，有可见能力裁剪和风险决定。"
+      ],
+      "taskDocAcceptanceSection": "- 未真正安装 Chart 的记录不显示已部署，不用 K8s 镜像 Release 为 Helm 能力背书。\n- 若交付 Chart 执行，版本、values、权限、超时/冲突、历史和回滚具备真实集群证据；若延期，有可见能力裁剪和风险决定。",
+      "dependencies": [],
+      "conditionalDependencies": {},
+      "scope": {
+        "in": [
+          "先以最小复杂度判断现有登记能力是否应隐藏或明确标为登记，去除数据库插入即 deployed 的误导。",
+          "如扩展范围明确包含 Chart 安装，复用适当已有工具/依赖建立 install/upgrade/rollback/uninstall 真执行及观测；否则明确延期。"
+        ],
+        "out": [
+          "platform/system/* 通用实现与规则副本；共享问题 Base-first",
+          "未授权生产操作、规则豁免与风险接受",
+          "自动 exporter/file_sd/商业 License 等后续产品扩张"
+        ]
+      },
+      "verificationPlan": {
+        "commands": [
+          "go test -race -count=1 ./modules/business/k8s/...",
+          "npm run type-check",
+          "npm run test:smoke:business:k8s"
+        ],
+        "runtimeEvidence": [
+          "当前候选、隔离环境、业务正反向及桌面/窄屏渲染；未跑必须记录 gap"
+        ],
+        "commandWorkingDirectories": {
+          "go test -race -count=1 ./modules/business/k8s/...": "backend",
+          "npm run type-check": "frontend",
+          "npm run test:smoke:business:k8s": "frontend"
+        }
+      },
+      "humanGates": [
+        "范围已由维护者确认：按业务设计评估试点；安全可逆步骤自主执行。",
+        "生产操作、门禁豁免、风险接受及最终视觉/功能验收由维护者决定；不得以等候时间作为批准。"
+      ],
+      "evidencePresence": {
+        "summary.md": false,
+        "review.md": false,
+        "commands.json": false
+      },
+      "title": "Helm能力口径与真实Chart边界",
+      "deliveryVerdict": "PARTIAL",
+      "strongestProvedScope": "现有候选重建/race不证明Chart执行；E03本包trio缺失。",
+      "strongestEvidence": [
+        ".harness/evidence/2026-11-17-ops-history-audit/continuation-retire-shared-transaction-final-closeout-20261118.json"
+      ],
+      "criterionAssessments": [
+        {
+          "criterion": "未真正安装 Chart 的记录不显示已部署，不用 K8s 镜像 Release 为 Helm 能力背书。",
+          "verdict": "PARTIAL",
+          "assessment": "需核对登记状态及所有可见UI/README，数据库插入不得显示已部署；不能以镜像Release背书Helm。"
+        },
+        {
+          "criterion": "若交付 Chart 执行，版本、values、权限、超时/冲突、历史和回滚具备真实集群证据；若延期，有可见能力裁剪和风险决定。",
+          "verdict": "PARTIAL",
+          "assessment": "原合同允许注册能力如实呈现并延期Chart；真正Chart执行须额外明确范围及真实集群证据。此次用户推进10包不自动授权新Chart生命周期或外部操作。"
+        }
+      ],
+      "remainingGates": {
+        "implementation": [
+          "先修登记即deployed误导，明确注册/未安装状态和能力口径；复用现有工具，不新增未要求Chart执行。"
+        ],
+        "runtime": [
+          "登记创建后状态、菜单/UI/说明一致性，错误/权限及版本事实。"
+        ],
+        "external": [
+          "仅如果交付Chart执行，才需task-owned集群、chart/values/version、install/upgrade/rollback/uninstall完整证据。"
+        ],
+        "maintainer": [
+          "Chart延期/可见裁剪及风险决定；最终功能/视觉验收。"
+        ]
+      },
+      "locallyAuthorizedNextSteps": [
+        "原无硬依赖，helm业务子目录可独占实现登记真实性；README、K8s共用locale和注册与C04/C06交叉，应由协调者合入。"
+      ],
+      "stopCriterion": "所有未实际安装记录不显示已部署；真实Chart范围若未交付须明确可见裁剪和维护者决定，不伪造外部运行证据。"
+    },
+    {
+      "code": "E04",
+      "taskId": "2026-11-16-ops-extensions-live-acceptance",
+      "statusObserved": "planned",
+      "manifest": {
+        "file": ".harness/tasks/2026-11-16-ops-extensions-live-acceptance/manifest.json",
+        "sha256": "5785d4aef14f5190d0485b0eec5d3bf942ce8152bdee1edc93d98b5fdc8d5a36"
+      },
+      "taskDoc": {
+        "file": "docs/harness/tasks/2026-11-16-ops-extensions-live-acceptance.task.md",
+        "sha256": "476c2c25fbab91af6cb1f846b7015752c13c4b25dc6fbfbb3bcd0189b6a0ea37"
+      },
+      "acceptanceCriteria": [
+        "所有试点开放扩展都有独立可重跑真实 provider 证据，未开放模块明确裁剪。",
+        "Velero 已有 CRD/reconciler 实现按真实事实评估，不沿用旧下架结论。",
+        "自动 exporter/file_sd 纳管、实时健康平台和商业 License/运行时 ModuleGate 仍为后续 Out，不扩张本任务。"
+      ],
+      "taskDocAcceptanceSection": "- 所有试点开放扩展都有独立可重跑真实 provider 证据，未开放模块明确裁剪。\n- Velero 已有 CRD/reconciler 实现按真实事实评估，不沿用旧下架结论。\n- 自动 exporter/file_sd 纳管、实时健康平台和商业 License/运行时 ModuleGate 仍为后续 Out，不扩张本任务。",
+      "dependencies": [],
+      "conditionalDependencies": {
+        "2026-11-16-ops-filedist-product-closure": "FileDist exposed",
+        "2026-11-16-ops-argocd-ownership-convergence": "ArgoCD exposed",
+        "2026-11-16-ops-helm-capability-truth": "Helm exposed"
+      },
+      "scope": {
+        "in": [
+          "按实际选中的扩展准备 task-owned Prometheus/VM、Loki、Tempo、ArgoCD、Velero 和 SSH provider；未选模块明确排除。",
+          "验收指标/日志/Trace 查询和告警发送、Argo操作、SFTP完整性、Velero backup/restore/schedule/PVC/失败收敛。",
+          "为每个启用扩展记录候选版本、外部真实事实、两域权限和失败恢复，不把 fake provider 当真机验收。"
+        ],
+        "out": [
+          "platform/system/* 通用实现与规则副本；共享问题 Base-first",
+          "未授权生产操作、规则豁免与风险接受",
+          "自动 exporter/file_sd/商业 License 等后续产品扩张"
+        ]
+      },
+      "verificationPlan": {
+        "commands": [
+          "go test -race -count=1 -json ./modules/business/observability/... ./modules/business/k8s/backup/... ./modules/business/cicd/... ./modules/business/filedist/...",
+          "npm run test:smoke:business:observability",
+          "npm run test:smoke:business:k8s"
+        ],
+        "runtimeEvidence": [
+          "当前候选、隔离环境、业务正反向及桌面/窄屏渲染；未跑必须记录 gap"
+        ],
+        "commandWorkingDirectories": {
+          "go test -race -count=1 -json ./modules/business/observability/... ./modules/business/k8s/backup/... ./modules/business/cicd/... ./modules/business/filedist/...": "backend",
+          "npm run test:smoke:business:observability": "frontend",
+          "npm run test:smoke:business:k8s": "frontend"
+        }
+      },
+      "humanGates": [
+        "范围已由维护者确认：按业务设计评估试点；安全可逆步骤自主执行。",
+        "生产操作、门禁豁免、风险接受及最终视觉/功能验收由维护者决定；不得以等候时间作为批准。"
+      ],
+      "evidencePresence": {
+        "summary.md": false,
+        "review.md": false,
+        "commands.json": false
+      },
+      "title": "实际开放扩展真实外部验收",
+      "deliveryVerdict": "PARTIAL",
+      "strongestProvedScope": "完整race含observability/backup/argocd/filedist包PASS、导航进入扩展入口；没有独立真实provider验收。",
+      "strongestEvidence": [
+        ".harness/evidence/2026-11-17-ops-history-audit/continuation-retire-shared-transaction-final-closeout-20261118.json",
+        ".harness/evidence/2026-11-17-ops-history-audit/continuation-retire-shared-transaction-final-readiness-20261118.json"
+      ],
+      "criterionAssessments": [
+        {
+          "criterion": "所有试点开放扩展都有独立可重跑真实 provider 证据，未开放模块明确裁剪。",
+          "verdict": "PARTIAL",
+          "assessment": "需实际开放能力清单以及每个启用扩展可重跑真实provider证据；fake provider/包PASS不是替代。"
+        },
+        {
+          "criterion": "Velero 已有 CRD/reconciler 实现按真实事实评估，不沿用旧下架结论。",
+          "verdict": "PARTIAL",
+          "assessment": "应按当前Velero CRD/reconciler实现评估；此次未复核真实Velero动作，不能沿用旧下架结论或宣布已验收。"
+        },
+        {
+          "criterion": "自动 exporter/file_sd 纳管、实时健康平台和商业 License/运行时 ModuleGate 仍为后续 Out，不扩张本任务。",
+          "verdict": "PARTIAL",
+          "assessment": "Out边界确定：自动exporter/file_sd、实时健康平台、商业License/ModuleGate不在10包实现范围。"
+        }
+      ],
+      "remainingGates": {
+        "implementation": [
+          "准备provider矩阵、可重跑fixture/cleanup、两域权限、失败恢复验收；确定实际开放表而非凭菜单推断能力已交付。"
+        ],
+        "runtime": [
+          "查询/告警/Argo/SFTP/Velero每个启用能力真实事实、错配/越权/恢复/清理验证。"
+        ],
+        "external": [
+          "task-owned Prometheus或VM、Loki、Tempo、ArgoCD、Velero/真实K8s、SSH；候选版本、endpoint范围、最小权限credential refs、owned测试资源须可证明。"
+        ],
+        "maintainer": [
+          "扩展选择/裁剪以及最终验收；生产或凭据授权缺失只停止依赖动作。"
+        ]
+      },
+      "locallyAuthorizedNextSteps": [
+        "无硬依赖的环境/验收设计可先做；FileDist/ArgoCD/Helm开放时对应E01/E02/E03完成后再验其final能力。"
+      ],
+      "stopCriterion": "实际开放表固定，所有启用扩展独立真实provider evidence通过，排除能力可见裁剪有依据；禁止fake→live扩张和Out功能新增。"
+    }
+  ],
+  "linkage": {
+    "parentTaskManifest": ".harness/tasks/2026-11-16-ops-pilot-delivery/manifest.json",
+    "historyTaskManifest": ".harness/tasks/2026-11-17-ops-history-audit/manifest.json",
+    "currentProgress": ".harness/evidence/2026-11-17-ops-history-audit/progress.md",
+    "artifactJson": ".harness/evidence/2026-11-17-ops-history-audit/ten-packages-acceptance-map-20261118.json",
+    "artifactMarkdown": ".harness/evidence/2026-11-17-ops-history-audit/ten-packages-acceptance-map-20261118.md",
+    "changeRef": "none"
+  },
+  "stopCondition": "Each original acceptance is mapped to direct evidence or an explicit gap, dependency graph recorded, locally runnable vs external/human gates separated; no package completion claim."
+}

@@ -1,0 +1,21 @@
+{
+  "disposableMySQL": true,
+  "startedAt": "2026-11-17T12:48:39.8781206Z",
+  "log": "continuation-c01-refusal-guards-race.log",
+  "testDsnRequired": "1",
+  "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\backend",
+  "cgoEnabled": "1",
+  "args": [
+    "test",
+    "-race",
+    "-count=1",
+    "-timeout=10m",
+    "./modules/business/deploy",
+    "-v",
+    "-run",
+    "^TestServiceLinkControlDeletion|^TestServiceLinkControlCancellationDoes"
+  ],
+  "goFlags": "-p=1 -mod=readonly",
+  "exitCode": 0,
+  "finishedAt": "2026-11-17T12:49:14.9492643Z"
+}

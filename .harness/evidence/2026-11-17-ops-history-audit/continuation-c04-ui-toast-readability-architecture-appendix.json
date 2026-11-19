@@ -1,0 +1,25 @@
+{
+  "reviewId": "c04-ui-toast-readability-architecture-appendix",
+  "reviewedAtUTC": "2026-11-17T17:28:08Z",
+  "author": "c03_owner_architecture",
+  "savedBy": "root coordinator",
+  "savedByThisLane": false,
+  "reviewerExecutedTests": false,
+  "reviewedFixStatus": "CLEAR",
+  "wholeTaskStatus": "WATCH",
+  "wholeTaskComplete": false,
+  "archiveApproved": false,
+  "historical1724Report": { "rawReadabilityAttachmentsInspected": false, "preserveUnchanged": true },
+  "freshReadabilityVerification": {
+    "rawReadabilityAttachmentsInspected": true, "gapClosed": true, "executor": "coordinator",
+    "startedAt": "2026-11-17T17:23:49.843Z", "finishedAt": "2026-11-17T17:24:08.696Z",
+    "exitCode": 0, "passedTests": 3, "retryCount": 0, "retainedMeasurements": 3,
+    "allFourConditionsTruePerMeasurement": true, "uncoveredPoints": 15, "totalPoints": 15,
+    "measurementSha256": "91b94acd6fbf6ec1fbe011a3aa6fdcfbed8a3a4d7b59ac7061a3870b7bb15f74",
+    "measurementHashMatchesReceipt": true, "reporterHashMatchesReceipt": true, "runnerHashMatchesReceipt": true,
+    "sourceBeforeCount": 17, "sourceAfterCount": 17, "sourceChangedCount": 0,
+    "original13CaseSourceDifferences": 0, "currentSourceDifferences": 0,
+    "historicalMeasurementsReconstructed": false, "liveProviderAcceptance": false, "actualRoleAcceptance": false
+  },
+  "recordedFrontendStaticVerification": { "lintExitCode": 0, "typeCheckExitCode": 0, "buildExitCode": 0, "warningFree": false }
+}

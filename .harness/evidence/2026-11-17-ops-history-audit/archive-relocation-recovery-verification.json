@@ -1,0 +1,41 @@
+{
+  "fixtureParent": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\manual-preview-20261116\\history-archive-recovery-1794888227470",
+  "reports": [
+    {
+      "phase": "prepare",
+      "injectedFailureExit": 1,
+      "resumeExit": 0,
+      "repeatExit": 0,
+      "all18Verified": true,
+      "relocationFailureExit": 1,
+      "relocationResumeExit": 0,
+      "relocationRepeatExit": 0,
+      "archiveAfterRelocationExit": 0,
+      "originalResultPreserved": true
+    },
+    {
+      "phase": "one-move",
+      "injectedFailureExit": 1,
+      "resumeExit": 0,
+      "repeatExit": 0,
+      "all18Verified": true,
+      "relocationFailureExit": 1,
+      "relocationResumeExit": 0,
+      "relocationRepeatExit": 0,
+      "archiveAfterRelocationExit": 0,
+      "originalResultPreserved": true
+    },
+    {
+      "phase": "document",
+      "injectedFailureExit": 1,
+      "resumeExit": 0,
+      "repeatExit": 0,
+      "all18Verified": true,
+      "relocationFailureExit": 1,
+      "relocationResumeExit": 0,
+      "relocationRepeatExit": 0,
+      "archiveAfterRelocationExit": 0,
+      "originalResultPreserved": true
+    }
+  ]
+}

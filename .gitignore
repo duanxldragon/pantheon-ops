@@ -54,6 +54,9 @@ frontend/.vite/
 # Test artifacts
 playwright-report/
 test-results/
+# Historical O4 adversarial test scratch (retained locally, not release assets).
+# Exact input inventory: history-audit/continuation-overlay-nonfile-inputs.json.
+/.harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/fixtures/
 
 # Local Pantheon artifacts
 .claude/

@@ -2,10 +2,10 @@
 title: Consume pantheon-base-v0.16.1 into pantheon-ops
 doc_type: Remediation
 layer: inheritance-sync
-status: Active
+status: Archived
 linked_contracts:
   - docs/PROJECT_INHERITANCE.md
-updated_at: 2026-10-12
+updated_at: 2026-11-17
 ---
 
 # Task Packet: 2026-10-12-foundation-upgrade-base-v0-16-1
@@ -163,3 +163,9 @@ inheritance-sync
 - [x] Verification run or exception recorded
 - [x] Evidence saved or summarized
 - [x] Review completed
+
+## Result — Historical Disposition 2026-11-17
+
+completed. Only original independently reviewed local scope completed; hosted/current-product/final-maintainer acceptance remains separate.
+
+Owner / successor / independent original-scope reviews: .harness/evidence/2026-11-17-ops-history-audit/continuation-dispositions.json. Original card body retained; only historical scope archived.

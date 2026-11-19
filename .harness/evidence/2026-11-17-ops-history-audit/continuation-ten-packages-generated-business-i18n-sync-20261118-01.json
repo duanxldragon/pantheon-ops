@@ -1,0 +1,80 @@
+{
+  "schema": "pantheon-generated-business-i18n-sync/v1",
+  "recordedAtUTC": "2026-11-18T08:18:32.1757790Z",
+  "implementer": "/root/e03_claude_partial_closeout",
+  "candidateSuffix": "ten-packages-20261118",
+  "stagedRoot": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\manual-preview-20261116\\overlay-history-continuation-final-ten-packages-20261118",
+  "reportPath": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\manual-preview-20261116\\overlay-history-continuation-final-ten-packages-20261118\\.business-overlay-report.json",
+  "reportSHA256": "670bc32a810d3f1ca8e40d56a1f96075aa8b936f0fd14355d1fa8042e003c562",
+  "reportBaseCommit": "6316f9b7189c86542424145fa49344ad737e952b",
+  "exactAuthorizedPaths": [
+    "frontend/src/i18n/resources/business/en-US.ts",
+    "frontend/src/i18n/resources/business/zh-CN.ts",
+    "frontend/src/i18n/resources/business/fr-FR.ts",
+    "frontend/src/i18n/resources/business/ja-JP.ts",
+    "frontend/src/i18n/resources/business/ko-KR.ts"
+  ],
+  "originalBytesPreserved": true,
+  "synchronizedCount": 5,
+  "sourceFrozen": true,
+  "files": [
+    {
+      "path": "frontend/src/i18n/resources/business/en-US.ts",
+      "currentSHA256Before": "1775a00245ab47fe8cc40db973a1235e2ad38a54e26bdca2cfcff1312263496c",
+      "stagedSHA256": "8b1d59b47c46291d532fe36ca3b16fad1acb3537ed9b3d289dc0d60f738bb11f",
+      "reportOwnedSHA256": "8b1d59b47c46291d532fe36ca3b16fad1acb3537ed9b3d289dc0d60f738bb11f",
+      "currentBytesBefore": 119064,
+      "stagedBytes": 123224,
+      "backupPath": ".harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-generated-business-i18n-backup-20261118-01/en-US.ts.before",
+      "backupSHA256": "1775a00245ab47fe8cc40db973a1235e2ad38a54e26bdca2cfcff1312263496c",
+      "currentSHA256After": "8b1d59b47c46291d532fe36ca3b16fad1acb3537ed9b3d289dc0d60f738bb11f"
+    },
+    {
+      "path": "frontend/src/i18n/resources/business/zh-CN.ts",
+      "currentSHA256Before": "5980287a989b51a0b5a2927903ff95e27eb31c5171c183c8b57e48a547fb4d8a",
+      "stagedSHA256": "3e9395025bba8bd190c75442bcefdd42494df3b1445c40988473a9cb89ea3dda",
+      "reportOwnedSHA256": "3e9395025bba8bd190c75442bcefdd42494df3b1445c40988473a9cb89ea3dda",
+      "currentBytesBefore": 115805,
+      "stagedBytes": 119713,
+      "backupPath": ".harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-generated-business-i18n-backup-20261118-01/zh-CN.ts.before",
+      "backupSHA256": "5980287a989b51a0b5a2927903ff95e27eb31c5171c183c8b57e48a547fb4d8a",
+      "currentSHA256After": "3e9395025bba8bd190c75442bcefdd42494df3b1445c40988473a9cb89ea3dda"
+    },
+    {
+      "path": "frontend/src/i18n/resources/business/fr-FR.ts",
+      "currentSHA256Before": "248e02c313f594a5193be4eae7f76e464d84d5f5ac69e983584f09a8d1602392",
+      "stagedSHA256": "f33251e4dec6542c24636167d8dca2f7d28d3309a963536c6dc9c9c88738a389",
+      "reportOwnedSHA256": "f33251e4dec6542c24636167d8dca2f7d28d3309a963536c6dc9c9c88738a389",
+      "currentBytesBefore": 19613,
+      "stagedBytes": 23773,
+      "backupPath": ".harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-generated-business-i18n-backup-20261118-01/fr-FR.ts.before",
+      "backupSHA256": "248e02c313f594a5193be4eae7f76e464d84d5f5ac69e983584f09a8d1602392",
+      "currentSHA256After": "f33251e4dec6542c24636167d8dca2f7d28d3309a963536c6dc9c9c88738a389"
+    },
+    {
+      "path": "frontend/src/i18n/resources/business/ja-JP.ts",
+      "currentSHA256Before": "abd395e6c46ab1439f67a0586c8f904609a2c3ce277a48fbe6481d725f12e94c",
+      "stagedSHA256": "4eef71c09f36860fc998fe635261de5dc48e109ef5d539acfdc7c5193aec4485",
+      "reportOwnedSHA256": "4eef71c09f36860fc998fe635261de5dc48e109ef5d539acfdc7c5193aec4485",
+      "currentBytesBefore": 20500,
+      "stagedBytes": 24660,
+      "backupPath": ".harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-generated-business-i18n-backup-20261118-01/ja-JP.ts.before",
+      "backupSHA256": "abd395e6c46ab1439f67a0586c8f904609a2c3ce277a48fbe6481d725f12e94c",
+      "currentSHA256After": "4eef71c09f36860fc998fe635261de5dc48e109ef5d539acfdc7c5193aec4485"
+    },
+    {
+      "path": "frontend/src/i18n/resources/business/ko-KR.ts",
+      "currentSHA256Before": "1feba808e8d1b6f8cb658ba97548ba73d38a484e4ba2172f0aeb9f6f5d4935b3",
+      "stagedSHA256": "c624a84b1255efe15733b991b48b1737f9cd8b766b61de3f26175e8958eebbab",
+      "reportOwnedSHA256": "c624a84b1255efe15733b991b48b1737f9cd8b766b61de3f26175e8958eebbab",
+      "currentBytesBefore": 19553,
+      "stagedBytes": 23713,
+      "backupPath": ".harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-generated-business-i18n-backup-20261118-01/ko-KR.ts.before",
+      "backupSHA256": "1feba808e8d1b6f8cb658ba97548ba73d38a484e4ba2172f0aeb9f6f5d4935b3",
+      "currentSHA256After": "c624a84b1255efe15733b991b48b1737f9cd8b766b61de3f26175e8958eebbab"
+    }
+  ],
+  "copiedFromFormalStagedCandidate": true,
+  "generatorOrCheckerChanged": false,
+  "wholePackageClosed": false
+}

@@ -1,0 +1,43 @@
+{
+  "at": "2026-11-17T14:47:40.412Z",
+  "head": "71c86cfe664ef9fde310cc68efbf2e8992e648f2",
+  "originals": [
+    {
+      "file": ".harness/STATUS.md",
+      "backup": ".harness/evidence/2026-11-17-ops-history-audit/continuation-progress-c03-round2-c04-start/.harness/STATUS.md.raw",
+      "beforeSHA256": "ae3e4337c0d7f51acd825366cea885ed14941e8af105548f74eac66b43432e68",
+      "afterSHA256": "6635e5ac0bbd49b8c4ff8cc5b57886a4725947cf9707920da129e9a8bca90bf4"
+    },
+    {
+      "file": ".harness/tasks/2026-11-16-ops-pilot-delivery/OPEN_TASKS.md",
+      "backup": ".harness/evidence/2026-11-17-ops-history-audit/continuation-progress-c03-round2-c04-start/.harness/tasks/2026-11-16-ops-pilot-delivery/OPEN_TASKS.md.raw",
+      "beforeSHA256": "56bff314fac4c7e33ab6e1171c4483a6bbdbccaaf230961e6fff174e47849d50",
+      "afterSHA256": "449e1c2f7bbfc83016eeb4a48b022bb16a046cb586ffba507b6544fc7b94b922"
+    },
+    {
+      "file": ".harness/evidence/2026-11-17-ops-history-audit/summary.md",
+      "backup": ".harness/evidence/2026-11-17-ops-history-audit/continuation-progress-c03-round2-c04-start/.harness/evidence/2026-11-17-ops-history-audit/summary.md.raw",
+      "beforeSHA256": "08bdcc1db9f602d03e35fd4a5a5c28f84ab5e01c54a72343a404f8f359a0b7aa",
+      "afterSHA256": "6d4a810ec4e8f86bb88673a38f19ed8e2bf9b7fa751430895bf8153af960048e"
+    },
+    {
+      "file": ".harness/evidence/2026-11-17-ops-history-audit/progress.md",
+      "backup": ".harness/evidence/2026-11-17-ops-history-audit/continuation-progress-c03-round2-c04-start/.harness/evidence/2026-11-17-ops-history-audit/progress.md.raw",
+      "beforeSHA256": "099203324017f8e3973ec17745d52ced51c33c81704678e8fee7304896d3ee71",
+      "afterSHA256": "980ca0a54082ac73405bfec2f7ec8712acb0f1a07aa934a2576e892d064e359a"
+    },
+    {
+      "file": ".harness/tasks/2026-11-16-ops-pilot-delivery/EXECUTION_QUEUE.md",
+      "backup": ".harness/evidence/2026-11-17-ops-history-audit/continuation-progress-c03-round2-c04-start/.harness/tasks/2026-11-16-ops-pilot-delivery/EXECUTION_QUEUE.md.raw",
+      "beforeSHA256": "3206c1706f9355989fd26e5420143c33c2f4ef1ae6923628bd277249bb5e983b",
+      "afterSHA256": "3af92cd97f786de3dd3fa1912922b2bc76c473a2358952f8ee54ce1fb2c050bc"
+    },
+    {
+      "file": ".harness/tasks/2026-11-16-ops-k8s-service-mutations/manifest.json",
+      "backup": ".harness/evidence/2026-11-17-ops-history-audit/continuation-progress-c03-round2-c04-start/.harness/tasks/2026-11-16-ops-k8s-service-mutations/manifest.json.raw",
+      "beforeSHA256": "41adf08b7916cd5224a5309292bf564f414de4d1419bf774adbf099e99ad643a",
+      "afterSHA256": "f2ce20d8a43c37c2c2a824b4f079d652b32682f366712a00f6eb88530b92fe33"
+    }
+  ],
+  "archiveCountUnchanged": true
+}

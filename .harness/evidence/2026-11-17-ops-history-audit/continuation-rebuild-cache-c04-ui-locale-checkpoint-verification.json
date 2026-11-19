@@ -1,0 +1,52 @@
+[
+  {
+    "name": "official-rebuild-final-c04-ui-locale-checkpoint",
+    "executable": "D:\\nodejs\\node.exe",
+    "args": [
+      "--import=file:///D:/workspace/go/pantheon-platform/pantheon-ops/.local/manual-preview-20261116/hide-child-windows.mjs",
+      "scripts/business-overlay/rebuild-from-base.mjs",
+      "--target",
+      ".local/manual-preview-20261116/overlay-history-continuation-final-c04-ui-locale-checkpoint"
+    ],
+    "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+    "startedAt": "2026-11-17T15:54:44.342Z",
+    "finishedAt": "2026-11-17T15:55:09.534Z",
+    "exitCode": 0,
+    "status": "passed",
+    "log": ".harness/evidence/2026-11-17-ops-history-audit/continuation-official-rebuild-final-c04-ui-locale-checkpoint.log",
+    "errorCode": null
+  },
+  {
+    "name": "staged-overlay-final-c04-ui-locale-checkpoint",
+    "executable": "D:\\nodejs\\node.exe",
+    "args": [
+      "--import=file:///D:/workspace/go/pantheon-platform/pantheon-ops/.local/manual-preview-20261116/hide-child-windows.mjs",
+      "scripts/business-overlay/check-business-overlay.mjs",
+      "--root",
+      ".local/manual-preview-20261116/overlay-history-continuation-final-c04-ui-locale-checkpoint"
+    ],
+    "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+    "startedAt": "2026-11-17T15:55:09.538Z",
+    "finishedAt": "2026-11-17T15:55:09.690Z",
+    "exitCode": 0,
+    "status": "passed",
+    "log": ".harness/evidence/2026-11-17-ops-history-audit/continuation-staged-overlay-final-c04-ui-locale-checkpoint.log",
+    "errorCode": null
+  },
+  {
+    "name": "staged-drift-official-cache-final-c04-ui-locale-checkpoint",
+    "executable": "D:\\nodejs\\node.exe",
+    "args": [
+      "--import=file:///D:/workspace/go/pantheon-platform/pantheon-ops/.local/manual-preview-20261116/hide-child-windows.mjs",
+      ".local/manual-preview-20261116/check-staged-official-cache-drift.mjs",
+      ".local/manual-preview-20261116/overlay-history-continuation-final-c04-ui-locale-checkpoint"
+    ],
+    "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+    "startedAt": "2026-11-17T15:55:09.690Z",
+    "finishedAt": "2026-11-17T15:55:18.795Z",
+    "exitCode": 0,
+    "status": "passed",
+    "log": ".harness/evidence/2026-11-17-ops-history-audit/continuation-staged-drift-official-cache-final-c04-ui-locale-checkpoint.log",
+    "errorCode": null
+  }
+]

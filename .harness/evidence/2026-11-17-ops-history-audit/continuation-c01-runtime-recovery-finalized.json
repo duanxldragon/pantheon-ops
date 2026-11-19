@@ -1,0 +1,9 @@
+{
+  "preservedData": true,
+  "previewBinary": "navigation-v1/pantheon-ops.exe",
+  "reason": "Original recovery readiness observation ended before preview MySQL became ready; reused verified running handles and did not restart.",
+  "recoveredMySQLProcessId": 20328,
+  "previousMySQLProcessId": 35096,
+  "previewBinaryLimitation": "Historical preview only; current C01 source is tested from worktree.",
+  "recordedAt": "2026-11-17T12:30:42.3531385Z"
+}

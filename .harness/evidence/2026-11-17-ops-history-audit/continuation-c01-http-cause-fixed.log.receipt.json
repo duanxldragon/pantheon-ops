@@ -1,0 +1,21 @@
+{
+  "goFlags": "-p=1 -mod=readonly",
+  "log": "continuation-c01-http-cause-fixed.log",
+  "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\backend",
+  "args": [
+    "test",
+    "-race",
+    "-count=1",
+    "-timeout=10m",
+    "./modules/business/deploy",
+    "-v",
+    "-run",
+    "^TestServiceLinkHTTP|^TestServiceLinkAdmissionOwnerMismatch"
+  ],
+  "exitCode": 0,
+  "disposableMySQL": true,
+  "finishedAt": "2026-11-17T12:59:33.1551869Z",
+  "cgoEnabled": "1",
+  "testDsnRequired": "1",
+  "startedAt": "2026-11-17T12:58:48.7121501Z"
+}

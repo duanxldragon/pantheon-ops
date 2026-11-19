@@ -1,0 +1,5 @@
+{
+  "exitCode": 0,
+  "stdout": "PASS fork args-options explicit env/execArgv and grandchild explicit env\nPASS fork options explicit env/execArgv and grandchild explicit env\nPASS fork undefined-args explicit env/execArgv and grandchild explicit env\nPASS fork null-args explicit env/execArgv and grandchild explicit env\n",
+  "stderr": ""
+}

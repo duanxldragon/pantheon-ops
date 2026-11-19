@@ -1,0 +1,21 @@
+{
+  "log": "continuation-c03-owner-update-red.log",
+  "finishedAt": "2026-11-17T13:56:01.9839146Z",
+  "startedAt": "2026-11-17T13:55:53.4294679Z",
+  "goFlags": "-p=1 -mod=readonly",
+  "cgoEnabled": "1",
+  "exitCode": 1,
+  "args": [
+    "test",
+    "-race",
+    "-count=1",
+    "-timeout=10m",
+    "./modules/business/service",
+    "-v",
+    "-run",
+    "^TestServiceInstanceUpdate"
+  ],
+  "testDsnRequired": "1",
+  "disposableMySQL": true,
+  "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\backend"
+}

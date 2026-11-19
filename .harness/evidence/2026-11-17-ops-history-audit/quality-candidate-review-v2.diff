@@ -1,0 +1,805 @@
+diff --git a/.github/workflows/quality.yml b/.github/workflows/quality.yml
+index b0536373..a4fb87a4 100644
+--- a/.github/workflows/quality.yml
++++ b/.github/workflows/quality.yml
+@@ -2,7 +2,16 @@ name: Code Quality Gates
+ 
+ on:
+   workflow_dispatch:
++    inputs:
++      sha:
++        description: >-
++          Exact commit SHA to validate on demand (6-40 hex). When set, every
++          checkout is pinned to this commit and verified with `git rev-parse
++          HEAD`. Empty validates the dispatch ref (default branch).
++        required: false
++        type: string
+   pull_request:
++    types: [opened, synchronize, reopened, edited, ready_for_review]
+   push:
+     branches:
+       - main
+@@ -28,14 +37,62 @@ jobs:
+       contents: read
+       pull-requests: read
+     outputs:
++      candidate_sha: ${{ steps.candidate.outputs.sha }}
+       frontend_contract: ${{ steps.scope.outputs.frontend_contract || 'false' }}
+       smoke_sanity: ${{ steps.scope.outputs.smoke_sanity || 'false' }}
+       overlay_sensitive: ${{ steps.scope.outputs.overlay_sensitive || 'false' }}
+     steps:
++      - name: Resolve requested candidate before checkout
++        id: requested
++        shell: bash
++        env:
++          REQUESTED_SHA: ${{ inputs.sha }}
++          DEFAULT_SHA: ${{ github.sha }}
++          GH_TOKEN: ${{ github.token }}
++        run: |
++          CANDIDATE="$DEFAULT_SHA"
++          if [ -n "$REQUESTED_SHA" ]; then
++            if ! [[ "$REQUESTED_SHA" =~ ^[[:xdigit:]]{6,40}$ ]]; then
++              echo "Invalid candidate SHA (expected 6-40 hex)" >&2
++              exit 1
++            fi
++            CANDIDATE="$(gh api "repos/${GITHUB_REPOSITORY}/commits/${REQUESTED_SHA}" --jq .sha)"
++            if ! [[ "${CANDIDATE,,}" = "${REQUESTED_SHA,,}"* ]]; then
++              echo "Resolved commit does not match requested SHA prefix" >&2
++              exit 1
++            fi
++          fi
++          if ! [[ "$CANDIDATE" =~ ^[[:xdigit:]]{40}$ ]]; then
++            echo "Candidate did not resolve to a full commit SHA" >&2
++            exit 1
++          fi
++          echo "sha=${CANDIDATE,,}" >> "$GITHUB_OUTPUT"
++
+       - name: Checkout
+         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+         with:
+           persist-credentials: false
++          ref: ${{ steps.requested.outputs.sha }}
++
++      - name: Resolve and verify candidate commit
++        id: candidate
++        shell: bash
++        env:
++          REQUESTED_SHA: ${{ inputs.sha }}
++        run: |
++          ACTUAL="$(git rev-parse HEAD)"
++          if [ -n "$REQUESTED_SHA" ]; then
++            if ! [[ "$REQUESTED_SHA" =~ ^[[:xdigit:]]{6,40}$ ]]; then
++              echo "Invalid candidate SHA (expected 6-40 hex)" >&2
++              exit 1
++            fi
++            EXPECTED="$(git rev-parse --verify "$REQUESTED_SHA^{commit}")"
++            if [ "$ACTUAL" != "$EXPECTED" ]; then
++              echo "HEAD does not match requested commit" >&2
++              exit 1
++            fi
++          fi
++          echo "sha=$ACTUAL" >> "$GITHUB_OUTPUT"
+ 
+       - name: Detect changed scope
+         id: scope
+@@ -69,6 +126,7 @@ jobs:
+         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+         with:
+           persist-credentials: false
++          ref: ${{ needs.change-scope.outputs.candidate_sha }}
+ 
+       - name: Setup Node
+         uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1
+@@ -124,6 +182,11 @@ jobs:
+       - name: Check generated modules
+         run: npm run check:generated-modules
+ 
++      - name: Run tests/scripts catch-all
++        # Without it every test file lacking a dedicated npm script silently
++        # never runs in CI — keep the real governance suite gating the commit.
++        run: npm run test:scripts
++
+       - name: Check UI quality gate
+         run: npm run check:ui-quality-gate
+ 
+@@ -140,6 +203,7 @@ jobs:
+         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+         with:
+           persist-credentials: false
++          ref: ${{ needs.change-scope.outputs.candidate_sha }}
+ 
+       - name: Setup Node
+         uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1
+@@ -167,6 +231,8 @@ jobs:
+ 
+   backend-tests:
+     name: Backend Tests
++    needs:
++      - change-scope
+     runs-on: ubuntu-latest
+     permissions:
+       contents: read
+@@ -175,6 +241,7 @@ jobs:
+         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+         with:
+           persist-credentials: false
++          ref: ${{ needs.change-scope.outputs.candidate_sha }}
+ 
+       - name: Setup Go
+         uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e
+@@ -188,6 +255,8 @@ jobs:
+ 
+   go-lint:
+     name: Go Lint
++    needs:
++      - change-scope
+     runs-on: ubuntu-latest
+     permissions:
+       contents: read
+@@ -196,6 +265,7 @@ jobs:
+         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+         with:
+           persist-credentials: false
++          ref: ${{ needs.change-scope.outputs.candidate_sha }}
+           fetch-depth: 0
+ 
+       - name: Setup Go
+@@ -249,6 +319,8 @@ jobs:
+ 
+   duplication:
+     name: Duplication Gate
++    needs:
++      - change-scope
+     runs-on: ubuntu-latest
+     permissions:
+       contents: read
+@@ -257,6 +329,7 @@ jobs:
+         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+         with:
+           persist-credentials: false
++          ref: ${{ needs.change-scope.outputs.candidate_sha }}
+ 
+       - name: Setup Node
+         uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1
+@@ -343,6 +416,7 @@ jobs:
+         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+         with:
+           persist-credentials: false
++          ref: ${{ needs.change-scope.outputs.candidate_sha }}
+ 
+       - name: Setup Go
+         uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e
+@@ -432,6 +506,7 @@ jobs:
+         shell: bash
+         env:
+           EVENT_NAME: ${{ github.event_name }}
++          CHANGE_SCOPE_RESULT: ${{ needs.change-scope.result }}
+           FRONTEND_CONTRACT_SCOPE: ${{ needs.change-scope.outputs.frontend_contract }}
+           SMOKE_SANITY_SCOPE: ${{ needs.change-scope.outputs.smoke_sanity }}
+           DOCS_GOVERNANCE_RESULT: ${{ needs.docs-governance.result }}
+@@ -444,10 +519,10 @@ jobs:
+         run: |
+           FRONTEND_CONTRACT_REQUIRED=true
+           SMOKE_SANITY_REQUIRED=true
+-          if [ "${EVENT_NAME}" = "pull_request" ] && [ "${FRONTEND_CONTRACT_SCOPE}" != "true" ]; then
++          if [ "${EVENT_NAME}" = "pull_request" ] && [ "${FRONTEND_CONTRACT_SCOPE}" = "false" ]; then
+             FRONTEND_CONTRACT_REQUIRED=false
+           fi
+-          if [ "${EVENT_NAME}" = "pull_request" ] && [ "${SMOKE_SANITY_SCOPE}" != "true" ]; then
++          if [ "${EVENT_NAME}" = "pull_request" ] && [ "${SMOKE_SANITY_SCOPE}" = "false" ]; then
+             SMOKE_SANITY_REQUIRED=false
+           fi
+           echo "Docs Governance: ${DOCS_GOVERNANCE_RESULT}"
+@@ -458,7 +533,8 @@ jobs:
+           echo "Smoke Sanity: ${SMOKE_SANITY_RESULT}"
+           echo "Frontend Contract Required: ${FRONTEND_CONTRACT_REQUIRED}"
+           echo "Smoke Sanity Required: ${SMOKE_SANITY_REQUIRED}"
+-          if [ "${DOCS_GOVERNANCE_RESULT}" != "${EXPECTED_RESULT}" ] || \
++          if [ "${CHANGE_SCOPE_RESULT}" != "${EXPECTED_RESULT}" ] || \
++             [ "${DOCS_GOVERNANCE_RESULT}" != "${EXPECTED_RESULT}" ] || \
+              [ "${DUPLICATION_RESULT}" != "${EXPECTED_RESULT}" ] || \
+              [ "${BACKEND_TESTS_RESULT}" != "${EXPECTED_RESULT}" ]; then
+             exit 1
+@@ -466,9 +542,15 @@ jobs:
+           if [ "${FRONTEND_CONTRACT_REQUIRED}" = "true" ] && [ "${FRONTEND_CONTRACT_RESULT}" != "${EXPECTED_RESULT}" ]; then
+             exit 1
+           fi
++          if [ "${FRONTEND_CONTRACT_REQUIRED}" = "false" ] && [ "${FRONTEND_CONTRACT_RESULT}" != "${EXPECTED_RESULT}" ] && [ "${FRONTEND_CONTRACT_RESULT}" != "skipped" ]; then
++            exit 1
++          fi
+           if [ "${EVENT_NAME}" != "push" ] && [ "${GO_LINT_RESULT}" != "${EXPECTED_RESULT}" ]; then
+             exit 1
+           fi
+           if [ "${SMOKE_SANITY_REQUIRED}" = "true" ] && [ "${SMOKE_SANITY_RESULT}" != "${EXPECTED_RESULT}" ]; then
+             exit 1
+           fi
++          if [ "${SMOKE_SANITY_REQUIRED}" = "false" ] && [ "${SMOKE_SANITY_RESULT}" != "${EXPECTED_RESULT}" ] && [ "${SMOKE_SANITY_RESULT}" != "skipped" ]; then
++            exit 1
++          fi
+diff --git a/tests/scripts/ci-workflow-dispatch.test.mjs b/tests/scripts/ci-workflow-dispatch.test.mjs
+index 66cf2cd5..08a893da 100644
+--- a/tests/scripts/ci-workflow-dispatch.test.mjs
++++ b/tests/scripts/ci-workflow-dispatch.test.mjs
+@@ -1,26 +1,119 @@
+ import assert from 'node:assert/strict';
+ import fs from 'node:fs';
++import os from 'node:os';
+ import path from 'node:path';
++import { spawnSync, execFileSync } from 'node:child_process';
+ import test from 'node:test';
+ 
+-const workflowPath = path.resolve('.github/workflows/ci.yml');
+-const workflowSource = fs.readFileSync(workflowPath, 'utf8');
++const source = fs.readFileSync('.github/workflows/quality.yml', 'utf8');
++const preflightStep = source.split('      - name: Resolve requested candidate before checkout')[1]?.split('      - name: Checkout')[0];
++assert.ok(preflightStep, 'abbreviated SHA must resolve before actions/checkout');
++const preflightBody = preflightStep.split('        run: |\n')[1]?.split(/\r?\n/).filter((line) => line.startsWith('          ')).map((line) => line.slice(10)).join('\n');
++assert.ok(preflightBody);
++const resolverStep = source.split('      - name: Resolve and verify candidate commit')[1]?.split('      - name: Detect changed scope')[0];
++assert.ok(resolverStep, 'candidate must be verified before any repository code runs');
++const bashBody = resolverStep.split('        run: |\n')[1]?.split(/\r?\n/).filter((line) => line.startsWith('          ')).map((line) => line.slice(10)).join('\n');
++assert.ok(bashBody);
++const gitPath = process.platform === 'win32' ? execFileSync('where.exe', ['git'], { encoding: 'utf8', windowsHide: true }).trim().split(/\r?\n/)[0] : 'git';
++const bash = process.platform === 'win32' ? path.resolve(path.dirname(gitPath), '..', 'bin', 'bash.exe') : 'bash';
+ 
+-test('ci supports manual recovery for an exact commit', () => {
+-  assert.match(
+-    workflowSource,
+-    /on:\s*\n\s*workflow_dispatch:\s*\n\s*push:/i,
+-    'CI should support workflow_dispatch when an exact commit needs recovery validation',
+-  );
++test('quality accepts SHA recovery and resolves it before changed-scope code', () => {
++  assert.match(source, /workflow_dispatch:\s*\n\s*inputs:\s*\n\s*sha:/);
++  assert.match(resolverStep, /REQUESTED_SHA:\s*\$\{\{ inputs\.sha \}\}/);
++  assert.doesNotMatch(bashBody, /\$\{\{/, 'untrusted input enters Bash through env, never interpolation');
++  assert.ok(source.indexOf('Resolve and verify candidate commit') < source.indexOf('Detect changed scope'));
+ });
+ 
+-// Keep the catch-all wired: without it every test file that has no dedicated
+-// npm script (13 of them on 2026-09-23) silently never runs in CI, which is
+-// how a strict-mode change in check-boundaries.mjs broke its own test unnoticed.
+-test('ci runs the tests/scripts catch-all so no governance test is left unrun', () => {
+-  assert.match(
+-    workflowSource,
+-    /npm run test:scripts\b/,
+-    'CI must run the tests/scripts catch-all',
+-  );
++test('all six downstream checkouts consume the verified full commit and require its job', () => {
++  assert.equal((source.match(/ref: \$\{\{ steps\.requested\.outputs\.sha \}\}/g) ?? []).length, 1);
++  assert.doesNotMatch(source, /ref: \$\{\{ inputs\.sha/);
++  assert.equal((source.match(/ref: \$\{\{ needs\.change-scope\.outputs\.candidate_sha \}\}/g) ?? []).length, 6);
++  assert.match(source, /candidate_sha: \$\{\{ steps\.candidate\.outputs\.sha \}\}/);
++  for (const job of ['docs-governance', 'frontend-contract', 'backend-tests', 'go-lint', 'duplication', 'smoke-sanity']) {
++    const section = source.split(`  ${job}:`)[1]?.split(/\n  [a-z][a-z-]+:/)[0];
++    assert.ok(section, job);
++    assert.match(section, /needs:\s*\n\s*- change-scope/, job);
++    assert.match(section, /ref: \$\{\{ needs\.change-scope\.outputs\.candidate_sha \}\}/, job);
++  }
++});
++
++test('pre-checkout resolver expands SHA prefixes and rejects ambiguous or failed API results', () => {
++  assert.doesNotMatch(preflightBody, /\$\{\{/);
++  const fixture = fs.mkdtempSync(path.join(os.tmpdir(), 'pantheon-quality-preflight-'));
++  const full = '123abc' + 'd'.repeat(34);
++  const apiStub = `gh() { printf 'called\\n' >> api-calls; [ "$1" = api ] && [ "$2" = "repos/example/ops/commits/$REQUESTED_SHA" ] || return 99; printf '%s\\n' "$API_SHA"; return "$API_EXIT"; }\n`;
++  const cases = [
++    { requested: '', returned: '', expected: 0, called: false },
++    { requested: full.slice(0, 6), returned: full, expected: 0 },
++    { requested: full.toUpperCase().slice(0, 9), returned: full, expected: 0 },
++    { requested: full, returned: full, expected: 0 },
++    { requested: full.slice(0, 6), returned: full, apiExit: 42, expected: 42 },
++    { requested: full.slice(0, 6), returned: 'f'.repeat(40), expected: 1 },
++    { requested: full.slice(0, 6), returned: full.slice(0, 39), expected: 1 },
++    { requested: full.slice(0, 6), returned: full + 'f', expected: 1 },
++    { requested: full.slice(0, 6), returned: '', expected: 1 },
++    ...['main', 'a'.repeat(5), 'a'.repeat(41), '$(touch injected)', '"; touch injected; #'].map(requested => ({requested, returned: full, expected: 1, called: false})),
++  ];
++  try {
++    for (const { requested, returned, expected, apiExit = 0, called = true } of cases) {
++      fs.writeFileSync(path.join(fixture, 'output.txt'), '');
++      fs.writeFileSync(path.join(fixture, 'api-calls'), '');
++      const result = spawnSync(bash, ['--noprofile', '--norc', '-e', '-o', 'pipefail', '-c', apiStub + preflightBody], {
++        cwd: fixture, env: { ...process.env, REQUESTED_SHA: requested, DEFAULT_SHA: full, API_SHA: returned, API_EXIT: String(apiExit), GITHUB_OUTPUT: 'output.txt', GITHUB_REPOSITORY: 'example/ops' },
++        encoding: 'utf8', windowsHide: true, shell: false,
++      });
++      assert.ifError(result.error);
++      assert.equal(result.status, expected, `${requested}: ${result.stderr}`);
++      assert.equal(fs.readFileSync(path.join(fixture, 'output.txt'), 'utf8'), expected === 0 ? `sha=${full}\n` : '');
++      assert.equal(Boolean(fs.readFileSync(path.join(fixture, 'api-calls'), 'utf8')), called);
++      assert.ok(!fs.existsSync(path.join(fixture, 'injected')));
++    }
++  } finally {
++    assert.equal(path.dirname(path.resolve(fixture)), path.resolve(os.tmpdir()));
++    fs.rmSync(fixture, { recursive: true, force: true });
++  }
++});
++
++test('actual resolver rejects wrong HEAD, invalid refs and shell input; returns full verified SHA', () => {
++  const fixture = fs.mkdtempSync(path.join(os.tmpdir(), 'pantheon-quality-candidate-'));
++  try {
++    const git = (...args) => {
++      const result = spawnSync(gitPath, args, { cwd: fixture, encoding: 'utf8', windowsHide: true, shell: false });
++      assert.ifError(result.error);
++      assert.equal(result.status, 0, result.stderr);
++      return result.stdout.trim();
++    };
++    git('init', '-q');
++    const commit = (message) => git('-c', 'user.name=Candidate Test', '-c', 'user.email=candidate@test.invalid', '-c', 'commit.gpgsign=false', 'commit', '--allow-empty', '-m', message);
++    commit('first');
++    const first = git('rev-parse', 'HEAD');
++    commit('second');
++    const second = git('rev-parse', 'HEAD');
++    const output = path.join(fixture, 'output.txt');
++    const cases = [
++      ['', 0], [second, 0], [second.slice(0, 7), 0], [first, 1],
++      ['main', 1], ['a'.repeat(5), 1], ['b'.repeat(41), 1], ['f'.repeat(40), 128],
++      ['$(touch injected)', 1], ['"; touch injected; #', 1], ['--help', 1],
++    ];
++    for (const [requested, expectedExit] of cases) {
++      fs.writeFileSync(output, '');
++      const result = spawnSync(bash, ['--noprofile', '--norc', '-e', '-o', 'pipefail', '-c', bashBody], {
++        cwd: fixture, env: { ...process.env, REQUESTED_SHA: requested, GITHUB_OUTPUT: 'output.txt' },
++        encoding: 'utf8', windowsHide: true, shell: false,
++      });
++      assert.ifError(result.error);
++      assert.equal(result.status, expectedExit, `${requested}: ${result.stderr}`);
++      assert.equal(fs.readFileSync(output, 'utf8'), expectedExit === 0 ? `sha=${second}\n` : '');
++      assert.ok(!fs.existsSync(path.join(fixture, 'injected')), 'input must not execute shell commands');
++    }
++  } finally {
++    assert.equal(path.dirname(path.resolve(fixture)), path.resolve(os.tmpdir()));
++    fs.rmSync(fixture, { recursive: true, force: true });
++  }
++});
++
++test('quality retains script catch-all, push-main, PR and merge-group gates', () => {
++  assert.match(source, /npm run test:scripts\b/);
++  assert.match(source, /push:\s*\n\s*branches:[\s\S]*- main/);
++  assert.match(source, /pull_request:[\s\S]*merge_group:/);
+ });
+diff --git a/tests/scripts/quality-workflow.test.mjs b/tests/scripts/quality-workflow.test.mjs
+index 860cf790..645c7c51 100644
+--- a/tests/scripts/quality-workflow.test.mjs
++++ b/tests/scripts/quality-workflow.test.mjs
+@@ -1,168 +1,344 @@
+-import assert from 'node:assert/strict';
+ import fs from 'node:fs';
+ import path from 'node:path';
++import os from 'node:os';
++import {spawnSync, execFileSync} from 'node:child_process';
++import assert from 'node:assert/strict';
+ import test from 'node:test';
+ 
+ const workflowPath = path.resolve('.github/workflows/quality.yml');
+ const workflowSource = fs.readFileSync(workflowPath, 'utf8');
+ 
+-test('governance-only changes can skip runtime gates without failing Quality Gates', () => {
++// Mirrors security-audit-exit.test.mjs: extract the multiline `run: |` body of a
++// named step so we can assert real behavior by executing the actual bash.
++function shellFor(name) {
++  const step = workflowSource.split(`      - name: ${name}`)[1];
++  assert.ok(step, `missing workflow step: ${name}`);
++  const lines = step.split(/\r?\n/);
++  const start = lines.findIndex((l) => /^        run: \|\s*$/.test(l));
++  assert.ok(start >= 0, `missing multiline shell in step: ${name}`);
++  const body = [];
++  for (const line of lines.slice(start + 1)) {
++    if (line.trim() && !line.startsWith('          ')) break;
++    body.push(line.slice(10));
++  }
++  return body.join('\n');
++}
++
++function resolveBash() {
++  if (process.platform !== 'win32') return 'bash';
++  const gitCmd = execFileSync('where.exe', ['git'], {encoding: 'utf8', windowsHide: true}).trim().split(/\r?\n/)[0];
++  for (const rel of ['../bin/bash.exe', '../../bin/bash.exe', '../../usr/bin/bash.exe']) {
++    const p = path.resolve(path.dirname(gitCmd), rel);
++    if (fs.existsSync(p)) return p;
++  }
++  throw new Error(`git bash not found from ${gitCmd}`);
++}
++const bash = resolveBash();
++
++function runBash(body, env) {
++  return spawnSync(bash, ['--noprofile', '--norc', '-c', body], {
++    cwd: path.dirname(workflowPath),
++    env: {...process.env, ...env},
++    encoding: 'utf8',
++    windowsHide: true,
++  });
++}
++
++test('change scope classifies real gates instead of removed docs/governance cutoffs', () => {
+   assert.match(
+     workflowSource,
+     /uses:\s*dorny\/paths-filter@ceb8a2b8f2d89434be7ff52d3de7ec3738c5cc9d/i,
+-    'quality workflow should pin paths-filter to a revision that supports predicate-quantifier',
++    'quality workflow should pin paths-filter to the reviewed revision',
+   );
+   assert.match(
+     workflowSource,
+-    /filters:\s*\|[\s\S]*all:\s*\n\s*-\s*'\*\*'/i,
+-    'quality workflow should count all changed files before classifying scopes',
++    /predicate-quantifier:\s*some/i,
++    'change scope should use some (one matched file activates the gate), not every',
+   );
+   assert.match(
+     workflowSource,
+-    /docs_only:\s*\$\{\{[\s\S]*steps\.scope\.outputs\.all_count\s*==\s*steps\.scope\.outputs\.docs_only_count[\s\S]*\}\}/i,
+-    'change scope should classify docs-only by comparing matched docs count with all changed files',
++    /- name: Detect changed scope[\s\S]*?if:\s*\$\{\{\s*github\.event_name\s*==\s*'pull_request'\s*\}\}/i,
++    'changed-scope detection should only run on pull requests',
+   );
++  // The scope outputs that really gate runtime jobs.
++  for (const [output, globs] of [
++    ['frontend_contract', ['frontend/**']],
++    ['smoke_sanity', ['backend/**', 'frontend/**', 'go.mod', 'go.sum']],
++    ['overlay_sensitive', ['business-overlay.json', 'scripts/business-overlay/**', 'backend/modules/business/**', 'frontend/src/modules/business/**']],
++  ]) {
++    assert.match(workflowSource, new RegExp(`${output}:`), `${output} should be a change-scope output`);
++    for (const glob of globs) {
++      const escaped = glob.replace(/[.*+?^${}()|[\]\\/]/g, '\\$&');
++      assert.match(workflowSource, new RegExp(`- '${escaped}'`), `${output} should match ${glob}`);
++    }
++  }
++  // The old docs-only / governance-only classification was removed; asserting it
++  // is gone keeps the test honest rather than silently entangled with a vocated flag.
++  for (const removed of ['docs_only', 'governance_only', 'all_count']) {
++    assert.doesNotMatch(workflowSource, new RegExp(removed), `${removed} classification no longer exists`);
++  }
++});
++
++test('every checkout is pinned to the resolved candidate commit', () => {
+   assert.match(
+     workflowSource,
+-    /governance_only:\s*\$\{\{[\s\S]*steps\.scope\.outputs\.all_count\s*==\s*steps\.scope\.outputs\.governance_only_count[\s\S]*\}\}/i,
+-    'change scope should classify governance-only by comparing matched governance count with all changed files',
+-  );
+-  assert.doesNotMatch(
+-    workflowSource,
+-    /predicate-quantifier:\s*every/i,
+-    'quality workflow should not require every whitelist glob to match the same file',
++    /workflow_dispatch:\s*\n\s*inputs:\s*\n\s*sha:/i,
++    'workflow_dispatch should expose a sha input for on-demand baseline runs',
+   );
++  const candidate = shellFor('Resolve and verify candidate commit');
++  assert.ok(candidate.includes('=~ ^[[:xdigit:]]{6,40}$'), 'candidate sha must be 6-40 hex');
++  assert.match(candidate, /rev-parse --verify "\$REQUESTED_SHA\^\{commit\}"/, 'candidate sha must resolve to a commit');
++  assert.match(candidate, /\[ "\$ACTUAL" != "\$EXPECTED" \]; then[\s\S]*HEAD does not match requested commit/, 'HEAD must equal the requested commit');
++  assert.match(candidate, /echo "sha=\$ACTUAL" >> "\$GITHUB_OUTPUT"/, 'candidate sha must be emitted as the checkout ref');
+   assert.match(
+     workflowSource,
+-    /frontend-contract:[\s\S]*if:\s*\$\{\{\s*github\.event_name\s*==\s*'merge_group'\s*\|\|[\s\S]*needs\.change-scope\.outputs\.governance_only\s*!=\s*'true'/i,
+-    'frontend contract should be skipped for governance-only pull requests and pushes',
++    /candidate_sha:\s*\$\{\{\s*steps\.candidate\.outputs\.sha\s*\}\}/,
++    'change-scope must expose candidate_sha to dependent jobs',
+   );
+   assert.match(
+     workflowSource,
+-    /backend-tests:[\s\S]*if:\s*\$\{\{\s*github\.event_name\s*==\s*'merge_group'\s*\|\|[\s\S]*needs\.change-scope\.outputs\.governance_only\s*!=\s*'true'/i,
+-    'backend tests should be skipped for governance-only pull requests and pushes',
++    /id: candidate[\s\S]*?echo "sha=\$ACTUAL" >> "\$GITHUB_OUTPUT"/i,
++    'candidate verification step must be id=candidate wired to the output',
+   );
++  // Rejecting a non-hex candidate SHA is a real fail-closed branch.
++  const bad = runBash(candidate, {REQUESTED_SHA: 'not-hex-!'});
++  assert.ifError(bad.error);
++  assert.equal(bad.status, 1, 'non-hex candidate sha must fail closed: ' + bad.stderr);
++  // A candidate sha pointing at the live HEAD passes and emits candidate_sha.
++  const head = execFileSync('git', ['rev-parse', 'HEAD'], {encoding: 'utf8', cwd: path.dirname(workflowPath), windowsHide: true}).trim();
++  const out = path.join(os.tmpdir(), `pantheon-candidate-${process.pid}.out`);
++  const ok = runBash(candidate, {REQUESTED_SHA: head, GITHUB_OUTPUT: out});
++  assert.ifError(ok.error);
++  assert.equal(ok.status, 0, 'valid candidate sha must pass: ' + ok.stderr);
++  assert.match(fs.readFileSync(out, 'utf8'), /sha=/, 'candidate sha should be emitted to GITHUB_OUTPUT');
++  fs.rmSync(out, {force: true});
++  // Every consumer job checks out candidate_sha so all jobs inspect the same commit.
++  const consumers = ['frontend-contract', 'backend-tests', 'go-lint', 'duplication', 'smoke-sanity'];
++  for (const job of consumers) {
++    const block = workflowSource.split(new RegExp(`^  ${job}:$`, 'm'))[1];
++    assert.match(
++      block.split(/^  [a-z][a-z-]*:$/m)[0],
++      /ref:\s*\$\{\{\s*needs\.change-scope\.outputs\.candidate_sha\s*\}\}/,
++      `${job} should checkout candidate_sha`,
++    );
++    assert.doesNotMatch(block.split(/^  [a-z][a-z-]*:$/m)[0], /ref:\s*\$\{\{\s*github\.sha\s*\}\}/, `${job} must not checkout an unchecked summary ref`);
++  }
++});
++
++test('frontend contract and smoke sanity gate on pull-request scope only', () => {
+   assert.match(
+     workflowSource,
+-    /smoke-sanity:[\s\S]*if:\s*\$\{\{\s*github\.event_name\s*==\s*'merge_group'\s*\|\|[\s\S]*needs\.change-scope\.outputs\.governance_only\s*!=\s*'true'/i,
+-    'smoke sanity should be skipped for governance-only pull requests and pushes',
++    /frontend-contract:[\s\S]*?if:\s*\$\{\{\s*github\.event_name !=\s*'pull_request'\s*\|\|\s*needs\.change-scope\.outputs\.frontend_contract ==\s*'true'\s*\}\}/,
++    'frontend contract should run on every non-PR event and on scope-relevant pull requests',
+   );
+   assert.match(
+     workflowSource,
+-    /go-lint:[\s\S]*if:\s*\$\{\{\s*github\.event_name\s*==\s*'merge_group'\s*\|\|[\s\S]*needs\.change-scope\.outputs\.governance_only\s*!=\s*'true'/i,
+-    'go lint should be skipped for governance-only pull requests and pushes',
++    /smoke-sanity:[\s\S]*?if:\s*\$\{\{\s*github\.event_name !=\s*'pull_request'\s*\|\|\s*needs\.change-scope\.outputs\.smoke_sanity ==\s*'true'\s*\}\}/,
++    'smoke sanity should run on every non-PR event and on scope-relevant pull requests',
+   );
+-  assert.match(
+-    workflowSource,
+-    /quality-gates:[\s\S]*needs:[\s\S]*- go-lint[\s\S]*if:\s*always\(\)/i,
+-    'quality gates should depend on go-lint results',
++});
++
++test('backend tests always run and fail closed', () => {
++  const block = workflowSource.split(/^  backend-tests:$/m)[1].split(/^  [a-z][a-z-]*:$/m)[0];
++  assert.match(block, /needs:\s*\n\s*- change-scope/, 'backend tests should wait for change-scope');
++  assert.doesNotMatch(block, /^\s*if:\s*/, 'backend tests must not be skippable by scope');
++  assert.match(block, /run:\s*go test -race \.\/\.\.\./, 'backend tests should run the full race suite');
++});
++
++test('go lint scopes pull requests and merge groups to new code and enforces in real bash', () => {
++  const goLintSource = workflowSource.slice(
++    workflowSource.indexOf('  go-lint:'),
++    workflowSource.indexOf('  duplication:'),
+   );
++  assert.match(goLintSource, /PR_BASE_SHA:\s*\$\{\{ github\.event\.pull_request\.base\.sha \}\}/);
++  assert.match(goLintSource, /MERGE_GROUP_BASE_SHA:\s*\$\{\{ github\.event\.merge_group\.base_sha \}\}/);
+   assert.match(
+-    workflowSource,
+-    /GATE_OK:\s*success/i,
+-    'quality gates should declare the passing outcome once instead of repeating the literal',
++    goLintSource,
++    /if \[\s*"\$\{EVENT_NAME\}" = "pull_request" \]\s*&&\s*\[ -n "\$\{PR_BASE_SHA\}" \]; then[\s\S]*?args=--new-from-rev=\$\{PR_BASE_SHA\} \.\/\.\.\.[\s\S]*?elif \[\s*"\$\{EVENT_NAME\}" = "merge_group" \]\s*&&\s*\[ -n "\$\{MERGE_GROUP_BASE_SHA\}" \]; then[\s\S]*?args=--new-from-rev=\$\{MERGE_GROUP_BASE_SHA\} \.\/\.\.\./,
++    'pull requests and merge groups must lint only newly introduced code',
+   );
+   assert.match(
+-    workflowSource,
+-    /GO_LINT_RESULT.*!=.*\$GATE_OK/i,
+-    'quality gates should enforce go-lint as a runtime gate',
++    goLintSource,
++    /- name: Run golangci-lint[\s\S]*?continue-on-error:\s*true/i,
++    'go-lint findings should be surfaced without failing the step',
+   );
++  const gate = shellFor('Enforce Go lint gate');
++  assert.match(gate, /EVENT_NAME/);
++  assert.match(gate, /GOLANGCI_LINT_RESULT/);
+   assert.match(
+-    workflowSource,
+-    /Run golangci-lint[\s\S]*continue-on-error:\s*true/i,
+-    'go-lint step should use continue-on-error so findings are reported without failing the job',
++    gate,
++    /if \[\s*"\$\{EVENT_NAME\}" = "push" \] \|\| \[\s*"\$\{EVENT_NAME\}" = "workflow_dispatch" \]; then[\s\S]*?report-only/i,
++    'push and manual baseline runs must keep the advisory report-only path',
+   );
+   assert.match(
+-    workflowSource,
+-    /Enforce go-lint gate[\s\S]*EVENT_NAME[\s\S]*pull_request[\s\S]*merge_group[\s\S]*report-only/i,
+-    'go-lint gate should be report-only for pull_request and merge_group events',
++    gate,
++    /if \[\s*"\$\{GOLANGCI_LINT_RESULT\}" !=\s*"success" \]; then[\s\S]*?exit 1/,
++    'any non-push lint failure must fail closed',
+   );
+-  assert.match(
+-    workflowSource,
+-    /Quality Gates Summary[\s\S]*GITHUB_STEP_SUMMARY/i,
+-    'quality gates should write a job summary to GITHUB_STEP_SUMMARY',
++  // Real behavior: PR/merge_group lint failure rejects, push/manual stays report-only.
++  for (const event of ['pull_request', 'merge_group']) {
++    const r = runBash(gate, {EVENT_NAME: event, GOLANGCI_LINT_RESULT: 'failure'});
++    assert.ifError(r.error);
++    assert.equal(r.status, 1, `go-lint must fail closed on ${event}: ${r.stderr}`);
++  }
++  for (const event of ['push', 'workflow_dispatch']) {
++    const r = runBash(gate, {EVENT_NAME: event, GOLANGCI_LINT_RESULT: 'failure'});
++    assert.ifError(r.error);
++    assert.equal(r.status, 0, `go-lint must stay report-only on ${event}: ${r.stderr}`);
++  }
++  const pass = runBash(gate, {EVENT_NAME: 'merge_group', GOLANGCI_LINT_RESULT: 'success'});
++  assert.ifError(pass.error);
++  assert.equal(pass.status, 0, 'go-lint success must pass: ' + pass.stderr);
++});
++
++test('duplication gate is report-only on pull request and merge group in real bash', () => {
++  const dupSource = workflowSource.slice(
++    workflowSource.indexOf('  duplication:'),
++    workflowSource.indexOf('  smoke-sanity:'),
+   );
+-  assert.match(
+-    workflowSource,
+-    /if\s+\[\s*"\$\{GOVERNANCE_ONLY\}"\s*=\s*"true"\s*\];\s*then[\s\S]*RUNTIME_GATES_REQUIRED=false/i,
+-    'quality gates should only require runtime gates when the change is not governance-only',
+-  );
+-  for (const governancePath of [
+-    'package.json',
+-    'package-lock.json',
+-    'scripts/cleanup-github-branches.mjs',
+-    'scripts/collect-merge-targets.mjs',
+-    'scripts/execute-merge.mjs',
+-    'config/ui-quality-gate.json',
+-  ]) {
+-    assert.match(
+-      workflowSource,
+-      new RegExp(`- '${governancePath.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}'`),
+-      `${governancePath} should be classified as governance-only`,
+-    );
++  assert.match(dupSource, /continue-on-error:\s*true/i, 'duplication scan should report without failing');
++  assert.match(dupSource, /upload-artifact@[\w]+\n[\s\S]*?name: duplication-report/i, 'duplication report should be uploaded as an artifact');
++  const gate = shellFor('Enforce duplication gate');
++  for (const event of ['pull_request', 'merge_group']) {
++    const r = runBash(gate, {EVENT_NAME: event, DUPLICATION_RESULT: 'failure'});
++    assert.ifError(r.error);
++    assert.equal(r.status, 0, `duplication must stay report-only on ${event}: ${r.stderr}`);
++  }
++  for (const event of ['push', 'workflow_dispatch']) {
++    const r = runBash(gate, {EVENT_NAME: event, DUPLICATION_RESULT: 'failure'});
++    assert.ifError(r.error);
++    assert.equal(r.status, 1, `duplication must fail closed on ${event}: ${r.stderr}`);
++  }
++  const pass = runBash(gate, {EVENT_NAME: 'push', DUPLICATION_RESULT: 'success'});
++  assert.ifError(pass.error);
++  assert.equal(pass.status, 0, 'duplication success must pass: ' + pass.stderr);
++});
++
++test('quality gates aggregate every runtime job and enforce them in real bash', () => {
++  const gates = workflowSource.slice(workflowSource.indexOf('  quality-gates:'));
++  for (const dep of ['change-scope', 'docs-governance', 'frontend-contract', 'backend-tests', 'go-lint', 'duplication', 'smoke-sanity']) {
++    assert.match(gates, new RegExp(`- ${dep}`), `quality gates should depend on ${dep}`);
++  }
++  assert.match(gates, /if:\s*always\(\)/, 'quality gates must run even when a dependency fails');
++  const body = shellFor('Enforce quality results');
++  assert.match(gates, /EXPECTED_RESULT:\s*success/i, 'quality gates should declare the passing outcome once');
++  assert.match(body, /DOCS_GOVERNANCE_RESULT/);
++  assert.match(body, /BACKEND_TESTS_RESULT/);
++  assert.match(body, /FRONTEND_CONTRACT_RESULT/);
++  assert.match(body, /GO_LINT_RESULT/);
++  assert.match(body, /DUPLICATION_RESULT/);
++  assert.match(body, /SMOKE_SANITY_RESULT/);
++
++  const base = {
++    EVENT_NAME: 'push',
++    CHANGE_SCOPE_RESULT: 'success',
++    EXPECTED_RESULT: 'success',
++    FRONTEND_CONTRACT_SCOPE: 'true',
++    SMOKE_SANITY_SCOPE: 'true',
++    DOCS_GOVERNANCE_RESULT: 'success',
++    FRONTEND_CONTRACT_RESULT: 'success',
++    BACKEND_TESTS_RESULT: 'success',
++    GO_LINT_RESULT: 'success',
++    DUPLICATION_RESULT: 'success',
++    SMOKE_SANITY_RESULT: 'success',
++  };
++  const allOk = runBash(body, base);
++  assert.ifError(allOk.error);
++  assert.equal(allOk.status, 0, 'all-success delegation must pass: ' + allOk.stderr);
++
++  // Hard gate runtime jobs that are never scope-skippable.
++  for (const [key, label] of [['DOCS_GOVERNANCE_RESULT', 'docs governance'], ['BACKEND_TESTS_RESULT', 'backend tests'], ['DUPLICATION_RESULT', 'duplication']]) {
++    const r = runBash(body, {...base, [key]: 'failure'});
++    assert.ifError(r.error);
++    assert.equal(r.status, 1, `${label} failure must fail closed regardless of scope: ${r.stderr}`);
++  }
++
++  // Frontend contract is required on non-PR and on scope-relevant PRs, optional otherwise.
++  const feNeeded = runBash(body, {...base, EVENT_NAME: 'pull_request', FRONTEND_CONTRACT_SCOPE: 'true', FRONTEND_CONTRACT_RESULT: 'failure'});
++  assert.ifError(feNeeded.error);
++  assert.equal(feNeeded.status, 1, 'frontend contract failure must fail closed when scope requires it: ' + feNeeded.stderr);
++  const feSkipped = runBash(body, {...base, EVENT_NAME: 'pull_request', FRONTEND_CONTRACT_SCOPE: 'false', FRONTEND_CONTRACT_RESULT: 'skipped'});
++  assert.ifError(feSkipped.error);
++  assert.equal(feSkipped.status, 0, 'an out-of-scope pull request may skip frontend contract: ' + feSkipped.stderr);
++
++  // Go-lint is enforced off push; push keeps it report-only (the job already exits 0).
++  const goPr = runBash(body, {...base, EVENT_NAME: 'pull_request', GO_LINT_RESULT: 'failure'});
++  assert.ifError(goPr.error);
++  assert.equal(goPr.status, 1, 'go-lint failure must fail closed on a pull request: ' + goPr.stderr);
++  const goPush = runBash(body, {...base, EVENT_NAME: 'push', GO_LINT_RESULT: 'failure'});
++  assert.ifError(goPush.error);
++  assert.equal(goPush.status, 0, 'go-lint failure must stay report-only on push: ' + goPush.stderr);
++
++  // Smoke sanity follows the scope-required toggle.
++  const smokeNeeded = runBash(body, {...base, EVENT_NAME: 'pull_request', SMOKE_SANITY_SCOPE: 'true', SMOKE_SANITY_RESULT: 'failure'});
++  assert.ifError(smokeNeeded.error);
++  assert.equal(smokeNeeded.status, 1, 'smoke sanity failure must fail closed when scope requires it: ' + smokeNeeded.stderr);
++  const smokeSkipped = runBash(body, {...base, EVENT_NAME: 'pull_request', SMOKE_SANITY_SCOPE: 'false', SMOKE_SANITY_RESULT: 'skipped'});
++  assert.ifError(smokeSkipped.error);
++  assert.equal(smokeSkipped.status, 0, 'an out-of-scope pull request may skip smoke sanity: ' + smokeSkipped.stderr);
++  for (const event of ['pull_request', 'push', 'workflow_dispatch', 'merge_group']) {
++    for (const result of ['failure', 'cancelled', 'skipped', '']) {
++      const failedScope = runBash(body, {...base, EVENT_NAME: event, CHANGE_SCOPE_RESULT: result});
++      assert.ifError(failedScope.error);
++      assert.equal(failedScope.status, 1, `${event} must reject a ${result || 'missing'} scope result`);
++    }
++    for (const [scope, result] of [['FRONTEND_CONTRACT_SCOPE', 'FRONTEND_CONTRACT_RESULT'], ['SMOKE_SANITY_SCOPE', 'SMOKE_SANITY_RESULT']]) {
++      for (const failed of ['failure', 'cancelled', '']) {
++        const unexpectedFailure = runBash(body, {...base, EVENT_NAME: event, [scope]: 'false', [result]: failed});
++        assert.ifError(unexpectedFailure.error);
++        assert.equal(unexpectedFailure.status, 1, `${event} must reject ${result}=${failed || 'missing'} even outside scope`);
++      }
++      for (const scopeValue of ['true', '']) {
++        const missingRequired = runBash(body, {...base, EVENT_NAME: event, [scope]: scopeValue, [result]: 'skipped'});
++        assert.ifError(missingRequired.error);
++        assert.equal(missingRequired.status, 1, `${event} must reject a skipped result with required or missing scope`);
++      }
++      if (event !== 'pull_request') {
++        const nonPrSkip = runBash(body, {...base, EVENT_NAME: event, [scope]: 'false', [result]: 'skipped'});
++        assert.ifError(nonPrSkip.error);
++        assert.equal(nonPrSkip.status, 1, `${event} must run ${result} regardless of PR scope`);
++      }
++    }
+   }
+ });
+ 
+-test('docs governance blocks policy drift in the UI quality gate', () => {
++test('docs governance blocks UI quality drift as a strict non-advisory step', () => {
+   assert.match(
+     workflowSource,
+-    /Enforce UI quality gate\s*\n\s*run:\s*npm run check:ui-quality-gate/i,
+-    'docs governance should run the strict UI quality gate without advisory continue-on-error handling',
++    /- name: Check UI quality gate\s*\n\s*run:\s*npm run check:ui-quality-gate/i,
++    'docs governance should run the strict UI quality gate',
+   );
+   assert.doesNotMatch(
+     workflowSource,
+-    /Enforce UI quality gate[\s\S]{0,120}continue-on-error:\s*true/i,
++    /Check UI quality gate[\s\S]{0,120}continue-on-error:\s*true/i,
+     'UI quality policy drift must block the workflow',
+   );
+-});
+-
+-test('go lint scopes pull requests and merge groups to new code', () => {
+-  const goLintSource = workflowSource.slice(
+-    workflowSource.indexOf('  go-lint:'),
+-    workflowSource.indexOf('  duplication:'),
+-  );
+-
+-  assert.match(goLintSource, /PR_BASE_SHA:\s*\$\{\{ github\.event\.pull_request\.base\.sha \}\}/);
+-  assert.match(goLintSource, /MERGE_GROUP_BASE_SHA:\s*\$\{\{ github\.event\.merge_group\.base_sha \}\}/);
+-  assert.match(
+-    goLintSource,
+-    /if \[ "\$\{EVENT_NAME\}" = "pull_request" \] && \[ -n "\$\{PR_BASE_SHA\}" \]; then[\s\S]*?args=--new-from-rev=\$\{PR_BASE_SHA\} \.\/\.\.\.[\s\S]*?elif \[ "\$\{EVENT_NAME\}" = "merge_group" \] && \[ -n "\$\{MERGE_GROUP_BASE_SHA\}" \]; then[\s\S]*?args=--new-from-rev=\$\{MERGE_GROUP_BASE_SHA\} \.\/\.\.\./,
+-    'pull requests and merge groups must both lint only newly introduced code',
+-  );
+   assert.match(
+-    goLintSource,
+-    /if \[ "\$\{EVENT_NAME\}" = "push" \] \|\| \[ "\$\{EVENT_NAME\}" = "workflow_dispatch" \]; then[\s\S]*?Full-repo lint is report-only on push\/workflow_dispatch/,
+-    'only push and workflow_dispatch events may retain the advisory full-repository lint path',
++    workflowSource,
++    /- name: Run tests\/scripts catch-all[\s\S]*?run:\s*npm run test:scripts/i,
++    'docs governance should run the tests/scripts catch-all so no governance test silently goes unrun',
+   );
+ });
+ 
+-test('docs governance validates the PR governance template and pull request body', () => {
++test('docs governance validates the PR governance template and body, rerunning on edits', () => {
+   assert.match(
+     workflowSource,
+-    /pull_request:\s*\n\s*types:\s*\n[\s\S]*-\s*edited/i,
++    /pull_request:\s*\n\s*types:\s*\[opened, synchronize, reopened, edited, ready_for_review\]/,
+     'quality workflow should rerun when a pull request body is edited',
+   );
+   assert.match(
+     workflowSource,
+-    /Check PR governance template[\s\S]*npm run check:pr-governance/i,
++    /- name: Check PR governance template\s*\n\s*run:\s*npm run check:pr-governance/i,
+     'docs governance should check the PR governance template',
+   );
+   assert.match(
+     workflowSource,
+-    /Validate PR governance body[\s\S]*if:\s*github\.event_name\s*==\s*'pull_request'[\s\S]*node scripts\/check-pr-governance\.mjs --event "\$GITHUB_EVENT_PATH"/i,
+-    'docs governance should validate the pull request body on pull request events',
++    /- name: Validate PR governance body[\s\S]*?if:\s*github\.event_name\s*==\s*'pull_request' && github\.event\.pull_request\.user\.login !=\s*'dependabot\[bot\]'[\s\S]*?node scripts\/check-pr-governance\.mjs --event "\$GITHUB_EVENT_PATH"/,
++    'docs governance should validate the pull request body on pull request events, excluding dependabot',
+   );
+ });
+ 
+ test('docs governance does not checkout an unused pantheon-base foundation copy', () => {
+-  assert.doesNotMatch(
+-    workflowSource,
+-    /Checkout pantheon-base foundation/i,
+-    'quality workflow should not spend CI time on an unused secondary checkout',
+-  );
+-  assert.doesNotMatch(
+-    workflowSource,
+-    /path:\s*pantheon-base-foundation/i,
+-    'quality workflow should not materialize an unused pantheon-base-foundation path',
+-  );
++  assert.doesNotMatch(workflowSource, /Checkout pantheon-base foundation/i);
++  assert.doesNotMatch(workflowSource, /path:\s*pantheon-base-foundation/i);
+ });

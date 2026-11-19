@@ -1,0 +1,36 @@
+[
+  {
+    "name": "frontend-lint-final",
+    "executable": "D:\\nodejs\\node.exe",
+    "args": [
+      "--import=file:///D:/workspace/go/pantheon-platform/pantheon-ops/.local/manual-preview-20261116/hide-child-windows.mjs",
+      "D:/nodejs/node_modules/npm/bin/npm-cli.js",
+      "run",
+      "lint"
+    ],
+    "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\frontend",
+    "startedAt": "2026-11-17T06:43:25.350Z",
+    "finishedAt": "2026-11-17T06:44:48.479Z",
+    "exitCode": 0,
+    "status": "passed",
+    "log": ".harness/evidence/2026-11-17-ops-history-audit/continuation-frontend-lint-final.log",
+    "errorCode": null
+  },
+  {
+    "name": "frontend-typecheck-final",
+    "executable": "D:\\nodejs\\node.exe",
+    "args": [
+      "--import=file:///D:/workspace/go/pantheon-platform/pantheon-ops/.local/manual-preview-20261116/hide-child-windows.mjs",
+      "D:/nodejs/node_modules/npm/bin/npm-cli.js",
+      "run",
+      "type-check"
+    ],
+    "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\frontend",
+    "startedAt": "2026-11-17T06:44:48.482Z",
+    "finishedAt": "2026-11-17T06:45:25.129Z",
+    "exitCode": 0,
+    "status": "passed",
+    "log": ".harness/evidence/2026-11-17-ops-history-audit/continuation-frontend-typecheck-final.log",
+    "errorCode": null
+  }
+]

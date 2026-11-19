@@ -1,0 +1,40 @@
+{
+  "capturedAtUTC": "2026-11-17 14:40:44 UTC",
+  "candidate": "working-tree-files-no-commit",
+  "scope": "C03 bounded Service owner update and independent review round 1 fixes",
+  "verification": "parent-owned; see command receipts for actual candidate evidence",
+  "files": [
+    {
+      "path": "backend/modules/business/service/dto.go",
+      "sha256": "51c09541d08818f29dbc44717aed8e2b490730c2cbb9ad1d55a18b0c03e63e1c"
+    },
+    {
+      "path": "backend/modules/business/service/service.go",
+      "sha256": "b6851fd7f350cebcc6408900227e7a51b8a868ffdb07a0a2425ba8a6d116a66f"
+    },
+    {
+      "path": "backend/modules/business/service/handler.go",
+      "sha256": "69c09edbed726dcff749110c9399a20efbef5d38facee2acc097038f6220d527"
+    },
+    {
+      "path": "backend/modules/business/service/seed.go",
+      "sha256": "168149a9d4beae8091da55d874aea33f52f2c2f512da4eb7dcebe78347af22b3"
+    },
+    {
+      "path": "backend/modules/business/service/instance_update_test.go",
+      "sha256": "9f5984e4a1cefdd3f485d804f72492deea99e82ee9670db3fd0670dd6d32f7ba"
+    },
+    {
+      "path": "backend/modules/business/service/module.go",
+      "sha256": "59140f742a29b2e2a78e55c0fd09b95f0b3dbf508ded10076da5a5bc0c033ecf"
+    },
+    {
+      "path": "backend/modules/business/service/permission_routes.go",
+      "sha256": "8bb22ce1082d0bfa8b6cc2235550bae1535750566dc490ba45ac0ae0e98bdd97"
+    },
+    {
+      "path": "backend/modules/business/service/catalog_review_test.go",
+      "sha256": "596c93421f997dbe22917232a12b571c1dd813bc3e3e1058172852aba8222f7f"
+    }
+  ]
+}

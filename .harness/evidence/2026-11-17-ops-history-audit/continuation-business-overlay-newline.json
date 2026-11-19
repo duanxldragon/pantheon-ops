@@ -1,0 +1,8 @@
+{
+  "recordedAt": "2026-11-17T08:22:04.760Z",
+  "file": "frontend/src/modules/businessOverlay.ts",
+  "beforeSHA256": "9b44427ed6c72a4a5c0bb2ac4f0d6a2772864ec8fae4afd6c02e28b1c78adb76",
+  "afterSHA256": "aba90c3f0d3667ccc5e7fb0fa7f42e394f8273290277e400a738422258797b28",
+  "candidateSHA256": "aba90c3f0d3667ccc5e7fb0fa7f42e394f8273290277e400a738422258797b28",
+  "boundary": "Exactly one terminal LF added; no tokens, imports, registration or behavior changed. Canonical generator output already contains this LF."
+}

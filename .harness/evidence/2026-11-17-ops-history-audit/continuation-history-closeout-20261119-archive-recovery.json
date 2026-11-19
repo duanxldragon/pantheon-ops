@@ -1,0 +1,75 @@
+{
+  "taskId": "2026-11-17-ops-history-audit",
+  "recordedAtUTC": "2026-11-19T00:19:51.265Z",
+  "gitCommit": "71c86cfe664ef9fde310cc68efbf2e8992e648f2",
+  "detectionReceipt": ".harness/evidence/2026-11-17-ops-history-audit/continuation-history-closeout-20261119-archive-integrity.json",
+  "originalInventory": ".harness/evidence/2026-11-16-ops-readiness-plan-closeout/archive-inventory.json",
+  "restoredFiles": [
+    {
+      "file": ".harness/archive/2026-08/tasks/2026-08-17-ops-foundation-hardening/EXECUTION_QUEUE.md",
+      "expected": "73912691c9fea761348644c4dcd3d599bcc813db1a58cf53f2ce574a18b5f43b",
+      "actual": "edb3c29aec28021861bab029835a7c4eb1d66d83c45e71cd0a21d19140d404a1",
+      "originalSource": ".harness/tasks/2026-08-17-ops-foundation-hardening/EXECUTION_QUEUE.md",
+      "backup": ".harness/evidence/2026-11-17-ops-history-audit/archive-recovery-originals-20261119/.harness/archive/2026-08/tasks/2026-08-17-ops-foundation-hardening/EXECUTION_QUEUE.md.raw"
+    },
+    {
+      "file": ".harness/archive/2026-08/tasks/2026-08-17-ops-foundation-hardening/STATUS.md",
+      "expected": "feb542a688606dce99d9ba174288c200c9a4c0a78ad7069cf11f841aa8f71e29",
+      "actual": "055ee2de267e87d33e5d1087914f24121be3e042fce4c0dbfcfc0f4fb5a1b05c",
+      "originalSource": ".harness/tasks/2026-08-17-ops-foundation-hardening/STATUS.md",
+      "backup": ".harness/evidence/2026-11-17-ops-history-audit/archive-recovery-originals-20261119/.harness/archive/2026-08/tasks/2026-08-17-ops-foundation-hardening/STATUS.md.raw"
+    },
+    {
+      "file": ".harness/archive/2026-08/evidence/ops-deploy-immutability-idempotency/summary.md",
+      "expected": "3c33627beee44251be79e97c98274139d4a5ac98b28fcc8b81db27585a817407",
+      "actual": "a0e5b6a2fcd4fbc3d508ffdc1eec467fd51cecb7c7ef846b4253dd9fa89cdbf2",
+      "originalSource": ".harness/evidence/ops-deploy-immutability-idempotency/summary.md",
+      "backup": ".harness/evidence/2026-11-17-ops-history-audit/archive-recovery-originals-20261119/.harness/archive/2026-08/evidence/ops-deploy-immutability-idempotency/summary.md.raw"
+    },
+    {
+      "file": ".harness/archive/2026-08/evidence/ops-service-instance-foundation/review.md",
+      "expected": "e3d98dfb09129c100f97d46472eeb728fadd3ff241ed79a8f8609ea3a01bcfec",
+      "actual": "20a15cf6cf10f6eb685ffdf824b72bac1afc43fb2169f1b384e94b3901eeaa1d",
+      "originalSource": ".harness/evidence/ops-service-instance-foundation/review.md",
+      "backup": ".harness/evidence/2026-11-17-ops-history-audit/archive-recovery-originals-20261119/.harness/archive/2026-08/evidence/ops-service-instance-foundation/review.md.raw"
+    },
+    {
+      "file": ".harness/archive/2026-08/evidence/ops-service-instance-foundation/summary.md",
+      "expected": "50e6264789dc4e018f441e240f9f944ea84bd9f87fb7445f4a51462fd6267bd1",
+      "actual": "9183f7bc8468f70fb0d3056fae68dee52d0b03a03959c6def5854075645c19b0",
+      "originalSource": ".harness/evidence/ops-service-instance-foundation/summary.md",
+      "backup": ".harness/evidence/2026-11-17-ops-history-audit/archive-recovery-originals-20261119/.harness/archive/2026-08/evidence/ops-service-instance-foundation/summary.md.raw"
+    },
+    {
+      "file": ".harness/archive/2026-10/evidence/2026-10-31-frontend-follow-redirects-audit/review.md",
+      "expected": "ab86e22e47d6936144ec9da85483e9291b0eaf2a98073943407c561603d4dbe7",
+      "actual": "15f4cbc6dce825f4a54fd3033d25919899593b5b5970fffc13885ff30a31b9c7",
+      "originalSource": ".harness/evidence/2026-10-31-frontend-follow-redirects-audit/review.md",
+      "backup": ".harness/evidence/2026-11-17-ops-history-audit/archive-recovery-originals-20261119/.harness/archive/2026-10/evidence/2026-10-31-frontend-follow-redirects-audit/review.md.raw"
+    },
+    {
+      "file": ".harness/archive/2026-11/evidence/2026-11-13-base-v0187-consumption/architect.md",
+      "expected": "1ada044eb2bc2d80d808d7888c4846ac831ab4798216d01a2767f2e46457fb4b",
+      "actual": "7f55482c088f082161d23c4520762053258c92a3896cadb58b8ab4938468e5a7",
+      "originalSource": ".harness/evidence/2026-11-13-base-v0187-consumption/architect.md",
+      "backup": ".harness/evidence/2026-11-17-ops-history-audit/archive-recovery-originals-20261119/.harness/archive/2026-11/evidence/2026-11-13-base-v0187-consumption/architect.md.raw"
+    },
+    {
+      "file": ".harness/archive/2026-11/evidence/2026-11-13-base-v0187-consumption/code-reviewer.md",
+      "expected": "5e685e2718c0fc9601e38f55219b18d17b80bc2a74831b3ec10552ba8d8214a0",
+      "actual": "310eda07e73b4f0a9eb34219cc779159d7b9b9b38015cd14739aca0f9d0e7801",
+      "originalSource": ".harness/evidence/2026-11-13-base-v0187-consumption/code-reviewer.md",
+      "backup": ".harness/evidence/2026-11-17-ops-history-audit/archive-recovery-originals-20261119/.harness/archive/2026-11/evidence/2026-11-13-base-v0187-consumption/code-reviewer.md.raw"
+    },
+    {
+      "file": ".harness/archive/2026-11/evidence/2026-11-13-base-v0187-consumption/review.md",
+      "expected": "6203106840d76612c7f9933f3eb159f7e53fb6186260d689669a7bd815dff3ca",
+      "actual": "64ab34ffffa95f2c3da90daf493f71871756fa56a2291080b0f5344247b793e2",
+      "originalSource": ".harness/evidence/2026-11-13-base-v0187-consumption/review.md",
+      "backup": ".harness/evidence/2026-11-17-ops-history-audit/archive-recovery-originals-20261119/.harness/archive/2026-11/evidence/2026-11-13-base-v0187-consumption/review.md.raw"
+    }
+  ],
+  "restoredOriginalHashes": true,
+  "interveningBytesPreserved": true,
+  "boundary": "Restores the 2026-11-16 original archive bytes. Later snapshots of these canonical files keep their recorded hashes and are traceable through the preserved pre-recovery bytes. Other archive and preserved-live files were untouched."
+}

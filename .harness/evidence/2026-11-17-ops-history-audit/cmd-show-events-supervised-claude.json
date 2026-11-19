@@ -1,0 +1,8 @@
+{
+  "finishedAt": "2026-11-17T13:09:09.1046512+08:00",
+  "unresolvedShowEvents": [],
+  "limitation": "Window SHOW hook, 5ms message pump. Windows destroyed before callback may remain unidentifiable; this is bounded observation, not proof of global elimination. No titles, command lines or environment collected. No processes stopped.",
+  "consoleShowEvents": [],
+  "baselineVisiblePids": [],
+  "startedAt": "2026-11-17T13:08:24.0732134+08:00"
+}

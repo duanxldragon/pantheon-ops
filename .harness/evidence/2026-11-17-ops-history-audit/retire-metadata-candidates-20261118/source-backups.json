@@ -1,0 +1,48 @@
+{
+  "initialRed": {
+    "raw": ".harness/evidence/2026-11-17-ops-history-audit/retire-metadata-candidates-20261118/initial-red/retire_lifecycle_test.go.raw",
+    "sha256": "2ef3ab7261ef64ced62754fcb1cee9484068b70ec450f335917714483fc62c4b",
+    "reconstructedVerifiedByteEquivalent": true
+  },
+  "correctedRed": {
+    "raw": ".harness/evidence/2026-11-17-ops-history-audit/retire-metadata-candidates-20261118/corrected-red/retire_lifecycle_test.go.raw",
+    "sha256": "67242c9a8e1ecb6ced2621112b3523aa475a1edd6136553f30f3193e5e2a3d18"
+  },
+  "preProduction": [
+    {
+      "source": "backend/modules/business/deploy/deploy_model.go",
+      "raw": ".harness/evidence/2026-11-17-ops-history-audit/retire-metadata-candidates-20261118/pre-production/deploy_model.go.raw",
+      "sha256": "d67603ea143b97897e10533169c1e79a0779046df1885330e151ef11539e08e0"
+    },
+    {
+      "source": "backend/modules/business/deploy/deploy_service.go",
+      "raw": ".harness/evidence/2026-11-17-ops-history-audit/retire-metadata-candidates-20261118/pre-production/deploy_service.go.raw",
+      "sha256": "6d23de28303ce416cae65088ba67db31abe0d5031a5bda27d0983ecb91a52800"
+    },
+    {
+      "source": "backend/modules/business/deploy/task_command.go",
+      "raw": ".harness/evidence/2026-11-17-ops-history-audit/retire-metadata-candidates-20261118/pre-production/task_command.go.raw",
+      "sha256": "14a944a69e82a768b060a0882c170ab76c4dfbe5c4fb3cab9c4212363bc48f8a"
+    },
+    {
+      "source": "backend/modules/business/deploy/attempt_ownership.go",
+      "raw": ".harness/evidence/2026-11-17-ops-history-audit/retire-metadata-candidates-20261118/pre-production/attempt_ownership.go.raw",
+      "sha256": "767da276e8686a56046f830b4c5f06946197cb91d563ca188f13b638b7d8680e"
+    },
+    {
+      "source": "backend/modules/business/deploy/retire_lifecycle_test.go",
+      "raw": ".harness/evidence/2026-11-17-ops-history-audit/retire-metadata-candidates-20261118/pre-production/retire_lifecycle_test.go.raw",
+      "sha256": "67242c9a8e1ecb6ced2621112b3523aa475a1edd6136553f30f3193e5e2a3d18"
+    },
+    {
+      "source": "backend/modules/business/deploy/service_link_control_test.go",
+      "raw": ".harness/evidence/2026-11-17-ops-history-audit/retire-metadata-candidates-20261118/pre-production/service_link_control_test.go.raw",
+      "sha256": "44b8ffc5a1126a7a5aa8a7933e16c306d8ea6d400652391767f32462850f1725"
+    },
+    {
+      "source": "backend/modules/business/deploy/task_preview.go",
+      "raw": ".harness/evidence/2026-11-17-ops-history-audit/retire-metadata-candidates-20261118/pre-production/task_preview.go.raw",
+      "sha256": "d796d69a1ccc39b82b00798d45f4e82c392ef483161f4c8b4a470e0a0c87bfb1"
+    }
+  ]
+}

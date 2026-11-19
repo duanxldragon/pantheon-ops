@@ -1,0 +1,121 @@
+[
+  {
+    "name": "task",
+    "executable": "D:\\nodejs\\node.exe",
+    "args": [
+      "scripts/harness/check-task-packet.mjs",
+      "--json"
+    ],
+    "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+    "startedAt": "2026-11-17T11:41:53.536Z",
+    "finishedAt": "2026-11-17T11:41:54.118Z",
+    "exitCode": 1,
+    "status": "failed",
+    "evidence": ".harness/evidence/2026-11-17-ops-history-audit/continuation-c01-initial-task.json",
+    "errorCode": null
+  },
+  {
+    "name": "evidence",
+    "executable": "D:\\nodejs\\node.exe",
+    "args": [
+      "scripts/harness/check-evidence.mjs",
+      "--json",
+      "--strict"
+    ],
+    "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+    "startedAt": "2026-11-17T11:41:54.119Z",
+    "finishedAt": "2026-11-17T11:41:56.331Z",
+    "exitCode": 1,
+    "status": "failed",
+    "evidence": ".harness/evidence/2026-11-17-ops-history-audit/continuation-c01-initial-evidence.json",
+    "errorCode": null
+  },
+  {
+    "name": "review",
+    "executable": "D:\\nodejs\\node.exe",
+    "args": [
+      "scripts/harness/check-review.mjs",
+      "--json",
+      "--strict"
+    ],
+    "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+    "startedAt": "2026-11-17T11:41:56.332Z",
+    "finishedAt": "2026-11-17T11:41:57.426Z",
+    "exitCode": 1,
+    "status": "failed",
+    "evidence": ".harness/evidence/2026-11-17-ops-history-audit/continuation-c01-initial-review.json",
+    "errorCode": null
+  },
+  {
+    "name": "links",
+    "executable": "D:\\nodejs\\node.exe",
+    "args": [
+      "scripts/harness/check-doc-links.mjs",
+      "--json",
+      "--strict"
+    ],
+    "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+    "startedAt": "2026-11-17T11:41:57.427Z",
+    "finishedAt": "2026-11-17T11:41:58.230Z",
+    "exitCode": 1,
+    "status": "failed",
+    "evidence": ".harness/evidence/2026-11-17-ops-history-audit/continuation-c01-initial-links.json",
+    "errorCode": null
+  },
+  {
+    "name": "frontmatter",
+    "executable": "D:\\nodejs\\node.exe",
+    "args": [
+      "scripts/frontmatter-check.mjs"
+    ],
+    "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+    "startedAt": "2026-11-17T11:41:58.230Z",
+    "finishedAt": "2026-11-17T11:41:58.566Z",
+    "exitCode": 0,
+    "status": "passed",
+    "evidence": ".harness/evidence/2026-11-17-ops-history-audit/continuation-c01-initial-frontmatter.log",
+    "errorCode": null
+  },
+  {
+    "name": "template",
+    "executable": "D:\\nodejs\\node.exe",
+    "args": [
+      "scripts/check-task-packet-template.mjs"
+    ],
+    "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+    "startedAt": "2026-11-17T11:41:58.566Z",
+    "finishedAt": "2026-11-17T11:41:58.684Z",
+    "exitCode": 0,
+    "status": "passed",
+    "evidence": ".harness/evidence/2026-11-17-ops-history-audit/continuation-c01-initial-template.log",
+    "errorCode": null
+  },
+  {
+    "name": "overlay",
+    "executable": "D:\\nodejs\\node.exe",
+    "args": [
+      "scripts/business-overlay/check-business-overlay.mjs"
+    ],
+    "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+    "startedAt": "2026-11-17T11:41:58.684Z",
+    "finishedAt": "2026-11-17T11:41:59.082Z",
+    "exitCode": 0,
+    "status": "passed",
+    "evidence": ".harness/evidence/2026-11-17-ops-history-audit/continuation-c01-initial-overlay.log",
+    "errorCode": null
+  },
+  {
+    "name": "boundaries",
+    "executable": "D:\\nodejs\\node.exe",
+    "args": [
+      "scripts/check-business-module-boundaries.mjs"
+    ],
+    "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+    "startedAt": "2026-11-17T11:41:59.082Z",
+    "finishedAt": "2026-11-17T11:41:59.199Z",
+    "exitCode": 0,
+    "status": "passed",
+    "evidence": ".harness/evidence/2026-11-17-ops-history-audit/continuation-c01-initial-boundaries.log",
+    "errorCode": null
+  }
+]

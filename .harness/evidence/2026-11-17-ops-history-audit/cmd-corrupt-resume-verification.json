@@ -1,0 +1,5 @@
+{
+  "exitCode": 1,
+  "stdout": "",
+  "stderr": "\u001b[31;1mException: \u001b[0mD:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\manual-preview-20261116\\run-advisor-durable.ps1:17\u001b[0m\r\n\u001b[31;1m\u001b[0m\u001b[36;1mLine |\u001b[0m\r\n\u001b[31;1m\u001b[0m\u001b[36;1m\u001b[36;1m  17 | \u001b[0m         \u001b[36;1mthrow ('Advisor stream JSON parse failed at line '+($advisorL\u001b[0m ��\u001b[0m\r\n\u001b[31;1m\u001b[0m\u001b[36;1m\u001b[36;1m\u001b[0m\u001b[36;1m\u001b[0m\u001b[36;1m     | \u001b[31;1m         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\u001b[0m\r\n\u001b[31;1m\u001b[0m\u001b[36;1m\u001b[36;1m\u001b[0m\u001b[36;1m\u001b[0m\u001b[36;1m\u001b[31;1m\u001b[31;1m\u001b[36;1m     | \u001b[31;1mAdvisor stream JSON parse failed at line 2. Original bytes retained; resume refused.\u001b[0m\r\n"
+}

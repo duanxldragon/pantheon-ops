@@ -1,0 +1,233 @@
+{
+  "recordedAt": "2026-11-18T06:04:24.893Z",
+  "taskId": "2026-11-17-ops-history-audit",
+  "parentBusinessTaskId": "2026-11-16-ops-service-deploy-integrity",
+  "sourceEquivalence": {
+    "file": ".harness/evidence/2026-11-17-ops-history-audit/continuation-retire-shared-transaction-final-20261118-source-equivalence.json",
+    "sha256": "bff3f60f52873409197b3567983ca7c946eb6b1e7109686961f13b54b3b19f58",
+    "candidate": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\manual-preview-20261116\\overlay-history-continuation-final-retire-shared-transaction-final-20261118",
+    "sourceCount": 1221,
+    "sourceSetSHA256": "28031c9735a926509aec1138f82f63cfad7aaac48128c383625f1b1d5790e8f0",
+    "currentSourceRechecked": true
+  },
+  "finalBuild": {
+    "file": ".harness/evidence/2026-11-17-ops-history-audit/continuation-current-preview-retire-shared-transaction-final-20261118-build.json",
+    "sha256": "4704611347031d815641ff6daddf85dbbff093dd29ff0bc752d1d726d1c8824e",
+    "exitCode": 0,
+    "sourceUnchanged": true,
+    "binary": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\manual-preview-20261116\\current-preview-retire-shared-transaction-final-20261118\\pantheon-ops.exe",
+    "binarySHA256": "c11f09f9d3360461025aa7c27233f8f0d784b6633be72359f660261ef0ecb3a4"
+  },
+  "runtimeBinding": {
+    "file": ".harness/evidence/2026-11-17-ops-history-audit/continuation-current-preview-retire-shared-transaction-started-20261118.json",
+    "sha256": "2a0db868bb8c1c92b7387553066f2b462f66016d255d4aa19be5331bcc79178f",
+    "safety": {
+      "file": ".harness/evidence/2026-11-17-ops-history-audit/continuation-preview-restart-safety-20261118-133849.json",
+      "sha256": "841a49284bfd59f87c37f7d02ee310bb37d7b381c1afc5cde0936ce858cf0006"
+    },
+    "processId": 4308,
+    "binaryMatchesFinalBuild": true,
+    "actualHealthObserved": true,
+    "dependencyReadiness": [
+      "database",
+      "migrations",
+      "redis",
+      "frontend"
+    ],
+    "scope": "Readiness only; role/provider and real Retire UI acceptance remain open."
+  },
+  "reviewBinding": {
+    "independentCodeRecommendation": "APPROVE",
+    "independentArchitectureStatus": "CLEAR",
+    "relocationFileCount": 10,
+    "reviewedFileCount": 11,
+    "productionFileCount": 7,
+    "testFileCount": 4,
+    "reviewedSHA256": {
+      "backend/modules/business/shared/transaction/transaction.go": "621748b4a5ce8e9a79cecc61f75907a99b5c5705d10adbcd0552cb72390d38ce",
+      "backend/modules/business/shared/transaction/transaction_test.go": "4f62610221ee819a6f5bb49ee08e74b4bcb55c2a85ed5f8df207e72af735f0cb",
+      "backend/modules/business/service/state.go": "c1283d807faada5679ed8223d58f749e112b93b18fc977fdb72f58f735732717",
+      "backend/modules/business/service/reader_transaction.go": "3b04d94ae70536752805c151573d305cd67600c7d07c6c07742401fdd2ca4e50",
+      "backend/modules/business/service/deployment_reference.go": "a3cd941ca9c74829bfe064afd9263c96548ff97e34e5be696e49ccc7fb3196e4",
+      "backend/modules/business/service/service.go": "08483efa0f60f7e042b7982ca81f3bdff9241135026ce02ec7cdfbceeb8930f8",
+      "backend/modules/business/service/retire_admission_test.go": "66e739b15842407b0fef5249e4c5efa249484ec0c82c16bdab2334949597fc2a",
+      "backend/modules/business/service/state_transaction_test.go": "a3e72a081ed5632ac9e0acadd34c12722a9770a407268eccd1fa0cca8a6a3b44",
+      "backend/modules/business/deploy/attempt_ownership.go": "f423ebe0c7c1e7819385c5ba9195c1a618021ff0629fb594a3c2722138231ac8",
+      "backend/modules/business/deploy/service_reference.go": "398d90b1bec54d6e37f636c23dba5b92260249b5b9d26770a1596c614a8dafe3",
+      "backend/modules/business/deploy/service_retire_admission_test.go": "1f2db8a3374b3e9bcd5675510b302523440000cbc8ec9af5a21a83796f37d13c"
+    },
+    "reports": [
+      {
+        "file": ".harness/evidence/2026-11-17-ops-history-audit/continuation-retire-shared-transaction-code-review-20261118.md",
+        "sha256": "c28b79330deaae290a7ff585476fee3689d86c77b9509dfc513c0c8b3c5eb8eb"
+      },
+      {
+        "file": ".harness/evidence/2026-11-17-ops-history-audit/continuation-retire-shared-transaction-architecture-20261118.md",
+        "sha256": "de6f3e62e5da075c4cd5f371d581e282e956ce565c5a14c7274dba10b027fd49"
+      }
+    ],
+    "unchangedPriorTest": {
+      "file": "backend/modules/business/deploy/service_retire_admission_test.go",
+      "sha256": "1f2db8a3374b3e9bcd5675510b302523440000cbc8ec9af5a21a83796f37d13c",
+      "priorReview": {
+        "file": ".harness/evidence/2026-11-17-ops-history-audit/continuation-service-retire-review-binding-20261118.json",
+        "sha256": "93dae983e7220acc018e7ec6ceed56ff31be696df6cc53049fd76d12701bab1f"
+      }
+    },
+    "wholeC01": "WATCH",
+    "aggregateApproved": false
+  },
+  "boundaryFinding": {
+    "originalFailure": {
+      "file": ".harness/evidence/2026-11-17-ops-history-audit/continuation-retire-isolation-final-20261118-boundaries.log.stderr.log",
+      "sha256": "78f8bb95a72a73537efebb37e8ad37b587eb8f71662735c33ce931f144a90f51"
+    },
+    "exactGormExposures": 7,
+    "unchangedChecker": {
+      "file": "scripts/check-business-module-boundaries.mjs",
+      "sha256": "0e74585a300237a3644ee221a06836490f1f88b0a3f80dab3016e8565a239f64"
+    },
+    "correctedPlacement": "business/shared/transaction",
+    "gate": "PASS",
+    "reviewerEquivalence": {
+      "helperAndTestsPackageLineOnly": 2,
+      "consumersImportsQualifiersAndOrderingOnly": 8
+    },
+    "capabilityScope": "Direct gorm.io/gorm and *gorm.DB transaction exposure removed. Existing gorm.io/datatypes DTO import remains unchanged."
+  },
+  "navigation": {
+    "verification": {
+      "file": ".harness/evidence/2026-11-17-ops-history-audit/continuation-navigation-render-retire-shared-transaction-capture-20261118-verification.json",
+      "sha256": "a5250e92ce96f39685eaa0014ff92120c2abab8c1e61eda3bcc3ed789e46e289"
+    },
+    "smokeVerification": {
+      "file": ".harness/evidence/2026-11-17-ops-history-audit/continuation-navigation-retire-shared-transaction-live-retry-20261118-verification.json",
+      "sha256": "299371eafae4d2a4be9e03d80c3fe12f44997269aa6a790ddc8c66bea7b4e4b9"
+    },
+    "smokeResultIndex": 0,
+    "smokePassed": true,
+    "acceptance": {
+      "file": ".harness/evidence/2026-11-16-ops-navigation-repair/after-history-continuation-final-retire-shared-transaction-capture-20261118/acceptance.json",
+      "sha256": "7d4ca0039d81a2f27420de19d347824572142a0b8d243d8a3e4066c50fc5533d"
+    },
+    "probe": {
+      "file": ".harness/evidence/2026-11-16-ops-navigation-repair/after-history-continuation-final-retire-shared-transaction-capture-20261118/probe.json",
+      "sha256": "fa5d21cc627b7c007971d25308fa0427af4996198fae0a1def66a87f962d60b2"
+    },
+    "passedChecks": 14,
+    "businessEntries": 30,
+    "pageErrors": 0,
+    "initialFailure": {
+      "file": ".harness/evidence/2026-11-17-ops-history-audit/continuation-navigation-retire-shared-transaction-live-20261118-verification.json",
+      "sha256": "8d604f4756ea02707c5e80e0ef1f432e61de8dc672e2932ecfb0eea985383ad5"
+    },
+    "initialErrorContext": {
+      "file": ".harness/evidence/2026-11-17-ops-history-audit/continuation-navigation-artifacts-retire-shared-transaction-live-20261118/smoke-business-service-Ser-69c73-s-the-expected-main-content/error-context.md",
+      "sha256": "dcb080e0d7d2c4df497bcf0e79da9c2776832aaacf3bf166ab02cb1f10c77af4"
+    },
+    "initialTrace": {
+      "file": ".harness/evidence/2026-11-17-ops-history-audit/continuation-navigation-artifacts-retire-shared-transaction-live-20261118/smoke-business-service-Ser-69c73-s-the-expected-main-content/trace.zip",
+      "sha256": "ca1cf51a69b99ddcfd7249f556e79491dfe2ae146d39520957c7e0e2380d330f"
+    },
+    "failureBoundary": "Initial 30-entry traversal exceeded its unchanged 180-second total budget at the final traces entry, with one passed/one failed/one not run. The page snapshot showed the Traces empty state; trace includes its main-content and non-dashboard assertions. No cache/performance root cause or gate waiver is asserted.",
+    "previousRenderFailure": {
+      "file": ".harness/evidence/2026-11-17-ops-history-audit/continuation-navigation-retire-shared-transaction-live-retry-20261118-verification.json",
+      "sha256": "299371eafae4d2a4be9e03d80c3fe12f44997269aa6a790ddc8c66bea7b4e4b9"
+    },
+    "previousAcceptance": {
+      "file": ".harness/evidence/2026-11-16-ops-navigation-repair/after-history-continuation-final-retire-shared-transaction-live-retry-20261118/acceptance.json",
+      "sha256": "89677682cddea0eab2b350091d5ef7b9817f57d7e4d53f58d3b42938fa043c04"
+    },
+    "captureFix": {
+      "previousProbe": {
+        "file": ".harness/evidence/2026-11-17-ops-history-audit/continuation-retire-navigation-probe-before-capture-20261118.raw",
+        "sha256": "21d13c2e35c812690ff5aa739effefd5a32363c6f116410297c37e0d6e92777b"
+      },
+      "currentProbe": {
+        "file": ".local/manual-preview-20261116/probe-navigation.mjs",
+        "sha256": "6c176b628b2370a84bb5621b6eccec6de1be13aff8f88b951f638e80d45f5598"
+      },
+      "currentRunner": {
+        "file": ".local/manual-preview-20261116/run-continuation-verification.mjs",
+        "sha256": "0ef10ac709c25c98e6f4a07d211b85a53d8f9f79a40eb61c2198846c61c9615e"
+      },
+      "additionalSnapshotTimeoutMs": 15000,
+      "existingAssertionTimeoutsChanged": false,
+      "singleTotalRouteDeadlinePreserved": false,
+      "boundary": "Require the captured URL and body to match positive route/content criteria with one additional bounded15s poll; final forbidden/error/empty/untranslated checks stay in force. Application source and existing assertion timeout values remain unchanged."
+    }
+  },
+  "navigationHelperReview": {
+    "file": ".harness/evidence/2026-11-17-ops-history-audit/continuation-retire-navigation-capture-code-review-20261118.md",
+    "sha256": "3aa26873580d18cf585319d44cec1fc6d086d0f6ab5a88adfa4d8909c699c759",
+    "recommendation": "APPROVE",
+    "reviewedSHA256": {
+      ".local/manual-preview-20261116/probe-navigation.mjs": "6c176b628b2370a84bb5621b6eccec6de1be13aff8f88b951f638e80d45f5598",
+      ".local/manual-preview-20261116/run-continuation-verification.mjs": "0ef10ac709c25c98e6f4a07d211b85a53d8f9f79a40eb61c2198846c61c9615e"
+    },
+    "sourceHashesRechecked": true,
+    "additionalSnapshotTimeoutMs": 15000,
+    "evidenceCriteriaWeakened": false,
+    "wholeC01": "WATCH"
+  },
+  "visualInspection": {
+    "skill": "impeccable",
+    "viewports": [
+      "1440x900",
+      "390x844"
+    ],
+    "actuallyViewedScreenshots": [
+      {
+        "file": ".harness/evidence/2026-11-16-ops-navigation-repair/after-history-continuation-final-retire-shared-transaction-capture-20261118/catalog-instances-desktop.png",
+        "sha256": "d985d7d1ec80d4c444b1648cb319ae73c9c05293e0acc230962b889510e41167"
+      },
+      {
+        "file": ".harness/evidence/2026-11-16-ops-navigation-repair/after-history-continuation-final-retire-shared-transaction-capture-20261118/catalog-mobile.png",
+        "sha256": "f293bc26b58117f877e2e537d3b94928d467c92c6c9fc08e922da4361559215f"
+      },
+      {
+        "file": ".harness/evidence/2026-11-16-ops-navigation-repair/after-history-continuation-final-retire-shared-transaction-capture-20261118/navigation-desktop.png",
+        "sha256": "6751d67995376db456bc741ff81b281163d59a2444e920b9a7c44b3e0e98f4fa"
+      },
+      {
+        "file": ".harness/evidence/2026-11-16-ops-navigation-repair/after-history-continuation-final-retire-shared-transaction-capture-20261118/navigation-mobile.png",
+        "sha256": "1e93ff8bd7d76b4b1578b8ba555e61a29ab4198d15fea25a5bf1bc775e743760"
+      }
+    ],
+    "result": "Root inspected these four fresh rendered images. Catalog instance empty state and create control are readable on desktop and phone; the phone navigation drawer is readable. Desktop workbench shows readable empty/recent-task content, with two panels still displaying loading spinners.",
+    "limitations": [
+      "Desktop workbench is partially loaded; screenshot does not establish steady-state panel content.",
+      "Phone navigation screenshot shows an open drawer.",
+      "Other generated images were not all inspected.",
+      "Real Retire errors, restricted role/provider and full C05 acceptance remain open."
+    ]
+  },
+  "fullBackendRace": {
+    "status": "running-at-this-checkpoint",
+    "expectedReceipt": ".harness/evidence/2026-11-17-ops-history-audit/continuation-retire-isolation-full-race-20261118-04.log.receipt.json",
+    "accepted": false,
+    "priorFailedReceipt": {
+      "file": ".harness/evidence/2026-11-17-ops-history-audit/continuation-retire-isolation-full-race-20261118-03.log.receipt.json",
+      "sha256": "fe812c3025782f0421f7c15ab51fa5f3f0d2b4c0e330fe0a51a1f0f666ecb8de"
+    },
+    "priorFailure": "Deploy package reached cumulative10m deadline with currently running test5s/subtest2s. Source734 unchanged; other packages passed. No definite deadlock or resource root cause asserted; retry preserves the10m deadline and runs without concurrent browser probes."
+  },
+  "linkage": {
+    "taskManifest": ".harness/tasks/2026-11-17-ops-history-audit/manifest.json",
+    "evidence": ".harness/evidence/2026-11-17-ops-history-audit/commands.json",
+    "reviewFile": ".harness/evidence/2026-11-17-ops-history-audit/review.md",
+    "changeRef": "none",
+    "planRefs": [
+      ".harness/tasks/2026-11-16-ops-service-deploy-integrity/continuation-retire-transaction-boundary-plan.md"
+    ]
+  },
+  "toolingPreconditionAttempt": {
+    "command": "node .local/manual-preview-20261116/build-current-preview.mjs retire-shared-transaction-final-20261118",
+    "initialExitCode": 1,
+    "cause": "Source-equivalence receipt not created yet.",
+    "goBuildStarted": false,
+    "correctedOrder": "rebuild -> source equivalence -> build",
+    "actualBuildReceipt": ".harness/evidence/2026-11-17-ops-history-audit/continuation-current-preview-retire-shared-transaction-final-20261118-build.json"
+  },
+  "boundary": "Exact-source build/runtime readiness and narrow independent relocation review only; whole C01 and all 10 execution packages stay open."
+}

@@ -1,0 +1,40 @@
+{
+  "recordedAt": "2026-11-18T00:36:47.889Z",
+  "runtimeProcess": {
+    "Id": 17676,
+    "Path": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\manual-preview-20261116\\current-preview-c01-retire-queued-current-20261118\\pantheon-ops.exe"
+  },
+  "health": {
+    "StatusCode": 200,
+    "Content": "{\"code\":200,\"data\":{\"status\":\"ok\",\"service\":\"pantheon-platform\",\"timestamp\":\"2026-11-18T00:33:30Z\",\"requestId\":\"dd469949-dd32-4012-814a-3085b598cac5\",\"dependencies\":{\"database\":{\"status\":\"ok\"},\"migrations\":{\"status\":\"ok\"},\"redis\":{\"status\":\"ok\"}}},\"message\":\"success\"}",
+    "parsedBody": {
+      "code": 200,
+      "data": {
+        "status": "ok",
+        "service": "pantheon-platform",
+        "timestamp": "2026-11-18T00:33:30Z",
+        "requestId": "dd469949-dd32-4012-814a-3085b598cac5",
+        "dependencies": {
+          "database": {
+            "status": "ok"
+          },
+          "migrations": {
+            "status": "ok"
+          },
+          "redis": {
+            "status": "ok"
+          }
+        }
+      },
+      "message": "success"
+    }
+  },
+  "frontend": {
+    "url": "http://127.0.0.1:5173",
+    "observedStatusCode": 200,
+    "processId": 10404
+  },
+  "buildReceipt": ".harness/evidence/2026-11-17-ops-history-audit/continuation-current-preview-c01-retire-queued-current-20261118-build.json",
+  "binarySHA256": "ab999a1c3bd8dc3653995a4fc0591dd6300307b8a1beb647628faa8514085dc0",
+  "boundary": "Local preview identity and dependency readiness only; business flows, restricted roles, providers and final visual acceptance remain open. Subsequent Service Retire admission changes are not in this binary."
+}

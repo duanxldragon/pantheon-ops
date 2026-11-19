@@ -1,0 +1,227 @@
+{
+  "snapshotSHA256": "5982f1958bc93882c129b81a59cebcde2157d3474d640998a15ebb84f98b5d32",
+  "archived": 5,
+  "originalEvidenceFiles": 16,
+  "hashesPreserved": true,
+  "priorBatchesUnchanged": true,
+  "phasesComplete": true,
+  "operations": [
+    {
+      "id": "2026-08-07-foundation-upgrade-base-v0-10-3",
+      "status": "completed",
+      "owner": [
+        "scripts/business-overlay/*"
+      ],
+      "successor": "history audit follow-up",
+      "remainingAcceptance": "Only original independently reviewed local scope completed; hosted/current-product/final-maintainer acceptance remains separate.",
+      "proofPaths": [
+        ".harness/tasks/2026-08-07-foundation-upgrade-base-v0-10-3/",
+        ".harness/evidence/2026-08-07-foundation-upgrade-base-v0-10-3/",
+        ".harness/evidence/2026-11-17-ops-history-audit/continuation-scope-code-review.md",
+        ".harness/evidence/2026-11-17-ops-history-audit/continuation-scope-architecture.md"
+      ],
+      "sourceTask": ".harness/tasks/2026-08-07-foundation-upgrade-base-v0-10-3",
+      "sourceEvidence": ".harness/evidence/2026-08-07-foundation-upgrade-base-v0-10-3",
+      "targetTask": ".harness/archive/2026-11/tasks/2026-08-07-foundation-upgrade-base-v0-10-3",
+      "targetEvidence": ".harness/archive/2026-11/evidence/2026-08-07-foundation-upgrade-base-v0-10-3",
+      "taskDoc": "docs/harness/tasks/2026-08-07-foundation-upgrade-base-v0-10-3.task.md",
+      "originalTask": [
+        {
+          "file": "manifest.json",
+          "sha256": "b8a625f8170d87fb87156bcf5b097edd7fd0f67be6bd68e2d468639e057ba751"
+        }
+      ],
+      "originalEvidence": [
+        {
+          "file": "commands.json",
+          "sha256": "5e579ad642aea2cab710323710adc890b9af13bba1fa8a74c3c70b47c550721d"
+        },
+        {
+          "file": "review.md",
+          "sha256": "7361d5214461aa79134110b7a8274df92a7a1da744b4f2050d04c98533b8f0f7"
+        },
+        {
+          "file": "summary.md",
+          "sha256": "2c859aaf802788ebf087a8c228646208ce52b6000a09745f96e11c086c2910ef"
+        }
+      ],
+      "originalDocSHA256": "1cc3976a35740de534ff2daa1ba5fb268dbd91be4917c7f65222c4ea713057a5"
+    },
+    {
+      "id": "2026-10-12-foundation-upgrade-base-v0-16-1",
+      "status": "completed",
+      "owner": [
+        "scripts/business-overlay/rebuild-from-base.mjs"
+      ],
+      "successor": "history audit follow-up",
+      "remainingAcceptance": "Only original independently reviewed local scope completed; hosted/current-product/final-maintainer acceptance remains separate.",
+      "proofPaths": [
+        ".harness/tasks/2026-10-12-foundation-upgrade-base-v0-16-1/",
+        ".harness/evidence/2026-10-12-foundation-upgrade-base-v0-16-1/",
+        ".harness/evidence/2026-11-17-ops-history-audit/continuation-scope-code-review.md",
+        ".harness/evidence/2026-11-17-ops-history-audit/continuation-scope-architecture.md"
+      ],
+      "sourceTask": ".harness/tasks/2026-10-12-foundation-upgrade-base-v0-16-1",
+      "sourceEvidence": ".harness/evidence/2026-10-12-foundation-upgrade-base-v0-16-1",
+      "targetTask": ".harness/archive/2026-11/tasks/2026-10-12-foundation-upgrade-base-v0-16-1",
+      "targetEvidence": ".harness/archive/2026-11/evidence/2026-10-12-foundation-upgrade-base-v0-16-1",
+      "taskDoc": "docs/harness/tasks/2026-10-12-foundation-upgrade-base-v0-16-1.task.md",
+      "originalTask": [
+        {
+          "file": "manifest.json",
+          "sha256": "1b84cd90b03035e4eb551c0e0baa4fdd033044700fe771a2c8ecda3088f28509"
+        }
+      ],
+      "originalEvidence": [
+        {
+          "file": "commands.json",
+          "sha256": "b053509a388c6a43fc84933c8ddb40e14f74905d04311f4da0b1f311a56a11cd"
+        },
+        {
+          "file": "review.md",
+          "sha256": "e827a5c5e07f737dfb9eb885fc4c88c8abe5eecbf9ce31ace37d7d5c31c79ac7"
+        },
+        {
+          "file": "summary.md",
+          "sha256": "04257aec176f84c62e9f77685df8199fca251c6cd375c94066e0cc89331dc0fb"
+        }
+      ],
+      "originalDocSHA256": "ba6fda50bd45d4e82ed166dc251e658da54ac89da4a6bec012f23dbc7f8403c4"
+    },
+    {
+      "id": "cmdb-host-import-export",
+      "status": "completed",
+      "owner": "Ops CMDB host",
+      "successor": "2026-11-16-ops-business-runtime-acceptance",
+      "remainingAcceptance": "Original manifest permits an explicit visual/runtime gap and findings-first self-review. Later CMDB 12/12 smoke adds CSV capability and phone evidence; current product/role/visual acceptance remains separate.",
+      "proofPaths": [
+        ".harness/tasks/cmdb-host-import-export/plan.md",
+        ".harness/evidence/cmdb-host-import-export/",
+        "backend/modules/business/cmdb/host/host_import_export.go",
+        ".harness/evidence/2026-11-17-ops-history-audit/continuation-scope-code-review.md",
+        ".harness/evidence/2026-11-17-ops-history-audit/continuation-scope-architecture.md",
+        ".harness/evidence/2026-11-07-ops-planned-task-closeout/cmdb/smoke-final.log"
+      ],
+      "sourceTask": ".harness/tasks/cmdb-host-import-export",
+      "sourceEvidence": ".harness/evidence/cmdb-host-import-export",
+      "targetTask": ".harness/archive/2026-11/tasks/cmdb-host-import-export",
+      "targetEvidence": ".harness/archive/2026-11/evidence/cmdb-host-import-export",
+      "taskDoc": null,
+      "originalTask": [
+        {
+          "file": "manifest.json",
+          "sha256": "b31537f862fe28467f068b4006c998cb965d5c92b7651be0d55628218c3f31e0"
+        },
+        {
+          "file": "plan.md",
+          "sha256": "20d99c14c44385dbf52614f2726632c7dc807a11077f82543d8d79b94942045c"
+        },
+        {
+          "file": "STATUS.md",
+          "sha256": "3edfc539b76502e355800056d08c080b500fc1fd3e5522a6d95049c82e140a17"
+        }
+      ],
+      "originalEvidence": [
+        {
+          "file": "commands.json",
+          "sha256": "36457bf7f79ba6608fb5753a94ec3e368093aabfec5959803fa29a735b037c87"
+        },
+        {
+          "file": "review.md",
+          "sha256": "9033d5e8ca9b4e5bb4b1dee7f8cee50d6d060a83c764140aef00a1482990e509"
+        },
+        {
+          "file": "summary.md",
+          "sha256": "1f5ec03de89b17d068efa79927fb14b45950cea58c2e028cde850089ae38001a"
+        }
+      ],
+      "originalDocSHA256": null
+    },
+    {
+      "id": "2026-08-08-foundation-upgrade-base-v0-10-5",
+      "status": "abandoned",
+      "owner": [
+        "pantheon-base owner (shared smoke)"
+      ],
+      "successor": "Official locked-snapshot release/consumer or explicit later security/governance mechanism",
+      "remainingAcceptance": "Stop repeating the superseded exact target. Missing historical evidence and acceptance failures remain facts; no retrospective success.",
+      "proofPaths": [
+        ".harness/tasks/2026-08-08-foundation-upgrade-base-v0-10-5/",
+        ".harness/evidence/2026-08-08-foundation-upgrade-base-v0-10-5/",
+        ".harness/evidence/2026-11-17-ops-history-audit/continuation-scope-code-review.md",
+        ".harness/evidence/2026-11-17-ops-history-audit/continuation-scope-architecture.md"
+      ],
+      "sourceTask": ".harness/tasks/2026-08-08-foundation-upgrade-base-v0-10-5",
+      "sourceEvidence": ".harness/evidence/2026-08-08-foundation-upgrade-base-v0-10-5",
+      "targetTask": ".harness/archive/2026-11/tasks/2026-08-08-foundation-upgrade-base-v0-10-5",
+      "targetEvidence": ".harness/archive/2026-11/evidence/2026-08-08-foundation-upgrade-base-v0-10-5",
+      "taskDoc": "docs/harness/tasks/2026-08-08-foundation-upgrade-base-v0-10-5.task.md",
+      "originalTask": [
+        {
+          "file": "manifest.json",
+          "sha256": "b3afcde19e232dc149749b10d741287e8963a109223036ff4eac61642d8a56fc"
+        }
+      ],
+      "originalEvidence": [
+        {
+          "file": "commands.json",
+          "sha256": "c2ea9af60bf018bd38e7a615f49fa4fc898b48746fbe8c4a732aa0fca38455be"
+        },
+        {
+          "file": "pr-body.md",
+          "sha256": "9cafabc3425322048598a6e6233d5fe469f483af158a6d7aeae50c7921b97c02"
+        },
+        {
+          "file": "review.md",
+          "sha256": "bf25117a7d3be7e2d86b0a0b01ca9d40ed3e9fce6e7d82be6bc8785b1d9d19c6"
+        },
+        {
+          "file": "summary.md",
+          "sha256": "02b16a867021ab66514e1e43e2f0149fcc8d9d395410a196733abde164e95ae8"
+        }
+      ],
+      "originalDocSHA256": "ea9b4f62d2a25462b657fceb560b77d9cd33e4ea08696795c3109d9f20d9d815"
+    },
+    {
+      "id": "2026-08-12-foundation-v0-10-14-clean-consumer",
+      "status": "abandoned",
+      "owner": [
+        "frontend/scripts/go-module.test.mjs"
+      ],
+      "successor": "Official locked-snapshot release/consumer or explicit later security/governance mechanism",
+      "remainingAcceptance": "Stop repeating the superseded exact target. Missing historical evidence and acceptance failures remain facts; no retrospective success.",
+      "proofPaths": [
+        ".harness/tasks/2026-08-12-foundation-v0-10-14-clean-consumer/",
+        ".harness/evidence/2026-08-12-foundation-v0-10-14-clean-consumer/",
+        ".harness/evidence/2026-11-17-ops-history-audit/continuation-scope-code-review.md",
+        ".harness/evidence/2026-11-17-ops-history-audit/continuation-scope-architecture.md"
+      ],
+      "sourceTask": ".harness/tasks/2026-08-12-foundation-v0-10-14-clean-consumer",
+      "sourceEvidence": ".harness/evidence/2026-08-12-foundation-v0-10-14-clean-consumer",
+      "targetTask": ".harness/archive/2026-11/tasks/2026-08-12-foundation-v0-10-14-clean-consumer",
+      "targetEvidence": ".harness/archive/2026-11/evidence/2026-08-12-foundation-v0-10-14-clean-consumer",
+      "taskDoc": "docs/harness/tasks/2026-08-12-foundation-v0-10-14-clean-consumer.task.md",
+      "originalTask": [
+        {
+          "file": "manifest.json",
+          "sha256": "cfb69639f5eb3d3dc97732c03d9c3e9d4cb9eeeebe0437a6669c69e0836fefb0"
+        }
+      ],
+      "originalEvidence": [
+        {
+          "file": "commands.json",
+          "sha256": "71989913ae852fe69b7025101914ac82d97a9af082e4dace00289e142613df86"
+        },
+        {
+          "file": "review.md",
+          "sha256": "6eb70fccef099d250db8323ce9be199b225b4452a6e9df1c943bb613d5ede6a3"
+        },
+        {
+          "file": "summary.md",
+          "sha256": "abb3103a2c08858d9066cb1aceb11eb299f7b59eefcb26cd324557e46af6cf1d"
+        }
+      ],
+      "originalDocSHA256": "f1f40daa7e03d6a670094387fed86b1d6d557c46e8c6cd4edb2833df46ae3079"
+    }
+  ]
+}

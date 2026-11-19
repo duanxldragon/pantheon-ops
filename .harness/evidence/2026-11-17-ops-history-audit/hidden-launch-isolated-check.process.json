@@ -1,0 +1,9 @@
+{
+  "timeoutSeconds": 90,
+  "startedAt": "2026-11-17T11:53:24.3978357+08:00",
+  "createNoWindow": true,
+  "maxTurns": 1,
+  "strictMcpConfig": true,
+  "useShellExecute": false,
+  "pid": 21284
+}

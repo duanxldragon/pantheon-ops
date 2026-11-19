@@ -1,0 +1,16 @@
+{
+  "capturedAtUTC": "2026-11-17 14:53:16 UTC",
+  "candidate": "working-tree-provider-files-no-commit",
+  "scope": "C03 round 2 K8s provider error preservation",
+  "verificationReceipt": "continuation-c03-k8s-reader-cause-fixed.log.receipt.json",
+  "files": [
+    {
+      "path": "backend/modules/business/k8s/capability.go",
+      "sha256": "1546834e5e64907bf63d1bf3b2c20393915f8365a9ee078780d7eae807645e56"
+    },
+    {
+      "path": "backend/modules/business/k8s/capability_error_test.go",
+      "sha256": "587be5c8695b6cf549d7fb25f36184f19b717ad259b35a0f043869bce5988908"
+    }
+  ]
+}

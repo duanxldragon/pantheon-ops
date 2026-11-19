@@ -1,0 +1,2110 @@
+{
+  "date": "2026-11-17",
+  "decisionSha256": "b1fe312c6e0e9a9a6ee3513b245196973c7559a322ffe53bf6cb378ea4dd07df",
+  "operations": [
+    {
+      "id": "2026-06-17-github-governance-followup",
+      "status": "completed",
+      "reason": "原治理、模板和工作流姿态已获批准；补记摘要，不扩大为产品完成。",
+      "residuals": [
+        {
+          "finding": "product baseline/i18n/smoke/duplication",
+          "owner": "Ops business/governance",
+          "successor": "2026-11-16-ops-business-runtime-acceptance",
+          "state": "open",
+          "proof": null
+        },
+        {
+          "finding": "current workflow/dispatch regression",
+          "owner": "Ops governance",
+          "successor": "2026-11-17-ops-history-audit",
+          "state": "open",
+          "proof": null
+        }
+      ],
+      "taskDoc": "docs/harness/tasks/2026-06-17-github-governance-followup.task.md",
+      "taskDocGap": null,
+      "duplicate": false,
+      "liveTask": ".harness/tasks/2026-06-17-github-governance-followup",
+      "liveEvidence": ".harness/evidence/2026-06-17-github-governance-followup",
+      "taskTarget": ".harness/archive/2026-11/tasks/2026-06-17-github-governance-followup",
+      "evidenceTarget": ".harness/archive/2026-11/evidence/2026-06-17-github-governance-followup",
+      "originalTask": [
+        {
+          "file": "manifest.json",
+          "sha256": "f27c7c0da09fad048e7e7cc6f5ddc2c36a7276c0a1df9931ad7f108b82722b1c"
+        }
+      ],
+      "originalEvidence": [
+        {
+          "file": "commands.json",
+          "sha256": "5537b705581f846e7ef250a912c474d2954a13d6f64e731ac87bff025af8c439"
+        },
+        {
+          "file": "pr-body.md",
+          "sha256": "c0fcd0127e8e951063eb5a1a872ab992109fa448562b58df508afa0f131f2326"
+        },
+        {
+          "file": "review.md",
+          "sha256": "43c35603ee72442b117bfecabfe86968b0091aac7b8ee8a008417b544c3111d8"
+        }
+      ],
+      "originalDocSha256": "b7e3a3664b1fb4e0ff942ce6102686093e39c62950a9bb3efc2c7f397a06dfc4",
+      "existingArchiveTask": null,
+      "existingArchiveEvidence": null
+    },
+    {
+      "id": "2026-06-18-branch-hygiene-fallback",
+      "status": "completed",
+      "reason": "原测试和独立批准保留；找回 hosted run27737850759/27738932286，证明真实 closed-PR residue 删除。",
+      "residuals": [],
+      "taskDoc": "docs/harness/tasks/2026-06-18-branch-hygiene-fallback.task.md",
+      "taskDocGap": null,
+      "duplicate": false,
+      "liveTask": ".harness/tasks/2026-06-18-branch-hygiene-fallback",
+      "liveEvidence": ".harness/evidence/2026-06-18-branch-hygiene-fallback",
+      "taskTarget": ".harness/archive/2026-11/tasks/2026-06-18-branch-hygiene-fallback",
+      "evidenceTarget": ".harness/archive/2026-11/evidence/2026-06-18-branch-hygiene-fallback",
+      "originalTask": [
+        {
+          "file": "manifest.json",
+          "sha256": "9e2a59adce860b0c08eb588ef29344a820861b1e66561156cc30e4c105486c59"
+        }
+      ],
+      "originalEvidence": [
+        {
+          "file": "commands.json",
+          "sha256": "161a5a1f309d21bfb22c670c1979700e53f9016f1b671b4e54d49a5e5f7060f8"
+        },
+        {
+          "file": "commands.md",
+          "sha256": "0d0cb8b59db321d3b055c4e67b4f2fc5a0dec8bf4ec58458e62567decfd8b93b"
+        },
+        {
+          "file": "review.md",
+          "sha256": "98d43fcd23ac610ac8f8b2f112bd32fac1b5e769ef8ab2f81b6555ca8851288d"
+        }
+      ],
+      "originalDocSha256": "7f2119dc27e24f569e2163341d93da38eb34de4aeb0452d098968ccbce49368a",
+      "existingArchiveTask": null,
+      "existingArchiveEvidence": null
+    },
+    {
+      "id": "2026-06-18-branch-hygiene-slash-path-fix",
+      "status": "completed",
+      "reason": "run27738932286 明确删除含斜杠的 PR58/59 分支，关闭原 hosted 缺证据；未重新执行删除。",
+      "residuals": [],
+      "taskDoc": "docs/harness/tasks/2026-06-18-branch-hygiene-slash-path-fix.task.md",
+      "taskDocGap": null,
+      "duplicate": false,
+      "liveTask": ".harness/tasks/2026-06-18-branch-hygiene-slash-path-fix",
+      "liveEvidence": ".harness/evidence/2026-06-18-branch-hygiene-slash-path-fix",
+      "taskTarget": ".harness/archive/2026-11/tasks/2026-06-18-branch-hygiene-slash-path-fix",
+      "evidenceTarget": ".harness/archive/2026-11/evidence/2026-06-18-branch-hygiene-slash-path-fix",
+      "originalTask": [
+        {
+          "file": "manifest.json",
+          "sha256": "0c1018d198f9e1c3e944745ee79c07c9ba3f821f712fb24d8d66051969ab861b"
+        }
+      ],
+      "originalEvidence": [
+        {
+          "file": "commands.json",
+          "sha256": "6dbc063585d3238d0378adce86c19af32fb7f94af17b43a3f433ee81b63df5fd"
+        },
+        {
+          "file": "pr-body.md",
+          "sha256": "3f6fd9c17b0ef398ccbed538daf88f12f860b1d8c5329d94f1f48f78e000da15"
+        },
+        {
+          "file": "review.md",
+          "sha256": "9efea7ab5577554f0f575a7a101289b6a98d080f34f156b7a644e61d572cd48c"
+        }
+      ],
+      "originalDocSha256": "8e83b82cb2cca603bcef9df9655f72821e475e4ac6a7cfb051c2829f30113e1f",
+      "existingArchiveTask": null,
+      "existingArchiveEvidence": null
+    },
+    {
+      "id": "2026-06-21-business-deploy-task-main-flow-closeout",
+      "status": "completed",
+      "reason": "原 canonical 状态/重试/删除语义与定向验证获批准，当前候选运行与渲染单独验收。",
+      "residuals": [
+        {
+          "finding": "runtime/rendered/role acceptance",
+          "owner": "Ops business/deploy",
+          "successor": "2026-11-16-ops-business-runtime-acceptance",
+          "state": "open",
+          "proof": null
+        },
+        {
+          "finding": "user flow acceptance",
+          "owner": "Ops business/deploy",
+          "successor": "2026-11-16-ops-service-deploy-user-flow",
+          "state": "open",
+          "proof": null
+        }
+      ],
+      "taskDoc": "docs/harness/tasks/2026-06-21-business-deploy-task-main-flow-closeout.task.md",
+      "taskDocGap": null,
+      "duplicate": false,
+      "liveTask": ".harness/tasks/2026-06-21-business-deploy-task-main-flow-closeout",
+      "liveEvidence": ".harness/evidence/2026-06-21-business-deploy-task-main-flow-closeout",
+      "taskTarget": ".harness/archive/2026-11/tasks/2026-06-21-business-deploy-task-main-flow-closeout",
+      "evidenceTarget": ".harness/archive/2026-11/evidence/2026-06-21-business-deploy-task-main-flow-closeout",
+      "originalTask": [
+        {
+          "file": "manifest.json",
+          "sha256": "c527043843a883cf35aea242419ad1f8ac916d4a0652f8fa26a0a8f1af5c73d0"
+        }
+      ],
+      "originalEvidence": [
+        {
+          "file": "commands.json",
+          "sha256": "78c58692634671984d3d9d7044d013ada5c10b378e46bc7ce10750ea0229efd3"
+        },
+        {
+          "file": "pr-body.md",
+          "sha256": "cfeca2cf06bcf6a7bd758e2d530f6499abd4feb34811acbac1db8ca9cfa1bf88"
+        },
+        {
+          "file": "review.md",
+          "sha256": "c451105c71b6edcc71cdc289140e29ad04b8b52fc0ac9c7b3b64ae9ddec12f29"
+        },
+        {
+          "file": "summary.md",
+          "sha256": "42afbc1a0d20df3a9f78383921ccc3551be59f54d53476bd3f3c6e8638ac06ab"
+        }
+      ],
+      "originalDocSha256": "6d589661b4f81a3f7948216dc0824bd15a8744c1bf860b340adde0962a1e9945",
+      "existingArchiveTask": null,
+      "existingArchiveEvidence": null
+    },
+    {
+      "id": "2026-08-10-security-csrf-closeout",
+      "status": "completed",
+      "reason": "原 CSRF 修复、不可变消费和 hosted Security/Quality/Smoke 证据成立，不推断当前无漏洞。",
+      "residuals": [
+        {
+          "finding": "current security verification",
+          "owner": "Ops governance",
+          "successor": "2026-11-17-ops-history-audit",
+          "state": "open",
+          "proof": null
+        }
+      ],
+      "taskDoc": "docs/harness/tasks/2026-08-10-security-csrf-closeout.task.md",
+      "taskDocGap": null,
+      "duplicate": false,
+      "liveTask": ".harness/tasks/2026-08-10-security-csrf-closeout",
+      "liveEvidence": ".harness/evidence/2026-08-10-security-csrf-closeout",
+      "taskTarget": ".harness/archive/2026-11/tasks/2026-08-10-security-csrf-closeout",
+      "evidenceTarget": ".harness/archive/2026-11/evidence/2026-08-10-security-csrf-closeout",
+      "originalTask": [
+        {
+          "file": "manifest.json",
+          "sha256": "37dc6d53af7e16a4372a437789aa03557fb33c058f94bd3a0c7b197d8bef476c"
+        }
+      ],
+      "originalEvidence": [
+        {
+          "file": "commands.json",
+          "sha256": "8d7a5622ec7da7c9ecb51481cebec37072d2e21d31e7c1154e82c27fb56bd06c"
+        },
+        {
+          "file": "review.md",
+          "sha256": "5f09344d0909baa433174eb888dd762da93a6180b2832ce4409beebfdb53ad71"
+        },
+        {
+          "file": "summary.md",
+          "sha256": "8ae4122653d5dfcf9aa6601615ea10932f21a57ab0688f5ea85d73e26c2b10d7"
+        }
+      ],
+      "originalDocSha256": "d60266461d8724f2c879b5ae1f9e10faf227d8b6960734683cc6db79931c6b99",
+      "existingArchiveTask": null,
+      "existingArchiveEvidence": null
+    },
+    {
+      "id": "2026-08-11-foundation-consumer-certification",
+      "status": "abandoned",
+      "reason": "旧 marker/tree-checksum 工具链由 8/13 clean rebuild 明确废弃，当前使用正式 lock/snapshot assembler。",
+      "residuals": [
+        {
+          "finding": "retired consumer mechanism",
+          "owner": "Ops inheritance",
+          "successor": "2026-08-13-clean-base-business-overlay-rebuild",
+          "state": "superseded",
+          "proof": ".harness/evidence/2026-08-13-clean-base-business-overlay-rebuild/review.md"
+        }
+      ],
+      "taskDoc": "docs/harness/tasks/2026-08-11-foundation-consumer-certification.task.md",
+      "taskDocGap": null,
+      "duplicate": false,
+      "liveTask": ".harness/tasks/2026-08-11-foundation-consumer-certification",
+      "liveEvidence": ".harness/evidence/2026-08-11-foundation-consumer-certification",
+      "taskTarget": ".harness/archive/2026-11/tasks/2026-08-11-foundation-consumer-certification",
+      "evidenceTarget": ".harness/archive/2026-11/evidence/2026-08-11-foundation-consumer-certification",
+      "originalTask": [
+        {
+          "file": "manifest.json",
+          "sha256": "31b5a6e2d6e07e7f0e4754c73b4f5f398981dd4441b0c97bd071507618146b3f"
+        }
+      ],
+      "originalEvidence": [
+        {
+          "file": "commands.json",
+          "sha256": "76f1762ac2ceca3a16d6d030673c55337420359a31796ca3d55101646a1cfbb4"
+        },
+        {
+          "file": "review.md",
+          "sha256": "a8daa00bb5299f7d63b88ec26c4240bdc0c9736fd79dbb1f01f9ccec2c0e2abc"
+        },
+        {
+          "file": "summary.md",
+          "sha256": "ca0cdf93a17d3d95183d57a6d5f36dcce2c51748c7aa738a6dcfcfd1986c1164"
+        }
+      ],
+      "originalDocSha256": "fa63558bee0991c62b7d1bd9eb4acc4c51f029519dacbeb675a6012c6ad07089",
+      "existingArchiveTask": null,
+      "existingArchiveEvidence": null
+    },
+    {
+      "id": "2026-08-11-sonarcloud-ops-remediation",
+      "status": "abandoned",
+      "reason": "原零问题目标未在八月完成，当时仍156项；10/30 main430a9f0 分析已零问题/gate OK/dup2.0，旧目标由其替代。",
+      "residuals": [
+        {
+          "finding": "August 156 issues/zero-finding objective",
+          "owner": "Ops business/governance",
+          "successor": "2026-10-30-sonar-findings-remediation",
+          "state": "superseded",
+          "proof": ".harness/evidence/2026-10-30-sonar-findings-remediation/commands.json"
+        },
+        {
+          "finding": "current candidate metrics/scan",
+          "owner": "Ops governance",
+          "successor": "2026-11-17-ops-history-audit",
+          "state": "open",
+          "proof": null
+        }
+      ],
+      "taskDoc": "docs/harness/tasks/2026-08-11-sonarcloud-ops-remediation.md",
+      "taskDocGap": null,
+      "duplicate": false,
+      "liveTask": ".harness/tasks/2026-08-11-sonarcloud-ops-remediation",
+      "liveEvidence": ".harness/evidence/2026-08-11-sonarcloud-ops-remediation",
+      "taskTarget": ".harness/archive/2026-11/tasks/2026-08-11-sonarcloud-ops-remediation",
+      "evidenceTarget": ".harness/archive/2026-11/evidence/2026-08-11-sonarcloud-ops-remediation",
+      "originalTask": [
+        {
+          "file": "manifest.json",
+          "sha256": "9420737247147b951e96417f465568a36b4867962a94314068927a41a19dfacc"
+        }
+      ],
+      "originalEvidence": [
+        {
+          "file": "artifacts/sonarcloud-base-analyses.json",
+          "sha256": "5d2d28eecd9d839e8dc71404c9fa22179a961d109942ae22b0bae46686dd5d3a"
+        },
+        {
+          "file": "artifacts/sonarcloud-base-baseline-issues.json",
+          "sha256": "55f044e91d4122d08d0c18dfcf5dc57a1316761d9e59c954b4d3e72f669f6c1e"
+        },
+        {
+          "file": "artifacts/sonarcloud-ops-analyses.json",
+          "sha256": "2f1f2f1082c1e48001002f78a204eee0cda6cb3e2d8d23b611fc8e93dd734ab7"
+        },
+        {
+          "file": "artifacts/sonarcloud-ops-baseline-issues.json",
+          "sha256": "6884914984ef52f64027368c3a98d86b1fe05ca58acd395f7b1b753085d10e23"
+        },
+        {
+          "file": "artifacts/sonarcloud-ops-hotspots.json",
+          "sha256": "f0a611c778668c54b7776444d1e7c18908d5338e8524ecabb8276133674b5508"
+        },
+        {
+          "file": "commands.json",
+          "sha256": "c6881da06ab9118ac9fb282587bdf6e1e2f8770710597ee2ba0101fdf37759ba"
+        },
+        {
+          "file": "ownership-classification.md",
+          "sha256": "2e97219c979a8fd2c618a4ea0ec84e980721b59a70317c0960c131ddb5e30047"
+        },
+        {
+          "file": "review.md",
+          "sha256": "96bee5ac5a6f94951b8dec28b301c07259c4ea0a5f6e328617f20989992af791"
+        },
+        {
+          "file": "summary.md",
+          "sha256": "5f2e9550c993bee6ad1603b4b2b6946be56a4cc039f0714bab8a12493e54a1a5"
+        }
+      ],
+      "originalDocSha256": "d8a9e753b1b94e21cba156a3d407369f5403f6209ae33929400d978988028803",
+      "existingArchiveTask": null,
+      "existingArchiveEvidence": null
+    },
+    {
+      "id": "2026-08-13-clean-base-business-overlay-rebuild",
+      "status": "completed",
+      "reason": "原锁定源码、原子替换和消费机制已落地；August本地repo.tar/未跑race保持历史事实，后续正式release消费提供新证据。",
+      "residuals": [
+        {
+          "finding": "published snapshot and historical CGO gap",
+          "owner": "Ops inheritance",
+          "successor": "2026-11-05-base-v0183-consumption",
+          "state": "successor-evidence",
+          "proof": ".harness/evidence/2026-11-05-base-v0183-consumption/commands.json"
+        },
+        {
+          "finding": "current reproducibility",
+          "owner": "Ops inheritance",
+          "successor": "2026-11-17-ops-history-audit",
+          "state": "open",
+          "proof": null
+        }
+      ],
+      "taskDoc": "docs/harness/tasks/2026-08-13-clean-base-business-overlay-rebuild.task.md",
+      "taskDocGap": null,
+      "duplicate": false,
+      "liveTask": ".harness/tasks/2026-08-13-clean-base-business-overlay-rebuild",
+      "liveEvidence": ".harness/evidence/2026-08-13-clean-base-business-overlay-rebuild",
+      "taskTarget": ".harness/archive/2026-11/tasks/2026-08-13-clean-base-business-overlay-rebuild",
+      "evidenceTarget": ".harness/archive/2026-11/evidence/2026-08-13-clean-base-business-overlay-rebuild",
+      "originalTask": [
+        {
+          "file": "manifest.json",
+          "sha256": "9492db175a2126c30f1c818d7a64a731f36a0356aa2df0fc05efef39c0e5c2db"
+        }
+      ],
+      "originalEvidence": [
+        {
+          "file": "commands.json",
+          "sha256": "c0b3cbe1428eb3dd2c9ac8fa3217c9a0edf34b0d3a6055ef743bf8a3e09f436d"
+        },
+        {
+          "file": "review.md",
+          "sha256": "8b7bd93f8cacbbdb5afba215e4981d9a5f735678f566d0bd0386ac3a249c9420"
+        },
+        {
+          "file": "summary.md",
+          "sha256": "b45f5a31e54fd7be6c9d940b91e54006461a59cc8260799be9c8f0aed0baa3a1"
+        }
+      ],
+      "originalDocSha256": "fc3c395230b5a7180e330affd4a67472a8ac680e116166bde1ece36d2602a25a",
+      "existingArchiveTask": null,
+      "existingArchiveEvidence": null
+    },
+    {
+      "id": "2026-08-19-ops-v1-backlog-closeout",
+      "status": "completed",
+      "reason": "规范化 complete-with-explicit-gates；仅授权隔离F阶段完成，保留生产与人工门禁。",
+      "residuals": [
+        {
+          "finding": "current migration/runtime/UI",
+          "owner": "Ops business",
+          "successor": "2026-11-16-ops-business-runtime-acceptance",
+          "state": "open",
+          "proof": null
+        },
+        {
+          "finding": "enabled external integration",
+          "owner": "Ops business",
+          "successor": "2026-11-16-ops-extensions-live-acceptance",
+          "state": "open",
+          "proof": null
+        },
+        {
+          "finding": "installation/rollback/final acceptance",
+          "owner": "Ops delivery/maintainer",
+          "successor": "2026-11-16-ops-pilot-release-closeout",
+          "state": "open",
+          "proof": null
+        },
+        {
+          "finding": "production rollback/K8s mutations/DBA signatures",
+          "owner": "DBA/maintainer",
+          "successor": "2026-09-28-ops-delivery-readiness-gap-closure",
+          "state": "open",
+          "proof": null
+        },
+        {
+          "finding": "historical Base release dependency",
+          "owner": "Ops inheritance",
+          "successor": "2026-11-05-base-v0183-consumption",
+          "state": "successor-evidence",
+          "proof": ".harness/evidence/2026-11-05-base-v0183-consumption/commands.json"
+        }
+      ],
+      "taskDoc": "docs/harness/tasks/2026-08-19-ops-v1-backlog-closeout.task.md",
+      "taskDocGap": null,
+      "duplicate": false,
+      "liveTask": ".harness/tasks/2026-08-19-ops-v1-backlog-closeout",
+      "liveEvidence": ".harness/evidence/2026-08-19-ops-v1-backlog-closeout",
+      "taskTarget": ".harness/archive/2026-11/tasks/2026-08-19-ops-v1-backlog-closeout",
+      "evidenceTarget": ".harness/archive/2026-11/evidence/2026-08-19-ops-v1-backlog-closeout",
+      "originalTask": [
+        {
+          "file": "manifest.json",
+          "sha256": "c0bac20d299831bd4880b9f57cd6f920443fd312dd72621bb99033abc00605ba"
+        },
+        {
+          "file": "STATUS.md",
+          "sha256": "129064a002c04035d81bc93083167eccf3cbed2bb9eb91a47e8e659a2bf277a2"
+        }
+      ],
+      "originalEvidence": [
+        {
+          "file": "commands.json",
+          "sha256": "a61ddc776148a393761d4aeda0d36c8f4aac2c3662c19047ce7b304cd850442a"
+        },
+        {
+          "file": "high-risk-gates-20260820.md",
+          "sha256": "8d7e25f3ddeef609702af80dba0c6f306745a3df690c1781819f0068c94fa51a"
+        },
+        {
+          "file": "k8s-install-acceptance.md",
+          "sha256": "e01b703d4059aa60fe264aab9bfbae8e61c491654e70d24e3962a01b1494cc6c"
+        },
+        {
+          "file": "pr-body.md",
+          "sha256": "c5ab7fa2c50a7fdbc3feb5ffb492c2b54aaaa7470c7fa30fc73002682c9f5ac6"
+        },
+        {
+          "file": "qa-matrix.md",
+          "sha256": "3409ae9d5128379f20a124725f4cc6226fc0f1bd8b760ab6ba209c869036ae0a"
+        },
+        {
+          "file": "review.md",
+          "sha256": "b4b29a263e4ef6f51cc34a738699dad61d5b3f4f996d0e82582530b56e1e92e2"
+        },
+        {
+          "file": "rollback-rehearsal.md",
+          "sha256": "cdfadc86c8db0869d980fa6451e66fad6d1df932f9ee525d8c50a5e1a3e8df77"
+        },
+        {
+          "file": "screenshots/deploy-mobile-package.png",
+          "sha256": "61c35cccab4d2625ce5bd4efb326c75d4c31df3857103c55d1b640daf2d2222c"
+        },
+        {
+          "file": "screenshots/deploy-package-list.png",
+          "sha256": "86e393eca4f372ff186ba70c8ae6d72b86f7b741868fc1895e15a5c6e6490c7d"
+        },
+        {
+          "file": "screenshots/deploy-task-list.png",
+          "sha256": "9422cb064146006d27e043a9cc4723b84d3e195cf79b202fd01b409f237eeab5"
+        },
+        {
+          "file": "screenshots/deploy-template-list.png",
+          "sha256": "2e2429b27cd71bddaf55a7d6e436ec2122ff73759660678439093facb72d0a6e"
+        },
+        {
+          "file": "summary.md",
+          "sha256": "64a0dfb0af8ca829cf963d928a7263d39a619a579190f766aa81a55dc1e9fcad"
+        }
+      ],
+      "originalDocSha256": "f7b9c8cfadfa409c774edb5ff611bba1ab3807366555a7207e6097869cc6a939",
+      "existingArchiveTask": null,
+      "existingArchiveEvidence": null
+    },
+    {
+      "id": "2026-10-27-foundation-upgrade-base-v0-17-6",
+      "status": "completed",
+      "reason": "保留批准的v0176消费范围；逐项保留C1/C2/C4责任，case-only改名方案为历史接受项。",
+      "residuals": [
+        {
+          "finding": "C1 current startup/schema acceptance",
+          "owner": "Ops runtime",
+          "successor": "2026-11-16-ops-business-runtime-acceptance",
+          "state": "open",
+          "proof": null
+        },
+        {
+          "finding": "C2 consumer migration channel; corrected to 22 sites by v0177 D3",
+          "owner": "Ops business migrations",
+          "successor": "2026-11-17-ops-history-audit",
+          "state": "open",
+          "proof": null
+        },
+        {
+          "finding": "C4 historical commands object-schema debt",
+          "owner": "Ops governance",
+          "successor": "2026-11-17-ops-history-audit",
+          "state": "open",
+          "proof": null
+        }
+      ],
+      "taskDoc": "docs/harness/tasks/2026-10-27-foundation-upgrade-base-v0-17-6.task.md",
+      "taskDocGap": null,
+      "duplicate": false,
+      "liveTask": ".harness/tasks/2026-10-27-foundation-upgrade-base-v0-17-6",
+      "liveEvidence": ".harness/evidence/2026-10-27-foundation-upgrade-base-v0-17-6",
+      "taskTarget": ".harness/archive/2026-11/tasks/2026-10-27-foundation-upgrade-base-v0-17-6",
+      "evidenceTarget": ".harness/archive/2026-11/evidence/2026-10-27-foundation-upgrade-base-v0-17-6",
+      "originalTask": [
+        {
+          "file": "manifest.json",
+          "sha256": "1913bcc4e6fe6a32d750968063a2c6f27bd1451f2af234dd100c95a2c9e4ab96"
+        }
+      ],
+      "originalEvidence": [
+        {
+          "file": "commands.json",
+          "sha256": "b01120fd83d57e6cc4e1cbb325b5a4767df4b5c46c14296445e9dde653c3c951"
+        },
+        {
+          "file": "review.md",
+          "sha256": "2854f5989adaa96be6f8a8159149255876e9cc1440df1896a00adead38b35447"
+        },
+        {
+          "file": "summary.md",
+          "sha256": "eab99ee95b3b819e1a4a4a88fc9cad6b1ea7745cfd7af480a3d56d2d3f3689e4"
+        }
+      ],
+      "originalDocSha256": "90dd1b325bfe25598931989d192d187cbcf9e3d64c4e1ba43dfffb3dcc5b32e1",
+      "existingArchiveTask": null,
+      "existingArchiveEvidence": null
+    },
+    {
+      "id": "2026-10-27-foundation-upgrade-base-v0-17-7",
+      "status": "completed",
+      "reason": "保留批准的v0177消费；不重复旧版本，D3仍按22处迁移范围核对。",
+      "residuals": [
+        {
+          "finding": "D1 CodeQL alert-state/release procedure",
+          "owner": "pantheon-base",
+          "successor": "pantheon-base release governance",
+          "state": "open",
+          "proof": null
+        },
+        {
+          "finding": "D2 current runtime startup",
+          "owner": "Ops runtime",
+          "successor": "2026-11-16-ops-business-runtime-acceptance",
+          "state": "open",
+          "proof": null
+        },
+        {
+          "finding": "D3 22 AutoMigrate call sites/versioned channel",
+          "owner": "Ops business migrations",
+          "successor": "2026-11-17-ops-history-audit",
+          "state": "open",
+          "proof": null
+        },
+        {
+          "finding": "D4 historical Sonar403",
+          "owner": "Ops governance",
+          "successor": "2026-10-29-sonar-ci-analysis-restore",
+          "state": "successor-evidence",
+          "proof": ".harness/evidence/2026-10-29-sonar-ci-analysis-restore/summary.md"
+        },
+        {
+          "finding": "D5 CI lint ratchet",
+          "owner": "Ops governance",
+          "successor": "2026-11-17-ops-history-audit",
+          "state": "open",
+          "proof": null
+        }
+      ],
+      "taskDoc": "docs/harness/tasks/2026-10-27-foundation-upgrade-base-v0-17-7.task.md",
+      "taskDocGap": null,
+      "duplicate": false,
+      "liveTask": ".harness/tasks/2026-10-27-foundation-upgrade-base-v0-17-7",
+      "liveEvidence": ".harness/evidence/2026-10-27-foundation-upgrade-base-v0-17-7",
+      "taskTarget": ".harness/archive/2026-11/tasks/2026-10-27-foundation-upgrade-base-v0-17-7",
+      "evidenceTarget": ".harness/archive/2026-11/evidence/2026-10-27-foundation-upgrade-base-v0-17-7",
+      "originalTask": [
+        {
+          "file": "manifest.json",
+          "sha256": "b747db57f9197e43a0fc1795ecd50fbb52d0b52d55e6d43e96bf6f43c60dec9c"
+        }
+      ],
+      "originalEvidence": [
+        {
+          "file": "commands.json",
+          "sha256": "a5d10518cefd24189820283287a6ceacafd24ad26ab8de6af213589f001752a0"
+        },
+        {
+          "file": "review.md",
+          "sha256": "d631f75fa1581f6fa856760ff5f802e0cac1b8829d68f4d91052df4b4c199d4c"
+        },
+        {
+          "file": "summary.md",
+          "sha256": "f862a35a68891c5701e451f223da3920cd4ae564dee0537c9c959563a8d54d57"
+        }
+      ],
+      "originalDocSha256": "96cd9356520ef895b84c9ada31f61779ee5f204e054d1bb311bd75d326bb6c06",
+      "existingArchiveTask": null,
+      "existingArchiveEvidence": null
+    },
+    {
+      "id": "2026-10-29-foundation-upgrade-base-v0-18-1",
+      "status": "completed",
+      "reason": "批准的v0181消费已完成；原review D5记录10/31关闭，当前候选仍单独验收。",
+      "residuals": [
+        {
+          "finding": "D3 task checker CI wiring",
+          "owner": "Ops governance",
+          "successor": "2026-11-17-ops-history-audit",
+          "state": "open",
+          "proof": null
+        },
+        {
+          "finding": "D6 inherited dangling links",
+          "owner": "pantheon-base docs",
+          "successor": "Base-first documentation repair",
+          "state": "open",
+          "proof": null
+        },
+        {
+          "finding": "D7 current Windows race",
+          "owner": "Ops QA",
+          "successor": "2026-11-17-ops-history-audit",
+          "state": "open",
+          "proof": null
+        },
+        {
+          "finding": "D8 inherited producer/workflow tests",
+          "owner": "Ops inheritance/governance",
+          "successor": "2026-11-17-ops-history-audit",
+          "state": "open",
+          "proof": null
+        },
+        {
+          "finding": "D9 historical scanner403",
+          "owner": "Ops governance",
+          "successor": "2026-10-29-sonar-ci-analysis-restore",
+          "state": "successor-evidence",
+          "proof": ".harness/evidence/2026-10-29-sonar-ci-analysis-restore/summary.md"
+        },
+        {
+          "finding": "D9 Dependabot scan secrets policy",
+          "owner": "maintainer",
+          "successor": "2026-11-17-ops-auto-merge-reconcile",
+          "state": "open",
+          "proof": null
+        },
+        {
+          "finding": "D10 Vercel external configuration",
+          "owner": "external Vercel project owner",
+          "successor": "2026-11-16-ops-pilot-release-closeout",
+          "state": "open",
+          "proof": null
+        },
+        {
+          "finding": "actual candidate runtime",
+          "owner": "Ops runtime",
+          "successor": "2026-11-16-ops-business-runtime-acceptance",
+          "state": "open",
+          "proof": null
+        }
+      ],
+      "taskDoc": "docs/harness/tasks/2026-10-29-foundation-upgrade-base-v0-18-1.task.md",
+      "taskDocGap": null,
+      "duplicate": false,
+      "liveTask": ".harness/tasks/2026-10-29-foundation-upgrade-base-v0-18-1",
+      "liveEvidence": ".harness/evidence/2026-10-29-foundation-upgrade-base-v0-18-1",
+      "taskTarget": ".harness/archive/2026-11/tasks/2026-10-29-foundation-upgrade-base-v0-18-1",
+      "evidenceTarget": ".harness/archive/2026-11/evidence/2026-10-29-foundation-upgrade-base-v0-18-1",
+      "originalTask": [
+        {
+          "file": "manifest.json",
+          "sha256": "9d391e41ded5337c5c5eb6fd994ff872f39908bcbafd517dab1f10864c8a6b5d"
+        }
+      ],
+      "originalEvidence": [
+        {
+          "file": "commands.json",
+          "sha256": "c050858a5b635924f5a6aecdebc4b2260f17b701e1f249f2a62766fbe0a21ba5"
+        },
+        {
+          "file": "main-confirmation-pr-body.md",
+          "sha256": "ebde653bb3f0e8c017105f2d24fe950b75d2179ccad0793f6df554c697be934c"
+        },
+        {
+          "file": "pr-body.md",
+          "sha256": "fb90d72f0ba29894bf5176a50f511dee047a9cbffc2352bbfff6eeaa419f39bc"
+        },
+        {
+          "file": "review.md",
+          "sha256": "9047edcf9813b214ac40574eb7128793e286e2c74f403fe3a1d7877c7aad7772"
+        },
+        {
+          "file": "summary.md",
+          "sha256": "86ecd9f23707073f6f65e351c5153aab67432bed252d0b758df1e7d33e7b80d9"
+        }
+      ],
+      "originalDocSha256": "a85df28e276176fe8922180575ed3074d0d10f2ef120140cb372a679af9e1ea0",
+      "existingArchiveTask": null,
+      "existingArchiveEvidence": null
+    },
+    {
+      "id": "2026-10-29-sonar-ci-analysis-restore",
+      "status": "completed",
+      "reason": "hosted分析恢复已证实，代码红灯基线由10/30处理；非替代当前扫描。",
+      "residuals": [
+        {
+          "finding": "restored scanner exposed backlog",
+          "owner": "Ops business",
+          "successor": "2026-10-30-sonar-findings-remediation",
+          "state": "successor-evidence",
+          "proof": ".harness/evidence/2026-10-30-sonar-findings-remediation/commands.json"
+        },
+        {
+          "finding": "Dependabot scan policy",
+          "owner": "maintainer",
+          "successor": "2026-11-17-ops-auto-merge-reconcile",
+          "state": "open",
+          "proof": null
+        },
+        {
+          "finding": "Vercel configuration",
+          "owner": "external Vercel owner",
+          "successor": "2026-11-16-ops-pilot-release-closeout",
+          "state": "open",
+          "proof": null
+        }
+      ],
+      "taskDoc": "docs/harness/tasks/2026-10-29-sonar-ci-analysis-restore.task.md",
+      "taskDocGap": null,
+      "duplicate": false,
+      "liveTask": ".harness/tasks/2026-10-29-sonar-ci-analysis-restore",
+      "liveEvidence": ".harness/evidence/2026-10-29-sonar-ci-analysis-restore",
+      "taskTarget": ".harness/archive/2026-11/tasks/2026-10-29-sonar-ci-analysis-restore",
+      "evidenceTarget": ".harness/archive/2026-11/evidence/2026-10-29-sonar-ci-analysis-restore",
+      "originalTask": [
+        {
+          "file": "manifest.json",
+          "sha256": "34c78679a47400246590c0d8c50ae96344b84d8d3131c3d41d223d2f5ee9ecd9"
+        }
+      ],
+      "originalEvidence": [
+        {
+          "file": "commands.json",
+          "sha256": "fb9096e32a7c97dfed2e827dd5da5bab10d72d937147eeff030581377ef7f321"
+        },
+        {
+          "file": "pr-body-evidence-followup.md",
+          "sha256": "c902829bb5c536f677fb011296038f4468c2f666e39a72a79ef14f3b6ca965fc"
+        },
+        {
+          "file": "pr-body-main-rollup.md",
+          "sha256": "0a7aa1d9deffd3f7847fbc61798dc3e35e36de1d22aca15a96d521246f2f90ba"
+        },
+        {
+          "file": "pr-body.md",
+          "sha256": "fecb65958cc11c963acbab500defc0616c3fffc815396b48d8fbe73c804302f5"
+        },
+        {
+          "file": "review.md",
+          "sha256": "db339d04db20810b9e34d2b76af7480b37e18896588ebfa2cc2fc01bfa77a2d6"
+        },
+        {
+          "file": "summary.md",
+          "sha256": "1d3e5e18e16d24d8d34a4df0e0f79d55c46eead6283a0a5a2c8f4821923dde30"
+        }
+      ],
+      "originalDocSha256": "de01a74d5db4b6fa1ff37a9eb09b6f874463460ee0dd1d4dd424fd777e588e02",
+      "existingArchiveTask": null,
+      "existingArchiveEvidence": null
+    },
+    {
+      "id": "2026-10-30-sonar-findings-remediation",
+      "status": "completed",
+      "reason": "main430a9f0 的原定量目标证据成立：全部facet零问题、gate OK、dup2.0。",
+      "residuals": [
+        {
+          "finding": "current candidate scan/coverage",
+          "owner": "Ops QA",
+          "successor": "2026-11-17-ops-history-audit",
+          "state": "open",
+          "proof": null
+        },
+        {
+          "finding": "Dependabot policy",
+          "owner": "maintainer",
+          "successor": "2026-11-17-ops-auto-merge-reconcile",
+          "state": "open",
+          "proof": null
+        },
+        {
+          "finding": "Vercel",
+          "owner": "external Vercel owner",
+          "successor": "2026-11-16-ops-pilot-release-closeout",
+          "state": "open",
+          "proof": null
+        }
+      ],
+      "taskDoc": "docs/harness/tasks/2026-10-30-sonar-findings-remediation.task.md",
+      "taskDocGap": null,
+      "duplicate": false,
+      "liveTask": ".harness/tasks/2026-10-30-sonar-findings-remediation",
+      "liveEvidence": ".harness/evidence/2026-10-30-sonar-findings-remediation",
+      "taskTarget": ".harness/archive/2026-11/tasks/2026-10-30-sonar-findings-remediation",
+      "evidenceTarget": ".harness/archive/2026-11/evidence/2026-10-30-sonar-findings-remediation",
+      "originalTask": [
+        {
+          "file": "manifest.json",
+          "sha256": "34769d720dd0e761078bf7bf54332d0d88a5778a8680b73712bf9cdfdd40a7c6"
+        }
+      ],
+      "originalEvidence": [
+        {
+          "file": "commands.json",
+          "sha256": "94dc2a4f35d51ed4c8b5326994b8f329cae120c968ddd3444e308b4ed927b3ef"
+        },
+        {
+          "file": "pr-body-round3.md",
+          "sha256": "194baae68766a37dd28c845bc8f2380e263ca62f9d8e342dfcf4f5f3763e87a2"
+        },
+        {
+          "file": "pr-body-round4.md",
+          "sha256": "745ebfe72def612bab511113d22b4dbebc28bf082af133d11ae54d1fa3e28ea4"
+        },
+        {
+          "file": "pr-body-round5.md",
+          "sha256": "a293c2d406850d39d4603d87fa4766e8d99892fd5b6a0a39707d493ff8c22a7c"
+        },
+        {
+          "file": "pr-body-round6.md",
+          "sha256": "8e8c6e346ed3e6f43864f7d1cfbeafd1d3f3d25a965a29187476dd314d16f8b7"
+        },
+        {
+          "file": "pr-body-round7.md",
+          "sha256": "ffc55e4103b453623c24c412fccc1bf04d5360c2944b64644da0c5de56eee2e9"
+        },
+        {
+          "file": "pr-body-round8.md",
+          "sha256": "a48703f5484633659e3d60af0a7987e1a0d56038da4c7916f778fba6e0adb59d"
+        },
+        {
+          "file": "pr-body.md",
+          "sha256": "ed55f1f28343dfad8529003aab729b642a816f48a9c288e4ed3222fffd9f2807"
+        },
+        {
+          "file": "review.md",
+          "sha256": "c9af9cf3a6b5c1ab49468779ca16dbcd8d0e97f3c814e9d6059579c299d0234c"
+        },
+        {
+          "file": "sonar-after-merge-vulnerabilities.json",
+          "sha256": "8ff6f6478e2697f79d9447b3adc9d961387a5d76f1da71d09f3022d16c410ed2"
+        },
+        {
+          "file": "sonar-before-inventory.json",
+          "sha256": "77204e3e594da328e1fb76a6a91563f7f560ea08cc4657e03af9c761e29d6712"
+        },
+        {
+          "file": "sonar-s3649-keys.json",
+          "sha256": "ec568b4bd3643eb7f549739b257c4ccdd09c8847af1207dd94c0610d73c5a73e"
+        },
+        {
+          "file": "sonar-triage.json",
+          "sha256": "8cc1e89dcd6ae767aee211cec063acd904088bda117674ad49e73340b0bc27c2"
+        },
+        {
+          "file": "summary.md",
+          "sha256": "c1542fa0ef0c59c0c5c2efbd1cd384ba5a898e65bf1f632df1987ec2f4d05ecb"
+        }
+      ],
+      "originalDocSha256": "76e03440956452d30b946bf78cfc0da63336a0b1007d012af969d9ddad854456",
+      "existingArchiveTask": null,
+      "existingArchiveEvidence": null
+    },
+    {
+      "id": "2026-10-31-foundation-upgrade-base-v0-18-2",
+      "status": "completed",
+      "reason": "保留v0182消费及source i18n/GORM gate修复，历史PR失败记录不改写。",
+      "residuals": [
+        {
+          "finding": "D5 current menu/seed runtime",
+          "owner": "Ops business",
+          "successor": "2026-11-16-ops-business-runtime-acceptance",
+          "state": "open",
+          "proof": null
+        },
+        {
+          "finding": "D6 inherited doc links",
+          "owner": "pantheon-base docs",
+          "successor": "Base-first documentation repair",
+          "state": "open",
+          "proof": null
+        },
+        {
+          "finding": "D7 current CGO race",
+          "owner": "Ops QA",
+          "successor": "2026-11-17-ops-history-audit",
+          "state": "open",
+          "proof": null
+        }
+      ],
+      "taskDoc": "docs/harness/tasks/2026-10-31-foundation-upgrade-base-v0-18-2.task.md",
+      "taskDocGap": null,
+      "duplicate": false,
+      "liveTask": ".harness/tasks/2026-10-31-foundation-upgrade-base-v0-18-2",
+      "liveEvidence": ".harness/evidence/2026-10-31-foundation-upgrade-base-v0-18-2",
+      "taskTarget": ".harness/archive/2026-11/tasks/2026-10-31-foundation-upgrade-base-v0-18-2",
+      "evidenceTarget": ".harness/archive/2026-11/evidence/2026-10-31-foundation-upgrade-base-v0-18-2",
+      "originalTask": [
+        {
+          "file": "manifest.json",
+          "sha256": "888c5998df016a986d9608ae5455dd3d2bd730c77fe1584c3cd547e02f5ff1c3"
+        }
+      ],
+      "originalEvidence": [
+        {
+          "file": "commands.json",
+          "sha256": "065a5fd054ec6f31ff0d7109adf70f6b0911ae7b00ad1a24e5a090bc1710e778"
+        },
+        {
+          "file": "pr-body-sonar-followup.md",
+          "sha256": "669e31bc437baae8beebe81e52d77cee6688e278b796a1a524842df3aa386540"
+        },
+        {
+          "file": "pr-body.md",
+          "sha256": "e3543fbd209dbd10ef8e2a83d74ce9d56f9d0c1f583155e7d872e1540a5ba12b"
+        },
+        {
+          "file": "review.md",
+          "sha256": "bb4a2b1b756fd5e41dbfac6c6f8b3d3bf9b8d5879dffce615fd9c81eb26ee5fc"
+        },
+        {
+          "file": "summary.md",
+          "sha256": "ba87cdc5ed15a465c15731fa3ac5c541c43f91030c16e3b2989628889a9fd01f"
+        }
+      ],
+      "originalDocSha256": "892f04d09be24e9ca5a6e7607791d9f6f4666d2b77dfaf9bb65bdc458c63a5a4",
+      "existingArchiveTask": null,
+      "existingArchiveEvidence": null
+    },
+    {
+      "id": "2026-11-05-base-v0183-consumption",
+      "status": "completed",
+      "reason": "目录名v0183，实际最终消费v0185；manifest和PR177 fresh readback证明合并。",
+      "residuals": [
+        {
+          "finding": "QA002/host-import",
+          "owner": "Ops QA",
+          "successor": "2026-11-16-ops-business-runtime-acceptance",
+          "state": "open",
+          "proof": null
+        },
+        {
+          "finding": "real S3/freeze",
+          "owner": "provider/maintainer",
+          "successor": "2026-11-16-ops-pilot-release-closeout",
+          "state": "open",
+          "proof": null
+        }
+      ],
+      "taskDoc": null,
+      "taskDocGap": "No standalone task document exists; manifest/plan plus PR177 and retained command/review evidence are the original owners. No historical card fabricated.",
+      "duplicate": false,
+      "liveTask": ".harness/tasks/2026-11-05-base-v0183-consumption",
+      "liveEvidence": ".harness/evidence/2026-11-05-base-v0183-consumption",
+      "taskTarget": ".harness/archive/2026-11/tasks/2026-11-05-base-v0183-consumption",
+      "evidenceTarget": ".harness/archive/2026-11/evidence/2026-11-05-base-v0183-consumption",
+      "originalTask": [
+        {
+          "file": "manifest.json",
+          "sha256": "2c10dee991f24c4de71a5d16bb25584b22bdf2cc7b9e3adb2a4d45f1cf47c0d1"
+        },
+        {
+          "file": "plan.md",
+          "sha256": "2dd40add541a4c8f80c49322fa2dc80762c055951d67d71b9a1fdf6ba9fddd25"
+        }
+      ],
+      "originalEvidence": [
+        {
+          "file": "architect-round1.md",
+          "sha256": "2a9ca9f0bbcd779b844a7f3ae61e38abf48122eb5dbcc2d1aeaf887cc5923f69"
+        },
+        {
+          "file": "architect-round2.md",
+          "sha256": "28f1415b609190f532fed71dc25a89512cb5684d9adf21b4afc68f947dabbbed"
+        },
+        {
+          "file": "code-reviewer-round1.md",
+          "sha256": "7caabd37862236ee520a3f1d4d9bd1a21d08c4e6d84e44166fec968b28ceb254"
+        },
+        {
+          "file": "code-reviewer-round2.md",
+          "sha256": "2afc0c7233c3edd4d72b66e6bff597f46e249c0a92945d24b3bf7a8f4b802da5"
+        },
+        {
+          "file": "code-reviewer-round3.md",
+          "sha256": "da3b6b35bfde5d3679f45e4f7f9334a23ca8ea18c2d49b220f1adafcab68ddb7"
+        },
+        {
+          "file": "commands.json",
+          "sha256": "35e1fee6b9f5a9ea71d954b432f26530c0af8d9a1c7ac4c69d79d5fb00d35e65"
+        },
+        {
+          "file": "drift-repair-diagnostics.json",
+          "sha256": "cf3dbd4cbc788ec81267a8db412d8001b5a203046236b64eff5b5edb38e9918c"
+        },
+        {
+          "file": "drift-repair.md",
+          "sha256": "3ed071a9519b331dcd505812f5b68a0287bd848c09f0e195a1856180f1b1a3ab"
+        },
+        {
+          "file": "github-consumer-local-validation.json",
+          "sha256": "e3fa0aca0426f57ca4250753f5d2d68c360f2f9f4b48bdaac6384a68580d9925"
+        },
+        {
+          "file": "github-consumer-source-manifest.json",
+          "sha256": "935d464c3d27bd0110eddff505c781f0a386d6ecd017f14dc103ed49cd87ec43"
+        },
+        {
+          "file": "ops-v0184-staging-validation.json",
+          "sha256": "2d03ffaa44e76c7933a67bc9ad292812d29468a604fbc0abf349ce21b9025171"
+        },
+        {
+          "file": "pr-body-module-graph.md",
+          "sha256": "14ad9afd95856650884f98466c00b2200c3d3277369c641cfdeb5893ba23ae14"
+        },
+        {
+          "file": "pr-body-v0185.md",
+          "sha256": "57b85e49cab3659625b836c6601456b7aff595c073455945c975f0c77f64643d"
+        },
+        {
+          "file": "pr-body.md",
+          "sha256": "6a8af09b544f84c36adbaebaf28841a1f19b3c63ef1415b7fd09903f4a1069a7"
+        },
+        {
+          "file": "resume10-before-commands.json.gz",
+          "sha256": "e311f5fffcba7e5fefa51e4cb54b866e24936ec8485092f7e4473b2cc5790363"
+        },
+        {
+          "file": "resume10-before-review.md.gz",
+          "sha256": "8d66f2c2cbcb81c1e496822b64141a3e6c3c1d7520c9dbe173af36cfcc12fa4e"
+        },
+        {
+          "file": "resume10-before-summary.md.gz",
+          "sha256": "61c3753a7d10eceb0422c74f79331eb341380fe911e71c8196070737ce7fe2f5"
+        },
+        {
+          "file": "resume10-consumer-approval.json",
+          "sha256": "3f478360eaaa5f424291b1ef72db3c79472a83d3907b10007f3675847452ab58"
+        },
+        {
+          "file": "resume10-consumer-smoke.json",
+          "sha256": "600f431de4883689d7cf1bb622857146c4c68fba7ec46b866c48df08454eb54d"
+        },
+        {
+          "file": "resume10-consumer-validation.json",
+          "sha256": "fc3436d55dc9fb1924ea1cd4f050f6686cc590a9139565d2523ea7931a51a974"
+        },
+        {
+          "file": "resume10-original-resume9-consumer-architect.md.gz",
+          "sha256": "fba612fae657ce447509e30974faf02984c852de7f672fbbd24a3f173f03948e"
+        },
+        {
+          "file": "resume10-original-resume9-consumer-code-reviewer.md.gz",
+          "sha256": "9bad613f9303ecc9ac54eb7c00c08d9b839fdc242839fd0b34eee023c8ed02f9"
+        },
+        {
+          "file": "resume10-protected-source.json",
+          "sha256": "203ca93ecf9b8aabdb585d141f7c1f3b77cfffbc621365e968ea44b09eaf012d"
+        },
+        {
+          "file": "resume10-raw-archives.json",
+          "sha256": "37208d6efc661c17d29c733e438baf172c7d456381238ea84f0eebf910b93515"
+        },
+        {
+          "file": "resume10-smoke-auto-recycle.log.gz",
+          "sha256": "d490105e514268ef2869a28c2bdc6ef97acc205d5ec63a6d9ea5b21aa64afc04"
+        },
+        {
+          "file": "resume10-smoke-generated.log.gz",
+          "sha256": "308de0f9f863a15bb55f09476cb21c0a2c6453bc0af872305ccdb45bc29841a7"
+        },
+        {
+          "file": "resume10-smoke-many-to-many.log.gz",
+          "sha256": "7a20b78f8c4e95a317361ee4d2826e90d729cf408471cb4e96a4bebee0561e79"
+        },
+        {
+          "file": "resume10-smoke-master-detail.log.gz",
+          "sha256": "fe2e7eb21f990ed5cde5ed3955b12725945c810fa6d7a9a37808c325a528c979"
+        },
+        {
+          "file": "resume7-after-module-build.log.gz",
+          "sha256": "46b50c321b39e89a491b6727a01628c34245605a30beb3e7414c5e01cff90e6e"
+        },
+        {
+          "file": "resume7-after-module-readonly.log.gz",
+          "sha256": "d2d27249acade6480c6e1aadf733f2e1bfeb5d256d3029cbbc708c2cce944966"
+        },
+        {
+          "file": "resume7-before-module-readonly.log.gz",
+          "sha256": "ffc484e8fa6c3fad042e122920c77448a5bb250b7d50ea750eeecf4ee1d2cb68"
+        },
+        {
+          "file": "resume7-business-overlay-tests-final.log.gz",
+          "sha256": "b7578953c2cd55eec6a3e99fc0897cd56aad02e0937b118dd40911edda20958b"
+        },
+        {
+          "file": "resume7-emitted-go.mod-reconciliation.diff",
+          "sha256": "1643220311a210e1898296359dfc4868751902b3641642242d42818897b87358"
+        },
+        {
+          "file": "resume7-emitted-go.sum-reconciliation.diff",
+          "sha256": "62f0a5f11c38f6268d84d200ff89de82f38dad15068d27fbc4b7420d8a15906f"
+        },
+        {
+          "file": "resume7-graph-test-before.log.gz",
+          "sha256": "f4258863c70541773ad1e3c6018170eba1130d223fdce80a39f3dc62f84f83b5"
+        },
+        {
+          "file": "resume7-log-archives.json",
+          "sha256": "d0e3f3df8c3ef4e611414ac2067c16eafdf79b9ba8ce6dfd0e31d5d5ace82703"
+        },
+        {
+          "file": "resume7-module-approval.json",
+          "sha256": "0ad1191cf6ff795395e7acb7f959e3785b2270fb3885a8165386819938b60e5a"
+        },
+        {
+          "file": "resume7-module-architect.md",
+          "sha256": "45f3a511c5549240d77573e35c3f78bc3874c6a1eeb994708b8ee571501ba2ca"
+        },
+        {
+          "file": "resume7-module-code-reviewer.md",
+          "sha256": "916c27e443bde16c9ca9c5d9bc1ab78dad99ae8228cdfed9b818bca04d807505"
+        },
+        {
+          "file": "resume7-module-repair-evidence.json",
+          "sha256": "da3e8cd52a3f49469e325aa80be9d6a8324d893a58d1277a8768f36fa49500ac"
+        },
+        {
+          "file": "resume7-module-review-snapshot.json",
+          "sha256": "74c831cfbb5d27cb097aa785fae74a1b94451d679e144616588d3ae75ef10b80"
+        },
+        {
+          "file": "resume7-official-rebuild-corrected.log.gz",
+          "sha256": "9059fe8c5a142299cf626b0991e5fb315a456c20f39972d554c7c7eefbe378b8"
+        },
+        {
+          "file": "resume7-official-rebuild.log.gz",
+          "sha256": "67dc7954f3ca8b0cc5a54d80b05205e8eef68955ce2621a47676ff397f9970ad"
+        },
+        {
+          "file": "resume7-overlay-check.log.gz",
+          "sha256": "95dbe9730d300a16f5d1de631f5ef113a2751c48af2a464df069ce3260a653b8"
+        },
+        {
+          "file": "resume7-shared-drift.log.gz",
+          "sha256": "eb10e706c44673bff349bad16e55b83d5991b2cef2a3e9e770d2e5159170a32b"
+        },
+        {
+          "file": "resume8-consumer-frontend-lint.log.gz",
+          "sha256": "c35921e4af13277f35a626f6a59ad270648903e66198999932fedbfe04328291"
+        },
+        {
+          "file": "resume8-consumer-frontend-type-check.log.gz",
+          "sha256": "90d3631275ee2028530f30402edce416b8d5d921558e35b2fce3b3d1a8fdf68f"
+        },
+        {
+          "file": "resume8-consumer-frontend.json",
+          "sha256": "95812edc1d227f9df205617ccfe0a90d1918192ee0b45f88f1af9e23b6e3e3c1"
+        },
+        {
+          "file": "resume8-consumer-migration.json",
+          "sha256": "a2ea63f8465409c8a4f3ba13c338229f73a1935d2d1abf49303da531213a587b"
+        },
+        {
+          "file": "resume8-consumer-race.json",
+          "sha256": "7490a9df1b5ef18492ec9ef2d123d9e0959e96d936823b5f31bb037423ab10c8"
+        },
+        {
+          "file": "resume8-consumer-readonly-full-race.log.gz",
+          "sha256": "2390230b250614e46f582066b8302a49c1eaa40e38d6accc4ac0218281fa4d43"
+        },
+        {
+          "file": "resume9-consumer-acquire-direct.log.gz",
+          "sha256": "5f4e0915a6f70a263738f31c94d2602777c901fb16583e99f492005e6834a657"
+        },
+        {
+          "file": "resume9-consumer-architect.md",
+          "sha256": "4cd7ada0b60a8a2e11c1e16519e0cb8963206b7f9d48b40dbf50b67047bd946a"
+        },
+        {
+          "file": "resume9-consumer-code-reviewer.md",
+          "sha256": "840eeb872386c37f110748e93281c85177c6ae66df70a42370bf1f7e0ccbdd07"
+        },
+        {
+          "file": "resume9-consumer-drift.log.gz",
+          "sha256": "5048e824785924f67b01e6fd106ea09026f2de87a4cc0c586d03d91e00d3621f"
+        },
+        {
+          "file": "resume9-consumer-final-rebuild.log.gz",
+          "sha256": "d8e0a24dcf0c87f8791420c9287787a91b59b7eb35cd66d9f2aec955442ecbbf"
+        },
+        {
+          "file": "resume9-consumer-frontend-build-direct.log.gz",
+          "sha256": "7fa040d1509e8b72287df6168072a8ede0625bd068194c3ac56f8eb61cff5b2d"
+        },
+        {
+          "file": "resume9-consumer-frontend-direct.json",
+          "sha256": "2a73f035500125da9648bf6ba258679dc7bae1da461ac37589b03ebc4265aa22"
+        },
+        {
+          "file": "resume9-consumer-frontend-test-unit-direct.log.gz",
+          "sha256": "32c3d63fc0adc9ae507b9e064cb36e7900ce6f085a55a34c1dd541f849448c18"
+        },
+        {
+          "file": "resume9-consumer-frontend-type-check-direct.log.gz",
+          "sha256": "17a66d4f9d721873779ab5b49de8bf79c247724ccff09105bd4bf3eb65089a36"
+        },
+        {
+          "file": "resume9-consumer-install-correction.json",
+          "sha256": "6f8ae64bb07454ce2df3cdefec77cd8f3e99bba5fa53512d270e8284940eed33"
+        },
+        {
+          "file": "resume9-consumer-install.json",
+          "sha256": "2960ddf01ab1bae44947220d4e6a539bb9b3772569db18fcf505292d259646f1"
+        },
+        {
+          "file": "resume9-consumer-overlay.log.gz",
+          "sha256": "47c060a3645075260b6ccce67070f5a97c8e823331bdb364e920d4701f4635ee"
+        },
+        {
+          "file": "resume9-consumer-rebuild-direct.log.gz",
+          "sha256": "4e2da49dba879642ba7e6749ecb3dfef0dce4512559d179b5814305704ebc977"
+        },
+        {
+          "file": "resume9-consumer-review-snapshot.json",
+          "sha256": "66cb995f359e1502b5277c74171629fce55ed68b57f07735621ce63325fb857c"
+        },
+        {
+          "file": "resume9-consumer-runtime-build-direct.log.gz",
+          "sha256": "9e72928e7a01615b4cf090daa617b4ca9d68531748f887f323f695eb4ca3ef63"
+        },
+        {
+          "file": "resume9-consumer-script-tests-direct.log.gz",
+          "sha256": "6e37978b211301ac796abba2f1b962bed9336d58a874b014599a9ca471250414"
+        },
+        {
+          "file": "resume9-consumer-smoke-direct.json",
+          "sha256": "07eca6a87f8afff44b705ec16b1a2e6fe7db41173331b8d39c6dbfc8aeae5466"
+        },
+        {
+          "file": "resume9-consumer-source-equivalence.json",
+          "sha256": "99ae58112b02b7e3133c8070964909989c7a1b9d68be0215908c3525be752b4a"
+        },
+        {
+          "file": "resume9-official-provenance.json",
+          "sha256": "6f343615cb02590718cb1e4a19574c7a242d65c2631c6643bbd5b11a7c3423d8"
+        },
+        {
+          "file": "resume9-ops-check-business-overlay.log.gz",
+          "sha256": "c02c988dfac88fc643f8883adb965f72372571a071179d4ce4a5ce8c0fdc4103"
+        },
+        {
+          "file": "resume9-ops-check-docs-frontmatter.log.gz",
+          "sha256": "85080386a942ebf48bc0eaeff6cefc50d6ffbe7b6aaaf75b54edfe66465f8900"
+        },
+        {
+          "file": "resume9-ops-check-gorm-sql-literal.log.gz",
+          "sha256": "18bfcc2f59ed76744a943c0a5a93cbe49a2a0884d21f0ce3c1912a42f50d1c85"
+        },
+        {
+          "file": "resume9-ops-check-task-packet-template.log.gz",
+          "sha256": "9991f91d3a8821dee9cb0064f1573a9edc89906c9dc287e6e56d8de10cbb31a8"
+        },
+        {
+          "file": "resume9-ops-governance.json",
+          "sha256": "1c2767a3b3eee9ec0cbf281e3f09b71ef10b59cffb626ce4b764d681e8b8f3d6"
+        },
+        {
+          "file": "resume9-ops-optional-packet-baseline.json",
+          "sha256": "f85561227bd3c58327761f79ba93c12d97876a41a3e8b75b3d31d9e5f28f9712"
+        },
+        {
+          "file": "resume9-smoke-generated-direct.log.gz",
+          "sha256": "aff099598304e5177b1b63faf28d5a3363cb006e955c4238cf31731d53cb0453"
+        },
+        {
+          "file": "review-preparation-historical.md",
+          "sha256": "77548eb029c923df3fcf438fb68a1a6cdd8c8ead63d63e2d42be01ed3eaf6acf"
+        },
+        {
+          "file": "review.md",
+          "sha256": "58eb07e3b92d93747b7b10eb20b77ee06fee796271b633d63d3695230c82c980"
+        },
+        {
+          "file": "source-manifest.json",
+          "sha256": "6d70163cab5e3c714430d608ad334189ce5a18ab6182723f5125c821828a0810"
+        },
+        {
+          "file": "summary.md",
+          "sha256": "33d5f4316c6397b1e9be5f41355d271e5aa7f56f1e0e92c67aa95958940ad6cb"
+        },
+        {
+          "file": "v0184-explicit-consumption-status.json",
+          "sha256": "2af3454446bb5d8ddff908c5a9898673c394898021706b17847b5ff768d218d4"
+        }
+      ],
+      "originalDocSha256": null,
+      "existingArchiveTask": null,
+      "existingArchiveEvidence": null
+    },
+    {
+      "id": "2026-11-07-base-v0186-consumption",
+      "status": "completed",
+      "reason": "原范围完成且已归档；相同live副本成对保存于本审计evidence，既有archive不覆盖。",
+      "residuals": [
+        {
+          "finding": "runtime/QA002",
+          "owner": "Ops QA",
+          "successor": "2026-11-16-ops-business-runtime-acceptance",
+          "state": "open",
+          "proof": null
+        },
+        {
+          "finding": "S3/unsigned freeze/oversized audit storage",
+          "owner": "provider/maintainer/pantheon-base",
+          "successor": "2026-11-16-ops-pilot-release-closeout",
+          "state": "open",
+          "proof": null
+        }
+      ],
+      "taskDoc": "docs/harness/tasks/2026-11-07-base-v0186-consumption.task.md",
+      "taskDocGap": null,
+      "duplicate": true,
+      "liveTask": ".harness/tasks/2026-11-07-base-v0186-consumption",
+      "liveEvidence": ".harness/evidence/2026-11-07-base-v0186-consumption",
+      "taskTarget": ".harness/evidence/2026-11-17-ops-history-audit/artifacts/preserved-live/tasks/2026-11-07-base-v0186-consumption",
+      "evidenceTarget": ".harness/evidence/2026-11-17-ops-history-audit/artifacts/preserved-live/evidence/2026-11-07-base-v0186-consumption",
+      "originalTask": [
+        {
+          "file": "manifest.json",
+          "sha256": "28ffb77bb887af21f678d74053f5536efac2a4f26c71c3a6b3c389d4033491d7"
+        },
+        {
+          "file": "plan.md",
+          "sha256": "c4d701f34f4f4c803f99ed530eafefdaf4af1fcab9d52d26fcf8aa0ba3ba4997"
+        }
+      ],
+      "originalEvidence": [
+        {
+          "file": "architect.md",
+          "sha256": "66f29b362c9e87c53d202d91e089246ce7a0da38cc49b2b0458ec15b1462c7d9"
+        },
+        {
+          "file": "base186-immutable-main-checks.json",
+          "sha256": "a2b2ec40452a5d6dff374c2c0c373e850621b441882ab9791f5c0ec6eb2e0d2e"
+        },
+        {
+          "file": "baseline185-backend-enabled-stderr.log.gz",
+          "sha256": "26a4629bb662eed46923338d46738d61a6c22280648176cb3989a06b280cb45c"
+        },
+        {
+          "file": "baseline185-resume8-backend-stderr.log.gz",
+          "sha256": "613abca1a32c22a19f371529d8165c2069e721119e336ffae39dc5052c921c77"
+        },
+        {
+          "file": "code-reviewer.md",
+          "sha256": "233eb198e861f80fe1fceac84294e423430c38c485cc5ffb38fb5b52bd2f5add"
+        },
+        {
+          "file": "commands.json",
+          "sha256": "343c24845721444a443b80f7350e95ce883485cf654368676c56d6cb968c5748"
+        },
+        {
+          "file": "hosted-consumer-checks.json",
+          "sha256": "68affddbc5ef6cbe584e3f2f94ae1895d472a54830d7e633d11e5a4206a41bf8"
+        },
+        {
+          "file": "hosted-consumer-merge.json",
+          "sha256": "05490b45f2715d9ebfe52dba26c77489bcdb6483b9904572cf67d9aa2b144cca"
+        },
+        {
+          "file": "official186-lock.json",
+          "sha256": "95de1a87270e15c0d4c672418a5df906818a88652f8a3e6c480f1484ee9fa70c"
+        },
+        {
+          "file": "official186-producer-publication.json",
+          "sha256": "920d1027b44edec60da04442ec2322ae9d8e1ba906457483da79fbdf7d17ee22"
+        },
+        {
+          "file": "official186-release-metadata.json",
+          "sha256": "2264141536831830bb06680999e71439c37ce1dd2a5e147b42c48a32d9b2aefb"
+        },
+        {
+          "file": "ops-assembler-tests.log.gz",
+          "sha256": "f516d5455977dced620fe1af248d5e915720281bad1829865363569496615d8b"
+        },
+        {
+          "file": "ops-pr177-prior-checks.json",
+          "sha256": "1a7ecc2d4ffee987f6ada274104240fad08894c6f109bebfaf50ced3e38e1fee"
+        },
+        {
+          "file": "ops-pr177-prior-merged.json",
+          "sha256": "9872bad2375b23b5f5d8304e8e986f3031df866f61ea339e12d56f311f99b8f6"
+        },
+        {
+          "file": "ops186-fresh-migration-state.txt",
+          "sha256": "54a2f2cf518b30916673a2ede348a4acd509ad0cca6414f98f831dfefeb1d596"
+        },
+        {
+          "file": "ops186-frontend-build.log.gz",
+          "sha256": "c55914a684b8f69d2b62fb35459fb34a8493108200b1d9481b42f2b0f5b6ad19"
+        },
+        {
+          "file": "ops186-frontend-lint.log.gz",
+          "sha256": "016a821771af341985e890ad6a780d6dbd2b0b641ab43f500ed5941582a0b9fc"
+        },
+        {
+          "file": "ops186-frontend-test-unit.log.gz",
+          "sha256": "7d7e5d2caec0911d48ec32343e507c56bd8a1400aaa7e7499709cf55d3a71526"
+        },
+        {
+          "file": "ops186-frontend-type-check.log.gz",
+          "sha256": "17a66d4f9d721873779ab5b49de8bf79c247724ccff09105bd4bf3eb65089a36"
+        },
+        {
+          "file": "ops186-full-readonly-race.log.gz",
+          "sha256": "fe204df575b463a9c85dfb0689366c9ec14f4f4051349d5fcc72708b6454d1d8"
+        },
+        {
+          "file": "ops186-official-acquire.log.gz",
+          "sha256": "a6339d3bb444a661b85c91c78b87c03ecd0336ea4141d3cba49da99c645d763e"
+        },
+        {
+          "file": "ops186-optional-baseline-evidence.json.gz",
+          "sha256": "cb9136470c8d11b9b84617b9fa1f3a63b89ba1362fdca47cab97e205d5100e75"
+        },
+        {
+          "file": "ops186-optional-baseline-packet.json.gz",
+          "sha256": "b8e0f58f226445998dabb28283b5ba4e30b77cc339d544e10131ad023a463e16"
+        },
+        {
+          "file": "ops186-optional-baseline-review.json.gz",
+          "sha256": "5a22ab609d15d2f04f7d6cea3198bb3e5cb07ae1593ded6e3148acde9f69234f"
+        },
+        {
+          "file": "ops186-optional-current-evidence.json.gz",
+          "sha256": "054581aa7f481cee6b7b3e6d10b6daa50e9faf038897f88eafa23e87fc79913d"
+        },
+        {
+          "file": "ops186-optional-current-packet.json.gz",
+          "sha256": "74a6bd920590840bdec836c0f290ffa1406ac3e05ef946f1731830246e336e8c"
+        },
+        {
+          "file": "ops186-optional-current-review.json.gz",
+          "sha256": "a3b481718699cb2ff17d7aed75bd384f71e692e4da38650f092cb9dfaa0455be"
+        },
+        {
+          "file": "ops186-overlay.log.gz",
+          "sha256": "47c060a3645075260b6ccce67070f5a97c8e823331bdb364e920d4701f4635ee"
+        },
+        {
+          "file": "ops186-race-summary.json",
+          "sha256": "1f081414340a0b80d9140f9fc11cff8b022a365002eaf6baecefacb2af6e44e2"
+        },
+        {
+          "file": "ops186-runtime-build.log.gz",
+          "sha256": "9e72928e7a01615b4cf090daa617b4ca9d68531748f887f323f695eb4ca3ef63"
+        },
+        {
+          "file": "ops186-runtime-health.json",
+          "sha256": "9d0a0cb3348fb6a1bf78c7b0e87c46092f14369f442401cda5dba1c19e6b301d"
+        },
+        {
+          "file": "ops186-runtime-ownership.json",
+          "sha256": "260a1931e8aaf3cc11fc377c413004f8cfa2e805aa962bb876e49ae131bdb818"
+        },
+        {
+          "file": "ops186-runtime-stderr.log.gz",
+          "sha256": "66cb9465f4f96cf3159b877bcc0a1c14a4cc6dec046b2e150183d520c94e8bc5"
+        },
+        {
+          "file": "ops186-runtime-stdout.log.gz",
+          "sha256": "853f3bcaff86af9c1a59fa593106cae725b3dee3df6ca047d58efb7bc6edced7"
+        },
+        {
+          "file": "ops186-shared-drift.log.gz",
+          "sha256": "5139bf74ddac6569e00ddd8be424bfe86dbf880818f343e9197519938fb143c4"
+        },
+        {
+          "file": "ops186-smoke-auto-recycle-retry1.log.gz",
+          "sha256": "23a90450f2af7d170d060870295637b8f34f15ed5d51751ba613ca1c18538119"
+        },
+        {
+          "file": "ops186-smoke-generated-retry1.log.gz",
+          "sha256": "9b100d276ac6762b32a8617a4ee31b3c719afa52d97f3088965de00dc4a1c0ec"
+        },
+        {
+          "file": "ops186-smoke-generated.log.gz",
+          "sha256": "e41a4497a9855a315895e2cb7d89496182f7c371e9e06e898d830112febdd289"
+        },
+        {
+          "file": "ops186-smoke-index-setup.json",
+          "sha256": "443fcd8664810c2ddd65d9c6abbd3a0818dfcc01e51d52dc897c5766d303da7b"
+        },
+        {
+          "file": "ops186-smoke-many-to-many-retry1.log.gz",
+          "sha256": "e74ffb415fe19df37a5acc25650dbb2b01a2b1d3a81c9db5482b4559ea89a4c1"
+        },
+        {
+          "file": "ops186-smoke-master-detail-retry1.log.gz",
+          "sha256": "e2984b3f6d65f10efa9866b3a26a6c4a8030ed508d6a8fd11397c654f75ab67a"
+        },
+        {
+          "file": "ops186-source-equivalence.json",
+          "sha256": "8ec1b1cb26ea46f19cc87f88c3c642ebad7ba33b7387aeea84c137a5c22b6802"
+        },
+        {
+          "file": "ops186-staged-source-manifest.json",
+          "sha256": "592c2d98b8816f17c8933d3a224c2090ce743f7da98e00b0f68311984e07e93b"
+        },
+        {
+          "file": "ops186-standard-rebuild.log.gz",
+          "sha256": "6fc0c76ccc938f79577eb88508ca4bd565fc5a528be1f432e9ec193f43f06a36"
+        },
+        {
+          "file": "optional-history-audit-baseline.json",
+          "sha256": "c652414e05b2d940ccb86faa6193b192f44cc19015e5eda7e75a7a6d3f44f1ef"
+        },
+        {
+          "file": "owned-services-stopped.json",
+          "sha256": "b3965cd371e4059e2f2976d742e69313ea2bfe4130b717e0a9e9c781fe499f44"
+        },
+        {
+          "file": "pr-body.md",
+          "sha256": "7d62b68bad4545bfde7af0ae6ecdb0f7be056d5eb2b06642577da56c7eb42216"
+        },
+        {
+          "file": "raw-architect.md.gz",
+          "sha256": "e3b1712f11e9b2cec04e4f092c3b270dc3bd8df61aa0d23c4edfaa14f27fb7a8"
+        },
+        {
+          "file": "raw-code-reviewer.md.gz",
+          "sha256": "3612bb303f526f7a39308fd56bcec01552e2f802caa9683ec3791025b8190684"
+        },
+        {
+          "file": "review-snapshot.json",
+          "sha256": "b3673fb07ce170e31d08b28da93f13eab1d900db99873810d46ccf524818df65"
+        },
+        {
+          "file": "review.md",
+          "sha256": "415229eb4d630dde1957eeb641471384c5d20f9f2f73dd37a7dd3ce899f5983f"
+        },
+        {
+          "file": "runtime-residuals.json",
+          "sha256": "ce9654562adf53620e45173f3c3e6314f3914156b6dfe0e7b723a93f009ac26a"
+        },
+        {
+          "file": "standard-smoke-results.json",
+          "sha256": "7d9042d0a7215de98270afec6e5d5b88898bf9595e7a6781d125838bb04e87ec"
+        },
+        {
+          "file": "summary.md",
+          "sha256": "80ffad92153d743a69395932d2002feade39d742032ba31ec1e8b18a0bf0df10"
+        },
+        {
+          "file": "validation-log-index.json",
+          "sha256": "5664717a532b0c6b69ffd04db8230d8489755d7e03eb40b85d2e26b4a4b3d9f4"
+        },
+        {
+          "file": "verified-installation.json",
+          "sha256": "6749e23132fe684ea23df986cb9a5e26722936465f89970b64cffccd95083449"
+        },
+        {
+          "file": "verified-main-only.json",
+          "sha256": "268954b52a689f789b965fe7b634dfa25514e0e3eb813f0efd867e26f3f80575"
+        }
+      ],
+      "originalDocSha256": "3352b1b594ce985000200e75f73e2a55360c02a1b247c785b6ba6153c4b5d52b",
+      "existingArchiveTask": [
+        {
+          "file": "manifest.json",
+          "sha256": "28ffb77bb887af21f678d74053f5536efac2a4f26c71c3a6b3c389d4033491d7"
+        },
+        {
+          "file": "plan.md",
+          "sha256": "c4d701f34f4f4c803f99ed530eafefdaf4af1fcab9d52d26fcf8aa0ba3ba4997"
+        }
+      ],
+      "existingArchiveEvidence": [
+        {
+          "file": "architect.md",
+          "sha256": "66f29b362c9e87c53d202d91e089246ce7a0da38cc49b2b0458ec15b1462c7d9"
+        },
+        {
+          "file": "base186-immutable-main-checks.json",
+          "sha256": "a2b2ec40452a5d6dff374c2c0c373e850621b441882ab9791f5c0ec6eb2e0d2e"
+        },
+        {
+          "file": "baseline185-backend-enabled-stderr.log.gz",
+          "sha256": "26a4629bb662eed46923338d46738d61a6c22280648176cb3989a06b280cb45c"
+        },
+        {
+          "file": "baseline185-resume8-backend-stderr.log.gz",
+          "sha256": "613abca1a32c22a19f371529d8165c2069e721119e336ffae39dc5052c921c77"
+        },
+        {
+          "file": "code-reviewer.md",
+          "sha256": "233eb198e861f80fe1fceac84294e423430c38c485cc5ffb38fb5b52bd2f5add"
+        },
+        {
+          "file": "commands.json",
+          "sha256": "343c24845721444a443b80f7350e95ce883485cf654368676c56d6cb968c5748"
+        },
+        {
+          "file": "hosted-consumer-checks.json",
+          "sha256": "68affddbc5ef6cbe584e3f2f94ae1895d472a54830d7e633d11e5a4206a41bf8"
+        },
+        {
+          "file": "hosted-consumer-merge.json",
+          "sha256": "05490b45f2715d9ebfe52dba26c77489bcdb6483b9904572cf67d9aa2b144cca"
+        },
+        {
+          "file": "official186-lock.json",
+          "sha256": "95de1a87270e15c0d4c672418a5df906818a88652f8a3e6c480f1484ee9fa70c"
+        },
+        {
+          "file": "official186-producer-publication.json",
+          "sha256": "920d1027b44edec60da04442ec2322ae9d8e1ba906457483da79fbdf7d17ee22"
+        },
+        {
+          "file": "official186-release-metadata.json",
+          "sha256": "2264141536831830bb06680999e71439c37ce1dd2a5e147b42c48a32d9b2aefb"
+        },
+        {
+          "file": "ops-assembler-tests.log.gz",
+          "sha256": "f516d5455977dced620fe1af248d5e915720281bad1829865363569496615d8b"
+        },
+        {
+          "file": "ops-pr177-prior-checks.json",
+          "sha256": "1a7ecc2d4ffee987f6ada274104240fad08894c6f109bebfaf50ced3e38e1fee"
+        },
+        {
+          "file": "ops-pr177-prior-merged.json",
+          "sha256": "9872bad2375b23b5f5d8304e8e986f3031df866f61ea339e12d56f311f99b8f6"
+        },
+        {
+          "file": "ops186-fresh-migration-state.txt",
+          "sha256": "54a2f2cf518b30916673a2ede348a4acd509ad0cca6414f98f831dfefeb1d596"
+        },
+        {
+          "file": "ops186-frontend-build.log.gz",
+          "sha256": "c55914a684b8f69d2b62fb35459fb34a8493108200b1d9481b42f2b0f5b6ad19"
+        },
+        {
+          "file": "ops186-frontend-lint.log.gz",
+          "sha256": "016a821771af341985e890ad6a780d6dbd2b0b641ab43f500ed5941582a0b9fc"
+        },
+        {
+          "file": "ops186-frontend-test-unit.log.gz",
+          "sha256": "7d7e5d2caec0911d48ec32343e507c56bd8a1400aaa7e7499709cf55d3a71526"
+        },
+        {
+          "file": "ops186-frontend-type-check.log.gz",
+          "sha256": "17a66d4f9d721873779ab5b49de8bf79c247724ccff09105bd4bf3eb65089a36"
+        },
+        {
+          "file": "ops186-full-readonly-race.log.gz",
+          "sha256": "fe204df575b463a9c85dfb0689366c9ec14f4f4051349d5fcc72708b6454d1d8"
+        },
+        {
+          "file": "ops186-official-acquire.log.gz",
+          "sha256": "a6339d3bb444a661b85c91c78b87c03ecd0336ea4141d3cba49da99c645d763e"
+        },
+        {
+          "file": "ops186-optional-baseline-evidence.json.gz",
+          "sha256": "cb9136470c8d11b9b84617b9fa1f3a63b89ba1362fdca47cab97e205d5100e75"
+        },
+        {
+          "file": "ops186-optional-baseline-packet.json.gz",
+          "sha256": "b8e0f58f226445998dabb28283b5ba4e30b77cc339d544e10131ad023a463e16"
+        },
+        {
+          "file": "ops186-optional-baseline-review.json.gz",
+          "sha256": "5a22ab609d15d2f04f7d6cea3198bb3e5cb07ae1593ded6e3148acde9f69234f"
+        },
+        {
+          "file": "ops186-optional-current-evidence.json.gz",
+          "sha256": "054581aa7f481cee6b7b3e6d10b6daa50e9faf038897f88eafa23e87fc79913d"
+        },
+        {
+          "file": "ops186-optional-current-packet.json.gz",
+          "sha256": "74a6bd920590840bdec836c0f290ffa1406ac3e05ef946f1731830246e336e8c"
+        },
+        {
+          "file": "ops186-optional-current-review.json.gz",
+          "sha256": "a3b481718699cb2ff17d7aed75bd384f71e692e4da38650f092cb9dfaa0455be"
+        },
+        {
+          "file": "ops186-overlay.log.gz",
+          "sha256": "47c060a3645075260b6ccce67070f5a97c8e823331bdb364e920d4701f4635ee"
+        },
+        {
+          "file": "ops186-race-summary.json",
+          "sha256": "1f081414340a0b80d9140f9fc11cff8b022a365002eaf6baecefacb2af6e44e2"
+        },
+        {
+          "file": "ops186-runtime-build.log.gz",
+          "sha256": "9e72928e7a01615b4cf090daa617b4ca9d68531748f887f323f695eb4ca3ef63"
+        },
+        {
+          "file": "ops186-runtime-health.json",
+          "sha256": "9d0a0cb3348fb6a1bf78c7b0e87c46092f14369f442401cda5dba1c19e6b301d"
+        },
+        {
+          "file": "ops186-runtime-ownership.json",
+          "sha256": "260a1931e8aaf3cc11fc377c413004f8cfa2e805aa962bb876e49ae131bdb818"
+        },
+        {
+          "file": "ops186-runtime-stderr.log.gz",
+          "sha256": "66cb9465f4f96cf3159b877bcc0a1c14a4cc6dec046b2e150183d520c94e8bc5"
+        },
+        {
+          "file": "ops186-runtime-stdout.log.gz",
+          "sha256": "853f3bcaff86af9c1a59fa593106cae725b3dee3df6ca047d58efb7bc6edced7"
+        },
+        {
+          "file": "ops186-shared-drift.log.gz",
+          "sha256": "5139bf74ddac6569e00ddd8be424bfe86dbf880818f343e9197519938fb143c4"
+        },
+        {
+          "file": "ops186-smoke-auto-recycle-retry1.log.gz",
+          "sha256": "23a90450f2af7d170d060870295637b8f34f15ed5d51751ba613ca1c18538119"
+        },
+        {
+          "file": "ops186-smoke-generated-retry1.log.gz",
+          "sha256": "9b100d276ac6762b32a8617a4ee31b3c719afa52d97f3088965de00dc4a1c0ec"
+        },
+        {
+          "file": "ops186-smoke-generated.log.gz",
+          "sha256": "e41a4497a9855a315895e2cb7d89496182f7c371e9e06e898d830112febdd289"
+        },
+        {
+          "file": "ops186-smoke-index-setup.json",
+          "sha256": "443fcd8664810c2ddd65d9c6abbd3a0818dfcc01e51d52dc897c5766d303da7b"
+        },
+        {
+          "file": "ops186-smoke-many-to-many-retry1.log.gz",
+          "sha256": "e74ffb415fe19df37a5acc25650dbb2b01a2b1d3a81c9db5482b4559ea89a4c1"
+        },
+        {
+          "file": "ops186-smoke-master-detail-retry1.log.gz",
+          "sha256": "e2984b3f6d65f10efa9866b3a26a6c4a8030ed508d6a8fd11397c654f75ab67a"
+        },
+        {
+          "file": "ops186-source-equivalence.json",
+          "sha256": "8ec1b1cb26ea46f19cc87f88c3c642ebad7ba33b7387aeea84c137a5c22b6802"
+        },
+        {
+          "file": "ops186-staged-source-manifest.json",
+          "sha256": "592c2d98b8816f17c8933d3a224c2090ce743f7da98e00b0f68311984e07e93b"
+        },
+        {
+          "file": "ops186-standard-rebuild.log.gz",
+          "sha256": "6fc0c76ccc938f79577eb88508ca4bd565fc5a528be1f432e9ec193f43f06a36"
+        },
+        {
+          "file": "optional-history-audit-baseline.json",
+          "sha256": "c652414e05b2d940ccb86faa6193b192f44cc19015e5eda7e75a7a6d3f44f1ef"
+        },
+        {
+          "file": "owned-services-stopped.json",
+          "sha256": "b3965cd371e4059e2f2976d742e69313ea2bfe4130b717e0a9e9c781fe499f44"
+        },
+        {
+          "file": "pr-body.md",
+          "sha256": "7d62b68bad4545bfde7af0ae6ecdb0f7be056d5eb2b06642577da56c7eb42216"
+        },
+        {
+          "file": "raw-architect.md.gz",
+          "sha256": "e3b1712f11e9b2cec04e4f092c3b270dc3bd8df61aa0d23c4edfaa14f27fb7a8"
+        },
+        {
+          "file": "raw-code-reviewer.md.gz",
+          "sha256": "3612bb303f526f7a39308fd56bcec01552e2f802caa9683ec3791025b8190684"
+        },
+        {
+          "file": "review-snapshot.json",
+          "sha256": "b3673fb07ce170e31d08b28da93f13eab1d900db99873810d46ccf524818df65"
+        },
+        {
+          "file": "review.md",
+          "sha256": "415229eb4d630dde1957eeb641471384c5d20f9f2f73dd37a7dd3ce899f5983f"
+        },
+        {
+          "file": "runtime-residuals.json",
+          "sha256": "ce9654562adf53620e45173f3c3e6314f3914156b6dfe0e7b723a93f009ac26a"
+        },
+        {
+          "file": "standard-smoke-results.json",
+          "sha256": "7d9042d0a7215de98270afec6e5d5b88898bf9595e7a6781d125838bb04e87ec"
+        },
+        {
+          "file": "summary.md",
+          "sha256": "80ffad92153d743a69395932d2002feade39d742032ba31ec1e8b18a0bf0df10"
+        },
+        {
+          "file": "validation-log-index.json",
+          "sha256": "5664717a532b0c6b69ffd04db8230d8489755d7e03eb40b85d2e26b4a4b3d9f4"
+        },
+        {
+          "file": "verified-installation.json",
+          "sha256": "6749e23132fe684ea23df986cb9a5e26722936465f89970b64cffccd95083449"
+        },
+        {
+          "file": "verified-main-only.json",
+          "sha256": "268954b52a689f789b965fe7b634dfa25514e0e3eb813f0efd867e26f3f80575"
+        }
+      ]
+    },
+    {
+      "id": "2026-11-13-base-v0187-consumption",
+      "status": "completed",
+      "reason": "原范围完成且已归档；PR183 fresh readback补证，差异live副本成对保全，既有archive不覆盖。",
+      "residuals": [
+        {
+          "finding": "FR028",
+          "owner": "pantheon-base",
+          "successor": "pantheon-base FR028",
+          "state": "open",
+          "proof": null
+        },
+        {
+          "finding": "S3/freeze",
+          "owner": "provider/maintainer",
+          "successor": "2026-11-16-ops-pilot-release-closeout",
+          "state": "open",
+          "proof": null
+        },
+        {
+          "finding": "runtime/UI",
+          "owner": "Ops QA",
+          "successor": "2026-11-16-ops-business-runtime-acceptance",
+          "state": "open",
+          "proof": null
+        },
+        {
+          "finding": "enabled external integration",
+          "owner": "Ops business",
+          "successor": "2026-11-16-ops-extensions-live-acceptance",
+          "state": "open",
+          "proof": null
+        }
+      ],
+      "taskDoc": "docs/harness/tasks/2026-11-13-base-v0187-consumption.task.md",
+      "taskDocGap": null,
+      "duplicate": true,
+      "liveTask": ".harness/tasks/2026-11-13-base-v0187-consumption",
+      "liveEvidence": ".harness/evidence/2026-11-13-base-v0187-consumption",
+      "taskTarget": ".harness/evidence/2026-11-17-ops-history-audit/artifacts/preserved-live/tasks/2026-11-13-base-v0187-consumption",
+      "evidenceTarget": ".harness/evidence/2026-11-17-ops-history-audit/artifacts/preserved-live/evidence/2026-11-13-base-v0187-consumption",
+      "originalTask": [
+        {
+          "file": "manifest.json",
+          "sha256": "8fb968f2527c8060018d83f134e2854ed445ef87a24227445ce47ea4b19f6eab"
+        },
+        {
+          "file": "plan.md",
+          "sha256": "c35e5a79d391dfe945cd06508d76665fc25372c70a560cace18bb039ec791042"
+        }
+      ],
+      "originalEvidence": [
+        {
+          "file": "architect.md",
+          "sha256": "1ada044eb2bc2d80d808d7888c4846ac831ab4798216d01a2767f2e46457fb4b"
+        },
+        {
+          "file": "code-reviewer.md",
+          "sha256": "5e685e2718c0fc9601e38f55219b18d17b80bc2a74831b3ec10552ba8d8214a0"
+        },
+        {
+          "file": "commands.json",
+          "sha256": "f72eeee619f0572777e3c06e7dd48a74ec1604d8f4ac7d1d2e1b9508b18575d9"
+        },
+        {
+          "file": "official187-lock.json",
+          "sha256": "19b145bcc94f5c7b280dd98085a2ca5037900848a6a942db625a88f8674006a6"
+        },
+        {
+          "file": "official187-release-metadata.json",
+          "sha256": "c8b9f923e97531e28a6e805b7fe714dc1a0c6fa4c088e1826639145d43dca1b5"
+        },
+        {
+          "file": "official187-tag-ref.txt",
+          "sha256": "54b9adf207c69e0e2c6e4483807b0f698ae2521a2b3f9291a0fe0c43f4003c17"
+        },
+        {
+          "file": "ops187-backend-full-race.log.gz",
+          "sha256": "9a653415fcd9cda6c5605bd27d62894716b333564321919cfb8d5b14f87a1722"
+        },
+        {
+          "file": "ops187-business-foundation.log.gz",
+          "sha256": "385e3bab00593bae892ddb5e9d490c65f790dfb03ea05aefc31bf8ff27a71564"
+        },
+        {
+          "file": "ops187-checker-sync.log.gz",
+          "sha256": "e61c10bd9cae658012871d59a2bd7e3c94913b16833c0bf0069649836377dced"
+        },
+        {
+          "file": "ops187-codearch-panel.log.gz",
+          "sha256": "03939d8a638ff7e40770330e848d7ba41afccdd88ae49121dd64839745afde94"
+        },
+        {
+          "file": "ops187-docgates-final.log.gz",
+          "sha256": "07f083d47d86ec702cc5040cbcaf4a4a51503ba1a9e44b76bda6dd94f428af7a"
+        },
+        {
+          "file": "ops187-fresh-migration-state.log.gz",
+          "sha256": "6f1e3d4c0e2fb0e05834671a5fe1c8956e4aa127da8680382bd23f6b4e7fc0ec"
+        },
+        {
+          "file": "ops187-frontend-suite.log.gz",
+          "sha256": "176f3ba97b3488a2c7e5007ecff967371c4bee43e6e1d90f170736e668e65f19"
+        },
+        {
+          "file": "ops187-official-acquire.log.gz",
+          "sha256": "c85ecf21e6bacd0a68d820f62a83bbd03fd7613f4aae5a1e15c40e89d812c1de"
+        },
+        {
+          "file": "ops187-runtime-backend-log.log.gz",
+          "sha256": "ab2360908f1e60495b17a298ad2a19c657ac6ea12f3456fb3706adb7993e9134"
+        },
+        {
+          "file": "ops187-staging-and-tree-gates.log.gz",
+          "sha256": "09228a1ed67538a9152fec2f1ffa39d36ab8132b6bf2213fdbea30cdb8d8d80d"
+        },
+        {
+          "file": "ops187-standard-smoke-suites.log.gz",
+          "sha256": "d50338267943b35649be3ce0ae75274ff0ea024cc9d25b5130bc4366b01ef8d4"
+        },
+        {
+          "file": "pr-body.md",
+          "sha256": "7865df8b73e8495375fa960290c40686b4b43918ac2b41145ad1388008990d70"
+        },
+        {
+          "file": "raw-architect.md.gz",
+          "sha256": "473b8c7322ee43d717b0a47988d3d07a592902861adbc2a218c79ddbbe824e94"
+        },
+        {
+          "file": "raw-code-reviewer.md.gz",
+          "sha256": "e95ff7f33f30e9d7d69e62954e5a5f551ade19e76965b1df976ee6cffa46f2a3"
+        },
+        {
+          "file": "review-snapshot.json",
+          "sha256": "9d3b80af6363b2e1176ecf3ea062ade4e132151398c6838f4c9de639ee519716"
+        },
+        {
+          "file": "review.md",
+          "sha256": "6203106840d76612c7f9933f3eb159f7e53fb6186260d689669a7bd815dff3ca"
+        },
+        {
+          "file": "summary.md",
+          "sha256": "1abfc5e616bbe5526d28a0ef80f3c425c674a5c87a81b2b0d8fe08fff480ff70"
+        }
+      ],
+      "originalDocSha256": "b552a9cd00fcb2083b6fb88f525a10cbdc24242cd76f0684dc8861126c814408",
+      "existingArchiveTask": [
+        {
+          "file": "manifest.json",
+          "sha256": "0e775bb42fd117abc80554e14c170a12158e90b74c55989d244f8026d489a884"
+        },
+        {
+          "file": "plan.md",
+          "sha256": "c35e5a79d391dfe945cd06508d76665fc25372c70a560cace18bb039ec791042"
+        }
+      ],
+      "existingArchiveEvidence": [
+        {
+          "file": "architect.md",
+          "sha256": "7f55482c088f082161d23c4520762053258c92a3896cadb58b8ab4938468e5a7"
+        },
+        {
+          "file": "code-reviewer.md",
+          "sha256": "310eda07e73b4f0a9eb34219cc779159d7b9b9b38015cd14739aca0f9d0e7801"
+        },
+        {
+          "file": "commands.json",
+          "sha256": "f72eeee619f0572777e3c06e7dd48a74ec1604d8f4ac7d1d2e1b9508b18575d9"
+        },
+        {
+          "file": "official187-lock.json",
+          "sha256": "19b145bcc94f5c7b280dd98085a2ca5037900848a6a942db625a88f8674006a6"
+        },
+        {
+          "file": "official187-release-metadata.json",
+          "sha256": "c8b9f923e97531e28a6e805b7fe714dc1a0c6fa4c088e1826639145d43dca1b5"
+        },
+        {
+          "file": "official187-tag-ref.txt",
+          "sha256": "54b9adf207c69e0e2c6e4483807b0f698ae2521a2b3f9291a0fe0c43f4003c17"
+        },
+        {
+          "file": "ops187-backend-full-race.log.gz",
+          "sha256": "9a653415fcd9cda6c5605bd27d62894716b333564321919cfb8d5b14f87a1722"
+        },
+        {
+          "file": "ops187-business-foundation.log.gz",
+          "sha256": "385e3bab00593bae892ddb5e9d490c65f790dfb03ea05aefc31bf8ff27a71564"
+        },
+        {
+          "file": "ops187-checker-sync.log.gz",
+          "sha256": "e61c10bd9cae658012871d59a2bd7e3c94913b16833c0bf0069649836377dced"
+        },
+        {
+          "file": "ops187-codearch-panel.log.gz",
+          "sha256": "03939d8a638ff7e40770330e848d7ba41afccdd88ae49121dd64839745afde94"
+        },
+        {
+          "file": "ops187-docgates-final.log.gz",
+          "sha256": "07f083d47d86ec702cc5040cbcaf4a4a51503ba1a9e44b76bda6dd94f428af7a"
+        },
+        {
+          "file": "ops187-fresh-migration-state.log.gz",
+          "sha256": "6f1e3d4c0e2fb0e05834671a5fe1c8956e4aa127da8680382bd23f6b4e7fc0ec"
+        },
+        {
+          "file": "ops187-frontend-suite.log.gz",
+          "sha256": "176f3ba97b3488a2c7e5007ecff967371c4bee43e6e1d90f170736e668e65f19"
+        },
+        {
+          "file": "ops187-official-acquire.log.gz",
+          "sha256": "c85ecf21e6bacd0a68d820f62a83bbd03fd7613f4aae5a1e15c40e89d812c1de"
+        },
+        {
+          "file": "ops187-runtime-backend-log.log.gz",
+          "sha256": "ab2360908f1e60495b17a298ad2a19c657ac6ea12f3456fb3706adb7993e9134"
+        },
+        {
+          "file": "ops187-staging-and-tree-gates.log.gz",
+          "sha256": "09228a1ed67538a9152fec2f1ffa39d36ab8132b6bf2213fdbea30cdb8d8d80d"
+        },
+        {
+          "file": "ops187-standard-smoke-suites.log.gz",
+          "sha256": "d50338267943b35649be3ce0ae75274ff0ea024cc9d25b5130bc4366b01ef8d4"
+        },
+        {
+          "file": "pr-body.md",
+          "sha256": "7865df8b73e8495375fa960290c40686b4b43918ac2b41145ad1388008990d70"
+        },
+        {
+          "file": "raw-architect.md.gz",
+          "sha256": "473b8c7322ee43d717b0a47988d3d07a592902861adbc2a218c79ddbbe824e94"
+        },
+        {
+          "file": "raw-code-reviewer.md.gz",
+          "sha256": "e95ff7f33f30e9d7d69e62954e5a5f551ade19e76965b1df976ee6cffa46f2a3"
+        },
+        {
+          "file": "review-snapshot.json",
+          "sha256": "9d3b80af6363b2e1176ecf3ea062ade4e132151398c6838f4c9de639ee519716"
+        },
+        {
+          "file": "review.md",
+          "sha256": "64ab34ffffa95f2c3da90daf493f71871756fa56a2291080b0f5344247b793e2"
+        },
+        {
+          "file": "summary.md",
+          "sha256": "1abfc5e616bbe5526d28a0ef80f3c425c674a5c87a81b2b0d8fe08fff480ff70"
+        }
+      ]
+    }
+  ]
+}

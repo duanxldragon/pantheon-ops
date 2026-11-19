@@ -1,0 +1,245 @@
+{
+  "at": "2026-11-17T09:16:07.429Z",
+  "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+  "candidate": ".local/manual-preview-20261116/overlay-history-continuation-final-locale-current-title-cache-approved",
+  "rows": [
+    {
+      "file": "frontend/tests/smoke/business/service/ServiceCatalog.nav.spec.ts",
+      "sha256": "4c9ed10eb811183c1ec727ddbd8d8259989f15c931db35023e1b4b9285c999cb"
+    },
+    {
+      "file": ".local/manual-preview-20261116/probe-navigation.mjs",
+      "sha256": "21d13c2e35c812690ff5aa739effefd5a32363c6f116410297c37e0d6e92777b"
+    },
+    {
+      "file": ".local/manual-preview-20261116/run-continuation-verification.mjs",
+      "sha256": "601e150c5f500a38563b17c7089d2e7133ce24a0d06744461fdd920876fa75d8"
+    },
+    {
+      "file": ".local/manual-preview-20261116/check-staged-official-cache-drift.mjs",
+      "sha256": "b92acf3f7fb462ee69946c43d3a8cb873cb6bcbc1f7447de6442960919967f6b"
+    },
+    {
+      "file": "foundation-release.lock.json",
+      "sha256": "14417d10b6ac9fc6eb0c24069b8c2b099abef2f0ad22536c402df06de4eaf1fc"
+    },
+    {
+      "file": ".local\\manual-preview-20261116\\overlay-history-continuation-final-locale-current-title-cache-approved\\.business-overlay-report.json",
+      "sha256": "16e6afc27d8d198768889a28908e618804eb65c75e98ad13fa1a8ca0aaf942cb"
+    },
+    {
+      "file": ".harness/evidence/2026-11-17-ops-history-audit/continuation-navigation-locale-current-title-verification.json",
+      "sha256": "9c03817eac4c68bfa13f5e41473075e616a3b046997018cd39b5f7db51f6463b"
+    }
+  ],
+  "originals": [
+    {
+      "file": "frontend/tests/smoke/business/service/ServiceCatalog.nav.spec.ts",
+      "source": ".local\\manual-preview-20261116\\overlay-history-continuation-final-locale-current-cache-approved\\frontend\\tests\\smoke\\business\\service\\ServiceCatalog.nav.spec.ts",
+      "original": ".harness/evidence/2026-11-17-ops-history-audit/continuation-navigation-title-originals/frontend/tests/smoke/business/service/ServiceCatalog.nav.spec.ts.raw",
+      "sha256": "166c4da1078766669ec737b517dd549e2543b9d36c754785ad0b228d36c7d3f7"
+    },
+    {
+      "file": ".local/manual-preview-20261116/probe-navigation.mjs",
+      "originalAvailable": false,
+      "reason": "Local helper is not an overlay asset; prior evidence retains original failure and assertions."
+    }
+  ],
+  "attempts": [
+    {
+      "file": ".harness/evidence/2026-11-17-ops-history-audit/continuation-navigation-locale-current-verification.json",
+      "sha256": "b1526dc4cff17720330c6a48454bcb44abc9f95fd24f719b671bcc28b5b6d425",
+      "results": [
+        {
+          "name": "navigation-smoke-final-locale-current",
+          "executable": "D:\\nodejs\\node.exe",
+          "args": [
+            "--import=file:///D:/workspace/go/pantheon-platform/pantheon-ops/.local/manual-preview-20261116/hide-child-windows.mjs",
+            "node_modules/@playwright/test/cli.js",
+            "test",
+            "tests/smoke/business/service/ServiceCatalog.nav.spec.ts",
+            "--config=playwright.config.ts",
+            "--reporter=line",
+            "--output=../.harness/evidence/2026-11-17-ops-history-audit/continuation-navigation-artifacts-locale-current"
+          ],
+          "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\frontend",
+          "startedAt": "2026-11-17T08:22:08.459Z",
+          "finishedAt": "2026-11-17T08:24:51.769Z",
+          "exitCode": 0,
+          "status": "passed",
+          "log": ".harness/evidence/2026-11-17-ops-history-audit/continuation-navigation-smoke-final-locale-current.log",
+          "errorCode": null
+        },
+        {
+          "name": "navigation-render-final-locale-current",
+          "executable": "D:\\nodejs\\node.exe",
+          "args": [
+            "--import=file:///D:/workspace/go/pantheon-platform/pantheon-ops/.local/manual-preview-20261116/hide-child-windows.mjs",
+            ".local/manual-preview-20261116/probe-navigation.mjs",
+            "after-history-continuation-final-locale-current",
+            "--all-business",
+            "--screenshots"
+          ],
+          "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+          "startedAt": "2026-11-17T08:24:51.772Z",
+          "finishedAt": "2026-11-17T08:27:06.401Z",
+          "exitCode": 1,
+          "status": "failed",
+          "log": ".harness/evidence/2026-11-17-ops-history-audit/continuation-navigation-render-final-locale-current.log",
+          "errorCode": null
+        }
+      ]
+    },
+    {
+      "file": ".harness/evidence/2026-11-17-ops-history-audit/continuation-navigation-locale-current-ready-verification.json",
+      "sha256": "399c90d0a6161b52abfd7399ecb726e060dac2be1eacda1cffcec6506270cf75",
+      "results": [
+        {
+          "name": "navigation-smoke-final-locale-current-ready",
+          "executable": "D:\\nodejs\\node.exe",
+          "args": [
+            "--import=file:///D:/workspace/go/pantheon-platform/pantheon-ops/.local/manual-preview-20261116/hide-child-windows.mjs",
+            "node_modules/@playwright/test/cli.js",
+            "test",
+            "tests/smoke/business/service/ServiceCatalog.nav.spec.ts",
+            "--config=playwright.config.ts",
+            "--reporter=line",
+            "--output=../.harness/evidence/2026-11-17-ops-history-audit/continuation-navigation-artifacts-locale-current-ready"
+          ],
+          "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\frontend",
+          "startedAt": "2026-11-17T08:31:13.534Z",
+          "finishedAt": "2026-11-17T08:33:16.836Z",
+          "exitCode": 1,
+          "status": "failed",
+          "log": ".harness/evidence/2026-11-17-ops-history-audit/continuation-navigation-smoke-final-locale-current-ready.log",
+          "errorCode": null
+        }
+      ]
+    },
+    {
+      "file": ".harness/evidence/2026-11-17-ops-history-audit/continuation-navigation-locale-current-title-verification.json",
+      "sha256": "9c03817eac4c68bfa13f5e41473075e616a3b046997018cd39b5f7db51f6463b",
+      "results": [
+        {
+          "name": "navigation-smoke-final-locale-current-title",
+          "executable": "D:\\nodejs\\node.exe",
+          "args": [
+            "--import=file:///D:/workspace/go/pantheon-platform/pantheon-ops/.local/manual-preview-20261116/hide-child-windows.mjs",
+            "node_modules/@playwright/test/cli.js",
+            "test",
+            "tests/smoke/business/service/ServiceCatalog.nav.spec.ts",
+            "--config=playwright.config.ts",
+            "--reporter=line",
+            "--output=../.harness/evidence/2026-11-17-ops-history-audit/continuation-navigation-artifacts-locale-current-title"
+          ],
+          "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\frontend",
+          "startedAt": "2026-11-17T08:35:36.704Z",
+          "finishedAt": "2026-11-17T08:38:03.106Z",
+          "exitCode": 0,
+          "status": "passed",
+          "log": ".harness/evidence/2026-11-17-ops-history-audit/continuation-navigation-smoke-final-locale-current-title.log",
+          "errorCode": null
+        },
+        {
+          "name": "navigation-render-final-locale-current-title",
+          "executable": "D:\\nodejs\\node.exe",
+          "args": [
+            "--import=file:///D:/workspace/go/pantheon-platform/pantheon-ops/.local/manual-preview-20261116/hide-child-windows.mjs",
+            ".local/manual-preview-20261116/probe-navigation.mjs",
+            "after-history-continuation-final-locale-current-title",
+            "--all-business",
+            "--screenshots"
+          ],
+          "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+          "startedAt": "2026-11-17T08:38:03.111Z",
+          "finishedAt": "2026-11-17T08:40:04.168Z",
+          "exitCode": 0,
+          "status": "passed",
+          "log": ".harness/evidence/2026-11-17-ops-history-audit/continuation-navigation-render-final-locale-current-title.log",
+          "errorCode": null
+        }
+      ]
+    }
+  ],
+  "render": ".harness/evidence/2026-11-16-ops-navigation-repair/after-history-continuation-final-locale-current-title",
+  "acceptance": [
+    {
+      "name": "business order and old ID retained",
+      "passed": true
+    },
+    {
+      "name": "all business parents and leaves show expected page",
+      "passed": true
+    },
+    {
+      "name": "sidebar applications",
+      "passed": true
+    },
+    {
+      "name": "sidebar services",
+      "passed": true
+    },
+    {
+      "name": "sidebar instances",
+      "passed": true
+    },
+    {
+      "name": "page tab applications",
+      "passed": true
+    },
+    {
+      "name": "page tab services",
+      "passed": true
+    },
+    {
+      "name": "page tab instances",
+      "passed": true
+    },
+    {
+      "name": "browser back services",
+      "passed": true
+    },
+    {
+      "name": "browser forward instances",
+      "passed": true
+    },
+    {
+      "name": "deep link and refresh applications",
+      "passed": true
+    },
+    {
+      "name": "deep link and refresh services",
+      "passed": true
+    },
+    {
+      "name": "deep link and refresh instances",
+      "passed": true
+    },
+    {
+      "name": "mobile catalog and navigation",
+      "passed": true
+    }
+  ],
+  "mobileDimensions": {
+    "viewport": 390,
+    "page": 390
+  },
+  "visualInspection": {
+    "viewports": [
+      "1440x900",
+      "390x844"
+    ],
+    "screenshots": [
+      "menu-177.png",
+      "catalog-instances-desktop.png",
+      "catalog-mobile.png",
+      "navigation-mobile.png"
+    ],
+    "evidence": "Root inspected actual screenshots: correct task title/breadcrumb/table, catalog empty state and mobile drawer; no observed overlap or page overflow.",
+    "gaps": [
+      "Restricted-role and live-provider states are outside this navigation run.",
+      "Broader C05/O1-O6 visual acceptance remains open."
+    ]
+  },
+  "boundary": "Binds current smoke spec to fresh official candidate and records local helper hashes; 1197-source equality remains a separate receipt. No project/final acceptance."
+}

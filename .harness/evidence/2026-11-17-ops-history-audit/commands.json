@@ -1,0 +1,418 @@
+{
+  "taskId": "2026-11-17-ops-history-audit",
+  "repo": "pantheon-ops",
+  "agent": {
+    "tool": "codex",
+    "adapter": "Codex native; bounded local Claude for low-risk tests"
+  },
+  "commands": [
+    {
+      "command": "node scripts/harness/check-task-packet.mjs --json",
+      "cwd": ".",
+      "status": "failed",
+      "notes": "Original baseline retained in .harness/evidence/2026-11-17-ops-history-audit/baseline-task.json"
+    },
+    {
+      "command": "node scripts/harness/check-evidence.mjs --json --strict",
+      "cwd": ".",
+      "status": "failed",
+      "notes": "Original baseline retained in .harness/evidence/2026-11-17-ops-history-audit/baseline-evidence.json"
+    },
+    {
+      "command": "node scripts/harness/check-review.mjs --json --strict",
+      "cwd": ".",
+      "status": "failed",
+      "notes": "Original baseline retained in .harness/evidence/2026-11-17-ops-history-audit/baseline-review.json"
+    },
+    {
+      "command": "node scripts/harness/check-doc-links.mjs --json --strict",
+      "cwd": ".",
+      "status": "failed",
+      "notes": "Original baseline retained in .harness/evidence/2026-11-17-ops-history-audit/baseline-links.json"
+    },
+    {
+      "command": "node scripts/frontmatter-check.mjs",
+      "cwd": ".",
+      "status": "passed",
+      "notes": "Original baseline retained in .harness/evidence/2026-11-17-ops-history-audit/baseline-frontmatter.log"
+    },
+    {
+      "command": "node scripts/check-task-packet-template.mjs",
+      "cwd": ".",
+      "status": "passed",
+      "notes": "Original baseline retained in .harness/evidence/2026-11-17-ops-history-audit/baseline-template.log"
+    },
+    {
+      "command": "node scripts/business-overlay/check-business-overlay.mjs",
+      "cwd": ".",
+      "status": "passed",
+      "notes": "Original baseline retained in .harness/evidence/2026-11-17-ops-history-audit/baseline-overlay.log"
+    },
+    {
+      "command": "node scripts/check-business-module-boundaries.mjs",
+      "cwd": ".",
+      "status": "passed",
+      "notes": "Original baseline retained in .harness/evidence/2026-11-17-ops-history-audit/baseline-boundaries.log"
+    },
+    {
+      "command": "node .harness/tasks/2026-11-17-ops-history-audit/close-history.mjs --apply",
+      "cwd": ".",
+      "status": "passed",
+      "notes": "Actual archived result: 16 new pairs and 2 preserved live duplicates; original evidence hashes preserved. See archive-result.json and archive-journal.jsonl."
+    },
+    {
+      "command": "node .harness/tasks/2026-11-17-ops-history-audit/verify-archive-recovery.mjs",
+      "cwd": ".",
+      "status": "passed",
+      "notes": "Three fault points and idempotent recovery verified in archive-recovery-verification.json."
+    },
+    {
+      "command": "node --test tests/scripts/quality-workflow.test.mjs tests/scripts/ci-workflow-dispatch.test.mjs",
+      "cwd": ".",
+      "status": "passed",
+      "notes": "14/14 passed; quality-sha-verification.log."
+    },
+    {
+      "command": "node --test tests/scripts/quality-workflow.test.mjs",
+      "cwd": ".",
+      "status": "failed",
+      "notes": "First Codex verification rejected the Claude claim: Git Bash resolution failed. Preserved in quality-tests-post-claude.log; fixed and rerun in the 14-test verification."
+    },
+    {
+      "command": "node --test tests/scripts/*.test.mjs (hidden child process preload)",
+      "cwd": ".",
+      "status": "passed",
+      "notes": "238/238; root-scripts-post-retirement.log."
+    },
+    {
+      "command": "node --test tests/scripts/business-overlay/*.test.mjs (hidden child process preload)",
+      "cwd": ".",
+      "status": "passed",
+      "notes": "59/59 after sandbox cache-write failure was rerun with escalation; overlay-post-retirement-escalated-tail.log. Initial failure retained in overlay-post-retirement.log."
+    },
+    {
+      "command": "node .harness/tasks/2026-11-17-ops-history-audit/close-history.mjs --relocate-preserved",
+      "cwd": ".",
+      "status": "passed",
+      "notes": "Two duplicate pairs relocated with original hashes preserved; relocation-apply.log and preserved-live-relocation.json."
+    },
+    {
+      "command": "node .harness/tasks/2026-11-17-ops-history-audit/verify-archive-recovery.mjs (relocation coverage)",
+      "cwd": ".",
+      "status": "passed",
+      "notes": "3 failure phases, resume/repeat and post-relocation archive apply passed; first archive result preserved. archive-relocation-recovery-verification.json."
+    },
+    {
+      "command": "Node REPL independent frozen second-batch preflight -> paired fs.rename -> SHA verification",
+      "cwd": ".",
+      "status": "passed",
+      "notes": "2026-06-18-pr-branch-cleanup-automation abandoned/superseded by two branch-hygiene successors; original evidence4 hashes, manifest/card backup and first-batch artifacts unchanged. second-batch-result.json."
+    },
+    {
+      "command": "node .harness/tasks/2026-11-17-ops-history-audit/run-governance.mjs post-second-batch (native windowsHide + file URL preload)",
+      "cwd": ".",
+      "status": "failed",
+      "notes": "Frontmatter/template/overlay/boundaries passed. Existing task549/evidence127/review91/links6 errors unchanged; zero new errors in second-batch-gate-comparison.json. First launch failed ERR_UNSUPPORTED_ESM_URL_SCHEME and is retained."
+    },
+    {
+      "command": "Native hidden Claude file read check, hooks disabled, Chrome disabled, maxTurns3",
+      "cwd": ".",
+      "status": "failed",
+      "notes": "Actual Read returned file contents, reached max-turns and exit1. hidden-hookless-read-check.status.json; no success substitution."
+    },
+    {
+      "command": "Native hidden Claude June21 five-file historical readback, hooks/Chrome disabled, default configured model/auth, maxTurns8",
+      "cwd": ".",
+      "status": "passed",
+      "notes": "exit0, 6 turns, 5 Read calls. claude-june21-closeout-readback.status.json; advisory only, no lifecycle verdict delegated."
+    },
+    {
+      "command": "go test -race -v ./modules/business/deploy -run TestDeployTaskVisibilityRespectsHostDataScope|TestDraftDeployTaskVisibilityRespectsResolvedTargets|TestDeployTaskDetailHandlerReturnsForbiddenAndNotFound|TestTaskCommandScopeAndContext|TestDeployRegisteredActionsDoNotGrantOtherEndpoints|TestDeployPackageDetailRemainsUnregisteredForView|TestDeployTaskCreateAndUpdateReturnTargetScopeCanonicalErrors|TestDeployTaskMutationHandlersReturnCanonicalScopeValidationErrors -count=1",
+      "cwd": "backend",
+      "status": "passed",
+      "notes": "Windows mingw PATH, CGO_ENABLED=1, required isolated test MySQL. 8 top-level tests passed. ../2026-11-16-ops-navigation-repair/go-race-june20-deploy.log."
+    },
+    {
+      "command": "go test -race -v ./modules/business/bizscope -run TestBizScopeDetailHostCountRespectsDataScope|TestBizScopeListRespectsDataScope|TestBizScopeCreateUsesCurrentDepartment|TestBizScopeBindHostsRespectsDataScope -count=1",
+      "cwd": "backend",
+      "status": "passed",
+      "notes": "Same Windows CGO/required isolated MySQL; four tests passed. ../2026-11-16-ops-navigation-repair/go-race-june20-bizscope.log."
+    },
+    {
+      "command": "go test -race -v ./modules/business/deploy -run TestTaskWritesRejectOutOfScopeWithoutMutation -count=1 (initial Self fixture)",
+      "cwd": "backend",
+      "status": "failed",
+      "notes": "Test fixture lacked host.created_by; no business regression claimed. Original log ../2026-11-16-ops-navigation-repair/go-race-june20-write-scope.log retained."
+    },
+    {
+      "command": "go test -race -v ./modules/business/deploy -run TestTaskWritesRejectOutOfScopeWithoutMutation -count=1 (corrected Dept999 fixture)",
+      "cwd": "backend",
+      "status": "passed",
+      "notes": "update/cancel/result all Forbidden and task/host/event state unchanged. Same Windows CGO/required isolated MySQL. ../2026-11-16-ops-navigation-repair/go-race-june20-write-scope-corrected.log."
+    },
+    {
+      "command": "gofmt -d backend/modules/business/deploy/task_write_scope_test.go",
+      "cwd": ".",
+      "status": "passed",
+      "notes": "No diff."
+    },
+    {
+      "command": "go test -race -v ./modules/business/deploy -run TestTaskWritesRejectOutOfScopeWithoutMutation -count=1 (valid previewFixture, Dept20 positive / Dept999 negative)",
+      "cwd": "backend",
+      "status": "passed",
+      "notes": "Actual final current fixture: update/cancel/result all pass positive & negative; snapshots include all host rows and event counts. Log ../2026-11-16-ops-navigation-repair/go-race-june20-write-scope-final.log. Earlier fixture REVIEW MEDIUM fixed; earlier passing log not reused as final acceptance."
+    },
+    {
+      "command": "go test -race -v ./modules/business/cmdb/host -run 'TestResolveCollect|TestResolveDefaultPort|TestEffectiveSSHPort|TestDifferentTenant|TestCollectDial|TestConfigChangeAffectsCollectReapplied|TestCreatePersistsConfiguredDefaultPort' -count=1",
+      "cwd": "backend",
+      "status": "passed",
+      "notes": "2026-11-17 Codex actual verification; Windows mingw PATH, CGO_ENABLED=1, required isolated MySQL; package ok 1.291s. ../2026-11-16-ops-navigation-repair/go-race-ssh-config-current.log. Stubs do not prove real tenant isolation; production reader/seed/live SSH remain open."
+    },
+    {
+      "command": "go test -race -count=1 -timeout=10m ./modules/business/deploy -v -run ^TestServiceRetireAdmissionCallerRepeatableReadSnapshot$",
+      "cwd": "backend",
+      "status": "failed",
+      "exitCode": 1,
+      "evidence": ".harness/evidence/2026-11-17-ops-history-audit/continuation-retire-caller-snapshot-red-20261118-01.log.receipt.json",
+      "notes": "CGO=1; disposable MySQL=true; GOFLAGS=-p=1 -mod=readonly; source unchanged=true. Actual failed and successful attempts retained separately."
+    },
+    {
+      "command": "go test -race -count=1 -timeout=10m ./modules/business/capability ./modules/business/service ./modules/business/deploy -v -run Test(ReadCommitted|ServiceRetire)",
+      "cwd": "backend",
+      "status": "failed",
+      "exitCode": 1,
+      "evidence": ".harness/evidence/2026-11-17-ops-history-audit/continuation-retire-isolation-core-green-20261118-01.log.receipt.json",
+      "notes": "CGO=1; disposable MySQL=true; GOFLAGS=-p=1 -mod=readonly; source unchanged=true. Actual failed and successful attempts retained separately."
+    },
+    {
+      "command": "go test -race -count=1 -timeout=10m ./modules/business/capability -v -run ^TestReadCommittedRejectsTypedNilBegin$",
+      "cwd": "backend",
+      "status": "passed",
+      "exitCode": 0,
+      "evidence": ".harness/evidence/2026-11-17-ops-history-audit/continuation-retire-isolation-typednil-red-20261118-01.log.receipt.json",
+      "notes": "CGO=1; disposable MySQL=true; GOFLAGS=-p=1 -mod=readonly; source unchanged=true. This file name contains red, but the actual test passed; no RED-to-GREEN claim."
+    },
+    {
+      "command": "go test -race -count=1 -timeout=10m ./modules/business/capability ./modules/business/service ./modules/business/deploy -v -run Test(ReadCommitted|ServiceRetire|ServiceTransaction|ServiceInstance|ServiceLink|ServiceReference|Service.*Delete|Delete.*Reference|DeploymentTransaction|DeploymentProjection|Retire)",
+      "cwd": "backend",
+      "status": "passed",
+      "exitCode": 0,
+      "evidence": ".harness/evidence/2026-11-17-ops-history-audit/continuation-retire-isolation-core-compat-green-20261118-02.log.receipt.json",
+      "notes": "CGO=1; disposable MySQL=true; GOFLAGS=-p=1 -mod=readonly; source unchanged=true. Actual failed and successful attempts retained separately."
+    },
+    {
+      "command": "go test -race -count=1 -timeout=10m ./...",
+      "cwd": "backend",
+      "status": "failed",
+      "exitCode": 1,
+      "evidence": ".harness/evidence/2026-11-17-ops-history-audit/continuation-retire-isolation-full-race-20261118-01.log.receipt.json",
+      "notes": "CGO=1; disposable MySQL=true; GOFLAGS=-p=2 -mod=readonly; source unchanged=true. Actual failed and successful attempts retained separately."
+    },
+    {
+      "command": "go test -race -count=1 -timeout=10m ./modules/business/service",
+      "cwd": "backend",
+      "status": "passed",
+      "exitCode": 0,
+      "evidence": ".harness/evidence/2026-11-17-ops-history-audit/continuation-retire-isolation-service-full-green-20261118-03.log.receipt.json",
+      "notes": "CGO=1; disposable MySQL=true; GOFLAGS=-p=1 -mod=readonly; source unchanged=true. Actual failed and successful attempts retained separately."
+    },
+    {
+      "command": "go test -race -count=1 -timeout=10m ./...",
+      "cwd": "backend",
+      "status": "passed",
+      "exitCode": 0,
+      "evidence": ".harness/evidence/2026-11-17-ops-history-audit/continuation-retire-isolation-full-race-20261118-02.log.receipt.json",
+      "notes": "CGO=1; disposable MySQL=true; GOFLAGS=-p=2 -mod=readonly; source unchanged=true. Actual failed and successful attempts retained separately."
+    },
+    {
+      "command": "go test -race -count=1 -timeout=10m ./...",
+      "cwd": "backend",
+      "status": "failed",
+      "exitCode": 1,
+      "evidence": ".harness/evidence/2026-11-17-ops-history-audit/continuation-retire-isolation-full-race-20261118-03.log.receipt.json",
+      "notes": "CGO=1; disposable MySQL=true; GOFLAGS=-p=2 -mod=readonly; source unchanged=true. Actual failed and successful attempts retained separately."
+    },
+    {
+      "command": "go test -race -count=1 -timeout=10m ./...",
+      "cwd": "backend",
+      "status": "passed",
+      "exitCode": 0,
+      "evidence": ".harness/evidence/2026-11-17-ops-history-audit/continuation-retire-isolation-full-race-20261118-04.log.receipt.json",
+      "notes": "CGO=1; disposable MySQL=true; GOFLAGS=-p=2 -mod=readonly; source unchanged=true. Actual failed and successful attempts retained separately."
+    },
+    {
+      "command": "node .local/manual-preview-20261116/resume-history-governance-20261119.mjs",
+      "cwd": ".",
+      "status": "passed",
+      "exitCode": 0,
+      "notes": "Current 1242 candidate,1249 frontend quality and748 backend race hashes rechecked; product tests reused from recorded receipts."
+    },
+    {
+      "command": "node .local/manual-preview-20261116/update-final-governance-checkpoint-20261118.mjs",
+      "cwd": ".",
+      "status": "passed",
+      "exitCode": 0,
+      "evidence": ".harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-progress-final-20261118.json",
+      "notes": "58 raw originals preserved;59 governance files updated."
+    },
+    {
+      "command": "node .local/manual-preview-20261116/recover-history-archive-bytes-20261119.mjs",
+      "cwd": ".",
+      "status": "passed",
+      "exitCode": 0,
+      "evidence": ".harness/evidence/2026-11-17-ops-history-audit/continuation-history-closeout-20261119-archive-recovery.json"
+    },
+    {
+      "command": "node .local/manual-preview-20261116/verify-history-archive-closeout-20261119.mjs final continuation-history-closeout-20261119-verified",
+      "cwd": ".",
+      "status": "passed",
+      "exitCode": 0,
+      "evidence": ".harness/evidence/2026-11-17-ops-history-audit/continuation-history-closeout-20261119-archive-integrity-final.json"
+    },
+    {
+      "command": "node .local/manual-preview-20261116/verify-ten-package-governance-20261118.mjs final verified-20261119",
+      "cwd": ".",
+      "status": "passed",
+      "exitCode": 0,
+      "evidence": ".harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-document-validation-final-verified-20261119-20261118.json"
+    },
+    {
+      "command": "node --import ./.local/manual-preview-20261116/hide-child-windows.mjs --test tests/scripts/task-manifest-archive.test.mjs tests/scripts/harness-check-doc-links-archive.test.mjs",
+      "cwd": ".",
+      "status": "passed",
+      "exitCode": 0,
+      "notes": "Actual tool transcript f014b2,15 tests passed,0 skipped,323.1566ms. No file log was produced."
+    },
+    {
+      "command": "node scripts/harness/check-task-packet.mjs --json",
+      "cwd": ".",
+      "status": "failed",
+      "exitCode": 1,
+      "evidence": ".harness/evidence/2026-11-17-ops-history-audit/continuation-history-closeout-20261119-verified-task.json",
+      "startedAt": "2026-11-19T00:21:34.071Z",
+      "finishedAt": "2026-11-19T00:21:34.475Z"
+    },
+    {
+      "command": "node scripts/harness/check-evidence.mjs --json --strict",
+      "cwd": ".",
+      "status": "failed",
+      "exitCode": 1,
+      "evidence": ".harness/evidence/2026-11-17-ops-history-audit/continuation-history-closeout-20261119-verified-evidence.json",
+      "startedAt": "2026-11-19T00:21:34.479Z",
+      "finishedAt": "2026-11-19T00:21:36.200Z"
+    },
+    {
+      "command": "node scripts/harness/check-review.mjs --json --strict",
+      "cwd": ".",
+      "status": "failed",
+      "exitCode": 1,
+      "evidence": ".harness/evidence/2026-11-17-ops-history-audit/continuation-history-closeout-20261119-verified-review.json",
+      "startedAt": "2026-11-19T00:21:36.201Z",
+      "finishedAt": "2026-11-19T00:21:37.072Z"
+    },
+    {
+      "command": "node scripts/harness/check-doc-links.mjs --json --strict",
+      "cwd": ".",
+      "status": "failed",
+      "exitCode": 1,
+      "evidence": ".harness/evidence/2026-11-17-ops-history-audit/continuation-history-closeout-20261119-verified-links.json",
+      "startedAt": "2026-11-19T00:21:37.073Z",
+      "finishedAt": "2026-11-19T00:21:37.728Z"
+    },
+    {
+      "command": "node scripts/frontmatter-check.mjs",
+      "cwd": ".",
+      "status": "passed",
+      "exitCode": 0,
+      "evidence": ".harness/evidence/2026-11-17-ops-history-audit/continuation-history-closeout-20261119-verified-frontmatter.log",
+      "startedAt": "2026-11-19T00:21:37.728Z",
+      "finishedAt": "2026-11-19T00:21:38.118Z"
+    },
+    {
+      "command": "node scripts/check-task-packet-template.mjs",
+      "cwd": ".",
+      "status": "passed",
+      "exitCode": 0,
+      "evidence": ".harness/evidence/2026-11-17-ops-history-audit/continuation-history-closeout-20261119-verified-template.log",
+      "startedAt": "2026-11-19T00:21:38.118Z",
+      "finishedAt": "2026-11-19T00:21:38.264Z"
+    },
+    {
+      "command": "node scripts/business-overlay/check-business-overlay.mjs",
+      "cwd": ".",
+      "status": "passed",
+      "exitCode": 0,
+      "evidence": ".harness/evidence/2026-11-17-ops-history-audit/continuation-history-closeout-20261119-verified-overlay.log",
+      "startedAt": "2026-11-19T00:21:38.264Z",
+      "finishedAt": "2026-11-19T00:21:38.547Z"
+    },
+    {
+      "command": "node scripts/check-business-module-boundaries.mjs",
+      "cwd": ".",
+      "status": "passed",
+      "exitCode": 0,
+      "evidence": ".harness/evidence/2026-11-17-ops-history-audit/continuation-history-closeout-20261119-verified-boundaries.log",
+      "startedAt": "2026-11-19T00:21:38.547Z",
+      "finishedAt": "2026-11-19T00:21:38.672Z"
+    },
+    {
+      "command": "git diff --check -- .harness/archive",
+      "cwd": ".",
+      "status": "failed",
+      "exitCode": 1,
+      "notes": "Actual tool transcript44417c. Two original blank-line-at-EOF findings in ops-service-instance-foundation/review.md:11 and summary.md:37. Exact recovered historical SHA retained."
+    },
+    {
+      "command": "node .local/manual-preview-20261116/verify-archive-formatter-protection-20261119.mjs",
+      "cwd": ".",
+      "status": "passed",
+      "exitCode": 0,
+      "evidence": ".harness/evidence/2026-11-17-ops-history-audit/continuation-history-formatter-20261119-recovered-nine.json",
+      "notes": "Only an isolated fixture uses the Base ignore; all nine current Ops originals and official lock unchanged."
+    }
+  ],
+  "knownGaps": [
+    "10个业务执行包的原范围验收未完成，状态为9进行中、C02planned。",
+    "真实provider/受限角色、安装升级失败恢复回滚和维护者终验仍开放；上游正式SSH/授权contract与生产签署责任保留。",
+    "全仓治理仍task547/evidence129/review91/links6四红，最终逐条delta零新增/零移除。",
+    "恢复原字节后，两个历史文件的末尾空行导致archive范围git diff --check失败；原SHA与差异字节保全均已核验。",
+    "Base归档格式化保护已实现且2回归/9原件fixture通过，独立COMMENT/CLEAR；Ops v0.18.9尚未正式消费，当前默认格式化仍无归档保护。"
+  ],
+  "linkage": {
+    "taskManifest": ".harness/tasks/2026-11-17-ops-history-audit/manifest.json",
+    "evidenceDir": ".harness/evidence/2026-11-17-ops-history-audit/",
+    "reviewFile": ".harness/evidence/2026-11-17-ops-history-audit/review.md",
+    "changeRef": "none",
+    "planRefs": [
+      ".harness/tasks/2026-11-17-ops-history-audit/brief.md",
+      ".harness/tasks/2026-11-16-ops-pilot-delivery/plan.md"
+    ]
+  },
+  "continuationCheckpoint": {
+    "at": "2026-11-19T00:25:54.846Z",
+    "binding": ".harness/evidence/2026-11-17-ops-history-audit/continuation-retire-shared-transaction-final-closeout-20261118.json",
+    "readiness": ".harness/evidence/2026-11-17-ops-history-audit/continuation-retire-shared-transaction-final-readiness-20261118.json",
+    "fullBackendRaceExitCode": 0,
+    "aggregateApproved": false,
+    "latestReceipt": ".harness/evidence/2026-11-17-ops-history-audit/continuation-history-closeout-20261119-closeout.json",
+    "archiveIntegrityPassed": true,
+    "independentReview": ".harness/evidence/2026-11-17-ops-history-audit/continuation-history-closeout-20261119-independent-review.json",
+    "originalAcceptanceIncomplete": true
+  },
+  "historicalKnownGapsBeforeArchiveContinuation": [
+    "All 85 historical objects classified; 26 keep-open and 26 upstream-owned entries retain successor/owner gaps. All 10 C/E execution packages remain unfinished.",
+    "Whole C01 queue/host, real role/provider/runtime and final maintainer acceptance remain open.",
+    "Full repository governance remains red; delta is not a waiver.",
+    "Transient CMD source and production/upstream/external acceptance remain open."
+  ],
+  "historicalFormatterKnownGap": "Prettier只读格式化复现全部9个归档差异SHA；root lint-staged仍匹配**/*.md。该共享格式化接线问题应由Base-first处理并正式消费，本轮保留这一后续事项。",
+  "formatterFollowup": {
+    "recordedAtUTC": "2026-11-19T00:47:51.965Z",
+    "receipt": ".harness/evidence/2026-11-17-ops-history-audit/continuation-history-formatter-20261119-followup.json",
+    "baseTaskId": "2026-11-19-archive-formatter-protection",
+    "codeRecommendation": "COMMENT",
+    "architectureStatus": "CLEAR",
+    "defaultOpsProtection": false,
+    "downstreamAdopted": false
+  }
+}

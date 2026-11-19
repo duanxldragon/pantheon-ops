@@ -1,0 +1,31 @@
+{
+  "at": "2026-11-17T14:06:53.336Z",
+  "task": "2026-11-16-ops-service-catalog-usability",
+  "originalAcceptanceRetained": true,
+  "originals": [
+    {
+      "file": ".harness/tasks/2026-11-16-ops-service-catalog-usability/manifest.json",
+      "backup": ".harness/evidence/2026-11-17-ops-history-audit/continuation-c03-contract-originals/.harness/tasks/2026-11-16-ops-service-catalog-usability/manifest.json.raw",
+      "beforeSHA256": "e7ea001e60b05baa3be236e939ee2f6bf499724d03d67a9b4d9b38b6414b1d0a",
+      "afterSHA256": "6a546d2cadadda33b556d4ae281b7671a4be2e4c7ce9169a92ad81ff527ed702"
+    },
+    {
+      "file": "docs/harness/tasks/2026-11-16-ops-service-catalog-usability.task.md",
+      "backup": ".harness/evidence/2026-11-17-ops-history-audit/continuation-c03-contract-originals/docs/harness/tasks/2026-11-16-ops-service-catalog-usability.task.md.raw",
+      "beforeSHA256": "098d2952f5c19ea3eb9de5a7d8b2901906cebb08dcf1ee067e1e7b69760fc15c",
+      "afterSHA256": "d2fe43337a8f555214d8e2bb168d6642e5088521ac1ecaea9241324412dc2472"
+    },
+    {
+      "file": "docs/designs/BUSINESS_ERROR_SEMANTICS_APPENDIX.md",
+      "backup": ".harness/evidence/2026-11-17-ops-history-audit/continuation-c03-contract-originals/docs/designs/BUSINESS_ERROR_SEMANTICS_APPENDIX.md.raw",
+      "beforeSHA256": "fb0a8a6f5602b47d121597860875be8558faae919e7d9afa08f5335efab03827",
+      "afterSHA256": "e7f6da5861eeb2aabd2167c3f4a3062e5e90ab920d767b879dcfb7bae623345b"
+    },
+    {
+      "file": ".harness/tasks/2026-11-16-ops-pilot-delivery/EXECUTION_QUEUE.md",
+      "backup": ".harness/evidence/2026-11-17-ops-history-audit/continuation-c03-contract-originals/.harness/tasks/2026-11-16-ops-pilot-delivery/EXECUTION_QUEUE.md.raw",
+      "beforeSHA256": "c539e339819ad5176ec8bad16e8d2abb00fb5d55c59902ba4f4354b721e16df1",
+      "afterSHA256": "3206c1706f9355989fd26e5420143c33c2f4ef1ae6923628bd277249bb5e983b"
+    }
+  ]
+}

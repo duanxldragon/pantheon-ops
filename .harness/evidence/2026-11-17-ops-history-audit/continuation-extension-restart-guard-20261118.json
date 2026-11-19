@@ -1,0 +1,138 @@
+{
+  "recordedAt": "2026-11-18T08:07:59.9044352Z",
+  "implementer": "/root/extension_startup_integration",
+  "parentTask": "2026-11-17-ops-history-audit",
+  "plan": ".harness/tasks/2026-11-17-ops-history-audit/continuation-extension-restart-guard-plan-20261118.md",
+  "guard": {
+    "path": ".local/manual-preview-20261116/check-preview-restart-safety.go",
+    "sha256": "5e951909403bb0090026891ad2118fcc3cc9636bba8a98683bd8268ffd661700",
+    "sourceFrozen": true
+  },
+  "before": {
+    "path": ".harness/evidence/2026-11-17-ops-history-audit/continuation-extension-restart-guard-before-20261118.go.raw",
+    "sha256": "194512a7c8cf2a2c8f86868da0535cd3d91be4dcaba959f9cf3cd7126114be1a",
+    "untouched": true
+  },
+  "sourceReferences": [
+    {
+      "path": "backend/modules/business/filedist/distribution_model.go",
+      "sha256": "7bffb82d45d290e1ec6682f4b973f61ace7a73e72a35ece15f29cd95c1e45011"
+    },
+    {
+      "path": "backend/modules/business/filedist/distribution_lifecycle.go",
+      "sha256": "117f645a8946edaf7f756ceba4f47e75aeefd45f10c013a766910a4ce56bf7e7"
+    },
+    {
+      "path": "backend/modules/business/cicd/argocd/argocd_model.go",
+      "sha256": "cb6d986924dd6c2fab6434d140d7c3052c8d1d6ed8c2ecf82ebe37e0080bf1fe"
+    },
+    {
+      "path": "backend/modules/business/cicd/argocd/argocd_observation.go",
+      "sha256": "58631d58f4d2e9815c8a110a7e90beafe1ad4ce65154db5d116f068a28228632"
+    },
+    {
+      "path": "backend/modules/business/cicd/argocd/argocd_reconciler.go",
+      "sha256": "99b8c2c16179f45100b2b094ce3e5c4caf0b472239237e3c142c3460a04fb920"
+    }
+  ],
+  "queries": [
+    {
+      "name": "executingTasks",
+      "sql": "SELECT COUNT(*) FROM biz_deploy_task WHERE deleted_at IS NULL AND status IN ('running','pause_requested','paused','cancel_requested')"
+    },
+    {
+      "name": "runningAttempts",
+      "sql": "SELECT COUNT(*) FROM biz_deploy_task_attempt WHERE status = 'running'"
+    },
+    {
+      "name": "hostLeases",
+      "sql": "SELECT COUNT(*) FROM biz_deploy_host_lease"
+    },
+    {
+      "name": "unfinishedFileDistTasks",
+      "sql": "SELECT COUNT(*) FROM filedist_task WHERE status IS NULL OR status NOT IN ('completed','failed','cancelled')"
+    },
+    {
+      "name": "unfinishedFileDistTargets",
+      "sql": "SELECT COUNT(*) FROM filedist_target WHERE status IS NULL OR status NOT IN ('completed','failed','cancelled')"
+    },
+    {
+      "name": "runningArgoSyncHistories",
+      "sql": "SELECT COUNT(*) FROM biz_argocd_sync_history WHERE status = 'Running' AND finished_at IS NULL"
+    }
+  ],
+  "verification": {
+    "kind": "static source inspection only",
+    "assertions": [
+      {
+        "name": "preserved_before_bytes_hash",
+        "passed": true
+      },
+      {
+        "name": "only_declared_guard_changes",
+        "passed": true
+      },
+      {
+        "name": "six_count_queries",
+        "passed": true
+      },
+      {
+        "name": "original_deploy_checks_preserved",
+        "passed": true
+      },
+      {
+        "name": "filedist_tasks_conservative_without_parent_or_due_filter",
+        "passed": true
+      },
+      {
+        "name": "filedist_targets_independent_conservative",
+        "passed": true
+      },
+      {
+        "name": "argocd_running_unfinished_exact_status",
+        "passed": true
+      },
+      {
+        "name": "local_endpoint_allowlist_preserved",
+        "passed": true
+      },
+      {
+        "name": "ten_second_context_preserved",
+        "passed": true
+      },
+      {
+        "name": "readonly_repeatable_read_preserved",
+        "passed": true
+      },
+      {
+        "name": "all_zero_decision_preserved",
+        "passed": true
+      },
+      {
+        "name": "sanitized_query_refusal_preserved",
+        "passed": true
+      },
+      {
+        "name": "point_in_time_competition_boundary_recorded",
+        "passed": true
+      }
+    ],
+    "allPassed": true,
+    "formatting": {
+      "command": "gofmt -d .local/manual-preview-20261116/check-preview-restart-safety.go",
+      "exitCode": 0,
+      "output": "",
+      "toolChunk": "2b2f08"
+    },
+    "goExecution": "not run in this lane; root owns after full backend race",
+    "realMySQL": "not queried in this lane",
+    "restart": "not performed in this lane"
+  },
+  "limitations": [
+    "Point-in-time read-only snapshot; does not prevent request/scheduler/Start races between check and restart.",
+    "Soft-deleted unfinished FileDist rows deliberately block; no automated reconciliation or mutation.",
+    "Missing or unreadable tables refuse restart with a sanitized query label.",
+    "Does not establish process-level graceful join, production authorization, remote rollback or fencing.",
+    "No work-package completion decision made."
+  ]
+}

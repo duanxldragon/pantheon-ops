@@ -1,0 +1,20 @@
+{
+  "extends": "../../../frontend/tsconfig.app.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "strict": true,
+    "skipLibCheck": true,
+    "allowJs": true,
+    "checkJs": false,
+    "types": ["node"],
+    "typeRoots": ["../../../frontend/node_modules/@types"],
+    "paths": {
+      "@/*": ["../../../frontend/src/*"]
+    }
+  },
+  "include": [
+    "../../../frontend/tests/smoke/business/service/service-pages.spec.ts",
+    "../../../frontend/src/vite-env.d.ts"
+  ],
+  "exclude": []
+}

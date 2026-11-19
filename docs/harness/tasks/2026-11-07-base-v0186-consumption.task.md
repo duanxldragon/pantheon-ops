@@ -5,7 +5,7 @@ layer: platform
 linked_contracts:
   - docs/contracts/PLATFORM_CONTRACT.md
 status: Archived
-updated_at: 2026-11-07
+updated_at: 2026-11-17
 ---
 
 # Task Packet: 2026-11-07-base-v0186-consumption
@@ -158,3 +158,11 @@ business/*
 ## Archive Closeout 2026-11-16
 
 原范围已完成，manifest 与 evidence 成对迁至 .harness/archive/2026-11/；原 canonical 地址由 archive-aware resolver 解析。历史运行/审查证据不改写。后续业务 gap 见 .harness/tasks/2026-11-16-ops-pilot-delivery/plan.md；本次归档不表示当前试点/生产验收完成。
+
+## Result — History Closeout 2026-11-17
+
+Manifest disposition: completed
+
+原范围完成且已归档；相同live副本成对保存于本审计evidence，既有archive不覆盖。
+
+Residual finding/owner/successor/proof: .harness/evidence/2026-11-17-ops-history-audit/dispositions.json. Canonical references remain archive-aware. Historical body/evidence retained. Current candidate, production and maintainer gates remain separate.

@@ -1,0 +1,53 @@
+[
+  {
+    "name": "frontend-lint-final-c04-ui-locale-refreshed",
+    "executable": "D:\\nodejs\\node.exe",
+    "args": [
+      "--import=file:///D:/workspace/go/pantheon-platform/pantheon-ops/.local/manual-preview-20261116/hide-child-windows.mjs",
+      "D:/nodejs/node_modules/npm/bin/npm-cli.js",
+      "run",
+      "lint"
+    ],
+    "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\frontend",
+    "startedAt": "2026-11-17T16:37:49.205Z",
+    "finishedAt": "2026-11-17T16:38:53.350Z",
+    "exitCode": 0,
+    "status": "passed",
+    "log": ".harness/evidence/2026-11-17-ops-history-audit/continuation-frontend-lint-final-c04-ui-locale-refreshed.log",
+    "errorCode": null
+  },
+  {
+    "name": "frontend-typecheck-final-c04-ui-locale-refreshed",
+    "executable": "D:\\nodejs\\node.exe",
+    "args": [
+      "--import=file:///D:/workspace/go/pantheon-platform/pantheon-ops/.local/manual-preview-20261116/hide-child-windows.mjs",
+      "D:/nodejs/node_modules/npm/bin/npm-cli.js",
+      "run",
+      "type-check"
+    ],
+    "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\frontend",
+    "startedAt": "2026-11-17T16:38:53.354Z",
+    "finishedAt": "2026-11-17T16:39:27.160Z",
+    "exitCode": 0,
+    "status": "passed",
+    "log": ".harness/evidence/2026-11-17-ops-history-audit/continuation-frontend-typecheck-final-c04-ui-locale-refreshed.log",
+    "errorCode": null
+  },
+  {
+    "name": "frontend-build-final-c04-ui-locale-refreshed",
+    "executable": "D:\\nodejs\\node.exe",
+    "args": [
+      "--import=file:///D:/workspace/go/pantheon-platform/pantheon-ops/.local/manual-preview-20261116/hide-child-windows.mjs",
+      "D:/nodejs/node_modules/npm/bin/npm-cli.js",
+      "run",
+      "build"
+    ],
+    "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\frontend",
+    "startedAt": "2026-11-17T16:39:27.160Z",
+    "finishedAt": "2026-11-17T16:39:31.096Z",
+    "exitCode": 1,
+    "status": "failed",
+    "log": ".harness/evidence/2026-11-17-ops-history-audit/continuation-frontend-build-final-c04-ui-locale-refreshed.log",
+    "errorCode": null
+  }
+]

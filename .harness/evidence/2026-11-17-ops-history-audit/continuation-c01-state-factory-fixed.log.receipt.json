@@ -1,0 +1,21 @@
+{
+  "finishedAt": "2026-11-17T12:53:45.3704785Z",
+  "disposableMySQL": true,
+  "startedAt": "2026-11-17T12:53:13.4508622Z",
+  "args": [
+    "test",
+    "-race",
+    "-count=1",
+    "-timeout=10m",
+    "./modules/business/deploy",
+    "-v",
+    "-run",
+    "^TestServiceLinkControlSupersededCancelRequiresStateFactory|^TestServiceLinkControlSupersededCancellation|^TestServiceLinkControlCancellationDoes"
+  ],
+  "cgoEnabled": "1",
+  "log": "continuation-c01-state-factory-fixed.log",
+  "testDsnRequired": "1",
+  "goFlags": "-p=1 -mod=readonly",
+  "exitCode": 0,
+  "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\backend"
+}

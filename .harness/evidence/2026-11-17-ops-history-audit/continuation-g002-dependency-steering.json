@@ -1,0 +1,9 @@
+{
+  "kind": "mark_blocked_superseded",
+  "source": "finding",
+  "targetGoalIds": ["G002-ssh"],
+  "blockedReason": "Official settings supplier/seed release consumption and real tenant/live SSH, hosted exact-candidate merge validation and the original full workbench acceptance remain unavailable under the preserved lock and operation constraints.",
+  "evidence": ".harness/evidence/2026-11-17-ops-history-audit/continuation-g002-dependency-handoff.md",
+  "rationale": "G002 local verification is complete but original dependency acceptance remains unresolved. C01 has no dependency and can proceed independently; retain G002 unfinished so aggregate completion remains gated.",
+  "idempotencyKey": "continuation-g002-dependency-handoff-20261117"
+}

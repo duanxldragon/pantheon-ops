@@ -1,0 +1,21 @@
+{
+  "disposableMySQL": true,
+  "args": [
+    "test",
+    "-race",
+    "-count=1",
+    "-timeout=10m",
+    "./modules/business/deploy",
+    "-v",
+    "-run",
+    "^TestDeployTaskRoutesServiceInstanceStateThroughTypedCommand$|^TestControlTransitionsRecordEvents$"
+  ],
+  "cgoEnabled": "1",
+  "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\backend",
+  "finishedAt": "2026-11-17T13:46:40.0732144Z",
+  "testDsnRequired": "1",
+  "exitCode": 1,
+  "log": "continuation-c01-full-failures-red.log",
+  "startedAt": "2026-11-17T13:46:29.5133889Z",
+  "goFlags": "-p=1 -mod=readonly"
+}

@@ -1,0 +1,41 @@
+{
+  "schema": "pantheon-generated-business-i18n-sync-verification/v1",
+  "observedAtUTC": "2026-11-18T08:19:33.3816447Z",
+  "synchronizationReceipt": "continuation-ten-packages-generated-business-i18n-sync-20261118-01.json",
+  "synchronizationReceiptSHA256": "685835a7cce622f0624e464fb78b32db999f1cc15697e89f8da9ce6caa4522b9",
+  "originalByteBackups": "continuation-ten-packages-generated-business-i18n-backup-20261118-01/",
+  "copiedOutputCount": 5,
+  "sourceFrozen": true,
+  "verification": [
+    {
+      "command": "node --import ./.local/manual-preview-20261116/hide-child-windows.mjs .local/manual-preview-20261116/verify-candidate-sources.mjs ten-packages-20261118",
+      "cwd": "pantheon-ops",
+      "exitCode": 0,
+      "output": "{\"passed\":true,\"sourceCount\":1242,\"sourceSetSHA256\":\"b476392234f55b4b5f157f68bb33eaeab7a69751d3fb299f1faa855859e8b21a\",\"candidate\":\"D:\\\\workspace\\\\go\\\\pantheon-platform\\\\pantheon-ops\\\\.local\\\\manual-preview-20261116\\\\overlay-history-continuation-final-ten-packages-20261118\"}\n",
+      "sourceCount": 1242,
+      "sourceSetSHA256": "b476392234f55b4b5f157f68bb33eaeab7a69751d3fb299f1faa855859e8b21a",
+      "evidence": "continuation-ten-packages-20261118-source-equivalence.json",
+      "evidenceSHA256": "bca761f819d8b827beeac03351583bd99d694d4456b89822adabfdbb4470d4c2"
+    },
+    {
+      "check": "Compare report/current/staged/backup SHA256",
+      "exitCode": 0,
+      "output": "{\r\n  \"result\": \"PASS\",\r\n  \"currentStagedReportHashesMatch\": 5,\r\n  \"originalByteBackupsMatch\": 5,\r\n  \"candidateSourceCount\": 1242,\r\n  \"candidateSourceSetSHA256\": \"b476392234f55b4b5f157f68bb33eaeab7a69751d3fb299f1faa855859e8b21a\",\r\n  \"candidateProofSHA256\": \"bca761f819d8b827beeac03351583bd99d694d4456b89822adabfdbb4470d4c2\",\r\n  \"syncReceiptSHA256\": \"685835a7cce622f0624e464fb78b32db999f1cc15697e89f8da9ce6caa4522b9\",\r\n  \"observedAtUTC\": \"2026-11-18T08:19:33.3816447Z\"\r\n}\r\n",
+      "reportStagedCurrentMatches": 5,
+      "originalByteBackupMatches": 5
+    },
+    {
+      "command": "git diff --check -- frontend/src/i18n/resources/business/en-US.ts frontend/src/i18n/resources/business/zh-CN.ts frontend/src/i18n/resources/business/fr-FR.ts frontend/src/i18n/resources/business/ja-JP.ts frontend/src/i18n/resources/business/ko-KR.ts",
+      "cwd": "pantheon-ops",
+      "exitCode": 0,
+      "output": ""
+    }
+  ],
+  "boundary": "Only five report-generated business language output files copied from the formal locked-release staged reconstruction. Full frontend lint/type/build/canonical tests, runtime/provider and rendered acceptance remain coordinator-owned.",
+  "generatorChanged": false,
+  "checkerChanged": false,
+  "baseMainCopied": false,
+  "wholeTreeCopied": false,
+  "visualEvidenceProduced": false,
+  "visualPolishClaimed": false
+}

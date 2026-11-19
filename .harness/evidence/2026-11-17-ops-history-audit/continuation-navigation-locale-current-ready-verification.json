@@ -1,0 +1,22 @@
+[
+  {
+    "name": "navigation-smoke-final-locale-current-ready",
+    "executable": "D:\\nodejs\\node.exe",
+    "args": [
+      "--import=file:///D:/workspace/go/pantheon-platform/pantheon-ops/.local/manual-preview-20261116/hide-child-windows.mjs",
+      "node_modules/@playwright/test/cli.js",
+      "test",
+      "tests/smoke/business/service/ServiceCatalog.nav.spec.ts",
+      "--config=playwright.config.ts",
+      "--reporter=line",
+      "--output=../.harness/evidence/2026-11-17-ops-history-audit/continuation-navigation-artifacts-locale-current-ready"
+    ],
+    "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\frontend",
+    "startedAt": "2026-11-17T08:31:13.534Z",
+    "finishedAt": "2026-11-17T08:33:16.836Z",
+    "exitCode": 1,
+    "status": "failed",
+    "log": ".harness/evidence/2026-11-17-ops-history-audit/continuation-navigation-smoke-final-locale-current-ready.log",
+    "errorCode": null
+  }
+]

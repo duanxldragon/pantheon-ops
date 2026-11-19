@@ -1,0 +1,21 @@
+{
+  "args": [
+    "test",
+    "-race",
+    "-count=1",
+    "-timeout=10m",
+    "./modules/business/deploy",
+    "-v",
+    "-run",
+    "^TestServiceLinkAdmission"
+  ],
+  "log": "continuation-c01-service-link-replay-fixed.log",
+  "finishedAt": "2026-11-17T11:36:04.0501821Z",
+  "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\backend",
+  "cgoEnabled": "1",
+  "goFlags": "-p=1 -mod=readonly",
+  "startedAt": "2026-11-17T11:34:33.4364385Z",
+  "testDsnRequired": "1",
+  "exitCode": 0,
+  "disposableMySQL": true
+}

@@ -1,0 +1,8 @@
+{
+  "purpose": "Task-owned disposable observability test Redis; no production DB or persistence",
+  "directory": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\manual-preview-20261116\\continuation-redis",
+  "created": "2026-11-17T06:28:29.9823185Z",
+  "port": 26316,
+  "executable": "D:\\Redis\\redis-server.exe",
+  "processId": 29520
+}

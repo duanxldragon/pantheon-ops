@@ -1,0 +1,121 @@
+[
+  {
+    "name": "task",
+    "executable": "D:\\nodejs\\node.exe",
+    "args": [
+      "scripts/harness/check-task-packet.mjs",
+      "--json"
+    ],
+    "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+    "startedAt": "2026-11-19T00:48:16.753Z",
+    "finishedAt": "2026-11-19T00:48:17.023Z",
+    "exitCode": 1,
+    "status": "failed",
+    "evidence": ".harness/evidence/2026-11-17-ops-history-audit/continuation-history-formatter-20261119-final-task.json",
+    "errorCode": null
+  },
+  {
+    "name": "evidence",
+    "executable": "D:\\nodejs\\node.exe",
+    "args": [
+      "scripts/harness/check-evidence.mjs",
+      "--json",
+      "--strict"
+    ],
+    "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+    "startedAt": "2026-11-19T00:48:17.023Z",
+    "finishedAt": "2026-11-19T00:48:18.373Z",
+    "exitCode": 1,
+    "status": "failed",
+    "evidence": ".harness/evidence/2026-11-17-ops-history-audit/continuation-history-formatter-20261119-final-evidence.json",
+    "errorCode": null
+  },
+  {
+    "name": "review",
+    "executable": "D:\\nodejs\\node.exe",
+    "args": [
+      "scripts/harness/check-review.mjs",
+      "--json",
+      "--strict"
+    ],
+    "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+    "startedAt": "2026-11-19T00:48:18.374Z",
+    "finishedAt": "2026-11-19T00:48:19.280Z",
+    "exitCode": 1,
+    "status": "failed",
+    "evidence": ".harness/evidence/2026-11-17-ops-history-audit/continuation-history-formatter-20261119-final-review.json",
+    "errorCode": null
+  },
+  {
+    "name": "links",
+    "executable": "D:\\nodejs\\node.exe",
+    "args": [
+      "scripts/harness/check-doc-links.mjs",
+      "--json",
+      "--strict"
+    ],
+    "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+    "startedAt": "2026-11-19T00:48:19.280Z",
+    "finishedAt": "2026-11-19T00:48:19.534Z",
+    "exitCode": 1,
+    "status": "failed",
+    "evidence": ".harness/evidence/2026-11-17-ops-history-audit/continuation-history-formatter-20261119-final-links.json",
+    "errorCode": null
+  },
+  {
+    "name": "frontmatter",
+    "executable": "D:\\nodejs\\node.exe",
+    "args": [
+      "scripts/frontmatter-check.mjs"
+    ],
+    "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+    "startedAt": "2026-11-19T00:48:19.535Z",
+    "finishedAt": "2026-11-19T00:48:19.828Z",
+    "exitCode": 0,
+    "status": "passed",
+    "evidence": ".harness/evidence/2026-11-17-ops-history-audit/continuation-history-formatter-20261119-final-frontmatter.log",
+    "errorCode": null
+  },
+  {
+    "name": "template",
+    "executable": "D:\\nodejs\\node.exe",
+    "args": [
+      "scripts/check-task-packet-template.mjs"
+    ],
+    "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+    "startedAt": "2026-11-19T00:48:19.828Z",
+    "finishedAt": "2026-11-19T00:48:19.905Z",
+    "exitCode": 0,
+    "status": "passed",
+    "evidence": ".harness/evidence/2026-11-17-ops-history-audit/continuation-history-formatter-20261119-final-template.log",
+    "errorCode": null
+  },
+  {
+    "name": "overlay",
+    "executable": "D:\\nodejs\\node.exe",
+    "args": [
+      "scripts/business-overlay/check-business-overlay.mjs"
+    ],
+    "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+    "startedAt": "2026-11-19T00:48:19.906Z",
+    "finishedAt": "2026-11-19T00:48:20.012Z",
+    "exitCode": 0,
+    "status": "passed",
+    "evidence": ".harness/evidence/2026-11-17-ops-history-audit/continuation-history-formatter-20261119-final-overlay.log",
+    "errorCode": null
+  },
+  {
+    "name": "boundaries",
+    "executable": "D:\\nodejs\\node.exe",
+    "args": [
+      "scripts/check-business-module-boundaries.mjs"
+    ],
+    "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+    "startedAt": "2026-11-19T00:48:20.012Z",
+    "finishedAt": "2026-11-19T00:48:20.105Z",
+    "exitCode": 0,
+    "status": "passed",
+    "evidence": ".harness/evidence/2026-11-17-ops-history-audit/continuation-history-formatter-20261119-final-boundaries.log",
+    "errorCode": null
+  }
+]

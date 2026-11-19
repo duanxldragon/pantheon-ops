@@ -2,8 +2,8 @@
 title: Certify Pantheon Ops foundation consumer integrity
 doc_type: Remediation
 layer: ci-workflow
-status: Active
-updated_at: 2026-08-11
+status: Archived
+updated_at: 2026-11-17
 linked_contracts:
   - docs/PROJECT_INHERITANCE.md
   - foundation-release.lock.json
@@ -42,3 +42,11 @@ The change is limited to foundation release consumption, CI workflow baselines, 
 - Task Manifest: `.harness/tasks/2026-08-11-foundation-consumer-certification/manifest.json`
 - Evidence Directory: `.harness/evidence/2026-08-11-foundation-consumer-certification/`
 - Review File: `.harness/evidence/2026-08-11-foundation-consumer-certification/review.md`
+
+## Result — History Closeout 2026-11-17
+
+Manifest disposition: abandoned
+
+旧 marker/tree-checksum 工具链由 8/13 clean rebuild 明确废弃，当前使用正式 lock/snapshot assembler。
+
+Residual finding/owner/successor/proof: .harness/evidence/2026-11-17-ops-history-audit/dispositions.json. Canonical references remain archive-aware. Historical body/evidence retained. Current candidate, production and maintainer gates remain separate.

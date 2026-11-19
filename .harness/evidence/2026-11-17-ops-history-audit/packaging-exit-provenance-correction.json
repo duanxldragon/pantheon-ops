@@ -1,0 +1,52 @@
+{
+  "original": {
+    "file": ".harness/evidence/2026-11-14-ops-latest-foundation-and-plans/commands.json",
+    "backup": ".harness/evidence/2026-11-17-ops-history-audit/packaging-before-correction/nov14-commands.json",
+    "sha256": "0f33bf7ef16392ae45a471da01a81e3a7c0fd8752713c65ef29b0c21ba495f1f"
+  },
+  "correctedSha256": "69e9733e2ba501fb5ff96583a26fadb2dd6abf9e47f943e0b481d097be8c28fd",
+  "originalLogs": [
+    {
+      "file": ".harness/evidence/2026-11-14-ops-latest-foundation-and-plans/verification/apply-r7.log",
+      "sha256": "2d85d5ef67c150ff3f74dc298ab313d8210213d85d6cec058f21f2ffae800c6d"
+    },
+    {
+      "file": ".harness/evidence/2026-11-14-ops-latest-foundation-and-plans/verification/apply-final.log",
+      "sha256": "f9c1529b97db1c9cc66f560c61437beabbb13c44c8709e8c78ec7ffcb43df457"
+    },
+    {
+      "file": ".harness/evidence/2026-11-14-ops-latest-foundation-and-plans/verification/overlay-final.log",
+      "sha256": "615aff030b893b0f903c1fd5255f2ecd3927828da14d655cfb9e1f4155ad21bf"
+    },
+    {
+      "file": ".harness/evidence/2026-11-14-ops-latest-foundation-and-plans/verification/shared-drift-final.log",
+      "sha256": "386d492d7fd50a7495241a24943623dc89780d21fcf6751ec9c7a15142a45f9d"
+    },
+    {
+      "file": ".harness/evidence/2026-11-14-ops-latest-foundation-and-plans/verification/overlay-tests-final.log",
+      "sha256": "42b2dc19b4709f0182ffdc63e9d705b845ab836a9184d83fd4cbbb3762c7c5cc"
+    },
+    {
+      "file": ".harness/evidence/2026-11-14-ops-latest-foundation-and-plans/verification/frontmatter-tests-final.log",
+      "sha256": "5c785cbe16c99787e7b0a05937a8094ec727b0e7b4370b40018a5d5d8226bfda"
+    },
+    {
+      "file": ".harness/evidence/2026-11-14-ops-latest-foundation-and-plans/verification/candidate-frontmatter-final.log",
+      "sha256": "7f201bebf7d946516a701a669219f978c153915c8f62db694c2cf955152a497a"
+    },
+    {
+      "file": ".harness/evidence/2026-11-14-ops-latest-foundation-and-plans/verification/r7-final-evidence.log",
+      "sha256": "29786771e9e80d4b2dd7c18a742cf48da78c4924b7cfb221b1b9a044b0218055"
+    },
+    {
+      "file": ".harness/evidence/2026-11-14-ops-latest-foundation-and-plans/verification/r7-final-task.log",
+      "sha256": "103a884763564b31d17c0ef039695dc6476ea8dd2aa6de573a9d3a53fed3d2c1"
+    },
+    {
+      "file": ".harness/evidence/2026-11-14-ops-latest-foundation-and-plans/verification/r7-final-review.log",
+      "sha256": "bd1f346bdb897b2490289af01466062132a13089bb7abdbd6261d61a13631a09"
+    }
+  ],
+  "logsUnchanged": true,
+  "recordedAt": "2026-11-17T06:13:22.384Z"
+}

@@ -1,0 +1,162 @@
+{
+  "schema": "pantheon-e01-detail-error-policy-handoff/v1",
+  "taskId": "2026-11-16-ops-filedist-product-closure",
+  "coordinatorTaskId": "2026-11-17-ops-history-audit",
+  "observedAtUTC": "2026-11-18T09:52:16Z",
+  "implementer": "/root/e03_claude_partial_closeout",
+  "sourceFrozen": true,
+  "wholePackageClosed": false,
+  "plan": "continuation-e01-detail-error-policy-plan-20261118.md",
+  "changes": {
+    "ownedSources": [
+      "frontend/src/modules/business/filedist/FiledistList.tsx",
+      "frontend/src/modules/business/filedist/api.ts"
+    ],
+    "listAction": "common.view -> existing five-locale common.detail",
+    "detailGETs": [
+      "getTaskDetail",
+      "getTaskTargets",
+      "getTaskEvents"
+    ],
+    "requestOption": "skipErrorMessage: true",
+    "publicBaseAPIReused": true,
+    "promiseRejectionPreserved": true,
+    "abortSignalPreserved": true,
+    "permissionChanged": false,
+    "allSettledChanged": false,
+    "pollingOrCancelChanged": false,
+    "sharedRequestOrInterceptorChanged": false,
+    "localeFilesChanged": false,
+    "newDependencies": false
+  },
+  "beforeAndByteBackup": [
+    {
+      "source": "frontend/src/modules/business/filedist/FiledistList.tsx",
+      "beforeSHA256": "584d6320c510588945d52bab1505c915f28a39e3aa4dfdef16ef24bb0edc4842",
+      "backup": "continuation-e01-detail-error-policy-before-20261118-01/FiledistList.tsx.before",
+      "backupSHA256": "584d6320c510588945d52bab1505c915f28a39e3aa4dfdef16ef24bb0edc4842"
+    },
+    {
+      "source": "frontend/src/modules/business/filedist/api.ts",
+      "beforeSHA256": "3d417008d14ee2d8f199cecee76d017dd171481e1032546baee279f1c787c88f",
+      "backup": "continuation-e01-detail-error-policy-before-20261118-01/api.ts.before",
+      "backupSHA256": "3d417008d14ee2d8f199cecee76d017dd171481e1032546baee279f1c787c88f"
+    }
+  ],
+  "sourceSHA256": {
+    "frontend/src/modules/business/filedist/FiledistList.tsx": "a9aaaae9d510e5e844add157dacd941f789356ddafaf12d06ecd2726c6166ac5",
+    "frontend/src/modules/business/filedist/api.ts": "77294421105d9bedde126dd4cb73c944f2f204c4866d9f891489b0ce464a5b45",
+    "frontend/src/modules/business/filedist/useTaskDetail.ts": "e87f2e2b4fa403e4dd2d8a1f87e6d878670f4338756c4c3c087de7564e69aebe",
+    "frontend/src/modules/business/filedist/FiledistDetail.tsx": "592da075658906b6e40dafc49c1364275b5d122e6734bd85394265bf6b7ba1ba",
+    "frontend/tests/unit/business/filedist/FiledistLifetime.test.ts": "bb6d4712a0b00c994ab95be96f651c0315ef2ba8802b7a13b97962fdf3c3a2fb",
+    ".local/manual-preview-20261116/verify-filedist-detail-error-policy-20261118.mjs": "151610687095929e7fdd0400ae29dd4745c6c347c013e3d8b4d304505753f3ff"
+  },
+  "verification": [
+    {
+      "name": "lint",
+      "command": "node --import ../.local/manual-preview-20261116/hide-child-windows.mjs node_modules/eslint/bin/eslint.js src/modules/business/filedist/FiledistList.tsx src/modules/business/filedist/api.ts --max-warnings 0",
+      "cwd": "frontend",
+      "exitCode": 0,
+      "output": ""
+    },
+    {
+      "name": "unit",
+      "command": "node --import ../.local/manual-preview-20261116/hide-child-windows.mjs node_modules/vitest/vitest.mjs run tests/unit/business/filedist/FiledistLifetime.test.ts --pool=threads --maxWorkers=1 --fileParallelism=false --reporter=verbose",
+      "cwd": "frontend",
+      "exitCode": 0,
+      "output": "(!) Your Vite config uses features that are unsupported by `configLoader: 'native'`, which is planned to become the default in a future major version of Vite:\n  - `__dirname` (vitest.config.ts:10:25). Use `import.meta.dirname` instead\nSet `VITE_CONFIG_NATIVE_IGNORE_WARNING=true` to suppress this warning.\n\n RUN  v5.0.5 D:/workspace/go/pantheon-platform/pantheon-ops/frontend\n\n ✓ tests/unit/business/filedist/FiledistLifetime.test.ts > FileDist detail request lifetime > does not restart polling while a sibling GET remains unsettled after early failure 61ms\n ✓ tests/unit/business/filedist/FiledistLifetime.test.ts > FileDist detail request lifetime > drops old task content immediately and ignores an aborted late response 11ms\n ✓ tests/unit/business/filedist/FiledistLifetime.test.ts > FileDist detail request lifetime > never overlaps progress polls and stops after terminal status 17ms\n ✓ tests/unit/business/filedist/FiledistLifetime.test.ts > FileDist detail request lifetime > retains progress but surfaces a background failure and its recovery 12ms\n ✓ tests/unit/business/filedist/FiledistLifetime.test.ts > FileDist detail request lifetime > cancels outstanding requests and future polls on unmount 8ms\n ✓ tests/unit/business/filedist/FiledistLifetime.test.ts > FileDist detail request lifetime > rejects malformed task identity 0 before HTTP 5ms\n ✓ tests/unit/business/filedist/FiledistLifetime.test.ts > FileDist detail request lifetime > rejects malformed task identity -1 before HTTP 14ms\n ✓ tests/unit/business/filedist/FiledistLifetime.test.ts > FileDist detail request lifetime > rejects malformed task identity NaN before HTTP 4ms\n ✓ tests/unit/business/filedist/FiledistLifetime.test.ts > FileDist detail request lifetime > rejects malformed task identity 1.5 before HTTP 6ms\n ✓ tests/unit/business/filedist/FiledistLifetime.test.ts > FileDist detail action mutual exclusion > classifies 404 without mixing forbidden, missing and generic errors 65ms\n ✓ tests/unit/business/filedist/FiledistLifetime.test.ts > FileDist detail action mutual exclusion > classifies 403 without mixing forbidden, missing and generic errors 12ms\n ✓ tests/unit/business/filedist/FiledistLifetime.test.ts > FileDist detail action mutual exclusion > classifies 503 without mixing forbidden, missing and generic errors 11ms\n ✓ tests/unit/business/filedist/FiledistLifetime.test.ts > FileDist detail action mutual exclusion > does not report task missing for an initial connectivity failure 10ms\n ✓ tests/unit/business/filedist/FiledistLifetime.test.ts > FileDist detail action mutual exclusion > submits cancel only once while its request is unsettled 51ms\n ✓ tests/unit/business/filedist/FiledistLifetime.test.ts > FileDist detail action mutual exclusion > does not offer control actions without update permission 14ms\n ✓ tests/unit/business/filedist/FiledistLifetime.test.ts > FileDist intent and schedule > uses only resolved identities/endpoints, per-host fingerprints and the selected auth mode 8ms\n ✓ tests/unit/business/filedist/FiledistLifetime.test.ts > FileDist intent and schedule > rejects stale scope, rejected targets, duplicate IDs and missing per-host fingerprints 5ms\n ✓ tests/unit/business/filedist/FiledistLifetime.test.ts > FileDist intent and schedule > keeps explicit schedules and refuses malformed dates rather than running immediately 4ms\n ✓ tests/unit/business/filedist/FiledistLifetime.test.ts > FileDist bounded file picker > reaches files beyond the first 100 through bounded paging and remote search 11ms\n ✓ tests/unit/business/filedist/FiledistLifetime.test.ts > FileDist bounded file picker > cancels superseded search and prevents late rows or totals from returning 5ms\n ✓ tests/unit/business/filedist/FiledistLifetime.test.ts > FileDist bounded file picker > clears prior options immediately when the create dialog reopens 6ms\n ✓ tests/unit/business/filedist/FiledistLifetime.test.ts > FileDist list current-query refresh lifetime > ignores superseded manual file refresh success 108ms\n ✓ tests/unit/business/filedist/FiledistLifetime.test.ts > FileDist list current-query refresh lifetime > ignores superseded manual file refresh error 141ms\n ✓ tests/unit/business/filedist/FiledistLifetime.test.ts > FileDist list current-query refresh lifetime > ignores superseded manual task refresh success 79ms\n ✓ tests/unit/business/filedist/FiledistLifetime.test.ts > FileDist list current-query refresh lifetime > ignores superseded manual task refresh error 147ms\n ✓ tests/unit/business/filedist/FiledistLifetime.test.ts > FileDist list current-query refresh lifetime > shares the same in-flight task GET between mutation refresh and active polling 66ms\n ✓ tests/unit/business/filedist/FiledistLifetime.test.ts > FileDist list current-query refresh lifetime > refreshes the latest query when a mutation from an older render finishes 114ms\n ✓ tests/unit/business/filedist/FiledistLifetime.test.ts > FileDist list current-query refresh lifetime > serializes a fresh mutation read behind a GET that started before deletion 66ms\n\n Test Files  1 passed (1)\n      Tests  28 passed (28)\n   Start at  17:50:26\n   Duration  6.62s (import 47%, environment 31%, tests 17%, transform 5%)\n\n"
+    },
+    {
+      "name": "typecheck",
+      "command": "node --import ../.local/manual-preview-20261116/hide-child-windows.mjs node_modules/typescript/bin/tsc -p ../.harness/evidence/2026-11-16-ops-filedist-product-closure/regular-unit-typecheck-20261118.json --pretty false",
+      "cwd": "frontend",
+      "exitCode": 0,
+      "output": ""
+    },
+    {
+      "name": "adapter",
+      "command": "node --import ./.local/manual-preview-20261116/hide-child-windows.mjs .local/manual-preview-20261116/verify-filedist-detail-error-policy-20261118.mjs",
+      "cwd": "pantheon-ops",
+      "exitCode": 0,
+      "output": "{\"passed\":true,\"sourcePath\":\"D:\\\\workspace\\\\go\\\\pantheon-platform\\\\pantheon-ops\\\\frontend\\\\src\\\\modules\\\\business\\\\filedist\\\\api.ts\",\"sourceSHA256\":\"77294421105d9bedde126dd4cb73c944f2f204c4866d9f891489b0ce464a5b45\",\"cases\":[{\"name\":\"getTaskDetail\",\"passed\":true,\"url\":\"/business/filedist/tasks/41\",\"quietGlobalError\":true,\"rejectionAndSignalPreserved\":true},{\"name\":\"getTaskTargets\",\"passed\":true,\"url\":\"/business/filedist/tasks/41/targets\",\"quietGlobalError\":true,\"rejectionAndSignalPreserved\":true},{\"name\":\"getTaskEvents\",\"passed\":true,\"url\":\"/business/filedist/tasks/41/events\",\"quietGlobalError\":true,\"rejectionAndSignalPreserved\":true}],\"boundary\":\"Business API adapter options and direct promise rejection/AbortSignal forwarding only; actual global-toast rendering is a separate QA gate.\"}\n"
+    },
+    {
+      "name": "diff",
+      "command": "git diff --check -- frontend/src/modules/business/filedist/FiledistList.tsx frontend/src/modules/business/filedist/api.ts",
+      "cwd": "pantheon-ops",
+      "exitCode": 0,
+      "output": ""
+    }
+  ],
+  "results": {
+    "canonicalUnit": {
+      "filesPassed": 1,
+      "testsPassed": 28,
+      "testsSkipped": 0,
+      "durationSeconds": 6.62,
+      "standardConfig": true,
+      "includeOverridden": false
+    },
+    "targetedStrictTypeScript": {
+      "exitCode": 0,
+      "scope": "canonical test and imported production, not complete application typecheck"
+    },
+    "apiAdapter": {
+      "passed": 3,
+      "quietGETOption": true,
+      "exactURLAndMethod": true,
+      "originalRejectedPromiseIdentity": true,
+      "originalErrorIdentity": true,
+      "signalIdentity": true
+    },
+    "exactDiffComparison": {
+      "passed": true,
+      "listDifference": "existing detail key substitution only",
+      "apiDifference": "quiet-error option on three named GETs only"
+    }
+  },
+  "existingTranslations": {
+    "en-US": "Detail",
+    "zh-CN": "详情",
+    "fr-FR": "Détail",
+    "ja-JP": "詳細",
+    "ko-KR": "상세"
+  },
+  "impeccable": {
+    "surface": "task-list action and page-owned detail error/retry",
+    "intendedFeel": "A translated detail action and one clear recoverable error surface.",
+    "baselineDesktopViewport": [
+      1440,
+      900
+    ],
+    "baselineScreenshotsActuallyViewed": true,
+    "baselineScreenshots": [
+      {
+        "path": ".harness/evidence/2026-11-16-ops-filedist-product-closure/ui-readonly-ten-packages-20261118-01-artifacts/desktop-live-task-list.png",
+        "SHA256": "3481a7ccb5bdb109be3f9467072b099ce7cd7c06184312869d17e6d4becb8419",
+        "observed": "Four task detail actions leak common.view"
+      },
+      {
+        "path": ".harness/evidence/2026-11-16-ops-filedist-product-closure/ui-readonly-ten-packages-20261118-01-artifacts/desktop-live-detail-404.png",
+        "SHA256": "9d500b6430070e866d60de0cd5cfa8fcd5b630001c9d68c4ac149e178a3e7b2c",
+        "observed": "Two shared not_found toasts with page missing-task error and retry"
+      }
+    ],
+    "newSourceRenderVerified": false,
+    "newSourceMobileVerified": false,
+    "reason": "QA agent/coordinator own the new actual-render script and fresh official candidate gates; this executor lane is source/edit/unit verification only.",
+    "visualPolishClaimed": false
+  },
+  "warnings": [
+    "Existing Vite __dirname future native-loader warning retained; no suppression/config change",
+    "Adapter verification does not prove shared interceptors or actual global-toast visibility"
+  ],
+  "remainingGates": [
+    "new official locked-release reconstruction",
+    "new source-equivalence proof; old proof cannot authenticate these changed sources",
+    "centralized complete frontend lint/type/build/canonical verification",
+    "actual desktop/mobile translated task action",
+    "actual 404/403/503 detail error plus page retry without global toast",
+    "independent review and whole E01 acceptance"
+  ]
+}

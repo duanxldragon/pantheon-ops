@@ -1,0 +1,85 @@
+# 独立评审记录
+
+C01 领取取消与持久队列恢复窄范围 PASS，独立 COMMENT、零问题。真实 MySQL 行锁测试在释放锁前取消；四种恢复注入验证数据库事实不变、恢复仅执行一次、终态重放不变。首次 GREEN 的全树漂移和原 RED 保留。
+
+本记录由 root 保存 reviewer 的最终结果；整包原验收继续开放。
+
+## Machine Readable
+
+```json
+{
+  "schema": "pantheon.independent-review.v1",
+  "taskId": "2026-11-16-ops-service-deploy-integrity",
+  "reviewer": "/root/c01_queue_claim_independent_review",
+  "reviewedAtUTC": "2026-11-18T08:04:50Z",
+  "verdict": "COMMENT",
+  "narrowAcceptance": "PASS",
+  "filesReviewed": 3,
+  "severityCounts": {
+    "CRITICAL": 0,
+    "HIGH": 0,
+    "MEDIUM": 0,
+    "LOW": 0
+  },
+  "issues": [],
+  "sourceSHA256": {
+    "backend/modules/business/deploy/attempt_ownership.go": "34579b71d456270810f4431813487c25f84b07277e9c0be791a013d42191a913",
+    "backend/modules/business/deploy/worker_claim_context_test.go": "2a5e5339388549df0c2a9ebf6f11a7ff91334b1f1c182545163c18d918dcfd6a",
+    "backend/modules/business/deploy/worker_queue_recovery_test.go": "99a84037735f3120b2f00b313fa34a349ec1b3659813056fe2d33f12784ec327"
+  },
+  "verification": {
+    "red": {
+      "receipt": ".harness/evidence/2026-11-17-ops-history-audit/continuation-c01-parent-claim-red-20261118-01.log.receipt.json",
+      "exitCode": 1,
+      "actualFailures": 2,
+      "sourceCount": 741,
+      "sourceStable": true
+    },
+    "firstGreen": {
+      "goExitCode": 0,
+      "wholeSourceStable": false,
+      "ownedFilesStable": true,
+      "changedFile": "backend/modules/business/k8s/helm/helm.go"
+    },
+    "frozenGreen": {
+      "receipt": ".harness/evidence/2026-11-17-ops-history-audit/continuation-c01-e03-frozen-green-20261118-01.log.receipt.json",
+      "exitCode": 0,
+      "sourceCount": 744,
+      "sourceStable": true,
+      "topLevelTestsPassed": 3,
+      "requestedScenariosPassed": 6,
+      "deployDurationSeconds": 6.737,
+      "skipsObserved": 0,
+      "race": true,
+      "cgoEnabled": "1",
+      "goFlags": "-p=1 -mod=readonly"
+    },
+    "independentGopls": {
+      "files": 3,
+      "exitCode": 0,
+      "diagnostics": 0,
+      "toolChunks": ["5c3bb0", "a656ad"]
+    },
+    "gofmtAndScopedDiff": "PASS",
+    "testsRerunByReviewer": false,
+    "productionDiffProof": {
+      "method": "In-memory reversal of added comment and request-bound claim call",
+      "reconstructedRedSHA256": "f423ebe0c7c1e7819385c5ba9195c1a618021ff0629fb594a3c2722138231ac8",
+      "matchesRedReceipt": true,
+      "filesystemWritten": false
+    },
+    "nativeLspDiagnosticsAvailable": false,
+    "nativeAstGrepAvailable": false,
+    "codeGraphAvailable": false
+  },
+  "remainingGaps": [
+    "Broader host interleavings",
+    "Real role/provider and current HTTP/UI acceptance",
+    "Whole C01 acceptance and human gate",
+    "Root integration and architectural synthesis"
+  ],
+  "wholePackageClosed": false,
+  "persistedBy": "/root",
+  "persistenceBoundary": "Root transcription of completed native reviewer report; independent checks remain reviewer-owned, no broader approval inferred."
+}
+```

@@ -1,0 +1,90 @@
+{
+  "recordedAt": "2026-11-18T09:53:04.172Z",
+  "taskId": "2026-11-17-ops-history-audit",
+  "historicalObjects": 85,
+  "dispositions": {
+    "completed": 20,
+    "abandoned": 10,
+    "upstreamOwned": 26,
+    "keepOpen": 26,
+    "containers": 2,
+    "deferred": 1
+  },
+  "archives": {
+    "newTaskEvidencePairs": 22,
+    "preservedDuplicateLivePairs": 2,
+    "newArchivesThisCheckpoint": 0,
+    "root": ".harness/archive/2026-11/{tasks,evidence}/<task-id>/"
+  },
+  "executionPackages": {
+    "total": 10,
+    "inProgress": 9,
+    "planned": [
+      "C02"
+    ],
+    "acceptedWholePackages": 0
+  },
+  "verified": [
+    {
+      "name": "Complete Windows MinGW/CGO backend race",
+      "packagePass": 74,
+      "noTestPackages": 16,
+      "sourceCount": 748,
+      "sourceStable": true,
+      "exitCode": 0,
+      "durationSeconds": 1081.8065543,
+      "receipt": ".harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-full-race-20261118-01.log.receipt.json",
+      "boundary": "Non-verbose output does not establish that all conditional subtests ran."
+    },
+    {
+      "name": "Earlier combined frontend candidate",
+      "changedUnitPass": 35,
+      "lint": "PASS with one existing warning",
+      "typeCheck": "PASS",
+      "build": "PASS",
+      "receipt": ".harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-20261118-02-frontend-quality.json",
+      "boundary": "Predates the two latest E01 UI source edits; latest final frontend verification pending."
+    },
+    {
+      "name": "C03 rendered contract",
+      "testsPassed": 2,
+      "boundary": "Business responses mocked; root inspected desktop/mobile editor and stale-error screenshots."
+    },
+    {
+      "name": "C04 rendered contract",
+      "testsPassed": 13,
+      "boundary": "Business/role responses mocked; root inspected desktop/mobile ports and error screenshots."
+    },
+    {
+      "name": "C03 real local API/DB/UI lifecycle",
+      "testsPassed": 1,
+      "durationSeconds": 5.7,
+      "cleanupPassed": true,
+      "boundary": "Task-owned temporary registration data with local admin; no SSH/provider or least-privilege-role acceptance."
+    }
+  ],
+  "latestE01": {
+    "status": "Executor-frozen repair; final integration/render pending",
+    "repairs": [
+      "Reuse existing common.detail for translated view button",
+      "Use public skipErrorMessage on three detail GETs; rejected promises and inline errors retained"
+    ],
+    "executorReportedChecks": {
+      "canonicalUnitPass": 28,
+      "lint": "PASS",
+      "targetedTypeScript": "PASS",
+      "diff": "PASS"
+    },
+    "rawPriorFailuresRetained": true
+  },
+  "remaining": [
+    "C01 broader host/real role/provider acceptance; C02 waits for C01",
+    "Latest E01 source-bound official rebuild/frontend/build/runtime/render and independent delta review",
+    "E01 public scheduled-job authorization and Base orderly-shutdown contracts",
+    "E02 ownership/legacy/webhook/provider acceptance",
+    "C05 live environment matrix; C06 installation/upgrade/rollback/final acceptance; E04 nine live-provider rows NOT_RUN",
+    "Existing whole-repository governance gate debt; no waivers"
+  ],
+  "finalCheckpointFrozen": false,
+  "boundary": "Current progress query snapshot only. Historical dispositions and execution packages overlap and must not be added together; implementation/preparation is not whole-package acceptance."
+}

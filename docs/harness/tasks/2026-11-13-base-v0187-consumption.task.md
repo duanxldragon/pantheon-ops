@@ -5,7 +5,7 @@ layer: platform
 linked_contracts:
   - docs/contracts/PLATFORM_CONTRACT.md
 status: Archived
-updated_at: 2026-11-13
+updated_at: 2026-11-17
 ---
 
 # Task Packet: 2026-11-13-base-v0187-consumption
@@ -167,3 +167,11 @@ assembled, verified and approved by the independent CODE/ARCH panel; consumer PR
 ## Archive Closeout 2026-11-16
 
 原范围已完成，manifest 与 evidence 成对迁至 .harness/archive/2026-11/；原 canonical 地址由 archive-aware resolver 解析。历史运行/审查证据不改写。后续业务 gap 见 .harness/tasks/2026-11-16-ops-pilot-delivery/plan.md；本次归档不表示当前试点/生产验收完成。 PR #183 已于 2026-11-13T04:44:42Z 合并，merge fc3fa867630580f7bcf1d40082a77f6b2548ac56，required Quality/Security 均 success；旧 Pending 段作为历史检查点保留。
+
+## Result — History Closeout 2026-11-17
+
+Manifest disposition: completed
+
+原范围完成且已归档；PR183 fresh readback补证，差异live副本成对保全，既有archive不覆盖。
+
+Residual finding/owner/successor/proof: .harness/evidence/2026-11-17-ops-history-audit/dispositions.json. Canonical references remain archive-aware. Historical body/evidence retained. Current candidate, production and maintainer gates remain separate.

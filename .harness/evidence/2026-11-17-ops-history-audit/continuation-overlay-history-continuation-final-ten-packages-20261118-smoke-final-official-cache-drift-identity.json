@@ -1,0 +1,13 @@
+{
+  "startedAt": "2026-11-18T09:45:05.553Z",
+  "finishedAt": "2026-11-18T09:45:15.512Z",
+  "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+  "candidate": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.local\\manual-preview-20261116\\overlay-history-continuation-final-ten-packages-20261118-smoke-final",
+  "officialCacheRoot": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+  "verifiedSnapshot": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.foundation\\releases\\pantheon-base-v0.18.9\\repo",
+  "releaseVersion": "pantheon-base-v0.18.9",
+  "baseCommit": "6316f9b7189c86542424145fa49344ad737e952b",
+  "foundationLockSHA256": "14417d10b6ac9fc6eb0c24069b8c2b099abef2f0ad22536c402df06de4eaf1fc",
+  "exitCode": 0,
+  "boundary": "Programmatic shared-drift comparison using the official resolver and byte-identical candidate lock. The candidate-root CLI timeout remains a separate failed attempt."
+}

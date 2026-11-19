@@ -2,8 +2,8 @@
 title: Rebuild Ops from a clean Base snapshot
 doc_type: Remediation
 layer: inheritance-sync
-status: Active
-updated_at: 2026-08-13
+status: Archived
+updated_at: 2026-11-17
 linked_contracts:
   - docs/PROJECT_INHERITANCE.md
   - business-overlay.json
@@ -63,3 +63,11 @@ Use the existing Base extension points and Node standard library. Add one machin
 - Reviewer: findings-first review of ownership completeness, determinism, and boundary enforcement.
 - Human gate: final product/runtime acceptance after the atomic baseline replacement.
 - Stop if staged business assets differ unexpectedly, a generic shared file requires an Ops override, or a required gate cannot be reproduced.
+
+## Result — History Closeout 2026-11-17
+
+Manifest disposition: completed
+
+原锁定源码、原子替换和消费机制已落地；August本地repo.tar/未跑race保持历史事实，后续正式release消费提供新证据。
+
+Residual finding/owner/successor/proof: .harness/evidence/2026-11-17-ops-history-audit/dispositions.json. Canonical references remain archive-aware. Historical body/evidence retained. Current candidate, production and maintainer gates remain separate.

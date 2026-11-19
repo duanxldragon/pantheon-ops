@@ -1,0 +1,179 @@
+{
+  "status": "passed",
+  "tests": [
+    {
+      "title": [
+        "",
+        "",
+        "smoke\\business\\k8s\\k8s-pages.spec.ts",
+        "C04 Kubernetes Service UI contract",
+        "stale edit shows one translated error and keeps draft and original version"
+      ],
+      "status": "passed",
+      "retry": 0,
+      "measurements": [
+        {
+          "name": "c04-edit-conflict-notice-readability",
+          "contentType": "application/json",
+          "value": {
+            "rect": {
+              "left": 465,
+              "top": 40,
+              "right": 815,
+              "bottom": 87,
+              "width": 350,
+              "height": 47
+            },
+            "insideViewport": true,
+            "opaque": true,
+            "animationSettled": true,
+            "contentFits": true,
+            "points": [
+              {
+                "x": 640,
+                "y": 63.5,
+                "uncovered": true
+              },
+              {
+                "x": 469,
+                "y": 44,
+                "uncovered": true
+              },
+              {
+                "x": 811,
+                "y": 44,
+                "uncovered": true
+              },
+              {
+                "x": 469,
+                "y": 83,
+                "uncovered": true
+              },
+              {
+                "x": 811,
+                "y": 83,
+                "uncovered": true
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "title": [
+        "",
+        "",
+        "smoke\\business\\k8s\\k8s-pages.spec.ts",
+        "C04 Kubernetes Service UI contract",
+        "rendered primary states at 1440px"
+      ],
+      "status": "passed",
+      "retry": 0,
+      "measurements": [
+        {
+          "name": "c04-1440-conflict-notice-readability",
+          "contentType": "application/json",
+          "value": {
+            "rect": {
+              "left": 545,
+              "top": 40,
+              "right": 895,
+              "bottom": 87,
+              "width": 350,
+              "height": 47
+            },
+            "insideViewport": true,
+            "opaque": true,
+            "animationSettled": true,
+            "contentFits": true,
+            "points": [
+              {
+                "x": 720,
+                "y": 63.5,
+                "uncovered": true
+              },
+              {
+                "x": 549,
+                "y": 44,
+                "uncovered": true
+              },
+              {
+                "x": 891,
+                "y": 44,
+                "uncovered": true
+              },
+              {
+                "x": 549,
+                "y": 83,
+                "uncovered": true
+              },
+              {
+                "x": 891,
+                "y": 83,
+                "uncovered": true
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "title": [
+        "",
+        "",
+        "smoke\\business\\k8s\\k8s-pages.spec.ts",
+        "C04 Kubernetes Service UI contract",
+        "rendered primary states at 390px"
+      ],
+      "status": "passed",
+      "retry": 0,
+      "measurements": [
+        {
+          "name": "c04-390-conflict-notice-readability",
+          "contentType": "application/json",
+          "value": {
+            "rect": {
+              "left": 20,
+              "top": 40,
+              "right": 370,
+              "bottom": 87,
+              "width": 350,
+              "height": 47
+            },
+            "insideViewport": true,
+            "opaque": true,
+            "animationSettled": true,
+            "contentFits": true,
+            "points": [
+              {
+                "x": 195,
+                "y": 63.5,
+                "uncovered": true
+              },
+              {
+                "x": 24,
+                "y": 44,
+                "uncovered": true
+              },
+              {
+                "x": 366,
+                "y": 44,
+                "uncovered": true
+              },
+              {
+                "x": 24,
+                "y": 83,
+                "uncovered": true
+              },
+              {
+                "x": 366,
+                "y": 83,
+                "uncovered": true
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

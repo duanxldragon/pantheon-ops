@@ -1,0 +1,1080 @@
+{
+  "$schema": "./claude-history-reconcile.json",
+  "taskId": "2026-11-17-ops-history-audit",
+  "updateDate": "2026-11-17",
+  "executor": "local Claude (low-risk reconciliation executor, coordinator=Codex)",
+  "inputBaseline": ".harness/tasks/2026-11-16-ops-historical-closeout/{INVENTORY.json,PLAN.md}",
+  "scopeNote": "Record-reconciliation only. Verifies existence of historical task doc / manifest / summary / review / commands per record; does NOT re-classify business gaps the brother-Codex owns, does NOT modify status, archive, code, config, or credentials; does NOT move already-archived packages. INVENTORY original conclusions preserved; only existence deltas since 2026-11-16 are appended. classification enum = verified-complete | superseded | upstream-owned | keep-open. Archive candidates are recommendations for record closeout, not moves. No test result is fabricated; runtime claims are the coordinator's (Codex) to verify.",
+  "statistics": {
+    "recordsTotal": 84,
+    "nonContainer": 82,
+    "containers": 2,
+    "verifiedComplete": 23,
+    "superseded": 22,
+    "upstreamOwned": 17,
+    "keepOpen": 20,
+    "archiveCandidates": 27,
+    "evidenceDeltaSinceIntake": "post-2026-11-16 parallel work materialized summary/commands for cmdb-ssh-config-externalize, ops-planned-task-closeout, ops-latest-foundation-and-plans; auto-merge reconcile activity in flight under 2026-11-17-ops-auto-merge-reconcile"
+  },
+  "records": [
+    {
+      "id": "2026-06-17-github-governance-followup",
+      "date": "2026-06-17",
+      "classification": "verified-complete",
+      "evidencePaths": [
+        "docs/harness/tasks/2026-06-17-github-governance-followup.task.md",
+        ".harness/tasks/2026-06-17-github-governance-followup/manifest.json",
+        ".harness/evidence/2026-06-17-github-governance-followup/review.md",
+        ".harness/evidence/2026-06-17-github-governance-followup/commands.json",
+        ".github/workflows/pr-automation.yml",
+        ".agents/skills/gh-address-comments/SKILL.md"
+      ],
+      "remainingWork": "summary.md absent in evidence dir; add completion summary before archival closeout",
+      "recommendedStatus": "completed",
+      "archiveCandidate": false,
+      "reason": "manifest+review+commands+doc+skill present; functionality verified. Summary file missing per existence check."
+    },
+    {
+      "id": "2026-06-18-branch-hygiene-fallback",
+      "date": "2026-06-18",
+      "classification": "verified-complete",
+      "evidencePaths": [
+        "docs/harness/tasks/2026-06-18-branch-hygiene-fallback.task.md",
+        ".harness/tasks/2026-06-18-branch-hygiene-fallback/manifest.json",
+        ".harness/evidence/2026-06-18-branch-hygiene-fallback/{review.md,commands.json}",
+        ".github/workflows/branch-hygiene.yml",
+        "scripts/cleanup-github-branches.mjs"
+      ],
+      "remainingWork": "summary.md absent; add completion summary",
+      "recommendedStatus": "completed",
+      "archiveCandidate": false,
+      "reason": "review+commands+manifest+doc present, verified. Summary gap blocks archival closeout."
+    },
+    {
+      "id": "2026-06-18-branch-hygiene-slash-path-fix",
+      "date": "2026-06-18",
+      "classification": "verified-complete",
+      "evidencePaths": [
+        "docs/harness/tasks/2026-06-18-branch-hygiene-slash-path-fix.task.md",
+        ".harness/evidence/2026-06-18-branch-hygiene-slash-path-fix/{review.md,commands.json}",
+        "scripts/cleanup-github-branches.mjs"
+      ],
+      "remainingWork": "summary.md absent; add completion summary",
+      "recommendedStatus": "completed",
+      "archiveCandidate": false,
+      "reason": "review+commands present, verified. Summary gap."
+    },
+    {
+      "id": "2026-06-18-pr-branch-cleanup-automation",
+      "date": "2026-06-18",
+      "classification": "superseded",
+      "evidencePaths": [
+        "docs/harness/tasks/2026-06-18-pr-branch-cleanup-automation.task.md",
+        ".harness/tasks/2026-06-18-pr-branch-cleanup-automation/manifest.json",
+        ".harness/evidence/2026-06-18-pr-branch-cleanup-automation/{summary.md,review.md,commands.json}",
+        ".github/workflows/branch-hygiene.yml"
+      ],
+      "remainingWork": "mark record superseded-by branch-hygiene-fallback; do not reimplement",
+      "recommendedStatus": "superseded",
+      "archiveCandidate": false,
+      "reason": "Full packet+evidence exist; behavior superseded by independent branch-hygiene workflow. kept as live reference."
+    },
+    {
+      "id": "2026-08-03-dependabot-pr-governance",
+      "date": "2026-08-03",
+      "classification": "keep-open",
+      "evidencePaths": [
+        "docs/harness/tasks/2026-08-03-dependabot-pr-governance.task.md",
+        ".github/workflows/pr-automation.yml",
+        ".github/workflows/quality.yml"
+      ],
+      "remainingWork": "create declared manifest.json + evidence dir (commands.json, review.md); record hosted Dependabot-merge verification. G2",
+      "recommendedStatus": "open",
+      "archiveCandidate": false,
+      "reason": "Evidence dir and manifest STILL not materialized (verified absent). Code + G1/G2 workflow edits in flight today under auto-merge-reconcile; record itself still lacks own closeout evidence."
+    },
+    {
+      "id": "2026-08-12-pr-auto-merge-push-trigger",
+      "date": "2026-08-12",
+      "classification": "keep-open",
+      "evidencePaths": [
+        "docs/harness/tasks/2026-08-12-pr-auto-merge-push-trigger.task.md",
+        ".github/workflows/pr-automation.yml",
+        "tests/scripts/ci-workflow-dispatch.test.mjs",
+        ".harness/evidence/2026-11-17-ops-auto-merge-reconcile/"
+      ],
+      "remainingWork": "RELEASE_GATE_TOKEN fail-closed switch; reconcile contradictory pairing with pr-auto-merge-token; record-level manifest+evidence. G1",
+      "recommendedStatus": "open",
+      "archiveCandidate": false,
+      "reason": "Own record evidence absent; reconciliation underway today under 2026-11-17-ops-auto-merge-reconcile (live untracked dir + modified workflow/tests). Delegate to G1."
+    },
+    {
+      "id": "2026-08-12-pr-auto-merge-token",
+      "date": "2026-08-12",
+      "classification": "keep-open",
+      "evidencePaths": [
+        "docs/harness/tasks/2026-08-12-pr-auto-merge-token.task.md",
+        ".github/workflows/pr-automation.yml",
+        "tests/scripts/pr-automation-workflow.test.mjs"
+      ],
+      "remainingWork": "reconcile github.token vs RELEASE_GATE_TOKEN with push-trigger; fail-on-enable guard; manifest+evidence. G1",
+      "recommendedStatus": "open",
+      "archiveCandidate": false,
+      "reason": "Contradicts push-trigger on same step; no record-level evidence. G1 reconciliation in flight."
+    },
+    {
+      "id": "2026-06-20-business-closure-permission-scope",
+      "date": "2026-06-20",
+      "classification": "keep-open",
+      "evidencePaths": [
+        "docs/harness/tasks/2026-06-20-business-closure-permission-scope.task.md",
+        "backend/modules/business/deploy/deploy_seed.go",
+        "backend/modules/business/bizscope/bizscope_service.go"
+      ],
+      "remainingWork": "exhaustive per-endpoint DataScope audit + permission-mapping test + evidence closeout. G2",
+      "recommendedStatus": "open",
+      "archiveCandidate": false,
+      "reason": "No evidence/manifest/review/test dir for this ID; code supports layered perms (INVENTORY verified) but closeout evidence missing. G2."
+    },
+    {
+      "id": "2026-06-21-business-deploy-state-guard",
+      "date": "2026-06-21",
+      "classification": "verified-complete",
+      "evidencePaths": [
+        "docs/harness/tasks/2026-06-21-business-deploy-state-guard.task.md",
+        "backend/modules/business/deploy/deploy_service.go",
+        "backend/modules/business/deploy/deploy_service_test.go"
+      ],
+      "remainingWork": "no material record-level packet; merged into deploy main-flow closeout evidence",
+      "recommendedStatus": "completed",
+      "archiveCandidate": false,
+      "reason": "Code+dedicated tests verified; no standalone packet/evidence dir (covered by main-flow closeout)."
+    },
+    {
+      "id": "2026-06-21-business-deploy-task-delete",
+      "date": "2026-06-21",
+      "classification": "verified-complete",
+      "evidencePaths": [
+        "docs/harness/tasks/2026-06-21-business-deploy-task-delete.task.md",
+        "backend/modules/business/deploy/deploy_{service,handler,seed}.go"
+      ],
+      "remainingWork": "no standalone packet/evidence dir; covered by main-flow closeout",
+      "recommendedStatus": "completed",
+      "archiveCandidate": false,
+      "reason": "End-to-end delete verified; standalone evidence not required (absorbed)."
+    },
+    {
+      "id": "2026-06-21-business-deploy-task-main-flow-closeout",
+      "date": "2026-06-21",
+      "classification": "verified-complete",
+      "evidencePaths": [
+        "docs/harness/tasks/2026-06-21-business-deploy-task-main-flow-closeout.task.md",
+        ".harness/tasks/2026-06-21-business-deploy-task-main-flow-closeout/manifest.json",
+        ".harness/evidence/2026-06-21-business-deploy-task-main-flow-closeout/{summary.md,review.md,commands.json}"
+      ],
+      "remainingWork": "none within scope; repo-wide type-check baseline drift out of scope",
+      "recommendedStatus": "completed",
+      "archiveCandidate": true,
+      "reason": "Full packet + evidence + review present and verified; strong self-contained closeout candidate."
+    },
+    {
+      "id": "2026-07-17-bizscope-error-key-canonicalization",
+      "date": "2026-07-17",
+      "classification": "verified-complete",
+      "evidencePaths": [
+        "docs/harness/tasks/2026-07-17-bizscope-error-key-canonicalization.task.md",
+        "backend/modules/business/bizscope/bizscope_{service,handler}.go",
+        "docs/designs/BUSINESS_ERROR_SEMANTICS_APPENDIX.md"
+      ],
+      "remainingWork": "optional: canonicalize export/import flow keys (documented out-of-scope)",
+      "recommendedStatus": "completed",
+      "archiveCandidate": false,
+      "reason": "Core migration verified via code + appendix; no standalone packet/evidence dir."
+    },
+    {
+      "id": "2026-07-17-business-design-docs-truthing",
+      "date": "2026-07-17",
+      "classification": "verified-complete",
+      "evidencePaths": [
+        "docs/harness/tasks/2026-07-17-business-design-docs-truthing.task.md",
+        "docs/designs/BUSINESS_{CMDB,DEPLOY,BIZSCOPE}_MODULE_DESIGN.md(.en)",
+        "docs/designs/BUSINESS_ERROR_SEMANTICS_APPENDIX.md(.en)"
+      ],
+      "remainingWork": "none",
+      "recommendedStatus": "completed",
+      "archiveCandidate": false,
+      "reason": "Designs updated + English mirrors present; verified via docs (no packet needed for doc task)."
+    },
+    {
+      "id": "2026-07-17-business-permission-gaps",
+      "date": "2026-07-17",
+      "classification": "keep-open",
+      "evidencePaths": [
+        "docs/harness/tasks/2026-07-17-business-permission-gaps.task.md",
+        "backend/modules/business/deploy/deploy_seed.go",
+        "backend/modules/business/cmdb/permission_routes.go"
+      ],
+      "remainingWork": "confirm/close GET /packages/:id under permissionroutes/keyMatch2; update design-doc gap annotation. P1",
+      "recommendedStatus": "open",
+      "archiveCandidate": false,
+      "reason": "PR1/PR2 verified; PR3 /packages/:id unverifiable (permission_policies.go deleted). Keep-open pending P1."
+    },
+    {
+      "id": "2026-07-17-cmdb-ssh-config-externalize",
+      "date": "2026-07-17",
+      "classification": "keep-open",
+      "evidencePaths": [
+        "docs/harness/tasks/2026-07-17-cmdb-ssh-config-externalize.task.md",
+        ".harness/tasks/2026-07-17-cmdb-ssh-config-externalize/manifest.json",
+        ".harness/evidence/2026-07-17-cmdb-ssh-config-externalize/{summary.md,commands.json}",
+        "backend/modules/business/cmdb/host/host_service.go",
+        "backend/modules/business/cmdb/module.go",
+        "docs/designs/BUSINESS_CMDB_MODULE_DESIGN.md"
+      ],
+      "remainingWork": "confirm config keys cmdb.ssh.collect_timeout/default_port actually read via Base extension point + fallback; verify change alters behavior; remove §11.2 todo. DELEGATED (Codex/S1) — do not double-scan",
+      "recommendedStatus": "open",
+      "archiveCandidate": false,
+      "reason": "DELTA vs intake: manifest + summary + commands NOW exist (untracked, created 2026-11-17) and host_service.go/design doc modified. INVENTORY said NOT IMPLEMENTED; evidence now authored. Code substantiation (config read + behavioral change) is the brother-Codex S1 responsibility — I verify existence only, not the runtime claim."
+    },
+    {
+      "id": "2026-07-29-sonar-ts-final",
+      "date": "2026-07-29",
+      "classification": "upstream-owned",
+      "evidencePaths": ["docs/harness/tasks/2026-07-29-sonar-ts-final.task.md"],
+      "remainingWork": "completion proof belongs upstream (base); stale AppLayout ref superseded",
+      "recommendedStatus": "superseded",
+      "archiveCandidate": false,
+      "reason": "Base-owned platform TS; no ops packet/evidence. (INVENTORY called insufficient-evidence; verifiable completion is upstream/base-gating, mapped here.)"
+    },
+    {
+      "id": "2026-08-02-sonarcloud-open-issues",
+      "date": "2026-08-02",
+      "classification": "upstream-owned",
+      "evidencePaths": ["docs/harness/tasks/2026-08-02-sonarcloud-open-issues.task.md"],
+      "remainingWork": "none verifiable in ops",
+      "recommendedStatus": "superseded",
+      "archiveCandidate": false,
+      "reason": "Base CI remediation; Sonar green supersedes stale 77-smell count."
+    },
+    {
+      "id": "2026-08-03-sonarcloud-encoding-warning",
+      "date": "2026-08-03",
+      "classification": "verified-complete",
+      "evidencePaths": ["docs/harness/tasks/2026-08-03-sonarcloud-encoding-warning.task.md", "scripts/check-encoding.mjs"],
+      "remainingWork": "none verifiable here",
+      "recommendedStatus": "completed",
+      "archiveCandidate": false,
+      "reason": "Successor gate check-encoding.mjs present; base-owned. INVENTORY insufficient-evidence; strong successor-gate coverage."
+    },
+    {
+      "id": "2026-08-11-sonarcloud-ops-remediation",
+      "date": "2026-08-11",
+      "classification": "verified-complete",
+      "evidencePaths": [
+        "docs/harness/tasks/2026-08-11-sonarcloud-ops-remediation.task.md",
+        ".harness/tasks/2026-08-11-sonarcloud-ops-remediation/manifest.json",
+        ".harness/evidence/2026-08-11-sonarcloud-ops-remediation/{summary.md,review.md,commands.json}",
+        "sonar-project.properties"
+      ],
+      "remainingWork": "none (hosted-gate finality later superseded by 10-29/10-30)",
+      "recommendedStatus": "completed",
+      "archiveCandidate": true,
+      "reason": "Full packet + evidence + review present; PR#107 merged; verified."
+    },
+    {
+      "id": "2026-08-21-sonarcloud-remediation",
+      "date": "2026-08-21",
+      "classification": "upstream-owned",
+      "evidencePaths": ["docs/harness/tasks/2026-08-21-sonarcloud-remediation.task.md"],
+      "remainingWork": "belongs to base Release Gate",
+      "recommendedStatus": "superseded",
+      "archiveCandidate": false,
+      "reason": "Base release-gate remediation; goal later achieved on ops side via 10-29/10-30."
+    },
+    {
+      "id": "2026-09-01-release-gate-sonar-cleanup",
+      "date": "2026-09-01",
+      "classification": "upstream-owned",
+      "evidencePaths": ["docs/harness/tasks/2026-09-01-release-gate-sonar-cleanup.task.md"],
+      "remainingWork": "none verifiable in ops",
+      "recommendedStatus": "superseded",
+      "archiveCandidate": false,
+      "reason": "Base frontend/Release Gate; single-issue count stale (Sonar green)."
+    },
+    {
+      "id": "2026-09-01-sonar-duplication-reduction",
+      "date": "2026-09-01",
+      "classification": "upstream-owned",
+      "evidencePaths": ["docs/harness/tasks/2026-09-01-sonar-duplication-reduction.task.md", "scripts/check-duplication.mjs"],
+      "remainingWork": "belongs entirely to pantheon-base",
+      "recommendedStatus": "superseded",
+      "archiveCandidate": false,
+      "reason": "Explicitly base/foundation-source target; ops density now 2.0 (<3%)."
+    },
+    {
+      "id": "2026-10-29-sonar-ci-analysis-restore",
+      "date": "2026-10-29",
+      "classification": "verified-complete",
+      "evidencePaths": [
+        ".harness/tasks/2026-10-29-sonar-ci-analysis-restore/manifest.json",
+        ".harness/evidence/2026-10-29-sonar-ci-analysis-restore/{summary.md,review.md,commands.json}",
+        "sonar-project.properties",
+        "business-overlay.json"
+      ],
+      "remainingWork": "none",
+      "recommendedStatus": "completed",
+      "archiveCandidate": true,
+      "reason": "Status completed; full evidence reviewed; hosted scan reaches analysis."
+    },
+    {
+      "id": "2026-10-30-sonar-findings-remediation",
+      "date": "2026-10-30",
+      "classification": "verified-complete",
+      "evidencePaths": [
+        ".harness/tasks/2026-10-30-sonar-findings-remediation/manifest.json",
+        ".harness/evidence/2026-10-30-sonar-findings-remediation/{summary.md,review.md,commands.json}",
+        "scripts/check-gorm-sql-literal.mjs"
+      ],
+      "remainingWork": "recorded legacy code-smell + Dependabot-scan + Vercel external (explicitly out-of-scope)",
+      "recommendedStatus": "completed",
+      "archiveCandidate": true,
+      "reason": "Full evidence; hosted readback 0 open / gate OK / density 2.0; check-gorm-sql-literal merged."
+    },
+    {
+      "id": "2026-08-04-base-v0-10-0-release-candidate",
+      "date": "2026-08-04",
+      "classification": "superseded",
+      "evidencePaths": ["docs/harness/tasks/2026-08-04-base-v0-10-0-release-candidate.task.md"],
+      "remainingWork": "none",
+      "recommendedStatus": "superseded",
+      "archiveCandidate": true,
+      "reason": "v0.10.0 never shipped; superseded by v0.18.9 lock. base-owned release scope."
+    },
+    {
+      "id": "2026-08-05-base-v0-10-1-release",
+      "date": "2026-08-05",
+      "classification": "superseded",
+      "evidencePaths": ["docs/harness/tasks/2026-08-05-base-v0-10-1-release.task.md"],
+      "remainingWork": "none",
+      "recommendedStatus": "superseded",
+      "archiveCandidate": true,
+      "reason": "Packet only; superseded by v0.18.9 lock. base-owned release scope."
+    },
+    {
+      "id": "2026-08-05-base-v0-10-2-visual-checker",
+      "date": "2026-08-05",
+      "classification": "superseded",
+      "evidencePaths": ["docs/harness/tasks/2026-08-05-base-v0-10-2-visual-checker.task.md", "frontend/scripts/check-shell-visual-contract.mjs"],
+      "remainingWork": "none",
+      "recommendedStatus": "superseded",
+      "archiveCandidate": true,
+      "reason": "Checkers present in inherited tree; v0.10.2 superseded by v0.18.x lock."
+    },
+    {
+      "id": "2026-08-05-foundation-upgrade-base-v0-10-1",
+      "date": "2026-08-05",
+      "classification": "superseded",
+      "evidencePaths": [
+        "docs/harness/tasks/2026-08-05-foundation-upgrade-base-v0-10-1.task.md",
+        ".harness/tasks/2026-08-05-foundation-upgrade-base-v0-10-1/manifest.json"
+      ],
+      "remainingWork": "none (approach replaced by clean rebuild)",
+      "recommendedStatus": "superseded",
+      "archiveCandidate": true,
+      "reason": "Consumer tooling retired; v0.10.x range superseded by v0.18.9 lock."
+    },
+    {
+      "id": "2026-08-05-foundation-upgrade-base-v0-10-2",
+      "date": "2026-08-05",
+      "classification": "superseded",
+      "evidencePaths": [
+        "docs/harness/tasks/2026-08-05-foundation-upgrade-base-v0-10-2.task.md",
+        ".harness/tasks/2026-08-05-foundation-upgrade-base-v0-10-2/manifest.json"
+      ],
+      "remainingWork": "none",
+      "recommendedStatus": "superseded",
+      "archiveCandidate": true,
+      "reason": "Consumer superseded by clean rebuild; v0.18.9 lock."
+    },
+    {
+      "id": "2026-08-07-foundation-upgrade-base-v0-10-3",
+      "date": "2026-08-07",
+      "classification": "superseded",
+      "evidencePaths": [
+        "docs/harness/tasks/2026-08-07-foundation-upgrade-base-v0-10-3.task.md",
+        ".harness/tasks/2026-08-07-foundation-upgrade-base-v0-10-3/manifest.json",
+        ".harness/evidence/2026-08-07-foundation-upgrade-base-v0-10-3/{summary.md,review.md,commands.json}"
+      ],
+      "remainingWork": "none",
+      "recommendedStatus": "superseded",
+      "archiveCandidate": true,
+      "reason": "Full evidence; temporary overlays removed by clean rebuild as intended; superseded."
+    },
+    {
+      "id": "2026-08-08-foundation-upgrade-base-v0-10-5",
+      "date": "2026-08-08",
+      "classification": "superseded",
+      "evidencePaths": [
+        "docs/harness/tasks/2026-08-08-foundation-upgrade-base-v0-10-5.task.md",
+        ".harness/tasks/2026-08-08-foundation-upgrade-base-v0-10-5/manifest.json",
+        ".harness/evidence/2026-08-08-foundation-upgrade-base-v0-10-5/{summary.md,review.md,commands.json}"
+      ],
+      "remainingWork": "none",
+      "recommendedStatus": "superseded",
+      "archiveCandidate": true,
+      "reason": "Full evidence; CSRF residual closed by 08-10; superseded."
+    },
+    {
+      "id": "2026-08-10-security-csrf-closeout",
+      "date": "2026-08-10",
+      "classification": "verified-complete",
+      "evidencePaths": [
+        "docs/harness/tasks/2026-08-10-security-csrf-closeout.task.md",
+        ".harness/tasks/2026-08-10-security-csrf-closeout/manifest.json",
+        ".harness/evidence/2026-08-10-security-csrf-closeout/{summary.md,review.md,commands.json}"
+      ],
+      "remainingWork": "none",
+      "recommendedStatus": "completed",
+      "archiveCandidate": true,
+      "reason": "review verdict complete; govulncheck 0; hosted Security/Quality/Smoke passed; lock advanced. Full evidence."
+    },
+    {
+      "id": "2026-08-10-shared-csrf-release",
+      "date": "2026-08-10",
+      "classification": "upstream-owned",
+      "evidencePaths": ["docs/harness/tasks/2026-08-10-shared-csrf-release.task.md"],
+      "remainingWork": "none",
+      "recommendedStatus": "superseded",
+      "archiveCandidate": false,
+      "reason": "Base-side release; CSRF contract consumed by ops; superseded by v0.18.9."
+    },
+    {
+      "id": "2026-08-11-foundation-consumer-certification",
+      "date": "2026-08-11",
+      "classification": "superseded",
+      "evidencePaths": [
+        "docs/harness/tasks/2026-08-11-foundation-consumer-certification.task.md",
+        ".harness/tasks/2026-08-11-foundation-consumer-certification/manifest.json",
+        ".harness/evidence/2026-08-11-foundation-consumer-certification/{summary.md,review.md,commands.json}"
+      ],
+      "remainingWork": "none (discipline survives in rebuild-from-base.mjs)",
+      "recommendedStatus": "superseded",
+      "archiveCandidate": true,
+      "reason": "v0.10.12 certified; original consumer tooling retired; integrity discipline kept. Full evidence."
+    },
+    {
+      "id": "2026-08-12-foundation-v0-10-14-clean-consumer",
+      "date": "2026-08-12",
+      "classification": "superseded",
+      "evidencePaths": [
+        "docs/harness/tasks/2026-08-12-foundation-v0-10-14-clean-consumer.task.md",
+        ".harness/tasks/2026-08-12-foundation-v0-10-14-clean-consumer/manifest.json",
+        ".harness/evidence/2026-08-12-foundation-v0-10-14-clean-consumer/{summary.md,review.md,commands.json}"
+      ],
+      "remainingWork": "none",
+      "recommendedStatus": "superseded",
+      "archiveCandidate": true,
+      "reason": "Absorbed into 08-13 rebuild; v0.10.21 superseded. Full evidence."
+    },
+    {
+      "id": "2026-08-13-clean-base-business-overlay-rebuild",
+      "date": "2026-08-13",
+      "classification": "verified-complete",
+      "evidencePaths": [
+        "docs/harness/tasks/2026-08-13-clean-base-business-overlay-rebuild.task.md",
+        ".harness/tasks/2026-08-13-clean-base-business-overlay-rebuild/manifest.json",
+        ".harness/evidence/2026-08-13-clean-base-business-overlay-rebuild/{summary.md,review.md,commands.json}",
+        "scripts/business-overlay/{rebuild-from-base,check-business-overlay,check-shared-drift}.mjs",
+        "business-overlay.json",
+        "foundation-release.lock.json"
+      ],
+      "remainingWork": "residual: go test -race needs cgo (not run on authoring machine); base repo.tar packaging now in v0.18.x lock",
+      "recommendedStatus": "completed",
+      "archiveCandidate": true,
+      "reason": "reviewed/complete; current consumption model; full evidence + scripts. Race residual delegated to Windows cgo gate."
+    },
+    {
+      "id": "2026-08-12-foundation-consumer-cleanup-overlay",
+      "date": "2026-08-12",
+      "classification": "superseded",
+      "evidencePaths": ["docs/harness/tasks/2026-08-12-foundation-consumer-cleanup-overlay.task.md", "frontend/scripts/cleanup-generated-modules.mjs"],
+      "remainingWork": "none",
+      "recommendedStatus": "superseded",
+      "archiveCandidate": true,
+      "reason": "Producer fix superseded by v0.18.x + overlay rebuild; script inherited."
+    },
+    {
+      "id": "2026-08-12-foundation-consumer-runtime-portability",
+      "date": "2026-08-12",
+      "classification": "superseded",
+      "evidencePaths": ["docs/harness/tasks/2026-08-12-foundation-consumer-runtime-portability.task.md", "frontend/scripts/go-module.test.mjs"],
+      "remainingWork": "none",
+      "recommendedStatus": "superseded",
+      "archiveCandidate": true,
+      "reason": "v0.10.18 portability superseded; Ops uses pantheon-base module identity per lock."
+    },
+    {
+      "id": "2026-08-12-foundation-smoke-closure",
+      "date": "2026-08-12",
+      "classification": "superseded",
+      "evidencePaths": ["docs/harness/tasks/2026-08-12-foundation-smoke-closure.task.md", "tests/smoke/business/**"],
+      "remainingWork": "none",
+      "recommendedStatus": "superseded",
+      "archiveCandidate": true,
+      "reason": "Smoke ownership via shared contract + business-overlay; superseded by v0.18.x."
+    },
+    {
+      "id": "2026-08-12-foundation-smoke-contract-closure",
+      "date": "2026-08-12",
+      "classification": "superseded",
+      "evidencePaths": ["docs/harness/tasks/2026-08-12-foundation-smoke-contract-closure.task.md", "frontend/scripts/check-smoke-web-base.mjs"],
+      "remainingWork": "none",
+      "recommendedStatus": "superseded",
+      "archiveCandidate": true,
+      "reason": "check-smoke-web-base + coverage contract + PANTHEON_API_PROXY_TARGET present; superseded."
+    },
+    {
+      "id": "2026-08-11-base-security-dependencies",
+      "date": "2026-08-11",
+      "classification": "upstream-owned",
+      "evidencePaths": ["docs/harness/tasks/2026-08-11-base-security-dependencies.task.md"],
+      "remainingWork": "none",
+      "recommendedStatus": "superseded",
+      "archiveCandidate": false,
+      "reason": "Upstream; js-yaml/nanoid upgrade; superseded."
+    },
+    {
+      "id": "2026-08-11-delivery-certification",
+      "date": "2026-08-11",
+      "classification": "upstream-owned",
+      "evidencePaths": ["docs/harness/tasks/2026-08-11-delivery-certification.task.md"],
+      "remainingWork": "none for ops",
+      "recommendedStatus": "superseded",
+      "archiveCandidate": false,
+      "reason": "Upstream base CI/release certification."
+    },
+    {
+      "id": "2026-08-11-foundation-release-v0-10-12",
+      "date": "2026-08-11",
+      "classification": "upstream-owned",
+      "evidencePaths": ["docs/harness/tasks/2026-08-11-foundation-release-v0-10-12.task.md"],
+      "remainingWork": "none",
+      "recommendedStatus": "superseded",
+      "archiveCandidate": false,
+      "reason": "Upstream release; superseded."
+    },
+    {
+      "id": "2026-08-11-foundation-release-v0-10-13",
+      "date": "2026-08-11",
+      "classification": "upstream-owned",
+      "evidencePaths": ["docs/harness/tasks/2026-08-11-foundation-release-v0-10-13.task.md"],
+      "remainingWork": "none",
+      "recommendedStatus": "superseded",
+      "archiveCandidate": false,
+      "reason": "Upstream; superseded."
+    },
+    {
+      "id": "2026-08-13-foundation-release-repo-snapshot",
+      "date": "2026-08-13",
+      "classification": "upstream-owned",
+      "evidencePaths": ["docs/harness/tasks/2026-08-13-foundation-release-repo-snapshot.task.md"],
+      "remainingWork": "none",
+      "recommendedStatus": "superseded",
+      "archiveCandidate": false,
+      "reason": "Mechanism proven by every lock (v0.18.9 has repoSnapshot.repo.tar)."
+    },
+    {
+      "id": "2026-08-17-foundation-cross-repo-handoff-adoption",
+      "date": "2026-08-17",
+      "classification": "upstream-owned",
+      "evidencePaths": ["docs/harness/tasks/2026-08-17-foundation-cross-repo-handoff-adoption.task.md"],
+      "remainingWork": "none for ops",
+      "recommendedStatus": "superseded",
+      "archiveCandidate": false,
+      "reason": "Base governance card; handoff pattern in wide use."
+    },
+    {
+      "id": "2026-08-31-base-operational-workbench-design",
+      "date": "2026-08-31",
+      "classification": "upstream-owned",
+      "evidencePaths": ["docs/harness/tasks/2026-08-31-base-operational-workbench-design.task.md"],
+      "remainingWork": "B1-B5 implementation possible via v0.18.x deps; no current ops backlog",
+      "recommendedStatus": "superseded",
+      "archiveCandidate": false,
+      "reason": "Base design epic; ops sibling O1-O7 classified separately."
+    },
+    {
+      "id": "2026-09-01-ops-foundation-upgrade-v0-10-25",
+      "date": "2026-09-01",
+      "classification": "superseded",
+      "evidencePaths": [
+        "docs/harness/tasks/2026-09-01-ops-foundation-upgrade-v0-10-25.task.md",
+        ".harness/evidence/2026-09-01-ops-foundation-upgrade-v0-10-25/{summary.md,commands.json}"
+      ],
+      "remainingWork": "deferred PANTHEON_MAX_BODY_BYTES gap = Base-first, separate",
+      "recommendedStatus": "superseded",
+      "archiveCandidate": true,
+      "reason": "v0.10.25 superseded; overlay class still present via v0.18.9 rebuild. residual tracked separately, not swallowed."
+    },
+    {
+      "id": "2026-09-01-release-docs-reconciliation",
+      "date": "2026-09-01",
+      "classification": "upstream-owned",
+      "evidencePaths": ["docs/harness/tasks/2026-09-01-release-docs-reconciliation.task.md"],
+      "remainingWork": "none",
+      "recommendedStatus": "superseded",
+      "archiveCandidate": false,
+      "reason": "Upstream docs task."
+    },
+    {
+      "id": "2026-09-02-foundation-release-v0-10-26-and-ops-sync",
+      "date": "2026-09-02",
+      "classification": "upstream-owned",
+      "evidencePaths": ["docs/harness/tasks/2026-09-02-foundation-release-v0-10-26-and-ops-sync.task.md"],
+      "remainingWork": "none",
+      "recommendedStatus": "superseded",
+      "archiveCandidate": false,
+      "reason": "Base release + ops lock advance; superseded by v0.18.9."
+    },
+    {
+      "id": "2026-07-30-local-consolidation",
+      "date": "2026-07-30",
+      "classification": "upstream-owned",
+      "evidencePaths": ["docs/harness/tasks/2026-07-30-local-consolidation.task.md"],
+      "remainingWork": "none",
+      "recommendedStatus": "superseded",
+      "archiveCandidate": false,
+      "reason": "Base cross-repo consolidation."
+    },
+    {
+      "id": "2026-08-06-generator-business-page-route",
+      "date": "2026-08-06",
+      "classification": "upstream-owned",
+      "evidencePaths": ["docs/harness/tasks/2026-08-06-generator-business-page-route.task.md"],
+      "remainingWork": "none for current ops",
+      "recommendedStatus": "superseded",
+      "archiveCandidate": false,
+      "reason": "Generator + shared smoke live in base; consumed via v0.18.9 lock sharedPaths."
+    },
+    {
+      "id": "2026-10-12-foundation-upgrade-base-v0-16-1",
+      "date": "2026-10-12",
+      "classification": "superseded",
+      "evidencePaths": [
+        "docs/harness/tasks/2026-10-12-foundation-upgrade-base-v0-16-1.task.md",
+        ".harness/tasks/2026-10-12-foundation-upgrade-base-v0-16-1/manifest.json",
+        ".harness/evidence/2026-10-12-foundation-upgrade-base-v0-16-1/{summary.md,review.md,commands.json}"
+      ],
+      "remainingWork": "none today",
+      "recommendedStatus": "superseded",
+      "archiveCandidate": true,
+      "reason": "Review Accept; superseded by v0.17.6->v0.18.9. Full evidence."
+    },
+    {
+      "id": "2026-10-27-foundation-upgrade-base-v0-17-6",
+      "date": "2026-10-27",
+      "classification": "superseded",
+      "evidencePaths": [
+        "docs/harness/tasks/2026-10-27-foundation-upgrade-base-v0-17-6.task.md",
+        ".harness/tasks/2026-10-27-foundation-upgrade-base-v0-17-6/manifest.json",
+        ".harness/evidence/2026-10-27-foundation-upgrade-base-v0-17-6/{summary.md,review.md,commands.json}"
+      ],
+      "remainingWork": "open bounded review P2s (runtime acceptance; migration channel) tracked in later plan tasks; NOT swallowed by supersede",
+      "recommendedStatus": "superseded",
+      "archiveCandidate": true,
+      "reason": "Repairs merged; carried by v0.18.9. Review P2s explicitly carried forward, not closed by supersede."
+    },
+    {
+      "id": "2026-10-27-foundation-upgrade-base-v0-17-7",
+      "date": "2026-10-27",
+      "classification": "superseded",
+      "evidencePaths": [
+        "docs/harness/tasks/2026-10-27-foundation-upgrade-base-v0-17-7.task.md",
+        ".harness/tasks/2026-10-27-foundation-upgrade-base-v0-17-7/manifest.json",
+        ".harness/evidence/2026-10-27-foundation-upgrade-base-v0-17-7/{summary.md,review.md,commands.json}"
+      ],
+      "remainingWork": "open bounded items (runtime acceptance, migration channel) + maintainer SONAR_TOKEN",
+      "recommendedStatus": "superseded",
+      "archiveCandidate": true,
+      "reason": "defaultNginxServiceName verified; superseded. Open bounded items preserved."
+    },
+    {
+      "id": "2026-10-29-foundation-upgrade-base-v0-18-1",
+      "date": "2026-10-29",
+      "classification": "superseded",
+      "evidencePaths": [
+        ".harness/tasks/2026-10-29-foundation-upgrade-base-v0-18-1/manifest.json",
+        ".harness/evidence/2026-10-29-foundation-upgrade-base-v0-18-1/{summary.md,review.md,commands.json}"
+      ],
+      "remainingWork": "deferred: re-enable check:task-packet in CI, base doc dangling links, sonar/Vercel external, race-on-Windows env gap",
+      "recommendedStatus": "superseded",
+      "archiveCandidate": true,
+      "reason": "Manifest completed; PR#164 confirmed; superseded. deferred items preserved."
+    },
+    {
+      "id": "2026-10-31-foundation-upgrade-base-v0-18-2",
+      "date": "2026-10-31",
+      "classification": "superseded",
+      "evidencePaths": [
+        ".harness/tasks/2026-10-31-foundation-upgrade-base-v0-18-2/manifest.json",
+        ".harness/evidence/2026-10-31-foundation-upgrade-base-v0-18-2/{summary.md,review.md,commands.json}"
+      ],
+      "remainingWork": "recurring open items (runtime acceptance, migration channel, stale SONAR_TOKEN)",
+      "recommendedStatus": "superseded",
+      "archiveCandidate": true,
+      "reason": "k8sServicePerm constants verified; superseded. recurring items preserved."
+    },
+    {
+      "id": "2026-11-05-base-v0183-consumption",
+      "date": "2026-11-05",
+      "classification": "superseded",
+      "evidencePaths": [
+        ".harness/tasks/2026-11-05-base-v0183-consumption/manifest.json",
+        ".harness/evidence/2026-11-05-base-v0183-consumption/{summary.md,review.md,commands.json}"
+      ],
+      "remainingWork": "none for this id; QA002/host-import runtime gaps carried forward (not swallowed)",
+      "recommendedStatus": "superseded",
+      "archiveCandidate": true,
+      "reason": "v0.18.5 consumed (PR#177); migration 000032 preserved; superseded. QA gaps carried."
+    },
+    {
+      "id": "2026-11-07-base-v0186-consumption",
+      "date": "2026-11-07",
+      "classification": "verified-complete",
+      "evidencePaths": [
+        ".harness/archive/2026-11/tasks/2026-11-07-base-v0186-consumption/manifest.json",
+        ".harness/archive/2026-11/evidence/2026-11-07-base-v0186-consumption/"
+      ],
+      "remainingWork": "none (archived; reference-checked only, not re-moved)",
+      "recommendedStatus": "archived",
+      "archiveCandidate": false,
+      "reason": "Already archived 2026-11-16; archive copy present; refs intact. Reference-checked only."
+    },
+    {
+      "id": "2026-11-13-base-v0187-consumption",
+      "date": "2026-11-13",
+      "classification": "verified-complete",
+      "evidencePaths": [
+        ".harness/archive/2026-11/tasks/2026-11-13-base-v0187-consumption/manifest.json",
+        ".harness/archive/2026-11/evidence/2026-11-13-base-v0187-consumption/"
+      ],
+      "remainingWork": "normalize live manifest status field to completed (record lag only); PR#183 merged",
+      "recommendedStatus": "archived",
+      "archiveCandidate": false,
+      "reason": "Already archived; archive manifest+evidence present. Live manifest status still reads in-progress (record lag). Reference-checked only; flag for P0 normalization."
+    },
+    {
+      "id": "2026-08-31-ops-operational-workbench-design",
+      "date": "2026-08-31",
+      "classification": "keep-open",
+      "evidencePaths": [
+        "docs/harness/tasks/2026-08-31-ops-operational-workbench-design.task.md",
+        ".harness/tasks/2026-08-31-ops-operational-workbench-design/{manifest.json,STATUS.md,EXECUTION_QUEUE.md,packets/O1-O7}",
+        ".harness/evidence/2026-08-31-ops-operational-workbench-design/"
+      ],
+      "remainingWork": "see children O1-O7",
+      "recommendedStatus": "container",
+      "archiveCandidate": false,
+      "reason": "Container; design + packets O1-O7 present; actual code state classified at child level. Do not close container while children open."
+    },
+    {
+      "id": "O1-unified-context-target-selector",
+      "date": "2026-08-31",
+      "classification": "keep-open",
+      "evidencePaths": [
+        ".harness/tasks/2026-08-31-ops-operational-workbench-design/packets/O1-context-and-target-selector.md",
+        "frontend/src/modules/business/deploy/task/DeployTargetSelector.tsx"
+      ],
+      "remainingWork": "build shared BizScope context header + generic selector; pull base B3 ContextSelector. W1",
+      "recommendedStatus": "open",
+      "archiveCandidate": false,
+      "reason": "Only deploy-scoped selector exists; no generic cross-module context selector. Genuine implementation gap (INVENTORY verified tree). W1."
+    },
+    {
+      "id": "O2-deployment-execution-workbench",
+      "date": "2026-08-31",
+      "classification": "verified-complete",
+      "evidencePaths": [
+        ".harness/tasks/2026-08-31-ops-operational-workbench-design/packets/O2-deployment-execution-workbench.md",
+        "frontend/src/modules/business/deploy/task/DeployExecutionWorkbench.tsx",
+        "backend/modules/business/deploy/{step_history,attempt_ownership,log_download,task_command}.go"
+      ],
+      "remainingWork": "dedicated O2 acceptance evidence package (SSE reconnect/partial-failure/mobile screenshots) not authored; hand to C05/C02 acceptance",
+      "recommendedStatus": "completed",
+      "archiveCandidate": false,
+      "reason": "Implemented + landed b51559c5 (2026-11-16); tests green. Acceptance evidence package outstanding (C02/C05)."
+    },
+    {
+      "id": "O3-change-preview-and-risk",
+      "date": "2026-08-31",
+      "classification": "keep-open",
+      "evidencePaths": [
+        ".harness/tasks/2026-08-31-ops-operational-workbench-design/packets/O3-change-preview-and-risk.md",
+        "frontend/src/modules/business/deploy/task/DeployTaskPreview.tsx",
+        "backend/modules/business/deploy/task_preview.go"
+      ],
+      "remainingWork": "K8s release preview + ArgoCD version-tree/resource-diff + cross-domain envelope + 409 conflict. W2; overlap C02/E02",
+      "recommendedStatus": "open",
+      "archiveCandidate": false,
+      "reason": "Only Deploy preview exists; NO K8s/ArgoCD diff preview. Genuine gap. W2."
+    },
+    {
+      "id": "O4-observability-query-workbench",
+      "date": "2026-08-31",
+      "classification": "verified-complete",
+      "evidencePaths": [
+        ".harness/tasks/2026-08-31-ops-operational-workbench-design/packets/O4-observability-query-workbench.md",
+        "frontend/src/modules/business/observability/*",
+        "backend/modules/business/observability/query_workspace_*"
+      ],
+      "remainingWork": "real Prometheus/Loki/Tempo acceptance (D1); per-packet O4 evidence package",
+      "recommendedStatus": "completed",
+      "archiveCandidate": false,
+      "reason": "Implemented (LogExplorer, QueryWorkspaceHistory, AlertCenter, MetricSourceList) in b51559c5. Product acceptance = D1/external."
+    },
+    {
+      "id": "O5-task-and-pod-log-experience",
+      "date": "2026-08-31",
+      "classification": "verified-complete",
+      "evidencePaths": [
+        ".harness/tasks/2026-08-31-ops-operational-workbench-design/packets/O5-task-and-pod-log-experience.md",
+        "frontend/src/modules/business/k8s/workload/PodLogViewer.tsx",
+        "frontend/src/modules/business/deploy/task/useDeployTask*.ts",
+        "backend/modules/business/deploy/log_download.go"
+      ],
+      "remainingWork": "real K8s pod-log + Deploy runtime acceptance (D1); O5 evidence package",
+      "recommendedStatus": "completed",
+      "archiveCandidate": false,
+      "reason": "Implemented in b51559c5 (PodLogViewer + useDeployTaskLogs + LogDownload). Live acceptance = D1."
+    },
+    {
+      "id": "O6-business-dashboard-widgets",
+      "date": "2026-08-31",
+      "classification": "verified-complete",
+      "evidencePaths": [
+        ".harness/tasks/2026-08-31-ops-operational-workbench-design/packets/O6-business-dashboard-widgets.md",
+        "frontend/src/modules/business/shared/dashboardWidgets.ts",
+        "backend/modules/business/{deploy,observability}/dashboard_summary.go"
+      ],
+      "remainingWork": "no O6-specific acceptance package; Dashboard registry core is Base-owned",
+      "recommendedStatus": "completed",
+      "archiveCandidate": false,
+      "reason": "Implemented in b51559c5 (widget groups with slots/cleanup/permission/budget). Registry core Base-owned."
+    },
+    {
+      "id": "O7-cmdb-relationship-impact-discovery",
+      "date": "2026-08-31",
+      "classification": "keep-open",
+      "evidencePaths": [
+        ".harness/tasks/2026-08-31-ops-operational-workbench-design/packets/O7-cmdb-relationship-impact.md",
+        "backend/modules/business/cmdb/{group,host,label}"
+      ],
+      "remainingWork": "run relationship maturity gate, then separate L2 implementation packet; fixture-driven impact queries + DataScope",
+      "recommendedStatus": "deferred",
+      "archiveCandidate": false,
+      "reason": "Explicitly deferred-forward; maturity gate not passed; NOT a pilot exit item. Do not silently downgrade."
+    },
+    {
+      "id": "2026-09-28-ops-delivery-readiness-gap-closure",
+      "date": "2026-09-28",
+      "classification": "keep-open",
+      "evidencePaths": [
+        "docs/harness/tasks/2026-09-28-ops-delivery-readiness-gap-closure.task.md",
+        ".harness/tasks/2026-09-28-ops-delivery-readiness-gap-closure/{manifest.json,packets/D1-D5}",
+        ".harness/evidence/2026-09-28-ops-delivery-readiness-gap-closure/"
+      ],
+      "remainingWork": "see children D1,D2,D4,D5 (D3 done)",
+      "recommendedStatus": "container",
+      "archiveCandidate": false,
+      "reason": "Container; packets D1-D5 present; child dispositions below. Do not close while children open."
+    },
+    {
+      "id": "D1-external-integration-acceptance",
+      "date": "2026-09-28",
+      "classification": "keep-open",
+      "evidencePaths": [
+        ".harness/tasks/2026-09-28-ops-delivery-readiness-gap-closure/packets/D1-external-integration-acceptance.md",
+        "backend/modules/business/observability/datasource_*",
+        "backend/modules/business/cicd/argocd"
+      ],
+      "remainingWork": "obtain scoped endpoints/credentials; run matrix (Prom/VM/Loki/Tempo/K8s/ArgoCD/Velero) + redacted evidence + maintainer review. X2/D1",
+      "recommendedStatus": "open",
+      "archiveCandidate": false,
+      "reason": "No live acceptance for the six systems; only SSH + isolated K3s exists. External-gated; keep open until endpoints/creds obtained. Do not claim done."
+    },
+    {
+      "id": "D2-outbound-ssrf-protection",
+      "date": "2026-09-28",
+      "classification": "keep-open",
+      "evidencePaths": [
+        ".harness/tasks/2026-09-28-ops-delivery-readiness-gap-closure/packets/D2-ssrf-and-outbound-network-policy.md",
+        "backend/pkg/security/ssrf/validator.go",
+        "backend/modules/business/observability/{datasource_service,notification_service}.go"
+      ],
+      "remainingWork": "write deployed-path negative acceptance (127.0.0.1/169.254.169.254 blocked, redirect/DNS-rebind); confirm allowlist/private-network rules + audit; maintainer SSRF policy decision. X1/D2",
+      "recommendedStatus": "open",
+      "archiveCandidate": false,
+      "reason": "Code implemented (base-shared ssrf validator, not overlay violation); implementation is done, but deployed-policy acceptance + maintainer decision evidence missing. keep-open per missing-verification."
+    },
+    {
+      "id": "D3-base-first-consumer-re-review",
+      "date": "2026-09-28",
+      "classification": "verified-complete",
+      "evidencePaths": [
+        ".harness/tasks/2026-09-28-ops-delivery-readiness-gap-closure/packets/D3-base-first-consumer-rereview.md",
+        ".harness/evidence/2026-09-28-ops-delivery-readiness-gap-closure/D3-base-consumer-review.md",
+        "foundation-release.lock.json"
+      ],
+      "remainingWork": "re-run D3 overlay/boundary/clean-rebuild comparison against current v0.18.9 lock",
+      "recommendedStatus": "completed",
+      "archiveCandidate": false,
+      "reason": "Complete at v0.13.0 historically; STALE vs current v0.18.9 lock. Verdict held (was verified) but re-run is a bounded refresh, not a reopen."
+    },
+    {
+      "id": "D4-G2-production-backup-restore",
+      "date": "2026-09-28",
+      "classification": "keep-open",
+      "evidencePaths": [
+        ".harness/tasks/2026-09-28-ops-delivery-readiness-gap-closure/packets/D4-tenant-g2-g3-gray-gates.md",
+        "docs/runbooks/TENANT_MIGRATION_RUNBOOK.md (8.1)",
+        "docs/runbooks/PRODUCTION_BACKUP_RESTORE_DRILL_G2.md"
+      ],
+      "remainingWork": "production restore drill; measure RPO/RTO; DBA+maintainer sign-off; update §8.1. X4/D4",
+      "recommendedStatus": "open",
+      "archiveCandidate": false,
+      "reason": "G2 OPEN; no production restore evidence; DBA/production-window gated. Keep open with sign-off."
+    },
+    {
+      "id": "D4-G3-production-sizing-migration-window",
+      "date": "2026-09-28",
+      "classification": "keep-open",
+      "evidencePaths": [
+        ".harness/tasks/2026-09-28-ops-delivery-readiness-gap-closure/packets/D4-tenant-g2-g3-gray-gates.md",
+        "docs/runbooks/TENANT_MIGRATION_RUNBOOK.md (8.1)",
+        "backend/cmd/tenantsizing"
+      ],
+      "remainingWork": "read-only tenantsizing snapshot on prod/restored DB; plan output; maintainer review. X4/D4",
+      "recommendedStatus": "open",
+      "archiveCandidate": false,
+      "reason": "G3 OPEN; never run against production; parallel 'G1-G4 granted' claims already discredited. Keep open."
+    },
+    {
+      "id": "D5-harness-generated-artifact-governance",
+      "date": "2026-09-28",
+      "classification": "keep-open",
+      "evidencePaths": [
+        ".harness/tasks/2026-09-28-ops-delivery-readiness-gap-closure/packets/D5-harness-and-generated-governance.md",
+        ".harness/evidence/2026-09-28-ops-delivery-readiness-gap-closure/"
+      ],
+      "remainingWork": "close 8 manifest warnings + docs finds (13+10) + UI-quality (2); declare generated-system owner; classify 558/95 legacy debt; rerun full-repo scan on CURRENT tree. D5 (new governance scope passed)",
+      "recommendedStatus": "open",
+      "archiveCandidate": false,
+      "reason": "Partial failing; governance scope passed but bounded debt items remain open, incl. delete-stale-allowlist activity still in flight today (config/review-loop-legacy-artifacts.json modified). keep-open."
+    },
+    {
+      "id": "cmdb-host-import-export",
+      "date": "2026-08-17",
+      "classification": "verified-complete",
+      "evidencePaths": [
+        ".harness/tasks/cmdb-host-import-export/{manifest.json,plan.md}",
+        ".harness/evidence/cmdb-host-import-export/{summary.md,commands.json}",
+        "backend/modules/business/cmdb/host/host_import_export.go"
+      ],
+      "remainingWork": "review.md absent in evidence dir; optional go test -race (cgo) on authoring machine",
+      "recommendedStatus": "completed",
+      "archiveCandidate": false,
+      "reason": "Status complete; code + gates green; 2026-11-07 smoke logs cover DB-backed runtime + mobile (12/12) per INVENTORY. review.md missing prevents clean archival — add closeout review."
+    },
+    {
+      "id": "k8s-recovery",
+      "date": "2026-08-17",
+      "classification": "verified-complete",
+      "evidencePaths": [
+        ".harness/evidence/k8s-recovery/{summary.md,commands.json}",
+        ".harness/tasks/k8s-recovery/recover.py",
+        "backend/modules/business/k8s/**",
+        "go.mod/go.sum"
+      ],
+      "remainingWork": "live-cluster exercise of recovered k8s module (external-gate, C05/D1); optional go test -race",
+      "recommendedStatus": "completed",
+      "archiveCandidate": false,
+      "reason": "No manifest (correct: scripts+evidence only); build/test/lint/menu-contract green (INVENTORY). review.md absent; live-cluster acceptance external (C05/D1)."
+    },
+    {
+      "id": "2026-09-10-tenant-verification-and-gray",
+      "date": "2026-09-10",
+      "classification": "keep-open",
+      "evidencePaths": [".harness/evidence/2026-09-10-tenant-verification-and-gray/artifacts/browser/tenant-picker-{desktop,mobile}.png"],
+      "remainingWork": "locate owning task card / confirm tenant-picker implementation; replace images-only with text completion record",
+      "recommendedStatus": "open",
+      "archiveCandidate": false,
+      "reason": "Images-only (desktop+mobile png), no summary, no task card, text not inspectable. insufficient-evidence; keep-open pending completion record."
+    },
+    {
+      "id": "2026-11-07-ops-planned-task-closeout",
+      "date": "2026-11-07",
+      "classification": "keep-open",
+      "evidencePaths": [
+        ".harness/evidence/2026-11-07-ops-planned-task-closeout/{summary.md,commands.json}",
+        ".harness/evidence/2026-11-07-ops-planned-task-closeout/**"
+      ],
+      "remainingWork": "top-level review.md STILL absent (only nested .tmp snapshot review copies); owning docs/harness/tasks/2026-11-07-ops-planned-task-closeout.task.md still missing from tree; clear 8 stale legacy review-allowlist errors (D5)",
+      "recommendedStatus": "open",
+      "archiveCandidate": false,
+      "reason": "DELTA: summary.md + commands.json now materialized (untracked, added 2026-11-17) — gap partially closed. But independent top-level review.md and owning task doc remain absent; gate logs show 8 stale allowlist errors. INVENTORY verdict functional-complete; archival blocked on review doc. P0 to materialize review + reinstate task card."
+    },
+    {
+      "id": "2026-11-14-ops-latest-foundation-and-plans",
+      "date": "2026-11-14",
+      "classification": "keep-open",
+      "evidencePaths": [
+        ".harness/evidence/2026-11-14-ops-latest-foundation-and-plans/{summary.md,commands.json}",
+        ".harness/evidence/2026-11-14-ops-latest-foundation-and-plans/verification/"
+      ],
+      "remainingWork": "review.md STILL absent; owning docs/harness/tasks/2026-11-14-ops-latest-foundation-and-plans.task.md missing; reconcile claim ownership vs later v0.18-x consumption dirs. P0",
+      "recommendedStatus": "open",
+      "archiveCandidate": false,
+      "reason": "DELTA: summary.md + commands.json now exist (untracked, 2026-11-17) — prior dangling refs resolved. Independent review.md + owning task doc still absent; superseded by later consumption dirs. Keep-open pending P0 closeout doc."
+    },
+    {
+      "id": "argo-adoption-20261110",
+      "date": "2026-11-10",
+      "classification": "keep-open",
+      "evidencePaths": [".harness/evidence/argo-adoption-20261110/"],
+      "remainingWork": "none for pantheon-ops (relates to upstream sealed-exec helper, not an ops deliverable); do not read dirname as ArgoCD completion",
+      "recommendedStatus": "external",
+      "archiveCandidate": false,
+      "reason": "NOT ArgoCD CD adoption; sealed-exec self-tests + Go diagnostics. external-gate / n/a for ops."
+    },
+    {
+      "id": "argo-adoption-v2-20261110",
+      "date": "2026-11-10",
+      "classification": "keep-open",
+      "evidencePaths": [".harness/evidence/argo-adoption-v2-20261110/"],
+      "remainingWork": "none for pantheon-ops",
+      "recommendedStatus": "external",
+      "archiveCandidate": false,
+      "reason": "sealed-exec helper v2 hardening; not an ops deliverable."
+    },
+    {
+      "id": "argo-adoption-v3-20261110",
+      "date": "2026-11-10",
+      "classification": "keep-open",
+      "evidencePaths": [".harness/evidence/argo-adoption-v3-20261110/"],
+      "remainingWork": "none for pantheon-ops",
+      "recommendedStatus": "external",
+      "archiveCandidate": false,
+      "reason": "sealed-exec helper v3 hardening; not an ops deliverable."
+    },
+    {
+      "id": "foundation-upgrade-base-v0.9.0",
+      "date": "2026-07-26",
+      "classification": "superseded",
+      "evidencePaths": [".harness/evidence/foundation-upgrade-base-v0.9.0/runbook.md"],
+      "remainingWork": "archiving/reference only",
+      "recommendedStatus": "superseded",
+      "archiveCandidate": true,
+      "reason": "runbook/decision doc only, no execution evidence; superseded by v0.10/v0.16/v0.17/v0.18 lines and v0.18.9 lock."
+    }
+  ]
+}

@@ -1,0 +1,5 @@
+# Package argument binding correction
+
+The Root command passing two adjacent strings to -Package bound the second string positionally to -Run. The actual receipt for continuation-c01-retire-deploy-service-regression-20261118.log records only Deploy with `-v -run ./modules/business/service`. Exit0/210.073s and 730 unchanged sources are retained, but this is not Deploy+Service full regression: the slash-separated regex can skip subtests, and Service was not selected.
+
+The helper's previous bytes are preserved in continuation-go-before-strict-named-arguments-20261118.ps1.raw. CmdletBinding now disables positional binding. Repeating the wrong invocation immediately fails parameter binding, before a Go process starts; argument-guard-must-not-start.log does not exist. Future multi-package invocations use an explicit PowerShell array and named Run when applicable. Original receipts and tests are unchanged. Correct full regression remains pending until the async finding is fixed and sources frozen.

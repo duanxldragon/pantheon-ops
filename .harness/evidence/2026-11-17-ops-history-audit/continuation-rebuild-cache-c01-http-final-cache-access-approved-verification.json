@@ -1,0 +1,52 @@
+[
+  {
+    "name": "official-rebuild-final-c01-http-final-cache-access-approved",
+    "executable": "D:\\nodejs\\node.exe",
+    "args": [
+      "--import=file:///D:/workspace/go/pantheon-platform/pantheon-ops/.local/manual-preview-20261116/hide-child-windows.mjs",
+      "scripts/business-overlay/rebuild-from-base.mjs",
+      "--target",
+      ".local/manual-preview-20261116/overlay-history-continuation-final-c01-http-final-cache-access-approved"
+    ],
+    "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+    "startedAt": "2026-11-17T13:18:21.901Z",
+    "finishedAt": "2026-11-17T13:18:44.252Z",
+    "exitCode": 0,
+    "status": "passed",
+    "log": ".harness/evidence/2026-11-17-ops-history-audit/continuation-official-rebuild-final-c01-http-final-cache-access-approved.log",
+    "errorCode": null
+  },
+  {
+    "name": "staged-overlay-final-c01-http-final-cache-access-approved",
+    "executable": "D:\\nodejs\\node.exe",
+    "args": [
+      "--import=file:///D:/workspace/go/pantheon-platform/pantheon-ops/.local/manual-preview-20261116/hide-child-windows.mjs",
+      "scripts/business-overlay/check-business-overlay.mjs",
+      "--root",
+      ".local/manual-preview-20261116/overlay-history-continuation-final-c01-http-final-cache-access-approved"
+    ],
+    "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+    "startedAt": "2026-11-17T13:18:44.254Z",
+    "finishedAt": "2026-11-17T13:18:44.379Z",
+    "exitCode": 0,
+    "status": "passed",
+    "log": ".harness/evidence/2026-11-17-ops-history-audit/continuation-staged-overlay-final-c01-http-final-cache-access-approved.log",
+    "errorCode": null
+  },
+  {
+    "name": "staged-drift-official-cache-final-c01-http-final-cache-access-approved",
+    "executable": "D:\\nodejs\\node.exe",
+    "args": [
+      "--import=file:///D:/workspace/go/pantheon-platform/pantheon-ops/.local/manual-preview-20261116/hide-child-windows.mjs",
+      ".local/manual-preview-20261116/check-staged-official-cache-drift.mjs",
+      ".local/manual-preview-20261116/overlay-history-continuation-final-c01-http-final-cache-access-approved"
+    ],
+    "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+    "startedAt": "2026-11-17T13:18:44.380Z",
+    "finishedAt": "2026-11-17T13:18:55.826Z",
+    "exitCode": 0,
+    "status": "passed",
+    "log": ".harness/evidence/2026-11-17-ops-history-audit/continuation-staged-drift-official-cache-final-c01-http-final-cache-access-approved.log",
+    "errorCode": null
+  }
+]

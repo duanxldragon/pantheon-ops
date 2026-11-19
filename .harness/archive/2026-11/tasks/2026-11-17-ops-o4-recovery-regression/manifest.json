@@ -1,0 +1,70 @@
+{
+  "taskId": "2026-11-17-ops-o4-recovery-regression",
+  "primaryLayer": "business/*",
+  "title": "O4 可观测迁移恢复回归修复 — RecoverO4Migration37 disposable fixture 命名违反生产白名单",
+  "goal": "修复历史可观测 O4 验收发现的三 subtest 真实 FAIL：go test -race 的 TestO4_KnownPartialRecoveryAndUnknownRefusal 在 RecoverO4Migration37 入口因 fixture DB 名不匹配生产 disposableO4Database 白名单被拒绝（返回 observability.schema_unavailable / ErrQuerySchema）。将测试 fixture 改名命中白名单，保留 known partial 三态恢复、unknown extra 列拒绝与 dirty/旧数据保全的完整覆盖；不削弱 production 白名单、不向业务库写 fixture、不打印 DSN。",
+  "status": "completed",
+  "statusReason": "Codex independent acceptance passed: real isolated MySQL CGO race, all O4 migration tests and recovery cases, no skips. Scope is the disposable-fixture regression only.",
+  "priority": "P1",
+  "deliveryTier": "L1",
+  "parentTask": "2026-11-16-ops-navigation-repair",
+  "dependencies": [],
+  "activation": "core",
+  "owner": "business-consumer",
+  "scope": {
+    "in": [
+      "backend/modules/business/observability/migration_recovery_test.go — DSN DBName 重绑定为 ops_p0_acceptance 使 testmysql 生成 disposable 名命中 production 白名单，并显式断言 fixture 名满足 disposableO4Database",
+      ".harness/tasks/2026-11-17-ops-o4-recovery-regression/manifest.json",
+      ".harness/evidence/2026-11-17-ops-o4-recovery-regression/summary.md"
+    ],
+    "out": [
+      "backend/modules/business/observability/migration_recovery.go (production 白名单/恢复逻辑 — 仅只读)",
+      "pkg/testmysql/mysql.go (公共 helper 逻辑 — 复用不修改)",
+      "导航/service、SSH/cmdb、P0 物料、G1 workflow、全局 STATUS/OPEN_TASKS/INVENTORY",
+      "foundation-release.lock.json、frontend/src/**、他人任务条目"
+    ]
+  },
+  "implementationNotes": [
+    "根因定位（Codex 窄范围）：migration_recovery_test.go 用 db.Raw SELECT DATABASE() 得到的实时 DB 名作为 ownership.Database，而 RecoverO4Migration37 在 production migration_recovery.go:42/148 严格要求名称命中 ^ops_p0_acceptance_testo4_[a-z0-9_]+_[0-9]{19}_[0-9]{4}$；当前 generic 开发/CI DSN 的 DBName 非 ops_p0_acceptance，testmysql buildTestDBName 种子前缀不匹配 → 入口拒绝 → 三 subtest FAIL。非慢 DB 导致，独立重跑 2s 仍 FAIL。",
+    "修复最小方案：新增 rebindO4DisposableDSN(t) helper，仅当已配置 DSN 时用 mysql.ParseDSN 解析并只替换 cfg.DBName=ops_p0_acceptance，以 t.Setenv 隔离测试范围；未配置时不动 env，交由公共 testmysql required/skip 逻辑。三个 subtest 在 Open 前调用，并显式断言真实 fixture 名匹配 disposableO4Database。",
+    "60 字节 name 截断复核：最长 subtest 'index idx_datasource_tenant_default' 截断后为 ops_p0_acceptance_testo4_knownpartia_{19digits}_{4digits}，仍命中白名单正则；revision 与 obs_saved_view 同理。",
+    "不并行（无 t.Parallel）、t.Setenv 合法；不打印/记录 DSN 明文，未泄露用户名密码；不向当前业务库写任何 fixture（复用 testmysql 隔离库自动建/清）。",
+    "本会话无 approval surface，go vet / go test / 真实 MySQL 命令被环境拒绝，未能产出运行证据；未将 not-run 记为 passed。"
+  ],
+  "acceptanceCriteria": [
+    "go test -race ./modules/business/observability/ -run TestO4_KnownPartialRecoveryAndUnknownRefusal 三个 subtest 全绿（revision / index idx_datasource_tenant_default / obs_saved_view）。",
+    "RecoverO4Migration37 仍对不符合白名单的名称返回 ErrQuerySchema；production disposableO4Database 未削弱。",
+    "known partial 三态恢复成功、unknown extra 列拒绝并保留 dirty（dirty evidence 不被覆盖）仍有真实跑通覆盖。",
+    "测试运行不打印 DSN 明文；不向业务库写 fixture；未配置 DSN 时按公共逻辑 skip/required。"
+  ],
+  "verificationPlan": {
+    "commands": [
+      "gofmt -l modules/business/observability/migration_recovery_test.go",
+      "go vet ./modules/business/observability/",
+      "go test -race ./modules/business/observability/ -run 'TestO4_KnownPartialRecoveryAndUnknownRefusal|TestO4_LegacyCiphertextAndIndexUpgrade|TestO4_FreshAndRetainedMigrationRecipe' -count=1"
+    ],
+    "runtimeEvidence": [
+      ".harness/evidence/2026-11-17-ops-o4-recovery-regression/codex-o4-migrations-race.log"
+    ]
+  },
+  "runtimeSensitive": true,
+  "humanGates": [
+    "Independent Codex acceptance completed for this narrow regression; full product/hosted/production gates remain with their owning historical tasks."
+  ],
+  "linkage": {
+    "taskManifest": ".harness/tasks/2026-11-17-ops-o4-recovery-regression/manifest.json",
+    "evidenceDir": ".harness/evidence/2026-11-17-ops-o4-recovery-regression/",
+    "summaryFile": ".harness/evidence/2026-11-17-ops-o4-recovery-regression/summary.md",
+    "changeRef": "none",
+    "reviewFile": ".harness/evidence/2026-11-17-ops-o4-recovery-regression/review.md",
+    "planRefs": []
+  },
+  "completionChecklist": [
+    "Layer and boundary declared",
+    "Contract anchors read",
+    "Verification run or exception recorded",
+    "Evidence saved or summarized",
+    "Review completed"
+  ],
+  "completedAt": "2026-11-17"
+}

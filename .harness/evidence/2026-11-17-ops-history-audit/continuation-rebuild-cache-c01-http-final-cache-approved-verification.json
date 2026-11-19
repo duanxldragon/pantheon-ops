@@ -1,0 +1,19 @@
+[
+  {
+    "name": "official-rebuild-final-c01-http-final-cache-approved",
+    "executable": "D:\\nodejs\\node.exe",
+    "args": [
+      "--import=file:///D:/workspace/go/pantheon-platform/pantheon-ops/.local/manual-preview-20261116/hide-child-windows.mjs",
+      "scripts/business-overlay/rebuild-from-base.mjs",
+      "--target",
+      ".local/manual-preview-20261116/overlay-history-continuation-final-c01-http-final-cache-approved"
+    ],
+    "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+    "startedAt": "2026-11-17T13:04:12.336Z",
+    "finishedAt": "2026-11-17T13:04:32.010Z",
+    "exitCode": 1,
+    "status": "failed",
+    "log": ".harness/evidence/2026-11-17-ops-history-audit/continuation-official-rebuild-final-c01-http-final-cache-approved.log",
+    "errorCode": null
+  }
+]

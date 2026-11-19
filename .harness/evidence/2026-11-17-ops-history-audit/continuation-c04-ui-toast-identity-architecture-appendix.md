@@ -1,0 +1,11 @@
+# C04 fixed notice identity: independent architecture appendix
+
+Provenance: condensed coordinator transcription of c03_owner_architecture's independent report received at 2026-11-17T17:24:40Z. The architect's role is read-only; Root persists this report. This is not a verbatim original. Narrow fix and inspected visual scope CLEAR; whole C04 WATCH; wholeTaskComplete=false; archiveApproved=false.
+
+ServiceWriteFeedback uses one modal-owned Message.useMessage instance and a fixed c04-service-write-error ID. The installed Arco notification implementation updates an existing explicit ID. The actual installed React/Arco StrictMode probe recorded one anonymous error producing two notices, one fixed-ID error producing one, same-ID update preserving one with updated text, and unmount producing zero. This JSDOM probe does not replace browser readability. The harness React list-key warning remains recorded.
+
+AppModal's default unmountOnExit ties holder cleanup to the modal. Browser tests preserve both canonical and total error-count=1, full viewport containment, opacity/animation/content-fit checks, center and four-corner hit-testing, and close/reopen cleanup. Original browser execution was 13/13 PASS, exit0. The architect independently matched 17 before/after manifest entries and all 17 current source hashes, with zero changes; ServiceList SHA256 4b6b583935122d03b80ea53895cc88d1c406afac61813b31ed289b737c904072.
+
+The architect actually viewed desktop/mobile conflict and new-create PNGs (four images) in continuation-c04-ui-toast-identity-fixed-artifacts. Conflict text was complete and single, draft preserved; new-create had no old owned error. The transient notice covers the modal heading, so visual approval is limited to notice readability and lifecycle. At report time raw body-type readability attachments had not been independently read: rawReadabilityAttachmentsInspected=false. Do not change that historical fact; the later fresh retention run is separate evidence.
+
+Generic Message/AppModal stacking remains Base-first follow-up. Business API and role responses were mocked; actual roles, live provider and whole-task final gates remain open. The architect changed no files and ran no tests.

@@ -1,0 +1,36 @@
+{
+  "timestamp": "2026-11-17T16:55:27.366Z",
+  "notePath": ".local/manual-preview-20261116/checkpoint-20261118-review-and-ui.md",
+  "noteSHA256": "f0c70a26283a90be59320dac69642f8dad8f23a9d463a7bce3b55100555e5bed",
+  "historicalObjects": 85,
+  "newArchiveGroupsThisCheckpoint": 0,
+  "cumulativeNewArchiveGroups": 22,
+  "preservedDuplicateLiveGroups": 2,
+  "aggregateGoalStatus": "active",
+  "originals": [
+    {
+      "file": ".harness/STATUS.md",
+      "backup": ".harness/evidence/2026-11-17-ops-history-audit/continuation-progress-review-ui-20261118-originals/.harness/STATUS.md.raw",
+      "beforeSHA256": "6635e5ac0bbd49b8c4ff8cc5b57886a4725947cf9707920da129e9a8bca90bf4",
+      "afterSHA256": "58a25cedd17f325752b5e9c1f5f65d813767011cc224aad2519ece264e7adac7"
+    },
+    {
+      "file": ".harness/evidence/2026-11-17-ops-history-audit/progress.md",
+      "backup": ".harness/evidence/2026-11-17-ops-history-audit/continuation-progress-review-ui-20261118-originals/.harness/evidence/2026-11-17-ops-history-audit/progress.md.raw",
+      "beforeSHA256": "980ca0a54082ac73405bfec2f7ec8712acb0f1a07aa934a2576e892d064e359a",
+      "afterSHA256": "4e9507d81350c2c83f780697441a8f2b6ccba41e0f3698e3be041bf88788dba2"
+    },
+    {
+      "file": ".harness/evidence/2026-11-17-ops-history-audit/summary.md",
+      "backup": ".harness/evidence/2026-11-17-ops-history-audit/continuation-progress-review-ui-20261118-originals/.harness/evidence/2026-11-17-ops-history-audit/summary.md.raw",
+      "beforeSHA256": "6d4a810ec4e8f86bb88673a38f19ed8e2bf9b7fa751430895bf8153af960048e",
+      "afterSHA256": "aad0c60198255c69fe45e1f7ee174d6c39cca84d44916aa00238af0d3eea73b9"
+    },
+    {
+      "file": ".harness/tasks/2026-11-16-ops-pilot-delivery/OPEN_TASKS.md",
+      "backup": ".harness/evidence/2026-11-17-ops-history-audit/continuation-progress-review-ui-20261118-originals/.harness/tasks/2026-11-16-ops-pilot-delivery/OPEN_TASKS.md.raw",
+      "beforeSHA256": "449e1c2f7bbfc83016eeb4a48b022bb16a046cb586ffba507b6544fc7b94b922",
+      "afterSHA256": "859205f375c096809dd3c4d219313002908d7aa1c1cde600d0e435dfebe57b1a"
+    }
+  ]
+}

@@ -128,6 +128,7 @@ business/*
 - 独立执行者从 clean checkout/交付包按文档完成安装、升级及回滚，校验和与候选一致。
 - C01-C05 完成且本包交付/回滚验收通过，P0 零遗留；P1 延期须有维护者决定、owner、截止日期及补偿控制。
 - 业务包不能仅是 Base release；不以 GitHub merge、测试全绿或旧 GA 文案替代业务验收。
+- 候选开放扩展通过 E04；不开放扩展的菜单、路由/权限、可见能力与说明已裁剪并验证。
 
 ## Dependencies
 
@@ -169,6 +170,18 @@ business/*
 
 ## Status
 
-planned；只在依赖与实际验收完成后转 completed。
+in-progress；只在依赖与实际验收完成后转 completed。
 
 条件依赖：试点开放任何扩展能力，则 E04 必须完成；全部裁剪时记录并验证候选菜单/路由/权限/可见能力与说明。
+
+## 2026-11-18T07:31:44.466Z Continuation checkpoint
+
+Status: in-progress. 本地交付计划/checklist已覆盖4条原标准；8项依赖交付操作均 not-run。准备不表示已经执行安装/升级/回滚。
+
+Original acceptance and dependencies remain unchanged. Whole-package acceptance is incomplete; see [summary](../../../.harness/evidence/2026-11-16-ops-pilot-release-closeout/summary.md) and [progress receipt](../../../.harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-progress-20261118.json).
+
+## 2026-11-19T00:11:15.272Z Verified continuation checkpoint
+
+Status: in-progress. 本地交付计划/checklist保留4条原标准和新增明确交付标准；8项实际交付操作not-run。正式暂存重建、source-bound编译与预览重启已记录，不等于独立安装/升级/回滚。
+
+交付准备独立评审及独立执行者安装/升级/回滚和最终维护者验收PENDING。 Original acceptance and human gates remain unmet. See [summary](../../../.harness/evidence/2026-11-16-ops-pilot-release-closeout/summary.md) and [structured progress](../../../.harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-progress-final-20261118.json).

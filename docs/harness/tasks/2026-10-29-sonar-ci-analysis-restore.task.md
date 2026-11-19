@@ -2,10 +2,10 @@
 title: Restore the Ops SonarCloud CI analysis configuration
 doc_type: Remediation
 layer: inheritance-sync
-status: Active
+status: Archived
 linked_contracts:
   - docs/PROJECT_INHERITANCE.md
-updated_at: 2026-10-29
+updated_at: 2026-11-17
 ---
 
 # Task Packet: 2026-10-29-sonar-ci-analysis-restore
@@ -172,3 +172,11 @@ inheritance-sync
 - [x] Verification run or exception recorded
 - [x] Evidence saved or summarized
 - [x] Review completed
+
+## Result — History Closeout 2026-11-17
+
+Manifest disposition: completed
+
+hosted分析恢复已证实，代码红灯基线由10/30处理；非替代当前扫描。
+
+Residual finding/owner/successor/proof: .harness/evidence/2026-11-17-ops-history-audit/dispositions.json. Canonical references remain archive-aware. Historical body/evidence retained. Current candidate, production and maintainer gates remain separate.

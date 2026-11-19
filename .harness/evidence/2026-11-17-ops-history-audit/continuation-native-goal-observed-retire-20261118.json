@@ -1,0 +1,15 @@
+{
+  "observedAt": "2026-11-18T02:50:20.716Z",
+  "goal": {
+    "threadId": "01a1e80b-e770-7fd1-8119-feff2df40bc1",
+    "objective": "Complete the durable ultragoal plan in .omx/ultragoal/goals.json, including later accepted/appended stories, under the original brief constraints; use .omx/ultragoal/ledger.jsonl as the audit trail.",
+    "status": "blocked",
+    "tokensUsed": 10406309,
+    "timeUsedSeconds": 40625,
+    "createdAt": 1794899884,
+    "updatedAt": 1794956696
+  },
+  "remainingTokens": null,
+  "completionBudgetReport": null,
+  "boundary": "Read-only observation. Native goal reports blocked; repo G003 work continues on user instruction. Historical active-status reports remain historical and are not rewritten. No unsupported tool resume or completion asserted."
+}

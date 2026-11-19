@@ -1,0 +1,30 @@
+{
+  "at": "2026-11-17T14:59:22.621Z",
+  "originalScopeRetained": true,
+  "rows": [
+    {
+      "file": ".harness/tasks/2026-11-16-ops-service-catalog-usability/manifest.json",
+      "backup": ".harness/evidence/2026-11-17-ops-history-audit/continuation-packet-extension-c03-c04/.harness/tasks/2026-11-16-ops-service-catalog-usability/manifest.json.raw",
+      "beforeSHA256": "6a546d2cadadda33b556d4ae281b7671a4be2e4c7ce9169a92ad81ff527ed702",
+      "afterSHA256": "c8353be37676f082711bb66bc1acd36cf2e6b5fee25cd6d913a34ebb440a7db0"
+    },
+    {
+      "file": "docs/harness/tasks/2026-11-16-ops-service-catalog-usability.task.md",
+      "backup": ".harness/evidence/2026-11-17-ops-history-audit/continuation-packet-extension-c03-c04/docs/harness/tasks/2026-11-16-ops-service-catalog-usability.task.md.raw",
+      "beforeSHA256": "d2fe43337a8f555214d8e2bb168d6642e5088521ac1ecaea9241324412dc2472",
+      "afterSHA256": "a2e139f806907aee2efea126bd0778963e7b235d7c16ecf0951e7464263c6ff2"
+    },
+    {
+      "file": ".harness/tasks/2026-11-16-ops-k8s-service-mutations/manifest.json",
+      "backup": ".harness/evidence/2026-11-17-ops-history-audit/continuation-packet-extension-c03-c04/.harness/tasks/2026-11-16-ops-k8s-service-mutations/manifest.json.raw",
+      "beforeSHA256": "f2ce20d8a43c37c2c2a824b4f079d652b32682f366712a00f6eb88530b92fe33",
+      "afterSHA256": "20a554fc3b6588e0fb01876b925bdb796cd8a62ae813cdad8003837a3ef5132f"
+    },
+    {
+      "file": "docs/harness/tasks/2026-11-16-ops-k8s-service-mutations.task.md",
+      "backup": ".harness/evidence/2026-11-17-ops-history-audit/continuation-packet-extension-c03-c04/docs/harness/tasks/2026-11-16-ops-k8s-service-mutations.task.md.raw",
+      "beforeSHA256": "5f69aa5d7e4a491217f4af2b9a1c4ff07ca39aad70f4bbbe2494415abe006ab8",
+      "afterSHA256": "18847e4a34ccd697c1fc703b789c25d777e318799a666802c048b9684123cc95"
+    }
+  ]
+}

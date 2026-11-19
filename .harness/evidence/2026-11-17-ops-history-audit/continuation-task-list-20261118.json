@@ -1,0 +1,115 @@
+{
+  "recordedAt": "2026-11-17T23:14:33.472Z",
+  "historicalObjects": 85,
+  "historicalCounts": {
+    "upstream-owned": 26,
+    "completed": 20,
+    "abandoned": 10,
+    "keep-open": 26,
+    "container": 2,
+    "deferred": 1
+  },
+  "unfinishedExecutionPackages": 10,
+  "inProgress": 3,
+  "planned": 7,
+  "packages": [
+    {
+      "code": "C01",
+      "file": ".harness/tasks/2026-11-16-ops-service-deploy-integrity/manifest.json",
+      "status": "in-progress",
+      "sha256": "794dae060662909462554b024c234554eca0539bebc5b9dacc4aaa2c9c2b87ed"
+    },
+    {
+      "code": "C02",
+      "file": ".harness/tasks/2026-11-16-ops-service-deploy-user-flow/manifest.json",
+      "status": "planned",
+      "sha256": "ed1ef74a7c0a8236e25f1d86232e8b634391a2705cc77be76a5564175ab58d3c"
+    },
+    {
+      "code": "C03",
+      "file": ".harness/tasks/2026-11-16-ops-service-catalog-usability/manifest.json",
+      "status": "in-progress",
+      "sha256": "c8353be37676f082711bb66bc1acd36cf2e6b5fee25cd6d913a34ebb440a7db0"
+    },
+    {
+      "code": "C04",
+      "file": ".harness/tasks/2026-11-16-ops-k8s-service-mutations/manifest.json",
+      "status": "in-progress",
+      "sha256": "20a554fc3b6588e0fb01876b925bdb796cd8a62ae813cdad8003837a3ef5132f"
+    },
+    {
+      "code": "C05",
+      "file": ".harness/tasks/2026-11-16-ops-business-runtime-acceptance/manifest.json",
+      "status": "planned",
+      "sha256": "aee559542afe0f2193b3200e78cb5e1013db19686cd10a893f8b1acbbcd27a65"
+    },
+    {
+      "code": "C06",
+      "file": ".harness/tasks/2026-11-16-ops-pilot-release-closeout/manifest.json",
+      "status": "planned",
+      "sha256": "4947dfd0ce776cae1b490e5c06b38c13a1aec648de87423600b1bac1d4927f7c"
+    },
+    {
+      "code": "E01",
+      "file": ".harness/tasks/2026-11-16-ops-filedist-product-closure/manifest.json",
+      "status": "planned",
+      "sha256": "d74100926fe2f50f56b5920892b8ffdc1d1a64dc8921b6dc47a28e80b1b62070"
+    },
+    {
+      "code": "E02",
+      "file": ".harness/tasks/2026-11-16-ops-argocd-ownership-convergence/manifest.json",
+      "status": "planned",
+      "sha256": "ad39f632c86fc8d4d529eda910b9feeb36691c680f39600c4f4eae2defe2f0ee"
+    },
+    {
+      "code": "E03",
+      "file": ".harness/tasks/2026-11-16-ops-helm-capability-truth/manifest.json",
+      "status": "planned",
+      "sha256": "6fa01620699ea47795dc97f1a4597a8b5471acc683ca95ae18ee4d8e8ab7480b"
+    },
+    {
+      "code": "E04",
+      "file": ".harness/tasks/2026-11-16-ops-extensions-live-acceptance/manifest.json",
+      "status": "planned",
+      "sha256": "5785d4aef14f5190d0485b0eec5d3bf942ce8152bdee1edc93d98b5fdc8d5a36"
+    }
+  ],
+  "listFile": ".harness/tasks/2026-11-16-ops-pilot-delivery/OPEN_TASKS.md",
+  "backup": ".harness/evidence/2026-11-17-ops-history-audit/continuation-task-list-20261118-before.raw",
+  "beforeSHA256": "438205b92d3b1901b91d1e02e1ab9c9c91d8ad350b24012c5153997133670426",
+  "afterSHA256": "335ca7651752f7b5dce61b699a37117e83a66b99e1b20104e93fa91a88dca162",
+  "race": {
+    "file": ".harness/evidence/2026-11-17-ops-history-audit/continuation-c01-retire-queued-full-race-20261118.log.receipt.json",
+    "sha256": "ce90634a6a5d89cfcc6b156c2e13a4eab013fcb56287245fbd14723c61c67c13",
+    "exitCode": 0,
+    "startedAt": "2026-11-17T18:09:52.5962933Z",
+    "finishedAt": "2026-11-17T18:39:56.5396530Z",
+    "durationSeconds": 1803.943,
+    "args": [
+      "test",
+      "-race",
+      "-count=1",
+      "-timeout=10m",
+      "./..."
+    ],
+    "sourceCount": 730,
+    "sourceUnchanged": true,
+    "logSHA256": "1c8c4e363ba4dcf5071e1ceab1ee18e424e571055b6d19c07d1d409ad56bc921",
+    "passedPackageRows": 71,
+    "noTestPackageRows": 18,
+    "limitation": "Non-verbose full race receipt proves package success; it does not assert every environment-specific subtest ran."
+  },
+  "sourceEquivalence": {
+    "file": ".harness/evidence/2026-11-17-ops-history-audit/continuation-c01-retire-queued-current-20261118-source-equivalence.json",
+    "sha256": "82ddc60afe760ce5e17650eaf797d1c0bdc402ece53ffb0922eb69fe3666102f",
+    "count": 1217,
+    "sourceSetSHA256": "59825cb9eca9f7913ef2a0af1f3da5d6be3d402a0c1c95d55c0556e2e3a6c784"
+  },
+  "currentBuild": {
+    "file": ".harness/evidence/2026-11-17-ops-history-audit/continuation-current-preview-c01-retire-queued-current-20261118-build.json",
+    "binarySHA256": "ab999a1c3bd8dc3653995a4fc0591dd6300307b8a1beb647628faa8514085dc0",
+    "sourceUnchanged": true
+  },
+  "goalStatus": "active",
+  "runtimeStatus": "Current binary built but not restarted or accepted"
+}

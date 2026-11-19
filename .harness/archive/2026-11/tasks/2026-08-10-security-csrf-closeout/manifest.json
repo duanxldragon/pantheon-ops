@@ -1,0 +1,55 @@
+{
+  "taskId": "2026-08-10-security-csrf-closeout",
+  "title": "Close Dependabot security debt and consume shared CSRF foundation fix",
+  "goal": "Remediate open dependency alerts and consume the Base foundation release that fixes the shared CSRF contract.",
+  "primaryLayer": "inheritance-sync",
+  "qualityProfiles": [
+    "auth-security",
+    "ci-workflow"
+  ],
+  "scope": {
+    "in": [
+      "Go dependency remediation",
+      "Frontend dependency remediation",
+      "Base foundation upgrade",
+      "Hosted smoke"
+    ],
+    "out": [
+      "New Ops business functionality"
+    ]
+  },
+  "ratchetDecision": "no-repeat-observed",
+  "runtimeSensitive": true,
+  "linkage": {
+    "taskId": "2026-08-10-security-csrf-closeout",
+    "changeRef": "none",
+    "taskPacket": "docs/harness/tasks/2026-08-10-security-csrf-closeout.task.md",
+    "evidenceDir": ".harness/evidence/2026-08-10-security-csrf-closeout/",
+    "reviewFile": ".harness/evidence/2026-08-10-security-csrf-closeout/review.md",
+    "summaryFile": ".harness/evidence/2026-08-10-security-csrf-closeout/summary.md",
+    "planRefs": [
+      "docs/harness/tasks/2026-08-10-security-csrf-closeout.task.md"
+    ]
+  },
+  "syncExpectation": "Consume the immutable Base foundation release before merging this Ops closeout.",
+  "historyCloseout": {
+    "date": "2026-11-17",
+    "originalStatus": null,
+    "disposition": "completed",
+    "basis": "原 CSRF 修复、不可变消费和 hosted Security/Quality/Smoke 证据成立，不推断当前无漏洞。",
+    "residuals": [
+      {
+        "finding": "current security verification",
+        "owner": "Ops governance",
+        "successor": "2026-11-17-ops-history-audit",
+        "state": "open",
+        "proof": null
+      }
+    ],
+    "evidence": ".harness/evidence/2026-11-17-ops-history-audit/dispositions.json",
+    "decisionSha256": "b1fe312c6e0e9a9a6ee3513b245196973c7559a322ffe53bf6cb378ea4dd07df",
+    "taskDoc": "docs/harness/tasks/2026-08-10-security-csrf-closeout.task.md",
+    "taskDocGap": null
+  },
+  "status": "completed"
+}

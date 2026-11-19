@@ -2,8 +2,8 @@
 title: Consume and certify foundation v0.10.21
 doc_type: Remediation
 layer: inheritance-sync
-status: Active
-updated_at: 2026-08-12
+status: Archived
+updated_at: 2026-11-17
 linked_contracts:
   - docs/PROJECT_INHERITANCE.md
   - foundation-release.lock.json
@@ -35,3 +35,9 @@ Consume the immutable `pantheon-base-v0.10.21` artifact and independently prove 
 - Stop publication if the Base release is not bound to a successful exact-commit Release Gate.
 - Stop merge if the clean consumer comparison finds unauthorized shared residuals.
 - Stop merge if inherited gates, business smoke, or hosted SonarCloud quality gate fail.
+
+## Result — Historical Disposition 2026-11-17
+
+abandoned. Stop repeating the superseded exact target. Missing historical evidence and acceptance failures remain facts; no retrospective success.
+
+Owner / successor / independent original-scope reviews: .harness/evidence/2026-11-17-ops-history-audit/continuation-dispositions.json. Original card body retained; only historical scope archived.

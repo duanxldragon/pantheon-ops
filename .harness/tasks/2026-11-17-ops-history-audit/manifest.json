@@ -1,0 +1,114 @@
+{
+  "taskId": "2026-11-17-ops-history-audit",
+  "title": "Ops 历史遗留清查与按时间收尾",
+  "goal": "按时间对账全部历史和新规划，归档证据充分的完成或失效任务，完成仍有效的本地实现与验证，保留上游、外部、生产和最终维护者门禁。",
+  "primaryLayer": "business/*",
+  "status": "in-progress",
+  "deliveryTier": "L2",
+  "taskDoc": "docs/harness/tasks/2026-11-17-ops-history-audit.task.md",
+  "dependsOn": [
+    "2026-11-16-ops-pilot-delivery"
+  ],
+  "scope": {
+    "in": [
+      "84条历史对账和18组经审查的归档",
+      "历史 SSH/权限/工作台/自动合并与治理有效缺口",
+      "C01-C06/E01-E04当前开放范围的实现和同候选验证",
+      "状态、证据、引用、overlay兼容与最终独立审查"
+    ],
+    "out": [
+      "未授权生产操作、凭证轮换或代维护者/DBA签署",
+      "手抄共享平台/系统域源码或修改正式foundation lock",
+      "门禁豁免、发布、合并和未证实的完成声明"
+    ]
+  },
+  "contractAnchors": [
+    "AGENTS.md",
+    "docs/PROJECT_INHERITANCE.md",
+    "docs/TASK_PACKET_OPS_TEMPLATE.md",
+    "business-overlay.json",
+    "foundation-release.lock.json"
+  ],
+  "harnessProfile": {
+    "template": "custom",
+    "overlay": "pantheon-ops",
+    "qualityProfile": "historical-closeout",
+    "portableFailureClass": "historical-state-drift",
+    "ownerLayer": "business-consumer",
+    "coverageDimensions": [
+      "behaviour",
+      "architecture-fitness",
+      "runtime-quality",
+      "method-health"
+    ]
+  },
+  "expectedFiles": {
+    "create": [
+      ".harness/evidence/2026-11-17-ops-history-audit/summary.md",
+      ".harness/evidence/2026-11-17-ops-history-audit/commands.json",
+      ".harness/evidence/2026-11-17-ops-history-audit/review.md"
+    ],
+    "modify": [
+      ".harness/STATUS.md",
+      ".harness/ARCHIVE.md",
+      ".harness/tasks/2026-11-16-ops-pilot-delivery/OPEN_TASKS.md",
+      "business-overlay.json",
+      "Ops business/governance files according to child scope"
+    ],
+    "doNotTouch": [
+      "foundation-release.lock.json",
+      "published Base release assets",
+      "historical evidence bytes"
+    ]
+  },
+  "verificationPlan": {
+    "commands": [
+      "node .harness/tasks/2026-11-17-ops-history-audit/verify-archive-recovery.mjs",
+      "node .harness/tasks/2026-11-17-ops-history-audit/close-history.mjs --apply",
+      "node scripts/harness/check-task-packet.mjs",
+      "node scripts/harness/check-evidence.mjs --strict",
+      "node scripts/harness/check-review.mjs --strict",
+      "npm run test:scripts",
+      "npm run check:business-overlay",
+      "npm run test:business-overlay",
+      "go test -race ./... (Windows CGO and required test DSN)",
+      "frontend lint/type-check/build and applicable rendered business smoke"
+    ]
+  },
+  "linkage": {
+    "evidenceDir": ".harness/evidence/2026-11-17-ops-history-audit/",
+    "reviewFile": ".harness/evidence/2026-11-17-ops-history-audit/review.md",
+    "changeRef": "none",
+    "planRefs": [
+      ".harness/tasks/2026-11-17-ops-history-audit/brief.md",
+      ".harness/tasks/2026-11-16-ops-pilot-delivery/plan.md"
+    ]
+  },
+  "implementationNotes": [
+    "维护者授权高风险由Codex负责，低风险可交本机Claude，使用默认模型。",
+    "18组归档原范围由独立code-reviewer批准，恢复程序由独立architect CLEAR；不替代当前候选代码和交付验收。",
+    "所有后台辅助启动必须隐藏窗口；本机Claude使用CreateNoWindow原生入口。",
+    "旧状态、原始证据和残余owner以dispositions与archive journal保全。"
+  ],
+  "continuationCheckpoint": {
+    "at": "2026-11-19T00:21:32.049Z",
+    "historicalObjects": 85,
+    "newAuditArchivePairs": 22,
+    "preservedDuplicatePairs": 2,
+    "newArchivesThisTurn": 0,
+    "archiveOriginalByteRecoveries": 9,
+    "integrityReceipt": ".harness/evidence/2026-11-17-ops-history-audit/continuation-history-closeout-20261119-archive-integrity-verified.json",
+    "progressReceipt": ".harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-progress-final-20261118.json",
+    "originalAcceptanceIncomplete": true,
+    "status": "in-progress",
+    "formatterFollowup": {
+      "recordedAtUTC": "2026-11-19T00:47:51.965Z",
+      "receipt": ".harness/evidence/2026-11-17-ops-history-audit/continuation-history-formatter-20261119-followup.json",
+      "baseTaskId": "2026-11-19-archive-formatter-protection",
+      "codeRecommendation": "COMMENT",
+      "architectureStatus": "CLEAR",
+      "defaultOpsProtection": false,
+      "downstreamAdopted": false
+    }
+  }
+}

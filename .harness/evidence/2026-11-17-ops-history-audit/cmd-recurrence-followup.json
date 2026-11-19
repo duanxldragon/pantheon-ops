@@ -1,0 +1,32 @@
+{
+  "date": "2026-11-17T05:35:47.304Z",
+  "status": "open-unattributed",
+  "changes": [
+    "EVENT_OBJECT_SHOW observer with installed-hook readiness and unresolved HWND events",
+    "fork/explicit env/execArgv/empty args overload propagation",
+    "task-owned Job Object descendant lifecycle, bounded input/drain and safe errors",
+    "durable invalid JSON fails closed with parse evidence"
+  ],
+  "verification": {
+    "preload": "cmd-preload-verification-extended.json",
+    "ownedJob": "cmd-owned-job-verification-final.json",
+    "corruptResume": "cmd-corrupt-resume-verification.json",
+    "observers": [
+      "cmd-show-events-1302.json",
+      "cmd-show-events-ready-fixed.json",
+      "cmd-show-events-supervised-claude.json",
+      "cmd-show-events-final-helper.json"
+    ],
+    "claudeArtifact": ".omx/artifacts/ask-claude-window-supervision-20261117.md"
+  },
+  "limitations": [
+    "No user-reported transient popup source captured; no elimination claim",
+    "Initial observer ready race retained; later fixed",
+    "EVENT SHOW with destroyed HWND may be unresolved, PID may be console host not launcher",
+    "Native Claude descendant startup flags are not controlled by Node preload",
+    "Start-to-job-assignment race exists; no guarantee for pre-assignment children",
+    "Successful external Claude invocation lacked whole-invocation concurrent desktop sampling"
+  ],
+  "independentReview": "COMMENT; remediated actionable launcher findings, incident still open",
+  "sharedProcessesStopped": 0
+}

@@ -1,0 +1,53 @@
+[
+  {
+    "name": "frontend-lint-final-c04-toast-identity-final",
+    "executable": "D:\\nodejs\\node.exe",
+    "args": [
+      "--import=file:///D:/workspace/go/pantheon-platform/pantheon-ops/.local/manual-preview-20261116/hide-child-windows.mjs",
+      "D:/nodejs/node_modules/npm/bin/npm-cli.js",
+      "run",
+      "lint"
+    ],
+    "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\frontend",
+    "startedAt": "2026-11-17T17:17:35.816Z",
+    "finishedAt": "2026-11-17T17:18:36.547Z",
+    "exitCode": 0,
+    "status": "passed",
+    "log": ".harness/evidence/2026-11-17-ops-history-audit/continuation-frontend-lint-final-c04-toast-identity-final.log",
+    "errorCode": null
+  },
+  {
+    "name": "frontend-typecheck-final-c04-toast-identity-final",
+    "executable": "D:\\nodejs\\node.exe",
+    "args": [
+      "--import=file:///D:/workspace/go/pantheon-platform/pantheon-ops/.local/manual-preview-20261116/hide-child-windows.mjs",
+      "D:/nodejs/node_modules/npm/bin/npm-cli.js",
+      "run",
+      "type-check"
+    ],
+    "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\frontend",
+    "startedAt": "2026-11-17T17:18:36.550Z",
+    "finishedAt": "2026-11-17T17:19:02.948Z",
+    "exitCode": 0,
+    "status": "passed",
+    "log": ".harness/evidence/2026-11-17-ops-history-audit/continuation-frontend-typecheck-final-c04-toast-identity-final.log",
+    "errorCode": null
+  },
+  {
+    "name": "frontend-build-final-c04-toast-identity-final",
+    "executable": "D:\\nodejs\\node.exe",
+    "args": [
+      "--import=file:///D:/workspace/go/pantheon-platform/pantheon-ops/.local/manual-preview-20261116/hide-child-windows.mjs",
+      "D:/nodejs/node_modules/npm/bin/npm-cli.js",
+      "run",
+      "build"
+    ],
+    "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\frontend",
+    "startedAt": "2026-11-17T17:19:02.949Z",
+    "finishedAt": "2026-11-17T17:19:43.064Z",
+    "exitCode": 0,
+    "status": "passed",
+    "log": ".harness/evidence/2026-11-17-ops-history-audit/continuation-frontend-build-final-c04-toast-identity-final.log",
+    "errorCode": null
+  }
+]

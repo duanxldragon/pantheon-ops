@@ -1,0 +1,21 @@
+{
+  "log": "continuation-c04-permission-routes-red.log",
+  "cgoEnabled": "1",
+  "testDsnRequired": "1",
+  "finishedAt": "2026-11-17T14:54:39.1842917Z",
+  "goFlags": "-p=1 -mod=readonly",
+  "startedAt": "2026-11-17T14:54:29.4371313Z",
+  "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\backend",
+  "args": [
+    "test",
+    "-race",
+    "-count=1",
+    "-timeout=10m",
+    "./modules/business/k8s",
+    "-v",
+    "-run",
+    "^TestK8sServicePermissionRoutesMatchActualActions$"
+  ],
+  "disposableMySQL": true,
+  "exitCode": 1
+}

@@ -1,0 +1,22 @@
+{
+  "cgoEnabled": "1",
+  "log": "continuation-c01-freeze-fixture-fixed.log",
+  "goFlags": "-p=1 -mod=readonly",
+  "startedAt": "2026-11-17T12:31:09.3529461Z",
+  "args": [
+    "test",
+    "-race",
+    "-count=1",
+    "-timeout=10m",
+    "./modules/business/deploy",
+    "./modules/business/service",
+    "-v",
+    "-run",
+    "TestServiceTransaction|TestIndependentO2Service|TestStateTransactionValidationRevisionAndLifecycle|TestServiceLinkAdmissionMatched"
+  ],
+  "exitCode": 0,
+  "disposableMySQL": true,
+  "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\backend",
+  "testDsnRequired": "1",
+  "finishedAt": "2026-11-17T12:32:16.6630786Z"
+}

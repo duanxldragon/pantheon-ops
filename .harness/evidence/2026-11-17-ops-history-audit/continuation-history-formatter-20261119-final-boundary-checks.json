@@ -1,0 +1,20 @@
+{
+  "taskId": "2026-11-17-ops-history-audit",
+  "commands": [
+    {
+      "command": "node scripts/harness/check-doc-links.mjs --json --strict",
+      "cwd": "pantheon-ops",
+      "exitCode": 1,
+      "evidence": "continuation-history-formatter-20261119-post-summary-links.json",
+      "transcriptChunk": "e83394"
+    },
+    {
+      "command": "git diff --check -- .harness/archive",
+      "cwd": "pantheon-ops",
+      "exitCode": 1,
+      "stdout": ".harness/archive/2026-08/evidence/ops-service-instance-foundation/review.md:11: new blank line at EOF.\n.harness/archive/2026-08/evidence/ops-service-instance-foundation/summary.md:37: new blank line at EOF.\n",
+      "transcriptChunk": "42eaa0"
+    }
+  ],
+  "boundary": "Post-summary full link check retains six existing historical findings. Two original EOF whitespace findings remain intentionally unfixed to preserve historical SHA; no waiver or archive rewrite."
+}

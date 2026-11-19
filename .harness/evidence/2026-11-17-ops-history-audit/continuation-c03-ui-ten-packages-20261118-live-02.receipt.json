@@ -1,0 +1,49 @@
+{
+  "startedAt": "2026-11-18T08:34:04.638Z",
+  "finishedAt": "2026-11-18T08:34:11.364Z",
+  "executable": "D:\\nodejs\\node.exe",
+  "args": [
+    "--import=file:///D:/workspace/go/pantheon-platform/pantheon-ops/.local/manual-preview-20261116/hide-child-windows.mjs",
+    "node_modules/@playwright/test/cli.js",
+    "test",
+    "tests/smoke/business/service/service-pages.spec.ts",
+    "--config=playwright.config.ts",
+    "--grep",
+    "application, service, and VM instance complete the catalog lifecycle",
+    "--reporter=line",
+    "--output=../.harness/evidence/2026-11-17-ops-history-audit/continuation-c03-ui-ten-packages-20261118-live-02-artifacts"
+  ],
+  "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\frontend",
+  "exitCode": 0,
+  "errorCode": null,
+  "sourceUnchanged": true,
+  "sourcesBefore": [
+    {
+      "file": "frontend/src/modules/business/service/ServiceCatalog.tsx",
+      "sha256": "24f60723ab9765e4909be3ce60c23a5c10eb7529f8f0f800c5cf0941c549a6ad"
+    },
+    {
+      "file": "frontend/src/modules/business/service/api.ts",
+      "sha256": "6206773022d1ba4774e66cab246a2b568e42a7dd668995aac8682bfb638eee57"
+    },
+    {
+      "file": "frontend/tests/smoke/business/service/service-pages.spec.ts",
+      "sha256": "ad0e5c0b32e3f78f47c620d3c23e7b7666d28e04861d312c10720b8f50f1c526"
+    }
+  ],
+  "sourcesAfter": [
+    {
+      "file": "frontend/src/modules/business/service/ServiceCatalog.tsx",
+      "sha256": "24f60723ab9765e4909be3ce60c23a5c10eb7529f8f0f800c5cf0941c549a6ad"
+    },
+    {
+      "file": "frontend/src/modules/business/service/api.ts",
+      "sha256": "6206773022d1ba4774e66cab246a2b568e42a7dd668995aac8682bfb638eee57"
+    },
+    {
+      "file": "frontend/tests/smoke/business/service/service-pages.spec.ts",
+      "sha256": "ad0e5c0b32e3f78f47c620d3c23e7b7666d28e04861d312c10720b8f50f1c526"
+    }
+  ],
+  "boundary": "Real local admin/API/UI catalog lifecycle with task-owned temporary scope, CMDB registration, application, service and VM instance; cleanup asserted. No SSH/deploy/provider execution and no least-privilege role or production acceptance."
+}

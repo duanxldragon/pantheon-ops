@@ -1,0 +1,21 @@
+{
+  "exitCode": 1,
+  "disposableMySQL": true,
+  "cgoEnabled": "1",
+  "startedAt": "2026-11-17T14:53:20.9817798Z",
+  "log": "continuation-c04-mutation-provider-bound-red.log",
+  "testDsnRequired": "1",
+  "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\backend",
+  "goFlags": "-p=1 -mod=readonly",
+  "args": [
+    "test",
+    "-race",
+    "-count=1",
+    "-timeout=10m",
+    "./modules/business/k8s/service",
+    "-v",
+    "-run",
+    "^TestK8sServiceMutation"
+  ],
+  "finishedAt": "2026-11-17T14:53:31.4362422Z"
+}

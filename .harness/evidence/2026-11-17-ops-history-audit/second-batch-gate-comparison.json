@@ -1,0 +1,56 @@
+[
+  {
+    "check": "task",
+    "before": 549,
+    "after": 549,
+    "newErrors": [],
+    "taskResult": {
+      "file": "docs/harness/tasks/2026-06-18-pr-branch-cleanup-automation.task.md",
+      "errors": [
+        "Invalid primary layer \"platform/governance\". Expected one of: platform, system/auth, system/iam, system/org, system/config, business/*, app, inheritance-sync.",
+        "Invalid harness template \"pantheon-opscustom\". Expected one of: admin-platform, api-service, event-processor, dashboard, ui-heavy-product, custom.",
+        "Invalid coverage dimension \"security\". Expected one of: behaviour, maintainability, architecture-fitness, runtime-quality, method-health.",
+        "Completion checklist is missing required item: Layer and boundary declared",
+        "Completion checklist is missing required item: Contract anchors read"
+      ],
+      "warnings": [
+        "Contract anchor does not exist: ../pantheon-base/AGENTS.md",
+        "Section \"## Linkage\" is missing recommended item: Superpowers Plan.",
+        "Section \"## Linkage\" is missing recommended item: Plan References."
+      ]
+    }
+  },
+  {
+    "check": "evidence",
+    "before": 127,
+    "after": 127,
+    "newErrors": [],
+    "taskResult": {
+      "file": ".harness/archive/2026-11/evidence/2026-06-18-pr-branch-cleanup-automation/commands.json",
+      "errors": [],
+      "warnings": [],
+      "historicalErrors": [
+        "root.graphChecks.checks[0] must be one of: cycle, hub, call-depth, sensitive-flow."
+      ]
+    }
+  },
+  {
+    "check": "review",
+    "before": 91,
+    "after": 91,
+    "newErrors": [],
+    "taskResult": {
+      "file": ".harness/archive/2026-11/evidence/2026-06-18-pr-branch-cleanup-automation/review.md",
+      "errors": [
+        "missing ## Machine Readable JSON block"
+      ],
+      "warnings": []
+    }
+  },
+  {
+    "check": "links",
+    "before": 6,
+    "after": 6,
+    "newErrors": []
+  }
+]

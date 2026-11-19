@@ -1,0 +1,36 @@
+{
+  "timestamp": "2026-11-18T05:08:39.020Z",
+  "notePath": ".local/manual-preview-20261116/checkpoint-20261118-retire-isolation-running.md",
+  "noteSHA256": "3ce4184c5a46cb6357ea97bb88a0d63224f073d8b60649a5a287a53c7c39a1c1",
+  "historicalObjects": 85,
+  "newArchiveGroupsThisCheckpoint": 0,
+  "cumulativeNewArchiveGroups": 22,
+  "preservedDuplicateLiveGroups": 2,
+  "aggregateGoalStatus": "blocked",
+  "originals": [
+    {
+      "file": ".harness/STATUS.md",
+      "backup": ".harness/evidence/2026-11-17-ops-history-audit/continuation-progress-retire-isolation-running-20261118-originals/.harness/STATUS.md.raw",
+      "beforeSHA256": "aa2e594ab6508a364b3b42a1ffe8d6cc181ddc730f833b5862e1a34f87b30dc0",
+      "afterSHA256": "2356facbd092f5bbabba28ea8b1bb1ceae8a9a1e3162a888dc16584d4875e684"
+    },
+    {
+      "file": ".harness/evidence/2026-11-17-ops-history-audit/progress.md",
+      "backup": ".harness/evidence/2026-11-17-ops-history-audit/continuation-progress-retire-isolation-running-20261118-originals/.harness/evidence/2026-11-17-ops-history-audit/progress.md.raw",
+      "beforeSHA256": "d99dc75e16c8b15587e4b292837594e6e0502802955087309d8ec2acfe0dc8e3",
+      "afterSHA256": "abd4cf95fcdd1b7caf16d7c119d071648fd99442a2102f74010016f67050749d"
+    },
+    {
+      "file": ".harness/evidence/2026-11-17-ops-history-audit/summary.md",
+      "backup": ".harness/evidence/2026-11-17-ops-history-audit/continuation-progress-retire-isolation-running-20261118-originals/.harness/evidence/2026-11-17-ops-history-audit/summary.md.raw",
+      "beforeSHA256": "726778e629f1db5da7374d680f91400d121b7d44d1e952526acfbc86649cea52",
+      "afterSHA256": "9684a80aa8af9a18543555cd52439818954d3c6eee0391b5398e240e382b2d5a"
+    },
+    {
+      "file": ".harness/tasks/2026-11-16-ops-pilot-delivery/OPEN_TASKS.md",
+      "backup": ".harness/evidence/2026-11-17-ops-history-audit/continuation-progress-retire-isolation-running-20261118-originals/.harness/tasks/2026-11-16-ops-pilot-delivery/OPEN_TASKS.md.raw",
+      "beforeSHA256": "4436622f4b05908e6d87dbc7666055bb2ecdd1c844ca254189f53b7e1673d8c3",
+      "afterSHA256": "537df964d69d0cc91372f9f41a1599375510293728ac9dce32560094ffcb27bf"
+    }
+  ]
+}
