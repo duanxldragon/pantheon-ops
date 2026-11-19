@@ -695,6 +695,11 @@ test.describe('Deploy business module smoke', () => {
       await expect(modal).toContainText('编辑任务');
       await expect(modal.locator('input').first()).toHaveValue(`${token}-task`);
       await modal.getByLabel('备注', { exact: true }).fill('detail edit smoke updated');
+      // handleSubmit requires a fresh target resolution for host targets before
+      // saving; the editor re-validates the selection instead of trusting the
+      // persisted one. Resolve so the 保存 PUT actually fires.
+      await modal.getByRole('button', { name: '解析并核对目标' }).click();
+      await expect(modal.getByRole('status')).toBeVisible();
       await modal.getByRole('button', { name: '保存' }).click();
       await expect(modal).toBeHidden();
       await expect(page).toHaveURL(/\/business\/deploy\/task$/);
@@ -831,8 +836,14 @@ test.describe('Deploy business module smoke', () => {
     expect(detail.businessScopeName).toContain(token);
     expect(detail.hosts).toHaveLength(1);
     expect(detail.hosts[0].traceSteps?.length || 0).toBeGreaterThan(0);
+    // Connection setup commits a failed result; traceSteps carry a `result`
+    // phase with a `status=failed` message, not a dedicated `error` phase.
+    // Mirrors deploy-api.spec.ts's assertion of the same contract.
     expect(detail.hosts[0].traceSteps?.map((step) => step.phase)).toEqual(
-      expect.arrayContaining(['start', 'result', 'error']),
+      expect.arrayContaining(['start', 'result']),
+    );
+    expect(detail.hosts[0].traceSteps).toContainEqual(
+      expect.objectContaining({ phase: 'result', message: 'status=failed' }),
     );
 
     await page.goto(`/business/deploy/task/${task.id}`, { waitUntil: 'domcontentloaded' });
