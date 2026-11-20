@@ -330,10 +330,10 @@ Nov 18, 2026 · @duanxldragon
 | 提交 | 内容 |
 | --- | --- |
 | #194 | 归档 2026-11-17 的 harness 历史记录 |
-| #195 | 落地试点包 C01–C06 与 E01–E04（bizscope、service、deploy、filedist、k8s、argocd、cmdb、opsinit），附验收证据；同时修复 `check:gorm-sql-literal` 的 3 处报告，并给 CI 增加业务冒烟步骤 |
+| #195 | 推进试点包 C01–C06 与 E01–E04（bizscope、service、deploy、filedist、k8s、argocd、cmdb、opsinit）的实现，并留下进度证据；同时修复 `check:gorm-sql-literal` 的 3 处报告，并给 CI 增加业务冒烟步骤 |
 | #196 | Go 工具链升级到 1.26.11，处理 OSV 标准库公告 |
 
-\#195 的说明里写明，对外部真实端点的 D1、D4 实机条件仍保持“未完成”。我没有深入审阅它的验收证据目录（`.harness/evidence/2026-11-16-ops-pilot-delivery`），所以只能说“项目声称已交付”，不能说“我已验证交付”。
+\#195 的说明里写明，对外部真实端点的 D1、D4 实机条件仍保持“未完成”。我读了项目最新状态记录（`.harness/STATUS.md` 与 `.harness/evidence/2026-11-16-ops-pilot-delivery/summary.md`，更新于 2026-11-19）：**9 个包为进行中，C02 仍为计划中，10 个包的原范围验收均未完成**；受限角色、真实 SSH 与 provider、安装升级回滚等交付操作仍标为开放或未运行（E04 的 9 条真实 provider 验证全部 NOT_RUN）。所以 #195 是“实现推进并留证据”，不是“交付完成”。项目自己记录的本地验证有：完整 MySQL + race 测试（Windows）退出码 0，74 个包通过；业务重建与漂移检查通过。这是项目自报，我没有复跑，也没有逐条核对证据。治理检查里 task、evidence、review、links 四项仍是红的（项目自己记录为无新增、无豁免）。
 
 ### 3. 最新一次 CI 的结果（运行 44521683179，提交 444ce8e）
 
@@ -357,7 +357,7 @@ Code Quality Gates 的 8 个作业是：变更范围、前端契约、后端测�
 | --- | --- | --- |
 | 业务前端冒烟没有接入 CI | `quality.yml` 的 “Run Ops core business smoke” 步骤会运行 cmdb、deploy（接口与页面）、service、k8s 的业务冒烟，我至少确认了这五项 | NEW-04 的“未接入 CI”不再成立。该步骤后面是否还有别的项，我没有读完 |
 | 只有 cmdb、observability、deploy 导出注册了权限绑定 | 现在 service 有 7 条、k8s 有 5 条、deploy 有 6 条（只覆盖软件包）、cmdb 25 条，另有 deploy 日志下载和 observability | 缺口缩小，但没有消除，见下 |
-| C01–C06 / E01–E04 全部处于“计划中” | 项目声称已通过 #195 落地 | 功能完成度表中这些行的状态需要上调，待验证 |
+| C01–C06 / E01–E04 全部处于“计划中” | 项目状态记录（2026-11-19）：9 个进行中、C02 计划中，均未验收 | 状态从“计划中”改为“进行中，未验收”；“没有模块已验收完成”的结论不变 |
 
 **权限绑定剩余缺口（路由数为正则估算）：** deploy 约 38 个路由，已绑定 6 条加日志下载 3 条，任务和凭据相关的没有；k8s 约 47 个路由，已绑定 5 条；cicd、filedist、bizscope 仍然没有任何绑定。我之前的“默认拒绝、细粒度角色可能 403”的推断仍然适用于这些模块，仍需用非管理员角色实测。
 
