@@ -1,5 +1,15 @@
 # Pantheon Ops 当前任务状态
 
+## 2026-11-20T04:33:03.000Z S3649 合并 / 独立审计 PR 治理修复 / packaging 证据落地
+
+更新UTC：2026-11-20T04:33:03Z。
+
+- **PR #198（S3649）已 merge** → main `7b7c8679`（`findApplication` 显式 `id = ?` 占位，行为等价，清 SonarCloud new_security_rating BLOCKER）。required gates（Quality Gates / Security Gates）绿；`Automate Solo PR`（缺 RELEASE_GATE_TOKEN）与 Vercel 为既有非 required failure。
+- **PR #197（docs/reviews 独立评审与外部报告核实）**：governance body 补齐必填 section/字段（## 边界说明/## 审核留痕/## 检查清单 + Copilot review 等字段，Verification evidence/Review Artifact 改 not-applicable）→ PR Governance Prereq / Docs Governance / Quality Gates / Backend Tests / Go Lint / Security Gates 全绿（commit `5dc807a8` 空提交触发重跑）。**仍 DRAFT，等维护者审阅合并**。报告 SEC-001/002/004 三条顶级发现本轮逐行抽查，当前代码全部成立。
+- **2026-11-07-ops-planned-task-closeout packaging 证据落地**：`commands.json` + `summary.md` 随本 checkpoint 提交（`.log` 原样 gitignored 保留）；owning task card / manifest / legacy-review allowlist 收缩均已在上游落地。
+- **本机 git https push 抖动根因修复**：pantheon-ops repo-local `http.sslBackend` schannel→openssl（schannel 握手失败导致 "Connection was reset"/挂起）。后续本机 push/pull 稳定，不再依赖重试。
+- **10 包验收不变**：9 包 in-progress、C02 planned、10 包均未验收，本轮未触碰；真实 provider/受限角色 SSH/K8s 与维护者最终验收仍开放（human gate）。
+
 ## 2026-11-19T00:21:32.049Z 历史归档最新状态
 
 85项已分类，22组新归档＋2组重复副本保全。已恢复9个历史文件原字节，恢复前文件保全，445份唯一历史文件与15项归档解析回归通过。10包仍9进行中、C02planned，实际provider/受限角色/交付与维护者验收继续开放。
