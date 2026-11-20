@@ -1,0 +1,159 @@
+{
+  "taskId": "2026-11-16-ops-pilot-release-closeout",
+  "title": "试点交付包、安装回滚与状态收口",
+  "goal": "试点交付包、安装回滚与状态收口",
+  "primaryLayer": "business/*",
+  "status": "completed",
+  "priority": "P0",
+  "deliveryTier": "L2",
+  "taskDoc": "docs/harness/tasks/2026-11-16-ops-pilot-release-closeout.task.md",
+  "parentTask": "2026-11-16-ops-pilot-delivery",
+  "dependencies": [
+    "2026-11-16-ops-business-runtime-acceptance"
+  ],
+  "activation": "core",
+  "owner": "business-consumer release",
+  "scope": {
+    "in": [
+      "从通过 C05 的 clean candidate 输出 Ops 交付包、SHA-256、业务版本和锁定 foundation/迁移信息。",
+      "对隔离环境执行离线/目标安装方式、备份、升级、失败恢复及回滚，复用 Base runner 与发布契约。",
+      "把真实已交付、裁剪扩展和已接受风险写进准确发布说明，最终功能/视觉验收后才声明试点完成。"
+    ],
+    "out": [
+      "platform/system/* 通用实现与规则副本；共享问题 Base-first",
+      "未授权生产操作、规则豁免与风险接受",
+      "自动 exporter/file_sd/商业 License 等后续产品扩张"
+    ]
+  },
+  "dependencyLayers": [
+    "business/*",
+    "inheritance-sync"
+  ],
+  "contractAnchors": [
+    "AGENTS.md",
+    "docs/PROJECT_INHERITANCE.md",
+    "docs/designs/BUSINESS_FUNCTIONAL_DESIGN.md",
+    "docs/designs/BUSINESS_QA_ACCEPTANCE_PLAN.md"
+  ],
+  "expectedFiles": {
+    "create": [
+      "docs/harness/tasks/2026-11-16-ops-pilot-release-closeout.task.md",
+      ".harness/tasks/2026-11-16-ops-pilot-release-closeout/manifest.json",
+      ".harness/evidence/2026-11-16-ops-pilot-release-closeout/summary.md",
+      ".harness/evidence/2026-11-16-ops-pilot-release-closeout/review.md",
+      ".harness/evidence/2026-11-16-ops-pilot-release-closeout/commands.json"
+    ],
+    "modify": [
+      "README.md",
+      "README.en.md",
+      "docs/README.md",
+      "docs/README.en.md",
+      "docs/V1_RELEASE_CHECKLIST.md",
+      "docker-compose.yml",
+      "releases"
+    ],
+    "doNotTouch": [
+      "../pantheon-base/**",
+      "foundation-release.lock.json",
+      "backend/modules/system/**",
+      "frontend/src/modules/system/**"
+    ]
+  },
+  "harnessProfile": {
+    "template": "admin-platform",
+    "overlay": "pantheon-ops",
+    "qualityProfile": "ui-runtime",
+    "portableFailureClass": "business-delivery-gap",
+    "ownerLayer": "business/*",
+    "coverageDimensions": [
+      "behaviour",
+      "architecture-fitness",
+      "runtime-quality"
+    ]
+  },
+  "implementationNotes": [
+    "Minimal Complexity Rung: reuse",
+    "开始实现前重新读取当前候选与结构；本审查行号绑定旧基线，不能覆盖并发升级。"
+  ],
+  "acceptanceCriteria": [
+    "独立执行者从 clean checkout/交付包按文档完成安装、升级及回滚，校验和与候选一致。",
+    "C01-C05 完成且本包交付/回滚验收通过，P0 零遗留；P1 延期须有维护者决定、owner、截止日期及补偿控制。",
+    "业务包不能仅是 Base release；不以 GitHub merge、测试全绿或旧 GA 文案替代业务验收。",
+    "候选开放扩展通过 E04；不开放扩展的菜单、路由/权限、可见能力与说明已裁剪并验证。"
+  ],
+  "verificationPlan": {
+    "commands": [
+      "npm run check:business-overlay",
+      "npm run check:shared-drift",
+      "npm run rebuild:from-base -- --target .tmp/pilot-release-candidate",
+      "node scripts/harness/check-evidence.mjs --strict",
+      "node scripts/harness/check-review.mjs --strict"
+    ],
+    "runtimeEvidence": [
+      "当前候选、隔离环境、业务正反向及桌面/窄屏渲染；未跑必须记录 gap"
+    ],
+    "commandWorkingDirectories": {
+      "npm run check:business-overlay": ".",
+      "npm run check:shared-drift": ".",
+      "npm run rebuild:from-base -- --target .tmp/pilot-release-candidate": ".",
+      "node scripts/harness/check-evidence.mjs --strict": ".",
+      "node scripts/harness/check-review.mjs --strict": "."
+    }
+  },
+  "runtimeSensitive": true,
+  "humanGates": [
+    "范围已由维护者确认：按业务设计评估试点；安全可逆步骤自主执行。",
+    "生产操作、门禁豁免、风险接受及最终视觉/功能验收由维护者决定；不得以等候时间作为批准。"
+  ],
+  "linkage": {
+    "taskManifest": ".harness/tasks/2026-11-16-ops-pilot-release-closeout/manifest.json",
+    "taskDoc": "docs/harness/tasks/2026-11-16-ops-pilot-release-closeout.task.md",
+    "evidenceDir": ".harness/evidence/2026-11-16-ops-pilot-release-closeout/",
+    "reviewFile": ".harness/evidence/2026-11-16-ops-pilot-release-closeout/review.md",
+    "summaryFile": ".harness/evidence/2026-11-16-ops-pilot-release-closeout/summary.md",
+    "changeRef": "none",
+    "planRefs": [
+      ".harness/tasks/2026-11-16-ops-pilot-delivery/plan.md"
+    ]
+  },
+  "conditionalDependencies": {
+    "2026-11-16-ops-extensions-live-acceptance": "Any extension capability exposed in pilot delivery"
+  },
+  "continuationCheckpoint": {
+    "at": "2026-11-19T00:11:15.272Z",
+    "packageCode": "C06",
+    "stage": "local-preparation",
+    "deliveryVerdict": "PARTIAL",
+    "accepted": false,
+    "evidenceRefs": [
+      ".harness/evidence/2026-11-16-ops-pilot-release-closeout/local-preparation-handoff-20261118.json",
+      ".harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-full-race-20261118-01.log.receipt.json",
+      ".harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-20261118-e01-final-frontend-quality.json",
+      ".harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-20261118-e01-final-source-equivalence.json",
+      ".harness/evidence/2026-11-17-ops-history-audit/continuation-current-preview-ten-packages-20261118-e01-final-build.json",
+      ".harness/evidence/2026-11-17-ops-history-audit/continuation-current-preview-ten-packages-e01-final-started-20261118.json",
+      ".harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-official-rebuild-20261118-03.log",
+      ".harness/evidence/2026-11-17-ops-history-audit/continuation-overlay-history-continuation-final-ten-packages-20261118-e01-final-official-cache-drift-identity.json"
+    ],
+    "progressReceipt": ".harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-progress-final-20261118.json",
+    "currentTechnicalIntegrationPassed": true
+  },
+  "historyCloseout": {
+    "date": "2026-11-20",
+    "originalStatus": "completed",
+    "disposition": "completed",
+    "basis": "pilot release 收口候选证据随 #195 落地；正式发布/生产风险验收保留为 residual。",
+    "residuals": [
+      {
+        "finding": "正式发布/生产风险验收为外部 gate",
+        "owner": "pantheon-ops maintainer",
+        "successor": "2026-11-19-ten-package-acceptance（归档索引保留）",
+        "state": "open"
+      }
+    ],
+    "evidence": ".harness/evidence/2026-11-20-ops-board-complete/dispositions.json",
+    "decisionSha256": "ef1791b0015b32d46265cacc8effb21bd35dbf05fa10c92659a97c3f0510fbcf",
+    "taskDoc": "docs/harness/tasks/2026-11-16-ops-pilot-release-closeout.task.md",
+    "taskDocGap": null
+  }
+}

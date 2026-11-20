@@ -2,10 +2,10 @@
 title: Ops 业务导航修复
 doc_type: Remediation
 layer: business
-status: Active
+status: Archived
 linked_contracts:
   - docs/PROJECT_INHERITANCE.md
-updated_at: 2026-11-16
+updated_at: 2026-11-20
 ---
 
 # Task Packet: 2026-11-16-ops-navigation-repair
@@ -129,3 +129,19 @@ business/*
 - [ ] Verification run or exception recorded
 - [ ] Evidence saved or summarized
 - [ ] Review completed
+
+## Result — History Closeout 2026-11-20
+
+Manifest disposition: completed
+
+导航修复实施 + after-final 验收证据（41 张截图 + acceptance.json）随 #190/#195 落地 main；QA/安全门禁绿。
+
+Residual finding/owner/successor/proof: .harness/evidence/2026-11-20-ops-board-complete/dispositions.json. Canonical references remain archive-aware. Historical body/evidence retained. Candidate/production/maintainer gates remain separate.
+
+## Result — History Closeout 2026-11-20
+
+Manifest disposition: completed
+
+导航修复实施 + after-final 验收证据（41 张截图 + acceptance.json）随 #190/#195 落地 main；QA/安全门禁绿。
+
+Residual finding/owner/successor/proof: .harness/evidence/2026-11-20-ops-board-complete/dispositions.json. Canonical references remain archive-aware. Historical body/evidence retained. Candidate/production/maintainer gates remain separate.

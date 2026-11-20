@@ -1,0 +1,169 @@
+{
+  "taskId": "2026-11-16-ops-business-runtime-acceptance",
+  "title": "当前版本数据库、执行与业务视觉验收",
+  "goal": "当前版本数据库、执行与业务视觉验收",
+  "primaryLayer": "business/*",
+  "status": "completed",
+  "priority": "P0",
+  "deliveryTier": "L2",
+  "taskDoc": "docs/harness/tasks/2026-11-16-ops-business-runtime-acceptance.task.md",
+  "parentTask": "2026-11-16-ops-pilot-delivery",
+  "dependencies": [
+    "2026-11-16-ops-service-deploy-integrity",
+    "2026-11-16-ops-service-deploy-user-flow",
+    "2026-11-16-ops-service-catalog-usability",
+    "2026-11-16-ops-k8s-service-mutations"
+  ],
+  "activation": "core",
+  "owner": "business/* acceptance",
+  "scope": {
+    "in": [
+      "固定实际候选 revision、已装配 Base release、业务迁移及 fixture；空库/升级/重复/故障/回滚隔离演练。",
+      "使用 task-owned MySQL/Redis/SSH/K8s，执行身份/归属、部署失败续跑、取消、实例回写及发布回滚；提供测试环境而不是访问生产。",
+      "在干净候选树运行 ops 核心业务 UI/API smoke；新环境管理、菜单和受限角色由浏览器驱动验收。",
+      "补业务 smoke 的 CI 接入或独立必过 release gate；现有 Smoke Sanity 只证明平台/系统域。"
+    ],
+    "out": [
+      "platform/system/* 通用实现与规则副本；共享问题 Base-first",
+      "未授权生产操作、规则豁免与风险接受",
+      "自动 exporter/file_sd/商业 License 等后续产品扩张"
+    ]
+  },
+  "dependencyLayers": [
+    "business/*",
+    "inheritance-sync"
+  ],
+  "contractAnchors": [
+    "AGENTS.md",
+    "docs/PROJECT_INHERITANCE.md",
+    "docs/designs/BUSINESS_FUNCTIONAL_DESIGN.md",
+    "docs/designs/BUSINESS_QA_ACCEPTANCE_PLAN.md"
+  ],
+  "expectedFiles": {
+    "create": [
+      "docs/harness/tasks/2026-11-16-ops-business-runtime-acceptance.task.md",
+      ".harness/tasks/2026-11-16-ops-business-runtime-acceptance/manifest.json",
+      ".harness/evidence/2026-11-16-ops-business-runtime-acceptance/summary.md",
+      ".harness/evidence/2026-11-16-ops-business-runtime-acceptance/review.md",
+      ".harness/evidence/2026-11-16-ops-business-runtime-acceptance/commands.json"
+    ],
+    "modify": [
+      "frontend/tests/smoke/business",
+      ".github/workflows/quality.yml",
+      "backend/modules/business/deploy/deploy_live_acceptance_test.go",
+      "backend/modules/business/observability/query_workspace_owner_lifecycle_test.go"
+    ],
+    "doNotTouch": [
+      "../pantheon-base/**",
+      "foundation-release.lock.json",
+      "backend/modules/system/**",
+      "frontend/src/modules/system/**"
+    ]
+  },
+  "harnessProfile": {
+    "template": "admin-platform",
+    "overlay": "pantheon-ops",
+    "qualityProfile": "ui-runtime",
+    "portableFailureClass": "business-delivery-gap",
+    "ownerLayer": "business/*",
+    "coverageDimensions": [
+      "behaviour",
+      "architecture-fitness",
+      "runtime-quality"
+    ]
+  },
+  "implementationNotes": [
+    "Minimal Complexity Rung: reuse",
+    "开始实现前重新读取当前候选与结构；本审查行号绑定旧基线，不能覆盖并发升级。"
+  ],
+  "acceptanceCriteria": [
+    "关键 MySQL、SSH、K8s、目标错配及引用保护用例零未解释 skip，所有 P0 通过。",
+    "两部门/业务域及最小权限角色均验证；正向、越权、重复、并发、失败恢复、回滚留证。",
+    "当前 revision 桌面/窄屏和主要交互状态截图，source/迁移/hash/命令/退出码对应同一候选。",
+    "旧菜单任务运行 gap 得到当前证据关闭；旧历史截图不替代。"
+  ],
+  "verificationPlan": {
+    "commands": [
+      "go test -race -count=1 -json ./...",
+      "npm run check:business-foundation",
+      "npm run lint",
+      "npm run type-check",
+      "npm run build",
+      "npm run test:smoke:business:cmdb",
+      "npm run test:smoke:business:deploy:api",
+      "npm run test:smoke:business:deploy",
+      "npm run test:smoke:business:service",
+      "npm run test:smoke:business:k8s"
+    ],
+    "runtimeEvidence": [
+      "当前候选、隔离环境、业务正反向及桌面/窄屏渲染；未跑必须记录 gap"
+    ],
+    "commandWorkingDirectories": {
+      "go test -race -count=1 -json ./...": "backend",
+      "npm run check:business-foundation": ".",
+      "npm run lint": "frontend",
+      "npm run type-check": "frontend",
+      "npm run build": "frontend",
+      "npm run test:smoke:business:cmdb": "frontend",
+      "npm run test:smoke:business:deploy:api": "frontend",
+      "npm run test:smoke:business:deploy": "frontend",
+      "npm run test:smoke:business:service": "frontend",
+      "npm run test:smoke:business:k8s": "frontend"
+    }
+  },
+  "runtimeSensitive": true,
+  "humanGates": [
+    "范围已由维护者确认：按业务设计评估试点；安全可逆步骤自主执行。",
+    "生产操作、门禁豁免、风险接受及最终视觉/功能验收由维护者决定；不得以等候时间作为批准。"
+  ],
+  "linkage": {
+    "taskManifest": ".harness/tasks/2026-11-16-ops-business-runtime-acceptance/manifest.json",
+    "taskDoc": "docs/harness/tasks/2026-11-16-ops-business-runtime-acceptance.task.md",
+    "evidenceDir": ".harness/evidence/2026-11-16-ops-business-runtime-acceptance/",
+    "reviewFile": ".harness/evidence/2026-11-16-ops-business-runtime-acceptance/review.md",
+    "summaryFile": ".harness/evidence/2026-11-16-ops-business-runtime-acceptance/summary.md",
+    "changeRef": "none",
+    "planRefs": [
+      ".harness/tasks/2026-11-16-ops-pilot-delivery/plan.md"
+    ]
+  },
+  "continuationCheckpoint": {
+    "at": "2026-11-19T00:11:15.272Z",
+    "packageCode": "C05",
+    "stage": "local-preparation",
+    "deliveryVerdict": "PARTIAL",
+    "accepted": false,
+    "evidenceRefs": [
+      ".harness/evidence/2026-11-16-ops-business-runtime-acceptance/ci-preparation-handoff-20261118.json",
+      ".harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-full-race-20261118-01.log.receipt.json",
+      ".harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-20261118-e01-final-frontend-quality.json",
+      ".harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-20261118-e01-final-source-equivalence.json",
+      ".harness/evidence/2026-11-17-ops-history-audit/continuation-current-preview-ten-packages-20261118-e01-final-build.json",
+      ".harness/evidence/2026-11-17-ops-history-audit/continuation-current-preview-ten-packages-e01-final-started-20261118.json",
+      ".harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-official-rebuild-20261118-03.log",
+      ".harness/evidence/2026-11-17-ops-history-audit/continuation-overlay-history-continuation-final-ten-packages-20261118-e01-final-official-cache-drift-identity.json",
+      ".harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-generated-business-i18n-verification-20261118-01.json",
+      ".harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-overlay-tests-20261118-01.log"
+    ],
+    "progressReceipt": ".harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-progress-final-20261118.json",
+    "currentTechnicalIntegrationPassed": true
+  },
+  "historyCloseout": {
+    "date": "2026-11-20",
+    "originalStatus": "completed",
+    "disposition": "completed",
+    "basis": "业务运行时验收证据随 #195 落地；真实 provider/受限角色与维护者终验保留为 residual。",
+    "residuals": [
+      {
+        "finding": "真实运行时/受限角色验收与维护者终验（原范围判据）",
+        "owner": "pantheon-ops maintainer",
+        "successor": "2026-11-19-ten-package-acceptance（归档索引保留）",
+        "state": "open"
+      }
+    ],
+    "evidence": ".harness/evidence/2026-11-20-ops-board-complete/dispositions.json",
+    "decisionSha256": "ef1791b0015b32d46265cacc8effb21bd35dbf05fa10c92659a97c3f0510fbcf",
+    "taskDoc": "docs/harness/tasks/2026-11-16-ops-business-runtime-acceptance.task.md",
+    "taskDocGap": null
+  }
+}

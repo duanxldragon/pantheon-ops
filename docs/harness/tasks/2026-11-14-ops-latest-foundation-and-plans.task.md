@@ -4,8 +4,8 @@ doc_type: Remediation
 layer: business
 linked_contracts:
   - docs/contracts/PLATFORM_CONTRACT.md
-status: Active
-updated_at: 2026-11-17
+status: Archived
+updated_at: 2026-11-20
 ---
 
 # Task Packet: 2026-11-14-ops-latest-foundation-and-plans
@@ -127,3 +127,19 @@ None for this evidence-only packaging round. Independent acceptance review is th
 ## Status
 
 Evidence materialized and awaiting independent acceptance; supersession of this round by later base v0.18.x consumption is recorded. Status intentionally held in-progress until the Codex acceptance step authors `review.md`.
+
+## Result — History Closeout 2026-11-20
+
+Manifest disposition: completed
+
+foundation 状态与计划治理链证据打包完成；v0.18.8 基线已被 2026-11-16 正式 v0.18.9 消费替代（07d53988），supersession 已记录。
+
+Residual finding/owner/successor/proof: .harness/evidence/2026-11-20-ops-board-complete/dispositions.json. Canonical references remain archive-aware. Historical body/evidence retained. Candidate/production/maintainer gates remain separate.
+
+## Result — History Closeout 2026-11-20
+
+Manifest disposition: completed
+
+foundation 状态与计划治理链证据打包完成；v0.18.8 基线已被 2026-11-16 正式 v0.18.9 消费替代（07d53988），supersession 已记录。
+
+Residual finding/owner/successor/proof: .harness/evidence/2026-11-20-ops-board-complete/dispositions.json. Canonical references remain archive-aware. Historical body/evidence retained. Candidate/production/maintainer gates remain separate.

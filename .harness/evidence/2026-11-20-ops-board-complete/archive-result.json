@@ -1,0 +1,541 @@
+{
+  "date": "2026-11-20",
+  "decisionSha256": "ef1791b0015b32d46265cacc8effb21bd35dbf05fa10c92659a97c3f0510fbcf",
+  "operations": [
+    {
+      "id": "2026-07-17-cmdb-ssh-config-externalize",
+      "title": "CMDB SSH 采集配置外部化",
+      "status": "completed",
+      "reason": "CMDB host SSH 采集配置（collect_timeout/default_port）已外部化到 base ConfigReader，实施随 PR #195 落地 main；host_config.go 与测试在仓内，evidence summary+commands 已保全。原范围完成，无人工门禁。",
+      "residuals": [],
+      "taskDoc": "docs/harness/tasks/2026-07-17-cmdb-ssh-config-externalize.task.md",
+      "taskDocGap": null,
+      "liveTask": ".harness/tasks/2026-07-17-cmdb-ssh-config-externalize",
+      "liveEvidence": ".harness/evidence/2026-07-17-cmdb-ssh-config-externalize",
+      "archivedTask": ".harness/archive/2026-11/tasks/2026-07-17-cmdb-ssh-config-externalize",
+      "archivedEvidence": ".harness/archive/2026-11/evidence/2026-07-17-cmdb-ssh-config-externalize",
+      "originalDocSha256": "c3b7485b4dec3abcfcf08b78643f5105988e7ddcd6f567d44f0b4a255d75920f"
+    },
+    {
+      "id": "2026-09-29-ops-ssrf-protection-integration",
+      "title": "Ops 业务面 SSRF 防护集成",
+      "status": "completed",
+      "reason": "base ssrf validator 经 foundation release 消费入 ops；business observability/argocd/k8s 四消费点集成 ssrf.Validator；2026-11-20 本地复验 pkg/security/ssrf go test passed + 业务消费包 go build exit 0。",
+      "residuals": [
+        {
+          "finding": "D2 allowlist/private-network/redirect/DNS 负向验收与部署策略",
+          "owner": "pantheon-ops maintainer",
+          "successor": "2026-09-28-ops-delivery-readiness-gap-closure（归档索引保留，见 .harness/ARCHIVE.md）",
+          "state": "open"
+        }
+      ],
+      "taskDoc": null,
+      "taskDocGap": "no task doc existed; closeout created minimal 2026-09-29-ops-ssrf-protection-integration.task.md",
+      "liveTask": ".harness/tasks/2026-09-29-ops-ssrf-protection-integration",
+      "liveEvidence": ".harness/evidence/2026-09-29-ops-ssrf-protection-integration",
+      "archivedTask": ".harness/archive/2026-11/tasks/2026-09-29-ops-ssrf-protection-integration",
+      "archivedEvidence": ".harness/archive/2026-11/evidence/2026-09-29-ops-ssrf-protection-integration",
+      "originalDocSha256": null
+    },
+    {
+      "id": "2026-11-07-ops-planned-task-closeout",
+      "title": "Ops planned 任务收口证据打包",
+      "status": "completed",
+      "reason": "planned/closeout 证据打包随 PR #199 (43d4b2e6) 落地：commands.json + summary.md 由 retained logs 物化，非重建、无编造。",
+      "residuals": [],
+      "taskDoc": "docs/harness/tasks/2026-11-07-ops-planned-task-closeout.task.md",
+      "taskDocGap": null,
+      "liveTask": ".harness/tasks/2026-11-07-ops-planned-task-closeout",
+      "liveEvidence": ".harness/evidence/2026-11-07-ops-planned-task-closeout",
+      "archivedTask": ".harness/archive/2026-11/tasks/2026-11-07-ops-planned-task-closeout",
+      "archivedEvidence": ".harness/archive/2026-11/evidence/2026-11-07-ops-planned-task-closeout",
+      "originalDocSha256": "79172732ab82025eb7f73f9e00c2b1663b4d2b2cd2d2d6819fe485b9d2355dba"
+    },
+    {
+      "id": "2026-11-14-ops-latest-foundation-and-plans",
+      "title": "最新 foundation 与计划治理链物化",
+      "status": "completed",
+      "reason": "foundation 状态与计划治理链证据打包完成；v0.18.8 基线已被 2026-11-16 正式 v0.18.9 消费替代（07d53988），supersession 已记录。",
+      "residuals": [],
+      "taskDoc": "docs/harness/tasks/2026-11-14-ops-latest-foundation-and-plans.task.md",
+      "taskDocGap": null,
+      "liveTask": ".harness/tasks/2026-11-14-ops-latest-foundation-and-plans",
+      "liveEvidence": ".harness/evidence/2026-11-14-ops-latest-foundation-and-plans",
+      "archivedTask": ".harness/archive/2026-11/tasks/2026-11-14-ops-latest-foundation-and-plans",
+      "archivedEvidence": ".harness/archive/2026-11/evidence/2026-11-14-ops-latest-foundation-and-plans",
+      "originalDocSha256": "89302e0a8a8bca75132a2a375028217457b3028444170c6a85435e5833351842"
+    },
+    {
+      "id": "2026-11-16-ops-business-menu-m3c",
+      "title": "业务菜单 M+3C 重构",
+      "status": "completed",
+      "reason": "bizscope+service M+3C 菜单 IA 随 PR #190 合并 (7db2a192)，review=Y，evidence 4 文件保全；QA/Security gates 绿。",
+      "residuals": [],
+      "taskDoc": "docs/harness/tasks/2026-11-16-ops-business-menu-m3c.task.md",
+      "taskDocGap": null,
+      "liveTask": ".harness/tasks/2026-11-16-ops-business-menu-m3c",
+      "liveEvidence": ".harness/evidence/2026-11-16-ops-business-menu-m3c",
+      "archivedTask": ".harness/archive/2026-11/tasks/2026-11-16-ops-business-menu-m3c",
+      "archivedEvidence": ".harness/archive/2026-11/evidence/2026-11-16-ops-business-menu-m3c",
+      "originalDocSha256": "715b83fc27d8f3fa60b0ee3ff06e644dc17b79746c3ac4d6abc37373bafb3e03"
+    },
+    {
+      "id": "2026-11-16-ops-navigation-repair",
+      "title": "导航修复与验收证据",
+      "status": "completed",
+      "reason": "导航修复实施 + after-final 验收证据（41 张截图 + acceptance.json）随 #190/#195 落地 main；QA/安全门禁绿。",
+      "residuals": [
+        {
+          "finding": "ask-claude-navigation-finalfix-20261117.result.jsonl 与 live-ui-verification 截图是否纳入正式存储（untracked 残留）",
+          "owner": "pantheon-ops maintainer",
+          "successor": "本 closeout 归档索引（.harness/ARCHIVE.md）",
+          "state": "open"
+        }
+      ],
+      "taskDoc": "docs/harness/tasks/2026-11-16-ops-navigation-repair.task.md",
+      "taskDocGap": null,
+      "liveTask": ".harness/tasks/2026-11-16-ops-navigation-repair",
+      "liveEvidence": ".harness/evidence/2026-11-16-ops-navigation-repair",
+      "archivedTask": ".harness/archive/2026-11/tasks/2026-11-16-ops-navigation-repair",
+      "archivedEvidence": ".harness/archive/2026-11/evidence/2026-11-16-ops-navigation-repair",
+      "originalDocSha256": "a9f52bf4a4dd1f4d46d02fa73d3732e760a8bfe49294f953dca99a2cf1e047cf"
+    },
+    {
+      "id": "2026-11-16-ops-historical-closeout",
+      "title": "历史任务收尾（intake / dispatch / 对账）",
+      "status": "completed",
+      "reason": "60 条历史记录 + O1–O7 + D1–D5 + infra/orphan 全量对账完成（INVENTORY.json + intake-summary.md + o4-archive-verification.json）；真正缺实现批次 S1(SSRF/cmdb-ssh)/G1(auto-merge) 已由后继任务实施并关闭；verified-complete 记录已按原范围收口。",
+      "residuals": [
+        {
+          "finding": "D4-G2/G3 生产 RPO/RTO 恢复演练与生产量级 sizing",
+          "owner": "pantheon-ops maintainer / On-call",
+          "successor": "pantheon-base FR028 upstream；生产维护窗口签署",
+          "state": "open"
+        },
+        {
+          "finding": "O7 关系成熟度门禁（明确 deferred-forward，不进试点）",
+          "owner": "pantheon-ops maintainer",
+          "successor": "deferred-forward",
+          "state": "open"
+        },
+        {
+          "finding": "P1 权限 PR3：真实受限角色 provider 验收",
+          "owner": "pantheon-ops maintainer",
+          "successor": "2026-11-19-ten-package-acceptance（归档索引保留）",
+          "state": "open"
+        }
+      ],
+      "taskDoc": null,
+      "taskDocGap": "no task doc existed; closeout created minimal 2026-11-16-ops-historical-closeout.task.md",
+      "liveTask": ".harness/tasks/2026-11-16-ops-historical-closeout",
+      "liveEvidence": ".harness/evidence/2026-11-16-ops-historical-closeout",
+      "archivedTask": ".harness/archive/2026-11/tasks/2026-11-16-ops-historical-closeout",
+      "archivedEvidence": ".harness/archive/2026-11/evidence/2026-11-16-ops-historical-closeout",
+      "originalDocSha256": null
+    },
+    {
+      "id": "2026-11-16-ops-historical-runtime",
+      "title": "Ops 历史运行时验证（D1/D4 + 旧 CMDB/K8s/menu 条件）",
+      "status": "completed",
+      "reason": "本地 D1 支柱（MySQL 8.0.36 / Redis requirepass / app:8080）运行时验证 + ENVIRONMENT_MATRIX 保全；外部 provider 门禁保留（见 residuals），与十包 acceptance 同一口径。",
+      "residuals": [
+        {
+          "finding": "外部 provider/tenant 真实运行时验证与受限角色覆盖",
+          "owner": "pantheon-ops maintainer",
+          "successor": "2026-11-19-ten-package-acceptance（归档索引保留）",
+          "state": "open"
+        }
+      ],
+      "taskDoc": null,
+      "taskDocGap": "no task doc existed; closeout created minimal 2026-11-16-ops-historical-runtime.task.md",
+      "liveTask": ".harness/tasks/2026-11-16-ops-historical-runtime",
+      "liveEvidence": ".harness/evidence/2026-11-16-ops-historical-runtime",
+      "archivedTask": ".harness/archive/2026-11/tasks/2026-11-16-ops-historical-runtime",
+      "archivedEvidence": ".harness/archive/2026-11/evidence/2026-11-16-ops-historical-runtime",
+      "originalDocSha256": null
+    },
+    {
+      "id": "2026-11-16-ops-readiness-plan-closeout",
+      "title": "业务审查拆分/计划更新/完成任务归档",
+      "status": "completed",
+      "reason": "业务审查拆分/计划更新/完成任务归档：已有 status=completed + 32 证据文件；本 closeout 将其入档以统一 '已完成后入档' 目录约定。",
+      "residuals": [],
+      "taskDoc": "docs/harness/tasks/2026-11-16-ops-readiness-plan-closeout.task.md",
+      "taskDocGap": null,
+      "liveTask": ".harness/tasks/2026-11-16-ops-readiness-plan-closeout",
+      "liveEvidence": ".harness/evidence/2026-11-16-ops-readiness-plan-closeout",
+      "archivedTask": ".harness/archive/2026-11/tasks/2026-11-16-ops-readiness-plan-closeout",
+      "archivedEvidence": ".harness/archive/2026-11/evidence/2026-11-16-ops-readiness-plan-closeout",
+      "originalDocSha256": "2795f20df4426a117004cf2784fa233fac13ed12ef82bec8b41aa47800b8a5a6"
+    },
+    {
+      "id": "2026-11-16-ops-service-deploy-user-flow",
+      "title": "服务部署用户流验收组织（C02 E01–E04）",
+      "status": "completed",
+      "reason": "C02 E01–E04 用户流部署验收组织：实施与候选验收证据随 PR #195 落地；真实受限角色/provider 与维护者终验保留为显式 residual。",
+      "residuals": [
+        {
+          "finding": "真实受限角色/真实 provider 用户流验收与维护者终验（E01–E04 原范围判据）",
+          "owner": "pantheon-ops maintainer",
+          "successor": "2026-11-19-ten-package-acceptance（归档索引保留）",
+          "state": "open"
+        }
+      ],
+      "taskDoc": "docs/harness/tasks/2026-11-16-ops-service-deploy-user-flow.task.md",
+      "taskDocGap": null,
+      "liveTask": ".harness/tasks/2026-11-16-ops-service-deploy-user-flow",
+      "liveEvidence": ".harness/evidence/2026-11-16-ops-service-deploy-user-flow",
+      "archivedTask": ".harness/archive/2026-11/tasks/2026-11-16-ops-service-deploy-user-flow",
+      "archivedEvidence": ".harness/archive/2026-11/evidence/2026-11-16-ops-service-deploy-user-flow",
+      "originalDocSha256": "a410a967d0a663a676e526e7bece65914432e21d28c479e52a8a11c227440e90"
+    },
+    {
+      "id": "2026-11-16-ops-pilot-delivery",
+      "title": "10 包 Pilot 交付（实施 + 验收组织）",
+      "status": "completed",
+      "reason": "10 包 pilot 实施 + 验收证据随 PR #195 (2578eac90) 落地 main；候选验收证据已记录。原范围验收判据保留为显式 residual，不代签维护者验收。计划书随本 closeout 入档（.harness/archive/2026-11/tasks/2026-11-16-ops-pilot-delivery/plan.md）。",
+      "residuals": [
+        {
+          "finding": "真实 provider/受限角色 SSH/K8s 与维护者最终视觉/功能验收（C01–C06/E01–E04 原范围判据）",
+          "owner": "pantheon-ops maintainer",
+          "successor": "2026-11-19-ten-package-acceptance（归档索引保留，见 .harness/ARCHIVE.md）",
+          "state": "open"
+        },
+        {
+          "finding": "未批准发布/生产风险验收为外部 gate",
+          "owner": "pantheon-ops maintainer",
+          "successor": "2026-11-19-ten-package-acceptance（归档索引保留）",
+          "state": "open"
+        }
+      ],
+      "taskDoc": "docs/harness/tasks/2026-11-16-ops-pilot-delivery.task.md",
+      "taskDocGap": null,
+      "liveTask": ".harness/tasks/2026-11-16-ops-pilot-delivery",
+      "liveEvidence": ".harness/evidence/2026-11-16-ops-pilot-delivery",
+      "archivedTask": ".harness/archive/2026-11/tasks/2026-11-16-ops-pilot-delivery",
+      "archivedEvidence": ".harness/archive/2026-11/evidence/2026-11-16-ops-pilot-delivery",
+      "originalDocSha256": "e240f828296b257eed152ad6a021ae76d395f1b8717031388e5982be8164c2b7"
+    },
+    {
+      "id": "2026-11-16-ops-argocd-ownership-convergence",
+      "title": "ArgoCD ownership/legacy 收敛验收",
+      "status": "completed",
+      "reason": "ArgoCD ownership/legacy 收敛实施 + candidate 证据随 #195 落地；真实 provider/受限角色验收保留为 residual。",
+      "residuals": [
+        {
+          "finding": "真实 ArgoCD provider/受限角色验收与维护者终验（C05 判据）",
+          "owner": "pantheon-ops maintainer",
+          "successor": "2026-11-19-ten-package-acceptance（归档索引保留）",
+          "state": "open"
+        }
+      ],
+      "taskDoc": "docs/harness/tasks/2026-11-16-ops-argocd-ownership-convergence.task.md",
+      "taskDocGap": null,
+      "liveTask": ".harness/tasks/2026-11-16-ops-argocd-ownership-convergence",
+      "liveEvidence": ".harness/evidence/2026-11-16-ops-argocd-ownership-convergence",
+      "archivedTask": ".harness/archive/2026-11/tasks/2026-11-16-ops-argocd-ownership-convergence",
+      "archivedEvidence": ".harness/archive/2026-11/evidence/2026-11-16-ops-argocd-ownership-convergence",
+      "originalDocSha256": "eb2a94deea1c2bdd2da59e8aa0ca1535b34241f1ce904f2e11003ba03079e367"
+    },
+    {
+      "id": "2026-11-16-ops-business-runtime-acceptance",
+      "title": "业务运行时验收证据",
+      "status": "completed",
+      "reason": "业务运行时验收证据随 #195 落地；真实 provider/受限角色与维护者终验保留为 residual。",
+      "residuals": [
+        {
+          "finding": "真实运行时/受限角色验收与维护者终验（原范围判据）",
+          "owner": "pantheon-ops maintainer",
+          "successor": "2026-11-19-ten-package-acceptance（归档索引保留）",
+          "state": "open"
+        }
+      ],
+      "taskDoc": "docs/harness/tasks/2026-11-16-ops-business-runtime-acceptance.task.md",
+      "taskDocGap": null,
+      "liveTask": ".harness/tasks/2026-11-16-ops-business-runtime-acceptance",
+      "liveEvidence": ".harness/evidence/2026-11-16-ops-business-runtime-acceptance",
+      "archivedTask": ".harness/archive/2026-11/tasks/2026-11-16-ops-business-runtime-acceptance",
+      "archivedEvidence": ".harness/archive/2026-11/evidence/2026-11-16-ops-business-runtime-acceptance",
+      "originalDocSha256": "b394b0e96038932e5bd4819c6663e9958cbff73ca080da525db4a013bc6184c3"
+    },
+    {
+      "id": "2026-11-16-ops-extensions-live-acceptance",
+      "title": "扩展 live 验收证据",
+      "status": "completed",
+      "reason": "扩展 live 验收证据随 #195 落地；真实 provider 与维护者终验保留为 residual。",
+      "residuals": [
+        {
+          "finding": "真实 provider live 验收与维护者终验（原范围判据）",
+          "owner": "pantheon-ops maintainer",
+          "successor": "2026-11-19-ten-package-acceptance（归档索引保留）",
+          "state": "open"
+        }
+      ],
+      "taskDoc": "docs/harness/tasks/2026-11-16-ops-extensions-live-acceptance.task.md",
+      "taskDocGap": null,
+      "liveTask": ".harness/tasks/2026-11-16-ops-extensions-live-acceptance",
+      "liveEvidence": ".harness/evidence/2026-11-16-ops-extensions-live-acceptance",
+      "archivedTask": ".harness/archive/2026-11/tasks/2026-11-16-ops-extensions-live-acceptance",
+      "archivedEvidence": ".harness/archive/2026-11/evidence/2026-11-16-ops-extensions-live-acceptance",
+      "originalDocSha256": "b90caee02a430ad8075a783922a59a3cba705782eeca55d19e3d79a45b700ae7"
+    },
+    {
+      "id": "2026-11-16-ops-filedist-product-closure",
+      "title": "FileDist 产品化收口验收",
+      "status": "completed",
+      "reason": "FileDist 产品化收口 + 71 证据文件随 #195 落地；真实 SSH/结构和外部 provider 验收保留为 residual。",
+      "residuals": [
+        {
+          "finding": "真实 SSH 结构/外部 provider 验收与维护者终验（原范围判据）",
+          "owner": "pantheon-ops maintainer",
+          "successor": "2026-11-19-ten-package-acceptance（归档索引保留）",
+          "state": "open"
+        }
+      ],
+      "taskDoc": "docs/harness/tasks/2026-11-16-ops-filedist-product-closure.task.md",
+      "taskDocGap": null,
+      "liveTask": ".harness/tasks/2026-11-16-ops-filedist-product-closure",
+      "liveEvidence": ".harness/evidence/2026-11-16-ops-filedist-product-closure",
+      "archivedTask": ".harness/archive/2026-11/tasks/2026-11-16-ops-filedist-product-closure",
+      "archivedEvidence": ".harness/archive/2026-11/evidence/2026-11-16-ops-filedist-product-closure",
+      "originalDocSha256": "af6a970be834f24f1dd76af5365015c146d193499b3f32a65a145b126e4e5dac"
+    },
+    {
+      "id": "2026-11-16-ops-helm-capability-truth",
+      "title": "Helm 能力口径验收",
+      "status": "completed",
+      "reason": "Helm 能力口径与真实 Chart 安装边界候选证据随 #195 落地；真实 install/upgrade/rollback 验收保留为 residual。",
+      "residuals": [
+        {
+          "finding": "真实 install/upgrade/rollback 验收与维护者终验（原范围判据）",
+          "owner": "pantheon-ops maintainer",
+          "successor": "2026-11-19-ten-package-acceptance（归档索引保留）",
+          "state": "open"
+        }
+      ],
+      "taskDoc": "docs/harness/tasks/2026-11-16-ops-helm-capability-truth.task.md",
+      "taskDocGap": null,
+      "liveTask": ".harness/tasks/2026-11-16-ops-helm-capability-truth",
+      "liveEvidence": ".harness/evidence/2026-11-16-ops-helm-capability-truth",
+      "archivedTask": ".harness/archive/2026-11/tasks/2026-11-16-ops-helm-capability-truth",
+      "archivedEvidence": ".harness/archive/2026-11/evidence/2026-11-16-ops-helm-capability-truth",
+      "originalDocSha256": "83de3626c91d862b4c7e5990883eca9e3b734ec5c3e40bc496e37fe4c0e1affe"
+    },
+    {
+      "id": "2026-11-16-ops-k8s-service-mutations",
+      "title": "K8s 服务变更验收",
+      "status": "completed",
+      "reason": "K8s 服务变更候选实施 + 28 证据文件随 #195 落地；真实集群/受限角色验收保留为 residual。",
+      "residuals": [
+        {
+          "finding": "真实集群/受限角色服务变更验收与维护者终验（原范围判据）",
+          "owner": "pantheon-ops maintainer",
+          "successor": "2026-11-19-ten-package-acceptance（归档索引保留）",
+          "state": "open"
+        }
+      ],
+      "taskDoc": "docs/harness/tasks/2026-11-16-ops-k8s-service-mutations.task.md",
+      "taskDocGap": null,
+      "liveTask": ".harness/tasks/2026-11-16-ops-k8s-service-mutations",
+      "liveEvidence": ".harness/evidence/2026-11-16-ops-k8s-service-mutations",
+      "archivedTask": ".harness/archive/2026-11/tasks/2026-11-16-ops-k8s-service-mutations",
+      "archivedEvidence": ".harness/archive/2026-11/evidence/2026-11-16-ops-k8s-service-mutations",
+      "originalDocSha256": "332e13ab0c9cd1fce09d3c4162d4b34e8d73169a508782b2bee6c38e97201586"
+    },
+    {
+      "id": "2026-11-16-ops-pilot-release-closeout",
+      "title": "Pilot 发布收口验收",
+      "status": "completed",
+      "reason": "pilot release 收口候选证据随 #195 落地；正式发布/生产风险验收保留为 residual。",
+      "residuals": [
+        {
+          "finding": "正式发布/生产风险验收为外部 gate",
+          "owner": "pantheon-ops maintainer",
+          "successor": "2026-11-19-ten-package-acceptance（归档索引保留）",
+          "state": "open"
+        }
+      ],
+      "taskDoc": "docs/harness/tasks/2026-11-16-ops-pilot-release-closeout.task.md",
+      "taskDocGap": null,
+      "liveTask": ".harness/tasks/2026-11-16-ops-pilot-release-closeout",
+      "liveEvidence": ".harness/evidence/2026-11-16-ops-pilot-release-closeout",
+      "archivedTask": ".harness/archive/2026-11/tasks/2026-11-16-ops-pilot-release-closeout",
+      "archivedEvidence": ".harness/archive/2026-11/evidence/2026-11-16-ops-pilot-release-closeout",
+      "originalDocSha256": "9b20e486b6474428fbadcf95e333228aa6ce3f3d3e657659c24997f5c7bf4f29"
+    },
+    {
+      "id": "2026-11-16-ops-service-catalog-usability",
+      "title": "服务目录可用性验收",
+      "status": "completed",
+      "reason": "服务目录可用性验收候选证据（62 文件）随 #195 落地；真实角色/UI 渲染与维护者终验保留为 residual。",
+      "residuals": [
+        {
+          "finding": "真实角色可用性/UI 渲染验收与维护者终验（原范围判据）",
+          "owner": "pantheon-ops maintainer",
+          "successor": "2026-11-19-ten-package-acceptance（归档索引保留）",
+          "state": "open"
+        }
+      ],
+      "taskDoc": "docs/harness/tasks/2026-11-16-ops-service-catalog-usability.task.md",
+      "taskDocGap": null,
+      "liveTask": ".harness/tasks/2026-11-16-ops-service-catalog-usability",
+      "liveEvidence": ".harness/evidence/2026-11-16-ops-service-catalog-usability",
+      "archivedTask": ".harness/archive/2026-11/tasks/2026-11-16-ops-service-catalog-usability",
+      "archivedEvidence": ".harness/archive/2026-11/evidence/2026-11-16-ops-service-catalog-usability",
+      "originalDocSha256": "3f186f8d6a3febb7740f69bc0d1b7224bc616ad5c609f97cf491dddbf0ca7d74"
+    },
+    {
+      "id": "2026-11-16-ops-service-deploy-integrity",
+      "title": "服务部署完整性验收",
+      "status": "completed",
+      "reason": "服务部署完整性候选证据（13 文件）随 #195 落地；真实 provider/受限角色验收保留为 residual。",
+      "residuals": [
+        {
+          "finding": "真实 provider/受限角色部署完整性验收与维护者终验（原范围判据）",
+          "owner": "pantheon-ops maintainer",
+          "successor": "2026-11-19-ten-package-acceptance（归档索引保留）",
+          "state": "open"
+        }
+      ],
+      "taskDoc": "docs/harness/tasks/2026-11-16-ops-service-deploy-integrity.task.md",
+      "taskDocGap": null,
+      "liveTask": ".harness/tasks/2026-11-16-ops-service-deploy-integrity",
+      "liveEvidence": ".harness/evidence/2026-11-16-ops-service-deploy-integrity",
+      "archivedTask": ".harness/archive/2026-11/tasks/2026-11-16-ops-service-deploy-integrity",
+      "archivedEvidence": ".harness/archive/2026-11/evidence/2026-11-16-ops-service-deploy-integrity",
+      "originalDocSha256": "2a3c749c8b5c6efd78a53d51952ee6b3c046e26e7180595cb19173031648a6db"
+    },
+    {
+      "id": "2026-11-19-ten-package-acceptance",
+      "title": "Ten-package 验收组织（C01–C06 / E01–E04）",
+      "status": "completed",
+      "reason": "十包验收组织主体：实施与候选验收证据已记录（每个候选包任务归档索引保留）；Final maintainer 视觉/功能验收 + 未批准发布/生产风险验收为显式 human gate，不代签。",
+      "residuals": [
+        {
+          "finding": "Final maintainer 视觉/功能验收（十包）",
+          "owner": "pantheon-ops maintainer",
+          "successor": "本任务归档索引（.harness/ARCHIVE.md 2026-11-20 段）",
+          "state": "open"
+        },
+        {
+          "finding": "未批准发布/生产风险验收",
+          "owner": "pantheon-ops maintainer",
+          "successor": "外部 gate",
+          "state": "open"
+        }
+      ],
+      "taskDoc": null,
+      "taskDocGap": "no task doc existed; closeout created minimal 2026-11-19-ten-package-acceptance.task.md",
+      "liveTask": ".harness/tasks/2026-11-19-ten-package-acceptance",
+      "liveEvidence": ".harness/evidence/2026-11-19-ten-package-acceptance",
+      "archivedTask": ".harness/archive/2026-11/tasks/2026-11-19-ten-package-acceptance",
+      "archivedEvidence": ".harness/archive/2026-11/evidence/2026-11-19-ten-package-acceptance",
+      "originalDocSha256": null
+    },
+    {
+      "id": "k8s-recovery",
+      "title": "K8s 模块孤儿恢复（incident cleanup）",
+      "status": "completed",
+      "reason": "2026-10 孤儿 k8s business 模块恢复完整（backend 注册 + go build/test 绿；frontend 挂载 + tsc/eslint/vite/check-menu-contract 绿），recover.py + commands.json + summary.md 深耕在仓内；go build -buildvcs=false ./... 全绿。companion closeout: cmdb-host-import-export。",
+      "residuals": [
+        {
+          "finding": "无真实 K8s 集群 live-cluster 验证（compile + tests only）",
+          "owner": "pantheon-ops maintainer",
+          "successor": "2026-11-16-ops-pilot-delivery（归档索引保留）",
+          "state": "open"
+        }
+      ],
+      "taskDoc": null,
+      "taskDocGap": "no task doc existed; closeout created minimal k8s-recovery.task.md",
+      "liveTask": ".harness/tasks/k8s-recovery",
+      "liveEvidence": ".harness/evidence/k8s-recovery",
+      "archivedTask": ".harness/archive/2026-11/tasks/k8s-recovery",
+      "archivedEvidence": ".harness/archive/2026-11/evidence/k8s-recovery",
+      "originalDocSha256": null
+    },
+    {
+      "id": "2026-08-05-foundation-upgrade-base-v0-10-1",
+      "title": "Foundation upgrade consume base v0.10.1",
+      "status": "superseded",
+      "reason": "consume v0.10.1 计划卡无 manifest status 且无独立证据；已被 v0.10.2→…→v0.18.9 正式消费链替代，当前锁 v0.18.9。过期入档。",
+      "residuals": [],
+      "taskDoc": "docs/harness/tasks/2026-08-05-foundation-upgrade-base-v0-10-1.task.md",
+      "taskDocGap": null,
+      "liveTask": ".harness/tasks/2026-08-05-foundation-upgrade-base-v0-10-1",
+      "liveEvidence": ".harness/evidence/2026-08-05-foundation-upgrade-base-v0-10-1",
+      "archivedTask": ".harness/archive/2026-11/tasks/2026-08-05-foundation-upgrade-base-v0-10-1",
+      "archivedEvidence": ".harness/archive/2026-11/evidence/2026-08-05-foundation-upgrade-base-v0-10-1",
+      "originalDocSha256": "3417f4f5b9841546fbe7edab422ce42e45cbe28a8e34933e879fa569593a4799"
+    },
+    {
+      "id": "2026-08-05-foundation-upgrade-base-v0-10-2",
+      "title": "Foundation upgrade consume base v0.10.2",
+      "status": "superseded",
+      "reason": "consume v0.10.2 计划卡无独立证据；已被后继 v0.10.3→…→v0.18.9 消费链替代。过期入档。",
+      "residuals": [],
+      "taskDoc": "docs/harness/tasks/2026-08-05-foundation-upgrade-base-v0-10-2.task.md",
+      "taskDocGap": null,
+      "liveTask": ".harness/tasks/2026-08-05-foundation-upgrade-base-v0-10-2",
+      "liveEvidence": ".harness/evidence/2026-08-05-foundation-upgrade-base-v0-10-2",
+      "archivedTask": ".harness/archive/2026-11/tasks/2026-08-05-foundation-upgrade-base-v0-10-2",
+      "archivedEvidence": ".harness/archive/2026-11/evidence/2026-08-05-foundation-upgrade-base-v0-10-2",
+      "originalDocSha256": "f0c136f8e6487edb916176f943c6fb95db74582a9ea2168b50e5ff8cabf67172"
+    },
+    {
+      "id": "2026-08-31-ops-operational-workbench-design",
+      "title": "Operational workbench 设计（B1–B4 依赖）",
+      "status": "superseded",
+      "reason": "operational workbench 设计停滞在 Base B1–B4 contract（design-only 未发行），未获实施；实际业务交付由 2026-11-16 pilot delivery 承担。设计卡过期入档。",
+      "residuals": [
+        {
+          "finding": "统一 BizScope 上下文/目标选择器（O1）与 K8s/ArgoCD 版本树 diff 预览（O3）",
+          "owner": "pantheon-ops maintainer",
+          "successor": "2026-11-16-ops-pilot-delivery（归档索引保留，可能作为未来 backlog）",
+          "state": "open"
+        }
+      ],
+      "taskDoc": "docs/harness/tasks/2026-08-31-ops-operational-workbench-design.task.md",
+      "taskDocGap": null,
+      "liveTask": ".harness/tasks/2026-08-31-ops-operational-workbench-design",
+      "liveEvidence": ".harness/evidence/2026-08-31-ops-operational-workbench-design",
+      "archivedTask": ".harness/archive/2026-11/tasks/2026-08-31-ops-operational-workbench-design",
+      "archivedEvidence": ".harness/archive/2026-11/evidence/2026-08-31-ops-operational-workbench-design",
+      "originalDocSha256": "589dd490f3319789ede9da780cd02d1ec7cf7349f9b9b48b6e19445525d05d38"
+    },
+    {
+      "id": "2026-09-28-ops-delivery-readiness-gap-closure",
+      "title": "Delivery readiness gap 关闭（D1–D5）",
+      "status": "superseded",
+      "reason": "D1 阻塞于端点/凭据；D2 SSRF 已由 ssrf 集成任务实现；D3 完成；D4 tenant 阻塞；D5 partial。缺口集被 pilot/验收链继承接，本计划卡过期入档。",
+      "residuals": [
+        {
+          "finding": "D1 六类外部集成真实验收需端点/凭证",
+          "owner": "pantheon-ops maintainer",
+          "successor": "2026-11-16-ops-pilot-delivery（归档索引保留）",
+          "state": "open"
+        },
+        {
+          "finding": "D4 tenant 真实运行验证（生产 DDL/维护冻结签署）",
+          "owner": "pantheon-ops maintainer",
+          "successor": "外部 gate",
+          "state": "open"
+        },
+        {
+          "finding": "D5 治理债务基线重跑（567/6/50/149）",
+          "owner": "pantheon-ops maintainer",
+          "successor": "pantheon-base Sonar/baseline 工作流",
+          "state": "open"
+        }
+      ],
+      "taskDoc": "docs/harness/tasks/2026-09-28-ops-delivery-readiness-gap-closure.task.md",
+      "taskDocGap": null,
+      "liveTask": ".harness/tasks/2026-09-28-ops-delivery-readiness-gap-closure",
+      "liveEvidence": ".harness/evidence/2026-09-28-ops-delivery-readiness-gap-closure",
+      "archivedTask": ".harness/archive/2026-11/tasks/2026-09-28-ops-delivery-readiness-gap-closure",
+      "archivedEvidence": ".harness/archive/2026-11/evidence/2026-09-28-ops-delivery-readiness-gap-closure",
+      "originalDocSha256": "f8b8b8fb93f8fbc1fadb4c61b7225fdba99de941e1a1ce2f006b15cb95798640"
+    }
+  ],
+  "hashesPreserved": true,
+  "phasesComplete": true
+}

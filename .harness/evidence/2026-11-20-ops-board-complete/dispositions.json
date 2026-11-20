@@ -1,0 +1,222 @@
+{
+  "taskId": "2026-11-20-ops-board-complete",
+  "date": "2026-11-20",
+  "repo": "pantheon-ops",
+  "goal": "Drive every planned-but-unfinished task to a terminal state: implementation-complete tasks are archived as completed with explicit human-gate residuals preserved; superseded/expired tasks are archived with superseded disposition.",
+  "scope": {
+    "in": [
+      "Archive all non-terminal tasks under .harness/tasks/ to .harness/archive/2026-11/ per close-history convention",
+      "Flip each task manifest.status + add historyCloseout block (disposition, basis, residuals preserved)",
+      "Create/update each task doc (status: Archived + Result section)",
+      "Write per-task evidence history-closeout.md recording disposition",
+      "Update .harness/ARCHIVE.md index and .harness/STATUS.md checkpoint"
+    ],
+    "out": [
+      "No fabricated acceptance: maintainer final visual/functional acceptance and real-provider/restricted-role verification remain explicit residuals (OPEN), not self-signed",
+      "No independent review.md fabricated: closeout records are dated history-closeout.md, independent codes review stays out of scope",
+      "base-first cross-repo work (base go version, prettier formatting contract) is not swallowed here"
+    ]
+  },
+  "dispositions": {
+    "2026-07-17-cmdb-ssh-config-externalize": {
+      "title": "CMDB SSH 采集配置外部化",
+      "status": "completed",
+      "reason": "CMDB host SSH 采集配置（collect_timeout/default_port）已外部化到 base ConfigReader，实施随 PR #195 落地 main；host_config.go 与测试在仓内，evidence summary+commands 已保全。原范围完成，无人工门禁。",
+      "residuals": []
+    },
+    "2026-09-29-ops-ssrf-protection-integration": {
+      "title": "Ops 业务面 SSRF 防护集成",
+      "status": "completed",
+      "reason": "base ssrf validator 经 foundation release 消费入 ops；business observability/argocd/k8s 四消费点集成 ssrf.Validator；2026-11-20 本地复验 pkg/security/ssrf go test passed + 业务消费包 go build exit 0。",
+      "residuals": [
+        { "finding": "D2 allowlist/private-network/redirect/DNS 负向验收与部署策略", "owner": "pantheon-ops maintainer", "successor": "2026-09-28-ops-delivery-readiness-gap-closure（归档索引保留，见 .harness/ARCHIVE.md）", "state": "open" }
+      ]
+    },
+    "2026-11-07-ops-planned-task-closeout": {
+      "title": "Ops planned 任务收口证据打包",
+      "status": "completed",
+      "reason": "planned/closeout 证据打包随 PR #199 (43d4b2e6) 落地：commands.json + summary.md 由 retained logs 物化，非重建、无编造。",
+      "residuals": []
+    },
+    "2026-11-14-ops-latest-foundation-and-plans": {
+      "title": "最新 foundation 与计划治理链物化",
+      "status": "completed",
+      "reason": "foundation 状态与计划治理链证据打包完成；v0.18.8 基线已被 2026-11-16 正式 v0.18.9 消费替代（07d53988），supersession 已记录。",
+      "residuals": []
+    },
+    "2026-11-16-ops-business-menu-m3c": {
+      "title": "业务菜单 M+3C 重构",
+      "status": "completed",
+      "reason": "bizscope+service M+3C 菜单 IA 随 PR #190 合并 (7db2a192)，review=Y，evidence 4 文件保全；QA/Security gates 绿。",
+      "residuals": []
+    },
+    "2026-11-16-ops-navigation-repair": {
+      "title": "导航修复与验收证据",
+      "status": "completed",
+      "reason": "导航修复实施 + after-final 验收证据（41 张截图 + acceptance.json）随 #190/#195 落地 main；QA/安全门禁绿。",
+      "residuals": [
+        { "finding": "ask-claude-navigation-finalfix-20261117.result.jsonl 与 live-ui-verification 截图是否纳入正式存储（untracked 残留）", "owner": "pantheon-ops maintainer", "successor": "本 closeout 归档索引（.harness/ARCHIVE.md）", "state": "open" }
+      ]
+    },
+    "2026-11-16-ops-historical-closeout": {
+      "title": "历史任务收尾（intake / dispatch / 对账）",
+      "status": "completed",
+      "reason": "60 条历史记录 + O1–O7 + D1–D5 + infra/orphan 全量对账完成（INVENTORY.json + intake-summary.md + o4-archive-verification.json）；真正缺实现批次 S1(SSRF/cmdb-ssh)/G1(auto-merge) 已由后继任务实施并关闭；verified-complete 记录已按原范围收口。",
+      "residuals": [
+        { "finding": "D4-G2/G3 生产 RPO/RTO 恢复演练与生产量级 sizing", "owner": "pantheon-ops maintainer / On-call", "successor": "pantheon-base FR028 upstream；生产维护窗口签署", "state": "open" },
+        { "finding": "O7 关系成熟度门禁（明确 deferred-forward，不进试点）", "owner": "pantheon-ops maintainer", "successor": "deferred-forward", "state": "open" },
+        { "finding": "P1 权限 PR3：真实受限角色 provider 验收", "owner": "pantheon-ops maintainer", "successor": "2026-11-19-ten-package-acceptance（归档索引保留）", "state": "open" }
+      ]
+    },
+    "2026-11-16-ops-historical-runtime": {
+      "title": "Ops 历史运行时验证（D1/D4 + 旧 CMDB/K8s/menu 条件）",
+      "status": "completed",
+      "reason": "本地 D1 支柱（MySQL 8.0.36 / Redis requirepass / app:8080）运行时验证 + ENVIRONMENT_MATRIX 保全；外部 provider 门禁保留（见 residuals），与十包 acceptance 同一口径。",
+      "residuals": [
+        { "finding": "外部 provider/tenant 真实运行时验证与受限角色覆盖", "owner": "pantheon-ops maintainer", "successor": "2026-11-19-ten-package-acceptance（归档索引保留）", "state": "open" }
+      ]
+    },
+    "2026-11-16-ops-readiness-plan-closeout": {
+      "title": "业务审查拆分/计划更新/完成任务归档",
+      "status": "completed",
+      "reason": "业务审查拆分/计划更新/完成任务归档：已有 status=completed + 32 证据文件；本 closeout 将其入档以统一 '已完成后入档' 目录约定。",
+      "residuals": []
+    },
+    "2026-11-16-ops-service-deploy-user-flow": {
+      "title": "服务部署用户流验收组织（C02 E01–E04）",
+      "status": "completed",
+      "reason": "C02 E01–E04 用户流部署验收组织：实施与候选验收证据随 PR #195 落地；真实受限角色/provider 与维护者终验保留为显式 residual。",
+      "residuals": [
+        { "finding": "真实受限角色/真实 provider 用户流验收与维护者终验（E01–E04 原范围判据）", "owner": "pantheon-ops maintainer", "successor": "2026-11-19-ten-package-acceptance（归档索引保留）", "state": "open" }
+      ]
+    },
+    "2026-11-16-ops-pilot-delivery": {
+      "title": "10 包 Pilot 交付（实施 + 验收组织）",
+      "status": "completed",
+      "reason": "10 包 pilot 实施 + 验收证据随 PR #195 (2578eac90) 落地 main；候选验收证据已记录。原范围验收判据保留为显式 residual，不代签维护者验收。计划书随本 closeout 入档（.harness/archive/2026-11/tasks/2026-11-16-ops-pilot-delivery/plan.md）。",
+      "residuals": [
+        { "finding": "真实 provider/受限角色 SSH/K8s 与维护者最终视觉/功能验收（C01–C06/E01–E04 原范围判据）", "owner": "pantheon-ops maintainer", "successor": "2026-11-19-ten-package-acceptance（归档索引保留，见 .harness/ARCHIVE.md）", "state": "open" },
+        { "finding": "未批准发布/生产风险验收为外部 gate", "owner": "pantheon-ops maintainer", "successor": "2026-11-19-ten-package-acceptance（归档索引保留）", "state": "open" }
+      ]
+    },
+    "2026-11-16-ops-argocd-ownership-convergence": {
+      "title": "ArgoCD ownership/legacy 收敛验收",
+      "status": "completed",
+      "reason": "ArgoCD ownership/legacy 收敛实施 + candidate 证据随 #195 落地；真实 provider/受限角色验收保留为 residual。",
+      "residuals": [
+        { "finding": "真实 ArgoCD provider/受限角色验收与维护者终验（C05 判据）", "owner": "pantheon-ops maintainer", "successor": "2026-11-19-ten-package-acceptance（归档索引保留）", "state": "open" }
+      ]
+    },
+    "2026-11-16-ops-business-runtime-acceptance": {
+      "title": "业务运行时验收证据",
+      "status": "completed",
+      "reason": "业务运行时验收证据随 #195 落地；真实 provider/受限角色与维护者终验保留为 residual。",
+      "residuals": [
+        { "finding": "真实运行时/受限角色验收与维护者终验（原范围判据）", "owner": "pantheon-ops maintainer", "successor": "2026-11-19-ten-package-acceptance（归档索引保留）", "state": "open" }
+      ]
+    },
+    "2026-11-16-ops-extensions-live-acceptance": {
+      "title": "扩展 live 验收证据",
+      "status": "completed",
+      "reason": "扩展 live 验收证据随 #195 落地；真实 provider 与维护者终验保留为 residual。",
+      "residuals": [
+        { "finding": "真实 provider live 验收与维护者终验（原范围判据）", "owner": "pantheon-ops maintainer", "successor": "2026-11-19-ten-package-acceptance（归档索引保留）", "state": "open" }
+      ]
+    },
+    "2026-11-16-ops-filedist-product-closure": {
+      "title": "FileDist 产品化收口验收",
+      "status": "completed",
+      "reason": "FileDist 产品化收口 + 71 证据文件随 #195 落地；真实 SSH/结构和外部 provider 验收保留为 residual。",
+      "residuals": [
+        { "finding": "真实 SSH 结构/外部 provider 验收与维护者终验（原范围判据）", "owner": "pantheon-ops maintainer", "successor": "2026-11-19-ten-package-acceptance（归档索引保留）", "state": "open" }
+      ]
+    },
+    "2026-11-16-ops-helm-capability-truth": {
+      "title": "Helm 能力口径验收",
+      "status": "completed",
+      "reason": "Helm 能力口径与真实 Chart 安装边界候选证据随 #195 落地；真实 install/upgrade/rollback 验收保留为 residual。",
+      "residuals": [
+        { "finding": "真实 install/upgrade/rollback 验收与维护者终验（原范围判据）", "owner": "pantheon-ops maintainer", "successor": "2026-11-19-ten-package-acceptance（归档索引保留）", "state": "open" }
+      ]
+    },
+    "2026-11-16-ops-k8s-service-mutations": {
+      "title": "K8s 服务变更验收",
+      "status": "completed",
+      "reason": "K8s 服务变更候选实施 + 28 证据文件随 #195 落地；真实集群/受限角色验收保留为 residual。",
+      "residuals": [
+        { "finding": "真实集群/受限角色服务变更验收与维护者终验（原范围判据）", "owner": "pantheon-ops maintainer", "successor": "2026-11-19-ten-package-acceptance（归档索引保留）", "state": "open" }
+      ]
+    },
+    "2026-11-16-ops-pilot-release-closeout": {
+      "title": "Pilot 发布收口验收",
+      "status": "completed",
+      "reason": "pilot release 收口候选证据随 #195 落地；正式发布/生产风险验收保留为 residual。",
+      "residuals": [
+        { "finding": "正式发布/生产风险验收为外部 gate", "owner": "pantheon-ops maintainer", "successor": "2026-11-19-ten-package-acceptance（归档索引保留）", "state": "open" }
+      ]
+    },
+    "2026-11-16-ops-service-catalog-usability": {
+      "title": "服务目录可用性验收",
+      "status": "completed",
+      "reason": "服务目录可用性验收候选证据（62 文件）随 #195 落地；真实角色/UI 渲染与维护者终验保留为 residual。",
+      "residuals": [
+        { "finding": "真实角色可用性/UI 渲染验收与维护者终验（原范围判据）", "owner": "pantheon-ops maintainer", "successor": "2026-11-19-ten-package-acceptance（归档索引保留）", "state": "open" }
+      ]
+    },
+    "2026-11-16-ops-service-deploy-integrity": {
+      "title": "服务部署完整性验收",
+      "status": "completed",
+      "reason": "服务部署完整性候选证据（13 文件）随 #195 落地；真实 provider/受限角色验收保留为 residual。",
+      "residuals": [
+        { "finding": "真实 provider/受限角色部署完整性验收与维护者终验（原范围判据）", "owner": "pantheon-ops maintainer", "successor": "2026-11-19-ten-package-acceptance（归档索引保留）", "state": "open" }
+      ]
+    },
+    "2026-11-19-ten-package-acceptance": {
+      "title": "Ten-package 验收组织（C01–C06 / E01–E04）",
+      "status": "completed",
+      "reason": "十包验收组织主体：实施与候选验收证据已记录（每个候选包任务归档索引保留）；Final maintainer 视觉/功能验收 + 未批准发布/生产风险验收为显式 human gate，不代签。",
+      "residuals": [
+        { "finding": "Final maintainer 视觉/功能验收（十包）", "owner": "pantheon-ops maintainer", "successor": "本任务归档索引（.harness/ARCHIVE.md 2026-11-20 段）", "state": "open" },
+        { "finding": "未批准发布/生产风险验收", "owner": "pantheon-ops maintainer", "successor": "外部 gate", "state": "open" }
+      ]
+    },
+    "k8s-recovery": {
+      "title": "K8s 模块孤儿恢复（incident cleanup）",
+      "status": "completed",
+      "reason": "2026-10 孤儿 k8s business 模块恢复完整（backend 注册 + go build/test 绿；frontend 挂载 + tsc/eslint/vite/check-menu-contract 绿），recover.py + commands.json + summary.md 深耕在仓内；go build -buildvcs=false ./... 全绿。companion closeout: cmdb-host-import-export。",
+      "residuals": [
+        { "finding": "无真实 K8s 集群 live-cluster 验证（compile + tests only）", "owner": "pantheon-ops maintainer", "successor": "2026-11-16-ops-pilot-delivery（归档索引保留）", "state": "open" }
+      ]
+    },
+    "2026-08-05-foundation-upgrade-base-v0-10-1": {
+      "title": "Foundation upgrade consume base v0.10.1",
+      "status": "superseded",
+      "reason": "consume v0.10.1 计划卡无 manifest status 且无独立证据；已被 v0.10.2→…→v0.18.9 正式消费链替代，当前锁 v0.18.9。过期入档。",
+      "residuals": []
+    },
+    "2026-08-05-foundation-upgrade-base-v0-10-2": {
+      "title": "Foundation upgrade consume base v0.10.2",
+      "status": "superseded",
+      "reason": "consume v0.10.2 计划卡无独立证据；已被后继 v0.10.3→…→v0.18.9 消费链替代。过期入档。",
+      "residuals": []
+    },
+    "2026-08-31-ops-operational-workbench-design": {
+      "title": "Operational workbench 设计（B1–B4 依赖）",
+      "status": "superseded",
+      "reason": "operational workbench 设计停滞在 Base B1–B4 contract（design-only 未发行），未获实施；实际业务交付由 2026-11-16 pilot delivery 承担。设计卡过期入档。",
+      "residuals": [
+        { "finding": "统一 BizScope 上下文/目标选择器（O1）与 K8s/ArgoCD 版本树 diff 预览（O3）", "owner": "pantheon-ops maintainer", "successor": "2026-11-16-ops-pilot-delivery（归档索引保留，可能作为未来 backlog）", "state": "open" }
+      ]
+    },
+    "2026-09-28-ops-delivery-readiness-gap-closure": {
+      "title": "Delivery readiness gap 关闭（D1–D5）",
+      "status": "superseded",
+      "reason": "D1 阻塞于端点/凭据；D2 SSRF 已由 ssrf 集成任务实现；D3 完成；D4 tenant 阻塞；D5 partial。缺口集被 pilot/验收链继承接，本计划卡过期入档。",
+      "residuals": [
+        { "finding": "D1 六类外部集成真实验收需端点/凭证", "owner": "pantheon-ops maintainer", "successor": "2026-11-16-ops-pilot-delivery（归档索引保留）", "state": "open" },
+        { "finding": "D4 tenant 真实运行验证（生产 DDL/维护冻结签署）", "owner": "pantheon-ops maintainer", "successor": "外部 gate", "state": "open" },
+        { "finding": "D5 治理债务基线重跑（567/6/50/149）", "owner": "pantheon-ops maintainer", "successor": "pantheon-base Sonar/baseline 工作流", "state": "open" }
+      ]
+    }
+  }
+}

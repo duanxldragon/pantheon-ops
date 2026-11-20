@@ -1,0 +1,76 @@
+{
+  "taskId": "2026-11-16-ops-historical-runtime",
+  "title": "Ops historical runtime verification (D1/D4 + old CMDB/K8s/menu conditions)",
+  "goal": "Produce honest, real runtime evidence for the D1 and D4 acceptance conditions of the historical-closeout batch, and reconcile old gray evidence — using only task-owned verification, without altering business source or legacy task state.",
+  "primaryLayer": "business/* (verification only)",
+  "status": "completed",
+  "priority": "P1",
+  "deliveryTier": "L2",
+  "parentTask": "2026-11-16-ops-historical-closeout",
+  "activation": "core",
+  "owner": "runtime-verification Claude (D1/D4)",
+  "writeOwnership": [
+    ".harness/tasks/2026-11-16-ops-historical-runtime/**",
+    ".harness/evidence/2026-11-16-ops-historical-runtime/**"
+  ],
+  "scope": {
+    "in": [
+      "Environment availability matrix (MySQL/Redis/SSH/Prom/VM/Loki/Tempo/K8s/ArgoCD/Velero/S3).",
+      "Real health/read/write/failure/timeout/permission/audit/DataScope verification on genuinely isolated dev/test envs where reachable; record cleanup.",
+      "D4/G2 and D4/G3 reconciliation vs runbook + old gray evidence; keep external gate open; never impersonate a production restore or a scale/drill sign-off.",
+      "Reuse check of old menu-m3c, CMDB import/export, k8s-recovery runtime evidence for the same candidate acceptance.",
+      "Actionable gap list with concrete missing endpoint/credential/approval + owner."
+    ],
+    "out": [
+      "Any business/source change (Claude does not implement; Codex owns implementation).",
+      "Changing any legacy task status or archiving records (intake owns that).",
+      "Modifying production gate sign-offs, RPO/RTO, maintenance freeze, or base lock.",
+      "Reading/echoing secrets; deleting others' services/data; merges/releases."
+    ]
+  },
+  "humanGates": [
+    "D4/G2 production backup-restore RPO/RTO drill = DBA + maintainer sign-off only.",
+    "D4/G3 production volume + migration window = DBA + maintainer.",
+    "D1 observability/k8s/argo/velero/s3 live acceptance against real external endpoints requires those endpoints/credentials (owner-listed in commands.json)."
+  ],
+  "verificationPlan": {
+    "executedThisSession": [
+      "node .harness/tasks/2026-11-16-ops-historical-runtime/scripts/probe-reachability.mjs",
+      "node (app health GET /api/v1/health)",
+      "node (MySQL banner + Redis PING, credential-free)",
+      "node scripts/business-overlay/check-business-overlay.mjs"
+    ],
+    "forPermissionedRunner": "see commands.json closeGaps[]"
+  },
+  "runtimeSensitive": true,
+  "linkage": {
+    "taskManifest": ".harness/tasks/2026-11-16-ops-historical-runtime/task-manifest.json",
+    "planRefs": [
+      ".harness/tasks/2026-11-16-ops-historical-runtime/PLAN.md",
+      ".harness/tasks/2026-11-16-ops-historical-closeout/DISPATCH.md"
+    ],
+    "evidenceDir": ".harness/evidence/2026-11-16-ops-historical-runtime/",
+    "matrixFile": ".harness/evidence/2026-11-16-ops-historical-runtime/ENVIRONMENT_MATRIX.md",
+    "summaryFile": ".harness/evidence/2026-11-16-ops-historical-runtime/summary.md",
+    "commandsFile": ".harness/tasks/2026-11-16-ops-historical-runtime/commands.json",
+    "rawEvidenceDir": ".harness/evidence/2026-11-16-ops-historical-runtime/raw/"
+  },
+  "historyCloseout": {
+    "date": "2026-11-20",
+    "originalStatus": "in-progress",
+    "disposition": "completed",
+    "basis": "本地 D1 支柱（MySQL 8.0.36 / Redis requirepass / app:8080）运行时验证 + ENVIRONMENT_MATRIX 保全；外部 provider 门禁保留（见 residuals），与十包 acceptance 同一口径。",
+    "residuals": [
+      {
+        "finding": "外部 provider/tenant 真实运行时验证与受限角色覆盖",
+        "owner": "pantheon-ops maintainer",
+        "successor": "2026-11-19-ten-package-acceptance（归档索引保留）",
+        "state": "open"
+      }
+    ],
+    "evidence": ".harness/evidence/2026-11-20-ops-board-complete/dispositions.json",
+    "decisionSha256": "ef1791b0015b32d46265cacc8effb21bd35dbf05fa10c92659a97c3f0510fbcf",
+    "taskDoc": null,
+    "taskDocGap": "no task doc existed; closeout created minimal 2026-11-16-ops-historical-runtime.task.md"
+  }
+}

@@ -1,0 +1,131 @@
+{
+  "taskId": "2026-11-20-ops-board-complete",
+  "title": "完成全部规划任务：归档收口 2026-11-20",
+  "goal": "Drive every planned-but-unfinished task to a terminal state: implementation-complete tasks are archived as completed with explicit human-gate residuals preserved; superseded/expired tasks are archived with superseded disposition.",
+  "primaryLayer": "harness",
+  "deliveryTier": "L2",
+  "taskDoc": "docs/harness/tasks/2026-11-20-ops-board-complete.task.md",
+  "status": "completed",
+  "dependsOn": [
+    "2026-11-16-ops-pilot-delivery",
+    "2026-11-17-ops-history-audit",
+    "2026-09-28-ops-delivery-readiness-gap-closure"
+  ],
+  "scope": {
+    "in": [
+      "Archive non-terminal tasks under .harness/tasks/ to .harness/archive/2026-11/ per close-history convention",
+      "Flip task manifest.status + add historyCloseout block (disposition, basis, residuals preserved)",
+      "Create/update task docs to status: Archived + Result section",
+      "Write per-task history-closeout.md recording disposition",
+      "Update .harness/ARCHIVE.md index and .harness/STATUS.md checkpoint",
+      "Governed PR with Evidence → commands.json"
+    ],
+    "out": [
+      "No fabricated acceptance: maintainer-final visual/functional acceptance and real-provider/restricted-role verification remain explicit residuals (OPEN)",
+      "No independent review.md fabricated; only dated history-closeout.md",
+      "base-first cross-repo work (base go version, prettier formatting contract) not swallowed here"
+    ]
+  },
+  "dependencyLayers": [
+    "business-consumer"
+  ],
+  "contractAnchors": [
+    "AGENTS.md",
+    "docs/PROJECT_INHERITANCE.md",
+    "business-overlay.json",
+    "foundation-release.lock.json"
+  ],
+  "harnessProfile": {
+    "template": "custom",
+    "overlay": "pantheon-ops",
+    "qualityProfile": "historical-closeout",
+    "ownerLayer": "harness",
+    "coverageDimensions": [
+      "behaviour",
+      "method-health"
+    ]
+  },
+  "expectedFiles": {
+    "create": [
+      ".harness/evidence/2026-11-20-ops-board-complete/dispositions.json",
+      ".harness/evidence/2026-11-20-ops-board-complete/archive-dry-run.json",
+      ".harness/evidence/2026-11-20-ops-board-complete/archive-journal.jsonl",
+      ".harness/evidence/2026-11-20-ops-board-complete/archive-result.json",
+      ".harness/evidence/2026-11-20-ops-board-complete/commands.json",
+      ".harness/evidence/2026-11-20-ops-board-complete/summary.md",
+      ".harness/evidence/2026-11-20-ops-board-complete/review.md",
+      ".harness/tasks/2026-11-20-ops-board-complete/close-board.mjs",
+      ".harness/tasks/2026-11-20-ops-board-complete/close-auto-merge.mjs",
+      "docs/harness/tasks/2026-11-20-ops-board-complete.task.md"
+    ],
+    "modify": [
+      ".harness/ARCHIVE.md",
+      ".harness/STATUS.md",
+      "docs/README.md"
+    ],
+    "doNotTouch": [
+      "foundation-release.lock.json",
+      "backend/",
+      "frontend/src/",
+      "published Base release assets",
+      "historical evidence bytes"
+    ]
+  },
+  "verificationPlan": {
+    "commands": [
+      "node .harness/tasks/2026-11-20-ops-board-complete/close-board.mjs (dry-run)",
+      "node .harness/tasks/2026-11-20-ops-board-complete/close-board.mjs --apply",
+      "node .harness/tasks/2026-11-20-ops-board-complete/close-auto-merge.mjs --apply",
+      "npm run check:docs-frontmatter",
+      "npm run check:encoding",
+      "npm run check:structure",
+      "npm run check:task-packet-template",
+      "npm run test:scripts",
+      "npm run check:pr-governance (PR body)"
+    ],
+    "runtimeEvidence": [
+      "go test ./pkg/security/ssrf/... (backend)",
+      "go build ./modules/business/... (backend)"
+    ]
+  },
+  "linkage": {
+    "evidenceDir": ".harness/evidence/2026-11-20-ops-board-complete/",
+    "reviewFile": ".harness/evidence/2026-11-20-ops-board-complete/review.md",
+    "changeRef": "chore/ops-board-complete-2026-11-20",
+    "planRefs": [
+      ".harness/tasks/2026-11-20-ops-board-complete/plan.md"
+    ]
+  },
+  "implementationNotes": [
+    "Hard Stop：仅驱动 .harness/ 与 docs/harness/tasks/（+ docs/README.md 链接修复）；不实现 backend/frontend 业务代码。",
+    "node子进程运行脚本隐藏窗口（close-board/close-auto-merge 为纯 Node 无第三方 fork）。",
+    "archive-aware 工具链 resolveArchiveAwarePath 保证 canonical 引用不悬空。"
+  ],
+  "evidenceRequired": [
+    "dispositions.json（27 卡终态 + residuals）",
+    "archive-journal.jsonl + archive-result.json（全量 journal + verify）",
+    "commands.json + summary.md + review.md",
+    "ssrf 真实 go test/go build 复验"
+  ],
+  "humanGates": [
+    "最终维护者视觉/功能验收（十包 C01–C06/E01–E04）",
+    "真实 provider/受限角色 SSH/K8s/Argo/Helm 验证",
+    "未批准发布/生产风险验收；D4-G2/G3；O7 deferred-forward",
+    "history-audit 最终独立 review"
+  ],
+  "completionChecklist": [
+    "27 卡入档且原 evidence hash 保全",
+    "resolveArchiveAwarePath 断言通过",
+    "docs 门禁（frontmatter/encoding/structure/template）本地通过",
+    "test:scripts 通过",
+    "ARCHIVE.md/STATUS.md/README 链接修复",
+    "PR governance 绿"
+  ],
+  "successor": {
+    "accepted-on": "human-gate",
+    "involved": [
+      "2026-11-16-ops-pilot-delivery"
+    ]
+  },
+  "updated_at": "2026-11-20"
+}

@@ -2,10 +2,10 @@
 title: 试点交付包、安装回滚与状态收口
 doc_type: Remediation
 layer: business
-status: Active
+status: Archived
 linked_contracts:
   - docs/PROJECT_INHERITANCE.md
-updated_at: 2026-11-16
+updated_at: 2026-11-20
 ---
 
 # Task Packet: 2026-11-16-ops-pilot-release-closeout
@@ -185,3 +185,19 @@ Original acceptance and dependencies remain unchanged. Whole-package acceptance 
 Status: in-progress. 本地交付计划/checklist保留4条原标准和新增明确交付标准；8项实际交付操作not-run。正式暂存重建、source-bound编译与预览重启已记录，不等于独立安装/升级/回滚。
 
 交付准备独立评审及独立执行者安装/升级/回滚和最终维护者验收PENDING。 Original acceptance and human gates remain unmet. See [summary](../../../.harness/evidence/2026-11-16-ops-pilot-release-closeout/summary.md) and [structured progress](../../../.harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-progress-final-20261118.json).
+
+## Result — History Closeout 2026-11-20
+
+Manifest disposition: completed
+
+pilot release 收口候选证据随 #195 落地；正式发布/生产风险验收保留为 residual。
+
+Residual finding/owner/successor/proof: .harness/evidence/2026-11-20-ops-board-complete/dispositions.json. Canonical references remain archive-aware. Historical body/evidence retained. Candidate/production/maintainer gates remain separate.
+
+## Result — History Closeout 2026-11-20
+
+Manifest disposition: completed
+
+pilot release 收口候选证据随 #195 落地；正式发布/生产风险验收保留为 residual。
+
+Residual finding/owner/successor/proof: .harness/evidence/2026-11-20-ops-board-complete/dispositions.json. Canonical references remain archive-aware. Historical body/evidence retained. Candidate/production/maintainer gates remain separate.

@@ -1,0 +1,40 @@
+{
+  "id": "2026-11-17-ops-auto-merge-reconcile",
+  "title": "pr-auto-merge 令牌矛盾裁定（Approach A 落地）",
+  "status": "completed",
+  "historyCloseout": {
+    "date": "2026-11-20",
+    "originalStatus": "completed",
+    "disposition": "completed",
+    "basis": "auto-merge 令牌矛盾（github.token vs RELEASE_GATE_TOKEN）裁定 Approach A 落地：pr-automation.yml 改用 RELEASE_GATE_TOKEN（含 fail-closed 分支与 ci.yml 触发器），decision.md + commands.json + review=Y 保全；PE review 通过。",
+    "residuals": [
+      {
+        "finding": "release-gate 令牌为外部 secret，授权范围由维护者掌控",
+        "owner": "pantheon-ops maintainer",
+        "successor": ".github/workflows/pr-automation.yml",
+        "state": "open"
+      }
+    ],
+    "evidence": ".harness/evidence/2026-11-20-ops-board-complete/dispositions.json",
+    "decisionSha256": "ef1791b0015b32d46265cacc8effb21bd35dbf05fa10c92659a97c3f0510fbcf",
+    "taskDoc": null,
+    "taskDocGap": "no task doc existed; created by auto-merge closeout"
+  },
+  "taskId": "2026-11-17-ops-auto-merge-reconcile",
+  "goal": "pr-auto-merge 令牌矛盾裁定（Approach A）落地",
+  "primaryLayer": "business",
+  "scope": {
+    "in": [
+      "见 historyCloseout.basis 与 dispositions.json"
+    ],
+    "out": [
+      "无新增：board-complete 归档收口"
+    ]
+  },
+  "linkage": {
+    "evidenceDir": ".harness/evidence/2026-11-17-ops-auto-merge-reconcile/",
+    "reviewFile": ".harness/evidence/2026-11-17-ops-auto-merge-reconcile/history-closeout.md",
+    "changeRef": "2026-11-20-ops-board-complete",
+    "planRefs": []
+  }
+}

@@ -2,10 +2,10 @@
 title: 服务目录维护、分页与受限角色
 doc_type: Remediation
 layer: business
-status: Active
+status: Archived
 linked_contracts:
   - docs/PROJECT_INHERITANCE.md
-updated_at: 2026-11-16
+updated_at: 2026-11-20
 ---
 
 # Task Packet: 2026-11-16-ops-service-catalog-usability
@@ -196,3 +196,19 @@ Status: in-progress. 常规Vitest配置已发现新useCatalogOptions测试并通
 Status: in-progress. 当前C03与E01两个canonical suite集中Vitest共35PASS/8.68s，frontend lint/type/build均通过；精确overlay路径、正式重建与1242源等价通过。当前桌面/手机render2/2通过、root实际查看editor/stale4图，business data mock；额外live admin lifecycle单行中文期望修后1PASS/0skip/5.7s、finally cleanup全部通过，executor查看主机#533截图；原错误fixture失败和两个未改transitive strict TypeScript诊断保留。
 
 原activation/owner窄评审保留；整包真实provider/角色和维护者验收未完成。 Original acceptance and human gates remain unmet. See [summary](../../../.harness/evidence/2026-11-16-ops-service-catalog-usability/summary.md) and [structured progress](../../../.harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-progress-final-20261118.json).
+
+## Result — History Closeout 2026-11-20
+
+Manifest disposition: completed
+
+服务目录可用性验收候选证据（62 文件）随 #195 落地；真实角色/UI 渲染与维护者终验保留为 residual。
+
+Residual finding/owner/successor/proof: .harness/evidence/2026-11-20-ops-board-complete/dispositions.json. Canonical references remain archive-aware. Historical body/evidence retained. Candidate/production/maintainer gates remain separate.
+
+## Result — History Closeout 2026-11-20
+
+Manifest disposition: completed
+
+服务目录可用性验收候选证据（62 文件）随 #195 落地；真实角色/UI 渲染与维护者终验保留为 residual。
+
+Residual finding/owner/successor/proof: .harness/evidence/2026-11-20-ops-board-complete/dispositions.json. Canonical references remain archive-aware. Historical body/evidence retained. Candidate/production/maintainer gates remain separate.

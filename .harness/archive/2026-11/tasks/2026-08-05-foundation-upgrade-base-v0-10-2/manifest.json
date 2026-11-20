@@ -1,0 +1,68 @@
+{
+  "taskId": "2026-08-05-foundation-upgrade-base-v0-10-2",
+  "title": "Consume pantheon-base-v0.10.2 in Pantheon Ops",
+  "goal": "Consume the immutable pantheon-base-v0.10.2 foundation release through the guarded Ops consumer while preserving business overlays and proving inherited contracts.",
+  "primaryLayer": "inheritance-sync",
+  "taskDoc": "docs/harness/tasks/2026-08-05-foundation-upgrade-base-v0-10-2.task.md",
+  "scope": {
+    "in": [
+      "formal GitHub release installation and identity verification",
+      "dry-run and rollback-protected shared-path apply",
+      "foundation lock and inheritance document update",
+      "exact tooling allowlist consumption",
+      "local and hosted verification",
+      "Ops PR and branch closeout"
+    ],
+    "out": [
+      "Base release mutation",
+      "manual Base worktree copies",
+      "new runtime UI behavior",
+      "new Ops-owned platform or system forks"
+    ]
+  },
+  "contractAnchors": [
+    "AGENTS.md",
+    "docs/PROJECT_INHERITANCE.md",
+    "../pantheon-base/DESIGN.md",
+    "../pantheon-base/AGENTS.md"
+  ],
+  "sourceRelease": {
+    "releaseVersion": "pantheon-base-v0.10.2",
+    "releaseLine": "release/0.10",
+    "baseCommit": "e38ce7395c46cecd71f644952e95268404c8a10c",
+    "archiveSha256": "b300c17f7e605e113ef4d2ceb8de1ac59bc29a2fad1cbcc4d9f1a6fdf04af09c"
+  },
+  "harnessProfile": {
+    "template": "pantheon-ops inheritance L2",
+    "qualityProfile": "foundation-release-consumer",
+    "ownerLayer": "inheritance-boundary",
+    "coverageDimensions": [
+      "release-identity",
+      "business-overlay-preservation",
+      "rollback-safety",
+      "inherited-contracts",
+      "hosted-verification"
+    ]
+  },
+  "runtimeSensitive": true,
+  "linkage": {
+    "evidenceDir": ".harness/evidence/2026-08-05-foundation-upgrade-base-v0-10-2/",
+    "reviewFile": ".harness/evidence/2026-08-05-foundation-upgrade-base-v0-10-2/review.md",
+    "summaryFile": ".harness/evidence/2026-08-05-foundation-upgrade-base-v0-10-2/summary.md",
+    "changeRef": "pending",
+    "planRefs": []
+  },
+  "humanGate": "Satisfied by the maintainer request to release Base, consume it in Ops, merge all Ops PRs, and close branches after green workflows.",
+  "status": "superseded",
+  "historyCloseout": {
+    "date": "2026-11-20",
+    "originalStatus": null,
+    "disposition": "superseded",
+    "basis": "consume v0.10.2 计划卡无独立证据；已被后继 v0.10.3→…→v0.18.9 消费链替代。过期入档。",
+    "residuals": [],
+    "evidence": ".harness/evidence/2026-11-20-ops-board-complete/dispositions.json",
+    "decisionSha256": "ef1791b0015b32d46265cacc8effb21bd35dbf05fa10c92659a97c3f0510fbcf",
+    "taskDoc": "docs/harness/tasks/2026-08-05-foundation-upgrade-base-v0-10-2.task.md",
+    "taskDocGap": null
+  }
+}

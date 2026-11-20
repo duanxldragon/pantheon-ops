@@ -1,0 +1,167 @@
+{
+  "taskId": "2026-11-16-ops-service-catalog-usability",
+  "title": "服务目录维护、分页与受限角色",
+  "goal": "服务目录维护、分页与受限角色",
+  "primaryLayer": "business/*",
+  "status": "completed",
+  "priority": "P1",
+  "deliveryTier": "L2",
+  "taskDoc": "docs/harness/tasks/2026-11-16-ops-service-catalog-usability.task.md",
+  "parentTask": "2026-11-16-ops-pilot-delivery",
+  "dependencies": [],
+  "activation": "core",
+  "owner": "business/service owner + UI",
+  "scope": {
+    "in": [
+      "复用已有 PUT 与共享表单补齐范围内应用/服务/实例编辑，服务端分页与目标选项按需查询。",
+      "服务目录读取与可选目标查询分离；缺 CMDB/K8s 操作权限不能使已授权目录整页失败。",
+      "按业务域过滤并结构化选择 K8s namespace/workload；权限失败和目标失效可解释。"
+    ],
+    "out": [
+      "platform/system/* 通用实现与规则副本；共享问题 Base-first",
+      "未授权生产操作、规则豁免与风险接受",
+      "自动 exporter/file_sd/商业 License 等后续产品扩张"
+    ]
+  },
+  "dependencyLayers": [
+    "business/*",
+    "inheritance-sync"
+  ],
+  "contractAnchors": [
+    "AGENTS.md",
+    "docs/PROJECT_INHERITANCE.md",
+    "docs/designs/BUSINESS_FUNCTIONAL_DESIGN.md",
+    "docs/designs/BUSINESS_QA_ACCEPTANCE_PLAN.md"
+  ],
+  "expectedFiles": {
+    "create": [
+      "docs/harness/tasks/2026-11-16-ops-service-catalog-usability.task.md",
+      ".harness/tasks/2026-11-16-ops-service-catalog-usability/manifest.json",
+      ".harness/evidence/2026-11-16-ops-service-catalog-usability/summary.md",
+      ".harness/evidence/2026-11-16-ops-service-catalog-usability/review.md",
+      ".harness/evidence/2026-11-16-ops-service-catalog-usability/commands.json",
+      "backend/modules/business/service/instance_update_test.go",
+      "backend/modules/business/service/permission_routes.go",
+      "backend/modules/business/service/catalog_review_test.go",
+      "backend/modules/business/k8s/capability_error_test.go"
+    ],
+    "modify": [
+      "frontend/src/modules/business/service/ServiceCatalog.tsx",
+      "frontend/src/modules/business/service/api.ts",
+      "frontend/tests/smoke/business/service/service-pages.spec.ts",
+      "backend/modules/business/service/dto.go",
+      "backend/modules/business/service/service.go",
+      "backend/modules/business/service/handler.go",
+      "backend/modules/business/service/seed.go",
+      "frontend/src/modules/business/v12locales/zh-CN.json",
+      "frontend/src/modules/business/v12locales/en-US.json",
+      "frontend/src/modules/business/v12locales/ja-JP.json",
+      "frontend/src/modules/business/v12locales/ko-KR.json",
+      "frontend/src/modules/business/v12locales/fr-FR.json",
+      "docs/designs/BUSINESS_ERROR_SEMANTICS_APPENDIX.md",
+      "backend/modules/business/service/module.go",
+      "backend/modules/business/k8s/capability.go"
+    ],
+    "doNotTouch": [
+      "../pantheon-base/**",
+      "foundation-release.lock.json",
+      "backend/modules/system/**",
+      "frontend/src/modules/system/**"
+    ]
+  },
+  "harnessProfile": {
+    "template": "admin-platform",
+    "overlay": "pantheon-ops",
+    "qualityProfile": "ui-runtime",
+    "portableFailureClass": "business-delivery-gap",
+    "ownerLayer": "business/*",
+    "coverageDimensions": [
+      "behaviour",
+      "architecture-fitness",
+      "runtime-quality"
+    ]
+  },
+  "implementationNotes": [
+    "Minimal Complexity Rung: reuse",
+    "开始实现前重新读取当前候选与结构；本审查行号绑定旧基线，不能覆盖并发升级。"
+  ],
+  "acceptanceCriteria": [
+    "101 条以上对象可分页查询、编辑，汇总使用服务端总数。",
+    "服务只读角色无需 CMDB/K8s 列表权限也可读目录；操作按钮按授权呈现，后端仍拒绝越权。",
+    "版本/目标编辑走 owner 校验及冲突语义；未默认要求新增实时健康探测。"
+  ],
+  "verificationPlan": {
+    "commands": [
+      "npm run lint",
+      "npm run type-check",
+      "npm run test:smoke:business:service",
+      "go test -race -count=1 ./modules/business/service/..."
+    ],
+    "runtimeEvidence": [
+      "当前候选、隔离环境、业务正反向及桌面/窄屏渲染；未跑必须记录 gap"
+    ],
+    "commandWorkingDirectories": {
+      "npm run lint": "frontend",
+      "npm run type-check": "frontend",
+      "npm run test:smoke:business:service": "frontend",
+      "go test -race -count=1 ./modules/business/service/...": "backend"
+    }
+  },
+  "runtimeSensitive": true,
+  "humanGates": [
+    "范围已由维护者确认：按业务设计评估试点；安全可逆步骤自主执行。",
+    "生产操作、门禁豁免、风险接受及最终视觉/功能验收由维护者决定；不得以等候时间作为批准。"
+  ],
+  "linkage": {
+    "taskManifest": ".harness/tasks/2026-11-16-ops-service-catalog-usability/manifest.json",
+    "taskDoc": "docs/harness/tasks/2026-11-16-ops-service-catalog-usability.task.md",
+    "evidenceDir": ".harness/evidence/2026-11-16-ops-service-catalog-usability/",
+    "reviewFile": ".harness/evidence/2026-11-16-ops-service-catalog-usability/review.md",
+    "summaryFile": ".harness/evidence/2026-11-16-ops-service-catalog-usability/summary.md",
+    "changeRef": "none",
+    "planRefs": [
+      ".harness/tasks/2026-11-16-ops-pilot-delivery/plan.md",
+      ".harness/tasks/2026-11-16-ops-service-catalog-usability/continuation-plan.md"
+    ]
+  },
+  "continuationCheckpoint": {
+    "at": "2026-11-19T00:11:15.272Z",
+    "packageCode": "C03",
+    "stage": "implementation",
+    "deliveryVerdict": "PARTIAL",
+    "accepted": false,
+    "evidenceRefs": [
+      ".harness/evidence/2026-11-16-ops-service-catalog-usability/target-lifetime-ui-handoff-20261118.json",
+      ".harness/evidence/2026-11-16-ops-service-catalog-usability/continuation-regular-unit-integration-20261118.json",
+      ".harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-full-race-20261118-01.log.receipt.json",
+      ".harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-20261118-e01-final-frontend-quality.json",
+      ".harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-20261118-e01-final-source-equivalence.json",
+      ".harness/evidence/2026-11-17-ops-history-audit/continuation-current-preview-ten-packages-20261118-e01-final-build.json",
+      ".harness/evidence/2026-11-17-ops-history-audit/continuation-current-preview-ten-packages-e01-final-started-20261118.json",
+      ".harness/evidence/2026-11-17-ops-history-audit/continuation-c03-ui-ten-packages-20261118-render.receipt.json",
+      ".harness/evidence/2026-11-17-ops-history-audit/continuation-c03-ui-ten-packages-20261118-live.receipt.json",
+      ".harness/evidence/2026-11-17-ops-history-audit/continuation-c03-ui-host-label-fixture-verification-20261118.json",
+      ".harness/evidence/2026-11-17-ops-history-audit/continuation-c03-ui-host-label-fixture-handoff-20261118.md"
+    ],
+    "progressReceipt": ".harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-progress-final-20261118.json",
+    "currentTechnicalIntegrationPassed": true
+  },
+  "historyCloseout": {
+    "date": "2026-11-20",
+    "originalStatus": "completed",
+    "disposition": "completed",
+    "basis": "服务目录可用性验收候选证据（62 文件）随 #195 落地；真实角色/UI 渲染与维护者终验保留为 residual。",
+    "residuals": [
+      {
+        "finding": "真实角色可用性/UI 渲染验收与维护者终验（原范围判据）",
+        "owner": "pantheon-ops maintainer",
+        "successor": "2026-11-19-ten-package-acceptance（归档索引保留）",
+        "state": "open"
+      }
+    ],
+    "evidence": ".harness/evidence/2026-11-20-ops-board-complete/dispositions.json",
+    "decisionSha256": "ef1791b0015b32d46265cacc8effb21bd35dbf05fa10c92659a97c3f0510fbcf",
+    "taskDoc": "docs/harness/tasks/2026-11-16-ops-service-catalog-usability.task.md",
+    "taskDocGap": null
+  }
+}

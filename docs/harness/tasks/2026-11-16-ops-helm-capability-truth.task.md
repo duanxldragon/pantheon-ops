@@ -2,10 +2,10 @@
 title: Helm 能力口径与真实 Chart 安装边界
 doc_type: Remediation
 layer: business
-status: Active
+status: Archived
 linked_contracts:
   - docs/PROJECT_INHERITANCE.md
-updated_at: 2026-11-16
+updated_at: 2026-11-20
 ---
 
 # Task Packet: 2026-11-16-ops-helm-capability-truth
@@ -181,3 +181,19 @@ Status: in-progress. 加强登记状态投影真实RED exit1/0.136s/745稳定后
 Status: in-progress. 更强登记状态投影真实RED exit1/0.136s后已修；primary=registered、storedStatus保留历史raw，Helm窄4groups1.461s与当前完整race通过，4hash窄CLEAR。登记产品渲染与完整菜单/说明验收仍未记录。
 
 原Claude timeout/old-partial失败保留；窄CLEAR不证明Chart执行或全部登记UI/说明与维护者验收。 Original acceptance and human gates remain unmet. See [summary](../../../.harness/evidence/2026-11-16-ops-helm-capability-truth/summary.md) and [structured progress](../../../.harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-progress-final-20261118.json).
+
+## Result — History Closeout 2026-11-20
+
+Manifest disposition: completed
+
+Helm 能力口径与真实 Chart 安装边界候选证据随 #195 落地；真实 install/upgrade/rollback 验收保留为 residual。
+
+Residual finding/owner/successor/proof: .harness/evidence/2026-11-20-ops-board-complete/dispositions.json. Canonical references remain archive-aware. Historical body/evidence retained. Candidate/production/maintainer gates remain separate.
+
+## Result — History Closeout 2026-11-20
+
+Manifest disposition: completed
+
+Helm 能力口径与真实 Chart 安装边界候选证据随 #195 落地；真实 install/upgrade/rollback 验收保留为 residual。
+
+Residual finding/owner/successor/proof: .harness/evidence/2026-11-20-ops-board-complete/dispositions.json. Canonical references remain archive-aware. Historical body/evidence retained. Candidate/production/maintainer gates remain separate.
