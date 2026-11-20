@@ -728,7 +728,9 @@ func (m *Manager) findApplication(id uint64, scope *common.DataScopeReq) (*Appli
 	if m.lockReads {
 		query = query.Clauses(clause.Locking{Strength: "UPDATE"})
 	}
-	if err := query.First(&row, id).Error; err != nil {
+	// gosec S3649: use an explicit ? placeholder instead of the First(dest, pk)
+	// shorthand so the parameterized form is evident to static analysis.
+	if err := query.Where("id = ?", id).First(&row).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, errors.New(errApplicationNotFound)
 		}
