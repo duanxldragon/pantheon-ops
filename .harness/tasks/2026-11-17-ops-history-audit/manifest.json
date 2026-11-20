@@ -3,7 +3,22 @@
   "title": "Ops 历史遗留清查与按时间收尾",
   "goal": "按时间对账全部历史和新规划，归档证据充分的完成或失效任务，完成仍有效的本地实现与验证，保留上游、外部、生产和最终维护者门禁。",
   "primaryLayer": "business/*",
-  "status": "in-progress",
+  "status": "completed",
+  "historyCloseout": {
+    "date": "2026-11-20",
+    "originalStatus": "in-progress",
+    "disposition": "completed",
+    "basis": "历史清查本体（84 条对账 + 22 pairs 归档 + 原字节恢复）随 close-history.mjs 运行、verify-archive-recovery 通过、archive-result phasesComplete=true 完成；C01–C06/E01–E04 当前开放范围实施随 PR #195 落地 main；反射到 2026-11-20-ops-board-complete 将全 Board 非终态卡统一收口。独立代码审查与维护者终验保留为显式 residual（见 2026-11-20-ops-board-complete/dispositions.json）。本卡为 archive 索引 nexus（evidence 1035 文件、ARCHIVE.md/STATUS.md 大量引用），故原地置 completed 而非搬迁。",
+    "residuals": [
+      { "finding": "最终独立 review 与维护者视觉/功能验收（历史 84 条 + 十包）", "owner": "pantheon-ops maintainer", "successor": "2026-11-19-ten-package-acceptance（归档索引保留，见 .harness/ARCHIVE.md）", "state": "open" },
+      { "finding": "上游/外部/生产门禁（D4-G2/G3、O7 deferred、真实 provider 验证）", "owner": "pantheon-ops maintainer", "successor": "2026-11-16-ops-historical-closeout（归档索引保留）", "state": "open" }
+    ],
+    "evidence": ".harness/evidence/2026-11-20-ops-board-complete/dispositions.json",
+    "decisionSha256": "ef1791b0015b32d46265cacc8effb21bd35dbf05fa10c92659a97c3f0510fbcf",
+    "taskDoc": "docs/harness/tasks/2026-11-17-ops-history-audit.task.md",
+    "taskDocGap": null,
+    "keptInPlace": "archive-index-nexus"
+  },
   "deliveryTier": "L2",
   "taskDoc": "docs/harness/tasks/2026-11-17-ops-history-audit.task.md",
   "dependsOn": [

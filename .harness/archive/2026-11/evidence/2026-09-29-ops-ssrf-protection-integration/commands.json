@@ -1,0 +1,24 @@
+{
+  "taskId": "2026-09-29-ops-ssrf-protection-integration",
+  "status": "completed",
+  "commands": [
+    {
+      "command": "go test ./pkg/security/ssrf/...",
+      "cwd": "backend",
+      "status": "passed",
+      "notes": "2026-11-20 board-closeout 复核：ok github.com/duanxldragon/pantheon-base/backend/pkg/security/ssrf (cached)。SSRF validator + transport/validator 测试全绿。"
+    },
+    {
+      "command": "go build ./modules/business/...",
+      "cwd": "backend",
+      "status": "passed",
+      "notes": "2026-11-20 board-closeout 复核：exit 0。全部 business 消费包（observability/argocd/k8s 等）编译通过，确认 ssrf.Validator 集成无编译级破坏。"
+    },
+    {
+      "command": "grep -rl ssrf backend/modules/business",
+      "cwd": ".",
+      "status": "passed",
+      "notes": "消费点证据：cicd/argocd/argocd_client.go(+test)、k8s/pkg/client_factory.go、observability/datasource_service.go(+tests)、notification_service.go(+test)、notification_smtp.go、query_workspace_handler_test.go。"
+    }
+  ]
+}

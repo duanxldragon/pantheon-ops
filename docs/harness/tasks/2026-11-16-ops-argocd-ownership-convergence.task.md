@@ -2,10 +2,10 @@
 title: ArgoCD 归属隔离与真实状态收敛
 doc_type: Remediation
 layer: business
-status: Active
+status: Archived
 linked_contracts:
   - docs/PROJECT_INHERITANCE.md
-updated_at: 2026-11-16
+updated_at: 2026-11-20
 ---
 
 # Task Packet: 2026-11-16-ops-argocd-ownership-convergence
@@ -182,3 +182,19 @@ Backend round3 COMMENT保持；startup/Helm独立窄CLEAR、整包WATCH（17＋4
 Status: in-progress. startup生命周期及3canonical key/handler/5locale已装配，窄Argo3.720s和完整当前748源race通过；现有backend round3 COMMENT保留。
 
 Backend round3 COMMENT、startup窄CLEAR/整包WATCH不关闭原ownership/provider/人验收。 Original acceptance and human gates remain unmet. See [summary](../../../.harness/evidence/2026-11-16-ops-argocd-ownership-convergence/summary.md) and [structured progress](../../../.harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-progress-final-20261118.json).
+
+## Result — History Closeout 2026-11-20
+
+Manifest disposition: completed
+
+ArgoCD ownership/legacy 收敛实施 + candidate 证据随 #195 落地；真实 provider/受限角色验收保留为 residual。
+
+Residual finding/owner/successor/proof: .harness/evidence/2026-11-20-ops-board-complete/dispositions.json. Canonical references remain archive-aware. Historical body/evidence retained. Candidate/production/maintainer gates remain separate.
+
+## Result — History Closeout 2026-11-20
+
+Manifest disposition: completed
+
+ArgoCD ownership/legacy 收敛实施 + candidate 证据随 #195 落地；真实 provider/受限角色验收保留为 residual。
+
+Residual finding/owner/successor/proof: .harness/evidence/2026-11-20-ops-board-complete/dispositions.json. Canonical references remain archive-aware. Historical body/evidence retained. Candidate/production/maintainer gates remain separate.

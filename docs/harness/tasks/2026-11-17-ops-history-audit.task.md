@@ -2,10 +2,10 @@
 title: Ops 历史遗留清查与按时间收尾
 doc_type: Remediation
 layer: business
-status: Active
+status: Archived
 linked_contracts:
   - docs/PROJECT_INHERITANCE.md
-updated_at: 2026-11-17
+updated_at: 2026-11-20
 ---
 
 # Task Packet: 2026-11-17-ops-history-audit

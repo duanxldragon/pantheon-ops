@@ -2,11 +2,11 @@
 title: CMDB SSH 采集配置外部化
 doc_type: Remediation
 layer: business
-status: Active
+status: Archived
 linked_contracts:
   - docs/PROJECT_INHERITANCE.md
   - docs/designs/BUSINESS_CMDB_MODULE_DESIGN.md
-updated_at: 2026-11-17
+updated_at: 2026-11-20
 ---
 
 # Task Packet: 2026-07-17-cmdb-ssh-config-externalize
@@ -157,3 +157,19 @@ Minimal Complexity Rung: reuse。复用已暴露的 `GetByKey` 形状 ConfigRead
 - [x] Verification run or exception recorded（not-run/blocked 已在 evidence 如实记录并于本批补充说明）
 - [x] Evidence saved or summarized
 - [ ] Review completed（awaiting-review，Codex 验收关闭，本执行者不自批准）
+
+## Result — History Closeout 2026-11-20
+
+Manifest disposition: completed
+
+CMDB host SSH 采集配置（collect_timeout/default_port）已外部化到 base ConfigReader，实施随 PR #195 落地 main；host_config.go 与测试在仓内，evidence summary+commands 已保全。原范围完成，无人工门禁。
+
+Residual finding/owner/successor/proof: .harness/evidence/2026-11-20-ops-board-complete/dispositions.json. Canonical references remain archive-aware. Historical body/evidence retained. Candidate/production/maintainer gates remain separate.
+
+## Result — History Closeout 2026-11-20
+
+Manifest disposition: completed
+
+CMDB host SSH 采集配置（collect_timeout/default_port）已外部化到 base ConfigReader，实施随 PR #195 落地 main；host_config.go 与测试在仓内，evidence summary+commands 已保全。原范围完成，无人工门禁。
+
+Residual finding/owner/successor/proof: .harness/evidence/2026-11-20-ops-board-complete/dispositions.json. Canonical references remain archive-aware. Historical body/evidence retained. Candidate/production/maintainer gates remain separate.

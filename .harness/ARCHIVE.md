@@ -1,8 +1,8 @@
 # Pantheon Ops 任务归档索引
 
-更新：2026-11-17。完成按原任务范围判断，不代表最新产品验收；原 evidence 字节保全，canonical 地址保持 archive-aware 可解析。
+更新：2026-11-20。完成按原任务范围判断，不代表最新产品验收；原 evidence 字节保全，canonical 地址保持 archive-aware 可解析。2026-11-20 board-complete 将全 Board 非终态卡统一收口（27 组入档 + history-audit 原地 completed），维护者视觉/功能验收与真实 provider 验证为显式 open 门禁，见下方 2026-11-20 段。
 
-当前计划：.harness/tasks/2026-11-16-ops-pilot-delivery/plan.md；归档决策/文件 SHA-256 清单：.harness/evidence/2026-11-16-ops-readiness-plan-closeout/archive-inventory.json。
+当前计划：.harness/archive/2026-11/tasks/2026-11-16-ops-pilot-delivery/plan.md（board-complete 收口后归档）；归档决策/文件 SHA-256 清单：.harness/archive/2026-11/evidence/2026-11-16-ops-readiness-plan-closeout/archive-inventory.json 与 .harness/evidence/2026-11-20-ops-board-complete/dispositions.json。
 
 | Task                                       | 原范围                         | Manifest                                                                                     | Evidence                                                                                    | 后续                      |
 | ------------------------------------------ | ------------------------------ | -------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- | ------------------------- |
@@ -77,3 +77,46 @@ CMDB使用原manifest/plan，未补造历史卡；k8s-recovery仅记录原本地
 累计口径保持22组新归档和2组重复live副本保全，本轮新增0组。2026-11-16清单核验发现9个原文件字节不符，现已从HEAD旧路径按原SHA恢复，恢复前差异文件保全。2026-11-17快照的三处canonical差异通过保全副本追溯。445份唯一历史文件核验和15项归档解析回归通过。
 
 [恢复收据](./evidence/2026-11-17-ops-history-audit/continuation-history-closeout-20261119-archive-recovery.json)、[恢复后全量核验](./evidence/2026-11-17-ops-history-audit/continuation-history-closeout-20261119-archive-integrity-verified.json)。
+
+## 2026-11-20 Board Complete：全板非终态卡收口
+
+目标：不存在已规划未完成的任务；过期卡直接归档。方法继承 close-history 约定：manifest `historyCloseout` 块 + 文档 `status: Archived` + dated `history-closeout.md`。入档后 canonical 可通过 `resolveArchiveAwarePath` 解析。**完成按原任务范围判断，不代表最新产品验收**；真实 provider/受限角色 SSH/K8s、维护者最终视觉/功能验收、未批准发布/生产风险验收、D4-G2/G3 与 O7 deferred 全部保留为显式 open residuals（逐项见 [dispositions](./evidence/2026-11-20-ops-board-complete/dispositions.json)，决策 sha `ef1791b0`，auto-merge 补卡同源）。
+
+| Task                                          | 处置       | Manifest                                                                                        | Evidence                                                                                       |
+| --------------------------------------------- | ---------- | ----------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| 2026-07-17-cmdb-ssh-config-externalize        | completed  | [manifest](./archive/2026-11/tasks/2026-07-17-cmdb-ssh-config-externalize/manifest.json)        | [summary](./archive/2026-11/evidence/2026-07-17-cmdb-ssh-config-externalize/summary.md)        |
+| 2026-09-29-ops-ssrf-protection-integration    | completed  | [manifest](./archive/2026-11/tasks/2026-09-29-ops-ssrf-protection-integration/manifest.json)    | [summary](./archive/2026-11/evidence/2026-09-29-ops-ssrf-protection-integration/summary.md)    |
+| 2026-11-07-ops-planned-task-closeout          | completed  | [manifest](./archive/2026-11/tasks/2026-11-07-ops-planned-task-closeout/manifest.json)          | [summary](./archive/2026-11/evidence/2026-11-07-ops-planned-task-closeout/summary.md)          |
+| 2026-11-14-ops-latest-foundation-and-plans    | completed  | [manifest](./archive/2026-11/tasks/2026-11-14-ops-latest-foundation-and-plans/manifest.json)    | [summary](./archive/2026-11/evidence/2026-11-14-ops-latest-foundation-and-plans/summary.md)    |
+| 2026-11-16-ops-business-menu-m3c              | completed  | [manifest](./archive/2026-11/tasks/2026-11-16-ops-business-menu-m3c/manifest.json)              | [summary](./archive/2026-11/evidence/2026-11-16-ops-business-menu-m3c/summary.md)              |
+| 2026-11-16-ops-navigation-repair              | completed  | [manifest](./archive/2026-11/tasks/2026-11-16-ops-navigation-repair/manifest.json)              | [summary](./archive/2026-11/evidence/2026-11-16-ops-navigation-repair/summary.md)              |
+| 2026-11-16-ops-historical-closeout            | completed  | [manifest](./archive/2026-11/tasks/2026-11-16-ops-historical-closeout/manifest.json)            | [summary](./archive/2026-11/evidence/2026-11-16-ops-historical-closeout/summary.md)            |
+| 2026-11-16-ops-historical-runtime             | completed  | [manifest](./archive/2026-11/tasks/2026-11-16-ops-historical-runtime/manifest.json)             | [summary](./archive/2026-11/evidence/2026-11-16-ops-historical-runtime/summary.md)             |
+| 2026-11-16-ops-readiness-plan-closeout        | completed  | [manifest](./archive/2026-11/tasks/2026-11-16-ops-readiness-plan-closeout/manifest.json)        | [summary](./archive/2026-11/evidence/2026-11-16-ops-readiness-plan-closeout/summary.md)        |
+| 2026-11-16-ops-pilot-delivery                 | completed  | [manifest](./archive/2026-11/tasks/2026-11-16-ops-pilot-delivery/manifest.json)                 | [summary](./archive/2026-11/evidence/2026-11-16-ops-pilot-delivery/summary.md)                 |
+| 2026-11-16-ops-argocd-ownership-convergence   | completed  | [manifest](./archive/2026-11/tasks/2026-11-16-ops-argocd-ownership-convergence/manifest.json)   | [summary](./archive/2026-11/evidence/2026-11-16-ops-argocd-ownership-convergence/summary.md)   |
+| 2026-11-16-ops-business-runtime-acceptance    | completed  | [manifest](./archive/2026-11/tasks/2026-11-16-ops-business-runtime-acceptance/manifest.json)    | [summary](./archive/2026-11/evidence/2026-11-16-ops-business-runtime-acceptance/summary.md)    |
+| 2026-11-16-ops-extensions-live-acceptance     | completed  | [manifest](./archive/2026-11/tasks/2026-11-16-ops-extensions-live-acceptance/manifest.json)     | [summary](./archive/2026-11/evidence/2026-11-16-ops-extensions-live-acceptance/summary.md)     |
+| 2026-11-16-ops-filedist-product-closure       | completed  | [manifest](./archive/2026-11/tasks/2026-11-16-ops-filedist-product-closure/manifest.json)       | [summary](./archive/2026-11/evidence/2026-11-16-ops-filedist-product-closure/summary.md)       |
+| 2026-11-16-ops-helm-capability-truth          | completed  | [manifest](./archive/2026-11/tasks/2026-11-16-ops-helm-capability-truth/manifest.json)          | [summary](./archive/2026-11/evidence/2026-11-16-ops-helm-capability-truth/summary.md)          |
+| 2026-11-16-ops-k8s-service-mutations          | completed  | [manifest](./archive/2026-11/tasks/2026-11-16-ops-k8s-service-mutations/manifest.json)          | [summary](./archive/2026-11/evidence/2026-11-16-ops-k8s-service-mutations/summary.md)          |
+| 2026-11-16-ops-pilot-release-closeout         | completed  | [manifest](./archive/2026-11/tasks/2026-11-16-ops-pilot-release-closeout/manifest.json)         | [summary](./archive/2026-11/evidence/2026-11-16-ops-pilot-release-closeout/summary.md)         |
+| 2026-11-16-ops-service-catalog-usability      | completed  | [manifest](./archive/2026-11/tasks/2026-11-16-ops-service-catalog-usability/manifest.json)      | [summary](./archive/2026-11/evidence/2026-11-16-ops-service-catalog-usability/summary.md)      |
+| 2026-11-16-ops-service-deploy-integrity       | completed  | [manifest](./archive/2026-11/tasks/2026-11-16-ops-service-deploy-integrity/manifest.json)       | [summary](./archive/2026-11/evidence/2026-11-16-ops-service-deploy-integrity/summary.md)       |
+| 2026-11-16-ops-service-deploy-user-flow       | completed  | [manifest](./archive/2026-11/tasks/2026-11-16-ops-service-deploy-user-flow/manifest.json)       | [summary](./archive/2026-11/evidence/2026-11-16-ops-service-deploy-user-flow/summary.md)       |
+| 2026-11-19-ten-package-acceptance             | completed  | [manifest](./archive/2026-11/tasks/2026-11-19-ten-package-acceptance/manifest.json)             | [summary](./archive/2026-11/evidence/2026-11-19-ten-package-acceptance/summary.md)             |
+| k8s-recovery                                  | completed  | [manifest](./archive/2026-11/tasks/k8s-recovery/manifest.json)                                  | [summary](./archive/2026-11/evidence/k8s-recovery/summary.md)                                  |
+| 2026-11-17-ops-auto-merge-reconcile           | completed  | [manifest](./archive/2026-11/tasks/2026-11-17-ops-auto-merge-reconcile/manifest.json)           | [summary](./archive/2026-11/evidence/2026-11-17-ops-auto-merge-reconcile/summary.md)           |
+| 2026-08-05-foundation-upgrade-base-v0-10-1    | superseded | [manifest](./archive/2026-11/tasks/2026-08-05-foundation-upgrade-base-v0-10-1/manifest.json)    | [summary](./archive/2026-11/evidence/2026-08-05-foundation-upgrade-base-v0-10-1/summary.md)    |
+| 2026-08-05-foundation-upgrade-base-v0-10-2    | superseded | [manifest](./archive/2026-11/tasks/2026-08-05-foundation-upgrade-base-v0-10-2/manifest.json)    | [summary](./archive/2026-11/evidence/2026-08-05-foundation-upgrade-base-v0-10-2/summary.md)    |
+| 2026-08-31-ops-operational-workbench-design   | superseded | [manifest](./archive/2026-11/tasks/2026-08-31-ops-operational-workbench-design/manifest.json)   | [summary](./archive/2026-11/evidence/2026-08-31-ops-operational-workbench-design/summary.md)   |
+| 2026-09-28-ops-delivery-readiness-gap-closure | superseded | [manifest](./archive/2026-11/tasks/2026-09-28-ops-delivery-readiness-gap-closure/manifest.json) | [summary](./archive/2026-11/evidence/2026-09-28-ops-delivery-readiness-gap-closure/summary.md) |
+
+补充说明：
+
+- `2026-11-16-ops-pilot-delivery` 的 plan 随本收口入档（.harness/archive/2026-11/tasks/2026-11-16-ops-pilot-delivery/plan.md）；其 CURRENT PLAN 角色移交历史，2006-11-20 段即新的 current plan 索引。
+- `k8s-recovery` 此前（2026-11-17 段）因缺 manifest 未配对归档；board-complete 为其创建最小 manifest 并配对入档，原 recover.py/commands/summary 字节保全。
+- `2026-11-17-ops-history-audit` 为 archive 索引 nexus（evidence 1035 文件、包含本索引所有链接），原地置 completed 不搬迁；其 historyCloseout 保留于 manifest。
+- 十包验收（C01–C06/E01–E04）以「实施+候选证据完成、验收门禁 open」口径完成；未代签维护者终验，未批准发布/生产风险验收为外部 gate。
+
+入档程序与账户：`.harness/tasks/2026-11-20-ops-board-complete/close-board.mjs`（dry-run → apply，幂等 resume + journal + verify）；`close-auto-merge.mjs` 补卡；全量 journal/result 见 [证据目录](./evidence/2026-11-20-ops-board-complete/)。

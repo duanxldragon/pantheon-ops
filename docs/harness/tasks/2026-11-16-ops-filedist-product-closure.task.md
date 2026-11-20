@@ -2,10 +2,10 @@
 title: 文件分发创建入口与可靠控制
 doc_type: Remediation
 layer: business
-status: Active
+status: Archived
 linked_contracts:
   - docs/PROJECT_INHERITANCE.md
-updated_at: 2026-11-16
+updated_at: 2026-11-20
 ---
 
 # Task Packet: 2026-11-16-ops-filedist-product-closure
@@ -181,3 +181,19 @@ Backend repaired scope保留COMMENT；UI第一轮REQUEST CHANGES：E01-UI-R1/E01
 Status: in-progress. startup/Stop及6canonical＋44UI keys/5locale装配已通过中央窄race；此前两项MEDIUM修后获9文件UI round2独立COMMENT，该评审仅覆盖其绑定候选。此前独立canonical28PASS/4.21s和同28重复fixture不累计56；当前集中canonical为35PASS/8.68s。两项真实UI修复获独立incremental COMMENT/0issues；新e01-final stage/1242源、frontend35PASS/build/runtime通过。actual04 exit0/sourceStable，21图及桌面/手机footer入屏证据由上一轮协调者核验。本轮只复核保存证据与当前源码哈希，未新增浏览器执行或视觉审查。
 
 旧round1 REQUEST CHANGES、round2 COMMENT及新两文件incremental COMMENT/0issues均保留各自绑定范围。actual04及上一轮21图查看关闭本地footer证据缺口；真实provider/受限角色和整包验收仍开放。 Original acceptance and human gates remain unmet. See [summary](../../../.harness/evidence/2026-11-16-ops-filedist-product-closure/summary.md) and [structured progress](../../../.harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-progress-final-20261118.json).
+
+## Result — History Closeout 2026-11-20
+
+Manifest disposition: completed
+
+FileDist 产品化收口 + 71 证据文件随 #195 落地；真实 SSH/结构和外部 provider 验收保留为 residual。
+
+Residual finding/owner/successor/proof: .harness/evidence/2026-11-20-ops-board-complete/dispositions.json. Canonical references remain archive-aware. Historical body/evidence retained. Candidate/production/maintainer gates remain separate.
+
+## Result — History Closeout 2026-11-20
+
+Manifest disposition: completed
+
+FileDist 产品化收口 + 71 证据文件随 #195 落地；真实 SSH/结构和外部 provider 验收保留为 residual。
+
+Residual finding/owner/successor/proof: .harness/evidence/2026-11-20-ops-board-complete/dispositions.json. Canonical references remain archive-aware. Historical body/evidence retained. Candidate/production/maintainer gates remain separate.

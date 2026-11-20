@@ -1,0 +1,52 @@
+{
+  "id": "2026-11-16-ops-historical-closeout",
+  "title": "历史任务收尾（intake / dispatch / 对账）",
+  "status": "completed",
+  "historyCloseout": {
+    "date": "2026-11-20",
+    "originalStatus": "completed",
+    "disposition": "completed",
+    "basis": "60 条历史记录 + O1–O7 + D1–D5 + infra/orphan 全量对账完成（INVENTORY.json + intake-summary.md + o4-archive-verification.json）；真正缺实现批次 S1(SSRF/cmdb-ssh)/G1(auto-merge) 已由后继任务实施并关闭；verified-complete 记录已按原范围收口。",
+    "residuals": [
+      {
+        "finding": "D4-G2/G3 生产 RPO/RTO 恢复演练与生产量级 sizing",
+        "owner": "pantheon-ops maintainer / On-call",
+        "successor": "pantheon-base FR028 upstream；生产维护窗口签署",
+        "state": "open"
+      },
+      {
+        "finding": "O7 关系成熟度门禁（明确 deferred-forward，不进试点）",
+        "owner": "pantheon-ops maintainer",
+        "successor": "deferred-forward",
+        "state": "open"
+      },
+      {
+        "finding": "P1 权限 PR3：真实受限角色 provider 验收",
+        "owner": "pantheon-ops maintainer",
+        "successor": "2026-11-19-ten-package-acceptance（归档索引保留）",
+        "state": "open"
+      }
+    ],
+    "evidence": ".harness/evidence/2026-11-20-ops-board-complete/dispositions.json",
+    "decisionSha256": "ef1791b0015b32d46265cacc8effb21bd35dbf05fa10c92659a97c3f0510fbcf",
+    "taskDoc": null,
+    "taskDocGap": "no task doc existed; closeout created minimal 2026-11-16-ops-historical-closeout.task.md"
+  },
+  "taskId": "2026-11-16-ops-historical-closeout",
+  "goal": "历史任务收尾（intake/dispatch/对账）",
+  "primaryLayer": "business",
+  "scope": {
+    "in": [
+      "见 historyCloseout.basis 与 dispositions.json"
+    ],
+    "out": [
+      "无新增：board-complete 归档收口"
+    ]
+  },
+  "linkage": {
+    "evidenceDir": ".harness/evidence/2026-11-16-ops-historical-closeout/",
+    "reviewFile": ".harness/evidence/2026-11-16-ops-historical-closeout/history-closeout.md",
+    "changeRef": "2026-11-20-ops-board-complete",
+    "planRefs": []
+  }
+}

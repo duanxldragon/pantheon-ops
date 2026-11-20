@@ -2,10 +2,10 @@
 title: Kubernetes Service 编辑与并发保护
 doc_type: Remediation
 layer: business
-status: Active
+status: Archived
 linked_contracts:
   - docs/PROJECT_INHERITANCE.md
-updated_at: 2026-11-16
+updated_at: 2026-11-20
 ---
 
 # Task Packet: 2026-11-16-ops-k8s-service-mutations
@@ -165,11 +165,9 @@ business/*
 
 in-progress；只在依赖与实际验收完成后转 completed。
 
-
 ## 2026-11-17 owner continuation scope
 
 Original In/Out and acceptance are retained. Additional modified owner files: backend/modules/business/k8s/namespace/namespace_service.go, backend/modules/business/k8s/cluster/cluster_service.go, backend/modules/business/k8s/k8s.go, backend/modules/business/k8s/k8s_seed.go. Additional created route/provider regression files: backend/modules/business/k8s/permission_routes.go, backend/modules/business/k8s/permission_routes_test.go, backend/modules/business/k8s/service/mutation_contract_test.go. Plan: .harness/tasks/2026-11-16-ops-k8s-service-mutations/continuation-plan.md. Real red/green and remaining runtime/provider gaps are recorded in .harness/evidence/2026-11-17-ops-history-audit/; no archive or completion is implied.
-
 
 ## 2026-11-18T07:31:44.466Z Continuation checkpoint
 
@@ -177,9 +175,24 @@ Status: in-progress. Cluster row→同事务 credential read→Binding row→bou
 
 Original acceptance and dependencies remain unchanged. Whole-package acceptance is incomplete; see [summary](../../../.harness/evidence/2026-11-16-ops-k8s-service-mutations/summary.md) and [progress receipt](../../../.harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-progress-20261118.json).
 
-
 ## 2026-11-19T00:11:15.272Z Verified continuation checkpoint
 
 Status: in-progress. Cluster→同事务credential→Binding→bounded provider锁与取消窄回归已通过，当前完整748源race亦通过；原取消GREEN01失败保留。当前UI contract13/13通过、root实际查看桌面/手机ports/error4图，business/role mock。
 
 架构round2窄CLEAR/整包WATCH保留；全部业务角色/真实CRUD与维护者验收仍OPEN。 Original acceptance and human gates remain unmet. See [summary](../../../.harness/evidence/2026-11-16-ops-k8s-service-mutations/summary.md) and [structured progress](../../../.harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-progress-final-20261118.json).
+
+## Result — History Closeout 2026-11-20
+
+Manifest disposition: completed
+
+K8s 服务变更候选实施 + 28 证据文件随 #195 落地；真实集群/受限角色验收保留为 residual。
+
+Residual finding/owner/successor/proof: .harness/evidence/2026-11-20-ops-board-complete/dispositions.json. Canonical references remain archive-aware. Historical body/evidence retained. Candidate/production/maintainer gates remain separate.
+
+## Result — History Closeout 2026-11-20
+
+Manifest disposition: completed
+
+K8s 服务变更候选实施 + 28 证据文件随 #195 落地；真实集群/受限角色验收保留为 residual。
+
+Residual finding/owner/successor/proof: .harness/evidence/2026-11-20-ops-board-complete/dispositions.json. Canonical references remain archive-aware. Historical body/evidence retained. Candidate/production/maintainer gates remain separate.

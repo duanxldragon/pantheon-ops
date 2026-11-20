@@ -2,8 +2,8 @@
 title: Define Ops business operational workbenches
 doc_type: Design
 layer: business/*
-status: Active
-updated_at: 2026-08-31
+status: Archived
+updated_at: 2026-11-20
 linked_contracts:
   - docs/designs/BUSINESS_OPERATIONAL_WORKBENCH_DESIGN.md
 ---
@@ -241,3 +241,11 @@ business/*
 - [x] Evidence saved or summarized
 - [x] Docs updated if contracts changed
 - [x] Review completed
+
+## Result — History Closeout 2026-11-20
+
+Manifest disposition: superseded
+
+operational workbench 设计停滞在 Base B1–B4 contract（design-only 未发行），未获实施；实际业务交付由 2026-11-16 pilot delivery 承担。设计卡过期入档。
+
+Residual finding/owner/successor/proof: .harness/evidence/2026-11-20-ops-board-complete/dispositions.json. Canonical references remain archive-aware. Historical body/evidence retained. Candidate/production/maintainer gates remain separate.

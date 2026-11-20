@@ -56,7 +56,9 @@ playwright-report/
 test-results/
 # Historical O4 adversarial test scratch (retained locally, not release assets).
 # Exact input inventory: history-audit/continuation-overlay-nonfile-inputs.json.
-/.harness/evidence/2026-11-07-ops-planned-task-closeout/o4-independent-code-review-20261110-01/fixtures/
+# O4 scratch moved to archive 2026-11-20 by board-complete; both o4-* dirs are
+# candidate snapshots (o4-real-packaging copies real sources) — stay untracked.
+/.harness/archive/2026-11/evidence/2026-11-07-ops-planned-task-closeout/o4-*/
 
 # Local Pantheon artifacts
 .claude/

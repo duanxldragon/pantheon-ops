@@ -1,0 +1,91 @@
+{
+  "taskId": "2026-11-20-ops-board-complete",
+  "repo": "pantheon-ops",
+  "status": "completed",
+  "agent": {
+    "planner": "Claude (hard-stop: .harness/ + docs only)",
+    "implementer": "data-driven close-board.mjs / close-auto-merge.mjs",
+    "reviewer": "self-judgement (independent codes review = open human gate)"
+  },
+  "knownGaps": [
+    "Board-complete 入档判定按原任务范围，不代表最新产品/视觉/功能验收",
+    "十包最终维护者验收与真实 provider/受限角色验证保持 open residual（见 dispositions.json）",
+    "history-audit 独立 codes review 未代签"
+  ],
+  "linkage": {
+    "evidenceDir": ".harness/evidence/2026-11-20-ops-board-complete/",
+    "reviewFile": ".harness/evidence/2026-11-20-ops-board-complete/review.md",
+    "changeRef": "chore/ops-board-complete-2026-11-20",
+    "planRefs": [
+      ".harness/tasks/2026-11-20-ops-board-complete/plan.md"
+    ]
+  },
+  "commands": [
+    {
+      "command": "go test ./pkg/security/ssrf/...",
+      "cwd": "backend",
+      "status": "passed",
+      "notes": "2026-11-20: ok github.com/duanxldragon/pantheon-base/backend/pkg/security/ssrf (cached). SSRF validator + transport tests green."
+    },
+    {
+      "command": "go build ./modules/business/...",
+      "cwd": "backend",
+      "status": "passed",
+      "notes": "2026-11-20: exit 0. All business consumers compile with ssrf.Validator integrated."
+    },
+    {
+      "command": "node .harness/tasks/2026-11-20-ops-board-complete/close-board.mjs",
+      "cwd": ".",
+      "status": "passed",
+      "notes": "dry-run: {\"dryRun\":true,\"candidates\":26,\"noTaskDoc\":[...5...]}"
+    },
+    {
+      "command": "node .harness/tasks/2026-11-20-ops-board-complete/close-board.mjs --apply",
+      "cwd": ".",
+      "status": "passed",
+      "notes": "resumed through a transient no-evidence assert fix (v0.10.1/2 absent evidence dir); final: {\"archived\":26,\"hashesPreserved\":true,\"evidence\":\".harness/evidence/2026-11-20-ops-board-complete/archive-result.json\"}. journal.jsonl 155+ lines."
+    },
+    {
+      "command": "node .harness/tasks/2026-11-20-ops-board-complete/close-auto-merge.mjs --apply",
+      "cwd": ".",
+      "status": "passed",
+      "notes": "one-off for 2026-11-17-ops-auto-merge-reconcile (task-manifest layout, no task doc). Output: {\"archived\":[\"2026-11-17-ops-auto-merge-reconcile\"],\"hashesPreserved\":true,\"decisionSha256\":\"ef1791b0...\"}"
+    },
+    {
+      "command": "node -e resolveArchiveAwarePath for all 27 swept ids",
+      "cwd": ".",
+      "status": "passed",
+      "notes": "ALL 27 RESOLVE OK (live board left only terminal/completed/self cards)."
+    },
+    {
+      "command": "npm run check:docs-frontmatter",
+      "cwd": ".",
+      "status": "passed",
+      "notes": "Frontmatter check passed (488 docs) after README + history-audit status fixes."
+    },
+    {
+      "command": "npm run check:encoding",
+      "cwd": ".",
+      "status": "passed",
+      "notes": "Encoding check (strict): 0 finding(s) across 3360 scanned file(s)."
+    },
+    {
+      "command": "npm run check:structure",
+      "cwd": ".",
+      "status": "passed",
+      "notes": "Structure contract check (strict): 0 finding(s) across 4482 tracked file(s)."
+    },
+    {
+      "command": "npm run check:task-packet-template",
+      "cwd": ".",
+      "status": "passed",
+      "notes": "OK pantheon-ops task-packet template is present and linked."
+    },
+    {
+      "command": "npm run test:scripts",
+      "cwd": ".",
+      "status": "passed",
+      "notes": "240 tests, 240 pass, 0 fail."
+    }
+  ]
+}

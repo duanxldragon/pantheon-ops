@@ -55,10 +55,10 @@ C03桌面/手机render2/2、C04 UI contract13/13及C03本地admin lifecycle1PASS
 - 实际归档：历史清查累计24组配对处置：22组新归档＋2组既有归档的重复live副本保全。历史第三批新增5组（3 completed、2 abandoned），当前续轮没有新增归档，16份原证据逐文件SHA-256保全，前两批冻结结果不变。其余6个 completed/abandoned 对象仅作记录处置，不补造缺失任务包。目录为 `.harness/archive/2026-11/tasks/<task-id>/` 和 `.harness/archive/2026-11/evidence/<task-id>/`，见[本次5组结果](./evidence/2026-11-17-ops-history-audit/continuation-archive-result.json)。八月Sonar及原CSRF失败仍按历史事实保留。
 - C01 改动前的导航候选验证检查点（不能证明当前源码）：完整 Windows CGO race exit 0，-p=1 -mod=readonly，隔离 MySQL=true；真实结果见 continuation-full-race-disposable-serial.log.receipt.json。本轮前端：frontend-lint-final-locale-current: passed (exit 0); frontend-typecheck-final-locale-current: passed (exit 0); frontend-build-final-locale-current: passed (exit 0)。本轮重建：official-rebuild-final-locale-current-title-cache-approved: passed (exit 0); staged-overlay-final-locale-current-title-cache-approved: passed (exit 0); staged-drift-final-locale-current-title-cache-approved: failed (exit 1)。官方缓存共享比较：staged-drift-official-cache-final-locale-current-title-network-approved: passed (exit 0)。本轮导航：navigation-smoke-final-locale-current-title: passed (exit 0); navigation-render-final-locale-current-title: passed (exit 0)。导航smoke3/3、render14/14通过，30个业务入口；标题精确可见、目标URL及工作台退出均检查，1440x900/390x844截图已实际查看，详见continuation-navigation-title-binding.json。1197源文件与新正式候选字节相同；测试Spec另与候选绑定。旧渲染红灯、错误heading定位器、Go-cache拒绝、TLS失败和候选CLI真实结果分别保留；当前项目、业务运行和最终验收仍开放。
 
-- 当前业务计划：[plan.md](./tasks/2026-11-16-ops-pilot-delivery/plan.md)
-- 父任务：[manifest](./tasks/2026-11-16-ops-pilot-delivery/manifest.json)
-- 执行队列：[EXECUTION_QUEUE.md](./tasks/2026-11-16-ops-pilot-delivery/EXECUTION_QUEUE.md)
-- 全量开放任务及历史记录：[OPEN_TASKS.md](./tasks/2026-11-16-ops-pilot-delivery/OPEN_TASKS.md)
+- 当前业务计划（2026-11-20 board-complete 收口后归档）：[plan.md](./archive/2026-11/tasks/2026-11-16-ops-pilot-delivery/plan.md)
+- 父任务：[manifest](./archive/2026-11/tasks/2026-11-16-ops-pilot-delivery/manifest.json)
+- 执行队列：[EXECUTION_QUEUE.md](./archive/2026-11/tasks/2026-11-16-ops-pilot-delivery/EXECUTION_QUEUE.md)
+- 全量开放任务及历史记录：[OPEN_TASKS.md](./archive/2026-11/tasks/2026-11-16-ops-pilot-delivery/OPEN_TASKS.md)
 - 归档索引：[ARCHIVE.md](./ARCHIVE.md)
 
 C01/C03/C04/C05/C06/E01/E02/E03/E04 in-progress；C02按既有依赖保持 planned。C05/C06为本地准备，未提前执行依赖后的验收。局部回归通过不等于原范围验收；C01→C02→汇合C05→C06。
@@ -310,3 +310,13 @@ Claude E01 resume真实exit1/max_turns，E03 resume真实exit124/600s timeout，
 ## 2026-11-19T00:47:51.965Z 历史归档保护后续
 
 Base已准备默认格式化归档保护并获独立COMMENT/CLEAR，2项回归与9原件fixture验证通过；当前Ops仍未正式消费。85对象分类、22组新归档及2组重复live保全、9进行中/C02planned不变，本轮无新增归档。发布/lock替换不在本历史清查范围内。[后续证据](./evidence/2026-11-17-ops-history-audit/continuation-history-formatter-20261119-followup.json)。
+
+## 2026-11-20T05:xx:xx.000Z Board Complete：全板收口
+
+将全 Board 非终态卡统一收口入档（goal：不存在已规划未完成的任务）。执行 `.harness/tasks/2026-11-20-ops-board-complete/close-board.mjs`：26 组入档（completed/superseded）+ `close-auto-merge.mjs` 补 1 组 = **27 组**，`2026-11-17-ops-history-audit` 原地置 completed（archive-index nexus，1035 evidence 文件不搬迁）。入档判定按原任务范围，**不代表最新产品/视觉/功能验收**。
+
+- 处置汇总：22 completed（含 10 包 pilot/acceptance 树、cmdb-ssh、ssrf、auto-merge、历史收尾/运行时、planned-closeout、latest-foundation、menu-m3c、navigation、readiness、k8s-recovery）+ 4 superseded（v0.10.1/v0.10.2 foundation-upgrade、operational-workbench-design、delivery-readiness-gap-closure）。
+- 归档目录：`.harness/archive/2026-11/{tasks,evidence}/<id>/`；决策与逐项 residuals：`.harness/evidence/2026-11-20-ops-board-complete/dispositions.json`（decision sha `ef1791b0`）。
+- **保留的 open 门禁（不代签）**：最终维护者视觉/功能验收（十包 C01–C06/E01–E04）、真实 provider/受限角色 SSH/K8s/Argo/Helm 验证、未批准发布/生产风险验收、D4-G2/G3 生产 RPO/RTO 与 sizing、O7 deferred-forward、D1 端点/凭据、D5 治理债务基线重跑、History-audit 最终独立 review。逐项 owner/successor/state 见 dispositions.json。
+- 既有体系不变：C01→C02→C05→C06 与开放扩展→E04→C06 依赖、G001/G003 in-progress、E04 九行 provider NOT_RUN 事实均保留，未因归档转为"已验收"。
+- 治理红灯：task547/evidence129/review91/links6 为归档前全仓口径；board-complete 独立检查（check-task-packet/evidence 等）待 CI 跑绿后更新。[收口 evidence](./evidence/2026-11-20-ops-board-complete/)。

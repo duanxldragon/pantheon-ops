@@ -1,0 +1,148 @@
+{
+  "taskId": "2026-11-16-ops-service-deploy-user-flow",
+  "title": "页面服务实例到部署结果闭环",
+  "goal": "页面服务实例到部署结果闭环",
+  "primaryLayer": "business/*",
+  "status": "completed",
+  "priority": "P1",
+  "deliveryTier": "L2",
+  "taskDoc": "docs/harness/tasks/2026-11-16-ops-service-deploy-user-flow.task.md",
+  "parentTask": "2026-11-16-ops-pilot-delivery",
+  "dependencies": [
+    "2026-11-16-ops-service-deploy-integrity"
+  ],
+  "activation": "core",
+  "owner": "business/deploy + business/service UI",
+  "scope": {
+    "in": [
+      "复用现有部署表单与预览，选择可见服务实例并展示匹配的目标快照；提交关联字段。",
+      "保留不关联实例的显式独立部署入口，避免现有部署兼容性退化。",
+      "通过浏览器完成创建目录、绑定实例、创建/预览/执行部署和结果回读，不用 API 预造任务替代关键 UI 动作。"
+    ],
+    "out": [
+      "platform/system/* 通用实现与规则副本；共享问题 Base-first",
+      "未授权生产操作、规则豁免与风险接受",
+      "自动 exporter/file_sd/商业 License 等后续产品扩张"
+    ]
+  },
+  "dependencyLayers": [
+    "business/*",
+    "inheritance-sync"
+  ],
+  "contractAnchors": [
+    "AGENTS.md",
+    "docs/PROJECT_INHERITANCE.md",
+    "docs/designs/BUSINESS_FUNCTIONAL_DESIGN.md",
+    "docs/designs/BUSINESS_QA_ACCEPTANCE_PLAN.md"
+  ],
+  "expectedFiles": {
+    "create": [
+      "docs/harness/tasks/2026-11-16-ops-service-deploy-user-flow.task.md",
+      ".harness/tasks/2026-11-16-ops-service-deploy-user-flow/manifest.json",
+      ".harness/evidence/2026-11-16-ops-service-deploy-user-flow/summary.md",
+      ".harness/evidence/2026-11-16-ops-service-deploy-user-flow/review.md",
+      ".harness/evidence/2026-11-16-ops-service-deploy-user-flow/commands.json"
+    ],
+    "modify": [
+      "frontend/src/modules/business/deploy/api.ts",
+      "frontend/src/modules/business/deploy/task/DeployTaskList.tsx",
+      "frontend/src/modules/business/service/ServiceCatalog.tsx",
+      "frontend/tests/smoke/business/deploy/deploy-pages.spec.ts",
+      "frontend/tests/smoke/business/service/service-pages.spec.ts"
+    ],
+    "doNotTouch": [
+      "../pantheon-base/**",
+      "foundation-release.lock.json",
+      "backend/modules/system/**",
+      "frontend/src/modules/system/**"
+    ]
+  },
+  "harnessProfile": {
+    "template": "admin-platform",
+    "overlay": "pantheon-ops",
+    "qualityProfile": "ui-runtime",
+    "portableFailureClass": "business-delivery-gap",
+    "ownerLayer": "business/*",
+    "coverageDimensions": [
+      "behaviour",
+      "architecture-fitness",
+      "runtime-quality"
+    ]
+  },
+  "implementationNotes": [
+    "Minimal Complexity Rung: reuse",
+    "开始实现前重新读取当前候选与结构；本审查行号绑定旧基线，不能覆盖并发升级。"
+  ],
+  "acceptanceCriteria": [
+    "UI 提交的关联字段、预览目标与 C01 后端校验一致。",
+    "成功/失败部署后服务目录展示对应实例终态，日志及审计可按任务追溯。",
+    "桌面/窄屏及 loading/empty/error/forbidden/submitting 状态有当前 revision 渲染证据。"
+  ],
+  "verificationPlan": {
+    "commands": [
+      "npm run lint",
+      "npm run type-check",
+      "npm run test:smoke:business:deploy",
+      "npm run test:smoke:business:service"
+    ],
+    "runtimeEvidence": [
+      "当前候选、隔离环境、业务正反向及桌面/窄屏渲染；未跑必须记录 gap"
+    ],
+    "commandWorkingDirectories": {
+      "npm run lint": "frontend",
+      "npm run type-check": "frontend",
+      "npm run test:smoke:business:deploy": "frontend",
+      "npm run test:smoke:business:service": "frontend"
+    }
+  },
+  "runtimeSensitive": true,
+  "humanGates": [
+    "范围已由维护者确认：按业务设计评估试点；安全可逆步骤自主执行。",
+    "生产操作、门禁豁免、风险接受及最终视觉/功能验收由维护者决定；不得以等候时间作为批准。"
+  ],
+  "linkage": {
+    "taskManifest": ".harness/tasks/2026-11-16-ops-service-deploy-user-flow/manifest.json",
+    "taskDoc": "docs/harness/tasks/2026-11-16-ops-service-deploy-user-flow.task.md",
+    "evidenceDir": ".harness/evidence/2026-11-16-ops-service-deploy-user-flow/",
+    "reviewFile": ".harness/evidence/2026-11-16-ops-service-deploy-user-flow/review.md",
+    "summaryFile": ".harness/evidence/2026-11-16-ops-service-deploy-user-flow/summary.md",
+    "changeRef": "none",
+    "planRefs": [
+      ".harness/tasks/2026-11-16-ops-pilot-delivery/plan.md"
+    ]
+  },
+  "continuationCheckpoint": {
+    "at": "2026-11-19T00:11:15.272Z",
+    "packageCode": "C02",
+    "stage": "dependency-planned",
+    "deliveryVerdict": "PARTIAL",
+    "accepted": false,
+    "evidenceRefs": [
+      ".harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-full-race-20261118-01.log.receipt.json",
+      ".harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-20261118-e01-final-frontend-quality.json",
+      ".harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-20261118-e01-final-source-equivalence.json",
+      ".harness/evidence/2026-11-17-ops-history-audit/continuation-current-preview-ten-packages-20261118-e01-final-build.json",
+      ".harness/evidence/2026-11-17-ops-history-audit/continuation-current-preview-ten-packages-e01-final-started-20261118.json"
+    ],
+    "progressReceipt": ".harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-progress-final-20261118.json",
+    "currentTechnicalIntegrationPassed": true
+  },
+  "historyCloseout": {
+    "date": "2026-11-20",
+    "originalStatus": "completed",
+    "disposition": "completed",
+    "basis": "C02 E01–E04 用户流部署验收组织：实施与候选验收证据随 PR #195 落地；真实受限角色/provider 与维护者终验保留为显式 residual。",
+    "residuals": [
+      {
+        "finding": "真实受限角色/真实 provider 用户流验收与维护者终验（E01–E04 原范围判据）",
+        "owner": "pantheon-ops maintainer",
+        "successor": "2026-11-19-ten-package-acceptance（归档索引保留）",
+        "state": "open"
+      }
+    ],
+    "evidence": ".harness/evidence/2026-11-20-ops-board-complete/dispositions.json",
+    "decisionSha256": "ef1791b0015b32d46265cacc8effb21bd35dbf05fa10c92659a97c3f0510fbcf",
+    "taskDoc": "docs/harness/tasks/2026-11-16-ops-service-deploy-user-flow.task.md",
+    "taskDocGap": null
+  }
+}
