@@ -41,6 +41,11 @@ const (
 	deployTaskPermCancelKey     = "business.deploy.task.permission.cancel"
 	deployTaskPermMarkResultKey = "business.deploy.task.permission.markResult"
 	deployTaskPermExportKey     = "business.deploy.task.permission.export"
+
+	deployCredentialPermListKey   = "business.deploy.credential.permission.list"
+	deployCredentialPermCreateKey = "business.deploy.credential.permission.create"
+	deployCredentialPermUpdateKey = "business.deploy.credential.permission.update"
+	deployCredentialPermDeleteKey = "business.deploy.credential.permission.delete"
 )
 
 type deployMenuSeed struct {
@@ -93,6 +98,10 @@ func seedDeployMenus(db *gorm.DB) error {
 		{Key: "operations-deploy-task-cancel", ParentKey: deployTaskListRoute, TitleKey: deployTaskPermCancelKey, Perms: "business:deploy:task:cancel", Type: "F", Module: deployModuleKey, Sort: 9},
 		{Key: "operations-deploy-task-mark-result", ParentKey: deployTaskListRoute, TitleKey: deployTaskPermMarkResultKey, Perms: "business:deploy:task:mark-result", Type: "F", Module: deployModuleKey, Sort: 10},
 		{Key: "operations-deploy-task-export", ParentKey: deployTaskListRoute, TitleKey: deployTaskPermExportKey, Perms: "business:deploy:task:export", Type: "F", Module: deployModuleKey, Sort: 11},
+		{Key: "operations-deploy-credential-list", ParentKey: deployTaskListRoute, TitleKey: deployCredentialPermListKey, Perms: "business:deploy:credential:list", Type: "F", Module: deployModuleKey, Sort: 12},
+		{Key: "operations-deploy-credential-create", ParentKey: deployTaskListRoute, TitleKey: deployCredentialPermCreateKey, Perms: "business:deploy:credential:create", Type: "F", Module: deployModuleKey, Sort: 13},
+		{Key: "operations-deploy-credential-update", ParentKey: deployTaskListRoute, TitleKey: deployCredentialPermUpdateKey, Perms: "business:deploy:credential:update", Type: "F", Module: deployModuleKey, Sort: 14},
+		{Key: "operations-deploy-credential-delete", ParentKey: deployTaskListRoute, TitleKey: deployCredentialPermDeleteKey, Perms: "business:deploy:credential:delete", Type: "F", Module: deployModuleKey, Sort: 15},
 	})
 }
 
@@ -443,6 +452,14 @@ func seedDeployI18n(db *gorm.DB) error {
 		{Module: deployModuleKey, Locale: "en-US", Group: "permission", Key: deployPackagePermImportKey, Value: "Import deployment packages"},
 		{Module: deployModuleKey, Locale: "zh-CN", Group: "permission", Key: deployTaskPermExportKey, Value: "导出部署任务"},
 		{Module: deployModuleKey, Locale: "en-US", Group: "permission", Key: deployTaskPermExportKey, Value: "Export deployment tasks"},
+		{Module: deployModuleKey, Locale: "zh-CN", Group: "permission", Key: deployCredentialPermListKey, Value: "查看部署凭据"},
+		{Module: deployModuleKey, Locale: "en-US", Group: "permission", Key: deployCredentialPermListKey, Value: "View deployment credentials"},
+		{Module: deployModuleKey, Locale: "zh-CN", Group: "permission", Key: deployCredentialPermCreateKey, Value: "新增部署凭据"},
+		{Module: deployModuleKey, Locale: "en-US", Group: "permission", Key: deployCredentialPermCreateKey, Value: "Create deployment credentials"},
+		{Module: deployModuleKey, Locale: "zh-CN", Group: "permission", Key: deployCredentialPermUpdateKey, Value: "编辑部署凭据"},
+		{Module: deployModuleKey, Locale: "en-US", Group: "permission", Key: deployCredentialPermUpdateKey, Value: "Update deployment credentials"},
+		{Module: deployModuleKey, Locale: "zh-CN", Group: "permission", Key: deployCredentialPermDeleteKey, Value: "删除部署凭据"},
+		{Module: deployModuleKey, Locale: "en-US", Group: "permission", Key: deployCredentialPermDeleteKey, Value: "Delete deployment credentials"},
 	}
 	for _, seed := range entries {
 		var existingID uint64

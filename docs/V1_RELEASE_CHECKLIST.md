@@ -3,7 +3,7 @@ title: Pantheon-Ops V1 发布检查表
 doc_type: Acceptance
 layer: business
 status: Superseded
-superseded_by: .harness/tasks/2026-11-16-ops-pilot-delivery/plan.md
+superseded_by: .harness/archive/2026-11/tasks/2026-11-16-ops-pilot-delivery/plan.md
 linked_contracts:
   - docs/PROJECT_INHERITANCE.md
 updated_at: 2026-11-16
@@ -13,7 +13,7 @@ updated_at: 2026-11-16
 
 依据：`.harness/evidence/2026-08-19-ops-v1-backlog-closeout/`（2026-08-22 基线 `ee21350` 全部通过）
 
-本文保留八月冻结验收检查点与原始勾选。当前试点状态由[试点交付计划](../.harness/tasks/2026-11-16-ops-pilot-delivery/plan.md)与[任务状态](../.harness/STATUS.md)接管。旧勾选只证明对应历史版本；ArgoCD/Velero 当前已装配，不沿用历史下架结论。当前数据库/SSH/K8s/业务烟测与截图由 C05 重新采证；包、安装与回滚由 C06 承接。生产快照迁移及未签维护冻结仍在独立生产轨道，不自动标通过。
+本文保留八月冻结验收检查点与原始勾选。当前试点状态由[试点交付计划](../.harness/archive/2026-11/tasks/2026-11-16-ops-pilot-delivery/plan.md)与[任务状态](../.harness/STATUS.md)接管。旧勾选只证明对应历史版本；ArgoCD/Velero 当前已装配，不沿用历史下架结论。当前数据库/SSH/K8s/业务烟测与截图由 C05 重新采证；包、安装与回滚由 C06 承接。生产快照迁移及未签维护冻结仍在独立生产轨道，不自动标通过。
 
 ## 1. 编译与测试门禁（全部必过）
 

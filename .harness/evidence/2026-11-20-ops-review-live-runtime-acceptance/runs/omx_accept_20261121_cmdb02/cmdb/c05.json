@@ -1,0 +1,36 @@
+{
+  "runId": "omx_accept_20261121_cmdb02",
+  "phase": "cmdb",
+  "caseId": "c05",
+  "title": "host-collect-positive",
+  "ts": "2026-11-21T00:09:08.763Z",
+  "status": "FAIL",
+  "httpStatus": 200,
+  "businessCode": 200,
+  "assertions": [
+    {
+      "name": "collect accepted",
+      "pass": false,
+      "detail": "collect: HTTP 200, code 500 (cmdbhost.ssh_connect_failed)"
+    },
+    {
+      "name": "no secret echoed in response",
+      "pass": true
+    },
+    {
+      "name": "host detail readable after collect",
+      "pass": true
+    }
+  ],
+  "ids": {},
+  "result": {
+    "collectResponseKeys": [],
+    "hostStatusAfterCollect": "assigned"
+  },
+  "message": null,
+  "redaction": {
+    "secretInResponse": false
+  },
+  "durationMs": 124,
+  "blockedReason": null
+}

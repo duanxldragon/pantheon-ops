@@ -1,0 +1,128 @@
+{
+  "runId": "omx-accept-20261121-k8s33",
+  "phase": "diagnostics-only",
+  "provider": "115.190.251.143 existing k3s",
+  "receipt": {
+    "backendSha256": "bad479fc9817fffcab5253064b5ddf052365fb88fed55bd9d8697157720b971f",
+    "backendPid": 17416,
+    "sourceHead": "a2d69d4a759b5df2b26aaa9d26bdc5175babe9dc",
+    "harnessSha256": "179a7f09e38f90ba6935b8dc11ce53cbd59a4692cac8459ae99b721c76c0b0ff"
+  },
+  "status": "PASS",
+  "cases": [
+    {
+      "id": "k00",
+      "intent": "local Ops readiness before real acceptance",
+      "userModel": "authenticated admin unless stated",
+      "setup": "local Ops; pinned SSH to 115.190.251.143; dedicated namespace",
+      "harness": ".local/acceptance-20261121/k8s-live.py",
+      "expected": "assertions hold",
+      "fixesApplied": [],
+      "cleanup": "owned fixtures tracked in checkpoint.json",
+      "actual": {
+        "httpListenerReady": true,
+        "readinessHttpStatus": 404
+      },
+      "status": "PASS",
+      "calls": [],
+      "durationMs": 141,
+      "evidence": ".harness\\evidence\\2026-11-20-ops-review-live-runtime-acceptance\\k8s\\omx-accept-20261121-k8s33\\k00-20261123-092917.json"
+    },
+    {
+      "id": "k01",
+      "intent": "pinned SSH and CA-verified public API configuration",
+      "userModel": "authenticated admin unless stated",
+      "setup": "local Ops; pinned SSH to 115.190.251.143; dedicated namespace",
+      "harness": ".local/acceptance-20261121/k8s-live.py",
+      "expected": "assertions hold",
+      "fixesApplied": [],
+      "cleanup": "owned fixtures tracked in checkpoint.json",
+      "actual": {
+        "ssh": {
+          "ok": true,
+          "host": "115.190.251.143:22",
+          "user": "root",
+          "password_source": "env:PANTHEON_VERIFY_SSH_PASSWORD",
+          "serverKeyType": "ssh-ed25519",
+          "serverSha256Fingerprint": "SHA256:FhLFRIfRIGotV2tS+sIZWxniie2qG5Xu8H3igYJ8RNU",
+          "knownHostsVerified": true,
+          "knownHostsEntryType": "ssh-ed25519",
+          "knownHostsFiles": [
+            "known_hosts"
+          ]
+        },
+        "provider": "existing k3s",
+        "tlsVerification": true,
+        "server": "https://115.190.251.143:6443",
+        "tlsServerName": "localhost",
+        "kubeconfigPersisted": false
+      },
+      "status": "PASS",
+      "calls": [],
+      "durationMs": 843,
+      "evidence": ".harness\\evidence\\2026-11-20-ops-review-live-runtime-acceptance\\k8s\\omx-accept-20261121-k8s33\\k01-20261123-092917.json"
+    },
+    {
+      "id": "kd01",
+      "intent": "bounded independent read-only provider diagnostics",
+      "userModel": "authenticated admin unless stated",
+      "setup": "local Ops; pinned SSH to 115.190.251.143; dedicated namespace",
+      "harness": ".local/acceptance-20261121/k8s-live.py",
+      "expected": "assertions hold",
+      "fixesApplied": [],
+      "cleanup": "owned fixtures tracked in checkpoint.json",
+      "actual": {
+        "veleroPods": {
+          "exitCode": 0,
+          "stdout": "velero-7865c6d85d-6qvl6   Running   true\n",
+          "truncated": false
+        },
+        "veleroStorage": {
+          "exitCode": 0,
+          "stdout": "default   Available\n",
+          "truncated": false
+        },
+        "veleroDeployment": {
+          "exitCode": 0,
+          "stdout": "velero   1     1\n",
+          "truncated": false
+        },
+        "pvs": {
+          "exitCode": 0,
+          "stdout": "",
+          "truncated": false
+        },
+        "storageClasses": {
+          "exitCode": 0,
+          "stdout": "local-path   rancher.io/local-path\n",
+          "truncated": false
+        }
+      },
+      "status": "PASS",
+      "calls": [],
+      "durationMs": 2172,
+      "evidence": ".harness\\evidence\\2026-11-20-ops-review-live-runtime-acceptance\\k8s\\omx-accept-20261121-k8s33\\kd01-20261123-092917.json"
+    }
+  ],
+  "cleanup": [],
+  "gaps": [
+    "multi-tenant isolation",
+    "Helm chart installation is not implemented",
+    "frontend 10-second timeout",
+    "WebSocket server resource cleanup",
+    "Velero schedule and restore",
+    "Ingress provider changes",
+    "release rollout/rollback",
+    "Velero ConfigMap backup",
+    "non-admin authorization"
+  ],
+  "notRun": [
+    "k03b",
+    "k13",
+    "k16",
+    "k17",
+    "k18",
+    "k19",
+    "k20"
+  ]
+}

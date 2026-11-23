@@ -8,8 +8,8 @@ Ops owns business designs, business acceptance and local inheritance guidance. P
 
 Pilot acceptance remains open as of 2026-11-16. Historical evidence proves only its original scope.
 
-- [Pilot delivery plan](../.harness/tasks/2026-11-16-ops-pilot-delivery/plan.md): six required core packages and four conditional extensions; the canonical execution plan.
-- [Execution queue](../.harness/tasks/2026-11-16-ops-pilot-delivery/EXECUTION_QUEUE.md), [task status](../.harness/STATUS.md), [archive index](../.harness/ARCHIVE.md) and [task packet entry](./harness/tasks/README.md).
+- [Pilot delivery plan](../.harness/archive/2026-11/tasks/2026-11-16-ops-pilot-delivery/plan.md): six required core packages and four conditional extensions; the canonical execution plan.
+- [Execution queue](../.harness/archive/2026-11/tasks/2026-11-16-ops-pilot-delivery/EXECUTION_QUEUE.md), [task status](../.harness/STATUS.md), [archive index](../.harness/ARCHIVE.md) and [task packet entry](./harness/tasks/README.md).
 - [Inheritance](./PROJECT_INHERITANCE.en.md) and [TASK_PACKET_OPS_TEMPLATE.md](./TASK_PACKET_OPS_TEMPLATE.md) ([English companion](./TASK_PACKET_OPS_TEMPLATE.en.md)) for business work and `base -> ops` sync.
 - [Business functional design](./designs/BUSINESS_FUNCTIONAL_DESIGN.md), [target architecture](./designs/BUSINESS_TARGET_ARCHITECTURE_DESIGN.md), [QA acceptance plan](./designs/BUSINESS_QA_ACCEPTANCE_PLAN.md), [test plan](./designs/BUSINESS_TEST_PLAN.md) and [error semantics](./designs/BUSINESS_ERROR_SEMANTICS_APPENDIX.md).
 

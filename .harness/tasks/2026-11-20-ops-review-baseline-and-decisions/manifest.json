@@ -1,0 +1,200 @@
+{
+ "schemaVersion": 1,
+ "taskId": "2026-11-20-ops-review-baseline-and-decisions",
+ "title": "当前基线核实与业务边界决策",
+ "goal": "在当前 HEAD 逐条核实报告、#195 实现及归档 residual，给每项记录仍存在/已修复待验证/被推翻及证据",
+ "primaryLayer": "business/*",
+ "status": "in-progress",
+ "priority": "P1",
+ "deliveryTier": "L2",
+ "parentTask": "2026-11-20-ops-review-remediation",
+ "taskDoc": "docs/harness/tasks/2026-11-20-ops-review-baseline-and-decisions.task.md",
+ "handoffDoc": ".harness/tasks/2026-11-20-ops-review-baseline-and-decisions/HANDOFF.md",
+ "statusDoc": ".harness/tasks/2026-11-20-ops-review-baseline-and-decisions/STATUS.md",
+ "owner": "业务规划负责人 (Claude 执行)",
+ "activation": "core",
+ "dependencies": [],
+ "dependsOn": [],
+ "conditionalDependencies": [],
+ "coordinatesWith": [],
+ "scope": {
+  "in": [
+   "在当前 HEAD 逐条核实报告、#195 实现及归档 residual，给每项记录仍存在/已修复待验证/被推翻及证据",
+   "按业务表四分类登记所有权、租户唯一键、关联与异步执行身份，给 T04/T14 分配迁移编号和文件所有权",
+   "记录多租户为报告给定目标；冻结凭据按资源归属授权方案；Agent 无执行协议时关闭入口并拒绝旧数据启动；资产关系/Pod→Node→VM、Nacos/RocketMQ 与真实 Helm 安装先登记为独立后续能力"
+  ],
+  "out": [
+   "platform/system/*、共享 UI/权限/租户/请求拦截器实现由 pantheon-base 拥有，按正式 foundation release 同步",
+   "未授权生产操作、发布、凭证变更及门禁豁免",
+   "资产关系/Pod→Node→VM、真实 Helm Chart、Nacos/RocketMQ、完整 Agent 协议作为独立后续范围"
+  ]
+ },
+ "dependencyLayers": [
+  "business/*",
+  "inheritance-sync"
+ ],
+ "baseline": {
+  "reportCommit": "444ce8e",
+  "planningCommit": "a2d69d4a759b5df2b26aaa9d26bdc5175babe9dc",
+  "foundationVersion": "pantheon-base-v0.18.9",
+  "foundationCommit": "6316f9b7189c86542424145fa49344ad737e952b",
+  "recheckBeforeImplementation": true
+ },
+ "sourceReview": "docs/reviews/pantheon-ops独立评审与外部报告核实-2026-11-20.md",
+ "sourceChecklist": "docs/reviews/pantheon-ops真实环境验证清单-2026-11-20.md",
+ "findingRefs": [
+  "ARC-001",
+  "NEW-02",
+  "NEW-03",
+  "SUP-08"
+ ],
+ "sourceRefs": [
+  {
+   "path": "docs/reviews/pantheon-ops独立评审与外部报告核实-2026-11-20.md",
+   "line": 318
+  },
+  {
+   "path": "docs/reviews/pantheon-ops独立评审与外部报告核实-2026-11-20.md",
+   "line": 382
+  },
+  {
+   "path": "docs/reviews/pantheon-ops独立评审与外部报告核实-2026-11-20.md",
+   "line": 125
+  },
+  {
+   "path": "docs/reviews/pantheon-ops独立评审与外部报告核实-2026-11-20.md",
+   "line": 193
+  }
+ ],
+ "expectedFiles": {
+  "create": [
+   "docs/harness/tasks/2026-11-20-ops-review-baseline-and-decisions.task.md",
+   ".harness/tasks/2026-11-20-ops-review-baseline-and-decisions/manifest.json",
+   ".harness/tasks/2026-11-20-ops-review-baseline-and-decisions/HANDOFF.md",
+   ".harness/tasks/2026-11-20-ops-review-baseline-and-decisions/STATUS.md",
+   ".harness/evidence/2026-11-20-ops-review-baseline-and-decisions/commands.json",
+   ".harness/evidence/2026-11-20-ops-review-baseline-and-decisions/summary.md",
+   ".harness/evidence/2026-11-20-ops-review-baseline-and-decisions/review.md"
+  ],
+  "modify": [
+   ".harness/tasks/2026-11-20-ops-review-remediation/FINDINGS.json",
+   "docs/designs/BUSINESS_FUNCTIONAL_DESIGN.md",
+   "docs/designs/BUSINESS_K8S_MODULE_DESIGN.md"
+  ],
+  "doNotTouch": [
+   "backend/modules/system/**",
+   "backend/internal/**",
+   "frontend/src/core/**",
+   "frontend/src/api/request.ts",
+   "foundation-release.lock.json",
+   "既有归档原始证据与其他执行者未提交改动"
+  ]
+ },
+ "contractAnchors": [
+  "AGENTS.md",
+  "docs/PROJECT_INHERITANCE.md",
+  "docs/TASK_PACKET_OPS_TEMPLATE.md",
+  "docs/reviews/pantheon-ops独立评审与外部报告核实-2026-11-20.md",
+  "docs/reviews/pantheon-ops真实环境验证清单-2026-11-20.md",
+  "docs/designs/BUSINESS_FUNCTIONAL_DESIGN.md",
+  "docs/designs/BUSINESS_QA_ACCEPTANCE_PLAN.md",
+  "business-overlay.json",
+  "foundation-release.lock.json"
+ ],
+ "harnessProfile": {
+  "template": "custom",
+  "overlay": "pantheon-ops",
+  "qualityProfile": "ui-runtime",
+  "portableFailureClass": "business-review-gap",
+  "ownerLayer": "business/*",
+  "coverageDimensions": [
+   "behaviour",
+   "architecture-fitness",
+   "runtime-quality"
+  ]
+ },
+ "structuralScope": {
+  "affectedSubgraph": [
+   "审查发现 -> 当前业务资产/表/路由 -> 范围决策"
+  ],
+  "boundaryCrossings": [
+   "business/* -> pkg公共契约",
+   "共享缺口 -> Base正式release -> Ops重建"
+  ],
+  "riskNodes": [
+   "ARC-001",
+   "NEW-02",
+   "NEW-03",
+   "SUP-08"
+  ],
+  "graphFocus": [
+   "sensitive-input-flow",
+   "call-depth"
+  ]
+ },
+ "implementationNotes": [
+  "Minimal Complexity Rung: reuse",
+  "审查主基线 444ce8e，当前规划基线 a2d69d4a759b5df2b26aaa9d26bdc5175babe9dc；每包开工核实当前候选，先复用 #195 实现与归档证据再补缺口",
+  "本包状态 planned；命令与运行场景是后续验证计划，执行者须记录真实 cwd/时间/exitCode/skip/源码哈希",
+  "接口/权限/菜单/i18n/schema/seed/fixture/业务overlay 同步关闭；业务 migration 源文件归业务模块，装配副本由重建器生成"
+ ],
+ "implementationPlan": [
+  "核实当前候选和前置合同，逐条对照来源与旧验收，标记已经完成的实现",
+  "先复用现有合同/组件/测试，针对本包反例验证失败路径与状态副作用",
+  "在声明文件范围内完成最小修改，同步权限/i18n/迁移/overlay/fixture",
+  "运行本包验证，保存候选绑定 evidence，findings-first review 后更新状态"
+ ],
+ "acceptanceCriteria": [
+  "全部发现均有当前候选判定和任务归属，已修复项有精确提交及回归依据",
+  "业务表清单覆盖实际表和迁移，逐表分类并分配 T04/T14，无遗漏或重复迁移编号",
+  "输出可执行的凭据归属、Agent 开放状态、资产定位和扩展启用清单，未定产品选项记为假设及待维护者验收"
+ ],
+ "verificationPlan": {
+  "commands": [
+   "node scripts/harness/check-task-packet.mjs --root . docs/harness/tasks/2026-11-20-ops-review-baseline-and-decisions.task.md"
+  ],
+  "runtimeEvidence": [
+   "修复前执行 V1-V5 的本地可用核实；外部环境缺项保留 NOT_RUN"
+  ],
+  "commandWorkingDirectories": {
+   "node scripts/harness/check-task-packet.mjs --root . docs/harness/tasks/2026-11-20-ops-review-baseline-and-decisions.task.md": "."
+  },
+  "environmentRequirements": [
+   "在 backend/ 执行 Go 命令；race 使用 D:\\msys64\\mingw64\\bin，CGO_ENABLED=1 和隔离 MySQL DSN；最终提交门禁执行 go test -race ./...",
+   "在 frontend/ 执行 lint/type-check/build/test:smoke:*；业务 overlay/重建/治理命令在仓库根执行",
+   "UI 前后使用 impeccable 与 Base DESIGN.md，1440px/390px、明暗主题和相关 loading/empty/error/forbidden/submitting/键盘状态必须有 rendered evidence 或显式 gap",
+   "服务端二次确认、路由匹配器、tenant公共扩展和 shutdown 公共接口若缺失，登记 Base 上游任务与 release/消费依赖，不在 Ops override",
+   "只在实际完成验收时关闭任务；缺 provider/凭据/维护者终验保持 gap，安全可逆准备可继续"
+  ]
+ },
+ "runtimeSensitive": true,
+ "humanGates": [
+  "需求/范围偏好、门禁策略与豁免、最终视觉/功能验收按维护者三触点契约处理",
+  "生产窗口/外部凭据操作/正式发布/最终仓库基线替换需已有授权"
+ ],
+ "linkage": {
+  "taskManifest": ".harness/tasks/2026-11-20-ops-review-baseline-and-decisions/manifest.json",
+  "taskDoc": "docs/harness/tasks/2026-11-20-ops-review-baseline-and-decisions.task.md",
+  "evidenceDir": ".harness/evidence/2026-11-20-ops-review-baseline-and-decisions/",
+  "reviewFile": "none",
+  "summaryFile": ".harness/evidence/2026-11-20-ops-review-baseline-and-decisions/summary.md",
+  "changeRef": "none",
+  "planRefs": [
+   ".harness/tasks/2026-11-20-ops-review-remediation/plan.md"
+  ]
+ },
+ "plannedReviewFile": ".harness/evidence/2026-11-20-ops-review-baseline-and-decisions/review.md",
+ "evidenceRequired": [
+  "commands.json 含真实执行状态/cwd/源码及构建身份",
+  "summary.md 记录验收结果、runtime/visual gap 和来源判定",
+  "review.md 为真实 findings-first 审查并含机器可读 linkage；执行时更新 linkage.reviewFile",
+  "修复前执行 V1-V5 的本地可用核实；外部环境缺项保留 NOT_RUN"
+ ],
+ "completionChecklist": [
+  "全部发现均有当前候选判定和任务归属，已修复项有精确提交及回归依据",
+  "业务表清单覆盖实际表和迁移，逐表分类并分配 T04/T14，无遗漏或重复迁移编号",
+  "输出可执行的凭据归属、Agent 开放状态、资产定位和扩展启用清单，未定产品选项记为假设及待维护者验收"
+ ],
+ "rollbackPlan": "优先回退本包可逆代码；数据库按隔离演练过的数据回滚/备份方案处理，multi数据回滚遵循Base合同，生产动作另经授权",
+ "executionStage": "baseline-verified"
+}

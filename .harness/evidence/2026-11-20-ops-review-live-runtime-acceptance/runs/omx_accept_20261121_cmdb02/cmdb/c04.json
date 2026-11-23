@@ -1,0 +1,62 @@
+{
+  "runId": "omx_accept_20261121_cmdb02",
+  "phase": "cmdb",
+  "caseId": "c04",
+  "title": "ssh-probe-baseline-trusted-fingerprint",
+  "ts": "2026-11-21T00:09:07.210Z",
+  "status": "FAIL",
+  "httpStatus": null,
+  "businessCode": null,
+  "assertions": [
+    {
+      "name": "ssh-probe fingerprint ok",
+      "pass": true
+    },
+    {
+      "name": "known_hosts verified",
+      "pass": true
+    },
+    {
+      "name": "host key matches trust anchor",
+      "pass": true
+    },
+    {
+      "name": "probe ok",
+      "pass": false,
+      "detail": "ssh-probe exit 1 "
+    },
+    {
+      "name": "run dir absent before any collect",
+      "pass": false,
+      "detail": "expected true"
+    }
+  ],
+  "ids": {
+    "fingerprint": "SHA256:FhLFRIfRIGotV2tS+sIZWxniie2qG5Xu8H3igYJ8RNU",
+    "serverKeyType": "ssh-ed25519"
+  },
+  "result": {
+    "fingerprint": {
+      "ok": true,
+      "host": "115.190.251.143:22",
+      "user": "root",
+      "password_source": "env:PANTHEON_VERIFY_SSH_PASSWORD",
+      "serverKeyType": "ssh-ed25519",
+      "serverSha256Fingerprint": "SHA256:FhLFRIfRIGotV2tS+sIZWxniie2qG5Xu8H3igYJ8RNU",
+      "knownHostsVerified": true,
+      "knownHostsEntryType": "ssh-ed25519",
+      "knownHostsFiles": [
+        "known_hosts"
+      ]
+    },
+    "probe": {
+      "ok": false,
+      "host": "115.190.251.143:22",
+      "error": "internal error (TypeError), frames=ssh-probe.py:454:<module>/ssh-probe.py:435:main/ssh-probe.py:309:probe"
+    }
+  },
+  "message": null,
+  "redaction": null,
+  "durationMs": 1551,
+  "blockedReason": null
+}

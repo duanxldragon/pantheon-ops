@@ -1,0 +1,22 @@
+{
+  "runId": "omx_accept_20261122_cap",
+  "phase": "cap",
+  "caseId": "cap-filedist-storage-delete",
+  "title": "delete empty storage location (CAP-FILEDIST write)",
+  "ts": "2026-11-21T16:35:21.575Z",
+  "status": "PASS",
+  "httpStatus": 200,
+  "businessCode": 200,
+  "assertions": [
+    {
+      "name": "delete accepted (200) or clean shape",
+      "pass": true
+    }
+  ],
+  "ids": null,
+  "result": null,
+  "message": null,
+  "redaction": null,
+  "durationMs": 18,
+  "blockedReason": null
+}

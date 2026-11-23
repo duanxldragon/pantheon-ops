@@ -4,6 +4,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import {
   Button,
   Card,
+  Checkbox,
   Descriptions,
   Form,
   Input,
@@ -52,6 +53,16 @@ import {
 import '../../../../assets/list-page.css';
 
 const FormItem = Form.Item;
+
+// Explicit, conservative action allow-list groups for namespaces the cluster
+// detail page can create. Each category maps to the binding actions the
+// backend RBAC layer checks for the matching resource writes.
+const NAMESPACE_ACTION_GROUPS: Record<string, string[]> = {
+  configmap: ['configmap:create', 'configmap:delete'],
+  secret: ['secret:create', 'secret:delete'],
+  service: ['service:create', 'service:update', 'service:delete'],
+  workload: ['workload:scale', 'workload:restart'],
+};
 
 const statusColor: Record<string, string> = {
   healthy: 'green',
@@ -458,10 +469,27 @@ export default function ClusterDetail() {
   }, [clusterId, loadDetail, t]);
 
   const handleCreateNamespace = useCallback(async () => {
+    if (!clusterId || !detail) {
+      return;
+    }
+    if (!detail.businessScopeId || !detail.environment) {
+      Message.error(t('business.k8s.namespace.ownershipMissing'));
+      return;
+    }
     setSubmitting(true);
     try {
       const values = await namespaceForm.validate();
-      await createK8sNamespace(clusterId, values);
+      const allowedActions = (values.allowedActions as string[] ?? []).reduce<string[]>(
+        (acc, key: string) => acc.concat(NAMESPACE_ACTION_GROUPS[key] ?? []),
+        [],
+      );
+      await createK8sNamespace(clusterId, {
+        name: values.name,
+        businessScopeId: detail.businessScopeId,
+        environment: detail.environment,
+        allowedActions,
+        labels: values.labels,
+      });
       Message.success(t('common.createSuccess'));
       setNamespaceVisible(false);
       namespaceForm.resetFields();
@@ -469,7 +497,7 @@ export default function ClusterDetail() {
     } finally {
       setSubmitting(false);
     }
-  }, [clusterId, loadNamespaces, namespaceForm, t]);
+  }, [clusterId, detail, loadNamespaces, namespaceForm, t]);
 
   const handleCreateConfigMap = useCallback(async () => {
     setSubmitting(true);
@@ -631,8 +659,33 @@ export default function ClusterDetail() {
         onCancel={() => setNamespaceVisible(false)}
       >
         <Form form={namespaceForm} layout="vertical">
+          <FormItem label={t('business.k8s.namespace.ownership')}>
+            {detail.businessScopeId && detail.environment ? (
+              <Space size={8} wrap>
+                <Tag color="arcoblue">{detail.businessScopeName || '-'}</Tag>
+                <Tag>{t(`business.k8s.cluster.environment.${detail.environment}`)}</Tag>
+              </Space>
+            ) : (
+              <Typography.Text type="warning">{t('business.k8s.namespace.ownershipMissing')}</Typography.Text>
+            )}
+          </FormItem>
           <FormItem field="name" label={t('business.k8s.namespace.name')} rules={[{ required: true, message: t('common.required') }]}>
             <Input placeholder={t('business.k8s.namespace.namePlaceholder')} />
+          </FormItem>
+          <FormItem
+            field="allowedActions"
+            label={t('business.k8s.namespace.allowedActions')}
+            extra={t('business.k8s.namespace.allowedActionsHint')}
+            rules={[{ required: true, type: 'array', message: t('business.k8s.namespace.allowedActionsRequired') }]}
+          >
+            <Checkbox.Group
+              options={[
+                { label: t('business.k8s.namespace.action.configmap'), value: 'configmap' },
+                { label: t('business.k8s.namespace.action.secret'), value: 'secret' },
+                { label: t('business.k8s.namespace.action.service'), value: 'service' },
+                { label: t('business.k8s.namespace.action.workload'), value: 'workload' },
+              ]}
+            />
           </FormItem>
           <Space>
             <Button onClick={() => setNamespaceVisible(false)}>{t('common.cancel')}</Button>

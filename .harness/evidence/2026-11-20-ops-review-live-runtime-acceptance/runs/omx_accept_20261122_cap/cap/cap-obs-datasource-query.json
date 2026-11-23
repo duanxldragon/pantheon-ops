@@ -1,0 +1,22 @@
+{
+  "runId": "omx_accept_20261122_cap",
+  "phase": "cap",
+  "caseId": "cap-obs-datasource-query",
+  "title": "datasource query probe (CAP-OBSERVABILITY)",
+  "ts": "2026-11-21T16:35:22.883Z",
+  "status": "PASS",
+  "httpStatus": 400,
+  "businessCode": 400,
+  "assertions": [
+    {
+      "name": "structured result returned within 20s probe window",
+      "pass": true
+    }
+  ],
+  "ids": null,
+  "result": 400,
+  "message": "param.invalid",
+  "redaction": null,
+  "durationMs": 122,
+  "blockedReason": null
+}

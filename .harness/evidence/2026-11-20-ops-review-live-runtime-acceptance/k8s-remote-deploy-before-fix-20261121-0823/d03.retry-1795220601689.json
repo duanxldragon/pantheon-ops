@@ -1,0 +1,88 @@
+{
+  "runId": "omx_accept_20261121_cmdb02",
+  "phase": "deploy",
+  "caseId": "d03",
+  "title": "preview SSH execute persisted logs remote marker",
+  "ts": "2026-11-21T00:23:20.217Z",
+  "status": "PASS",
+  "httpStatus": 200,
+  "businessCode": 200,
+  "assertions": [
+    {
+      "name": "deploy/tasks created",
+      "pass": true
+    },
+    {
+      "name": "preview accepted",
+      "pass": true
+    },
+    {
+      "name": "preview resolves one target",
+      "pass": true
+    },
+    {
+      "name": "preview contains reviewed intent",
+      "pass": true
+    },
+    {
+      "name": "start accepted",
+      "pass": true
+    },
+    {
+      "name": "task reached success",
+      "pass": true
+    },
+    {
+      "name": "exact one host succeeded",
+      "pass": true
+    },
+    {
+      "name": "real remote marker matches run",
+      "pass": true
+    },
+    {
+      "name": "persisted logs readable",
+      "pass": true
+    },
+    {
+      "name": "persisted stdout contains run token",
+      "pass": true
+    },
+    {
+      "name": "persisted stderr contains run token",
+      "pass": true
+    },
+    {
+      "name": "no secret in detail or logs",
+      "pass": true
+    }
+  ],
+  "ids": {
+    "positiveTaskId": 2
+  },
+  "result": {
+    "status": "success",
+    "hostCount": 1,
+    "successCount": 1,
+    "marker": {
+      "ok": true,
+      "found": true,
+      "containsMatched": true,
+      "sizeBytes": 34,
+      "stdoutTruncated": false,
+      "stderrTruncated": false
+    },
+    "logFields": [
+      "items",
+      "redaction",
+      "total",
+      "truncated"
+    ],
+    "stepCount": 1,
+    "logAttemptCount": 1
+  },
+  "message": null,
+  "redaction": null,
+  "durationMs": 1471,
+  "blockedReason": null
+}

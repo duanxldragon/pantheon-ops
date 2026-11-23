@@ -7,6 +7,7 @@ import (
 	"io"
 	"net"
 	"os"
+	"path"
 	"path/filepath"
 	"strings"
 	"sync"
@@ -192,8 +193,12 @@ func (c *SFTPClient) UploadContext(ctx context.Context, localPath, remotePath st
 	}
 	defer func() { _ = localFile.Close() }()
 
-	// Create remote directory
-	remoteDir := filepath.Dir(remotePath)
+	// Create remote directory.
+	// Use path.Dir (slash-separated), never filepath.Dir: remote paths are
+	// POSIX on both Windows and Linux agents, and pkg/sftp's MkdirAll only
+	// splits on "/" — a Windows filepath result would bake literal backslashes
+	// into a phantom directory and the upload would fail as transferFailed.
+	remoteDir := path.Dir(remotePath)
 	if err := client.MkdirAll(remoteDir); err != nil {
 		if ctx.Err() != nil {
 			return ctx.Err()

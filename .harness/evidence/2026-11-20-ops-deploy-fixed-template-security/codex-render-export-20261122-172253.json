@@ -1,0 +1,8 @@
+{
+  "purpose": "Generate actual Redis scripts from bound source; no shell execution",
+  "exitCode": 0,
+  "capturedAt": "2026-11-22T17:23:04.1804408+08:00",
+  "command": "go test -race -count=1 -timeout=90s -overlay <task overlay> -run ^TestCodexExportRedisArtifacts$ ./modules/business/deploy",
+  "cwd": "backend",
+  "log": "codex-render-export-20261122-172253.log"
+}

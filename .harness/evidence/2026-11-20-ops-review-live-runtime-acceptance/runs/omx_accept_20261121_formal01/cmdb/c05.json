@@ -1,0 +1,42 @@
+{
+  "runId": "omx_accept_20261121_formal01",
+  "phase": "cmdb",
+  "caseId": "c05",
+  "title": "host-collect-positive",
+  "ts": "2026-11-21T11:58:07.431Z",
+  "status": "FAIL",
+  "httpStatus": 200,
+  "businessCode": 400,
+  "assertions": [
+    {
+      "name": "collect accepted",
+      "pass": false,
+      "detail": "collect: HTTP 200, code 400 (common.param_invalid)"
+    },
+    {
+      "name": "no secret echoed in response",
+      "pass": true
+    },
+    {
+      "name": "host detail readable after collect",
+      "pass": false,
+      "detail": "detail: HTTP 200, code 400 (common.param_invalid)"
+    },
+    {
+      "name": "real system info collected",
+      "pass": false,
+      "detail": "expected true"
+    }
+  ],
+  "ids": {},
+  "result": {
+    "collectResponseKeys": [],
+    "collectionFingerprint": "SHA256:wGNI4IdTLBLFIs+lwsG1uGbRgJRxZ9bHmU2A/CM9Gb4"
+  },
+  "message": null,
+  "redaction": {
+    "secretInResponse": false
+  },
+  "durationMs": 33,
+  "blockedReason": null
+}

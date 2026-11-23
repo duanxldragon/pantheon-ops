@@ -36,6 +36,7 @@ func shellQuoteSingle(value string) string {
 //nolint:revive // the exported helper name keeps the deploy domain prefix for API clarity.
 type DeployTaskSecret struct {
 	ID              uint64 `gorm:"primaryKey;autoIncrement" json:"id"`
+	TenantID        uint64 `gorm:"column:tenant_id;not null;default:0" json:"-"`
 	TaskID          uint64 `gorm:"not null;index:uk_deploy_task_secret,unique" json:"taskId"`
 	SecretKey       string `gorm:"size:128;not null;index:uk_deploy_task_secret,unique" json:"-"`
 	SecretEncrypted string `gorm:"type:text;not null" json:"-"`

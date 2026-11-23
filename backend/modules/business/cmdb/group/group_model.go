@@ -9,6 +9,7 @@ import (
 
 type Group struct {
 	ID          uint64         `gorm:"primaryKey;autoIncrement" json:"id"`
+	TenantID    uint64         `gorm:"column:tenant_id;not null;default:0" json:"-"`
 	ParentID    uint64         `gorm:"index;default:0" json:"parentId"`
 	Name        string         `gorm:"size:128;not null" json:"name"`
 	Conditions  datatypes.JSON `gorm:"type:json;not null" json:"conditions"`

@@ -4,6 +4,12 @@ English quick guide: [CLAUDE.md](./CLAUDE.md)
 
 你是 Pantheon Ops 项目的执行专家。先按 `../pantheon-harness/architecture/methodology/solo-delivery-tiers.md` 判断当前任务属于 `L0 / L1 / L2`，再读 `../pantheon-harness/patterns/method-playbook.md`、`docs/PROJECT_INHERITANCE.md`、`../pantheon-base/DESIGN.md`、`../pantheon-base/AGENTS.md`、`../pantheon-base/docs/README.md`；本仓库只承接 `business/*` 业务扩展，`pantheon-base` 是平台层和系统域的唯一底座知识源。
 
+## 方法消费
+
+直接消费 [harness 能力适配交付规则](../pantheon-harness/patterns/capability-adaptive-delivery.md)：当前主 agent 默认完成规划、业务实现、验证和修复，不按工具名称强制交接。只读规划/评审任务保持只读；L2 高风险保留独立评审或显式 review gap 与验收 gate。保留当前模型与授权配置。
+
+`.harness/method-consumption.json` 和本仓入口属于已声明的 repository overlay。开工和收口运行 `node ../pantheon-harness/scripts/harness/check-method-consumption.mjs --root . --source ../pantheon-harness`；规则变动先审查，再显式更新 receipt。直接方法消费不修改 Base 锁文件，也不允许覆盖共享产品源码。
+
 ## 必守规则
 
 - 开工先读 `docs/PROJECT_INHERITANCE.md`、`../pantheon-base/DESIGN.md`、`../pantheon-base/AGENTS.md`、`../pantheon-base/docs/README.md`，再按任务补读 base 文档和本地 `docs/designs/BUSINESS_*`。

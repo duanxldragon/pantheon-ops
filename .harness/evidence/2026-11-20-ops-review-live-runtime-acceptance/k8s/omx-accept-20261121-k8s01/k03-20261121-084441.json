@@ -1,0 +1,59 @@
+{
+  "id": "k03",
+  "intent": "register real cluster and credential redaction",
+  "userModel": "authenticated admin unless stated",
+  "setup": "local Ops; pinned SSH to 115.190.251.143; dedicated namespace",
+  "harness": ".local/acceptance-20261121/k8s-live.py",
+  "expected": "assertions hold",
+  "fixesApplied": [],
+  "cleanup": "owned fixtures tracked in checkpoint.json",
+  "status": "FAIL",
+  "errorType": "AssertionError",
+  "error": "API rejected: /business/k8s/clusters code=500",
+  "calls": [
+    {
+      "method": "GET",
+      "path": "/business/k8s/clusters?keyword=omx-accept-20261121-k8s01",
+      "httpStatus": 200,
+      "code": 200,
+      "message": "success",
+      "durationMs": 16,
+      "data": {
+        "items": [],
+        "total": 0,
+        "page": 1,
+        "pageSize": 10
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/business/bizscope",
+      "httpStatus": 200,
+      "code": 200,
+      "message": "success",
+      "durationMs": 31,
+      "data": {
+        "id": 5,
+        "code": "omx-accept-20261121-k8s01",
+        "name": "omx-accept-20261121-k8s01",
+        "owner": "",
+        "environment": "dev",
+        "status": "active",
+        "deptId": 0,
+        "remark": "",
+        "createdAt": "2026-11-21T08:44:43+08:00"
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/business/k8s/clusters",
+      "httpStatus": 200,
+      "code": 500,
+      "message": "k8s.cluster.create_failed",
+      "durationMs": 16,
+      "data": null
+    }
+  ],
+  "durationMs": 63,
+  "evidence": ".harness\\evidence\\2026-11-20-ops-review-live-runtime-acceptance\\k8s\\omx-accept-20261121-k8s01\\k03-20261121-084441.json"
+}

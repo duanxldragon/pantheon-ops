@@ -4,7 +4,7 @@
 
 ### V2.0-O4 业务迁移增量（2026-11-09，实施中）
 
-以下步骤仅规定本次已授权测试环境的验收目标，不重放下文历史系统迁移。具体表形状和索引以 [资源矩阵 §4](../designs/TENANT_RESOURCE_SCOPE_MATRIX.md) 为准，执行和证据由 [O4 实施计划](../../.harness/tasks/2026-11-07-ops-formal-queue-foundation-gaps/o4-tenant-implementation-plan.md) 跟踪；实际命令和恢复实现审查通过前不能声称可部署。
+以下步骤仅规定本次已授权测试环境的验收目标，不重放下文历史系统迁移。具体表形状和索引以 [资源矩阵 §4](../designs/TENANT_RESOURCE_SCOPE_MATRIX.md) 为准，执行和证据由 O4 实施计划 跟踪；实际命令和恢复实现审查通过前不能声称可部署。
 
 1. 保留既有数据库、失败证据和数据源密文摘要；使用独立测试库演练空库链和保留式版本36升级。历史来源归属0，不按部门、用户名或创建人推断私人租户。
 2. 从校验封存身份的 Base candidate 和 Ops overlay 装配业务迁移37，通过正式 golang-migrate 执行；AutoMigrate、手改生成 SQL 和伪造版本记录不能替代迁移。

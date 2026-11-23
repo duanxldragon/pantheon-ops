@@ -11,16 +11,40 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// packagePermKeys is the deployed package permission set. It mirrors the seeded
-// C/F menu perms in deploy_seed.go (§seedDeployMenus) so a drift here fails the
-// test instead of leaving a page/API silent gap.
-var packagePermKeys = []string{
+// deployPermKeys is the deploy permission set bound by
+// registerDeployPermissionRoutes. It mirrors the seeded F menu perms in
+// deploy_seed.go (§seedDeployMenus), excluding two keys that are seeded but
+// intentionally unbound: business:deploy:task:export (log_download.go
+// registers it separately) and business:deploy:task:detail (the GET detail
+// route stays denied until Base ships the keyMatch2 static-route guard).
+// A drift here fails the test instead of leaving a page/API silent gap.
+var deployPermKeys = []string{
 	"business:deploy:package:view",
 	"business:deploy:package:create",
 	"business:deploy:package:update",
 	"business:deploy:package:delete",
 	"business:deploy:package:export",
 	"business:deploy:package:import",
+	"business:deploy:template:list",
+	"business:deploy:template:create",
+	"business:deploy:template:update",
+	"business:deploy:template:delete",
+	"business:deploy:template:export",
+	"business:deploy:template:import",
+	"business:deploy:task:view",
+	"business:deploy:task:create",
+	"business:deploy:task:update",
+	"business:deploy:task:delete",
+	"business:deploy:task:start",
+	"business:deploy:task:pause",
+	"business:deploy:task:resume",
+	"business:deploy:task:retry",
+	"business:deploy:task:cancel",
+	"business:deploy:task:mark-result",
+	"business:deploy:credential:list",
+	"business:deploy:credential:create",
+	"business:deploy:credential:update",
+	"business:deploy:credential:delete",
 }
 
 // casbinModel matches pkg/database/casbin.go's released model exactly. Testing
@@ -47,7 +71,7 @@ func TestDeployRegisteredActionsDoNotGrantOtherEndpoints(t *testing.T) {
 		actual[permissionroutes.Route{Method: route.Method, Path: route.Path}] = true
 	}
 	registeredKeys := 0
-	for _, key := range packagePermKeys {
+	for _, key := range deployPermKeys {
 		policies := permissionroutes.Lookup(key)
 		if len(policies) == 0 {
 			t.Fatalf("safe existing deploy key has no API bindings: %s", key)
@@ -100,8 +124,8 @@ func TestDeployRegisteredActionsDoNotGrantOtherEndpoints(t *testing.T) {
 			}
 		})
 	}
-	if registeredKeys != len(packagePermKeys) {
-		t.Fatalf("unexpected deploy package key coverage: %d", registeredKeys)
+	if registeredKeys != len(deployPermKeys) {
+		t.Fatalf("unexpected deploy key coverage: %d", registeredKeys)
 	}
 }
 

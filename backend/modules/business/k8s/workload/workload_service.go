@@ -9,6 +9,7 @@ import (
 
 	"github.com/duanxldragon/pantheon-base/backend/modules/business/k8s/cluster"
 	"github.com/duanxldragon/pantheon-base/backend/modules/business/k8s/namespace"
+	"github.com/duanxldragon/pantheon-base/backend/modules/business/k8s/pkg"
 	"github.com/duanxldragon/pantheon-base/backend/pkg/common"
 
 	corev1 "k8s.io/api/core/v1"
@@ -39,6 +40,13 @@ func NewWorkloadService(clusterSvc *cluster.ClusterService, namespaceSvc *namesp
 	return &WorkloadService{clusterSvc: clusterSvc, namespaceSvc: namespaceSvc}
 }
 
+// RequireLogAccess proves the namespace is bound to the scoped cluster owner
+// before a log stream is opened; log visibility itself stays gated by the
+// platform permission on the route.
+func (s *WorkloadService) RequireLogAccess(ctx context.Context, clusterID uint64, namespaceName string, dataScope *common.DataScopeReq) error {
+	return s.namespaceSvc.RequireReadForClusterWithContext(ctx, clusterID, namespaceName, dataScope)
+}
+
 // List returns deployments, statefulsets and daemonsets for a cluster,
 // optionally filtered by namespace and kind. Kind accepts "deployment",
 // "statefulset" or "daemonset" (case-insensitive); an empty kind returns all.
@@ -56,7 +64,7 @@ func (s *WorkloadService) List(query WorkloadListQuery, dataScope *common.DataSc
 		ns = metav1.NamespaceAll
 	}
 
-	options := metav1.ListOptions{Limit: normalizeListLimit(query.Limit), Continue: query.ContinueToken}
+	options := metav1.ListOptions{Limit: pkg.NormalizeListLimit(query.Limit), Continue: query.ContinueToken}
 	var items []WorkloadItem
 	var continueToken string
 	switch normalizeKind(query.Kind) {
@@ -176,18 +184,9 @@ func listAllWorkloadKinds(ctx context.Context, clientset kubernetes.Interface, n
 	return items, nil
 }
 
-func normalizeListLimit(limit int64) int64 {
-	if limit <= 0 {
-		return 100
-	}
-	if limit > 500 {
-		return 500
-	}
-	return limit
-}
-
-// GetPods returns the pods owned by a workload, matched by a label selector.
-func (s *WorkloadService) GetPods(clusterID uint64, namespace, kind, name string, dataScope *common.DataScopeReq) (*PodListResponse, error) {
+// GetPods returns one bounded page of the pods owned by a workload, matched by
+// a label selector; continueToken walks the next page.
+func (s *WorkloadService) GetPods(clusterID uint64, namespace, kind, name string, limit int64, continueToken string, dataScope *common.DataScopeReq) (*PodListResponse, error) {
 	clientset, err := s.clusterSvc.GetClientset(clusterID, dataScope)
 	if err != nil {
 		return nil, err
@@ -201,7 +200,7 @@ func (s *WorkloadService) GetPods(clusterID uint64, namespace, kind, name string
 		return nil, err
 	}
 
-	podList, err := clientset.CoreV1().Pods(namespace).List(ctx, metav1.ListOptions{LabelSelector: selector})
+	podList, err := clientset.CoreV1().Pods(namespace).List(ctx, metav1.ListOptions{LabelSelector: selector, Limit: pkg.NormalizeListLimit(limit), Continue: continueToken})
 	if err != nil {
 		return nil, errors.New("k8s.workload.pods_failed")
 	}
@@ -217,7 +216,7 @@ func (s *WorkloadService) GetPods(clusterID uint64, namespace, kind, name string
 			CreatedAt: p.CreationTimestamp.Format(time.RFC3339),
 		})
 	}
-	return &PodListResponse{Items: items, Total: len(items)}, nil
+	return &PodListResponse{Items: items, Total: len(items), ContinueToken: podList.Continue}, nil
 }
 
 // Scale adjusts the replica count of a deployment or statefulset.
@@ -227,6 +226,9 @@ func (s *WorkloadService) Scale(clusterID uint64, namespace, kind, name string, 
 
 // ScaleWithResourceVersion scales a workload when its resource version matches.
 func (s *WorkloadService) ScaleWithResourceVersion(clusterID uint64, namespace, kind, name string, replicas int32, expectedResourceVersion string, dataScope *common.DataScopeReq) error {
+	if normalizeKind(kind) == "" {
+		return common.NewBadRequest("k8s.workload.unsupported_kind")
+	}
 	if s.namespaceSvc == nil {
 		return errors.New("k8s.namespace.binding_required")
 	}
@@ -241,10 +243,21 @@ func (s *WorkloadService) ScaleWithResourceVersion(clusterID uint64, namespace, 
 	ctx, cancel := context.WithTimeout(context.Background(), syncTimeout)
 	defer cancel()
 
-	if normalizeKind(kind) == workloadKindStatefulSet {
+	return scaleWorkload(ctx, clientset, namespace, kind, name, replicas, expectedResourceVersion)
+}
+
+// scaleWorkload dispatches to the resource kind the caller named. A DaemonSet
+// has no replica count (it runs one pod per eligible node) and any other kind
+// must not fall through to a same-name Deployment.
+func scaleWorkload(ctx context.Context, clientset kubernetes.Interface, namespace, kind, name string, replicas int32, expectedResourceVersion string) error {
+	switch normalizeKind(kind) {
+	case workloadKindDaemonSet:
+		return common.NewBadRequest("k8s.workload.unsupported_kind")
+	case workloadKindStatefulSet:
 		return scaleStatefulSet(ctx, clientset, namespace, name, replicas, expectedResourceVersion)
+	default:
+		return scaleDeployment(ctx, clientset, namespace, name, replicas, expectedResourceVersion)
 	}
-	return scaleDeployment(ctx, clientset, namespace, name, replicas, expectedResourceVersion)
 }
 
 // scaleDeployment patches the replica count of a deployment, refusing a stale
@@ -300,6 +313,9 @@ func (s *WorkloadService) Restart(clusterID uint64, namespace, kind, name string
 
 // RestartWithResourceVersion restarts a workload when its resource version matches.
 func (s *WorkloadService) RestartWithResourceVersion(clusterID uint64, namespace, kind, name, expectedResourceVersion string, dataScope *common.DataScopeReq) error {
+	if normalizeKind(kind) == "" {
+		return common.NewBadRequest("k8s.workload.unsupported_kind")
+	}
 	if s.namespaceSvc == nil {
 		return errors.New("k8s.namespace.binding_required")
 	}
@@ -315,8 +331,23 @@ func (s *WorkloadService) RestartWithResourceVersion(clusterID uint64, namespace
 	defer cancel()
 
 	patch := fmt.Sprintf(`{"spec":{"template":{"metadata":{"annotations":{"kubectl.kubernetes.io/restartedAt":"%s"}}}}}`, time.Now().UTC().Format(time.RFC3339))
+	return restartWorkload(ctx, clientset, namespace, kind, name, expectedResourceVersion, patch)
+}
 
+// restartWorkload patches the pod template of the named kind only. An unknown
+// kind must never fall through to a same-name Deployment.
+func restartWorkload(ctx context.Context, clientset kubernetes.Interface, namespace, kind, name, expectedResourceVersion, patch string) error {
+	var err error
 	switch normalizeKind(kind) {
+	case workloadKindDaemonSet:
+		ds, getErr := clientset.AppsV1().DaemonSets(namespace).Get(ctx, name, metav1.GetOptions{})
+		if getErr != nil {
+			return errors.New("k8s.workload.not_found")
+		}
+		if expectedResourceVersion != "" && ds.ResourceVersion != expectedResourceVersion {
+			return common.NewConflict(msgResourceVersionConflict)
+		}
+		_, err = clientset.AppsV1().DaemonSets(namespace).Patch(ctx, name, types.StrategicMergePatchType, []byte(patch), metav1.PatchOptions{})
 	case workloadKindStatefulSet:
 		st, getErr := clientset.AppsV1().StatefulSets(namespace).Get(ctx, name, metav1.GetOptions{})
 		if getErr != nil {

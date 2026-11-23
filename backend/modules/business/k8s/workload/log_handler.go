@@ -4,7 +4,12 @@ import (
 	"bufio"
 	"context"
 	"net/http"
+	"net/url"
+	"os"
+	"slices"
 	"strconv"
+	"strings"
+	"sync"
 	"time"
 
 	"github.com/duanxldragon/pantheon-base/backend/pkg/common"
@@ -22,12 +27,56 @@ const (
 	logTailLines  = 200
 )
 
+// logWriter serializes every frame on a connection. gorilla/websocket panics
+// when two goroutines write concurrently, and the ping ticker and the log
+// stream both write here.
+type logWriter struct {
+	mu   sync.Mutex
+	conn *websocket.Conn
+}
+
+func (w *logWriter) write(messageType int, data []byte) error {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+	_ = w.conn.SetWriteDeadline(time.Now().Add(logWriteWait))
+	return w.conn.WriteMessage(messageType, data)
+}
+
 var logUpgrader = websocket.Upgrader{
 	ReadBufferSize:  1024,
 	WriteBufferSize: 1024,
-	// Token is already validated by TokenAuthMiddleware (cookie); allowing
-	// cross-origin here is acceptable for the internal ops platform.
-	CheckOrigin: func(*http.Request) bool { return true },
+	// A browser always sends Origin for WebSocket handshakes, so the allowlist
+	// is the CSRF boundary that keeps a foreign page from opening a stream with
+	// the victim's cookie session. Non-browser clients send no Origin and
+	// cannot be driven by a foreign page.
+	CheckOrigin: websocketOriginAllowed,
+}
+
+// websocketOriginAllowed accepts an absent Origin (non-browser clients) and an
+// Origin listed in PANTHEON_ALLOWED_ORIGINS. Without a configured allowlist it
+// falls back to same-origin so a deployed console keeps working.
+func websocketOriginAllowed(r *http.Request) bool {
+	origin := strings.TrimSpace(r.Header.Get("Origin"))
+	if origin == "" {
+		return true
+	}
+	if allowed := parseAllowedOrigins(os.Getenv("PANTHEON_ALLOWED_ORIGINS")); len(allowed) > 0 {
+		normalized := strings.TrimSuffix(strings.ToLower(origin), "/")
+		return slices.Contains(allowed, normalized)
+	}
+	parsed, err := url.Parse(origin)
+	return err == nil && parsed.Host != "" && strings.EqualFold(parsed.Host, r.Host)
+}
+
+func parseAllowedOrigins(raw string) []string {
+	var allowed []string
+	for entry := range strings.SplitSeq(raw, ",") {
+		entry = strings.TrimSuffix(strings.ToLower(strings.TrimSpace(entry)), "/")
+		if entry != "" {
+			allowed = append(allowed, entry)
+		}
+	}
+	return allowed
 }
 
 // PodLogs streams a pod's logs over WebSocket. It uses the client-go pod log
@@ -48,6 +97,18 @@ func (h *WorkloadHandler) PodLogs(c *gin.Context) {
 	}
 	container := c.Query("container")
 
+	// Frame origin, ownership and provider work in that order so a rejected
+	// handshake never opens a namespace or provider stream.
+	if !websocketOriginAllowed(c.Request) {
+		common.Fail(c, common.CodeForbidden, "k8s.workload.logs_origin_denied")
+		return
+	}
+	ctx, cancel := context.WithCancel(c.Request.Context())
+	defer cancel()
+	if err := h.svc.RequireLogAccess(ctx, clusterID, namespace, common.GetDataScope(c)); err != nil {
+		common.FailWithError(c, common.CodeForbidden, err, "k8s.workload.logs_forbidden")
+		return
+	}
 	clientset, err := h.svc.clusterSvc.GetClientset(clusterID, common.GetDataScope(c))
 	if err != nil {
 		common.FailWithError(c, common.CodeError, err, "k8s.workload.pods_failed")
@@ -68,6 +129,8 @@ func (h *WorkloadHandler) PodLogs(c *gin.Context) {
 		return nil
 	})
 
+	writer := &logWriter{conn: conn}
+
 	// Ping ticker to keep the connection alive.
 	pingDone := make(chan struct{})
 	go func() {
@@ -76,8 +139,7 @@ func (h *WorkloadHandler) PodLogs(c *gin.Context) {
 		for {
 			select {
 			case <-ticker.C:
-				_ = conn.SetWriteDeadline(time.Now().Add(logWriteWait))
-				if err := conn.WriteMessage(websocket.PingMessage, nil); err != nil {
+				if err := writer.write(websocket.PingMessage, nil); err != nil {
 					return
 				}
 			case <-pingDone:
@@ -87,8 +149,11 @@ func (h *WorkloadHandler) PodLogs(c *gin.Context) {
 	}()
 	defer close(pingDone)
 
-	// Ignore inbound messages (client sends none); just drain to detect close.
+	// Drain inbound messages to detect close. A closed client must cancel the
+	// provider stream: Follow=true otherwise blocks forever and leaks the
+	// handler goroutine plus the API-server connection.
 	go func() {
+		defer cancel()
 		for {
 			if _, _, err := conn.ReadMessage(); err != nil {
 				return
@@ -96,19 +161,19 @@ func (h *WorkloadHandler) PodLogs(c *gin.Context) {
 		}
 	}()
 
-	streamPodLogs(conn, clientset, namespace, podName, container)
+	streamPodLogs(ctx, writer, clientset, namespace, podName, container)
 }
 
-func streamPodLogs(conn *websocket.Conn, clientset kubernetes.Interface, namespace, podName, container string) {
+func streamPodLogs(ctx context.Context, writer *logWriter, clientset kubernetes.Interface, namespace, podName, container string) {
 	tail := int64(logTailLines)
 	req := clientset.CoreV1().Pods(namespace).GetLogs(podName, &corev1.PodLogOptions{
 		Container: container,
 		Follow:    true,
 		TailLines: &tail,
 	})
-	stream, err := req.Stream(context.Background())
+	stream, err := req.Stream(ctx)
 	if err != nil {
-		_ = conn.WriteMessage(websocket.TextMessage, []byte("failed to open pod log stream: "+err.Error()))
+		_ = writer.write(websocket.TextMessage, []byte("failed to open pod log stream: "+err.Error()))
 		return
 	}
 	defer func() {
@@ -118,9 +183,11 @@ func streamPodLogs(conn *websocket.Conn, clientset kubernetes.Interface, namespa
 	scanner := bufio.NewScanner(stream)
 	scanner.Buffer(make([]byte, 0, 64*1024), 1024*1024)
 	for scanner.Scan() {
-		_ = conn.SetWriteDeadline(time.Now().Add(logWriteWait))
-		if err := conn.WriteMessage(websocket.TextMessage, scanner.Bytes()); err != nil {
+		if err := writer.write(websocket.TextMessage, scanner.Bytes()); err != nil {
 			return
 		}
+	}
+	if err := scanner.Err(); err != nil && ctx.Err() == nil {
+		_ = writer.write(websocket.TextMessage, []byte("pod log stream interrupted: "+err.Error()))
 	}
 }

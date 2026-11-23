@@ -73,9 +73,9 @@ business/*
 
 - docs/harness/tasks/2026-11-16-ops-service-deploy-integrity.task.md
 - .harness/tasks/2026-11-16-ops-service-deploy-integrity/manifest.json
-- .harness/evidence/2026-11-16-ops-service-deploy-integrity/summary.md
-- .harness/evidence/2026-11-16-ops-service-deploy-integrity/review.md
-- .harness/evidence/2026-11-16-ops-service-deploy-integrity/commands.json
+- .harness/archive/2026-11/evidence/2026-11-16-ops-service-deploy-integrity/summary.md
+- .harness/archive/2026-11/evidence/2026-11-16-ops-service-deploy-integrity/review.md
+- .harness/archive/2026-11/evidence/2026-11-16-ops-service-deploy-integrity/commands.json
 
 ### Modify
 
@@ -135,8 +135,8 @@ business/*
 - OpenSpec Change: none
 - Superpowers Plan: none
 - Task Manifest: .harness/tasks/2026-11-16-ops-service-deploy-integrity/manifest.json
-- Evidence Directory: .harness/evidence/2026-11-16-ops-service-deploy-integrity/
-- Review File: .harness/evidence/2026-11-16-ops-service-deploy-integrity/review.md
+- Evidence Directory: .harness/archive/2026-11/evidence/2026-11-16-ops-service-deploy-integrity/
+- Review File: .harness/archive/2026-11/evidence/2026-11-16-ops-service-deploy-integrity/review.md
 - Change Ref: none
 - Plan References: .harness/tasks/2026-11-16-ops-pilot-delivery/plan.md
 
@@ -177,13 +177,13 @@ Status: in-progress. Original In/Out and acceptance retained. C01 changes requir
 
 Status: in-progress. 父 context 初始 claim 和四种队列恢复已补同freeze认证：中央真实MySQL/CGO race exit0，744源运行内稳定，Deploy6.737s。先前Goexit0/runnerexit1的Helm并行漂移记录保留；旧Retire候选为历史。
 
-Original acceptance and dependencies remain unchanged. Whole-package acceptance is incomplete; see [summary](../../../.harness/evidence/2026-11-16-ops-service-deploy-integrity/summary.md) and [progress receipt](../../../.harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-progress-20261118.json).
+Original acceptance and dependencies remain unchanged. Whole-package acceptance is incomplete; see [summary](../../../.harness/archive/2026-11/evidence/2026-11-16-ops-service-deploy-integrity/summary.md) and [progress receipt](../../../.harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-progress-20261118.json).
 
 ## 2026-11-19T00:11:15.272Z Verified continuation checkpoint
 
 Status: in-progress. 父context初始claim/四种队列恢复修订已获3文件独立COMMENT/PASS、无新问题；冻结窄Deploy6.737s/3顶层6场景证据和首次Go0/runner1源漂移历史保留。完整CGO/race当前748后端源通过。
 
-当前3文件独立COMMENT/PASS；原C01四条验收及维护者gate仍未通过。 Original acceptance and human gates remain unmet. See [summary](../../../.harness/evidence/2026-11-16-ops-service-deploy-integrity/summary.md) and [structured progress](../../../.harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-progress-final-20261118.json).
+当前3文件独立COMMENT/PASS；原C01四条验收及维护者gate仍未通过。 Original acceptance and human gates remain unmet. See [summary](../../../.harness/archive/2026-11/evidence/2026-11-16-ops-service-deploy-integrity/summary.md) and [structured progress](../../../.harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-progress-final-20261118.json).
 
 ## Result — History Closeout 2026-11-20
 

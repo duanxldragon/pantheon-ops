@@ -1,0 +1,40 @@
+{
+  "taskId": "2026-11-20-ops-review-live-runtime-acceptance",
+  "recordedDate": "2026-11-21",
+  "provenance": "Observed tools.exec_command outputs; this record does not claim business acceptance",
+  "scope": {
+    "application": "local Pantheon Ops",
+    "remoteProvider": "115.190.251.143:22",
+    "remotePurpose": "SSH deployment verification from CMDB onward",
+    "remoteUsername": "root",
+    "credentialHandling": "DPAPI ciphertext under ignored task-local directory; no secret values in evidence"
+  },
+  "connection": {
+    "status": "PASS",
+    "authentication": "password",
+    "hostKeyVerified": true,
+    "hostKeyFingerprint": "SHA256:FhLFRIfRIGotV2tS+sIZWxniie2qG5Xu8H3igYJ8RNU",
+    "remoteSystem": "Linux 6.8.0-55-generic",
+    "remoteIdentity": "root",
+    "remoteCommand": "uname -sr; id -un",
+    "exitCode": 0,
+    "sideEffects": "none; read-only"
+  },
+  "candidateBuild": {
+    "status": "PASS",
+    "cwd": "backend",
+    "command": "go build -buildvcs=false -mod=readonly -o ../.local/acceptance-20261121/pantheon-ops.exe ./cmd/server",
+    "exitCode": 0,
+    "goVersion": "go1.26.11",
+    "sourceCommit": "a2d69d4a759b5df2b26aaa9d26bdc5175babe9dc",
+    "backendFrontendLockWorktreeChanges": "none at build verification",
+    "binarySha256": "1c51aa48b65670f123df76c2f6d78366b75ef4f201019a40de923c80bb7b0fd8"
+  },
+  "frontendBuild": {"status": "PASS", "command": "npm run build", "cwd": "frontend", "exitCode": 0, "includes": ["prebuild contract checks", "tsc -b", "vite build"]},
+  "frontendLint": {"status": "PASS_WITH_WARNING", "command": "npm run lint", "cwd": "frontend", "exitCode": 0, "errors": 0, "warnings": 1, "warningFile": "frontend/src/modules/business/observability/AlertCenter.tsx:159"},
+  "businessOverlayContract": {"status": "PASS", "command": "npm run check:business-overlay", "exitCode": 0, "declaredPaths": 55},
+  "businessOverlayTests": {"status": "PASS", "command": "npm run test:business-overlay", "exitCode": 0, "tests": 59, "passed": 59, "failed": 0, "skipped": 0, "firstAttempt": "57 passed, 2 failed because sandbox denied Go cache access; same command passed with approved cache access"},
+  "runtimeBusinessAcceptance": "NOT_RUN",
+  "visualAcceptance": "NOT_RUN",
+  "scriptReview": {"status": "CHANGES_REQUIRED", "report": "ssh-probe-review-01.md"}
+}

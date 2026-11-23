@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "hashFormat": "sha256-utf8-lf",
+  "source": "../pantheon-harness",
+  "methodVersion": "1.5.0",
+  "files": {
+    "patterns/capability-adaptive-delivery.md": "6a6fd7a1031484e42751a45515f866800afba3536b8d6aac042b9a1bc8c93ee9",
+    "patterns/method-playbook.md": "2fc79f3fdc98491ae89bd5263f2681b03cfada3b9387f162ea5e50bb28aeb70f",
+    "patterns/context-engineering-protocol.md": "8b9000c8880feea8b21e62d5af01bd6869d00569a454ebc49153021063f33eaa",
+    "patterns/execution-guardrails.md": "3f3296799aa6837372b0c51aa084f5a0d471b7f661cda559af52522a6fed059a",
+    "architecture/methodology/workflow-routing.md": "35e75eec4a2318b22e5a51571865b8f81a8f2e26cba7f54db7e427c867d268ed",
+    "architecture/methodology/solo-delivery-tiers.md": "e85af4caa95d8d331558a8cbd6db3cbcfa7004247489f190036f91cc101a82e9",
+    "architecture/harness/review-loop-spec.md": "34117f83fb7c62981b6e1dac0caffba3188b34e4b9228aa18791f4fd6f9a7dbf"
+  },
+  "entrypoints": [
+    "AGENTS.md",
+    "CLAUDE.md"
+  ]
+}

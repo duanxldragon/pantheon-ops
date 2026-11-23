@@ -14,7 +14,7 @@ English version: [LOWCODE_GENERATOR_GUIDE.en.md](./LOWCODE_GENERATOR_GUIDE.en.md
 
 ## V2.0-O4 平面业务租户生成（实施中）
 
-本次增量以 [租户合同 §2.7](../contracts/TENANT_CONTRACT_V1.md) 和 [O4 计划](../../.harness/tasks/2026-11-07-ops-formal-queue-foundation-gaps/o4-tenant-implementation-plan.md) 为准，完整实现、渲染和正式消费仍待验收。只有业务模块的 `templateVersion: "v2"` 可采用 `dataScopeMode: "tenant"`；旧 V1 和既有范围保留。tenant 与 `enableDataScope` 独立，关闭 DataScope 也必须保留租户谓词。调用方声明的 TenantID/tenant_id 字段、系统域租户模板及尚未支持的关系形状必须拒绝。
+本次增量以 [租户合同 §2.7](../contracts/TENANT_CONTRACT_V1.md) 和 O4 计划 为准，完整实现、渲染和正式消费仍待验收。只有业务模块的 `templateVersion: "v2"` 可采用 `dataScopeMode: "tenant"`；旧 V1 和既有范围保留。tenant 与 `enableDataScope` 独立，关闭 DataScope 也必须保留租户谓词。调用方声明的 TenantID/tenant_id 字段、系统域租户模板及尚未支持的关系形状必须拒绝。
 
 V2 产出服务器注入的归属、租户前导索引、各 CRUD/options 的租户谓词和 required bootstrap。默认关闭 AutoMigrate 时必须执行生成的 BootstrapFunc；开发模式执行 MigrateFunc。所有 required 阶段成功后才注册路由，失败阻止进程就绪。旧模块不会通过重新生成自动转换为租户模块，需另行评审版本化迁移。
 

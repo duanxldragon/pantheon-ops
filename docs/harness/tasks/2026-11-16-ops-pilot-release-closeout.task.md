@@ -73,9 +73,9 @@ business/*
 
 - docs/harness/tasks/2026-11-16-ops-pilot-release-closeout.task.md
 - .harness/tasks/2026-11-16-ops-pilot-release-closeout/manifest.json
-- .harness/evidence/2026-11-16-ops-pilot-release-closeout/summary.md
-- .harness/evidence/2026-11-16-ops-pilot-release-closeout/review.md
-- .harness/evidence/2026-11-16-ops-pilot-release-closeout/commands.json
+- .harness/archive/2026-11/evidence/2026-11-16-ops-pilot-release-closeout/summary.md
+- .harness/archive/2026-11/evidence/2026-11-16-ops-pilot-release-closeout/review.md
+- .harness/archive/2026-11/evidence/2026-11-16-ops-pilot-release-closeout/commands.json
 
 ### Modify
 
@@ -140,8 +140,8 @@ business/*
 - OpenSpec Change: none
 - Superpowers Plan: none
 - Task Manifest: .harness/tasks/2026-11-16-ops-pilot-release-closeout/manifest.json
-- Evidence Directory: .harness/evidence/2026-11-16-ops-pilot-release-closeout/
-- Review File: .harness/evidence/2026-11-16-ops-pilot-release-closeout/review.md
+- Evidence Directory: .harness/archive/2026-11/evidence/2026-11-16-ops-pilot-release-closeout/
+- Review File: .harness/archive/2026-11/evidence/2026-11-16-ops-pilot-release-closeout/review.md
 - Change Ref: none
 - Plan References: .harness/tasks/2026-11-16-ops-pilot-delivery/plan.md
 
@@ -178,13 +178,13 @@ in-progress；只在依赖与实际验收完成后转 completed。
 
 Status: in-progress. 本地交付计划/checklist已覆盖4条原标准；8项依赖交付操作均 not-run。准备不表示已经执行安装/升级/回滚。
 
-Original acceptance and dependencies remain unchanged. Whole-package acceptance is incomplete; see [summary](../../../.harness/evidence/2026-11-16-ops-pilot-release-closeout/summary.md) and [progress receipt](../../../.harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-progress-20261118.json).
+Original acceptance and dependencies remain unchanged. Whole-package acceptance is incomplete; see [summary](../../../.harness/archive/2026-11/evidence/2026-11-16-ops-pilot-release-closeout/summary.md) and [progress receipt](../../../.harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-progress-20261118.json).
 
 ## 2026-11-19T00:11:15.272Z Verified continuation checkpoint
 
 Status: in-progress. 本地交付计划/checklist保留4条原标准和新增明确交付标准；8项实际交付操作not-run。正式暂存重建、source-bound编译与预览重启已记录，不等于独立安装/升级/回滚。
 
-交付准备独立评审及独立执行者安装/升级/回滚和最终维护者验收PENDING。 Original acceptance and human gates remain unmet. See [summary](../../../.harness/evidence/2026-11-16-ops-pilot-release-closeout/summary.md) and [structured progress](../../../.harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-progress-final-20261118.json).
+交付准备独立评审及独立执行者安装/升级/回滚和最终维护者验收PENDING。 Original acceptance and human gates remain unmet. See [summary](../../../.harness/archive/2026-11/evidence/2026-11-16-ops-pilot-release-closeout/summary.md) and [structured progress](../../../.harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-progress-final-20261118.json).
 
 ## Result — History Closeout 2026-11-20
 

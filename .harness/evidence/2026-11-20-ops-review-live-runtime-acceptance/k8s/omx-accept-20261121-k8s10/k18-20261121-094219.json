@@ -1,0 +1,26 @@
+{
+  "id": "k18",
+  "intent": "real image release idempotency and rollback",
+  "userModel": "authenticated admin unless stated",
+  "setup": "local Ops; pinned SSH to 115.190.251.143; dedicated namespace",
+  "harness": ".local/acceptance-20261121/k8s-live.py",
+  "expected": "assertions hold",
+  "fixesApplied": [],
+  "cleanup": "owned fixtures tracked in checkpoint.json",
+  "status": "FAIL",
+  "errorType": "AssertionError",
+  "error": "API rejected: /business/k8s/releases code=500",
+  "calls": [
+    {
+      "method": "POST",
+      "path": "/business/k8s/releases",
+      "httpStatus": 200,
+      "code": 500,
+      "message": "k8s.release.apply_failed",
+      "durationMs": 141,
+      "data": null
+    }
+  ],
+  "durationMs": 141,
+  "evidence": ".harness\\evidence\\2026-11-20-ops-review-live-runtime-acceptance\\k8s\\omx-accept-20261121-k8s10\\k18-20261121-094219.json"
+}

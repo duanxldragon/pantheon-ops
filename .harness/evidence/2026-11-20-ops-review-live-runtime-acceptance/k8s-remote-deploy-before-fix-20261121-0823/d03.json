@@ -1,0 +1,17 @@
+{
+  "runId": "omx_accept_20261121_cmdb02",
+  "phase": "deploy",
+  "caseId": "d03",
+  "title": "preview SSH execute persisted logs remote marker",
+  "ts": "2026-11-21T00:22:11.413Z",
+  "status": "BLOCKED",
+  "httpStatus": null,
+  "businessCode": null,
+  "assertions": [],
+  "ids": {},
+  "result": null,
+  "message": null,
+  "redaction": null,
+  "durationMs": 0,
+  "blockedReason": "no marker package"
+}

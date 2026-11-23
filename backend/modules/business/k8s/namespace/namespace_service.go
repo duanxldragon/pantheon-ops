@@ -129,6 +129,30 @@ func (s *NamespaceService) WithWriteForClusterWithContext(ctx context.Context, c
 	})
 }
 
+// RequireReadForClusterWithContext proves a namespace is bound to the scoped
+// cluster owner. Reads carry no action allow-list entry, so ownership is the
+// only check here and the platform permission still gates the route.
+func (s *NamespaceService) RequireReadForClusterWithContext(ctx context.Context, clusterID uint64, name string, dataScope *common.DataScopeReq) error {
+	if s.clusterSvc == nil {
+		return common.ErrDatabaseNotInitialized
+	}
+	if ctx == nil {
+		ctx = context.Background()
+	}
+	cluster, err := s.clusterSvc.GetByIDWithContext(ctx, clusterID, dataScope)
+	if err != nil {
+		return err
+	}
+	binding, err := s.bindingWithContext(ctx, clusterID, name)
+	if err != nil {
+		return err
+	}
+	if cluster.BusinessScopeID == 0 || binding.BusinessScopeID != cluster.BusinessScopeID || strings.TrimSpace(cluster.Environment) == "" || binding.Environment != cluster.Environment {
+		return common.NewForbidden("k8s.namespace.binding_invalid")
+	}
+	return nil
+}
+
 func requireBindingAction(binding *NamespaceBinding, action string) error {
 	var actions []string
 	if err := json.Unmarshal([]byte(binding.AllowedActions), &actions); err != nil {

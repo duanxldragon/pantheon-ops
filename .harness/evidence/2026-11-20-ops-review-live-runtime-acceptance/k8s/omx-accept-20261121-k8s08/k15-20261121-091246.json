@@ -1,0 +1,26 @@
+{
+  "id": "k15",
+  "intent": "owned resources cleanup and independent absence",
+  "userModel": "authenticated admin unless stated",
+  "setup": "local Ops; pinned SSH to 115.190.251.143; dedicated namespace",
+  "harness": ".local/acceptance-20261121/k8s-live.py",
+  "expected": "assertions hold",
+  "fixesApplied": [],
+  "cleanup": "owned fixtures tracked in checkpoint.json",
+  "status": "FAIL",
+  "errorType": "AssertionError",
+  "error": "API rejected: /system/user/batch-status code=500",
+  "calls": [
+    {
+      "method": "POST",
+      "path": "/system/user/batch-status",
+      "httpStatus": 200,
+      "code": 500,
+      "message": "param.invalid",
+      "durationMs": 47,
+      "data": null
+    }
+  ],
+  "durationMs": 47,
+  "evidence": ".harness\\evidence\\2026-11-20-ops-review-live-runtime-acceptance\\k8s\\omx-accept-20261121-k8s08\\k15-20261121-091246.json"
+}

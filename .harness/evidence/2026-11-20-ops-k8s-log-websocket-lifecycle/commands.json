@@ -1,0 +1,49 @@
+{
+  "schemaVersion": 1,
+  "taskId": "2026-11-20-ops-k8s-log-websocket-lifecycle",
+  "repo": "pantheon-ops",
+  "evidenceState": "exercised",
+  "agent": {
+    "tool": "claude-code",
+    "adapter": "windows"
+  },
+  "candidate": {
+    "baselineReportCommit": "444ce8e",
+    "planningCommit": "a2d69d4a759b5df2b26aaa9d26bdc5175babe9dc",
+    "worktree": "uncommitted",
+    "foundation": "pantheon-base-v0.18.9"
+  },
+  "commands": [
+    {
+      "command": "go test -count=1 -v -run 'TestLogWriterSerializesConcurrentFrames|TestWebsocketOriginAllowed|TestWebsocketOriginSameOriginFallback' ./modules/business/k8s/workload/",
+      "cwd": "backend",
+      "status": "passed",
+      "notes": "Single-writer websocket protocol plus Origin allowlist semantics (allowlisted, trailing slash, foreign, null, absent origin + same-host fallback)."
+    },
+    {
+      "command": "go test -count=1 ./modules/business/k8s/workload/",
+      "cwd": "backend",
+      "status": "passed",
+      "notes": "Whole workload package after log-handler changes."
+    },
+    {
+      "command": "go test -count=1 -p 1 -timeout 20m ./modules/business/k8s/...",
+      "cwd": "backend",
+      "status": "passed",
+      "durationMs": 250000,
+      "notes": "Real MySQL DSN via PANTHEON_TEST_DSN (redacted); 11/11 packages ok."
+    }
+  ],
+  "knownGaps": [
+    "Goroutine baseline/leak evidence after browser tab close not collected on this candidate.",
+    "Backpressure on slow clients (bounded queue / narrow channel) not exercised at runtime.",
+    "Reconnect-after-provider-error rendered evidence absent; k8s browser smoke not run (frontend dev server reaped for low system memory)."
+  ],
+  "linkage": {
+    "taskPacket": "docs/harness/tasks/2026-11-20-ops-k8s-log-websocket-lifecycle.task.md",
+    "evidenceDir": ".harness/evidence/2026-11-20-ops-k8s-log-websocket-lifecycle/",
+    "reviewFile": ".harness/evidence/2026-11-20-ops-k8s-log-websocket-lifecycle/review.md",
+    "changeRef": "none",
+    "planRefs": [".harness/tasks/2026-11-20-ops-review-remediation/plan.md"]
+  }
+}

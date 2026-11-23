@@ -1,0 +1,156 @@
+{
+  "taskId": "2026-11-20-ops-review-live-runtime-acceptance",
+  "reviewer": "Codex /root",
+  "reviewedAt": "2026-11-22T08:07:25.580023+00:00",
+  "decision": "changes-required",
+  "taskStatusCounts": {
+    "planned": 15,
+    "in-progress": 3
+  },
+  "taskStatuses": [
+    {
+      "taskId": "2026-11-20-ops-argocd-ownership-and-webhook",
+      "status": "planned"
+    },
+    {
+      "taskId": "2026-11-20-ops-business-permissions-and-task-visibility",
+      "status": "planned"
+    },
+    {
+      "taskId": "2026-11-20-ops-core-business-tenant-isolation",
+      "status": "planned"
+    },
+    {
+      "taskId": "2026-11-20-ops-deploy-credential-ownership-and-ui",
+      "status": "planned"
+    },
+    {
+      "taskId": "2026-11-20-ops-deploy-fixed-template-security",
+      "status": "in-progress"
+    },
+    {
+      "taskId": "2026-11-20-ops-deploy-recovery-and-remote-execution",
+      "status": "planned"
+    },
+    {
+      "taskId": "2026-11-20-ops-deploy-template-and-task-experience",
+      "status": "planned"
+    },
+    {
+      "taskId": "2026-11-20-ops-extension-and-async-tenant-isolation",
+      "status": "planned"
+    },
+    {
+      "taskId": "2026-11-20-ops-filedist-durable-lifecycle",
+      "status": "planned"
+    },
+    {
+      "taskId": "2026-11-20-ops-k8s-client-lifecycle-and-config-safety",
+      "status": "planned"
+    },
+    {
+      "taskId": "2026-11-20-ops-k8s-log-websocket-lifecycle",
+      "status": "planned"
+    },
+    {
+      "taskId": "2026-11-20-ops-k8s-resource-authorization-and-mutations",
+      "status": "planned"
+    },
+    {
+      "taskId": "2026-11-20-ops-review-baseline-and-decisions",
+      "status": "planned"
+    },
+    {
+      "taskId": "2026-11-20-ops-review-delivery-and-closeout",
+      "status": "planned"
+    },
+    {
+      "taskId": "2026-11-20-ops-review-docs-and-test-governance",
+      "status": "planned"
+    },
+    {
+      "taskId": "2026-11-20-ops-review-live-runtime-acceptance",
+      "status": "in-progress"
+    },
+    {
+      "taskId": "2026-11-20-ops-review-remediation",
+      "status": "in-progress"
+    },
+    {
+      "taskId": "2026-11-20-ops-service-deploy-business-closure",
+      "status": "planned"
+    }
+  ],
+  "newDelivery": "2026-11-20-ops-deploy-fixed-template-security",
+  "newDeliveryAccepted": false,
+  "independentTests": {
+    "topLevelPassed": 18,
+    "topLevelFailed": 2,
+    "subtestFailed": 4,
+    "skipped": 0,
+    "exitCode": 1,
+    "databaseBehaviorVerified": false
+  },
+  "findings": [
+    {
+      "id": "R2-01",
+      "severity": "HIGH",
+      "confidence": "confirmed",
+      "file": "backend/modules/business/deploy/deploy_fixed_templates.go",
+      "line": 478,
+      "title": "Redis format arguments shifted; invalid config and bare directory command",
+      "evidence": [
+        "TestCodexReviewRedisGeneratedConfig/without-password",
+        "TestCodexReviewRedisGeneratedConfig/with-password"
+      ],
+      "observed": "port receives passwordWrite, dir receives port, logfile receives dataRoot, EOF is followed by installRoot as a bare command",
+      "expected": "port 6379, dir /data/redis/data, logfile /data/redis/logs/redis.log; password writer after EOF",
+      "suggestion": "Reorder fmt arguments to match placeholders and assert complete config fields and heredoc boundaries."
+    },
+    {
+      "id": "R2-02",
+      "severity": "HIGH",
+      "confidence": "confirmed",
+      "file": "backend/modules/business/deploy/deploy_fixed_templates.go",
+      "line": 156,
+      "title": "Repeated slash aliases bypass dangerous uninstall root rejection",
+      "evidence": [
+        "TestCodexReviewRepeatedSlashUninstallRoot/__etc",
+        "TestCodexReviewRepeatedSlashUninstallRoot/_usr__local"
+      ],
+      "observed": "//etc and /usr//local accepted; generated uninstall script contains rm -rf",
+      "impactBoundary": "Generated scripts were not executed; deletion is a Linux path-semantics risk, not an observed deletion.",
+      "suggestion": "Apply POSIX normalization or reject duplicate separators consistently at creation, snapshot and rendering boundaries; add alias regression cases."
+    }
+  ],
+  "sourceBindings": [
+    {
+      "receipt": ".harness/evidence/2026-11-20-ops-review-live-runtime-acceptance/deploy-final-receipt.json",
+      "checkedFiles": 59,
+      "mismatches": [
+        "backend/modules/business/deploy/deploy_fixed_safety_test.go",
+        "backend/modules/business/deploy/deploy_fixed_templates.go",
+        "backend/modules/business/deploy/deploy_service.go",
+        "backend/modules/business/deploy/deploy_service_test.go",
+        "backend/modules/business/deploy/service_link_http_test.go"
+      ]
+    },
+    {
+      "receipt": ".harness/evidence/2026-11-20-ops-review-live-runtime-acceptance/k8s-final-receipt.json",
+      "checkedFiles": 74,
+      "mismatches": []
+    }
+  ],
+  "existingBinarySha256": "5cd98af198657a667a5deb0016fe3884265f3d96222da212b5c46ab40ad3e368",
+  "newRuntimeAcceptance": false,
+  "detailedReview": ".harness/evidence/2026-11-20-ops-deploy-fixed-template-security/codex-round2-review.json",
+  "previousReview": ".harness/evidence/2026-11-20-ops-review-live-runtime-acceptance/codex-progress-review-20261122.json",
+  "remaining": [
+    "T02 two blocking defects and repaired-candidate validation",
+    "V1-V8 and old ten-package residual acceptance",
+    "T03 authorized-route usability and multi-tenant isolation",
+    "CAP provider-success assertions and source/binary receipt",
+    "Velero restore/schedule, Ingress/install, WebSocket lifecycle, UI",
+    "Full repository race, formal rebuild/drift and cleanup recheck"
+  ]
+}

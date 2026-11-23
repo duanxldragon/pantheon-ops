@@ -1,0 +1,22 @@
+{
+  "runId": "omx_accept_20261122_cap",
+  "phase": "cap",
+  "caseId": "cap-service-instance-reconcile",
+  "title": "reconcile instance (CAP-SERVICE write)",
+  "ts": "2026-11-21T16:35:21.421Z",
+  "status": "PASS",
+  "httpStatus": 200,
+  "businessCode": 200,
+  "assertions": [
+    {
+      "name": "reconcile returns structured result",
+      "pass": true
+    }
+  ],
+  "ids": null,
+  "result": 200,
+  "message": null,
+  "redaction": null,
+  "durationMs": 12,
+  "blockedReason": null
+}

@@ -1,0 +1,87 @@
+{
+  "id": "k16",
+  "intent": "Helm registration CRUD without false deployment status",
+  "userModel": "authenticated admin unless stated",
+  "setup": "local Ops; pinned SSH to 115.190.251.143; dedicated namespace",
+  "harness": ".local/acceptance-20261121/k8s-live.py",
+  "expected": "assertions hold",
+  "fixesApplied": [],
+  "cleanup": "owned fixtures tracked in checkpoint.json",
+  "actual": {
+    "registration": {
+      "id": 1,
+      "name": "omx-accept-20261121-k8s35",
+      "clusterId": 2,
+      "namespace": "omx-accept-20261121-k8s35",
+      "chart": "acceptance-registration",
+      "version": "1",
+      "status": "registered",
+      "storedStatus": "registered",
+      "effectiveStatus": "registered",
+      "createdAt": "2026-11-23T09:34:24.849+08:00",
+      "updatedAt": "2026-11-23T09:34:24.849+08:00"
+    },
+    "scope": "metadata CRUD; product has no Helm chart installation execution"
+  },
+  "status": "PASS",
+  "calls": [
+    {
+      "method": "POST",
+      "path": "/business/k8s/helm/releases",
+      "httpStatus": 200,
+      "code": 200,
+      "message": "success",
+      "durationMs": 16,
+      "data": {
+        "id": 1,
+        "name": "omx-accept-20261121-k8s35",
+        "clusterId": 2,
+        "namespace": "omx-accept-20261121-k8s35",
+        "chart": "acceptance-registration",
+        "version": "1",
+        "status": "registered",
+        "storedStatus": "registered",
+        "effectiveStatus": "registered",
+        "createdAt": "2026-11-23T09:34:24.849+08:00",
+        "updatedAt": "2026-11-23T09:34:24.849+08:00"
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/business/k8s/helm/releases?clusterId=2",
+      "httpStatus": 200,
+      "code": 200,
+      "message": "success",
+      "durationMs": 15,
+      "data": {
+        "items": [
+          {
+            "id": 1,
+            "name": "omx-accept-20261121-k8s35",
+            "clusterId": 2,
+            "namespace": "omx-accept-20261121-k8s35",
+            "chart": "acceptance-registration",
+            "version": "1",
+            "status": "registered",
+            "storedStatus": "registered",
+            "effectiveStatus": "registered",
+            "createdAt": "2026-11-23T09:34:24.849+08:00",
+            "updatedAt": "2026-11-23T09:34:24.849+08:00"
+          }
+        ],
+        "total": 1
+      }
+    },
+    {
+      "method": "DELETE",
+      "path": "/business/k8s/helm/releases/1",
+      "httpStatus": 200,
+      "code": 200,
+      "message": "success",
+      "durationMs": 16,
+      "data": null
+    }
+  ],
+  "durationMs": 47,
+  "evidence": ".harness\\evidence\\2026-11-20-ops-review-live-runtime-acceptance\\k8s\\omx-accept-20261121-k8s35\\k16-20261123-093416.json"
+}

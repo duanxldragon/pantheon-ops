@@ -1,0 +1,8 @@
+{
+  "capturedAt": "2026-11-22T17:18:41.9373659+08:00",
+  "exitCode": 0,
+  "command": "tenantmigration up",
+  "log": "codex-fresh-migration-20261122-171833.log",
+  "database": "ops_acceptance_formal_20261122_codex",
+  "oldDatabasePreserved": "ops_acceptance_formal_20261121"
+}

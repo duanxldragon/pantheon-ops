@@ -1,0 +1,39 @@
+{
+  "runId": "omx_accept_20261121_cmdb02",
+  "phase": "deploy",
+  "caseId": "d03",
+  "title": "preview SSH execute persisted logs remote marker",
+  "ts": "2026-11-21T11:51:39.220Z",
+  "status": "FAIL",
+  "httpStatus": 409,
+  "businessCode": 409,
+  "assertions": [
+    {
+      "name": "deploy/tasks recorded fixture owned and readable",
+      "pass": true
+    },
+    {
+      "name": "preview accepted",
+      "pass": false,
+      "detail": "preview: HTTP 409, code 409 (business.deploy.preview.conflict)"
+    },
+    {
+      "name": "preview resolves one target",
+      "pass": false,
+      "detail": "expected true"
+    },
+    {
+      "name": "preview contains reviewed intent",
+      "pass": false,
+      "detail": "expected true"
+    }
+  ],
+  "ids": {
+    "positiveTaskId": 2
+  },
+  "result": null,
+  "message": "no reviewed intent; refused start",
+  "redaction": null,
+  "durationMs": 34,
+  "blockedReason": null
+}

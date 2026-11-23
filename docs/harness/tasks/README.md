@@ -2,9 +2,9 @@
 
 Current program: [2026-11-16-ops-pilot-delivery.task.md](./2026-11-16-ops-pilot-delivery.task.md).
 
-- [Canonical plan](../../../.harness/tasks/2026-11-16-ops-pilot-delivery/plan.md)
-- [Execution queue](../../../.harness/tasks/2026-11-16-ops-pilot-delivery/EXECUTION_QUEUE.md)
-- [Machine state](../../../.harness/tasks/2026-11-16-ops-pilot-delivery/manifest.json)
+- [Canonical plan](../../../.harness/archive/2026-11/tasks/2026-11-16-ops-pilot-delivery/plan.md)
+- [Execution queue](../../../.harness/archive/2026-11/tasks/2026-11-16-ops-pilot-delivery/EXECUTION_QUEUE.md)
+- [Machine state](../../../.harness/archive/2026-11/tasks/2026-11-16-ops-pilot-delivery/manifest.json)
 - [Current status](../../../.harness/STATUS.md)
 - [Archive index](../../../.harness/ARCHIVE.md)
 

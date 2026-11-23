@@ -1,0 +1,62 @@
+{
+  "id": "k12",
+  "intent": "real Pod logs over WebSocket",
+  "userModel": "authenticated admin unless stated",
+  "setup": "local Ops; pinned SSH to 115.190.251.143; dedicated namespace",
+  "harness": ".local/acceptance-20261121/k8s-live.py",
+  "expected": "assertions hold",
+  "fixesApplied": [],
+  "cleanup": "owned fixtures tracked in checkpoint.json",
+  "actual": {
+    "pod": "accept-workload-dd5c7848c-nv6t4",
+    "logMarkerMatched": true,
+    "clientClosed": true,
+    "gap": "server goroutine/provider stream cancellation requires separate resource observation"
+  },
+  "status": "PASS",
+  "calls": [
+    {
+      "method": "GET",
+      "path": "/business/k8s/clusters/6/workloads/omx-accept-20261121-k8s10/Deployment/accept-workload/pods",
+      "httpStatus": 200,
+      "code": 200,
+      "message": "success",
+      "durationMs": 93,
+      "data": {
+        "items": [
+          {
+            "name": "accept-workload-855f68b7c-bldxh",
+            "status": "Pending",
+            "nodeName": "iv-yedenmmwhsqc6iu4z5p6",
+            "restarts": 0,
+            "createdAt": "2026-11-21T09:42:27+08:00"
+          },
+          {
+            "name": "accept-workload-dd5c7848c-579cc",
+            "status": "Pending",
+            "nodeName": "iv-yedenmmwhsqc6iu4z5p6",
+            "restarts": 0,
+            "createdAt": "2026-11-21T09:42:27+08:00"
+          },
+          {
+            "name": "accept-workload-dd5c7848c-nv6t4",
+            "status": "Running",
+            "nodeName": "iv-yedenmmwhsqc6iu4z5p6",
+            "restarts": 0,
+            "createdAt": "2026-11-21T09:42:24+08:00"
+          },
+          {
+            "name": "accept-workload-dd5c7848c-ztm28",
+            "status": "Pending",
+            "nodeName": "iv-yedenmmwhsqc6iu4z5p6",
+            "restarts": 0,
+            "createdAt": "2026-11-21T09:42:25+08:00"
+          }
+        ],
+        "total": 4
+      }
+    }
+  ],
+  "durationMs": 156,
+  "evidence": ".harness\\evidence\\2026-11-20-ops-review-live-runtime-acceptance\\k8s\\omx-accept-20261121-k8s10\\k12-20261121-094219.json"
+}

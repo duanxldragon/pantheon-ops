@@ -41,6 +41,7 @@ import { getGroupList, type GroupRow } from '../cmdb/group/api';
 import DeployTargetSelector from '../deploy/task/DeployTargetSelector';
 import type { DeployTargetResolution } from '../deploy/api';
 import PasswordInput from '../../../components/patterns/forms/PasswordInput';
+import SecretTextArea from '../../../components/patterns/forms/SecretTextArea';
 import { isTaskActive, TASK_STATUSES, taskStatusColor } from './taskState';
 import { buildCreateTaskPayload, type CreateTaskFormValues } from './createTaskPayload';
 import { FILE_CHOICE_PAGE_SIZE, useFileChoices } from './useFileChoices';
@@ -838,7 +839,7 @@ export default function FiledistList() {
                       label={t('business.filedist.create.privateKey')}
                       rules={[{ required: true }]}
                     >
-                      <Input.TextArea autoComplete="off" autoSize={{ minRows: 3, maxRows: 6 }} />
+                      <SecretTextArea autoComplete="off" autoSize={{ minRows: 3, maxRows: 6 }} />
                     </Form.Item>
                   )}
                   <Form.Item

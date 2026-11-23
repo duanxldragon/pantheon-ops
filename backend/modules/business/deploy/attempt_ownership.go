@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log/slog"
+	"runtime/debug"
 	"sort"
 	"sync"
 	"time"
@@ -557,7 +559,18 @@ func (s *DeployService) runOwnedHost(parent context.Context, task DeployTask, ho
 	}
 	stop := inner.maintainOwnership(o)
 	defer stop()
-	runErr := inner.executeAsyncHostAttempt(ctx, task, host, req, actor)
+	// A panicking executor would otherwise take down the whole server: the
+	// attempt runs on a background goroutine, outside gin's recovery. Convert
+	// it to a failed host result so the task stays visible and settleable.
+	runErr := func() (err error) {
+		defer func() {
+			if r := recover(); r != nil {
+				slog.Error("deploy executor panic recovered", "task_id", task.ID, "task_host_id", host.ID, "panic", r, "stack", string(debug.Stack()))
+				err = fmt.Errorf("business.deploy.executor.panic: %v", r)
+			}
+		}()
+		return inner.executeAsyncHostAttempt(ctx, task, host, req, actor)
+	}()
 	if err := o.check(); err != nil {
 		return false, err
 	}

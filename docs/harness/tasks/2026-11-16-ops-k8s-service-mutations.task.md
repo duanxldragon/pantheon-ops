@@ -73,9 +73,9 @@ business/*
 
 - docs/harness/tasks/2026-11-16-ops-k8s-service-mutations.task.md
 - .harness/tasks/2026-11-16-ops-k8s-service-mutations/manifest.json
-- .harness/evidence/2026-11-16-ops-k8s-service-mutations/summary.md
-- .harness/evidence/2026-11-16-ops-k8s-service-mutations/review.md
-- .harness/evidence/2026-11-16-ops-k8s-service-mutations/commands.json
+- .harness/archive/2026-11/evidence/2026-11-16-ops-k8s-service-mutations/summary.md
+- .harness/archive/2026-11/evidence/2026-11-16-ops-k8s-service-mutations/review.md
+- .harness/archive/2026-11/evidence/2026-11-16-ops-k8s-service-mutations/commands.json
 
 ### Modify
 
@@ -133,8 +133,8 @@ business/*
 - OpenSpec Change: none
 - Superpowers Plan: none
 - Task Manifest: .harness/tasks/2026-11-16-ops-k8s-service-mutations/manifest.json
-- Evidence Directory: .harness/evidence/2026-11-16-ops-k8s-service-mutations/
-- Review File: .harness/evidence/2026-11-16-ops-k8s-service-mutations/review.md
+- Evidence Directory: .harness/archive/2026-11/evidence/2026-11-16-ops-k8s-service-mutations/
+- Review File: .harness/archive/2026-11/evidence/2026-11-16-ops-k8s-service-mutations/review.md
 - Change Ref: none
 - Plan References: .harness/tasks/2026-11-16-ops-pilot-delivery/plan.md
 
@@ -173,13 +173,13 @@ Original In/Out and acceptance are retained. Additional modified owner files: ba
 
 Status: in-progress. Cluster row→同事务 credential read→Binding row→bounded provider 锁协议实际 MySQL/race通过；取消 GREEN02 1.533s、扩展准入 GREEN02 4.837s，均744文件运行内稳定。原取消 fixture GREEN01 失败保留。
 
-Original acceptance and dependencies remain unchanged. Whole-package acceptance is incomplete; see [summary](../../../.harness/evidence/2026-11-16-ops-k8s-service-mutations/summary.md) and [progress receipt](../../../.harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-progress-20261118.json).
+Original acceptance and dependencies remain unchanged. Whole-package acceptance is incomplete; see [summary](../../../.harness/archive/2026-11/evidence/2026-11-16-ops-k8s-service-mutations/summary.md) and [progress receipt](../../../.harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-progress-20261118.json).
 
 ## 2026-11-19T00:11:15.272Z Verified continuation checkpoint
 
 Status: in-progress. Cluster→同事务credential→Binding→bounded provider锁与取消窄回归已通过，当前完整748源race亦通过；原取消GREEN01失败保留。当前UI contract13/13通过、root实际查看桌面/手机ports/error4图，business/role mock。
 
-架构round2窄CLEAR/整包WATCH保留；全部业务角色/真实CRUD与维护者验收仍OPEN。 Original acceptance and human gates remain unmet. See [summary](../../../.harness/evidence/2026-11-16-ops-k8s-service-mutations/summary.md) and [structured progress](../../../.harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-progress-final-20261118.json).
+架构round2窄CLEAR/整包WATCH保留；全部业务角色/真实CRUD与维护者验收仍OPEN。 Original acceptance and human gates remain unmet. See [summary](../../../.harness/archive/2026-11/evidence/2026-11-16-ops-k8s-service-mutations/summary.md) and [structured progress](../../../.harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-progress-final-20261118.json).
 
 ## Result — History Closeout 2026-11-20
 

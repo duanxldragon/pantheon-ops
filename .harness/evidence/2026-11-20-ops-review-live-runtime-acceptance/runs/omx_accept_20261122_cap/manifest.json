@@ -1,0 +1,182 @@
+{
+  "runId": "omx_accept_20261122_cap",
+  "taskId": "2026-11-22-ops-cap-live",
+  "generator": "claude-cap-live.mjs (independent acceptance, Codex unavailable)",
+  "requestedPhase": "cap",
+  "status": "PARTIAL",
+  "finishedAt": "2026-11-21T16:35:23.221Z",
+  "apiBase": "http://127.0.0.1:8081/api/v1",
+  "webBase": "http://127.0.0.1:5175",
+  "envVariableNames": [
+    "PANTHEON_SMOKE_USERNAME",
+    "PANTHEON_INITIAL_ADMIN_PASSWORD",
+    "PANTHEON_API_BASE_URL",
+    "PANTHEON_ACCEPTANCE_EVIDENCE_DIR"
+  ],
+  "secretPolicy": {
+    "recordedSecretValues": false,
+    "passwordIsNeverArgvOrEvidence": true
+  },
+  "cases": [
+    {
+      "caseId": "login-admin",
+      "status": "PASS",
+      "evidenceFile": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.harness\\evidence\\2026-11-20-ops-review-live-runtime-acceptance\\runs\\omx_accept_20261122_cap\\cap\\login-admin.json"
+    },
+    {
+      "caseId": "cap-bizscope-create",
+      "status": "PASS",
+      "evidenceFile": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.harness\\evidence\\2026-11-20-ops-review-live-runtime-acceptance\\runs\\omx_accept_20261122_cap\\cap\\cap-bizscope-create.json"
+    },
+    {
+      "caseId": "cap-bizscope-list",
+      "status": "PASS",
+      "evidenceFile": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.harness\\evidence\\2026-11-20-ops-review-live-runtime-acceptance\\runs\\omx_accept_20261122_cap\\cap\\cap-bizscope-list.json"
+    },
+    {
+      "caseId": "cap-bizscope-options",
+      "status": "PASS",
+      "evidenceFile": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.harness\\evidence\\2026-11-20-ops-review-live-runtime-acceptance\\runs\\omx_accept_20261122_cap\\cap\\cap-bizscope-options.json"
+    },
+    {
+      "caseId": "cap-bizscope-update",
+      "status": "PASS",
+      "evidenceFile": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.harness\\evidence\\2026-11-20-ops-review-live-runtime-acceptance\\runs\\omx_accept_20261122_cap\\cap\\cap-bizscope-update.json"
+    },
+    {
+      "caseId": "cap-service-application-create",
+      "status": "PASS",
+      "evidenceFile": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.harness\\evidence\\2026-11-20-ops-review-live-runtime-acceptance\\runs\\omx_accept_20261122_cap\\cap\\cap-service-application-create.json"
+    },
+    {
+      "caseId": "cap-service-applications-list",
+      "status": "PASS",
+      "evidenceFile": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.harness\\evidence\\2026-11-20-ops-review-live-runtime-acceptance\\runs\\omx_accept_20261122_cap\\cap\\cap-service-applications-list.json"
+    },
+    {
+      "caseId": "cap-service-service-create",
+      "status": "PASS",
+      "evidenceFile": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.harness\\evidence\\2026-11-20-ops-review-live-runtime-acceptance\\runs\\omx_accept_20261122_cap\\cap\\cap-service-service-create.json"
+    },
+    {
+      "caseId": "cap-service-services-list",
+      "status": "PASS",
+      "evidenceFile": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.harness\\evidence\\2026-11-20-ops-review-live-runtime-acceptance\\runs\\omx_accept_20261122_cap\\cap\\cap-service-services-list.json"
+    },
+    {
+      "caseId": "cap-service-service-detail",
+      "status": "PASS",
+      "evidenceFile": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.harness\\evidence\\2026-11-20-ops-review-live-runtime-acceptance\\runs\\omx_accept_20261122_cap\\cap\\cap-service-service-detail.json"
+    },
+    {
+      "caseId": "cap-service-service-update",
+      "status": "PASS",
+      "evidenceFile": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.harness\\evidence\\2026-11-20-ops-review-live-runtime-acceptance\\runs\\omx_accept_20261122_cap\\cap\\cap-service-service-update.json"
+    },
+    {
+      "caseId": "cap-cmdb-host-create",
+      "status": "PASS",
+      "evidenceFile": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.harness\\evidence\\2026-11-20-ops-review-live-runtime-acceptance\\runs\\omx_accept_20261122_cap\\cap\\cap-cmdb-host-create.json"
+    },
+    {
+      "caseId": "cap-service-instance-create",
+      "status": "PASS",
+      "evidenceFile": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.harness\\evidence\\2026-11-20-ops-review-live-runtime-acceptance\\runs\\omx_accept_20261122_cap\\cap\\cap-service-instance-create.json"
+    },
+    {
+      "caseId": "cap-service-instance-reconcile",
+      "status": "PASS",
+      "evidenceFile": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.harness\\evidence\\2026-11-20-ops-review-live-runtime-acceptance\\runs\\omx_accept_20261122_cap\\cap\\cap-service-instance-reconcile.json"
+    },
+    {
+      "caseId": "cap-filedist-storages-list",
+      "status": "PASS",
+      "evidenceFile": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.harness\\evidence\\2026-11-20-ops-review-live-runtime-acceptance\\runs\\omx_accept_20261122_cap\\cap\\cap-filedist-storages-list.json"
+    },
+    {
+      "caseId": "cap-filedist-upload",
+      "status": "PASS",
+      "evidenceFile": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.harness\\evidence\\2026-11-20-ops-review-live-runtime-acceptance\\runs\\omx_accept_20261122_cap\\cap\\cap-filedist-upload.json"
+    },
+    {
+      "caseId": "cap-filedist-files-list",
+      "status": "PASS",
+      "evidenceFile": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.harness\\evidence\\2026-11-20-ops-review-live-runtime-acceptance\\runs\\omx_accept_20261122_cap\\cap\\cap-filedist-files-list.json"
+    },
+    {
+      "caseId": "cap-filedist-download",
+      "status": "PASS",
+      "evidenceFile": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.harness\\evidence\\2026-11-20-ops-review-live-runtime-acceptance\\runs\\omx_accept_20261122_cap\\cap\\cap-filedist-download.json"
+    },
+    {
+      "caseId": "cap-filedist-storage-create",
+      "status": "PASS",
+      "evidenceFile": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.harness\\evidence\\2026-11-20-ops-review-live-runtime-acceptance\\runs\\omx_accept_20261122_cap\\cap\\cap-filedist-storage-create.json"
+    },
+    {
+      "caseId": "cap-filedist-storage-delete",
+      "status": "PASS",
+      "evidenceFile": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.harness\\evidence\\2026-11-20-ops-review-live-runtime-acceptance\\runs\\omx_accept_20261122_cap\\cap\\cap-filedist-storage-delete.json"
+    },
+    {
+      "caseId": "cap-filedist-file-delete",
+      "status": "PASS",
+      "evidenceFile": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.harness\\evidence\\2026-11-20-ops-review-live-runtime-acceptance\\runs\\omx_accept_20261122_cap\\cap\\cap-filedist-file-delete.json"
+    },
+    {
+      "caseId": "cap-obs-ssrf-loopback-blocked",
+      "status": "PASS",
+      "evidenceFile": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.harness\\evidence\\2026-11-20-ops-review-live-runtime-acceptance\\runs\\omx_accept_20261122_cap\\cap\\cap-obs-ssrf-loopback-blocked.json"
+    },
+    {
+      "caseId": "cap-obs-ssrf-port-blocked",
+      "status": "PASS",
+      "evidenceFile": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.harness\\evidence\\2026-11-20-ops-review-live-runtime-acceptance\\runs\\omx_accept_20261122_cap\\cap\\cap-obs-ssrf-port-blocked.json"
+    },
+    {
+      "caseId": "cap-obs-datasource-create",
+      "status": "PASS",
+      "evidenceFile": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.harness\\evidence\\2026-11-20-ops-review-live-runtime-acceptance\\runs\\omx_accept_20261122_cap\\cap\\cap-obs-datasource-create.json"
+    },
+    {
+      "caseId": "cap-obs-datasource-list",
+      "status": "PASS",
+      "evidenceFile": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.harness\\evidence\\2026-11-20-ops-review-live-runtime-acceptance\\runs\\omx_accept_20261122_cap\\cap\\cap-obs-datasource-list.json"
+    },
+    {
+      "caseId": "cap-obs-datasource-update",
+      "status": "PASS",
+      "evidenceFile": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.harness\\evidence\\2026-11-20-ops-review-live-runtime-acceptance\\runs\\omx_accept_20261122_cap\\cap\\cap-obs-datasource-update.json"
+    },
+    {
+      "caseId": "cap-obs-datasource-test",
+      "status": "PASS",
+      "evidenceFile": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.harness\\evidence\\2026-11-20-ops-review-live-runtime-acceptance\\runs\\omx_accept_20261122_cap\\cap\\cap-obs-datasource-test.json"
+    },
+    {
+      "caseId": "cap-obs-datasource-query",
+      "status": "PASS",
+      "evidenceFile": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.harness\\evidence\\2026-11-20-ops-review-live-runtime-acceptance\\runs\\omx_accept_20261122_cap\\cap\\cap-obs-datasource-query.json"
+    },
+    {
+      "caseId": "cap-argocd-server-create",
+      "status": "BLOCKED",
+      "evidenceFile": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.harness\\evidence\\2026-11-20-ops-review-live-runtime-acceptance\\runs\\omx_accept_20261122_cap\\cap\\cap-argocd-server-create.json"
+    },
+    {
+      "caseId": "cap-argocd-server-list",
+      "status": "PASS",
+      "evidenceFile": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.harness\\evidence\\2026-11-20-ops-review-live-runtime-acceptance\\runs\\omx_accept_20261122_cap\\cap\\cap-argocd-server-list.json"
+    },
+    {
+      "caseId": "v6-repeat-submit-dedup",
+      "status": "PASS",
+      "evidenceFile": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.harness\\evidence\\2026-11-20-ops-review-live-runtime-acceptance\\runs\\omx_accept_20261122_cap\\cap\\v6-repeat-submit-dedup.json"
+    },
+    {
+      "caseId": "cap-metrics-prometheus",
+      "status": "PASS",
+      "evidenceFile": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.harness\\evidence\\2026-11-20-ops-review-live-runtime-acceptance\\runs\\omx_accept_20261122_cap\\cap\\cap-metrics-prometheus.json"
+    }
+  ]
+}

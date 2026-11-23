@@ -73,9 +73,9 @@ business/*
 
 - docs/harness/tasks/2026-11-16-ops-service-catalog-usability.task.md
 - .harness/tasks/2026-11-16-ops-service-catalog-usability/manifest.json
-- .harness/evidence/2026-11-16-ops-service-catalog-usability/summary.md
-- .harness/evidence/2026-11-16-ops-service-catalog-usability/review.md
-- .harness/evidence/2026-11-16-ops-service-catalog-usability/commands.json
+- .harness/archive/2026-11/evidence/2026-11-16-ops-service-catalog-usability/summary.md
+- .harness/archive/2026-11/evidence/2026-11-16-ops-service-catalog-usability/review.md
+- .harness/archive/2026-11/evidence/2026-11-16-ops-service-catalog-usability/commands.json
 
 ### Modify
 
@@ -137,8 +137,8 @@ business/*
 - OpenSpec Change: none
 - Superpowers Plan: none
 - Task Manifest: .harness/tasks/2026-11-16-ops-service-catalog-usability/manifest.json
-- Evidence Directory: .harness/evidence/2026-11-16-ops-service-catalog-usability/
-- Review File: .harness/evidence/2026-11-16-ops-service-catalog-usability/review.md
+- Evidence Directory: .harness/archive/2026-11/evidence/2026-11-16-ops-service-catalog-usability/
+- Review File: .harness/archive/2026-11/evidence/2026-11-16-ops-service-catalog-usability/review.md
 - Change Ref: none
 - Plan References: .harness/tasks/2026-11-16-ops-pilot-delivery/plan.md
 
@@ -183,19 +183,19 @@ Original In/Out and acceptance are retained. Additional modified owner files: ba
 
 Status: in-progress. 表单重新激活立即清空旧选项/错误并进入 loading；回归 RED 2失败/5通过，GREEN 7/7；scoped lint和隔离 strict typecheck通过。
 
-Original acceptance and dependencies remain unchanged. Whole-package acceptance is incomplete; see [summary](../../../.harness/evidence/2026-11-16-ops-service-catalog-usability/summary.md) and [progress receipt](../../../.harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-progress-20261118.json).
+Original acceptance and dependencies remain unchanged. Whole-package acceptance is incomplete; see [summary](../../../.harness/archive/2026-11/evidence/2026-11-16-ops-service-catalog-usability/summary.md) and [progress receipt](../../../.harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-progress-20261118.json).
 
 ## 2026-11-18T07:58:38.569Z Integration continuation
 
 Status: in-progress. 常规Vitest配置已发现新useCatalogOptions测试并通过7/7、0skip/1.71s；精确business-overlay路径与本地overlay检查通过。完整app/build/render、backend target lifetime及真实provider/角色仍未验收。
 
-常规unit/overlay集成有实际receipt；独立完整产品验收仍PENDING，历史activation和owner窄评审保留。 Original acceptance, dependencies and human gates remain unmet. See [summary](../../../.harness/evidence/2026-11-16-ops-service-catalog-usability/summary.md) and [latest progress](../../../.harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-progress-integration-20261118.json).
+常规unit/overlay集成有实际receipt；独立完整产品验收仍PENDING，历史activation和owner窄评审保留。 Original acceptance, dependencies and human gates remain unmet. See [summary](../../../.harness/archive/2026-11/evidence/2026-11-16-ops-service-catalog-usability/summary.md) and [latest progress](../../../.harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-progress-integration-20261118.json).
 
 ## 2026-11-19T00:11:15.272Z Verified continuation checkpoint
 
 Status: in-progress. 当前C03与E01两个canonical suite集中Vitest共35PASS/8.68s，frontend lint/type/build均通过；精确overlay路径、正式重建与1242源等价通过。当前桌面/手机render2/2通过、root实际查看editor/stale4图，business data mock；额外live admin lifecycle单行中文期望修后1PASS/0skip/5.7s、finally cleanup全部通过，executor查看主机#533截图；原错误fixture失败和两个未改transitive strict TypeScript诊断保留。
 
-原activation/owner窄评审保留；整包真实provider/角色和维护者验收未完成。 Original acceptance and human gates remain unmet. See [summary](../../../.harness/evidence/2026-11-16-ops-service-catalog-usability/summary.md) and [structured progress](../../../.harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-progress-final-20261118.json).
+原activation/owner窄评审保留；整包真实provider/角色和维护者验收未完成。 Original acceptance and human gates remain unmet. See [summary](../../../.harness/archive/2026-11/evidence/2026-11-16-ops-service-catalog-usability/summary.md) and [structured progress](../../../.harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-progress-final-20261118.json).
 
 ## Result — History Closeout 2026-11-20
 

@@ -1,0 +1,17 @@
+{
+  "runId": "omx_accept_20261121_formal01",
+  "phase": "deploy",
+  "caseId": "d04",
+  "title": "wrong-fingerprint start negative (sshHostKeyMismatch, marker-neg absent)",
+  "ts": "2026-11-21T11:58:08.936Z",
+  "status": "NOT_RUN",
+  "message": "d00 prerequisite failed",
+  "httpStatus": null,
+  "businessCode": null,
+  "assertions": [],
+  "ids": {},
+  "result": null,
+  "redaction": null,
+  "durationMs": null,
+  "blockedReason": null
+}

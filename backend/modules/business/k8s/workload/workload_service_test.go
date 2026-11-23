@@ -1,11 +1,14 @@
 package workload
 
 import (
+	"context"
 	"testing"
 	"time"
 
+	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/kubernetes/fake"
 )
 
 func TestNormalizeKind(t *testing.T) {
@@ -75,6 +78,46 @@ func TestPodRestarts(t *testing.T) {
 	}
 	if got := podRestarts(pod); got != 5 {
 		t.Fatalf("podRestarts: got %d want 5", got)
+	}
+}
+
+// TestScaleWorkloadRejectsDaemonSetAndUnknownKind pins the scale dispatch: a
+// DaemonSet has no replica count and an unknown kind must never fall through
+// to a same-name Deployment.
+func TestScaleWorkloadRejectsDaemonSetAndUnknownKind(t *testing.T) {
+	clientset := fake.NewSimpleClientset()
+	for _, kind := range []string{"daemonset", "DaemonSet", "replicaset"} {
+		if err := scaleWorkload(context.Background(), clientset, "default", kind, "web", 3, ""); err == nil {
+			t.Fatalf("kind %q was scaled instead of rejected", kind)
+		}
+	}
+}
+
+// TestRestartWorkloadPatchesNamedKindOnly regresses the DaemonSet defect: a
+// daemonset restart used to patch the same-name Deployment, so the Deployment
+// must stay untouched while the DaemonSet's pod template carries the marker.
+func TestRestartWorkloadPatchesNamedKindOnly(t *testing.T) {
+	deployment := &appsv1.Deployment{ObjectMeta: metav1.ObjectMeta{Name: "web", Namespace: "default"}}
+	daemonSet := &appsv1.DaemonSet{ObjectMeta: metav1.ObjectMeta{Name: "web", Namespace: "default"}}
+	clientset := fake.NewSimpleClientset(deployment, daemonSet)
+	patch := `{"spec":{"template":{"metadata":{"annotations":{"kubectl.kubernetes.io/restartedAt":"2026-11-23T00:00:00Z"}}}}}`
+
+	if err := restartWorkload(context.Background(), clientset, "default", "daemonset", "web", "", patch); err != nil {
+		t.Fatalf("restart daemonset: %v", err)
+	}
+	gotDS, err := clientset.AppsV1().DaemonSets("default").Get(context.Background(), "web", metav1.GetOptions{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if gotDS.Spec.Template.Annotations["kubectl.kubernetes.io/restartedAt"] == "" {
+		t.Fatal("daemonset was not restarted")
+	}
+	gotDep, err := clientset.AppsV1().Deployments("default").Get(context.Background(), "web", metav1.GetOptions{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if gotDep.Spec.Template.Annotations["kubectl.kubernetes.io/restartedAt"] != "" {
+		t.Fatal("restarting the daemonset patched the same-name deployment")
 	}
 }
 

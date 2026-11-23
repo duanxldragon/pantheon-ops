@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"os"
+	"regexp"
 	"strings"
 	"testing"
 	"time"
@@ -54,7 +55,19 @@ func TestDeployLiveVMExecution(t *testing.T) {
 				t.Fatal(err)
 			}
 			scopeID, hostID := seedDeployReliabilityFixture(t, db, "p0-test-vm", target.IP)
-			marker := "/opt/pantheon-p0-20261109/ops-deploy-live-" + name + ".txt"
+			markerRunner, err := newDeploySSHRunner(context.Background(), target, req)
+			if err != nil {
+				t.Fatal("allocate owned marker connection failed")
+			}
+			markerCtx, markerCancel := context.WithTimeout(context.Background(), 10*time.Second)
+			markerRoot, _, markerErr := markerRunner.RunScript(markerCtx, "mktemp -d /tmp/omx-ops-live-XXXXXXXXXXXX")
+			markerCancel()
+			markerRunner.Close()
+			markerRoot = strings.TrimSpace(markerRoot)
+			if markerErr != nil || !regexp.MustCompile("^/tmp/omx-ops-live-[A-Za-z0-9]{12}$").MatchString(markerRoot) {
+				t.Fatal("exclusive remote marker directory allocation failed")
+			}
+			marker := markerRoot + "/" + name + ".txt"
 			t.Cleanup(func() {
 				runner, err := newDeploySSHRunner(context.Background(), target, req)
 				if err != nil {
@@ -64,7 +77,7 @@ func TestDeployLiveVMExecution(t *testing.T) {
 				defer runner.Close()
 				ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 				defer cancel()
-				if _, _, err := runner.RunScript(ctx, "rm -f -- "+marker); err != nil {
+				if _, _, err := runner.RunScript(ctx, "rm -f -- "+shellQuoteSingle(marker)+"\nrmdir -- "+shellQuoteSingle(markerRoot)); err != nil {
 					t.Error("owned deployment marker cleanup failed")
 				}
 			})

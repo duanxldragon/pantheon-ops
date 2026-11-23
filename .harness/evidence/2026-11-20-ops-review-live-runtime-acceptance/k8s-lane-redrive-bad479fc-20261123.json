@@ -1,0 +1,67 @@
+{
+  "artifact": "T16 k8s lane re-drive on current candidate bad479fc",
+  "capturedAt": "2026-11-23T09:35:00+08:00",
+  "task": "2026-11-20-ops-review-live-runtime-acceptance",
+  "lanes": [
+    {
+      "lane": "k8s",
+      "runId": "omx-accept-20261121-k8s35",
+      "status": "PASS",
+      "pass": 22,
+      "fail": 0,
+      "blocked": 0,
+      "notRun": [],
+      "cases": ["k00","k01","k02","k03","k03b","k04","k05","k06","k07","k08","k09","k10","k11","k12","k13","k14","k15","k16","k17","k18","k19","k20"],
+      "candidate": {
+        "backendSha256": "bad479fc9817fffcab5253064b5ddf052365fb88fed55bd9d8697157720b971f",
+        "backendBinary": "pantheon-ops-codex-t02b-20261122-172553.exe",
+        "sourceHead": "a2d69d4a759b5df2b26aaa9d26bdc5175babe9dc",
+        "harnessSha256": "63944bcc1404db6bcf1240e5057f1241bb627ae5b6f8417c219c321e143c5407",
+        "database": "ops_acceptance_formal_20261122_codex"
+      },
+      "keyResults": {
+        "k19Velero": {
+          "providerInstalled": true,
+          "providerVersion": "docker.io/velero/velero@sha256:367a1d2deb5adf3acc8056715aefe398850cd33b8d7a68e5a6f1f13b691a1c58",
+          "runningPods": 1,
+          "backupName": "omx-accept-20261121-k8s35-backup",
+          "backupStatus": "Completed",
+          "backupPhase": "Completed",
+          "errors": 0,
+          "warnings": 0
+        },
+        "k15Cleanup": {
+          "independentAbsenceVerified": true,
+          "namespaceDeletedAndVerified": true,
+          "ownedLocalRowsDeleted": true
+        },
+        "k13CredentialRotation": {
+          "rotatedVersion": 2,
+          "oldClientRejected": true,
+          "restoredVersion": 3
+        },
+        "k20NonAdminAuthz": {
+          "readAllowed": true,
+          "writeForbidden": true,
+          "credentialForbidden": true,
+          "syncForbidden": true
+        }
+      },
+      "harnessFix": "k8s-live.py now reads dbname from runtime-live/ownership.json instead of hardcoded ops_acceptance_formal_20261121; k8s34 cleanup fence FAIL was the harness DB-name bug, fixed before k8s35",
+      "evidence": ".harness\\evidence\\2026-11-20-ops-review-live-runtime-acceptance\\k8s\\omx-accept-20261121-k8s35"
+    }
+  ],
+  "supersedes": {
+    "receipt": "k8s-final-receipt.json (2026-11-21, binary fba00055). The prior PARTIAL statement (22 PASS / 1 BLOCKED Velero on fba00055 with Velero pod Init:CreateContainerError) is replaced by this 22/22 PASS on the current candidate bad479fc with Velero pod Running."
+  },
+  "remainingGaps": [
+    "multi-tenant isolation (tenant_mode multi not configured)",
+    "Helm chart installation execution (product scope: metadata CRUD only)",
+    "frontend 10-second timeout (GAP-UI-BROWSER)",
+    "WebSocket server goroutine/provider stream resource cleanup",
+    "Velero schedule and restore (backup verified; restore not exercised)",
+    "Ingress provider changes and snapshot",
+    "V8 SA credential rotation, V7 SSH low-priv user, full fresh install, storage volume snapshots"
+  ],
+  "scope": "task-owned namespace omx-accept-20261121-k8s35; all remote writes confined to owned resources; cleanup verified"
+}

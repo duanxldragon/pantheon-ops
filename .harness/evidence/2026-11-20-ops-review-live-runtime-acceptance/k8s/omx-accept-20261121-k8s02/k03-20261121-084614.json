@@ -1,0 +1,87 @@
+{
+  "id": "k03",
+  "intent": "register real cluster and credential redaction",
+  "userModel": "authenticated admin unless stated",
+  "setup": "local Ops; pinned SSH to 115.190.251.143; dedicated namespace",
+  "harness": ".local/acceptance-20261121/k8s-live.py",
+  "expected": "assertions hold",
+  "fixesApplied": [],
+  "cleanup": "owned fixtures tracked in checkpoint.json",
+  "status": "FAIL",
+  "errorType": "AssertionError",
+  "error": "initial credential version",
+  "calls": [
+    {
+      "method": "GET",
+      "path": "/business/k8s/clusters?keyword=omx-accept-20261121-k8s02",
+      "httpStatus": 200,
+      "code": 200,
+      "message": "success",
+      "durationMs": 16,
+      "data": {
+        "items": [],
+        "total": 0,
+        "page": 1,
+        "pageSize": 10
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/business/bizscope",
+      "httpStatus": 200,
+      "code": 200,
+      "message": "success",
+      "durationMs": 31,
+      "data": {
+        "id": 6,
+        "code": "omx-accept-20261121-k8s02",
+        "name": "omx-accept-20261121-k8s02",
+        "owner": "",
+        "environment": "dev",
+        "status": "active",
+        "deptId": 0,
+        "remark": "",
+        "createdAt": "2026-11-21T08:46:16+08:00"
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/business/k8s/clusters",
+      "httpStatus": 200,
+      "code": 200,
+      "message": "success",
+      "durationMs": 16,
+      "data": {
+        "id": 1,
+        "code": "omx-accept-20261121-k8s02",
+        "name": "omx-accept-20261121-k8s02",
+        "environment": "dev",
+        "businessScopeId": 6,
+        "businessScopeName": "omx-accept-20261121-k8s02",
+        "deptId": 0,
+        "apiServer": "https://115.190.251.143:6443",
+        "version": "",
+        "status": "unknown",
+        "totalNodes": 0,
+        "readyNodes": 0,
+        "totalPods": 0,
+        "runningPods": 0,
+        "cpuCapacity": 0,
+        "cpuAllocatable": 0,
+        "memoryCapacity": 0,
+        "memoryAllocatable": 0,
+        "lastSyncedAt": "",
+        "remark": "omx-accept-20261121-k8s02",
+        "createdAt": "2026-11-21T08:46:16+08:00",
+        "updatedAt": "2026-11-21T08:46:16+08:00",
+        "createdBy": "1",
+        "updatedBy": "1",
+        "credentialRefId": 1,
+        "credentialVersion": 0,
+        "credentialStatus": ""
+      }
+    }
+  ],
+  "durationMs": 63,
+  "evidence": ".harness\\evidence\\2026-11-20-ops-review-live-runtime-acceptance\\k8s\\omx-accept-20261121-k8s02\\k03-20261121-084614.json"
+}

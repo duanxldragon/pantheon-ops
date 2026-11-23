@@ -1,0 +1,65 @@
+{
+  "runId": "omx_accept_20261121_codex_t02e",
+  "phase": "deploy",
+  "caseId": "d04",
+  "title": "wrong fingerprint refuses remote marker execution",
+  "ts": "2026-11-23T02:43:58.529Z",
+  "status": "PASS",
+  "httpStatus": 200,
+  "businessCode": 200,
+  "assertions": [
+    {
+      "name": "deploy/packages created",
+      "pass": true
+    },
+    {
+      "name": "deploy/tasks created",
+      "pass": true
+    },
+    {
+      "name": "preview accepted",
+      "pass": true
+    },
+    {
+      "name": "preview resolves one target",
+      "pass": true
+    },
+    {
+      "name": "preview contains reviewed intent",
+      "pass": true
+    },
+    {
+      "name": "start accepted",
+      "pass": true
+    },
+    {
+      "name": "wrong fingerprint task failed",
+      "pass": true
+    },
+    {
+      "name": "negative marker absent on real server",
+      "pass": true
+    }
+  ],
+  "ids": {
+    "negativePackageId": 9,
+    "negativeTaskId": 6
+  },
+  "result": {
+    "status": "failed",
+    "absent": {
+      "ok": true,
+      "absent": true,
+      "path": "marker-neg",
+      "stdoutTruncated": false,
+      "stderrTruncated": false
+    },
+    "errorKeys": [
+      "business.deploy.task.sshHostKeyMismatch"
+    ]
+  },
+  "message": null,
+  "redaction": null,
+  "durationMs": 2183,
+  "blockedReason": null
+}

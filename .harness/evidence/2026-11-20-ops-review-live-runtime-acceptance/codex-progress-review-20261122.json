@@ -1,0 +1,378 @@
+{
+  "taskId": "2026-11-20-ops-review-live-runtime-acceptance",
+  "reviewer": "Codex /root",
+  "reviewedAt": "2026-11-22T03:34:59.960381+00:00",
+  "decision": "changes-required",
+  "scope": "Progress reconciliation of user-run Claude work; no new remote writes or production-code edits in this progress check",
+  "candidateBinarySha256": "5cd98af198657a667a5deb0016fe3884265f3d96222da212b5c46ab40ad3e368",
+  "sourceBindings": [
+    {
+      "receipt": "deploy-final-receipt.json",
+      "checkedFiles": 59,
+      "mismatches": [
+        "backend/modules/business/deploy/service_link_http_test.go"
+      ]
+    },
+    {
+      "receipt": "k8s-final-receipt.json",
+      "checkedFiles": 74,
+      "mismatches": []
+    }
+  ],
+  "latestK8s": {
+    "path": ".harness/evidence/2026-11-20-ops-review-live-runtime-acceptance/k8s/omx-accept-20261121-k8s12/summary-20261122-084758.json",
+    "scenarioStatus": "PASS",
+    "scopeAcceptance": "PARTIAL",
+    "counts": {
+      "PASS": 22
+    },
+    "receipt": {
+      "backendSha256": "5cd98af198657a667a5deb0016fe3884265f3d96222da212b5c46ab40ad3e368",
+      "backendPid": 26144,
+      "sourceHead": "a2d69d4a759b5df2b26aaa9d26bdc5175babe9dc",
+      "harnessSha256": "179a7f09e38f90ba6935b8dc11ce53cbd59a4692cac8459ae99b721c76c0b0ff"
+    },
+    "cleanup": [
+      {
+        "helmId": 4,
+        "apiDeleted": true
+      },
+      {
+        "backupId": 1,
+        "apiDeleted": true
+      },
+      {
+        "userId": 20,
+        "apiDeleted": true
+      },
+      {
+        "roleId": 237,
+        "apiDeleted": true
+      },
+      {
+        "namespace": "omx-accept-20261121-k8s12",
+        "deletedAndIndependentlyVerified": true
+      },
+      {
+        "ownedLocalReleaseRowsDeleted": 2
+      },
+      {
+        "localSnapshotTable": "biz_k8s_pv",
+        "ownedRowsDeleted": 0
+      },
+      {
+        "localSnapshotTable": "biz_k8s_pvc",
+        "ownedRowsDeleted": 0
+      },
+      {
+        "localSnapshotTable": "biz_k8s_storage_class",
+        "ownedRowsDeleted": 1
+      },
+      {
+        "clusterId": 8,
+        "deleted": true
+      },
+      {
+        "scopeId": 25,
+        "deleted": true
+      }
+    ],
+    "gaps": [
+      "multi-tenant isolation",
+      "Helm chart installation is not implemented",
+      "frontend 10-second timeout",
+      "WebSocket server resource cleanup",
+      "Velero schedule and restore",
+      "Ingress provider changes"
+    ]
+  },
+  "claudeCAP": {
+    "path": ".harness/evidence/2026-11-20-ops-review-live-runtime-acceptance/runs/omx_accept_20261122_cap/manifest.json",
+    "scenarioStatus": "PARTIAL",
+    "counts": {
+      "PASS": 31,
+      "BLOCKED": 1
+    },
+    "acceptedInterpretation": "Probe-specific passing assertions only; module-wide PASS not established"
+  },
+  "otherGroups": [
+    {
+      "path": "runs/omx_accept_20261121_cmdb02/manifest.json",
+      "status": "PASS",
+      "counts": {
+        "PASS": 7
+      },
+      "binarySha256": null
+    },
+    {
+      "path": "runs/omx_accept_20261121_vprobe/v/probe.json",
+      "status": "PASS",
+      "counts": {
+        "PASS": 19
+      },
+      "binarySha256": "5cd98af198657a667a5deb0016fe3884265f3d96222da212b5c46ab40ad3e368"
+    },
+    {
+      "path": "runs/omx_accept_20261121_v3/v3/probe.json",
+      "status": "PASS",
+      "counts": {
+        "PASS": 24
+      },
+      "binarySha256": "5cd98af198657a667a5deb0016fe3884265f3d96222da212b5c46ab40ad3e368"
+    },
+    {
+      "path": "runs/omx_accept_20261122_dmatrix2/dm2/probe.json",
+      "status": "PASS",
+      "counts": {
+        "PASS": 30
+      },
+      "binarySha256": "unknown"
+    }
+  ],
+  "taskStatuses": [
+    {
+      "taskId": "2026-11-20-ops-argocd-ownership-and-webhook",
+      "status": "planned"
+    },
+    {
+      "taskId": "2026-11-20-ops-business-permissions-and-task-visibility",
+      "status": "planned"
+    },
+    {
+      "taskId": "2026-11-20-ops-core-business-tenant-isolation",
+      "status": "planned"
+    },
+    {
+      "taskId": "2026-11-20-ops-deploy-credential-ownership-and-ui",
+      "status": "planned"
+    },
+    {
+      "taskId": "2026-11-20-ops-deploy-fixed-template-security",
+      "status": "planned"
+    },
+    {
+      "taskId": "2026-11-20-ops-deploy-recovery-and-remote-execution",
+      "status": "planned"
+    },
+    {
+      "taskId": "2026-11-20-ops-deploy-template-and-task-experience",
+      "status": "planned"
+    },
+    {
+      "taskId": "2026-11-20-ops-extension-and-async-tenant-isolation",
+      "status": "planned"
+    },
+    {
+      "taskId": "2026-11-20-ops-filedist-durable-lifecycle",
+      "status": "planned"
+    },
+    {
+      "taskId": "2026-11-20-ops-k8s-client-lifecycle-and-config-safety",
+      "status": "planned"
+    },
+    {
+      "taskId": "2026-11-20-ops-k8s-log-websocket-lifecycle",
+      "status": "planned"
+    },
+    {
+      "taskId": "2026-11-20-ops-k8s-resource-authorization-and-mutations",
+      "status": "planned"
+    },
+    {
+      "taskId": "2026-11-20-ops-review-baseline-and-decisions",
+      "status": "planned"
+    },
+    {
+      "taskId": "2026-11-20-ops-review-delivery-and-closeout",
+      "status": "planned"
+    },
+    {
+      "taskId": "2026-11-20-ops-review-docs-and-test-governance",
+      "status": "planned"
+    },
+    {
+      "taskId": "2026-11-20-ops-review-live-runtime-acceptance",
+      "status": "in-progress"
+    },
+    {
+      "taskId": "2026-11-20-ops-review-remediation",
+      "status": "in-progress"
+    },
+    {
+      "taskId": "2026-11-20-ops-service-deploy-business-closure",
+      "status": "planned"
+    }
+  ],
+  "taskStatusCounts": {
+    "planned": 16,
+    "in-progress": 2
+  },
+  "verificationItemStatuses": [
+    {
+      "caseId": "V1",
+      "matrixStatus": "PASS"
+    },
+    {
+      "caseId": "V2",
+      "matrixStatus": "PASS"
+    },
+    {
+      "caseId": "V3",
+      "matrixStatus": "PASS"
+    },
+    {
+      "caseId": "V4",
+      "matrixStatus": "BLOCKED"
+    },
+    {
+      "caseId": "V5",
+      "matrixStatus": "PASS"
+    },
+    {
+      "caseId": "V6",
+      "matrixStatus": "PARTIAL"
+    },
+    {
+      "caseId": "V7",
+      "matrixStatus": "PARTIAL"
+    },
+    {
+      "caseId": "V8",
+      "matrixStatus": "PARTIAL"
+    }
+  ],
+  "priorCriteriaCounts": {
+    "C01": {
+      "NOT_RUN": 4
+    },
+    "C02": {
+      "NOT_RUN": 3
+    },
+    "C03": {
+      "NOT_RUN": 3
+    },
+    "C04": {
+      "BLOCKED": 3
+    },
+    "C05": {
+      "NOT_RUN": 3,
+      "BLOCKED": 1
+    },
+    "C06": {
+      "BLOCKED": 1,
+      "NOT_RUN": 3
+    },
+    "E01": {
+      "NOT_RUN": 3
+    },
+    "E02": {
+      "NOT_RUN": 3
+    },
+    "E03": {
+      "BLOCKED": 2
+    },
+    "E04": {
+      "NOT_RUN": 2,
+      "BLOCKED": 1
+    }
+  },
+  "independentTests": {
+    "path": ".harness/evidence/2026-11-20-ops-review-live-runtime-acceptance/codex-progress-tests-20261122-113249.json",
+    "mysqlRequired": true,
+    "exitCode": 0,
+    "cwd": "backend",
+    "failures": 0,
+    "log": "codex-progress-tests-20261122-113249.log",
+    "capturedAt": "2026-11-22T11:33:03.9425488+08:00",
+    "skips": 0,
+    "cgoEnabled": true,
+    "command": "go test -race -count=1 -timeout=90s -v -run 'TestFixed|TestReleaseConflictPreservesTypedConflict|TestReleaseErrorCodeClassifiesConflict' ./modules/business/deploy ./modules/business/k8s/release",
+    "topLevelPassed": 9
+  },
+  "findings": [
+    {
+      "id": "PR-01",
+      "priority": "high",
+      "finding": "CAP-OBSERVABILITY PASS overstates functional coverage: connection test HTTP500/test_failed and query HTTP400/param.invalid pass only the bounded structured-response assertion. Real provider connection/query success remains unverified.",
+      "evidence": [
+        "runs/omx_accept_20261122_cap/cap/cap-obs-datasource-test.json",
+        "runs/omx_accept_20261122_cap/cap/cap-obs-datasource-query.json"
+      ]
+    },
+    {
+      "id": "PR-02",
+      "priority": "high",
+      "finding": "V1/V2/V3 PASS verifies original review predictions, not remediation acceptance. Viewer task list still403, package detail403, all-keys role Argo/filedist/bizscope reads and writes403. T03 functionality remains open; V5 deny via route authorization does not prove creator-scoped credential filtering.",
+      "evidence": [
+        "runs/omx_accept_20261121_vprobe/v/probe.json",
+        "runs/omx_accept_20261121_v3/v3/probe.json",
+        ".harness/tasks/2026-11-20-ops-review-remediation/plan.md"
+      ]
+    },
+    {
+      "id": "PR-03",
+      "priority": "medium",
+      "finding": "Task STATUS, matrix, k8s-live-report and review still reference run11/Velero BLOCKED. Latest run12 on k8s33 has22 PASS including ConfigMap backup Completed and cleanup PASS. Overall K8s scope still PARTIAL because restore/schedule, originalV8, Ingress/install and lifecycle/UI are not covered.",
+      "evidence": [
+        ".harness/evidence/2026-11-20-ops-review-live-runtime-acceptance/k8s/omx-accept-20261121-k8s12/summary-20261122-084758.json",
+        "k8s-live-report.md",
+        ".harness/tasks/2026-11-20-ops-review-live-runtime-acceptance/STATUS.md"
+      ]
+    },
+    {
+      "id": "PR-04",
+      "priority": "medium",
+      "finding": "Sixteen remediation children still planned; parent and T16 in-progress. Prior package criteria still NOT_RUN/BLOCKED, some contain obsolete no-K8s reasons. Existing archive completed flags do not establish acceptance of residuals.",
+      "evidence": [
+        "acceptance-matrix.json",
+        ".harness/tasks/2026-11-20-ops-review-remediation/STATUS.md"
+      ]
+    },
+    {
+      "id": "PR-05",
+      "priority": "medium",
+      "finding": "Full repository race has no passing rerun. Missing Redis is directly evidenced; timeout root cause may involve load but cannot conclusively exclude product defects. Narrow passing K8s/race is not the complete delivery gate.",
+      "evidence": [
+        "full-race-mysql-20261121-090845.log",
+        "k8s-race-mysql-20261121-163638.json"
+      ]
+    },
+    {
+      "id": "PR-06",
+      "priority": "medium",
+      "finding": "CAP manifest lacks source/binary SHA receipt. Deploy receipt references missing service_link_http_test.go; remaining deploy files match. K8s74 source files match existing receipt and current k8s33 binary matches run12 SHA. Test/source evidence needs a fresh aggregate receipt.",
+      "evidence": [
+        "runs/omx_accept_20261122_cap/manifest.json",
+        "deploy-final-receipt.json",
+        "k8s-final-receipt.json"
+      ]
+    },
+    {
+      "id": "PR-07",
+      "priority": "medium",
+      "finding": "Backup request includePvs=false yielded response includePvs=true in run12. ConfigMap backup completed with zero volume snapshots, but flag fidelity is not verified; must compare DB/default behavior and actual CRD snapshotVolumes before signing off volume semantics.",
+      "evidence": [
+        "k8s/omx-accept-20261121-k8s12/k19-20261122-084758.json",
+        ".local/acceptance-20261121/k8s-live.py"
+      ]
+    }
+  ],
+  "remaining": [
+    "V4双租户与跨归属副作用",
+    "V6浏览器10秒/长操作取消与可见终态",
+    "V7 SSH重启、取消和租约恢复",
+    "V8 ServiceAccount撤销与持续工作负载轮询",
+    "Velero恢复/调度、Ingress快照与全新集群安装",
+    "WebSocket服务端释放、移动/暗色/键盘UI",
+    "Argo及业务密钥运行配置与真实provider",
+    "完整仓库race、正式重建/drift、旧十包逐条验收与T17交付安装升级回滚",
+    "遗留测试主体二次验证清理"
+  ],
+  "linkage": {
+    "taskManifest": ".harness/tasks/2026-11-20-ops-review-live-runtime-acceptance/manifest.json",
+    "evidenceDir": ".harness/evidence/2026-11-20-ops-review-live-runtime-acceptance",
+    "summaryFile": ".harness/evidence/2026-11-20-ops-review-live-runtime-acceptance/summary.md",
+    "reviewFile": ".harness/evidence/2026-11-20-ops-review-live-runtime-acceptance/codex-progress-review-20261122.md",
+    "changeRef": "none"
+  }
+}

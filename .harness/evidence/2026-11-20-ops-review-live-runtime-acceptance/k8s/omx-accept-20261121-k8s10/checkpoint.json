@@ -1,0 +1,81 @@
+{
+  "runId": "omx-accept-20261121-k8s10",
+  "namespace": "omx-accept-20261121-k8s10",
+  "ids": {
+    "scope": 11,
+    "cluster": 6,
+    "namespaceCreated": true,
+    "service": {
+      "name": "accept-service",
+      "namespace": "omx-accept-20261121-k8s10",
+      "type": "ClusterIP",
+      "clusterIP": "10.43.50.42",
+      "ports": [
+        {
+          "name": "http",
+          "port": 8080,
+          "targetPort": 8080,
+          "nodePort": 0,
+          "protocol": "TCP"
+        }
+      ],
+      "selector": {
+        "app": "accept-workload",
+        "revision": "2"
+      },
+      "loadBalancerIP": "",
+      "resourceVersion": "2414505",
+      "uid": "a99735bb-c398-4ed6-8821-1eb4ad45cfbd"
+    },
+    "image": "rancher/local-path-provisioner:v0.0.36",
+    "workloadCreated": true,
+    "helm": 2,
+    "storageSnapshots": true,
+    "releaseAttempted": true,
+    "role": 3,
+    "user": 3,
+    "username": "omx_accept_20261121_k8s10_read"
+  },
+  "cleanup": [
+    {
+      "helmId": 2,
+      "apiDeleted": true
+    },
+    {
+      "userId": 3,
+      "apiDeleted": true
+    },
+    {
+      "roleId": 3,
+      "apiDeleted": true
+    },
+    {
+      "namespace": "omx-accept-20261121-k8s10",
+      "deletedAndIndependentlyVerified": true
+    },
+    {
+      "ownedLocalReleaseRowsDeleted": 1
+    },
+    {
+      "localSnapshotTable": "biz_k8s_pv",
+      "ownedRowsDeleted": 0
+    },
+    {
+      "localSnapshotTable": "biz_k8s_pvc",
+      "ownedRowsDeleted": 0
+    },
+    {
+      "localSnapshotTable": "biz_k8s_storage_class",
+      "ownedRowsDeleted": 1
+    },
+    {
+      "clusterId": 6,
+      "deleted": true
+    },
+    {
+      "scopeId": 11,
+      "deleted": true
+    }
+  ],
+  "plaintextCredentialsRecorded": false
+}

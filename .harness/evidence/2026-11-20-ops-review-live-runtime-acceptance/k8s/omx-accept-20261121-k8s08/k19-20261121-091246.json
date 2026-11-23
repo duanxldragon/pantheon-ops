@@ -1,0 +1,32 @@
+{
+  "id": "k19",
+  "intent": "existing Velero provider and dedicated ConfigMap backup",
+  "userModel": "authenticated admin unless stated",
+  "setup": "local Ops; pinned SSH to 115.190.251.143; dedicated namespace",
+  "harness": ".local/acceptance-20261121/k8s-live.py",
+  "expected": "assertions hold",
+  "fixesApplied": [],
+  "cleanup": "owned fixtures tracked in checkpoint.json",
+  "status": "FAIL",
+  "errorType": "AssertionError",
+  "error": "existing real Velero provider discovered",
+  "calls": [
+    {
+      "method": "GET",
+      "path": "/business/k8s/backup/velero/status?clusterId=5",
+      "httpStatus": 200,
+      "code": 200,
+      "message": "success",
+      "durationMs": 937,
+      "data": {
+        "installed": true,
+        "version": "docker.io/velero/velero@sha256:367a1d2deb5adf3acc8056715aefe398850cd33b8d7a68e5a6f1f13b691a1c58",
+        "namespace": "velero",
+        "runningPods": 0,
+        "storageLocations": 0
+      }
+    }
+  ],
+  "durationMs": 937,
+  "evidence": ".harness\\evidence\\2026-11-20-ops-review-live-runtime-acceptance\\k8s\\omx-accept-20261121-k8s08\\k19-20261121-091246.json"
+}

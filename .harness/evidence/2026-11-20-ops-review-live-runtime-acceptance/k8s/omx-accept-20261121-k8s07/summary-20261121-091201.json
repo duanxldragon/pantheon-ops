@@ -1,0 +1,84 @@
+{
+  "runId": "omx-accept-20261121-k8s07",
+  "phase": "acceptance",
+  "provider": "115.190.251.143 existing k3s",
+  "receipt": {
+    "backendSha256": "ed6a9d6c4032c4caaf964c9c929eba2bb884a7725ae81414e96d959c9734624a",
+    "backendPid": 16516,
+    "sourceHead": "a2d69d4a759b5df2b26aaa9d26bdc5175babe9dc",
+    "harnessSha256": "a3c1ed751c4e021c642bb26472e14870c857d24b90e5c053895e52261cfc8440"
+  },
+  "status": "FAIL",
+  "cases": [
+    {
+      "id": "k01",
+      "intent": "pinned SSH and CA-verified public API configuration",
+      "userModel": "authenticated admin unless stated",
+      "setup": "local Ops; pinned SSH to 115.190.251.143; dedicated namespace",
+      "harness": ".local/acceptance-20261121/k8s-live.py",
+      "expected": "assertions hold",
+      "fixesApplied": [],
+      "cleanup": "owned fixtures tracked in checkpoint.json",
+      "actual": {
+        "ssh": {
+          "ok": true,
+          "host": "115.190.251.143:22",
+          "user": "root",
+          "password_source": "env:PANTHEON_VERIFY_SSH_PASSWORD",
+          "serverKeyType": "ssh-ed25519",
+          "serverSha256Fingerprint": "SHA256:FhLFRIfRIGotV2tS+sIZWxniie2qG5Xu8H3igYJ8RNU",
+          "knownHostsVerified": true,
+          "knownHostsEntryType": "ssh-ed25519",
+          "knownHostsFiles": [
+            "known_hosts"
+          ]
+        },
+        "provider": "existing k3s",
+        "tlsVerification": true,
+        "server": "https://115.190.251.143:6443",
+        "tlsServerName": "localhost",
+        "kubeconfigPersisted": false
+      },
+      "status": "PASS",
+      "calls": [],
+      "durationMs": 516,
+      "evidence": ".harness\\evidence\\2026-11-20-ops-review-live-runtime-acceptance\\k8s\\omx-accept-20261121-k8s07\\k01-20261121-091201.json"
+    },
+    {
+      "id": "k02",
+      "intent": "local Ops login",
+      "userModel": "authenticated admin unless stated",
+      "setup": "local Ops; pinned SSH to 115.190.251.143; dedicated namespace",
+      "harness": ".local/acceptance-20261121/k8s-live.py",
+      "expected": "assertions hold",
+      "fixesApplied": [],
+      "cleanup": "owned fixtures tracked in checkpoint.json",
+      "status": "FAIL",
+      "errorType": "URLError",
+      "calls": [],
+      "durationMs": 2172,
+      "evidence": ".harness\\evidence\\2026-11-20-ops-review-live-runtime-acceptance\\k8s\\omx-accept-20261121-k8s07\\k02-20261121-091201.json"
+    }
+  ],
+  "cleanup": [],
+  "gaps": [
+    "multi-tenant isolation",
+    "Helm chart installation is not implemented",
+    "frontend 10-second timeout",
+    "WebSocket server resource cleanup",
+    "Velero schedule and restore",
+    "Ingress provider changes",
+    "release rollout/rollback",
+    "Velero ConfigMap backup",
+    "non-admin authorization"
+  ],
+  "notRun": [
+    "k03b",
+    "k13",
+    "k16",
+    "k17",
+    "k18",
+    "k19",
+    "k20"
+  ]
+}

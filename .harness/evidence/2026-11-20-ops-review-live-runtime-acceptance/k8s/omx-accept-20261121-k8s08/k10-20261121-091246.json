@@ -1,0 +1,106 @@
+{
+  "id": "k10",
+  "intent": "real workload scale and restart",
+  "userModel": "authenticated admin unless stated",
+  "setup": "local Ops; pinned SSH to 115.190.251.143; dedicated namespace",
+  "harness": ".local/acceptance-20261121/k8s-live.py",
+  "expected": "assertions hold",
+  "fixesApplied": [],
+  "cleanup": "owned fixtures tracked in checkpoint.json",
+  "actual": {
+    "list": {
+      "items": [
+        {
+          "kind": "Deployment",
+          "name": "accept-workload",
+          "namespace": "omx-accept-20261121-k8s08",
+          "replicas": 1,
+          "readyReplicas": 0,
+          "images": [
+            "rancher/local-path-provisioner:v0.0.36"
+          ],
+          "status": "progressing",
+          "age": "-1s",
+          "resourceVersion": "2413517"
+        }
+      ],
+      "total": 1,
+      "continueToken": ""
+    },
+    "scaledToTwo": true,
+    "zeroReplicas": {
+      "accepted": true,
+      "code": 200
+    },
+    "restoredOne": true,
+    "restarted": true
+  },
+  "status": "PASS",
+  "calls": [
+    {
+      "method": "GET",
+      "path": "/business/k8s/workloads?clusterId=5&namespace=omx-accept-20261121-k8s08",
+      "httpStatus": 200,
+      "code": 200,
+      "message": "success",
+      "durationMs": 735,
+      "data": {
+        "items": [
+          {
+            "kind": "Deployment",
+            "name": "accept-workload",
+            "namespace": "omx-accept-20261121-k8s08",
+            "replicas": 1,
+            "readyReplicas": 0,
+            "images": [
+              "rancher/local-path-provisioner:v0.0.36"
+            ],
+            "status": "progressing",
+            "age": "-1s",
+            "resourceVersion": "2413517"
+          }
+        ],
+        "total": 1,
+        "continueToken": ""
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/business/k8s/clusters/5/workloads/omx-accept-20261121-k8s08/Deployment/accept-workload/scale",
+      "httpStatus": 200,
+      "code": 200,
+      "message": "success",
+      "durationMs": 187,
+      "data": null
+    },
+    {
+      "method": "POST",
+      "path": "/business/k8s/clusters/5/workloads/omx-accept-20261121-k8s08/Deployment/accept-workload/scale",
+      "httpStatus": 200,
+      "code": 200,
+      "message": "success",
+      "durationMs": 156,
+      "data": null
+    },
+    {
+      "method": "POST",
+      "path": "/business/k8s/clusters/5/workloads/omx-accept-20261121-k8s08/Deployment/accept-workload/scale",
+      "httpStatus": 200,
+      "code": 200,
+      "message": "success",
+      "durationMs": 156,
+      "data": null
+    },
+    {
+      "method": "POST",
+      "path": "/business/k8s/clusters/5/workloads/omx-accept-20261121-k8s08/Deployment/accept-workload/restart",
+      "httpStatus": 200,
+      "code": 200,
+      "message": "success",
+      "durationMs": 94,
+      "data": null
+    }
+  ],
+  "durationMs": 2688,
+  "evidence": ".harness\\evidence\\2026-11-20-ops-review-live-runtime-acceptance\\k8s\\omx-accept-20261121-k8s08\\k10-20261121-091246.json"
+}

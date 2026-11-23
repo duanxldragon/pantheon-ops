@@ -1,0 +1,97 @@
+{
+  "schemaVersion": 1,
+  "taskId": "2026-11-20-ops-business-permissions-and-task-visibility",
+  "scope": "t03-implementation",
+  "candidate": {
+    "repo": "pantheon-ops",
+    "baselineReportCommit": "444ce8e",
+    "planningCommit": "a2d69d4a759b5df2b26aaa9d26bdc5175babe9dc",
+    "worktree": "uncommitted (no commit/push per governing directive)",
+    "foundation": "pantheon-base-v0.18.9"
+  },
+  "commands": [
+    {
+      "command": "go test -count=1 -run 'TestDeployRegisteredActionsDoNotGrantOtherEndpoints|TestDeployPackageDetailRemainsUnregisteredForView' ./modules/business/deploy",
+      "workdir": "pantheon-ops/backend",
+      "exitCode": 0,
+      "purpose": "Anti-widening Casbin matrix for all 26 bound deploy permission keys; proves each key grants exactly its own routes and detail/export static routes stay denied."
+    },
+    {
+      "command": "PANTHEON_TEST_DSN=<local .env DSN, redacted> go test -count=1 -run 'TestDeployTaskVisibilityRespectsHostDataScope|TestDraftDeployTaskVisibilityRespectsResolvedTargets|TestListDeployTasksIncludesHostExecutionSummary|TestListDeployTasksHidesOutOfScopeHosts' ./modules/business/deploy",
+      "workdir": "pantheon-ops/backend",
+      "exitCode": 0,
+      "purpose": "DB-backed task visibility: host DataScope filtering, draft target resolution, execution summary, and the new SEC-002 out-of-scope-host stripping assertion."
+    },
+    {
+      "command": "PANTHEON_TEST_DSN=<local .env DSN, redacted> go test -count=1 -run TestServiceTransactionFactoryRefusesInvalidOwnerBeforeMutation ./modules/business/deploy",
+      "workdir": "pantheon-ops/backend",
+      "exitCode": 0,
+      "purpose": "Isolates the test that panicked at the 600s cumulative timeout in the full suite; passes standalone in 17.58s proving the earlier FAIL was fixture slowness, not a correctness failure.",
+      "duration": "17.58s"
+    },
+    {
+      "command": "PANTHEON_TEST_DSN=<local .env DSN, redacted> go test -count=1 -timeout 1800s ./modules/business/deploy/...",
+      "workdir": "pantheon-ops/backend",
+      "exitCode": 0,
+      "purpose": "Full deploy package suite with an extended timeout to absorb real-MySQL per-fixture migration cost.",
+      "result": "ok github.com/duanxldragon/pantheon-base/backend/modules/business/deploy 1047.796s",
+      "note": "An earlier run at the default 600s timeout FAILed only on the cumulative timeout (panic at service_transaction_test.go:310); the same test passed in isolation (17.58s). The extended-timeout rerun passes."
+    },
+    {
+      "command": "pwsh -NoProfile -File .local/acceptance-20261121/build-codex-candidate.ps1 -Label t03",
+      "workdir": "pantheon-ops",
+      "exitCode": 0,
+      "purpose": "Build the T03 candidate from the dirty worktree (CGO on, mod=readonly).",
+      "result": {
+        "binary": ".local/acceptance-20261121/pantheon-ops-codex-t03-20261123-162526.exe",
+        "binarySha256": "0586a9e2588910aece8fd19410e2eea3111c7a0015a739c97e6eb024fcf124a0",
+        "sourceFiles": 758,
+        "sourceStable": true,
+        "receipt": ".harness/evidence/2026-11-20-ops-review-live-runtime-acceptance/codex-build-t03-20261123-162526.json"
+      }
+    },
+    {
+      "command": "pwsh -NoProfile -File .local/acceptance-20261121/restart-live-secret.ps1 -CandidatePath <t03 candidate>",
+      "workdir": "pantheon-ops",
+      "exitCode": "wrapper timed out at 120s; restart side effects verified",
+      "purpose": "Restart the owned local acceptance instance on the T03 candidate so SeedMenus/SeedI18n upsert the new credential keys.",
+      "result": "ownership.json backendPid=30196, backendSha256=0586a9e2…; /api/v1/health 200 (database/migrations/redis ok); DB system_menu has 4 credential F rows (sort 12-15) and 8 i18n rows."
+    },
+    {
+      "command": "node .local/acceptance-20261121/probe-t03-role-matrix.mjs --base http://127.0.0.1:8081 --label t03-local-0586a9e2 --out .harness/evidence/.../t03-role-matrix-local.json",
+      "workdir": "pantheon-ops",
+      "exitCode": 0,
+      "purpose": "After-fix live role matrix (V1/V2/V5 deploy domain) on the local candidate: throwaway roles/users, granted vs denied routes, secret-key scan, API cleanup.",
+      "result": "18/18 PASS; granted GET /tasks, GET /credentials, GET /packages return code 200; all unwarranted writes/other-module reads return code 403 permission.denied; credentials response has 0 secret-bearing keys; all throwaway users/roles deleted (DB count 0)."
+    },
+    {
+      "command": "node frontend/scripts/check-menu-contract.mjs",
+      "workdir": "pantheon-ops",
+      "exitCode": 0,
+      "purpose": "Menu/seed/i18n fallback contract after adding the 4 credential permission title keys to zh/en fallbacks and module locales.",
+      "result": "✅ 45 menus, 55 routes, 250 permissions, 54 component keys"
+    },
+    {
+      "command": "node ../pantheon-harness/scripts/harness/check-method-consumption.mjs --root . --source ../pantheon-harness",
+      "workdir": "pantheon-ops",
+      "exitCode": 0,
+      "purpose": "Mandatory Ops method-consumption receipt at closeout.",
+      "result": "Method consumption verified: 1.5.0, 7 policies, AGENTS.md, CLAUDE.md"
+    },
+    {
+      "command": "npm run check:business-boundaries && npm run check:business-overlay",
+      "workdir": "pantheon-ops",
+      "exitCode": 0,
+      "purpose": "Cross-module table boundary and business overlay registry checks.",
+      "result": "business module boundary check passed; OK business overlay contract (55 declared paths, rebuilt tree)"
+    }
+  ],
+  "environment": {
+    "localMySQL": "127.0.0.1:3306, DSN loaded from pantheon-platform/.env PANTHEON_DSN (value not recorded in evidence)",
+    "note": "Test fixtures skip when PANTHEON_TEST_DSN/PANTHEON_DSN are unset; the DSN was passed via environment only and is not persisted here."
+  },
+  "knownExclusions": [
+    "No live candidate re-probe of V1/V2/V5 role matrix (requires live candidate + admin credentials + browser/HTTP runtime).",
+    "No frontend build/type-check/visual evidence this round (no UI file touched by T03)."
+  ]
+}

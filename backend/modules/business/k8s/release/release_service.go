@@ -431,6 +431,13 @@ func (s *ReleaseService) execute(id uint64, dataScope *common.DataScopeReq) erro
 			}
 			return reconcileErr
 		}
+		if errors.Is(err, common.ErrConflict) {
+			// A legitimate stale-resource-version CAS conflict must stay typed so
+			// Create/Rollback and the HTTP layer surface it as 409 instead of
+			// masking it as a generic apply failure. The durable record still
+			// transitions to failed with the conflict message preserved.
+			return s.fail(record.ID, before, err.Error(), err)
+		}
 		return s.fail(record.ID, before, err.Error(), errReleaseApplyFailed)
 	}
 	if err := s.persistTarget(record.ID, target); err != nil {

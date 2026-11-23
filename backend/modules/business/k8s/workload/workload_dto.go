@@ -46,12 +46,16 @@ type PodItem struct {
 
 // PodListResponse contains Kubernetes pod summaries.
 type PodListResponse struct {
-	Items []PodItem `json:"items"`
-	Total int       `json:"total"`
+	Items         []PodItem `json:"items"`
+	Total         int       `json:"total"`
+	ContinueToken string    `json:"continueToken"`
 }
 
 // ScaleRequest requests a new workload replica count.
 type ScaleRequest struct {
-	Replicas        int32  `json:"replicas" binding:"required,min=0"`
+	// Replicas is a pointer so an explicit 0 (scale-to-zero) survives the
+	// required validator: for a non-pointer int32, 0 is indistinguishable from
+	// "missing" and the validator rejects it as param_invalid.
+	Replicas        *int32 `json:"replicas" binding:"required,min=0"`
 	ResourceVersion string `json:"resourceVersion"`
 }

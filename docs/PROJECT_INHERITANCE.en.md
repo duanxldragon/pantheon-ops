@@ -4,6 +4,12 @@ Chinese version: [PROJECT_INHERITANCE.md](./PROJECT_INHERITANCE.md)
 
 `pantheon-ops` inherits through a complete Pantheon Base snapshot plus a declarative business overlay. An upgrade rebuilds the product tree from the official Base release locked in `foundation-release.lock.json` and injects Ops-owned business assets. It does not patch an old tree file by file or maintain shared-source allowlists.
 
+## Method Consumption and Product Inheritance
+
+Consume [capability-adaptive delivery](../../pantheon-harness/patterns/capability-adaptive-delivery.md) directly. `.harness/method-consumption.json` records method version and normalized-text SHA256. `AGENTS.md`, `CLAUDE.md`, and `.harness` are already declared repository overlay assets and survive rebuilding. Do not copy method prose or shared Base checkers.
+
+From Ops run `node ../pantheon-harness/scripts/harness/check-method-consumption.mjs --root . --source ../pantheon-harness` before work and at closeout. Review source changes before explicitly adding `--update`; validation never refreshes receipts. CI/offline use needs the same harness snapshot, and a missing source fails visibly. Product VERSION and the foundation lock remain independent; shared Base product/config/checker changes still require an official release and rebuild.
+
 ## Ownership
 
 - `pantheon-base` owns `platform`, `system/*`, shared backend/frontend, generators, and product engineering configuration.

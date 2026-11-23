@@ -1,0 +1,8 @@
+{
+  "caseId": "UI-CMDB-EDIT",
+  "status": "FAIL",
+  "url": "http://127.0.0.1:5175/business/cmdb/host",
+  "actual": "Changing only remark on assigned host rejected with cmdbhost.ownership_command_required",
+  "owner": "Claude",
+  "screenshot": "cmdb-host-edit-ownership-failure.jpg"
+}

@@ -1,0 +1,61 @@
+{
+  "runId": "omx_accept_20261121_cmdb03",
+  "phase": "cmdb",
+  "caseId": "c08",
+  "title": "deploy-credential-create-list-redacted",
+  "ts": "2026-11-21T00:19:38.783Z",
+  "status": "PASS",
+  "httpStatus": 200,
+  "businessCode": 200,
+  "assertions": [
+    {
+      "name": "credential created",
+      "pass": true
+    },
+    {
+      "name": "create response has no secret literal",
+      "pass": true
+    },
+    {
+      "name": "create response has no secret field keys",
+      "pass": true
+    },
+    {
+      "name": "credential listed",
+      "pass": true
+    },
+    {
+      "name": "list has no secret literal",
+      "pass": true
+    },
+    {
+      "name": "list rows expose no secret field keys",
+      "pass": true
+    }
+  ],
+  "ids": {
+    "credentialId": 1
+  },
+  "result": {
+    "credentialRowFields": [
+      "id",
+      "name",
+      "username",
+      "authMode",
+      "version",
+      "status",
+      "createdAt",
+      "updatedAt"
+    ],
+    "credentialCount": 1
+  },
+  "message": null,
+  "redaction": {
+    "secretInCreateResponse": false,
+    "secretFieldsFound": [],
+    "secretInListResponse": false,
+    "secretFieldsInList": []
+  },
+  "durationMs": 18,
+  "blockedReason": null
+}

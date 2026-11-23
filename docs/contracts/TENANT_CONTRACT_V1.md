@@ -333,7 +333,7 @@ DDL 与种子：编号迁移 `000030_tenant_plan_definitions`；AutoMigrate 部�
 
 ### 2.7 V2.0-O4 业务租户增量合同（实施中，2026-11-09）
 
-维护者已明确批准“扩展 Base 业务租户合同，同批实现并验收租户隔离”。独立 CODE/ARCH 已批准实施方案；本条定义同批交付目标，**尚未表示实现验收或正式发行完成**。当前已发行 V1.10 与旧助手继续按 §2.6 工作；只有四项前置条件和正式配对消费均通过后，采用模块才可声明 V2 隔离。唯一实施与证据入口是 [O4 计划](../../.harness/tasks/2026-11-07-ops-formal-queue-foundation-gaps/o4-tenant-implementation-plan.md)及其父任务。
+维护者已明确批准“扩展 Base 业务租户合同，同批实现并验收租户隔离”。独立 CODE/ARCH 已批准实施方案；本条定义同批交付目标，**尚未表示实现验收或正式发行完成**。当前已发行 V1.10 与旧助手继续按 §2.6 工作；只有四项前置条件和正式配对消费均通过后，采用模块才可声明 V2 隔离。唯一实施与证据入口是 O4 计划及其父任务。
 
 - Base 提供显式 `TenantScopedBusinessGroup` 和只读的当前身份/权限端口；旧 `ProtectedGroup`、`ProtectedGroupWithRedis`、`DataScopedGroup` 的默认链和既有系统域语义保持。缺失/异常/未知租户模式、DB/Redis/授权依赖和上下文拒绝，不降级为 compat。
 - 当前主体、会话、用户、角色、成员关系、租户生命周期与解析来源在入口、实际访问 provider 前和结果释放前重新验证；租户和用户不能由请求 body 或任意 header 指定。平台 header 覆盖仍按 §3 的平台能力规则；`tenant_id=0` 只能访问全局行，管理员也不绕过私人记录的 actor 隔离。

@@ -1,0 +1,145 @@
+{
+  "taskId": "2026-11-20-ops-review-remediation",
+  "scope": "planning-only",
+  "checkedAt": "2026-11-20T15:29:48.094Z",
+  "status": "passed",
+  "counts": {
+    "manifests": 18,
+    "children": 17,
+    "numberedFindings": 37,
+    "verificationItems": 8,
+    "priorPackages": 10,
+    "markdownFiles": 58,
+    "linksChecked": 122
+  },
+  "checks": [
+    "manifest schema",
+    "planned lifecycle",
+    "parent-child linkage",
+    "dependency existence and cycles including conditional dependencies",
+    "source finding and V1-V8 coverage",
+    "prior archive paths",
+    "activation classification",
+    "markdown links"
+  ],
+  "sourceHashes": {
+    "docs/reviews/pantheon-ops独立评审与外部报告核实-2026-11-20.md": "6adab7c9ead33ee0a412087d11e1ad33c55c15f22b268b2723cc5ab812dcfb2a",
+    "docs/reviews/pantheon-ops真实环境验证清单-2026-11-20.md": "856b5bfc56babae6f2dbd02ad7c38f7497eb545729e56037e5212915fb8bc679"
+  },
+  "errors": [],
+  "knownGaps": [
+    "implementation not executed",
+    "provider/role/SSH/K8s verification not executed",
+    "rendered evidence not produced during planning",
+    "independent planning review not executed"
+  ],
+  "taskPacketCheck": {
+    "results": [
+      {
+        "file": "docs/harness/tasks/2026-11-20-ops-review-baseline-and-decisions.task.md",
+        "errors": [],
+        "warnings": []
+      },
+      {
+        "file": "docs/harness/tasks/2026-11-20-ops-deploy-fixed-template-security.task.md",
+        "errors": [],
+        "warnings": []
+      },
+      {
+        "file": "docs/harness/tasks/2026-11-20-ops-business-permissions-and-task-visibility.task.md",
+        "errors": [],
+        "warnings": []
+      },
+      {
+        "file": "docs/harness/tasks/2026-11-20-ops-core-business-tenant-isolation.task.md",
+        "errors": [],
+        "warnings": []
+      },
+      {
+        "file": "docs/harness/tasks/2026-11-20-ops-deploy-credential-ownership-and-ui.task.md",
+        "errors": [],
+        "warnings": []
+      },
+      {
+        "file": "docs/harness/tasks/2026-11-20-ops-k8s-resource-authorization-and-mutations.task.md",
+        "errors": [],
+        "warnings": []
+      },
+      {
+        "file": "docs/harness/tasks/2026-11-20-ops-k8s-client-lifecycle-and-config-safety.task.md",
+        "errors": [],
+        "warnings": []
+      },
+      {
+        "file": "docs/harness/tasks/2026-11-20-ops-k8s-log-websocket-lifecycle.task.md",
+        "errors": [],
+        "warnings": []
+      },
+      {
+        "file": "docs/harness/tasks/2026-11-20-ops-deploy-recovery-and-remote-execution.task.md",
+        "errors": [],
+        "warnings": []
+      },
+      {
+        "file": "docs/harness/tasks/2026-11-20-ops-filedist-durable-lifecycle.task.md",
+        "errors": [],
+        "warnings": []
+      },
+      {
+        "file": "docs/harness/tasks/2026-11-20-ops-service-deploy-business-closure.task.md",
+        "errors": [],
+        "warnings": []
+      },
+      {
+        "file": "docs/harness/tasks/2026-11-20-ops-argocd-ownership-and-webhook.task.md",
+        "errors": [],
+        "warnings": []
+      },
+      {
+        "file": "docs/harness/tasks/2026-11-20-ops-deploy-template-and-task-experience.task.md",
+        "errors": [],
+        "warnings": []
+      },
+      {
+        "file": "docs/harness/tasks/2026-11-20-ops-extension-and-async-tenant-isolation.task.md",
+        "errors": [],
+        "warnings": []
+      },
+      {
+        "file": "docs/harness/tasks/2026-11-20-ops-review-docs-and-test-governance.task.md",
+        "errors": [],
+        "warnings": []
+      },
+      {
+        "file": "docs/harness/tasks/2026-11-20-ops-review-live-runtime-acceptance.task.md",
+        "errors": [],
+        "warnings": []
+      },
+      {
+        "file": "docs/harness/tasks/2026-11-20-ops-review-delivery-and-closeout.task.md",
+        "errors": [],
+        "warnings": []
+      },
+      {
+        "file": "docs/harness/tasks/2026-11-20-ops-review-remediation.task.md",
+        "errors": [],
+        "warnings": []
+      }
+    ],
+    "errorCount": 0,
+    "warningCount": 0,
+    "legacySkippedCount": 0,
+    "legacyConfig": null
+  },
+  "formatCheck": {
+    "status": "passed",
+    "fileCount": 78
+  },
+  "verificationCommandCheck": {
+    "status": "passed",
+    "commandsChecked": 60
+  },
+  "trackedDiffWhitespaceCheck": {
+    "status": "passed"
+  }
+}

@@ -9,7 +9,8 @@ import (
 
 type LabelSchema struct {
 	ID          uint64         `gorm:"primaryKey;autoIncrement" json:"id"`
-	Key         string         `gorm:"size:64;not null;uniqueIndex:uk_cmdb_label_schema_key" json:"key"`
+	TenantID    uint64         `gorm:"column:tenant_id;not null;default:0;uniqueIndex:uk_cmdb_label_schema_key,priority:1" json:"-"`
+	Key         string         `gorm:"size:64;not null;uniqueIndex:uk_cmdb_label_schema_key,priority:2" json:"key"`
 	Name        string         `gorm:"size:128;not null" json:"name"`
 	Category    string         `gorm:"size:32;not null;default:base;index" json:"category"`
 	ValueMode   string         `gorm:"size:16;not null;default:free" json:"valueMode"`

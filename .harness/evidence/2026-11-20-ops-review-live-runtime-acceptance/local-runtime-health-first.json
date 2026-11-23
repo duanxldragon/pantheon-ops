@@ -1,0 +1,25 @@
+{
+  "status": 503,
+  "body": {
+    "code": 200,
+    "data": {
+      "status": "degraded",
+      "service": "pantheon-platform",
+      "timestamp": "2026-11-20T23:34:07Z",
+      "requestId": "fc71e993-c63a-4417-9cdc-15143c55dabf",
+      "dependencies": {
+        "database": {
+          "status": "ok"
+        },
+        "migrations": {
+          "status": "down",
+          "message": "migrations.incomplete"
+        },
+        "redis": {
+          "status": "ok"
+        }
+      }
+    },
+    "message": "success"
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "runId": "omx_accept_20261121_cmdb02",
+  "phase": "deploy",
+  "caseId": "d01",
+  "title": "custom harmless marker package",
+  "ts": "2026-11-21T00:22:11.382Z",
+  "status": "FAIL",
+  "httpStatus": 200,
+  "businessCode": 500,
+  "assertions": [
+    {
+      "name": "deploy/packages created",
+      "pass": false,
+      "detail": "deploy/packages: HTTP 200, code 500 (deploypackage.execution_mode_invalid)"
+    }
+  ],
+  "ids": {},
+  "result": null,
+  "message": "deploy/packages: HTTP 200, code 500 (deploypackage.execution_mode_invalid)",
+  "redaction": null,
+  "durationMs": 8,
+  "blockedReason": null
+}

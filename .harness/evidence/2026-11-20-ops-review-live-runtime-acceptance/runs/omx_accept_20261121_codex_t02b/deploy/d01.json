@@ -1,0 +1,24 @@
+{
+  "runId": "omx_accept_20261121_codex_t02b",
+  "phase": "deploy",
+  "caseId": "d01",
+  "title": "custom harmless marker package",
+  "ts": "2026-11-22T09:20:57.219Z",
+  "status": "PASS",
+  "httpStatus": 200,
+  "businessCode": 200,
+  "assertions": [
+    {
+      "name": "deploy/packages created",
+      "pass": true
+    }
+  ],
+  "ids": {
+    "packageId": 1
+  },
+  "result": null,
+  "message": null,
+  "redaction": null,
+  "durationMs": 16,
+  "blockedReason": null
+}

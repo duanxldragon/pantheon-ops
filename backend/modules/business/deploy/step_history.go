@@ -16,6 +16,7 @@ import (
 //nolint:revive // Model name retains the deploy domain prefix.
 type DeployStepHistory struct {
 	ID           uint64 `gorm:"primaryKey;autoIncrement"`
+	TenantID     uint64 `gorm:"column:tenant_id;not null;default:0" json:"-"`
 	TaskID       uint64 `gorm:"not null;index:idx_deploy_step_history_task"`
 	TaskHostID   uint64 `gorm:"not null;index:idx_deploy_step_history_task"`
 	StepID       uint64 `gorm:"not null;uniqueIndex:uk_deploy_step_history_version"`

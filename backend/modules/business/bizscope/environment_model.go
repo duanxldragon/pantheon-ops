@@ -12,6 +12,7 @@ import (
 // It is the only net-new CRUD entity in the bizscope M+3C.
 type BusinessEnvironment struct {
 	ID              uint64         `gorm:"primaryKey;autoIncrement" json:"id"`
+	TenantID        uint64         `gorm:"column:tenant_id;not null;default:0" json:"-"`
 	BusinessScopeID uint64         `gorm:"not null;index" json:"businessScopeId"`
 	Code            string         `gorm:"not null;size:50" json:"code"`
 	Name            string         `gorm:"not null;size:255" json:"name"`

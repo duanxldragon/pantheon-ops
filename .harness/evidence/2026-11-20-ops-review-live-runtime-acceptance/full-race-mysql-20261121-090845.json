@@ -1,0 +1,10 @@
+{
+  "command": "go test -race -count=1 -v ./...",
+  "failures": 11,
+  "skips": 39,
+  "cgoEnabled": true,
+  "exitCode": 1,
+  "capturedAt": "2026-11-21T09:24:40.8490508+08:00",
+  "log": "full-race-mysql-20261121-090845.log",
+  "mysqlRequired": true
+}

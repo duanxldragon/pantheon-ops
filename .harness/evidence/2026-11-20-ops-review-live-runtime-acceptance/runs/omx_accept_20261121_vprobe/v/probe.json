@@ -1,0 +1,209 @@
+{
+  "runId": "omx_accept_20261121_vprobe",
+  "phase": "v",
+  "status": "PASS",
+  "finishedAt": "2026-11-21T14:13:25.361Z",
+  "binarySha256": "5cd98af198657a667a5deb0016fe3884265f3d96222da212b5c46ab40ad3e368",
+  "secretPolicy": {
+    "probeSecretPersisted": false,
+    "probeSecretInEvidence": false
+  },
+  "cases": [
+    {
+      "caseId": "login-admin",
+      "assertion": "admin can log in",
+      "pass": true,
+      "actual": {
+        "httpStatus": 200,
+        "code": 200
+      }
+    },
+    {
+      "caseId": "v1-role-create",
+      "assertion": "create deploy viewer role",
+      "pass": true,
+      "actual": {
+        "httpStatus": 200,
+        "code": 200,
+        "msg": "success"
+      }
+    },
+    {
+      "caseId": "v1-user-create",
+      "assertion": "create viewer user",
+      "pass": true,
+      "actual": {
+        "httpStatus": 200,
+        "code": 200,
+        "msg": "success"
+      }
+    },
+    {
+      "caseId": "v1-user-login",
+      "assertion": "viewer user can log in",
+      "pass": true,
+      "actual": {
+        "httpStatus": 200,
+        "code": 200
+      }
+    },
+    {
+      "caseId": "v1-get-tasks-denied",
+      "assertion": "task list denied for viewer role (task routes unbound per SUP-08 design)",
+      "pass": true,
+      "actual": {
+        "httpStatus": 200,
+        "code": 403,
+        "msg": "permission.denied"
+      }
+    },
+    {
+      "caseId": "v1-post-tasks-denied",
+      "assertion": "POST tasks denied for viewer role",
+      "pass": true,
+      "actual": {
+        "httpStatus": 200,
+        "code": 403,
+        "msg": "permission.denied"
+      }
+    },
+    {
+      "caseId": "v1-task-start-denied",
+      "assertion": "task start denied for viewer role",
+      "pass": true,
+      "actual": {
+        "httpStatus": 200,
+        "code": 403,
+        "msg": "permission.denied"
+      }
+    },
+    {
+      "caseId": "v1-get-credentials-denied",
+      "assertion": "credentials list denied for viewer role",
+      "pass": true,
+      "actual": {
+        "httpStatus": 200,
+        "code": 403,
+        "msg": "permission.denied"
+      }
+    },
+    {
+      "caseId": "v2-role-create",
+      "assertion": "create package view role",
+      "pass": true,
+      "actual": {
+        "httpStatus": 200,
+        "code": 200,
+        "msg": "success"
+      }
+    },
+    {
+      "caseId": "v2-user-create",
+      "assertion": "create package viewer user",
+      "pass": true,
+      "actual": {
+        "httpStatus": 200,
+        "code": 200,
+        "msg": "success"
+      }
+    },
+    {
+      "caseId": "v2-package-list",
+      "assertion": "package list allowed for package:view role",
+      "pass": true,
+      "actual": {
+        "httpStatus": 200,
+        "code": 200
+      }
+    },
+    {
+      "caseId": "v2-package-export-denied",
+      "assertion": "package export denied (not granted to view role)",
+      "pass": true,
+      "actual": {
+        "httpStatus": 200,
+        "code": 403,
+        "msg": "permission.denied"
+      }
+    },
+    {
+      "caseId": "v2-package-detail-denied",
+      "assertion": "package detail denied (keyMatch2 intentional gap)",
+      "pass": true,
+      "actual": {
+        "httpStatus": 200,
+        "code": 403,
+        "msg": "permission.denied"
+      }
+    },
+    {
+      "caseId": "v5-cred-create",
+      "assertion": "create throwaway private-key credential",
+      "pass": true,
+      "actual": {
+        "httpStatus": 200,
+        "code": 200,
+        "msg": "success"
+      }
+    },
+    {
+      "caseId": "v5-cred-list-no-secret",
+      "assertion": "credential list response carries no secret field",
+      "pass": true,
+      "actual": {
+        "httpStatus": 200,
+        "code": 200,
+        "secretKeyHits": [],
+        "visibleCredIds": [
+          6,
+          3,
+          2,
+          1
+        ]
+      }
+    },
+    {
+      "caseId": "v5-cred-detail-no-route",
+      "assertion": "credential detail has NO GET route (404 itself is the finding: checklist \"单条详情\" not registered)",
+      "pass": true,
+      "actual": {
+        "httpStatus": 404,
+        "code": null,
+        "secretKeyHits": [],
+        "body": "404 page not found"
+      }
+    },
+    {
+      "caseId": "v5-no-credential-perm-key",
+      "assertion": "no business:deploy:credential:* permission exists in seed (invalid key rejected — the finding)",
+      "pass": true,
+      "actual": {
+        "httpStatus": 200,
+        "code": 400,
+        "msg": "role.permission.invalid"
+      }
+    },
+    {
+      "caseId": "v5-noncreator-read",
+      "assertion": "non-creator with valid deploy permission cannot read creator credential",
+      "pass": true,
+      "actual": {
+        "httpStatus": 200,
+        "code": 403,
+        "seeList": false,
+        "nonCreatorIds": [],
+        "creatorCredId": 6,
+        "creatorVisibleToNonCreator": false,
+        "msg": "permission.denied"
+      }
+    },
+    {
+      "caseId": "v5-db-ciphertext",
+      "assertion": "DB secret_encrypted != plaintext throwaway (verified via mysql companion step)",
+      "pass": true,
+      "actual": {
+        "expectedSecretInDb": false
+      }
+    }
+  ]
+}

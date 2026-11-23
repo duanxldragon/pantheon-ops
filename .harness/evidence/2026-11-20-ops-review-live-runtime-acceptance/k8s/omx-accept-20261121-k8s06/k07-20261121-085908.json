@@ -1,0 +1,83 @@
+{
+  "id": "k07",
+  "intent": "Secret create/read values redacted",
+  "userModel": "authenticated admin unless stated",
+  "setup": "local Ops; pinned SSH to 115.190.251.143; dedicated namespace",
+  "harness": ".local/acceptance-20261121/k8s-live.py",
+  "expected": "assertions hold",
+  "fixesApplied": [],
+  "cleanup": "owned fixtures tracked in checkpoint.json",
+  "actual": {
+    "metadata": {
+      "name": "accept-secret",
+      "namespace": "omx-accept-20261121-k8s06",
+      "type": "Opaque",
+      "keys": [
+        "test"
+      ],
+      "resourceVersion": "2412992"
+    },
+    "valuesRedacted": true,
+    "independentValueMatch": true
+  },
+  "status": "PASS",
+  "calls": [
+    {
+      "method": "POST",
+      "path": "/business/k8s/clusters/4/secrets?namespace=omx-accept-20261121-k8s06",
+      "httpStatus": 200,
+      "code": 200,
+      "message": "success",
+      "durationMs": 47,
+      "data": {
+        "name": "accept-secret",
+        "namespace": "omx-accept-20261121-k8s06",
+        "type": "Opaque",
+        "keys": [
+          "test"
+        ],
+        "resourceVersion": "2412992"
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/business/k8s/clusters/4/secrets/accept-secret?namespace=omx-accept-20261121-k8s06",
+      "httpStatus": 200,
+      "code": 200,
+      "message": "success",
+      "durationMs": 31,
+      "data": {
+        "name": "accept-secret",
+        "namespace": "omx-accept-20261121-k8s06",
+        "type": "Opaque",
+        "keys": [
+          "test"
+        ],
+        "resourceVersion": "2412992"
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/business/k8s/clusters/4/secrets?namespace=omx-accept-20261121-k8s06",
+      "httpStatus": 200,
+      "code": 200,
+      "message": "success",
+      "durationMs": 31,
+      "data": {
+        "items": [
+          {
+            "name": "accept-secret",
+            "namespace": "omx-accept-20261121-k8s06",
+            "type": "Opaque",
+            "keyCount": 1,
+            "resourceVersion": "2412992"
+          }
+        ],
+        "total": 1,
+        "continueToken": ""
+      }
+    }
+  ],
+  "durationMs": 297,
+  "evidence": ".harness\\evidence\\2026-11-20-ops-review-live-runtime-acceptance\\k8s\\omx-accept-20261121-k8s06\\k07-20261121-085908.json"
+}

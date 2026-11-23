@@ -1,0 +1,38 @@
+{
+  "runId": "omx_accept_20261121_formal01",
+  "phase": "cmdb",
+  "caseId": "c03",
+  "title": "cmdb-host-create-115.190.251.143",
+  "ts": "2026-11-21T11:58:04.716Z",
+  "status": "FAIL",
+  "httpStatus": 200,
+  "businessCode": 500,
+  "assertions": [
+    {
+      "name": "target host created",
+      "pass": false,
+      "detail": "host: HTTP 200, code 500 (cmdbhost.ip_exists)"
+    },
+    {
+      "name": "status assigned",
+      "pass": false,
+      "detail": "status=undefined"
+    },
+    {
+      "name": "ip echoed",
+      "pass": false,
+      "detail": "expected true"
+    },
+    {
+      "name": "sshPort echoed",
+      "pass": false,
+      "detail": "sshPort=undefined"
+    }
+  ],
+  "ids": {},
+  "result": null,
+  "message": null,
+  "redaction": null,
+  "durationMs": 13,
+  "blockedReason": null
+}

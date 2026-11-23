@@ -1,0 +1,17 @@
+{
+  "runId": "omx_accept_20261121_cmdb01",
+  "phase": "cmdb",
+  "caseId": "c05",
+  "title": "host-collect-positive",
+  "ts": "2026-11-20T23:44:00.388Z",
+  "status": "NOT_RUN",
+  "message": "dependent on c01 login passing",
+  "httpStatus": null,
+  "businessCode": null,
+  "assertions": [],
+  "ids": {},
+  "result": null,
+  "redaction": null,
+  "durationMs": null,
+  "blockedReason": "login status FAIL"
+}

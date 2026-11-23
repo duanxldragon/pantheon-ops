@@ -1,0 +1,13 @@
+{
+  "useShellExecute": false,
+  "pid": 32168,
+  "createNoWindow": true,
+  "maxTurns": 10,
+  "strictMcpConfig": true,
+  "timeoutSeconds": 600,
+  "effort": "high",
+  "startedAt": "2026-11-21T00:12:15.1056067+08:00",
+  "ownershipLimitation": "Assignment immediately follows Start; a child created before assignment is outside the guaranteed job scope.",
+  "ownedJob": true,
+  "hooksDisabled": true
+}

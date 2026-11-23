@@ -1,0 +1,30 @@
+{
+  "runId": "omx_accept_20261121_cmdb02",
+  "phase": "cmdb",
+  "caseId": "c03",
+  "title": "cmdb-host-create-115.190.251.143",
+  "ts": "2026-11-21T00:20:39.286Z",
+  "status": "PASS",
+  "httpStatus": 200,
+  "businessCode": 200,
+  "assertions": [
+    {
+      "name": "recorded target host readable",
+      "pass": true
+    },
+    {
+      "name": "recorded host has authorized IP",
+      "pass": true
+    }
+  ],
+  "ids": {
+    "hostId": 1
+  },
+  "result": {
+    "resumed": true
+  },
+  "message": null,
+  "redaction": null,
+  "durationMs": 18,
+  "blockedReason": null
+}

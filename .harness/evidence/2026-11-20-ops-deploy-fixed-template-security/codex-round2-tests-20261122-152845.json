@@ -1,0 +1,13 @@
+{
+  "mysqlRequired": true,
+  "command": "go test -race -count=1 -timeout=120s -v -overlay codex-round2-apparatus/overlay.json -run 'TestCodexReview|TestFixedTemplate|TestDeployFixedTemplateScriptsRenderForBuiltInComponents|TestDeployRedisTemplateUsesSignalStop|TestDeployJDKTemplateServiceSemantics|TestDeployPrometheusTemplateUsesCustomConfigPath' ./modules/business/deploy",
+  "topLevelFailures": 0,
+  "log": "codex-round2-tests-20261122-152845.log",
+  "cgoEnabled": true,
+  "exitCode": 1,
+  "apparatus": "Reviewer-only Go overlay; generates scripts without executing them",
+  "cwd": "backend",
+  "failureMarkers": [],
+  "skips": 0,
+  "capturedAt": "2026-11-22T15:28:45.8507374+08:00"
+}

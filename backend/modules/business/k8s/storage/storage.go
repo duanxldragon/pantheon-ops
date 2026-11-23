@@ -7,6 +7,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"reflect"
 	"strconv"
 	"time"
 
@@ -36,6 +37,7 @@ const (
 // PV is the DB snapshot of a Kubernetes PersistentVolume.
 type PV struct {
 	ID              uint64         `gorm:"primaryKey;autoIncrement" json:"id"`
+	TenantID        uint64         `gorm:"column:tenant_id;not null;default:0" json:"-"`
 	Name            string         `gorm:"size:255;not null;index" json:"name"`
 	ClusterID       uint64         `gorm:"column:cluster_id;index" json:"clusterId"`
 	BusinessScopeID uint64         `gorm:"column:business_scope_id;index" json:"-"`
@@ -57,6 +59,7 @@ func (PV) TableName() string { return "biz_k8s_pv" }
 // PVC is the DB snapshot of a Kubernetes PersistentVolumeClaim.
 type PVC struct {
 	ID              uint64         `gorm:"primaryKey;autoIncrement" json:"id"`
+	TenantID        uint64         `gorm:"column:tenant_id;not null;default:0" json:"-"`
 	Name            string         `gorm:"size:255;not null;index" json:"name"`
 	Namespace       string         `gorm:"size:255;not null;index" json:"namespace"`
 	ClusterID       uint64         `gorm:"column:cluster_id;index" json:"clusterId"`
@@ -80,6 +83,7 @@ func (PVC) TableName() string { return "biz_k8s_pvc" }
 //nolint:revive // the exported type name keeps the StorageClass domain prefix for API clarity.
 type StorageClass struct {
 	ID                   uint64    `gorm:"primaryKey;autoIncrement" json:"id"`
+	TenantID             uint64    `gorm:"column:tenant_id;not null;default:0" json:"-"`
 	Name                 string    `gorm:"size:255;not null;index" json:"name"`
 	ClusterID            uint64    `gorm:"column:cluster_id;index" json:"clusterId"`
 	BusinessScopeID      uint64    `gorm:"column:business_scope_id;index" json:"-"`
@@ -368,11 +372,20 @@ func (s *StorageService) replaceRows(model interface{}, clusterID uint64, rows i
 	if s.db == nil {
 		return errors.New("database.not_initialized")
 	}
-	// Replace the cluster snapshot: existing rows are stale after refresh.
-	if err := s.db.Where("cluster_id = ?", clusterID).Delete(model).Error; err != nil {
-		return err
-	}
-	return s.db.Create(rows).Error
+	// Replace the cluster snapshot inside a transaction: existing rows are stale
+	// after refresh, and a failure to persist the fresh rows must not leave the
+	// cluster with a half-destroyed snapshot. An empty cluster is a legitimate
+	// snapshot — delete the stale owned rows and skip the empty INSERT.
+	return s.db.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Where("cluster_id = ?", clusterID).Delete(model).Error; err != nil {
+			return err
+		}
+		v := reflect.ValueOf(rows)
+		if v.Kind() == reflect.Slice && v.Len() == 0 {
+			return nil
+		}
+		return tx.Create(rows).Error
+	})
 }
 
 func (s *StorageService) deleteSnapshot(model interface{}, id uint64, dataScope *common.DataScopeReq, requireBinding bool) error {

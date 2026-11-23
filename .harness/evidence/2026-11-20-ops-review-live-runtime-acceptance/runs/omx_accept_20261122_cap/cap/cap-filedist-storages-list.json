@@ -1,0 +1,29 @@
+{
+  "runId": "omx_accept_20261122_cap",
+  "phase": "cap",
+  "caseId": "cap-filedist-storages-list",
+  "title": "list file storages (CAP-FILEDIST read; default local storage provisioned by EnsureDefaultStorage)",
+  "ts": "2026-11-21T16:35:21.428Z",
+  "status": "PASS",
+  "httpStatus": 200,
+  "businessCode": 200,
+  "assertions": [
+    {
+      "name": "business code 200",
+      "pass": true
+    },
+    {
+      "name": "default local storage present",
+      "pass": true
+    }
+  ],
+  "ids": {
+    "storageCount": 1,
+    "defaultStorageId": 1
+  },
+  "result": null,
+  "message": null,
+  "redaction": null,
+  "durationMs": 7,
+  "blockedReason": null
+}

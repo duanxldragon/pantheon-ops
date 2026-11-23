@@ -1,0 +1,62 @@
+{
+  "runId": "omx_accept_20261121_cmdb02",
+  "phase": "cmdb",
+  "caseId": "c07",
+  "title": "host-update-labels-detail-pagination",
+  "ts": "2026-11-21T00:09:10.033Z",
+  "status": "FAIL",
+  "httpStatus": 200,
+  "businessCode": 200,
+  "assertions": [
+    {
+      "name": "pagination host created",
+      "pass": true
+    },
+    {
+      "name": "group matches env=production only",
+      "pass": true
+    },
+    {
+      "name": "host update accepted",
+      "pass": false,
+      "detail": "update: HTTP 200, code 500 (cmdbhost.ownership_command_required)"
+    },
+    {
+      "name": "updated labels include monitor=on",
+      "pass": false,
+      "detail": ""
+    },
+    {
+      "name": "detail reflects monitor label",
+      "pass": false,
+      "detail": "env=production,biz=omx_accept_20261121_cmdb02"
+    },
+    {
+      "name": "page1 single item",
+      "pass": true
+    },
+    {
+      "name": "page1 total equals fixture count (2)",
+      "pass": true
+    },
+    {
+      "name": "page2 second item",
+      "pass": true
+    }
+  ],
+  "ids": {
+    "hostBId": 2
+  },
+  "result": {
+    "updatedLabels": [],
+    "page1Total": 2,
+    "page2Total": 2,
+    "groupMemberIds": [
+      1
+    ]
+  },
+  "message": null,
+  "redaction": null,
+  "durationMs": 53,
+  "blockedReason": null
+}

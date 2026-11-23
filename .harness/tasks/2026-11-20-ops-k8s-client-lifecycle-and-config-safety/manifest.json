@@ -1,0 +1,215 @@
+{
+  "schemaVersion": 1,
+  "taskId": "2026-11-20-ops-k8s-client-lifecycle-and-config-safety",
+  "title": "K8s 凭据导入、连接轮换与请求边界",
+  "goal": "连接缓存绑定租户/集群/凭据版本，更新/轮换/删除触发既有 Evict；并发请求不可复活旧连接",
+  "primaryLayer": "business/*",
+  "status": "in-progress",
+  "priority": "P1",
+  "deliveryTier": "L2",
+  "parentTask": "2026-11-20-ops-review-remediation",
+  "taskDoc": "docs/harness/tasks/2026-11-20-ops-k8s-client-lifecycle-and-config-safety.task.md",
+  "handoffDoc": ".harness/tasks/2026-11-20-ops-k8s-client-lifecycle-and-config-safety/HANDOFF.md",
+  "statusDoc": ".harness/tasks/2026-11-20-ops-k8s-client-lifecycle-and-config-safety/STATUS.md",
+  "owner": "K8s 客户端负责人",
+  "activation": "core",
+  "dependencies": [
+    "2026-11-20-ops-review-baseline-and-decisions",
+    "2026-11-20-ops-core-business-tenant-isolation"
+  ],
+  "dependsOn": [
+    "2026-11-20-ops-review-baseline-and-decisions",
+    "2026-11-20-ops-core-business-tenant-isolation"
+  ],
+  "conditionalDependencies": [],
+  "coordinatesWith": [],
+  "scope": {
+    "in": [
+      "连接缓存绑定租户/集群/凭据版本，更新/轮换/删除触发既有 Evict；并发请求不可复活旧连接",
+      "上传 kubeconfig 拒绝 ExecProvider/AuthProvider、服务端本地路径/TokenFile 等外部执行或读取能力，只接受合同支持的嵌入材料",
+      "给 provider 调用明确 timeout/cancel 与合理 QPS/Burst，同步 Pods 分页/有界处理并避免持全局锁进行网络IO；敏感输入默认掩码",
+      "一并核实CMDB主机详情的SSH私钥输入，沿用现有敏感表单组件默认掩码，并覆盖截图脱敏与可控显隐。"
+    ],
+    "out": [
+      "platform/system/*、共享 UI/权限/租户/请求拦截器实现由 pantheon-base 拥有，按正式 foundation release 同步",
+      "未授权生产操作、发布、凭证变更及门禁豁免",
+      "资产关系/Pod→Node→VM、真实 Helm Chart、Nacos/RocketMQ、完整 Agent 协议作为独立后续范围"
+    ]
+  },
+  "dependencyLayers": [
+    "business/*",
+    "inheritance-sync"
+  ],
+  "baseline": {
+    "reportCommit": "444ce8e",
+    "planningCommit": "a2d69d4a759b5df2b26aaa9d26bdc5175babe9dc",
+    "foundationVersion": "pantheon-base-v0.18.9",
+    "foundationCommit": "6316f9b7189c86542424145fa49344ad737e952b",
+    "recheckBeforeImplementation": true
+  },
+  "sourceReview": "docs/reviews/pantheon-ops独立评审与外部报告核实-2026-11-20.md",
+  "sourceChecklist": "docs/reviews/pantheon-ops真实环境验证清单-2026-11-20.md",
+  "findingRefs": [
+    "R-03",
+    "R-04",
+    "R-06",
+    "R-07",
+    "R-14"
+  ],
+  "sourceRefs": [
+    {
+      "path": "docs/reviews/pantheon-ops独立评审与外部报告核实-2026-11-20.md",
+      "line": 221
+    },
+    {
+      "path": "docs/reviews/pantheon-ops独立评审与外部报告核实-2026-11-20.md",
+      "line": 222
+    },
+    {
+      "path": "docs/reviews/pantheon-ops独立评审与外部报告核实-2026-11-20.md",
+      "line": 224
+    },
+    {
+      "path": "docs/reviews/pantheon-ops独立评审与外部报告核实-2026-11-20.md",
+      "line": 225
+    },
+    {
+      "path": "docs/reviews/pantheon-ops独立评审与外部报告核实-2026-11-20.md",
+      "line": 366
+    }
+  ],
+  "expectedFiles": {
+    "create": [
+      "docs/harness/tasks/2026-11-20-ops-k8s-client-lifecycle-and-config-safety.task.md",
+      ".harness/tasks/2026-11-20-ops-k8s-client-lifecycle-and-config-safety/manifest.json",
+      ".harness/tasks/2026-11-20-ops-k8s-client-lifecycle-and-config-safety/HANDOFF.md",
+      ".harness/tasks/2026-11-20-ops-k8s-client-lifecycle-and-config-safety/STATUS.md",
+      ".harness/evidence/2026-11-20-ops-k8s-client-lifecycle-and-config-safety/commands.json",
+      ".harness/evidence/2026-11-20-ops-k8s-client-lifecycle-and-config-safety/summary.md",
+      ".harness/evidence/2026-11-20-ops-k8s-client-lifecycle-and-config-safety/review.md"
+    ],
+    "modify": [
+      "backend/modules/business/k8s/cluster/**",
+      "backend/modules/business/k8s/client/**",
+      "frontend/src/modules/business/k8s/**",
+      "frontend/src/modules/business/cmdb/**"
+    ],
+    "doNotTouch": [
+      "backend/modules/system/**",
+      "backend/internal/**",
+      "frontend/src/core/**",
+      "frontend/src/api/request.ts",
+      "foundation-release.lock.json",
+      "既有归档原始证据与其他执行者未提交改动"
+    ]
+  },
+  "contractAnchors": [
+    "AGENTS.md",
+    "docs/PROJECT_INHERITANCE.md",
+    "docs/TASK_PACKET_OPS_TEMPLATE.md",
+    "docs/reviews/pantheon-ops独立评审与外部报告核实-2026-11-20.md",
+    "docs/reviews/pantheon-ops真实环境验证清单-2026-11-20.md",
+    "docs/designs/BUSINESS_FUNCTIONAL_DESIGN.md",
+    "docs/designs/BUSINESS_QA_ACCEPTANCE_PLAN.md",
+    "business-overlay.json",
+    "foundation-release.lock.json"
+  ],
+  "harnessProfile": {
+    "template": "custom",
+    "overlay": "pantheon-ops",
+    "qualityProfile": "ui-runtime",
+    "portableFailureClass": "business-review-gap",
+    "ownerLayer": "business/*",
+    "coverageDimensions": [
+      "behaviour",
+      "architecture-fitness",
+      "runtime-quality"
+    ]
+  },
+  "structuralScope": {
+    "affectedSubgraph": [
+      "配置导入/轮换 -> tenant缓存身份 -> 有界client-go请求"
+    ],
+    "boundaryCrossings": [
+      "business/* -> pkg公共契约",
+      "共享缺口 -> Base正式release -> Ops重建"
+    ],
+    "riskNodes": [
+      "R-03",
+      "R-04",
+      "R-06",
+      "R-07",
+      "R-14"
+    ],
+    "graphFocus": [
+      "sensitive-input-flow",
+      "call-depth"
+    ]
+  },
+  "implementationNotes": [
+    "Minimal Complexity Rung: reuse",
+    "审查主基线 444ce8e，当前规划基线 a2d69d4a759b5df2b26aaa9d26bdc5175babe9dc；每包开工核实当前候选，先复用 #195 实现与归档证据再补缺口",
+    "本包状态 planned；命令与运行场景是后续验证计划，执行者须记录真实 cwd/时间/exitCode/skip/源码哈希",
+    "接口/权限/菜单/i18n/schema/seed/fixture/业务overlay 同步关闭；业务 migration 源文件归业务模块，装配副本由重建器生成"
+  ],
+  "implementationPlan": [
+    "核实当前候选和前置合同，逐条对照来源与旧验收，标记已经完成的实现",
+    "先复用现有合同/组件/测试，针对本包反例验证失败路径与状态副作用",
+    "在声明文件范围内完成最小修改，同步权限/i18n/迁移/overlay/fixture",
+    "运行本包验证，保存候选绑定 evidence，findings-first review 后更新状态"
+  ],
+  "acceptanceCriteria": [
+    "V8 持续查询期间轮换立即使用新身份，旧令牌撤销不会长期污染缓存；并发更新无旧client回写",
+    "恶意 kubeconfig 在建立连接前拒绝且无本地执行/读取副作用，合法嵌入 kubeconfig 可用",
+    "断网请求在规定时间结束并可取消，大集群分页有限内存，凭据文本不默认明文显示"
+  ],
+  "verificationPlan": {
+    "commands": [
+      "go test -count=1 ./modules/business/k8s/...",
+      "npm run test:smoke:business:k8s"
+    ],
+    "runtimeEvidence": [
+      "V6/V8、恶意配置负例、断网和大集群分页、凭据输入截图"
+    ],
+    "commandWorkingDirectories": {
+      "go test -count=1 ./modules/business/k8s/...": "backend",
+      "npm run test:smoke:business:k8s": "frontend"
+    },
+    "environmentRequirements": [
+      "在 backend/ 执行 Go 命令；race 使用 D:\\msys64\\mingw64\\bin，CGO_ENABLED=1 和隔离 MySQL DSN；最终提交门禁执行 go test -race ./...",
+      "在 frontend/ 执行 lint/type-check/build/test:smoke:*；业务 overlay/重建/治理命令在仓库根执行",
+      "UI 前后使用 impeccable 与 Base DESIGN.md，1440px/390px、明暗主题和相关 loading/empty/error/forbidden/submitting/键盘状态必须有 rendered evidence 或显式 gap",
+      "服务端二次确认、路由匹配器、tenant公共扩展和 shutdown 公共接口若缺失，登记 Base 上游任务与 release/消费依赖，不在 Ops override",
+      "只在实际完成验收时关闭任务；缺 provider/凭据/维护者终验保持 gap，安全可逆准备可继续"
+    ]
+  },
+  "runtimeSensitive": true,
+  "humanGates": [
+    "需求/范围偏好、门禁策略与豁免、最终视觉/功能验收按维护者三触点契约处理",
+    "生产窗口/外部凭据操作/正式发布/最终仓库基线替换需已有授权"
+  ],
+  "linkage": {
+    "taskManifest": ".harness/tasks/2026-11-20-ops-k8s-client-lifecycle-and-config-safety/manifest.json",
+    "taskDoc": "docs/harness/tasks/2026-11-20-ops-k8s-client-lifecycle-and-config-safety.task.md",
+    "evidenceDir": ".harness/evidence/2026-11-20-ops-k8s-client-lifecycle-and-config-safety/",
+    "reviewFile": ".harness/evidence/2026-11-20-ops-k8s-client-lifecycle-and-config-safety/review.md",
+    "summaryFile": ".harness/evidence/2026-11-20-ops-k8s-client-lifecycle-and-config-safety/summary.md",
+    "changeRef": "none",
+    "planRefs": [
+      ".harness/tasks/2026-11-20-ops-review-remediation/plan.md"
+    ]
+  },
+  "plannedReviewFile": ".harness/evidence/2026-11-20-ops-k8s-client-lifecycle-and-config-safety/review.md",
+  "evidenceRequired": [
+    "commands.json 含真实执行状态/cwd/源码及构建身份",
+    "summary.md 记录验收结果、runtime/visual gap 和来源判定",
+    "review.md 为真实 findings-first 审查并含机器可读 linkage；执行时更新 linkage.reviewFile",
+    "V6/V8、恶意配置负例、断网和大集群分页、凭据输入截图"
+  ],
+  "completionChecklist": [
+    "V8 持续查询期间轮换立即使用新身份，旧令牌撤销不会长期污染缓存；并发更新无旧client回写",
+    "恶意 kubeconfig 在建立连接前拒绝且无本地执行/读取副作用，合法嵌入 kubeconfig 可用",
+    "断网请求在规定时间结束并可取消，大集群分页有限内存，凭据文本不默认明文显示"
+  ],
+  "rollbackPlan": "优先回退本包可逆代码；数据库按隔离演练过的数据回滚/备份方案处理，multi数据回滚遵循Base合同，生产动作另经授权"
+}

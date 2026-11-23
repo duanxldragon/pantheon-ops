@@ -1,0 +1,40 @@
+{
+  "runId": "omx_accept_20261121_cmdb03",
+  "phase": "cmdb",
+  "caseId": "c06",
+  "title": "host-collect-wrong-fingerprint-reject",
+  "ts": "2026-11-21T00:19:37.872Z",
+  "status": "FAIL",
+  "httpStatus": 200,
+  "businessCode": 400,
+  "assertions": [
+    {
+      "name": "mismatch rejected (business code != 200)",
+      "pass": true
+    },
+    {
+      "name": "error key cmdbhost.ssh_connect_failed",
+      "pass": false,
+      "detail": "common.param_invalid"
+    },
+    {
+      "name": "no execution side-effect (run dir absent)",
+      "pass": false,
+      "detail": "expected true"
+    },
+    {
+      "name": "host status unchanged after rejection",
+      "pass": true
+    }
+  ],
+  "ids": {},
+  "result": {
+    "wrongFingerprintLength": 50,
+    "publicErrorKey": "common.param_invalid",
+    "publicErrorSemanticGap": "ssh.Dial masks host-key mismatch as cmdbhost.ssh_connect_failed; tracked as separate product finding"
+  },
+  "message": null,
+  "redaction": null,
+  "durationMs": 874,
+  "blockedReason": null
+}

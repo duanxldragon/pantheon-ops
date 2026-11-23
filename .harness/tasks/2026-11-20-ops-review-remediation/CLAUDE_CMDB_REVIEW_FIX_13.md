@@ -1,0 +1,12 @@
+Edit ONLY `.local/acceptance-20261121/cmdb-ssh-live.mjs`, owned by you. Read only that file (and exact deploy DTO if necessary). Preserve other edits. Codex is reviewer and executor. No planning, no final pasted code, final <=100 words, end after edits.
+
+Reviewer found harness issues, fix them before real run:
+1. HostResponse returns labelValues, not labels. Change response reads in caseHostCrud to labelValues. Inputs correctly use labels.
+2. Wrong fingerprint public collect error in current service is cmdbhost.ssh_connect_failed (ssh.Dial masks callback reason); record that actual key and failure/status unchanged, don't invent expected ssh_host_key_mismatch. Public error semantic gap is separate finding; never count generic success as reject.
+3. SSH helper updated independently: expect-file/assert-absent require --run-id. Check baseline requires knownHostsVerified===true in blocking condition as well as assertion.
+4. apiFetch must have AbortSignal.timeout(30000), limited response body and sanitized error message (strip any literal secret). Always set each case record httpStatus/businessCode from principal response. Fetch parses text but must not save secrets.
+5. Add --preserve-fixtures (default preserve since deploy will reuse), checkpoint JSON contains only IDs/runId/fingerprint/status/public field metadata (no tokens/secret values), written after each resource creation. Do not automatically cleanup failure/preserved runs. Explicit --cleanup may clean only recorded IDs after fetching and confirming exact runId fixture prefix, never unowned data. Keep credential ID recorded IMMEDIATELY after create even if subsequent assertions fail.
+6. --phase all currently returns PASS despite deploy NOT_RUN. Manifest is PARTIAL if any NOT_RUN among other pass cases, and CLI nonzero for PARTIAL/NOT_RUN. Cleanup gaps must fail final. Unknown flags reject rather than ignore. Hard failures/login absence should stop dependent destructive creation, still keep evidence.
+7. Credentials DTO is backend/modules/business/deploy/deploy_dto.go around line250: ensure secret request exactly matches actual CreateDeployCredentialRequest, response shape correct. Current list assumes plain array: inspect actual handler (exact files only) if needed. File must stay small.
+
+No UI/new tests/deploy implementation in this fragment. Existing cases run sequentially and Codex will independently execute against real HTTP/local MySQL/authorized SSH. Changed harness must report NOT_RUN until actual execution. Preserve candidate product code.

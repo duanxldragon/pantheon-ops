@@ -73,9 +73,9 @@ business/*
 
 - docs/harness/tasks/2026-11-16-ops-filedist-product-closure.task.md
 - .harness/tasks/2026-11-16-ops-filedist-product-closure/manifest.json
-- .harness/evidence/2026-11-16-ops-filedist-product-closure/summary.md
-- .harness/evidence/2026-11-16-ops-filedist-product-closure/review.md
-- .harness/evidence/2026-11-16-ops-filedist-product-closure/commands.json
+- .harness/archive/2026-11/evidence/2026-11-16-ops-filedist-product-closure/summary.md
+- .harness/archive/2026-11/evidence/2026-11-16-ops-filedist-product-closure/review.md
+- .harness/archive/2026-11/evidence/2026-11-16-ops-filedist-product-closure/commands.json
 
 ### Modify
 
@@ -132,8 +132,8 @@ business/*
 - OpenSpec Change: none
 - Superpowers Plan: none
 - Task Manifest: .harness/tasks/2026-11-16-ops-filedist-product-closure/manifest.json
-- Evidence Directory: .harness/evidence/2026-11-16-ops-filedist-product-closure/
-- Review File: .harness/evidence/2026-11-16-ops-filedist-product-closure/review.md
+- Evidence Directory: .harness/archive/2026-11/evidence/2026-11-16-ops-filedist-product-closure/
+- Review File: .harness/archive/2026-11/evidence/2026-11-16-ops-filedist-product-closure/review.md
 - Change Ref: none
 - Plan References: .harness/tasks/2026-11-16-ops-pilot-delivery/plan.md
 
@@ -168,19 +168,19 @@ in-progress；首期默认裁剪，启用时转为必验。
 
 Status: in-progress. claim SQL失败已与正常竞争区分，保留 active item在远端IO前结算；单次DB写5s、等待1s可取消，总结算时长无固定上限。调度发现失败/恢复有脱敏日志。中央真实MySQL CGO/race：17顶层PASS/4.634s。Claude UI resume exit1/max_turns，写入2个UI文件和1个计划，由 native续收口。
 
-Original acceptance and dependencies remain unchanged. Whole-package acceptance is incomplete; see [summary](../../../.harness/evidence/2026-11-16-ops-filedist-product-closure/summary.md) and [progress receipt](../../../.harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-progress-20261118.json).
+Original acceptance and dependencies remain unchanged. Whole-package acceptance is incomplete; see [summary](../../../.harness/archive/2026-11/evidence/2026-11-16-ops-filedist-product-closure/summary.md) and [progress receipt](../../../.harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-progress-20261118.json).
 
 ## 2026-11-18T07:58:38.569Z Integration continuation
 
 Status: in-progress. startup/Stop、6个E01 canonical key和44个UI key已装配并提供17文件冻结handoff；中央filedist5.021s/opsinit1.115s窄MySQL CGO/race通过，748源运行内稳定。UI historical-final02为14PASS/1.74s及app type/lint通过，但首轮独立REQUEST CHANGES发现两MEDIUM，正在修detail sibling overlap/list旧closure及404/forbidden fixture、first100 picker；新UI尚未冻结。
 
-Backend repaired scope保留COMMENT；UI第一轮REQUEST CHANGES：E01-UI-R1/E01-UI-R2两MEDIUM，原final02哈希和结果保留，不以14PASS覆盖审查。 Startup/Helm独立窄CLEAR、整包WATCH，17＋4绑定hash核验；Base/public authority/runtime边界保留。 Original acceptance, dependencies and human gates remain unmet. See [summary](../../../.harness/evidence/2026-11-16-ops-filedist-product-closure/summary.md) and [latest progress](../../../.harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-progress-integration-20261118.json).
+Backend repaired scope保留COMMENT；UI第一轮REQUEST CHANGES：E01-UI-R1/E01-UI-R2两MEDIUM，原final02哈希和结果保留，不以14PASS覆盖审查。 Startup/Helm独立窄CLEAR、整包WATCH，17＋4绑定hash核验；Base/public authority/runtime边界保留。 Original acceptance, dependencies and human gates remain unmet. See [summary](../../../.harness/archive/2026-11/evidence/2026-11-16-ops-filedist-product-closure/summary.md) and [latest progress](../../../.harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-progress-integration-20261118.json).
 
 ## 2026-11-19T00:11:15.272Z Verified continuation checkpoint
 
 Status: in-progress. startup/Stop及6canonical＋44UI keys/5locale装配已通过中央窄race；此前两项MEDIUM修后获9文件UI round2独立COMMENT，该评审仅覆盖其绑定候选。此前独立canonical28PASS/4.21s和同28重复fixture不累计56；当前集中canonical为35PASS/8.68s。两项真实UI修复获独立incremental COMMENT/0issues；新e01-final stage/1242源、frontend35PASS/build/runtime通过。actual04 exit0/sourceStable，21图及桌面/手机footer入屏证据由上一轮协调者核验。本轮只复核保存证据与当前源码哈希，未新增浏览器执行或视觉审查。
 
-旧round1 REQUEST CHANGES、round2 COMMENT及新两文件incremental COMMENT/0issues均保留各自绑定范围。actual04及上一轮21图查看关闭本地footer证据缺口；真实provider/受限角色和整包验收仍开放。 Original acceptance and human gates remain unmet. See [summary](../../../.harness/evidence/2026-11-16-ops-filedist-product-closure/summary.md) and [structured progress](../../../.harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-progress-final-20261118.json).
+旧round1 REQUEST CHANGES、round2 COMMENT及新两文件incremental COMMENT/0issues均保留各自绑定范围。actual04及上一轮21图查看关闭本地footer证据缺口；真实provider/受限角色和整包验收仍开放。 Original acceptance and human gates remain unmet. See [summary](../../../.harness/archive/2026-11/evidence/2026-11-16-ops-filedist-product-closure/summary.md) and [structured progress](../../../.harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-progress-final-20261118.json).
 
 ## Result — History Closeout 2026-11-20
 

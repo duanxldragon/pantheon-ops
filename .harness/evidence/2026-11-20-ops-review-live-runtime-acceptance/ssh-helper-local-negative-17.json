@@ -1,0 +1,43 @@
+{
+  "sourceSha256": "131911e0c6c565698cde47fd571b8b16b807796af2983a6302ebd6bc14990485",
+  "cases": [
+    {
+      "id": "valid",
+      "pass": true
+    },
+    {
+      "id": "traversal",
+      "pass": true
+    },
+    {
+      "id": "sibling",
+      "pass": true
+    },
+    {
+      "id": "outside",
+      "pass": true
+    },
+    {
+      "id": "prefix",
+      "pass": true
+    },
+    {
+      "id": "guard_nonzero_file",
+      "pass": true
+    },
+    {
+      "id": "present_is_not_absent",
+      "pass": true
+    },
+    {
+      "id": "missing_is_not_found",
+      "pass": true
+    },
+    {
+      "id": "false_success_exit",
+      "pass": true
+    }
+  ],
+  "passed": 9,
+  "failed": 0
+}

@@ -3,7 +3,9 @@ package deploy
 import (
 	"errors"
 	"fmt"
+	"path"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"unicode"
 
@@ -22,6 +24,9 @@ func validateFixedTemplateDefinition(templateCode string) error {
 }
 
 func validateFixedTemplateParams(templateCode string, templateParams map[string]any) error {
+	if err := validateFixedTemplateValues(templateCode, templateParams); err != nil {
+		return err
+	}
 	action := normalizeTaskAction(anyToString(templateParams["action"]))
 	if action == "" {
 		action = TaskActionInstall
@@ -58,7 +63,172 @@ func requireTemplateParamsForAction(action string, templateParams map[string]any
 	return nil
 }
 
+// validateFixedTemplateValues is the single shared safety gate for every
+// non-secret, user-controlled field a fixed template interpolates into a
+// shell command. It runs at create/preview validation and again at render
+// time so a persisted or imported record cannot reach an executable script.
+// Passwords deliberately stay opaque: they are transported with shell-safe
+// quoting (see shellQuoteSingle and the redis/harbor structural checks) and
+// are never denied by scanning their content here.
+func validateFixedTemplateValues(templateCode string, templateParams map[string]any) error {
+	// JDK's free-text metadata is joined into the ExecStart command line;
+	// keep the existing per-field validators shared so create/preview and
+	// render reject the same inputs (only when the field is provided).
+	switch strings.TrimSpace(templateCode) {
+	case TemplateCodeJDKSystemd:
+		if err := validateFixedJDKParams(
+			templateParamString(templateParams, "installRoot", "/data/jdk"),
+			templateParamString(templateParams, "serviceName", "jdk"),
+			templateParamString(templateParams, "javaOpts", ""),
+			templateParamString(templateParams, "mainClass", ""),
+			templateParamString(templateParams, "appArgs", ""),
+		); err != nil {
+			return err
+		}
+	}
+	// Paths are echoed into mkdir/rm/rsync/tar lines and uninstall rm -rf roots.
+	for _, key := range []string{"installRoot", "dataRoot"} {
+		if value := templateParamString(templateParams, key, ""); value != "" {
+			if err := validateFixedPathValue(value); err != nil {
+				return err
+			}
+		}
+	}
+	if action := normalizeTaskAction(anyToString(templateParams["action"])); action == TaskActionUninstall {
+		for _, key := range []string{"installRoot", "dataRoot"} {
+			if value := templateParamString(templateParams, key, ""); value != "" {
+				if err := validateFixedUninstallRoot(value); err != nil {
+					return err
+				}
+			}
+		}
+	}
+	// systemd identifiers are interpolated into unit file names, systemctl and
+	// heredoc lines; a confined charset plus bounded length keeps them tame.
+	for _, key := range []string{"serviceName", "rootUser"} {
+		if value := templateParamString(templateParams, key, ""); value != "" {
+			if err := validateFixedServiceName(value); err != nil {
+				return err
+			}
+		}
+	}
+	// Ports appear as --address/:, :, and service ExecStart suffixes.
+	for _, key := range []string{"port", "apiPort", "consolePort", "httpPort", "webPort"} {
+		if value := templateParamString(templateParams, key, ""); value != "" {
+			if err := validateFixedPortValue(value); err != nil {
+				return err
+			}
+		}
+	}
+	// Harbor hostname is written into harbor.yml; nginx/redis/mysql versions
+	// build download URLs and script literals.
+	if value := templateParamString(templateParams, "hostname", ""); value != "" {
+		if err := validateFixedHostname(value); err != nil {
+			return err
+		}
+	}
+	if value := templateParamString(templateParams, "version", ""); value != "" {
+		if err := validateFixedVersionToken(value); err != nil {
+			return err
+		}
+	}
+	// Prometheus storage retention and scrape config path.
+	if value := templateParamString(templateParams, "scrapeConfigFile", ""); value != "" {
+		if err := validateFixedPathValue(value); err != nil {
+			return err
+		}
+	}
+	if value := templateParamString(templateParams, "storageRetentionPolicy", ""); value != "" {
+		if err := validateFixedTokenList(value); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// fixedDangerousUninstallRoots are paths that must never be passed to
+// rm -rf by a fixed-template uninstall, even when explicitly configured.
+var fixedDangerousUninstallRoots = []string{
+	"/", "/bin", "/boot", "/dev", "/etc", "/home", "/lib", "/lib64", "/opt",
+	"/proc", "/root", "/run", "/sbin", "/srv", "/sys", "/tmp", "/usr",
+	"/usr/local", "/var",
+}
+
+func validateFixedUninstallRoot(value string) error {
+	// Scripts run on Linux even when the server is built on Windows. Compare
+	// POSIX-equivalent roots so repeated separators cannot bypass the denylist.
+	cleaned := path.Clean(strings.TrimRight(filepath.ToSlash(value), "/ "))
+	if cleaned == "." {
+		return errors.New(errDeployTaskTemplateParamsInvalid)
+	}
+	for _, root := range fixedDangerousUninstallRoots {
+		if cleaned == root {
+			return errors.New(errDeployTaskTemplateParamsInvalid)
+		}
+	}
+	return nil
+}
+
+func validateFixedPortValue(value string) error {
+	if value == "" || len(value) > 5 {
+		return errors.New(errDeployTaskTemplateParamsInvalid)
+	}
+	port, err := strconv.Atoi(value)
+	if err != nil || port < 1 || port > 65535 {
+		return errors.New(errDeployTaskTemplateParamsInvalid)
+	}
+	return nil
+}
+
+func validateFixedHostname(value string) error {
+	if value == "" || len(value) > 253 {
+		return errors.New(errDeployTaskTemplateParamsInvalid)
+	}
+	for _, r := range value {
+		if isFixedAlphaNum(r) || strings.ContainsRune(".-_", r) {
+			continue
+		}
+		return errors.New(errDeployTaskTemplateParamsInvalid)
+	}
+	return nil
+}
+
+func validateFixedVersionToken(value string) error {
+	if value == "" || len(value) > 64 {
+		return errors.New(errDeployTaskTemplateParamsInvalid)
+	}
+	for _, r := range value {
+		// Semver build metadata (1.0.0+build.5) is valid package metadata.
+		if isFixedAlphaNum(r) || strings.ContainsRune(".-_+", r) {
+			continue
+		}
+		return errors.New(errDeployTaskTemplateParamsInvalid)
+	}
+	return nil
+}
+
 func renderFixedTemplateScript(pkg DeployPackage, task DeployTask) (string, error) {
+	// Defense in depth: re-validate the parameter values at render time so a
+	// persisted or imported record cannot reach an executable script either.
+	params := decodeJSONMap(task.TemplateParams)
+	// task.Action is authoritative at render time; parameter maps on older
+	// rows may not carry an action, so validate against the effective one.
+	validationParams := params
+	if action := normalizeTaskAction(task.Action); action != "" {
+		validationParams = cloneDeployConfig(params)
+		validationParams["action"] = action
+	}
+	if err := validateFixedTemplateValues(strings.TrimSpace(pkg.TemplateCode), validationParams); err != nil {
+		return "", err
+	}
+	// Package version is package metadata rather than a task parameter, but
+	// MySQL and the Redis fallback interpolate it into shell literals. Keep it
+	// in the same render gate so older package rows are covered too.
+	if version := strings.TrimSpace(pkg.Version); version != "" {
+		if err := validateFixedVersionToken(version); err != nil {
+			return "", err
+		}
+	}
 	switch strings.TrimSpace(pkg.TemplateCode) {
 	case TemplateCodeNginxSystemd:
 		return renderNginxSystemdScript(pkg, task)
@@ -235,14 +405,22 @@ echo "Redis uninstall completed"
 	if err != nil {
 		return "", err
 	}
-	passwordLine := ""
+	// Shell quoting and redis.conf quoting are separate boundaries. Transport
+	// passwords opaquely, then quote the config token so quotes/backslashes are
+	// retained by Redis instead of changing its configuration syntax.
+	passwordInit := ""
+	passwordWrite := ""
 	if requirePassword != "" {
-		// redis.conf tokens cannot carry quoting or whitespace; reject values
-		// that cannot be transported structurally.
-		if strings.ContainsAny(requirePassword, " \t\n\x00") {
+		if strings.ContainsAny(requirePassword, " \t\n\r\x00") {
 			return "", errors.New(errDeployTaskTemplateParamsInvalid)
 		}
-		passwordLine = fmt.Sprintf("requirepass %s\nmasterauth %s\n", requirePassword, requirePassword)
+		configPassword := "\"" + strings.NewReplacer("\\", "\\\\", "\"", "\\\"").Replace(requirePassword) + "\""
+		passwordInit = fmt.Sprintf("REDIS_PASSWORD=%s\nREDIS_CONFIG_PASSWORD=%s\n",
+			shellQuoteSingle(requirePassword), shellQuoteSingle(configPassword))
+		passwordWrite = `if [ -n "$REDIS_PASSWORD" ]; then
+  printf 'requirepass %s\nmasterauth %s\n' "$REDIS_CONFIG_PASSWORD" "$REDIS_CONFIG_PASSWORD" >> "$INSTALL_ROOT/conf/redis.conf"
+fi
+`
 	}
 	return fmt.Sprintf(`set -e
 REDIS_VERSION="%s"
@@ -253,6 +431,7 @@ REDIS_PORT="%s"
 PKG_DIR="/tmp/redis-${REDIS_VERSION}"
 STAGE_DIR="$PKG_DIR/stage"
 ARCHIVE_NAME="%s"
+%s
 mkdir -p "$PKG_DIR" "$STAGE_DIR" "$INSTALL_ROOT/bin" "$INSTALL_ROOT/conf" "$INSTALL_ROOT/logs" "$DATA_ROOT"
 %s
 %s
@@ -277,7 +456,8 @@ logfile %s/logs/redis.log
 daemonize no
 appendonly yes
 protected-mode no
-%sEOF
+EOF
+%s
 chown -R redis:redis "$INSTALL_ROOT" "$DATA_ROOT"
 cat > "/etc/systemd/system/${SERVICE_NAME}.service" <<EOF
 [Unit]
@@ -300,7 +480,7 @@ systemctl restart "${SERVICE_NAME}"
 systemctl status "${SERVICE_NAME}" --no-pager
 rm -rf "$PKG_DIR"
 echo "Redis installed at $INSTALL_ROOT"
-`, version, installRoot, dataRoot, serviceName, port, archiveName, downloadScript, buildServiceStopAndDrainScript(serviceName, filepath.ToSlash(filepath.Join(installRoot, "bin", "redis-server"))), port, dataRoot, installRoot, passwordLine, installRoot, installRoot), nil
+`, version, installRoot, dataRoot, serviceName, port, archiveName, passwordInit, downloadScript, buildServiceStopAndDrainScript(serviceName, filepath.ToSlash(filepath.Join(installRoot, "bin", "redis-server"))), port, dataRoot, installRoot, passwordWrite, installRoot, installRoot), nil
 }
 
 func renderMinIOSystemdScript(pkg DeployPackage, task DeployTask) (string, error) {
@@ -727,8 +907,13 @@ func validateDeploySourceURL(value string) error {
 }
 
 func validateFixedPathValue(value string) error {
-	if value == "" || !strings.HasPrefix(value, "/") {
+	if value == "" || !strings.HasPrefix(value, "/") || len(value) > 240 {
 		return errors.New(errDeployTaskTemplateParamsInvalid)
+	}
+	for _, segment := range strings.Split(value, "/") {
+		if segment == "." || segment == ".." {
+			return errors.New(errDeployTaskTemplateParamsInvalid)
+		}
 	}
 	for _, r := range value {
 		if unicode.IsControl(r) || unicode.IsSpace(r) || strings.ContainsRune("'\"$`;&|<>\\(){}[]", r) {
@@ -757,7 +942,7 @@ func isFixedClassNameChar(r rune) bool {
 }
 
 func validateFixedServiceName(value string) error {
-	if value == "" {
+	if value == "" || len(value) > 64 {
 		return errors.New(errDeployTaskTemplateParamsInvalid)
 	}
 	for _, r := range value {

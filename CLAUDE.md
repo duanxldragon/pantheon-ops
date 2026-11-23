@@ -10,15 +10,13 @@ pantheon-ops exists to add operations-domain business modules. It must not becom
 
 The maintainer intervenes at exactly three points — (1) requirement clarification at intake (batch ALL questions once, produce In/Out/acceptance criteria, then stop asking), (2) gate-policy decisions (red gates, exemptions, rule changes), (3) final visual/functional acceptance. Between those, run autonomously: no mid-task confirmations for reversible in-scope work; gates and evidence replace verbal confirmation. See `../pantheon-harness/architecture/methodology/workflow-routing.md` → Human Touchpoints.
 
-## Hard Stop: Claude does not implement
+## Capability-Adaptive Execution
 
-Same role boundary as pantheon-base: Claude Code in this repository is the **planner and reviewer**, not the executor.
+Consume [capability-adaptive delivery](../pantheon-harness/patterns/capability-adaptive-delivery.md) and follow `AGENTS.md`. The current primary agent, including Claude Code, may plan, implement, verify, and fix authorized `business/*` work in one session. Planning-only/review-only assignments stay read-only. High-risk L2 keeps independent review or an explicit review gap and acceptance gate. Preserve the user's current model, effort, provider, and settings; old Base model-tier examples do not mandate a model switch.
 
-After a plan is approved, Claude MUST NOT use Edit/Write to implement code changes. Delegate implementation to Codex via `codex exec ... -C pantheon-ops`. Everything under `backend/` and `frontend/src/` belongs to Codex.
+Delegate only self-contained branches with ownership, budget, evidence, stop condition, and an integration owner. Use an actual available and authorized entrypoint; a model name does not grant a tool or permission.
 
-Claude may directly modify only: `docs/harness/`, `.harness/`, `CLAUDE.md`, `AGENTS.md`, `DESIGN.md`, root config files (`.gitignore`, `package.json` scripts), and `.github/workflows/`.
-
-Codex model tiers are shared with base: read `../pantheon-base/.codex/model-tiers.json` and apply the same autoSelect rules (see `../pantheon-base/CLAUDE.md`).
+Before work and at closeout run `node ../pantheon-harness/scripts/harness/check-method-consumption.mjs --root . --source ../pantheon-harness`. The receipt and these entrypoints are Ops-owned repository overlay assets. Direct method consumption does not change the locked Base snapshot or permit shared-source overrides.
 
 ## Business work reading order
 
@@ -50,24 +48,9 @@ Do not fix platform or system-domain drift locally in pantheon-ops. If the behav
 
 ## Sync discipline
 
-pantheon-ops consumes pantheon-base as a **locked release snapshot**, not a file-by-file sync. The consumer tree is rebuilt deterministically from the locked Base snapshot (`foundation-release.lock.json`) plus the declared business overlay (`business-overlay.json`).
+pantheon-ops consumes Base through a **locked official release snapshot** plus `business-overlay.json`. Read `docs/PROJECT_INHERITANCE.md` for the canonical fetch/rebuild/verification flow. Do not compare against Base HEAD, pass obsolete local Base source flags, manually edit the foundation lock, or copy shared source. Shared method/checker/config changes in Base reach the product tree through a formal foundation release.
 
-Before any non-trivial PR:
-
-```powershell
-# run from pantheon-ops repo root
-node scripts/business-overlay/check-business-overlay.mjs
-node scripts/business-overlay/check-shared-drift.mjs --base ../pantheon-base
-node scripts/business-overlay/rebuild-from-base.mjs --target .tmp/business-overlay-rebuild
-npm run check:docs-governance
-```
-
-- `check-business-overlay.mjs` verifies the overlay contract: every declared `businessPaths` exists and no business file still imports the old `pantheon-ops/backend` module path.
-- `check-shared-drift.mjs` compares every `sharedPaths` file against base HEAD by sha256. Business overlay paths are skipped; any remaining difference must be declared with a reason in `.foundation/allowed-drift.json`, so generic drift cannot hide behind a stale allowlist entry. Fix real drift in base first, then re-sync.
-- `check:docs-governance` runs the full CI docs-governance job locally (frontmatter, encoding, structure contract, task-packet template, PR governance, business overlay, generated modules) so doc metadata drift fails before the PR does.
-- `rebuild-from-base.mjs` deterministically produces the consumer tree from the locked snapshot; at the locked `baseCommit` it must be byte-for-byte reproducible (`.business-overlay-report.json`).
-- The business overlay must not overwrite Base hook/source files (enforced by `assertBusinessPathsDoNotOverwriteBase`). To extend Base business semantics, inject via a dedicated overlay file — see `backend/modules/business/retired_modules_overlay.go`.
-- To upgrade: update `foundation-release.lock.json` to the new release, re-lock the `repoSnapshot`, then re-run `rebuild-from-base.mjs`.
+For scoped overlay changes, run `node scripts/business-overlay/check-business-overlay.mjs` and relevant documentation checks. Product baseline replacement and non-trivial PR closeout retain the full verification set in `AGENTS.md` and `docs/PROJECT_INHERITANCE.md`, including the Windows CGO race gate.
 
 ## Design system
 

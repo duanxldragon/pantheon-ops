@@ -1,0 +1,95 @@
+{
+  "task": "2026-11-20-ops-review-baseline-and-decisions",
+  "phase": "baseline-verification-against-current-head",
+  "timestamp": "2026-11-23T15:20:00+0800",
+  "reportBaseline": "444ce8e (per review doc end-of-text)",
+  "planningBaseline": "a2d69d4a759b5df2b26aaa9d26bdc5175babe9dc",
+  "method": "read review report verbatim findings + scan current HEAD business module table models/tenant fields/migrations",
+  "headScan": {
+    "businessTablesEnumerated": 51,
+    "tenantFieldCoverage": {
+      "tablesWithTenantID": [
+        "obs_prometheus_datasource (datasource_model.go)",
+        "obs_query_history (query_workspace_model.go)",
+        "obs_saved_view (query_workspace_model.go)",
+        "obs_query_owner_budget (primaryKey tenant_id)",
+        "obs_schema_capability",
+        "biz_observability_target (observability.go)"
+      ],
+      "tablesWithoutTenantID_count": 45,
+      "correctionToReport": "报告称'仅 observability 2 个模型文件含租户字段'——实际当前 HEAD 上 observability 的 datasource + query_workspace 两个文件（含5-6张表）含 TenantID，仍是唯一含租户字段的业务模块。结论不变：核心业务表(主机/集群/凭据/任务/服务/bizscope/argocd/filedist/k8s*)均无租户字段。ARC-001 保持成立。",
+      "sameNameCollision": "biz_deploy_credential_ref uk_deploy_credential_name_deleted 全局唯一键(仅 name) -> 两个租户撞名冲突(报告139行)，须在 T04/T14 tenant-scoped 变体(tenant_id,name,deleted_at)时重命名/迁移。"
+    },
+    "globalUniqueKeysNeedingTenantVariant": [
+      "biz_deploy_credential_ref.name (uk_deploy_credential_name_deleted)",
+      "biz_deploy_package(name,version,deleted_at)",
+      "biz_deploy_template(name,version,deleted_at)",
+      "biz_cmdb_host.ip (uk_ip_deleted)",
+      "biz_cmdb_label_schema.key (uk_cmdb_label_schema_key)",
+      "biz_k8s_cluster.code (uk_k8s_cluster_code)",
+      "biz_business_scope.name (uniqueIndex)",
+      "biz_argocd_server/repository.fqdn/name (uniqueIndex)",
+      "filedist_storage.name (uniqueIndex)",
+      "biz_velero_storage_location.name (unique)",
+      "biz_service / biz_service_instance",
+      "biz_k8s_namespace_binding.uk_k8s_namespace_binding"
+    ],
+    "migrationNumberPool": {
+      "businessMigrationsSeen": [34, 35, 36, 39, 40],
+      "nextFree": ">=41",
+      "recommendation": "T04 core migration = 000041; T14 extension migration = 000042 (或按各包实际 mod 前缀冻结，T01 只负责分配不与存量冲突)"
+    }
+  },
+  "verificationByFinding": {
+    "ARC-001": {
+      "verdict": "still-stands",
+      "evidence": "45/51 业务表无 tenant_id；core tables(主机/集群/凭据/任务/服务/bizscope)全部无租户字段；唯一含 tenant 的 observability 用的 TenantScopedBusinessGroup 路由组。",
+      "mappedTo": ["T04 (core tenant isolation)", "T14 (extension/async tenant identity)"],
+      "decisionRecorded": "沿用报告多租户目标；T01 已完成表四分类 + 唯一键租户变体 + 迁移编号分配(见 classification)"
+    },
+    "NEW-02": {
+      "verdict": "still-stands (docs-vs-real delta)",
+      "evidence": "扫描业务代码零找到 Pod→Node→VM 资产关系链接实体/表；cluster_service.go:854 仅有 Node capacity 元数据读取(非关系建模)。文档声称'资产关系/Pod→Node→VM'能力，代码无实体承接。",
+      "decision": "范围收窄登记为独立后续能力，不在本轮重构。已在 T01 决策清单记录 pending 维护者最终范围验收。"
+    },
+    "NEW-03": {
+      "verdict": "still-stands (as designed)",
+      "evidence": "k8s/helm/helm.go 包注释'provides DB-snapshot records of Helm releases'/'registration snapshot'——HelmChart 只在 DB 登记，不执行真实 helm 安装。与报告'Helm 只有数据库记录'一致。",
+      "decision": "非缺陷，接口口径=E03 登记状态；真实 Helm chart 执行登记为独立后续范围；不对外宣称 Helm 安装能力(已如此)。"
+    },
+    "SUP-08": {
+      "verdict": "adjusted-P2 (already in planning)",
+      "evidence": "plan.md 第100行已记录'SUP-08 按文末降为 P2 授权模型/功能缺口；细粒度角色可用性仍为条件性 P1'；T03 承接 permission/task-visibility 逐条绑定。",
+      "decision": "维持 plan.md P2 降级；T03 实现后由 T16 受限角色实测确认可用性条件。"
+    }
+  },
+  "classification": {
+    "method": "按基础平台四分类 (platform-global / tenant-owned / tenant-overridable / derived) 登记业务表，唯一键标注租户内变体需求",
+    "T04_core_tenant_owned_tables": [
+      "biz_cmdb_host", "biz_cmdb_group", "biz_cmdb_label_schema",
+      "biz_k8s_cluster", "biz_k8s_cluster_credential_ref", "biz_k8s_namespace_binding",
+      "biz_deploy_credential_ref", "biz_deploy_host_lease", "biz_deploy_task",
+      "biz_deploy_task_host", "biz_deploy_task_attempt", "biz_deploy_task_event",
+      "biz_deploy_task_step", "biz_deploy_task_secret", "biz_deploy_task_log_chunk",
+      "biz_deploy_template", "biz_deploy_template_step", "biz_deploy_package",
+      "biz_deploy_step_history", "biz_business_scope", "biz_business_environment",
+      "biz_service", "biz_service_instance", "biz_k8s_ingress", "biz_k8s_pv",
+      "biz_k8s_pvc", "biz_k8s_storage_class", "biz_velero_*"
+    ],
+    "T14_extension_tenant_owned": [
+      "biz_argocd_server", "biz_argocd_repository", "biz_argocd_application",
+      "biz_argocd_sync_history", "biz_cicd_webhook_event", "filedist_storage",
+      "filedist_file", "filedist_target", "filedist_task", "biz_k8s_helm_release",
+      "biz_k8s_install", "biz_k8s_release", "biz_preflight_control",
+      "biz_observability_target(已有)"
+    ],
+    "T14_async_identity": "runAsyncTask / deploy worker(w<忽略>) / k8s sync / alert evaluation / filedist job 无请求上下文的异步链需显式透传 tenant identity(报告149行建议；T14 逐处确认来源)",
+    "pending_decisions_for_maintainer": [
+      "凭据归属模型：全局共享 vs 按业务域/租户隔离（影响 T05 模型形态，T01 冻结为假设'冻结凭据按资源归属授权方案'待验收）",
+      "Agent 执行器开放状态：无执行协议时关闭入口并拒绝旧数据启动（T01 记录规划假设）",
+      "资产关系(Pod→Node→VM)收窄定位 vs 单独立项（NEW-02，T01 记录为独立后续范围）",
+      "真实 Helm Chart / Nacos/RocketMQ 是否纳入扩展验收（NEW-03，T01 记录为独立后续范围）"
+    ]
+  },
+  "ok": true
+}

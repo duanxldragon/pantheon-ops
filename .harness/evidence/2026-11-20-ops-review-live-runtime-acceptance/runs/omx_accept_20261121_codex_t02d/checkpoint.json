@@ -1,0 +1,48 @@
+{
+  "runId": "omx_accept_20261121_codex_t02d",
+  "phase": "deploy",
+  "updatedAt": "2026-11-22T10:22:48.011Z",
+  "ids": {
+    "hostId": 1,
+    "scopeProdId": 1,
+    "credentialId": 1,
+    "fingerprint": "SHA256:FhLFRIfRIGotV2tS+sIZWxniie2qG5Xu8H3igYJ8RNU",
+    "serverKeyType": "ssh-ed25519",
+    "packageId": 4,
+    "fixedPackageId": 5,
+    "positiveTaskId": 3,
+    "negativePackageId": 6,
+    "negativeTaskId": 4
+  },
+  "fixtures": [
+    {
+      "resource": "deploy/packages",
+      "id": 4
+    },
+    {
+      "resource": "deploy/packages",
+      "id": 5
+    },
+    {
+      "resource": "deploy/tasks",
+      "id": 3
+    },
+    {
+      "resource": "deploy/packages",
+      "id": 6
+    },
+    {
+      "resource": "deploy/tasks",
+      "id": 4
+    }
+  ],
+  "fingerprint": "SHA256:FhLFRIfRIGotV2tS+sIZWxniie2qG5Xu8H3igYJ8RNU",
+  "collectFingerprint": "SHA256:wGNI4IdTLBLFIs+lwsG1uGbRgJRxZ9bHmU2A/CM9Gb4",
+  "fixturesFrom": "omx_accept_20261121_codex_t02b",
+  "statuses": {
+    "statusAfterCollect": null
+  },
+  "secretPolicy": {
+    "recordedSecretValues": false
+  }
+}

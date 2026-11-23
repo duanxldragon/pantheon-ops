@@ -1,0 +1,56 @@
+{
+  "runId": "omx_accept_20261121_cmdb02",
+  "phase": "deploy",
+  "caseId": "d00",
+  "title": "authenticated preserved CMDB fixtures",
+  "ts": "2026-11-21T00:23:20.028Z",
+  "status": "PASS",
+  "httpStatus": 200,
+  "businessCode": 200,
+  "assertions": [
+    {
+      "name": "http 200",
+      "pass": true
+    },
+    {
+      "name": "business code 200",
+      "pass": true
+    },
+    {
+      "name": "access token cookie issued",
+      "pass": true
+    },
+    {
+      "name": "refresh token cookie issued",
+      "pass": true
+    },
+    {
+      "name": "csrf token cookie issued",
+      "pass": true
+    },
+    {
+      "name": "target fixture owned by run",
+      "pass": true
+    },
+    {
+      "name": "credential reference preserved",
+      "pass": true
+    },
+    {
+      "name": "collection fingerprint preserved",
+      "pass": true
+    }
+  ],
+  "ids": {
+    "cookieLengths": {
+      "access": 64,
+      "refresh": 64,
+      "csrf": 64
+    }
+  },
+  "result": null,
+  "message": null,
+  "redaction": null,
+  "durationMs": 164,
+  "blockedReason": null
+}

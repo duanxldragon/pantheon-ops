@@ -1,0 +1,85 @@
+{
+  "runId": "omx_accept_20261121_codex_t02f",
+  "taskId": "2026-11-21-ops-cmdb-ssh-live",
+  "generator": "cmdb-generator.md",
+  "commandPlan": "command-plan-cmdb.json",
+  "requestedPhase": "deploy",
+  "fixturesFrom": "omx_accept_20261121_codex_t02b",
+  "status": "FAILED",
+  "finishedAt": "2026-11-23T02:59:42.212Z",
+  "apiBase": "http://127.0.0.1:8081/api/v1",
+  "webBase": "http://127.0.0.1:5175",
+  "trustAnchor": {
+    "host": "115.190.251.143:22",
+    "user": "root",
+    "expectedFingerprint": "SHA256:FhLFRIfRIGotV2tS+sIZWxniie2qG5Xu8H3igYJ8RNU",
+    "fingerprintSource": "embedded-constant",
+    "fingerprintSourceNote": "verified manually against known_hosts; c04 proves identity match before any SSH case"
+  },
+  "envVariableNames": [
+    "PANTHEON_SMOKE_USERNAME",
+    "PANTHEON_SMOKE_PASSWORD",
+    "PANTHEON_INITIAL_ADMIN_PASSWORD",
+    "PANTHEON_VERIFY_SSH_PASSWORD",
+    "PANTHEON_API_BASE_URL",
+    "PANTHEON_ACCEPTANCE_SSH_FINGERPRINT",
+    "PANTHEON_VERIFY_SSH_KNOWN_HOSTS"
+  ],
+  "secretPolicy": {
+    "recordedSecretValues": false,
+    "passwordIsNeverArgvOrEvidence": true
+  },
+  "leakChecks": [],
+  "cases": [
+    {
+      "caseId": "d00",
+      "status": "PASS",
+      "evidenceFile": ".harness\\evidence\\2026-11-20-ops-review-live-runtime-acceptance\\runs\\omx_accept_20261121_codex_t02f\\deploy\\d00.json"
+    },
+    {
+      "caseId": "d01",
+      "status": "PASS",
+      "evidenceFile": ".harness\\evidence\\2026-11-20-ops-review-live-runtime-acceptance\\runs\\omx_accept_20261121_codex_t02f\\deploy\\d01.json"
+    },
+    {
+      "caseId": "d02",
+      "status": "PASS",
+      "evidenceFile": ".harness\\evidence\\2026-11-20-ops-review-live-runtime-acceptance\\runs\\omx_accept_20261121_codex_t02f\\deploy\\d02.json"
+    },
+    {
+      "caseId": "d03",
+      "status": "PASS",
+      "evidenceFile": ".harness\\evidence\\2026-11-20-ops-review-live-runtime-acceptance\\runs\\omx_accept_20261121_codex_t02f\\deploy\\d03.json"
+    },
+    {
+      "caseId": "d04",
+      "status": "PASS",
+      "evidenceFile": ".harness\\evidence\\2026-11-20-ops-review-live-runtime-acceptance\\runs\\omx_accept_20261121_codex_t02f\\deploy\\d04.json"
+    },
+    {
+      "caseId": "d05",
+      "status": "PASS",
+      "evidenceFile": ".harness\\evidence\\2026-11-20-ops-review-live-runtime-acceptance\\runs\\omx_accept_20261121_codex_t02f\\deploy\\d05.json"
+    },
+    {
+      "caseId": "d06",
+      "status": "PASS",
+      "evidenceFile": ".harness\\evidence\\2026-11-20-ops-review-live-runtime-acceptance\\runs\\omx_accept_20261121_codex_t02f\\deploy\\d06.json"
+    },
+    {
+      "caseId": "d07",
+      "status": "FAIL",
+      "evidenceFile": ".harness\\evidence\\2026-11-20-ops-review-live-runtime-acceptance\\runs\\omx_accept_20261121_codex_t02f\\deploy\\d07.json"
+    }
+  ],
+  "clearance": {
+    "preserved": true,
+    "cleared": [],
+    "gaps": []
+  },
+  "remote": {
+    "prefixDir": "/tmp/omx_accept_20261121_codex_t02f",
+    "policy": "read-only probe under the pinned run dir; markers validated over SSH, never written",
+    "cleanupNote": "remote dir intentionally not force-deleted; contents are harmless markers only (reviewer policy)"
+  }
+}

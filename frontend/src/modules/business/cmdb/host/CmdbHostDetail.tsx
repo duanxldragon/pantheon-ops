@@ -24,6 +24,7 @@ import type { HostRow } from './api';
 import { usePermission } from '../../../../hooks/usePermission';
 import { formatDateTime } from '../../../../core/format/dateTime';
 import PasswordInput from '../../../../components/patterns/forms/PasswordInput';
+import SecretTextArea from '../../../../components/patterns/forms/SecretTextArea';
 import '../../../../assets/list-page.css';
 import '../cmdb.css';
 
@@ -147,7 +148,7 @@ export default function CmdbHostDetail() {
                 {t('business.cmdb.host.collect')}
               </Button>
             )}
-        <Button icon={<IconLeft />} onClick={() => navigate('/business/cmdb/host')}>
+            <Button icon={<IconLeft />} onClick={() => navigate('/business/cmdb/host')}>
               {t('common.back')}
             </Button>
           </Space>
@@ -160,7 +161,10 @@ export default function CmdbHostDetail() {
               <span className="system-page-hero__eyebrow">
                 {t('business.cmdb.host.hero.eyebrow')}
               </span>
-              <Typography.Title heading={5} className="system-page-hero__title cmdb-page__hero-title">
+              <Typography.Title
+                heading={5}
+                className="system-page-hero__title cmdb-page__hero-title"
+              >
                 {host.hostname}
               </Typography.Title>
             </div>
@@ -184,8 +188,14 @@ export default function CmdbHostDetail() {
                 { label: t('business.cmdb.host.ip'), value: host.ip },
                 { label: t('business.cmdb.host.sshPort'), value: host.sshPort || 22 },
                 { label: t('business.cmdb.host.os'), value: t(`business.cmdb.host.os.${host.os}`) },
-                { label: t('business.cmdb.host.status'), value: t(`business.cmdb.host.status.${host.status}`) },
-                { label: t('business.cmdb.host.businessScope'), value: host.businessScopeName || '-' },
+                {
+                  label: t('business.cmdb.host.status'),
+                  value: t(`business.cmdb.host.status.${host.status}`),
+                },
+                {
+                  label: t('business.cmdb.host.businessScope'),
+                  value: host.businessScopeName || '-',
+                },
                 { label: t('business.cmdb.host.owner'), value: host.owner || '-' },
                 { label: t('business.cmdb.host.remark'), value: host.remark || '-' },
               ]}
@@ -200,8 +210,14 @@ export default function CmdbHostDetail() {
                 { label: t('business.cmdb.host.os'), value: t(`business.cmdb.host.os.${host.os}`) },
                 { label: t('business.cmdb.host.osVersion'), value: host.osVersion || '-' },
                 { label: t('business.cmdb.host.cpuCores'), value: host.cpuCores || '-' },
-                { label: t('business.cmdb.host.memoryGb'), value: host.memoryGb ? `${host.memoryGb}` : '-' },
-                { label: t('business.cmdb.host.diskGb'), value: host.diskGb ? `${host.diskGb}` : '-' },
+                {
+                  label: t('business.cmdb.host.memoryGb'),
+                  value: host.memoryGb ? `${host.memoryGb}` : '-',
+                },
+                {
+                  label: t('business.cmdb.host.diskGb'),
+                  value: host.diskGb ? `${host.diskGb}` : '-',
+                },
                 { label: t('business.cmdb.host.sshPort'), value: host.sshPort || 22 },
               ]}
             />
@@ -227,16 +243,23 @@ export default function CmdbHostDetail() {
             {host.installedComponents?.length ? (
               <Space direction="vertical" size={8} style={{ width: '100%' }}>
                 {host.installedComponents.map((c) => (
-                  <Card key={`${c.name}-${c.version}`} className="page-panel" style={{ padding: 12 }}>
+                  <Card
+                    key={`${c.name}-${c.version}`}
+                    className="page-panel"
+                    style={{ padding: 12 }}
+                  >
                     <Space direction="vertical" size={4}>
                       <Space>
                         <Tag color="arcoblue">
                           {c.name} {c.version}
                         </Tag>
-                        {c.executorType ? <Tag>{t(`business.deploy.task.executorType.${c.executorType}`)}</Tag> : null}
+                        {c.executorType ? (
+                          <Tag>{t(`business.deploy.task.executorType.${c.executorType}`)}</Tag>
+                        ) : null}
                       </Space>
                       <div style={{ color: 'var(--text-secondary)', fontSize: 12 }}>
-                        {c.deployTaskName || '-'} · {c.deployedAt ? formatDateTime(c.deployedAt) : '-'}
+                        {c.deployTaskName || '-'} ·{' '}
+                        {c.deployedAt ? formatDateTime(c.deployedAt) : '-'}
                       </div>
                     </Space>
                   </Card>
@@ -255,7 +278,9 @@ export default function CmdbHostDetail() {
                   <Card key={group.id} className="page-panel" style={{ padding: 12 }}>
                     <Space direction="vertical" size={2}>
                       <span>{group.name}</span>
-                      <span style={{ color: 'var(--text-tertiary)', fontSize: 12 }}>{group.fullPath}</span>
+                      <span style={{ color: 'var(--text-tertiary)', fontSize: 12 }}>
+                        {group.fullPath}
+                      </span>
                     </Space>
                   </Card>
                 ))}
@@ -310,7 +335,7 @@ export default function CmdbHostDetail() {
                   field="sshPrivateKey"
                   rules={[{ required: true }]}
                 >
-                  <Input.TextArea
+                  <SecretTextArea
                     rows={4}
                     placeholder={t('business.cmdb.host.collectPrivateKeyPlaceholder')}
                   />

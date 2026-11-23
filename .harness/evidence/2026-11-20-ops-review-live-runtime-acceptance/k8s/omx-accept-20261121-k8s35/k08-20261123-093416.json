@@ -1,0 +1,177 @@
+{
+  "id": "k08",
+  "intent": "Service CRUD CAS and malformed input",
+  "userModel": "authenticated admin unless stated",
+  "setup": "local Ops; pinned SSH to 115.190.251.143; dedicated namespace",
+  "harness": ".local/acceptance-20261121/k8s-live.py",
+  "expected": "assertions hold",
+  "fixesApplied": [],
+  "cleanup": "owned fixtures tracked in checkpoint.json",
+  "actual": {
+    "created": {
+      "name": "accept-service",
+      "namespace": "omx-accept-20261121-k8s35",
+      "type": "ClusterIP",
+      "clusterIP": "10.43.170.185",
+      "ports": [
+        {
+          "name": "http",
+          "port": 8080,
+          "targetPort": 8080,
+          "nodePort": 0,
+          "protocol": "TCP"
+        }
+      ],
+      "selector": {
+        "app": "accept-workload"
+      },
+      "loadBalancerIP": "",
+      "resourceVersion": "2492912",
+      "uid": "d0089791-95c5-4f96-8425-91d1e47819d0"
+    },
+    "current": {
+      "name": "accept-service",
+      "namespace": "omx-accept-20261121-k8s35",
+      "type": "ClusterIP",
+      "clusterIP": "10.43.170.185",
+      "ports": [
+        {
+          "name": "http",
+          "port": 8080,
+          "targetPort": 8080,
+          "nodePort": 0,
+          "protocol": "TCP"
+        }
+      ],
+      "selector": {
+        "app": "accept-workload",
+        "revision": "2"
+      },
+      "loadBalancerIP": "",
+      "resourceVersion": "2492915",
+      "uid": "d0089791-95c5-4f96-8425-91d1e47819d0"
+    },
+    "conflictCode": 409
+  },
+  "status": "PASS",
+  "calls": [
+    {
+      "method": "POST",
+      "path": "/business/k8s/clusters/2/services?namespace=omx-accept-20261121-k8s35",
+      "httpStatus": 200,
+      "code": 200,
+      "message": "success",
+      "durationMs": 47,
+      "data": {
+        "name": "accept-service",
+        "namespace": "omx-accept-20261121-k8s35",
+        "type": "ClusterIP",
+        "clusterIP": "10.43.170.185",
+        "ports": [
+          {
+            "name": "http",
+            "port": 8080,
+            "targetPort": 8080,
+            "nodePort": 0,
+            "protocol": "TCP"
+          }
+        ],
+        "selector": {
+          "app": "accept-workload"
+        },
+        "loadBalancerIP": "",
+        "resourceVersion": "2492912",
+        "uid": "d0089791-95c5-4f96-8425-91d1e47819d0"
+      }
+    },
+    {
+      "method": "PUT",
+      "path": "/business/k8s/clusters/2/services/accept-service?namespace=omx-accept-20261121-k8s35",
+      "httpStatus": 200,
+      "code": 200,
+      "message": "success",
+      "durationMs": 63,
+      "data": {
+        "name": "accept-service",
+        "namespace": "omx-accept-20261121-k8s35",
+        "type": "ClusterIP",
+        "clusterIP": "10.43.170.185",
+        "ports": [
+          {
+            "name": "http",
+            "port": 8080,
+            "targetPort": 8080,
+            "nodePort": 0,
+            "protocol": "TCP"
+          }
+        ],
+        "selector": {
+          "app": "accept-workload",
+          "revision": "2"
+        },
+        "loadBalancerIP": "",
+        "resourceVersion": "2492915",
+        "uid": "d0089791-95c5-4f96-8425-91d1e47819d0"
+      }
+    },
+    {
+      "method": "PUT",
+      "path": "/business/k8s/clusters/2/services/accept-service?namespace=omx-accept-20261121-k8s35",
+      "httpStatus": 409,
+      "code": 409,
+      "message": "k8s.service.resource_version_conflict",
+      "durationMs": 47,
+      "data": null
+    },
+    {
+      "method": "GET",
+      "path": "/business/k8s/clusters/2/services/accept-service?namespace=omx-accept-20261121-k8s35",
+      "httpStatus": 200,
+      "code": 200,
+      "message": "success",
+      "durationMs": 31,
+      "data": {
+        "name": "accept-service",
+        "namespace": "omx-accept-20261121-k8s35",
+        "type": "ClusterIP",
+        "clusterIP": "10.43.170.185",
+        "ports": [
+          {
+            "name": "http",
+            "port": 8080,
+            "targetPort": 8080,
+            "nodePort": 0,
+            "protocol": "TCP"
+          }
+        ],
+        "selector": {
+          "app": "accept-workload",
+          "revision": "2"
+        },
+        "loadBalancerIP": "",
+        "resourceVersion": "2492915",
+        "uid": "d0089791-95c5-4f96-8425-91d1e47819d0"
+      }
+    },
+    {
+      "method": "DELETE",
+      "path": "/business/k8s/clusters/2/services/accept-service?namespace=omx-accept-20261121-k8s35",
+      "httpStatus": 400,
+      "code": 400,
+      "message": "k8s.service.resource_version_required",
+      "durationMs": 15,
+      "data": null
+    },
+    {
+      "method": "POST",
+      "path": "/business/k8s/clusters/2/services?namespace=omx-accept-20261121-k8s35",
+      "httpStatus": 400,
+      "code": 400,
+      "message": "common.param_invalid",
+      "durationMs": 16,
+      "data": null
+    }
+  ],
+  "durationMs": 219,
+  "evidence": ".harness\\evidence\\2026-11-20-ops-review-live-runtime-acceptance\\k8s\\omx-accept-20261121-k8s35\\k08-20261123-093416.json"
+}

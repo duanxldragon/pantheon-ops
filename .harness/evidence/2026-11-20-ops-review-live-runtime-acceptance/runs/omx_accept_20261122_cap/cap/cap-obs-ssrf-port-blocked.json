@@ -1,0 +1,24 @@
+{
+  "runId": "omx_accept_20261122_cap",
+  "phase": "cap",
+  "caseId": "cap-obs-ssrf-port-blocked",
+  "title": "SSRF guard refuses public host on non-allowed port (port allowlist positive)",
+  "ts": "2026-11-21T16:35:21.743Z",
+  "status": "PASS",
+  "httpStatus": 500,
+  "businessCode": 500,
+  "assertions": [
+    {
+      "name": "non-allowed port refused (business error, not 200)",
+      "pass": true
+    }
+  ],
+  "ids": {
+    "disallowedUrl": "http://example.com:8081"
+  },
+  "result": null,
+  "message": null,
+  "redaction": "placeholder public URL; no secrets involved",
+  "durationMs": 60,
+  "blockedReason": null
+}

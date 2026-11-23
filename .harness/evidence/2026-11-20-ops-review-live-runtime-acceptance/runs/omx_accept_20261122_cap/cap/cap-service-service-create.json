@@ -1,0 +1,28 @@
+{
+  "runId": "omx_accept_20261122_cap",
+  "phase": "cap",
+  "caseId": "cap-service-service-create",
+  "title": "create service under application (CAP-SERVICE write)",
+  "ts": "2026-11-21T16:35:21.283Z",
+  "status": "PASS",
+  "httpStatus": 200,
+  "businessCode": 200,
+  "assertions": [
+    {
+      "name": "business code 200",
+      "pass": true
+    },
+    {
+      "name": "service id returned",
+      "pass": true
+    }
+  ],
+  "ids": {
+    "serviceId": 8
+  },
+  "result": null,
+  "message": null,
+  "redaction": null,
+  "durationMs": 19,
+  "blockedReason": null
+}

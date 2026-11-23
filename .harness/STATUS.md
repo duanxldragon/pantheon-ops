@@ -1,5 +1,64 @@
 # Pantheon Ops 当前任务状态
 
+## 2026-11-24 第六轮检查点：T04/T06/T07/T08/T09 代码级收口，环境型 gap 显式保留
+
+本轮在 codex 不可用条件下由主 agent 独立执行，产出证据并更新 manifest/STATUS：
+
+- **T06 K8s 凭据与请求边界 — in-progress**：连接池身份/并发/Evict（6 测试 PASS）、嵌入凭据边界、QPS=20/Burst=40 钉、Pods 分页、`SecretTextArea` 掩码（k8s/filedist/CMDB，`-webkit-text-security` 运行时 `disc`→`none` + 4 截图）。K8s 11/11 包 ok。Gap：V8 真实集群轮换、k8s 浏览器 smoke、断网/取消运行时证据。
+- **T07 K8s 变更准入 — in-progress**：DaemonSet scale/restart 误改同名 Deployment 已修复并红→绿锁定；未知 kind 拒绝；0 副本可提交；陈旧 resourceVersion→409。Gap（P1）：NamespaceAll 聚合读授权、读路由绑定不完整、UI 草稿恢复未验证。
+- **T09 Pod 日志 WebSocket — in-progress**：单写者 `logWriter` 修复并发写 panic（无 mutex 复现 panic → 加锁绿）、Origin 允许清单、context 取消链路。Gap：goroutine 基线、慢客户端背压、重连渲染证据。
+- **T08 部署恢复/远程执行 — in-progress**：panic 隔离落库失败（回归 PASS）；ownership/lease/worker/CAS/SSH-cancel 定向子集 **124.377s PASS**。**完整 deploy 套件本会话 1800s 超时**（`TestFrozenRollbackPreservesDefinitionAndOwnReview` 阻塞于 MySQL I/O；同套件 T03 候选曾 PASS 1047.796s；同窗口前端 dev server 因低内存被回收）→ 记环境 gap，不记 PASS。LiveVM 与 deploy smoke 未重跑。
+- **T04 核心业务租户隔离 — in-progress**：`000041` 迁移 48 条幂等 DDL + tenant-first 唯一键；up/down 装配副本字节一致；迁移测试 PASS。**运行时隔离被 Base `keyMatch2` 阻塞**（详情路由不能绑定），compat/multi live 核对未执行。
+- **T13 ArgoCD webhook/ownership — planned（显式搁置）**：需要真实 ArgoCD provider、webhook 签名密钥与源仓库配置（`GAP-ARGOCD-ENVKEY`）；审计同时指出 webhook 未签名。无凭证/无外部系统，本轮不伪造证据、不关闭。
+- **T05/T10/T11/T12/T14/T15 与父任务 T01/T-review-remediation/T16**：维持原状态；T16 残余为多租户 V4、V7 SSH 低权限、V6 浏览器、V8 SA 轮换、Ingress 快照、全新安装、WebSocket 释放、Velero schedule/restore、race 与 UI，均需实机/维护者窗口。
+
+门禁：method-consumption PASS；business-overlay / boundaries / menu-contract 见本轮命令回执；前端 type-check、password-toggle、ui-contract、目标 eslint 全绿。
+
+## 2026-11-23 第五轮检查点：T03 完成（权限绑定 + 任务可见性，本地 live 18/18 PASS）
+
+任务树：**14 completed / 3 in-progress / 13 planned**（T03 置完成）。T03 交付：
+- deploy 权限绑定 26 键（package 6 / template 6 / task 10 不含 export / credential 4）；详情与 `task:export` 刻意不绑定，anti-widening 守卫测试锁定。
+- credential 4 键入 seed F 菜单（Sort 12–15）+ 后端 zh/en i18n；前端 fallback 与模块 locale 同步补齐（修复独立 review P1，`check-menu-contract` 250 权限 PASS）。
+- SEC-002 嵌套主机 DataScope 过滤；NEW-01 scoped 列表 = id-only 候选 + 单次批量 hostReader + 精确 total + 按可见 ID 取页（外部 CMDB 无法 join 下推，已登记 shortcut）。
+
+验证：全量 deploy 套件 **PASS 1047.796s**（真实 MySQL）；本地候选 `0586a9e2` live 角色矩阵 **18/18 PASS**（granted 200 / unwarranted 403 / 导出抗放宽 / 凭据响应 0 secret 键 / 清理归零）；method-consumption / boundaries / overlay / menu-contract 全绿。独立 review 结论 `pass-with-explicit-gaps`。
+
+[证据](./evidence/2026-11-20-ops-business-permissions-and-task-visibility/summary.md) · [审查](./evidence/2026-11-20-ops-business-permissions-and-task-visibility/review.md) · [角色矩阵](./evidence/2026-11-20-ops-business-permissions-and-task-visibility/t03-role-matrix-local.json)。剩余 gap：远端同候选重跑（本地等价证据已成立）、非 deploy 业务域仍 default-deny、SEC-004 凭据归属/范围 schema 变更、Base 静态路由守卫。不提交、不推送、不发布。
+
+## 2026-11-23 第四轮检查点：T16 k8s lane 同候选重跑 22/22 PASS（Velero 关闭）
+
+新任务树仍为 **3 in-progress（父任务/T16/T02）、15 planned、0 completed**。T16 K8s lane 已在当前候选 `bad479fc`（`pantheon-ops-codex-t02b-20261122-172553.exe`）上重跑：**22 PASS / 0 FAIL / 0 BLOCKED**（run `omx-accept-20261121-k8s35`），取代此前 binary `fba00055` 的 PARTIAL（22 PASS / 1 BLOCKED Velero）。
+
+Velero 陈旧 containerd image metadata 阻塞**已解决**：image entity 重建后 pod Running（1 pod），k19 真实 ConfigMap 备份 `omx-accept-20261121-k8s35-backup` **Completed**（errors 0 / warnings 0）；k15 owned 资源清理独立核验通过；k13 凭据轮换（旧客户端拒绝 500→恢复版本 3）；k20 非管理员读写/凭据权限矩阵符合预期。过程中修复 harness bug：`k8s-live.py` 读取 `runtime-live/ownership.json` 的 dbname（不再硬编码 `ops_acceptance_formal_20261121`），k8s34 的清理 fence FAIL 即该 harness DB 名 bug，修复后 k8s35 全绿。完整范围仍非 PARTIAL 收尾：V4 多租户、V7 SSH 低权限用户、V6 前端浏览器、V8 SA 轮换、Ingress 快照、全新安装、WebSocket 释放、Velero schedule/restore、race 分项、UI。
+
+[重跑回执](./evidence/2026-11-20-ops-review-live-runtime-acceptance/k8s-lane-redrive-bad479fc-20261123.json) · 逐用例证据 `./evidence/2026-11-20-ops-review-live-runtime-acceptance/k8s/omx-accept-20261121-k8s35/`。不提交、不推送、不发布；dirty worktree 保留待维护者签核。
+
+## 2026-11-23 第三轮核验检查点：T02 两处 HIGH 反例转绿
+
+新任务树仍为 **3 in-progress（父任务/T16/T02）、15 planned、0 completed**。T02 两处 HIGH 已修复并核验：Round2 反例 `TestCodexReviewRedisGeneratedConfig`（无/有密码）与 `TestCodexReviewRepeatedSlashUninstallRoot`（`//etc`、`/usr//local`）当前候选（`deploy_fixed_templates.go` SHA `1fcf8412…`）**全部转绿**；新增重复斜杠归一化（`path.Clean`+`ToSlash`）与 Redis 密码写入仅位于 heredoc EOF 之后。
+
+部署包最新 `-race ./...modules/business/deploy`（2026-11-22 18:23）**exit 0、243 PASS、0 FAIL、0 skip**（hash 与当前 worktree 相同 `1fcf8412`）；17:25 包运行的 2 个 LiveVM FAIL 为环境时序（无 VM），18:23 LiveVM `TestDeployLiveVM*` exit 0 均已实机通过。本 shell 内 `-race` 因 Windows TSan 分配失败未复跑，属环境限制，Codex 机器回执已含等价 race 证据；不改写任何历史结论。
+
+[核验回执](./evidence/2026-11-20-ops-deploy-fixed-template-security/round3-fix-verified-20261123.json)。
+
+**2026-11-23 第四轮补充**：T02 的 **V7 注入/指纹已在同候选 `bad479fc` 实机关闭**（deploy lane run `omx_accept_20261121_codex_t02d`：d04 wrong-fingerprint task failed + 远端 marker-neg 不存在；d05 `nginx$(touch …)` inject create HTTP 400 `templateParamsInvalid` 未 start 无 marker；receipt binarySha256=bad479fc exit 0）。T02 剩余缺口压缩为：合法安装/卸载实机（nginx_systemd 为共享 VM 完整源码构建，属厚重系统变更，需维护者放行装机方式）、完整 `-race ./...`（本 shell TSan 不可用，codex 有独立的 `-race` 资绿记录）、第 3 次独立 Codex 复审。T16 同候选 k8s33 重跑已由 k8s35（22/22 PASS）关闭（见上）。
+
+T02 仍缺合法安装/卸载实机（需维护者决策装机方式）、完整 `-race ./...`（TSan 环境限制，codex 有资绿记录）、第 3 次独立 Codex 复审；T16 同候选 k8s33 重跑与 Velero 陈旧 metadata 清理已在 bad479fc 上关闭（k8s35 22/22，k19 Velero Completed）。V1–V8、旧十包、CAP 真实 provider、完整 race、UI 等缺口维持开放。工作树 changes 全部留存未提交，未 commit/push/merge/release。
+
+## 2026-11-22 第二轮独立验收：T02 changes-required
+
+新任务树为 **3 in-progress（父任务/T16/T02）、15 planned、0 completed**。T02 新候选已完成自测交付，但 Codex 非执行渲染反例确认两处 HIGH：Redis 配置参数错位；重复斜杠绕过危险卸载根校验。原18项通过，补充2个顶层反例/4个子场景失败，exit1、0skip；独立代码审查 REQUEST CHANGES、架构 BLOCK，T02不能关闭。
+
+本轮没有新构建或新实机验收；旧K8s22场景PASS保留已测范围，旧部署7PASS不能认证已改模板。V1–V8、旧十包、CAP真实provider、完整race和UI等缺口仍开放。115.190.251.143已有会话授权，缺口是修复后的新候选未验证。业务代码继续由Claude修复。
+
+[第二轮进度报告](./evidence/2026-11-20-ops-review-live-runtime-acceptance/codex-progress-review-20261122-round2.md) · [T02详细反例与审查](./evidence/2026-11-20-ops-deploy-fixed-template-security/codex-round2-review.md)。
+
+## 2026-11-22 第一轮 Codex 核对 Claude 新交付进度（历史检查点）
+
+当前整改树为父任务/T16 两项 in-progress、16 子包 planned，原 V1–V8 与旧十包未整体验收。K8s 最新 run12 在 k8s33 上 22/22 场景 PASS（含 Velero ConfigMap 备份 Completed 与清理），取代 run11 的 Velero BLOCKED；完整 K8s 范围仍 PARTIAL。部署 d00–d06 7 PASS，CMDB retry 8 PASS；综合 CAP 原始 31 PASS/1 BLOCKED 只按具体断言采信，连接测试500/查询400不能关闭 observability 功能。Codex 独立固定模板/发布冲突回归9项PASS、CGO/race/真实MySQL、0失败/0跳过。
+
+[本次独立进度审查](./evidence/2026-11-20-ops-review-live-runtime-acceptance/codex-progress-review-20261122.md) · [机器回执](./evidence/2026-11-20-ops-review-live-runtime-acceptance/codex-progress-review-20261122.json)。T03授权可用性、双租户、V6–V8、恢复/调度/Ingress/安装、完整race及交付/UI继续开放；历史归档与局部探针PASS不代签完成。
+
 ## 2026-11-20T04:33:03.000Z S3649 合并 / 独立审计 PR 治理修复 / packaging 证据落地
 
 更新UTC：2026-11-20T04:33:03Z。
@@ -320,3 +379,11 @@ Base已准备默认格式化归档保护并获独立COMMENT/CLEAR，2项回归�
 - **保留的 open 门禁（不代签）**：最终维护者视觉/功能验收（十包 C01–C06/E01–E04）、真实 provider/受限角色 SSH/K8s/Argo/Helm 验证、未批准发布/生产风险验收、D4-G2/G3 生产 RPO/RTO 与 sizing、O7 deferred-forward、D1 端点/凭据、D5 治理债务基线重跑、History-audit 最终独立 review。逐项 owner/successor/state 见 dispositions.json。
 - 既有体系不变：C01→C02→C05→C06 与开放扩展→E04→C06 依赖、G001/G003 in-progress、E04 九行 provider NOT_RUN 事实均保留，未因归档转为"已验收"。
 - 治理红灯：task547/evidence129/review91/links6 为归档前全仓口径；board-complete 独立检查（check-task-packet/evidence 等）待 CI 跑绿后更新。[收口 evidence](./evidence/2026-11-20-ops-board-complete/)。
+
+## 2026-11-20 最新独立评审任务拆包
+
+依据 `docs/reviews/pantheon-ops独立评审与外部报告核实-2026-11-20.md` 文末更正及配套真实环境验证清单，创建父任务 `2026-11-20-ops-review-remediation` 和17个子包，全部初始为 `planned`。完整映射37条编号发现、补审主题、V1-V8与旧C01-C06/E01-E04未验收事项。
+
+按报告采用多租户目标，核心资源与扩展异步链路分包；filedist/ArgoCD按实际启用激活，模板体验排在核心P1之后。下一步从T01当前基线/范围核实和T02固定模板参数安全开始。[任务计划](./tasks/2026-11-20-ops-review-remediation/plan.md) · [执行队列](./tasks/2026-11-20-ops-review-remediation/EXECUTION_QUEUE.md) · [发现映射](./tasks/2026-11-20-ops-review-remediation/FINDINGS.json)。
+
+本批完成任务生成与结构检查。整改实施、真实provider、UI渲染、安装升级回滚和维护者终验由对应任务继续执行。规划验证结果保存于 `.harness/evidence/2026-11-20-ops-review-remediation/planning-validation.json`。

@@ -1,0 +1,121 @@
+{
+  "id": "k13",
+  "intent": "warm-cache credential rotation and restore",
+  "userModel": "authenticated admin unless stated",
+  "setup": "local Ops; pinned SSH to 115.190.251.143; dedicated namespace",
+  "harness": ".local/acceptance-20261121/k8s-live.py",
+  "expected": "assertions hold",
+  "fixesApplied": [],
+  "cleanup": "owned fixtures tracked in checkpoint.json",
+  "actual": {
+    "initialVersion": 1,
+    "rotatedVersion": 2,
+    "oldPrivilegedClientRejected": true,
+    "afterRotationCode": 500,
+    "restoredVersion": 3
+  },
+  "status": "PASS",
+  "calls": [
+    {
+      "method": "GET",
+      "path": "/business/k8s/clusters/2/credential",
+      "httpStatus": 200,
+      "code": 200,
+      "message": "success",
+      "durationMs": 16,
+      "data": {
+        "id": 2,
+        "clusterId": 2,
+        "version": 1,
+        "status": "active"
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/business/k8s/clusters/2/nodes",
+      "httpStatus": 200,
+      "code": 200,
+      "message": "success",
+      "durationMs": 703,
+      "data": {
+        "items": [
+          {
+            "name": "iv-yedenmmwhsqc6iu4z5p6",
+            "status": "ready",
+            "internalIp": "192.168.94.127",
+            "os": "Ubuntu 24.04 LTS",
+            "kubeletVersion": "v1.36.3+k3s1",
+            "cpuCapacity": "4",
+            "memoryCapacity": "4010888Ki",
+            "podCapacity": 110,
+            "allocatablePods": 110
+          }
+        ],
+        "total": 1
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/business/k8s/clusters/2/credential/rotate",
+      "httpStatus": 200,
+      "code": 200,
+      "message": "success",
+      "durationMs": 31,
+      "data": {
+        "id": 2,
+        "clusterId": 2,
+        "version": 2,
+        "status": "active"
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/business/k8s/clusters/2/nodes",
+      "httpStatus": 200,
+      "code": 500,
+      "message": "k8s.cluster.sync_failed",
+      "durationMs": 94,
+      "data": null
+    },
+    {
+      "method": "POST",
+      "path": "/business/k8s/clusters/2/credential/rotate",
+      "httpStatus": 200,
+      "code": 200,
+      "message": "success",
+      "durationMs": 31,
+      "data": {
+        "id": 2,
+        "clusterId": 2,
+        "version": 3,
+        "status": "active"
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/business/k8s/clusters/2/nodes",
+      "httpStatus": 200,
+      "code": 200,
+      "message": "success",
+      "durationMs": 406,
+      "data": {
+        "items": [
+          {
+            "name": "iv-yedenmmwhsqc6iu4z5p6",
+            "status": "ready",
+            "internalIp": "192.168.94.127",
+            "os": "Ubuntu 24.04 LTS",
+            "kubeletVersion": "v1.36.3+k3s1",
+            "cpuCapacity": "4",
+            "memoryCapacity": "4010888Ki",
+            "podCapacity": 110,
+            "allocatablePods": 110
+          }
+        ],
+        "total": 1
+      }
+    }
+  ],
+  "durationMs": 1281,
+  "evidence": ".harness\\evidence\\2026-11-20-ops-review-live-runtime-acceptance\\k8s\\omx-accept-20261121-k8s35\\k13-20261123-093416.json"
+}

@@ -1,0 +1,207 @@
+{
+  "id": "k20",
+  "intent": "non-admin read/write/credential authorization",
+  "userModel": "authenticated admin unless stated",
+  "setup": "local Ops; pinned SSH to 115.190.251.143; dedicated namespace",
+  "harness": ".local/acceptance-20261121/k8s-live.py",
+  "expected": "assertions hold",
+  "fixesApplied": [],
+  "cleanup": "owned fixtures tracked in checkpoint.json",
+  "actual": {
+    "permissions": [
+      "business:k8s:cluster:list",
+      "business:k8s:cluster:view",
+      "business:k8s:cluster:nodes",
+      "business:k8s:service:list",
+      "business:k8s:service:view"
+    ],
+    "results": [
+      {
+        "method": "GET",
+        "path": "/clusters/5/services?namespace=omx-accept-20261121-k8s08",
+        "code": 200,
+        "expectedAllowed": true
+      },
+      {
+        "method": "POST",
+        "path": "/clusters/5/services?namespace=omx-accept-20261121-k8s08",
+        "code": 403,
+        "expectedAllowed": false
+      },
+      {
+        "method": "GET",
+        "path": "/clusters/5/credential",
+        "code": 403,
+        "expectedAllowed": false
+      },
+      {
+        "method": "POST",
+        "path": "/clusters/5/sync",
+        "code": 403,
+        "expectedAllowed": false
+      }
+    ],
+    "nonadmin": "omx_accept_20261121_k8s08_read"
+  },
+  "status": "PASS",
+  "calls": [
+    {
+      "method": "POST",
+      "path": "/system/role",
+      "httpStatus": 200,
+      "code": 200,
+      "message": "success",
+      "durationMs": 515,
+      "data": {
+        "id": 2,
+        "roleName": "omx_accept_20261121_k8s08_read",
+        "roleKey": "omx_accept_20261121_k8s08_read",
+        "sort": 0,
+        "status": 1,
+        "createdAt": "2026-11-21T09:13:01+08:00",
+        "menuIds": [],
+        "permissionKeys": [
+          "business:k8s:cluster:list",
+          "business:k8s:cluster:view",
+          "business:k8s:cluster:nodes",
+          "business:k8s:service:list",
+          "business:k8s:service:view"
+        ],
+        "dataScope": "all"
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/system/user",
+      "httpStatus": 200,
+      "code": 200,
+      "message": "success",
+      "durationMs": 360,
+      "data": {
+        "id": 2,
+        "username": "omx_accept_20261121_k8s08_read",
+        "nickname": "omx_accept_20261121_k8s08_read",
+        "email": "",
+        "phone": "",
+        "deptId": 0,
+        "deptName": "",
+        "postId": 0,
+        "postName": "",
+        "status": 1,
+        "createdAt": "2026-11-21T09:13:01+08:00",
+        "roleIds": [
+          2
+        ],
+        "roleKeys": [],
+        "roleNames": null
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/auth/login",
+      "httpStatus": 200,
+      "code": 200,
+      "message": "success",
+      "durationMs": 422
+    },
+    {
+      "method": "GET",
+      "path": "/business/k8s/clusters/5/services?namespace=omx-accept-20261121-k8s08",
+      "httpStatus": 200,
+      "code": 200,
+      "message": "success",
+      "durationMs": 640,
+      "data": {
+        "items": [
+          {
+            "name": "accept-service",
+            "namespace": "omx-accept-20261121-k8s08",
+            "type": "ClusterIP",
+            "clusterIP": "10.43.196.158",
+            "ports": [
+              {
+                "name": "http",
+                "port": 8080,
+                "targetPort": 8080,
+                "nodePort": 0,
+                "protocol": "TCP"
+              }
+            ],
+            "selector": {
+              "app": "accept-workload",
+              "revision": "2"
+            },
+            "loadBalancerIP": "",
+            "resourceVersion": "2413503",
+            "uid": "68721f8a-9c89-41bd-ab14-b4ff87cb76ad"
+          }
+        ],
+        "total": 1
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/business/k8s/clusters/5/services?namespace=omx-accept-20261121-k8s08",
+      "httpStatus": 200,
+      "code": 403,
+      "message": "permission.denied",
+      "durationMs": 16,
+      "data": null
+    },
+    {
+      "method": "GET",
+      "path": "/business/k8s/clusters/5/credential",
+      "httpStatus": 200,
+      "code": 403,
+      "message": "permission.denied",
+      "durationMs": 15,
+      "data": null
+    },
+    {
+      "method": "POST",
+      "path": "/business/k8s/clusters/5/sync",
+      "httpStatus": 200,
+      "code": 403,
+      "message": "permission.denied",
+      "durationMs": 32,
+      "data": null
+    },
+    {
+      "method": "GET",
+      "path": "/business/k8s/clusters/5/services?namespace=omx-accept-20261121-k8s08",
+      "httpStatus": 200,
+      "code": 200,
+      "message": "success",
+      "durationMs": 93,
+      "data": {
+        "items": [
+          {
+            "name": "accept-service",
+            "namespace": "omx-accept-20261121-k8s08",
+            "type": "ClusterIP",
+            "clusterIP": "10.43.196.158",
+            "ports": [
+              {
+                "name": "http",
+                "port": 8080,
+                "targetPort": 8080,
+                "nodePort": 0,
+                "protocol": "TCP"
+              }
+            ],
+            "selector": {
+              "app": "accept-workload",
+              "revision": "2"
+            },
+            "loadBalancerIP": "",
+            "resourceVersion": "2413503",
+            "uid": "68721f8a-9c89-41bd-ab14-b4ff87cb76ad"
+          }
+        ],
+        "total": 1
+      }
+    }
+  ],
+  "durationMs": 2093,
+  "evidence": ".harness\\evidence\\2026-11-20-ops-review-live-runtime-acceptance\\k8s\\omx-accept-20261121-k8s08\\k20-20261121-091246.json"
+}

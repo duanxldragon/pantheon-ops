@@ -1,0 +1,49 @@
+{
+  "schemaVersion": 1,
+  "taskId": "2026-11-20-ops-core-business-tenant-isolation",
+  "repo": "pantheon-ops",
+  "evidenceState": "exercised",
+  "agent": {
+    "tool": "claude-code",
+    "adapter": "windows"
+  },
+  "candidate": {
+    "baselineReportCommit": "444ce8e",
+    "planningCommit": "a2d69d4a759b5df2b26aaa9d26bdc5175babe9dc",
+    "worktree": "uncommitted",
+    "foundation": "pantheon-base-v0.18.9"
+  },
+  "commands": [
+    {
+      "command": "go test -count=1 -timeout 10m -run TestTenantOwnershipMigrationUpgradesLegacyNameKeys ./modules/business/deploy/",
+      "cwd": "backend",
+      "status": "passed",
+      "durationMs": 635,
+      "notes": "Real MySQL via testmysql (PANTHEON_TEST_DSN redacted). Legacy-schema upgrade: a pre-existing global-name-unique table gains tenant_id and the key is rebuilt tenant-first, so two tenants reuse a name while a duplicate inside one tenant still fails."
+    },
+    {
+      "command": "cmp backend/modules/business/deploy/migrations/000041_core_business_tenant_ownership.up.sql backend/pkg/database/migrations/000041_core_business_tenant_ownership.up.sql && cmp <down.sql copies>",
+      "cwd": ".",
+      "status": "passed",
+      "notes": "Business-module migration source and assembly copy are byte-identical (up and down)."
+    },
+    {
+      "command": "grep -c 'PREPARE|EXECUTE|DEALLOCATE' backend/modules/business/deploy/migrations/000041_core_business_tenant_ownership.up.sql",
+      "cwd": ".",
+      "status": "passed",
+      "notes": "48 idempotent dynamic DDL statements: golang-migrate executes statement-by-statement, so each column/index add is guarded by SET @sql := IF(...) ... PREPARE/EXECUTE/DEALLOCATE."
+    }
+  ],
+  "knownGaps": [
+    "Runtime tenant isolation (two tenants with same-named resources, guessed-ID/export/callback cross-tenant denial) is blocked upstream: Base keyMatch2 makes GET /packages/:id also match /packages/export, so detail routes stay unbound (anti-widening).",
+    "compat (tenant_id=0) and multi live upgrade/rollback row-count verification on a real multi-tenant database was not run on this candidate.",
+    "Async task restart retaining original tenant not verified end-to-end."
+  ],
+  "linkage": {
+    "taskPacket": "docs/harness/tasks/2026-11-20-ops-core-business-tenant-isolation.task.md",
+    "evidenceDir": ".harness/evidence/2026-11-20-ops-core-business-tenant-isolation/",
+    "reviewFile": ".harness/evidence/2026-11-20-ops-core-business-tenant-isolation/review.md",
+    "changeRef": "none",
+    "planRefs": [".harness/tasks/2026-11-20-ops-review-remediation/plan.md"]
+  }
+}

@@ -1,0 +1,196 @@
+{
+  "schemaVersion": 1,
+  "taskId": "2026-11-20-ops-service-deploy-business-closure",
+  "title": "服务目录与实例部署关联闭环",
+  "goal": "逐条承接归档 C01/C02/C03 的原验收与残余，复用已有 capability 接口和关联校验补当前缺口",
+  "primaryLayer": "business/*",
+  "status": "planned",
+  "priority": "P0",
+  "deliveryTier": "L2",
+  "parentTask": "2026-11-20-ops-review-remediation",
+  "taskDoc": "docs/harness/tasks/2026-11-20-ops-service-deploy-business-closure.task.md",
+  "handoffDoc": ".harness/tasks/2026-11-20-ops-service-deploy-business-closure/HANDOFF.md",
+  "statusDoc": ".harness/tasks/2026-11-20-ops-service-deploy-business-closure/STATUS.md",
+  "owner": "服务部署闭环负责人",
+  "activation": "core",
+  "dependencies": [
+    "2026-11-20-ops-business-permissions-and-task-visibility",
+    "2026-11-20-ops-core-business-tenant-isolation",
+    "2026-11-20-ops-deploy-credential-ownership-and-ui",
+    "2026-11-20-ops-k8s-resource-authorization-and-mutations",
+    "2026-11-20-ops-deploy-recovery-and-remote-execution"
+  ],
+  "dependsOn": [
+    "2026-11-20-ops-business-permissions-and-task-visibility",
+    "2026-11-20-ops-core-business-tenant-isolation",
+    "2026-11-20-ops-deploy-credential-ownership-and-ui",
+    "2026-11-20-ops-k8s-resource-authorization-and-mutations",
+    "2026-11-20-ops-deploy-recovery-and-remote-execution"
+  ],
+  "conditionalDependencies": [],
+  "coordinatesWith": [],
+  "scope": {
+    "in": [
+      "逐条承接归档 C01/C02/C03 的原验收与残余，复用已有 capability 接口和关联校验补当前缺口",
+      "创建/更新/预览/启动同事务验证服务/实例/主机/业务域/environment/namespace/action 与删除引用保护",
+      "从服务实例发起部署并回读终态、日志和审计，目录完整分页/101+对象、受限角色及 stale target 恢复"
+    ],
+    "out": [
+      "platform/system/*、共享 UI/权限/租户/请求拦截器实现由 pantheon-base 拥有，按正式 foundation release 同步",
+      "未授权生产操作、发布、凭证变更及门禁豁免",
+      "资产关系/Pod→Node→VM、真实 Helm Chart、Nacos/RocketMQ、完整 Agent 协议作为独立后续范围"
+    ]
+  },
+  "dependencyLayers": ["business/*", "inheritance-sync"],
+  "baseline": {
+    "reportCommit": "444ce8e",
+    "planningCommit": "a2d69d4a759b5df2b26aaa9d26bdc5175babe9dc",
+    "foundationVersion": "pantheon-base-v0.18.9",
+    "foundationCommit": "6316f9b7189c86542424145fa49344ad737e952b",
+    "recheckBeforeImplementation": true
+  },
+  "sourceReview": "docs/reviews/pantheon-ops独立评审与外部报告核实-2026-11-20.md",
+  "sourceChecklist": "docs/reviews/pantheon-ops真实环境验证清单-2026-11-20.md",
+  "findingRefs": ["DEP-001", "DEP-002"],
+  "sourceRefs": [
+    {
+      "path": "docs/reviews/pantheon-ops独立评审与外部报告核实-2026-11-20.md",
+      "line": 79
+    },
+    {
+      "path": "docs/reviews/pantheon-ops独立评审与外部报告核实-2026-11-20.md",
+      "line": 80
+    },
+    {
+      "path": "docs/reviews/pantheon-ops独立评审与外部报告核实-2026-11-20.md",
+      "line": 84
+    },
+    {
+      "path": "docs/reviews/pantheon-ops独立评审与外部报告核实-2026-11-20.md",
+      "line": 332
+    }
+  ],
+  "expectedFiles": {
+    "create": [
+      "docs/harness/tasks/2026-11-20-ops-service-deploy-business-closure.task.md",
+      ".harness/tasks/2026-11-20-ops-service-deploy-business-closure/manifest.json",
+      ".harness/tasks/2026-11-20-ops-service-deploy-business-closure/HANDOFF.md",
+      ".harness/tasks/2026-11-20-ops-service-deploy-business-closure/STATUS.md",
+      ".harness/evidence/2026-11-20-ops-service-deploy-business-closure/commands.json",
+      ".harness/evidence/2026-11-20-ops-service-deploy-business-closure/summary.md",
+      ".harness/evidence/2026-11-20-ops-service-deploy-business-closure/review.md"
+    ],
+    "modify": [
+      "backend/modules/business/{service,deploy,bizscope,cmdb}/**",
+      "frontend/src/modules/business/{service,deploy}/**"
+    ],
+    "doNotTouch": [
+      "backend/modules/system/**",
+      "backend/internal/**",
+      "frontend/src/core/**",
+      "frontend/src/api/request.ts",
+      "foundation-release.lock.json",
+      "既有归档原始证据与其他执行者未提交改动"
+    ]
+  },
+  "contractAnchors": [
+    "AGENTS.md",
+    "docs/PROJECT_INHERITANCE.md",
+    "docs/TASK_PACKET_OPS_TEMPLATE.md",
+    "docs/reviews/pantheon-ops独立评审与外部报告核实-2026-11-20.md",
+    "docs/reviews/pantheon-ops真实环境验证清单-2026-11-20.md",
+    "docs/designs/BUSINESS_FUNCTIONAL_DESIGN.md",
+    "docs/designs/BUSINESS_QA_ACCEPTANCE_PLAN.md",
+    "business-overlay.json",
+    "foundation-release.lock.json"
+  ],
+  "harnessProfile": {
+    "template": "custom",
+    "overlay": "pantheon-ops",
+    "qualityProfile": "ui-runtime",
+    "portableFailureClass": "business-review-gap",
+    "ownerLayer": "business/*",
+    "coverageDimensions": [
+      "behaviour",
+      "architecture-fitness",
+      "runtime-quality"
+    ]
+  },
+  "structuralScope": {
+    "affectedSubgraph": ["ServiceInstance -> 部署准入/目标 -> 执行终态/回写"],
+    "boundaryCrossings": [
+      "business/* -> pkg公共契约",
+      "共享缺口 -> Base正式release -> Ops重建"
+    ],
+    "riskNodes": ["DEP-001", "DEP-002"],
+    "graphFocus": ["sensitive-input-flow", "call-depth"]
+  },
+  "implementationNotes": [
+    "Minimal Complexity Rung: reuse",
+    "审查主基线 444ce8e，当前规划基线 a2d69d4a759b5df2b26aaa9d26bdc5175babe9dc；每包开工核实当前候选，先复用 #195 实现与归档证据再补缺口",
+    "本包状态 planned；命令与运行场景是后续验证计划，执行者须记录真实 cwd/时间/exitCode/skip/源码哈希",
+    "接口/权限/菜单/i18n/schema/seed/fixture/业务overlay 同步关闭；业务 migration 源文件归业务模块，装配副本由重建器生成"
+  ],
+  "implementationPlan": [
+    "核实当前候选和前置合同，逐条对照来源与旧验收，标记已经完成的实现",
+    "先复用现有合同/组件/测试，针对本包反例验证失败路径与状态副作用",
+    "在声明文件范围内完成最小修改，同步权限/i18n/迁移/overlay/fixture",
+    "运行本包验证，保存候选绑定 evidence，findings-first review 后更新状态"
+  ],
+  "acceptanceCriteria": [
+    "跨服务/业务域/租户引用和目标变化拒绝，并发删除/启动无悬空实例与错误状态回写",
+    "浏览器完成实例 -> 部署 -> 终态/日志/审计主流程，失败/越权与取消可恢复",
+    "真实101+选项、最小角色和桌面/390px 状态覆盖 C01-C03 原标准，历史证据与新增证据明确对应候选"
+  ],
+  "verificationPlan": {
+    "commands": [
+      "go test -count=1 ./modules/business/service/...",
+      "go test -count=1 ./modules/business/deploy/...",
+      "npm run test:smoke:business:service",
+      "npm run test:smoke:business:deploy"
+    ],
+    "runtimeEvidence": [
+      "C01/C02/C03 同候选真实 SSH/K8s、101+对象、删除/引用竞争"
+    ],
+    "commandWorkingDirectories": {
+      "go test -count=1 ./modules/business/service/...": "backend",
+      "go test -count=1 ./modules/business/deploy/...": "backend",
+      "npm run test:smoke:business:service": "frontend",
+      "npm run test:smoke:business:deploy": "frontend"
+    },
+    "environmentRequirements": [
+      "在 backend/ 执行 Go 命令；race 使用 D:\\msys64\\mingw64\\bin，CGO_ENABLED=1 和隔离 MySQL DSN；最终提交门禁执行 go test -race ./...",
+      "在 frontend/ 执行 lint/type-check/build/test:smoke:*；业务 overlay/重建/治理命令在仓库根执行",
+      "UI 前后使用 impeccable 与 Base DESIGN.md，1440px/390px、明暗主题和相关 loading/empty/error/forbidden/submitting/键盘状态必须有 rendered evidence 或显式 gap",
+      "服务端二次确认、路由匹配器、tenant公共扩展和 shutdown 公共接口若缺失，登记 Base 上游任务与 release/消费依赖，不在 Ops override",
+      "只在实际完成验收时关闭任务；缺 provider/凭据/维护者终验保持 gap，安全可逆准备可继续"
+    ]
+  },
+  "runtimeSensitive": true,
+  "humanGates": [
+    "需求/范围偏好、门禁策略与豁免、最终视觉/功能验收按维护者三触点契约处理",
+    "生产窗口/外部凭据操作/正式发布/最终仓库基线替换需已有授权"
+  ],
+  "linkage": {
+    "taskManifest": ".harness/tasks/2026-11-20-ops-service-deploy-business-closure/manifest.json",
+    "taskDoc": "docs/harness/tasks/2026-11-20-ops-service-deploy-business-closure.task.md",
+    "evidenceDir": ".harness/evidence/2026-11-20-ops-service-deploy-business-closure/",
+    "reviewFile": "none",
+    "summaryFile": ".harness/evidence/2026-11-20-ops-service-deploy-business-closure/summary.md",
+    "changeRef": "none",
+    "planRefs": [".harness/tasks/2026-11-20-ops-review-remediation/plan.md"]
+  },
+  "plannedReviewFile": ".harness/evidence/2026-11-20-ops-service-deploy-business-closure/review.md",
+  "evidenceRequired": [
+    "commands.json 含真实执行状态/cwd/源码及构建身份",
+    "summary.md 记录验收结果、runtime/visual gap 和来源判定",
+    "review.md 为真实 findings-first 审查并含机器可读 linkage；执行时更新 linkage.reviewFile",
+    "C01/C02/C03 同候选真实 SSH/K8s、101+对象、删除/引用竞争"
+  ],
+  "completionChecklist": [
+    "跨服务/业务域/租户引用和目标变化拒绝，并发删除/启动无悬空实例与错误状态回写",
+    "浏览器完成实例 -> 部署 -> 终态/日志/审计主流程，失败/越权与取消可恢复",
+    "真实101+选项、最小角色和桌面/390px 状态覆盖 C01-C03 原标准，历史证据与新增证据明确对应候选"
+  ],
+  "rollbackPlan": "优先回退本包可逆代码；数据库按隔离演练过的数据回滚/备份方案处理，multi数据回滚遵循Base合同，生产动作另经授权"
+}

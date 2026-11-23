@@ -1,0 +1,99 @@
+{
+  "runId": "omx_accept_20261121_codex_t02f",
+  "phase": "deploy",
+  "caseId": "d07",
+  "title": "fixed-template legal jdk_systemd install + uninstall round-trip",
+  "ts": "2026-11-23T02:58:37.599Z",
+  "status": "FAIL",
+  "httpStatus": 200,
+  "businessCode": 200,
+  "assertions": [
+    {
+      "name": "deploy/packages created",
+      "pass": true
+    },
+    {
+      "name": "deploy/tasks created",
+      "pass": true
+    },
+    {
+      "name": "preview accepted",
+      "pass": true
+    },
+    {
+      "name": "preview resolves one target",
+      "pass": true
+    },
+    {
+      "name": "preview contains reviewed intent",
+      "pass": true
+    },
+    {
+      "name": "start accepted",
+      "pass": true
+    },
+    {
+      "name": "legal jdk install reached success",
+      "pass": false,
+      "detail": "failed"
+    },
+    {
+      "name": "exact one host installed",
+      "pass": false,
+      "detail": "expected true"
+    },
+    {
+      "name": "jdk install root populated on real host",
+      "pass": false,
+      "detail": ""
+    },
+    {
+      "name": "deploy/tasks created",
+      "pass": true
+    },
+    {
+      "name": "preview accepted",
+      "pass": true
+    },
+    {
+      "name": "preview resolves one target",
+      "pass": true
+    },
+    {
+      "name": "preview contains reviewed intent",
+      "pass": true
+    },
+    {
+      "name": "start accepted",
+      "pass": true
+    },
+    {
+      "name": "legal jdk uninstall reached success",
+      "pass": true
+    },
+    {
+      "name": "jdk install root removed after uninstall",
+      "pass": true
+    }
+  ],
+  "ids": {
+    "jdkPackageId": 14,
+    "jdkInstallTaskId": 10,
+    "jdkUninstallTaskId": 11
+  },
+  "result": {
+    "installStatus": "failed",
+    "installHostCount": 1,
+    "installSuccessCount": 0,
+    "uninstallStatus": "success",
+    "uninstallHostCount": 1,
+    "uninstallSuccessCount": 1,
+    "templateCode": "jdk_systemd",
+    "installSemantics": "download+extract+profile.d (mainClass-less)",
+    "rootUnderRunDir": true
+  },
+  "message": null,
+  "redaction": null,
+  "durationMs": 64605,
+  "blockedReason": null
+}

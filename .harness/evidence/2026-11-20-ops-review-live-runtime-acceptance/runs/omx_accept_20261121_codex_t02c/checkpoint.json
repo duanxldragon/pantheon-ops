@@ -1,0 +1,24 @@
+{
+  "runId": "omx_accept_20261121_codex_t02c",
+  "phase": "deploy",
+  "updatedAt": "2026-11-22T10:20:04.229Z",
+  "ids": {
+    "hostId": 1,
+    "scopeProdId": 1,
+    "credentialId": 1,
+    "cookieLengths": {
+      "access": 64,
+      "refresh": 64,
+      "csrf": 64
+    }
+  },
+  "fixtures": [],
+  "fingerprint": null,
+  "fixturesFrom": "omx_accept_20261121_codex_t02b",
+  "statuses": {
+    "statusAfterCollect": null
+  },
+  "secretPolicy": {
+    "recordedSecretValues": false
+  }
+}

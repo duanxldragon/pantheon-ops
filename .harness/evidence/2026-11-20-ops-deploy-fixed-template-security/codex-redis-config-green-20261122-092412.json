@@ -1,0 +1,116 @@
+{
+  "taskId": "2026-11-20-ops-deploy-fixed-template-security",
+  "stage": "green",
+  "host": "115.190.251.143",
+  "capturedAt": "2026-11-22T09:24:17.871845+00:00",
+  "status": "PASS",
+  "passed": 4,
+  "failed": 0,
+  "sourceHashes": {
+    "backend/modules/business/deploy/deploy_fixed_safety_test.go": "8d2720133acc67e9073d1bb19f7537efe0722ebbb43d98845748103965ffa968",
+    "backend/modules/business/deploy/deploy_fixed_templates.go": "1fcf8412b6030a9d170a264c385e167cc1c77145c0d2ae8e7ed18dd5a9ec656b"
+  },
+  "provider": {
+    "fingerprint": {
+      "ok": true,
+      "host": "115.190.251.143:22",
+      "user": "root",
+      "password_source": "env:PANTHEON_VERIFY_SSH_PASSWORD",
+      "serverKeyType": "ssh-ed25519",
+      "serverSha256Fingerprint": "SHA256:FhLFRIfRIGotV2tS+sIZWxniie2qG5Xu8H3igYJ8RNU",
+      "knownHostsVerified": true,
+      "knownHostsEntryType": "ssh-ed25519",
+      "knownHostsFiles": [
+        "known_hosts"
+      ]
+    },
+    "version": "Redis server v=7.2.4 sha=00000000:0 malloc=jemalloc-5.3.0 bits=64 build=9031c1591cb5743c",
+    "sha256": "87f0f2f3ec6fd963f8601d25009cc1a3ee225ac1d88528bb630c083be77887dc"
+  },
+  "cases": [
+    {
+      "caseId": "without-password",
+      "exitCode": 0,
+      "pingSucceeded": true,
+      "fatalConfigError": false,
+      "scriptSha256": "7a45e9436e4b112afa32b9872b9258fdf8aaa0896a96934379016859b86922a4",
+      "generatorConfigWriterExecuted": true,
+      "serviceInstallExecuted": false,
+      "networkPortDisabled": true
+    },
+    {
+      "caseId": "plain-password",
+      "exitCode": 0,
+      "pingSucceeded": true,
+      "fatalConfigError": false,
+      "scriptSha256": "722a0f7ae3602fab38a1557eaee78f26502f1a3d6aff4d8b0a598ddbc5abee59",
+      "generatorConfigWriterExecuted": true,
+      "serviceInstallExecuted": false,
+      "networkPortDisabled": true
+    },
+    {
+      "caseId": "quoted-password",
+      "exitCode": 0,
+      "pingSucceeded": true,
+      "fatalConfigError": false,
+      "scriptSha256": "ea07d63acc1f948c4225c39af91ef627425e3001be30ded6d1ad7229b44a35ea",
+      "generatorConfigWriterExecuted": true,
+      "serviceInstallExecuted": false,
+      "networkPortDisabled": true
+    },
+    {
+      "caseId": "escaped-password",
+      "exitCode": 0,
+      "pingSucceeded": true,
+      "fatalConfigError": false,
+      "scriptSha256": "8ca9aeb450dd8ebb30ab016b4e056445957c06c2117b546c323de0256f3470d1",
+      "generatorConfigWriterExecuted": true,
+      "serviceInstallExecuted": false,
+      "networkPortDisabled": true
+    }
+  ],
+  "cleanup": [
+    {
+      "caseId": "without-password",
+      "filesRemoved": [
+        "driver.sh",
+        "conf/redis.conf",
+        "process.log",
+        "logs/redis.log"
+      ],
+      "caseDirectoryRemoved": true
+    },
+    {
+      "caseId": "plain-password",
+      "filesRemoved": [
+        "driver.sh",
+        "conf/redis.conf",
+        "process.log",
+        "logs/redis.log"
+      ],
+      "caseDirectoryRemoved": true
+    },
+    {
+      "caseId": "quoted-password",
+      "filesRemoved": [
+        "driver.sh",
+        "conf/redis.conf",
+        "process.log",
+        "logs/redis.log"
+      ],
+      "caseDirectoryRemoved": true
+    },
+    {
+      "caseId": "escaped-password",
+      "filesRemoved": [
+        "driver.sh",
+        "conf/redis.conf",
+        "process.log",
+        "logs/redis.log"
+      ],
+      "caseDirectoryRemoved": true
+    }
+  ],
+  "scope": "Actual generated config writer and Redis parser/authentication on existing provider; installation/build/systemd not exercised",
+  "secretsRecorded": false
+}

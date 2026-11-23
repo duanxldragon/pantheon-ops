@@ -1,0 +1,44 @@
+{
+  "runId": "omx_accept_20261121_codex_t02e",
+  "phase": "deploy",
+  "caseId": "d07",
+  "title": "fixed-template legal jdk_systemd install + uninstall round-trip",
+  "ts": "2026-11-23T02:44:01.853Z",
+  "status": "FAIL",
+  "httpStatus": 400,
+  "businessCode": 400,
+  "assertions": [
+    {
+      "name": "deploy/packages created",
+      "pass": true
+    },
+    {
+      "name": "deploy/tasks created",
+      "pass": true
+    },
+    {
+      "name": "preview accepted",
+      "pass": false,
+      "detail": "preview: HTTP 400, code 400 (business.deploy.task.packageSourceMissing)"
+    },
+    {
+      "name": "preview resolves one target",
+      "pass": false,
+      "detail": "expected true"
+    },
+    {
+      "name": "preview contains reviewed intent",
+      "pass": false,
+      "detail": "expected true"
+    }
+  ],
+  "ids": {
+    "jdkPackageId": 10,
+    "jdkInstallTaskId": 7
+  },
+  "result": null,
+  "message": "no reviewed intent; refused start",
+  "redaction": null,
+  "durationMs": 97,
+  "blockedReason": null
+}

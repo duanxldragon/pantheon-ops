@@ -1,0 +1,237 @@
+{
+  "runId": "omx_accept_20261121_v3",
+  "phase": "v3",
+  "status": "FAIL",
+  "finishedAt": "2026-11-21T15:28:02.471Z",
+  "binarySha256": "5cd98af198657a667a5deb0016fe3884265f3d96222da212b5c46ab40ad3e368",
+  "checklistRef": "docs/reviews/pantheon-ops真实环境验证清单-2026-11-20.md §V3",
+  "variant": "role granted every seeded business:* leaf permission key (headless equivalent of ticking all page/button permission points)",
+  "cases": [
+    {
+      "caseId": "login-admin",
+      "assertion": "admin can log in",
+      "pass": true,
+      "actual": {
+        "httpStatus": 200,
+        "code": 200
+      }
+    },
+    {
+      "caseId": "permission-inventory",
+      "assertion": "discover assignable business:* leaf keys (count=129, source=/system/permission/list)",
+      "pass": true,
+      "actual": {
+        "listEndpoint": "/system/permission/list",
+        "listHttp": 200,
+        "runtimeLeafCount": 0,
+        "usedLeafCount": 129,
+        "note": "runtime permission list authoritative"
+      }
+    },
+    {
+      "caseId": "v3-role-create",
+      "assertion": "create role granted ALL seeded business:* leaf keys",
+      "pass": false,
+      "actual": {
+        "httpStatus": 200,
+        "code": 400,
+        "grantCount": 129,
+        "msg": "role.permission.invalid"
+      }
+    },
+    {
+      "caseId": "v3-user-create",
+      "assertion": "create user bound to all-keys role",
+      "pass": true,
+      "actual": {
+        "httpStatus": 200,
+        "code": 200,
+        "msg": "success"
+      }
+    },
+    {
+      "caseId": "v3-user-login",
+      "assertion": "all-keys role user can log in",
+      "pass": true,
+      "actual": {
+        "httpStatus": 200,
+        "code": 200
+      }
+    },
+    {
+      "caseId": "k8s-cluster-admin-route-exists",
+      "assertion": "route is registered & admin-reachable (not 404/401/403)",
+      "pass": true,
+      "actual": {
+        "GET": {
+          "httpStatus": 200,
+          "code": 200
+        },
+        "POST": {
+          "httpStatus": 200,
+          "code": 400
+        }
+      }
+    },
+    {
+      "caseId": "k8s-cluster-query-denied",
+      "assertion": "unbound query /business/k8s/clusters denied for all-keys role (勾选但不生效)",
+      "pass": true,
+      "actual": {
+        "httpStatus": 200,
+        "code": 403,
+        "msg": "permission.denied"
+      }
+    },
+    {
+      "caseId": "k8s-cluster-write-denied",
+      "assertion": "unbound write /business/k8s/clusters denied for all-keys role (勾选但不生效)",
+      "pass": true,
+      "actual": {
+        "httpStatus": 200,
+        "code": 403,
+        "msg": "permission.denied"
+      }
+    },
+    {
+      "caseId": "cicd-argocd-admin-route-exists",
+      "assertion": "route is registered & admin-reachable (not 404/401/403)",
+      "pass": true,
+      "actual": {
+        "GET": {
+          "httpStatus": 200,
+          "code": 200
+        },
+        "POST": {
+          "httpStatus": 200,
+          "code": 400
+        }
+      }
+    },
+    {
+      "caseId": "cicd-argocd-query-denied",
+      "assertion": "unbound query /business/cicd/argocd/servers denied for all-keys role (勾选但不生效)",
+      "pass": true,
+      "actual": {
+        "httpStatus": 200,
+        "code": 403,
+        "msg": "permission.denied"
+      }
+    },
+    {
+      "caseId": "cicd-argocd-write-denied",
+      "assertion": "unbound write /business/cicd/argocd/servers denied for all-keys role (勾选但不生效)",
+      "pass": true,
+      "actual": {
+        "httpStatus": 200,
+        "code": 403,
+        "msg": "permission.denied"
+      }
+    },
+    {
+      "caseId": "filedist-admin-route-exists",
+      "assertion": "route is registered & admin-reachable (not 404/401/403)",
+      "pass": true,
+      "actual": {
+        "GET": {
+          "httpStatus": 200,
+          "code": 200
+        },
+        "POST": {
+          "httpStatus": 400,
+          "code": 400
+        }
+      }
+    },
+    {
+      "caseId": "filedist-query-denied",
+      "assertion": "unbound query /business/filedist/storages denied for all-keys role (勾选但不生效)",
+      "pass": true,
+      "actual": {
+        "httpStatus": 200,
+        "code": 403,
+        "msg": "permission.denied"
+      }
+    },
+    {
+      "caseId": "filedist-write-denied",
+      "assertion": "unbound write /business/filedist/storages denied for all-keys role (勾选但不生效)",
+      "pass": true,
+      "actual": {
+        "httpStatus": 200,
+        "code": 403,
+        "msg": "permission.denied"
+      }
+    },
+    {
+      "caseId": "bizscope-admin-route-exists",
+      "assertion": "route is registered & admin-reachable (not 404/401/403)",
+      "pass": true,
+      "actual": {
+        "GET": {
+          "httpStatus": 200,
+          "code": 200
+        },
+        "POST": {
+          "httpStatus": 200,
+          "code": 400
+        }
+      }
+    },
+    {
+      "caseId": "bizscope-query-denied",
+      "assertion": "unbound query /business/bizscope/list denied for all-keys role (勾选但不生效)",
+      "pass": true,
+      "actual": {
+        "httpStatus": 200,
+        "code": 403,
+        "msg": "permission.denied"
+      }
+    },
+    {
+      "caseId": "bizscope-write-denied",
+      "assertion": "unbound write /business/bizscope/import denied for all-keys role (勾选但不生效)",
+      "pass": true,
+      "actual": {
+        "httpStatus": 200,
+        "code": 403,
+        "msg": "permission.denied"
+      }
+    },
+    {
+      "caseId": "observability-admin-route-exists",
+      "assertion": "route is registered & admin-reachable (not 404/401/403)",
+      "pass": true,
+      "actual": {
+        "GET": {
+          "httpStatus": 200,
+          "code": 200
+        },
+        "POST": {
+          "httpStatus": 400,
+          "code": 400
+        }
+      }
+    },
+    {
+      "caseId": "observability-query-denied",
+      "assertion": "unbound query /business/observability/datasources denied for all-keys role (勾选但不生效)",
+      "pass": true,
+      "actual": {
+        "httpStatus": 200,
+        "code": 403,
+        "msg": "permission.denied"
+      }
+    },
+    {
+      "caseId": "observability-write-denied",
+      "assertion": "unbound write /business/observability/datasources denied for all-keys role (勾选但不生效)",
+      "pass": true,
+      "actual": {
+        "httpStatus": 200,
+        "code": 403,
+        "msg": "permission.denied"
+      }
+    }
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "mysqlRequired": true,
+  "exitCode": 0,
+  "cwd": "backend",
+  "failures": 0,
+  "log": "codex-progress-tests-20261122-113249.log",
+  "capturedAt": "2026-11-22T11:33:03.9425488+08:00",
+  "skips": 0,
+  "cgoEnabled": true,
+  "command": "go test -race -count=1 -timeout=90s -v -run 'TestFixed|TestReleaseConflictPreservesTypedConflict|TestReleaseErrorCodeClassifiesConflict' ./modules/business/deploy ./modules/business/k8s/release"
+}

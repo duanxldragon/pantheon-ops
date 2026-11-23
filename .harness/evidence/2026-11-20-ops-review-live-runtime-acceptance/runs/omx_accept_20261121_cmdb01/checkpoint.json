@@ -1,0 +1,16 @@
+{
+  "runId": "omx_accept_20261121_cmdb01",
+  "phase": "cmdb",
+  "updatedAt": "2026-11-20T23:44:00.383Z",
+  "ids": {
+    "cookieLengths": null
+  },
+  "fixtures": [],
+  "fingerprint": null,
+  "statuses": {
+    "statusAfterCollect": null
+  },
+  "secretPolicy": {
+    "recordedSecretValues": false
+  }
+}

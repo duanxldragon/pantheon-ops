@@ -1,0 +1,28 @@
+{
+  "runId": "omx_accept_20261122_cap",
+  "phase": "cap",
+  "caseId": "cap-filedist-upload",
+  "title": "upload 2MB file to default storage (CAP-FILEDIST write + V6 duration)",
+  "ts": "2026-11-21T16:35:21.499Z",
+  "status": "PASS",
+  "httpStatus": 200,
+  "businessCode": 200,
+  "assertions": [
+    {
+      "name": "business code 200",
+      "pass": true
+    },
+    {
+      "name": "file id returned",
+      "pass": true
+    }
+  ],
+  "ids": {
+    "fileId": 9
+  },
+  "result": null,
+  "message": null,
+  "redaction": "payload is 2MB of zero bytes; not persisted",
+  "durationMs": 68,
+  "blockedReason": null
+}
