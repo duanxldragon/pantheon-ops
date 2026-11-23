@@ -4,6 +4,9 @@ doc_type: Remediation
 layer: business
 status: Active
 updated_at: 2026-11-20
+linked_contracts:
+  - docs/designs/BUSINESS_K8S_MODULE_DESIGN.md
+  - docs/contracts/TENANT_CONTRACT_V1.md
 ---
 
 # Task Packet: 2026-11-20-ops-k8s-client-lifecycle-and-config-safety
