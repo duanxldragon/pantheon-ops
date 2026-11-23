@@ -2,8 +2,8 @@ package deploy
 
 import (
 	"context"
-	_ "embed"
 	"database/sql"
+	_ "embed"
 	"strings"
 	"testing"
 

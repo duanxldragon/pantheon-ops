@@ -409,7 +409,7 @@ echo "Redis uninstall completed"
 	// passwords opaquely, then quote the config token so quotes/backslashes are
 	// retained by Redis instead of changing its configuration syntax.
 	passwordInit := ""
-	passwordWrite := ""
+	authConfWrite := ""
 	if requirePassword != "" {
 		if strings.ContainsAny(requirePassword, " \t\n\r\x00") {
 			return "", errors.New(errDeployTaskTemplateParamsInvalid)
@@ -417,7 +417,7 @@ echo "Redis uninstall completed"
 		configPassword := "\"" + strings.NewReplacer("\\", "\\\\", "\"", "\\\"").Replace(requirePassword) + "\""
 		passwordInit = fmt.Sprintf("REDIS_PASSWORD=%s\nREDIS_CONFIG_PASSWORD=%s\n",
 			shellQuoteSingle(requirePassword), shellQuoteSingle(configPassword))
-		passwordWrite = `if [ -n "$REDIS_PASSWORD" ]; then
+		authConfWrite = `if [ -n "$REDIS_PASSWORD" ]; then
   printf 'requirepass %s\nmasterauth %s\n' "$REDIS_CONFIG_PASSWORD" "$REDIS_CONFIG_PASSWORD" >> "$INSTALL_ROOT/conf/redis.conf"
 fi
 `
@@ -480,7 +480,7 @@ systemctl restart "${SERVICE_NAME}"
 systemctl status "${SERVICE_NAME}" --no-pager
 rm -rf "$PKG_DIR"
 echo "Redis installed at $INSTALL_ROOT"
-`, version, installRoot, dataRoot, serviceName, port, archiveName, passwordInit, downloadScript, buildServiceStopAndDrainScript(serviceName, filepath.ToSlash(filepath.Join(installRoot, "bin", "redis-server"))), port, dataRoot, installRoot, passwordWrite, installRoot, installRoot), nil
+`, version, installRoot, dataRoot, serviceName, port, archiveName, passwordInit, downloadScript, buildServiceStopAndDrainScript(serviceName, filepath.ToSlash(filepath.Join(installRoot, "bin", "redis-server"))), port, dataRoot, installRoot, authConfWrite, installRoot, installRoot), nil
 }
 
 func renderMinIOSystemdScript(pkg DeployPackage, task DeployTask) (string, error) {
