@@ -1,0 +1,39 @@
+{
+  "runId": "omx_accept_20261121_cmdb02",
+  "phase": "cmdb",
+  "caseId": "c08",
+  "title": "deploy-credential-create-list-redacted",
+  "ts": "2026-11-21T00:09:10.088Z",
+  "status": "FAIL",
+  "httpStatus": 200,
+  "businessCode": 200,
+  "assertions": [
+    {
+      "name": "credential created",
+      "pass": false,
+      "detail": "cred-create: HTTP 200, code 500 (business.deploy.credential.key_missing)"
+    },
+    {
+      "name": "create response has no secret literal",
+      "pass": true
+    },
+    {
+      "name": "create response has no secret field keys",
+      "pass": true
+    },
+    {
+      "name": "credential listed",
+      "pass": false,
+      "detail": "listed=0"
+    }
+  ],
+  "ids": {},
+  "result": null,
+  "message": "created credential not found in list",
+  "redaction": {
+    "secretInCreateResponse": false,
+    "secretFieldsFound": []
+  },
+  "durationMs": 13,
+  "blockedReason": null
+}

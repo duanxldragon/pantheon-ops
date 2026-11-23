@@ -1,0 +1,19 @@
+{
+  "runId": "omx-accept-20261121-k8s02",
+  "namespace": "omx-accept-20261121-k8s02",
+  "ids": {
+    "scope": 6,
+    "cluster": 1
+  },
+  "cleanup": [
+    {
+      "clusterId": 1,
+      "deleted": true
+    },
+    {
+      "scopeId": 6,
+      "deleted": true
+    }
+  ],
+  "plaintextCredentialsRecorded": false
+}

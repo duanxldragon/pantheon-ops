@@ -1,0 +1,23 @@
+{
+  "taskId": "2026-11-20-ops-deploy-fixed-template-security",
+  "checkpoint": "round3-fix-verified",
+  "capturedAt": "2026-11-23T00:00:00.0000000+08:00",
+  "status": "R2 two HIGH blockers fixed and counter-examples GREEN",
+  "workingTreeHashDeployFixedTemplates": "1fcf8412b6030a9d170a264c385e167cc1c77145c0d2ae8e7ed18dd5a9ec656b",
+  "commands": [
+    {
+      "command": "go test -overlay ../.harness/evidence/2026-11-20-ops-deploy-fixed-template-security/codex-round2-apparatus/overlay.json -run 'TestCodexReview|TestFixedTemplate|TestFixedTemplateRedisPasswordStaysOpaque|TestFixedTemplateRenderRejectsUnsafePersistedUninstall|TestDeployFixedTemplateScriptsRenderForBuiltInComponents|TestDeployRedisTemplateUsesSignalStop|TestDeployJDKTemplateServiceSemantics|TestDeployPrometheusTemplateUsesCustomConfigPath' ./modules/business/deploy",
+      "cwd": "backend",
+      "exitCode": 0,
+      "status": "passed",
+      "result": "R2-01 TestCodexReviewRedisGeneratedConfig (without-password & with-password) PASS; R2-02 TestCodexReviewRepeatedSlashUninstallRoot (//etc & /usr//local) PASS; all 14 TestFixedTemplate safety tests + render/jdk/redis/prometheus regression PASS. Minor patch: port, dir, logfile/heredoc boundary, and repeated-slash denylist all covered."
+    }
+  ],
+  "r2Findings": {
+    "R2-01": "REDIS fmt param order fixed — passwordWrite now follows EOF heredoc, port/dir/logfile places hold valid values",
+    "R2-02": "validateFixedUninstallRoot uses path.Clean + ToSlash + TrimRight so //etc and /usr//local normalize to forbidden roots and are rejected"
+  },
+  "evidenceRef": "codex-round2-review.md; codex-fix-green-20261122-172253.log (residual 1 fail was stale test expectation, superseded by later deploy_service_test.go e1ee4a82 + package run 206/2 only LiveVM); codex-fix-live-20261122-182309.json exit 0",
+  "remainingGaps": "V7 injection/fingerprint, legal install/uninstall on fixed candidate, full go test -race ./... gate, T16 real-machine re-drive on k8s33 candidate; -race unavailable in this shell (Windows TSan alloc failed) but codex -race runs recorded green",
+  "noCommitPushRelease": true
+}

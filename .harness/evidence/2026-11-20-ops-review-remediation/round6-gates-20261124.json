@@ -1,0 +1,115 @@
+{
+  "schemaVersion": 1,
+  "taskId": "2026-11-20-ops-review-remediation",
+  "repo": "pantheon-ops",
+  "evidenceState": "exercised",
+  "agent": {
+    "tool": "claude-code",
+    "adapter": "windows"
+  },
+  "candidate": {
+    "worktree": "uncommitted",
+    "foundation": "pantheon-base-v0.18.9"
+  },
+  "commands": [
+    {
+      "command": "node ../pantheon-harness/scripts/harness/check-method-consumption.mjs --root . --source ../pantheon-harness",
+      "cwd": ".",
+      "status": "passed",
+      "notes": "Method consumption verified: 1.5.0, 7 policies, AGENTS.md, CLAUDE.md."
+    },
+    {
+      "command": "node scripts/business-overlay/check-business-overlay.mjs",
+      "cwd": ".",
+      "status": "passed",
+      "notes": "OK business overlay contract (55 declared paths, rebuilt tree)."
+    },
+    {
+      "command": "node ../pantheon-harness/scripts/harness/check-encoding.mjs --root .",
+      "cwd": ".",
+      "status": "passed",
+      "notes": "0 finding(s) across 3811 scanned files."
+    },
+    {
+      "command": "npm run check:menu-contract",
+      "cwd": "frontend",
+      "status": "passed",
+      "notes": "45 menus, 55 routes, 250 permissions, 54 component keys."
+    },
+    {
+      "command": "npm run type-check",
+      "cwd": "frontend",
+      "status": "passed"
+    },
+    {
+      "command": "npm run check:password-toggle",
+      "cwd": "frontend",
+      "status": "passed",
+      "notes": "0 finding(s) across 352 files."
+    },
+    {
+      "command": "npm run check:ui-contract",
+      "cwd": "frontend",
+      "status": "passed",
+      "notes": "0 finding(s) across 405 files."
+    },
+    {
+      "command": "go build ./...",
+      "cwd": "backend",
+      "status": "passed"
+    },
+    {
+      "command": "go test -count=1 -p 1 -timeout 20m ./modules/business/k8s/...",
+      "cwd": "backend",
+      "status": "passed",
+      "durationMs": 250000,
+      "notes": "Real MySQL DSN redacted; 11/11 packages ok."
+    },
+    {
+      "command": "go test -count=1 -p 1 -timeout 15m ./modules/business/filedist/... ./modules/business/cmdb/... ./modules/business/service/... ./modules/business/bizscope/...",
+      "cwd": "backend",
+      "status": "passed",
+      "durationMs": 760000,
+      "notes": "Real MySQL DSN redacted; filedist 7.064s, cmdb 6.908s, cmdb/group 2.377s, cmdb/host 12.533s, cmdb/label 2.833s, service 29.981s, bizscope 4.431s; all ok."
+    },
+    {
+      "command": "go test -count=1 -timeout 15m -run '<T08 subset>' ./modules/business/deploy/",
+      "cwd": "backend",
+      "status": "passed",
+      "durationMs": 124377,
+      "notes": "Real MySQL DSN redacted; T08 recovery subset ok."
+    },
+    {
+      "command": "go test -count=1 -run TestTenantOwnershipMigrationUpgradesLegacyNameKeys ./modules/business/deploy/",
+      "cwd": "backend",
+      "status": "passed",
+      "durationMs": 635,
+      "notes": "T04 migration test ok."
+    },
+    {
+      "command": "go test -count=1 -timeout 1800s ./modules/business/deploy/...",
+      "cwd": "backend",
+      "status": "failed",
+      "durationMs": 1800066,
+      "notes": "FAIL ... 1800.066s; panic: test timed out after 30m0s (running TestFrozenRollbackPreservesDefinitionAndOwnReview, MySQL ExecContext I/O wait). Environment-timeout: last full green PASS 1047.796s on the T03 candidate; frontend dev server reaped for low memory in the same window."
+    },
+    {
+      "command": "go test -race",
+      "cwd": "backend",
+      "status": "not-run",
+      "notes": "Requires cgo; Windows TSan allocation failure in this shell. Environment gap documented; codex machine has equivalent -race receipts from earlier rounds."
+    }
+  ],
+  "knownGaps": [
+    "Full deploy suite timeout in this session (environment, last green 1047.796s).",
+    "Windows TSan unavailable in this shell; no -race rerun.",
+    "Remaining tasks T05/T10/T11/T12/T13/T14/T15 and parent T01/T16 need live providers, credentials, or maintainer windows."
+  ],
+  "linkage": {
+    "taskPacket": "docs/harness/tasks/2026-11-20-ops-review-remediation.task.md",
+    "evidenceDir": ".harness/evidence/2026-11-20-ops-review-remediation/",
+    "reviewFile": "none",
+    "changeRef": "none",
+    "planRefs": [".harness/tasks/2026-11-20-ops-review-remediation/plan.md"]
+  }
+}

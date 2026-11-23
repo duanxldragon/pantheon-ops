@@ -1,0 +1,28 @@
+{
+  "runId": "omx_accept_20261122_cap",
+  "phase": "cap",
+  "caseId": "cap-obs-datasource-create",
+  "title": "create prometheus datasource with SSRF-valid public URL on allowed port (CAP-OBSERVABILITY write)",
+  "ts": "2026-11-21T16:35:21.864Z",
+  "status": "PASS",
+  "httpStatus": 200,
+  "businessCode": 200,
+  "assertions": [
+    {
+      "name": "business code 200",
+      "pass": true
+    },
+    {
+      "name": "datasource id returned",
+      "pass": true
+    }
+  ],
+  "ids": {
+    "datasourceId": 7
+  },
+  "result": null,
+  "message": null,
+  "redaction": null,
+  "durationMs": 121,
+  "blockedReason": null
+}

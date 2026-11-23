@@ -1,0 +1,13 @@
+{
+  "taskId": "2026-11-19-ten-package-acceptance",
+  "scope": "Local provider readiness only. Existing Docker Desktop retained after validation; task containers/clusters use separate identities.",
+  "command": "Start-Process installed Docker Desktop -WindowStyle Hidden",
+  "productServicesRestarted": false,
+  "globalSettingsChanged": false,
+  "recordedAtUTC": "2026-11-20T15:36:35.6929701Z",
+  "launch": {
+    "id": 11828,
+    "startedByTask": true,
+    "path": "C:\\Users\\xiaolong\\AppData\\Local\\Programs\\DockerDesktop\\Docker Desktop.exe"
+  }
+}

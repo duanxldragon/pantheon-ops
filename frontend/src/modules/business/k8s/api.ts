@@ -144,7 +144,15 @@ export function getK8sNamespaces(clusterId: number) {
   });
 }
 
-export function createK8sNamespace(clusterId: number, data: { name: string; labels?: Record<string, string> }) {
+export interface K8sNamespaceCreatePayload {
+  name: string;
+  businessScopeId: number;
+  environment: string;
+  allowedActions: string[];
+  labels?: Record<string, string>;
+}
+
+export function createK8sNamespace(clusterId: number, data: K8sNamespaceCreatePayload) {
   return apiRequest<K8sNamespaceRow>({
     url: `/business/k8s/clusters/${clusterId}/namespaces`,
     method: 'post',

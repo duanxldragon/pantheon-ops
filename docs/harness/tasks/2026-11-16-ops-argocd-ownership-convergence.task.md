@@ -73,9 +73,9 @@ business/*
 
 - docs/harness/tasks/2026-11-16-ops-argocd-ownership-convergence.task.md
 - .harness/tasks/2026-11-16-ops-argocd-ownership-convergence/manifest.json
-- .harness/evidence/2026-11-16-ops-argocd-ownership-convergence/summary.md
-- .harness/evidence/2026-11-16-ops-argocd-ownership-convergence/review.md
-- .harness/evidence/2026-11-16-ops-argocd-ownership-convergence/commands.json
+- .harness/archive/2026-11/evidence/2026-11-16-ops-argocd-ownership-convergence/summary.md
+- .harness/archive/2026-11/evidence/2026-11-16-ops-argocd-ownership-convergence/review.md
+- .harness/archive/2026-11/evidence/2026-11-16-ops-argocd-ownership-convergence/commands.json
 
 ### Modify
 
@@ -133,8 +133,8 @@ business/*
 - OpenSpec Change: none
 - Superpowers Plan: none
 - Task Manifest: .harness/tasks/2026-11-16-ops-argocd-ownership-convergence/manifest.json
-- Evidence Directory: .harness/evidence/2026-11-16-ops-argocd-ownership-convergence/
-- Review File: .harness/evidence/2026-11-16-ops-argocd-ownership-convergence/review.md
+- Evidence Directory: .harness/archive/2026-11/evidence/2026-11-16-ops-argocd-ownership-convergence/
+- Review File: .harness/archive/2026-11/evidence/2026-11-16-ops-argocd-ownership-convergence/review.md
 - Change Ref: none
 - Plan References: .harness/tasks/2026-11-16-ops-pilot-delivery/plan.md
 
@@ -169,19 +169,19 @@ in-progress；首期默认裁剪，启用时转为必验。
 
 Status: in-progress. accepted sync保持 Running，实际operation+Synced+Healthy才成功；失联后仍有界本地过期收敛Unknown、近期任务保持pending、Stop取消真实探测。中央真实MySQL CGO/race：21顶层PASS/5.796s，含新3项。
 
-Original acceptance and dependencies remain unchanged. Whole-package acceptance is incomplete; see [summary](../../../.harness/evidence/2026-11-16-ops-argocd-ownership-convergence/summary.md) and [progress receipt](../../../.harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-progress-20261118.json).
+Original acceptance and dependencies remain unchanged. Whole-package acceptance is incomplete; see [summary](../../../.harness/archive/2026-11/evidence/2026-11-16-ops-argocd-ownership-convergence/summary.md) and [progress receipt](../../../.harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-progress-20261118.json).
 
 ## 2026-11-18T07:58:38.569Z Integration continuation
 
 Status: in-progress. startup生命周期、3个E02 canonical key/handler和5locale已装配；17文件handoff保留Base shutdown/public异步授权边界。中央Argo3.720s、748源稳定窄MySQL CGO/race通过，ownership/legacy/UID/token/webhook/dual-write/timestamp及真实提供方验收仍OPEN。
 
-Backend round3 COMMENT保持；startup/Helm独立窄CLEAR、整包WATCH（17＋4绑定hash核验），Base await/bind failure/public authority和原整包边界仍OPEN。 Original acceptance, dependencies and human gates remain unmet. See [summary](../../../.harness/evidence/2026-11-16-ops-argocd-ownership-convergence/summary.md) and [latest progress](../../../.harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-progress-integration-20261118.json).
+Backend round3 COMMENT保持；startup/Helm独立窄CLEAR、整包WATCH（17＋4绑定hash核验），Base await/bind failure/public authority和原整包边界仍OPEN。 Original acceptance, dependencies and human gates remain unmet. See [summary](../../../.harness/archive/2026-11/evidence/2026-11-16-ops-argocd-ownership-convergence/summary.md) and [latest progress](../../../.harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-progress-integration-20261118.json).
 
 ## 2026-11-19T00:11:15.272Z Verified continuation checkpoint
 
 Status: in-progress. startup生命周期及3canonical key/handler/5locale已装配，窄Argo3.720s和完整当前748源race通过；现有backend round3 COMMENT保留。
 
-Backend round3 COMMENT、startup窄CLEAR/整包WATCH不关闭原ownership/provider/人验收。 Original acceptance and human gates remain unmet. See [summary](../../../.harness/evidence/2026-11-16-ops-argocd-ownership-convergence/summary.md) and [structured progress](../../../.harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-progress-final-20261118.json).
+Backend round3 COMMENT、startup窄CLEAR/整包WATCH不关闭原ownership/provider/人验收。 Original acceptance and human gates remain unmet. See [summary](../../../.harness/archive/2026-11/evidence/2026-11-16-ops-argocd-ownership-convergence/summary.md) and [structured progress](../../../.harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-progress-final-20261118.json).
 
 ## Result — History Closeout 2026-11-20
 

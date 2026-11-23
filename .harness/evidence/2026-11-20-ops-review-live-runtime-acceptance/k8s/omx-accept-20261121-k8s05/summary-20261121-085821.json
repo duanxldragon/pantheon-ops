@@ -1,0 +1,71 @@
+{
+  "runId": "omx-accept-20261121-k8s05",
+  "provider": "115.190.251.143 existing k3s",
+  "receipt": {
+    "backendSha256": "2276aa3a080563b6306a1d4a394db2f8ec473c31490105be7a83357167eb41e4",
+    "backendPid": 29856,
+    "sourceHead": "a2d69d4a759b5df2b26aaa9d26bdc5175babe9dc",
+    "harnessSha256": "000873383d8d3666776de3e307b09bd99bde44d18f80aa3fd6511232cd18fccf"
+  },
+  "status": "FAIL",
+  "cases": [
+    {
+      "id": "k01",
+      "intent": "pinned SSH and CA-verified public API configuration",
+      "userModel": "authenticated admin unless stated",
+      "setup": "local Ops; pinned SSH to 115.190.251.143; dedicated namespace",
+      "harness": ".local/acceptance-20261121/k8s-live.py",
+      "expected": "assertions hold",
+      "fixesApplied": [],
+      "cleanup": "owned fixtures tracked in checkpoint.json",
+      "actual": {
+        "ssh": {
+          "ok": true,
+          "host": "115.190.251.143:22",
+          "user": "root",
+          "password_source": "env:PANTHEON_VERIFY_SSH_PASSWORD",
+          "serverKeyType": "ssh-ed25519",
+          "serverSha256Fingerprint": "SHA256:FhLFRIfRIGotV2tS+sIZWxniie2qG5Xu8H3igYJ8RNU",
+          "knownHostsVerified": true,
+          "knownHostsEntryType": "ssh-ed25519",
+          "knownHostsFiles": [
+            "known_hosts"
+          ]
+        },
+        "provider": "existing k3s",
+        "tlsVerification": true,
+        "server": "https://115.190.251.143:6443",
+        "tlsServerName": "localhost",
+        "kubeconfigPersisted": false
+      },
+      "status": "PASS",
+      "calls": [],
+      "durationMs": 547,
+      "evidence": ".harness\\evidence\\2026-11-20-ops-review-live-runtime-acceptance\\k8s\\omx-accept-20261121-k8s05\\k01-20261121-085821.json"
+    },
+    {
+      "id": "k02",
+      "intent": "local Ops login",
+      "userModel": "authenticated admin unless stated",
+      "setup": "local Ops; pinned SSH to 115.190.251.143; dedicated namespace",
+      "harness": ".local/acceptance-20261121/k8s-live.py",
+      "expected": "assertions hold",
+      "fixesApplied": [],
+      "cleanup": "owned fixtures tracked in checkpoint.json",
+      "status": "FAIL",
+      "errorType": "URLError",
+      "calls": [],
+      "durationMs": 2296,
+      "evidence": ".harness\\evidence\\2026-11-20-ops-review-live-runtime-acceptance\\k8s\\omx-accept-20261121-k8s05\\k02-20261121-085821.json"
+    }
+  ],
+  "cleanup": [],
+  "gaps": [
+    "non-admin RBAC binding",
+    "multi-tenant isolation",
+    "Helm and Velero execution",
+    "release rollout/rollback",
+    "frontend 10-second timeout",
+    "WebSocket server resource cleanup"
+  ]
+}

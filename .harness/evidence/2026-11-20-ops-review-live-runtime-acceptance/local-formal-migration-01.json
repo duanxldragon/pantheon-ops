@@ -1,0 +1,8 @@
+{
+  "backup": "before-formal-20261121-075829.sql",
+  "exitCode": 1,
+  "candidateSha256": "1c51aa48b65670f123df76c2f6d78366b75ef4f201019a40de923c80bb7b0fd8",
+  "command": "tenantmigration up",
+  "database": "ops_acceptance_20261121",
+  "capturedAt": "2026-11-21T07:58:30.5971496+08:00"
+}

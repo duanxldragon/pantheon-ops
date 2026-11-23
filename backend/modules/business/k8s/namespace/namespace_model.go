@@ -7,6 +7,7 @@ import "time"
 //nolint:revive // Public model name is retained for compatibility.
 type NamespaceBinding struct {
 	ID              uint64    `gorm:"primaryKey;autoIncrement" json:"id"`
+	TenantID        uint64    `gorm:"column:tenant_id;not null;default:0" json:"-"`
 	ClusterID       uint64    `gorm:"not null;uniqueIndex:uk_k8s_namespace_binding" json:"clusterId"`
 	Namespace       string    `gorm:"size:255;not null;uniqueIndex:uk_k8s_namespace_binding" json:"namespace"`
 	BusinessScopeID uint64    `gorm:"not null;index" json:"businessScopeId"`

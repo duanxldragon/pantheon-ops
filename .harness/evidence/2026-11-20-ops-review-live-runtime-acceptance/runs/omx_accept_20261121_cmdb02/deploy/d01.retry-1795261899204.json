@@ -1,0 +1,24 @@
+{
+  "runId": "omx_accept_20261121_cmdb02",
+  "phase": "deploy",
+  "caseId": "d01",
+  "title": "custom harmless marker package",
+  "ts": "2026-11-21T11:51:39.187Z",
+  "status": "PASS",
+  "httpStatus": 200,
+  "businessCode": 200,
+  "assertions": [
+    {
+      "name": "deploy/packages recorded fixture owned and readable",
+      "pass": true
+    }
+  ],
+  "ids": {
+    "packageId": 2
+  },
+  "result": null,
+  "message": null,
+  "redaction": null,
+  "durationMs": 16,
+  "blockedReason": null
+}

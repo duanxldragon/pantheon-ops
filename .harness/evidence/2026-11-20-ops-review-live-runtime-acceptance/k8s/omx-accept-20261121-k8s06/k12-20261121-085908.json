@@ -1,0 +1,55 @@
+{
+  "id": "k12",
+  "intent": "real Pod logs over WebSocket",
+  "userModel": "authenticated admin unless stated",
+  "setup": "local Ops; pinned SSH to 115.190.251.143; dedicated namespace",
+  "harness": ".local/acceptance-20261121/k8s-live.py",
+  "expected": "assertions hold",
+  "fixesApplied": [],
+  "cleanup": "owned fixtures tracked in checkpoint.json",
+  "actual": {
+    "pod": "accept-workload-65c9ddf6dd-pcv2p",
+    "logMarkerMatched": true,
+    "clientClosed": true,
+    "gap": "server goroutine/provider stream cancellation requires separate resource observation"
+  },
+  "status": "PASS",
+  "calls": [
+    {
+      "method": "GET",
+      "path": "/business/k8s/clusters/4/workloads/omx-accept-20261121-k8s06/Deployment/accept-workload/pods",
+      "httpStatus": 200,
+      "code": 200,
+      "message": "success",
+      "durationMs": 203,
+      "data": {
+        "items": [
+          {
+            "name": "accept-workload-65c9ddf6dd-8k2pt",
+            "status": "Pending",
+            "nodeName": "iv-yedenmmwhsqc6iu4z5p6",
+            "restarts": 0,
+            "createdAt": "2026-11-21T08:59:14+08:00"
+          },
+          {
+            "name": "accept-workload-65c9ddf6dd-pcv2p",
+            "status": "Running",
+            "nodeName": "iv-yedenmmwhsqc6iu4z5p6",
+            "restarts": 0,
+            "createdAt": "2026-11-21T08:59:13+08:00"
+          },
+          {
+            "name": "accept-workload-7466656b9c-bqplf",
+            "status": "Pending",
+            "nodeName": "iv-yedenmmwhsqc6iu4z5p6",
+            "restarts": 0,
+            "createdAt": "2026-11-21T08:59:16+08:00"
+          }
+        ],
+        "total": 3
+      }
+    }
+  ],
+  "durationMs": 266,
+  "evidence": ".harness\\evidence\\2026-11-20-ops-review-live-runtime-acceptance\\k8s\\omx-accept-20261121-k8s06\\k12-20261121-085908.json"
+}

@@ -1208,7 +1208,7 @@ func TestDeployFixedTemplateScriptsRenderForBuiltInComponents(t *testing.T) {
 				Action:         TaskActionInstall,
 				TemplateParams: datatypes.JSON([]byte(`{"installRoot":"/data/redis","dataRoot":"/data/redis/data","serviceName":"redis","port":"6379","requirePassword":"Redis_123"}`)),
 			},
-			expectScript: []string{"download.redis.io/releases/redis-7.2.5.tar.gz", "requirepass Redis_123", "redis-server /data/redis/conf/redis.conf", "--connect-timeout 15 --max-time 300 --retry 2 --retry-delay 2", `systemctl stop "redis" >/dev/null 2>&1 || true`, `pkill -f "/data/redis/bin/redis-server" >/dev/null 2>&1 || true`},
+			expectScript: []string{"download.redis.io/releases/redis-7.2.5.tar.gz", "REDIS_PASSWORD='Redis_123'", `REDIS_CONFIG_PASSWORD='"Redis_123"'`, `printf 'requirepass %s\nmasterauth %s\n' "$REDIS_CONFIG_PASSWORD" "$REDIS_CONFIG_PASSWORD"`, "redis-server /data/redis/conf/redis.conf", "--connect-timeout 15 --max-time 300 --retry 2 --retry-delay 2", `systemctl stop "redis" >/dev/null 2>&1 || true`, `pkill -f "/data/redis/bin/redis-server" >/dev/null 2>&1 || true`},
 		},
 		{
 			name: "minio",
@@ -2832,6 +2832,70 @@ func TestListDeployTasksIncludesHostExecutionSummary(t *testing.T) {
 	}
 	if len(summary.Hosts) != 2 {
 		t.Fatalf("expected 2 host snapshots in list summary, got %d", len(summary.Hosts))
+	}
+}
+
+// TestListDeployTasksHidesOutOfScopeHosts locks SEC-002: a task that is visible
+// because one host is in scope must not leak the IP/output of another host in the
+// same task that sits outside the caller's scope.
+func TestListDeployTasksHidesOutOfScopeHosts(t *testing.T) {
+	db := setupDeployTestDB(t)
+	svc := NewDeployService(db, cmdb.NewDeployCMDBCapability(db))
+
+	scope := deployTestBizScope{Code: "mixed-host-scope", Name: "混合主机作用域", Status: "active"}
+	if err := db.Create(&scope).Error; err != nil {
+		t.Fatalf("seed scope: %v", err)
+	}
+	hostIn := deployTestHost{
+		Hostname: "mixed-host-in", IP: "10.40.0.151", OS: "linux", Status: "assigned",
+		BusinessScopeID: scope.ID, BusinessScopeName: scope.Name, DeptID: 20,
+	}
+	hostOut := deployTestHost{
+		Hostname: "mixed-host-out", IP: "10.40.0.152", OS: "linux", Status: "assigned",
+		BusinessScopeID: scope.ID, BusinessScopeName: scope.Name, DeptID: 10,
+	}
+	if err := db.Create(&hostIn).Error; err != nil {
+		t.Fatalf("seed host in scope: %v", err)
+	}
+	if err := db.Create(&hostOut).Error; err != nil {
+		t.Fatalf("seed host out of scope: %v", err)
+	}
+
+	pkg, err := svc.CreatePackage(CreatePackageRequest{
+		Name: "mixed-host-pkg", Version: "1.0.0", InstallCommand: "echo install", Status: PackageStatusEnabled,
+	}, "1")
+	if err != nil {
+		t.Fatalf("create package: %v", err)
+	}
+	task, err := svc.CreateTask(CreateTaskRequest{
+		Name: "混合作用域任务", PackageID: pkg.ID, BusinessScopeID: scope.ID,
+		TargetType: TargetTypeHost, TargetIDs: []uint64{hostIn.ID, hostOut.ID}, ExecutorType: ExecutorTypeManual,
+	}, "1", nil)
+	if err != nil {
+		t.Fatalf("create task: %v", err)
+	}
+	now := time.Now()
+	hostRows := []DeployTaskHost{
+		{TaskID: task.ID, HostID: hostIn.ID, Hostname: hostIn.Hostname, HostIP: hostIn.IP, OS: hostIn.OS, Status: TaskHostStatusSuccess, StartedAt: &now, UpdatedBy: "1"},
+		{TaskID: task.ID, HostID: hostOut.ID, Hostname: hostOut.Hostname, HostIP: hostOut.IP, OS: hostOut.OS, Status: TaskHostStatusSuccess, StartedAt: &now, UpdatedBy: "1"},
+	}
+	if err := db.Create(&hostRows).Error; err != nil {
+		t.Fatalf("seed task hosts: %v", err)
+	}
+
+	list, err := svc.ListTasks(TaskQuery{Page: 1, PageSize: 10}, &common.DataScopeReq{Mode: common.DataScopeModeDept, DeptID: 20})
+	if err != nil {
+		t.Fatalf("list scoped tasks: %v", err)
+	}
+	if list.Total != 1 || len(list.Items) != 1 {
+		t.Fatalf("expected one visible task, got total=%d items=%d", list.Total, len(list.Items))
+	}
+	item := list.Items[0]
+	if len(item.Hosts) != 1 || item.Hosts[0].HostIP != hostIn.IP {
+		t.Fatalf("SEC-002: out-of-scope host leaked into list: %+v", item.Hosts)
+	}
+	if item.HostCount != 1 {
+		t.Fatalf("expected hostCount=1 for scoped view, got %d", item.HostCount)
 	}
 }
 

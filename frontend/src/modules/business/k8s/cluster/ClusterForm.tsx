@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Form, Input, Select } from '@arco-design/web-react';
 import { useTranslation } from 'react-i18next';
 import { SubmitBar } from '../../../../components';
+import SecretTextArea from '../../../../components/patterns/forms/SecretTextArea';
 import { getBizScopeOptions } from '../../bizscope/api';
 
 const FormItem = Form.Item;
@@ -64,7 +65,10 @@ export default function ClusterForm({
         label={t('business.k8s.cluster.field.code')}
         rules={[{ required: true, message: t('common.required') }]}
       >
-        <Input placeholder={t('business.k8s.cluster.field.codePlaceholder')} disabled={mode === 'update'} />
+        <Input
+          placeholder={t('business.k8s.cluster.field.codePlaceholder')}
+          disabled={mode === 'update'}
+        />
       </FormItem>
       <FormItem
         field="name"
@@ -101,7 +105,7 @@ export default function ClusterForm({
         rules={mode === 'create' ? [{ required: true, message: t('common.required') }] : undefined}
         extra={mode === 'update' ? t('business.k8s.cluster.field.kubeconfigUpdateHint') : undefined}
       >
-        <Input.TextArea
+        <SecretTextArea
           autoSize={{ minRows: 4, maxRows: 10 }}
           placeholder={t('business.k8s.cluster.field.kubeconfigPlaceholder')}
         />

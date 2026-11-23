@@ -1,0 +1,141 @@
+{
+  "runId": "omx_accept_20261121_codex_t02d",
+  "phase": "deploy",
+  "caseId": "d00",
+  "title": "authenticated preserved CMDB fixtures",
+  "ts": "2026-11-22T10:22:38.857Z",
+  "status": "PASS",
+  "httpStatus": 200,
+  "businessCode": 200,
+  "assertions": [
+    {
+      "name": "http 200",
+      "pass": true
+    },
+    {
+      "name": "business code 200",
+      "pass": true
+    },
+    {
+      "name": "access token cookie issued",
+      "pass": true
+    },
+    {
+      "name": "refresh token cookie issued",
+      "pass": true
+    },
+    {
+      "name": "csrf token cookie issued",
+      "pass": true
+    },
+    {
+      "name": "target fixture owned by recorded source run",
+      "pass": true
+    },
+    {
+      "name": "borrowed cmdb/hosts/1 still owned by source run",
+      "pass": true
+    },
+    {
+      "name": "borrowed bizscope/1 still owned by source run",
+      "pass": true
+    },
+    {
+      "name": "borrowed deploy/credentials/1 still owned by source run",
+      "pass": true
+    },
+    {
+      "name": "borrowed host is authorized target",
+      "pass": true
+    },
+    {
+      "name": "ssh-probe fingerprint ok",
+      "pass": true
+    },
+    {
+      "name": "known_hosts verified",
+      "pass": true
+    },
+    {
+      "name": "host key matches trust anchor",
+      "pass": true
+    },
+    {
+      "name": "probe ok",
+      "pass": true
+    },
+    {
+      "name": "run dir absent before any collect",
+      "pass": true
+    },
+    {
+      "name": "public host keys read through pinned session",
+      "pass": true
+    },
+    {
+      "name": "ECDSA collection fingerprint authenticated by pinned session",
+      "pass": true
+    },
+    {
+      "name": "credential reference preserved",
+      "pass": true
+    },
+    {
+      "name": "collection fingerprint preserved",
+      "pass": true
+    }
+  ],
+  "ids": {
+    "fingerprint": "SHA256:FhLFRIfRIGotV2tS+sIZWxniie2qG5Xu8H3igYJ8RNU",
+    "serverKeyType": "ssh-ed25519"
+  },
+  "result": {
+    "fingerprint": {
+      "ok": true,
+      "host": "115.190.251.143:22",
+      "user": "root",
+      "password_source": "env:PANTHEON_VERIFY_SSH_PASSWORD",
+      "serverKeyType": "ssh-ed25519",
+      "serverSha256Fingerprint": "SHA256:FhLFRIfRIGotV2tS+sIZWxniie2qG5Xu8H3igYJ8RNU",
+      "knownHostsVerified": true,
+      "knownHostsEntryType": "ssh-ed25519",
+      "knownHostsFiles": [
+        "known_hosts"
+      ]
+    },
+    "probe": {
+      "ok": true,
+      "host": "115.190.251.143:22",
+      "user": "root",
+      "uname": "Linux iv-yedenmmwhsqc6iu4z5p6 6.8.0-55-generic #57-Ubuntu SMP PREEMPT_DYNAMIC Wed Feb 12 23:42:21 UTC 2025 x86_64 x86_64 x86_64 GNU/Linux",
+      "id": "root",
+      "tmpCapacityKb": 40972900,
+      "runDirExists": false,
+      "stdoutTruncated": false,
+      "stderrTruncated": false
+    },
+    "publicKeys": {
+      "ok": true,
+      "keys": [
+        {
+          "type": "ssh-ed25519",
+          "fingerprint": "SHA256:FhLFRIfRIGotV2tS+sIZWxniie2qG5Xu8H3igYJ8RNU"
+        },
+        {
+          "type": "ecdsa-sha2-nistp256",
+          "fingerprint": "SHA256:wGNI4IdTLBLFIs+lwsG1uGbRgJRxZ9bHmU2A/CM9Gb4"
+        },
+        {
+          "type": "ssh-rsa",
+          "fingerprint": "SHA256:jleZoa0d5uK+ZagDaLkJYgzKF4XWaL6ydB4anybxp0U"
+        }
+      ],
+      "source": "public keys read through pinned SSH session"
+    },
+    "collectionAlgorithm": "ecdsa-sha2-nistp256"
+  },
+  "message": null,
+  "redaction": null,
+  "durationMs": 3231,
+  "blockedReason": null
+}

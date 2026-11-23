@@ -1,0 +1,18 @@
+{
+  "id": "k03b",
+  "intent": "cluster creation credential metadata consistency",
+  "userModel": "authenticated admin unless stated",
+  "setup": "local Ops; pinned SSH to 115.190.251.143; dedicated namespace",
+  "harness": ".local/acceptance-20261121/k8s-live.py",
+  "expected": "assertions hold",
+  "fixesApplied": [],
+  "cleanup": "owned fixtures tracked in checkpoint.json",
+  "actual": {
+    "version": 1,
+    "status": "active"
+  },
+  "status": "PASS",
+  "calls": [],
+  "durationMs": 0,
+  "evidence": ".harness\\evidence\\2026-11-20-ops-review-live-runtime-acceptance\\k8s\\omx-accept-20261121-k8s06\\k03b-20261121-085908.json"
+}

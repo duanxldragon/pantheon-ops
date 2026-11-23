@@ -3,7 +3,7 @@ title: pantheon-ops 业务开发计划
 doc_type: Design
 layer: business
 status: Superseded
-superseded_by: .harness/tasks/2026-11-16-ops-pilot-delivery/plan.md
+superseded_by: .harness/archive/2026-11/tasks/2026-11-16-ops-pilot-delivery/plan.md
 linked_contracts:
   - docs/PROJECT_INHERITANCE.md
 updated_at: 2026-11-16
@@ -11,14 +11,14 @@ updated_at: 2026-11-16
 
 # pantheon-ops 业务开发计划
 
-> 状态说明：Superseded。当前执行以[试点交付计划](../../.harness/tasks/2026-11-16-ops-pilot-delivery/plan.md)为准：6 个核心工作包＋4 个条件扩展包；本文保留八月阶段估算与目标参考，不用于当前排期或完成率。
+> 状态说明：Superseded。当前执行以[试点交付计划](../../.harness/archive/2026-11/tasks/2026-11-16-ops-pilot-delivery/plan.md)为准：6 个核心工作包＋4 个条件扩展包；本文保留八月阶段估算与目标参考，不用于当前排期或完成率。
 
 - 基线：[BUSINESS_ARCHITECTURE_REVIEW.md](./BUSINESS_ARCHITECTURE_REVIEW.md)
 - 目标设计：[BUSINESS_TARGET_ARCHITECTURE_DESIGN.md](./BUSINESS_TARGET_ARCHITECTURE_DESIGN.md)
 
 本文把架构评审结论转换为可排期的业务开发计划。时间按连续 8 个开发周估算，实际开始日期以 clean release 和维护者质量门禁决定为准；角色是责任边界，不预设具体人员。
 
-> 当前依赖、验收与剩余任务以[试点计划](../../.harness/tasks/2026-11-16-ops-pilot-delivery/plan.md)和[功能现状](./BUSINESS_FUNCTIONAL_DESIGN.md)为准。旧冻结检查表保留历史，未关闭条目由新计划显式承接，不能因归档消失。
+> 当前依赖、验收与剩余任务以[试点计划](../../.harness/archive/2026-11/tasks/2026-11-16-ops-pilot-delivery/plan.md)和[功能现状](./BUSINESS_FUNCTIONAL_DESIGN.md)为准。旧冻结检查表保留历史，未关闭条目由新计划显式承接，不能因归档消失。
 
 ## 1. 目标和范围
 

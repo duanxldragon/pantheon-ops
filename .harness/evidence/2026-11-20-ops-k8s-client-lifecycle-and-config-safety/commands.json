@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "taskId": "2026-11-20-ops-k8s-client-lifecycle-and-config-safety",
+  "repo": "pantheon-ops",
+  "evidenceState": "exercised",
+  "agent": {
+    "tool": "claude-code",
+    "adapter": "windows"
+  },
+  "candidate": {
+    "baselineReportCommit": "444ce8e",
+    "planningCommit": "a2d69d4a759b5df2b26aaa9d26bdc5175babe9dc",
+    "worktree": "uncommitted",
+    "foundation": "pantheon-base-v0.18.9"
+  },
+  "commands": [
+    {
+      "command": "go test -count=1 -v -run 'TestPool' ./modules/business/k8s/pkg/",
+      "cwd": "backend",
+      "status": "passed",
+      "notes": "Connection pool lifecycle: cache keyed by {clusterID, sha256(kubeconfig)}, credential change never reuses a warmed clientset, Evict clears only the target cluster, concurrent same-credential deduplicates, distinct credentials stay isolated, GC evicts idle and keeps active."
+    },
+    {
+      "command": "go test -count=1 ./modules/business/k8s/pkg/",
+      "cwd": "backend",
+      "status": "passed",
+      "notes": "Factory boundaries: embedded-only kubeconfig (exec/auth-provider/tokenFile/client cert-key/CA file rejected), SSRF port allowlist, and the new TestRESTConfigPinsClientThrottle QPS=20/Burst=40 pin."
+    },
+    {
+      "command": "go test -count=1 -p 1 -timeout 20m ./modules/business/k8s/...",
+      "cwd": "backend",
+      "status": "passed",
+      "durationMs": 250000,
+      "notes": "Real MySQL DSN via PANTHEON_TEST_DSN (redacted). 11/11 packages ok: k8s 2.459s, backup 0.081s, cluster 1.001s, helm 0.756s, namespace 0.060s, pkg 0.066s, rbac 0.815s, release 3.723s, service 13.275s, storage 0.619s, workload 0.110s."
+    },
+    {
+      "command": "npm run type-check",
+      "cwd": "frontend",
+      "status": "passed",
+      "notes": "Masked credential inputs (SecretTextArea in ClusterForm / FiledistList / CmdbHostDetail) compile."
+    },
+    {
+      "command": "npm run check:password-toggle",
+      "cwd": "frontend",
+      "status": "passed",
+      "notes": "0 finding(s) across 352 file(s); SecretTextArea reuses the audited password-input toggle contract."
+    },
+    {
+      "command": "npm run check:ui-contract",
+      "cwd": "frontend",
+      "status": "passed",
+      "notes": "0 finding(s) across 405 file(s)."
+    },
+    {
+      "command": "npx eslint src/components/patterns/forms/SecretTextArea.tsx src/modules/business/k8s/cluster/ClusterForm.tsx src/modules/business/k8s/cluster/ClusterDetail.tsx src/modules/business/filedist/FiledistList.tsx src/modules/business/cmdb/host/CmdbHostDetail.tsx src/modules/business/cmdb/host/CmdbHostForm.tsx src/modules/business/k8s/api.ts",
+      "cwd": "frontend",
+      "status": "passed"
+    },
+    {
+      "command": "Playwright probe against live frontend (127.0.0.1:5173) reading -webkit-text-security before/after the reveal toggle",
+      "cwd": "../.local (local-only scripts, not committed)",
+      "status": "passed",
+      "notes": "Artifacts: k8s-cluster-kubeconfig-masked.png, k8s-cluster-kubeconfig-revealed.png, t06-mask-runtime.json (masked=disc, revealed=none), cmdb-host-ssh-key-masked.png, cmdb-host-ssh-key-revealed.png, t06-cmdb-mask-runtime.json."
+    }
+  ],
+  "knownGaps": [
+    "V8 live credential rotation against a real cluster not re-run on this candidate (pool unit tests cover the cache identity logic).",
+    "npm run test:smoke:business:k8s was not run this session; the frontend dev server was reaped by the harness for low system memory and was not restarted per harness instruction.",
+    "Offline/disconnect cancellation evidence for provider calls is unit-level only; no network-partition runtime probe on this candidate."
+  ],
+  "linkage": {
+    "taskPacket": "docs/harness/tasks/2026-11-20-ops-k8s-client-lifecycle-and-config-safety.task.md",
+    "evidenceDir": ".harness/evidence/2026-11-20-ops-k8s-client-lifecycle-and-config-safety/",
+    "reviewFile": ".harness/evidence/2026-11-20-ops-k8s-client-lifecycle-and-config-safety/review.md",
+    "changeRef": "none",
+    "planRefs": [".harness/tasks/2026-11-20-ops-review-remediation/plan.md"]
+  }
+}

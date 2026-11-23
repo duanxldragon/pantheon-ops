@@ -1,0 +1,42 @@
+{
+  "runId": "omx_accept_20261121_formal01",
+  "phase": "all",
+  "updatedAt": "2026-11-21T11:58:08.933Z",
+  "ids": {
+    "cookieLengths": {
+      "access": 64,
+      "refresh": 64,
+      "csrf": 64
+    },
+    "scopeProdId": 13,
+    "scopeDevId": 14,
+    "groupId": 3,
+    "fingerprint": "SHA256:FhLFRIfRIGotV2tS+sIZWxniie2qG5Xu8H3igYJ8RNU",
+    "serverKeyType": "ssh-ed25519",
+    "credentialId": 3
+  },
+  "fixtures": [
+    {
+      "resource": "bizscope",
+      "id": 13
+    },
+    {
+      "resource": "bizscope",
+      "id": 14
+    },
+    {
+      "resource": "cmdb/groups",
+      "id": 3
+    },
+    {
+      "resource": "deploy/credentials",
+      "id": 3
+    }
+  ],
+  "fingerprint": "SHA256:FhLFRIfRIGotV2tS+sIZWxniie2qG5Xu8H3igYJ8RNU",
+  "collectFingerprint": "SHA256:wGNI4IdTLBLFIs+lwsG1uGbRgJRxZ9bHmU2A/CM9Gb4",
+  "statuses": {},
+  "secretPolicy": {
+    "recordedSecretValues": false
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "id": "k09",
+  "intent": "prepare minimal existing-image Deployment fixture",
+  "userModel": "authenticated admin unless stated",
+  "setup": "local Ops; pinned SSH to 115.190.251.143; dedicated namespace",
+  "harness": ".local/acceptance-20261121/k8s-live.py",
+  "expected": "assertions hold",
+  "fixesApplied": [],
+  "cleanup": "owned fixtures tracked in checkpoint.json",
+  "actual": {
+    "fixtureOnly": true,
+    "image": "rancher/local-path-provisioner:v0.0.36",
+    "name": "accept-workload",
+    "resourceLimits": {
+      "requests": {
+        "cpu": "5m",
+        "memory": "8Mi"
+      },
+      "limits": {
+        "cpu": "50m",
+        "memory": "32Mi"
+      }
+    }
+  },
+  "status": "PASS",
+  "calls": [],
+  "durationMs": 516,
+  "evidence": ".harness\\evidence\\2026-11-20-ops-review-live-runtime-acceptance\\k8s\\omx-accept-20261121-k8s35\\k09-20261123-093416.json"
+}

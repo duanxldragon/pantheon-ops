@@ -1,0 +1,109 @@
+{
+  "task": "2026-11-20-ops-deploy-fixed-template-security",
+  "round": 6,
+  "phase": "install-success-roundtrip-and-restore",
+  "timestamp": "2026-11-23T14:35:00+0800",
+  "candidate": {
+    "binarySha256": "bad479fc9817fffcab5253064b5ddf052365fb88fed55bd9d8697157720b971f",
+    "binary": "pantheon-ops-codex-t02b-20261122-172553.exe",
+    "backendPid": 29648,
+    "backendPort": 8081,
+    "database": "ops_acceptance_formal_20261122_codex"
+  },
+  "setup": {
+    "distTask": {
+      "id": 5,
+      "status": "completed",
+      "successCount": 1,
+      "failedCount": 0,
+      "byteExact": true,
+      "remoteSha": "2dfef3016808b20270aa7324964395330a2a410d1f7145ffc20e3a65d5af0e13",
+      "remoteSize": "183197735",
+      "remotePath": "/tmp/jdk-installer/.dist/jdk-17.0.15_linux-x64_bin.tar.gz"
+    },
+    "package18Flip": {
+      "mode": "to-local",
+      "sourceUrl": "file:///tmp/jdk-installer/.dist/jdk-17.0.15_linux-x64_bin.tar.gz",
+      "sourceFileName": "jdk-17.0.15_linux-x64_bin.tar.gz",
+      "snapshot": ".local/acceptance-20261121/t02h-pkg18-original.json"
+    },
+    "windowsPathBugWorkaround": "engine remoteDir=filepath.Dir(remotePath) on Windows produces \\tmp\jdk-installer\.dist; pkg/sftp MkdirAll splits only on '/', so a literal backslash dir was created and real .dist never existed. Pre-created /tmp/jdk-installer/.dist on the VM (paramiko _t02h-prep-dist.py) which let the real sftp Create succeed. Original 50ms transferFailed (tasks 3/4) additionally landed in a VM MaxStartups throttle window (auth.log 13:49:45-13:50:48), environmental."
+  },
+  "installTask": {
+    "id": 19,
+    "name": "omx_accept_20261121_codex_t02h-jdk-install-r6",
+    "action": "install",
+    "status": "success",
+    "executor": "ssh",
+    "timeoutSeconds": 1500,
+    "startedAt": "2026-11-23T14:27:12.359+0800",
+    "finishedAt": "2026-11-23T14:27:23.724+0800",
+    "durationSeconds": 11.4,
+    "hostStatus": "success",
+    "errorMessage": "",
+    "templateParams": {
+      "installRoot": "/tmp/omx_accept_20261121_codex_t02h/jdk",
+      "serviceName": "pantheon-t02-jdk"
+    },
+    "templateCode": "jdk_systemd",
+    "executionMode": "fixed",
+    "sourceUrl": "file:///tmp/jdk-installer/.dist/jdk-17.0.15_linux-x64_bin.tar.gz",
+    "executorStdout": [
+      "=== [1] omx_accept_20261121_codex_t02g-jdk (install) / script ===",
+      "JDK installed at /tmp/omx_accept_20261121_codex_t02h/jdk",
+      "java version \"17.0.15\" 2025-04-15 LTS",
+      "Java(TM) SE Runtime Environment (build 17.0.15+9-LTS-241)",
+      "Java HotSpot(TM) 64-Bit Server VM (build 17.0.15+9-LTS-241, mixed mode, sharing)"
+    ],
+    "executorStderr": null,
+    "note": "11.4s wall-clock install (vs round-5 TUNA download-only 41min) demonstrates the file:// local artifact path is fully offline; java -version 17.0.15 LTS output captured by the product executor itself."
+  },
+  "uninstallTask": {
+    "id": 20,
+    "name": "omx_accept_20261121_codex_t02h-jdk-uninstall-r6",
+    "action": "uninstall",
+    "status": "success",
+    "timeoutSeconds": 600,
+    "startedAt": "2026-11-23T14:27:31.529+0800",
+    "finishedAt": "2026-11-23T14:27:33.039+0800",
+    "durationSeconds": 1.5,
+    "hostStatus": "success",
+    "errorMessage": "",
+    "executorStdout": ["=== [1] omx_accept_20261121_codex_t02g-jdk (uninstall) / script ===", "JDK uninstall completed"],
+    "executorStderr": [
+      "Failed to stop pantheon-t02-jdk.service: Unit pantheon-t02-jdk.service not loaded.",
+      "Failed to disable unit: Unit file pantheon-t02-jdk.service does not exist."
+    ],
+    "stderrNote": "expected: mainClass was empty so the no-app template branch writes no systemd unit; uninstall's systemctl stop/disable noise is suppressed by `|| true` and the legal uninstall still completed."
+  },
+  "postRoundtripVmState": {
+    "jdkSh": "ABSENT (uninstall rm -f /etc/profile.d/jdk.sh) - restored next",
+    "installRoot": "ABSENT",
+    "pkgDir": "/tmp/jdk-installer ABSENT (template self-cleans $PKG_DIR incl. consumed .dist)",
+    "units": 0
+  },
+  "restores": {
+    "vendorJdkSh": {
+      "restoredSha": "72307e44255a1648615243aa48e2d19569c6be39b71f528e8214a87f1f1dc9cc",
+      "expectedSha": "72307e44255a1648615243aa48e2d19569c6be39b71f528e8214a87f1f1dc9cc",
+      "expectedSize": 60,
+      "stat": "644 root root",
+      "byteExactMatch": true
+    },
+    "package18": {
+      "restored": {
+        "sourceUrl": "https://mirrors.tuna.tsinghua.edu.cn/Adoptium/17/jdk/x64/linux/OpenJDK17U-jdk_x64_linux_hotspot_17.0.21.1_2.tar.gz",
+        "sourceFileName": "OpenJDK17U-jdk_x64_linux_hotspot_17.0.21.1_2.tar.gz"
+      }
+    },
+    "junkDistDir": "removed literal /root/\\tmp\\jdk-installer\\.dist created by the engine's Windows path bug",
+    "keptIntentionally": {
+      "filedist_file id=1 + backend/uploads tarball": "maintainer directive made upload+filedist the intended workflow; T16 fresh-install needs these artifacts. files/amd64 source packages never touched."
+    },
+    "preExistingNotTouched": "/root/\\tmp and /root/\\tmp\\offline (2026-08-29, pre-existing shared-VM state)"
+  },
+  "ok": true,
+  "knownGap": {
+    "roundtripScriptCrash": "t02h-roundtrip.py postUninstallVm format string had 5 %s placeholders but 4 args -> TypeError before the receipt JSON printed. All evidence above sourced directly from the product DB (biz_deploy_task / biz_deploy_task_host executor stdout), which is strictly more authoritative than the script's own summary. The script is test-local, no product code touched."
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "runId": "omx_accept_20261122_cap",
+  "phase": "cap",
+  "caseId": "cap-service-instance-create",
+  "title": "create service instance (vm target) (CAP-SERVICE write)",
+  "ts": "2026-11-21T16:35:21.409Z",
+  "status": "PASS",
+  "httpStatus": 200,
+  "businessCode": 200,
+  "assertions": [
+    {
+      "name": "business code 200",
+      "pass": true
+    },
+    {
+      "name": "instance id returned",
+      "pass": true
+    }
+  ],
+  "ids": {
+    "instanceId": 7,
+    "hostId": 9
+  },
+  "result": null,
+  "message": null,
+  "redaction": null,
+  "durationMs": 24,
+  "blockedReason": null
+}

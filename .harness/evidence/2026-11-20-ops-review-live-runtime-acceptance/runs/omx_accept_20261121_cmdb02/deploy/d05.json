@@ -1,0 +1,36 @@
+{
+  "runId": "omx_accept_20261121_cmdb02",
+  "phase": "deploy",
+  "caseId": "d05",
+  "title": "fixed template shell injection rejected before execution",
+  "ts": "2026-11-21T00:22:11.420Z",
+  "status": "FAIL",
+  "httpStatus": 200,
+  "businessCode": 200,
+  "assertions": [
+    {
+      "name": "unsafe template parameters rejected by create or preview",
+      "pass": false,
+      "detail": "expected true"
+    },
+    {
+      "name": "no injection marker present",
+      "pass": true
+    }
+  ],
+  "ids": {
+    "injectionTaskId": 1
+  },
+  "result": {
+    "createCode": 200,
+    "previewCode": 200,
+    "createError": "success",
+    "previewError": "success",
+    "remoteStartPerformed": false,
+    "unsafeSyntaxPresentInPreview": false
+  },
+  "message": null,
+  "redaction": null,
+  "durationMs": 1030,
+  "blockedReason": null
+}

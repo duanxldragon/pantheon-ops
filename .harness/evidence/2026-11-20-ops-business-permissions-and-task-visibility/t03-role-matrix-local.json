@@ -1,0 +1,199 @@
+{
+  "schemaVersion": 1,
+  "probe": "t03-after-fix-role-matrix",
+  "base": "http://127.0.0.1:8081",
+  "candidate": "t03-local-0586a9e2",
+  "at": "2026-11-23T08:32:14.604Z",
+  "summary": {
+    "total": 18,
+    "passed": 18,
+    "failed": 0
+  },
+  "probes": [
+    {
+      "name": "taskViewer GET /tasks (granted)",
+      "http": 200,
+      "code": 200,
+      "message": "success",
+      "expectedCode": 200,
+      "pass": true
+    },
+    {
+      "name": "taskViewer POST /tasks (no create)",
+      "http": 200,
+      "code": 403,
+      "message": "permission.denied",
+      "expectedCode": 403,
+      "pass": true
+    },
+    {
+      "name": "taskViewer POST /tasks/1/start (no start)",
+      "http": 200,
+      "code": 403,
+      "message": "permission.denied",
+      "expectedCode": 403,
+      "pass": true
+    },
+    {
+      "name": "taskViewer DELETE /tasks/1 (no delete)",
+      "http": 200,
+      "code": 403,
+      "message": "permission.denied",
+      "expectedCode": 403,
+      "pass": true
+    },
+    {
+      "name": "taskViewer GET /tasks/export (anti-widen)",
+      "http": 200,
+      "code": 403,
+      "message": "permission.denied",
+      "expectedCode": 403,
+      "pass": true
+    },
+    {
+      "name": "taskViewer GET /templates (no template:list)",
+      "http": 200,
+      "code": 403,
+      "message": "permission.denied",
+      "expectedCode": 403,
+      "pass": true
+    },
+    {
+      "name": "taskViewer GET /credentials (no credential:list)",
+      "http": 200,
+      "code": 403,
+      "message": "permission.denied",
+      "expectedCode": 403,
+      "pass": true
+    },
+    {
+      "name": "credViewer GET /credentials (granted)",
+      "http": 200,
+      "code": 200,
+      "message": "success",
+      "expectedCode": 200,
+      "pass": true
+    },
+    {
+      "name": "credViewer GET /credentials secret-key scan",
+      "hits": [],
+      "pass": true
+    },
+    {
+      "name": "credViewer POST /credentials (no create)",
+      "http": 200,
+      "code": 403,
+      "message": "permission.denied",
+      "expectedCode": 403,
+      "pass": true
+    },
+    {
+      "name": "credViewer PUT /credentials/1 (no update)",
+      "http": 200,
+      "code": 403,
+      "message": "permission.denied",
+      "expectedCode": 403,
+      "pass": true
+    },
+    {
+      "name": "credViewer DELETE /credentials/1 (no delete)",
+      "http": 200,
+      "code": 403,
+      "message": "permission.denied",
+      "expectedCode": 403,
+      "pass": true
+    },
+    {
+      "name": "credViewer GET /tasks (no task:view)",
+      "http": 200,
+      "code": 403,
+      "message": "permission.denied",
+      "expectedCode": 403,
+      "pass": true
+    },
+    {
+      "name": "pkgViewer GET /packages (granted)",
+      "http": 200,
+      "code": 200,
+      "message": "success",
+      "expectedCode": 200,
+      "pass": true
+    },
+    {
+      "name": "pkgViewer GET /packages/1 (detail preserved gap)",
+      "http": 200,
+      "code": 403,
+      "message": "permission.denied",
+      "expectedCode": 403,
+      "pass": true
+    },
+    {
+      "name": "pkgViewer GET /packages/export (anti-widen)",
+      "http": 200,
+      "code": 403,
+      "message": "permission.denied",
+      "expectedCode": 403,
+      "pass": true
+    },
+    {
+      "name": "pkgViewer POST /packages (no create)",
+      "http": 200,
+      "code": 403,
+      "message": "permission.denied",
+      "expectedCode": 403,
+      "pass": true
+    },
+    {
+      "name": "admin GET /tasks (sanity)",
+      "http": 200,
+      "code": 200,
+      "message": "success",
+      "expectedCode": 200,
+      "pass": true
+    }
+  ],
+  "created": {
+    "users": [
+      "t03_task_mwt0c30z9cjo",
+      "t03_cred_mwt0c30z9cjo",
+      "t03_pkg_mwt0c30z9cjo"
+    ],
+    "roles": [
+      "t03_task_view_mwt0c30z9cjo",
+      "t03_cred_list_mwt0c30z9cjo",
+      "t03_pkg_view_mwt0c30z9cjo"
+    ]
+  },
+  "cleanup": [
+    {
+      "target": "user:3",
+      "status": 200,
+      "code": 200
+    },
+    {
+      "target": "user:4",
+      "status": 200,
+      "code": 200
+    },
+    {
+      "target": "user:5",
+      "status": 200,
+      "code": 200
+    },
+    {
+      "target": "role:3",
+      "status": 200,
+      "code": 200
+    },
+    {
+      "target": "role:4",
+      "status": 200,
+      "code": 200
+    },
+    {
+      "target": "role:5",
+      "status": 200,
+      "code": 200
+    }
+  ]
+}

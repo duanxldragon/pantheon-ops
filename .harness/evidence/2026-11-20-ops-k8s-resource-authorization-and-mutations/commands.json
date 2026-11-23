@@ -1,0 +1,50 @@
+{
+  "schemaVersion": 1,
+  "taskId": "2026-11-20-ops-k8s-resource-authorization-and-mutations",
+  "repo": "pantheon-ops",
+  "evidenceState": "exercised",
+  "agent": {
+    "tool": "claude-code",
+    "adapter": "windows"
+  },
+  "candidate": {
+    "baselineReportCommit": "444ce8e",
+    "planningCommit": "a2d69d4a759b5df2b26aaa9d26bdc5175babe9dc",
+    "worktree": "uncommitted",
+    "foundation": "pantheon-base-v0.18.9"
+  },
+  "commands": [
+    {
+      "command": "go test -count=1 -v -run 'TestNormalizeKind|TestScaleWorkloadRejectsDaemonSetAndUnknownKind|TestRestartWorkloadPatchesNamedKindOnly' ./modules/business/k8s/workload/",
+      "cwd": "backend",
+      "status": "passed",
+      "notes": "Mutation dispatch: unknown kinds and DaemonSet scale are rejected before touching a same-name Deployment; a DaemonSet restart patches only the DaemonSet pod template. 3/3 PASS."
+    },
+    {
+      "command": "go test -count=1 ./modules/business/k8s/workload/",
+      "cwd": "backend",
+      "status": "passed",
+      "notes": "Whole workload package after dispatch + pagination changes."
+    },
+    {
+      "command": "go test -count=1 -p 1 -timeout 20m ./modules/business/k8s/...",
+      "cwd": "backend",
+      "status": "passed",
+      "durationMs": 250000,
+      "notes": "Real MySQL DSN via PANTHEON_TEST_DSN (redacted); 11/11 packages ok."
+    }
+  ],
+  "knownGaps": [
+    "NamespaceAll read authorization: cross-namespace aggregate listing still needs an explicit RBAC enumeration check.",
+    "Read-action bindings: view/list permission checks against cluster RBAC are not installed on every read route.",
+    "UI draft recovery after a real kubectl resourceVersion conflict was not exercised in a browser; server maps stale resourceVersion to code 409.",
+    "k8s browser smoke not run this session (frontend dev server reaped for low system memory)."
+  ],
+  "linkage": {
+    "taskPacket": "docs/harness/tasks/2026-11-20-ops-k8s-resource-authorization-and-mutations.task.md",
+    "evidenceDir": ".harness/evidence/2026-11-20-ops-k8s-resource-authorization-and-mutations/",
+    "reviewFile": ".harness/evidence/2026-11-20-ops-k8s-resource-authorization-and-mutations/review.md",
+    "changeRef": "none",
+    "planRefs": [".harness/tasks/2026-11-20-ops-review-remediation/plan.md"]
+  }
+}

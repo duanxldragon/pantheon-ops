@@ -1,0 +1,310 @@
+{
+  "runId": "omx_accept_20261122_dmatrix2",
+  "phase": "dm2",
+  "status": "PASS",
+  "finishedAt": "2026-11-21T16:44:40.588Z",
+  "binarySha256": "unknown",
+  "secretPolicy": {
+    "passwordNeverPersisted": true,
+    "passwordIsThrowawayOnly": true
+  },
+  "cases": [
+    {
+      "caseId": "login-admin",
+      "title": "admin login",
+      "pass": true,
+      "actual": {
+        "httpStatus": 200,
+        "code": 200
+      }
+    },
+    {
+      "caseId": "role-create",
+      "title": "create route-matrix viewer role (package:view only)",
+      "pass": true,
+      "actual": {
+        "httpStatus": 200,
+        "code": 200,
+        "msg": "success"
+      }
+    },
+    {
+      "caseId": "user-create",
+      "title": "create viewer user",
+      "pass": true,
+      "actual": {
+        "httpStatus": 200,
+        "code": 200,
+        "msg": "success"
+      }
+    },
+    {
+      "caseId": "user-login",
+      "title": "viewer user can log in",
+      "pass": true,
+      "actual": {
+        "httpStatus": 200,
+        "code": 200
+      }
+    },
+    {
+      "caseId": "positive-control-package-list",
+      "title": "positive control: package:view list is allowed (grant live)",
+      "pass": true,
+      "actual": {
+        "httpStatus": 200,
+        "code": 200
+      }
+    },
+    {
+      "caseId": "tpl-list",
+      "title": "GET /business/deploy/templates denied for package:view role (unbound route default-deny)",
+      "pass": true,
+      "actual": {
+        "httpStatus": 200,
+        "code": 403,
+        "msg": "permission.denied"
+      }
+    },
+    {
+      "caseId": "tpl-create",
+      "title": "POST /business/deploy/templates denied for package:view role (unbound route default-deny)",
+      "pass": true,
+      "actual": {
+        "httpStatus": 200,
+        "code": 403,
+        "msg": "permission.denied"
+      }
+    },
+    {
+      "caseId": "tpl-detail",
+      "title": "GET /business/deploy/templates/1 denied for package:view role (unbound route default-deny)",
+      "pass": true,
+      "actual": {
+        "httpStatus": 200,
+        "code": 403,
+        "msg": "permission.denied"
+      }
+    },
+    {
+      "caseId": "tpl-update",
+      "title": "PUT /business/deploy/templates/1 denied for package:view role (unbound route default-deny)",
+      "pass": true,
+      "actual": {
+        "httpStatus": 200,
+        "code": 403,
+        "msg": "permission.denied"
+      }
+    },
+    {
+      "caseId": "tpl-delete",
+      "title": "DELETE /business/deploy/templates/1 denied for package:view role (unbound route default-deny)",
+      "pass": true,
+      "actual": {
+        "httpStatus": 200,
+        "code": 403,
+        "msg": "permission.denied"
+      }
+    },
+    {
+      "caseId": "tpl-export",
+      "title": "GET /business/deploy/templates/export denied for package:view role (unbound route default-deny)",
+      "pass": true,
+      "actual": {
+        "httpStatus": 200,
+        "code": 403,
+        "msg": "permission.denied"
+      }
+    },
+    {
+      "caseId": "tpl-import",
+      "title": "POST /business/deploy/templates/import denied for package:view role (unbound route default-deny)",
+      "pass": true,
+      "actual": {
+        "httpStatus": 200,
+        "code": 403,
+        "msg": "permission.denied"
+      }
+    },
+    {
+      "caseId": "cred-create",
+      "title": "POST /business/deploy/credentials denied for package:view role (unbound route default-deny)",
+      "pass": true,
+      "actual": {
+        "httpStatus": 200,
+        "code": 403,
+        "msg": "permission.denied"
+      }
+    },
+    {
+      "caseId": "cred-update",
+      "title": "PUT /business/deploy/credentials/1 denied for package:view role (unbound route default-deny)",
+      "pass": true,
+      "actual": {
+        "httpStatus": 200,
+        "code": 403,
+        "msg": "permission.denied"
+      }
+    },
+    {
+      "caseId": "cred-delete",
+      "title": "DELETE /business/deploy/credentials/1 denied for package:view role (unbound route default-deny)",
+      "pass": true,
+      "actual": {
+        "httpStatus": 200,
+        "code": 403,
+        "msg": "permission.denied"
+      }
+    },
+    {
+      "caseId": "task-preview",
+      "title": "POST /business/deploy/tasks/1/preview denied for package:view role (unbound route default-deny)",
+      "pass": true,
+      "actual": {
+        "httpStatus": 200,
+        "code": 403,
+        "msg": "permission.denied"
+      }
+    },
+    {
+      "caseId": "task-update",
+      "title": "PUT /business/deploy/tasks/1 denied for package:view role (unbound route default-deny)",
+      "pass": true,
+      "actual": {
+        "httpStatus": 200,
+        "code": 403,
+        "msg": "permission.denied"
+      }
+    },
+    {
+      "caseId": "task-delete",
+      "title": "DELETE /business/deploy/tasks/1 denied for package:view role (unbound route default-deny)",
+      "pass": true,
+      "actual": {
+        "httpStatus": 200,
+        "code": 403,
+        "msg": "permission.denied"
+      }
+    },
+    {
+      "caseId": "task-pause",
+      "title": "POST /business/deploy/tasks/1/pause denied for package:view role (unbound route default-deny)",
+      "pass": true,
+      "actual": {
+        "httpStatus": 200,
+        "code": 403,
+        "msg": "permission.denied"
+      }
+    },
+    {
+      "caseId": "task-resume",
+      "title": "POST /business/deploy/tasks/1/resume denied for package:view role (unbound route default-deny)",
+      "pass": true,
+      "actual": {
+        "httpStatus": 200,
+        "code": 403,
+        "msg": "permission.denied"
+      }
+    },
+    {
+      "caseId": "task-retry",
+      "title": "POST /business/deploy/tasks/1/retry denied for package:view role (unbound route default-deny)",
+      "pass": true,
+      "actual": {
+        "httpStatus": 200,
+        "code": 403,
+        "msg": "permission.denied"
+      }
+    },
+    {
+      "caseId": "task-cancel",
+      "title": "POST /business/deploy/tasks/1/cancel denied for package:view role (unbound route default-deny)",
+      "pass": true,
+      "actual": {
+        "httpStatus": 200,
+        "code": 403,
+        "msg": "permission.denied"
+      }
+    },
+    {
+      "caseId": "task-rollback",
+      "title": "POST /business/deploy/tasks/1/rollback denied for package:view role (unbound route default-deny)",
+      "pass": true,
+      "actual": {
+        "httpStatus": 200,
+        "code": 403,
+        "msg": "permission.denied"
+      }
+    },
+    {
+      "caseId": "task-rollback-info",
+      "title": "GET /business/deploy/tasks/1/rollback denied for package:view role (unbound route default-deny)",
+      "pass": true,
+      "actual": {
+        "httpStatus": 200,
+        "code": 403,
+        "msg": "permission.denied"
+      }
+    },
+    {
+      "caseId": "task-events",
+      "title": "GET /business/deploy/tasks/1/events denied for package:view role (unbound route default-deny)",
+      "pass": true,
+      "actual": {
+        "httpStatus": 200,
+        "code": 403,
+        "msg": "permission.denied"
+      }
+    },
+    {
+      "caseId": "task-events-history",
+      "title": "GET /business/deploy/tasks/1/events/history denied for package:view role (unbound route default-deny)",
+      "pass": true,
+      "actual": {
+        "httpStatus": 200,
+        "code": 403,
+        "msg": "permission.denied"
+      }
+    },
+    {
+      "caseId": "task-logs",
+      "title": "GET /business/deploy/tasks/1/logs denied for package:view role (unbound route default-deny)",
+      "pass": true,
+      "actual": {
+        "httpStatus": 200,
+        "code": 403,
+        "msg": "permission.denied"
+      }
+    },
+    {
+      "caseId": "task-export",
+      "title": "GET /business/deploy/tasks/export denied for package:view role (unbound route default-deny)",
+      "pass": true,
+      "actual": {
+        "httpStatus": 200,
+        "code": 403,
+        "msg": "permission.denied"
+      }
+    },
+    {
+      "caseId": "targets-resolve",
+      "title": "POST /business/deploy/targets/resolve denied for package:view role (unbound route default-deny)",
+      "pass": true,
+      "actual": {
+        "httpStatus": 200,
+        "code": 403,
+        "msg": "permission.denied"
+      }
+    },
+    {
+      "caseId": "task-host-result",
+      "title": "POST /business/deploy/task-hosts/1/result denied for package:view role (unbound route default-deny)",
+      "pass": true,
+      "actual": {
+        "httpStatus": 200,
+        "code": 403,
+        "msg": "permission.denied"
+      }
+    }
+  ]
+}

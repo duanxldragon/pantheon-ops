@@ -4,6 +4,12 @@ English version: [PROJECT_INHERITANCE.en.md](./PROJECT_INHERITANCE.en.md)
 
 `pantheon-ops` 采用“完整 Pantheon Base 快照 + 声明式 business overlay”的继承模式。升级时从 `foundation-release.lock.json` 锁定的正式 Base release 重建完整产品树，再注入 Ops 业务资产；不在旧树上逐文件同步，也不维护共享源码白名单。
 
+## 方法消费与产品继承
+
+方法直接引用 [harness 能力适配交付规则](../../pantheon-harness/patterns/capability-adaptive-delivery.md)，消费版本和规范化文本 SHA256 记录在 `.harness/method-consumption.json`。本仓 `AGENTS.md`、`CLAUDE.md` 和 `.harness` 已由 `repositoryOverlayPaths` 声明，重建时作为 Ops 仓库治理资产保留；不复制 harness 正文或 Base 共享脚本。
+
+在 Ops 根目录运行 `node ../pantheon-harness/scripts/harness/check-method-consumption.mjs --root . --source ../pantheon-harness`。发现方法版本/哈希变化时先审查，才用同一命令追加 `--update` 更新 receipt。CI/离线环境必须提供同一 harness 快照；缺失来源是显式失败。产品 `VERSION` 与 `foundation-release.lock.json` 不因方法更新而改变；Base 共享产品配置或检查器仍须正式 release 后重建消费。
+
 ## 1. 所有权
 
 - `pantheon-base`：拥有 `platform`、`system/*`、共享前后端、生成器和产品级工程配置。

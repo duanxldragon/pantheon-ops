@@ -1,0 +1,139 @@
+{
+  "id": "k17",
+  "intent": "real storage discovery including valid empty snapshots",
+  "userModel": "authenticated admin unless stated",
+  "setup": "local Ops; pinned SSH to 115.190.251.143; dedicated namespace",
+  "harness": ".local/acceptance-20261121/k8s-live.py",
+  "expected": "assertions hold",
+  "fixesApplied": [],
+  "cleanup": "owned fixtures tracked in checkpoint.json",
+  "actual": {
+    "pvs": {
+      "sync": {
+        "synced": 0
+      },
+      "list": {
+        "items": [],
+        "total": 0
+      }
+    },
+    "pvcs": {
+      "sync": {
+        "synced": 0
+      },
+      "list": {
+        "items": [],
+        "total": 0
+      }
+    },
+    "storage-classes": {
+      "sync": {
+        "synced": 1
+      },
+      "list": {
+        "items": [
+          {
+            "id": 1,
+            "name": "local-path",
+            "clusterId": 5,
+            "provisioner": "rancher.io/local-path",
+            "reclaimPolicy": "Delete",
+            "volumeBindingMode": "WaitForFirstConsumer",
+            "allowVolumeExpansion": false,
+            "isDefault": true,
+            "createdAt": "2026-11-21T09:40:42.063+08:00",
+            "updatedAt": "2026-11-21T09:40:42.063+08:00"
+          }
+        ],
+        "total": 1
+      }
+    }
+  },
+  "status": "PASS",
+  "calls": [
+    {
+      "method": "POST",
+      "path": "/business/k8s/storage/pvs/sync",
+      "httpStatus": 200,
+      "code": 200,
+      "message": "success",
+      "durationMs": 391,
+      "data": {
+        "synced": 0
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/business/k8s/storage/pvs?clusterId=5",
+      "httpStatus": 200,
+      "code": 200,
+      "message": "success",
+      "durationMs": 16,
+      "data": {
+        "items": [],
+        "total": 0
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/business/k8s/storage/pvcs/sync",
+      "httpStatus": 200,
+      "code": 200,
+      "message": "success",
+      "durationMs": 93,
+      "data": {
+        "synced": 0
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/business/k8s/storage/pvcs?clusterId=5",
+      "httpStatus": 200,
+      "code": 200,
+      "message": "success",
+      "durationMs": 0,
+      "data": {
+        "items": [],
+        "total": 0
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/business/k8s/storage/storage-classes/sync",
+      "httpStatus": 200,
+      "code": 200,
+      "message": "success",
+      "durationMs": 78,
+      "data": {
+        "synced": 1
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/business/k8s/storage/storage-classes?clusterId=5",
+      "httpStatus": 200,
+      "code": 200,
+      "message": "success",
+      "durationMs": 16,
+      "data": {
+        "items": [
+          {
+            "id": 1,
+            "name": "local-path",
+            "clusterId": 5,
+            "provisioner": "rancher.io/local-path",
+            "reclaimPolicy": "Delete",
+            "volumeBindingMode": "WaitForFirstConsumer",
+            "allowVolumeExpansion": false,
+            "isDefault": true,
+            "createdAt": "2026-11-21T09:40:42.063+08:00",
+            "updatedAt": "2026-11-21T09:40:42.063+08:00"
+          }
+        ],
+        "total": 1
+      }
+    }
+  ],
+  "durationMs": 594,
+  "evidence": ".harness\\evidence\\2026-11-20-ops-review-live-runtime-acceptance\\k8s\\omx-accept-20261121-k8s08\\k17-20261121-094039.json"
+}

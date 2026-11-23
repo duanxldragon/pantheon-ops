@@ -1,0 +1,17 @@
+{
+  "runId": "omx_accept_20261121_codex_t02c",
+  "phase": "deploy",
+  "caseId": "d01",
+  "title": "custom marker package",
+  "ts": "2026-11-22T10:20:04.230Z",
+  "status": "NOT_RUN",
+  "message": "d00 prerequisite failed",
+  "httpStatus": null,
+  "businessCode": null,
+  "assertions": [],
+  "ids": {},
+  "result": null,
+  "redaction": null,
+  "durationMs": null,
+  "blockedReason": null
+}

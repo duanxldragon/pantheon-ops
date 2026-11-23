@@ -1,0 +1,5 @@
+{
+  "Replace": {
+    "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\backend\\modules\\business\\deploy\\deploy_fixed_safety_test.go": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.harness\\evidence\\2026-11-20-ops-deploy-fixed-template-security\\codex-runtime-apparatus\\deploy_fixed_runtime_overlay_test.go"
+  }
+}

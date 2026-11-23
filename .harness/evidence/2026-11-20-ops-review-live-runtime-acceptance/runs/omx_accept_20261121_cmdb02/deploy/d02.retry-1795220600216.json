@@ -1,0 +1,28 @@
+{
+  "runId": "omx_accept_20261121_cmdb02",
+  "phase": "deploy",
+  "caseId": "d02",
+  "title": "fixed nginx package metadata",
+  "ts": "2026-11-21T00:23:20.208Z",
+  "status": "PASS",
+  "httpStatus": 200,
+  "businessCode": 200,
+  "assertions": [
+    {
+      "name": "deploy/packages recorded fixture owned and readable",
+      "pass": true
+    },
+    {
+      "name": "fixed template metadata retained",
+      "pass": true
+    }
+  ],
+  "ids": {
+    "fixedPackageId": 1
+  },
+  "result": null,
+  "message": null,
+  "redaction": null,
+  "durationMs": 8,
+  "blockedReason": null
+}

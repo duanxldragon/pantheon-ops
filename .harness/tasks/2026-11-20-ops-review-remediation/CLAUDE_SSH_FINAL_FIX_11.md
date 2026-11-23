@@ -1,0 +1,10 @@
+Only edit your existing `.local/acceptance-20261121/ssh-probe.py`. No other files, no exploration, no final code pasted. You are Claude implementer; Codex reviews and executes. Read that one file then use Edit. Preserve defaults/model/auth configuration. Task must end after edits with under 100 words.
+
+Fix these concrete review failures:
+1. connect() currently loads global keys but doesn't load the selected task known_hosts BEFORE auth. Load exactly PANTHEON_VERIFY_SSH_KNOWN_HOSTS or script-local known_hosts into a fresh SSHClient; no silent fallback, no system keys. RejectPolicy and fixed target only. Missing or malformed file must fail closed.
+2. fingerprint ok must equal knownHostsVerified. Select exactly presented key type, no different-type fallback. main must output result and return 0 ONLY if result.ok true AND (for fingerprint) knownHostsVerified true. query_absent.ok must require absent; expect_file.ok must require actual file even if no contains.
+3. exec_capture currently bounded read followed by recv_exit_status can hang. Implement channel recv_ready/recv_stderr_ready loop, drain both streams to avoid window stall, bounded buffer retaining <=4096 bytes each, total time.monotonic deadline, channel.exit_status_ready check, small time.sleep, close channel in finally. Overlarge output must be recorded as truncated or fail; no unbounded recv_exit_status before exit ready.
+4. _confine_path and expect-file/assert-absent must require CLI --run-id and confine exactly /tmp/<run-id>, rejecting other run roots. Validate before connecting. realpath guard must fail closed if realpath absent/fails and must reject symlink-root alias and out-of-root resolved path; no lexical fallback.
+5. Unused secrets/password output never emitted, all failures safe metadata only. This helper is read-only; no new cleanup/write command.
+
+No need to write new tests: Codex will independently run targeted local negative examples and real read-only connection. Your final mentions only changed file, NOT_RUN.

@@ -1,0 +1,27 @@
+{
+  "runId": "omx_accept_20261122_cap",
+  "phase": "cap",
+  "caseId": "v6-repeat-submit-dedup",
+  "title": "identical application create submitted twice (V6 repeat-submit risk)",
+  "ts": "2026-11-21T16:35:22.944Z",
+  "status": "PASS",
+  "httpStatus": 200,
+  "businessCode": 500,
+  "assertions": [
+    {
+      "name": "second identical create rejected as duplicate (no new row)",
+      "pass": true
+    }
+  ],
+  "ids": {
+    "totalBefore": 7,
+    "totalAfter": 7,
+    "dupCreateHttp": 200,
+    "dupCreateCode": 500
+  },
+  "result": 500,
+  "message": "business.service.application_code_exists",
+  "redaction": "business result recorded; duplicate flag derived from row totals",
+  "durationMs": 9,
+  "blockedReason": null
+}

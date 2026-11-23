@@ -20,6 +20,7 @@ import (
 // DisasterRecoveryDrill represents a disaster recovery drill record
 type DisasterRecoveryDrill struct {
 	ID            uint64         `gorm:"primaryKey;autoIncrement" json:"id"`
+	TenantID      uint64         `gorm:"column:tenant_id;not null;default:0" json:"-"`
 	DrillName     string         `gorm:"size:128;not null" json:"drillName"`
 	BackupID      uint64         `gorm:"not null;index" json:"backupId"`
 	ClusterID     uint64         `gorm:"not null;index" json:"clusterId"`

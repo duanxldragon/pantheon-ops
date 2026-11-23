@@ -1,0 +1,148 @@
+{
+  "id": "k15",
+  "intent": "owned resources cleanup and independent absence",
+  "userModel": "authenticated admin unless stated",
+  "setup": "local Ops; pinned SSH to 115.190.251.143; dedicated namespace",
+  "harness": ".local/acceptance-20261121/k8s-live.py",
+  "expected": "assertions hold",
+  "fixesApplied": [],
+  "cleanup": "owned fixtures tracked in checkpoint.json",
+  "actual": [
+    {
+      "helmId": 1,
+      "apiDeleted": true
+    },
+    {
+      "namespace": "omx-accept-20261121-k8s08-ui",
+      "deletedAndIndependentlyVerified": true
+    },
+    {
+      "userId": 2,
+      "apiDeleted": true
+    },
+    {
+      "roleId": 2,
+      "apiDeleted": true
+    },
+    {
+      "namespace": "omx-accept-20261121-k8s08",
+      "deletedAndIndependentlyVerified": true
+    },
+    {
+      "ownedLocalReleaseRowsDeleted": 2
+    },
+    {
+      "localSnapshotTable": "biz_k8s_pv",
+      "ownedRowsDeleted": 0
+    },
+    {
+      "localSnapshotTable": "biz_k8s_pvc",
+      "ownedRowsDeleted": 0
+    },
+    {
+      "localSnapshotTable": "biz_k8s_storage_class",
+      "ownedRowsDeleted": 1
+    },
+    {
+      "clusterId": 5,
+      "deleted": true
+    },
+    {
+      "scopeId": 10,
+      "deleted": true
+    }
+  ],
+  "status": "PASS",
+  "calls": [
+    {
+      "method": "DELETE",
+      "path": "/business/k8s/clusters/5/namespaces/omx-accept-20261121-k8s08-ui?resourceVersion=2414188",
+      "httpStatus": 200,
+      "code": 200,
+      "message": "success",
+      "durationMs": 63,
+      "data": null
+    },
+    {
+      "method": "POST",
+      "path": "/system/user/batch-status",
+      "httpStatus": 200,
+      "code": 200,
+      "message": "success",
+      "durationMs": 62,
+      "data": {
+        "updatedCount": 1
+      }
+    },
+    {
+      "method": "DELETE",
+      "path": "/system/user/2",
+      "httpStatus": 403,
+      "code": 403,
+      "message": "auth.operation.verification_required",
+      "durationMs": 32,
+      "data": null
+    },
+    {
+      "method": "POST",
+      "path": "/auth/operation-verify",
+      "httpStatus": 200,
+      "code": 200,
+      "message": "success",
+      "durationMs": 125
+    },
+    {
+      "method": "DELETE",
+      "path": "/system/user/2",
+      "httpStatus": 200,
+      "code": 200,
+      "message": "success",
+      "durationMs": 109,
+      "data": {
+        "deleted": true
+      }
+    },
+    {
+      "method": "DELETE",
+      "path": "/system/role/2",
+      "httpStatus": 200,
+      "code": 200,
+      "message": "success",
+      "durationMs": 62,
+      "data": {
+        "deleted": true
+      }
+    },
+    {
+      "method": "DELETE",
+      "path": "/business/k8s/clusters/5/namespaces/omx-accept-20261121-k8s08?resourceVersion=2413494",
+      "httpStatus": 200,
+      "code": 200,
+      "message": "success",
+      "durationMs": 63,
+      "data": null
+    },
+    {
+      "method": "DELETE",
+      "path": "/business/k8s/clusters/5",
+      "httpStatus": 200,
+      "code": 200,
+      "message": "success",
+      "durationMs": 32,
+      "data": null
+    },
+    {
+      "method": "DELETE",
+      "path": "/business/bizscope/10",
+      "httpStatus": 200,
+      "code": 200,
+      "message": "success",
+      "durationMs": 46,
+      "data": {
+        "deleted": true
+      }
+    }
+  ],
+  "durationMs": 65734,
+  "evidence": ".harness\\evidence\\2026-11-20-ops-review-live-runtime-acceptance\\k8s\\omx-accept-20261121-k8s08\\k15-20261121-094039.json"
+}

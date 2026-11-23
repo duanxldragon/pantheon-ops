@@ -1,0 +1,22 @@
+{
+  "runId": "omx_accept_20261122_cap",
+  "phase": "cap",
+  "caseId": "cap-bizscope-update",
+  "title": "update business scope (CAP-BIZSCOPE write)",
+  "ts": "2026-11-21T16:35:21.223Z",
+  "status": "PASS",
+  "httpStatus": 200,
+  "businessCode": 200,
+  "assertions": [
+    {
+      "name": "business code 200",
+      "pass": true
+    }
+  ],
+  "ids": null,
+  "result": null,
+  "message": null,
+  "redaction": null,
+  "durationMs": 19,
+  "blockedReason": null
+}

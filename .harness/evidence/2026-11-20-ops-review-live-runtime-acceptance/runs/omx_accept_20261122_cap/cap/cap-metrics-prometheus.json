@@ -1,0 +1,29 @@
+{
+  "runId": "omx_accept_20261122_cap",
+  "phase": "cap",
+  "caseId": "cap-metrics-prometheus",
+  "title": "Prometheus /metrics exposes pantheon_* series (CAP-METRICS)",
+  "ts": "2026-11-21T16:35:22.958Z",
+  "status": "PASS",
+  "httpStatus": 200,
+  "businessCode": 200,
+  "assertions": [
+    {
+      "name": "metrics http 200",
+      "pass": true
+    },
+    {
+      "name": "pantheon_* series exposed",
+      "pass": true
+    }
+  ],
+  "ids": {
+    "totalSeries": 18,
+    "pantheonSeries": 15
+  },
+  "result": null,
+  "message": null,
+  "redaction": "metric samples not persisted",
+  "durationMs": 0,
+  "blockedReason": null
+}

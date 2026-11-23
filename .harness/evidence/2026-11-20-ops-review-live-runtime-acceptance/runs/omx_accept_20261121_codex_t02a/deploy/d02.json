@@ -1,0 +1,17 @@
+{
+  "runId": "omx_accept_20261121_codex_t02a",
+  "phase": "deploy",
+  "caseId": "d02",
+  "title": "fixed nginx_systemd package metadata",
+  "ts": "2026-11-22T08:34:21.509Z",
+  "status": "NOT_RUN",
+  "message": "d00 prerequisite failed",
+  "httpStatus": null,
+  "businessCode": null,
+  "assertions": [],
+  "ids": {},
+  "result": null,
+  "redaction": null,
+  "durationMs": null,
+  "blockedReason": null
+}

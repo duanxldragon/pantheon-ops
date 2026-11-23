@@ -1,0 +1,34 @@
+{
+  "runId": "omx_accept_20261122_cap",
+  "phase": "cap",
+  "caseId": "login-admin",
+  "title": "admin login on candidate k8s33",
+  "ts": "2026-11-21T16:35:21.152Z",
+  "status": "PASS",
+  "httpStatus": 200,
+  "businessCode": 200,
+  "assertions": [
+    {
+      "name": "http 200",
+      "pass": true
+    },
+    {
+      "name": "business code 200",
+      "pass": true
+    },
+    {
+      "name": "access token cookie issued",
+      "pass": true
+    },
+    {
+      "name": "csrf token cookie issued",
+      "pass": true
+    }
+  ],
+  "ids": null,
+  "result": null,
+  "message": null,
+  "redaction": null,
+  "durationMs": 280,
+  "blockedReason": null
+}

@@ -1,0 +1,28 @@
+{
+  "runId": "omx_accept_20261122_cap",
+  "phase": "cap",
+  "caseId": "cap-filedist-download",
+  "title": "download uploaded file round-trips (CAP-FILEDIST read)",
+  "ts": "2026-11-21T16:35:21.544Z",
+  "status": "PASS",
+  "httpStatus": 200,
+  "businessCode": 200,
+  "assertions": [
+    {
+      "name": "download http 200",
+      "pass": true
+    },
+    {
+      "name": "payload length matches ~2MB",
+      "pass": true
+    }
+  ],
+  "ids": {
+    "downloadBytes": 2097152
+  },
+  "result": null,
+  "message": null,
+  "redaction": "byte content not persisted",
+  "durationMs": 32,
+  "blockedReason": null
+}

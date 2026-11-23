@@ -1,0 +1,26 @@
+{
+  "cwd": "backend",
+  "mysqlRequired": true,
+  "cgoEnabled": true,
+  "log": "codex-fix-red-20261122-162342.log",
+  "exitCode": 1,
+  "capturedAt": "2026-11-22T16:23:54.3089681+08:00",
+  "command": "go test -race -count=1 -timeout=120s -v -run TestFixedTemplate|TestDeployFixedTemplateScriptsRenderForBuiltInComponents|TestDeployRedisTemplateUsesSignalStop|TestDeployJDKTemplateServiceSemantics|TestDeployPrometheusTemplateUsesCustomConfigPath ./modules/business/deploy",
+  "stage": "red",
+  "subtestFailed": 58,
+  "topLevelPassed": 18,
+  "skips": 0,
+  "sourceStable": true,
+  "failureMarkers": [
+    "--- FAIL: TestFixedTemplateRedisGeneratedConfig (0.00s)",
+    "--- FAIL: TestFixedTemplateRejectsUninstallRootAliases (0.03s)",
+    "FAIL\tgithub.com/duanxldragon/pantheon-base/backend/modules/business/deploy\t0.263s"
+  ],
+  "topLevelFailed": 2,
+  "sourceHashes": {
+    "backend/modules/business/deploy/deploy_fixed_safety_test.go": "96fdbe50e64bcc517c80deac1831c30427e2e900eb384fa58a58518862db09cd",
+    "backend/modules/business/deploy/deploy_service_test.go": "c43e25f74154b00bc5c28d266c830e9dba07f0adc893fc3749472a4e40226187",
+    "backend/modules/business/deploy/deploy_service.go": "60e3a5ae8e24ed0d0a2ca67fede05ba7cf2cb8e375b91a3f8a7b76cb90375d0b",
+    "backend/modules/business/deploy/deploy_fixed_templates.go": "ebead591cdb338c1a89fb90aa339f68ebef0a600bd75faa355315baff40727a6"
+  }
+}

@@ -1,0 +1,34 @@
+{
+  "task": "2026-11-20-ops-deploy-fixed-template-security",
+  "round": 6,
+  "phase": "filedist-bootstrap",
+  "timestamp": "2026-11-23T13:21:00+0800",
+  "candidate": {
+    "binarySha256": "bad479fc9817fffcab5253064b5ddf052365fb88fed55bd9d8697157720b971f",
+    "binary": "pantheon-ops-codex-t02b-20261122-172553.exe",
+    "backendPid": 29648,
+    "backendPort": 8081,
+    "database": "ops_acceptance_formal_20261122_codex"
+  },
+  "envFixing": {
+    "finding": "PANTHEON_BUSINESS_SECRET_KEY was NOT provisioned by restart-live.ps1 / finish-warm.ps1 / prepare-formal-runtime.ps1; filedist POST /tasks returned 500 business.secrets.key_missing because secrets.Encrypt(target.password) requires the key. This is the authentic product path: CreateTask auto-starts execution via go s.executeTask.",
+    "fix": "restart-live-secret.ps1 (copy of sanctioned restart-live.ps1) provisions a random 32-byte hex PANTHEON_BUSINESS_SECRET_KEY via DPAPI if absent, preserving DSN/AUTO_MIGRATE=false, same binary, WorkingDirectory=backend, hidden window. PowerShell 5.1 compat: RandomNumberGenerator.GetBytes(int)/Convert.ToHexString not usable; replaced with Create().GetBytes(32)+in-place hex.",
+    "restartLog": "runtime-live/backend-restart-secret-20261123-131936.stderr.log",
+    "startupClean": "server started port=8081, DB connection successful, all migrations applied (auto_migrate=false path), no errors"
+  },
+  "storageFilePlacement": {
+    "finding": "filedist engine resolves storage basePath 'uploads' relative to candidate WorkingDirectory=<pantheon-ops>/backend, so file must physically live at backend/uploads/2026/11/23/<name>, not under acceptance-20261121/uploads/. Storage GetFilePathContext -> resolveWithinRoot(basePath, record.Path).",
+    "filedistFileId": 1,
+    "seededBytes": {
+      "relPath": "2026/11/23/1795410460-jdk-17.0.15_linux-x64_bin.tar.gz",
+      "physicalPath": "backend/uploads/2026/11/23/1795410460-jdk-17.0.15_linux-x64_bin.tar.gz",
+      "size": 183197735,
+      "sha256Prefix": "2dfef3016808b202"
+    }
+  },
+  "pending": [
+    "POST /business/filedist/tasks fileId=1 target VM 115.190.251.143 share/22 verify ECDSA wGNI, poll to completed/failed, vm_verify byte-exact",
+    "flip biz_deploy_package id=18 to file:///tmp/jdk-installer/.dist/jdk-17.0.15_linux-x64_bin.tar.gz",
+    "fresh install task (runId omx_accept_20261121_codex_t02h) + evidence + legal uninstall + vendor jdk.sh restore + package 18 restore + filedist cleanup"
+  ]
+}

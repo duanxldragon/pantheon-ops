@@ -711,29 +711,46 @@ func (s *DeployService) ListTasks(query TaskQuery, dataScope *common.DataScopeRe
 	if strings.TrimSpace(query.ExecutorType) != "" {
 		db = db.Where("executor_type = ?", strings.TrimSpace(query.ExecutorType))
 	}
+	pageStart := (query.Page - 1) * query.PageSize
 	var total int64
 	var rows []DeployTask
-	if err := db.Order(idDescOrder).Find(&rows).Error; err != nil {
-		return nil, err
-	}
-	if dataScope != nil && !dataScope.IsAdmin && strings.TrimSpace(dataScope.Mode) != "" && strings.TrimSpace(dataScope.Mode) != common.DataScopeModeAll {
-		filteredRows, err := s.filterVisibleTasks(rows, dataScope)
+	if requiresScopedTaskVisibility(dataScope) {
+		// NEW-01: resolve visible task ids before paging (ids only plus one batched
+		// CMDB scope lookup) instead of loading every task row and paginating in
+		// memory. Total stays exact because it counts the visible id set.
+		// shortcut: scoped visibility depends on the external CMDB host reader, so
+		// candidate ids are still enumerated; upgrade to a joined SQL scope predicate
+		// when the CMDB capability exposes one.
+		var candidateIDs []uint64
+		if err := db.Order(idDescOrder).Pluck("id", &candidateIDs).Error; err != nil {
+			return nil, err
+		}
+		visibleIDs, err := s.filterVisibleTaskIDs(candidateIDs, dataScope)
 		if err != nil {
 			return nil, err
 		}
-		rows = filteredRows
+		total = int64(len(visibleIDs))
+		if pageStart < len(visibleIDs) {
+			end := pageStart + query.PageSize
+			if end > len(visibleIDs) {
+				end = len(visibleIDs)
+			}
+			if err := s.db.Where("id IN ?", visibleIDs[pageStart:end]).Order(idDescOrder).Find(&rows).Error; err != nil {
+				return nil, err
+			}
+		}
+	} else {
+		// Unscoped callers get a true SQL count plus limit/offset page: no full-table load.
+		if err := db.Session(&gorm.Session{}).Count(&total).Error; err != nil {
+			return nil, err
+		}
+		if pageStart < int(total) {
+			if err := db.Session(&gorm.Session{}).Order(idDescOrder).Limit(query.PageSize).Offset(pageStart).Find(&rows).Error; err != nil {
+				return nil, err
+			}
+		}
 	}
-	total = int64(len(rows))
-	start := (query.Page - 1) * query.PageSize
-	if start >= len(rows) {
-		return &TaskListResponse{Items: []TaskResponse{}, Total: total, Page: query.Page, PageSize: query.PageSize}, nil
-	}
-	end := start + query.PageSize
-	if end > len(rows) {
-		end = len(rows)
-	}
-	rows = rows[start:end]
-	hostsByTaskID, err := s.loadTaskHostsByTaskIDs(extractTaskIDs(rows))
+	hostsByTaskID, err := s.loadTaskHostsByTaskIDs(extractTaskIDs(rows), dataScope)
 	if err != nil {
 		return nil, err
 	}
@@ -1753,6 +1770,15 @@ func normalizeDeployExecutionTimeout(seconds int) time.Duration {
 	return duration
 }
 
+// deployExecutionTimeout returns the per-attempt execution budget, not a
+// whole-task deadline: executeAsyncHostAttempt re-arms it independently for
+// every attempt (deployAttemptMax retries), so ExecutionTimeoutSeconds=T is
+// "one attempt may run up to T", with an effective wall-clock ceiling of
+// roughly T×deployAttemptMax when every attempt burns its full budget. A hung
+// script is cut off at its own attempt's budget; visible wall-clock time may
+// exceed T while later attempts retry. Ruled after round-7 triage
+// (2026-11-20-ops-deploy-fixed-template-security): accepted as per-attempt
+// semantics, documented, no behavior change.
 func deployExecutionTimeout(task DeployTask) time.Duration {
 	return normalizeDeployExecutionTimeout(task.ExecutionTimeoutSeconds)
 }
@@ -2988,21 +3014,82 @@ func errorText(err error) string {
 	return err.Error()
 }
 
-func (s *DeployService) filterVisibleTasks(rows []DeployTask, dataScope *common.DataScopeReq) ([]DeployTask, error) {
-	if !requiresScopedTaskVisibility(dataScope) {
-		return rows, nil
+// filterVisibleTaskIDs resolves which candidate tasks are visible under the
+// caller's data scope. Host-linked tasks are decided by a single CMDB reader
+// call over all their hosts; tasks with no host rows fall back to target
+// resolution, matching taskVisible.
+func (s *DeployService) filterVisibleTaskIDs(taskIDs []uint64, dataScope *common.DataScopeReq) ([]uint64, error) {
+	if len(taskIDs) == 0 {
+		return nil, nil
 	}
-	filtered := make([]DeployTask, 0, len(rows))
-	for i := range rows {
-		visible, err := s.taskVisible(&rows[i], dataScope)
+	var taskHosts []DeployTaskHost
+	if err := s.db.Where("task_id IN ?", taskIDs).Find(&taskHosts).Error; err != nil {
+		return nil, err
+	}
+	hostsByTask := make(map[uint64][]uint64, len(taskIDs))
+	hostIDs := make([]uint64, 0, len(taskHosts))
+	for _, taskHost := range taskHosts {
+		hostsByTask[taskHost.TaskID] = append(hostsByTask[taskHost.TaskID], taskHost.HostID)
+		hostIDs = append(hostIDs, taskHost.HostID)
+	}
+	visibleHosts := make(map[uint64]bool, len(hostIDs))
+	if len(hostIDs) > 0 {
+		if s.hostReader == nil {
+			return nil, errors.New("business.cmdb.readerNotConfigured")
+		}
+		page, err := s.hostReader.GetByIDs(s.requestContext(), bizcap.HostIDsQuery{HostIDs: hostIDs, DataScope: dataScope})
 		if err != nil {
 			return nil, err
 		}
-		if visible {
-			filtered = append(filtered, rows[i])
+		for _, host := range page.Items {
+			visibleHosts[host.ID] = true
 		}
 	}
-	return filtered, nil
+	visible := make(map[uint64]bool, len(taskIDs))
+	var noHostIDs []uint64
+	for _, id := range taskIDs {
+		hostIDs, hasHosts := hostsByTask[id]
+		if !hasHosts {
+			noHostIDs = append(noHostIDs, id)
+			continue
+		}
+		for _, hostID := range hostIDs {
+			if visibleHosts[hostID] {
+				visible[id] = true
+				break
+			}
+		}
+	}
+	if len(noHostIDs) > 0 {
+		var tasks []DeployTask
+		if err := s.db.Where("id IN ?", noHostIDs).Find(&tasks).Error; err != nil {
+			return nil, err
+		}
+		byID := make(map[uint64]*DeployTask, len(tasks))
+		for i := range tasks {
+			byID[tasks[i].ID] = &tasks[i]
+		}
+		for _, id := range noHostIDs {
+			task := byID[id]
+			if task == nil {
+				continue
+			}
+			hosts, err := s.resolveTaskTargets(task, dataScope)
+			if err != nil {
+				return nil, err
+			}
+			if len(hosts) > 0 {
+				visible[id] = true
+			}
+		}
+	}
+	result := make([]uint64, 0, len(taskIDs))
+	for _, id := range taskIDs {
+		if visible[id] {
+			result = append(result, id)
+		}
+	}
+	return result, nil
 }
 
 func (s *DeployService) taskVisible(task *DeployTask, dataScope *common.DataScopeReq) (bool, error) {
@@ -4253,7 +4340,11 @@ const (
 // defaultExecutionSnapshotSteps builds the single fallback step and validates
 // the request parameters against the resolved package.
 func (s *DeployService) defaultExecutionSnapshotSteps(pkg DeployPackage, stepCode, stepName, normalizedAction string, taskParams map[string]any) ([]deployStepSnapshot, error) {
-	if err := validateTemplateParams(pkg.ExecutionMode, pkg.TemplateCode, pkg.TemplateConfig, taskParams); err != nil {
+	// The task action is the effective action; parameter maps do not always
+	// repeat it, so validate with it injected before freezing the snapshot.
+	validationParams := cloneDeployConfig(taskParams)
+	validationParams["action"] = normalizedAction
+	if err := validateTemplateParams(pkg.ExecutionMode, pkg.TemplateCode, pkg.TemplateConfig, validationParams); err != nil {
 		return nil, err
 	}
 	return []deployStepSnapshot{{
@@ -4326,7 +4417,9 @@ func (s *DeployService) resolveStepSnapshotPackage(step TemplateStepResponse, st
 // their fixed schema, other step types have no parameter contract.
 func validateStepSnapshotParams(stepType string, stepPackage DeployPackage, params map[string]any, action string) error {
 	if stepType == TemplateStepTypePackage {
-		return validateTemplateParams(stepPackage.ExecutionMode, stepPackage.TemplateCode, stepPackage.TemplateConfig, params)
+		validationParams := cloneDeployConfig(params)
+		validationParams["action"] = action
+		return validateTemplateParams(stepPackage.ExecutionMode, stepPackage.TemplateCode, stepPackage.TemplateConfig, validationParams)
 	}
 	if isComponentType(stepType) {
 		componentParams := cloneDeployConfig(params)
@@ -5198,7 +5291,7 @@ func extractTaskIDs(rows []DeployTask) []uint64 {
 	return ids
 }
 
-func (s *DeployService) loadTaskHostsByTaskIDs(taskIDs []uint64) (map[uint64][]TaskHostResponse, error) {
+func (s *DeployService) loadTaskHostsByTaskIDs(taskIDs []uint64, dataScope *common.DataScopeReq) (map[uint64][]TaskHostResponse, error) {
 	result := make(map[uint64][]TaskHostResponse, len(taskIDs))
 	if len(taskIDs) == 0 {
 		return result, nil
@@ -5207,7 +5300,13 @@ func (s *DeployService) loadTaskHostsByTaskIDs(taskIDs []uint64) (map[uint64][]T
 	if err := s.db.Where("task_id IN ?", taskIDs).Order("task_id ASC, id ASC").Find(&hosts).Error; err != nil {
 		return nil, err
 	}
-	for _, host := range hosts {
+	// SEC-002: one task can contain hosts outside the caller's scope; never expose
+	// their IP/stdout/stderr just because another host in the task is visible.
+	visible, err := s.visibleTaskHosts(hosts, dataScope)
+	if err != nil {
+		return nil, err
+	}
+	for _, host := range visible {
 		result[host.TaskID] = append(result[host.TaskID], taskHostToResponse(&host))
 	}
 	return result, nil

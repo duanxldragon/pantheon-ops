@@ -1,0 +1,512 @@
+{
+  "runId": "omx-accept-20261121-k8s08",
+  "phase": "followup-only",
+  "provider": "115.190.251.143 existing k3s",
+  "receipt": {
+    "backendSha256": "a338bc00e7cba92ca89742ea026b6a6dcd6bd3af97559585a43893e1545629dd",
+    "backendPid": 12040,
+    "sourceHead": "a2d69d4a759b5df2b26aaa9d26bdc5175babe9dc",
+    "harnessSha256": "ceecbb166ca6f28c27eea0af033631e33ca630d4cb26a6248218307a375992cd"
+  },
+  "status": "PASS",
+  "cases": [
+    {
+      "id": "k00",
+      "intent": "local Ops readiness before real acceptance",
+      "userModel": "authenticated admin unless stated",
+      "setup": "local Ops; pinned SSH to 115.190.251.143; dedicated namespace",
+      "harness": ".local/acceptance-20261121/k8s-live.py",
+      "expected": "assertions hold",
+      "fixesApplied": [],
+      "cleanup": "owned fixtures tracked in checkpoint.json",
+      "actual": {
+        "httpListenerReady": true,
+        "readinessHttpStatus": 404
+      },
+      "status": "PASS",
+      "calls": [],
+      "durationMs": 125,
+      "evidence": ".harness\\evidence\\2026-11-20-ops-review-live-runtime-acceptance\\k8s\\omx-accept-20261121-k8s08\\k00-20261121-094039.json"
+    },
+    {
+      "id": "k01",
+      "intent": "pinned SSH and CA-verified public API configuration",
+      "userModel": "authenticated admin unless stated",
+      "setup": "local Ops; pinned SSH to 115.190.251.143; dedicated namespace",
+      "harness": ".local/acceptance-20261121/k8s-live.py",
+      "expected": "assertions hold",
+      "fixesApplied": [],
+      "cleanup": "owned fixtures tracked in checkpoint.json",
+      "actual": {
+        "ssh": {
+          "ok": true,
+          "host": "115.190.251.143:22",
+          "user": "root",
+          "password_source": "env:PANTHEON_VERIFY_SSH_PASSWORD",
+          "serverKeyType": "ssh-ed25519",
+          "serverSha256Fingerprint": "SHA256:FhLFRIfRIGotV2tS+sIZWxniie2qG5Xu8H3igYJ8RNU",
+          "knownHostsVerified": true,
+          "knownHostsEntryType": "ssh-ed25519",
+          "knownHostsFiles": [
+            "known_hosts"
+          ]
+        },
+        "provider": "existing k3s",
+        "tlsVerification": true,
+        "server": "https://115.190.251.143:6443",
+        "tlsServerName": "localhost",
+        "kubeconfigPersisted": false
+      },
+      "status": "PASS",
+      "calls": [],
+      "durationMs": 610,
+      "evidence": ".harness\\evidence\\2026-11-20-ops-review-live-runtime-acceptance\\k8s\\omx-accept-20261121-k8s08\\k01-20261121-094039.json"
+    },
+    {
+      "id": "k02",
+      "intent": "local Ops login",
+      "userModel": "authenticated admin unless stated",
+      "setup": "local Ops; pinned SSH to 115.190.251.143; dedicated namespace",
+      "harness": ".local/acceptance-20261121/k8s-live.py",
+      "expected": "assertions hold",
+      "fixesApplied": [],
+      "cleanup": "owned fixtures tracked in checkpoint.json",
+      "actual": {
+        "tokenIssued": true,
+        "csrfIssued": true
+      },
+      "status": "PASS",
+      "calls": [
+        {
+          "method": "POST",
+          "path": "/auth/login",
+          "httpStatus": 200,
+          "code": 200,
+          "message": "success",
+          "durationMs": 219
+        }
+      ],
+      "durationMs": 219,
+      "evidence": ".harness\\evidence\\2026-11-20-ops-review-live-runtime-acceptance\\k8s\\omx-accept-20261121-k8s08\\k02-20261121-094039.json"
+    },
+    {
+      "id": "ku01",
+      "intent": "UI-created namespace ownership and selected write permissions",
+      "userModel": "authenticated admin unless stated",
+      "setup": "local Ops; pinned SSH to 115.190.251.143; dedicated namespace",
+      "harness": ".local/acceptance-20261121/k8s-live.py",
+      "expected": "assertions hold",
+      "fixesApplied": [],
+      "cleanup": "owned fixtures tracked in checkpoint.json",
+      "actual": {
+        "namespace": "omx-accept-20261121-k8s08-ui",
+        "businessScopeId": 10,
+        "environment": "dev",
+        "allowedActions": [
+          "configmap:create",
+          "configmap:delete"
+        ],
+        "independentlyPresent": true,
+        "selectedWritePassed": true,
+        "unselectedWriteRejected": true
+      },
+      "status": "PASS",
+      "calls": [
+        {
+          "method": "POST",
+          "path": "/business/k8s/clusters/5/configmaps?namespace=omx-accept-20261121-k8s08-ui",
+          "httpStatus": 200,
+          "code": 200,
+          "message": "success",
+          "durationMs": 109,
+          "data": {
+            "name": "ui-accept-config",
+            "namespace": "omx-accept-20261121-k8s08-ui",
+            "data": {
+              "message": "omx-accept-20261121-k8s08"
+            },
+            "resourceVersion": "2414380"
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/business/k8s/clusters/5/configmaps/ui-accept-config?namespace=omx-accept-20261121-k8s08-ui",
+          "httpStatus": 200,
+          "code": 200,
+          "message": "success",
+          "durationMs": 32,
+          "data": {
+            "name": "ui-accept-config",
+            "namespace": "omx-accept-20261121-k8s08-ui",
+            "data": {
+              "message": "omx-accept-20261121-k8s08"
+            },
+            "resourceVersion": "2414380"
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/business/k8s/clusters/5/services?namespace=omx-accept-20261121-k8s08-ui",
+          "httpStatus": 403,
+          "code": 403,
+          "message": "k8s.namespace.action_forbidden",
+          "durationMs": 15,
+          "data": null
+        }
+      ],
+      "durationMs": 531,
+      "evidence": ".harness\\evidence\\2026-11-20-ops-review-live-runtime-acceptance\\k8s\\omx-accept-20261121-k8s08\\ku01-20261121-094039.json"
+    },
+    {
+      "id": "k17",
+      "intent": "real storage discovery including valid empty snapshots",
+      "userModel": "authenticated admin unless stated",
+      "setup": "local Ops; pinned SSH to 115.190.251.143; dedicated namespace",
+      "harness": ".local/acceptance-20261121/k8s-live.py",
+      "expected": "assertions hold",
+      "fixesApplied": [],
+      "cleanup": "owned fixtures tracked in checkpoint.json",
+      "actual": {
+        "pvs": {
+          "sync": {
+            "synced": 0
+          },
+          "list": {
+            "items": [],
+            "total": 0
+          }
+        },
+        "pvcs": {
+          "sync": {
+            "synced": 0
+          },
+          "list": {
+            "items": [],
+            "total": 0
+          }
+        },
+        "storage-classes": {
+          "sync": {
+            "synced": 1
+          },
+          "list": {
+            "items": [
+              {
+                "id": 1,
+                "name": "local-path",
+                "clusterId": 5,
+                "provisioner": "rancher.io/local-path",
+                "reclaimPolicy": "Delete",
+                "volumeBindingMode": "WaitForFirstConsumer",
+                "allowVolumeExpansion": false,
+                "isDefault": true,
+                "createdAt": "2026-11-21T09:40:42.063+08:00",
+                "updatedAt": "2026-11-21T09:40:42.063+08:00"
+              }
+            ],
+            "total": 1
+          }
+        }
+      },
+      "status": "PASS",
+      "calls": [
+        {
+          "method": "POST",
+          "path": "/business/k8s/storage/pvs/sync",
+          "httpStatus": 200,
+          "code": 200,
+          "message": "success",
+          "durationMs": 391,
+          "data": {
+            "synced": 0
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/business/k8s/storage/pvs?clusterId=5",
+          "httpStatus": 200,
+          "code": 200,
+          "message": "success",
+          "durationMs": 16,
+          "data": {
+            "items": [],
+            "total": 0
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/business/k8s/storage/pvcs/sync",
+          "httpStatus": 200,
+          "code": 200,
+          "message": "success",
+          "durationMs": 93,
+          "data": {
+            "synced": 0
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/business/k8s/storage/pvcs?clusterId=5",
+          "httpStatus": 200,
+          "code": 200,
+          "message": "success",
+          "durationMs": 0,
+          "data": {
+            "items": [],
+            "total": 0
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/business/k8s/storage/storage-classes/sync",
+          "httpStatus": 200,
+          "code": 200,
+          "message": "success",
+          "durationMs": 78,
+          "data": {
+            "synced": 1
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/business/k8s/storage/storage-classes?clusterId=5",
+          "httpStatus": 200,
+          "code": 200,
+          "message": "success",
+          "durationMs": 16,
+          "data": {
+            "items": [
+              {
+                "id": 1,
+                "name": "local-path",
+                "clusterId": 5,
+                "provisioner": "rancher.io/local-path",
+                "reclaimPolicy": "Delete",
+                "volumeBindingMode": "WaitForFirstConsumer",
+                "allowVolumeExpansion": false,
+                "isDefault": true,
+                "createdAt": "2026-11-21T09:40:42.063+08:00",
+                "updatedAt": "2026-11-21T09:40:42.063+08:00"
+              }
+            ],
+            "total": 1
+          }
+        }
+      ],
+      "durationMs": 594,
+      "evidence": ".harness\\evidence\\2026-11-20-ops-review-live-runtime-acceptance\\k8s\\omx-accept-20261121-k8s08\\k17-20261121-094039.json"
+    },
+    {
+      "id": "k15",
+      "intent": "owned resources cleanup and independent absence",
+      "userModel": "authenticated admin unless stated",
+      "setup": "local Ops; pinned SSH to 115.190.251.143; dedicated namespace",
+      "harness": ".local/acceptance-20261121/k8s-live.py",
+      "expected": "assertions hold",
+      "fixesApplied": [],
+      "cleanup": "owned fixtures tracked in checkpoint.json",
+      "actual": [
+        {
+          "helmId": 1,
+          "apiDeleted": true
+        },
+        {
+          "namespace": "omx-accept-20261121-k8s08-ui",
+          "deletedAndIndependentlyVerified": true
+        },
+        {
+          "userId": 2,
+          "apiDeleted": true
+        },
+        {
+          "roleId": 2,
+          "apiDeleted": true
+        },
+        {
+          "namespace": "omx-accept-20261121-k8s08",
+          "deletedAndIndependentlyVerified": true
+        },
+        {
+          "ownedLocalReleaseRowsDeleted": 2
+        },
+        {
+          "localSnapshotTable": "biz_k8s_pv",
+          "ownedRowsDeleted": 0
+        },
+        {
+          "localSnapshotTable": "biz_k8s_pvc",
+          "ownedRowsDeleted": 0
+        },
+        {
+          "localSnapshotTable": "biz_k8s_storage_class",
+          "ownedRowsDeleted": 1
+        },
+        {
+          "clusterId": 5,
+          "deleted": true
+        },
+        {
+          "scopeId": 10,
+          "deleted": true
+        }
+      ],
+      "status": "PASS",
+      "calls": [
+        {
+          "method": "DELETE",
+          "path": "/business/k8s/clusters/5/namespaces/omx-accept-20261121-k8s08-ui?resourceVersion=2414188",
+          "httpStatus": 200,
+          "code": 200,
+          "message": "success",
+          "durationMs": 63,
+          "data": null
+        },
+        {
+          "method": "POST",
+          "path": "/system/user/batch-status",
+          "httpStatus": 200,
+          "code": 200,
+          "message": "success",
+          "durationMs": 62,
+          "data": {
+            "updatedCount": 1
+          }
+        },
+        {
+          "method": "DELETE",
+          "path": "/system/user/2",
+          "httpStatus": 403,
+          "code": 403,
+          "message": "auth.operation.verification_required",
+          "durationMs": 32,
+          "data": null
+        },
+        {
+          "method": "POST",
+          "path": "/auth/operation-verify",
+          "httpStatus": 200,
+          "code": 200,
+          "message": "success",
+          "durationMs": 125
+        },
+        {
+          "method": "DELETE",
+          "path": "/system/user/2",
+          "httpStatus": 200,
+          "code": 200,
+          "message": "success",
+          "durationMs": 109,
+          "data": {
+            "deleted": true
+          }
+        },
+        {
+          "method": "DELETE",
+          "path": "/system/role/2",
+          "httpStatus": 200,
+          "code": 200,
+          "message": "success",
+          "durationMs": 62,
+          "data": {
+            "deleted": true
+          }
+        },
+        {
+          "method": "DELETE",
+          "path": "/business/k8s/clusters/5/namespaces/omx-accept-20261121-k8s08?resourceVersion=2413494",
+          "httpStatus": 200,
+          "code": 200,
+          "message": "success",
+          "durationMs": 63,
+          "data": null
+        },
+        {
+          "method": "DELETE",
+          "path": "/business/k8s/clusters/5",
+          "httpStatus": 200,
+          "code": 200,
+          "message": "success",
+          "durationMs": 32,
+          "data": null
+        },
+        {
+          "method": "DELETE",
+          "path": "/business/bizscope/10",
+          "httpStatus": 200,
+          "code": 200,
+          "message": "success",
+          "durationMs": 46,
+          "data": {
+            "deleted": true
+          }
+        }
+      ],
+      "durationMs": 65734,
+      "evidence": ".harness\\evidence\\2026-11-20-ops-review-live-runtime-acceptance\\k8s\\omx-accept-20261121-k8s08\\k15-20261121-094039.json"
+    }
+  ],
+  "cleanup": [
+    {
+      "helmId": 1,
+      "apiDeleted": true
+    },
+    {
+      "namespace": "omx-accept-20261121-k8s08-ui",
+      "deletedAndIndependentlyVerified": true
+    },
+    {
+      "userId": 2,
+      "apiDeleted": true
+    },
+    {
+      "roleId": 2,
+      "apiDeleted": true
+    },
+    {
+      "namespace": "omx-accept-20261121-k8s08",
+      "deletedAndIndependentlyVerified": true
+    },
+    {
+      "ownedLocalReleaseRowsDeleted": 2
+    },
+    {
+      "localSnapshotTable": "biz_k8s_pv",
+      "ownedRowsDeleted": 0
+    },
+    {
+      "localSnapshotTable": "biz_k8s_pvc",
+      "ownedRowsDeleted": 0
+    },
+    {
+      "localSnapshotTable": "biz_k8s_storage_class",
+      "ownedRowsDeleted": 1
+    },
+    {
+      "clusterId": 5,
+      "deleted": true
+    },
+    {
+      "scopeId": 10,
+      "deleted": true
+    }
+  ],
+  "gaps": [
+    "multi-tenant isolation",
+    "Helm chart installation is not implemented",
+    "frontend 10-second timeout",
+    "WebSocket server resource cleanup",
+    "Velero schedule and restore",
+    "Ingress provider changes",
+    "release rollout/rollback",
+    "Velero ConfigMap backup",
+    "non-admin authorization"
+  ],
+  "notRun": [
+    "k03b",
+    "k13",
+    "k16",
+    "k18",
+    "k19",
+    "k20"
+  ]
+}

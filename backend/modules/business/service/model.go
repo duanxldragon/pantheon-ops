@@ -66,6 +66,7 @@ func (Application) TableName() string { return "biz_application" }
 // Service is a runtime service belonging to an application.
 type Service struct {
 	ID            uint64         `gorm:"primaryKey;autoIncrement" json:"id"`
+	TenantID      uint64         `gorm:"column:tenant_id;not null;default:0" json:"-"`
 	ApplicationID uint64         `gorm:"column:application_id;not null;index" json:"applicationId"`
 	Code          string         `gorm:"size:128;not null" json:"code"`
 	Name          string         `gorm:"size:255;not null" json:"name"`
@@ -88,6 +89,7 @@ func (Service) TableName() string { return "biz_service" }
 //nolint:revive // retained as the domain model name in the service package.
 type ServiceInstance struct {
 	ID               uint64         `gorm:"primaryKey;autoIncrement" json:"id"`
+	TenantID         uint64         `gorm:"column:tenant_id;not null;default:0" json:"-"`
 	ServiceID        uint64         `gorm:"column:service_id;not null;index" json:"serviceId"`
 	Environment      string         `gorm:"size:32;not null" json:"environment"`
 	TargetType       string         `gorm:"column:target_type;size:32;not null" json:"targetType"`

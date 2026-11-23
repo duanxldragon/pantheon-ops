@@ -11,7 +11,8 @@ import (
 // clientset is built for an operation.
 type Cluster struct {
 	ID                        uint64         `gorm:"primaryKey;autoIncrement" json:"id"`
-	Code                      string         `gorm:"size:128;not null;index:uk_k8s_cluster_code,unique" json:"code"`
+	TenantID                  uint64         `gorm:"column:tenant_id;not null;default:0;index:uk_k8s_cluster_code,unique,priority:1" json:"-"`
+	Code                      string         `gorm:"size:128;not null;index:uk_k8s_cluster_code,unique,priority:2" json:"code"`
 	Name                      string         `gorm:"size:255;not null" json:"name"`
 	Environment               string         `gorm:"size:50;not null;index" json:"environment"`
 	BusinessScopeID           uint64         `gorm:"column:business_scope_id;index" json:"businessScopeId"`
@@ -36,7 +37,7 @@ type Cluster struct {
 	UpdatedAt                 time.Time      `json:"updatedAt"`
 	CreatedBy                 string         `gorm:"size:64" json:"createdBy"`
 	UpdatedBy                 string         `gorm:"size:64" json:"updatedBy"`
-	DeletedAt                 gorm.DeletedAt `gorm:"index:uk_k8s_cluster_code,unique" json:"-"`
+	DeletedAt                 gorm.DeletedAt `gorm:"index:uk_k8s_cluster_code,unique,priority:3" json:"-"`
 }
 
 // ClusterCredentialRef stores encrypted kubeconfig material separately from
@@ -45,6 +46,7 @@ type Cluster struct {
 //nolint:revive // Public model name retains the cluster domain prefix for compatibility.
 type ClusterCredentialRef struct {
 	ID        uint64 `gorm:"primaryKey;autoIncrement"`
+	TenantID  uint64 `gorm:"column:tenant_id;not null;default:0" json:"-"`
 	ClusterID uint64 `gorm:"not null;index"`
 	Encrypted string `gorm:"column:encrypted;type:text;not null" json:"-"`
 	Version   uint64 `gorm:"not null;default:1"`

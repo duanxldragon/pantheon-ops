@@ -1,0 +1,63 @@
+{
+  "runId": "omx_accept_20261121_codex_t02f",
+  "phase": "deploy",
+  "updatedAt": "2026-11-23T02:59:42.209Z",
+  "ids": {
+    "hostId": 1,
+    "scopeProdId": 1,
+    "credentialId": 1,
+    "fingerprint": "SHA256:FhLFRIfRIGotV2tS+sIZWxniie2qG5Xu8H3igYJ8RNU",
+    "serverKeyType": "ssh-ed25519",
+    "packageId": 11,
+    "fixedPackageId": 12,
+    "positiveTaskId": 8,
+    "negativePackageId": 13,
+    "negativeTaskId": 9,
+    "jdkPackageId": 14,
+    "jdkInstallTaskId": 10,
+    "jdkUninstallTaskId": 11
+  },
+  "fixtures": [
+    {
+      "resource": "deploy/packages",
+      "id": 11
+    },
+    {
+      "resource": "deploy/packages",
+      "id": 12
+    },
+    {
+      "resource": "deploy/tasks",
+      "id": 8
+    },
+    {
+      "resource": "deploy/packages",
+      "id": 13
+    },
+    {
+      "resource": "deploy/tasks",
+      "id": 9
+    },
+    {
+      "resource": "deploy/packages",
+      "id": 14
+    },
+    {
+      "resource": "deploy/tasks",
+      "id": 10
+    },
+    {
+      "resource": "deploy/tasks",
+      "id": 11
+    }
+  ],
+  "fingerprint": "SHA256:FhLFRIfRIGotV2tS+sIZWxniie2qG5Xu8H3igYJ8RNU",
+  "collectFingerprint": "SHA256:wGNI4IdTLBLFIs+lwsG1uGbRgJRxZ9bHmU2A/CM9Gb4",
+  "fixturesFrom": "omx_accept_20261121_codex_t02b",
+  "statuses": {
+    "statusAfterCollect": null
+  },
+  "secretPolicy": {
+    "recordedSecretValues": false
+  }
+}

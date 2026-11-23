@@ -1,6 +1,7 @@
 package workload
 
 import (
+	"errors"
 	"strconv"
 
 	"github.com/duanxldragon/pantheon-base/backend/modules/business/k8s/rbac"
@@ -10,6 +11,11 @@ import (
 )
 
 const msgParamInvalid = "common.param_invalid"
+
+// codeConflict is the business code for a stale-resource-version retry. The
+// shared envelope defines no conflict constant, so the workload handler maps
+// common.ErrConflict to HTTP-style 409 locally.
+const codeConflict = 409
 
 // WorkloadHandler exposes Kubernetes workload HTTP endpoints.
 //
@@ -55,7 +61,8 @@ func (h *WorkloadHandler) GetPods(c *gin.Context) {
 		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
 		return
 	}
-	resp, err := h.svc.GetPods(clusterID, namespace, kind, name, common.GetDataScope(c))
+	limit, _ := strconv.ParseInt(c.Query("limit"), 10, 64)
+	resp, err := h.svc.GetPods(clusterID, namespace, kind, name, limit, c.Query("continue"), common.GetDataScope(c))
 	if err != nil {
 		common.FailWithError(c, common.CodeError, err, "k8s.workload.pods_failed")
 		return
@@ -81,8 +88,8 @@ func (h *WorkloadHandler) Scale(c *gin.Context) {
 		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
 		return
 	}
-	if err := h.svc.ScaleWithResourceVersion(clusterID, namespace, kind, name, req.Replicas, req.ResourceVersion, common.GetDataScope(c)); err != nil {
-		common.FailWithError(c, common.CodeError, err, "k8s.workload.scale_failed")
+	if err := h.svc.ScaleWithResourceVersion(clusterID, namespace, kind, name, *req.Replicas, req.ResourceVersion, common.GetDataScope(c)); err != nil {
+		common.FailWithError(c, workloadErrorCode(err), err, "k8s.workload.scale_failed")
 		return
 	}
 	common.Success(c, nil)
@@ -102,10 +109,20 @@ func (h *WorkloadHandler) Restart(c *gin.Context) {
 		return
 	}
 	if err := h.svc.RestartWithResourceVersion(clusterID, namespace, kind, name, c.Query("resourceVersion"), common.GetDataScope(c)); err != nil {
-		common.FailWithError(c, common.CodeError, err, "k8s.workload.restart_failed")
+		common.FailWithError(c, workloadErrorCode(err), err, "k8s.workload.restart_failed")
 		return
 	}
 	common.Success(c, nil)
+}
+
+// workloadErrorCode maps a stale-resource-version conflict (common.ErrConflict)
+// to code 409 so callers retry with a fresh resourceVersion; every other
+// provider failure stays generic code 500 under the same message key.
+func workloadErrorCode(err error) int {
+	if errors.Is(err, common.ErrConflict) {
+		return codeConflict
+	}
+	return common.CodeError
 }
 
 func parseWorkloadParams(c *gin.Context) (uint64, string, string, string, bool) {

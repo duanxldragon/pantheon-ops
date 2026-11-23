@@ -1,0 +1,46 @@
+{
+  "runId": "omx-accept-20261121-k8s03",
+  "namespace": "omx-accept-20261121-k8s03",
+  "ids": {
+    "scope": 7,
+    "cluster": 2,
+    "namespaceCreated": true,
+    "service": {
+      "name": "accept-service",
+      "namespace": "omx-accept-20261121-k8s03",
+      "type": "ClusterIP",
+      "clusterIP": "10.43.239.111",
+      "ports": [
+        {
+          "name": "http",
+          "port": 8080,
+          "targetPort": 8080,
+          "nodePort": 0,
+          "protocol": "TCP"
+        }
+      ],
+      "selector": {
+        "app": "accept-workload",
+        "revision": "2"
+      },
+      "loadBalancerIP": "",
+      "resourceVersion": "2412594",
+      "uid": "c933d5a2-665f-4516-941d-882a92690436"
+    }
+  },
+  "cleanup": [
+    {
+      "namespace": "omx-accept-20261121-k8s03",
+      "deletedAndIndependentlyVerified": true
+    },
+    {
+      "clusterId": 2,
+      "deleted": true
+    },
+    {
+      "scopeId": 7,
+      "deleted": true
+    }
+  ],
+  "plaintextCredentialsRecorded": false
+}

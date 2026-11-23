@@ -37,6 +37,9 @@ bin/
 *.prof
 vendor/
 
+# Preloaded distribution packages (568 MB, uploaded via file distribution)
+/files/
+
 # Local databases
 *.db
 *.db-*

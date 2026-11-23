@@ -1,0 +1,36 @@
+{
+  "runId": "omx_accept_20261121_codex_t02e",
+  "phase": "deploy",
+  "caseId": "d06",
+  "title": "task list pagination events and readback",
+  "ts": "2026-11-23T02:44:01.814Z",
+  "status": "PASS",
+  "httpStatus": 200,
+  "businessCode": 200,
+  "assertions": [
+    {
+      "name": "task page1 one item",
+      "pass": true
+    },
+    {
+      "name": "task page2 distinct item",
+      "pass": true
+    },
+    {
+      "name": "task event history readable",
+      "pass": true
+    }
+  ],
+  "ids": {},
+  "result": {
+    "total": 2,
+    "eventDataFields": [
+      "items",
+      "total"
+    ]
+  },
+  "message": null,
+  "redaction": null,
+  "durationMs": 38,
+  "blockedReason": null
+}

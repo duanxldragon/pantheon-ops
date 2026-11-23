@@ -73,9 +73,9 @@ business/*
 
 - docs/harness/tasks/2026-11-16-ops-service-deploy-user-flow.task.md
 - .harness/tasks/2026-11-16-ops-service-deploy-user-flow/manifest.json
-- .harness/evidence/2026-11-16-ops-service-deploy-user-flow/summary.md
-- .harness/evidence/2026-11-16-ops-service-deploy-user-flow/review.md
-- .harness/evidence/2026-11-16-ops-service-deploy-user-flow/commands.json
+- .harness/archive/2026-11/evidence/2026-11-16-ops-service-deploy-user-flow/summary.md
+- .harness/archive/2026-11/evidence/2026-11-16-ops-service-deploy-user-flow/review.md
+- .harness/archive/2026-11/evidence/2026-11-16-ops-service-deploy-user-flow/commands.json
 
 ### Modify
 
@@ -136,8 +136,8 @@ business/*
 - OpenSpec Change: none
 - Superpowers Plan: none
 - Task Manifest: .harness/tasks/2026-11-16-ops-service-deploy-user-flow/manifest.json
-- Evidence Directory: .harness/evidence/2026-11-16-ops-service-deploy-user-flow/
-- Review File: .harness/evidence/2026-11-16-ops-service-deploy-user-flow/review.md
+- Evidence Directory: .harness/archive/2026-11/evidence/2026-11-16-ops-service-deploy-user-flow/
+- Review File: .harness/archive/2026-11/evidence/2026-11-16-ops-service-deploy-user-flow/review.md
 - Change Ref: none
 - Plan References: .harness/tasks/2026-11-16-ops-pilot-delivery/plan.md
 
@@ -172,13 +172,13 @@ planned；只在依赖与实际验收完成后转 completed。
 
 Status: planned. 等待 C01 合同及依赖验收；没有本包浏览器部署全程的当前候选证据。
 
-Original acceptance and dependencies remain unchanged. Whole-package acceptance is incomplete; see [summary](../../../.harness/evidence/2026-11-16-ops-service-deploy-user-flow/summary.md) and [progress receipt](../../../.harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-progress-20261118.json).
+Original acceptance and dependencies remain unchanged. Whole-package acceptance is incomplete; see [summary](../../../.harness/archive/2026-11/evidence/2026-11-16-ops-service-deploy-user-flow/summary.md) and [progress receipt](../../../.harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-progress-20261118.json).
 
 ## 2026-11-19T00:11:15.272Z Verified continuation checkpoint
 
 Status: planned. 保持planned，等待C01原合同及依赖验收；全局frontend构建通过，尚无本包完整浏览器部署全程验收。
 
-独立整包产品评审PENDING；全局构建不改变C01依赖。 Original acceptance and human gates remain unmet. See [summary](../../../.harness/evidence/2026-11-16-ops-service-deploy-user-flow/summary.md) and [structured progress](../../../.harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-progress-final-20261118.json).
+独立整包产品评审PENDING；全局构建不改变C01依赖。 Original acceptance and human gates remain unmet. See [summary](../../../.harness/archive/2026-11/evidence/2026-11-16-ops-service-deploy-user-flow/summary.md) and [structured progress](../../../.harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-progress-final-20261118.json).
 
 ## Result — History Closeout 2026-11-20
 

@@ -1,0 +1,22 @@
+{
+  "runId": "omx_accept_20261122_cap",
+  "phase": "cap",
+  "caseId": "cap-obs-datasource-test",
+  "title": "test datasource connection (CAP-OBSERVABILITY)",
+  "ts": "2026-11-21T16:35:22.761Z",
+  "status": "PASS",
+  "httpStatus": 500,
+  "businessCode": 500,
+  "assertions": [
+    {
+      "name": "structured result returned within 20s probe window",
+      "pass": true
+    }
+  ],
+  "ids": null,
+  "result": 500,
+  "message": "test_failed",
+  "redaction": null,
+  "durationMs": 683,
+  "blockedReason": null
+}

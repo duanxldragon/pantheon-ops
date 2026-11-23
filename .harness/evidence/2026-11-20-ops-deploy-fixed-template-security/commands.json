@@ -1,0 +1,89 @@
+{
+  "taskId": "2026-11-20-ops-deploy-fixed-template-security",
+  "repo": "pantheon-ops",
+  "status": "in-progress",
+  "testedAt": "2026-11-22T04:05:18Z",
+  "baseline": {
+    "reportCommit": "444ce8e",
+    "planningCommit": "a2d69d4a759b5df2b26aaa9d26bdc5175babe9dc",
+    "workingTreeBaseCommit": "a2d69d4a759b5df2b26aaa9d26bdc5175babe9dc",
+    "foundationVersion": "pantheon-base-v0.18.9",
+    "foundationCommit": "6316f9b7189c86542424145fa49344ad737e952b"
+  },
+  "agent": {
+    "tool": "other",
+    "implementer": "Freebuff coding agent",
+    "reviewer": "self findings-first review; independent review pending"
+  },
+  "changedFiles": [
+    "backend/modules/business/deploy/deploy_fixed_templates.go",
+    "backend/modules/business/deploy/deploy_fixed_safety_test.go",
+    "backend/modules/business/deploy/deploy_service.go",
+    "backend/modules/business/deploy/deploy_service_test.go",
+    "backend/modules/business/filedist/sftp_client.go",
+    "backend/modules/business/filedist/sftp_client_test.go"
+  ],
+  "sourceHashes": {
+    "backend/modules/business/deploy/deploy_fixed_templates.go": "ebead591cdb338c1a89fb90aa339f68ebef0a600bd75faa355315baff40727a6",
+    "backend/modules/business/deploy/deploy_fixed_safety_test.go": "360ab768fbaf65806343f91636dacc701b8a230a7da9ad48c4c1c13e6b61ee23",
+    "backend/modules/business/deploy/deploy_service.go": "60e3a5ae8e24ed0d0a2ca67fede05ba7cf2cb8e375b91a3f8a7b76cb90375d0b",
+    "backend/modules/business/deploy/deploy_service_test.go": "c43e25f74154b00bc5c28d266c830e9dba07f0adc893fc3749472a4e40226187",
+    "backend/modules/business/filedist/sftp_client.go": "004aab88787d031afa4ec7b777103e36f62ae5cf5e3e91b8db3ea7142b0d2a18",
+    "backend/modules/business/filedist/sftp_client_test.go": "1894a5258806afb0d72a972a3856bde00a0904804fb65692fd3b64d4e5113b0e"
+  },
+  "commands": [
+    {
+      "command": "go test -count=1 ./modules/business/deploy/ -run 'TestFixedTemplate' -v",
+      "cwd": "backend",
+      "status": "passed",
+      "exitCode": 0,
+      "notes": "14 safety tests PASS: shell substitution, quote/newline, traversal, destructive uninstall roots, ports, opaque passwords, all-seven valid/invalid metadata, package version, Redis heredoc transport, snapshot effective action, persisted uninstall render."
+    },
+    {
+      "command": "go test -count=1 ./modules/business/deploy/ -run 'TestFixedTemplate|TestDeployFixedTemplateScriptsRenderForBuiltInComponents|TestDeployRedisTemplateUsesSignalStop|TestDeployJDKTemplateServiceSemantics|TestDeployPrometheusTemplateUsesCustomConfigPath' -v",
+      "cwd": "backend",
+      "status": "passed",
+      "exitCode": 0,
+      "notes": "Safety plus existing fixed-template compatibility tests PASS; MySQL/Redis/MinIO/Harbor render subtests and JDK/Prometheus semantics remain green."
+    },
+    {
+      "command": "go test -count=1 ./modules/business/deploy/...",
+      "cwd": "backend",
+      "status": "passed",
+      "exitCode": 0,
+      "notes": "ok .../modules/business/deploy 0.127s; executor and orchestrator have no test files."
+    },
+    {
+      "command": "go test -run 'TestUploadContextRemoteDirUsesPathPins' -v ./modules/business/filedist/",
+      "cwd": "backend",
+      "status": "passed",
+      "exitCode": 0,
+      "notes": "Regression pin for the filedist Windows path fix: asserts remote MkdirAll dir uses path.Dir(remotePath) and local download dir keeps filepath.Dir(localPath). Round-8 on this host reported filepath.Dir('/data/dist/pkg.tgz') == `\\data\\dist` vs path.Dir == '/data/dist', confirming the root cause."
+    },
+    {
+      "command": "go build ./modules/business/filedist/ && gofmt -l modules/business/filedist/sftp_client.go",
+      "cwd": "backend",
+      "status": "passed",
+      "exitCode": 0,
+      "notes": "BUILD_OK, gofmt clean."
+    }
+  ],
+  "knownGaps": [
+    "Accepted as closed with live evidence: V7 isolated SSH injection probe & host-fingerprint mismatch rejection (round-4 d04/d05 on candidate bad479fc), jdk legal install/uninstall roundtrip (round-5/6), timeout triage (round-7, not a bug, 3 rulings offered to maintainer).",
+    "Independent Codex third review superseded by maintainer directive to close autonomously; round-8 documented self-review substitutes, a later independent review can be scheduled separately.",
+    "Full go test -race ./... gate open in this shell (TSan allocation fails on Windows); codex leaves an independent -race green record.",
+    "nginx_systemd legal full source-build install/uninstall deferred to T16 fresh-install (heavy shared-VM system change; maintainer ruling on approach)."
+  ],
+  "linkage": {
+    "taskManifest": ".harness/tasks/2026-11-20-ops-deploy-fixed-template-security/manifest.json",
+    "taskDoc": "docs/harness/tasks/2026-11-20-ops-deploy-fixed-template-security.task.md",
+    "evidenceDir": ".harness/evidence/2026-11-20-ops-deploy-fixed-template-security/",
+    "evidence": ".harness/evidence/2026-11-20-ops-deploy-fixed-template-security/commands.json",
+    "reviewFile": ".harness/evidence/2026-11-20-ops-deploy-fixed-template-security/review.md",
+    "summaryFile": ".harness/evidence/2026-11-20-ops-deploy-fixed-template-security/summary.md",
+    "changeRef": "none",
+    "planRefs": [
+      ".harness/tasks/2026-11-20-ops-review-remediation/plan.md"
+    ]
+  }
+}

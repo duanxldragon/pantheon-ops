@@ -1,0 +1,10 @@
+{
+  "command": "go test -race -count=1 -v ./modules/business/k8s/...",
+  "cgoEnabled": true,
+  "skips": 0,
+  "exitCode": 0,
+  "failures": 0,
+  "mysqlRequired": true,
+  "log": "k8s-race-mysql-20261121-085750.log",
+  "capturedAt": "2026-11-21T08:58:38.3293661+08:00"
+}

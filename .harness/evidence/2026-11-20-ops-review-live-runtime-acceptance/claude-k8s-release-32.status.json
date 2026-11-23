@@ -1,0 +1,15 @@
+{
+  "failureHResult": 0,
+  "drainComplete": true,
+  "finishedAt": "2026-11-21T09:56:00.6867720+08:00",
+  "hooksDisabled": true,
+  "failureNativeCode": null,
+  "timedOut": false,
+  "createNoWindow": true,
+  "cleanupFailed": false,
+  "strictMcpConfig": true,
+  "failureStage": "none",
+  "ownedJob": true,
+  "exitCode": 0,
+  "failureType": "none"
+}

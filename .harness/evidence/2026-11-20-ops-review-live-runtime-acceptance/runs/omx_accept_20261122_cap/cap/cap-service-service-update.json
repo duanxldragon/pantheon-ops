@@ -1,0 +1,22 @@
+{
+  "runId": "omx_accept_20261122_cap",
+  "phase": "cap",
+  "caseId": "cap-service-service-update",
+  "title": "update service (CAP-SERVICE write)",
+  "ts": "2026-11-21T16:35:21.350Z",
+  "status": "PASS",
+  "httpStatus": 200,
+  "businessCode": 200,
+  "assertions": [
+    {
+      "name": "business code 200",
+      "pass": true
+    }
+  ],
+  "ids": null,
+  "result": null,
+  "message": null,
+  "redaction": null,
+  "durationMs": 25,
+  "blockedReason": null
+}

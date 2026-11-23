@@ -1,0 +1,583 @@
+{
+  "id": "k19",
+  "intent": "existing Velero provider and dedicated ConfigMap backup",
+  "userModel": "authenticated admin unless stated",
+  "setup": "local Ops; pinned SSH to 115.190.251.143; dedicated namespace",
+  "harness": ".local/acceptance-20261121/k8s-live.py",
+  "expected": "assertions hold",
+  "fixesApplied": [],
+  "cleanup": "owned fixtures tracked in checkpoint.json",
+  "actual": {
+    "provider": {
+      "installed": true,
+      "version": "docker.io/velero/velero@sha256:367a1d2deb5adf3acc8056715aefe398850cd33b8d7a68e5a6f1f13b691a1c58",
+      "namespace": "velero",
+      "runningPods": 1,
+      "storageLocations": 0
+    },
+    "backup": {
+      "id": 1,
+      "name": "omx-accept-20261121-k8s12-backup",
+      "clusterId": 8,
+      "backupType": "resource",
+      "includedNamespaces": [
+        "omx-accept-20261121-k8s12"
+      ],
+      "includedResources": [
+        "configmaps"
+      ],
+      "includePvs": true,
+      "ttl": 1,
+      "status": "Completed",
+      "phase": "Completed",
+      "startTime": "2026-11-22T08:48:13+08:00",
+      "completionTime": "2026-11-22T08:48:16+08:00",
+      "expiration": "2026-11-22T09:48:13+08:00",
+      "errors": 0,
+      "warnings": 0,
+      "volumeSnapshotsCount": 0,
+      "createdAt": "2026-11-22T08:48:12.47+08:00",
+      "createdBy": "1"
+    },
+    "scope": "ConfigMaps in dedicated namespace only; no volume snapshots"
+  },
+  "status": "PASS",
+  "calls": [
+    {
+      "method": "GET",
+      "path": "/business/k8s/backup/velero/status?clusterId=8",
+      "httpStatus": 200,
+      "code": 200,
+      "message": "success",
+      "durationMs": 484,
+      "data": {
+        "installed": true,
+        "version": "docker.io/velero/velero@sha256:367a1d2deb5adf3acc8056715aefe398850cd33b8d7a68e5a6f1f13b691a1c58",
+        "namespace": "velero",
+        "runningPods": 1,
+        "storageLocations": 0
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/business/k8s/backup/backups",
+      "httpStatus": 200,
+      "code": 200,
+      "message": "success",
+      "durationMs": 63,
+      "data": {
+        "id": 1,
+        "name": "omx-accept-20261121-k8s12-backup",
+        "clusterId": 8,
+        "backupType": "resource",
+        "includedNamespaces": [
+          "omx-accept-20261121-k8s12"
+        ],
+        "includedResources": [
+          "configmaps"
+        ],
+        "includePvs": true,
+        "ttl": 1,
+        "status": "New",
+        "errors": 0,
+        "warnings": 0,
+        "volumeSnapshotsCount": 0,
+        "createdAt": "2026-11-22T08:48:12.47+08:00",
+        "createdBy": "1"
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/business/k8s/backup/backups/1",
+      "httpStatus": 200,
+      "code": 200,
+      "message": "success",
+      "durationMs": 15,
+      "data": {
+        "id": 1,
+        "name": "omx-accept-20261121-k8s12-backup",
+        "clusterId": 8,
+        "backupType": "resource",
+        "includedNamespaces": [
+          "omx-accept-20261121-k8s12"
+        ],
+        "includedResources": [
+          "configmaps"
+        ],
+        "includePvs": true,
+        "ttl": 1,
+        "status": "New",
+        "errors": 0,
+        "warnings": 0,
+        "volumeSnapshotsCount": 0,
+        "createdAt": "2026-11-22T08:48:12.47+08:00",
+        "createdBy": "1"
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/business/k8s/backup/backups/1",
+      "httpStatus": 200,
+      "code": 200,
+      "message": "success",
+      "durationMs": 31,
+      "data": {
+        "id": 1,
+        "name": "omx-accept-20261121-k8s12-backup",
+        "clusterId": 8,
+        "backupType": "resource",
+        "includedNamespaces": [
+          "omx-accept-20261121-k8s12"
+        ],
+        "includedResources": [
+          "configmaps"
+        ],
+        "includePvs": true,
+        "ttl": 1,
+        "status": "New",
+        "errors": 0,
+        "warnings": 0,
+        "volumeSnapshotsCount": 0,
+        "createdAt": "2026-11-22T08:48:12.47+08:00",
+        "createdBy": "1"
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/business/k8s/backup/backups/1",
+      "httpStatus": 200,
+      "code": 200,
+      "message": "success",
+      "durationMs": 32,
+      "data": {
+        "id": 1,
+        "name": "omx-accept-20261121-k8s12-backup",
+        "clusterId": 8,
+        "backupType": "resource",
+        "includedNamespaces": [
+          "omx-accept-20261121-k8s12"
+        ],
+        "includedResources": [
+          "configmaps"
+        ],
+        "includePvs": true,
+        "ttl": 1,
+        "status": "New",
+        "errors": 0,
+        "warnings": 0,
+        "volumeSnapshotsCount": 0,
+        "createdAt": "2026-11-22T08:48:12.47+08:00",
+        "createdBy": "1"
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/business/k8s/backup/backups/1",
+      "httpStatus": 200,
+      "code": 200,
+      "message": "success",
+      "durationMs": 15,
+      "data": {
+        "id": 1,
+        "name": "omx-accept-20261121-k8s12-backup",
+        "clusterId": 8,
+        "backupType": "resource",
+        "includedNamespaces": [
+          "omx-accept-20261121-k8s12"
+        ],
+        "includedResources": [
+          "configmaps"
+        ],
+        "includePvs": true,
+        "ttl": 1,
+        "status": "New",
+        "errors": 0,
+        "warnings": 0,
+        "volumeSnapshotsCount": 0,
+        "createdAt": "2026-11-22T08:48:12.47+08:00",
+        "createdBy": "1"
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/business/k8s/backup/backups/1",
+      "httpStatus": 200,
+      "code": 200,
+      "message": "success",
+      "durationMs": 31,
+      "data": {
+        "id": 1,
+        "name": "omx-accept-20261121-k8s12-backup",
+        "clusterId": 8,
+        "backupType": "resource",
+        "includedNamespaces": [
+          "omx-accept-20261121-k8s12"
+        ],
+        "includedResources": [
+          "configmaps"
+        ],
+        "includePvs": true,
+        "ttl": 1,
+        "status": "New",
+        "errors": 0,
+        "warnings": 0,
+        "volumeSnapshotsCount": 0,
+        "createdAt": "2026-11-22T08:48:12.47+08:00",
+        "createdBy": "1"
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/business/k8s/backup/backups/1",
+      "httpStatus": 200,
+      "code": 200,
+      "message": "success",
+      "durationMs": 31,
+      "data": {
+        "id": 1,
+        "name": "omx-accept-20261121-k8s12-backup",
+        "clusterId": 8,
+        "backupType": "resource",
+        "includedNamespaces": [
+          "omx-accept-20261121-k8s12"
+        ],
+        "includedResources": [
+          "configmaps"
+        ],
+        "includePvs": true,
+        "ttl": 1,
+        "status": "New",
+        "errors": 0,
+        "warnings": 0,
+        "volumeSnapshotsCount": 0,
+        "createdAt": "2026-11-22T08:48:12.47+08:00",
+        "createdBy": "1"
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/business/k8s/backup/backups/1",
+      "httpStatus": 200,
+      "code": 200,
+      "message": "success",
+      "durationMs": 16,
+      "data": {
+        "id": 1,
+        "name": "omx-accept-20261121-k8s12-backup",
+        "clusterId": 8,
+        "backupType": "resource",
+        "includedNamespaces": [
+          "omx-accept-20261121-k8s12"
+        ],
+        "includedResources": [
+          "configmaps"
+        ],
+        "includePvs": true,
+        "ttl": 1,
+        "status": "New",
+        "errors": 0,
+        "warnings": 0,
+        "volumeSnapshotsCount": 0,
+        "createdAt": "2026-11-22T08:48:12.47+08:00",
+        "createdBy": "1"
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/business/k8s/backup/backups/1",
+      "httpStatus": 200,
+      "code": 200,
+      "message": "success",
+      "durationMs": 31,
+      "data": {
+        "id": 1,
+        "name": "omx-accept-20261121-k8s12-backup",
+        "clusterId": 8,
+        "backupType": "resource",
+        "includedNamespaces": [
+          "omx-accept-20261121-k8s12"
+        ],
+        "includedResources": [
+          "configmaps"
+        ],
+        "includePvs": true,
+        "ttl": 1,
+        "status": "New",
+        "errors": 0,
+        "warnings": 0,
+        "volumeSnapshotsCount": 0,
+        "createdAt": "2026-11-22T08:48:12.47+08:00",
+        "createdBy": "1"
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/business/k8s/backup/backups/1",
+      "httpStatus": 200,
+      "code": 200,
+      "message": "success",
+      "durationMs": 47,
+      "data": {
+        "id": 1,
+        "name": "omx-accept-20261121-k8s12-backup",
+        "clusterId": 8,
+        "backupType": "resource",
+        "includedNamespaces": [
+          "omx-accept-20261121-k8s12"
+        ],
+        "includedResources": [
+          "configmaps"
+        ],
+        "includePvs": true,
+        "ttl": 1,
+        "status": "New",
+        "errors": 0,
+        "warnings": 0,
+        "volumeSnapshotsCount": 0,
+        "createdAt": "2026-11-22T08:48:12.47+08:00",
+        "createdBy": "1"
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/business/k8s/backup/backups/1",
+      "httpStatus": 200,
+      "code": 200,
+      "message": "success",
+      "durationMs": 16,
+      "data": {
+        "id": 1,
+        "name": "omx-accept-20261121-k8s12-backup",
+        "clusterId": 8,
+        "backupType": "resource",
+        "includedNamespaces": [
+          "omx-accept-20261121-k8s12"
+        ],
+        "includedResources": [
+          "configmaps"
+        ],
+        "includePvs": true,
+        "ttl": 1,
+        "status": "New",
+        "errors": 0,
+        "warnings": 0,
+        "volumeSnapshotsCount": 0,
+        "createdAt": "2026-11-22T08:48:12.47+08:00",
+        "createdBy": "1"
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/business/k8s/backup/backups/1",
+      "httpStatus": 200,
+      "code": 200,
+      "message": "success",
+      "durationMs": 15,
+      "data": {
+        "id": 1,
+        "name": "omx-accept-20261121-k8s12-backup",
+        "clusterId": 8,
+        "backupType": "resource",
+        "includedNamespaces": [
+          "omx-accept-20261121-k8s12"
+        ],
+        "includedResources": [
+          "configmaps"
+        ],
+        "includePvs": true,
+        "ttl": 1,
+        "status": "New",
+        "errors": 0,
+        "warnings": 0,
+        "volumeSnapshotsCount": 0,
+        "createdAt": "2026-11-22T08:48:12.47+08:00",
+        "createdBy": "1"
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/business/k8s/backup/backups/1",
+      "httpStatus": 200,
+      "code": 200,
+      "message": "success",
+      "durationMs": 16,
+      "data": {
+        "id": 1,
+        "name": "omx-accept-20261121-k8s12-backup",
+        "clusterId": 8,
+        "backupType": "resource",
+        "includedNamespaces": [
+          "omx-accept-20261121-k8s12"
+        ],
+        "includedResources": [
+          "configmaps"
+        ],
+        "includePvs": true,
+        "ttl": 1,
+        "status": "New",
+        "errors": 0,
+        "warnings": 0,
+        "volumeSnapshotsCount": 0,
+        "createdAt": "2026-11-22T08:48:12.47+08:00",
+        "createdBy": "1"
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/business/k8s/backup/backups/1",
+      "httpStatus": 200,
+      "code": 200,
+      "message": "success",
+      "durationMs": 31,
+      "data": {
+        "id": 1,
+        "name": "omx-accept-20261121-k8s12-backup",
+        "clusterId": 8,
+        "backupType": "resource",
+        "includedNamespaces": [
+          "omx-accept-20261121-k8s12"
+        ],
+        "includedResources": [
+          "configmaps"
+        ],
+        "includePvs": true,
+        "ttl": 1,
+        "status": "New",
+        "errors": 0,
+        "warnings": 0,
+        "volumeSnapshotsCount": 0,
+        "createdAt": "2026-11-22T08:48:12.47+08:00",
+        "createdBy": "1"
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/business/k8s/backup/backups/1",
+      "httpStatus": 200,
+      "code": 200,
+      "message": "success",
+      "durationMs": 32,
+      "data": {
+        "id": 1,
+        "name": "omx-accept-20261121-k8s12-backup",
+        "clusterId": 8,
+        "backupType": "resource",
+        "includedNamespaces": [
+          "omx-accept-20261121-k8s12"
+        ],
+        "includedResources": [
+          "configmaps"
+        ],
+        "includePvs": true,
+        "ttl": 1,
+        "status": "New",
+        "errors": 0,
+        "warnings": 0,
+        "volumeSnapshotsCount": 0,
+        "createdAt": "2026-11-22T08:48:12.47+08:00",
+        "createdBy": "1"
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/business/k8s/backup/backups/1",
+      "httpStatus": 200,
+      "code": 200,
+      "message": "success",
+      "durationMs": 31,
+      "data": {
+        "id": 1,
+        "name": "omx-accept-20261121-k8s12-backup",
+        "clusterId": 8,
+        "backupType": "resource",
+        "includedNamespaces": [
+          "omx-accept-20261121-k8s12"
+        ],
+        "includedResources": [
+          "configmaps"
+        ],
+        "includePvs": true,
+        "ttl": 1,
+        "status": "New",
+        "errors": 0,
+        "warnings": 0,
+        "volumeSnapshotsCount": 0,
+        "createdAt": "2026-11-22T08:48:12.47+08:00",
+        "createdBy": "1"
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/business/k8s/backup/backups/1",
+      "httpStatus": 200,
+      "code": 200,
+      "message": "success",
+      "durationMs": 31,
+      "data": {
+        "id": 1,
+        "name": "omx-accept-20261121-k8s12-backup",
+        "clusterId": 8,
+        "backupType": "resource",
+        "includedNamespaces": [
+          "omx-accept-20261121-k8s12"
+        ],
+        "includedResources": [
+          "configmaps"
+        ],
+        "includePvs": true,
+        "ttl": 1,
+        "status": "New",
+        "errors": 0,
+        "warnings": 0,
+        "volumeSnapshotsCount": 0,
+        "createdAt": "2026-11-22T08:48:12.47+08:00",
+        "createdBy": "1"
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/business/k8s/backup/backups/1",
+      "httpStatus": 200,
+      "code": 200,
+      "message": "success",
+      "durationMs": 31,
+      "data": {
+        "id": 1,
+        "name": "omx-accept-20261121-k8s12-backup",
+        "clusterId": 8,
+        "backupType": "resource",
+        "includedNamespaces": [
+          "omx-accept-20261121-k8s12"
+        ],
+        "includedResources": [
+          "configmaps"
+        ],
+        "includePvs": true,
+        "ttl": 1,
+        "status": "Completed",
+        "phase": "Completed",
+        "startTime": "2026-11-22T08:48:13+08:00",
+        "completionTime": "2026-11-22T08:48:16+08:00",
+        "expiration": "2026-11-22T09:48:13+08:00",
+        "errors": 0,
+        "warnings": 0,
+        "volumeSnapshotsCount": 0,
+        "createdAt": "2026-11-22T08:48:12.47+08:00",
+        "createdBy": "1"
+      }
+    },
+    {
+      "method": "DELETE",
+      "path": "/business/k8s/backup/backups/1",
+      "httpStatus": 200,
+      "code": 200,
+      "message": "success",
+      "durationMs": 204,
+      "data": {
+        "deleted": true
+      }
+    }
+  ],
+  "durationMs": 49422,
+  "evidence": ".harness\\evidence\\2026-11-20-ops-review-live-runtime-acceptance\\k8s\\omx-accept-20261121-k8s12\\k19-20261122-084758.json"
+}

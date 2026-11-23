@@ -1,0 +1,1039 @@
+{
+  "runId": "omx-accept-20261121-k8s03",
+  "provider": "115.190.251.143 existing k3s",
+  "receipt": {
+    "backendSha256": "1c51aa48b65670f123df76c2f6d78366b75ef4f201019a40de923c80bb7b0fd8",
+    "backendPid": 32084,
+    "sourceHead": "a2d69d4a759b5df2b26aaa9d26bdc5175babe9dc",
+    "harnessSha256": "672f66875f4c337fb56900e701eda9f1b842511393f337e317a98ec76df53afe"
+  },
+  "status": "FAIL",
+  "cases": [
+    {
+      "id": "k01",
+      "intent": "pinned SSH and CA-verified tunnel",
+      "userModel": "authenticated admin unless stated",
+      "setup": "local Ops; pinned SSH to 115.190.251.143; dedicated namespace",
+      "harness": ".local/acceptance-20261121/k8s-live.py",
+      "expected": "assertions hold",
+      "fixesApplied": [],
+      "cleanup": "owned fixtures tracked in checkpoint.json",
+      "actual": {
+        "ssh": {
+          "ok": true,
+          "host": "115.190.251.143:22",
+          "user": "root",
+          "password_source": "env:PANTHEON_VERIFY_SSH_PASSWORD",
+          "serverKeyType": "ssh-ed25519",
+          "serverSha256Fingerprint": "SHA256:FhLFRIfRIGotV2tS+sIZWxniie2qG5Xu8H3igYJ8RNU",
+          "knownHostsVerified": true,
+          "knownHostsEntryType": "ssh-ed25519",
+          "knownHostsFiles": [
+            "known_hosts"
+          ]
+        },
+        "provider": "existing k3s",
+        "tlsVerification": true,
+        "server": "https://115.190.251.143:6443",
+        "tlsServerName": "localhost",
+        "kubeconfigPersisted": false
+      },
+      "status": "PASS",
+      "calls": [],
+      "durationMs": 875,
+      "evidence": ".harness\\evidence\\2026-11-20-ops-review-live-runtime-acceptance\\k8s\\omx-accept-20261121-k8s03\\k01-20261121-084652.json"
+    },
+    {
+      "id": "k02",
+      "intent": "local Ops login",
+      "userModel": "authenticated admin unless stated",
+      "setup": "local Ops; pinned SSH to 115.190.251.143; dedicated namespace",
+      "harness": ".local/acceptance-20261121/k8s-live.py",
+      "expected": "assertions hold",
+      "fixesApplied": [],
+      "cleanup": "owned fixtures tracked in checkpoint.json",
+      "actual": {
+        "tokenIssued": true,
+        "csrfIssued": true
+      },
+      "status": "PASS",
+      "calls": [
+        {
+          "method": "POST",
+          "path": "/auth/login",
+          "httpStatus": 200,
+          "code": 200,
+          "message": "success",
+          "durationMs": 344
+        }
+      ],
+      "durationMs": 344,
+      "evidence": ".harness\\evidence\\2026-11-20-ops-review-live-runtime-acceptance\\k8s\\omx-accept-20261121-k8s03\\k02-20261121-084652.json"
+    },
+    {
+      "id": "k03",
+      "intent": "register real cluster and credential redaction",
+      "userModel": "authenticated admin unless stated",
+      "setup": "local Ops; pinned SSH to 115.190.251.143; dedicated namespace",
+      "harness": ".local/acceptance-20261121/k8s-live.py",
+      "expected": "assertions hold",
+      "fixesApplied": [],
+      "cleanup": "owned fixtures tracked in checkpoint.json",
+      "actual": {
+        "id": 2,
+        "code": "omx-accept-20261121-k8s03",
+        "name": "omx-accept-20261121-k8s03",
+        "environment": "dev",
+        "businessScopeId": 7,
+        "businessScopeName": "omx-accept-20261121-k8s03",
+        "deptId": 0,
+        "apiServer": "https://115.190.251.143:6443",
+        "version": "",
+        "status": "unknown",
+        "totalNodes": 0,
+        "readyNodes": 0,
+        "totalPods": 0,
+        "runningPods": 0,
+        "cpuCapacity": 0,
+        "cpuAllocatable": 0,
+        "memoryCapacity": 0,
+        "memoryAllocatable": 0,
+        "lastSyncedAt": "",
+        "remark": "omx-accept-20261121-k8s03",
+        "createdAt": "2026-11-21T08:46:53+08:00",
+        "updatedAt": "2026-11-21T08:46:53+08:00",
+        "createdBy": "1",
+        "updatedBy": "1",
+        "credentialRefId": 2,
+        "credentialVersion": 0,
+        "credentialStatus": ""
+      },
+      "status": "PASS",
+      "calls": [
+        {
+          "method": "GET",
+          "path": "/business/k8s/clusters?keyword=omx-accept-20261121-k8s03",
+          "httpStatus": 200,
+          "code": 200,
+          "message": "success",
+          "durationMs": 15,
+          "data": {
+            "items": [],
+            "total": 0,
+            "page": 1,
+            "pageSize": 10
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/business/bizscope",
+          "httpStatus": 200,
+          "code": 200,
+          "message": "success",
+          "durationMs": 0,
+          "data": {
+            "id": 7,
+            "code": "omx-accept-20261121-k8s03",
+            "name": "omx-accept-20261121-k8s03",
+            "owner": "",
+            "environment": "dev",
+            "status": "active",
+            "deptId": 0,
+            "remark": "",
+            "createdAt": "2026-11-21T08:46:53+08:00"
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/business/k8s/clusters",
+          "httpStatus": 200,
+          "code": 200,
+          "message": "success",
+          "durationMs": 47,
+          "data": {
+            "id": 2,
+            "code": "omx-accept-20261121-k8s03",
+            "name": "omx-accept-20261121-k8s03",
+            "environment": "dev",
+            "businessScopeId": 7,
+            "businessScopeName": "omx-accept-20261121-k8s03",
+            "deptId": 0,
+            "apiServer": "https://115.190.251.143:6443",
+            "version": "",
+            "status": "unknown",
+            "totalNodes": 0,
+            "readyNodes": 0,
+            "totalPods": 0,
+            "runningPods": 0,
+            "cpuCapacity": 0,
+            "cpuAllocatable": 0,
+            "memoryCapacity": 0,
+            "memoryAllocatable": 0,
+            "lastSyncedAt": "",
+            "remark": "omx-accept-20261121-k8s03",
+            "createdAt": "2026-11-21T08:46:53+08:00",
+            "updatedAt": "2026-11-21T08:46:53+08:00",
+            "createdBy": "1",
+            "updatedBy": "1",
+            "credentialRefId": 2,
+            "credentialVersion": 0,
+            "credentialStatus": ""
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/business/k8s/clusters/2/credential",
+          "httpStatus": 200,
+          "code": 200,
+          "message": "success",
+          "durationMs": 16,
+          "data": {
+            "id": 2,
+            "clusterId": 2,
+            "version": 1,
+            "status": "active"
+          }
+        }
+      ],
+      "durationMs": 78,
+      "evidence": ".harness\\evidence\\2026-11-20-ops-review-live-runtime-acceptance\\k8s\\omx-accept-20261121-k8s03\\k03-20261121-084652.json"
+    },
+    {
+      "id": "k03b",
+      "intent": "cluster creation credential metadata consistency",
+      "userModel": "authenticated admin unless stated",
+      "setup": "local Ops; pinned SSH to 115.190.251.143; dedicated namespace",
+      "harness": ".local/acceptance-20261121/k8s-live.py",
+      "expected": "assertions hold",
+      "fixesApplied": [],
+      "cleanup": "owned fixtures tracked in checkpoint.json",
+      "status": "FAIL",
+      "errorType": "AssertionError",
+      "error": "create response reports credentialVersion=0 for version=1 credential",
+      "calls": [],
+      "durationMs": 0,
+      "evidence": ".harness\\evidence\\2026-11-20-ops-review-live-runtime-acceptance\\k8s\\omx-accept-20261121-k8s03\\k03b-20261121-084652.json"
+    },
+    {
+      "id": "k04",
+      "intent": "sync real nodes and capacity",
+      "userModel": "authenticated admin unless stated",
+      "setup": "local Ops; pinned SSH to 115.190.251.143; dedicated namespace",
+      "harness": ".local/acceptance-20261121/k8s-live.py",
+      "expected": "assertions hold",
+      "fixesApplied": [],
+      "cleanup": "owned fixtures tracked in checkpoint.json",
+      "actual": {
+        "cluster": {
+          "id": 2,
+          "code": "omx-accept-20261121-k8s03",
+          "name": "omx-accept-20261121-k8s03",
+          "environment": "dev",
+          "businessScopeId": 7,
+          "businessScopeName": "omx-accept-20261121-k8s03",
+          "deptId": 0,
+          "apiServer": "https://115.190.251.143:6443",
+          "version": "v1.36.3+k3s1",
+          "status": "healthy",
+          "totalNodes": 1,
+          "readyNodes": 1,
+          "totalPods": 17,
+          "runningPods": 12,
+          "cpuCapacity": 4,
+          "cpuAllocatable": 4,
+          "memoryCapacity": 3.8250808715820312,
+          "memoryAllocatable": 3.8250808715820312,
+          "lastSyncedAt": "2026-11-21T08:46:53+08:00",
+          "remark": "omx-accept-20261121-k8s03",
+          "createdAt": "2026-11-21T08:46:53+08:00",
+          "updatedAt": "2026-11-21T08:46:53+08:00",
+          "createdBy": "1",
+          "updatedBy": "1",
+          "credentialRefId": 2,
+          "credentialVersion": 1,
+          "credentialStatus": "active"
+        },
+        "nodes": {
+          "items": [
+            {
+              "name": "iv-yedenmmwhsqc6iu4z5p6",
+              "status": "ready",
+              "internalIp": "192.168.94.127",
+              "os": "Ubuntu 24.04 LTS",
+              "kubeletVersion": "v1.36.3+k3s1",
+              "cpuCapacity": "4",
+              "memoryCapacity": "4010888Ki",
+              "podCapacity": 110,
+              "allocatablePods": 110
+            }
+          ],
+          "total": 1
+        }
+      },
+      "status": "PASS",
+      "calls": [
+        {
+          "method": "POST",
+          "path": "/business/k8s/clusters/2/sync",
+          "httpStatus": 200,
+          "code": 200,
+          "message": "success",
+          "durationMs": 281,
+          "data": {
+            "id": 2,
+            "code": "omx-accept-20261121-k8s03",
+            "name": "omx-accept-20261121-k8s03",
+            "environment": "dev",
+            "businessScopeId": 7,
+            "businessScopeName": "omx-accept-20261121-k8s03",
+            "deptId": 0,
+            "apiServer": "https://115.190.251.143:6443",
+            "version": "v1.36.3+k3s1",
+            "status": "healthy",
+            "totalNodes": 1,
+            "readyNodes": 1,
+            "totalPods": 17,
+            "runningPods": 12,
+            "cpuCapacity": 4,
+            "cpuAllocatable": 4,
+            "memoryCapacity": 3.8250808715820312,
+            "memoryAllocatable": 3.8250808715820312,
+            "lastSyncedAt": "2026-11-21T08:46:53+08:00",
+            "remark": "omx-accept-20261121-k8s03",
+            "createdAt": "2026-11-21T08:46:53+08:00",
+            "updatedAt": "2026-11-21T08:46:53+08:00",
+            "createdBy": "1",
+            "updatedBy": "1",
+            "credentialRefId": 2,
+            "credentialVersion": 1,
+            "credentialStatus": "active"
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/business/k8s/clusters/2/nodes",
+          "httpStatus": 200,
+          "code": 200,
+          "message": "success",
+          "durationMs": 47,
+          "data": {
+            "items": [
+              {
+                "name": "iv-yedenmmwhsqc6iu4z5p6",
+                "status": "ready",
+                "internalIp": "192.168.94.127",
+                "os": "Ubuntu 24.04 LTS",
+                "kubeletVersion": "v1.36.3+k3s1",
+                "cpuCapacity": "4",
+                "memoryCapacity": "4010888Ki",
+                "podCapacity": 110,
+                "allocatablePods": 110
+              }
+            ],
+            "total": 1
+          }
+        }
+      ],
+      "durationMs": 328,
+      "evidence": ".harness\\evidence\\2026-11-20-ops-review-live-runtime-acceptance\\k8s\\omx-accept-20261121-k8s03\\k04-20261121-084652.json"
+    },
+    {
+      "id": "k05",
+      "intent": "owned namespace creation",
+      "userModel": "authenticated admin unless stated",
+      "setup": "local Ops; pinned SSH to 115.190.251.143; dedicated namespace",
+      "harness": ".local/acceptance-20261121/k8s-live.py",
+      "expected": "assertions hold",
+      "fixesApplied": [],
+      "cleanup": "owned fixtures tracked in checkpoint.json",
+      "actual": {
+        "name": "omx-accept-20261121-k8s03",
+        "status": "Active",
+        "labels": {
+          "kubernetes.io/metadata.name": "omx-accept-20261121-k8s03",
+          "pantheon-acceptance": "omx-accept-20261121-k8s03"
+        },
+        "creationTimestamp": "2026-11-21T08:46:55+08:00"
+      },
+      "status": "PASS",
+      "calls": [
+        {
+          "method": "GET",
+          "path": "/business/k8s/clusters/2/namespaces",
+          "httpStatus": 200,
+          "code": 200,
+          "message": "success",
+          "durationMs": 31,
+          "data": {
+            "items": [
+              {
+                "name": "default",
+                "status": "Active",
+                "labels": {
+                  "kubernetes.io/metadata.name": "default"
+                },
+                "creationTimestamp": "2026-08-30T22:43:46+08:00"
+              },
+              {
+                "name": "kube-node-lease",
+                "status": "Active",
+                "labels": {
+                  "kubernetes.io/metadata.name": "kube-node-lease"
+                },
+                "creationTimestamp": "2026-08-30T22:43:46+08:00"
+              },
+              {
+                "name": "kube-public",
+                "status": "Active",
+                "labels": {
+                  "kubernetes.io/metadata.name": "kube-public"
+                },
+                "creationTimestamp": "2026-08-30T22:43:46+08:00"
+              },
+              {
+                "name": "kube-system",
+                "status": "Active",
+                "labels": {
+                  "kubernetes.io/metadata.name": "kube-system"
+                },
+                "creationTimestamp": "2026-08-30T22:43:46+08:00"
+              },
+              {
+                "name": "o4-render-r2-20261111-652bf5137ecf",
+                "status": "Active",
+                "labels": {
+                  "kubernetes.io/metadata.name": "o4-render-r2-20261111-652bf5137ecf",
+                  "pantheon-o4-render-owner": "o4-render-r2-20261111-652bf5137ecf"
+                },
+                "creationTimestamp": "2026-11-11T16:07:37+08:00"
+              },
+              {
+                "name": "pantheon-p0-20261109",
+                "status": "Active",
+                "labels": {
+                  "kubernetes.io/metadata.name": "pantheon-p0-20261109"
+                },
+                "creationTimestamp": "2026-11-09T09:04:45+08:00"
+              },
+              {
+                "name": "pantheon-p0-argocd-20261109",
+                "status": "Active",
+                "labels": {
+                  "kubernetes.io/metadata.name": "pantheon-p0-argocd-20261109",
+                  "pantheon-p0-owner": "ops-p0-20261109"
+                },
+                "creationTimestamp": "2026-11-09T11:49:14+08:00"
+              },
+              {
+                "name": "pantheon-p0-seaweed-velero-s3-v1",
+                "status": "Active",
+                "labels": {
+                  "app.kubernetes.io/component": "seaweedfs-s3",
+                  "kubernetes.io/metadata.name": "pantheon-p0-seaweed-velero-s3-v1",
+                  "pantheon-p0-owner": "velero-s3-seaweed-20261109-v1"
+                },
+                "creationTimestamp": "2026-11-10T10:11:54+08:00"
+              },
+              {
+                "name": "velero",
+                "status": "Active",
+                "labels": {
+                  "app.kubernetes.io/component": "velero",
+                  "kubernetes.io/metadata.name": "velero",
+                  "pantheon-p0-owner": "velero-s3-seaweed-20261109-v1"
+                },
+                "creationTimestamp": "2026-11-10T10:11:54+08:00"
+              }
+            ],
+            "total": 9
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/business/k8s/clusters/2/namespaces",
+          "httpStatus": 200,
+          "code": 200,
+          "message": "success",
+          "durationMs": 63,
+          "data": {
+            "name": "omx-accept-20261121-k8s03",
+            "status": "Active",
+            "labels": {
+              "kubernetes.io/metadata.name": "omx-accept-20261121-k8s03",
+              "pantheon-acceptance": "omx-accept-20261121-k8s03"
+            },
+            "creationTimestamp": "2026-11-21T08:46:55+08:00"
+          }
+        }
+      ],
+      "durationMs": 297,
+      "evidence": ".harness\\evidence\\2026-11-20-ops-review-live-runtime-acceptance\\k8s\\omx-accept-20261121-k8s03\\k05-20261121-084652.json"
+    },
+    {
+      "id": "k06",
+      "intent": "ConfigMap create/read/pagination",
+      "userModel": "authenticated admin unless stated",
+      "setup": "local Ops; pinned SSH to 115.190.251.143; dedicated namespace",
+      "harness": ".local/acceptance-20261121/k8s-live.py",
+      "expected": "assertions hold",
+      "fixesApplied": [],
+      "cleanup": "owned fixtures tracked in checkpoint.json",
+      "actual": {
+        "create": {
+          "name": "accept-config",
+          "namespace": "omx-accept-20261121-k8s03",
+          "data": {
+            "message": "omx-accept-20261121-k8s03"
+          },
+          "resourceVersion": "2412588"
+        },
+        "read": {
+          "name": "accept-config",
+          "namespace": "omx-accept-20261121-k8s03",
+          "data": {
+            "message": "omx-accept-20261121-k8s03"
+          },
+          "resourceVersion": "2412588"
+        },
+        "list": {
+          "items": [
+            {
+              "name": "accept-config",
+              "namespace": "omx-accept-20261121-k8s03",
+              "keyCount": 1,
+              "resourceVersion": "2412588"
+            }
+          ],
+          "total": 1,
+          "continueToken": "eyJ2IjoibWV0YS5rOHMuaW8vdjEiLCJydiI6MjQxMjU4OCwic3RhcnQiOiIvYWNjZXB0LWNvbmZpZ1x1MDAwMCJ9"
+        }
+      },
+      "status": "PASS",
+      "calls": [
+        {
+          "method": "POST",
+          "path": "/business/k8s/clusters/2/configmaps?namespace=omx-accept-20261121-k8s03",
+          "httpStatus": 200,
+          "code": 200,
+          "message": "success",
+          "durationMs": 47,
+          "data": {
+            "name": "accept-config",
+            "namespace": "omx-accept-20261121-k8s03",
+            "data": {
+              "message": "omx-accept-20261121-k8s03"
+            },
+            "resourceVersion": "2412588"
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/business/k8s/clusters/2/configmaps/accept-config?namespace=omx-accept-20261121-k8s03",
+          "httpStatus": 200,
+          "code": 200,
+          "message": "success",
+          "durationMs": 62,
+          "data": {
+            "name": "accept-config",
+            "namespace": "omx-accept-20261121-k8s03",
+            "data": {
+              "message": "omx-accept-20261121-k8s03"
+            },
+            "resourceVersion": "2412588"
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/business/k8s/clusters/2/configmaps?namespace=omx-accept-20261121-k8s03&limit=1",
+          "httpStatus": 200,
+          "code": 200,
+          "message": "success",
+          "durationMs": 32,
+          "data": {
+            "items": [
+              {
+                "name": "accept-config",
+                "namespace": "omx-accept-20261121-k8s03",
+                "keyCount": 1,
+                "resourceVersion": "2412588"
+              }
+            ],
+            "total": 1,
+            "continueToken": "eyJ2IjoibWV0YS5rOHMuaW8vdjEiLCJydiI6MjQxMjU4OCwic3RhcnQiOiIvYWNjZXB0LWNvbmZpZ1x1MDAwMCJ9"
+          }
+        }
+      ],
+      "durationMs": 344,
+      "evidence": ".harness\\evidence\\2026-11-20-ops-review-live-runtime-acceptance\\k8s\\omx-accept-20261121-k8s03\\k06-20261121-084652.json"
+    },
+    {
+      "id": "k07",
+      "intent": "Secret create/read values redacted",
+      "userModel": "authenticated admin unless stated",
+      "setup": "local Ops; pinned SSH to 115.190.251.143; dedicated namespace",
+      "harness": ".local/acceptance-20261121/k8s-live.py",
+      "expected": "assertions hold",
+      "fixesApplied": [],
+      "cleanup": "owned fixtures tracked in checkpoint.json",
+      "actual": {
+        "metadata": {
+          "name": "accept-secret",
+          "namespace": "omx-accept-20261121-k8s03",
+          "type": "Opaque",
+          "keys": [
+            "test"
+          ],
+          "resourceVersion": "2412589"
+        },
+        "valuesRedacted": true,
+        "independentValueMatch": true
+      },
+      "status": "PASS",
+      "calls": [
+        {
+          "method": "POST",
+          "path": "/business/k8s/clusters/2/secrets?namespace=omx-accept-20261121-k8s03",
+          "httpStatus": 200,
+          "code": 200,
+          "message": "success",
+          "durationMs": 47,
+          "data": {
+            "name": "accept-secret",
+            "namespace": "omx-accept-20261121-k8s03",
+            "type": "Opaque",
+            "keys": [
+              "test"
+            ],
+            "resourceVersion": "2412589"
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/business/k8s/clusters/2/secrets/accept-secret?namespace=omx-accept-20261121-k8s03",
+          "httpStatus": 200,
+          "code": 200,
+          "message": "success",
+          "durationMs": 62,
+          "data": {
+            "name": "accept-secret",
+            "namespace": "omx-accept-20261121-k8s03",
+            "type": "Opaque",
+            "keys": [
+              "test"
+            ],
+            "resourceVersion": "2412589"
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/business/k8s/clusters/2/secrets?namespace=omx-accept-20261121-k8s03",
+          "httpStatus": 200,
+          "code": 200,
+          "message": "success",
+          "durationMs": 47,
+          "data": {
+            "items": [
+              {
+                "name": "accept-secret",
+                "namespace": "omx-accept-20261121-k8s03",
+                "type": "Opaque",
+                "keyCount": 1,
+                "resourceVersion": "2412589"
+              }
+            ],
+            "total": 1,
+            "continueToken": ""
+          }
+        }
+      ],
+      "durationMs": 343,
+      "evidence": ".harness\\evidence\\2026-11-20-ops-review-live-runtime-acceptance\\k8s\\omx-accept-20261121-k8s03\\k07-20261121-084652.json"
+    },
+    {
+      "id": "k08",
+      "intent": "Service CRUD CAS and malformed input",
+      "userModel": "authenticated admin unless stated",
+      "setup": "local Ops; pinned SSH to 115.190.251.143; dedicated namespace",
+      "harness": ".local/acceptance-20261121/k8s-live.py",
+      "expected": "assertions hold",
+      "fixesApplied": [],
+      "cleanup": "owned fixtures tracked in checkpoint.json",
+      "actual": {
+        "created": {
+          "name": "accept-service",
+          "namespace": "omx-accept-20261121-k8s03",
+          "type": "ClusterIP",
+          "clusterIP": "10.43.239.111",
+          "ports": [
+            {
+              "name": "http",
+              "port": 8080,
+              "targetPort": 8080,
+              "nodePort": 0,
+              "protocol": "TCP"
+            }
+          ],
+          "selector": {
+            "app": "accept-workload"
+          },
+          "loadBalancerIP": "",
+          "resourceVersion": "2412591",
+          "uid": "c933d5a2-665f-4516-941d-882a92690436"
+        },
+        "current": {
+          "name": "accept-service",
+          "namespace": "omx-accept-20261121-k8s03",
+          "type": "ClusterIP",
+          "clusterIP": "10.43.239.111",
+          "ports": [
+            {
+              "name": "http",
+              "port": 8080,
+              "targetPort": 8080,
+              "nodePort": 0,
+              "protocol": "TCP"
+            }
+          ],
+          "selector": {
+            "app": "accept-workload",
+            "revision": "2"
+          },
+          "loadBalancerIP": "",
+          "resourceVersion": "2412594",
+          "uid": "c933d5a2-665f-4516-941d-882a92690436"
+        },
+        "conflictCode": 409
+      },
+      "status": "PASS",
+      "calls": [
+        {
+          "method": "POST",
+          "path": "/business/k8s/clusters/2/services?namespace=omx-accept-20261121-k8s03",
+          "httpStatus": 200,
+          "code": 200,
+          "message": "success",
+          "durationMs": 47,
+          "data": {
+            "name": "accept-service",
+            "namespace": "omx-accept-20261121-k8s03",
+            "type": "ClusterIP",
+            "clusterIP": "10.43.239.111",
+            "ports": [
+              {
+                "name": "http",
+                "port": 8080,
+                "targetPort": 8080,
+                "nodePort": 0,
+                "protocol": "TCP"
+              }
+            ],
+            "selector": {
+              "app": "accept-workload"
+            },
+            "loadBalancerIP": "",
+            "resourceVersion": "2412591",
+            "uid": "c933d5a2-665f-4516-941d-882a92690436"
+          }
+        },
+        {
+          "method": "PUT",
+          "path": "/business/k8s/clusters/2/services/accept-service?namespace=omx-accept-20261121-k8s03",
+          "httpStatus": 200,
+          "code": 200,
+          "message": "success",
+          "durationMs": 94,
+          "data": {
+            "name": "accept-service",
+            "namespace": "omx-accept-20261121-k8s03",
+            "type": "ClusterIP",
+            "clusterIP": "10.43.239.111",
+            "ports": [
+              {
+                "name": "http",
+                "port": 8080,
+                "targetPort": 8080,
+                "nodePort": 0,
+                "protocol": "TCP"
+              }
+            ],
+            "selector": {
+              "app": "accept-workload",
+              "revision": "2"
+            },
+            "loadBalancerIP": "",
+            "resourceVersion": "2412594",
+            "uid": "c933d5a2-665f-4516-941d-882a92690436"
+          }
+        },
+        {
+          "method": "PUT",
+          "path": "/business/k8s/clusters/2/services/accept-service?namespace=omx-accept-20261121-k8s03",
+          "httpStatus": 409,
+          "code": 409,
+          "message": "k8s.service.resource_version_conflict",
+          "durationMs": 47,
+          "data": null
+        },
+        {
+          "method": "GET",
+          "path": "/business/k8s/clusters/2/services/accept-service?namespace=omx-accept-20261121-k8s03",
+          "httpStatus": 200,
+          "code": 200,
+          "message": "success",
+          "durationMs": 47,
+          "data": {
+            "name": "accept-service",
+            "namespace": "omx-accept-20261121-k8s03",
+            "type": "ClusterIP",
+            "clusterIP": "10.43.239.111",
+            "ports": [
+              {
+                "name": "http",
+                "port": 8080,
+                "targetPort": 8080,
+                "nodePort": 0,
+                "protocol": "TCP"
+              }
+            ],
+            "selector": {
+              "app": "accept-workload",
+              "revision": "2"
+            },
+            "loadBalancerIP": "",
+            "resourceVersion": "2412594",
+            "uid": "c933d5a2-665f-4516-941d-882a92690436"
+          }
+        },
+        {
+          "method": "DELETE",
+          "path": "/business/k8s/clusters/2/services/accept-service?namespace=omx-accept-20261121-k8s03",
+          "httpStatus": 400,
+          "code": 400,
+          "message": "k8s.service.resource_version_required",
+          "durationMs": 15,
+          "data": null
+        },
+        {
+          "method": "POST",
+          "path": "/business/k8s/clusters/2/services?namespace=omx-accept-20261121-k8s03",
+          "httpStatus": 400,
+          "code": 400,
+          "message": "common.param_invalid",
+          "durationMs": 0,
+          "data": null
+        }
+      ],
+      "durationMs": 250,
+      "evidence": ".harness\\evidence\\2026-11-20-ops-review-live-runtime-acceptance\\k8s\\omx-accept-20261121-k8s03\\k08-20261121-084652.json"
+    },
+    {
+      "id": "k09",
+      "intent": "prepare minimal existing-image Deployment fixture",
+      "userModel": "authenticated admin unless stated",
+      "setup": "local Ops; pinned SSH to 115.190.251.143; dedicated namespace",
+      "harness": ".local/acceptance-20261121/k8s-live.py",
+      "expected": "assertions hold",
+      "fixesApplied": [],
+      "cleanup": "owned fixtures tracked in checkpoint.json",
+      "status": "FAIL",
+      "errorType": "AssertionError",
+      "error": "bounded read-only kubectl failed",
+      "calls": [],
+      "durationMs": 204,
+      "evidence": ".harness\\evidence\\2026-11-20-ops-review-live-runtime-acceptance\\k8s\\omx-accept-20261121-k8s03\\k09-20261121-084652.json"
+    },
+    {
+      "id": "k13",
+      "intent": "warm-cache credential rotation and restore",
+      "userModel": "authenticated admin unless stated",
+      "setup": "local Ops; pinned SSH to 115.190.251.143; dedicated namespace",
+      "harness": ".local/acceptance-20261121/k8s-live.py",
+      "expected": "assertions hold",
+      "fixesApplied": [],
+      "cleanup": "owned fixtures tracked in checkpoint.json",
+      "status": "FAIL",
+      "errorType": "AssertionError",
+      "error": "credential rotation still uses warm privileged client",
+      "calls": [
+        {
+          "method": "GET",
+          "path": "/business/k8s/clusters/2/credential",
+          "httpStatus": 200,
+          "code": 200,
+          "message": "success",
+          "durationMs": 15,
+          "data": {
+            "id": 2,
+            "clusterId": 2,
+            "version": 1,
+            "status": "active"
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/business/k8s/clusters/2/nodes",
+          "httpStatus": 200,
+          "code": 200,
+          "message": "success",
+          "durationMs": 47,
+          "data": {
+            "items": [
+              {
+                "name": "iv-yedenmmwhsqc6iu4z5p6",
+                "status": "ready",
+                "internalIp": "192.168.94.127",
+                "os": "Ubuntu 24.04 LTS",
+                "kubeletVersion": "v1.36.3+k3s1",
+                "cpuCapacity": "4",
+                "memoryCapacity": "4010888Ki",
+                "podCapacity": 110,
+                "allocatablePods": 110
+              }
+            ],
+            "total": 1
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/business/k8s/clusters/2/credential/rotate",
+          "httpStatus": 200,
+          "code": 200,
+          "message": "success",
+          "durationMs": 16,
+          "data": {
+            "id": 2,
+            "clusterId": 2,
+            "version": 2,
+            "status": "active"
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/business/k8s/clusters/2/nodes",
+          "httpStatus": 200,
+          "code": 200,
+          "message": "success",
+          "durationMs": 47,
+          "data": {
+            "items": [
+              {
+                "name": "iv-yedenmmwhsqc6iu4z5p6",
+                "status": "ready",
+                "internalIp": "192.168.94.127",
+                "os": "Ubuntu 24.04 LTS",
+                "kubeletVersion": "v1.36.3+k3s1",
+                "cpuCapacity": "4",
+                "memoryCapacity": "4010888Ki",
+                "podCapacity": 110,
+                "allocatablePods": 110
+              }
+            ],
+            "total": 1
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/business/k8s/clusters/2/credential/rotate",
+          "httpStatus": 200,
+          "code": 200,
+          "message": "success",
+          "durationMs": 31,
+          "data": {
+            "id": 2,
+            "clusterId": 2,
+            "version": 3,
+            "status": "active"
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/business/k8s/clusters/2/nodes",
+          "httpStatus": 200,
+          "code": 200,
+          "message": "success",
+          "durationMs": 47,
+          "data": {
+            "items": [
+              {
+                "name": "iv-yedenmmwhsqc6iu4z5p6",
+                "status": "ready",
+                "internalIp": "192.168.94.127",
+                "os": "Ubuntu 24.04 LTS",
+                "kubeletVersion": "v1.36.3+k3s1",
+                "cpuCapacity": "4",
+                "memoryCapacity": "4010888Ki",
+                "podCapacity": 110,
+                "allocatablePods": 110
+              }
+            ],
+            "total": 1
+          }
+        }
+      ],
+      "durationMs": 203,
+      "evidence": ".harness\\evidence\\2026-11-20-ops-review-live-runtime-acceptance\\k8s\\omx-accept-20261121-k8s03\\k13-20261121-084652.json"
+    },
+    {
+      "id": "k14",
+      "intent": "namespace ownership and write protection",
+      "userModel": "authenticated admin unless stated",
+      "setup": "local Ops; pinned SSH to 115.190.251.143; dedicated namespace",
+      "harness": ".local/acceptance-20261121/k8s-live.py",
+      "expected": "assertions hold",
+      "fixesApplied": [],
+      "cleanup": "owned fixtures tracked in checkpoint.json",
+      "actual": {
+        "missingOwnerRejected": true,
+        "unboundNamespaceRejected": true,
+        "remoteSideEffects": false
+      },
+      "status": "PASS",
+      "calls": [
+        {
+          "method": "POST",
+          "path": "/business/k8s/clusters/2/namespaces",
+          "httpStatus": 200,
+          "code": 400,
+          "message": "common.param_invalid",
+          "durationMs": 0,
+          "data": null
+        },
+        {
+          "method": "POST",
+          "path": "/business/k8s/clusters/2/configmaps?namespace=kube-system",
+          "httpStatus": 200,
+          "code": 500,
+          "message": "k8s.namespace.binding_required",
+          "durationMs": 0,
+          "data": null
+        }
+      ],
+      "durationMs": 188,
+      "evidence": ".harness\\evidence\\2026-11-20-ops-review-live-runtime-acceptance\\k8s\\omx-accept-20261121-k8s03\\k14-20261121-084652.json"
+    },
+    {
+      "id": "k15",
+      "intent": "owned resources cleanup and independent absence",
+      "userModel": "authenticated admin unless stated",
+      "setup": "local Ops; pinned SSH to 115.190.251.143; dedicated namespace",
+      "harness": ".local/acceptance-20261121/k8s-live.py",
+      "expected": "assertions hold",
+      "fixesApplied": [],
+      "cleanup": "owned fixtures tracked in checkpoint.json",
+      "status": "FAIL",
+      "errorType": "ProbeError",
+      "calls": [],
+      "durationMs": 19235,
+      "evidence": ".harness\\evidence\\2026-11-20-ops-review-live-runtime-acceptance\\k8s\\omx-accept-20261121-k8s03\\k15-20261121-084652.json"
+    }
+  ],
+  "cleanup": [],
+  "gaps": [
+    "non-admin RBAC binding",
+    "multi-tenant isolation",
+    "Helm and Velero execution",
+    "release rollout/rollback",
+    "frontend 10-second timeout",
+    "WebSocket server resource cleanup"
+  ]
+}

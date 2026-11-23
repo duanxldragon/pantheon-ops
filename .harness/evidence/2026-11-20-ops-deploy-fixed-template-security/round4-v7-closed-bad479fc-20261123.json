@@ -1,0 +1,47 @@
+{
+  "taskId": "2026-11-20-ops-deploy-fixed-template-security",
+  "checkpoint": "round4-v7-injection-fingerprint-closed-on-bad479fc",
+  "capturedAt": "2026-11-23T01:50:00.0000000+08:00",
+  "status": "V7 injection/fingerprint closed on same candidate bad479fc via deploy lane run omx_accept_20261121_codex_t02d",
+  "candidate": {
+    "backendSha256": "bad479fc9817fffcab5253064b5ddf052365fb88fed55bd9d8697157720b971f",
+    "backendBinary": "pantheon-ops-codex-t02b-20261122-172553.exe",
+    "sourceHead": "a2d69d4a759b5df2b26aaa9d26bdc5175babe9dc",
+    "database": "ops_acceptance_formal_20261122_codex",
+    "sourceStable": true,
+    "runtimeStable": true
+  },
+  "runId": "omx_accept_20261121_codex_t02d",
+  "runFinishedAt": "2026-11-22T10:22:48Z",
+  "exitCode": 0,
+  "cases": {
+    "d04-wrong-fingerprint": {
+      "status": "PASS",
+      "assertion": "wrong fingerprint (SHA256:AAAA...) start -> task status 'failed'; remote marker-neg absent",
+      "result": {"status": "failed", "absent": {"ok": true}}
+    },
+    "d05-injection-negative": {
+      "status": "PASS",
+      "assertion": "serviceName='nginx$(touch /tmp/<runId>/injected)' -> create HTTP 400 business.deploy.task.templateParamsInvalid; no preview, no remote start, no injected marker",
+      "result": {"createCode": 400, "remoteStartPerformed": false, "unsafeSyntaxPresentInPreview": false}
+    },
+    "d03-legal-custom-ssh": {
+      "status": "PASS",
+      "assertion": "real SSH install remote marker + persisted logs + no secret in detail/logs",
+      "result": {"status": "success", "marker": {"ok": true, "found": true}}
+    }
+  },
+  "goLiveVMContext": {
+    "receipt": "codex-fix-live-20261122-182309.json",
+    "command": "go test -race -count=1 -timeout=30m -run TestDeployLiveVM ./modules/business/deploy",
+    "exitCode": 0,
+    "coverage": "TestDeployLiveVMExecution success/failure + TestDeployLiveVMCancellation on real VM; legal install, partial install inverse denied, owned marker cleaned"
+  },
+  "closed": ["V7 injection under fixed-template render on same candidate", "host-fingerprint mismatch rejection on same candidate", "same-candidate align for deploy lane d00-d06"],
+  "remainingGaps": [
+    "legal nginx_systemd install/uninstall on shared VM: full source build (configure+make, apt/yum system packages, nginx system user, systemd unit enable/start) = heavy shared-host system mutation, NOT a task-namespaced reversible action; needs maintainer decision on machine-provisioning method (T16 fresh-install tail)",
+    "full `go test -race ./...` gate unavailable in this shell (Windows TSan alloc failed); codex has independent -race green records",
+    "round-3 independent Codex review not yet run; T02 stays in-progress"
+  ],
+  "noCommitPushRelease": true
+}

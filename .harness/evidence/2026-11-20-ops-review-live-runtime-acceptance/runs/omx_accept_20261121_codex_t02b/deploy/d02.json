@@ -1,0 +1,28 @@
+{
+  "runId": "omx_accept_20261121_codex_t02b",
+  "phase": "deploy",
+  "caseId": "d02",
+  "title": "fixed nginx package metadata",
+  "ts": "2026-11-22T09:20:57.237Z",
+  "status": "PASS",
+  "httpStatus": 200,
+  "businessCode": 200,
+  "assertions": [
+    {
+      "name": "deploy/packages created",
+      "pass": true
+    },
+    {
+      "name": "fixed template metadata retained",
+      "pass": true
+    }
+  ],
+  "ids": {
+    "fixedPackageId": 2
+  },
+  "result": null,
+  "message": null,
+  "redaction": null,
+  "durationMs": 22,
+  "blockedReason": null
+}

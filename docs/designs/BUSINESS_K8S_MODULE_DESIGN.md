@@ -146,6 +146,8 @@ pending -> applying -> succeeded
 
 ## 12. 非目标
 
+T01（2026-11-20-ops-review-baseline-and-decisions）冻结补充：Cluster/凭据、NamespaceBinding、Velero 均归 T04 核心租户隔离主范围（迁移 000041），Helm/Install/Release 为 T14 扩展范围（迁移 000042）；Helm 仅 DB 登记快照不执行真实安装；资产关系（Pod→Node→VM）无实体承接，收窄为独立后续能力。详见 [T01 证据](../../.harness/evidence/2026-11-20-ops-review-baseline-and-decisions/baseline-verification-20261123.json)。
+
 - V1 不建立 Kubernetes 对象到 CMDB 的全量同步。
 - V1 不实现 GitOps、Helm controller、跨集群调度或 Cluster Admin 默认授权。
 - V1 不把 K8s Release 合并进 VM Deploy 执行器。

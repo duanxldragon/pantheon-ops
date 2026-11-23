@@ -1,0 +1,29 @@
+{
+  "runId": "omx_accept_20261121_codex_t02a",
+  "sourceHashes": {
+    "backend/modules/business/deploy/deploy_fixed_safety_test.go": "8d2720133acc67e9073d1bb19f7537efe0722ebbb43d98845748103965ffa968",
+    "backend/modules/business/deploy/deploy_fixed_templates.go": "1fcf8412b6030a9d170a264c385e167cc1c77145c0d2ae8e7ed18dd5a9ec656b"
+  },
+  "cases": [
+    {
+      "name": "without-password",
+      "password": "",
+      "remoteRoot": "/tmp/omx_accept_20261121_codex_t02a/redis-config/without-password"
+    },
+    {
+      "name": "plain-password",
+      "password": "safe_acceptance_pw",
+      "remoteRoot": "/tmp/omx_accept_20261121_codex_t02a/redis-config/plain-password"
+    },
+    {
+      "name": "quoted-password",
+      "password": "p@ss;$(id)'quoted",
+      "remoteRoot": "/tmp/omx_accept_20261121_codex_t02a/redis-config/quoted-password"
+    },
+    {
+      "name": "escaped-password",
+      "password": "p@ss\\word\"quoted",
+      "remoteRoot": "/tmp/omx_accept_20261121_codex_t02a/redis-config/escaped-password"
+    }
+  ]
+}

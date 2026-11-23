@@ -1,0 +1,186 @@
+{
+  "runId": "omx_accept_20261121_vprobe",
+  "phase": "v",
+  "status": "FAIL",
+  "finishedAt": "2026-11-21T13:49:42.186Z",
+  "binarySha256": "5cd98af198657a667a5deb0016fe3884265f3d96222da212b5c46ab40ad3e368",
+  "cases": [
+    {
+      "caseId": "login-admin",
+      "assertion": "admin can log in",
+      "pass": true,
+      "actual": {
+        "httpStatus": 200,
+        "code": 200
+      }
+    },
+    {
+      "caseId": "v1-role-create",
+      "assertion": "create deploy viewer role",
+      "pass": true,
+      "actual": {
+        "httpStatus": 200,
+        "code": 200,
+        "msg": "success"
+      }
+    },
+    {
+      "caseId": "v1-user-create",
+      "assertion": "create viewer user",
+      "pass": true,
+      "actual": {
+        "httpStatus": 200,
+        "code": 200,
+        "msg": "success"
+      }
+    },
+    {
+      "caseId": "v1-user-login",
+      "assertion": "viewer user can log in",
+      "pass": true,
+      "actual": {
+        "httpStatus": 200,
+        "code": 200
+      }
+    },
+    {
+      "caseId": "v1-get-tasks",
+      "assertion": "task list allowed for task:view role",
+      "pass": true,
+      "actual": {
+        "httpStatus": 200,
+        "code": 403
+      }
+    },
+    {
+      "caseId": "v1-post-tasks-empty",
+      "assertion": "POST tasks without task:create denied",
+      "pass": false,
+      "actual": {
+        "httpStatus": 200,
+        "code": 403,
+        "msg": "permission.denied"
+      }
+    },
+    {
+      "caseId": "v1-task-start-denied",
+      "assertion": "task start denied for viewer role",
+      "pass": false,
+      "actual": {
+        "httpStatus": 200,
+        "code": 403,
+        "msg": "permission.denied"
+      }
+    },
+    {
+      "caseId": "v1-get-credentials-denied",
+      "assertion": "credentials list denied for viewer role",
+      "pass": false,
+      "actual": {
+        "httpStatus": 200,
+        "code": 403,
+        "msg": "permission.denied"
+      }
+    },
+    {
+      "caseId": "v2-role-create",
+      "assertion": "create package view role",
+      "pass": true,
+      "actual": {
+        "httpStatus": 200,
+        "code": 200,
+        "msg": "success"
+      }
+    },
+    {
+      "caseId": "v2-user-create",
+      "assertion": "create package viewer user",
+      "pass": true,
+      "actual": {
+        "httpStatus": 200,
+        "code": 200,
+        "msg": "success"
+      }
+    },
+    {
+      "caseId": "v2-package-list",
+      "assertion": "package list allowed for package:view role",
+      "pass": true,
+      "actual": {
+        "httpStatus": 200,
+        "code": 200
+      }
+    },
+    {
+      "caseId": "v2-package-export",
+      "assertion": "package export denied (not granted to view role)",
+      "pass": false,
+      "actual": {
+        "httpStatus": 200,
+        "code": 403,
+        "seemsCsvOrFile": true,
+        "msg": "permission.denied"
+      }
+    },
+    {
+      "caseId": "v2-package-detail",
+      "assertion": "package detail denied (keyMatch2 intentional gap)",
+      "pass": false,
+      "actual": {
+        "httpStatus": 200,
+        "code": 403,
+        "msg": "permission.denied"
+      }
+    },
+    {
+      "caseId": "v5-cred-create",
+      "assertion": "create throwaway credential",
+      "pass": true,
+      "actual": {
+        "httpStatus": 200,
+        "code": 200,
+        "msg": "success"
+      }
+    },
+    {
+      "caseId": "v5-cred-list-no-secret",
+      "assertion": "credential list response carries no secret field",
+      "pass": false,
+      "actual": {
+        "httpStatus": 200,
+        "containsSecretField": true
+      }
+    },
+    {
+      "caseId": "v5-cred-detail-no-secret",
+      "assertion": "credential detail response carries no secret field",
+      "pass": true,
+      "actual": {
+        "httpStatus": 404,
+        "containsSecretField": false,
+        "body": "{}"
+      }
+    },
+    {
+      "caseId": "v5-noncreator-read",
+      "assertion": "non-creator deploy user cannot read credential",
+      "pass": false,
+      "actual": {
+        "httpStatus": 404,
+        "msg": ""
+      }
+    },
+    {
+      "caseId": "v5-db-ciphertext",
+      "assertion": "DB secret_encrypted != plaintext throwaway (verified via mysql by wrapper)",
+      "pass": true,
+      "actual": {
+        "expectedSecretInDb": false
+      }
+    }
+  ],
+  "secretPolicy": {
+    "probeSecretPersisted": false,
+    "probeSecretInEvidence": false
+  }
+}

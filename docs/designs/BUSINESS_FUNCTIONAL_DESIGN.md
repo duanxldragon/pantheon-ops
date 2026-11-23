@@ -10,7 +10,7 @@ updated_at: 2026-11-16
 
 # Pantheon Ops 全局业务功能设计
 
-目标是 CMDB → BizScope → Application/Service/Instance → Deploy → SSH/K8s 的试点闭环。当前执行与退出条件以[试点交付计划](../../.harness/tasks/2026-11-16-ops-pilot-delivery/plan.md)为准。业务审查基线为 691dd455（当时 Base v0.18.7）；本轮计划基线 07d53988 已提交 Base v0.18.9 消费，不能把旧审查结果视为新版验收。
+目标是 CMDB → BizScope → Application/Service/Instance → Deploy → SSH/K8s 的试点闭环。当前执行与退出条件以[试点交付计划](../../.harness/archive/2026-11/tasks/2026-11-16-ops-pilot-delivery/plan.md)为准。业务审查基线为 691dd455（当时 Base v0.18.7）；本轮计划基线 07d53988 已提交 Base v0.18.9 消费，不能把旧审查结果视为新版验收。
 
 ## 能力现状与任务归属
 
@@ -28,6 +28,19 @@ updated_at: 2026-11-16
 | ArgoCD/GitOps | 真实 Argo API、手工 Refresh，当前已装配                   | E02 DataScope 行归属、Sync 状态真实性与自动 reconcile；E04 真环境验收                            |
 | Velero/Backup | 真实 CRD/reconciler，当前已装配                           | E04 backup/restore/schedule、PVC、失败和归属验收，不沿用“伪实现/下架”口径                        |
 | Helm 专用模块 | 记录登记；创建默认 deployed 不代表安装 Chart              | E03 纠正能力与状态口径；真实 Chart 执行只有明确范围才新增                                        |
+
+## T01 冻结边界（2026-11-20-ops-review-baseline-and-decisions）
+
+本批来源（独立评审 + 真实环境清单）在当前 HEAD 逐条核实后，冻结以下边界（详见 [T01 证据](../../.harness/evidence/2026-11-20-ops-review-baseline-and-decisions/baseline-verification-20261123.json)）：
+
+- **多租户目标沿用报告**：按基础平台四分类（platform-global / tenant-owned / tenant-overridable / derived）登记业务表。当前 HEAD 仅 observability 含 `TenantID`；核心业务表（主机/集群/凭据/部署任务及明细/bizscope/service）均无租户字段，为 T04 核心隔离主范围；argocd/filedist/helm 等扩展表为 T14 扩展隔离主范围。T04 迁移编号 **000041**、T14 **000042**，均不与存量迁移（34/35/36/39/40）冲突。
+- **租户唯一键变体**：`uk_deploy_credential_name_deleted`、`uk_ip_deleted`、`uk_k8s_cluster_code`、bizscope name、argocd/filedist/velero 唯一键等全局唯一键在租户化时改为 `(tenant_id, 原键, deleted_at)` 组合，防止跨租户撞名。
+- **凭据归属模型冻结**：采用"凭据按资源归属授权（业务域/租户作用域）"；不采用全局共享。T05 按此承接模型与 UI。
+- **Agent 执行器冻结**：无完整执行协议，本期**关闭入口**并对旧数据启动拒绝启动；不对外宣称 Agent 能力。T09 承接该契约闭环。
+- **资产关系（Pod→Node→VM）**：当前代码无实体承接（NEW-02），**收窄定位**，登记为独立后续能力，不进入本批。
+- **Helm 真实安装 / Nacos / RocketMQ**：当前 Helm 为 DB 登记快照（NEW-03，设计如此），真实 Chart 安装、Nacos/RocketMQ 均登记为独立后续能力；本批不宣称真实 Helm 安装能力。
+
+以上 4 项产品边界为规划假设，待维护者最终范围验收（T01 Human Gate）。
 
 ## 首期流程和边界
 
@@ -51,6 +64,6 @@ updated_at: 2026-11-16
 
 ## 追溯
 
-- [当前计划](../../.harness/tasks/2026-11-16-ops-pilot-delivery/plan.md)、[执行队列](../../.harness/tasks/2026-11-16-ops-pilot-delivery/EXECUTION_QUEUE.md)、[任务状态](../../.harness/STATUS.md)。
+- [当前计划](../../.harness/archive/2026-11/tasks/2026-11-16-ops-pilot-delivery/plan.md)、[执行队列](../../.harness/archive/2026-11/tasks/2026-11-16-ops-pilot-delivery/EXECUTION_QUEUE.md)、[任务状态](../../.harness/STATUS.md)。
 - [归档索引](../../.harness/ARCHIVE.md)：12 个历史任务按原范围关闭，119 个原证据文件逐文件 hash 保全。
 - [八月 V1 检查点](../V1_RELEASE_CHECKLIST.md)和[历史开发估算](./BUSINESS_DEVELOPMENT_PLAN.md)已被当前计划接管；OPEN 条目不能因为任务归档而视为通过。

@@ -21,16 +21,9 @@ func NewClientFromKubeconfig(kubeconfig string) (*kubernetes.Clientset, error) {
 	if kubeconfig == "" {
 		return nil, errKubeconfigInvalid
 	}
-	restConfig, err := clientcmd.RESTConfigFromKubeConfig([]byte(kubeconfig))
+	restConfig, err := RESTConfigFromKubeconfig(kubeconfig)
 	if err != nil {
-		return nil, errKubeconfigInvalid
-	}
-
-	// Validate API server URL against SSRF attacks
-	validator := ssrf.DefaultValidator()
-	validator.AllowedPorts = []int{443, 6443, 8443, 16443}
-	if err := validator.ValidateURL(restConfig.Host); err != nil {
-		return nil, fmt.Errorf("k8s.apiserver_invalid_url: %w", err)
+		return nil, err
 	}
 
 	clientset, err := kubernetes.NewForConfig(restConfig)
@@ -38,6 +31,31 @@ func NewClientFromKubeconfig(kubeconfig string) (*kubernetes.Clientset, error) {
 		return nil, errKubeconfigInvalid
 	}
 	return clientset, nil
+}
+
+// validateEmbeddedCredentials rejects kubeconfig credential sources that run
+// commands or read local files on the server. client-go would otherwise
+// execute an exec/auth-provider plugin or read a TokenFile/certificate path
+// supplied by the uploader when the first request is made, so the upload
+// boundary only accepts fully embedded material.
+func validateEmbeddedCredentials(cfg *clientcmdapi.Config) error {
+	for name, auth := range cfg.AuthInfos {
+		if auth == nil {
+			continue
+		}
+		if auth.Exec != nil || auth.AuthProvider != nil || auth.TokenFile != "" || auth.ClientCertificate != "" || auth.ClientKey != "" {
+			return fmt.Errorf("%w: user %q requires exec/auth-provider or local credential files", errKubeconfigInvalid, name)
+		}
+	}
+	for name, cl := range cfg.Clusters {
+		if cl == nil {
+			continue
+		}
+		if cl.CertificateAuthority != "" {
+			return fmt.Errorf("%w: cluster %q requires a local CA file", errKubeconfigInvalid, name)
+		}
+	}
+	return nil
 }
 
 // NewClientFromEncrypted decrypts an encrypted kubeconfig and returns a
@@ -86,6 +104,13 @@ func RESTConfigFromKubeconfig(kubeconfig string) (*rest.Config, error) {
 	if kubeconfig == "" {
 		return nil, errKubeconfigInvalid
 	}
+	cfg, err := clientcmd.Load([]byte(kubeconfig))
+	if err != nil {
+		return nil, errKubeconfigInvalid
+	}
+	if err := validateEmbeddedCredentials(cfg); err != nil {
+		return nil, err
+	}
 	restConfig, err := clientcmd.RESTConfigFromKubeConfig([]byte(kubeconfig))
 	if err != nil {
 		return nil, errKubeconfigInvalid
@@ -97,6 +122,11 @@ func RESTConfigFromKubeconfig(kubeconfig string) (*rest.Config, error) {
 	if err := validator.ValidateURL(restConfig.Host); err != nil {
 		return nil, fmt.Errorf("k8s.apiserver_invalid_url: %w", err)
 	}
+
+	// Client-side throttle: without it a burst of console requests saturates
+	// one cluster's API server; the values are conservative console defaults.
+	restConfig.QPS = 20
+	restConfig.Burst = 40
 
 	return restConfig, nil
 }

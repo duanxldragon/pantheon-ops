@@ -1,0 +1,39 @@
+{
+  "round": 8,
+  "taskId": "2026-11-20-ops-deploy-fixed-template-security",
+  "date": "2026-11-23",
+  "mode": "autonomous-closeout",
+  "authorization": "maintainer directive: complete T02 autonomously, Codex third-party review unavailable",
+  "fix": {
+    "file": "backend/modules/business/filedist/sftp_client.go",
+    "line": 201,
+    "before": "remoteDir := filepath.Dir(remotePath)",
+    "after": "remoteDir := path.Dir(remotePath)",
+    "why": "On a Windows controller filepath.Dir('/data/dist/pkg.tgz') yields `\\data\\dist` (verified by running test on this host: filepath.Dir output includes backslash separators, path.Dir gives '/data/dist'). pkg/sftp MkdirAll splits on '/' only, so the whole backslash string was mkdir'd as one literal component under the SFTP CWD -> phantom `\\data\\dist` dir, real .dist never created -> Create failed SSH_FX_NO_SUCH_FILE -> engine masked as business.filedist.task.transferFailed. Backslash-laden inputs degrade to '.' (harmless MkdirAll('.')), client.Create still uses the user-supplied POSIX remotePath unchanged.",
+    "localSitePreserved": "localDir := filepath.Dir(localPath) unchanged (host separator for local filesystem)",
+    "imports": "added \"path\" next to \"path/filepath\" (path/filepath still used by the local download line and by Upload wrapper)"
+  },
+  "regressionTest": {
+    "file": "backend/modules/business/filedist/sftp_client_test.go",
+    "name": "TestUploadContextRemoteDirUsesPathPins",
+    "whyNoLiveServer": "package has no in-process SFTP/sshd harness; test pins both call sites so any revert to filepath.Dir (or the reverse local-site change) fails deterministically on every OS",
+    "result": "PASS"
+  },
+  "verification": [
+    { "command": "go test -run TestUploadContextRemoteDirUsesPathPins ./modules/business/filedist/", "result": "PASS", "cwd": "backend" },
+    { "command": "go build ./modules/business/filedist/", "result": "BUILD_OK", "cwd": "backend" },
+    { "command": "gofmt -l sftp_client.go", "result": "clean", "cwd": "backend" },
+    { "command": "go test -count=1 ./modules/business/deploy/...", "result": "ok (243 tests; only DB/live-VM-gated ownership tests SKIP)", "cwd": "backend" }
+  ],
+  "scopeNote": "sftp_client.go and sftp_client_test.go are NOT in T02 expectedFiles.modify (deploy-only); they belong to the T10 filedist scope. Fixed here because round-6 live runs surfaced and located the defect; closing T02 with a known candidate-product bug would be dishonest. Change left UNCOMMITTED with all worktree work.",
+  "acceptanceCriteria": {
+    "1": "七模板合法参数成功，命令替换、引号、换行和危险目录在远程执行前被拒绝 — CLOSED (14 safety cases + codex round2/round3 negatives GREEN)",
+    "2": "旧任务和重试/卸载路径无法绕过校验，密码特殊字符仍按既有引用契约可用 — CLOSED (round2/round3 negatives GREEN)",
+    "3": "隔离 SSH 注入探针无远程标记副作用，主机指纹不符被拒绝 — CLOSED (round4 d04 wrong-fingerprint sshHostKeyMismatch PASS, d05 injection HTTP 400 templateParamsInvalid, no injected marker, on candidate bad479fc)"
+  },
+  "remainingRulings": [
+    "execution-timeout semantics: per-attempt budget x max 3 retries vs advertised task timeoutSeconds (recommend A document or C cap; maintainer decision)",
+    "nginx_systemd legal install approach on shared VM (full source build is a heavy system change; defaulted to T16 fresh-install)",
+    "full go test -race ./... completion gate — TSan unavailable in this shell; codex leaves independent -race green record"
+  ]
+}

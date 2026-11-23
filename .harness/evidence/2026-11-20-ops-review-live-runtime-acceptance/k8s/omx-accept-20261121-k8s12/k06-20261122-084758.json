@@ -1,0 +1,97 @@
+{
+  "id": "k06",
+  "intent": "ConfigMap create/read/pagination",
+  "userModel": "authenticated admin unless stated",
+  "setup": "local Ops; pinned SSH to 115.190.251.143; dedicated namespace",
+  "harness": ".local/acceptance-20261121/k8s-live.py",
+  "expected": "assertions hold",
+  "fixesApplied": [],
+  "cleanup": "owned fixtures tracked in checkpoint.json",
+  "actual": {
+    "create": {
+      "name": "accept-config",
+      "namespace": "omx-accept-20261121-k8s12",
+      "data": {
+        "message": "omx-accept-20261121-k8s12"
+      },
+      "resourceVersion": "2451387"
+    },
+    "read": {
+      "name": "accept-config",
+      "namespace": "omx-accept-20261121-k8s12",
+      "data": {
+        "message": "omx-accept-20261121-k8s12"
+      },
+      "resourceVersion": "2451387"
+    },
+    "list": {
+      "items": [
+        {
+          "name": "accept-config",
+          "namespace": "omx-accept-20261121-k8s12",
+          "keyCount": 1,
+          "resourceVersion": "2451387"
+        }
+      ],
+      "total": 1,
+      "continueToken": "eyJ2IjoibWV0YS5rOHMuaW8vdjEiLCJydiI6MjQ1MTM4Nywic3RhcnQiOiIvYWNjZXB0LWNvbmZpZ1x1MDAwMCJ9"
+    }
+  },
+  "status": "PASS",
+  "calls": [
+    {
+      "method": "POST",
+      "path": "/business/k8s/clusters/8/configmaps?namespace=omx-accept-20261121-k8s12",
+      "httpStatus": 200,
+      "code": 200,
+      "message": "success",
+      "durationMs": 47,
+      "data": {
+        "name": "accept-config",
+        "namespace": "omx-accept-20261121-k8s12",
+        "data": {
+          "message": "omx-accept-20261121-k8s12"
+        },
+        "resourceVersion": "2451387"
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/business/k8s/clusters/8/configmaps/accept-config?namespace=omx-accept-20261121-k8s12",
+      "httpStatus": 200,
+      "code": 200,
+      "message": "success",
+      "durationMs": 47,
+      "data": {
+        "name": "accept-config",
+        "namespace": "omx-accept-20261121-k8s12",
+        "data": {
+          "message": "omx-accept-20261121-k8s12"
+        },
+        "resourceVersion": "2451387"
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/business/k8s/clusters/8/configmaps?namespace=omx-accept-20261121-k8s12&limit=1",
+      "httpStatus": 200,
+      "code": 200,
+      "message": "success",
+      "durationMs": 47,
+      "data": {
+        "items": [
+          {
+            "name": "accept-config",
+            "namespace": "omx-accept-20261121-k8s12",
+            "keyCount": 1,
+            "resourceVersion": "2451387"
+          }
+        ],
+        "total": 1,
+        "continueToken": "eyJ2IjoibWV0YS5rOHMuaW8vdjEiLCJydiI6MjQ1MTM4Nywic3RhcnQiOiIvYWNjZXB0LWNvbmZpZ1x1MDAwMCJ9"
+      }
+    }
+  ],
+  "durationMs": 344,
+  "evidence": ".harness\\evidence\\2026-11-20-ops-review-live-runtime-acceptance\\k8s\\omx-accept-20261121-k8s12\\k06-20261122-084758.json"
+}

@@ -1,0 +1,68 @@
+{
+  "id": "ku01",
+  "intent": "UI-created namespace ownership and selected write permissions",
+  "userModel": "authenticated admin unless stated",
+  "setup": "local Ops; pinned SSH to 115.190.251.143; dedicated namespace",
+  "harness": ".local/acceptance-20261121/k8s-live.py",
+  "expected": "assertions hold",
+  "fixesApplied": [],
+  "cleanup": "owned fixtures tracked in checkpoint.json",
+  "actual": {
+    "namespace": "omx-accept-20261121-k8s08-ui",
+    "businessScopeId": 10,
+    "environment": "dev",
+    "allowedActions": [
+      "configmap:create",
+      "configmap:delete"
+    ],
+    "independentlyPresent": true,
+    "selectedWritePassed": true,
+    "unselectedWriteRejected": true
+  },
+  "status": "PASS",
+  "calls": [
+    {
+      "method": "POST",
+      "path": "/business/k8s/clusters/5/configmaps?namespace=omx-accept-20261121-k8s08-ui",
+      "httpStatus": 200,
+      "code": 200,
+      "message": "success",
+      "durationMs": 109,
+      "data": {
+        "name": "ui-accept-config",
+        "namespace": "omx-accept-20261121-k8s08-ui",
+        "data": {
+          "message": "omx-accept-20261121-k8s08"
+        },
+        "resourceVersion": "2414380"
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/business/k8s/clusters/5/configmaps/ui-accept-config?namespace=omx-accept-20261121-k8s08-ui",
+      "httpStatus": 200,
+      "code": 200,
+      "message": "success",
+      "durationMs": 32,
+      "data": {
+        "name": "ui-accept-config",
+        "namespace": "omx-accept-20261121-k8s08-ui",
+        "data": {
+          "message": "omx-accept-20261121-k8s08"
+        },
+        "resourceVersion": "2414380"
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/business/k8s/clusters/5/services?namespace=omx-accept-20261121-k8s08-ui",
+      "httpStatus": 403,
+      "code": 403,
+      "message": "k8s.namespace.action_forbidden",
+      "durationMs": 15,
+      "data": null
+    }
+  ],
+  "durationMs": 531,
+  "evidence": ".harness\\evidence\\2026-11-20-ops-review-live-runtime-acceptance\\k8s\\omx-accept-20261121-k8s08\\ku01-20261121-094039.json"
+}

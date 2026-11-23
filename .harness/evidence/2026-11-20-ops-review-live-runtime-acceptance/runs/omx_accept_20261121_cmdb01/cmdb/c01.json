@@ -1,0 +1,44 @@
+{
+  "runId": "omx_accept_20261121_cmdb01",
+  "phase": "cmdb",
+  "caseId": "c01",
+  "title": "login-csrf",
+  "ts": "2026-11-20T23:44:00.146Z",
+  "status": "FAIL",
+  "httpStatus": 200,
+  "businessCode": 401,
+  "assertions": [
+    {
+      "name": "http 200",
+      "pass": true
+    },
+    {
+      "name": "business code 200",
+      "pass": false,
+      "detail": "auth.login.error"
+    },
+    {
+      "name": "access token cookie issued",
+      "pass": false,
+      "detail": "expected true"
+    },
+    {
+      "name": "refresh token cookie issued",
+      "pass": false,
+      "detail": "expected true"
+    },
+    {
+      "name": "csrf token cookie issued",
+      "pass": false,
+      "detail": "expected true"
+    }
+  ],
+  "ids": {
+    "cookieLengths": null
+  },
+  "result": null,
+  "message": null,
+  "redaction": null,
+  "durationMs": 232,
+  "blockedReason": null
+}

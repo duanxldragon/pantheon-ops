@@ -1,0 +1,28 @@
+{
+  "runId": "omx_accept_20261122_cap",
+  "phase": "cap",
+  "caseId": "cap-cmdb-host-create",
+  "title": "create CMDB host inside the same business scope (CAP-CMDB write, prerequisite for vm instance)",
+  "ts": "2026-11-21T16:35:21.385Z",
+  "status": "PASS",
+  "httpStatus": 200,
+  "businessCode": 200,
+  "assertions": [
+    {
+      "name": "business code 200",
+      "pass": true
+    },
+    {
+      "name": "host id returned",
+      "pass": true
+    }
+  ],
+  "ids": {
+    "hostId": 9
+  },
+  "result": null,
+  "message": null,
+  "redaction": null,
+  "durationMs": 35,
+  "blockedReason": null
+}

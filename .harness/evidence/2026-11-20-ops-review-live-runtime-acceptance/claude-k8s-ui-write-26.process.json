@@ -1,0 +1,13 @@
+{
+  "ownershipLimitation": "Assignment immediately follows Start; a child created before assignment is outside the guaranteed job scope.",
+  "maxTurns": 8,
+  "createNoWindow": true,
+  "effort": "low",
+  "ownedJob": true,
+  "timeoutSeconds": 300,
+  "pid": 16528,
+  "strictMcpConfig": true,
+  "useShellExecute": false,
+  "startedAt": "2026-11-21T09:00:19.3732409+08:00",
+  "hooksDisabled": true
+}

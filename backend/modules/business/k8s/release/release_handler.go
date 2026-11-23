@@ -12,6 +12,11 @@ import (
 
 const msgParamInvalid = "common.param_invalid"
 
+// codeConflict is the business code for a stale-resource-version retry. The
+// shared envelope defines no conflict constant, so the release handler maps
+// common.ErrConflict to HTTP-style 409 locally.
+const codeConflict = 409
+
 // ReleaseHandler exposes Kubernetes release HTTP endpoints.
 //
 //nolint:revive // retained as the public handler name for this package.
@@ -59,7 +64,7 @@ func (h *ReleaseHandler) Create(c *gin.Context) {
 	createdBy := strconv.FormatUint(common.GetUserID(c), 10)
 	resp, err := h.svc.Create(req, createdBy, common.GetDataScope(c))
 	if err != nil {
-		common.FailWithError(c, common.CodeError, err, "k8s.release.create_failed")
+		common.FailWithError(c, releaseErrorCode(err), err, "k8s.release.create_failed")
 		return
 	}
 	common.Success(c, resp)
@@ -82,7 +87,7 @@ func (h *ReleaseHandler) Rollback(c *gin.Context) {
 	createdBy := strconv.FormatUint(common.GetUserID(c), 10)
 	resp, err := h.svc.Rollback(id, req, createdBy, common.GetDataScope(c))
 	if err != nil {
-		common.FailWithError(c, common.CodeError, err, "k8s.release.rollback_failed")
+		common.FailWithError(c, releaseErrorCode(err), err, "k8s.release.rollback_failed")
 		return
 	}
 	common.Success(c, resp)
@@ -99,8 +104,18 @@ func (h *ReleaseHandler) Reconcile(c *gin.Context) {
 	}
 	resp, err := h.svc.Reconcile(id, common.GetDataScope(c))
 	if err != nil {
-		common.FailWithError(c, common.CodeError, err, "k8s.release.reconcile_failed")
+		common.FailWithError(c, releaseErrorCode(err), err, "k8s.release.reconcile_failed")
 		return
 	}
 	common.Success(c, resp)
+}
+
+// releaseErrorCode maps a stale-resource-version conflict (common.ErrConflict)
+// to code 409 so callers retry with a fresh resourceVersion; every other
+// provider failure stays generic code 500 under the same message key.
+func releaseErrorCode(err error) int {
+	if errors.Is(err, common.ErrConflict) {
+		return codeConflict
+	}
+	return common.CodeError
 }

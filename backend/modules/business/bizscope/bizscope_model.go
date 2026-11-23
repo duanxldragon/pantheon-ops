@@ -8,7 +8,8 @@ import (
 
 type BizScope struct {
 	ID          uint64         `gorm:"primaryKey;autoIncrement" json:"id"`
-	Code        string         `gorm:"uniqueIndex;not null;size:255" json:"code"`
+	TenantID    uint64         `gorm:"column:tenant_id;not null;default:0;uniqueIndex:idx_biz_business_scope_code,priority:1" json:"-"`
+	Code        string         `gorm:"uniqueIndex:idx_biz_business_scope_code,priority:2;not null;size:255" json:"code"`
 	Name        string         `gorm:"not null;size:255" json:"name"`
 	Owner       string         `gorm:"size:255" json:"owner"`
 	Environment string         `gorm:"not null;size:50" json:"environment"`

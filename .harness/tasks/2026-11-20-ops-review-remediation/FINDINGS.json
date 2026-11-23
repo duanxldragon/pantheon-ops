@@ -1,0 +1,796 @@
+{
+ "schemaVersion": 1,
+ "parentTask": "2026-11-20-ops-review-remediation",
+ "sourceReview": "docs/reviews/pantheon-ops独立评审与外部报告核实-2026-11-20.md",
+ "sourceChecklist": "docs/reviews/pantheon-ops真实环境验证清单-2026-11-20.md",
+ "precedence": [
+  "路由与权限绑定逐条核对",
+  "基线更新与CI核对",
+  "正文"
+ ],
+ "findings": [
+  {
+   "findingId": "SEC-001",
+   "taskIds": [
+    "2026-11-20-ops-deploy-fixed-template-security"
+   ],
+   "packages": [
+    "T02"
+   ],
+   "priority": "P1",
+   "source": "docs/reviews/pantheon-ops独立评审与外部报告核实-2026-11-20.md",
+   "status": "planned",
+   "currentCandidateVerification": "not-run",
+   "assessment": "来源为静态审查，开工确认当前实现、回归与真实运行缺口"
+  },
+  {
+   "findingId": "SEC-002",
+   "taskIds": [
+    "2026-11-20-ops-business-permissions-and-task-visibility"
+   ],
+   "packages": [
+    "T03"
+   ],
+   "priority": "P1",
+   "source": "docs/reviews/pantheon-ops独立评审与外部报告核实-2026-11-20.md",
+   "status": "planned",
+   "currentCandidateVerification": "not-run",
+   "assessment": "来源为静态审查，开工确认当前实现、回归与真实运行缺口"
+  },
+  {
+   "findingId": "SEC-003",
+   "taskIds": [
+    "2026-11-20-ops-k8s-resource-authorization-and-mutations"
+   ],
+   "packages": [
+    "T06"
+   ],
+   "priority": "见来源及所属任务",
+   "source": "docs/reviews/pantheon-ops独立评审与外部报告核实-2026-11-20.md",
+   "status": "planned",
+   "currentCandidateVerification": "not-run",
+   "assessment": "来源为静态审查，开工确认当前实现、回归与真实运行缺口"
+  },
+  {
+   "findingId": "SEC-004",
+   "taskIds": [
+    "2026-11-20-ops-deploy-credential-ownership-and-ui"
+   ],
+   "packages": [
+    "T05"
+   ],
+   "priority": "P1",
+   "source": "docs/reviews/pantheon-ops独立评审与外部报告核实-2026-11-20.md",
+   "status": "planned",
+   "currentCandidateVerification": "not-run",
+   "assessment": "来源为静态审查，开工确认当前实现、回归与真实运行缺口"
+  },
+  {
+   "findingId": "SEC-005",
+   "taskIds": [
+    "2026-11-20-ops-k8s-resource-authorization-and-mutations"
+   ],
+   "packages": [
+    "T06"
+   ],
+   "priority": "P1",
+   "source": "docs/reviews/pantheon-ops独立评审与外部报告核实-2026-11-20.md",
+   "status": "planned",
+   "currentCandidateVerification": "not-run",
+   "assessment": "来源为静态审查，开工确认当前实现、回归与真实运行缺口"
+  },
+  {
+   "findingId": "SEC-006",
+   "taskIds": [
+    "2026-11-20-ops-k8s-resource-authorization-and-mutations"
+   ],
+   "packages": [
+    "T06"
+   ],
+   "priority": "见来源及所属任务",
+   "source": "docs/reviews/pantheon-ops独立评审与外部报告核实-2026-11-20.md",
+   "status": "planned",
+   "currentCandidateVerification": "not-run",
+   "assessment": "来源为静态审查，开工确认当前实现、回归与真实运行缺口"
+  },
+  {
+   "findingId": "SEC-007",
+   "taskIds": [
+    "2026-11-20-ops-k8s-log-websocket-lifecycle"
+   ],
+   "packages": [
+    "T08"
+   ],
+   "priority": "见来源及所属任务",
+   "source": "docs/reviews/pantheon-ops独立评审与外部报告核实-2026-11-20.md",
+   "status": "planned",
+   "currentCandidateVerification": "not-run",
+   "assessment": "来源为静态审查，开工确认当前实现、回归与真实运行缺口"
+  },
+  {
+   "findingId": "SEC-008",
+   "taskIds": [
+    "2026-11-20-ops-k8s-resource-authorization-and-mutations"
+   ],
+   "packages": [
+    "T06"
+   ],
+   "priority": "P3",
+   "source": "docs/reviews/pantheon-ops独立评审与外部报告核实-2026-11-20.md",
+   "status": "planned",
+   "currentCandidateVerification": "not-run",
+   "assessment": "来源为静态审查，开工确认当前实现、回归与真实运行缺口"
+  },
+  {
+   "findingId": "DEP-001",
+   "taskIds": [
+    "2026-11-20-ops-service-deploy-business-closure"
+   ],
+   "packages": [
+    "T11"
+   ],
+   "priority": "P0-delivery",
+   "source": "docs/reviews/pantheon-ops独立评审与外部报告核实-2026-11-20.md",
+   "status": "planned",
+   "currentCandidateVerification": "not-run",
+   "assessment": "已有#195推进，当前缺口与C01原范围验收需重新核实"
+  },
+  {
+   "findingId": "DEP-002",
+   "taskIds": [
+    "2026-11-20-ops-service-deploy-business-closure"
+   ],
+   "packages": [
+    "T11"
+   ],
+   "priority": "见来源及所属任务",
+   "source": "docs/reviews/pantheon-ops独立评审与外部报告核实-2026-11-20.md",
+   "status": "planned",
+   "currentCandidateVerification": "not-run",
+   "assessment": "已有#195推进，当前缺口与C02原范围验收需重新核实"
+  },
+  {
+   "findingId": "DEP-003",
+   "taskIds": [
+    "2026-11-20-ops-deploy-credential-ownership-and-ui"
+   ],
+   "packages": [
+    "T05"
+   ],
+   "priority": "见来源及所属任务",
+   "source": "docs/reviews/pantheon-ops独立评审与外部报告核实-2026-11-20.md",
+   "status": "planned",
+   "currentCandidateVerification": "not-run",
+   "assessment": "来源为静态审查，开工确认当前实现、回归与真实运行缺口"
+  },
+  {
+   "findingId": "DEP-004",
+   "taskIds": [
+    "2026-11-20-ops-deploy-recovery-and-remote-execution"
+   ],
+   "packages": [
+    "T09"
+   ],
+   "priority": "见来源及所属任务",
+   "source": "docs/reviews/pantheon-ops独立评审与外部报告核实-2026-11-20.md",
+   "status": "planned",
+   "currentCandidateVerification": "not-run",
+   "assessment": "来源为静态审查，开工确认当前实现、回归与真实运行缺口"
+  },
+  {
+   "findingId": "DEP-005",
+   "taskIds": [
+    "2026-11-20-ops-deploy-template-and-task-experience"
+   ],
+   "packages": [
+    "T13"
+   ],
+   "priority": "见来源及所属任务",
+   "source": "docs/reviews/pantheon-ops独立评审与外部报告核实-2026-11-20.md",
+   "status": "planned",
+   "currentCandidateVerification": "not-run",
+   "assessment": "来源为静态审查，开工确认当前实现、回归与真实运行缺口"
+  },
+  {
+   "findingId": "DEP-006",
+   "taskIds": [
+    "2026-11-20-ops-deploy-template-and-task-experience"
+   ],
+   "packages": [
+    "T13"
+   ],
+   "priority": "见来源及所属任务",
+   "source": "docs/reviews/pantheon-ops独立评审与外部报告核实-2026-11-20.md",
+   "status": "planned",
+   "currentCandidateVerification": "not-run",
+   "assessment": "外部结论未逐行复核，先复现再实现"
+  },
+  {
+   "findingId": "DEP-007",
+   "taskIds": [
+    "2026-11-20-ops-deploy-template-and-task-experience"
+   ],
+   "packages": [
+    "T13"
+   ],
+   "priority": "见来源及所属任务",
+   "source": "docs/reviews/pantheon-ops独立评审与外部报告核实-2026-11-20.md",
+   "status": "planned",
+   "currentCandidateVerification": "not-run",
+   "assessment": "部分复核，按当前API与页面重新核实"
+  },
+  {
+   "findingId": "ARC-001",
+   "taskIds": [
+    "2026-11-20-ops-review-baseline-and-decisions",
+    "2026-11-20-ops-core-business-tenant-isolation",
+    "2026-11-20-ops-extension-and-async-tenant-isolation"
+   ],
+   "packages": [
+    "T01",
+    "T04",
+    "T14"
+   ],
+   "priority": "P1",
+   "source": "docs/reviews/pantheon-ops独立评审与外部报告核实-2026-11-20.md",
+   "status": "verified-at-head",
+   "currentCandidateVerification": "verified",
+   "assessment": "T01已核实:仅observability含TenantID,核心业务表(主机/集群/凭据/任务/服务/bizscope)全无租户字段;四分类+唯一键租户变体+迁移编号已分配,见T01 baseline-verification-20261123.json"
+  },
+  {
+   "findingId": "NEW-01",
+   "taskIds": [
+    "2026-11-20-ops-business-permissions-and-task-visibility"
+   ],
+   "packages": [
+    "T03"
+   ],
+   "priority": "见来源及所属任务",
+   "source": "docs/reviews/pantheon-ops独立评审与外部报告核实-2026-11-20.md",
+   "status": "planned",
+   "currentCandidateVerification": "not-run",
+   "assessment": "来源为静态审查，开工确认当前实现、回归与真实运行缺口"
+  },
+  {
+   "findingId": "NEW-02",
+   "taskIds": [
+    "2026-11-20-ops-review-baseline-and-decisions",
+    "2026-11-20-ops-review-docs-and-test-governance"
+   ],
+   "packages": [
+    "T01",
+    "T15"
+   ],
+   "priority": "见来源及所属任务",
+   "source": "docs/reviews/pantheon-ops独立评审与外部报告核实-2026-11-20.md",
+   "status": "verified-at-head",
+   "currentCandidateVerification": "verified",
+   "assessment": "T01已核实:资产关系/Pod->Node->VM无代码实体承接,仅cluster_service Node容量元数据;doc-vs-real delta成立,已登记独立后续范围"
+  },
+  {
+   "findingId": "NEW-03",
+   "taskIds": [
+    "2026-11-20-ops-review-baseline-and-decisions",
+    "2026-11-20-ops-review-docs-and-test-governance"
+   ],
+   "packages": [
+    "T01",
+    "T15"
+   ],
+   "priority": "见来源及所属任务",
+   "source": "docs/reviews/pantheon-ops独立评审与外部报告核实-2026-11-20.md",
+   "status": "verified-at-head",
+   "currentCandidateVerification": "verified",
+   "assessment": "T01已核实:k8s/helm/helm.go为DB-snapshot登记(包注释明示),不执行真实安装;非缺陷,口径保留E03登记"
+  },
+  {
+   "findingId": "NEW-04",
+   "taskIds": [
+    "2026-11-20-ops-review-docs-and-test-governance"
+   ],
+   "packages": [
+    "T15"
+   ],
+   "priority": "见来源及所属任务",
+   "source": "docs/reviews/pantheon-ops独立评审与外部报告核实-2026-11-20.md",
+   "status": "planned",
+   "currentCandidateVerification": "not-run",
+   "assessment": "按基线更新撤销核心业务smoke未接CI的旧结论；核实单测/旧e2e和安全反例的真实调用缺口"
+  },
+  {
+   "findingId": "NEW-05",
+   "taskIds": [
+    "2026-11-20-ops-k8s-resource-authorization-and-mutations"
+   ],
+   "packages": [
+    "T06"
+   ],
+   "priority": "见来源及所属任务",
+   "source": "docs/reviews/pantheon-ops独立评审与外部报告核实-2026-11-20.md",
+   "status": "planned",
+   "currentCandidateVerification": "not-run",
+   "assessment": "源码行为已读，授权影响仍需反例核实"
+  },
+  {
+   "findingId": "R-01",
+   "taskIds": [
+    "2026-11-20-ops-deploy-recovery-and-remote-execution"
+   ],
+   "packages": [
+    "T09"
+   ],
+   "priority": "P1",
+   "source": "docs/reviews/pantheon-ops独立评审与外部报告核实-2026-11-20.md",
+   "status": "planned",
+   "currentCandidateVerification": "not-run",
+   "assessment": "代码路径静态核实，重启卡死时序为推断，需租约跨重启复现"
+  },
+  {
+   "findingId": "R-02",
+   "taskIds": [
+    "2026-11-20-ops-deploy-recovery-and-remote-execution",
+    "2026-11-20-ops-filedist-durable-lifecycle"
+   ],
+   "packages": [
+    "T09",
+    "T10"
+   ],
+   "priority": "P1",
+   "source": "docs/reviews/pantheon-ops独立评审与外部报告核实-2026-11-20.md",
+   "status": "planned",
+   "currentCandidateVerification": "not-run",
+   "assessment": "来源为静态审查，开工确认当前实现、回归与真实运行缺口"
+  },
+  {
+   "findingId": "R-03",
+   "taskIds": [
+    "2026-11-20-ops-k8s-client-lifecycle-and-config-safety"
+   ],
+   "packages": [
+    "T07"
+   ],
+   "priority": "P1",
+   "source": "docs/reviews/pantheon-ops独立评审与外部报告核实-2026-11-20.md",
+   "status": "planned",
+   "currentCandidateVerification": "not-run",
+   "assessment": "来源为静态审查，开工确认当前实现、回归与真实运行缺口"
+  },
+  {
+   "findingId": "R-04",
+   "taskIds": [
+    "2026-11-20-ops-k8s-client-lifecycle-and-config-safety"
+   ],
+   "packages": [
+    "T07"
+   ],
+   "priority": "P1",
+   "source": "docs/reviews/pantheon-ops独立评审与外部报告核实-2026-11-20.md",
+   "status": "planned",
+   "currentCandidateVerification": "not-run",
+   "assessment": "来源为静态审查，开工确认当前实现、回归与真实运行缺口"
+  },
+  {
+   "findingId": "R-05",
+   "taskIds": [
+    "2026-11-20-ops-k8s-log-websocket-lifecycle"
+   ],
+   "packages": [
+    "T08"
+   ],
+   "priority": "P1",
+   "source": "docs/reviews/pantheon-ops独立评审与外部报告核实-2026-11-20.md",
+   "status": "planned",
+   "currentCandidateVerification": "not-run",
+   "assessment": "来源为静态审查，开工确认当前实现、回归与真实运行缺口"
+  },
+  {
+   "findingId": "R-06",
+   "taskIds": [
+    "2026-11-20-ops-k8s-client-lifecycle-and-config-safety"
+   ],
+   "packages": [
+    "T07"
+   ],
+   "priority": "P1",
+   "source": "docs/reviews/pantheon-ops独立评审与外部报告核实-2026-11-20.md",
+   "status": "planned",
+   "currentCandidateVerification": "not-run",
+   "assessment": "无校验为静态结论，可利用性需无副作用负例证明"
+  },
+  {
+   "findingId": "R-07",
+   "taskIds": [
+    "2026-11-20-ops-k8s-client-lifecycle-and-config-safety"
+   ],
+   "packages": [
+    "T07"
+   ],
+   "priority": "P1",
+   "source": "docs/reviews/pantheon-ops独立评审与外部报告核实-2026-11-20.md",
+   "status": "planned",
+   "currentCandidateVerification": "not-run",
+   "assessment": "子审查，实施前核实全集群Pod读取和分页"
+  },
+  {
+   "findingId": "R-08",
+   "taskIds": [
+    "2026-11-20-ops-k8s-resource-authorization-and-mutations"
+   ],
+   "packages": [
+    "T06"
+   ],
+   "priority": "P1",
+   "source": "docs/reviews/pantheon-ops独立评审与外部报告核实-2026-11-20.md",
+   "status": "planned",
+   "currentCandidateVerification": "not-run",
+   "assessment": "校验标签已核实，零副本拒绝为静态推断"
+  },
+  {
+   "findingId": "R-09",
+   "taskIds": [
+    "2026-11-20-ops-filedist-durable-lifecycle"
+   ],
+   "packages": [
+    "T10"
+   ],
+   "priority": "P1",
+   "source": "docs/reviews/pantheon-ops独立评审与外部报告核实-2026-11-20.md",
+   "status": "planned",
+   "currentCandidateVerification": "not-run",
+   "assessment": "子审查，需当前队列/恢复/超时反例"
+  },
+  {
+   "findingId": "R-10",
+   "taskIds": [
+    "2026-11-20-ops-k8s-resource-authorization-and-mutations"
+   ],
+   "packages": [
+    "T06"
+   ],
+   "priority": "见来源及所属任务",
+   "source": "docs/reviews/pantheon-ops独立评审与外部报告核实-2026-11-20.md",
+   "status": "planned",
+   "currentCandidateVerification": "not-run",
+   "assessment": "需对照Base SecureAction合同和实际危险操作，复用公共能力"
+  },
+  {
+   "findingId": "R-11",
+   "taskIds": [
+    "2026-11-20-ops-deploy-recovery-and-remote-execution"
+   ],
+   "packages": [
+    "T09"
+   ],
+   "priority": "见来源及所属任务",
+   "source": "docs/reviews/pantheon-ops独立评审与外部报告核实-2026-11-20.md",
+   "status": "planned",
+   "currentCandidateVerification": "not-run",
+   "assessment": "子审查，先核实当前stream/缓冲与错误i18n"
+  },
+  {
+   "findingId": "R-12",
+   "taskIds": [
+    "2026-11-20-ops-deploy-recovery-and-remote-execution"
+   ],
+   "packages": [
+    "T09"
+   ],
+   "priority": "见来源及所属任务",
+   "source": "docs/reviews/pantheon-ops独立评审与外部报告核实-2026-11-20.md",
+   "status": "planned",
+   "currentCandidateVerification": "not-run",
+   "assessment": "子审查推断，真实SSH副作用与重试是验收重点"
+  },
+  {
+   "findingId": "R-13",
+   "taskIds": [
+    "2026-11-20-ops-k8s-resource-authorization-and-mutations"
+   ],
+   "packages": [
+    "T06"
+   ],
+   "priority": "见来源及所属任务",
+   "source": "docs/reviews/pantheon-ops独立评审与外部报告核实-2026-11-20.md",
+   "status": "planned",
+   "currentCandidateVerification": "not-run",
+   "assessment": "子审查，验证同名Deployment不会被DaemonSet请求修改"
+  },
+  {
+   "findingId": "R-14",
+   "taskIds": [
+    "2026-11-20-ops-k8s-client-lifecycle-and-config-safety",
+    "2026-11-20-ops-deploy-credential-ownership-and-ui"
+   ],
+   "packages": [
+    "T07",
+    "T05"
+   ],
+   "priority": "见来源及所属任务",
+   "source": "docs/reviews/pantheon-ops独立评审与外部报告核实-2026-11-20.md",
+   "status": "planned",
+   "currentCandidateVerification": "not-run",
+   "assessment": "子审查，确认敏感输入与截图脱敏"
+  },
+  {
+   "findingId": "R-15",
+   "taskIds": [
+    "2026-11-20-ops-deploy-template-and-task-experience"
+   ],
+   "packages": [
+    "T13"
+   ],
+   "priority": "P3",
+   "source": "docs/reviews/pantheon-ops独立评审与外部报告核实-2026-11-20.md",
+   "status": "planned",
+   "currentCandidateVerification": "not-run",
+   "assessment": "请求拦截器补审已将缩容错误反馈降P3；保留业务范围静默失败的核实"
+  },
+  {
+   "findingId": "R-16",
+   "taskIds": [
+    "2026-11-20-ops-argocd-ownership-and-webhook"
+   ],
+   "packages": [
+    "T12"
+   ],
+   "priority": "见来源及所属任务",
+   "source": "docs/reviews/pantheon-ops独立评审与外部报告核实-2026-11-20.md",
+   "status": "planned",
+   "currentCandidateVerification": "not-run",
+   "assessment": "处理器静态存在、路由可达性待实测，#195后仍需确认"
+  },
+  {
+   "findingId": "SUP-08",
+   "taskIds": [
+    "2026-11-20-ops-business-permissions-and-task-visibility"
+   ],
+   "packages": [
+    "T03"
+   ],
+   "priority": "P2",
+   "source": "docs/reviews/pantheon-ops独立评审与外部报告核实-2026-11-20.md",
+   "status": "planned",
+   "currentCandidateVerification": "not-run",
+   "assessment": "plan.md已降P2授权模型/功能缺口;T03承接逐条权限绑定,T16受限角色实测后定条件P1"
+  },
+  {
+   "findingId": "路由与权限绑定逐条核对",
+   "taskIds": [
+    "2026-11-20-ops-business-permissions-and-task-visibility"
+   ],
+   "packages": [
+    "T03"
+   ],
+   "priority": "见来源及所属任务",
+   "source": "docs/reviews/pantheon-ops独立评审与外部报告核实-2026-11-20.md",
+   "status": "planned",
+   "currentCandidateVerification": "not-run",
+   "assessment": "以文末精确接口数为审查基线，保留详情/export有意缺口，当前路由再次核实"
+  },
+  {
+   "findingId": "前端长耗时操作",
+   "taskIds": [
+    "2026-11-20-ops-k8s-client-lifecycle-and-config-safety",
+    "2026-11-20-ops-deploy-template-and-task-experience",
+    "2026-11-20-ops-review-live-runtime-acceptance"
+   ],
+   "packages": [
+    "T07",
+    "T13",
+    "T16"
+   ],
+   "priority": "见来源及所属任务",
+   "source": "docs/reviews/pantheon-ops独立评审与外部报告核实-2026-11-20.md",
+   "status": "planned",
+   "currentCandidateVerification": "not-run",
+   "assessment": "来源为静态审查，开工确认当前实现、回归与真实运行缺口"
+  },
+  {
+   "findingId": "文档与版本",
+   "taskIds": [
+    "2026-11-20-ops-review-docs-and-test-governance"
+   ],
+   "packages": [
+    "T15"
+   ],
+   "priority": "见来源及所属任务",
+   "source": "docs/reviews/pantheon-ops独立评审与外部报告核实-2026-11-20.md",
+   "status": "planned",
+   "currentCandidateVerification": "not-run",
+   "assessment": "只修当前有效版本语义与失效链接，英文补齐数量不直接形成项目"
+  },
+  {
+   "findingId": "冗余与遗留代码",
+   "taskIds": [
+    "2026-11-20-ops-review-docs-and-test-governance"
+   ],
+   "packages": [
+    "T15"
+   ],
+   "priority": "见来源及所属任务",
+   "source": "docs/reviews/pantheon-ops独立评审与外部报告核实-2026-11-20.md",
+   "status": "planned",
+   "currentCandidateVerification": "not-run",
+   "assessment": "Evict应接入；生成迁移副本有意保留；deadcode有调用证据后才删"
+  },
+  {
+   "findingId": "交付决策与后续工作",
+   "taskIds": [
+    "2026-11-20-ops-review-live-runtime-acceptance",
+    "2026-11-20-ops-review-delivery-and-closeout"
+   ],
+   "packages": [
+    "T16",
+    "T17"
+   ],
+   "priority": "见来源及所属任务",
+   "source": "docs/reviews/pantheon-ops独立评审与外部报告核实-2026-11-20.md",
+   "status": "planned",
+   "currentCandidateVerification": "not-run",
+   "assessment": "来源为静态审查，开工确认当前实现、回归与真实运行缺口"
+  }
+ ],
+ "verificationMap": [
+  {
+   "item": "V1",
+   "before": "按报告推断查看角色的tasks/create/start/credentials均403；实际结果用于核实既有授权路径",
+   "after": "查看角色可读授权任务；创建、启动和凭据操作按独立权限拒绝",
+   "owners": [
+    "T03",
+    "T05",
+    "T16"
+   ]
+  },
+  {
+   "item": "V2",
+   "before": "列表200，export403，详情可能403，核实keyMatch2有意缺口",
+   "after": "列表/详情按读取合同可用，export需要独立权限；若共享匹配器仍阻碍安全详情授权，记录Base依赖和gap",
+   "owners": [
+    "T03",
+    "T16"
+   ]
+  },
+  {
+   "item": "V3",
+   "before": "按报告未绑定模块可能403，记录按钮显示和后端行为",
+   "after": "已授予的查询/写动作成功，未授予动作拒绝，跨域/租户不可越界",
+   "owners": [
+    "T03",
+    "T06",
+    "T16"
+   ]
+  },
+  {
+   "item": "V4",
+   "before": "multi业务隔离缺口为待实测推断",
+   "after": "租户B看不到A资源，猜ID/修改/导出/回调无跨租户副作用；compat既有数据可用",
+   "owners": [
+    "T04",
+    "T14",
+    "T16"
+   ]
+  },
+  {
+   "item": "V5",
+   "before": "核实凭据脱敏、加密和归属面；以当前已注册路由为准",
+   "after": "明文/密文不进入响应或日志；跨归属按ID使用拒绝，合法凭据执行成功",
+   "owners": [
+    "T05",
+    "T16"
+   ]
+  },
+  {
+   "item": "V6",
+   "before": "记录真实耗时、浏览器10秒超时与后端结果，源清单中的超时现象是待核实预测",
+   "after": "受测长操作可取消/有界/有可见结果，重复提交无重复副作用",
+   "owners": [
+    "T07",
+    "T09",
+    "T13",
+    "T16"
+   ]
+  },
+  {
+   "item": "V7",
+   "before": "隔离SSH验证模板注入、指纹、租约跨重启、远程取消",
+   "after": "注入在执行前拒绝且无标记，指纹不符拒绝，重启终态可收敛，远程取消/重试副作用有证据",
+   "owners": [
+    "T02",
+    "T09",
+    "T11",
+    "T16"
+   ]
+  },
+  {
+   "item": "V8",
+   "before": "源清单SUP-01对应本报告R-03，旧凭据缓存是静态预测",
+   "after": "持续请求下轮换后使用新身份，旧client不能复活，撤销旧令牌后合法请求正常",
+   "owners": [
+    "T07",
+    "T16"
+   ]
+  }
+ ],
+ "priorTaskResiduals": [
+  {
+   "package": "C01",
+   "taskId": "2026-11-16-ops-service-deploy-integrity",
+   "manifest": ".harness/archive/2026-11/tasks/2026-11-16-ops-service-deploy-integrity/manifest.json",
+   "successor": "2026-11-20-ops-service-deploy-business-closure",
+   "residual": "租户/引用/host策略/恢复及真实角色provider",
+   "originalAcceptanceCriteriaRequired": true
+  },
+  {
+   "package": "C02",
+   "taskId": "2026-11-16-ops-service-deploy-user-flow",
+   "manifest": ".harness/archive/2026-11/tasks/2026-11-16-ops-service-deploy-user-flow/manifest.json",
+   "successor": "2026-11-20-ops-service-deploy-business-closure",
+   "residual": "浏览器实例部署全过程/失败越权/终态日志审计",
+   "originalAcceptanceCriteriaRequired": true
+  },
+  {
+   "package": "C03",
+   "taskId": "2026-11-16-ops-service-catalog-usability",
+   "manifest": ".harness/archive/2026-11/tasks/2026-11-16-ops-service-catalog-usability/manifest.json",
+   "successor": "2026-11-20-ops-service-deploy-business-closure",
+   "residual": "目录生命周期/NamespaceBinding/environment/action/101+对象/角色",
+   "originalAcceptanceCriteriaRequired": true
+  },
+  {
+   "package": "C04",
+   "taskId": "2026-11-16-ops-k8s-service-mutations",
+   "manifest": ".harness/archive/2026-11/tasks/2026-11-16-ops-k8s-service-mutations/manifest.json",
+   "successor": "2026-11-20-ops-k8s-resource-authorization-and-mutations",
+   "residual": "最小角色/真实binding CRUD/kubectl冲突/全部UI状态",
+   "originalAcceptanceCriteriaRequired": true
+  },
+  {
+   "package": "C05",
+   "taskId": "2026-11-16-ops-business-runtime-acceptance",
+   "manifest": ".harness/archive/2026-11/tasks/2026-11-16-ops-business-runtime-acceptance/manifest.json",
+   "successor": "2026-11-20-ops-review-live-runtime-acceptance",
+   "residual": "空库升级/故障回滚/角色provider/UI原完整矩阵",
+   "originalAcceptanceCriteriaRequired": true
+  },
+  {
+   "package": "C06",
+   "taskId": "2026-11-16-ops-pilot-release-closeout",
+   "manifest": ".harness/archive/2026-11/tasks/2026-11-16-ops-pilot-release-closeout/manifest.json",
+   "successor": "2026-11-20-ops-review-delivery-and-closeout",
+   "residual": "包/校验和/隔离安装升级失败恢复回滚/离线/终验",
+   "originalAcceptanceCriteriaRequired": true
+  },
+  {
+   "package": "E01",
+   "taskId": "2026-11-16-ops-filedist-product-closure",
+   "manifest": ".harness/archive/2026-11/tasks/2026-11-16-ops-filedist-product-closure/manifest.json",
+   "successor": "2026-11-20-ops-filedist-durable-lifecycle",
+   "residual": "真实SSH/异步job授权/重启取消/两域role/shutdown",
+   "originalAcceptanceCriteriaRequired": true
+  },
+  {
+   "package": "E02",
+   "taskId": "2026-11-16-ops-argocd-ownership-convergence",
+   "manifest": ".harness/archive/2026-11/tasks/2026-11-16-ops-argocd-ownership-convergence/manifest.json",
+   "successor": "2026-11-20-ops-argocd-ownership-and-webhook",
+   "residual": "ownership/legacy/UID/token/webhook/双写/时间戳/provider",
+   "originalAcceptanceCriteriaRequired": true
+  },
+  {
+   "package": "E03",
+   "taskId": "2026-11-16-ops-helm-capability-truth",
+   "manifest": ".harness/archive/2026-11/tasks/2026-11-16-ops-helm-capability-truth/manifest.json",
+   "successor": "2026-11-20-ops-review-docs-and-test-governance",
+   "residual": "登记状态/历史raw/UI菜单口径，实际开放操作按清单验收",
+   "originalAcceptanceCriteriaRequired": true
+  },
+  {
+   "package": "E04",
+   "taskId": "2026-11-16-ops-extensions-live-acceptance",
+   "manifest": ".harness/archive/2026-11/tasks/2026-11-16-ops-extensions-live-acceptance/manifest.json",
+   "successor": "2026-11-20-ops-review-live-runtime-acceptance",
+   "residual": "按实际开放能力执行九行provider矩阵和清理/终验",
+   "originalAcceptanceCriteriaRequired": true
+  }
+ ]
+}

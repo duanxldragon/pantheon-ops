@@ -1,0 +1,41 @@
+{
+  "id": "kd01",
+  "intent": "bounded independent read-only provider diagnostics",
+  "userModel": "authenticated admin unless stated",
+  "setup": "local Ops; pinned SSH to 115.190.251.143; dedicated namespace",
+  "harness": ".local/acceptance-20261121/k8s-live.py",
+  "expected": "assertions hold",
+  "fixesApplied": [],
+  "cleanup": "owned fixtures tracked in checkpoint.json",
+  "actual": {
+    "veleroPods": {
+      "exitCode": 0,
+      "stdout": "velero-7865c6d85d-vqj6s   Pending   false\n",
+      "truncated": false
+    },
+    "veleroStorage": {
+      "exitCode": 0,
+      "stdout": "default   <none>\n",
+      "truncated": false
+    },
+    "veleroDeployment": {
+      "exitCode": 0,
+      "stdout": "velero   1     <none>\n",
+      "truncated": false
+    },
+    "pvs": {
+      "exitCode": 0,
+      "stdout": "",
+      "truncated": false
+    },
+    "storageClasses": {
+      "exitCode": 0,
+      "stdout": "local-path   rancher.io/local-path\n",
+      "truncated": false
+    }
+  },
+  "status": "PASS",
+  "calls": [],
+  "durationMs": 1875,
+  "evidence": ".harness\\evidence\\2026-11-20-ops-review-live-runtime-acceptance\\k8s\\omx-accept-20261121-k8s09\\kd01-20261121-092848.json"
+}

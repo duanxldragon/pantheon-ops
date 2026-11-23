@@ -79,7 +79,14 @@ export default function CmdbHostForm({ editing, onSubmit, onCancel, submitting }
   const handleFinish = async () => {
     const values = (await form.validate()) as HostFormValues;
     const labels = (values.labels || []).filter((label) => label.key && label.val);
-    onSubmit({ ...values, labels: labels.length ? labels : undefined });
+    const payload: CreateHostPayload = {
+      ...values,
+      labels: labels.length ? labels : undefined,
+    };
+    if (editing) {
+      delete payload.businessScopeId;
+    }
+    onSubmit(payload);
   };
 
   const handleLabelKeyChange = (index: number) => {
@@ -130,7 +137,11 @@ export default function CmdbHostForm({ editing, onSubmit, onCancel, submitting }
         <InputNumber min={0} />
       </Form.Item>
       <Form.Item label={t('business.cmdb.host.businessScope')} field="businessScopeId">
-        <Select allowClear placeholder={t('business.cmdb.host.businessScopePlaceholder')}>
+        <Select
+          allowClear
+          disabled={Boolean(editing)}
+          placeholder={t('business.cmdb.host.businessScopePlaceholder')}
+        >
           {scopeOptions.map((item) => (
             <Select.Option key={item.id} value={item.id}>
               {item.name}

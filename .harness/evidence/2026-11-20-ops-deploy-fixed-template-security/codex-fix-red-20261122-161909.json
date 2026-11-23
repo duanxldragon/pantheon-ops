@@ -1,0 +1,24 @@
+{
+  "exitCode": 1,
+  "capturedAt": "2026-11-22T16:19:09.4594803+08:00",
+  "failureMarkers": [
+    "FAIL\t./modules/business/deploy [setup failed]"
+  ],
+  "log": "codex-fix-red-20261122-161909.log",
+  "skips": 0,
+  "sourceStable": true,
+  "stage": "red",
+  "sourceHashes": {
+    "backend/modules/business/deploy/deploy_fixed_templates.go": "ebead591cdb338c1a89fb90aa339f68ebef0a600bd75faa355315baff40727a6",
+    "backend/modules/business/deploy/deploy_fixed_safety_test.go": "96fdbe50e64bcc517c80deac1831c30427e2e900eb384fa58a58518862db09cd",
+    "backend/modules/business/deploy/deploy_service_test.go": "c43e25f74154b00bc5c28d266c830e9dba07f0adc893fc3749472a4e40226187",
+    "backend/modules/business/deploy/deploy_service.go": "60e3a5ae8e24ed0d0a2ca67fede05ba7cf2cb8e375b91a3f8a7b76cb90375d0b"
+  },
+  "subtestFailed": 0,
+  "cgoEnabled": true,
+  "topLevelPassed": 0,
+  "mysqlRequired": true,
+  "command": "go test -race -count=1 -timeout=120s -v -run TestFixedTemplate|TestDeployFixedTemplateScriptsRenderForBuiltInComponents|TestDeployRedisTemplateUsesSignalStop|TestDeployJDKTemplateServiceSemantics|TestDeployPrometheusTemplateUsesCustomConfigPath ./modules/business/deploy",
+  "topLevelFailed": 0,
+  "cwd": "backend"
+}

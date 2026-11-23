@@ -1,0 +1,47 @@
+{
+  "task": "2026-11-20-ops-deploy-fixed-template-security",
+  "round": 6,
+  "phase": "execution-timeout-triage",
+  "timestamp": "2026-11-23T15:05:00+0800",
+  "question": "round5 install task 14 requested timeoutSeconds=1500 (25 min) yet ran 11:17-11:58 (41 min) with no engine-side timeout firing. Is the timeout implementation broken?",
+  "candidate": "bad479fc9817fffcab5253064b5ddf052365fb88fed55bd9d8697157720b971f",
+  "method": "read candidate deploy service source (matching worktree) + query product DB attempt timeline",
+  "sourceFindings": {
+    "taskLevelContext": "deploy_service.go:1597 taskContext, cancelTask := context.WithCancel(context.Background()) -- task-level context has NO deadline, only cancel. A task-level total budget (timeoutSeconds * attempts) does not exist.",
+    "attemptLevelTimeout": "deploy_service.go:1708 hostContext, cancelHost := context.WithTimeout(taskContext, deployExecutionTimeout(task)) -- the execution timeout is re-armed per attempt inside executeAsyncHostAttempt, NOT per task.",
+    "retryLoop": "deploy_service.go:1690 runAsyncTaskHost() for i := 0; i < deployAttemptMax; i++ { ... } -- up to 3 attempts per host; deployAttemptMax = 3 (deploy_service.go:52).",
+    "scriptExitPropagates": "deploySSHClient.RunScript (deploy_service.go:3349) propagates the remote /bin/bash -se exit code; a script-level nonzero exit fails the attempt, then the loop starts the next attempt within milliseconds (no wait).",
+    "cancelReachesSSH": "RunScript select on ctx.Done(): closes the client to unblock a pending channel-open, then <-done; a fired attempt deadline DOES return context deadline exceeded (the 20s timeout case reproduced it)."
+  },
+  "dbEvidence": {
+    "task14": {
+      "name": "omx_accept_20261121_codex_t02g-jdk-install",
+      "execution_timeout_seconds": 1500,
+      "started_at": "2026-11-23 11:17:05.743000",
+      "finished_at": "2026-11-23 11:58:07.523000",
+      "status": "canceled"
+    },
+    "attempts": [
+      {"attempt_no": 1, "started_at": "11:17:05.816000", "finished_at": "11:32:10.672000", "status": "failed", "error_message": "Process exited with status 28"},
+      {"attempt_no": 2, "started_at": "11:32:10.735000", "finished_at": "11:47:15.596000", "status": "failed", "error_message": "Process exited with status 28"},
+      {"attempt_no": 3, "started_at": "11:47:15.653000", "finished_at": "11:58:07.510000", "status": "canceled", "error_message": "context canceled"}
+    ],
+    "attemptSpacing": "each attempt boundary gap ~50ms (BACKOFF none) -> the 3 attempts are contiguous retries, all by the same worker deploy-worker:1795403825794053500"
+  },
+  "triage": {
+    "conclusion": "NOT a broken timeout. No attempt ever consumed its full 25-min budget: each attempt ended at ~15 min wall-clock with script-level 'Process exited with status 28' (consistent with 3 x curl --max-time 300 inside the template script). The 41-min wall clock = 3 contiguous attempts x ~15 min, not a single 25-min budget being ignored. A truly stuck script WOULD fire context deadline exceeded at 25 min (the round-2 20s timeout case proves the propagation path).",
+    "finding_type": "semantic gap, not defect",
+    "gap": {
+      "semantic": "timeoutSeconds=1500 is presented as the task's execution timeout (UI/API field ExecutionTimeoutSeconds) but the implementation treats it as PER-ATTEMPT budget, multiplied by up to deployAttemptMax(3) attempts = effective 75 min ceiling. A user setting 25 min gets up to ~75 min of wall-clock only when every attempt fails late.",
+      "only_visible_when": "script fails slowly enough that each attempt approaches its own budget (3x curl at 5 min each here).",
+      "not_visible_when": "normal success (attempt 1 finishes fast), or a hard hang (first attempt fires at budget, then loop retries)."
+    },
+    "ruler_options_for_maintainer": [
+      "A. Accept per-attempt semantics: document that ExecutionTimeoutSeconds is the per-attempt budget and retries multiply it; no code change.",
+      "B. Task-level total budget: wrap taskContext with context.WithTimeout(totalBudget) so the whole retry loop shares one deadline. Minimal, but changes existing retry behavior and needs its own acceptance.",
+      "C. Cap retry window: derive total = timeoutSeconds * deployAttemptMax and document; small code, closes the surprise but keeps per-attempt semantics."
+    ],
+    "recommendation": "Option A or C. The timeout path itself is proved working; do not classify as a bug/defect. This is a T02 Known-Gap closure item pending maintainer ruling (gate-policy touchpoint)."
+  },
+  "ok": true
+}

@@ -1,0 +1,275 @@
+{
+  "schemaVersion": 1,
+  "taskId": "2026-11-20-ops-review-live-runtime-acceptance",
+  "title": "同候选真实环境与受限角色验收",
+  "goal": "承接 C05 和已启用扩展 E04 的原验收，为 V1-V8 建立修复前/后事实矩阵，命令路径与配置名先查当前合同",
+  "primaryLayer": "business/*",
+  "status": "in-progress",
+  "priority": "P0",
+  "deliveryTier": "L2",
+  "parentTask": "2026-11-20-ops-review-remediation",
+  "taskDoc": "docs/harness/tasks/2026-11-20-ops-review-live-runtime-acceptance.task.md",
+  "handoffDoc": ".harness/tasks/2026-11-20-ops-review-live-runtime-acceptance/HANDOFF.md",
+  "statusDoc": ".harness/tasks/2026-11-20-ops-review-live-runtime-acceptance/STATUS.md",
+  "owner": "Claude执行 / Codex验收",
+  "activation": "core",
+  "dependencies": [],
+  "dependsOn": [],
+  "conditionalDependencies": [
+    {
+      "taskId": "2026-11-20-ops-filedist-durable-lifecycle",
+      "when": "filedist-enabled"
+    },
+    {
+      "taskId": "2026-11-20-ops-argocd-ownership-and-webhook",
+      "when": "argocd-enabled"
+    },
+    {
+      "taskId": "2026-11-20-ops-deploy-template-and-task-experience",
+      "when": "after-core-p1"
+    }
+  ],
+  "coordinatesWith": [],
+  "scope": {
+    "in": [
+      "本地运行 Pantheon Ops，从 CMDB 验证原业务范围；115.190.251.143 同时作为已授权 SSH 部署及 K8s provider。",
+      "冻结源码/lock/构建哈希/数据库版本/provider/角色，隔离环境运行授权、双租户、SSH/K8s、事务、故障、重启、取消与UI矩阵",
+      "扩展按 T01 启用清单加入 filedist/Argo/Helm，产出日志/响应/数据库副作用/桌面和窄屏截图/清理回执"
+    ],
+    "out": [
+      "platform/system/*、共享 UI/权限/租户/请求拦截器实现由 pantheon-base 拥有，按正式 foundation release 同步",
+      "未授权生产操作、发布、凭证变更及门禁豁免",
+      "资产关系/Pod→Node→VM、真实 Helm Chart、Nacos/RocketMQ、完整 Agent 协议作为独立后续范围"
+    ]
+  },
+  "dependencyLayers": [
+    "business/*",
+    "inheritance-sync"
+  ],
+  "baseline": {
+    "reportCommit": "444ce8e",
+    "planningCommit": "a2d69d4a759b5df2b26aaa9d26bdc5175babe9dc",
+    "foundationVersion": "pantheon-base-v0.18.9",
+    "foundationCommit": "6316f9b7189c86542424145fa49344ad737e952b",
+    "recheckBeforeImplementation": true
+  },
+  "sourceReview": "docs/reviews/pantheon-ops独立评审与外部报告核实-2026-11-20.md",
+  "sourceChecklist": "docs/reviews/pantheon-ops真实环境验证清单-2026-11-20.md",
+  "findingRefs": [
+    "V1",
+    "V2",
+    "V3",
+    "V4",
+    "V5",
+    "V6",
+    "V7",
+    "V8"
+  ],
+  "sourceRefs": [
+    {
+      "path": "docs/reviews/pantheon-ops独立评审与外部报告核实-2026-11-20.md",
+      "line": 370
+    }
+  ],
+  "expectedFiles": {
+    "create": [
+      "docs/harness/tasks/2026-11-20-ops-review-live-runtime-acceptance.task.md",
+      ".harness/tasks/2026-11-20-ops-review-live-runtime-acceptance/manifest.json",
+      ".harness/tasks/2026-11-20-ops-review-live-runtime-acceptance/HANDOFF.md",
+      ".harness/tasks/2026-11-20-ops-review-live-runtime-acceptance/STATUS.md",
+      ".harness/evidence/2026-11-20-ops-review-live-runtime-acceptance/commands.json",
+      ".harness/evidence/2026-11-20-ops-review-live-runtime-acceptance/summary.md",
+      ".harness/evidence/2026-11-20-ops-review-live-runtime-acceptance/review.md"
+    ],
+    "modify": [
+      "docs/designs/BUSINESS_QA_ACCEPTANCE_PLAN.md"
+    ],
+    "doNotTouch": [
+      "backend/modules/system/**",
+      "backend/internal/**",
+      "frontend/src/core/**",
+      "frontend/src/api/request.ts",
+      "foundation-release.lock.json",
+      "既有归档原始证据与其他执行者未提交改动"
+    ]
+  },
+  "contractAnchors": [
+    "AGENTS.md",
+    "docs/PROJECT_INHERITANCE.md",
+    "docs/TASK_PACKET_OPS_TEMPLATE.md",
+    "docs/reviews/pantheon-ops独立评审与外部报告核实-2026-11-20.md",
+    "docs/reviews/pantheon-ops真实环境验证清单-2026-11-20.md",
+    "docs/designs/BUSINESS_FUNCTIONAL_DESIGN.md",
+    "docs/designs/BUSINESS_QA_ACCEPTANCE_PLAN.md",
+    "business-overlay.json",
+    "foundation-release.lock.json"
+  ],
+  "harnessProfile": {
+    "template": "custom",
+    "overlay": "pantheon-ops",
+    "qualityProfile": "ui-runtime",
+    "portableFailureClass": "business-review-gap",
+    "ownerLayer": "business/*",
+    "coverageDimensions": [
+      "behaviour",
+      "architecture-fitness",
+      "runtime-quality"
+    ]
+  },
+  "structuralScope": {
+    "affectedSubgraph": [
+      "同候选产物 -> 隔离DB/SSH/K8s/角色 -> 验收证据"
+    ],
+    "boundaryCrossings": [
+      "business/* -> pkg公共契约",
+      "共享缺口 -> Base正式release -> Ops重建"
+    ],
+    "riskNodes": [
+      "V1",
+      "V2",
+      "V3",
+      "V4",
+      "V5",
+      "V6",
+      "V7",
+      "V8"
+    ],
+    "graphFocus": [
+      "sensitive-input-flow",
+      "call-depth"
+    ]
+  },
+  "implementationNotes": [
+    "Minimal Complexity Rung: reuse",
+    "审查主基线 444ce8e，当前规划基线 a2d69d4a759b5df2b26aaa9d26bdc5175babe9dc；每包开工核实当前候选，先复用 #195 实现与归档证据再补缺口",
+    "本包状态 planned；命令与运行场景是后续验证计划，执行者须记录真实 cwd/时间/exitCode/skip/源码哈希",
+    "接口/权限/菜单/i18n/schema/seed/fixture/业务overlay 同步关闭；业务 migration 源文件归业务模块，装配副本由重建器生成",
+    "最新维护者指令优先执行V1-V8和旧十包现有候选验收，失败驱动局部整改依赖。"
+  ],
+  "implementationPlan": [
+    "核实当前候选和前置合同，逐条对照来源与旧验收，标记已经完成的实现",
+    "先复用现有合同/组件/测试，针对本包反例验证失败路径与状态副作用",
+    "在声明文件范围内完成最小修改，同步权限/i18n/迁移/overlay/fixture",
+    "运行本包验证，保存候选绑定 evidence，findings-first review 后更新状态"
+  ],
+  "acceptanceCriteria": [
+    "V1-V8 每项有实际结果、证据及对结论的影响；缺凭据/provider记录 NOT_RUN 和owner，验收保持开放",
+    "同候选完整 CGO race、frontend lint/type/build、现有业务smoke、正式重建与drift全部通过",
+    "角色与双租户拒绝路径有真实返回和无副作用证据，UI覆盖 loading/empty/error/forbidden/submitting 与暗色/键盘，维护者原范围终验记录"
+  ],
+  "verificationPlan": {
+    "commands": [
+      "go test -race ./...",
+      "npm run lint",
+      "npm run type-check",
+      "npm run build",
+      "npm run test:smoke:business:cmdb",
+      "npm run test:smoke:business:deploy:api",
+      "npm run test:smoke:business:deploy",
+      "npm run test:smoke:business:service",
+      "npm run test:smoke:business:k8s",
+      "npm run test:smoke:business:observability",
+      "npm run test:business-overlay",
+      "npm run check:business-overlay",
+      "npm run rebuild:from-base -- --target .tmp/review-acceptance-candidate",
+      "npm run check:shared-drift -- --root .tmp/review-acceptance-candidate"
+    ],
+    "runtimeEvidence": [
+      "V1-V8+C05+已启用E04 原矩阵，保留失败和cleanup原始输出"
+    ],
+    "commandWorkingDirectories": {
+      "go test -race ./...": "backend",
+      "npm run lint": "frontend",
+      "npm run type-check": "frontend",
+      "npm run build": "frontend",
+      "npm run test:smoke:business:cmdb": "frontend",
+      "npm run test:smoke:business:deploy:api": "frontend",
+      "npm run test:smoke:business:deploy": "frontend",
+      "npm run test:smoke:business:service": "frontend",
+      "npm run test:smoke:business:k8s": "frontend",
+      "npm run test:smoke:business:observability": "frontend",
+      "npm run test:business-overlay": ".",
+      "npm run check:business-overlay": ".",
+      "npm run rebuild:from-base -- --target .tmp/review-acceptance-candidate": ".",
+      "npm run check:shared-drift -- --root .tmp/review-acceptance-candidate": "."
+    },
+    "environmentRequirements": [
+      "在 backend/ 执行 Go 命令；race 使用 D:\\msys64\\mingw64\\bin，CGO_ENABLED=1 和隔离 MySQL DSN；最终提交门禁执行 go test -race ./...",
+      "在 frontend/ 执行 lint/type-check/build/test:smoke:*；业务 overlay/重建/治理命令在仓库根执行",
+      "UI 前后使用 impeccable 与 Base DESIGN.md，1440px/390px、明暗主题和相关 loading/empty/error/forbidden/submitting/键盘状态必须有 rendered evidence 或显式 gap",
+      "服务端二次确认、路由匹配器、tenant公共扩展和 shutdown 公共接口若缺失，登记 Base 上游任务与 release/消费依赖，不在 Ops override",
+      "只在实际完成验收时关闭任务；缺 provider/凭据/维护者终验保持 gap，安全可逆准备可继续"
+    ]
+  },
+  "runtimeSensitive": true,
+  "humanGates": [
+    "需求/范围偏好、门禁策略与豁免、最终视觉/功能验收按维护者三触点契约处理",
+    "生产窗口/外部凭据操作/正式发布/最终仓库基线替换需已有授权"
+  ],
+  "linkage": {
+    "taskManifest": ".harness/tasks/2026-11-20-ops-review-live-runtime-acceptance/manifest.json",
+    "taskDoc": "docs/harness/tasks/2026-11-20-ops-review-live-runtime-acceptance.task.md",
+    "evidenceDir": ".harness/evidence/2026-11-20-ops-review-live-runtime-acceptance/",
+    "reviewFile": ".harness/evidence/2026-11-20-ops-review-live-runtime-acceptance/review.md",
+    "summaryFile": ".harness/evidence/2026-11-20-ops-review-live-runtime-acceptance/summary.md",
+    "changeRef": "none",
+    "planRefs": [
+      ".harness/tasks/2026-11-20-ops-review-remediation/plan.md"
+    ]
+  },
+  "plannedReviewFile": ".harness/evidence/2026-11-20-ops-review-live-runtime-acceptance/review.md",
+  "evidenceRequired": [
+    "commands.json 含真实执行状态/cwd/源码及构建身份",
+    "summary.md 记录验收结果、runtime/visual gap 和来源判定",
+    "review.md 为真实 findings-first 审查并含机器可读 linkage；执行时更新 linkage.reviewFile",
+    "V1-V8+C05+已启用E04 原矩阵，保留失败和cleanup原始输出"
+  ],
+  "completionChecklist": [
+    "V1-V8 每项有实际结果、证据及对结论的影响；缺凭据/provider记录 NOT_RUN 和owner，验收保持开放",
+    "同候选完整 CGO race、frontend lint/type/build、现有业务smoke、正式重建与drift全部通过",
+    "角色与双租户拒绝路径有真实返回和无副作用证据，UI覆盖 loading/empty/error/forbidden/submitting 与暗色/键盘，维护者原范围终验记录"
+  ],
+  "rollbackPlan": "优先回退本包可逆代码；数据库按隔离演练过的数据回滚/备份方案处理，multi数据回滚遵循Base合同，生产动作另经授权",
+  "executionRoles": {
+    "implementer": "Claude CLI",
+    "reviewer": "Codex /root"
+  },
+  "userSteering": {
+    "at": "2026-11-20T15:35:26.270Z",
+    "scope": "V1-V8 and ten prior-package residual acceptance first",
+    "handoff": ".harness/tasks/2026-11-20-ops-review-remediation/CLAUDE_REMOTE_ACCEPTANCE_HANDOFF.md",
+    "remoteTarget": "115.190.251.143",
+    "remoteScope": "Application runs locally; 115.190.251.143 is authorized SSH deployment and K8s provider.",
+    "accessState": "root password authentication and trusted host key verified; credential values excluded from governance",
+    "latestHandoffs": [
+      ".harness/tasks/2026-11-20-ops-review-remediation/CLAUDE_LOCAL_RUNTIME_SETUP.md",
+      ".harness/tasks/2026-11-20-ops-review-remediation/CLAUDE_RUNTIME_WRITE_NOW.md",
+      ".harness/tasks/2026-11-20-ops-review-remediation/CLAUDE_CMDB_SSH_FIRST.md"
+    ],
+    "latestAcceptance": {
+      "status": "PARTIAL",
+      "counts": {
+        "PASS": 22,
+        "FAIL": 0,
+        "BLOCKED": 1
+      },
+      "evidence": ".harness/evidence/2026-11-20-ops-review-live-runtime-acceptance/k8s-acceptance-results.json",
+      "provider": "115.190.251.143 existing k3s",
+      "binarySha256": "fba00055818a050995ad1fffb7cebec95c761f955ebf62da37c9e41c7667b129"
+    }
+  },
+  "followupRemediationTasks": [
+    "2026-11-20-ops-deploy-fixed-template-security",
+    "2026-11-20-ops-business-permissions-and-task-visibility",
+    "2026-11-20-ops-core-business-tenant-isolation",
+    "2026-11-20-ops-deploy-credential-ownership-and-ui",
+    "2026-11-20-ops-k8s-resource-authorization-and-mutations",
+    "2026-11-20-ops-k8s-client-lifecycle-and-config-safety",
+    "2026-11-20-ops-k8s-log-websocket-lifecycle",
+    "2026-11-20-ops-deploy-recovery-and-remote-execution",
+    "2026-11-20-ops-service-deploy-business-closure",
+    "2026-11-20-ops-extension-and-async-tenant-isolation",
+    "2026-11-20-ops-review-docs-and-test-governance"
+  ],
+  "executionStage": "current-candidate-verification-first"
+}

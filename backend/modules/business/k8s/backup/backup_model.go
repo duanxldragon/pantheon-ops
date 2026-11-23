@@ -10,6 +10,7 @@ import (
 // VeleroBackup 表示 Velero 备份记录（对应 K8s Backup CRD）
 type VeleroBackup struct {
 	ID                   uint64         `gorm:"primaryKey;autoIncrement" json:"id"`
+	TenantID             uint64         `gorm:"column:tenant_id;not null;default:0" json:"-"`
 	Name                 string         `gorm:"size:128;not null;index:idx_cluster_name" json:"name"`
 	ClusterID            uint64         `gorm:"not null;index:idx_cluster_name" json:"clusterId"`
 	BackupType           string         `gorm:"size:32;not null;default:full" json:"backupType"` // full, namespace, resource
@@ -44,6 +45,7 @@ func (VeleroBackup) TableName() string {
 // VeleroSchedule 表示 Velero 定时备份（对应 K8s Schedule CRD）
 type VeleroSchedule struct {
 	ID               uint64         `gorm:"primaryKey;autoIncrement" json:"id"`
+	TenantID         uint64         `gorm:"column:tenant_id;not null;default:0" json:"-"`
 	Name             string         `gorm:"size:128;not null;index:idx_cluster_name" json:"name"`
 	ClusterID        uint64         `gorm:"not null;index:idx_cluster_name" json:"clusterId"`
 	CronExpression   string         `gorm:"size:64;not null" json:"cronExpression"` // 0 2 * * *
@@ -67,6 +69,7 @@ func (VeleroSchedule) TableName() string {
 // VeleroRestore 表示 Velero 恢复记录（对应 K8s Restore CRD）
 type VeleroRestore struct {
 	ID                 uint64         `gorm:"primaryKey;autoIncrement" json:"id"`
+	TenantID           uint64         `gorm:"column:tenant_id;not null;default:0" json:"-"`
 	Name               string         `gorm:"size:128;not null;index:idx_cluster_name" json:"name"`
 	ClusterID          uint64         `gorm:"not null;index:idx_cluster_name" json:"clusterId"`
 	BackupName         string         `gorm:"size:128;not null" json:"backupName"`
@@ -96,7 +99,8 @@ func (VeleroRestore) TableName() string {
 // VeleroStorageLocation 表示备份存储位置（对应 BackupStorageLocation CRD）
 type VeleroStorageLocation struct {
 	ID              uint64         `gorm:"primaryKey;autoIncrement" json:"id"`
-	Name            string         `gorm:"size:128;not null;unique" json:"name"`
+	TenantID        uint64         `gorm:"column:tenant_id;not null;default:0;uniqueIndex:uni_biz_velero_storage_location_name,priority:1" json:"-"`
+	Name            string         `gorm:"size:128;not null;uniqueIndex:uni_biz_velero_storage_location_name,priority:2" json:"name"`
 	Provider        string         `gorm:"size:32;not null" json:"provider"` // aws, azure, gcp, minio
 	Bucket          string         `gorm:"size:128;not null" json:"bucket"`
 	Region          string         `gorm:"size:64" json:"region,omitempty"`

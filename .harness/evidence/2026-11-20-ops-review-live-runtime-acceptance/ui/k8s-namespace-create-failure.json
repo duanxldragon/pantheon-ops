@@ -1,0 +1,11 @@
+{
+  "status": "FAIL",
+  "intent": "create owned namespace through actual UI",
+  "actual": "form only sends name; backend requires businessScopeId and environment; submission rejects common.param_invalid",
+  "i18nKeysVisible": [
+    "business.k8s.namespace.name",
+    "business.k8s.namespace.status",
+    "business.k8s.namespace.createdAt"
+  ],
+  "screenshot": "k8s-namespace-create-failure-desktop.jpg"
+}

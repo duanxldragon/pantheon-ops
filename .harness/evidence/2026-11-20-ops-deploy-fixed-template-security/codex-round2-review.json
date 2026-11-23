@@ -1,0 +1,244 @@
+{
+  "taskId": "2026-11-20-ops-deploy-fixed-template-security",
+  "reviewer": "Codex /root",
+  "reviewedAt": "2026-11-22T08:07:25.580023+00:00",
+  "decision": "changes-required",
+  "baseline": "a2d69d4a759b5df2b26aaa9d26bdc5175babe9dc",
+  "scope": "Second progress check and T02 reviewer counterexamples; no production-code edits or new remote actions",
+  "implementerAsRecorded": "Freebuff coding agent",
+  "sourceHashes": {
+    "backend/modules/business/deploy/deploy_fixed_safety_test.go": "360ab768fbaf65806343f91636dacc701b8a230a7da9ad48c4c1c13e6b61ee23",
+    "backend/modules/business/deploy/deploy_fixed_templates.go": "ebead591cdb338c1a89fb90aa339f68ebef0a600bd75faa355315baff40727a6",
+    "backend/modules/business/deploy/deploy_service.go": "60e3a5ae8e24ed0d0a2ca67fede05ba7cf2cb8e375b91a3f8a7b76cb90375d0b",
+    "backend/modules/business/deploy/deploy_service_test.go": "c43e25f74154b00bc5c28d266c830e9dba07f0adc893fc3749472a4e40226187"
+  },
+  "sourceUnchangedSinceTestPreparation": true,
+  "implementerSourceBindingMatches": true,
+  "independentTests": {
+    "failureMarkers": [
+      "--- FAIL: TestCodexReviewRedisGeneratedConfig (0.00s)",
+      "--- FAIL: TestCodexReviewRepeatedSlashUninstallRoot (0.00s)"
+    ],
+    "mysqlRequired": true,
+    "command": "go test -race -count=1 -timeout=120s -v -overlay codex-round2-apparatus/overlay.json -run 'TestCodexReview|TestFixedTemplate|TestDeployFixedTemplateScriptsRenderForBuiltInComponents|TestDeployRedisTemplateUsesSignalStop|TestDeployJDKTemplateServiceSemantics|TestDeployPrometheusTemplateUsesCustomConfigPath' ./modules/business/deploy",
+    "cwd": "backend",
+    "skips": 0,
+    "capturedAt": "2026-11-22T15:59:31.3860530+08:00",
+    "exitCode": 1,
+    "apparatus": "Reviewer-only Go overlay; generates scripts without executing them",
+    "topLevelFailures": 2,
+    "cgoEnabled": true,
+    "log": "codex-round2-tests-20261122-155917.log",
+    "topLevelPassed": 18,
+    "topLevelFailed": 2,
+    "subtestFailed": 4,
+    "skipped": 0,
+    "receipt": "codex-round2-tests-20261122-155917.json",
+    "actualOverlayPath": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\.harness\\evidence\\2026-11-20-ops-deploy-fixed-template-security\\codex-round2-apparatus\\overlay.json",
+    "databaseBehaviorVerified": false,
+    "note": "CGO/race and required MySQL environment configured; selected tests only render scripts."
+  },
+  "setupFailure": {
+    "receipt": "codex-round2-tests-20261122-152845.json",
+    "exitCode": 1,
+    "productTestsStarted": false,
+    "reason": "Go build cache Access is denied; escalated rerun entered tests."
+  },
+  "reviewLanes": {
+    "taskId": "2026-11-20-ops-deploy-fixed-template-security",
+    "scope": "Four T02 production/test files, task contract and existing renderer counterexample receipt; read-only, no test reruns or remote execution",
+    "codeReviewer": {
+      "agent": "/root/round2_code_review",
+      "role": "code-reviewer",
+      "recommendation": "REQUEST CHANGES",
+      "findings": [
+        {
+          "id": "R2-01",
+          "severity": "HIGH",
+          "file": "backend/modules/business/deploy/deploy_fixed_templates.go",
+          "line": 478,
+          "evidence": "Redis placeholders expect port/dataRoot/installRoot/passwordWrite; arguments are passwordWrite/port/dataRoot/installRoot. Empty port or shell writer in config, followed by bare directory command; both renderer subtests fail."
+        },
+        {
+          "id": "R2-02",
+          "severity": "HIGH",
+          "file": "backend/modules/business/deploy/deploy_fixed_templates.go",
+          "line": 157,
+          "evidence": "Literal blacklist comparison and path validator allowing empty segments accept //etc and /usr//local; renderer counterexamples confirm delete commands are generated. No scripts were executed."
+        }
+      ],
+      "limits": "No production edits, test reruns or remote scripts. LSP/ast-grep diagnostics tools were unavailable; no approval claimed."
+    },
+    "architect": {
+      "agent": "/root/round2_arch_review",
+      "role": "architect",
+      "status": "BLOCK",
+      "findings": [
+        {
+          "id": "R2-02",
+          "file": "backend/modules/business/deploy/deploy_fixed_templates.go",
+          "line": 156,
+          "evidence": "Validator compares strings while Linux executor resolves equivalent paths. Empty segments allowed at line908; Nginx uninstall at deploy_service.go:5068 sends root to rm -rf. Normalize with POSIX semantics or reject repeated separators consistently."
+        },
+        {
+          "id": "R2-01",
+          "file": "backend/modules/business/deploy/deploy_fixed_templates.go",
+          "line": 478,
+          "evidence": "Config text and shell writer share a positional formatting sequence which is now misordered; fragment-only password assertions miss structure defects."
+        }
+      ],
+      "boundaryAssessment": "Authoritative task.Action injection at render and snapshot gates is reasonable; path equivalence and output structure remain blocking. Existing runtime receipts cannot validate the new candidate."
+    },
+    "testReceipt": "codex-round2-tests-20261122-155917.json",
+    "finalRecommendation": "REQUEST CHANGES"
+  },
+  "findings": [
+    {
+      "id": "R2-01",
+      "severity": "HIGH",
+      "confidence": "confirmed",
+      "file": "backend/modules/business/deploy/deploy_fixed_templates.go",
+      "line": 478,
+      "title": "Redis format arguments shifted; invalid config and bare directory command",
+      "evidence": [
+        "TestCodexReviewRedisGeneratedConfig/without-password",
+        "TestCodexReviewRedisGeneratedConfig/with-password"
+      ],
+      "observed": "port receives passwordWrite, dir receives port, logfile receives dataRoot, EOF is followed by installRoot as a bare command",
+      "expected": "port 6379, dir /data/redis/data, logfile /data/redis/logs/redis.log; password writer after EOF",
+      "suggestion": "Reorder fmt arguments to match placeholders and assert complete config fields and heredoc boundaries."
+    },
+    {
+      "id": "R2-02",
+      "severity": "HIGH",
+      "confidence": "confirmed",
+      "file": "backend/modules/business/deploy/deploy_fixed_templates.go",
+      "line": 156,
+      "title": "Repeated slash aliases bypass dangerous uninstall root rejection",
+      "evidence": [
+        "TestCodexReviewRepeatedSlashUninstallRoot/__etc",
+        "TestCodexReviewRepeatedSlashUninstallRoot/_usr__local"
+      ],
+      "observed": "//etc and /usr//local accepted; generated uninstall script contains rm -rf",
+      "impactBoundary": "Generated scripts were not executed; deletion is a Linux path-semantics risk, not an observed deletion.",
+      "suggestion": "Apply POSIX normalization or reject duplicate separators consistently at creation, snapshot and rendering boundaries; add alias regression cases."
+    }
+  ],
+  "sourceBindings": [
+    {
+      "receipt": ".harness/evidence/2026-11-20-ops-review-live-runtime-acceptance/deploy-final-receipt.json",
+      "checkedFiles": 59,
+      "mismatches": [
+        "backend/modules/business/deploy/deploy_fixed_safety_test.go",
+        "backend/modules/business/deploy/deploy_fixed_templates.go",
+        "backend/modules/business/deploy/deploy_service.go",
+        "backend/modules/business/deploy/deploy_service_test.go",
+        "backend/modules/business/deploy/service_link_http_test.go"
+      ]
+    },
+    {
+      "receipt": ".harness/evidence/2026-11-20-ops-review-live-runtime-acceptance/k8s-final-receipt.json",
+      "checkedFiles": 74,
+      "mismatches": []
+    }
+  ],
+  "existingBinary": {
+    "path": ".local/acceptance-20261121/pantheon-ops-k8s33.exe",
+    "sha256": "5cd98af198657a667a5deb0016fe3884265f3d96222da212b5c46ab40ad3e368",
+    "validatesNewT02": false
+  },
+  "taskStatuses": [
+    {
+      "taskId": "2026-11-20-ops-argocd-ownership-and-webhook",
+      "status": "planned"
+    },
+    {
+      "taskId": "2026-11-20-ops-business-permissions-and-task-visibility",
+      "status": "planned"
+    },
+    {
+      "taskId": "2026-11-20-ops-core-business-tenant-isolation",
+      "status": "planned"
+    },
+    {
+      "taskId": "2026-11-20-ops-deploy-credential-ownership-and-ui",
+      "status": "planned"
+    },
+    {
+      "taskId": "2026-11-20-ops-deploy-fixed-template-security",
+      "status": "in-progress"
+    },
+    {
+      "taskId": "2026-11-20-ops-deploy-recovery-and-remote-execution",
+      "status": "planned"
+    },
+    {
+      "taskId": "2026-11-20-ops-deploy-template-and-task-experience",
+      "status": "planned"
+    },
+    {
+      "taskId": "2026-11-20-ops-extension-and-async-tenant-isolation",
+      "status": "planned"
+    },
+    {
+      "taskId": "2026-11-20-ops-filedist-durable-lifecycle",
+      "status": "planned"
+    },
+    {
+      "taskId": "2026-11-20-ops-k8s-client-lifecycle-and-config-safety",
+      "status": "planned"
+    },
+    {
+      "taskId": "2026-11-20-ops-k8s-log-websocket-lifecycle",
+      "status": "planned"
+    },
+    {
+      "taskId": "2026-11-20-ops-k8s-resource-authorization-and-mutations",
+      "status": "planned"
+    },
+    {
+      "taskId": "2026-11-20-ops-review-baseline-and-decisions",
+      "status": "planned"
+    },
+    {
+      "taskId": "2026-11-20-ops-review-delivery-and-closeout",
+      "status": "planned"
+    },
+    {
+      "taskId": "2026-11-20-ops-review-docs-and-test-governance",
+      "status": "planned"
+    },
+    {
+      "taskId": "2026-11-20-ops-review-live-runtime-acceptance",
+      "status": "in-progress"
+    },
+    {
+      "taskId": "2026-11-20-ops-review-remediation",
+      "status": "in-progress"
+    },
+    {
+      "taskId": "2026-11-20-ops-service-deploy-business-closure",
+      "status": "planned"
+    }
+  ],
+  "taskStatusCounts": {
+    "planned": 15,
+    "in-progress": 3
+  },
+  "authorizationCorrection": "User already authorized 115.190.251.143 as deployment/K8s provider; missing evidence is validation of the new candidate, not missing target authorization.",
+  "remaining": [
+    "T02 two blocking defects and repaired-candidate validation",
+    "V1-V8 and old ten-package residual acceptance",
+    "T03 authorized-route usability and multi-tenant isolation",
+    "CAP provider-success assertions and source/binary receipt",
+    "Velero restore/schedule, Ingress/install, WebSocket lifecycle, UI",
+    "Full repository race, formal rebuild/drift and cleanup recheck"
+  ],
+  "linkage": {
+    "taskManifest": ".harness/tasks/2026-11-20-ops-deploy-fixed-template-security/manifest.json",
+    "evidenceDir": ".harness/evidence/2026-11-20-ops-deploy-fixed-template-security",
+    "summaryFile": ".harness/evidence/2026-11-20-ops-deploy-fixed-template-security/summary.md",
+    "reviewFile": ".harness/evidence/2026-11-20-ops-deploy-fixed-template-security/codex-round2-review.md",
+    "changeRef": "none"
+  }
+}

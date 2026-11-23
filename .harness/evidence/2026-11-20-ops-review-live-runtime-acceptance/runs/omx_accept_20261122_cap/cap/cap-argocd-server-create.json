@@ -1,0 +1,28 @@
+{
+  "runId": "omx_accept_20261122_cap",
+  "phase": "cap",
+  "caseId": "cap-argocd-server-create",
+  "title": "create argocd server (CAP-ARGOCD write). FINDING: AddServer encrypts at rest via loadEncryptionKey() which needs PANTHEON_ENCRYPTION_KEY in the runtime env - absent here -> encryption_key_missing",
+  "ts": "2026-11-21T16:35:22.888Z",
+  "status": "BLOCKED",
+  "httpStatus": 200,
+  "businessCode": 500,
+  "assertions": [
+    {
+      "name": "create returns a structured business result (no panic)",
+      "pass": true
+    },
+    {
+      "name": "token never leaked into response even on failure",
+      "pass": true
+    }
+  ],
+  "ids": {
+    "serverId": null
+  },
+  "result": null,
+  "message": null,
+  "redaction": "authorization token is a throwaway literal; leaked flag recorded, value never written",
+  "durationMs": 5,
+  "blockedReason": "runtime env lacks PANTHEON_ENCRYPTION_KEY / argocd-specific encryption key (cicd/argocd/argocd_encryption.go loadEncryptionKey) -> AddServer/AddRepository cannot encrypt at rest on THIS candidate deployment. Code path is correct; deployment configuration gap."
+}

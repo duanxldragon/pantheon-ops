@@ -1,0 +1,29 @@
+{
+  "log": "codex-fix-package-20261122-172553.log",
+  "command": "go test -race -count=1 -timeout=10m -v ./modules/business/deploy",
+  "failureMarkers": [
+    "--- FAIL: TestDeployLiveVMExecution (2.85s)",
+    "--- FAIL: TestDeployLiveVMCancellation (0.29s)",
+    "panic: test timed out after 10m0s",
+    "FAIL\tgithub.com/duanxldragon/pantheon-base/backend/modules/business/deploy\t600.143s"
+  ],
+  "sourceStable": true,
+  "cwd": "backend",
+  "topLevelPassed": 206,
+  "stage": "package",
+  "mysqlRequired": true,
+  "liveVMRequested": true,
+  "cgoEnabled": true,
+  "topLevelFailed": 2,
+  "subtestFailed": 2,
+  "exitCode": 1,
+  "capturedAt": "2026-11-22T17:36:03.3778409+08:00",
+  "sourceHashes": {
+    "backend/modules/business/deploy/deploy_live_acceptance_test.go": "1b3a12ec8f094d62b99125af6d5187103f0934ce4b5837b8852905a352254956",
+    "backend/modules/business/deploy/deploy_service.go": "60e3a5ae8e24ed0d0a2ca67fede05ba7cf2cb8e375b91a3f8a7b76cb90375d0b",
+    "backend/modules/business/deploy/deploy_fixed_safety_test.go": "8d2720133acc67e9073d1bb19f7537efe0722ebbb43d98845748103965ffa968",
+    "backend/modules/business/deploy/deploy_fixed_templates.go": "1fcf8412b6030a9d170a264c385e167cc1c77145c0d2ae8e7ed18dd5a9ec656b",
+    "backend/modules/business/deploy/deploy_service_test.go": "e1ee4a8262795b367a01d8ae041510b7487b146aa29ef0988faf5c22c1aac384"
+  },
+  "skips": 0
+}

@@ -1,0 +1,71 @@
+{
+  "runId": "omx_accept_20261121_cmdb02",
+  "phase": "cmdb",
+  "caseId": "c05",
+  "title": "host-collect-positive",
+  "ts": "2026-11-21T00:20:41.958Z",
+  "status": "PASS",
+  "httpStatus": 200,
+  "businessCode": 200,
+  "assertions": [
+    {
+      "name": "collect accepted",
+      "pass": true
+    },
+    {
+      "name": "no secret echoed in response",
+      "pass": true
+    },
+    {
+      "name": "host detail readable after collect",
+      "pass": true
+    },
+    {
+      "name": "real system info collected",
+      "pass": true
+    }
+  ],
+  "ids": {},
+  "result": {
+    "collectResponseKeys": [
+      "id",
+      "hostname",
+      "ip",
+      "sshPort",
+      "os",
+      "osVersion",
+      "cpuCores",
+      "memoryGb",
+      "diskGb",
+      "labelValues",
+      "installedComponents",
+      "matchedGroups",
+      "matchedGroupCount",
+      "status",
+      "lifecycleState",
+      "connectivityState",
+      "connectivityObservedAt",
+      "stateVersion",
+      "businessScopeId",
+      "businessScopeCode",
+      "businessScopeName",
+      "deptId",
+      "owner",
+      "remark",
+      "createdAt",
+      "updatedAt",
+      "createdBy",
+      "updatedBy"
+    ],
+    "hostStatusAfterCollect": "assigned",
+    "collectedCpuCores": 4,
+    "collectedMemoryGb": 3.8,
+    "collectionFingerprint": "SHA256:wGNI4IdTLBLFIs+lwsG1uGbRgJRxZ9bHmU2A/CM9Gb4"
+  },
+  "message": null,
+  "redaction": {
+    "secretInResponse": false
+  },
+  "durationMs": 400,
+  "blockedReason": null
+}

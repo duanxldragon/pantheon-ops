@@ -1,0 +1,6 @@
+{
+  "backend/modules/business/deploy/deploy_fixed_safety_test.go": "360ab768fbaf65806343f91636dacc701b8a230a7da9ad48c4c1c13e6b61ee23",
+  "backend/modules/business/deploy/deploy_fixed_templates.go": "ebead591cdb338c1a89fb90aa339f68ebef0a600bd75faa355315baff40727a6",
+  "backend/modules/business/deploy/deploy_service.go": "60e3a5ae8e24ed0d0a2ca67fede05ba7cf2cb8e375b91a3f8a7b76cb90375d0b",
+  "backend/modules/business/deploy/deploy_service_test.go": "c43e25f74154b00bc5c28d266c830e9dba07f0adc893fc3749472a4e40226187"
+}

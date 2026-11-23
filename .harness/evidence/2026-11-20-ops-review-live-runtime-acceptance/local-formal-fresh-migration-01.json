@@ -1,0 +1,6 @@
+{
+  "exitCode": 0,
+  "capturedAt": "2026-11-21T07:59:41.8022669+08:00",
+  "database": "ops_acceptance_formal_20261121",
+  "command": "tenantmigration up"
+}

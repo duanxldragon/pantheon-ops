@@ -1,0 +1,26 @@
+{
+  "runId": "omx_accept_20261122_cap",
+  "phase": "cap",
+  "caseId": "cap-obs-datasource-list",
+  "title": "list datasources (CAP-OBSERVABILITY read)",
+  "ts": "2026-11-21T16:35:21.930Z",
+  "status": "PASS",
+  "httpStatus": 200,
+  "businessCode": 200,
+  "assertions": [
+    {
+      "name": "business code 200",
+      "pass": true
+    },
+    {
+      "name": "created datasource visible",
+      "pass": true
+    }
+  ],
+  "ids": null,
+  "result": null,
+  "message": null,
+  "redaction": null,
+  "durationMs": 66,
+  "blockedReason": null
+}

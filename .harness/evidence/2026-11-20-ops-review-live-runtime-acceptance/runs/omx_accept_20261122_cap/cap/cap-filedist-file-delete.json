@@ -1,0 +1,22 @@
+{
+  "runId": "omx_accept_20261122_cap",
+  "phase": "cap",
+  "caseId": "cap-filedist-file-delete",
+  "title": "delete uploaded file cleanup (CAP-FILEDIST write)",
+  "ts": "2026-11-21T16:35:21.615Z",
+  "status": "PASS",
+  "httpStatus": 200,
+  "businessCode": 200,
+  "assertions": [
+    {
+      "name": "delete accepted (200) or clean shape",
+      "pass": true
+    }
+  ],
+  "ids": null,
+  "result": null,
+  "message": null,
+  "redaction": null,
+  "durationMs": 40,
+  "blockedReason": null
+}

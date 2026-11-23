@@ -9,6 +9,7 @@ import (
 
 	"github.com/duanxldragon/pantheon-base/backend/modules/business/k8s/cluster"
 	"github.com/duanxldragon/pantheon-base/backend/modules/business/k8s/namespace"
+	"github.com/duanxldragon/pantheon-base/backend/modules/business/k8s/pkg"
 	"github.com/duanxldragon/pantheon-base/backend/modules/business/k8s/rbac"
 	"github.com/duanxldragon/pantheon-base/backend/pkg/common"
 
@@ -22,16 +23,6 @@ const (
 	msgParamInvalid = "common.param_invalid"
 	opTimeout       = 30 * time.Second
 )
-
-func normalizeListLimit(limit int64) int64 {
-	if limit <= 0 {
-		return 100
-	}
-	if limit > 500 {
-		return 500
-	}
-	return limit
-}
 
 // ConfigMapItem summarizes a Kubernetes ConfigMap.
 //
@@ -99,7 +90,7 @@ func (s *ConfigMapService) List(clusterID uint64, query ConfigMapListQuery, data
 	ctx, cancel := context.WithTimeout(context.Background(), opTimeout)
 	defer cancel()
 
-	list, err := clientset.CoreV1().ConfigMaps(query.Namespace).List(ctx, metav1.ListOptions{Limit: normalizeListLimit(query.Limit), Continue: query.ContinueToken})
+	list, err := clientset.CoreV1().ConfigMaps(query.Namespace).List(ctx, metav1.ListOptions{Limit: pkg.NormalizeListLimit(query.Limit), Continue: query.ContinueToken})
 	if err != nil {
 		return nil, errors.New("k8s.configmap.list_failed")
 	}

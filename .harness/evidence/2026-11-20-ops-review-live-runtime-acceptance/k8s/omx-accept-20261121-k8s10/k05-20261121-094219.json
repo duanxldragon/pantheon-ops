@@ -1,0 +1,132 @@
+{
+  "id": "k05",
+  "intent": "owned namespace creation",
+  "userModel": "authenticated admin unless stated",
+  "setup": "local Ops; pinned SSH to 115.190.251.143; dedicated namespace",
+  "harness": ".local/acceptance-20261121/k8s-live.py",
+  "expected": "assertions hold",
+  "fixesApplied": [],
+  "cleanup": "owned fixtures tracked in checkpoint.json",
+  "actual": {
+    "name": "omx-accept-20261121-k8s10",
+    "status": "Active",
+    "labels": {
+      "kubernetes.io/metadata.name": "omx-accept-20261121-k8s10",
+      "pantheon-acceptance": "omx-accept-20261121-k8s10"
+    },
+    "creationTimestamp": "2026-11-21T09:42:22+08:00"
+  },
+  "status": "PASS",
+  "calls": [
+    {
+      "method": "GET",
+      "path": "/business/k8s/clusters/6/namespaces",
+      "httpStatus": 200,
+      "code": 200,
+      "message": "success",
+      "durationMs": 63,
+      "data": {
+        "items": [
+          {
+            "name": "default",
+            "status": "Active",
+            "labels": {
+              "kubernetes.io/metadata.name": "default"
+            },
+            "creationTimestamp": "2026-08-30T22:43:46+08:00"
+          },
+          {
+            "name": "kube-node-lease",
+            "status": "Active",
+            "labels": {
+              "kubernetes.io/metadata.name": "kube-node-lease"
+            },
+            "creationTimestamp": "2026-08-30T22:43:46+08:00"
+          },
+          {
+            "name": "kube-public",
+            "status": "Active",
+            "labels": {
+              "kubernetes.io/metadata.name": "kube-public"
+            },
+            "creationTimestamp": "2026-08-30T22:43:46+08:00"
+          },
+          {
+            "name": "kube-system",
+            "status": "Active",
+            "labels": {
+              "kubernetes.io/metadata.name": "kube-system"
+            },
+            "creationTimestamp": "2026-08-30T22:43:46+08:00"
+          },
+          {
+            "name": "o4-render-r2-20261111-652bf5137ecf",
+            "status": "Active",
+            "labels": {
+              "kubernetes.io/metadata.name": "o4-render-r2-20261111-652bf5137ecf",
+              "pantheon-o4-render-owner": "o4-render-r2-20261111-652bf5137ecf"
+            },
+            "creationTimestamp": "2026-11-11T16:07:37+08:00"
+          },
+          {
+            "name": "pantheon-p0-20261109",
+            "status": "Active",
+            "labels": {
+              "kubernetes.io/metadata.name": "pantheon-p0-20261109"
+            },
+            "creationTimestamp": "2026-11-09T09:04:45+08:00"
+          },
+          {
+            "name": "pantheon-p0-argocd-20261109",
+            "status": "Active",
+            "labels": {
+              "kubernetes.io/metadata.name": "pantheon-p0-argocd-20261109",
+              "pantheon-p0-owner": "ops-p0-20261109"
+            },
+            "creationTimestamp": "2026-11-09T11:49:14+08:00"
+          },
+          {
+            "name": "pantheon-p0-seaweed-velero-s3-v1",
+            "status": "Active",
+            "labels": {
+              "app.kubernetes.io/component": "seaweedfs-s3",
+              "kubernetes.io/metadata.name": "pantheon-p0-seaweed-velero-s3-v1",
+              "pantheon-p0-owner": "velero-s3-seaweed-20261109-v1"
+            },
+            "creationTimestamp": "2026-11-10T10:11:54+08:00"
+          },
+          {
+            "name": "velero",
+            "status": "Active",
+            "labels": {
+              "app.kubernetes.io/component": "velero",
+              "kubernetes.io/metadata.name": "velero",
+              "pantheon-p0-owner": "velero-s3-seaweed-20261109-v1"
+            },
+            "creationTimestamp": "2026-11-10T10:11:54+08:00"
+          }
+        ],
+        "total": 9
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/business/k8s/clusters/6/namespaces",
+      "httpStatus": 200,
+      "code": 200,
+      "message": "success",
+      "durationMs": 46,
+      "data": {
+        "name": "omx-accept-20261121-k8s10",
+        "status": "Active",
+        "labels": {
+          "kubernetes.io/metadata.name": "omx-accept-20261121-k8s10",
+          "pantheon-acceptance": "omx-accept-20261121-k8s10"
+        },
+        "creationTimestamp": "2026-11-21T09:42:22+08:00"
+      }
+    }
+  ],
+  "durationMs": 297,
+  "evidence": ".harness\\evidence\\2026-11-20-ops-review-live-runtime-acceptance\\k8s\\omx-accept-20261121-k8s10\\k05-20261121-094219.json"
+}

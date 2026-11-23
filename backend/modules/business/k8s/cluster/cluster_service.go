@@ -207,6 +207,7 @@ func (s *ClusterService) Create(req CreateClusterRequest, createdBy string, dept
 	RecordClusterMetrics(&cluster)
 
 	resp := toResponse(&cluster)
+	s.enrichCredentialMetadata(&resp, cluster.KubeconfigCredentialRefID)
 	return &resp, nil
 }
 
@@ -229,6 +230,11 @@ func (s *ClusterService) Update(id uint64, req UpdateClusterRequest, updatedBy s
 		return tx.Model(cluster).Updates(updates).Error
 	}); err != nil {
 		return nil, err
+	}
+	// Evict only after the transaction committed: a failed transaction leaves
+	// the previous credential active, so its warmed client stays valid.
+	if encryptedCredential != "" {
+		s.clientPool.Evict(id)
 	}
 	return s.GetByID(id, dataScope)
 }
@@ -620,6 +626,11 @@ func (s *ClusterService) RotateCredential(id uint64, req RotateClusterCredential
 	if err != nil {
 		return nil, err
 	}
+	// The credential replaced in the committed transaction invalidates every
+	// warmed client for this cluster; drop them now that the new material is
+	// durable. Digest-keyed lookups would already miss the old entry, so this
+	// is prompt cache hygiene rather than the correctness mechanism.
+	s.clientPool.Evict(id)
 	return &response, nil
 }
 

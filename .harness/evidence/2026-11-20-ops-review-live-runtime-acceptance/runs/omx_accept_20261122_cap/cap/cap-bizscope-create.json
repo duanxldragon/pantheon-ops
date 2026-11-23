@@ -1,0 +1,28 @@
+{
+  "runId": "omx_accept_20261122_cap",
+  "phase": "cap",
+  "caseId": "cap-bizscope-create",
+  "title": "create business scope (CAP-BIZSCOPE write)",
+  "ts": "2026-11-21T16:35:21.183Z",
+  "status": "PASS",
+  "httpStatus": 200,
+  "businessCode": 200,
+  "assertions": [
+    {
+      "name": "business code 200",
+      "pass": true
+    },
+    {
+      "name": "id returned",
+      "pass": true
+    }
+  ],
+  "ids": {
+    "bizScopeId": 24
+  },
+  "result": null,
+  "message": null,
+  "redaction": null,
+  "durationMs": 30,
+  "blockedReason": null
+}

@@ -1,0 +1,12 @@
+{
+  "kubeconfigMasked": {
+    "tag": "textarea",
+    "textSecurity": "disc"
+  },
+  "kubeconfigToggleLabelBefore": "显示密码",
+  "kubeconfigRevealed": {
+    "tag": "textarea",
+    "textSecurity": "none"
+  },
+  "kubeconfigToggleLabelAfter": "隐藏密码"
+}

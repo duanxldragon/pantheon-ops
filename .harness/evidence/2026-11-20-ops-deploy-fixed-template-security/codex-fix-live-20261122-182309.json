@@ -1,0 +1,42 @@
+{
+  "command": "go test -race -count=1 -timeout=30m -v -run ^TestDeployLiveVM ./modules/business/deploy",
+  "liveVMRequested": true,
+  "sourceStable": true,
+  "authenticatedHostKeys": {
+    "ok": true,
+    "keys": [
+      {
+        "type": "ssh-ed25519",
+        "fingerprint": "SHA256:FhLFRIfRIGotV2tS+sIZWxniie2qG5Xu8H3igYJ8RNU"
+      },
+      {
+        "type": "ecdsa-sha2-nistp256",
+        "fingerprint": "SHA256:wGNI4IdTLBLFIs+lwsG1uGbRgJRxZ9bHmU2A/CM9Gb4"
+      },
+      {
+        "type": "ssh-rsa",
+        "fingerprint": "SHA256:jleZoa0d5uK+ZagDaLkJYgzKF4XWaL6ydB4anybxp0U"
+      }
+    ],
+    "source": "public keys read through pinned SSH session"
+  },
+  "capturedAt": "2026-11-22T18:23:26.8077982+08:00",
+  "cwd": "backend",
+  "sourceHashes": {
+    "backend/modules/business/deploy/deploy_service.go": "60e3a5ae8e24ed0d0a2ca67fede05ba7cf2cb8e375b91a3f8a7b76cb90375d0b",
+    "backend/modules/business/deploy/deploy_fixed_templates.go": "1fcf8412b6030a9d170a264c385e167cc1c77145c0d2ae8e7ed18dd5a9ec656b",
+    "backend/modules/business/deploy/deploy_live_acceptance_test.go": "1b3a12ec8f094d62b99125af6d5187103f0934ce4b5837b8852905a352254956",
+    "backend/modules/business/deploy/deploy_fixed_safety_test.go": "8d2720133acc67e9073d1bb19f7537efe0722ebbb43d98845748103965ffa968",
+    "backend/modules/business/deploy/deploy_service_test.go": "e1ee4a8262795b367a01d8ae041510b7487b146aa29ef0988faf5c22c1aac384"
+  },
+  "failureMarkers": [],
+  "stage": "live",
+  "exitCode": 0,
+  "mysqlRequired": true,
+  "cgoEnabled": true,
+  "topLevelPassed": 2,
+  "log": "codex-fix-live-20261122-182309.log",
+  "subtestFailed": 0,
+  "topLevelFailed": 0,
+  "skips": 0
+}

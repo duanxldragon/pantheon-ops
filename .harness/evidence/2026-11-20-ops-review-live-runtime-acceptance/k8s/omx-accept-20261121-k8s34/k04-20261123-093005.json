@@ -1,0 +1,123 @@
+{
+  "id": "k04",
+  "intent": "sync real nodes and capacity",
+  "userModel": "authenticated admin unless stated",
+  "setup": "local Ops; pinned SSH to 115.190.251.143; dedicated namespace",
+  "harness": ".local/acceptance-20261121/k8s-live.py",
+  "expected": "assertions hold",
+  "fixesApplied": [],
+  "cleanup": "owned fixtures tracked in checkpoint.json",
+  "actual": {
+    "cluster": {
+      "id": 1,
+      "code": "omx-accept-20261121-k8s34",
+      "name": "omx-accept-20261121-k8s34",
+      "environment": "dev",
+      "businessScopeId": 3,
+      "businessScopeName": "omx-accept-20261121-k8s34",
+      "deptId": 0,
+      "apiServer": "https://115.190.251.143:6443",
+      "version": "v1.36.3+k3s1",
+      "status": "healthy",
+      "totalNodes": 1,
+      "readyNodes": 1,
+      "totalPods": 17,
+      "runningPods": 13,
+      "cpuCapacity": 4,
+      "cpuAllocatable": 4,
+      "memoryCapacity": 3.8250808715820312,
+      "memoryAllocatable": 3.8250808715820312,
+      "lastSyncedAt": "2026-11-23T09:30:07+08:00",
+      "remark": "omx-accept-20261121-k8s34",
+      "createdAt": "2026-11-23T09:30:06+08:00",
+      "updatedAt": "2026-11-23T09:30:07+08:00",
+      "createdBy": "1",
+      "updatedBy": "1",
+      "credentialRefId": 1,
+      "credentialVersion": 1,
+      "credentialStatus": "active"
+    },
+    "nodes": {
+      "items": [
+        {
+          "name": "iv-yedenmmwhsqc6iu4z5p6",
+          "status": "ready",
+          "internalIp": "192.168.94.127",
+          "os": "Ubuntu 24.04 LTS",
+          "kubeletVersion": "v1.36.3+k3s1",
+          "cpuCapacity": "4",
+          "memoryCapacity": "4010888Ki",
+          "podCapacity": 110,
+          "allocatablePods": 110
+        }
+      ],
+      "total": 1
+    }
+  },
+  "status": "PASS",
+  "calls": [
+    {
+      "method": "POST",
+      "path": "/business/k8s/clusters/1/sync",
+      "httpStatus": 200,
+      "code": 200,
+      "message": "success",
+      "durationMs": 375,
+      "data": {
+        "id": 1,
+        "code": "omx-accept-20261121-k8s34",
+        "name": "omx-accept-20261121-k8s34",
+        "environment": "dev",
+        "businessScopeId": 3,
+        "businessScopeName": "omx-accept-20261121-k8s34",
+        "deptId": 0,
+        "apiServer": "https://115.190.251.143:6443",
+        "version": "v1.36.3+k3s1",
+        "status": "healthy",
+        "totalNodes": 1,
+        "readyNodes": 1,
+        "totalPods": 17,
+        "runningPods": 13,
+        "cpuCapacity": 4,
+        "cpuAllocatable": 4,
+        "memoryCapacity": 3.8250808715820312,
+        "memoryAllocatable": 3.8250808715820312,
+        "lastSyncedAt": "2026-11-23T09:30:07+08:00",
+        "remark": "omx-accept-20261121-k8s34",
+        "createdAt": "2026-11-23T09:30:06+08:00",
+        "updatedAt": "2026-11-23T09:30:07+08:00",
+        "createdBy": "1",
+        "updatedBy": "1",
+        "credentialRefId": 1,
+        "credentialVersion": 1,
+        "credentialStatus": "active"
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/business/k8s/clusters/1/nodes",
+      "httpStatus": 200,
+      "code": 200,
+      "message": "success",
+      "durationMs": 47,
+      "data": {
+        "items": [
+          {
+            "name": "iv-yedenmmwhsqc6iu4z5p6",
+            "status": "ready",
+            "internalIp": "192.168.94.127",
+            "os": "Ubuntu 24.04 LTS",
+            "kubeletVersion": "v1.36.3+k3s1",
+            "cpuCapacity": "4",
+            "memoryCapacity": "4010888Ki",
+            "podCapacity": 110,
+            "allocatablePods": 110
+          }
+        ],
+        "total": 1
+      }
+    }
+  ],
+  "durationMs": 422,
+  "evidence": ".harness\\evidence\\2026-11-20-ops-review-live-runtime-acceptance\\k8s\\omx-accept-20261121-k8s34\\k04-20261123-093005.json"
+}

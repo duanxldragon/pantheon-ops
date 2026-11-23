@@ -1,0 +1,18 @@
+{
+  "id": "k11",
+  "intent": "scale-to-zero acceptance",
+  "userModel": "authenticated admin unless stated",
+  "setup": "local Ops; pinned SSH to 115.190.251.143; dedicated namespace",
+  "harness": ".local/acceptance-20261121/k8s-live.py",
+  "expected": "assertions hold",
+  "fixesApplied": [],
+  "cleanup": "owned fixtures tracked in checkpoint.json",
+  "actual": {
+    "accepted": true,
+    "code": 200
+  },
+  "status": "PASS",
+  "calls": [],
+  "durationMs": 0,
+  "evidence": ".harness\\evidence\\2026-11-20-ops-review-live-runtime-acceptance\\k8s\\omx-accept-20261121-k8s08\\k11-20261121-091246.json"
+}

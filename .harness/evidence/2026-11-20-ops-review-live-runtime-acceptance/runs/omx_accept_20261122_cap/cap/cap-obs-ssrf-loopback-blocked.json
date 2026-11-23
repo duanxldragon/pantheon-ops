@@ -1,0 +1,24 @@
+{
+  "runId": "omx_accept_20261122_cap",
+  "phase": "cap",
+  "caseId": "cap-obs-ssrf-loopback-blocked",
+  "title": "SSRF guard refuses loopback URL on allowed port (BlockPrivateIPs positive)",
+  "ts": "2026-11-21T16:35:21.683Z",
+  "status": "PASS",
+  "httpStatus": 500,
+  "businessCode": 500,
+  "assertions": [
+    {
+      "name": "private-IP URL refused (business error, not 200)",
+      "pass": true
+    }
+  ],
+  "ids": {
+    "loopbackUrl": "http://127.0.0.1:9090"
+  },
+  "result": null,
+  "message": null,
+  "redaction": "probe URL is the local endpoint; no secrets involved",
+  "durationMs": 68,
+  "blockedReason": null
+}

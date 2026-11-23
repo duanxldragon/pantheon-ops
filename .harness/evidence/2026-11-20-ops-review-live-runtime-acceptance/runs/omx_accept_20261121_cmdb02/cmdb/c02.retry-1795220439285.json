@@ -1,0 +1,36 @@
+{
+  "runId": "omx_accept_20261121_cmdb02",
+  "phase": "cmdb",
+  "caseId": "c02",
+  "title": "bizscope-env-group",
+  "ts": "2026-11-21T00:20:39.232Z",
+  "status": "PASS",
+  "httpStatus": 200,
+  "businessCode": 200,
+  "assertions": [
+    {
+      "name": "recorded bizscope/1 belongs to run",
+      "pass": true
+    },
+    {
+      "name": "recorded bizscope/2 belongs to run",
+      "pass": true
+    },
+    {
+      "name": "recorded cmdb/groups/1 belongs to run",
+      "pass": true
+    }
+  ],
+  "ids": {
+    "scopeProdId": 1,
+    "scopeDevId": 2,
+    "groupId": 1
+  },
+  "result": {
+    "resumed": true
+  },
+  "message": null,
+  "redaction": null,
+  "durationMs": 52,
+  "blockedReason": null
+}

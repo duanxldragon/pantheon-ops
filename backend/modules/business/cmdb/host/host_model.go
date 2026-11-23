@@ -9,8 +9,9 @@ import (
 
 type Host struct {
 	ID                     uint64         `gorm:"primaryKey;autoIncrement" json:"id"`
+	TenantID               uint64         `gorm:"column:tenant_id;not null;default:0;index:uk_ip_deleted,unique,priority:1" json:"-"`
 	Hostname               string         `gorm:"size:128;not null" json:"hostname"`
-	IP                     string         `gorm:"size:45;not null;index:uk_ip_deleted,unique" json:"ip"`
+	IP                     string         `gorm:"size:45;not null;index:uk_ip_deleted,unique,priority:2" json:"ip"`
 	SSHPort                int            `gorm:"default:22" json:"sshPort"`
 	OS                     string         `gorm:"size:32;not null;index" json:"os"`
 	OSVersion              string         `gorm:"size:128" json:"osVersion"`
@@ -34,7 +35,7 @@ type Host struct {
 	UpdatedAt              time.Time      `json:"updatedAt"`
 	CreatedBy              string         `gorm:"size:64" json:"createdBy"`
 	UpdatedBy              string         `gorm:"size:64" json:"updatedBy"`
-	DeletedAt              gorm.DeletedAt `gorm:"index:uk_ip_deleted,unique" json:"-"`
+	DeletedAt              gorm.DeletedAt `gorm:"index:uk_ip_deleted,unique,priority:3" json:"-"`
 }
 
 func (Host) TableName() string {

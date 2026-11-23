@@ -74,9 +74,9 @@ business/*
 
 - docs/harness/tasks/2026-11-16-ops-business-runtime-acceptance.task.md
 - .harness/tasks/2026-11-16-ops-business-runtime-acceptance/manifest.json
-- .harness/evidence/2026-11-16-ops-business-runtime-acceptance/summary.md
-- .harness/evidence/2026-11-16-ops-business-runtime-acceptance/review.md
-- .harness/evidence/2026-11-16-ops-business-runtime-acceptance/commands.json
+- .harness/archive/2026-11/evidence/2026-11-16-ops-business-runtime-acceptance/summary.md
+- .harness/archive/2026-11/evidence/2026-11-16-ops-business-runtime-acceptance/review.md
+- .harness/archive/2026-11/evidence/2026-11-16-ops-business-runtime-acceptance/commands.json
 
 ### Modify
 
@@ -106,7 +106,7 @@ business/*
 - Affected Subgraph: business/* acceptance
 - Boundary Crossings: 业务 owner capability / HTTP UI / 外部 provider；治理任务只关联任务与证据
 - Risk Nodes: 目标身份、ownership、状态回写、引用、发布与证据真实性
-- Graph Focus: .github/workflows/quality.yml:394; .harness/evidence/2026-11-16-ops-business-menu-m3c/summary.md
+- Graph Focus: .github/workflows/quality.yml:394; .harness/archive/2026-11/evidence/2026-11-16-ops-business-menu-m3c/summary.md
 
 ## Execution Roles
 
@@ -146,8 +146,8 @@ business/*
 - OpenSpec Change: none
 - Superpowers Plan: none
 - Task Manifest: .harness/tasks/2026-11-16-ops-business-runtime-acceptance/manifest.json
-- Evidence Directory: .harness/evidence/2026-11-16-ops-business-runtime-acceptance/
-- Review File: .harness/evidence/2026-11-16-ops-business-runtime-acceptance/review.md
+- Evidence Directory: .harness/archive/2026-11/evidence/2026-11-16-ops-business-runtime-acceptance/
+- Review File: .harness/archive/2026-11/evidence/2026-11-16-ops-business-runtime-acceptance/review.md
 - Change Ref: none
 - Plan References: .harness/tasks/2026-11-16-ops-pilot-delivery/plan.md
 
@@ -182,13 +182,13 @@ in-progress；只在依赖与实际验收完成后转 completed。
 
 Status: in-progress. CI 五项核心业务 smoke 已设为必过；workflow 实际 shell 失败传播回归 RED10/12→GREEN12/12、0skip。当前工作属于准备，未运行原完整验收。
 
-Original acceptance and dependencies remain unchanged. Whole-package acceptance is incomplete; see [summary](../../../.harness/evidence/2026-11-16-ops-business-runtime-acceptance/summary.md) and [progress receipt](../../../.harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-progress-20261118.json).
+Original acceptance and dependencies remain unchanged. Whole-package acceptance is incomplete; see [summary](../../../.harness/archive/2026-11/evidence/2026-11-16-ops-business-runtime-acceptance/summary.md) and [progress receipt](../../../.harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-progress-20261118.json).
 
 ## 2026-11-19T00:11:15.272Z Verified continuation checkpoint
 
 Status: in-progress. 五项业务CI smoke已必过，真实shell传播回归RED10/12→GREEN12/12；完整CGO/race、frontend lint/type/build与正式重建/漂移已通过，新source-bound binary/dependencies ready。仍处本地准备，未完成原运行态矩阵。
 
-技术集成证据通过，独立完整运行态产品评审及原依赖验收仍未完成。 Original acceptance and human gates remain unmet. See [summary](../../../.harness/evidence/2026-11-16-ops-business-runtime-acceptance/summary.md) and [structured progress](../../../.harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-progress-final-20261118.json).
+技术集成证据通过，独立完整运行态产品评审及原依赖验收仍未完成。 Original acceptance and human gates remain unmet. See [summary](../../../.harness/archive/2026-11/evidence/2026-11-16-ops-business-runtime-acceptance/summary.md) and [structured progress](../../../.harness/evidence/2026-11-17-ops-history-audit/continuation-ten-packages-progress-final-20261118.json).
 
 ## Result — History Closeout 2026-11-20
 

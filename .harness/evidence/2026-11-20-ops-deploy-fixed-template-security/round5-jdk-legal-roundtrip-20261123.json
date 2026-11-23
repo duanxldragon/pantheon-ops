@@ -1,0 +1,114 @@
+{
+  "$schema": "evidence/round",
+  "taskId": "2026-11-20-ops-deploy-fixed-template-security",
+  "round": 5,
+  "ts": "2026-11-23T12:15:00+08:00",
+  "candidate": {
+    "binary": "pantheon-ops-codex-t02b-20261122-172553.exe",
+    "binarySha256": "bad479fc",
+    "apiPort": 8081,
+    "db": "ops_acceptance_formal_20261122_codex",
+    "mysql": 33321,
+    "redis": 26321,
+    "runId": "omx_accept_20261121_codex_t02g"
+  },
+  "summary": "Real-VM legal jdk_systemd round trip on the live candidate. The harness runner was reaped by a session memory-pressure event mid-install (server executor kept running); the install leg was terminated in-band via the product cancel API after two 300s curl timeouts to a slow TUNA mirror; the uninstall leg ran as a legal deploy task and SUCCEEDED; shared host returned byte-exact to pre-run state.",
+  "harness": {
+    "phase": "deploy",
+    "evidenceDir": ".harness/evidence/2026-11-20-ops-review-live-runtime-acceptance/runs/omx_accept_20261121_codex_t02g/deploy/",
+    "casesAtKill": "d00..d06 PASS 7/7 (d00 authenticated borrow; d01 harmless marker pkg; d02 fixed nginx pkg metadata; d03 real SSH preview+exec+persisted logs; d04 wrong-fingerprint reject; d05 fixed-template injection 400; d06 pagination/events)",
+    "d07Status": "install task started and previewed (intentVersion returned) then runner killed",
+    "killNote": "background harness process reaped by low-memory event (not a harness failure); NOT restarted per system instruction"
+  },
+  "installTask": {
+    "taskId": 14,
+    "action": "install",
+    "started": "2026-11-23T11:17:05+08:00",
+    "events": [
+      { "ts": "11:17:06", "event": "step.running", "note": "executor connected and ran the install script on the real host" },
+      { "ts": "11:32:10", "event": "step.failed", "reason": "Process exited with status 28", "note": "curl 1st attempt timed out (--max-time 300, TUNA)" },
+      { "ts": "11:47:15", "event": "step.failed", "reason": "Process exited with status 28", "note": "curl 2nd attempt timed out" },
+      { "ts": "11:47:16", "event": "step.running", "note": "curl 3rd attempt" },
+      { "ts": "11:58:07", "event": "task.canceled", "reason": "context canceled", "note": "in-band cancel accepted" }
+    ],
+    "finalStatus": "canceled",
+    "downloadBytesObserved": "42MB /tmp/jdk-installer, then ~5MB after curl restarts",
+    "rootCauseOfInstallNotSuccess": "environmental: TUNA mirror throughput too low to fetch 190MB OpenJDK tar.gz within curl retry budget"
+  },
+  "executionTimeoutObservation": {
+    "requestedTimeoutSeconds": 1500,
+    "startedAt": "2026-11-23T11:17:05+08:00",
+    "canceledAt": "2026-11-23T11:58:07+08:00",
+    "elapsedMinutes": 41,
+    "timeoutFired": false,
+    "note": "The 1500s execution timeout was not observed to terminate the running task between 11:17-11:58; an explicit cancel was required. Contrast: t02f's 20s timeout DID surface 'context deadline exceeded'. Candidate-side observation for triage, not asserted as a defect.",
+    "followUp": "triaged by maintainer/codex: exec-timeout should bound the whole SSH exec (incl. blocked reads), not require in-band cancel"
+  },
+  "uninstallWrongFingerprintControl": {
+    "taskIds": [15, 16],
+    "note": "Both started with the BASELINE ed25519 fingerprint (SHA256:FhLFR...), which is the ssh-probe pinned known_hosts key, NOT the key the product's Go executor presents on handshake. Result: sshHostKeyMismatch before any step ran. This doubles as the d04 wrong-fingerprint negative semantics reproduced on the uninstall execution path.",
+    "result": "rejected (sshHostKeyMismatch), installRoot untouched"
+  },
+  "uninstallLegalPath": {
+    "taskId": 17,
+    "action": "uninstall",
+    "fingerprintUsed": "SHA256:wGNI4IdTLBLFIs+lwsG1uGbRgJRxZ9bHmU2A/CM9Gb4 (product collectFingerprint, ECDSA key)",
+    "templateParams": { "installRoot": "/tmp/omx_accept_20261121_codex_t02g/jdk", "serviceName": "pantheon-t02-jdk" },
+    "result": "success",
+    "successCount": 1,
+    "executeOnHost": true,
+    "cleaned": {
+      "stopDisableUnit": "no-op (unit absent, mainClass-less template)",
+      "rmUnit": "no-op",
+      "rmInstallRoot": "/tmp/omx_accept_20261121_codex_t02g/jdk removed",
+      "rmProfileD": "/etc/profile.d/jdk.sh deleted (restored below)",
+      "systemdDaemonReload": "ran"
+    }
+  },
+  "hostRestoreAndCleanup": {
+    "jdkShSnapshot": {
+      "source": "captured before any template run",
+      "sha256": "72307e44255a1648615243aa48e2d19569c6be39b71f528e8214a87f1f1dc9cc",
+      "size": 60,
+      "mode": "644 root root",
+      "content": "export JAVA_HOME=/data/jdk\\nexport PATH=$JAVA_HOME/bin:$PATH"
+    },
+    "restoreReceipt": {
+      "writeExit": 0,
+      "restoredSha": "72307e44255a1648615243aa48e2d19569c6be39b71f528e8214a87f1f1dc9cc",
+      "matchesSnapshot": true
+    },
+    "cleanupReceipt": {
+      "installRootAfter": "ABSENT",
+      "pkgDirAfter": "ABSENT",
+      "serviceUnits": 0,
+      "serviceActive": "inactive",
+      "profileD": "72307e44255a1648615243aa48e2d19569c6be39b71f528e8214a87f1f1dc9cc",
+      "ok": true
+    },
+    "hostStateAfter": "byte-exact to pre-run state (jdk.sh 60B vendr bytes; no /tmp/<runId>/jdk; no /tmp/jdk-installer; no pantheon-t02-jdk service)"
+  },
+  "hostStateHazardAudit": {
+    "host": "115.190.251.143",
+    "readOnly": true,
+    "findings": {
+      "nginx_systemd": { "userdelTarget": "nginx", "live": true, "liveProcesses": ["mariadbd", "redis-server x2", "argocd-repo-ser", "tini", "gpg-agent"], "defaultRootExists": true, "decision": "environmentally deferred to dedicated host (T16 fresh-install)" },
+      "mysql_systemd": { "userdelTarget": "mysql", "live": false, "defaultRootExists": false, "note": "user absent, but install would init a system DB on a host already running mariadbd under nginx" },
+      "redis_systemd": { "userdelTarget": "redis", "live": true, "liveProcesses": ["redis-server"], "defaultRootExists": true, "decision": "uninstall would kill shared redis data (/data/redis)" },
+      "minio_systemd": { "userdelTarget": "minio", "live": true, "liveProcesses": ["minio"], "defaultRootExists": true, "decision": "uninstall would kill shared minio (/data/minio)" },
+      "harbor_offline": { "userdelTarget": null, "defaultRootExists": false, "note": "no userdel; uninstall does docker compose down -v + rm -rf installRoot; install is heavy docker compose on shared host" },
+      "jdk_systemd": { "userdelTarget": null, "defaultRootExists": null, "decision": "only environmentally safe template (no userdel, task-owned /tmp root); legal round trip executed" },
+      "prometheus_systemd": { "userdelTarget": "prometheus", "live": true, "liveProcesses": ["prometheus"], "defaultRootExists": true, "decision": "uninstall would kill shared prometheus (/data/prometheus)" },
+      "profile_d_jdk_sh": "pre-existing vendor file (60B); restored byte-exact"
+    }
+  },
+  "evidenceRefs": [
+    "runs/omx_accept_20261121_codex_t02g/deploy/d00..d06.json",
+    "round5-jdk-legal-roundtrip-20261123.json (this)",
+    "jdk-sh-snapshot-pre.json (vendor bytes before)",
+    "jdk-restore receipts: restoredSha 7230... (12:07+08)",
+    "jdk-cleanup receipt ok:true",
+    "jdk-hazard-audit receipt (read-only findings above)"
+  ],
+  "governance": "all worktree changes UNCOMMITTED; no commit/push/release; maintenance sign-off pending (maintainer three-touchpoint gate)"
+}

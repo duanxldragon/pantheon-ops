@@ -1,0 +1,1118 @@
+{
+  "schemaVersion": 1,
+  "taskId": "2026-11-20-ops-review-live-runtime-acceptance",
+  "kind": "acceptance-matrix",
+  "title": "同候选真实环境与受限角色验收 — 接受基线矩阵",
+  "generatedAt": "2026-11-20T00:00:00.000Z",
+  "generator": "claude (generator/planner)",
+  "reviewer": "codex (reviewer / executor of command-plan.json)",
+  "statusRule": "没有真实执行日志时, 状态只可为 NOT_RUN 或 BLOCKED, 绝不标记 PASS; 任何 PASS 都必须有对应 caseId 的 report.json + receipt.json (source-sha256 绑定) 或等价真实执行产物。",
+  "candidate": {
+    "headCommit": "a2d69d4a759b5df2b26aaa9d26bdc5175babe9dc",
+    "headSubject": "chore(harness): board complete — archive all non-terminal task cards to terminal state (#200)",
+    "reportCommit": "444ce8e",
+    "planningCommit": "a2d69d4a",
+    "foundationVersion": "pantheon-base-v0.18.9",
+    "foundationCommit": "6316f9b7189c86542424145fa49344ad737e952b",
+    "sourceReview": "docs/reviews/pantheon-ops独立评审与外部报告核实-2026-11-20.md",
+    "sourceChecklist": "docs/reviews/pantheon-ops真实环境验证清单-2026-11-20.md"
+  },
+  "crossCheckNote": "本矩阵能力清单与 business-overlay.json (businessPaths/frontendModules) 及当前 backend/modules/business/** 路由注册交叉核对; 业务模块不得因静默缺失而漏项。",
+  "verificationItems": [
+    {
+      "caseId": "V1",
+      "module": "business/deploy",
+      "title": "非管理员角色对 deploy 的实际权限 (SUP-08 降级与权限绑定缺口)",
+      "source": "docs/reviews/pantheon-ops真实环境验证清单-2026-11-20.md §V1",
+      "owners": [
+        "T03",
+        "T05",
+        "T16"
+      ],
+      "before": "按报告推断查看角色的 tasks/create/start/credentials 均 403; 验证是否还存在未发现的授权路径",
+      "expected": {
+        "after": "查看角色可读其被授权的任务; 创建/启动/凭据操作按独立权限拒绝",
+        "reviewPrediction": "全部 403 (tasks 列表/创建/启动/credentials)",
+        "if200": "存在作者未找到的授权路径, 默认拒绝结论被推翻, 升级为 P1"
+      },
+      "probes": [
+        "GET  /api/v1/business/deploy/tasks",
+        "POST /api/v1/business/deploy/tasks",
+        "POST /api/v1/business/deploy/tasks/1/start",
+        "GET  /api/v1/business/deploy/credentials"
+      ],
+      "bindingFacts": {
+        "task_credential_routes_unbound": true,
+        "bindingEvidence": "backend/modules/business/deploy/permission_routes.go — 仅注册 package 的 view/create/update/delete/export/import",
+        "defaultDeny": "未绑定路由 = 非管理员 403",
+        "t03Recheck": "2026-11-23 T03 实现: deploy permission_routes.go 现注册 package(6)/template(6)/task(10, 不含 export)/credential(list+create+update+delete) 共 26 键; credential:* 已入 seed F 菜单 + zh/en i18n。上面字段保留 2026-11-21 探测时的历史事实。修复后角色矩阵已在本地候选 0586a9e2 实跑 18/18 PASS (evidence/t03-role-matrix-local.json): task:view 可读 /tasks, 写与 export 均 403; credential:list 可读 /credentials 且无 secret 键, 写 403; package:view 可读 /packages, 详情与 export 403。远端部署实例尚未用该候选重跑 → 保留 RUNTIME-REMOTE gap。"
+      },
+      "provider": "HTTP (当前候选真实入口 /api/v1)",
+      "role": "一次性受限角色 verify_deploy_viewer + 一次性用户 verify_u1",
+      "cleanup": "删除 verify_u1 与 verify_deploy_viewer 角色 (系统 API), 删除其审计/会话副作用",
+      "evidence": "report.json + receipt.json + 每个 probe 的状态码与响应体前 200 字符",
+      "status": "PASS",
+      "blockedReason": null,
+      "executionScript": ".local/acceptance-20261120/probe-v1-deploy-permissions.mjs",
+      "actual": "Live HTTPS over candidate k8s33 (sha256 5cd98af198657a66): viewer role with business:deploy:task:view → GET /business/deploy/tasks, POST /business/deploy/tasks, POST /business/deploy/tasks/1/start, GET /business/deploy/credentials all denied with body code=403 permission.denied (HTTP 200 container = framework envelope). Matches reviewPrediction all-403; the if200→P1 default-allow hole is absent. Note: task:view itself grants no route (task/credential routes unbound in permission_routes.go — documented SUP-08 design), so viewer cannot read even its own list; security direction is default-deny.",
+      "runtimeEvidence": ".harness/evidence/2026-11-20-ops-review-live-runtime-acceptance/runs/omx_accept_20261121_vprobe/v/probe.json"
+    },
+    {
+      "caseId": "V2",
+      "module": "business/deploy/packages",
+      "title": "软件包导出与详情 (keyMatch2 有意缺口)",
+      "source": "docs/reviews/pantheon-ops真实环境验证清单-2026-11-20.md §V2",
+      "owners": [
+        "T03",
+        "T16"
+      ],
+      "before": "列表 200, export 403, 详情可能 403; 核实 keyMatch2 共享匹配器下的有意缺口未被意外放宽",
+      "expected": {
+        "after": "列表/详情按读取合同可用, export 需要独立权限; 若共享匹配器仍阻碍安全详情授权, 记录 Base 依赖与 gap",
+        "reviewPrediction": "GET /packages 200; GET /packages/export 403; GET /packages/1 403",
+        "ifExport200": "注释所述「策略被意外放宽」已成真实越权"
+      },
+      "probes": [
+        "GET /api/v1/business/deploy/packages",
+        "GET /api/v1/business/deploy/packages/export",
+        "GET /api/v1/business/deploy/packages/1"
+      ],
+      "bindingFacts": {
+        "evidence": "backend/modules/business/deploy/permission_routes.go — 详情路由刻意不注册在 view 下, 避免 keyMatch2 将 detail 匹配到 export",
+        "expectedStatuses": [
+          200,
+          403,
+          403
+        ]
+      },
+      "provider": "HTTP (当前候选真实入口)",
+      "role": "只勾选 package 查看权限的一次性角色",
+      "cleanup": "删除一次性角色/用户",
+      "evidence": "report.json + receipt.json + 实际状态码",
+      "status": "PASS",
+      "blockedReason": null,
+      "executionScript": ".local/acceptance-20261120/probe-v2-package-export-detail.mjs",
+      "actual": "Live HTTP over candidate k8s33 (sha256 5cd98af…): package:view role → GET /business/deploy/packages 200 (code 200), GET /packages/export denied body code=403, GET /packages/1 denied body code=403 — matches expectedStatuses [200,403,403]. keyMatch2 intentional detail-vs-export gap holds; export is an independent permission, no unintended widening. viewer cannot reach package detail (route deliberately unregistered under view).",
+      "runtimeEvidence": ".harness/evidence/2026-11-20-ops-review-live-runtime-acceptance/runs/omx_accept_20261121_vprobe/v/probe.json"
+    },
+    {
+      "caseId": "V3",
+      "module": "business/{k8s,cicd,filedist,bizscope}",
+      "title": "未绑定模块的权限点勾选是否生效",
+      "source": "docs/reviews/pantheon-ops真实环境验证清单-2026-11-20.md §V3",
+      "owners": [
+        "T03",
+        "T06",
+        "T16"
+      ],
+      "before": "按报告未绑定模块可能 403; 记录按钮显示与后端行为, 区分「后端缺绑定」还是「前后端体验不一致」",
+      "expected": {
+        "after": "已授予的查询/写动作成功, 未授予动作拒绝, 跨域/租户不可越界",
+        "reviewPrediction": "勾选全部权限点后查询与写接口仍 403 (不具备绑定效力)"
+      },
+      "probes": [
+        "GET  /api/v1/business/k8s/clusters",
+        "POST /api/v1/business/k8s/clusters",
+        "GET  /api/v1/business/cicd/argocd/applications",
+        "POST /api/v1/business/cicd/argocd/applications",
+        "GET  /api/v1/business/filedist/tasks",
+        "POST /api/v1/business/filedist/tasks",
+        "GET  /api/v1/business/bizscope/list",
+        "POST /api/v1/business/bizscope"
+      ],
+      "bindingFacts": {
+        "evidence": "backend/modules/business/k8s/permission_routes.go — 仅 service 产生绑定; cluster/workload 等未绑定; filedist/bizscope/cicd 未见独立 permissionroutes 绑定 (以当前源码为准)",
+        "defaultDeny": "未绑定路由 = 非管理员 403"
+      },
+      "provider": "HTTP (当前候选真实入口)",
+      "role": "一次性角色勾选这些模块全部权限点",
+      "cleanup": "删除一次性角色/用户",
+      "evidence": "runs/omx_accept_20261121_v3/v3/probe.json (24 probes PASS on candidate k8s33). Genuinely-unbound modules k8s-cluster / cicd-argocd / filedist / bizscope -> all-403 for an all-PermissionKeys role, with bound positive controls (service/cmdb 200) proving the grant mechanism fires; observability proven BOUND (audit_policy.go registers business:observability routes) via grant-allowed-200 + no-grant-403 with a dedicated neg-control user. Inventory finding: business:cmdb:host:viewer seeded but not assignable (128/129 valid, 1 invalid).",
+      "status": "PASS",
+      "blockedReason": null,
+      "executionScript": ".local/acceptance-20261120/probe-v3-unbound-modules.mjs",
+      "actual": "K8s read-only role Service read succeeds; Service create, credential read and sync denied. Argo/filedist/bizscope route matrix not executed.",
+      "runtimeEvidence": ".harness/evidence/2026-11-20-ops-review-live-runtime-acceptance/k8s-acceptance-results.json"
+    },
+    {
+      "caseId": "V4",
+      "module": "business/* (multi-tenant)",
+      "title": "多租户隔离 (ARC-001 业务域 V1 是否参与租户隔离)",
+      "source": "docs/reviews/pantheon-ops真实环境验证清单-2026-11-20.md §V4",
+      "owners": [
+        "T04",
+        "T14",
+        "T16"
+      ],
+      "before": "multi 业务隔离缺口为待实测推断",
+      "expected": {
+        "after": "租户 B 看不到 A 资源; 猜 ID/修改/导出/回调无跨租户副作用; compat 既有数据可用",
+        "projectContract": "业务域 V1 不参与租户隔离, B 可能看到 A 的数据 — 要拿到「事实」而非「对错」"
+      },
+      "probes": [
+        "租户 A 管理员创建 host/package/task",
+        "租户 B 管理员 GET /business/cmdb/hosts",
+        "租户 B 管理员 GET /business/deploy/packages",
+        "租户 B 管理员 GET /business/deploy/tasks",
+        "租户 B 管理员 GET /business/deploy/tasks/<A 的任务 ID>"
+      ],
+      "provider": "HTTP + MySQL (隔离库, platform.tenant_mode=multi); 若本地无 MySQL 用 BLOCKED 记 gap",
+      "role": "租户 A/B 管理员 (平台账号创建)",
+      "cleanup": "删除租户 A/B 及测试资源; 恢复 tenant_mode",
+      "evidence": "report.json + receipt.json + 响应体与数据库表中属主字段",
+      "status": "BLOCKED",
+      "blockedReason": "需要 MySQL 实例与 tenant_mode=multi 配置; 当前环境未确认 MySQL 可用",
+      "executionScript": ".local/acceptance-20261120/probe-v4-tenant-isolation.mjs"
+    },
+    {
+      "caseId": "V5",
+      "module": "business/deploy/credentials",
+      "title": "凭据泄露面 (SEC-004 凭据加密与归属)",
+      "source": "docs/reviews/pantheon-ops真实环境验证清单-2026-11-20.md §V5",
+      "owners": [
+        "T05",
+        "T16"
+      ],
+      "before": "核实凭据脱敏、加密和归属面; 以当前已注册路由为准",
+      "expected": {
+        "after": "明文/密文不进入响应或日志; 跨归属按 ID 使用被拒绝, 合法凭据执行成功",
+        "reviewPrediction": "响应不含明文, 数据库为密文; 跨归属使用按 SEC-004 核心隔离"
+      },
+      "probes": [
+        "管理员创建一次性 SSH 凭据 (一次性私钥)",
+        "GET /business/deploy/credentials 与单条详情 — 检查响应是否出现私钥/密码/密文字段",
+        "数据库查询 secret_encrypted 字段原文密文状态",
+        "另一具备 deploy 权限但非创建者账号请求同一凭据"
+      ],
+      "provider": "HTTP + MySQL",
+      "role": "凭据创建者 admin + 另一个 deploy 权限账号",
+      "cleanup": "删除一次性凭据与测试账号",
+      "evidence": "report.json + receipt.json + 响应脱敏输出 + DB 密文列",
+      "status": "PASS",
+      "blockedReason": null,
+      "executionScript": ".local/acceptance-20261120/probe-v5-credential-leakage.mjs",
+      "actual": "Live over candidate k8s33 (sha256 5cd98af…): (1) admin creates throwaway private_key SSH credential → HTTP 200. (2) GET /business/deploy/credentials (admin) returns DTO without any secret-bearing key (findSecretKeys hits=0: no secret/secretEncrypted/privateKey/pem/token field), matching DeployCredentialResponse {id,name,username,authMode,version,status,timestamps}. (3) DB stores secret_encrypted as 'v1:<base64>' ciphertext ≠ plaintext (verified via mysql companion step, recorded as v5-db-ciphertext). (4) Ownership: non-creator with valid deploy grant (u1, task:view, not the creator) cannot list/read the creator credential (404/403 — credential routes beyond create/list are not registered). TWO findings recorded: (a) NO GET /business/deploy/credentials/:id detail route exists → checklist '单条详情' probe returns HTTP 404 itself; (b) NO business:deploy:credential:* permission key is seeded (deploy_seed.go has only package/template/task) so 'credential:view' grant is rejected as role.permission.invalid — credentials are admin-only today with NO grantable non-admin authorization; residual SEC-004 gap: ListCredentials has no creator/owner filter, so if credential:view were ever bound all holders see all metadata (latent, no current exposure).",
+      "fixRef": "latent only: deploy_credential.go ListCredentials no ownership filter; no credential:* permission seed (see actual)",
+      "t03Recheck": "2026-11-23 T03 实现: (a) 已补 business:deploy:credential:list|create|update|delete 权限点, 写入 deploy_seed.go F 菜单 (Sort 12-15) + 后端 zh/en i18n (前端 fallback 与模块 locale 已同步, menu-contract 250 权限 PASS), 并绑定 GET/POST /credentials 与 PUT/DELETE /credentials/:id; (b) 详情 GET /credentials/:id 仍不存在; (c) SEC-004 残差仍在: DeployCredential 表无 owner/scope 字段, CRUD 均无 creator/范围过滤 → 持有 credential 键的非管理员可读/轮换其他范围凭据引用(密文不外泄)。本地候选 0586a9e2 实测: credential:list 可 200 读取且响应 0 个 secret 键, POST/PUT/DELETE 全部 403; 远端实例尚未用该候选重跑。",
+      "runtimeEvidence": ".harness/evidence/2026-11-20-ops-review-live-runtime-acceptance/runs/omx_accept_20261121_vprobe/v/probe.json"
+    },
+    {
+      "caseId": "V6",
+      "module": "business/* (long-running ops)",
+      "title": "长耗时操作与 10 秒前端超时",
+      "source": "docs/reviews/pantheon-ops真实环境验证清单-2026-11-20.md §V6",
+      "owners": [
+        "T07",
+        "T09",
+        "T13",
+        "T16"
+      ],
+      "before": "记录真实耗时、浏览器 10 秒超时与后端结果; 源清单中的超时现象是待核实预测",
+      "expected": {
+        "after": "受测长操作可取消/有界/有可见结果, 重复提交无重复副作用",
+        "reviewPrediction": "超过 10 秒的接口前端先报超时而后端仍在执行; 超时后再点击可能产生重复数据"
+      },
+      "probes": [
+        "同步集群 (k8s sync) 耗时记录",
+        "导入大文件 (package import / host import) 耗时记录",
+        "创建带预览的 deploy 任务耗时记录",
+        "拉取任务日志耗时记录",
+        "超时后重复点击的重复数据检查"
+      ],
+      "provider": "Browser 开发者工具 Network 计时 + HTTP; 需前端可运行",
+      "role": "admin",
+      "cleanup": "删除测试导入的分页数据 (若产生)",
+      "evidence": "runs/omx_accept_20261122_cap/manifest.json — v6-repeat-submit-dedup: identical business/service/applications create submitted twice, second rejected (application code exist), no duplicate row (totals before/after + dup create http/code recorded); per-case durationMs recorded for upload 2MB / download / reconcile (V6 timing). Frontend 10s-half deferred to GAP-UI-BROWSER (no browser runtime on this stack yet).",
+      "status": "PARTIAL",
+      "blockedReason": null,
+      "executionScript": ".local/acceptance-20261120/probe-v6-longops-timeout.mjs"
+    },
+    {
+      "caseId": "V7",
+      "module": "business/deploy (SSH executor)",
+      "title": "SSH 部署注入、指纹、租约跨重启、远程取消 (SEC-001)",
+      "source": "docs/reviews/pantheon-ops真实环境验证清单-2026-11-20.md §V7",
+      "owners": [
+        "T02",
+        "T09",
+        "T11",
+        "T16"
+      ],
+      "before": "隔离 SSH 验证模板注入、指纹、租约跨重启、远程取消",
+      "expected": {
+        "after": "注入在执行前拒绝且无标记; 指纹不符拒绝; 重启终态可收敛; 远程取消/重试副作用有证据",
+        "reviewPrediction": "注入探针 $(touch /tmp/verify_marker_001) 执行后目标机不存在该文件; 指纹不匹配首连被拒; kill 后端重启后任务恢复为合理状态且不重复执行; 取消时目标进程终止"
+      },
+      "probes": [
+        "注入探针 (仅维护者授权主机 + 低权限用户, 一次性模板)",
+        "主机指纹不匹配首连探测",
+        "任务运行中 kill 后端进程重启, 观察任务终态",
+        "命令执行中点击取消, 观察目标机进程终止"
+      ],
+      "provider": "SSH (维护者授权目标 + 专用低权限用户); 115.190.251.143 未被授权为自动授权目标",
+      "role": "admin (本地), 低权限部署用户 (远端)",
+      "cleanup": "删除远端 /tmp/verify_marker_001 (如存在)、测试目录、测试用户授权公钥",
+      "evidence": "report.json + receipts + 远端文件/进程检查输出",
+      "status": "PARTIAL",
+      "blockedReason": null,
+      "executionScript": ".local/acceptance-20261120/probe-v7-ssh-injection.mjs",
+      "actual": "Fixed-template injection RESOLVED: on candidate binary k8s33 the create of nginx_systemd task with serviceName='nginx$(touch ...)' is rejected HTTP 400 business.deploy.task.templateParamsInvalid at create; task never started; no /tmp/<run>/injected marker on 115.190.251.143; rendered preview shows no unsafe $( syntax. Real pinned SSH marker execution (d03) and wrong-fingerprint refusal (d04, sshHostKeyMismatch + marker absent) also PASS on the same binary. Restart/cancel probes remain open.",
+      "runtimeEvidence": ".harness/evidence/2026-11-20-ops-review-live-runtime-acceptance/runs/omx_accept_20261121_cmdb02/manifest.json",
+      "fixRef": "backend/modules/business/deploy/deploy_fixed_templates.go (validateFixedTemplateValues shared gate at create/preview + render)"
+    },
+    {
+      "caseId": "V8",
+      "module": "business/k8s (client lifecycle)",
+      "title": "K8s 凭据轮换与旧 client 缓存 (SUP-01 / R-03)",
+      "source": "docs/reviews/pantheon-ops真实环境验证清单-2026-11-20.md §V8",
+      "owners": [
+        "T07",
+        "T16"
+      ],
+      "before": "源清单 SUP-01 对应报告 R-03, 旧凭据缓存是静态预测",
+      "expected": {
+        "after": "持续请求下轮换后使用新身份, 旧 client 不能复活, 撤销旧令牌后合法请求正常",
+        "reviewPrediction": "旧连接在池中继续使用直到空闲超过 30 秒才失效; 持续请求让它一直不过期 — 记录令牌撤销后多久请求开始失败"
+      },
+      "probes": [
+        "kind/k3s 一次性集群 + ServiceAccount 令牌 kubeconfig A 导入平台",
+        "每 5 秒请求集群工作负载列表",
+        "集群内撤销 A 令牌, 平台更新为 kubeconfig B",
+        "记录撤销后何时开始失败; 验证旧 client 不复活、新请求用新身份"
+      ],
+      "provider": "K8s (kind/k3s 一次性集群)",
+      "role": "admin",
+      "cleanup": "删除一次性集群与 kubeconfig 记录",
+      "evidence": "report.json + receipts + 时间线 (撤销时间→首次失败时间)",
+      "status": "PARTIAL",
+      "blockedReason": null,
+      "executionScript": ".local/acceptance-20261120/probe-v8-k8s-client-rotation.mjs",
+      "actual": "Warm-cache rotation to invalid token rejects new node reads; restoring original credential succeeds. Full original ServiceAccount revoke + workload polling sequence remains open.",
+      "runtimeEvidence": ".harness/evidence/2026-11-20-ops-review-live-runtime-acceptance/k8s-acceptance-results.json"
+    }
+  ],
+  "priorPackages": [
+    {
+      "package": "C01",
+      "taskId": "2026-11-16-ops-service-deploy-integrity",
+      "manifest": ".harness/archive/2026-11/tasks/2026-11-16-ops-service-deploy-integrity/manifest.json",
+      "successor": "2026-11-20-ops-service-deploy-business-closure",
+      "residual": "租户/引用/host策略/恢复及真实角色 provider",
+      "criteria": [
+        {
+          "caseId": "C01.1",
+          "module": "business/service + deploy",
+          "source": "manifest acceptanceCriteria[0]",
+          "expected": "同一用户均有权限访问 Host A 与 Instance B 时, 错配创建/更新/启动被拒绝, 任务、实例、远端均无部分副作用",
+          "provider": "HTTP + MySQL + SSH (可选)",
+          "role": "同时具备 Host A 与 Instance B 权限的一次性账号",
+          "cleanup": "删除测试实例/任务/远端副作用 (验证无部分副作用)",
+          "status": "NOT_RUN",
+          "executionScript": ".local/acceptance-20261120/package-c01-probe.mjs"
+        },
+        {
+          "caseId": "C01.2",
+          "module": "business/service + deploy",
+          "source": "manifest acceptanceCriteria[1]",
+          "expected": "匹配任务完成及失败只更新对应实例; 重复/乱序回调和并发删除不破坏状态或历史",
+          "provider": "HTTP + MySQL",
+          "role": "admin",
+          "cleanup": "删除测试数据",
+          "status": "NOT_RUN"
+        },
+        {
+          "caseId": "C01.3",
+          "module": "business/service + deploy",
+          "source": "manifest acceptanceCriteria[2]",
+          "expected": "真实 MySQL 事务、幂等及引用竞态用例执行而非 SKIP (go test -race ./modules/business/deploy/... ./modules/business/service/...)",
+          "provider": "Go test + 隔离 MySQL DSN",
+          "role": "n/a (CI 命令, 在 backend/ 执行)",
+          "cleanup": "隔离测试库清理",
+          "status": "NOT_RUN",
+          "executionScript": ".local/acceptance-20261120/command-plan.json (c01.3)"
+        },
+        {
+          "caseId": "C01.4",
+          "module": "business/service + deploy",
+          "source": "manifest acceptanceCriteria[3]",
+          "expected": "显式独立部署两关联字段均 0 且不回写实例; 关联部署任一字段缺失/0、实体错配被拒绝, 兼容历史记录有模式与审计追溯",
+          "provider": "HTTP + MySQL",
+          "role": "admin",
+          "cleanup": "删除测试数据",
+          "status": "NOT_RUN"
+        }
+      ]
+    },
+    {
+      "package": "C02",
+      "taskId": "2026-11-16-ops-service-deploy-user-flow",
+      "manifest": ".harness/archive/2026-11/tasks/2026-11-16-ops-service-deploy-user-flow/manifest.json",
+      "successor": "2026-11-20-ops-service-deploy-business-closure",
+      "residual": "浏览器实例部署全过程/失败越权/终态日志审计",
+      "criteria": [
+        {
+          "caseId": "C02.1",
+          "module": "frontend business/deploy + services",
+          "source": "manifest acceptanceCriteria[0]",
+          "expected": "UI 提交的关联字段、预览目标与 C01 后端校验一致",
+          "provider": "Browser (Playwright) + HTTP + MySQL",
+          "role": "admin",
+          "cleanup": "删除测试实例",
+          "status": "NOT_RUN"
+        },
+        {
+          "caseId": "C02.2",
+          "module": "frontend business/deploy + services",
+          "source": "manifest acceptanceCriteria[1]",
+          "expected": "成功/失败部署后服务目录展示对应实例终态, 日志及审计可按任务追溯",
+          "provider": "Browser + HTTP + MySQL + 审计表查询",
+          "role": "admin",
+          "cleanup": "删除测试实例/任务",
+          "status": "NOT_RUN"
+        },
+        {
+          "caseId": "C02.3",
+          "module": "frontend business/deploy + services",
+          "source": "manifest acceptanceCriteria[2]",
+          "expected": "桌面/窄屏及 loading/empty/error/forbidden/submitting 状态有当前 revision 渲染证据",
+          "provider": "Browser (1440px/390px, 明/暗, 键盘)",
+          "role": "admin + 受限角色",
+          "cleanup": "删除测试数据",
+          "status": "NOT_RUN"
+        }
+      ]
+    },
+    {
+      "package": "C03",
+      "taskId": "2026-11-16-ops-service-catalog-usability",
+      "manifest": ".harness/archive/2026-11/tasks/2026-11-16-ops-service-catalog-usability/manifest.json",
+      "successor": "2026-11-20-ops-service-deploy-business-closure",
+      "residual": "目录生命周期/NamespaceBinding/environment/action/101+对象/角色",
+      "criteria": [
+        {
+          "caseId": "C03.1",
+          "module": "business/service (catalog)",
+          "source": "manifest acceptanceCriteria[0]",
+          "expected": "101 条以上对象可分页查询、编辑, 汇总使用服务端总数",
+          "provider": "HTTP + MySQL (101+ fixtures, source-bound 前缀)",
+          "role": "admin",
+          "cleanup": "删除 101+ fixtures",
+          "status": "NOT_RUN",
+          "executionScript": ".local/acceptance-20261120/package-c03-catalog-paging.mjs"
+        },
+        {
+          "caseId": "C03.2",
+          "module": "business/service (catalog)",
+          "source": "manifest acceptanceCriteria[1]",
+          "expected": "服务只读角色无需 CMDB/K8s 列表权限也可读目录; 操作按钮按授权呈现, 后端仍拒绝越权",
+          "provider": "HTTP + Browser",
+          "role": "只读 service 角色",
+          "cleanup": "删除一次性角色",
+          "status": "NOT_RUN"
+        },
+        {
+          "caseId": "C03.3",
+          "module": "business/service (catalog)",
+          "source": "manifest acceptanceCriteria[2]",
+          "expected": "版本/目标编辑走 owner 校验及冲突语义; 未默认要求新增实时健康探测",
+          "provider": "HTTP + MySQL",
+          "role": "admin + 非 owner",
+          "cleanup": "删除测试数据",
+          "status": "NOT_RUN"
+        }
+      ]
+    },
+    {
+      "package": "C04",
+      "taskId": "2026-11-16-ops-k8s-service-mutations",
+      "manifest": ".harness/archive/2026-11/tasks/2026-11-16-ops-k8s-service-mutations/manifest.json",
+      "successor": "2026-11-20-ops-k8s-resource-authorization-and-mutations",
+      "residual": "最小角色/真实 binding CRUD/kubectl 冲突/全部 UI 状态",
+      "criteria": [
+        {
+          "caseId": "C04.1",
+          "module": "business/k8s/service",
+          "source": "manifest acceptanceCriteria[0]",
+          "expected": "已绑定 namespace 中有权限用户能创建、读取、编辑、删除 Service",
+          "provider": "K8s (kind/k3s) + HTTP; 当前无 K8s 环境",
+          "role": "最小角色 (business:k8s:service:*)",
+          "cleanup": "删除测试 Service 与一次性集群",
+          "status": "BLOCKED",
+          "blockedReason": "无可用 K8s 集群 (Docker/K8s 不可用)",
+          "executionScript": ".local/acceptance-20261120/package-c04-k8s-mutations.mjs"
+        },
+        {
+          "caseId": "C04.2",
+          "module": "business/k8s/service",
+          "source": "manifest acceptanceCriteria[1]",
+          "expected": "跨域/未绑定/缺操作权限在 Kubernetes mutation 前失败",
+          "provider": "K8s + HTTP + 角色矩阵",
+          "role": "未绑定/缺权限角色",
+          "cleanup": "删除一次性集群",
+          "status": "BLOCKED",
+          "blockedReason": "无可用 K8s 集群"
+        },
+        {
+          "caseId": "C04.3",
+          "module": "business/k8s/service",
+          "source": "manifest acceptanceCriteria[2]",
+          "expected": "平台读取后 kubectl 修改, 平台陈旧更新/删除返回冲突且对象未被覆盖或删错",
+          "provider": "K8s + HTTP",
+          "role": "admin",
+          "cleanup": "删除一次性集群与测试对象",
+          "status": "BLOCKED",
+          "blockedReason": "无可用 K8s 集群"
+        }
+      ]
+    },
+    {
+      "package": "C05",
+      "taskId": "2026-11-16-ops-business-runtime-acceptance",
+      "manifest": ".harness/archive/2026-11/tasks/2026-11-16-ops-business-runtime-acceptance/manifest.json",
+      "successor": "2026-11-20-ops-review-live-runtime-acceptance",
+      "residual": "空库升级/故障回滚/角色 provider/UI 原完整矩阵",
+      "criteria": [
+        {
+          "caseId": "C05.1",
+          "module": "business/*",
+          "source": "manifest acceptanceCriteria[0]",
+          "expected": "关键 MySQL、SSH、K8s、目标错配及引用保护用例零未解释 skip, 所有 P0 通过",
+          "provider": "go test -race + 隔离 MySQL/SSH/K8s",
+          "role": "n/a (CI 命令)",
+          "cleanup": "隔离测试库清理",
+          "status": "NOT_RUN",
+          "executionScript": ".local/acceptance-20261120/command-plan.json (c05.1)"
+        },
+        {
+          "caseId": "C05.2",
+          "module": "business/*",
+          "source": "manifest acceptanceCriteria[1]",
+          "expected": "两部门/业务域及最小权限角色均验证; 正向、越权、重复、并发、失败恢复、回滚留证",
+          "provider": "HTTP + MySQL + Browser",
+          "role": "两部门最小权限角色",
+          "cleanup": "删除测试部门/角色/数据",
+          "status": "BLOCKED",
+          "blockedReason": "需双部门 + bizscope 数据与 MySQL; 部分可由 HTTP 在本地库执行, 待 MySQL 就绪"
+        },
+        {
+          "caseId": "C05.3",
+          "module": "business/*",
+          "source": "manifest acceptanceCriteria[2]",
+          "expected": "当前 revision 桌面/窄屏和主要交互状态截图, source/迁移/hash/命令/退出码对应同一候选",
+          "provider": "Browser + 构建哈希绑定",
+          "role": "admin",
+          "cleanup": "删除测试数据",
+          "status": "NOT_RUN"
+        },
+        {
+          "caseId": "C05.4",
+          "module": "business/*",
+          "source": "manifest acceptanceCriteria[3]",
+          "expected": "旧菜单任务运行 gap 得到当前证据关闭; 旧历史截图不替代",
+          "provider": "Browser + HTTP",
+          "role": "admin",
+          "cleanup": "删除测试数据",
+          "status": "NOT_RUN"
+        }
+      ],
+      "latestK8sExecution": {
+        "status": "PARTIAL",
+        "counts": {
+          "PASS": 22,
+          "FAIL": 0,
+          "BLOCKED": 1
+        },
+        "evidence": ".harness/evidence/2026-11-20-ops-review-live-runtime-acceptance/k8s-acceptance-results.json",
+        "provider": "115.190.251.143 existing k3s",
+        "binarySha256": "fba00055818a050995ad1fffb7cebec95c761f955ebf62da37c9e41c7667b129"
+      },
+      "acceptanceStatus": "PARTIAL"
+    },
+    {
+      "package": "C06",
+      "taskId": "2026-11-16-ops-pilot-release-closeout",
+      "manifest": ".harness/archive/2026-11/tasks/2026-11-16-ops-pilot-release-closeout/manifest.json",
+      "successor": "2026-11-20-ops-review-delivery-and-closeout",
+      "residual": "包/校验和/隔离安装升级失败恢复回滚/离线/终验",
+      "criteria": [
+        {
+          "caseId": "C06.1",
+          "module": "ops (release)",
+          "source": "manifest acceptanceCriteria[0]",
+          "expected": "独立执行者从 clean checkout/交付包按文档完成安装、升级及回滚, 校验和与候选一致",
+          "provider": "隔离主机/容器 + 交付包 + checksum",
+          "role": "独立执行者 (Codex)",
+          "cleanup": "隔离环境销毁",
+          "status": "BLOCKED",
+          "blockedReason": "需要干净交付包与隔离安装环境",
+          "executionScript": ".local/acceptance-20261120/package-c06-install-upgrade-rollback.plan.md"
+        },
+        {
+          "caseId": "C06.2",
+          "module": "ops (release)",
+          "source": "manifest acceptanceCriteria[1]",
+          "expected": "C01-C05 完成且本包交付/回滚验收通过, P0 零遗留; P1 延期须有维护者决定、owner、截止日期及补偿控制",
+          "provider": "依赖十包矩阵",
+          "role": "维护者终验",
+          "cleanup": null,
+          "status": "NOT_RUN"
+        },
+        {
+          "caseId": "C06.3",
+          "module": "ops (release)",
+          "source": "manifest acceptanceCriteria[2]",
+          "expected": "业务包不能仅是 Base release; 不以 GitHub merge、测试全绿或旧 GA 文案替代业务验收",
+          "provider": "交付包比对 (foundation-release.lock.json + business-overlay.json)",
+          "role": "独立执行者",
+          "cleanup": null,
+          "status": "NOT_RUN"
+        },
+        {
+          "caseId": "C06.4",
+          "module": "ops (release)",
+          "source": "manifest acceptanceCriteria[3]",
+          "expected": "候选开放扩展通过 E04; 不开放扩展的菜单、路由/权限、可见能力与说明已裁剪并验证",
+          "provider": "依赖 E04 矩阵",
+          "role": "独立执行者",
+          "cleanup": null,
+          "status": "NOT_RUN"
+        }
+      ]
+    },
+    {
+      "package": "E01",
+      "taskId": "2026-11-16-ops-filedist-product-closure",
+      "manifest": ".harness/archive/2026-11/tasks/2026-11-16-ops-filedist-product-closure/manifest.json",
+      "successor": "2026-11-20-ops-filedist-durable-lifecycle",
+      "residual": "真实 SSH/异步 job 授权/重启取消/两域 role/shutdown",
+      "criteria": [
+        {
+          "caseId": "E01.1",
+          "module": "business/filedist",
+          "source": "manifest acceptanceCriteria[0]",
+          "expected": "用户从上传/选文件到选目标、创建、传输校验、进度与结果回读全程走通 UI",
+          "provider": "Browser + HTTP + 文件存储",
+          "role": "admin",
+          "cleanup": "删除测试文件/任务",
+          "status": "NOT_RUN",
+          "executionScript": ".local/acceptance-20261120/package-e01-filedist-flow.mjs"
+        },
+        {
+          "caseId": "E01.2",
+          "module": "business/filedist",
+          "source": "manifest acceptanceCriteria[1]",
+          "expected": "大文件开始后取消能按合同停止在途写入; 未来 scheduledAt 到期执行, 重启后的任务进入确定状态",
+          "provider": "HTTP + 文件存储 + 进程重启",
+          "role": "admin",
+          "cleanup": "删除测试文件/任务/在途残留",
+          "status": "NOT_RUN"
+        },
+        {
+          "caseId": "E01.3",
+          "module": "business/filedist",
+          "source": "manifest acceptanceCriteria[2]",
+          "expected": "已取消队列项不再执行; 受限角色行为与后端实际开放范围一致",
+          "provider": "HTTP + Browser",
+          "role": "受限角色",
+          "cleanup": "删除测试数据与角色",
+          "status": "NOT_RUN"
+        }
+      ]
+    },
+    {
+      "package": "E02",
+      "taskId": "2026-11-16-ops-argocd-ownership-convergence",
+      "manifest": ".harness/archive/2026-11/tasks/2026-11-16-ops-argocd-ownership-convergence/manifest.json",
+      "successor": "2026-11-20-ops-argocd-ownership-and-webhook",
+      "residual": "ownership/legacy/UID/token/webhook/双写/时间戳/provider",
+      "criteria": [
+        {
+          "caseId": "E02.1",
+          "module": "business/cicd/argocd",
+          "source": "manifest acceptanceCriteria[0]",
+          "expected": "受限部门角色不能读取/操作其他业务域应用; 请求在 Argo 副作用前拒绝",
+          "provider": "HTTP + 业务域角色",
+          "role": "受限部门角色",
+          "cleanup": "删除测试应用/服务器配置",
+          "status": "NOT_RUN",
+          "executionScript": ".local/acceptance-20261120/package-e02-argocd-ownership.mjs"
+        },
+        {
+          "caseId": "E02.2",
+          "module": "business/cicd/argocd",
+          "source": "manifest acceptanceCriteria[1]",
+          "expected": "同步请求已接受但镜像拉取失败时, 平台不提前显示 Succeeded/Synced",
+          "provider": "HTTP + 模拟失败同步",
+          "role": "admin",
+          "cleanup": "删除测试应用",
+          "status": "NOT_RUN"
+        },
+        {
+          "caseId": "E02.3",
+          "module": "business/cicd/argocd",
+          "source": "manifest acceptanceCriteria[2]",
+          "expected": "成功、失败、Progressing、超时、外部删除及恢复自动收敛, 凭据不回显",
+          "provider": "HTTP + 收敛探针",
+          "role": "admin",
+          "cleanup": "删除测试应用/凭据",
+          "status": "NOT_RUN"
+        }
+      ]
+    },
+    {
+      "package": "E03",
+      "taskId": "2026-11-16-ops-helm-capability-truth",
+      "manifest": ".harness/archive/2026-11/tasks/2026-11-16-ops-helm-capability-truth/manifest.json",
+      "successor": "2026-11-20-ops-review-docs-and-test-governance",
+      "residual": "登记状态/历史 raw/UI 菜单口径, 实际开放操作按清单验收",
+      "criteria": [
+        {
+          "caseId": "E03.1",
+          "module": "business/k8s/helm",
+          "source": "manifest acceptanceCriteria[0]",
+          "expected": "未真正安装 Chart 的记录不显示已部署, 不用 K8s 镜像 Release 为 Helm 能力背书",
+          "provider": "HTTP + DB 记录核对",
+          "role": "admin",
+          "cleanup": "删除测试记录",
+          "status": "BLOCKED",
+          "blockedReason": "真实安装需要 Helm + K8s; 若仅验证登记状态口径可用 HTTP + DB 在 NOT_RUN 待执行",
+          "executionScript": ".local/acceptance-20261120/package-e03-helm-truth.mjs"
+        },
+        {
+          "caseId": "E03.2",
+          "module": "business/k8s/helm",
+          "source": "manifest acceptanceCriteria[1]",
+          "expected": "若交付 Chart 执行, 版本、values、权限、超时/冲突、历史和回滚具备真实集群证据; 若延期, 有可见能力裁剪和风险决定",
+          "provider": "K8s + Helm 真实集群",
+          "role": "admin",
+          "cleanup": "删除测试 Release/cluster",
+          "status": "BLOCKED",
+          "blockedReason": "无可用 K8s 集群; 若能力裁剪则记录维护者风险决定而非空跑"
+        }
+      ],
+      "latestK8sExecution": {
+        "status": "PARTIAL",
+        "counts": {
+          "PASS": 22,
+          "FAIL": 0,
+          "BLOCKED": 1
+        },
+        "evidence": ".harness/evidence/2026-11-20-ops-review-live-runtime-acceptance/k8s-acceptance-results.json",
+        "provider": "115.190.251.143 existing k3s",
+        "binarySha256": "fba00055818a050995ad1fffb7cebec95c761f955ebf62da37c9e41c7667b129"
+      },
+      "acceptanceStatus": "PARTIAL"
+    },
+    {
+      "package": "E04",
+      "taskId": "2026-11-16-ops-extensions-live-acceptance",
+      "manifest": ".harness/archive/2026-11/tasks/2026-11-16-ops-extensions-live-acceptance/manifest.json",
+      "successor": "2026-11-20-ops-review-live-runtime-acceptance",
+      "residual": "按实际开放能力执行九行 provider 矩阵和清理/终验",
+      "criteria": [
+        {
+          "caseId": "E04.1",
+          "module": "business/* (extensions)",
+          "source": "manifest acceptanceCriteria[0]",
+          "expected": "所有试点开放扩展都有独立可重跑真实 provider 证据, 未开放模块明确裁剪",
+          "provider": "九行 provider 矩阵 (mysql/http/browser/ssh/k8s/...)",
+          "role": "按模块角色",
+          "cleanup": "每扩展清理",
+          "status": "NOT_RUN",
+          "blockedReason": "依赖 provider 就绪度; 各扩展独立性见 capabilities 段"
+        },
+        {
+          "caseId": "E04.2",
+          "module": "business/k8s/backup (Velero)",
+          "source": "manifest acceptanceCriteria[1]",
+          "expected": "Velero 已有 CRD/reconciler 实现按真实事实评估, 不沿用旧下架结论",
+          "provider": "K8s + Velero 状态检查",
+          "role": "admin",
+          "cleanup": "删除一次性集群",
+          "status": "BLOCKED",
+          "blockedReason": "无可用 K8s 集群"
+        },
+        {
+          "caseId": "E04.3",
+          "module": "business/*",
+          "source": "manifest acceptanceCriteria[2]",
+          "expected": "自动 exporter/file_sd 纳管、实时健康平台和商业 License/运行时 ModuleGate 仍为后续 Out, 不扩张本任务",
+          "provider": "scope 边界核对 (无执行)",
+          "role": "n/a",
+          "cleanup": null,
+          "status": "NOT_RUN"
+        }
+      ],
+      "latestK8sExecution": {
+        "status": "PARTIAL",
+        "counts": {
+          "PASS": 22,
+          "FAIL": 0,
+          "BLOCKED": 1
+        },
+        "evidence": ".harness/evidence/2026-11-20-ops-review-live-runtime-acceptance/k8s-acceptance-results.json",
+        "provider": "115.190.251.143 existing k3s",
+        "binarySha256": "fba00055818a050995ad1fffb7cebec95c761f955ebf62da37c9e41c7667b129"
+      },
+      "acceptanceStatus": "PARTIAL"
+    }
+  ],
+  "capabilities": [
+    {
+      "capabilityId": "CAP-CMDB",
+      "module": "business/cmdb",
+      "registered": true,
+      "registrationEvidence": "business-overlay.json businessPaths → backend/modules/business/cmdb",
+      "routes": [
+        "GET  /api/v1/business/cmdb/hosts",
+        "POST /api/v1/business/cmdb/hosts",
+        "PATCH /api/v1/business/cmdb/hosts/:id/status",
+        "PATCH /api/v1/business/cmdb/hosts/:id/state",
+        "POST /api/v1/business/cmdb/hosts/:id/collect",
+        "POST /api/v1/business/cmdb/hosts/import",
+        "GET  /api/v1/business/cmdb/hosts/export",
+        "GET  /api/v1/business/cmdb/groups",
+        "POST /api/v1/business/cmdb/groups",
+        "GET  /api/v1/business/cmdb/groups/:id/members",
+        "GET  /api/v1/business/cmdb/labels",
+        "POST /api/v1/business/cmdb/labels"
+      ],
+      "permissionBindings": "business:cmdb:host:* / group:* / label:* (permission_routes 已注册)",
+      "provider": "HTTP + MySQL",
+      "role": "admin + 最小 host 角色",
+      "cleanup": "按 source-bound 前缀删除 fixtures",
+      "status": "PASS",
+      "executionScript": ".local/acceptance-20261120/probe-cap-cmdb.mjs",
+      "actual": "cmdb phase in run omx_accept_20261121_cmdb02: c01-c08 all PASS on the retry sequence (00:20Z retry files, richer assertion set incl. ECDSA collection fingerprint authenticated via pinned session). NOTE: first-attempt c04-c08 (00:09Z .json) FAILed on transient environment flakes (ssh-probe.py internal TypeError; transient ssh_connect_failed; residual run dir from the failed attempt) — immediate retry PASSes all 8 on the same live backend; deploy lane 7/7 PASS in the same run and same candidate (k8s33 sha256 5cd98af / manifest.json). Wrong-fingerprint reject (c06/publicErrorKey cmdbhost.ssh_connect_failed, host status unchanged) is the intended security behavior, documented as a UX semantic gap.",
+      "runtimeEvidence": ".harness/evidence/2026-11-20-ops-review-live-runtime-acceptance/runs/omx_accept_20261121_cmdb02/cmdb/c0*.retry-*.json"
+    },
+    {
+      "capabilityId": "CAP-DEPLOY",
+      "module": "business/deploy (packages/templates/credentials/tasks)",
+      "registered": true,
+      "registrationEvidence": "business-overlay.json + backend/modules/business/deploy/deploy.go (DataScopedGroup /business/deploy) + permission_routes.go",
+      "routes": [
+        "GET  /api/v1/business/deploy/packages",
+        "POST /api/v1/business/deploy/packages",
+        "PUT  /api/v1/business/deploy/packages/:id",
+        "DELETE /api/v1/business/deploy/packages/:id",
+        "GET  /api/v1/business/deploy/packages/export",
+        "POST /api/v1/business/deploy/packages/import",
+        "GET  /api/v1/business/deploy/templates",
+        "POST /api/v1/business/deploy/templates",
+        "GET  /api/v1/business/deploy/credentials",
+        "POST /api/v1/business/deploy/credentials",
+        "GET  /api/v1/business/deploy/tasks",
+        "POST /api/v1/business/deploy/tasks",
+        "POST /api/v1/business/deploy/tasks/:id/start|pause|resume|retry|cancel|rollback",
+        "GET  /api/v1/business/deploy/tasks/:id/events|logs",
+        "POST /api/v1/business/deploy/targets/resolve",
+        "POST /api/v1/business/deploy/task-hosts/:id/report|result"
+      ],
+      "permissionBindings": "历史(2026-11-21 探测): 仅 business:deploy:package:* 绑定; tasks/credentials/templates 未绑定。2026-11-23 T03 未提交实现后: package(6)/template(6)/task(10, 不含 export)/credential(4) 共 26 键已绑定 per permission_routes.go; 详情 GET 与 task:export 仍刻意不绑定。",
+      "provider": "HTTP + MySQL + (SSH 可选)",
+      "role": "admin + verify_deploy_viewer",
+      "cleanup": "按 source-bound 前缀删除 fixtures + 任务终态清理",
+      "status": "PASS",
+      "executionScript": ".local/acceptance-20261120/probe-cap-deploy.mjs",
+      "actual": "Deploy lane d00-d06 7/7 PASS on candidate k8s33 (cmdb02 run): package CRUD/fixed metadata, task create+preview+start over real pinned SSH, persisted log readback, wrong-fingerprint refusal, fixed-template injection rejected at create (HTTP 400 templateParamsInvalid), task list pagination + event history, credential redaction exercised. Route-matrix vprobe (V1/V2/V5) 19/19 PASS. Route-matrix extension dm2 (2026-11-22, 30/30 PASS): a non-admin role holding ONLY business:deploy:package:view gets body-code 403 on EVERY unbound deploy route - templates CRUD/export/import (7), task preview/update/delete/start/pause/resume/retry/cancel/rollback/rollback-info/events/events-history/logs/export/targets-resolve/task-host-result, credentials POST/PUT/DELETE - while GET /packages is 200 in the same role (grant mechanism live). No undocumented authorization path found. Residual: V6 frontend 10s timing tracked in GAP-UI-BROWSER (needs browser runtime, not a deploy-capability defect).",
+      "runtimeEvidence": ".harness/evidence/2026-11-20-ops-review-live-runtime-acceptance/runs/omx_accept_20261122_dmatrix2/dm2/probe.json (30/30 PASS) + runs/omx_accept_20261121_cmdb02/manifest.json (deploy lane 7/7 PASS, candidate k8s33 sha256 5cd98af)"
+    },
+    {
+      "capabilityId": "CAP-SERVICE",
+      "module": "business/service (catalog)",
+      "registered": true,
+      "registrationEvidence": "business-overlay.json + backend/modules/business/service/module.go (DataScopedGroup /business/service)",
+      "routes": [
+        "GET  /api/v1/business/service/applications",
+        "POST /api/v1/business/service/applications",
+        "GET  /api/v1/business/service/services",
+        "GET  /api/v1/business/service/services/:id",
+        "POST /api/v1/business/service/services",
+        "PUT  /api/v1/business/service/services/:id",
+        "DELETE /api/v1/business/service/services/:id",
+        "GET  /api/v1/business/service/instances",
+        "GET  /api/v1/business/service/instances/:id",
+        "POST /api/v1/business/service/instances",
+        "PATCH /api/v1/business/service/instances/:id/state",
+        "POST /api/v1/business/service/instances/:id/reconcile"
+      ],
+      "permissionBindings": "service 域权限 (以当前 permission 注册为准)",
+      "provider": "HTTP + MySQL (101+ 分页 fixtures)",
+      "role": "admin + 只读 service 角色",
+      "cleanup": "删除 101+ fixtures",
+      "status": "PASS",
+      "executionScript": ".local/acceptance-20261120/probe-cap-service.mjs",
+      "runtimeEvidence": ".harness/evidence/2026-11-20-ops-review-live-runtime-acceptance/runs/omx_accept_20261122_cap/manifest.json (run 3: 31 PASS / 1 BLOCKED / 0 FAIL, 32 cases)",
+      "actual": "cap-live run 3 (omx_accept_20261122_cap): application create/list/detail + service create/list/detail/update + VM instance create (200/200, id returned under a same-scope CMDB host) + instance reconcile + full 7-step cleanup deletes all 200. Validated with real same-tenant fixtures: bizscope -> application -> service(runtimeType=vm) -> CMDB host -> instance."
+    },
+    {
+      "capabilityId": "CAP-K8S",
+      "module": "business/k8s (cluster/workload/namespace/configmap/secret/service/release/helm/ingress/storage/backup/install/rbac)",
+      "registered": true,
+      "registrationEvidence": "business-overlay.json + backend/modules/business/k8s/k8s.go (DataScopedGroup /business/k8s) + permission_routes.go (仅 service)",
+      "routes": [
+        "GET  /api/v1/business/k8s/clusters",
+        "POST /api/v1/business/k8s/clusters",
+        "POST /api/v1/business/k8s/clusters/:id/sync",
+        "GET  /api/v1/business/k8s/clusters/:id/nodes",
+        "GET  /api/v1/business/k8s/clusters/:id/credential",
+        "POST /api/v1/business/k8s/clusters/:id/credential/rotate",
+        "GET  /api/v1/business/k8s/clusters/:id/workloads/.../pods",
+        "POST /api/v1/business/k8s/clusters/:id/workloads/.../scale|restart",
+        "GET  /api/v1/business/k8s/clusters/:id/pods/:ns/:pod/logs",
+        "GET  /api/v1/business/k8s/clusters/:id/namespaces",
+        "POST /api/v1/business/k8s/clusters/:id/configmaps|secrets|services",
+        "GET  /api/v1/business/k8s/releases",
+        "GET  /api/v1/business/k8s/helm/releases",
+        "GET  /api/v1/business/k8s/ingresses",
+        "GET  /api/v1/business/k8s/storage/pvs|pvcs|storage-classes",
+        "GET  /api/v1/business/k8s/backup/velero/status",
+        "GET  /api/v1/business/k8s/install"
+      ],
+      "permissionBindings": "仅 business:k8s:service:* 绑定 (list/view/create/update/delete); cluster/workload/backup 等未绑定",
+      "provider": "K8s (kind/k3s) + HTTP",
+      "role": "admin + 最小 service 角色",
+      "cleanup": "删除一次性集群与测试对象",
+      "status": "PARTIAL",
+      "blockedReason": "Velero Pod Pending; fresh installation, original V8 sequence and remaining lifecycle/UI cases open.",
+      "executionScript": ".local/acceptance-20261120/probe-cap-k8s.mjs",
+      "runtimeEvidence": ".harness/evidence/2026-11-20-ops-review-live-runtime-acceptance/k8s-acceptance-results.json"
+    },
+    {
+      "capabilityId": "CAP-FILEDIST",
+      "module": "business/filedist",
+      "registered": true,
+      "registrationEvidence": "business-overlay.json + backend/modules/business/filedist/module.go (同时挂 /business/filedist 与 /filedist)",
+      "routes": [
+        "GET  /api/v1/business/filedist/storages",
+        "POST /api/v1/business/filedist/storages",
+        "POST /api/v1/business/filedist/files/upload",
+        "GET  /api/v1/business/filedist/files",
+        "GET  /api/v1/business/filedist/files/:id/download",
+        "POST /api/v1/business/filedist/tasks",
+        "GET  /api/v1/business/filedist/tasks",
+        "POST /api/v1/business/filedist/tasks/:id/start",
+        "POST /api/v1/business/filedist/tasks/:id/cancel|retry",
+        "GET  /api/v1/business/filedist/tasks/:id/events|progress|hosts",
+        "DELETE /api/v1/business/filedist/tasks/:id"
+      ],
+      "permissionBindings": "未发现独立 permissionroutes 绑定 (以当前源码为准)",
+      "provider": "HTTP + 文件存储 + Browser",
+      "role": "admin + 受限角色",
+      "cleanup": "删除测试文件/任务/存储",
+      "status": "PASS",
+      "executionScript": ".local/acceptance-20261120/probe-cap-filedist.mjs",
+      "runtimeEvidence": ".harness/evidence/2026-11-20-ops-review-live-runtime-acceptance/runs/omx_accept_20261122_cap/manifest.json (run 3: 31 PASS / 1 BLOCKED / 0 FAIL, 32 cases)",
+      "actual": "cap-live run 3: storages list (default local storage provisioned) -> 2MB multipart upload -> files list contains row -> GET download round-trips exactly 2097152 bytes -> storage create/delete -> file delete, all 200."
+    },
+    {
+      "capabilityId": "CAP-OBSERVABILITY",
+      "module": "business/observability",
+      "registered": true,
+      "registrationEvidence": "business-overlay.json + backend/modules/business/observability/observability.go (DataScopedGroup + TenantScopedBusinessGroup /business/observability 与 /observability)",
+      "routes": [
+        "POST /api/v1/business/observability/datasources",
+        "GET  /api/v1/business/observability/datasources",
+        "POST /api/v1/business/observability/datasources/:id/test|query|logs|traces",
+        "GET  /api/v1/business/observability/datasources/:id/query-fields",
+        "GET  /api/v1/business/observability/datasources/:id/traces/:traceId",
+        "GET  /api/v1/business/observability/query-history",
+        "POST /api/v1/business/observability/saved-views",
+        "POST /api/v1/business/observability/alert-rules",
+        "GET  /api/v1/business/observability/alert-rules",
+        "PATCH /api/v1/business/observability/alert-rules/:id/toggle",
+        "GET  /api/v1/business/observability/alert-events",
+        "POST /api/v1/business/observability/notification-channels",
+        "POST /api/v1/business/observability/targets",
+        "GET  /api/v1/business/observability/targets"
+      ],
+      "permissionBindings": "RegisterQueryPolicies + 数据源/告警域权限 (以当前注册为准)",
+      "provider": "HTTP + Browser (datasource 配置项可本地假数据源)",
+      "role": "admin + 受限角色",
+      "cleanup": "删除测试数据源/告警规则/目标",
+      "status": "PASS",
+      "executionScript": ".local/acceptance-20261120/probe-cap-observability.mjs",
+      "runtimeEvidence": ".harness/evidence/2026-11-20-ops-review-live-runtime-acceptance/runs/omx_accept_20261122_cap/manifest.json (run 3: 31 PASS / 1 BLOCKED / 0 FAIL, 32 cases)",
+      "actual": "cap-live run 3: SSRF guard POSITIVE (loopback 127.0.0.1:9090 rejected even though port 9090 is allowed -> BlockPrivateIPs; public example.com:8081 rejected -> AllowedPorts allowlist) and create/list/update on http://example.com (port 80) all 200; refresh()/test returns structured test_failed on reachable non-Prometheus placeholder; query returns structured param.invalid for this probe payload (probe shape, not product) — no panic on any path."
+    },
+    {
+      "capabilityId": "CAP-ARGOCD",
+      "module": "business/cicd/argocd",
+      "registered": true,
+      "registrationEvidence": "business-overlay.json + backend/modules/business/cicd/cicd.go (InitCICDModule → DataScopedGroup /business) + argocd_handler.go",
+      "routes": [
+        "POST /api/v1/business/cicd/argocd/servers",
+        "GET  /api/v1/business/cicd/argocd/servers",
+        "POST /api/v1/business/cicd/argocd/servers/:id/test",
+        "POST /api/v1/business/cicd/argocd/repositories",
+        "GET  /api/v1/business/cicd/argocd/applications",
+        "POST /api/v1/business/cicd/argocd/applications",
+        "POST /api/v1/business/cicd/argocd/applications/:id/sync|refresh|rollback",
+        "GET  /api/v1/business/cicd/argocd/applications/:id/history"
+      ],
+      "permissionBindings": "未见独立 permissionroutes 绑定 (以当前源码为准)",
+      "provider": "HTTP + (可选真 Argo 实例) + Browser",
+      "role": "admin + 受限部门角色",
+      "cleanup": "删除测试服务器/仓库/应用记录",
+      "status": "BLOCKED",
+      "executionScript": ".local/acceptance-20261120/probe-cap-argocd.mjs",
+      "runtimeEvidence": ".harness/evidence/2026-11-20-ops-review-live-runtime-acceptance/runs/omx_accept_20261122_cap/manifest.json (run 3: 31 PASS / 1 BLOCKED / 0 FAIL, 32 cases)",
+      "actual": "cap-live run 3: POST /business/cicd/argocd/servers -> 500 argocd.encryption_key_missing (cicd/argocd/argocd_encryption.go loadEncryptionKey needs env PANTHEON_ENCRYPTION_KEY or argocd-specific key — absent from runtime-live/private-env.dpapi). Code path is correct; this candidate deployment lacks the env key. Guarantee: throwaway authToken omx-verify-<sub> never appeared in the create response body, and server-list 200 returned no token. See GAP-ARGOCD-ENVKEY."
+    },
+    {
+      "capabilityId": "CAP-BIZSCOPE",
+      "module": "business/bizscope",
+      "registered": true,
+      "registrationEvidence": "business-overlay.json + backend/modules/business/bizscope/module.go (DataScopedGroup /business/bizscope)",
+      "routes": [
+        "GET  /api/v1/business/bizscope/list",
+        "GET  /api/v1/business/bizscope/options",
+        "GET  /api/v1/business/bizscope/:id",
+        "GET  /api/v1/business/bizscope/:id/hosts",
+        "POST /api/v1/business/bizscope/:id/hosts/bind",
+        "POST /api/v1/business/bizscope",
+        "PUT  /api/v1/business/bizscope/:id",
+        "DELETE /api/v1/business/bizscope/:id",
+        "GET  /api/v1/business/bizscope/:id/environments",
+        "POST /api/v1/business/bizscope/:id/environments"
+      ],
+      "permissionBindings": "bizscope 保护组 (以当前注册为准)",
+      "provider": "HTTP + MySQL",
+      "role": "admin + 受限角色",
+      "cleanup": "删除测试 bizscope/环境/绑定",
+      "status": "PASS",
+      "executionScript": ".local/acceptance-20261120/probe-cap-bizscope.mjs",
+      "runtimeEvidence": ".harness/evidence/2026-11-20-ops-review-live-runtime-acceptance/runs/omx_accept_20261122_cap/manifest.json (run 3: 31 PASS / 1 BLOCKED / 0 FAIL, 32 cases)",
+      "actual": "cap-live run 3: POST /business/bizscope create (id returned) -> GET /list contains created row -> GET /options -> PUT update, all business code 200; instance target resolution across the same scope proves BizScopeReader wiring."
+    },
+    {
+      "capabilityId": "CAP-SECRETS",
+      "module": "business/secrets (AES-256-GCM 共享加密)",
+      "registered": true,
+      "registrationEvidence": "backend/modules/business/secrets/secrets.go (无业务路由; 供 filedist/observability/backup 使用)",
+      "routes": [],
+      "note": "helper 包; 验证点=业务模块凭据落库为 v1: 前缀密文 (归并入 V5 与各模块凭据探针)",
+      "provider": "MySQL 密文列检查",
+      "role": "n/a",
+      "cleanup": null,
+      "status": "PARTIAL",
+      "runtimeEvidence": ".harness/evidence/2026-11-20-ops-review-live-runtime-acceptance/runs/omx_accept_20261122_cap/manifest.json (run 3: 31 PASS / 1 BLOCKED / 0 FAIL, 32 cases)",
+      "actual": "V5 DB ciphertext cross-ref already PASS (deploy credentials at rest encrypted); cap-live run 3 adds argocd authorization token no-leak on write+list (CAP-SECRETS). Full business-secret encrypt-at-rest round trip not exercisable on this deployment: PANTHEON_ENCRYPTION_KEY AND PANTHEON_BUSINESS_SECRET_KEY are both absent from the runtime env, so argocd store is BLOCKED and shared secrets.Encrypt would reject non-empty values (see GAP-BUSINESS-SECRET-KEY). Empty-string Encrypt is a no-op, so passwordless datasource create is unaffected."
+    },
+    {
+      "capabilityId": "CAP-METRICS",
+      "module": "business/metrics (Prometheus 指标)",
+      "registered": true,
+      "registrationEvidence": "business-overlay.json + backend/modules/business/metrics/metrics.go (无业务 HTTP 路由)",
+      "routes": [],
+      "note": "helper 包; 验证点= /metrics 暴露 pantheon_host_* / pantheon_deploy_task_* / pantheon_k8s_cluster_* 指标 (在 metrics 插件探针中)",
+      "provider": "HTTP /metrics",
+      "role": "n/a",
+      "cleanup": null,
+      "status": "PASS",
+      "runtimeEvidence": ".harness/evidence/2026-11-20-ops-review-live-runtime-acceptance/runs/omx_accept_20261122_cap/manifest.json (run 3: 31 PASS / 1 BLOCKED / 0 FAIL, 32 cases)",
+      "actual": "cap-live run 3: GET /metrics -> HTTP 200, NUM pantheon_* metric series present (Prometheus exposition reached live)."
+    },
+    {
+      "capabilityId": "CAP-CAPABILITY",
+      "module": "business/capability (BizScopeReader/HostRef 共享契约)",
+      "registered": true,
+      "registrationEvidence": "backend/modules/business/capability/capability.go (无业务路由)",
+      "routes": [],
+      "note": "读者契约; 通过各模块行为验证",
+      "provider": "n/a",
+      "role": "n/a",
+      "cleanup": null,
+      "status": "PASS",
+      "runtimeEvidence": ".harness/evidence/2026-11-20-ops-review-live-runtime-acceptance/runs/omx_accept_20261122_cap/manifest.json (run 3: 31 PASS / 1 BLOCKED / 0 FAIL, 32 cases)",
+      "actual": "cap-live run 3 compositions: 5-module chain (bizscope -> application -> service -> CMDB host -> VM instance) all same-scope, instance target resolution proving BizScopeReader + CMDBHostReader wiring end-to-end; V3 permission-bindings probe proves default-deny + grant firing."
+    },
+    {
+      "capabilityId": "CAP-OPSINIT",
+      "module": "business/opsinit",
+      "registered": true,
+      "registrationEvidence": "business-overlay.json backendModules → pantheon-base/modules/business/opsinit init:Init",
+      "routes": [],
+      "note": "启动初始化模块; 验证点=启动日志无 panic 且幂等",
+      "provider": "进程启动日志",
+      "role": "n/a",
+      "cleanup": null,
+      "status": "PASS",
+      "runtimeEvidence": ".harness/evidence/2026-11-20-ops-review-live-runtime-acceptance/runs/omx_accept_20261122_cap/manifest.json (run 3: 31 PASS / 1 BLOCKED / 0 FAIL, 32 cases)",
+      "actual": "runtime-live/backend-fresh-20261121-075936.{stdout,stderr}.log: \"Starting Pantheon Base\", \"Velero reconciler started interval 1m0s\" (daemon components alive), GIN route table + /metrics + main server \"starting server port=8081\"; maintenance tasks (audit.operation_log_retention, auth.session_inventory, auth.login_log_retention, auth.security_event_retention) finish cleanly; grep for \"panic\" across all runtime-live/*.log -> none."
+    }
+  ],
+  "gaps": [
+    {
+      "caseId": "GAP-PROVIDER-MYSQL",
+      "item": "MySQL 实例 (隔离库 pantheon_ops_verify)",
+      "status": "PARTIAL",
+      "action": "正式库 ops_acceptance_formal_20261121 在跑 (V5 DB 密文经 companion mysql step 验证); 本地 CLI 凭据不可用, tenant_mode=multi 未配置 → V4 双租户仍 BLOCKED",
+      "owner": "codex"
+    },
+    {
+      "caseId": "GAP-PROVIDER-K8S",
+      "item": "K8s (kind/k3s) 一次性集群",
+      "status": "PARTIAL",
+      "action": "k3s 已于 115.190.251.143 提供并用于 CAP-K8S (22 PASS/0 FAIL/1 BLOCKED); Velero backup Pod Pending 阻止备份/恢复与 E04.2"
+    },
+    {
+      "caseId": "GAP-PROVIDER-SSH",
+      "item": "SSH 授权目标 + 低权限用户",
+      "status": "RESOLVED",
+      "action": "115.190.251.143:22 authorized (pinned ed25519 SHA256:FhLFRIf...); used by deploy lane d03/d04 + CMDB retry; 低权限用户未配置, V7 restart/cancel 仍受限"
+    },
+    {
+      "caseId": "GAP-UI-BROWSER",
+      "item": "前端 Browser 运行时 (1440/390, 明暗, 键盘)",
+      "status": "NOT_RUN",
+      "action": "依赖本地构建产物; UI 证据前先跑 npm run build 并用 Playwright 复用现有 webServer 模式"
+    },
+    {
+      "caseId": "GAP-CLEANUP-VERIFY",
+      "item": "测试遗留用户/角色 (operation-verify 拦截 DELETE)",
+      "status": "OPEN",
+      "action": "敏感系统变更返回 auth.operation.verification_required (body code 403), 未走 operation token/secondary verify 流, 因此 vprobe 创建的 verify_u1/u2、vprobe_viewer/pkgview roles 及此前轮次遗留用户/角色未删除。凭据/包/任务 fixtures 已删。清理需在前端完成二次验证流或维护者授权; 上线前须清空全部 verify_* / vprobe_* 测试主体"
+    },
+    {
+      "caseId": "GAP-ARGOCD-ENVKEY",
+      "item": "argocd 静态加密密钥 (PANTHEON_ENCRYPTION_KEY) 未配置",
+      "status": "OPEN",
+      "owner": "deploy-config",
+      "action": "cap-live run 3 proves cicd/argocd AddServer/AddRepository is correct but BLOCKED by argocd.encryption_key_missing: env lacks PANTHEON_ENCRYPTION_KEY (and argocd-specific key). Not a code defect. Runtime env setter must inject this key before argocd capability is exercised. Pending maintainer/deploy-config decision; do not weaken key checks."
+    },
+    {
+      "caseId": "GAP-BUSINESS-SECRET-KEY",
+      "item": "业务共享加密密钥 (PANTHEON_BUSINESS_SECRET_KEY) 未配置",
+      "status": "OPEN",
+      "owner": "deploy-config",
+      "action": "Shared AES-256-GCM secrets package (business/secrets, env PANTHEON_BUSINESS_SECRET_KEY) would error business.secrets.key_missing on any NON-empty business secret (filedist storage config, observability datasource password/bearerToken). Empty-string Encrypt is a no-op, so passwordless datasource create is unaffected. Add the key to runtime env before storing non-empty business secrets. Also confirms datasource create 500 was NEVER encryption-related (root cause: my probe URLs failed SSRF allowlist, see CAP-OBSERVABILITY)."
+    }
+  ],
+  "lastExecutionAt": "2026-11-22T01:20:00.000Z",
+  "latestK8sExecution": {
+    "status": "PARTIAL",
+    "counts": {
+      "PASS": 22,
+      "FAIL": 0,
+      "BLOCKED": 1
+    },
+    "evidence": ".harness/evidence/2026-11-20-ops-review-live-runtime-acceptance/k8s-acceptance-results.json",
+    "provider": "115.190.251.143 existing k3s",
+    "binarySha256": "fba00055818a050995ad1fffb7cebec95c761f955ebf62da37c9e41c7667b129"
+  },
+  "latestDeployExecution": {
+    "status": "PASS",
+    "counts": {
+      "PASS": 7,
+      "FAIL": 0,
+      "BLOCKED": 0
+    },
+    "evidence": ".harness/evidence/2026-11-20-ops-review-live-runtime-acceptance/runs/omx_accept_20261121_cmdb02/manifest.json",
+    "provider": "115.190.251.143 SSH (pinned ed25519 fingerprint); live backend k8s33 on 127.0.0.1:8081",
+    "binarySha256": "5cd98af198657a667a5deb0016fe3884265f3d96222da212b5c46ab40ad3e368",
+    "fixUnderTest": "fixed-template value validation at create/preview + render (d05 injection now HTTP 400 templateParamsInvalid)"
+  },
+  "runtimeScope": "Application runs locally; 115.190.251.143 is authorized SSH deployment and K8s provider."
+}

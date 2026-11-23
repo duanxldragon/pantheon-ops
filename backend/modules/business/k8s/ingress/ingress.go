@@ -32,6 +32,7 @@ const (
 // Ingress is the DB snapshot of a Kubernetes Ingress.
 type Ingress struct {
 	ID              uint64         `gorm:"primaryKey;autoIncrement" json:"id"`
+	TenantID        uint64         `gorm:"column:tenant_id;not null;default:0" json:"-"`
 	Name            string         `gorm:"size:255;not null;index" json:"name"`
 	Namespace       string         `gorm:"size:255;not null;index" json:"namespace"`
 	ClusterID       uint64         `gorm:"column:cluster_id;index" json:"clusterId"`

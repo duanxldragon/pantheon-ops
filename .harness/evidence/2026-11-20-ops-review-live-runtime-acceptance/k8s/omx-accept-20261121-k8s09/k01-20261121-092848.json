@@ -1,0 +1,34 @@
+{
+  "id": "k01",
+  "intent": "pinned SSH and CA-verified public API configuration",
+  "userModel": "authenticated admin unless stated",
+  "setup": "local Ops; pinned SSH to 115.190.251.143; dedicated namespace",
+  "harness": ".local/acceptance-20261121/k8s-live.py",
+  "expected": "assertions hold",
+  "fixesApplied": [],
+  "cleanup": "owned fixtures tracked in checkpoint.json",
+  "actual": {
+    "ssh": {
+      "ok": true,
+      "host": "115.190.251.143:22",
+      "user": "root",
+      "password_source": "env:PANTHEON_VERIFY_SSH_PASSWORD",
+      "serverKeyType": "ssh-ed25519",
+      "serverSha256Fingerprint": "SHA256:FhLFRIfRIGotV2tS+sIZWxniie2qG5Xu8H3igYJ8RNU",
+      "knownHostsVerified": true,
+      "knownHostsEntryType": "ssh-ed25519",
+      "knownHostsFiles": [
+        "known_hosts"
+      ]
+    },
+    "provider": "existing k3s",
+    "tlsVerification": true,
+    "server": "https://115.190.251.143:6443",
+    "tlsServerName": "localhost",
+    "kubeconfigPersisted": false
+  },
+  "status": "PASS",
+  "calls": [],
+  "durationMs": 640,
+  "evidence": ".harness\\evidence\\2026-11-20-ops-review-live-runtime-acceptance\\k8s\\omx-accept-20261121-k8s09\\k01-20261121-092848.json"
+}

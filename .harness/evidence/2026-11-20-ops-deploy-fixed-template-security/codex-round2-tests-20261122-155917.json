@@ -1,0 +1,16 @@
+{
+  "failureMarkers": [
+    "--- FAIL: TestCodexReviewRedisGeneratedConfig (0.00s)",
+    "--- FAIL: TestCodexReviewRepeatedSlashUninstallRoot (0.00s)"
+  ],
+  "mysqlRequired": true,
+  "command": "go test -race -count=1 -timeout=120s -v -overlay codex-round2-apparatus/overlay.json -run 'TestCodexReview|TestFixedTemplate|TestDeployFixedTemplateScriptsRenderForBuiltInComponents|TestDeployRedisTemplateUsesSignalStop|TestDeployJDKTemplateServiceSemantics|TestDeployPrometheusTemplateUsesCustomConfigPath' ./modules/business/deploy",
+  "cwd": "backend",
+  "skips": 0,
+  "capturedAt": "2026-11-22T15:59:31.3860530+08:00",
+  "exitCode": 1,
+  "apparatus": "Reviewer-only Go overlay; generates scripts without executing them",
+  "topLevelFailures": 2,
+  "cgoEnabled": true,
+  "log": "codex-round2-tests-20261122-155917.log"
+}

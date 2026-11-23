@@ -77,8 +77,9 @@ const (
 
 type DeployPackage struct {
 	ID               uint64         `gorm:"primaryKey;autoIncrement" json:"id"`
-	Name             string         `gorm:"size:128;not null;index:uk_deploy_package_name_version_deleted,unique" json:"name"`
-	Version          string         `gorm:"size:64;not null;index:uk_deploy_package_name_version_deleted,unique" json:"version"`
+	TenantID         uint64         `gorm:"column:tenant_id;not null;default:0;index:uk_deploy_package_name_version_deleted,priority:1" json:"-"`
+	Name             string         `gorm:"size:128;not null;index:uk_deploy_package_name_version_deleted,unique,priority:2" json:"name"`
+	Version          string         `gorm:"size:64;not null;index:uk_deploy_package_name_version_deleted,unique,priority:3" json:"version"`
 	Description      string         `gorm:"size:512" json:"description"`
 	InstallCommand   string         `gorm:"type:text" json:"installCommand"`
 	UninstallCommand string         `gorm:"type:text" json:"uninstallCommand"`
@@ -93,13 +94,14 @@ type DeployPackage struct {
 	UpdatedAt        time.Time      `json:"updatedAt"`
 	CreatedBy        string         `gorm:"size:64" json:"createdBy"`
 	UpdatedBy        string         `gorm:"size:64" json:"updatedBy"`
-	DeletedAt        gorm.DeletedAt `gorm:"index:uk_deploy_package_name_version_deleted,unique" json:"-"`
+	DeletedAt        gorm.DeletedAt `gorm:"index:uk_deploy_package_name_version_deleted,unique,priority:4" json:"-"`
 }
 
 func (DeployPackage) TableName() string { return "biz_deploy_package" }
 
 type DeployTask struct {
 	ID                      uint64         `gorm:"primaryKey;autoIncrement" json:"id"`
+	TenantID                uint64         `gorm:"column:tenant_id;not null;default:0" json:"-"`
 	Name                    string         `gorm:"size:128;not null" json:"name"`
 	TemplateID              uint64         `gorm:"index" json:"templateId"`
 	TemplateName            string         `gorm:"size:128" json:"templateName"`
@@ -147,8 +149,9 @@ func (DeployTask) TableName() string { return "biz_deploy_task" }
 
 type DeployTemplate struct {
 	ID              uint64         `gorm:"primaryKey;autoIncrement" json:"id"`
-	Name            string         `gorm:"size:128;not null;index:uk_deploy_template_name_version_deleted,unique" json:"name"`
-	Version         string         `gorm:"size:64;not null;index:uk_deploy_template_name_version_deleted,unique" json:"version"`
+	TenantID        uint64         `gorm:"column:tenant_id;not null;default:0;index:uk_deploy_template_name_version_deleted,priority:1" json:"-"`
+	Name            string         `gorm:"size:128;not null;index:uk_deploy_template_name_version_deleted,unique,priority:2" json:"name"`
+	Version         string         `gorm:"size:64;not null;index:uk_deploy_template_name_version_deleted,unique,priority:3" json:"version"`
 	Description     string         `gorm:"size:512" json:"description"`
 	Category        string         `gorm:"size:64;index" json:"category"`
 	ExecutionMode   string         `gorm:"size:32;default:fixed;index" json:"executionMode"`
@@ -164,13 +167,14 @@ type DeployTemplate struct {
 	UpdatedAt       time.Time      `json:"updatedAt"`
 	CreatedBy       string         `gorm:"size:64" json:"createdBy"`
 	UpdatedBy       string         `gorm:"size:64" json:"updatedBy"`
-	DeletedAt       gorm.DeletedAt `gorm:"index:uk_deploy_template_name_version_deleted,unique" json:"-"`
+	DeletedAt       gorm.DeletedAt `gorm:"index:uk_deploy_template_name_version_deleted,unique,priority:4" json:"-"`
 }
 
 func (DeployTemplate) TableName() string { return "biz_deploy_template" }
 
 type DeployTemplateStep struct {
 	ID                    uint64         `gorm:"primaryKey;autoIncrement" json:"id"`
+	TenantID              uint64         `gorm:"column:tenant_id;not null;default:0" json:"-"`
 	TemplateID            uint64         `gorm:"not null;index" json:"templateId"`
 	StepCode              string         `gorm:"size:64;not null" json:"stepCode"`
 	StepName              string         `gorm:"size:128;not null" json:"stepName"`
@@ -192,6 +196,7 @@ func (DeployTemplateStep) TableName() string { return "biz_deploy_template_step"
 
 type DeployTaskHost struct {
 	ID              uint64         `gorm:"primaryKey;autoIncrement" json:"id"`
+	TenantID        uint64         `gorm:"column:tenant_id;not null;default:0" json:"-"`
 	TaskID          uint64         `gorm:"not null;index;uniqueIndex:uk_deploy_task_host" json:"taskId"`
 	HostID          uint64         `gorm:"not null;index;uniqueIndex:uk_deploy_task_host" json:"hostId"`
 	Hostname        string         `gorm:"size:128" json:"hostname"`
@@ -222,6 +227,7 @@ func (DeployTaskHost) TableName() string { return "biz_deploy_task_host" }
 //nolint:revive // Public model names retain the deploy domain prefix for API clarity.
 type DeployHostLease struct {
 	ID        uint64    `gorm:"primaryKey;autoIncrement" json:"id"`
+	TenantID  uint64    `gorm:"column:tenant_id;not null;default:0" json:"-"`
 	HostID    uint64    `gorm:"not null;uniqueIndex:uk_deploy_host_lease_host" json:"hostId"`
 	TaskID    uint64    `gorm:"not null;index" json:"taskId"`
 	Owner     string    `gorm:"size:128;not null" json:"owner"`
@@ -238,6 +244,7 @@ func (DeployHostLease) TableName() string { return "biz_deploy_host_lease" }
 //nolint:revive // Public model name retains the deploy domain prefix for compatibility.
 type DeployTaskAttempt struct {
 	ID             uint64     `gorm:"primaryKey;autoIncrement" json:"id"`
+	TenantID       uint64     `gorm:"column:tenant_id;not null;default:0" json:"-"`
 	TaskID         uint64     `gorm:"not null;index" json:"taskId"`
 	TaskHostID     uint64     `gorm:"not null;index" json:"taskHostId"`
 	AttemptNo      int        `gorm:"not null" json:"attemptNo"`
@@ -260,7 +267,8 @@ func (DeployTaskAttempt) TableName() string { return "biz_deploy_task_attempt" }
 //nolint:revive // Public model name retains the deploy domain prefix for compatibility.
 type DeployCredentialRef struct {
 	ID              uint64         `gorm:"primaryKey;autoIncrement" json:"id"`
-	Name            string         `gorm:"size:128;not null;uniqueIndex:uk_deploy_credential_name_deleted" json:"name"`
+	TenantID        uint64         `gorm:"column:tenant_id;not null;default:0;uniqueIndex:uk_deploy_credential_name_deleted,priority:1" json:"-"`
+	Name            string         `gorm:"size:128;not null;uniqueIndex:uk_deploy_credential_name_deleted,priority:2" json:"name"`
 	Username        string         `gorm:"size:128;not null" json:"username"`
 	AuthMode        string         `gorm:"size:32;not null" json:"authMode"`
 	SecretEncrypted string         `gorm:"type:text;not null" json:"-"`
@@ -268,7 +276,7 @@ type DeployCredentialRef struct {
 	Status          string         `gorm:"size:32;not null;default:active" json:"status"`
 	CreatedAt       time.Time      `json:"createdAt"`
 	UpdatedAt       time.Time      `json:"updatedAt"`
-	DeletedAt       gorm.DeletedAt `gorm:"index:uk_deploy_credential_name_deleted" json:"-"`
+	DeletedAt       gorm.DeletedAt `gorm:"index:uk_deploy_credential_name_deleted,priority:3" json:"-"`
 }
 
 // TableName returns the deployment credential reference table name.
@@ -384,6 +392,7 @@ const (
 //nolint:revive // Public model name retains the deploy domain prefix for compatibility.
 type DeployTaskStep struct {
 	ID             uint64         `gorm:"primaryKey;autoIncrement" json:"id"`
+	TenantID       uint64         `gorm:"column:tenant_id;not null;default:0" json:"-"`
 	TaskID         uint64         `gorm:"not null;uniqueIndex:uk_deploy_task_step_key" json:"taskId"`
 	TaskHostID     uint64         `gorm:"not null;uniqueIndex:uk_deploy_task_step_key" json:"taskHostId"`
 	StepKey        string         `gorm:"size:128;not null;uniqueIndex:uk_deploy_task_step_key" json:"stepKey"`
@@ -414,6 +423,7 @@ func (DeployTaskStep) TableName() string { return "biz_deploy_task_step" }
 //nolint:revive // Public model name retains the deploy domain prefix for compatibility.
 type DeployTaskEvent struct {
 	ID         uint64    `gorm:"primaryKey;autoIncrement" json:"id"`
+	TenantID   uint64    `gorm:"column:tenant_id;not null;default:0" json:"-"`
 	TaskID     uint64    `gorm:"not null;uniqueIndex:uk_deploy_task_event_seq" json:"taskId"`
 	TaskHostID uint64    `gorm:"not null;default:0" json:"taskHostId"`
 	TaskStepID uint64    `gorm:"not null;default:0" json:"taskStepId"`
@@ -438,6 +448,7 @@ func (DeployTaskEvent) TableName() string { return "biz_deploy_task_event" }
 //nolint:revive // Public model name retains the deploy domain prefix for compatibility.
 type DeployTaskLogChunk struct {
 	ID         uint64    `gorm:"primaryKey;autoIncrement" json:"id"`
+	TenantID   uint64    `gorm:"column:tenant_id;not null;default:0" json:"-"`
 	TaskID     uint64    `gorm:"not null;index:idx_deploy_task_log_chunk_task;uniqueIndex:uk_deploy_task_log_chunk_seq,priority:1" json:"taskId"`
 	TaskHostID uint64    `gorm:"not null;default:0;index:idx_deploy_task_log_chunk_host" json:"taskHostId"`
 	TaskStepID uint64    `gorm:"not null;default:0" json:"taskStepId"`

@@ -1,0 +1,36 @@
+{
+  "runId": "omx_accept_20261121_codex_t02a",
+  "phase": "cmdb",
+  "caseId": "c02",
+  "title": "bizscope-env-group",
+  "ts": "2026-11-22T08:34:17.636Z",
+  "status": "PASS",
+  "httpStatus": 200,
+  "businessCode": 200,
+  "assertions": [
+    {
+      "name": "scope prod created",
+      "pass": true
+    },
+    {
+      "name": "scope dev created",
+      "pass": true
+    },
+    {
+      "name": "prod group created",
+      "pass": true
+    }
+  ],
+  "ids": {
+    "scopeProdId": 26,
+    "scopeDevId": 27,
+    "groupId": 4
+  },
+  "result": {
+    "groupInitialMemberCount": 0
+  },
+  "message": null,
+  "redaction": null,
+  "durationMs": 40,
+  "blockedReason": null
+}
