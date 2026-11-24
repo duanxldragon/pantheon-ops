@@ -56,11 +56,17 @@
       "cwd": "pantheon-ops",
       "status": "passed",
       "notes": "k12 real Pod logs over WebSocket PASS on candidate backend built from main 697c0771 against the real K3s cluster: RFC6455 handshake with allowlisted Origin, server text frame whose content contains the run marker, bounded first frame (<=4096), client close; run total 17/17 PASS. Evidence: .harness/evidence/2026-11-20-ops-review-live-runtime-acceptance/k8s/omx-accept-20261121-k8s38/."
+    },
+    {
+      "command": "powershell -NoProfile -ExecutionPolicy Bypass -File .local/acceptance-20261121/run-t07-browser.ps1",
+      "cwd": "pantheon-ops",
+      "status": "passed",
+      "notes": "Playwright browser probe against the candidate backend built from origin/main c6a0dd67 (sha256 f33af1bf…) on real K3s, served through Vite on 5176. Run omx-t07-browser-20261124-143959: goroutines 35 baseline / 39 with an open log stream / 35 after closing the drawer / 34 final; provider end rendered 已断开; reconnect rendered 'failed to open pod log stream: pods \"…\" not found'; re-opening on the replacement pod reached 已连接. Artifacts: browser-20261124-143959/."
     }
   ],
   "knownGaps": [
-    "Goroutine baseline/leak evidence after browser tab close not collected on this candidate.",
-    "Reconnect-after-provider-error rendered evidence absent. The CI k8s business smoke (PR #207 Smoke Sanity, run 45308078162) is green but does not exercise the pod-log WebSocket page; the live k8s38 run proves the server-side WS stream, not the browser UI."
+    "CI k8s business smoke (PR #207 Smoke Sanity) is green but still does not open the pod-log WebSocket page; this browser evidence comes from a local Playwright probe, so the committed CI suite has no pod-log page coverage.",
+    "The probe served the app from a local Vite server on 5176 with a ws:true proxy and an explicit PANTHEON_ALLOWED_ORIGINS entry for that origin; a deployed origin allowlist is covered only by the server-side origin unit tests."
   ],
   "linkage": {
     "taskPacket": "docs/harness/tasks/2026-11-20-ops-k8s-log-websocket-lifecycle.task.md",

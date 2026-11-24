@@ -4,7 +4,7 @@
   "title": "Pod 日志 WebSocket 来源与连接生命周期",
   "goal": "按部署来源合同校验 Origin 并明确无 Origin 客户端规则，日志开启前执行命名空间授权",
   "primaryLayer": "business/*",
-  "status": "in-progress",
+  "status": "completed",
   "priority": "P1",
   "deliveryTier": "L2",
   "parentTask": "2026-11-20-ops-review-remediation",

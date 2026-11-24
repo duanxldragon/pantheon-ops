@@ -1,0 +1,10 @@
+{
+  "runId": "omx-t07-browser-20261124-143959",
+  "namespace": "omx-t07-browser-20261124-143959",
+  "clusterId": 22,
+  "scopeId": 42,
+  "podName": "accept-workload-6f8797b7d-wxz65",
+  "clusterName": "omx-t07-browser-20261124-143959",
+  "webBase": "http://127.0.0.1:5176",
+  "apiBase": "http://127.0.0.1:8081/api/v1"
+}

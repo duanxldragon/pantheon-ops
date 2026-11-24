@@ -1,6 +1,6 @@
 # Pod 日志 WebSocket 来源与连接生命周期
 
-- Status: in-progress (implementation complete; runtime browser evidence open)
+- Status: completed（浏览器证据与 review 完成；维护者最终视觉/功能验收 Human Gate 仍开放）
 - Updated: 2026-11-24
 - Baseline: a2d69d4a759b5df2b26aaa9d26bdc5175babe9dc
 - Owner: K8s 日志负责人
@@ -22,13 +22,14 @@
 - `TestWebsocketOriginAllowed`（5 子用例）+ `TestWebsocketOriginSameOriginFallback` PASS。
 - workload 包 ok；K8s 全模块 11/11 包 ok；golangci `--new-from-rev=32f7fa5a` 0 issues。
 - **真实 Pod 日志 WebSocket（k12）PASS**：main `697c0771` 候选后端 + 真 K3s，`k8s-live.py --run-id omx-accept-20261121-k8s38` 17/17。
-- 证据：`../evidence/2026-11-20-ops-k8s-log-websocket-lifecycle/`。
+- **浏览器全链路 PASS**：`origin/main` `c6a0dd67` 候选后端 + 真 K3s，Vite 5176（`ws:true`）+ Playwright，`omx-t07-browser-20261124-143959`。goroutine 35 基线 / 39 持流 / 35 关闭 / 34 终值；provider 结束渲染 `已断开`，重连渲染 `failed to open pod log stream`，新 Pod 恢复 `已连接`。
+- 证据：`../evidence/2026-11-20-ops-k8s-log-websocket-lifecycle/`（浏览器产物在 `browser-20261124-143959/`）。
 
 ## Known Gaps
 
-1. 页面关闭后的 goroutine 基线/泄漏对比未采集（浏览器侧）。
-2. provider 错误后重连的浏览器渲染证据缺失；CI k8s 页面 smoke 不打开该页面。
+1. CI k8s 业务 smoke 仍不打开 pod 日志页面；该页面只有本地 Playwright 探针覆盖。
+2. 探针来源 `http://127.0.0.1:5176` 是显式登记进 `PANTHEON_ALLOWED_ORIGINS` 的本地值；生产部署来源白名单仅由服务端单测覆盖。
 
 ## Next Atomic Action
 
-采集关闭/重开页面 goroutine 基线并补齐重连渲染与 k8s 浏览器 smoke 证据。
+维护者最终视觉/功能验收；如需 CI 覆盖，后续把 pod 日志页面加入 k8s 业务 smoke。
