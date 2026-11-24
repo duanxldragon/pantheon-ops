@@ -1,0 +1,102 @@
+{
+  "schemaVersion": 1,
+  "taskId": "2026-11-24-ops-metrics-semantics",
+  "repo": "pantheon-ops",
+  "evidenceState": "exercised",
+  "agent": {
+    "tool": "other",
+    "adapter": "windows"
+  },
+  "candidate": {
+    "head": "11f9b004",
+    "worktree": "uncommitted",
+    "foundation": "pantheon-base-v0.18.9",
+    "foundationCommit": "6316f9b7189c86542424145fa49344ad737e952b"
+  },
+  "commands": [
+    {
+      "command": "go test -race -count=1 -v ./modules/business/metrics/",
+      "cwd": "backend",
+      "status": "passed",
+      "exitCode": 0,
+      "notes": "First green run of the four new regression tests (cluster independence, empty-code fallback, stale reset, concurrent refresh) with CGO_ENABLED=1 on D:\\msys64\\mingw64\\bin."
+    },
+    {
+      "command": "go test -count=1 -run TestSetHostStatusMetricsResetsStaleStates -v ./modules/business/metrics/",
+      "cwd": "backend",
+      "status": "failed",
+      "exitCode": 1,
+      "notes": "Expected RED: stale-reset loop temporarily disabled; test failed with 'stale lifecycle label = 1, want 0'. Fix restored immediately afterwards."
+    },
+    {
+      "command": "go test -race -count=1 ./modules/business/metrics/ ./modules/business/k8s/cluster/ ./modules/business/cmdb/host/",
+      "cwd": "backend",
+      "status": "passed",
+      "exitCode": 0,
+      "notes": "GREEN on the changed package plus both callers; three packages ok under -race."
+    },
+    {
+      "command": "go build ./...",
+      "cwd": "backend",
+      "status": "passed",
+      "exitCode": 0,
+      "notes": "Whole backend compiles after the SetClusterCapacity signature change."
+    },
+    {
+      "command": "golangci-lint run --new-from-rev=697c0771 ./modules/business/metrics/... ./modules/business/k8s/cluster/...",
+      "cwd": "backend",
+      "status": "passed",
+      "exitCode": 0,
+      "notes": "0 issues on changed packages (golangci-lint 2.6.2)."
+    },
+    {
+      "command": "node scripts/harness/check-boundaries.mjs --strict --repo pantheon-ops",
+      "cwd": ".",
+      "status": "passed",
+      "exitCode": 0,
+      "notes": "Cross-layer boundary gate: 0 findings, 0 baselined, 0 stale baselined."
+    },
+    {
+      "command": "go test -race -count=1 ./modules/business/metrics/ ./modules/business/k8s/cluster/ ./modules/business/cmdb/host/",
+      "cwd": "backend",
+      "status": "passed",
+      "exitCode": 0,
+      "notes": "Re-run on candidate 11f9b004 after fast-forwarding main (CGO_ENABLED=1, CC=D:/msys64/mingw64/bin/gcc.exe): three packages ok."
+    },
+    {
+      "command": "go build ./...",
+      "cwd": "backend",
+      "status": "passed",
+      "exitCode": 0,
+      "notes": "Re-run on candidate 11f9b004; whole backend compiles."
+    },
+    {
+      "command": "golangci-lint run --new-from-rev=HEAD ./modules/business/metrics/... ./modules/business/k8s/cluster/...",
+      "cwd": "backend",
+      "status": "passed",
+      "exitCode": 0,
+      "notes": "Re-run on candidate 11f9b004 against the uncommitted diff: 0 issues (golangci-lint 2.6.2)."
+    },
+    {
+      "command": "node scripts/harness/check-boundaries.mjs --strict --repo pantheon-ops",
+      "cwd": ".",
+      "status": "passed",
+      "exitCode": 0,
+      "notes": "Re-run on candidate 11f9b004: 0 findings, 0 baselined, 0 stale baselined."
+    }
+  ],
+  "knownGaps": [
+    "Cluster capacity uses the cluster code as the `cluster` label, matching ClusterSyncErrors/ClusterSyncDuration; codes are unique per tenant, so same-named clusters in two tenants still merge series because the metric has no tenant label.",
+    "pantheon_k8s_cluster_status stays a global aggregate and is not split per cluster.",
+    "Capacity/attribute series for deleted clusters or hosts are not actively removed.",
+    "Grafana dashboard and alerting assets were not reconciled against these metric names (report O-10, separate scope). No repository asset references the changed metric selectors, so the added `cluster` label breaks no checked-in dashboard."
+  ],
+  "linkage": {
+    "taskPacket": "docs/harness/tasks/2026-11-24-ops-metrics-semantics.task.md",
+    "evidenceDir": ".harness/evidence/2026-11-24-ops-metrics-semantics/",
+    "reviewFile": ".harness/evidence/2026-11-24-ops-metrics-semantics/review.md",
+    "changeRef": "none",
+    "planRefs": [],
+    "taskManifest": ".harness/tasks/2026-11-24-ops-metrics-semantics/manifest.json"
+  }
+}
