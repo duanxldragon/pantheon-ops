@@ -1,0 +1,21 @@
+{
+  "name": "isolated-ops-race-post-rebase",
+  "repo": ".local/workflow-improvement-20261124/submission/pantheon-ops/backend",
+  "command": [
+    "D:/Go/bin/go.exe",
+    "test",
+    "-race",
+    "./..."
+  ],
+  "start": "2026-11-24T03:01:33.095Z",
+  "elapsedMs": 19345,
+  "exitCode": 0,
+  "signal": null,
+  "env": {
+    "CGO_ENABLED": "1",
+    "PATHPrefix": "D:/msys64/mingw64/bin",
+    "PANTHEON_TEST_REDIS_ADDR": "127.0.0.1:26395",
+    "PANTHEON_OBSERVABILITY_TEST_REDIS_ADDR": "127.0.0.1:26394",
+    "PANTHEON_TEST_REDIS_REQUIRED": "1"
+  }
+}

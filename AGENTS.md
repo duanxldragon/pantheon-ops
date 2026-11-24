@@ -2,7 +2,7 @@
 
 English quick guide: [CLAUDE.md](./CLAUDE.md)
 
-你是 Pantheon Ops 项目的执行专家。先按 `../pantheon-harness/architecture/methodology/solo-delivery-tiers.md` 判断当前任务属于 `L0 / L1 / L2`，再读 `../pantheon-harness/patterns/method-playbook.md`、`docs/PROJECT_INHERITANCE.md`、`../pantheon-base/DESIGN.md`、`../pantheon-base/AGENTS.md`、`../pantheon-base/docs/README.md`；本仓库只承接 `business/*` 业务扩展，`pantheon-base` 是平台层和系统域的唯一底座知识源。
+先读本入口、`docs/PROJECT_INHERITANCE.md` 和 [当前状态](.harness/STATUS.md)，从 [任务索引](.harness/TASK_INDEX.md) 定位任务；再补读相关 `docs/designs/BUSINESS_*` 与锁定快照中的继承合同。本仓只承接 `business/*`，Base 拥有共享底座；sibling Base HEAD 文档的新增规则须标明与锁定版本的差异。
 
 ## 方法消费
 
@@ -12,7 +12,7 @@ English quick guide: [CLAUDE.md](./CLAUDE.md)
 
 ## 必守规则
 
-- 开工先读 `docs/PROJECT_INHERITANCE.md`、`../pantheon-base/DESIGN.md`、`../pantheon-base/AGENTS.md`、`../pantheon-base/docs/README.md`，再按任务补读 base 文档和本地 `docs/designs/BUSINESS_*`。
+- 按任务选择相关合同/设计/验收；兼容性优先看当前快照中的 `docs/contracts/*`，UI 决策补读继承设计与 Base DESIGN 对应章节。方法或继承问题再查 sibling 源仓库。
 - 本仓库的 repo-local workflow skills 位于 `.agents/skills/`；涉及继承校验、PR 收口、GitHub comments 收敛和 GitHub Actions 红灯时，优先看 `repo-verify`、`repo-pr-gate`、`gh-address-comments`、`repo-ci-triage`、`gh-fix-ci`。
 - 任务先分层：`platform / system/auth / system/iam / system/org / system/config / business/*`；跨层先说边界再动手。
 - 个人维护阶段，`pantheon-ops` 默认优先走 `L1` 轻量闭环；只有文案/只读/纯格式化这类小改走 `L0`。一旦发现共享底座问题、继承同步、权限/菜单/i18n/导入导出/审计/生成器边界，升级到 `L2`，并优先判断是否应回 `pantheon-base`。
@@ -25,6 +25,12 @@ English quick guide: [CLAUDE.md](./CLAUDE.md)
 - 触碰 UI 时先遵守 base 设计约束并使用 `impeccable`，提供渲染证据或说明未产出证据的原因。
 - 业务错误 key 以 `docs/designs/BUSINESS_ERROR_SEMANTICS_APPENDIX.md` 为 canonical 清单。
 - 创建或更新 PR 前必须以 `.github/PULL_REQUEST_TEMPLATE.md` 为唯一模板来源，并先本地运行 `node scripts/check-pr-governance.mjs --event <event.json>`（或通过对应 PR Governance 门禁）校验。所有章节、英文 marker、Task/Evidence 链路字段必须保留；`Quality Profile`、`Ratchet Decision`、`GitHub Signal` 只能使用模板列出的枚举值，`Verification evidence` 必须指向同一 task-id 的 `.harness/evidence/<task-id>/summary.md`。
+
+## 当前状态与验证
+
+- manifest 是任务状态来源；进度写目标任务 summary，首页保留当前重点和 gap，历史检查点有独立入口。更新 manifest 后运行 `node ../pantheon-harness/scripts/harness/render-task-index.mjs --root . --write`；helper 当前为 Harness Unreleased。
+- receipt 的完整 `sourceCommit` 是 CI 方法来源；正常验证不更新 pin。产品 VERSION、消费 lock、正式发行和运行态验收分别报告。
+- 迭代只重跑相关包/反例；最终提交验收保留现行完整 CGO/race 和运行态集合，不能把窄检查当成完整门禁。
 
 ## 文档与同步边界
 

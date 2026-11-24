@@ -121,11 +121,15 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+    defaults:
+      run:
+        working-directory: pantheon-ops
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           persist-credentials: false
+          path: pantheon-ops
           ref: ${{ needs.change-scope.outputs.candidate_sha }}
 
       - name: Setup Node
@@ -134,11 +138,33 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           package-manager-cache: false
 
+      - name: Resolve method source commit
+        id: method-source
+        shell: bash
+        run: |
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          const receipt = JSON.parse(fs.readFileSync('.harness/method-consumption.json', 'utf8'));
+          if (!/^[0-9a-f]{40}$/.test(receipt.sourceCommit)) throw new Error('A reviewed full sourceCommit is required');
+          fs.appendFileSync(process.env.GITHUB_OUTPUT, `commit=${receipt.sourceCommit}\n`);
+          NODE
+
+      - name: Checkout pinned Pantheon Harness
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          repository: duanxldragon/pantheon-harness
+          ref: ${{ steps.method-source.outputs.commit }}
+          path: pantheon-harness
+          persist-credentials: false
+
+      - name: Verify method consumption
+        run: node ../pantheon-harness/scripts/harness/check-method-consumption.mjs --root . --source ../pantheon-harness
+
       - name: Install root dependencies
         run: npm ci --ignore-scripts
 
       - name: Install frontend dependencies
-        working-directory: frontend
+        working-directory: pantheon-ops/frontend
         run: npm ci --ignore-scripts
 
       - name: Check docs frontmatter
@@ -167,6 +193,12 @@ jobs:
 
       - name: Check business overlay contract
         run: npm run check:business-overlay
+
+      - name: Check cross-layer boundaries
+        run: node scripts/harness/check-boundaries.mjs --strict --repo pantheon-ops --baseline config/boundary-baseline.json
+
+      - name: Check checker wiring
+        run: npm run check:checker-wiring
 
       - name: Check GORM SQL literalness
         # Blocking: business modules must build SQL from literals or package constants, so the

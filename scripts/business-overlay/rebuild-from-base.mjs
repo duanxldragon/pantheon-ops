@@ -412,6 +412,11 @@ function mergePackages(baseRoot, opsRoot, targetRoot, manifest) {
     'test:business-overlay': 'node --test tests/scripts/business-overlay/*.test.mjs',
     // Ops-owned root scripts (repositoryOverlayPaths) that Base does not ship.
     'check:encoding': 'node scripts/check-encoding.mjs --strict',
+    'check:boundaries': 'node scripts/harness/check-boundaries.mjs --strict --repo pantheon-ops --baseline config/boundary-baseline.json',
+    // Manual utility: caller supplies the coverage artifact and reviewed threshold.
+    // Availability is not a configured or merge-required coverage gate.
+    'check:coverage': 'node scripts/harness/check-coverage.mjs',
+
   };
   // Ops-only governance scripts: base may not ship them, but their script
   // files are ops repository overlays, so the entries must survive the merge.

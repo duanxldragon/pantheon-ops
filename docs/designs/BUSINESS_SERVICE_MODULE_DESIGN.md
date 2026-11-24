@@ -172,4 +172,4 @@ Capability DTO 只包含 ID、stable key、scope、状态、revision 和必要�
 - `npm run check:menu-contract`
 - `node scripts/check-business-module-boundaries.mjs`
 
-发布状态仍以 [V1 冻结检查表](../V1_RELEASE_CHECKLIST.md) 为准。
+当前发布/验收状态见 [STATUS](../../.harness/STATUS.md) 与对应任务最新 evidence；[V1 冻结检查表](../V1_RELEASE_CHECKLIST.md) 仅作历史参考。

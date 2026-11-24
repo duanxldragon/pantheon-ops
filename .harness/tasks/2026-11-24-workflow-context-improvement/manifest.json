@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "taskId": "2026-11-24-workflow-context-improvement",
+  "title": "工作机制与 AI 上下文入口改进",
+  "goal": "Align task recovery, pinned method consumption and verified command wiring",
+  "status": "in-progress",
+  "priority": "P1",
+  "deliveryTier": "L2",
+  "primaryLayer": "business/*",
+  "runtimeSensitive": false,
+  "taskDoc": "docs/harness/tasks/2026-11-24-workflow-context-improvement.task.md",
+  "scope": {
+    "in": [
+      "Repository-owned method entrypoints, scripts and CI",
+      "Scoped commit/PR/CI/merge authorized by user"
+    ],
+    "out": [
+      "Product feature development",
+      "Formal release, lock upgrade, gate waivers"
+    ]
+  },
+  "linkage": {
+    "taskManifest": ".harness/tasks/2026-11-24-workflow-context-improvement/manifest.json",
+    "taskDoc": "docs/harness/tasks/2026-11-24-workflow-context-improvement.task.md",
+    "evidenceDir": ".harness/evidence/2026-11-24-workflow-context-improvement/",
+    "reviewFile": ".harness/evidence/2026-11-24-workflow-context-improvement/review.md",
+    "changeRef": "none",
+    "planRefs": []
+  },
+  "workspaceContext": {
+    "targetRepository": "pantheon-ops",
+    "repositoryRole": "business-consumer",
+    "contextSyncExpectation": "deferred",
+    "releaseRequirement": "none"
+  },
+  "executionRoles": {
+    "implementerPosture": "Primary agent owns method-only integration; other tools own Ops product work",
+    "reviewerPosture": [
+      "Independent code-reviewer",
+      "Independent architect"
+    ]
+  },
+  "humanGates": [
+    "User authorized scoped merge after successful CI; formal releases remain separate"
+  ]
+}

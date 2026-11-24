@@ -15,5 +15,6 @@
   "entrypoints": [
     "AGENTS.md",
     "CLAUDE.md"
-  ]
+  ],
+  "sourceCommit": "51fc783dc793b75ae91bdb936ba1418e2e95a354"
 }
