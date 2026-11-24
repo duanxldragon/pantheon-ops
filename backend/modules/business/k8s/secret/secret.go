@@ -95,6 +95,23 @@ func (s *SecretService) List(clusterID uint64, query SecretListQuery, dataScope 
 	ctx, cancel := context.WithTimeout(context.Background(), opTimeout)
 	defer cancel()
 
+	if s.namespaceSvc == nil {
+		return nil, errors.New("k8s.namespace.binding_required")
+	}
+	var readable map[string]struct{}
+	if query.Namespace == "" {
+		var err error
+		readable, err = s.namespaceSvc.ReadableNamespaces(ctx, clusterID, dataScope)
+		if err != nil {
+			return nil, err
+		}
+		if len(readable) == 0 {
+			return &SecretListResponse{Items: []SecretItem{}, Total: 0}, nil
+		}
+	} else if err := s.namespaceSvc.RequireReadForClusterWithContext(ctx, clusterID, query.Namespace, dataScope); err != nil {
+		return nil, err
+	}
+
 	list, err := clientset.CoreV1().Secrets(query.Namespace).List(ctx, metav1.ListOptions{Limit: pkg.NormalizeListLimit(query.Limit), Continue: query.ContinueToken})
 	if err != nil {
 		return nil, errors.New("k8s.secret.list_failed")
@@ -102,6 +119,11 @@ func (s *SecretService) List(clusterID uint64, query SecretListQuery, dataScope 
 	items := make([]SecretItem, 0, len(list.Items))
 	for i := range list.Items {
 		sc := &list.Items[i]
+		if readable != nil {
+			if _, ok := readable[sc.Namespace]; !ok {
+				continue
+			}
+		}
 		items = append(items, SecretItem{Name: sc.Name, Namespace: sc.Namespace, Type: string(sc.Type), KeyCount: len(sc.Data), ResourceVersion: sc.ResourceVersion})
 	}
 	return &SecretListResponse{Items: items, Total: len(items), ContinueToken: list.Continue}, nil
@@ -109,6 +131,12 @@ func (s *SecretService) List(clusterID uint64, query SecretListQuery, dataScope 
 
 // Get returns Secret metadata and key names without values.
 func (s *SecretService) Get(clusterID uint64, namespace, name string, dataScope *common.DataScopeReq) (*SecretDetail, error) {
+	if s.namespaceSvc == nil {
+		return nil, errors.New("k8s.namespace.binding_required")
+	}
+	if err := s.namespaceSvc.RequireReadForClusterWithContext(context.Background(), clusterID, namespace, dataScope); err != nil {
+		return nil, err
+	}
 	clientset, err := s.clusterSvc.GetClientset(clusterID, dataScope)
 	if err != nil {
 		return nil, err

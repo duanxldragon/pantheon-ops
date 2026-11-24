@@ -3,6 +3,7 @@ package service
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 	"time"
@@ -119,6 +120,22 @@ func (s *ServiceService) ListWithContext(ctx context.Context, clusterID uint64, 
 	if err != nil {
 		return nil, err
 	}
+	if s.namespaceSvc == nil {
+		return nil, errors.New("k8s.namespace.binding_required")
+	}
+	var readable map[string]struct{}
+	if query.Namespace == "" {
+		var err error
+		readable, err = s.namespaceSvc.ReadableNamespaces(ctx, clusterID, dataScope)
+		if err != nil {
+			return nil, err
+		}
+		if len(readable) == 0 {
+			return &ServiceListResponse{Items: []ServiceItem{}, Total: 0}, nil
+		}
+	} else if err := s.namespaceSvc.RequireReadForClusterWithContext(ctx, clusterID, query.Namespace, dataScope); err != nil {
+		return nil, err
+	}
 	list, err := clientset.CoreV1().Services(query.Namespace).List(ctx, metav1.ListOptions{})
 	if err != nil {
 		return nil, classifyProviderError(err)
@@ -128,6 +145,11 @@ func (s *ServiceService) ListWithContext(ctx context.Context, clusterID uint64, 
 		svc := &list.Items[i]
 		if query.Name != "" && svc.Name != query.Name {
 			continue
+		}
+		if readable != nil {
+			if _, ok := readable[svc.Namespace]; !ok {
+				continue
+			}
 		}
 		items = append(items, toItem(svc))
 	}
@@ -143,6 +165,12 @@ func (s *ServiceService) Get(clusterID uint64, namespace, name string, dataScope
 func (s *ServiceService) GetWithContext(ctx context.Context, clusterID uint64, namespace, name string, dataScope *common.DataScopeReq) (*ServiceItem, error) {
 	ctx, cancel := operationContext(ctx)
 	defer cancel()
+	if s.namespaceSvc == nil {
+		return nil, errors.New("k8s.namespace.binding_required")
+	}
+	if err := s.namespaceSvc.RequireReadForClusterWithContext(ctx, clusterID, namespace, dataScope); err != nil {
+		return nil, err
+	}
 	clientset, err := s.clusterSvc.GetClientsetWithContext(ctx, clusterID, dataScope)
 	if err != nil {
 		return nil, err

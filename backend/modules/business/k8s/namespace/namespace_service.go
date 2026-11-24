@@ -153,6 +153,36 @@ func (s *NamespaceService) RequireReadForClusterWithContext(ctx context.Context,
 	return nil
 }
 
+// ReadableNamespaces returns the namespace names bound to the scoped cluster
+// owner. Cluster-wide reads must intersect provider results with this set so an
+// unbound namespace never leaks metadata or Pod logs.
+func (s *NamespaceService) ReadableNamespaces(ctx context.Context, clusterID uint64, dataScope *common.DataScopeReq) (map[string]struct{}, error) {
+	if s.clusterSvc == nil || s.db == nil {
+		return nil, common.ErrDatabaseNotInitialized
+	}
+	if ctx == nil {
+		ctx = context.Background()
+	}
+	cluster, err := s.clusterSvc.GetByIDWithContext(ctx, clusterID, dataScope)
+	if err != nil {
+		return nil, err
+	}
+	if cluster.BusinessScopeID == 0 || strings.TrimSpace(cluster.Environment) == "" {
+		return map[string]struct{}{}, nil
+	}
+	var names []string
+	if err := s.db.WithContext(ctx).Model(&NamespaceBinding{}).
+		Where("cluster_id = ? AND business_scope_id = ? AND environment = ?", clusterID, cluster.BusinessScopeID, cluster.Environment).
+		Pluck("namespace", &names).Error; err != nil {
+		return nil, err
+	}
+	readable := make(map[string]struct{}, len(names))
+	for _, name := range names {
+		readable[name] = struct{}{}
+	}
+	return readable, nil
+}
+
 func requireBindingAction(binding *NamespaceBinding, action string) error {
 	var actions []string
 	if err := json.Unmarshal([]byte(binding.AllowedActions), &actions); err != nil {
@@ -181,8 +211,16 @@ func (s *NamespaceService) List(clusterID uint64, dataScope *common.DataScopeReq
 		return nil, errors.New("k8s.namespace.list_failed")
 	}
 
+	readable, err := s.ReadableNamespaces(ctx, clusterID, dataScope)
+	if err != nil {
+		return nil, err
+	}
+
 	items := make([]NamespaceItem, 0, len(nsList.Items))
 	for _, ns := range nsList.Items {
+		if _, ok := readable[ns.Name]; !ok {
+			continue
+		}
 		items = append(items, toNamespaceItem(&ns))
 	}
 	return &NamespaceListResponse{Items: items, Total: len(items)}, nil
