@@ -2,8 +2,8 @@
 title: 能力文档、测试资产与治理对账
 doc_type: Remediation
 layer: business
-status: Active
-updated_at: 2026-11-20
+status: Archived
+updated_at: 2026-11-24
 linked_contracts:
   - docs/designs/BUSINESS_FUNCTIONAL_DESIGN.md
   - docs/contracts/TENANT_CONTRACT_V1.md
@@ -176,7 +176,7 @@ business/*
 - Task ID: 2026-11-20-ops-review-docs-and-test-governance
 - Task Manifest: .harness/tasks/2026-11-20-ops-review-docs-and-test-governance/manifest.json
 - Evidence Directory: .harness/evidence/2026-11-20-ops-review-docs-and-test-governance/
-- Review File: none
+- Review File: .harness/evidence/2026-11-20-ops-review-docs-and-test-governance/review.md
 - OpenSpec Change: none
 - Change Ref: none
 - Superpowers Plan: none
@@ -201,7 +201,7 @@ business/*
 ## Completion Checklist
 
 - [x] Layer and boundary declared
-- [ ] Contract anchors read
-- [ ] Verification run or exception recorded
-- [ ] Evidence saved or summarized
-- [ ] Review completed
+- [x] Contract anchors read
+- [x] Verification run or exception recorded
+- [x] Evidence saved or summarized
+- [x] Review completed

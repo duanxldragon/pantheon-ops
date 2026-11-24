@@ -134,7 +134,6 @@
     "docs/audits",
     "docs/USER_MANUAL.md",
     "docs/V1.2_DEVELOPMENT_SUMMARY.md",
-    "e2e-tests",
     "scripts/check-business-module-boundaries.mjs",
     "scripts/check-gorm-sql-literal.mjs",
     "tests/scripts/check-gorm-sql-literal.test.mjs",

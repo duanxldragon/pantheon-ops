@@ -2,7 +2,7 @@
 
 ## 2026-11-24 树状态核对（T09 完成后）
 
-`/api/v1` 任务树当前为 **planned 8 / in-progress 3 / completed 20**（共 31 项）。completed 新增 T09（K8s 资源读写授权与变更准入，PR #217 squash `a79c289d`）等 20 个子包；in-progress 剩 T04（core-business-tenant-isolation）、T16（live-runtime-acceptance）与本父任务 T20。
+`/api/v1` 任务树当前为 **planned 7 / in-progress 3 / completed 21**（共 31 项）。2026-11-24 新增 completed 两项：T09（K8s 资源读写授权与变更准入，PR #217 squash `a79c289d`）与 docs-and-test-governance（能力文档、测试资产与治理对账，2026-11-24 完成）；in-progress 剩 T04（core-business-tenant-isolation）、T16（live-runtime-acceptance）与本父任务 T20。
 
 父任务不能收口的原因是该树的结构性依赖：8 个 planned 子包（ArgoCD 归属、部署凭据授权、模板体验、T05 扩展与异步租户隔离、文件分发生命周期、试点交付收口、文档测试治理、服务目录部署闭环）仍未执行；T04 依赖 Base 正式 release 与 T05，T16 依赖 T04/T05 且其 V4/V7/V8/Ingress/全新安装/Velero schedule 等验收依赖当前不可得的环境。父任务只有在子任务全部终态且 T16 的真实验收签核后才可置 completed。
 

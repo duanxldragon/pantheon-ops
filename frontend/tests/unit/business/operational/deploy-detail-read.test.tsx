@@ -15,6 +15,7 @@ vi.mock('../../../../src/components', () => ({
   PageLoading: () => <div>loading</div>, PageForbidden: () => <div>forbidden</div>,
   PageNotFound: () => <div>not-found</div>, PageEmpty: () => <div>empty</div>,
   PageError: () => <div>error</div>, PageRequestError: () => <div>request-error</div>,
+  buildStandardPagination: () => ({}),
 }));
 vi.mock('../../../../src/components/data-display/AppTable', () => ({ default: () => null }));
 vi.mock('../../../../src/components/patterns/layout/PageContainer', () => ({ default: ({ children }: { children: React.ReactNode }) => <div>{children}</div> }));

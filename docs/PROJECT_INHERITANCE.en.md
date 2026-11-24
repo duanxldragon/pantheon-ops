@@ -14,6 +14,17 @@ Consume [capability-adaptive delivery](../../pantheon-harness/patterns/capabilit
 
 From Ops run `node ../pantheon-harness/scripts/harness/check-method-consumption.mjs --root . --source ../pantheon-harness` before work and at closeout. Review source changes before explicitly adding `--update`; validation never refreshes receipts. CI/offline use needs the same harness snapshot, and a missing source fails visibly. Product VERSION and the foundation lock remain independent; shared Base product/config/checker changes still require an official release and rebuild.
 
+## Version field meanings
+
+Several version fields coexist in this repository; they mean different things and are not interchangeable:
+
+- `foundation-release.lock.json`: the single authoritative inheritance baseline. `releaseVersion`, `baseCommit`, and asset SHA256 decide rebuild content and CI policy.
+- `VERSION`: the product version inherited from the locked Base snapshot; it must match the lock's `releaseVersion` (currently `0.18.9`). Method updates do not change it; any mismatch is inheritance drift.
+- `SHELL_VERSION.json`: the consumer-shell pin inside the locked snapshot (`1.4.0`, `compatibleMethodKit` 1.4.0). It describes the Base repository shell, not the method kit Ops consumes directly.
+- `.harness/method-consumption.json`: the directly consumed method-kit version (`methodVersion`, currently `1.5.0`) and normalized-text hashes; method updates change only this file and the receipt.
+- `frontend/package.json` `name`/`version`: Base UI package identity (`@duanxldragon/pantheon-base-ui` `0.11.2`), moving with Base releases and unrelated to `VERSION`.
+- `CHANGELOG.md` and `docs/release-notes/`: historical delivery records; the latest business release entry `1.2.0` is not the current product version.
+
 ## Ownership
 
 - `pantheon-base` owns `platform`, `system/*`, shared backend/frontend, generators, and product engineering configuration.

@@ -12,6 +12,17 @@ English version: [PROJECT_INHERITANCE.en.md](./PROJECT_INHERITANCE.en.md)
 
 兼容性阅读以锁定快照内继承的 `docs/contracts/*` 为准；sibling Base HEAD 只提供演进参考，差异须标明。receipt 的完整 `sourceCommit` 固定 CI policy checkout，正常验证不刷新。未发布 helper/checker 另行发行，不能用 policy receipt 证明其已发布。
 
+## 版本字段口径
+
+仓库中并存多套版本字段，含义不同、不能相互替代：
+
+- `foundation-release.lock.json`：唯一权威继承基线。`releaseVersion`、`baseCommit` 与资产 SHA256 决定重建内容与 CI policy。
+- `VERSION`：继承自锁定 Base 快照的产品版本，必须与 lock 的 `releaseVersion` 数值一致（当前 `0.18.9`）。方法更新不改它；与 lock 不一致即视为继承漂移。
+- `SHELL_VERSION.json`：锁定快照内 consumer shell 的 pin（`1.4.0`，`compatibleMethodKit` 1.4.0）。它描述 Base 仓库外壳，不等于 Ops 直接消费的方法版本。
+- `.harness/method-consumption.json`：Ops 直接消费的方法 kit 版本（`methodVersion`，当前 `1.5.0`）与规范化文本哈希；方法更新只改这里与 receipt。
+- `frontend/package.json` 的 `name`/`version`：Base UI 包身份（`@duanxldragon/pantheon-base-ui` `0.11.2`），随 Base release 变化，与 `VERSION` 无关。
+- `CHANGELOG.md` 与 `docs/release-notes/`：历史交付记录；最新业务发布条目 `1.2.0` 不代表当前产品版本。
+
 Ops 的 `quality.yml` 单独配置跨层边界与 checker wiring 检查；`check:coverage` 只是手动继承工具，须提供实际覆盖率文件与另行审查的阈值：`npm run check:coverage -- <artifact> --threshold <number>`。脚本存在、CI 配置引用、观察到的运行结果和合并必过检查必须分别报告。
 
 ## 1. 所有权

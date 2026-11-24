@@ -1,0 +1,125 @@
+{
+  "taskId": "2026-11-20-ops-review-docs-and-test-governance",
+  "repo": "pantheon-ops",
+  "agent": {
+    "tool": "claude-code",
+    "adapter": "Claude implementer/verifier in .local/wt-next worktree; maintainer final acceptance remains open"
+  },
+  "source": {
+    "candidateHead": "b1086437 (origin/main after PR #218)",
+    "worktree": ".local/wt-next",
+    "date": "2026-11-24",
+    "foundationLock": "pantheon-base-v0.18.9 / 6316f9b7189c86542424145fa49344ad737e952b"
+  },
+  "commands": [
+    {
+      "command": "node scripts/harness/check-doc-links.mjs --root .",
+      "cwd": "pantheon-ops",
+      "status": "passed",
+      "exitCode": 0,
+      "notes": "0 findings at the real repository root. The 20 findings produced when --root points at .local/wt-next are worktree artifacts: the worktree is nested under .local/, so repo-root-relative ../../pantheon-harness and ../../pantheon-base links resolve against .local/ instead of the workspace root. No real broken link was found; the 7 stale links reported in the 2026-11-20 review (6 pointing at the retired o4-tenant-implementation-plan.md) no longer exist."
+    },
+    {
+      "command": "node scripts/harness/check-doc-frontmatter.mjs --root .",
+      "cwd": "pantheon-ops",
+      "status": "passed",
+      "exitCode": 0,
+      "notes": "0 errors, 2 warnings (legacy metadata in docs/migrations/COMPAT_TO_MULTI_UPGRADE.md and docs/runbooks/DECOMMISSION_LEGACY_AUTH_ROUTES_2026-12-31.md). Pre-existing and outside this batch's declared files."
+    },
+    {
+      "command": "node scripts/harness/check-task-packet.mjs --root .",
+      "cwd": "pantheon-ops",
+      "status": "passed",
+      "exitCode": 0,
+      "notes": "Report-only baseline: 115 files, 657 errors, 118 warnings across historical task packets (legacy layer/template vocabulary predating the current template). This package's packet is absent from the FAIL list; no new error was introduced by this batch."
+    },
+    {
+      "command": "node scripts/harness/check-encoding.mjs --root .",
+      "cwd": "pantheon-ops",
+      "status": "passed",
+      "exitCode": 0,
+      "notes": "2 findings across 4593 files, both U+FFFD inside archived 2026-11-17 history-audit JSON receipts (.harness/evidence/2026-11-17-ops-history-audit/cmd-corrupt-resume-verification.json and cmd-owned-job-verification.json). Pre-existing archived evidence; left unchanged."
+    },
+    {
+      "command": "node scripts/business-overlay/check-business-overlay.mjs",
+      "cwd": "pantheon-ops",
+      "status": "passed",
+      "exitCode": 0,
+      "notes": "OK business overlay contract (55 declared paths, rebuilt tree) after removing the retired e2e-tests entry from repositoryOverlayPaths."
+    },
+    {
+      "command": "npm run test:scripts",
+      "cwd": "pantheon-ops",
+      "status": "passed",
+      "exitCode": 0,
+      "notes": "242 tests pass, 0 fail. Includes workflow-baseline and quality-workflow tests, confirming the added 'Unit tests' step in the Frontend Contract job matches the certified workflow baseline."
+    },
+    {
+      "command": "npm run test:unit",
+      "cwd": "frontend",
+      "status": "passed",
+      "exitCode": 0,
+      "notes": "54 test files / 430 tests pass. Before the fix, 2 files failed with 15 tests (tests/unit/business/operational/deploy-detail-read.test.tsx and metrics-query-state.test.tsx) because their vi.mock('../../../../src/components') factories lacked the buildStandardPagination export now used by DeployTaskDetail, MonitoringCenter and the shared detail pages. Added the stub to both mocks; a re-run passes 21/21 in the two files and 430/430 overall."
+    },
+    {
+      "command": "PANTHEON_TEST_DSN_REQUIRED=1 PANTHEON_TEST_DSN='root@tcp(127.0.0.1:33321)/ops_acceptance_formal_20261121...' go test ./modules/business/deploy -run 'TestTenantOwnershipMigration|TestFixedTemplate|TestOwnershipCommandRechecks|TestDeployDashboardSummary' -count=1",
+      "cwd": "backend",
+      "status": "passed",
+      "exitCode": 0,
+      "notes": "Deploy authorization/tenant/recovery counter-examples actually executed on the isolated acceptance MySQL (127.0.0.1:33321): TestTenantOwnershipMigrationUpgradesLegacyNameKeys 0.45s PASS, TestTenantOwnershipMigrationPreservesLegacyRowsAndRecoversPartialState 0.43s PASS, all fixed-template injection/path/uninstall-root/port rejections PASS, ownership-deadline and dashboard-scope/cancellation PASS. DSN never printed."
+    },
+    {
+      "command": "go test ./modules/business/k8s/... ./modules/business/bizscope ./modules/business/cmdb/... -run '<authorization/scope/backpressure suite>' -count=1 plus go test ./modules/business/k8s/namespace -run TestReadableNamespacesFollowsClusterOwnership with PANTHEON_TEST_DSN",
+      "cwd": "backend",
+      "status": "passed",
+      "exitCode": 0,
+      "notes": "k8s rbac/service/workload packages ok; TestReadableNamespacesFollowsClusterOwnership PASS 0.39s on the real MySQL (cross-scope and cross-environment bindings invisible, scope=0 cluster sees none); permission-route matchers, service mutation-admission deadline, log-writer backpressure and cluster stale-scope concurrency tests PASS; bizscope/cmdb data-scope tests PASS."
+    },
+    {
+      "command": "go run golang.org/x/tools/cmd/deadcode -test ./modules/business/...",
+      "cwd": "backend",
+      "status": "not-run",
+      "notes": "deadcode is not a declared tool dependency; running it asks go.mod to change (go mod tidy), which would break the locked foundation go.mod. Skipped deliberately, so no candidate was removed and the generated duplicate migration copies stay."
+    },
+    {
+      "command": "grep -rn normalizeListLimit . --exclude-dir=.git --exclude-dir=node_modules",
+      "cwd": "pantheon-ops",
+      "status": "passed",
+      "exitCode": 0,
+      "notes": "0 occurrences in the current tree: the three duplicated k8s implementations reported on 2026-11-20 no longer exist, so the merge item is already resolved and no code change was needed."
+    },
+    {
+      "command": "git show 6316f9b7189c86542424145fa49344ad737e952b:VERSION (pantheon-base) vs pantheon-ops VERSION",
+      "cwd": "workspace",
+      "status": "passed",
+      "exitCode": 0,
+      "notes": "Base snapshot VERSION = 0.18.9, foundation-release.lock releaseVersion = pantheon-base-v0.18.9, but the Ops tree still carried 0.18.7 from the previous release. Fixed VERSION to 0.18.9; version-field roles documented in docs/PROJECT_INHERITANCE(.en).md."
+    },
+    {
+      "command": "stale-endpoint audit of e2e-tests/tests/smoke.spec.ts against backend route registrations",
+      "cwd": "pantheon-ops",
+      "status": "passed",
+      "exitCode": 0,
+      "notes": "All 19 unique e2e endpoints use pre-v1.2.0 prefixes (/api/v1/argocd, /api/v1/filedist, /api/v1/k8s, /api/v1/observability, /api/v1/service-instances) while current modules mount under /api/v1/business/{cicd/argocd,filedist,k8s,observability,service}; the suite is dated 2026-08-28, absent from CI and from frontend/package.json, and its modules are already covered by the five CI business smoke suites plus 430 unit tests. Retired the directory and removed its repositoryOverlayPaths entry; historical task docs keep the references as past records."
+    }
+  ],
+  "knownGaps": [
+    "Maintainer final visual/functional acceptance remains the open Human Gate; this package changes docs, tests, CI wiring and VERSION only.",
+    "deadcode was not run: it is not a declared tool dependency and running it forces a go.mod change that would break the locked foundation module; no dead-code candidate was removed.",
+    "check-task-packet report-only baseline is 657 errors / 118 warnings in 115 historical task packets; they predate the current template and are not owned by this package.",
+    "check-encoding reports 2 pre-existing U+FFFD findings inside archived 2026-11-17 history-audit evidence; untouched.",
+    "Rendered UI evidence not applicable: this package changes no user-facing UI. The unit-test fixes are headless component-render assertions.",
+    "The tracked .business-overlay-report.json still lists the retired e2e files; it is a point-in-time rebuild receipt regenerated by the next rebuild and is not read by any gate."
+  ],
+  "linkage": {
+    "taskPacket": "docs/harness/tasks/2026-11-20-ops-review-docs-and-test-governance.task.md",
+    "taskManifest": ".harness/tasks/2026-11-20-ops-review-docs-and-test-governance/manifest.json",
+    "evidence": ".harness/evidence/2026-11-20-ops-review-docs-and-test-governance/commands.json",
+    "evidenceDir": ".harness/evidence/2026-11-20-ops-review-docs-and-test-governance/",
+    "reviewFile": ".harness/evidence/2026-11-20-ops-review-docs-and-test-governance/review.md",
+    "changeRef": "none",
+    "planRefs": [
+      ".harness/tasks/2026-11-20-ops-review-remediation/plan.md"
+    ]
+  }
+}

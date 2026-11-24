@@ -4,7 +4,7 @@
   "title": "能力文档、测试资产与治理对账",
   "goal": "对齐资产关系/Pod追溯、Helm登记、Agent、Nacos/RocketMQ现状及版本字段角色，修复当前真实失效链接",
   "primaryLayer": "business/*",
-  "status": "planned",
+  "status": "completed",
   "priority": "P2",
   "deliveryTier": "L2",
   "parentTask": "2026-11-20-ops-review-remediation",
@@ -184,7 +184,7 @@
     "taskManifest": ".harness/tasks/2026-11-20-ops-review-docs-and-test-governance/manifest.json",
     "taskDoc": "docs/harness/tasks/2026-11-20-ops-review-docs-and-test-governance.task.md",
     "evidenceDir": ".harness/evidence/2026-11-20-ops-review-docs-and-test-governance/",
-    "reviewFile": "none",
+    "reviewFile": ".harness/evidence/2026-11-20-ops-review-docs-and-test-governance/review.md",
     "summaryFile": ".harness/evidence/2026-11-20-ops-review-docs-and-test-governance/summary.md",
     "changeRef": "none",
     "planRefs": [".harness/tasks/2026-11-20-ops-review-remediation/plan.md"]
