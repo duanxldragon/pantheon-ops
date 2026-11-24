@@ -59,9 +59,24 @@ func (s *WorkloadService) List(query WorkloadListQuery, dataScope *common.DataSc
 	ctx, cancel := context.WithTimeout(context.Background(), syncTimeout)
 	defer cancel()
 
+	if s.namespaceSvc == nil {
+		return nil, errors.New("k8s.namespace.binding_required")
+	}
 	ns := query.Namespace
+	var readable map[string]struct{}
 	if ns == "" {
+		// NamespaceAll is only a transport filter; the ownership binding still
+		// decides which namespaces the caller may see.
+		readable, err = s.namespaceSvc.ReadableNamespaces(ctx, query.ClusterID, dataScope)
+		if err != nil {
+			return nil, err
+		}
+		if len(readable) == 0 {
+			return &WorkloadListResponse{Items: []WorkloadItem{}, Total: 0}, nil
+		}
 		ns = metav1.NamespaceAll
+	} else if err := s.namespaceSvc.RequireReadForClusterWithContext(ctx, query.ClusterID, ns, dataScope); err != nil {
+		return nil, err
 	}
 
 	options := metav1.ListOptions{Limit: pkg.NormalizeListLimit(query.Limit), Continue: query.ContinueToken}
@@ -79,6 +94,16 @@ func (s *WorkloadService) List(query WorkloadListQuery, dataScope *common.DataSc
 	}
 	if err != nil {
 		return nil, err
+	}
+
+	if readable != nil {
+		visible := items[:0]
+		for _, item := range items {
+			if _, ok := readable[item.Namespace]; ok {
+				visible = append(visible, item)
+			}
+		}
+		items = visible
 	}
 
 	if strings.TrimSpace(query.Kind) == "" {
@@ -187,6 +212,12 @@ func listAllWorkloadKinds(ctx context.Context, clientset kubernetes.Interface, n
 // GetPods returns one bounded page of the pods owned by a workload, matched by
 // a label selector; continueToken walks the next page.
 func (s *WorkloadService) GetPods(clusterID uint64, namespace, kind, name string, limit int64, continueToken string, dataScope *common.DataScopeReq) (*PodListResponse, error) {
+	if s.namespaceSvc == nil {
+		return nil, errors.New("k8s.namespace.binding_required")
+	}
+	if err := s.namespaceSvc.RequireReadForClusterWithContext(context.Background(), clusterID, namespace, dataScope); err != nil {
+		return nil, err
+	}
 	clientset, err := s.clusterSvc.GetClientset(clusterID, dataScope)
 	if err != nil {
 		return nil, err

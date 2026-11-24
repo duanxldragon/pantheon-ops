@@ -10,9 +10,9 @@ updated_at: 2026-11-16
 
 # Pantheon Ops 全局业务功能设计
 
-目标是 CMDB → BizScope → Application/Service/Instance → Deploy → SSH/K8s 的试点闭环。当前执行与退出条件以[试点交付计划](../../.harness/archive/2026-11/tasks/2026-11-16-ops-pilot-delivery/plan.md)为准。业务审查基线为 691dd455（当时 Base v0.18.7）；本轮计划基线 07d53988 已提交 Base v0.18.9 消费，不能把旧审查结果视为新版验收。
+目标是 CMDB → BizScope → Application/Service/Instance → Deploy → SSH/K8s 的试点闭环。当前执行与退出条件以[审查整改父计划](../../.harness/tasks/2026-11-20-ops-review-remediation/plan.md)、[执行队列](../../.harness/tasks/2026-11-20-ops-review-remediation/EXECUTION_QUEUE.md)和[当前状态](../../.harness/STATUS.md)为准；原试点计划仅作历史与未验收 residual 来源。业务审查基线为 691dd455（当时 Base v0.18.7）；本轮计划基线 07d53988 已提交 Base v0.18.9 消费，不能把旧审查结果视为新版验收。
 
-## 能力现状与任务归属
+## 11/16 能力检查点与历史任务归属
 
 “已有实现”描述源码与装配；只有同一交付候选的真实业务证据才能证明可交付。
 

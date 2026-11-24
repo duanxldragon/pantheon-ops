@@ -32,16 +32,29 @@
       "status": "passed",
       "durationMs": 250000,
       "notes": "Real MySQL DSN via PANTHEON_TEST_DSN (redacted); 11/11 packages ok."
+    },
+    {
+      "command": "PANTHEON_TEST_DSN_REQUIRED=true go test -count=1 -buildvcs=false ./modules/business/k8s/...",
+      "cwd": "backend",
+      "status": "passed",
+      "durationMs": 42000,
+      "notes": "After the read-authorization change: 11/11 packages ok, including the new namespace binding matrix and the provider-route binding sensor."
+    },
+    {
+      "command": "PANTHEON_TEST_DSN_REQUIRED=true go test -count=1 -buildvcs=false ./modules/system/iam/permission/ ./modules/system/iam/role/ ./modules/system/iam/tenant/",
+      "cwd": "backend",
+      "status": "passed",
+      "durationMs": 202000,
+      "notes": "Permission workbench, role policy sync and tenant suites consume the expanded K8s permission route registry; all ok."
     }
   ],
   "knownGaps": [
-    "NamespaceAll read authorization: cross-namespace aggregate listing still needs an explicit RBAC enumeration check.",
-    "Read-action bindings: view/list permission checks against cluster RBAC are not installed on every read route.",
     "UI draft recovery after a real kubectl resourceVersion conflict was not exercised in a browser; server maps stale resourceVersion to code 409.",
     "k8s browser smoke not run this session (frontend dev server reaped for low system memory)."
   ],
   "linkage": {
     "taskPacket": "docs/harness/tasks/2026-11-20-ops-k8s-resource-authorization-and-mutations.task.md",
+    "taskManifest": ".harness/tasks/2026-11-20-ops-k8s-resource-authorization-and-mutations/manifest.json",
     "evidenceDir": ".harness/evidence/2026-11-20-ops-k8s-resource-authorization-and-mutations/",
     "reviewFile": ".harness/evidence/2026-11-20-ops-k8s-resource-authorization-and-mutations/review.md",
     "changeRef": "none",

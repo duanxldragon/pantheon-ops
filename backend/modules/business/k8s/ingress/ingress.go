@@ -126,12 +126,32 @@ func (s *IngressService) List(query IngressListQuery, dataScope *common.DataScop
 	if s.db == nil {
 		return nil, errors.New("database.not_initialized")
 	}
-	db := s.db.Model(&Ingress{}).Scopes(database.WithDataScope(dataScope))
-	if query.ClusterID > 0 {
-		db = db.Where("cluster_id = ?", query.ClusterID)
+	if s.namespaceSvc == nil {
+		return nil, errors.New("k8s.namespace.binding_required")
 	}
+	if query.ClusterID == 0 {
+		return nil, errors.New("k8s.ingress.cluster_required")
+	}
+	db := s.db.Model(&Ingress{}).Scopes(database.WithDataScope(dataScope))
+	db = db.Where("cluster_id = ?", query.ClusterID)
 	if query.Namespace != "" {
+		if err := s.namespaceSvc.RequireReadForClusterWithContext(context.Background(), query.ClusterID, query.Namespace, dataScope); err != nil {
+			return nil, err
+		}
 		db = db.Where("namespace = ?", query.Namespace)
+	} else {
+		readable, err := s.namespaceSvc.ReadableNamespaces(context.Background(), query.ClusterID, dataScope)
+		if err != nil {
+			return nil, err
+		}
+		if len(readable) == 0 {
+			return &IngressListResponse{Items: []Ingress{}, Total: 0}, nil
+		}
+		names := make([]string, 0, len(readable))
+		for name := range readable {
+			names = append(names, name)
+		}
+		db = db.Where("namespace IN ?", names)
 	}
 	if query.Name != "" {
 		db = db.Where("name = ?", query.Name)
@@ -160,6 +180,12 @@ func (s *IngressService) Sync(id uint64, dataScope *common.DataScopeReq) (*Ingre
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, errors.New("k8s.ingress.not_found")
 		}
+		return nil, err
+	}
+	if s.namespaceSvc == nil {
+		return nil, errors.New("k8s.namespace.binding_required")
+	}
+	if err := s.namespaceSvc.RequireReadForClusterWithContext(context.Background(), record.ClusterID, record.Namespace, dataScope); err != nil {
 		return nil, err
 	}
 	clientset, err := s.clusterSvc.GetClientset(record.ClusterID, dataScope)

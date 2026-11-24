@@ -12,6 +12,58 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+func TestK8sPermissionRoutesMatchActualActions(t *testing.T) {
+	db := testmysql.Open(t)
+	router := gin.New()
+	InitK8sModule(router.Group("/api/v1"), db, nil)
+	actual := make(map[permissionroutes.Route]bool)
+	for _, route := range router.Routes() {
+		actual[permissionroutes.Route{Method: route.Method, Path: route.Path}] = true
+	}
+	expectedMethod := map[string][]string{
+		"list":      {http.MethodGet},
+		"view":      {http.MethodGet},
+		"logs":      {http.MethodGet},
+		"nodes":     {http.MethodGet},
+		"create":    {http.MethodPost},
+		"sync":      {http.MethodPost},
+		"scale":     {http.MethodPost},
+		"restart":   {http.MethodPost},
+		"rollback":  {http.MethodPost},
+		"reconcile": {http.MethodPost},
+		"update":    {http.MethodPut, http.MethodPost},
+		"delete":    {http.MethodDelete},
+	}
+	for key, routes := range permissionroutes.Snapshot() {
+		if !strings.HasPrefix(key, "business:k8s:") {
+			continue
+		}
+		action := key[strings.LastIndex(key, ":")+1:]
+		allowed, known := expectedMethod[action]
+		if !known {
+			t.Fatalf("unregistered action suffix for %s", key)
+		}
+		if len(routes) == 0 {
+			t.Fatalf("empty binding for %s", key)
+		}
+		for _, route := range routes {
+			if !actual[route] {
+				t.Fatalf("%s binds a route the router does not expose: %+v", key, route)
+			}
+			matched := false
+			for _, method := range allowed {
+				if route.Method == method {
+					matched = true
+					break
+				}
+			}
+			if !matched {
+				t.Fatalf("%s binds %s %s; allowed methods %v", key, route.Method, route.Path, allowed)
+			}
+		}
+	}
+}
+
 func TestK8sServicePermissionRoutesMatchActualActions(t *testing.T) {
 	db := testmysql.Open(t)
 	router := gin.New()

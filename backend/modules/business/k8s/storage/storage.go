@@ -172,6 +172,12 @@ func (s *StorageService) ListPVs(query ListQuery, dataScope *common.DataScopeReq
 
 // ListPVCs returns PVC snapshots.
 func (s *StorageService) ListPVCs(query ListQuery, dataScope *common.DataScopeReq) (*ListResponse, error) {
+	if s.namespaceSvc == nil {
+		return nil, errors.New("k8s.namespace.binding_required")
+	}
+	if query.ClusterID == 0 {
+		return nil, errors.New("k8s.storage.cluster_required")
+	}
 	db := s.snapshotQuery(&PVC{}, query.ClusterID, dataScope)
 	if query.StorageClass != "" {
 		db = db.Where("storage_class = ?", query.StorageClass)
@@ -183,7 +189,23 @@ func (s *StorageService) ListPVCs(query ListQuery, dataScope *common.DataScopeRe
 		db = db.Where(whereName, query.Name)
 	}
 	if query.Namespace != "" {
+		if err := s.namespaceSvc.RequireReadForClusterWithContext(context.Background(), query.ClusterID, query.Namespace, dataScope); err != nil {
+			return nil, err
+		}
 		db = db.Where("namespace = ?", query.Namespace)
+	} else {
+		readable, err := s.namespaceSvc.ReadableNamespaces(context.Background(), query.ClusterID, dataScope)
+		if err != nil {
+			return nil, err
+		}
+		if len(readable) == 0 {
+			return &ListResponse{Items: []PVC{}, Total: 0}, nil
+		}
+		names := make([]string, 0, len(readable))
+		for name := range readable {
+			names = append(names, name)
+		}
+		db = db.Where("namespace IN ?", names)
 	}
 	var total int64
 	if err := db.Count(&total).Error; err != nil {
