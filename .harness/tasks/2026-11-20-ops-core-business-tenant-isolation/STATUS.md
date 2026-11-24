@@ -21,7 +21,7 @@
 ## Known Gaps
 
 1. **Base 上游阻塞**：`keyMatch2` 使 `GET /packages/:id` 同时匹配 `/packages/export`，详情路由保持未绑定（anti-widening），运行时租户隔离需 Base 正式 release 的静态路由守卫。
-2. compat/multi 真实库升级、失败恢复与回滚行数/归属核对未执行。
+2. ~~compat/multi 真实库升级、失败恢复与回滚行数/归属核对未执行。~~ 2026-11-24 已补：`TestTenantOwnershipMigrationPreservesLegacyRowsAndRecoversPartialState`（真实 MySQL PASS 0.42s）验证旧行保留、部分应用恢复、down no-op 保持数据；真实回滚仍为 pre-T04 备份恢复。
 3. 异步任务重启后保持原租户未端到端验证。
 
 ## Next Atomic Action

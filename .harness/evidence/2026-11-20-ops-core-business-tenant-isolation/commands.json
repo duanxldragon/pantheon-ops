@@ -10,7 +10,7 @@
   "candidate": {
     "baselineReportCommit": "444ce8e",
     "planningCommit": "a2d69d4a759b5df2b26aaa9d26bdc5175babe9dc",
-    "worktree": "uncommitted",
+    "worktree": "test/t04-migration-recovery-20261124 (based on main 8048696a)",
     "foundation": "pantheon-base-v0.18.9"
   },
   "commands": [
@@ -32,11 +32,18 @@
       "cwd": ".",
       "status": "passed",
       "notes": "48 idempotent dynamic DDL statements: golang-migrate executes statement-by-statement, so each column/index add is guarded by SET @sql := IF(...) ... PREPARE/EXECUTE/DEALLOCATE."
+    },
+    {
+      "command": "PANTHEON_TEST_DSN=<redacted> PANTHEON_TEST_DSN_REQUIRED=true go test -count=1 -v -timeout 10m -run 'TestTenantOwnership' ./modules/business/deploy/",
+      "cwd": "backend",
+      "status": "passed",
+      "durationMs": 1141,
+      "notes": "Real MySQL. Both tests PASS: legacy-key upgrade 0.68s and new TestTenantOwnershipMigrationPreservesLegacyRowsAndRecoversPartialState 0.42s. The new test seeds legacy rows before migration, simulates a partially applied run (tenant_id already added on one table), verifies the idempotent guards resume the migration, keeps tenant-0 rows and names intact, and proves the retained down script is a no-op that preserves schema and rows (real rollback remains a pre-T04 backup restore by contract)."
     }
   ],
   "knownGaps": [
+    "Real rollback is a pre-T04 backup restore by contract; the retained down script is intentionally a no-op and is verified to preserve schema/rows, not to reverse the migration.",
     "Runtime tenant isolation (two tenants with same-named resources, guessed-ID/export/callback cross-tenant denial) is blocked upstream: Base keyMatch2 makes GET /packages/:id also match /packages/export, so detail routes stay unbound (anti-widening).",
-    "compat (tenant_id=0) and multi live upgrade/rollback row-count verification on a real multi-tenant database was not run on this candidate.",
     "Async task restart retaining original tenant not verified end-to-end."
   ],
   "linkage": {
@@ -44,6 +51,10 @@
     "evidenceDir": ".harness/evidence/2026-11-20-ops-core-business-tenant-isolation/",
     "reviewFile": ".harness/evidence/2026-11-20-ops-core-business-tenant-isolation/review.md",
     "changeRef": "none",
-    "planRefs": [".harness/tasks/2026-11-20-ops-review-remediation/plan.md"]
+    "planRefs": [
+      ".harness/tasks/2026-11-20-ops-review-remediation/plan.md"
+    ],
+    "taskManifest": ".harness/tasks/2026-11-20-ops-core-business-tenant-isolation/manifest.json",
+    "summaryFile": ".harness/evidence/2026-11-20-ops-core-business-tenant-isolation/summary.md"
   }
 }
