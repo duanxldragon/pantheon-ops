@@ -6,6 +6,7 @@ import (
 	"strings"
 	"sync"
 	"testing"
+	"time"
 
 	"github.com/gorilla/websocket"
 )
@@ -51,6 +52,57 @@ func TestWebsocketOriginSameOriginFallback(t *testing.T) {
 	r.Header.Set("Origin", "http://evil.example.com")
 	if websocketOriginAllowed(r) {
 		t.Fatal("cross-origin handshake admitted without an allowlist")
+	}
+}
+
+// TestLogWriterStalledConsumerBoundedByDeadline pins the backpressure bound: a
+// client that never reads cannot make the log stream buffer without limit. The
+// provider scanner writes synchronously, so the write deadline is what stops a
+// slow consumer; a 1 MB frame cannot fit the default TCP window without the
+// peer reading.
+func TestLogWriterStalledConsumerBoundedByDeadline(t *testing.T) {
+	previous := logWriteWait
+	logWriteWait = 100 * time.Millisecond
+	defer func() { logWriteWait = previous }()
+
+	hold := make(chan struct{})
+	defer close(hold)
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		conn, err := logUpgrader.Upgrade(w, r, nil)
+		if err != nil {
+			return
+		}
+		defer func() { _ = conn.Close() }()
+		// Hold the connection open without reading: the client's send buffer
+		// fills, so only the write deadline can release the writer.
+		<-hold
+	}))
+	defer server.Close()
+
+	conn, _, err := websocket.DefaultDialer.Dial("ws"+strings.TrimPrefix(server.URL, "http"), nil)
+	if err != nil {
+		t.Fatalf("dial: %v", err)
+	}
+	defer func() { _ = conn.Close() }()
+
+	writer := &logWriter{conn: conn}
+	payload := make([]byte, 1<<20)
+	start := time.Now()
+	// The kernel send buffer grows before it stops accepting frames, so fill
+	// it in bounded steps rather than assuming one frame is enough.
+	const maxFrames = 256
+	frames := 0
+	for ; frames < maxFrames; frames++ {
+		if err := writer.write(websocket.TextMessage, payload); err != nil {
+			break
+		}
+	}
+	if frames == maxFrames {
+		t.Fatalf("stalled consumer accepted %d MB without a write error", maxFrames)
+	}
+	t.Logf("write deadline stopped the stream after %d MB", frames+1)
+	if elapsed := time.Since(start); elapsed > 5*time.Second {
+		t.Fatalf("write returned after %v; deadline did not bound the stalled consumer", elapsed)
 	}
 }
 

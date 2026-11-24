@@ -21,11 +21,15 @@ import (
 )
 
 const (
-	logWriteWait  = 10 * time.Second
 	logPongWait   = 60 * time.Second
 	logPingPeriod = (logPongWait * 9) / 10
 	logTailLines  = 200
 )
+
+// logWriteWait bounds a stalled consumer: the provider scanner blocks on this
+// write, so without a deadline a slow client would pin the stream forever.
+// A variable lets the regression shorten the deadline instead of sleeping 10s.
+var logWriteWait = 10 * time.Second
 
 // logWriter serializes every frame on a connection. gorilla/websocket panics
 // when two goroutines write concurrently, and the ping ticker and the log
