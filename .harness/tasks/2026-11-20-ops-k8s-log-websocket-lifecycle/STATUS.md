@@ -26,7 +26,7 @@
 ## Known Gaps
 
 1. 页面关闭后的 goroutine 基线/泄漏对比未采集。
-2. provider 错误后重连的渲染证据缺失；k8s 浏览器 smoke 未执行（前端 dev server 被内存回收）。
+2. provider 错误后重连的渲染证据缺失；CI k8s 页面 smoke 为绿但不覆盖 pod 日志 WebSocket 页面（前端 dev server 未在本会话执行该探针）。
 
 ## Next Atomic Action
 

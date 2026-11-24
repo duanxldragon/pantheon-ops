@@ -54,7 +54,7 @@
   ],
   "knownGaps": [
     "Goroutine baseline/leak evidence after browser tab close not collected on this candidate.",
-    "Reconnect-after-provider-error rendered evidence absent; k8s browser smoke not run (frontend dev server reaped for low system memory)."
+    "Reconnect-after-provider-error rendered evidence absent. The CI k8s business smoke (PR #207 Smoke Sanity, run 45308078162) is green but does not exercise the pod-log WebSocket page, so pod-log browser evidence remains open."
   ],
   "linkage": {
     "taskPacket": "docs/harness/tasks/2026-11-20-ops-k8s-log-websocket-lifecycle.task.md",

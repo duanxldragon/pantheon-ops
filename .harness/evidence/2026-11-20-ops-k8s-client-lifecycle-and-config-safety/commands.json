@@ -61,14 +61,21 @@
       "cwd": "../.local (local-only scripts, not committed)",
       "status": "passed",
       "notes": "Artifacts: k8s-cluster-kubeconfig-masked.png, k8s-cluster-kubeconfig-revealed.png, t06-mask-runtime.json (masked=disc, revealed=none), cmdb-host-ssh-key-masked.png, cmdb-host-ssh-key-revealed.png, t06-cmdb-mask-runtime.json."
+    },
+    {
+      "command": "gh run view 45308078162 (PR #207 Smoke Sanity: npm run test:smoke:business:k8s)",
+      "cwd": "pantheon-ops",
+      "status": "passed",
+      "durationMs": 1050000,
+      "notes": "CI Smoke Sanity 17m30s green on PR #207 candidate (squash 3e83ae7a) runs tests/smoke/business/k8s/k8s-pages.spec.ts on an isolated backend: cluster/release/service routes, phone viewport, Service write preconditions, read-only gating and rendered error/empty states. The suite does not cover the credential/kubeconfig form, so the mask evidence above remains the runtime proof for that surface."
     }
   ],
   "knownGaps": [
     "V8 live credential rotation against a real cluster not re-run on this candidate (pool unit tests cover the cache identity logic).",
-    "npm run test:smoke:business:k8s was not run this session; the frontend dev server was reaped by the harness for low system memory and was not restarted per harness instruction.",
     "Offline/disconnect cancellation evidence for provider calls is unit-level only; no network-partition runtime probe on this candidate."
   ],
   "linkage": {
+    "taskManifest": ".harness/tasks/2026-11-20-ops-k8s-client-lifecycle-and-config-safety/manifest.json",
     "taskPacket": "docs/harness/tasks/2026-11-20-ops-k8s-client-lifecycle-and-config-safety.task.md",
     "evidenceDir": ".harness/evidence/2026-11-20-ops-k8s-client-lifecycle-and-config-safety/",
     "reviewFile": ".harness/evidence/2026-11-20-ops-k8s-client-lifecycle-and-config-safety/review.md",

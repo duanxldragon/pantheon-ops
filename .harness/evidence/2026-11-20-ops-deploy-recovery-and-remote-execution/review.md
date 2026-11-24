@@ -2,18 +2,18 @@
 
 ## 结论
 
-`approved with documented P2 follow-up`（仅就定向验证的恢复/panic 切片）。panic 隔离、所有权/租约/CAS、worker 恢复与取消路径在真实 MySQL 定向运行通过；完整套件本会话超时与 LiveVM 证据未重采，作为显式环境 gap 保留，不代签完整验收。
+`approved with documented P2 follow-up`。panic 隔离、所有权/租约/CAS、worker 恢复与取消路径在真实 MySQL 完整套件 PASS；deploy 浏览器/API smoke 由 CI 绿；LiveVM 真实远端终止因验收凭证不可用保留为显式 gap，不代签完整验收。
 
 ## Findings
 
-1. **P2 — 完整 deploy 套件本会话超时。**
-   `go test -count=1 -timeout 1800s ./modules/business/deploy/...` → `panic: test timed out after 30m0s`，告警时运行中的 `TestFrozenRollbackPreservesDefinitionAndOwnReview`（6s）阻塞在 MySQL `ExecContext` I/O。同套件在 T03 候选上 `PASS 1047.796s`；本次同窗口前端 dev server 因低内存被 harness 回收。判定环境性超时，不记为 PASS。
+1. **fixed — 完整 deploy 套件未通过。**
+   先前 `timeout after 30m` 与定向 `staleReport` 均定位为 DSN 时区配置（MySQL SYSTEM +08 vs go-sql-driver 默认 loc=UTC，`databaseNow` 超前 8 小时）。DSN 加 `loc=Local` 后 `go test -count=1 -buildvcs=false -p 1 -timeout 30m ./modules/business/deploy/...` → `PASS 1342.649s`。
 
 2. **P2 — LiveVM 远端终止证据未在本候选重采。**
-   定向子集覆盖 SSH transport 取消的单测路径，但真实 VM 的远端进程终止/超时未重跑。
+   定向子集覆盖 SSH transport 取消的单测路径，但真实 VM 的远端进程终止/超时未重跑（验收主机与凭证未在本会话提供）。
 
-3. **P2 — deploy smoke 未执行。**
-   `test:smoke:business:deploy:api` / `test:smoke:business:deploy` 因前端 dev server 不可用跳过。
+3. **fixed — deploy smoke 未执行。**
+   PR #207 CI Smoke Sanity 17m30s 绿，执行 `test:smoke:business:deploy:api` 与 `test:smoke:business:deploy`。
 
 4. **fixed — worker panic 逃逸。**
    后台 attempt 不在 gin recovery 内；panic 现被 `runOwnedHost` 边界捕获并落为 failed/可见结果（消息含 `business.deploy.executor.panic`）。回归 `TestExecutorPanicIsolatedAndSettledAsFailure`。
@@ -34,16 +34,17 @@
   "changeRef": "none (uncommitted worktree)",
   "findings": [
     {"id": "T08-R1", "severity": "fixed", "status": "fixed", "summary": "worker executor panic escaped to process; now settled as visible failure", "verification": "TestExecutorPanicIsolatedAndSettledAsFailure PASS"},
-    {"id": "T08-R2", "severity": "P2", "status": "accepted-environment-gap", "summary": "full deploy suite timed out at 30m under memory pressure; last full green 1047.796s", "verification": "FAIL ... 1800.066s panic: test timed out after 30m0s; running TestFrozenRollbackPreservesDefinitionAndOwnReview blocked in MySQL ExecContext"},
-    {"id": "T08-R3", "severity": "P2", "status": "accepted-gap", "summary": "LiveVM real remote termination not re-collected"},
-    {"id": "T08-R4", "severity": "P2", "status": "accepted-gap", "summary": "deploy browser/API smoke not run"}
+    {"id": "T08-R2", "severity": "P2", "status": "fixed", "summary": "full deploy suite now green after DSN loc=Local (MySQL SYSTEM +08 vs driver loc=UTC)", "verification": "PASS 1342.649s on main 3e83ae7a"},
+    {"id": "T08-R3", "severity": "P2", "status": "accepted-gap", "summary": "LiveVM real remote termination not re-collected (acceptance host/credentials unavailable)"},
+    {"id": "T08-R4", "severity": "P2", "status": "fixed", "summary": "deploy browser/API smoke green in CI", "verification": "PR #207 Smoke Sanity 17m30s PASS (run 45308078162)"}
   ],
   "verification": {
     "recoverySubset": "PASS 124.377s",
-    "fullDeploySuite": "FAIL (timeout, environment)",
-    "lastFullGreen": "PASS 1047.796s (T03 candidate)"
+    "fullDeploySuite": "PASS 1342.649s",
+    "deploySmoke": "CI Smoke Sanity PASS 17m30s (deploy api + deploy UI + cmdb/service/k8s)"
   },
   "linkage": {
+    "taskManifest": ".harness/tasks/2026-11-20-ops-deploy-recovery-and-remote-execution/manifest.json",
     "taskPacket": "docs/harness/tasks/2026-11-20-ops-deploy-recovery-and-remote-execution.task.md",
     "evidence": ".harness/evidence/2026-11-20-ops-deploy-recovery-and-remote-execution/commands.json",
     "reviewFile": ".harness/evidence/2026-11-20-ops-deploy-recovery-and-remote-execution/review.md",

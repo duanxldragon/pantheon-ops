@@ -3,7 +3,7 @@
 - Task: `2026-11-20-ops-k8s-client-lifecycle-and-config-safety`
 - 日期: 2026-11-24
 - 候选: pantheon-ops worktree 未提交改动；foundation `pantheon-base-v0.18.9`
-- 状态: **implemented + 代码级验证 + 凭据输入渲染证据；真实集群轮换/浏览器 smoke 仍为显式 gap**
+- 状态: **implemented + 代码级验证 + 凭据输入渲染证据 + CI k8s 页面 smoke；真实集群轮换仍为显式 gap**
 - 交付层级: L2（自审见 `review.md`，独立复核 gap 已登记）
 
 ## 交付内容
@@ -25,5 +25,6 @@
 ## 显式 gap
 
 1. V8 真实集群凭据轮换未在本候选重跑（缓存身份逻辑已由单测锁定）。
-2. `npm run test:smoke:business:k8s` 本会话未执行：前端 dev server 被 harness 因系统内存不足回收，按 harness 指示不自行重启。
-3. 断网/取消的 provider 超时仅有单测级覆盖，未做网络分区实机探针。
+2. 断网/取消的 provider 超时仅有单测级覆盖，未做网络分区实机探针。
+
+补充：`npm run test:smoke:business:k8s` 已由 PR #207 CI Smoke Sanity（run 45308078162，17m30s）在隔离后端执行并通过；该套件不覆盖凭据表单，掩码证据仍为定向 Playwright 探针。

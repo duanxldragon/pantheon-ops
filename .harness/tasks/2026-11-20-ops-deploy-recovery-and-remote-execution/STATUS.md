@@ -17,15 +17,14 @@
 ## Verification
 
 - 定向子集（panic/ownership/lease/worker/SSH cancel/CAS/idempotent）：`ok ... 124.377s`（exit 0）。
-- **完整 deploy 套件本会话超时**：`FAIL ... 1800.066s`，`panic: test timed out after 30m0s`；告警时运行中的 `TestFrozenRollbackPreservesDefinitionAndOwnReview`（6s）阻塞在 MySQL `ExecContext`。同套件曾在 T03 候选 `PASS 1047.796s`；本次同窗口前端 dev server 因低内存被 harness 回收 → 记为环境超时，不记 PASS。
+- **完整 deploy 套件 PASS**：`go test -count=1 -buildvcs=false -p 1 -timeout 30m ./modules/business/deploy/...` → `ok ... 1342.649s`（22m22s，真实 MySQL，`main` `3e83ae7a`）。此前超时与 `staleReport` 失败根因是 DSN 需 `loc=Local`（MySQL SYSTEM +08 vs 驱动默认 UTC，`databaseNow` 超前 8 小时）。
+- deploy 浏览器/API smoke 由 PR #207 CI Smoke Sanity（17m30s）覆盖并绿。
 - 证据：`../evidence/2026-11-20-ops-deploy-recovery-and-remote-execution/`。
 
 ## Known Gaps
 
-1. 完整 deploy 套件未在本会话跑完（内存压力下 30m 超时）。
-2. `TestDeployLiveVM*` 未纳入定向运行；真实远端终止证据未在本候选重采。
-3. deploy 浏览器/API smoke 未执行（前端 dev server 被内存回收）。
+1. `TestDeployLiveVM*` 因验收主机/凭证不可用而 skip；真实远端终止证据未在本候选重采。
 
 ## Next Atomic Action
 
-在低负载时段重跑完整 deploy 套件与 LiveVM 用例，补齐远端终止与 smoke 证据后复核关闭。
+提供验收主机与 SSH 凭证后重跑 `TestDeployLiveVM*`，补齐真实远端终止证据后进入最终验收。

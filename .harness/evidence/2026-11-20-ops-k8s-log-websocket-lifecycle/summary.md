@@ -22,4 +22,4 @@
 ## 显式 gap
 
 1. 关闭/重开页面后的 goroutine 基线（泄漏对比）未采集。
-2. provider 错误后重连的渲染证据缺失；k8s 浏览器 smoke 未执行（前端 dev server 被内存回收）。
+2. provider 错误后重连的渲染证据缺失。CI k8s 业务 smoke（PR #207 Smoke Sanity）为绿，但该套件不打开 pod 日志 WebSocket 页面，故 pod 日志浏览器证据仍为显式 gap。
