@@ -2,7 +2,7 @@
 title: 部署任务恢复、协程与远程执行一致性
 doc_type: Remediation
 layer: business
-status: Active
+status: Archived
 updated_at: 2026-11-20
 linked_contracts:
   - docs/designs/BUSINESS_FUNCTIONAL_DESIGN.md

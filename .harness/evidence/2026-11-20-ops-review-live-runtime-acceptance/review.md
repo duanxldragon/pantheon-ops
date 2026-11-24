@@ -31,6 +31,7 @@
 {
   "taskId": "2026-11-20-ops-review-live-runtime-acceptance",
   "reviewer": "Codex /root",
+  "verdict": "changes requested",
   "decision": "changes-required",
   "scope": "K8s runtime acceptance and linked parent gaps",
   "taskManifest": ".harness/tasks/2026-11-20-ops-review-live-runtime-acceptance/manifest.json",
@@ -85,6 +86,15 @@
   "runtimeEnvGaps": [
     "PANTHEON_ENCRYPTION_KEY absent -> argocd at-rest encryption blocked",
     "PANTHEON_BUSINESS_SECRET_KEY absent -> shared business secret Encrypt would key_missing on non-empty values"
-  ]
+  ],
+  "linkage": {
+    "taskManifest": ".harness/tasks/2026-11-20-ops-review-live-runtime-acceptance/manifest.json",
+    "evidence": ".harness/evidence/2026-11-20-ops-review-live-runtime-acceptance/commands.json",
+    "reviewFile": ".harness/evidence/2026-11-20-ops-review-live-runtime-acceptance/review.md",
+    "changeRef": "none",
+    "planRefs": [
+      ".harness/tasks/2026-11-20-ops-review-remediation/plan.md"
+    ]
+  }
 }
 ```

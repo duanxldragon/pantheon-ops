@@ -1,8 +1,8 @@
 # Summary — 当前基线核实与业务边界决策
 
 - Task: 2026-11-20-ops-review-baseline-and-decisions
-- Status: in-progress（核实完成，Human Gate 未过）
-- Updated: 2026-11-23
+- Status: completed（核实 + 证据 + review 完成；维护者范围验收 Human Gate 仍开放）
+- Updated: 2026-11-24
 - Baseline: a2d69d4a（规划）/ 444ce8e（来源报告文末）
 
 ## 本轮成果
@@ -26,6 +26,8 @@
 
 ## Gaps
 
-- review.md 未生成（findings-first review 由独立审查轮执行）；Review File none
-- 维护者终验未过（Human Gate）
+- 维护者终验未过（Human Gate）：四项规划假设待最终范围验收
+- 独立审查缺失：Codex 不可用，review 由 primary agent 完成并在 review.md 中显式记录
+- ARC-001 为基线快照；T04 的 `000041` 已落库并给核心模型加 `TenantID`，逐表分类由 T04 审查复核；T14 的 `000042` 尚未创建
+- 设计文档冻结段落实际落在 `5e4dac4f`（#205），本包 `changeRef` 记 `none`
 - 本包为分析型 reuse，无产品代码，故无 UI rendered evidence 需求
