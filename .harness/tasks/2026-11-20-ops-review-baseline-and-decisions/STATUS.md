@@ -1,7 +1,7 @@
 # 当前基线核实与业务边界决策
 
-- Status: in-progress
-- Updated: 2026-11-23
+- Status: completed（证据与 review 完成；维护者范围验收 Human Gate 仍开放）
+- Updated: 2026-11-24
 - Baseline: a2d69d4a759b5df2b26aaa9d26bdc5175babe9dc（规划基线；来源报告 444ce8e）
 - Owner: 业务规划负责人（Claude 执行；Codex 暂不可用）
 - Priority: P1
@@ -19,18 +19,21 @@
 
 **冻结的规划假设**（T01 验收标准 3 项，待维护者终验）：凭据归属=按资源归属授权方案；Agent 无执行协议时关闭入口并拒绝旧数据启动；资产关系/Helm 真实安装/完整 Agent 协议均登记为独立后续范围。
 
-## Next Atomic Action
+## Closeout（2026-11-24）
 
-T01 的核实与表分类已完成、FINDINGS.json 已回写。剩余：① 两份设计文档（`docs/designs/BUSINESS_FUNCTIONAL_DESIGN.md`、`BUSINESS_K8S_MODULE_DESIGN.md`）需将 T01 冻结的凭据/Agent/资产/扩展边界写入（我用 tiny diff 在声明文件内追加）；② commands.json/summary.md 按包要求补齐；③ findings-first review 生成后同步 linkage；④ 维护者对 4 项规划假设做最终范围验收后 T01 才可 close。
+- 两份设计文档的 T01 冻结边界已落库（`5e4dac4f` / #205），与 `baseline-verification-20261123.json` 一致。
+- `commands.json` / `summary.md` 已按证据 schema 补齐；`review.md` 已替换为 findings-first 审查并含机器可读 linkage，`check-review` PASS。
+- 剩余仅维护者对 4 项规划假设的最终范围验收（Human Gate）。
 
 ## Evidence
 
 - [本轮逐条判定 + 表分类 + 迁移编号分配](../../evidence/2026-11-20-ops-review-baseline-and-decisions/baseline-verification-20261123.json)
+- [commands](../../evidence/2026-11-20-ops-review-baseline-and-decisions/commands.json) / [summary](../../evidence/2026-11-20-ops-review-baseline-and-decisions/summary.md) / [review](../../evidence/2026-11-20-ops-review-baseline-and-decisions/review.md)
 - 父计划 FINDINGS.json 已回写 ARC-001/NEW-02/NEW-03/SUP-08（status=verified-at-head）
 
 ## Known Gaps
 
-- 两份设计文档尚未写入冻结边界（本包 Modify 项，下一步）。
-- commands.json / summary.md 尚未生成；review.md 为 none，真实 review 生成后同步 linkage。
 - 维护者未对 4 项规划假设做最终范围验收（T01 Human Gate）。
-- 业务表分类基于当前 HEAD 静态扫描；真实双租户对抗行为属 T04/T14 验收范畴，不算本包缺口。
+- ARC-001 判定是规划基线快照；T04 的 `000041` 已给核心模型加 `TenantID`，逐表分类由 T04 审查复核；T14 的 `000042` 仍待创建（T14 受正式 foundation release 阻塞）。
+- 无独立 review：Codex 不可用，本候选 review 由 primary agent 完成并在 review.md 记录。
+- 业务表分类基于规划基线静态扫描；真实双租户对抗行为属 T04/T14 验收范畴，不算本包缺口。

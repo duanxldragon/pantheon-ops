@@ -2,7 +2,7 @@
 title: 当前基线核实与业务边界决策
 doc_type: Remediation
 layer: business
-status: Active
+status: Archived
 updated_at: 2026-11-20
 linked_contracts:
   - docs/designs/BUSINESS_FUNCTIONAL_DESIGN.md

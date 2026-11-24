@@ -1,58 +1,97 @@
 {
-  "task": "2026-11-20-ops-review-baseline-and-decisions",
   "schemaVersion": 1,
+  "taskId": "2026-11-20-ops-review-baseline-and-decisions",
+  "repo": "pantheon-ops",
+  "evidenceState": "exercised",
+  "agent": {
+    "tool": "claude-code",
+    "adapter": "windows"
+  },
+  "candidate": {
+    "baselineReportCommit": "444ce8e",
+    "planningCommit": "a2d69d4a759b5df2b26aaa9d26bdc5175babe9dc",
+    "worktree": "reviewed at main 697c0771"
+  },
   "commands": [
     {
       "id": "c1",
-      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+      "cwd": "pantheon-ops",
       "command": "python -I - (read FINDINGS.json; verify ARC-001/NEW-02/NEW-03/SUP-08 entries)",
-      "exitCode": 0,
-      "note": "Read source findings map, baseline a2d69d4a/444ce8e confirmed"
+      "status": "passed",
+      "notes": "Source findings map read; baseline a2d69d4a/444ce8e confirmed."
     },
     {
       "id": "c2",
-      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\backend",
+      "cwd": "pantheon-ops/backend",
       "command": "grep/find business module models: TableName(), TenantID, uniqueIndex, migrations",
-      "exitCode": 0,
-      "note": "Enumeration: 51 business tables; tenant fields only in observability datasource/query_workspace files; 12 global unique keys needing tenant variant; migration pool 34/35/36/39/40 -> next free 41/42"
+      "status": "passed",
+      "notes": "Enumeration: 51 business tables at planning baseline; tenant fields only in observability datasource/query_workspace files; 12 global unique keys needing tenant variant; migration pool 34/35/36/39/40 -> next free 41/42."
     },
     {
       "id": "c3",
-      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops\\backend",
+      "cwd": "pantheon-ops/backend",
       "command": "grep NEW-02 asset relation (Pod->Node->VM) and NEW-03 helm behavior",
-      "exitCode": 0,
-      "note": "cluster_service.go:854 Node capacity metadata only, no relation entity; helm.go package comment proves DB-snapshot registration only"
+      "status": "passed",
+      "notes": "cluster_service.go:854 Node capacity metadata only, no relation entity; helm.go package comment proves DB-snapshot registration only."
     },
     {
       "id": "c4",
-      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+      "cwd": "pantheon-ops",
       "command": "python -I - (write baseline-verification-20261123.json; update FINDINGS.json status)",
-      "exitCode": 0,
-      "note": "Evidence written; FINDINGS.json ARC-001/NEW-02/NEW-03 -> verified-at-head, SUP-08 maintained P2"
+      "status": "passed",
+      "notes": "Evidence written; FINDINGS.json ARC-001/NEW-02/NEW-03 -> verified-at-head, SUP-08 maintained P2."
     },
     {
       "id": "c5",
-      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+      "cwd": "pantheon-ops",
       "command": "Edit docs/designs/BUSINESS_FUNCTIONAL_DESIGN.md + BUSINESS_K8S_MODULE_DESIGN.md (T01 frozen boundaries)",
-      "exitCode": 0,
-      "note": "Credential ownership / Agent closed / asset relation narrowed / Helm DB-only recorded as planning assumptions pending maintainer final scope acceptance"
+      "status": "passed",
+      "notes": "Credential ownership / Agent closed / asset relation narrowed / Helm DB-only recorded as planning assumptions pending maintainer final scope acceptance. Later landed in 5e4dac4f (#205)."
     },
     {
       "id": "c6",
-      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+      "cwd": "pantheon-ops",
       "command": "python -I - (update T01 manifest.json status -> in-progress)",
-      "exitCode": 0,
-      "note": "executionStage = baseline-verified"
+      "status": "passed",
+      "notes": "executionStage = baseline-verified."
+    },
+    {
+      "id": "c7",
+      "cwd": "pantheon-ops",
+      "command": "node scripts/harness/check-review.mjs --root . .harness/evidence/2026-11-20-ops-review-baseline-and-decisions/review.md",
+      "status": "passed",
+      "notes": "Review replaced with findings-first content and machine-readable linkage; 0 errors. Verification of R3: migration 000041_core_business_tenant_ownership exists and core models carry TenantID; R4: 000042 absent (T14 pending)."
     }
   ],
   "artifacts": {
     "evidence": ".harness/evidence/2026-11-20-ops-review-baseline-and-decisions/baseline-verification-20261123.json",
-    "findingsUpdated": [{"id": "ARC-001", "status": "verified-at-head"}, {"id": "NEW-02", "status": "verified-at-head"}, {"id": "NEW-03", "status": "verified-at-head"}, {"id": "SUP-08", "status": "planned"}],
-    "designsUpdated": ["docs/designs/BUSINESS_FUNCTIONAL_DESIGN.md", "docs/designs/BUSINESS_K8S_MODULE_DESIGN.md"]
+    "findingsUpdated": [
+      { "id": "ARC-001", "status": "verified-at-head" },
+      { "id": "NEW-02", "status": "verified-at-head" },
+      { "id": "NEW-03", "status": "verified-at-head" },
+      { "id": "SUP-08", "status": "planned" }
+    ],
+    "designsUpdated": [
+      "docs/designs/BUSINESS_FUNCTIONAL_DESIGN.md",
+      "docs/designs/BUSINESS_K8S_MODULE_DESIGN.md"
+    ]
   },
-  "notRun": [
-    {"id": "n1", "note": "check-task-packet.mjs 运行由维护者/Codex 验收轮执行（本 shell 未跑 harness script，保持 evidence 忠实）"},
-    {"id": "n2", "note": "go test / frontend UI evidence 不适用本包（任务为 reuse 分析型，无产品代码变更）"},
-    {"id": "n3", "note": "review.md 待 findings-first review 生成后填充 linkage；Review File 当前为 none"}
-  ]
+  "knownGaps": [
+    "Maintainer final scope acceptance for the four frozen planning assumptions is open (human gate).",
+    "ARC-001 table claims are baseline-bound; T04 migration 000041 has since added TenantID to core models, so per-table classification must be re-verified in the T04 review.",
+    "T14 migration 000042 is not created yet (T14 blocked on a formal foundation release).",
+    "Frozen design paragraphs landed in commit 5e4dac4f (#205) while this task's changeRef records none.",
+    "No independent review: this candidate's review was performed by the primary agent because Codex was unavailable."
+  ],
+  "linkage": {
+    "taskManifest": ".harness/tasks/2026-11-20-ops-review-baseline-and-decisions/manifest.json",
+    "taskPacket": "docs/harness/tasks/2026-11-20-ops-review-baseline-and-decisions.task.md",
+    "evidenceDir": ".harness/evidence/2026-11-20-ops-review-baseline-and-decisions/",
+    "reviewFile": ".harness/evidence/2026-11-20-ops-review-baseline-and-decisions/review.md",
+    "summaryFile": ".harness/evidence/2026-11-20-ops-review-baseline-and-decisions/summary.md",
+    "changeRef": "none",
+    "planRefs": [
+      ".harness/tasks/2026-11-20-ops-review-remediation/plan.md"
+    ]
+  }
 }
