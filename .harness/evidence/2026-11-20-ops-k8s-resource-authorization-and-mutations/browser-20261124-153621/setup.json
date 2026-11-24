@@ -1,0 +1,30 @@
+{
+  "ids": {
+    "scope": 45,
+    "cluster": 25,
+    "namespaceCreated": true
+  },
+  "cleanup": [],
+  "service": {
+    "name": "accept-conflict",
+    "namespace": "omx-t09-browser-20261124-153621",
+    "type": "ClusterIP",
+    "clusterIP": "10.43.191.18",
+    "ports": [
+      {
+        "name": "http",
+        "port": 8080,
+        "targetPort": 8080,
+        "nodePort": 0,
+        "protocol": "TCP"
+      }
+    ],
+    "selector": {
+      "app": "accept-conflict",
+      "run": "omx-t09-browser-20261124-153621"
+    },
+    "loadBalancerIP": "",
+    "resourceVersion": "2543724",
+    "uid": "3e657e5d-0e2c-43ea-9ff9-a2744e844ff3"
+  }
+}
