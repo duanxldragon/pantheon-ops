@@ -3,7 +3,7 @@
   "taskId": "2026-11-24-workflow-context-improvement",
   "title": "工作机制与 AI 上下文入口改进",
   "goal": "Align task recovery, pinned method consumption and verified command wiring",
-  "status": "in-progress",
+  "status": "completed",
   "priority": "P1",
   "deliveryTier": "L2",
   "primaryLayer": "business/*",
