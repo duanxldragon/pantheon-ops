@@ -9,7 +9,7 @@
 
 | 验收项 | 状态 | 证据 |
 |---|---|---|
-| compat 既有数据可用（tenant_id=0） | schema 就绪 | 迁移对既有表幂等加列；未做 live 数据核对（gap） |
+| compat 既有数据可用（tenant_id=0） | 已完成 | `TestTenantOwnershipMigrationPreservesLegacyRowsAndRecoversPartialState`：预置旧行 → 迁移后行数/名称不变且 `tenant_id=0` |
 | 旧库升级：加 tenant_id、唯一键重建为 tenant-first | 已完成 | `000041_core_business_tenant_ownership.{up,down}.sql`，48 条 `SET @sql := IF(...); PREPARE; EXECUTE; DEALLOCATE` 幂等 DDL |
 | 装配副本一致性 | 已完成 | 业务模块源与 `backend/pkg/database/migrations/` 副本 `cmp` 字节一致（up/down） |
 | 双租户同名资源共存 + 单租户内重名拒绝 | 已完成（schema 级） | `TestTenantOwnershipMigrationUpgradesLegacyNameKeys` PASS（真实 MySQL testmysql） |
@@ -18,10 +18,13 @@
 
 ## 验证
 
-- 迁移测试 PASS 0.635s；up/down 镜像 `cmp` 一致；48 条幂等 DDL。
+- `TestTenantOwnershipMigrationUpgradesLegacyNameKeys` PASS 0.68s；新 `TestTenantOwnershipMigrationPreservesLegacyRowsAndRecoversPartialState` PASS 0.42s（真实 MySQL，总 1.141s）。
+- 新测试覆盖：旧库既有行保留（`tenant_id=0`、名称/行数不变）、部分应用后的幂等恢复（预先加列的模拟）、双租户同名、单租户内重名拒绝。
+- 保留的 down 脚本按合同是 no-op；测试验证它不破坏 schema/数据。真实回滚仍以 pre-T04 备份恢复为准。
+- up/down 镜像 `cmp` 一致；48 条幂等 DDL。
 
 ## 显式 gap（上游依赖）
 
 1. Base `keyMatch2` 静态路由守卫缺失，阻止核心业务模块转为租户作用域路由。
-2. compat/multi 真实库升级、回滚行数与归属核对未在本候选执行。
+2. 真实回滚只能走 pre-T04 备份恢复；down 脚本不逆迁移（已验证 no-op 保持数据）。
 3. 异步任务原租户保持未端到端验证。
