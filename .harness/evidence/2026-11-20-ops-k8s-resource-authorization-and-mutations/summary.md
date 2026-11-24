@@ -2,7 +2,7 @@
 
 - Task: `2026-11-20-ops-k8s-resource-authorization-and-mutations`
 - 日期: 2026-11-24
-- 状态: **代码级全部验收项已实现并验证；live K3s 的 namespace ownership/写保护（k14）PASS；浏览器侧草稿恢复仍为显式 gap**
+- 状态: **代码级全部验收项已实现并验证；live K3s 的 namespace ownership/写保护（k14）PASS；真实 kubectl 干扰下的浏览器草稿保留/恢复已补验（2026-11-24）**
 - 交付层级: L2（自审见 `review.md`）
 
 ## 已交付
@@ -15,7 +15,7 @@
 | 冲突可恢复（服务端）            | 已实现           | `common.ErrConflict` → HTTP 409（`codeConflict`），调用方可用新 resourceVersion 重试                                                                                                                                                                                                              |
 | 未授权 namespace 查询/变更拒绝  | 已实现（服务端） | `NamespaceService.ReadableNamespaces` 按 Cluster 的 `business_scope_id`+`environment` 过滤绑定；NamespaceAll 聚合读在 workload/pod/configmap/secret/service/ingress/storage PVC 全部按可见集过滤，显式 namespace 读先过 `RequireReadForClusterWithContext`；写路径保持 `WithWrite`/`RequireWrite` |
 | 读路由权限绑定                  | 已实现           | `business:k8s` 注册 cluster/namespace/workload/configmap/secret/service/release/ingress/storage/backup 的读与动作路由；无权限键归属的路由（集群凭据、Helm、install）保持未绑定 → 默认拒绝                                                                                                         |
-| 界面保留草稿/可恢复             | 未验证           | 浏览器侧未做真实 resourceVersion 冲突演练                                                                                                                                                                                                                                                         |
+| 界面保留草稿/可恢复             | 已验证（2026-11-24） | 浏览器探针 `omx-t09-browser-20261124-153621`：kubectl annotate 使 rv 2543724→2543736；UI 提交收到真实 409，编辑器保持打开且草稿选择器原样保留，冲突提示渲染；关闭并显式刷新列表后用新 rv 重试 200，独立 kubectl 读到 `uiRevision=1`。证据 `browser-20261124-153621/`  |                                                                                                                                                                                                                                                       |
 
 ## 验证
 
@@ -27,5 +27,5 @@
 
 ## 显式 gap
 
-1. 真实 kubectl 干扰 + UI 草稿恢复未在浏览器验证。
-2. Base 静态/参数路由守卫（`pantheon-base` PR #525，`63940437`）尚未通过 foundation release 进入 ops；当前绑定刻意避开静态/参数同层冲突路由，待发布后可进一步绑定。
+1. Base 静态/参数路由守卫（`pantheon-base` PR #525，`63940437`）尚未通过 foundation release 进入 ops；当前绑定刻意避开静态/参数同层冲突路由，待发布后可进一步绑定。
+2. 浏览器探针覆盖 Service 编辑器冲突路径；workload/Pod 的读授权矩阵由 live k14 与 CI smoke 覆盖，本浏览器运行未重复该矩阵。

@@ -1,0 +1,95 @@
+{
+  "runId": "omx-t09-browser-20261124-153621",
+  "steps": [
+    {
+      "step": "apiLogin",
+      "at": "2026-11-24T07:36:51.107Z",
+      "operationTokenIssued": true
+    },
+    {
+      "step": "servicePageLoaded",
+      "at": "2026-11-24T07:36:58.656Z"
+    },
+    {
+      "step": "serviceRowVisible",
+      "at": "2026-11-24T07:36:59.824Z",
+      "resourceVersion": "2543724",
+      "rowText": "accept-conflict omx-t09-browser-20261124-153621 ClusterIP 10.43.191.18 8080:8080/TCP app=accept-conflict, run=omx-t09-browser-20261124-153621 编辑 删除"
+    },
+    {
+      "step": "draftTyped",
+      "at": "2026-11-24T07:37:00.822Z",
+      "selector": "app=accept-conflict, uiRevision=1"
+    },
+    {
+      "step": "kubectlInterference",
+      "at": "2026-11-24T07:37:04.139Z",
+      "status": "PASS",
+      "beforeResourceVersion": "2543724",
+      "afterResourceVersion": "2543736"
+    },
+    {
+      "step": "consoleError",
+      "text": "Failed to load resource: the server responded with a status of 409 (Conflict)"
+    },
+    {
+      "step": "consoleError",
+      "text": "Each child in a list should have a unique \"key\" prop.%s%s See https://react.dev/link/warning-keys for more information. \n\nCheck the render method of `ForwardRef"
+    },
+    {
+      "step": "conflictResponse",
+      "at": "2026-11-24T07:37:04.889Z",
+      "status": 409,
+      "url": "http://127.0.0.1:5177/api/v1/business/k8s/clusters/25/services/accept-conflict?namespace=omx-t09-browser-20261124-153621"
+    },
+    {
+      "step": "draftPreserved",
+      "at": "2026-11-24T07:37:04.965Z",
+      "modalOpen": true,
+      "selector": "app=accept-conflict, uiRevision=1",
+      "toast": "服务已变化，请刷新列表并重新核对后操作。"
+    },
+    {
+      "step": "listRefreshed",
+      "at": "2026-11-24T07:37:06.268Z",
+      "resourceVersion": "2543736"
+    },
+    {
+      "step": "recoveryResponse",
+      "at": "2026-11-24T07:37:07.756Z",
+      "status": 200,
+      "url": "http://127.0.0.1:5177/api/v1/business/k8s/clusters/25/services/accept-conflict?namespace=omx-t09-browser-20261124-153621"
+    },
+    {
+      "step": "recovered",
+      "at": "2026-11-24T07:37:07.933Z",
+      "resourceVersion": "2543737",
+      "selector": {
+        "app": "accept-conflict",
+        "uiRevision": "1"
+      }
+    },
+    {
+      "step": "providerRead",
+      "at": "2026-11-24T07:37:10.111Z",
+      "status": "PASS",
+      "resourceVersion": "2543737",
+      "selector": {
+        "app": "accept-conflict",
+        "uiRevision": "1"
+      }
+    }
+  ],
+  "shots": [
+    "t09-draft-typed.png",
+    "t09-conflict-draft-preserved.png",
+    "t09-recovered.png"
+  ],
+  "startedAt": "2026-11-24T07:36:50.631Z",
+  "interference": {
+    "status": "PASS",
+    "beforeResourceVersion": "2543724",
+    "afterResourceVersion": "2543736"
+  },
+  "verdict": "PASS"
+}

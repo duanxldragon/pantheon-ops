@@ -4,7 +4,7 @@
   "title": "K8s 资源读写授权与变更准入",
   "goal": "统一命名空间读取授权并过滤 NamespaceAll，覆盖 workload/Pod/log/Secret元数据/ConfigMap/Ingress/Storage/Service 与集群 DataScope",
   "primaryLayer": "business/*",
-  "status": "in-progress",
+  "status": "completed",
   "priority": "P1",
   "deliveryTier": "L2",
   "parentTask": "2026-11-20-ops-review-remediation",
