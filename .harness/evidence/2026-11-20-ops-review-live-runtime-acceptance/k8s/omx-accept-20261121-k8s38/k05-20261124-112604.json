@@ -1,0 +1,53 @@
+{
+  "id": "k05",
+  "intent": "owned namespace creation",
+  "userModel": "authenticated admin unless stated",
+  "setup": "local Ops; pinned SSH to 115.190.251.143; dedicated namespace",
+  "harness": ".local/acceptance-20261121/k8s-live.py",
+  "expected": "assertions hold",
+  "fixesApplied": [],
+  "cleanup": "owned fixtures tracked in checkpoint.json",
+  "actual": {
+    "name": "omx-accept-20261121-k8s38",
+    "status": "Active",
+    "labels": {
+      "kubernetes.io/metadata.name": "omx-accept-20261121-k8s38",
+      "pantheon-acceptance": "omx-accept-20261121-k8s38"
+    },
+    "creationTimestamp": "2026-11-24T11:26:07+08:00"
+  },
+  "status": "PASS",
+  "calls": [
+    {
+      "method": "GET",
+      "path": "/business/k8s/clusters/10/namespaces",
+      "httpStatus": 200,
+      "code": 200,
+      "message": "success",
+      "durationMs": 47,
+      "data": {
+        "items": [],
+        "total": 0
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/business/k8s/clusters/10/namespaces",
+      "httpStatus": 200,
+      "code": 200,
+      "message": "success",
+      "durationMs": 31,
+      "data": {
+        "name": "omx-accept-20261121-k8s38",
+        "status": "Active",
+        "labels": {
+          "kubernetes.io/metadata.name": "omx-accept-20261121-k8s38",
+          "pantheon-acceptance": "omx-accept-20261121-k8s38"
+        },
+        "creationTimestamp": "2026-11-24T11:26:07+08:00"
+      }
+    }
+  ],
+  "durationMs": 265,
+  "evidence": ".harness\\evidence\\2026-11-20-ops-review-live-runtime-acceptance\\k8s\\omx-accept-20261121-k8s38\\k05-20261124-112604.json"
+}

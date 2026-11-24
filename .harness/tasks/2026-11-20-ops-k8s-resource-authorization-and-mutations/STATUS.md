@@ -21,13 +21,14 @@
 - `TestScaleWorkloadRejectsDaemonSetAndUnknownKind`、`TestRestartWorkloadPatchesNamedKindOnly` PASS；workload 包 ok；K8s 全模块 11/11 包 ok。
 - 新增 `TestReadableNamespacesFollowsClusterOwnership`（真实 MySQL）：跨 scope/跨 environment 绑定不可见，scope=0 集群零可见；`TestK8sPermissionRoutesMatchActualActions` 校验每条已声明 K8s 路由真实存在且方法符合 action 语义。
 - permission / role / tenant 套件（真实 MySQL）复跑 PASS。
+- **live K3s（k14）PASS**：main `697c0771` 候选后端，`k8s-live.py --run-id omx-accept-20261121-k8s38` 17/17；未绑定 namespace 写入被拒。
+- k8s 页面 smoke 由 PR #207 CI Smoke Sanity（17m30s）覆盖并绿。
 - 证据：`../evidence/2026-11-20-ops-k8s-resource-authorization-and-mutations/`。
 
 ## Known Gaps
 
 1. 真实 kubectl 干扰下 UI 草稿保留/恢复未在浏览器验证。
-2. k8s 浏览器 smoke 未执行（前端 dev server 被内存回收）。
-3. 只读详情路由在 Base 静态/参数路由守卫发布并消费后可进一步绑定；当前已绑定路由不含静态/参数同层冲突。
+2. 只读详情路由在 Base 静态/参数路由守卫发布并消费后可进一步绑定；当前已绑定路由不含静态/参数同层冲突。
 
 ## Next Atomic Action
 

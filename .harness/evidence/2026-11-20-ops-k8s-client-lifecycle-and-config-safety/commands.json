@@ -68,10 +68,15 @@
       "status": "passed",
       "durationMs": 1050000,
       "notes": "CI Smoke Sanity 17m30s green on PR #207 candidate (squash 3e83ae7a) runs tests/smoke/business/k8s/k8s-pages.spec.ts on an isolated backend: cluster/release/service routes, phone viewport, Service write preconditions, read-only gating and rendered error/empty states. The suite does not cover the credential/kubeconfig form, so the mask evidence above remains the runtime proof for that surface."
+    },
+    {
+      "command": "python -I .local/acceptance-20261121/k8s-live.py --run-id omx-accept-20261121-k8s38",
+      "cwd": "pantheon-ops",
+      "status": "passed",
+      "notes": "Live cluster acceptance on a candidate backend built from main 697c0771 (binary sha256 d6a76a5f... on port 8081). 17/17 PASS. k13 warm-cache credential rotation: version 1 -> rotate bad token (version 2, /nodes rejected) -> restore (version 3, /nodes returns real node) PASS; k12 real Pod logs over WebSocket and k14 namespace ownership/write protection also PASS. Evidence: .harness/evidence/2026-11-20-ops-review-live-runtime-acceptance/k8s/omx-accept-20261121-k8s38/."
     }
   ],
   "knownGaps": [
-    "V8 live credential rotation against a real cluster not re-run on this candidate (pool unit tests cover the cache identity logic).",
     "Offline/disconnect cancellation evidence for provider calls is unit-level only; no network-partition runtime probe on this candidate."
   ],
   "linkage": {

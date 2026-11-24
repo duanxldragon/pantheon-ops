@@ -21,12 +21,13 @@
 - `TestLogWriterStalledConsumerBoundedByDeadline`（不读取对端、1 MB 帧循环、100 ms 测试超时）PASS：第 3 MB 触发写超时，流停止。
 - `TestWebsocketOriginAllowed`（5 子用例）+ `TestWebsocketOriginSameOriginFallback` PASS。
 - workload 包 ok；K8s 全模块 11/11 包 ok；golangci `--new-from-rev=32f7fa5a` 0 issues。
+- **真实 Pod 日志 WebSocket（k12）PASS**：main `697c0771` 候选后端 + 真 K3s，`k8s-live.py --run-id omx-accept-20261121-k8s38` 17/17。
 - 证据：`../evidence/2026-11-20-ops-k8s-log-websocket-lifecycle/`。
 
 ## Known Gaps
 
-1. 页面关闭后的 goroutine 基线/泄漏对比未采集。
-2. provider 错误后重连的渲染证据缺失；CI k8s 页面 smoke 为绿但不覆盖 pod 日志 WebSocket 页面（前端 dev server 未在本会话执行该探针）。
+1. 页面关闭后的 goroutine 基线/泄漏对比未采集（浏览器侧）。
+2. provider 错误后重连的浏览器渲染证据缺失；CI k8s 页面 smoke 不打开该页面。
 
 ## Next Atomic Action
 

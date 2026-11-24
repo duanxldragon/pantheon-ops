@@ -46,11 +46,17 @@
       "status": "passed",
       "durationMs": 202000,
       "notes": "Permission workbench, role policy sync and tenant suites consume the expanded K8s permission route registry; all ok."
+    },
+    {
+      "command": "python -I .local/acceptance-20261121/k8s-live.py --run-id omx-accept-20261121-k8s38 (k14; also k12/k13)",
+      "cwd": "pantheon-ops",
+      "status": "passed",
+      "notes": "Live K3s acceptance on a candidate backend built from main 697c0771: 17/17 PASS. k14 namespace ownership and write protection PASS (unbound namespace mutation denied before any object is created); k13 credential rotation and k12 pod-log WebSocket also PASS. Evidence: .harness/evidence/2026-11-20-ops-review-live-runtime-acceptance/k8s/omx-accept-20261121-k8s38/."
     }
   ],
   "knownGaps": [
     "UI draft recovery after a real kubectl resourceVersion conflict was not exercised in a browser; server maps stale resourceVersion to code 409.",
-    "k8s browser smoke not run this session (frontend dev server reaped for low system memory)."
+    "Base static/param route guard (pantheon-base #525) is not yet consumed through a foundation release; bound routes deliberately avoid the same-level conflict."
   ],
   "linkage": {
     "taskPacket": "docs/harness/tasks/2026-11-20-ops-k8s-resource-authorization-and-mutations.task.md",

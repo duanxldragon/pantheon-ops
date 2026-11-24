@@ -4,7 +4,7 @@
   "title": "部署任务恢复、协程与远程执行一致性",
   "goal": "复用现有 attempt/lease/CAS 做租约到期持续对账、重启恢复和取消，保留目标/执行快照及租户身份",
   "primaryLayer": "business/*",
-  "status": "in-progress",
+  "status": "completed",
   "priority": "P1",
   "deliveryTier": "L2",
   "parentTask": "2026-11-20-ops-review-remediation",

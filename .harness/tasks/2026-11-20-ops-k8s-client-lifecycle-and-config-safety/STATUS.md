@@ -20,14 +20,14 @@
 
 - `go test -count=1 -p 1 -timeout 20m ./modules/business/k8s/...` → 11/11 包 ok。
 - `npm run type-check` / `check:password-toggle` / `check:ui-contract` / 目标 eslint → PASS。
-- 证据：`../evidence/2026-11-20-ops-k8s-client-lifecycle-and-config-safety/`（commands.json / summary.md / review.md + PNG/JSON）。
+- `test:smoke:business:k8s` 由 PR #207 CI Smoke Sanity（run 45308078162，17m30s）执行并绿（该套件覆盖 K8s 页面路由，不覆盖凭据/kubeconfig 表单）。
+- **真实集群轮换 PASS**：main `697c0771` 候选后端在 `115.190.251.143` K3s 执行 k8s-live `omx-accept-20261121-k8s38`，17/17 PASS（k13 version 1→坏 token→恢复）。
+- 证据：`../evidence/2026-11-20-ops-k8s-client-lifecycle-and-config-safety/`（commands.json / summary.md / review.md + PNG/JSON + live run）。
 
 ## Known Gaps
 
-1. V8 真实集群凭据轮换未在本候选重跑。
-2. `npm run test:smoke:business:k8s` 未执行（前端 dev server 被 harness 因低内存回收，按指示不自行重启）。
-3. 断网/取消 provider 超时仅有单测级覆盖。
+1. 断网/取消 provider 超时仅有单测级覆盖。
 
 ## Next Atomic Action
 
-真实集群 V8 轮换 + k8s 浏览器 smoke 重跑后，补齐 V6/V8 验收并同步 review linkage。
+维护者最终验收（网络分区探针作为显式 gap）。

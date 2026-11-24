@@ -2,7 +2,7 @@
 
 ## 结论
 
-`pass-with-explicit-gaps`（自审，无独立 reviewer）。变更分派缺陷已红→绿锁定；跨命名空间读授权与读路由绑定已在代码级完成并有真实 MySQL 回归；仅剩浏览器侧草稿恢复与 k8s smoke 两项环境型 gap。
+`pass-with-explicit-gaps`（自审，无独立 reviewer）。变更分派缺陷已红→绿锁定；跨命名空间读授权与读路由绑定已在代码级完成并有真实 MySQL 回归；live K3s 的 k14 namespace ownership/写保护与 k8s 页面 CI smoke 已绿；仅剩浏览器侧草稿恢复（以及 Base 路由守卫发布后二次绑定）为显式 gap。
 
 ## Findings（严重度从高到低）
 

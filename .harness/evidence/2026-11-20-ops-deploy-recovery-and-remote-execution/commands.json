@@ -41,10 +41,16 @@
       "status": "passed",
       "durationMs": 1050000,
       "notes": "CI Smoke Sanity 17m30s green on PR #207 candidate (squash 3e83ae7a). Runs deploy browser smoke (deploy-pages.spec.ts) and deploy API smoke (deploy-api.spec.ts) alongside cmdb/service/k8s, closing the earlier 'dev server reaped' gap."
+    },
+    {
+      "command": "PANTHEON_ACCEPTANCE_HOST=115.190.251.143 PANTHEON_ACCEPTANCE_SSH_USER=root PANTHEON_ACCEPTANCE_SSH_AUTH_MODE=password PANTHEON_ACCEPTANCE_SSH_SECRET=<redacted DPAPI> go test -count=1 -timeout=15m -v -run '^TestDeployLiveVM' ./modules/business/deploy",
+      "cwd": "backend",
+      "status": "passed",
+      "durationMs": 7090,
+      "notes": "PASS on the real acceptance VM. TestDeployLiveVMExecution: success 3.51s + failure 3.07s (actual VM exit/streams/frozen input/package inverse/history/scope/cleanup verified); TestDeployLiveVMCancellation 0.46s (300ms context deadline, no after-cancel output). SSH secret decrypted from private-ssh-current.dpapi into process env only and never written to evidence; host fingerprint pinned via authenticated key probe."
     }
   ],
   "knownGaps": [
-    "LiveVM SSH cancellation/timeout tests (TestDeployLiveVM*) were skipped (PANTHEON_ACCEPTANCE_HOST unset and the recorded acceptance credentials are not available in this session); real remote termination evidence remains from earlier LiveVM rounds, not re-collected here.",
     "Full-suite runtime is 22m22s locally; CI Backend Tests do not run this DB-heavy package at the same depth."
   ],
   "linkage": {

@@ -2,7 +2,7 @@
 
 ## 结论
 
-`approved with documented P2 follow-up`。并发写 panic（日志流 + ping ticker）已修复并由回归锁定；Origin 校验、context 取消链路与写超时背压上界成立。goroutine 基线与重连渲染仍需浏览器侧证据，不代签完整验收。
+`approved with documented P2 follow-up`。并发写 panic（日志流 + ping ticker）已修复并由回归锁定；Origin 校验、context 取消链路与写超时背压上界成立；真 K3s 的 k12 Pod 日志 WebSocket 握手/首帧/关闭 PASS。goroutine 基线与浏览器重连渲染仍为显式 gap，不代签完整验收。
 
 ## Findings
 
@@ -32,15 +32,38 @@
   "reviewFile": ".harness/evidence/2026-11-20-ops-k8s-log-websocket-lifecycle/review.md",
   "changeRef": "none (uncommitted worktree)",
   "findings": [
-    {"id": "T09-R1", "severity": "P1", "status": "fixed", "summary": "concurrent websocket writers panic", "verification": "TestLogWriterSerializesConcurrentFrames PASS; fails without mutex"},
-    {"id": "T09-R2", "severity": "P2", "status": "accepted-gap", "summary": "no runtime goroutine baseline after tab close"},
-    {"id": "T09-R3", "severity": "P2", "status": "fixed", "summary": "slow-client backpressure bounded by the write deadline", "verification": "TestLogWriterStalledConsumerBoundedByDeadline PASS (stream stops after 3 MB with a 100 ms test deadline)"},
-    {"id": "T09-R4", "severity": "P2", "status": "accepted-gap", "summary": "reconnect rendered evidence missing"}
+    {
+      "id": "T09-R1",
+      "severity": "P1",
+      "status": "fixed",
+      "summary": "concurrent websocket writers panic",
+      "verification": "TestLogWriterSerializesConcurrentFrames PASS; fails without mutex"
+    },
+    {
+      "id": "T09-R2",
+      "severity": "P2",
+      "status": "accepted-gap",
+      "summary": "no runtime goroutine baseline after tab close"
+    },
+    {
+      "id": "T09-R3",
+      "severity": "P2",
+      "status": "fixed",
+      "summary": "slow-client backpressure bounded by the write deadline",
+      "verification": "TestLogWriterStalledConsumerBoundedByDeadline PASS (stream stops after 3 MB with a 100 ms test deadline)"
+    },
+    {
+      "id": "T09-R4",
+      "severity": "P2",
+      "status": "accepted-gap",
+      "summary": "reconnect rendered evidence missing"
+    }
   ],
   "verification": {
     "targetedLogTests": "6/6 PASS",
     "workloadPackage": "ok",
-    "k8sModuleTests": "11/11 packages ok"
+    "k8sModuleTests": "11/11 packages ok",
+    "livePodLogWebSocket": "k12 PASS on real K3s (omx-accept-20261121-k8s38, 17/17 PASS)"
   },
   "linkage": {
     "taskManifest": ".harness/tasks/2026-11-20-ops-k8s-log-websocket-lifecycle/manifest.json",
