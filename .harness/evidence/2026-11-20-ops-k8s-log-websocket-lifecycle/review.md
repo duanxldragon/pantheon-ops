@@ -2,7 +2,7 @@
 
 ## 结论
 
-`approved with documented P2 follow-up`。并发写 panic（日志流 + ping ticker）已修复并由回归锁定；Origin 校验与 context 取消链路成立。生命周期/背压/重连的运行时证据仍缺，不代签完整验收。
+`approved with documented P2 follow-up`。并发写 panic（日志流 + ping ticker）已修复并由回归锁定；Origin 校验、context 取消链路与写超时背压上界成立。goroutine 基线与重连渲染仍需浏览器侧证据，不代签完整验收。
 
 ## Findings
 
@@ -12,8 +12,8 @@
 2. **P2 — goroutine 基线未采集。**
    页面关闭后 provider goroutine 是否归零没有运行时对比证据。
 
-3. **P2 — 慢客户端背压未演练。**
-   当前逐帧写入 + 写超时，无有界队列；慢消费者会阻塞到写超时。
+3. **fixed — P2 慢客户端背压上界未验证。**
+   设计无有界队列，依靠同步写 + `logWriteWait` 写超时把慢消费者限制在固定时间内；`TestLogWriterStalledConsumerBoundedByDeadline`（不读取对端，1 MB 帧循环，100 ms 测试超时）在第 3 MB 触发超时并使流返回。
 
 4. **P2 — provider 错误后重连的渲染证据缺失。**
 
@@ -34,15 +34,16 @@
   "findings": [
     {"id": "T09-R1", "severity": "P1", "status": "fixed", "summary": "concurrent websocket writers panic", "verification": "TestLogWriterSerializesConcurrentFrames PASS; fails without mutex"},
     {"id": "T09-R2", "severity": "P2", "status": "accepted-gap", "summary": "no runtime goroutine baseline after tab close"},
-    {"id": "T09-R3", "severity": "P2", "status": "accepted-gap", "summary": "slow-client backpressure not exercised"},
+    {"id": "T09-R3", "severity": "P2", "status": "fixed", "summary": "slow-client backpressure bounded by the write deadline", "verification": "TestLogWriterStalledConsumerBoundedByDeadline PASS (stream stops after 3 MB with a 100 ms test deadline)"},
     {"id": "T09-R4", "severity": "P2", "status": "accepted-gap", "summary": "reconnect rendered evidence missing"}
   ],
   "verification": {
-    "targetedLogTests": "4/4 PASS",
+    "targetedLogTests": "6/6 PASS",
     "workloadPackage": "ok",
     "k8sModuleTests": "11/11 packages ok"
   },
   "linkage": {
+    "taskManifest": ".harness/tasks/2026-11-20-ops-k8s-log-websocket-lifecycle/manifest.json",
     "taskPacket": "docs/harness/tasks/2026-11-20-ops-k8s-log-websocket-lifecycle.task.md",
     "evidence": ".harness/evidence/2026-11-20-ops-k8s-log-websocket-lifecycle/commands.json",
     "reviewFile": ".harness/evidence/2026-11-20-ops-k8s-log-websocket-lifecycle/review.md",

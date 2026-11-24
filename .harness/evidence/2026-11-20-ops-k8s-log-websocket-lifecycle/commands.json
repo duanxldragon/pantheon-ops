@@ -32,11 +32,28 @@
       "status": "passed",
       "durationMs": 250000,
       "notes": "Real MySQL DSN via PANTHEON_TEST_DSN (redacted); 11/11 packages ok."
+    },
+    {
+      "command": "go test -count=1 -run \"TestLogWriter\" -v ./modules/business/k8s/workload/",
+      "cwd": "backend",
+      "status": "passed",
+      "notes": "New TestLogWriterStalledConsumerBoundedByDeadline: a never-reading client stops the stream after 3 MB because logWriteWait expires; TestLogWriterSerializesConcurrentFrames still PASS."
+    },
+    {
+      "command": "PANTHEON_TEST_DSN_REQUIRED=true go test -count=1 -buildvcs=false ./modules/business/k8s/workload/",
+      "cwd": "backend",
+      "status": "passed",
+      "notes": "Whole workload package after the write-deadline change."
+    },
+    {
+      "command": "golangci-lint run --new-from-rev=32f7fa5a ./modules/business/k8s/workload/",
+      "cwd": "backend",
+      "status": "passed",
+      "notes": "0 issues."
     }
   ],
   "knownGaps": [
     "Goroutine baseline/leak evidence after browser tab close not collected on this candidate.",
-    "Backpressure on slow clients (bounded queue / narrow channel) not exercised at runtime.",
     "Reconnect-after-provider-error rendered evidence absent; k8s browser smoke not run (frontend dev server reaped for low system memory)."
   ],
   "linkage": {
@@ -44,6 +61,9 @@
     "evidenceDir": ".harness/evidence/2026-11-20-ops-k8s-log-websocket-lifecycle/",
     "reviewFile": ".harness/evidence/2026-11-20-ops-k8s-log-websocket-lifecycle/review.md",
     "changeRef": "none",
-    "planRefs": [".harness/tasks/2026-11-20-ops-review-remediation/plan.md"]
+    "planRefs": [
+      ".harness/tasks/2026-11-20-ops-review-remediation/plan.md"
+    ],
+    "taskManifest": ".harness/tasks/2026-11-20-ops-k8s-log-websocket-lifecycle/manifest.json"
   }
 }
