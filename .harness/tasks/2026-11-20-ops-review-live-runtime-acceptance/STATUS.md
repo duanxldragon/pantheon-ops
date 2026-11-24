@@ -1,7 +1,7 @@
 # 同候选真实环境与受限角色验收
 
 - Status: in-progress
-- Updated: 2026-11-23T08:40:00.000000+00:00
+- Updated: 2026-11-24T16:20:00.000000+08:00
 - Owner: Claude 业务修复 / Claude 独立验收（Codex 暂不可用）
 - Baseline: a2d69d4a759b5df2b26aaa9d26bdc5175babe9dc，dirty worktree 保留
 
@@ -20,6 +20,14 @@
 权限安全探测（V-probe 19/19 PASS，`runs/omx_accept_20261121_vprobe/v/probe.json`）关闭清单 V1/V2/V5：V1 非管理员 viewer 全拒 403；V2 包 `[200,403,403]`；V5 凭据响应无 secret 键 + DB 密文 + 非创建者不可读（附两条发现：无 `/credentials/:id` 详情路由、`credential:*` 权限键未 seed，凭据 admin-only；`ListCredentials` 无创建者过滤为潜伏残余）。CAP-CMDB 修正为 PASS（retry 序列 c01-c08 全过，首试 FAIL 为瞬时环境抖动）。
 
 **T03 联动补充（2026-11-23）**：T03 已补 deploy 权限绑定（26 键）与 credential seed/i18n。修复后角色矩阵在**本地**候选 `0586a9e2` 实跑 **18/18 PASS**（`t03-role-matrix-local.json`）：task:view 读列表 200、写/导出 403；credential:list 读 200 且响应无 secret 键、写 403；package:view 读 200、详情/导出 403。矩阵 V1/V5/deploy-lane 已追加 `t03Recheck`。远端 k8s33/k8s35 尚未用该候选重跑 → 本项远端证据保持 gap。
+
+## 2026-11-24 完成面评估（为何仍 in-progress）
+
+可闭合项已在当前候选上闭合：deploy lane 7/7、K8s lane 17/17（k8s38）、CAP 31/32、V-probe 19/19、T03 角色矩阵 18/18、GAP-CLEANUP-VERIFY（2026-11-24）。剩余项均为任务依赖或环境不可得，不能由本包单独关闭：
+
+- **任务依赖**：T04 仍 in-progress（详情路由绑定等 Base 静态路由守卫正式 release；异步任务重启保持租户依赖 T05 `2026-11-20-ops-extension-and-async-tenant-isolation`，当前 planned）。T16 的依赖集明确包含 T04/T05，因此本包不能先于它们置 completed。
+- **环境不可得**：V4 双租户（`tenant_mode=multi` 未配置）、V7 低权限 SSH restart/cancel 用户、V8 SA 撤销轮换、Ingress provider 变更/快照、全新安装、Velero schedule/restore，以及 `-race` 门禁所需的 127.0.0.1:26316 测试 Redis。
+- **残留**：GAP-ARGOCD-ENVKEY（运行环境缺 `PANTHEON_ENCRYPTION_KEY`）可随时用探针专用密钥补跑，但属于环境配置而非产品验证，待维护者环境策略确认。
 
 ## Next Atomic Action
 
@@ -41,4 +49,4 @@
 
 ## Known Gaps
 
-**Velero 阻塞已关闭**：陈旧 containerd image metadata（`import-2026-11-10@sha256:…`）经 image entity 重建解决，pod Running，k19 备份 Completed（0 errors/0 warnings），见 k8s35 证据。剩余缺口不变：完整 Go race **已分类**：0 DATA RACE，6 个 observability FAIL=测试 Redis 127.0.0.1:26316 未启动（dial refused），4 包=慢 MySQL 下 -race 10m 超时（非代码缺陷），k8s 子树单独全绿（0/0）；V4 双租户 BLOCKED（tenant_mode multi 未配置）；V7 SSH restart/cancel 低权限用户未配置；V6 前端 10s 一半未跑（GAP-UI-BROWSER）；argocd 加密运行环境密钥缺失（`GAP-ARGOCD-ENVKEY`，业务 `GAP-BUSINESS-SECRET-KEY` 已由 T02 round6 关闭）；vprobe/v3 遗留测试主体清理停在 operation-verify 二次验证（GAP-CLEANUP-VERIFY）；K8s shelf 剩余：V8 SA 撤销轮换、Ingress provider 变更/快照、全新安装、WebSocket server 资源释放、Velero schedule/restore。部署 lane 全绿（含 d05 注入关闭）。不提交、不推送、不发布、不修改共享底座。
+**Velero 阻塞已关闭**：陈旧 containerd image metadata（`import-2026-11-10@sha256:…`）经 image entity 重建解决，pod Running，k19 备份 Completed（0 errors/0 warnings），见 k8s35 证据。剩余缺口不变：完整 Go race **已分类**：0 DATA RACE，6 个 observability FAIL=测试 Redis 127.0.0.1:26316 未启动（dial refused），4 包=慢 MySQL 下 -race 10m 超时（非代码缺陷），k8s 子树单独全绿（0/0）；V4 双租户 BLOCKED（tenant_mode multi 未配置）；V7 SSH restart/cancel 低权限用户未配置；V6 前端 10s 一半未跑（GAP-UI-BROWSER）；argocd 加密运行环境密钥缺失（`GAP-ARGOCD-ENVKEY`，业务 `GAP-BUSINESS-SECRET-KEY` 已由 T02 round6 关闭）；vprobe/v3 遗留测试主体清理已于 2026-11-24 关闭（GAP-CLEANUP-VERIFY：真实 operation-verify + SecureAction 批量删除 16 用户/226 角色，API 复读 0 残余；3 个 cmdb02 包被 in_use 正确保护；证据 `cleanup-residue-20261124.json`）；K8s shelf 剩余：V8 SA 撤销轮换、Ingress provider 变更/快照、全新安装、WebSocket server 资源释放、Velero schedule/restore。部署 lane 全绿（含 d05 注入关闭）。不提交、不推送、不发布、不修改共享底座。

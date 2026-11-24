@@ -35,11 +35,17 @@
       "status": "passed",
       "notes": "Deploy lane d00-d06 7/7 PASS finishedAt 13:01:20Z on candidate k8s33 (same live backend PID 26144 that served the CMDB retry).",
       "exitCode": 0
+    },
+    {
+      "command": "powershell -File .local/acceptance-20261121/run-t16-cleanup-now.ps1 --apply (acceptance backend :8083 on ops_acceptance_formal_20261121)",
+      "cwd": "pantheon-ops",
+      "status": "passed",
+      "notes": "GAP-CLEANUP-VERIFY closed: POST /auth/operation-verify returned code 200 and issued an operation token; POST /system/user/batch-delete deleted all 16 probe users (failedCount 0); POST /system/role/batch-delete deleted 220 of 226 probe roles in the first pass (6 blocked by role.delete.error.has_users) and the remaining 6 after the users were gone. Post-state re-read through the API: 0 role residue, 0 user residue, 7 seed roles and 1 admin user left. DELETE /business/deploy/packages/:id returned deploypackage.in_use for the three cmdb02 packages, so they stay as in-use historical fixtures. Details: cleanup-residue-20261124.json."
     }
   ],
   "knownGaps": [
+    "GAP-CLEANUP-VERIFY closed 2026-11-24: 16 probe users and 226 probe roles removed from the isolated acceptance DB through the real operation-verify + SecureAction batch delete; three cmdb02 packages stay because the API correctly reports deploypackage.in_use.",
     "K8s lane deferred per maintainer: focus non-K8s items first. K8s still PARTIAL (22 PASS/0 FAIL/1 BLOCKED, Velero Pod Pending).",
-    "Leftover vprobe test subjects: verify_u1/u2 users + vprobe_viewer/vprobe_pkgview roles (DELETE blocked by auth.operation.verification_required) — tracked as matrix GAP-CLEANUP-VERIFY.",
     "Multi-tenant (V4) BLOCKED — needs MySQL tenant_mode=multi; not configured.",
     "Full-repo race still fails (11 fail / 39 skip) — outside this session scope."
   ],
@@ -49,8 +55,8 @@
     "reviewFile": ".harness/evidence/2026-11-20-ops-review-live-runtime-acceptance/review.md",
     "changeRef": "none",
     "planRefs": [
-      ".harness/evidence/2026-11-20-ops-review-live-runtime-acceptance/acceptance-matrix.json",
-      ".local/acceptance-20261121/run-live-acceptance.ps1"
-    ]
+      ".harness/evidence/2026-11-20-ops-review-live-runtime-acceptance/acceptance-matrix.json"
+    ],
+    "taskPacket": "docs/harness/tasks/2026-11-20-ops-review-live-runtime-acceptance.task.md"
   }
 }

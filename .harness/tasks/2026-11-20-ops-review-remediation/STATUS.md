@@ -1,5 +1,11 @@
 # 11月20日审查整改与真实交付任务树
 
+## 2026-11-24 树状态核对（T09 完成后）
+
+`/api/v1` 任务树当前为 **planned 8 / in-progress 3 / completed 20**（共 31 项）。completed 新增 T09（K8s 资源读写授权与变更准入，PR #217 squash `a79c289d`）等 20 个子包；in-progress 剩 T04（core-business-tenant-isolation）、T16（live-runtime-acceptance）与本父任务 T20。
+
+父任务不能收口的原因是该树的结构性依赖：8 个 planned 子包（ArgoCD 归属、部署凭据授权、模板体验、T05 扩展与异步租户隔离、文件分发生命周期、试点交付收口、文档测试治理、服务目录部署闭环）仍未执行；T04 依赖 Base 正式 release 与 T05，T16 依赖 T04/T05 且其 V4/V7/V8/Ingress/全新安装/Velero schedule 等验收依赖当前不可得的环境。父任务只有在子任务全部终态且 T16 的真实验收签核后才可置 completed。
+
 ## 2026-11-22 第二轮独立进度核对
 
 本树仍 in-progress：**父任务/T16/T02 共3项 in-progress、15项 planned、0 completed**。T02新增四文件安全改动及自审证据，Codex补充渲染反例发现Redis格式参数错位、重复斜杠绕过卸载危险根两处HIGH；原18项PASS、补充2顶层/4子场景FAIL、exit1、0skip。代码审查REQUEST CHANGES，架构BLOCK，T02保持开放并先修复上述缺陷。
@@ -15,7 +21,7 @@
 后续动作以[此次独立审查](../../evidence/2026-11-20-ops-review-live-runtime-acceptance/codex-progress-review-20261122.md)为当前检查点。下方11月20日“尚未执行”文字为历史派发状态；真实执行证据已在T16产生，不能继续据此断言本批未执行。
 
 - Status: in-progress
-- Updated: 2026-11-20
+- Updated: 2026-11-24T16:25:00+08:00
 - Baseline: a2d69d4a759b5df2b26aaa9d26bdc5175babe9dc
 - Owner: 业务交付协调负责人
 - Priority: P0
