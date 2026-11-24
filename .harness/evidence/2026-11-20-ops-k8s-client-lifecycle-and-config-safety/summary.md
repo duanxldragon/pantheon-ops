@@ -3,7 +3,7 @@
 - Task: `2026-11-20-ops-k8s-client-lifecycle-and-config-safety`
 - 日期: 2026-11-24
 - 候选: pantheon-ops worktree 未提交改动；foundation `pantheon-base-v0.18.9`
-- 状态: **implemented + 代码级验证 + 凭据输入渲染证据 + CI k8s 页面 smoke + 真实集群凭据轮换 PASS；断网/取消仍为显式 gap**
+- 状态: **implemented + 代码级验证 + 凭据输入渲染证据 + CI k8s 页面 smoke + 真实集群凭据轮换 PASS + 断网/取消 runtime PASS**
 - 交付层级: L2（自审见 `review.md`，独立复核 gap 已登记）
 
 ## 交付内容
@@ -22,9 +22,10 @@
 - `npm run type-check` / `check:password-toggle` / `check:ui-contract` / 目标 eslint → 全 0 finding
 - 渲染证据：`k8s-cluster-kubeconfig-{masked,revealed}.png`、`cmdb-host-ssh-key-{masked,revealed}.png`、`t06-*-mask-runtime.json`
 - **真实集群轮换（k13）PASS**：main `697c0771` 构建的后端（port 8081）在 `115.190.251.143` 现有 K3s 上跑 `k8s-live.py --run-id omx-accept-20261121-k8s38`，17/17 PASS；凭据 version 1→坏 token（2，`/nodes` 被拒）→恢复（3，`/nodes` 返回真实节点）。
+- **断网/取消 runtime PASS**（`t06-cancel-20261124-135304.json`）：候选后端在真实 K3s 建立 `/nodes` 基线（1 节点，78.5ms）；provider 侧以来源限定的临时 `INPUT` DROP 规则制造分区后请求挂起，1s 时客户端断开，handler 1.01s 结束（`ConnectionAbortedError`）；规则删除后恢复 47.92ms。节点列表读取改用请求上下文并保留 30s 上界，客户端断开即取消 provider 调用。
 
 ## 显式 gap
 
-1. 断网/取消的 provider 超时仅有单测级覆盖，未做网络分区实机探针。
+1. 无新增 runtime gap；维护者最终视觉/功能验收（Human Gate）仍开放。Base `keyMatch2` 静态路由守卫属 T04 上游依赖，不在本包范围。
 
 补充：`npm run test:smoke:business:k8s` 已由 PR #207 CI Smoke Sanity（run 45308078162，17m30s）在隔离后端执行并通过；该套件不覆盖凭据表单，掩码证据仍为定向 Playwright 探针。

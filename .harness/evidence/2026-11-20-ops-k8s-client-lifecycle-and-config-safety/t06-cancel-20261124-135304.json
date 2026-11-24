@@ -1,0 +1,32 @@
+{
+  "taskId": "2026-11-20-ops-k8s-client-lifecycle-and-config-safety",
+  "timestamp": "20261124-135304",
+  "probe": "network-partition + client-cancel",
+  "ssh": {
+    "host": "115.190.251.143",
+    "hostKeyVerified": true
+  },
+  "protocol": {
+    "scheme": "https",
+    "port": 6443,
+    "tlsServerName": "localhost",
+    "caVerified": true,
+    "insecureSkipTLSVerify": false
+  },
+  "iptables": "iptables v1.8.10 (nf_tables)",
+  "sourceScoped": true,
+  "clientIpClass": "public-source-scoped",
+  "baseline": {
+    "httpStatus": 200,
+    "nodeCount": 1
+  },
+  "partition": {
+    "pendingAtMs": 1000,
+    "hangedUnderPartition": true,
+    "clientCancelLatencyMs": 0,
+    "backendHandlerLatencyMs": 1010,
+    "terminated": "ConnectionAbortedError"
+  },
+  "ruleRemovedExit": 0,
+  "recoveredNodes": 1
+}

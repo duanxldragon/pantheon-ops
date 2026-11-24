@@ -189,7 +189,7 @@ func (h *ClusterHandler) GetNodes(c *gin.Context) {
 		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
 		return
 	}
-	resp, err := h.svc.GetNodes(id, common.GetDataScope(c))
+	resp, err := h.svc.GetNodes(c.Request.Context(), id, common.GetDataScope(c))
 	if err != nil {
 		common.FailWithError(c, common.CodeError, err, "k8s.cluster.nodes_failed")
 		return
