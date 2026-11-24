@@ -20,18 +20,9 @@ Before work and at closeout run `node ../pantheon-harness/scripts/harness/check-
 
 ## Business work reading order
 
-Before implementing, reviewing, debugging, or designing in this repository, read only the relevant files in this order:
+Start with `AGENTS.md`, `docs/PROJECT_INHERITANCE.md`, `.harness/STATUS.md` and the current task index. Then load the matching business design and inherited contract/acceptance. Use [workspace inheritance rules](../docs/WORKSPACE_INHERITANCE.md) for cross-repo work. Compatibility is governed by the locked snapshot; sibling Base HEAD documents are evolution references and any difference must be recorded. Read relevant Base DESIGN sections for architecture/UI decisions; shared-rule work also follows [Base agent rules](../pantheon-base/AGENTS.md).
 
-1. `../docs/WORKSPACE_INHERITANCE.md`
-2. `AGENTS.md`
-3. `docs/PROJECT_INHERITANCE.md`
-4. `../pantheon-base/DESIGN.md`
-5. `../pantheon-base/AGENTS.md`
-6. `../pantheon-base/docs/README.md`
-7. matching `../pantheon-base/docs/contracts/*`
-8. matching `../pantheon-base/docs/designs/*`
-9. matching `../pantheon-base/docs/acceptances/*`
-10. local business docs under `docs/designs/BUSINESS_*`
+Current task status comes from manifests. Update the target task summary and explicitly regenerate the index; keep historical checkpoints separate. The portable index helper is currently Unreleased. The receipt's full `sourceCommit` controls the CI policy checkout; a policy pin does not publish new helpers.
 
 Repository-local workflow skills live under:
 

@@ -3,6 +3,10 @@
 Chinese version: [PROJECT_INHERITANCE.md](./PROJECT_INHERITANCE.md)
 
 `pantheon-ops` inherits through a complete Pantheon Base snapshot plus a declarative business overlay. An upgrade rebuilds the product tree from the official Base release locked in `foundation-release.lock.json` and injects Ops-owned business assets. It does not patch an old tree file by file or maintain shared-source allowlists.
+Compatibility is governed by inherited contracts in the locked snapshot; sibling Base HEAD docs are evolution references with explicit differences. The receipt full `sourceCommit` pins CI policy checkout; validation never refreshes it. Unreleased helper/checker revisions require separate publication.
+
+Ops `quality.yml` configures cross-layer boundaries and checker wiring. `check:coverage` is a manual inherited utility requiring a measured artifact and a separately reviewed threshold: `npm run check:coverage -- <artifact> --threshold <number>`. Report script availability, CI references, observed results and merge-required checks separately.
+
 
 ## Method Consumption and Product Inheritance
 

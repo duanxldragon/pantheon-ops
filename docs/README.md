@@ -6,7 +6,7 @@ Ops 文档聚焦业务设计、业务验收与本地继承说明；平台层和�
 
 ## 当前交付与任务
 
-截至 2026-11-16，试点尚未验收完成；历史完成证据按原任务范围保存。
+当前执行以 [审查整改父计划](../.harness/tasks/2026-11-20-ops-review-remediation/plan.md)、[任务索引](../.harness/TASK_INDEX.md) 和 [STATUS](../.harness/STATUS.md) 为准。原试点计划已归档，未验收 residual 由当前主线承接；历史完成证据按原范围保存。
 
 | 入口                                                                                           | 用途                                                                                  |
 | ---------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
@@ -33,3 +33,18 @@ Ops 文档聚焦业务设计、业务验收与本地继承说明；平台层和�
 - [V1.0 冻结前综合评审](./audits/v1.0/pantheon-ops_v1.0冻结前综合评审报告.md)。
 - [V1.0 业务闭环评审](./audits/v1.0/pantheon-ops_v1.0业务模块关联性与闭环检查报告.md)。
 - [V1.2 设计第一部分](../.harness/v1.2-docs/V1.2_COMPLETE_DESIGN.md)、[第二部分](../.harness/v1.2-docs/V1.2_COMPLETE_DESIGN_PART2.md)、[第三部分](../.harness/v1.2-docs/V1.2_COMPLETE_DESIGN_PART3.md)：历史扩展设计，不代表全部已交付。
+
+## 按需方法参考
+
+以下是继承与方法维护的索引；普通业务任务按当前任务路由读取。Inherited shell references describe the locked Base snapshot; active method policy uses the explicit receipt.
+
+- [Inherited shell contract](./harness/HARNESS_ENGINEERING_CONTRACT.md)
+- [Inherited method playbook](./harness/HARNESS_METHOD_PLAYBOOK.md)
+- [patterns/README.md](../../pantheon-harness/patterns/README.md)
+- [patterns/harness-core-model.md](../../pantheon-harness/patterns/harness-core-model.md)
+- [patterns/harness-coverage-model.md](../../pantheon-harness/patterns/harness-coverage-model.md)
+- [patterns/harness-template-taxonomy.md](../../pantheon-harness/patterns/harness-template-taxonomy.md)
+- [patterns/tool-adapter-matrix.md](../../pantheon-harness/patterns/tool-adapter-matrix.md)
+- [patterns/method-playbook.md](../../pantheon-harness/patterns/method-playbook.md)
+- [patterns/execution-guardrails.md](../../pantheon-harness/patterns/execution-guardrails.md)
+- [patterns/context-engineering-protocol.md](../../pantheon-harness/patterns/context-engineering-protocol.md)

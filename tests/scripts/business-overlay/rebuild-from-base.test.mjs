@@ -15,7 +15,7 @@ const rebuildModulePath = pathToFileURL(
 const { validateReleaseBundleChecksum } = await import(rebuildModulePath);
 
 function git(root, args) {
-  const result = spawnSync('git', args, { cwd: root, encoding: 'utf8' });
+  const result = spawnSync('git', args, { cwd: root, encoding: 'utf8', windowsHide: true });
   assert.equal(result.status, 0, result.stderr);
 }
 
@@ -144,7 +144,10 @@ test('rebuilds a deterministic Base snapshot with generated business registries'
       assert.equal(fs.readFileSync(path.join(targetRoot, target), 'utf8'), fs.readFileSync(path.join(opsRoot, `backend/modules/business/cmdb/host/migrations/000032_backfill.${direction}.sql`), 'utf8'));
       assert.ok(first.report.generatedFiles.includes(target));
     }
-    assert.equal(JSON.parse(fs.readFileSync(path.join(targetRoot, 'package.json'), 'utf8')).scripts['fetch:base-release'], 'node scripts/business-overlay/foundation-release.mjs');
+    const assembledScripts = JSON.parse(fs.readFileSync(path.join(targetRoot, 'package.json'), 'utf8')).scripts;
+    assert.equal(assembledScripts['fetch:base-release'], 'node scripts/business-overlay/foundation-release.mjs');
+    assert.equal(assembledScripts['check:boundaries'], 'node scripts/harness/check-boundaries.mjs --strict --repo pantheon-ops --baseline config/boundary-baseline.json');
+    assert.equal(assembledScripts['check:coverage'], 'node scripts/harness/check-coverage.mjs', 'rebuild must preserve the manual utility without inventing a coverage threshold');
     assert.match(fs.readFileSync(path.join(targetRoot, 'backend/modules/business/cmdb/module.go'), 'utf8'), /pantheon-base\/pkg\/contracts/u);
     assert.match(fs.readFileSync(path.join(targetRoot, 'backend/modules/business/business_overlay_registry.go'), 'utf8'), /cmdb\.InitCmdbModule/u);
     const businessOverlay = fs.readFileSync(path.join(targetRoot, 'frontend/src/modules/businessOverlay.ts'), 'utf8');

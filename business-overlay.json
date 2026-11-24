@@ -147,7 +147,8 @@
     "tests/scripts/check-task-packet-template.test.mjs",
     "tests/scripts/ci-workflow-dispatch.test.mjs",
     "tests/scripts/quality-workflow.test.mjs",
-    "config/review-loop-legacy-artifacts.json"
+    "config/review-loop-legacy-artifacts.json",
+    "tests/scripts/workflow-method-consumption.test.mjs"
   ],
   "backendModules": [
     {

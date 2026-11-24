@@ -10,6 +10,10 @@ English version: [PROJECT_INHERITANCE.en.md](./PROJECT_INHERITANCE.en.md)
 
 在 Ops 根目录运行 `node ../pantheon-harness/scripts/harness/check-method-consumption.mjs --root . --source ../pantheon-harness`。发现方法版本/哈希变化时先审查，才用同一命令追加 `--update` 更新 receipt。CI/离线环境必须提供同一 harness 快照；缺失来源是显式失败。产品 `VERSION` 与 `foundation-release.lock.json` 不因方法更新而改变；Base 共享产品配置或检查器仍须正式 release 后重建消费。
 
+兼容性阅读以锁定快照内继承的 `docs/contracts/*` 为准；sibling Base HEAD 只提供演进参考，差异须标明。receipt 的完整 `sourceCommit` 固定 CI policy checkout，正常验证不刷新。未发布 helper/checker 另行发行，不能用 policy receipt 证明其已发布。
+
+Ops 的 `quality.yml` 单独配置跨层边界与 checker wiring 检查；`check:coverage` 只是手动继承工具，须提供实际覆盖率文件与另行审查的阈值：`npm run check:coverage -- <artifact> --threshold <number>`。脚本存在、CI 配置引用、观察到的运行结果和合并必过检查必须分别报告。
+
 ## 1. 所有权
 
 - `pantheon-base`：拥有 `platform`、`system/*`、共享前后端、生成器和产品级工程配置。
