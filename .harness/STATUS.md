@@ -7,7 +7,7 @@
 - 当前执行主线：[审查整改父计划](./tasks/2026-11-20-ops-review-remediation/plan.md) / [执行队列](./tasks/2026-11-20-ops-review-remediation/EXECUTION_QUEUE.md)。原十包未验收 residual 由本主线承接。
 - Base 消费版本及 commit 以 [foundation lock](../foundation-release.lock.json) 为准；产品 VERSION、消费版本、实际运行候选分别记录。
 - 11/24 检查点记录 PR #205 合并到 `5e4dac4f`，随后第八轮记录 T06 读授权/路由的代码级收口及其残余 gap；这些结论只证明原候选。当前存在未提交 K8s 等业务改动，须按当前候选重新验证受影响范围。
-- 方法消费 policy pin 已提供 CI 来源；新增 Harness helper/checker 尚未发行。本次机制改进见 [Harness 任务包](../../pantheon-harness/docs/harness/tasks/2026-11-24-workflow-context-improvement.task.md)。
+- 方法消费 policy pin 已提供 CI 来源；新增 Harness helper/checker 尚未发行。本次机制改进已收口：Harness PR #13（`51fc783d`）、Base PR #526（`768c3708`）、Ops PR #209（merge `60bfdf98`），必过门禁绿，Automate Solo PR / Vercel 为既有非必需外部红灯。
 
 ## 仍开放的验收边界
 

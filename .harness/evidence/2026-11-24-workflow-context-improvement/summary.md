@@ -29,3 +29,10 @@ rebase 到 `main` 的 T08 合并提交后重跑：Ops 工作流/重建 29/29、�
 ## 第二次 rebase（T09 收口合并后）
 
 `main` 随后以 `697c0771`（PR #208，T09 全量套件收口与 smoke 证据）前进，本分支再次重放到该提交（新 head `74168cf9`）。该提交只改 `.harness/evidence/*` 与两个任务 `STATUS.md`，无语义源码差异，故既有 29/29 工作流/重建测试与完整 `go test -race ./...` 结论对代码树仍然成立；未伪造新的执行记录。`TASK_INDEX` 重渲染与提交内容一致，无 diff。
+
+## Hosted 收口（2026-11-24）
+
+- Harness PR #13 合并为 `51fc783dc793b75ae91bdb936ba1418e2e95a354`；main「Harness Method Health」success。
+- Ops PR #209 合并为 `60bfdf98ce2a47a89873c9592a574417f8bdcfda`；必过 Docs Governance / Backend Tests SUCCESS（Frontend Contract 按条件 skipped）；非必需 Automate Solo PR（缺 RELEASE_GATE_TOKEN）与 Vercel preview 是既有外部红灯，未豁免、未降级、未用 solo-override。
+- Base PR #526 合并为 `768c37088f705357779b0a0cfedab789aeaa5394`（Base-first：Base 先合）。
+- 本任务 manifest 置 completed、task doc 置 Archived、`TASK_INDEX` 按 manifest 重渲染。正式发行、消费重建与产品验收仍是独立后续。
