@@ -27,14 +27,28 @@
       "status": "failed",
       "durationMs": 1800066,
       "notes": "Full deploy suite attempt. FAIL github.com/duanxldragon/pantheon-base/backend/modules/business/deploy 1800.066s; panic: test timed out after 30m0s. Not an assertion failure: the running test at the alarm was TestFrozenRollbackPreservesDefinitionAndOwnReview (6s elapsed, blocked in a MySQL ExecContext I/O wait). Same suite passed PASS 1047.796s on the T03 candidate; this run exceeded 1800s under system memory pressure (frontend dev server reaped for low memory in the same window). Recorded as an environment/flake gap, not a PASS."
+    },
+    {
+      "command": "PANTHEON_TEST_DSN='root:@tcp(127.0.0.1:33321)/pantheon_test?loc=Local' PANTHEON_TEST_DSN_REQUIRED=true go test -count=1 -buildvcs=false -p 1 -timeout 30m ./modules/business/deploy/...",
+      "cwd": "backend",
+      "status": "passed",
+      "durationMs": 1342649,
+      "notes": "Full deploy suite PASS on current main 3e83ae7a (22m22s). The earlier timeout and the deterministic staleReport failure were environment config: the DSN must carry loc=Local because the local MySQL session time zone is SYSTEM (+08) while go-sql-driver defaults to loc=UTC, so databaseNow() read 8h ahead and every Go-seeded lease looked expired. With loc=Local the same suite is green; prior 1047s PASS used the same convention. Includes recovery/panic/ownership/lease/worker/SSH-cancel/CAS but excludes TestDeployLiveVM* (skipped without PANTHEON_ACCEPTANCE_HOST)."
+    },
+    {
+      "command": "gh run view 45308078162 (PR #207 Smoke Sanity: npm run test:smoke:business:deploy:api + deploy + service + cmdb + k8s)",
+      "cwd": "pantheon-ops",
+      "status": "passed",
+      "durationMs": 1050000,
+      "notes": "CI Smoke Sanity 17m30s green on PR #207 candidate (squash 3e83ae7a). Runs deploy browser smoke (deploy-pages.spec.ts) and deploy API smoke (deploy-api.spec.ts) alongside cmdb/service/k8s, closing the earlier 'dev server reaped' gap."
     }
   ],
   "knownGaps": [
-    "Full deploy suite did not complete in this session (30m timeout under memory pressure); last full green is 1047.796s on the T03 candidate.",
-    "LiveVM SSH cancellation/timeout tests (TestDeployLiveVM*) were not part of the targeted run; real remote termination evidence remains from earlier LiveVM rounds, not re-collected here.",
-    "npm run test:smoke:business:deploy:api and test:smoke:business:deploy were not run this session (frontend dev server reaped for low system memory)."
+    "LiveVM SSH cancellation/timeout tests (TestDeployLiveVM*) were skipped (PANTHEON_ACCEPTANCE_HOST unset and the recorded acceptance credentials are not available in this session); real remote termination evidence remains from earlier LiveVM rounds, not re-collected here.",
+    "Full-suite runtime is 22m22s locally; CI Backend Tests do not run this DB-heavy package at the same depth."
   ],
   "linkage": {
+    "taskManifest": ".harness/tasks/2026-11-20-ops-deploy-recovery-and-remote-execution/manifest.json",
     "taskPacket": "docs/harness/tasks/2026-11-20-ops-deploy-recovery-and-remote-execution.task.md",
     "evidenceDir": ".harness/evidence/2026-11-20-ops-deploy-recovery-and-remote-execution/",
     "reviewFile": ".harness/evidence/2026-11-20-ops-deploy-recovery-and-remote-execution/review.md",

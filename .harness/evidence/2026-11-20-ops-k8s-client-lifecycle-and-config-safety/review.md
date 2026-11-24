@@ -9,8 +9,8 @@
 1. **P2 — V8 真实集群轮换未在本候选重跑。**
    池级单测（`TestPool*`）证明缓存键含凭据哈希、换凭据不复用旧 clientset、并发不复活；但 live 集群的令牌撤销时序未验证。风险：真实网络/服务端缓存层行为可能绕开客户端假设。
 
-2. **P2 — `npm run test:smoke:business:k8s` 本会话未执行。**
-   前端 dev server 被 harness 因系统内存不足回收，按 harness 指示未自行重启；掩码 UI 以定向 Playwright 探针取证（`disc`→`none` + 截图），但不等于整套 k8s 页面 smoke。
+2. **fixed — k8s 页面 smoke。**
+   PR #207 CI Smoke Sanity（run 45308078162，17m30s）在隔离后端执行 `test:smoke:business:k8s` 绿。该套件覆盖集群/发布/服务路由、手机视口、Service 写前置条件与只读门禁，但不覆盖凭据表单；掩码仍以定向 Playwright 探针（`disc`→`none` + 截图）为渲染证据。
 
 3. **P2 — 断网/取消仅有单测级覆盖。**
    provider 调用超时/取消的运行时证据（网络分区、挂起连接）未采集。
@@ -41,7 +41,7 @@
   "changeRef": "none (uncommitted worktree)",
   "findings": [
     {"id": "T06-R1", "severity": "P2", "status": "accepted-gap", "summary": "V8 live credential rotation not re-run on this candidate; pool unit tests cover cache identity"},
-    {"id": "T06-R2", "severity": "P2", "status": "accepted-gap", "summary": "k8s browser smoke suite not run; frontend dev server reaped for low memory"},
+    {"id": "T06-R2", "severity": "P2", "status": "fixed", "summary": "k8s browser smoke green in CI; suite does not cover the credential form", "verification": "PR #207 Smoke Sanity PASS 17m30s (run 45308078162)"},
     {"id": "T06-R3", "severity": "P2", "status": "accepted-gap", "summary": "offline/cancel evidence is unit-level only"},
     {"id": "T06-R4", "severity": "info", "status": "base-first-dependency", "summary": "Base keyMatch2 blocks detail-route bindings; upstream release needed"}
   ],
@@ -53,9 +53,11 @@
     "passwordToggleContract": "PASS (352 files)",
     "uiContract": "PASS (405 files)",
     "eslintChangedFiles": "PASS",
+    "k8sBrowserSmoke": "CI Smoke Sanity PASS 17m30s (run 45308078162)",
     "renderedMaskEvidence": ["k8s-cluster-kubeconfig-masked.png", "k8s-cluster-kubeconfig-revealed.png", "t06-mask-runtime.json", "cmdb-host-ssh-key-masked.png", "cmdb-host-ssh-key-revealed.png", "t06-cmdb-mask-runtime.json"]
   },
   "linkage": {
+    "taskManifest": ".harness/tasks/2026-11-20-ops-k8s-client-lifecycle-and-config-safety/manifest.json",
     "taskPacket": "docs/harness/tasks/2026-11-20-ops-k8s-client-lifecycle-and-config-safety.task.md",
     "evidence": ".harness/evidence/2026-11-20-ops-k8s-client-lifecycle-and-config-safety/commands.json",
     "reviewFile": ".harness/evidence/2026-11-20-ops-k8s-client-lifecycle-and-config-safety/review.md",

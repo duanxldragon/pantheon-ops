@@ -2,7 +2,7 @@
 
 - Task: `2026-11-20-ops-deploy-recovery-and-remote-execution`
 - 日期: 2026-11-24
-- 状态: **恢复/所有权/panic 分支在真实 MySQL 上定向通过；完整套件本会话超时，未重跑 LiveVM**
+- 状态: **完整 deploy 套件（含恢复/所有权/panic/取消）在真实 MySQL 上 PASS，CI deploy smoke 绿；LiveVM 远端终止为显式 gap**
 - 交付层级: L2（自审见 `review.md`）
 
 ## 已交付
@@ -16,11 +16,11 @@
 
 ## 验证
 
-- T08 定向子集：`ok ... 124.377s`（exit 0）
-- **完整 deploy 套件**：`FAIL ... 1800.066s`，`panic: test timed out after 30m0s`；告警时运行中的用例为 `TestFrozenRollbackPreservesDefinitionAndOwnReview`（6s，阻塞在 MySQL `ExecContext` I/O）。同套件在 T03 候选上曾 **PASS 1047.796s**；本次同窗口前端 dev server 因低内存被 harness 回收，判定为环境/慢 fixture 超时，**不记为 PASS**。
+- 定向子集：`ok ... 124.377s`（exit 0）。
+- **完整 deploy 套件**：在 `main` `3e83ae7a` 上 `PASS 1342.649s`（22m22s，真实 MySQL）。此前 30m 超时与单测 `staleReport` 失败均为 DSN 配置：本地 MySQL 会话时区为 SYSTEM(+08)，而 go-sql-driver 默认 `loc=UTC`，`databaseNow()` 读到超前 8 小时、所有 Go 侧租约被判过期；DSN 加 `loc=Local` 后同套件全绿（历史 1047s PASS 同一约定）。
+- **CI deploy smoke**：PR #207 Smoke Sanity（run 45308078162）17m30s 绿，执行 `test:smoke:business:deploy:api` 与 `test:smoke:business:deploy` 以及 cmdb/service/k8s smoke。
 
 ## 显式 gap
 
-1. 完整 deploy 套件本会话未跑完（内存压力下 30m 超时）。
-2. `TestDeployLiveVM*` 未纳入定向运行；真实 SSH 远端终止证据沿用早期轮次，未在本候选重采。
-3. deploy 浏览器/API smoke 未执行（前端 dev server 被内存回收）。
+1. `TestDeployLiveVM*` 因 `PANTHEON_ACCEPTANCE_HOST` 未设置且本会话无可用的验收 SSH 凭证而 skip；真实远端终止证据沿用早期轮次，未在本候选重采。
+2. 完整套件本地耗时 ~22 分钟，CI Backend Tests 不覆盖同等深度的 DB 重负载。
