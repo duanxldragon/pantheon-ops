@@ -2,7 +2,7 @@
 
 由 `.harness/tasks/*/manifest.json` 生成；仅展示当前任务树。状态以 manifest 为准，completed 不代表产品或生产验收。
 
-planned: 8 · in-progress: 5 · completed: 18 · abandoned: 0（当前树共 31 项；不统计月度归档）
+planned: 8 · in-progress: 4 · completed: 19 · abandoned: 0（当前树共 31 项；不统计月度归档）
 
 | 当前任务 | 状态 | 优先级 | 最新证据 |
 | --- | --- | --- | --- |
@@ -13,7 +13,7 @@ planned: 8 · in-progress: 5 · completed: 18 · abandoned: 0（当前树共 31 
 | [扩展业务与异步链路租户隔离](./tasks/2026-11-20-ops-extension-and-async-tenant-isolation/manifest.json) | planned | P1 | 未提供 summary |
 | [文件分发队列、恢复与取消](./tasks/2026-11-20-ops-filedist-durable-lifecycle/manifest.json) | planned | P1 | 未提供 summary |
 | [K8s 凭据导入、连接轮换与请求边界](./tasks/2026-11-20-ops-k8s-client-lifecycle-and-config-safety/manifest.json) | completed | P1 | [summary](./evidence/2026-11-20-ops-k8s-client-lifecycle-and-config-safety/summary.md) |
-| [Pod 日志 WebSocket 来源与连接生命周期](./tasks/2026-11-20-ops-k8s-log-websocket-lifecycle/manifest.json) | in-progress | P1 | [summary](./evidence/2026-11-20-ops-k8s-log-websocket-lifecycle/summary.md) |
+| [Pod 日志 WebSocket 来源与连接生命周期](./tasks/2026-11-20-ops-k8s-log-websocket-lifecycle/manifest.json) | completed | P1 | [summary](./evidence/2026-11-20-ops-k8s-log-websocket-lifecycle/summary.md) |
 | [K8s 资源读写授权与变更准入](./tasks/2026-11-20-ops-k8s-resource-authorization-and-mutations/manifest.json) | in-progress | P1 | [summary](./evidence/2026-11-20-ops-k8s-resource-authorization-and-mutations/summary.md) |
 | [试点交付包、安装回滚与审查收口](./tasks/2026-11-20-ops-review-delivery-and-closeout/manifest.json) | planned | P0 | 未提供 summary |
 | [能力文档、测试资产与治理对账](./tasks/2026-11-20-ops-review-docs-and-test-governance/manifest.json) | planned | P2 | 未提供 summary |

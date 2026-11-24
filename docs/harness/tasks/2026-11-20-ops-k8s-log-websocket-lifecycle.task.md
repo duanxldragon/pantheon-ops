@@ -2,8 +2,8 @@
 title: Pod 日志 WebSocket 来源与连接生命周期
 doc_type: Remediation
 layer: business
-status: Active
-updated_at: 2026-11-20
+status: Archived
+updated_at: 2026-11-24
 linked_contracts:
   - docs/designs/BUSINESS_K8S_MODULE_DESIGN.md
   - docs/contracts/TENANT_CONTRACT_V1.md

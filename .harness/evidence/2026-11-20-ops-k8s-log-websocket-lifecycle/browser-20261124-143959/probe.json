@@ -1,0 +1,89 @@
+{
+  "runId": "omx-t07-browser-20261124-143959",
+  "steps": [
+    {
+      "step": "apiLogin",
+      "at": "2026-11-24T06:40:43.686Z",
+      "status": 200,
+      "operationTokenIssued": true
+    },
+    {
+      "step": "goroutineBaseline",
+      "at": "2026-11-24T06:40:46.738Z",
+      "count": 35
+    },
+    {
+      "step": "workloadPageLoaded",
+      "at": "2026-11-24T06:40:50.538Z"
+    },
+    {
+      "step": "workloadRowVisible",
+      "at": "2026-11-24T06:40:51.992Z",
+      "rowText": "Deployment accept-workload omx-t07-browser-20261124-143959 1/1 rancher/local-path-provisioner:v0.0.36 就绪 15s Pod 扩缩容 重启"
+    },
+    {
+      "step": "logStreamConnected",
+      "at": "2026-11-24T06:40:52.879Z",
+      "pod": "accept-workload-6f8797b7d-wxz65"
+    },
+    {
+      "step": "goroutineWithLogStream",
+      "at": "2026-11-24T06:40:55.972Z",
+      "count": 39
+    },
+    {
+      "step": "goroutineAfterClose",
+      "at": "2026-11-24T06:41:01.226Z",
+      "count": 35
+    },
+    {
+      "step": "logStreamReconnected",
+      "at": "2026-11-24T06:41:02.984Z",
+      "pod": "accept-workload-6f8797b7d-wxz65"
+    },
+    {
+      "step": "scaledToZero",
+      "at": "2026-11-24T06:41:03.053Z"
+    },
+    {
+      "step": "providerEndedStatus",
+      "at": "2026-11-24T06:41:33.459Z",
+      "tag": "已断开",
+      "showsProviderError": false
+    },
+    {
+      "step": "reconnectRendered",
+      "at": "2026-11-24T06:41:33.744Z",
+      "tag": "已断开",
+      "showsProviderError": true
+    },
+    {
+      "step": "reconnectSuccess",
+      "at": "2026-11-24T06:41:42.695Z",
+      "newPod": "accept-workload-6f8797b7d-7647x",
+      "connected": true
+    },
+    {
+      "step": "goroutineAfterRecoverClose",
+      "at": "2026-11-24T06:41:48.154Z",
+      "count": 35
+    }
+  ],
+  "shots": [
+    "connected.png",
+    "provider-closed.png",
+    "reconnect-error.png",
+    "reconnect-success.png"
+  ],
+  "goroutines": {
+    "baseline": 35,
+    "withLogStream": 39,
+    "afterClose": 35,
+    "afterRecoverClose": 35,
+    "final": 34
+  },
+  "startedAt": "2026-11-24T06:40:43.210Z",
+  "verdict": "PASS",
+  "gaps": [],
+  "evidenceDir": "browser-20261124-143959"
+}
