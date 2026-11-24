@@ -68,7 +68,7 @@
     "no GET /business/deploy/credentials/:id detail route (V5 probe records 404 as finding)",
     "business:deploy:credential:* permission keys not seeded -> credentials admin-only; ListCredentials has no creator filter (latent SEC-004 residual)",
     "cmdbhost.ssh_connect_failed masks host-key mismatch (wrong-fingerprint UX semantics)",
-    "leftover vprobe test users/roles not deleted (operation-verify 403)",
+    "fixed 2026-11-24: leftover vprobe test users/roles deleted through the real operation-verify + SecureAction batch delete (16 users, 226 roles; 0 residue; 3 packages retained as in_use)",
     "argocd AddServer/AddRepository blocked: runtime env lacks PANTHEON_ENCRYPTION_KEY -> argocd.encryption_key_missing (deploy-config, not code defect; token never leaked)",
     "runtime env lacks PANTHEON_BUSINESS_SECRET_KEY -> non-empty business secrets cannot be stored at rest (secrets.Encrypt key_missing); empty-string Encrypt is a no-op so passwordless datasource create unaffected"
   ],
@@ -88,6 +88,7 @@
     "PANTHEON_BUSINESS_SECRET_KEY absent -> shared business secret Encrypt would key_missing on non-empty values"
   ],
   "linkage": {
+    "taskPacket": "docs/harness/tasks/2026-11-20-ops-review-live-runtime-acceptance.task.md",
     "taskManifest": ".harness/tasks/2026-11-20-ops-review-live-runtime-acceptance/manifest.json",
     "evidence": ".harness/evidence/2026-11-20-ops-review-live-runtime-acceptance/commands.json",
     "reviewFile": ".harness/evidence/2026-11-20-ops-review-live-runtime-acceptance/review.md",
