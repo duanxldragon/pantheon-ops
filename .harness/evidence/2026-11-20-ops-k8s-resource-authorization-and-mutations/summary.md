@@ -2,7 +2,7 @@
 
 - Task: `2026-11-20-ops-k8s-resource-authorization-and-mutations`
 - 日期: 2026-11-24
-- 状态: **代码级全部验收项已实现并验证；浏览器侧草稿恢复与 k8s smoke 仍为显式 gap**
+- 状态: **代码级全部验收项已实现并验证；live K3s 的 namespace ownership/写保护（k14）PASS；浏览器侧草稿恢复仍为显式 gap**
 - 交付层级: L2（自审见 `review.md`）
 
 ## 已交付
@@ -22,9 +22,10 @@
 - workload 包 3/3 定向 PASS；整包 ok
 - K8s 全模块 12/12 包 ok（真实 MySQL DSN），含新增 `TestReadableNamespacesFollowsClusterOwnership` 与 `TestK8sPermissionRoutesMatchActualActions`
 - permission / role / tenant 套件（真实 MySQL）复跑 PASS，消费扩展后的 K8s 权限路由注册表
+- **live K3s（k14）PASS**：main `697c0771` 候选后端，`k8s-live.py --run-id omx-accept-20261121-k8s38` 17/17；未绑定 namespace 的写入在创建对象前被拒。
+- k8s 页面 smoke 由 PR #207 CI Smoke Sanity（17m30s）执行并绿。
 
 ## 显式 gap
 
 1. 真实 kubectl 干扰 + UI 草稿恢复未在浏览器验证。
-2. k8s 浏览器 smoke 未执行（前端 dev server 被内存回收）。
-3. Base 静态/参数路由守卫（`pantheon-base` PR #525，`63940437`）尚未通过 foundation release 进入 ops；当前绑定刻意避开静态/参数同层冲突路由，待发布后可进一步绑定。
+2. Base 静态/参数路由守卫（`pantheon-base` PR #525，`63940437`）尚未通过 foundation release 进入 ops；当前绑定刻意避开静态/参数同层冲突路由，待发布后可进一步绑定。

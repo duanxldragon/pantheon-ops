@@ -1,0 +1,58 @@
+{
+  "id": "k15",
+  "intent": "owned resources cleanup and independent absence",
+  "userModel": "authenticated admin unless stated",
+  "setup": "local Ops; pinned SSH to 115.190.251.143; dedicated namespace",
+  "harness": ".local/acceptance-20261121/k8s-live.py",
+  "expected": "assertions hold",
+  "fixesApplied": [],
+  "cleanup": "owned fixtures tracked in checkpoint.json",
+  "actual": [
+    {
+      "namespace": "omx-accept-20261121-k8s38",
+      "deletedAndIndependentlyVerified": true
+    },
+    {
+      "clusterId": 10,
+      "deleted": true
+    },
+    {
+      "scopeId": 29,
+      "deleted": true
+    }
+  ],
+  "status": "PASS",
+  "calls": [
+    {
+      "method": "DELETE",
+      "path": "/business/k8s/clusters/10/namespaces/omx-accept-20261121-k8s38?resourceVersion=2536181",
+      "httpStatus": 200,
+      "code": 200,
+      "message": "success",
+      "durationMs": 63,
+      "data": null
+    },
+    {
+      "method": "DELETE",
+      "path": "/business/k8s/clusters/10",
+      "httpStatus": 200,
+      "code": 200,
+      "message": "success",
+      "durationMs": 62,
+      "data": null
+    },
+    {
+      "method": "DELETE",
+      "path": "/business/bizscope/29",
+      "httpStatus": 200,
+      "code": 200,
+      "message": "success",
+      "durationMs": 79,
+      "data": {
+        "deleted": true
+      }
+    }
+  ],
+  "durationMs": 53797,
+  "evidence": ".harness\\evidence\\2026-11-20-ops-review-live-runtime-acceptance\\k8s\\omx-accept-20261121-k8s38\\k15-20261124-112604.json"
+}

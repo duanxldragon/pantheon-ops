@@ -5,6 +5,10 @@
 - Owner: Claude 业务修复 / Claude 独立验收（Codex 暂不可用）
 - Baseline: a2d69d4a759b5df2b26aaa9d26bdc5175babe9dc，dirty worktree 保留
 
+## 2026-11-24 同候选 k8s lane 17/17 PASS（main `697c0771`）
+
+当前 `main` 后端（clean source，binary sha256 `d6a76a5f…`）在 `115.190.251.143` K3s 上执行 `k8s-live.py --run-id omx-accept-20261121-k8s38`：**17 PASS / 0 FAIL / 0 BLOCKED**。k12 真实 Pod 日志 WebSocket、k13 凭据轮换/恢复、k14 namespace ownership/写保护、k15 清理独立核验全部 PASS。证据 `k8s/omx-accept-20261121-k8s38/`（summary-20261124-112210.json + 17 个 k*.json）。注：该 harness 的 summary receipt 把 `sourceHead` 硬编码为规划基线 `a2d69d4a`，候选实际 source head 为 `697c0771`；运行使用独立 DB `ops_acceptance_formal_20261121`，跑后 `runtime-live/ownership.json` 已按字节复原（codex 的 8080 后端未受影响）。k8s37 为同一候选的预演，k12/k15 两项失败分别由 Origin 允许清单缺 `127.0.0.1:5175` 与 harness DB 指向 codex 库造成，均为环境配置，k8s38 修正后全绿。
+
 ## 当前结果（2026-11-23：k8s lane 同候选重跑 22/22 PASS）
 
 本地 Ops 已启动；115.190.251.143 同时作为 SSH 部署与 K8s provider。**K8s lane 已在当前候选 `bad479fc`（`pantheon-ops-codex-t02b-20261122-172553.exe`）上重跑通过 22 PASS / 0 FAIL / 0 BLOCKED**，关闭此前 binary `fba00055` 的 PARTIAL 陈述（22 PASS / 1 BLOCKED Velero）。Velero 陈旧 containerd image metadata 阻塞已解决：image entity 重建后 pod Running（1 pod），k19 真实 ConfigMap 备份 `omx-accept-20261121-k8s35-backup` **Completed**、errors 0、warnings 0。k15 owned 资源清理独立核验通过。harrness 修复：`k8s-live.py` 读 `runtime-live/ownership.json` 的 dbname（不再硬编码 `ops_acceptance_formal_20261121`）；k8s34 的清理 fence FAIL 即该 harness DB 名 bug，修复后 k8s35 全绿。

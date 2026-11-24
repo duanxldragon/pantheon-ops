@@ -1,6 +1,6 @@
 # 部署任务恢复、协程与远程执行一致性
 
-- Status: in-progress
+- Status: completed — code + real-MySQL suite + CI smoke + LiveVM real-VM evidence passed; maintainer final acceptance open
 - Updated: 2026-11-24
 - Baseline: a2d69d4a759b5df2b26aaa9d26bdc5175babe9dc
 - Owner: 部署并发与恢复负责人
@@ -19,12 +19,13 @@
 - 定向子集（panic/ownership/lease/worker/SSH cancel/CAS/idempotent）：`ok ... 124.377s`（exit 0）。
 - **完整 deploy 套件 PASS**：`go test -count=1 -buildvcs=false -p 1 -timeout 30m ./modules/business/deploy/...` → `ok ... 1342.649s`（22m22s，真实 MySQL，`main` `3e83ae7a`）。此前超时与 `staleReport` 失败根因是 DSN 需 `loc=Local`（MySQL SYSTEM +08 vs 驱动默认 UTC，`databaseNow` 超前 8 小时）。
 - deploy 浏览器/API smoke 由 PR #207 CI Smoke Sanity（17m30s）覆盖并绿。
+- **LiveVM 真实远端 PASS**：`TestDeployLiveVMExecution`（success + failure 反向）与 `TestDeployLiveVMCancellation` → `ok ... 7.090s`（`115.190.251.143`，凭据 DPAPI 仅进程内注入）。
 - 证据：`../evidence/2026-11-20-ops-deploy-recovery-and-remote-execution/`。
 
 ## Known Gaps
 
-1. `TestDeployLiveVM*` 因验收主机/凭证不可用而 skip；真实远端终止证据未在本候选重采。
+1. 完整套件本地 ~22 分钟，CI Backend Tests 未按同深度跑 DB 重负载包。
 
 ## Next Atomic Action
 
-提供验收主机与 SSH 凭证后重跑 `TestDeployLiveVM*`，补齐真实远端终止证据后进入最终验收。
+维护者最终验收。

@@ -1,0 +1,48 @@
+{
+  "runId": "omx-accept-20261121-k8s38",
+  "namespace": "omx-accept-20261121-k8s38",
+  "ids": {
+    "scope": 29,
+    "cluster": 10,
+    "namespaceCreated": true,
+    "service": {
+      "name": "accept-service",
+      "namespace": "omx-accept-20261121-k8s38",
+      "type": "ClusterIP",
+      "clusterIP": "10.43.69.195",
+      "ports": [
+        {
+          "name": "http",
+          "port": 8080,
+          "targetPort": 8080,
+          "nodePort": 0,
+          "protocol": "TCP"
+        }
+      ],
+      "selector": {
+        "app": "accept-workload",
+        "revision": "2"
+      },
+      "loadBalancerIP": "",
+      "resourceVersion": "2536190",
+      "uid": "e68ce5c6-4cbb-456b-ac06-727c152557a2"
+    },
+    "image": "rancher/local-path-provisioner:v0.0.36",
+    "workloadCreated": true
+  },
+  "cleanup": [
+    {
+      "namespace": "omx-accept-20261121-k8s38",
+      "deletedAndIndependentlyVerified": true
+    },
+    {
+      "clusterId": 10,
+      "deleted": true
+    },
+    {
+      "scopeId": 29,
+      "deleted": true
+    }
+  ],
+  "plaintextCredentialsRecorded": false
+}

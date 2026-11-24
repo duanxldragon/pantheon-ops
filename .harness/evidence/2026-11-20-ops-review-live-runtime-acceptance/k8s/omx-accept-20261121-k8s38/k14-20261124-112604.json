@@ -1,0 +1,38 @@
+{
+  "id": "k14",
+  "intent": "namespace ownership and write protection",
+  "userModel": "authenticated admin unless stated",
+  "setup": "local Ops; pinned SSH to 115.190.251.143; dedicated namespace",
+  "harness": ".local/acceptance-20261121/k8s-live.py",
+  "expected": "assertions hold",
+  "fixesApplied": [],
+  "cleanup": "owned fixtures tracked in checkpoint.json",
+  "actual": {
+    "missingOwnerRejected": true,
+    "unboundNamespaceRejected": true,
+    "remoteSideEffects": false
+  },
+  "status": "PASS",
+  "calls": [
+    {
+      "method": "POST",
+      "path": "/business/k8s/clusters/10/namespaces",
+      "httpStatus": 200,
+      "code": 400,
+      "message": "common.param_invalid",
+      "durationMs": 0,
+      "data": null
+    },
+    {
+      "method": "POST",
+      "path": "/business/k8s/clusters/10/configmaps?namespace=kube-system",
+      "httpStatus": 200,
+      "code": 500,
+      "message": "k8s.namespace.binding_required",
+      "durationMs": 16,
+      "data": null
+    }
+  ],
+  "durationMs": 250,
+  "evidence": ".harness\\evidence\\2026-11-20-ops-review-live-runtime-acceptance\\k8s\\omx-accept-20261121-k8s38\\k14-20261124-112604.json"
+}
