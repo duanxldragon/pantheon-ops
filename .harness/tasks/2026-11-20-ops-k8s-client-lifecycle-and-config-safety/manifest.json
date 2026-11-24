@@ -4,7 +4,7 @@
   "title": "K8s 凭据导入、连接轮换与请求边界",
   "goal": "连接缓存绑定租户/集群/凭据版本，更新/轮换/删除触发既有 Evict；并发请求不可复活旧连接",
   "primaryLayer": "business/*",
-  "status": "in-progress",
+  "status": "completed",
   "priority": "P1",
   "deliveryTier": "L2",
   "parentTask": "2026-11-20-ops-review-remediation",
@@ -184,6 +184,7 @@
     ]
   },
   "runtimeSensitive": true,
+  "executionStage": "reviewed-human-gate-open",
   "humanGates": [
     "需求/范围偏好、门禁策略与豁免、最终视觉/功能验收按维护者三触点契约处理",
     "生产窗口/外部凭据操作/正式发布/最终仓库基线替换需已有授权"

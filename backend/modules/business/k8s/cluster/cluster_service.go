@@ -460,13 +460,13 @@ func (s *ClusterService) Sync(id uint64, dataScope *common.DataScopeReq) (*Clust
 }
 
 // GetNodes returns a live view of the cluster's nodes. It is not persisted.
-func (s *ClusterService) GetNodes(id uint64, dataScope *common.DataScopeReq) (*NodeListResponse, error) {
+func (s *ClusterService) GetNodes(parent context.Context, id uint64, dataScope *common.DataScopeReq) (*NodeListResponse, error) {
 	cluster, err := s.findCluster(id, dataScope)
 	if err != nil {
 		return nil, err
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), syncTimeout)
+	ctx, cancel := context.WithTimeout(parent, syncTimeout)
 	defer cancel()
 
 	clientset, err := s.clientsetForCluster(cluster)

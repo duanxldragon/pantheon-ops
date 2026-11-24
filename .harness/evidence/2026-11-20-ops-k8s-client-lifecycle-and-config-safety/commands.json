@@ -10,7 +10,7 @@
   "candidate": {
     "baselineReportCommit": "444ce8e",
     "planningCommit": "a2d69d4a759b5df2b26aaa9d26bdc5175babe9dc",
-    "worktree": "uncommitted",
+    "worktree": "fix/t06-node-cancel from main 942c5993",
     "foundation": "pantheon-base-v0.18.9"
   },
   "commands": [
@@ -74,10 +74,18 @@
       "cwd": "pantheon-ops",
       "status": "passed",
       "notes": "Live cluster acceptance on a candidate backend built from main 697c0771 (binary sha256 d6a76a5f... on port 8081). 17/17 PASS. k13 warm-cache credential rotation: version 1 -> rotate bad token (version 2, /nodes rejected) -> restore (version 3, /nodes returns real node) PASS; k12 real Pod logs over WebSocket and k14 namespace ownership/write protection also PASS. Evidence: .harness/evidence/2026-11-20-ops-review-live-runtime-acceptance/k8s/omx-accept-20261121-k8s38/."
+    },
+    {
+      "command": "python -I .local/acceptance-20261121/t06-cancel-probe.py (run via run-t06-cancel.ps1)",
+      "cwd": "pantheon-ops",
+      "status": "passed",
+      "durationMs": 52000,
+      "notes": "Network-partition + client-cancel runtime probe on the fixed candidate (branch fix/t06-node-cancel): baseline /nodes 1 node 200 (78.5ms); source-scoped temporary INPUT DROP on provider port 6443 hangs the request; client disconnects at 1000ms; Gin handler ends at 1.01s with ConnectionAbortedError (not the 30s sync timeout); rule removed and provider traffic recovers (47.92ms). Evidence: t06-cancel-20261124-135304.json."
     }
   ],
   "knownGaps": [
-    "Offline/disconnect cancellation evidence for provider calls is unit-level only; no network-partition runtime probe on this candidate."
+    "Maintainer final visual/functional acceptance (Human Gate) remains open.",
+    "Base keyMatch2 static route guard remains an upstream dependency (T04 scope), not an Ops override."
   ],
   "linkage": {
     "taskManifest": ".harness/tasks/2026-11-20-ops-k8s-client-lifecycle-and-config-safety/manifest.json",

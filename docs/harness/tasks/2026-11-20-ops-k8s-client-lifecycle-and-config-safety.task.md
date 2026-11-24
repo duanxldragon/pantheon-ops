@@ -2,7 +2,7 @@
 title: K8s 凭据导入、连接轮换与请求边界
 doc_type: Remediation
 layer: business
-status: Active
+status: Archived
 updated_at: 2026-11-20
 linked_contracts:
   - docs/designs/BUSINESS_K8S_MODULE_DESIGN.md
