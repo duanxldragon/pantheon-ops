@@ -186,7 +186,7 @@ func (s *AuditService) DeleteOperationLog(logID uint64, ctx *tenant.Context) err
 
 // CleanupOperationLogs deletes entries older than the retention window and
 // returns the affected row count.
-func (s *AuditService) CleanupOperationLogs(retentionDays int, startedAt string, endedAt string, ctx *tenant.Context) (int64, error) {
+func (s *AuditService) CleanupOperationLogs(retentionDays int, startedAt, endedAt string, ctx *tenant.Context) (int64, error) {
 	if s.db == nil {
 		return 0, common.ErrDatabaseNotInitialized
 	}

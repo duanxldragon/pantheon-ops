@@ -68,7 +68,7 @@ func updateActivationAuditSummary(summary *ActivationAuditSummary, backendReady,
 	summary.PendingModules++
 }
 
-func (s *DynamicModuleService) buildActivationAuditVerifications(moduleKey string, scope string, name string, backendReady bool, frontendReady bool) []GeneratedModuleVerification {
+func (s *DynamicModuleService) buildActivationAuditVerifications(moduleKey, scope, name string, backendReady, frontendReady bool) []GeneratedModuleVerification {
 	verifications := make([]GeneratedModuleVerification, 0, 6)
 	if s.generatedModuleArtifactsExist(scope, name) {
 		verifications = append(verifications, GeneratedModuleVerification{

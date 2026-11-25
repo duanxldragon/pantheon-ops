@@ -312,7 +312,7 @@ func (s *DashboardService) loadSummaryCounts(resp *SummaryResp, params summaryCo
 	return nil
 }
 
-func (s *DashboardService) countTable(tableName string, where string, args ...interface{}) (int64, error) {
+func (s *DashboardService) countTable(tableName, where string, args ...interface{}) (int64, error) {
 	var count int64
 	query := s.scopedTable(tableName)
 	if where != "" {

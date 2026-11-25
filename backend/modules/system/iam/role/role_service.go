@@ -770,7 +770,7 @@ func (s *RoleService) listUsersByRoleMembership(roleID uint64, query *RoleMember
 }
 
 // upsertRoleDataScopePolicy creates or updates a data scope policy for a role.
-func (s *RoleService) upsertRoleDataScopePolicy(tx *gorm.DB, roleKey string, mode string) error {
+func (s *RoleService) upsertRoleDataScopePolicy(tx *gorm.DB, roleKey, mode string) error {
 	mode = normalizeRoleDataScope(mode)
 	if !isValidRoleDataScopeMode(mode) {
 		return common.NewBadRequest("permission.data_scope.mode_invalid")

@@ -128,7 +128,7 @@ func (s *DynamicModuleService) buildMenuBackedRegistration(moduleName, now strin
 
 // applyMenuBackedRegistrationUpdate patches mutable fields on an existing
 // registration, preserving any values already populated.
-func (s *DynamicModuleService) applyMenuBackedRegistrationUpdate(existing *ModuleRegistration, registration *ModuleRegistration, now string) error {
+func (s *DynamicModuleService) applyMenuBackedRegistrationUpdate(existing, registration *ModuleRegistration, now string) error {
 	updates := map[string]interface{}{
 		"status": ModuleStatusActive,
 	}

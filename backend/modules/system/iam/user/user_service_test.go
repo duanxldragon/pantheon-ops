@@ -566,7 +566,7 @@ func TestUserService_DeleteUserPurgesAuthArtifacts(t *testing.T) {
 		t.Fatalf("expected delete to succeed, got %v", err)
 	}
 
-	assertCount := func(table string, where string, arg any, want int64) {
+	assertCount := func(table, where string, arg any, want int64) {
 		t.Helper()
 		var count int64
 		if err := db.Table(table).Where(where, arg).Count(&count).Error; err != nil {

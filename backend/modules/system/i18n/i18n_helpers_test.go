@@ -393,11 +393,13 @@ func TestCollectUnusedLifecycleTargets(t *testing.T) {
 func assertUnusedLifecycleTargets(
 	t *testing.T,
 	audit *I18nAuditResp,
-	module string,
+	module,
 	status string,
+
 	filter func(I18nUnusedKeyItem) bool,
-	wantKeys []string,
+	wantKeys,
 	wantModules []string,
+
 ) {
 	t.Helper()
 	targets, keys := collectUnusedLifecycleTargets(audit, module, status, filter)

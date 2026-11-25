@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Form, Input, Select } from '@arco-design/web-react';
 import { useTranslation } from 'react-i18next';
 import { SubmitBar } from '../../../../components';
-import SecretTextArea from '../../../../components/patterns/forms/SecretTextArea';
+import SecretTextArea from '../../shared/SecretTextArea';
 import { getBizScopeOptions } from '../../bizscope/api';
 
 const FormItem = Form.Item;

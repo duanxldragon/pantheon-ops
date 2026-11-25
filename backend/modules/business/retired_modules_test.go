@@ -142,7 +142,7 @@ func mustCreateRetiredModuleBusinessTable(t *testing.T, db *gorm.DB, tableName s
 	}
 }
 
-func mustInsertRetiredMenuRow(t *testing.T, db *gorm.DB, path string, module string, component string, pagePerm string, perms string) uint64 {
+func mustInsertRetiredMenuRow(t *testing.T, db *gorm.DB, path, module, component, pagePerm, perms string) uint64 {
 	t.Helper()
 	if err := db.Exec(
 		`INSERT INTO system_menu (path, type, module, component, page_perm, perms) VALUES (?, 'C', ?, ?, ?, ?)`,
@@ -182,14 +182,14 @@ func mustInsertRetiredI18n(t *testing.T, db *gorm.DB, module string) {
 	}
 }
 
-func mustInsertRetiredScopedI18n(t *testing.T, db *gorm.DB, module string, key string) {
+func mustInsertRetiredScopedI18n(t *testing.T, db *gorm.DB, module, key string) {
 	t.Helper()
 	if err := db.Exec(`INSERT INTO system_i18n (module, `+"`key`"+`) VALUES (?, ?)`, module, key).Error; err != nil {
 		t.Fatalf("insert retired scoped i18n: %v", err)
 	}
 }
 
-func mustInsertManagedRegistration(t *testing.T, db *gorm.DB, module string, tableName string, status int) {
+func mustInsertManagedRegistration(t *testing.T, db *gorm.DB, module, tableName string, status int) {
 	t.Helper()
 	if err := db.Exec(`INSERT INTO system_module_registration (name, table_name, status) VALUES (?, ?, ?)`, module, tableName, status).Error; err != nil {
 		t.Fatalf("insert managed registration: %v", err)
@@ -203,7 +203,7 @@ func assertTableExists(t *testing.T, db *gorm.DB, tableName string) {
 	}
 }
 
-func assertRecordCount(t *testing.T, db *gorm.DB, tableName string, where string, expected int64) {
+func assertRecordCount(t *testing.T, db *gorm.DB, tableName, where string, expected int64) {
 	t.Helper()
 	var count int64
 	if err := db.Table(tableName).Where(where).Count(&count).Error; err != nil {

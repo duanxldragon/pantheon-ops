@@ -86,6 +86,19 @@ func RegisteredBusinessOwnerLifecycleReader() (businessauth.OwnerLifecycleReader
 	return reader, nil
 }
 
+// RegisteredBusinessJobAuthorizationReader exposes the auth provider's optional
+// durable-job capability during business module Init. It never falls back to
+// the metadata-only owner lifecycle reader or a session-backed authorization.
+func RegisteredBusinessJobAuthorizationReader() (businessauth.JobAuthorizationReader, error) {
+	businessProviders.RLock()
+	defer businessProviders.RUnlock()
+	reader, ok := businessProviders.authorization.(businessauth.JobAuthorizationReader)
+	if !ok || nilBusinessProvider(reader) {
+		return nil, ErrBusinessProviders
+	}
+	return reader, nil
+}
+
 // SealBusinessTenantProviders freezes provider registration for the process.
 func SealBusinessTenantProviders() error {
 	businessProviders.Lock()

@@ -24,7 +24,7 @@ import type { HostRow } from './api';
 import { usePermission } from '../../../../hooks/usePermission';
 import { formatDateTime } from '../../../../core/format/dateTime';
 import PasswordInput from '../../../../components/patterns/forms/PasswordInput';
-import SecretTextArea from '../../../../components/patterns/forms/SecretTextArea';
+import SecretTextArea from '../../shared/SecretTextArea';
 import '../../../../assets/list-page.css';
 import '../cmdb.css';
 

@@ -81,7 +81,7 @@ func TestDialCheckedFallbackAndIPFamilies(t *testing.T) {
 				func(context.Context, string) ([]net.IPAddr, error) {
 					return []net.IPAddr{{IP: net.ParseIP("8.8.8.8")}, {IP: net.ParseIP("2001:4860:4860::8888")}}, nil
 				},
-				func(_ context.Context, _ string, addr string) (net.Conn, error) {
+				func(_ context.Context, _, addr string) (net.Conn, error) {
 					attempts = append(attempts, addr)
 					return nil, errors.New("fixture refused")
 				})
@@ -137,7 +137,7 @@ func TestDialCheckedLiteralIPsAndProtectionFlags(t *testing.T) {
 					t.Fatal("literal IP must not resolve")
 					return nil, nil
 				},
-				func(_ context.Context, _ string, addr string) (net.Conn, error) {
+				func(_ context.Context, _, addr string) (net.Conn, error) {
 					called = true
 					return nil, errors.New("fixture refused")
 				})
@@ -156,7 +156,7 @@ func TestDialCheckedLiteralIPsAndProtectionFlags(t *testing.T) {
 			t.Fatal("both flags off must preserve ordinary dial")
 			return nil, nil
 		},
-		func(_ context.Context, _ string, addr string) (net.Conn, error) {
+		func(_ context.Context, _, addr string) (net.Conn, error) {
 			dialed = addr
 			return nil, errors.New("fixture refused")
 		})
@@ -242,7 +242,7 @@ func checkDialFallback(t *testing.T, parentDeadline bool) {
 		func(context.Context, string) ([]net.IPAddr, error) {
 			return []net.IPAddr{{IP: net.ParseIP("8.8.8.8")}, {IP: net.ParseIP("2001:4860:4860::8888")}, {IP: net.ParseIP("1.1.1.1")}}, nil
 		},
-		func(attempt context.Context, _ string, addr string) (net.Conn, error) {
+		func(attempt context.Context, _, addr string) (net.Conn, error) {
 			attempts++
 			if addr == "8.8.8.8:443" {
 				<-attempt.Done()

@@ -5,7 +5,7 @@ layer: platform
 status: Active
 linked_contracts:
   - docs/contracts/PLATFORM_CONTRACT.md
-updated_at: 2026-11-04
+updated_at: 2026-11-14
 ---
 
 # Foundation Release Model
@@ -61,6 +61,12 @@ This is an upgrade model, not an informal file-sync model.
 - Current release line: use the target release manifest, as compatibility metadata.
 - Git branch policy: retain only `main` locally and remotely; immutable tags and published assets, not release branches, provide release stability.
 
+### 2.5 Current naming and historical identity
+
+Current Foundation tags must use `pantheon-base-vX.Y.Z`; GitHub titles use `Pantheon Base vX.Y.Z`. Supported alpha/beta/rc suffixes remain in both identities. The publisher marks them as GitHub prereleases and prevents Latest selection; stable consumers reject drafts and prereleases.
+
+Historical `base-v*`, `backend/v*`, and bare `v*` tags retain their original identities and use `Legacy` in display titles. Their numbers do not belong to the current Foundation version sequence: an old `v1.0` does not establish a current `pantheon-base-v1.0.0` or map to a v0.x version. Title cleanup does not retag commits, replace assets, or rewrite frozen release conclusions. See the [version management guide](../VERSION_MANAGEMENT_GUIDE.md).
+
 ## 3. Asset Layers
 
 ### 3.1 Foundation-Owned
@@ -106,7 +112,7 @@ A release fit for downstream consumption should include at least:
 4. upgrade notes
 5. verification conclusion
 
-Recommended tag format:
+Required tag format:
 
 - `pantheon-base-v<major>.<minor>.<patch>`
 

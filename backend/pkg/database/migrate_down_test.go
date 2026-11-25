@@ -67,7 +67,7 @@ func TestMigrationChainRollsBackAndReapplies(t *testing.T) {
 	assertMigrationColumnExists(t, db, "system_user", "tenant_id")
 }
 
-func assertMigrationColumnAbsent(t *testing.T, db *gorm.DB, table string, column string) {
+func assertMigrationColumnAbsent(t *testing.T, db *gorm.DB, table, column string) {
 	t.Helper()
 
 	var count int64

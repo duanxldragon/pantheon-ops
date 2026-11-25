@@ -35,7 +35,8 @@ type deptPathResolver struct {
 	visiting map[uint64]bool
 }
 
-func AppendImportError(result *ImportResult, row int, field string, message string) {
+// AppendImportError records a row error and increments the failed count.
+func AppendImportError(result *ImportResult, row int, field, message string) {
 	result.Failed++
 	result.Errors = append(result.Errors, ImportError{
 		Row:     row,

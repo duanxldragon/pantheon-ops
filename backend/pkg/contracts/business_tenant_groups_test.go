@@ -27,6 +27,40 @@ func (*businessReaderStub) Authorize(context.Context, businessauth.Input) (busin
 	return businessauth.Authorization{}, nil
 }
 
+type businessJobReaderStub struct{ businessReaderStub }
+
+func (*businessJobReaderStub) AuthorizeJob(context.Context, businessauth.JobInput) (businessauth.Authorization, error) {
+	return businessauth.Authorization{}, nil
+}
+
+func TestBusinessJobProviderIsOptionalAndNeverFallsBack(t *testing.T) {
+	businessProviders.Lock()
+	saved := businessProviders.authorization
+	businessProviders.authorization = nil
+	businessProviders.Unlock()
+	t.Cleanup(func() {
+		businessProviders.Lock()
+		businessProviders.authorization = saved
+		businessProviders.Unlock()
+	})
+	for _, provider := range []businessauth.Reader{nil, &businessReaderStub{}, (*businessJobReaderStub)(nil)} {
+		businessProviders.Lock()
+		businessProviders.authorization = provider
+		businessProviders.Unlock()
+		if reader, err := RegisteredBusinessJobAuthorizationReader(); err != ErrBusinessProviders || reader != nil {
+			t.Fatal("unavailable job provider acquired a fallback")
+		}
+	}
+	provider := &businessJobReaderStub{}
+	businessProviders.Lock()
+	businessProviders.authorization = provider
+	businessProviders.Unlock()
+	reader, err := RegisteredBusinessJobAuthorizationReader()
+	if err != nil || reader != provider {
+		t.Fatal("registered optional job provider unavailable at startup")
+	}
+}
+
 func TestBusinessGroupFailsClosedAndHasAdditiveChain(t *testing.T) {
 	r := gin.New().Group("/api/v1")
 	valid := BusinessTenantGroupOptions{DB: &gorm.DB{}, RDB: redis.NewClient(&redis.Options{Addr: "127.0.0.1:1"}), ModeReader: &businessModeStub{}, Authorization: &businessReaderStub{}}

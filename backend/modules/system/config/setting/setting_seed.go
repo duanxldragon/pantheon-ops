@@ -2,6 +2,7 @@ package setting
 
 import (
 	"github.com/duanxldragon/pantheon-base/backend/pkg/common"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/contracts"
 	// Required for the go:embed seed_data.yaml directive below.
 	_ "embed"
 	"encoding/json"
@@ -518,7 +519,7 @@ func validateSettingSeeds(seeds []defaultSettingSeed) error {
 func defaultSettingValue(settingKey string) string {
 	seed, ok := defaultSettingSeedMap[settingKey]
 	if !ok {
-		return ""
+		return contracts.BusinessSettingDefault(settingKey)
 	}
 	return seed.SettingValue
 }

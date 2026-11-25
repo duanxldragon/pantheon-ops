@@ -35,9 +35,11 @@ function writeFixture(root) {
     '../pantheon-base/AGENTS.md', 'Do not fix platform or system-domain drift locally in pantheon-ops',
   ].join('\n'));
   writeText(root, 'pantheon-ops/docs/PROJECT_INHERITANCE.md', [
-    'Base repository: `../pantheon-base`', 'Base version: `pantheon-base-v0.18.9` (`' + 'a'.repeat(40) + '`)',
+    'Base repository: `../pantheon-base`', 'Base version: `pantheon-base-v0.19.0` (`' + 'a'.repeat(40) + '`)',
     'business/cmdb', 'business/deploy', 'If a foundation rule must change, update `pantheon-base` first',
   ].join('\n'));
+  writeText(root, 'pantheon-ops/foundation-release.lock.json', JSON.stringify({ releaseVersion: 'pantheon-base-v0.19.0', baseCommit: 'a'.repeat(40) }));
+  writeText(root, 'pantheon-ops/package.json', JSON.stringify({ scripts: {} }));
   writeText(root, '.github/pull_request_template.md', 'Base/ops inheritance\nBase version checked\ngeneric drift\npseudo-drift\nbusiness-only\n');
 }
 

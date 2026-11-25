@@ -48,22 +48,22 @@ negative-verified (a fabricated violation exits 1) before the step landed. Root 
 (FR-026): a new checker must land in the same diff with its wiring - a workflow step plus
 npm script, or an explicit mirror-only / workspace-only decision recorded in this table.
 
-| npm script | checker | wiring |
-|---|---|---|
-| `check:harness-evidence` | `check-evidence.mjs --root . --strict` | `quality.yml` / Docs Governance |
-| `check:harness-review` | `check-review.mjs --root . --strict` | `quality.yml` / Docs Governance |
-| `check:harness-runtime-evidence` | `check-runtime-evidence.mjs --root . --strict` | `quality.yml` / Docs Governance |
-| `check:harness-graph-review` | `check-graph-review.mjs --root . --strict` | `quality.yml` / Docs Governance (dormant until `structuralScope`) |
-| `check:harness-audit-coverage` | `check-audit-coverage.mjs --root . --strict` | `quality.yml` / Docs Governance |
-| `check:harness-feature-ledger` | `check-feature-ledger.mjs --root . --strict` | `quality.yml` / Docs Governance |
-| `check:harness-permission-contract` | `check-permission-contract.mjs --root . --strict` | `quality.yml` / Docs Governance |
-| `check:backend-dto-contract` | `check-backend-dto-contract.mjs --root . --strict` | `quality.yml` / Docs Governance |
-| `check:backend-response-contract` | `check-backend-response-contract.mjs --root . --strict` | `quality.yml` / Docs Governance |
-| `check:inheritance-contract` | `check-inheritance-contract.mjs --root .. --strict` | workspace runs only; NOT a base PR gate (`--root .` always fails in a single-repo checkout) |
-| - (mirror-only) | `check-doc-frontmatter.mjs` | not wired: `scripts/frontmatter-check.mjs` is the single implementation (W5 decision; double-running the same rule is the spec-duplication class) |
-| `check:checker-wiring` | `check-checker-wiring.mjs --root .` | `quality.yml` / Docs Governance (blocking since 2026-11-04) |
-| `check:security-patterns` | `scripts/check-security-patterns.mjs` | `quality.yml` / Docs Governance (blocking since 2026-11-04; wired 2026-11-03 after a zero-reference audit; Node scanner since 2026-11-04, 46 legacy hits baselined in `config/security-pattern-baseline.json`) |
-| `check:ui-tokens` | `scripts/check-ui-tokens.mjs` | `quality.yml` / Docs Governance (blocking since 2026-11-04; wired 2026-11-03 after a zero-reference audit; Node scanner since 2026-11-04) |
+| npm script                          | checker                                                 | wiring                                                                                                                                                                                                         |
+| ----------------------------------- | ------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `check:harness-evidence`            | `check-evidence.mjs --root . --strict`                  | `quality.yml` / Docs Governance                                                                                                                                                                                |
+| `check:harness-review`              | `check-review.mjs --root . --strict`                    | `quality.yml` / Docs Governance                                                                                                                                                                                |
+| `check:harness-runtime-evidence`    | `check-runtime-evidence.mjs --root . --strict`          | `quality.yml` / Docs Governance                                                                                                                                                                                |
+| `check:harness-graph-review`        | `check-graph-review.mjs --root . --strict`              | `quality.yml` / Docs Governance (dormant until `structuralScope`)                                                                                                                                              |
+| `check:harness-audit-coverage`      | `check-audit-coverage.mjs --root . --strict`            | `quality.yml` / Docs Governance                                                                                                                                                                                |
+| `check:harness-feature-ledger`      | `check-feature-ledger.mjs --root . --strict`            | `quality.yml` / Docs Governance                                                                                                                                                                                |
+| `check:harness-permission-contract` | `check-permission-contract.mjs --root . --strict`       | `quality.yml` / Docs Governance                                                                                                                                                                                |
+| `check:backend-dto-contract`        | `check-backend-dto-contract.mjs --root . --strict`      | `quality.yml` / Docs Governance                                                                                                                                                                                |
+| `check:backend-response-contract`   | `check-backend-response-contract.mjs --root . --strict` | `quality.yml` / Docs Governance                                                                                                                                                                                |
+| `check:inheritance-contract`        | `check-inheritance-contract.mjs --root .. --strict`     | workspace runs only; NOT a base PR gate (`--root .` always fails in a single-repo checkout)                                                                                                                    |
+| - (mirror-only)                     | `check-doc-frontmatter.mjs`                             | not wired: `scripts/frontmatter-check.mjs` is the single implementation (W5 decision; double-running the same rule is the spec-duplication class)                                                              |
+| `check:checker-wiring`              | `check-checker-wiring.mjs --root .`                     | `quality.yml` / Docs Governance (blocking since 2026-11-04)                                                                                                                                                    |
+| `check:security-patterns`           | `scripts/check-security-patterns.mjs`                   | `quality.yml` / Docs Governance (blocking since 2026-11-04; wired 2026-11-03 after a zero-reference audit; Node scanner since 2026-11-04, 46 legacy hits baselined in `config/security-pattern-baseline.json`) |
+| `check:ui-tokens`                   | `scripts/check-ui-tokens.mjs`                           | `quality.yml` / Docs Governance (blocking since 2026-11-04; wired 2026-11-03 after a zero-reference audit; Node scanner since 2026-11-04)                                                                      |
 
 `check-task-packet.mjs` now enforces the `task-evidence-state.mjs` lifecycle predicate: a
 task doc `status` that mismatches its evidence (Archived without `summary.md`, or complete
@@ -81,7 +81,7 @@ artifacts sat under `.harness/archive/<YYYY-MM>/`, and exited 0.
   counts are the observable proof of scope: a count that does not grow when the archive grows
   means the checker is blind again, whatever its exit code says.
 - Generational scope, not deletion, handles age. `check-evidence.mjs` gates current-schema
-  findings from `CURRENT_SCHEMA_FROM = 2026-10-26` onward and *counts, without gating*, the
+  findings from `CURRENT_SCHEMA_FROM = 2026-10-26` onward and _counts, without gating_, the
   pre-cutoff structural findings (today 205 across 43 archived artifacts, printed in the text
   report). Those readings are things this repository should restate but must not invent:
   `commands[].status`, `cwd` and `agent` for a round nobody observed are unfalsifiable
@@ -139,3 +139,11 @@ The following scripts are repo-specific and not part of the portable method:
 ```powershell
 node --test tests/scripts/harness-*.test.mjs
 ```
+
+## Invocation Roles and Current Workflow
+
+- `check:checker-wiring` identifies direct Node entrypoints and declared npm aliases in command surfaces, excluding comments and echoed data. Dynamic wrappers need separate evidence. Package-only tools remain manual; configuration is not evidence of a successful run or required branch check.
+- Method-policy CI: `quality.yml` checks out the consumer and Harness as siblings, resolves the receipt's full sourceCommit, checks out that immutable commit and runs the published consumption checker without update flags.
+- Ops cross-layer boundary CI invokes the inherited checker with the existing boundary baseline; business-module boundary checks remain distinct.
+- Ops `check:coverage` is a manual inherited utility. Supply a measured artifact and a separately reviewed threshold via `npm run check:coverage -- <artifact> --threshold <number>`. No default threshold or certified coverage CI is implied.
+- Current task index: use the Unreleased Harness `render-task-index.mjs` locally; explicit regeneration never changes manifest status. Publication of new helpers/shared sensors remains a follow-through item.

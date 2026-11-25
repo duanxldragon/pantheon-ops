@@ -1042,7 +1042,7 @@ func (s *DictService) collectCachedDictOptions(normalizedCodes []string, resp Di
 	return missingCodes
 }
 
-func (s *DictService) storeLoadedDictOptions(missingCodes []string, loaded DictOptionMapResp, resp DictOptionMapResp) {
+func (s *DictService) storeLoadedDictOptions(missingCodes []string, loaded, resp DictOptionMapResp) {
 	s.optionCache.mu.Lock()
 	defer s.optionCache.mu.Unlock()
 	for _, code := range missingCodes {
@@ -1248,7 +1248,7 @@ func (s *DictService) validateDictType(typeID uint64, dictCode string) error {
 	return nil
 }
 
-func (s *DictService) validateDictItem(itemID uint64, dictCode string, itemValue string) error {
+func (s *DictService) validateDictItem(itemID uint64, dictCode, itemValue string) error {
 	trimmedCode := strings.TrimSpace(dictCode)
 	trimmedValue := strings.TrimSpace(itemValue)
 	if trimmedCode == "" || trimmedValue == "" {
