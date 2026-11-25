@@ -30,7 +30,7 @@ Read scoping and write ownership in the extension services, switching their rout
 
 ## Gaps (explicit)
 
-- **The migration upgrade path is unproven by any machine.** `TestExtensionTenantMigration*` skip without `PANTHEON_TEST_DSN`. CI does not run them either: Backend Tests has only a Redis service and no DSN, so every `testmysql` test skips there (T04's included). Smoke Sanity has MySQL but runs Playwright smoke, which applies `000043` to a fresh database and so exercises statement syntax and the missing-table branch, not the `ALTER` / `DROP INDEX` branches. To prove it, run the two tests with a DSN (see the PR).
+- **CI does not run the real-database migration tests.** Backend Tests has only a Redis service and no `PANTHEON_TEST_DSN`, so every `testmysql` test skips there (T04's included). They were run locally against MySQL 8 with maintainer authorization: 5/5 pass (`TestExtensionTenantMigration*`, T04's two migration tests, `TestAsyncRecoveryKeepsOriginatingTenant`), and a negative control made the T14 tests fail. Adding a MySQL service to the job is tracked separately.
 - The database-free schema tests passed, and a negative control showed they fail on a bad schema.
 - `business/observability` needs its own Redis locally; unrelated.
 - No independent CODE/ARCH review.

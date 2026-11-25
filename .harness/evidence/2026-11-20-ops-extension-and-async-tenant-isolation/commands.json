@@ -36,11 +36,11 @@
       "notes": "7 packages pass. Database-free: gorm schema parsed from the model tags, asserting tenant_id NOT NULL DEFAULT 0 on all 18 models and UNIQUE tenant-first keys uk_argocd_server_name, uk_filedist_storage_name, uk_obs_alert_rule_name, uk_obs_notification_channel_name, uk_k8s_release_idempotency. Negative control run: a struct without tenant_id and a reversed key order both failed with clear messages; the throwaway test was removed."
     },
     {
-      "command": "go test -run 'TestExtensionTenantMigration' ./modules/business/deploy/",
+      "command": "go test -run 'TestExtensionTenantMigration|TestTenantOwnershipMigration|TestAsyncRecoveryKeepsOriginatingTenant' -v ./modules/business/deploy/ (PANTHEON_TEST_DSN, local MySQL 8, maintainer-authorized)",
       "cwd": "backend",
-      "status": "skipped",
+      "status": "passed",
       "exitCode": 0,
-      "notes": "NOT PROVEN ANYWHERE. testmysql skips without PANTHEON_TEST_DSN. No DSN was available locally (the local root credential was deliberately not used). CI does not run it either: the Backend Tests job runs 'go test -race ./...' with only a Redis service and no PANTHEON_TEST_DSN, so every testmysql test skips there, including T04's tenant-ownership migration tests. Smoke Sanity has a MySQL service but runs Playwright smoke, which applies 000043 to a fresh database where the tables do not exist yet: that exercises statement syntax and the missing-table branch only, not the ALTER / DROP INDEX branches. These tests compile and vet."
+      "notes": "5/5 PASS on a real MySQL: the two new T14 tests (legacy upgrade incl. a key with an arbitrary name found by column set, AutoMigrate-first state) and T04's three. Negative control: changing the discovery predicate made both T14 tests fail ('kept 1 global ... key'); the migration was restored to its committed bytes. Note CI does not run these: Backend Tests has no MySQL service, so testmysql tests skip there. The credential was read at run time from the maintainer's local note, masked in output and never written to a file."
     },
     {
       "command": "go test ./modules/business/...",
