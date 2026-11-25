@@ -9,15 +9,17 @@ import (
 const (
 	deployModuleKey = "business.deploy"
 
-	deployMenuTitleKey           = "operations.deploy.menu"
-	deployPackageMenuTitleKey    = "operations.deploy.package.menu"
-	deployTemplateMenuTitleKey   = "operations.deploy.template.menu"
-	deployTaskMenuTitleKey       = "operations.deploy.task.menu"
+	deployMenuTitleKey         = "operations.deploy.menu"
+	deployPackageMenuTitleKey  = "operations.deploy.package.menu"
+	deployTemplateMenuTitleKey = "operations.deploy.template.menu"
+	deployTaskMenuTitleKey     = "operations.deploy.task.menu"
+	//nolint:gosec // i18n key, not a credential value.
 	deployCredentialMenuTitleKey = "operations.deploy.credential.menu"
 
-	deployPackageListRoute    = "deploy-package-list"
-	deployTemplateListRoute   = "deploy-template-list"
-	deployTaskListRoute       = "deploy-task-list"
+	deployPackageListRoute  = "deploy-package-list"
+	deployTemplateListRoute = "deploy-template-list"
+	deployTaskListRoute     = "deploy-task-list"
+	//nolint:gosec // route name, not a credential value.
 	deployCredentialListRoute = "deploy-credential-list"
 
 	deployTemplatePermCreateKey = "business.deploy.template.permission.create"
@@ -222,6 +224,8 @@ func seedDeployI18n(db *gorm.DB) error {
 	}
 	entries := []i18nSeed{
 		{Module: deployModuleKey, Locale: "zh-CN", Group: "error", Key: errDeployServiceLinkInvalid, Value: "服务与实例必须有效、属于同一业务域并匹配实际部署主机"},
+		{Module: deployModuleKey, Locale: "zh-CN", Group: "menu", Key: deployCredentialMenuTitleKey, Value: "部署凭据"},
+		{Module: deployModuleKey, Locale: "en-US", Group: "menu", Key: deployCredentialMenuTitleKey, Value: "Deploy Credentials"},
 		{Module: deployModuleKey, Locale: "en-US", Group: "error", Key: errDeployServiceLinkInvalid, Value: "Service and instance must be active, belong to the same business scope and match the deployment host"},
 		{Module: deployModuleKey, Locale: "en-US", Group: "page", Key: "business.deploy.task.commandConflict", Value: "The task changed. Refresh completed; review its current state before trying the action again."},
 		{Module: deployModuleKey, Locale: "en-US", Group: "page", Key: "business.deploy.task.commandVersionRequired", Value: "Refresh the task before performing this action."},

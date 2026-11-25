@@ -305,6 +305,7 @@ const generatedenUSFallback = {
   "operations.deploy.template.menu": "Task Templates",
   "operations.deploy.task.menu": "Tasks",
   "operations.deploy.task.detail": "Task Detail",
+  "operations.deploy.credential.menu": "Deploy Credentials",
   "business.deploy.package.hero.eyebrow": "Operations / Software",
   "business.deploy.package.hero.title": "Manage reusable software installation components",
   "business.deploy.package.hero.summaryTitle": "Component governance view",

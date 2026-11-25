@@ -95,7 +95,9 @@
       "frontend/src/modules/business/deploy/index.ts",
       "frontend/src/modules/business/deploy/locales/**",
       "frontend/src/core/router/businessOverlayComponentRegistry.ts",
-      "frontend/src/modules/business/deploy/credential/**"
+      "frontend/src/modules/business/deploy/credential/**",
+      "frontend/src/i18n/resources/business/**",
+      "backend/modules/system/iam/menu/business_overlay_component_registry.go"
     ],
     "doNotTouch": [
       "backend/modules/system/**",
