@@ -273,6 +273,30 @@ jobs:
     permissions:
       contents: read
     services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: pantheon_ops
+          # The DSN below pins loc=UTC and the code compares Go-written lease times
+          # with CURRENT_TIMESTAMP(6) in SQL, so the server clock must be UTC too.
+          TZ: UTC
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -uroot -proot"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=12
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd="redis-cli ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=12
       observability-redis:
         image: redis:7-alpine
         ports:
@@ -284,6 +308,14 @@ jobs:
           --health-retries=12
     env:
       PANTHEON_OBSERVABILITY_TEST_REDIS_ADDR: 127.0.0.1:26316
+      PANTHEON_TEST_DSN: root:root@tcp(127.0.0.1:3306)/pantheon_ops?charset=utf8mb4&parseTime=True&loc=UTC
+      # Fail instead of skipping the MySQL-backed tests when the DSN above is renamed
+      # or dropped: a silent skip in this required gate would read as green. Without
+      # these, every testmysql/testredis test (tenant migrations, async recovery,
+      # credential scope) skipped here.
+      PANTHEON_TEST_DSN_REQUIRED: "true"
+      PANTHEON_TEST_REDIS_ADDR: 127.0.0.1:6379
+      PANTHEON_TEST_REDIS_REQUIRED: "true"
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1

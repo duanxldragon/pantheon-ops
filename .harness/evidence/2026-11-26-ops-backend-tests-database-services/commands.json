@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "taskId": "2026-11-26-ops-backend-tests-database-services",
+  "repo": "pantheon-ops",
+  "evidenceState": "exercised",
+  "agent": { "tool": "other", "adapter": "windows" },
+  "candidate": { "head": "137c4fcc", "worktree": "uncommitted", "foundation": "pantheon-base-v0.19.0", "foundationCommit": "cc2fe7370a98c2862e2610d79880012971cf57f5" },
+  "commands": [
+    { "command": "read quality.yml backend-tests and the job log of a green run", "cwd": ".", "status": "passed", "exitCode": 0, "notes": "Finding: backend-tests ran 'go test -race ./...' with only a Redis service on 26316 and no PANTHEON_TEST_DSN, so every testmysql test skipped in the required gate (T04's migration tests, T14's, credential scope, async recovery). Generic testredis tests skipped too: only the observability-specific address was set." },
+    { "command": "go test ./... on clean main with PANTHEON_TEST_DSN (local MySQL 8, maintainer-authorized), loc=UTC, server in UTC+8", "cwd": "backend", "status": "failed", "exitCode": 1, "notes": "TestMarkHostResultDefersTerminalTaskUntilActiveAttemptFinishes fails with business.deploy.taskHost.staleReport. Not a product bug: the code compares lease_expires_at (written by Go as UTC) with CURRENT_TIMESTAMP(6) in SQL, so a server clock that is not UTC makes a fresh lease look expired. With loc=Local on the same server the test passes; with the DSN pinned to UTC and a UTC session clock it passes. Production and testmysql default to loc=Local when the DSN has no loc. CI therefore needs a UTC MySQL, not Asia/Shanghai." },
+    { "command": "go test ./modules/business/... with a UTC session clock (DSN time_zone='+00:00'), -timeout 70m -p 3", "cwd": "backend", "status": "passed", "exitCode": 0, "notes": "Simulation of the CI service. 26 packages ok, including deploy (1500s locally, about 25 minutes, so the CI duration is the thing to watch) and observability (needs its own Redis; a temporary instance on 26316 was started and stopped). One failure, cmdb/host TestHostStateVersionBackfillEnablesCAS, was an artifact of the simulation: the time_zone parameter breaks golang-migrate's own connection string (Error 1298). The same test passes with a plain DSN (7.7s)." },
+    { "command": "node --test tests/scripts/quality-workflow.test.mjs tests/scripts/ci-workflow-dispatch.test.mjs", "cwd": ".", "status": "passed", "exitCode": 0, "notes": "18 pass. The new test 'backend tests provide MySQL and Redis and refuse to skip database tests' pins the MySQL service, DSN, DSN_REQUIRED, Redis address and REDIS_REQUIRED." },
+    { "command": "negative control: rename PANTHEON_TEST_DSN_REQUIRED in the workflow, rerun the workflow test", "cwd": ".", "status": "failed", "exitCode": 1, "notes": "Expected failure ('a missing DSN must fail, not skip'); the workflow file was restored." },
+    { "command": "hosted Backend Tests on this PR", "cwd": ".", "status": "not-run", "exitCode": null, "notes": "Pending. This is the authoritative result; the local simulation is a forecast only." }
+  ]
+}

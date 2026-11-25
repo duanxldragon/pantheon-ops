@@ -1,0 +1,110 @@
+{
+  "taskId": "2026-11-26-ops-backend-tests-database-services",
+  "taskDoc": "docs/harness/tasks/2026-11-26-ops-backend-tests-database-services.task.md",
+  "title": "Give the Backend Tests gate a real MySQL and Redis",
+  "goal": "Make the required Backend Tests job run the testmysql and testredis tests instead of silently skipping them, and fail if the DSN or Redis address goes missing.",
+  "primaryLayer": "business/*",
+  "status": "in-progress",
+  "priority": "P1",
+  "type": "ci-workflow",
+  "dependencies": [],
+  "scope": {
+    "in": [
+      "Add MySQL (UTC) and a generic Redis service to backend-tests",
+      "Set PANTHEON_TEST_DSN, PANTHEON_TEST_DSN_REQUIRED, PANTHEON_TEST_REDIS_ADDR, PANTHEON_TEST_REDIS_REQUIRED",
+      "A workflow test that pins this so it cannot silently regress"
+    ],
+    "out": [
+      "Fixing product tests",
+      "Making the job slower than needed",
+      "Changing which jobs are required"
+    ]
+  },
+  "dependencyLayers": [
+    "inheritance-sync",
+    "business/*"
+  ],
+  "contractAnchors": [
+    "docs/PROJECT_INHERITANCE.md",
+    "docs/designs/FOUNDATION_RELEASE_MODEL.md"
+  ],
+  "expectedFiles": {
+    "create": [
+      "docs/harness/tasks/2026-11-26-ops-backend-tests-database-services.task.md",
+      ".harness/tasks/2026-11-26-ops-backend-tests-database-services/manifest.json",
+      ".harness/evidence/2026-11-26-ops-backend-tests-database-services/commands.json",
+      ".harness/evidence/2026-11-26-ops-backend-tests-database-services/summary.md",
+      ".harness/evidence/2026-11-26-ops-backend-tests-database-services/review.md"
+    ],
+    "modify": [
+      ".github/workflows/quality.yml",
+      "tests/scripts/quality-workflow.test.mjs"
+    ],
+    "doNotTouch": [
+      "backend/modules/system/**",
+      "The required-check list"
+    ]
+  },
+  "harnessProfile": {
+    "template": "admin-platform",
+    "overlay": "pantheon-ops",
+    "qualityProfile": "ci-workflow",
+    "portableFailureClass": "silent-test-skip",
+    "ownerLayer": "foundation-consumer",
+    "ratchetDecision": "sensor-added",
+    "coverageDimensions": [
+      "behaviour",
+      "maintainability",
+      "architecture-fitness"
+    ]
+  },
+  "executionRoles": {
+    "implementerPosture": "Operates official acquisition and assembly; adjusts only ops-owned inputs the rebuild cannot carry",
+    "reviewerPosture": [
+      "Independent CODE reviewer",
+      "Independent ARCH reviewer"
+    ]
+  },
+  "verificationPlan": {
+    "commands": [
+      "node --test tests/scripts/quality-workflow.test.mjs",
+      "Hosted Backend Tests on this PR"
+    ],
+    "runtimeEvidence": [
+      "Hosted Linux run with the MySQL service"
+    ]
+  },
+  "runtimeSensitive": true,
+  "runtimeGap": "Local Windows race is blocked by ThreadSanitizer allocation (error code 87), identical on the unmodified baseline; business smoke needs the full stack and is left to hosted CI. Independent CODE/ARCH review not performed.",
+  "acceptanceCriteria": [
+    "Backend Tests on this PR runs the MySQL-backed tests and passes",
+    "Removing the DSN or the REQUIRED flag fails the workflow test",
+    "The server clock is UTC to match the DSN loc=UTC"
+  ],
+  "risks": [
+    "The job gets slower and may expose product tests that never ran in CI"
+  ],
+  "humanGates": [
+    "Gate-policy change: the maintainer authorized adding MySQL to CI on 2026-11-26 (the reply read as 补mysql)."
+  ],
+  "linkage": {
+    "taskManifest": ".harness/tasks/2026-11-26-ops-backend-tests-database-services/manifest.json",
+    "taskDoc": "docs/harness/tasks/2026-11-26-ops-backend-tests-database-services.task.md",
+    "evidenceDir": ".harness/evidence/2026-11-26-ops-backend-tests-database-services/",
+    "reviewFile": ".harness/evidence/2026-11-26-ops-backend-tests-database-services/review.md",
+    "summaryFile": ".harness/evidence/2026-11-26-ops-backend-tests-database-services/summary.md",
+    "changeRef": "none",
+    "planRefs": []
+  },
+  "closeout": {
+    "recordedAt": "2026-11-25",
+    "pr": "https://github.com/duanxldragon/pantheon-ops/pull/223",
+    "mergeCommit": "ae444a71",
+    "scope": "Official pantheon-base-v0.19.0 consumption; hosted required checks passed, only the non-required Automate Solo PR stayed red (missing RELEASE_GATE_TOKEN).",
+    "residuals": [
+      "Local Windows race blocked by ThreadSanitizer error 87 (also red on main); Linux CI is the gate",
+      "Business smoke left to hosted CI",
+      "Independent CODE/ARCH review not performed"
+    ]
+  }
+}
