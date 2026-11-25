@@ -1,16 +1,21 @@
 package cmdb
 
-import "github.com/duanxldragon/pantheon-base/backend/pkg/permissionroutes"
+import (
+	"github.com/duanxldragon/pantheon-base/backend/modules/business/shared"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/permissionroutes"
+)
 
-// Register the existing CMDB keys whose policies do not widen access to another
-// action. The released keyMatch2 matcher lets a GET /hosts/:id or /groups/:id
-// policy match export/import-template. Those detail keys remain unregistered
-// until Base releases its shared static-route guard and coverage contract.
+// Register the existing CMDB keys. Base enforces business routes against the
+// Gin route template and permissionroutes.Covers lets a :param policy segment
+// cover only :param route segments, so a detail grant (GET /hosts/:id) never
+// reaches a static sibling such as /hosts/export or /hosts/import-template.
+// Detail reads use the seeded host/group detail keys.
 func registerHostPermissionRoutes() error {
 	return permissionroutes.Register("business:cmdb", []permissionroutes.Binding{
 		{Permission: "business:cmdb:host:view", Routes: []permissionroutes.Route{
 			{Method: "GET", Path: "/api/v1/business/cmdb/hosts"},
 		}},
+		shared.DetailBinding("business:cmdb:host:detail", "/api/v1/business/cmdb/hosts/:id"),
 		{Permission: "business:cmdb:host:create", Routes: []permissionroutes.Route{
 			{Method: "POST", Path: "/api/v1/business/cmdb/hosts"},
 		}},
@@ -37,6 +42,7 @@ func registerHostPermissionRoutes() error {
 		{Permission: "business:cmdb:group:view", Routes: []permissionroutes.Route{
 			{Method: "GET", Path: "/api/v1/business/cmdb/groups"},
 		}},
+		shared.DetailBinding("business:cmdb:group:detail", "/api/v1/business/cmdb/groups/:id", "/api/v1/business/cmdb/groups/:id/members"),
 		{Permission: "business:cmdb:group:create", Routes: []permissionroutes.Route{
 			{Method: "POST", Path: "/api/v1/business/cmdb/groups"},
 		}},

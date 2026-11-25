@@ -4,7 +4,7 @@
   "title": "Base 发版后恢复业务详情路由租户绑定",
   "goal": "消费携带静态/参数路由隔离修复的正式 foundation release 后，恢复业务详情路由（GET /packages/:id 等）的租户绑定，并用双租户反例证明猜 ID 无法跨租户读取。",
   "primaryLayer": "business/*",
-  "status": "planned",
+  "status": "completed",
   "priority": "P1",
   "deliveryTier": "L2",
   "parentTask": "2026-11-20-ops-review-remediation",
@@ -29,7 +29,10 @@
       "未授权生产操作、凭证变更与门禁豁免"
     ]
   },
-  "dependencyLayers": ["business/*", "inheritance-sync"],
+  "dependencyLayers": [
+    "business/*",
+    "inheritance-sync"
+  ],
   "baseline": {
     "reportCommit": "444ce8e",
     "planningCommit": "a2d69d4a759b5df2b26aaa9d26bdc5175babe9dc",
@@ -39,7 +42,9 @@
   },
   "sourceReview": "docs/reviews/pantheon-ops独立评审与外部报告核实-2026-11-20.md",
   "sourceChecklist": "docs/reviews/pantheon-ops真实环境验证清单-2026-11-20.md",
-  "findingRefs": ["ARC-001"],
+  "findingRefs": [
+    "ARC-001"
+  ],
   "sourceRefs": [
     {
       "path": "docs/reviews/pantheon-ops独立评审与外部报告核实-2026-11-20.md",
@@ -84,13 +89,27 @@
     "qualityProfile": "auth-security",
     "portableFailureClass": "business-review-gap",
     "ownerLayer": "business/*",
-    "coverageDimensions": ["behaviour", "architecture-fitness"]
+    "coverageDimensions": [
+      "behaviour",
+      "architecture-fitness"
+    ]
   },
   "structuralScope": {
-    "affectedSubgraph": ["请求路由匹配", "租户作用域仓储", "详情/导出响应"],
-    "boundaryCrossings": ["business/* -> pkg 公共路由契约", "共享缺口 -> Base 正式 release -> Ops 重建"],
-    "riskNodes": ["ARC-001"],
-    "graphFocus": ["sensitive-input-flow"]
+    "affectedSubgraph": [
+      "请求路由匹配",
+      "租户作用域仓储",
+      "详情/导出响应"
+    ],
+    "boundaryCrossings": [
+      "business/* -> pkg 公共路由契约",
+      "共享缺口 -> Base 正式 release -> Ops 重建"
+    ],
+    "riskNodes": [
+      "ARC-001"
+    ],
+    "graphFocus": [
+      "sensitive-input-flow"
+    ]
   },
   "implementationNotes": [
     "Minimal Complexity Rung: reuse",
@@ -115,7 +134,9 @@
       "go test -count=1 ./modules/business/cmdb/... ./modules/business/service/...",
       "node scripts/harness/check-boundaries.mjs --strict"
     ],
-    "runtimeEvidence": ["双租户详情/导出反例与正控"],
+    "runtimeEvidence": [
+      "双租户详情/导出反例与正控"
+    ],
     "commandWorkingDirectories": {
       "go test -count=1 ./modules/business/deploy/...": "backend",
       "go test -count=1 ./modules/business/cmdb/... ./modules/business/service/...": "backend",
@@ -138,7 +159,9 @@
     "reviewFile": "none",
     "summaryFile": ".harness/evidence/2026-11-25-ops-tenant-detail-route-binding/summary.md",
     "changeRef": "none",
-    "planRefs": [".harness/tasks/2026-11-20-ops-review-remediation/plan.md"]
+    "planRefs": [
+      ".harness/tasks/2026-11-20-ops-review-remediation/plan.md"
+    ]
   },
   "plannedReviewFile": ".harness/evidence/2026-11-25-ops-tenant-detail-route-binding/review.md",
   "evidenceRequired": [
@@ -153,5 +176,14 @@
     "Evidence saved or summarized",
     "Review completed"
   ],
-  "rollbackPlan": "回退本包路由绑定改动；release 消费按锁定快照回退到上一版并重建。"
+  "rollbackPlan": "回退本包路由绑定改动；release 消费按锁定快照回退到上一版并重建。",
+  "closeout": {
+    "recordedAt": "2026-11-25",
+    "scope": "Detail-family GET routes bound under Base v0.19.0 route-template enforcement: cmdb host/group detail keys, deploy package/template via view/list keys, deploy task:detail. Route/policy contract tests prove detail never reaches export.",
+    "evidence": ".harness/evidence/2026-11-25-ops-tenant-detail-route-binding/summary.md",
+    "residuals": [
+      "HTTP-level dual-tenant counterexample (guessed-ID detail/export/callback across tenants denied, same-tenant detail 200) was not run locally; it needs the full auth stack and a live multi-tenant DB and moves to T19 (2026-11-25-ops-residual-live-acceptance)",
+      "hostQuery/WithDataScope applies no tenant_id filter itself; row-level tenant isolation for detail lookups was not independently proven here"
+    ]
+  }
 }

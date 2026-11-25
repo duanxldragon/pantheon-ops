@@ -6,7 +6,6 @@ import (
 
 	"github.com/casbin/casbin/v2"
 	"github.com/casbin/casbin/v2/model"
-	"github.com/casbin/casbin/v2/util"
 	"github.com/duanxldragon/pantheon-base/backend/modules/business/cmdb/group"
 	"github.com/duanxldragon/pantheon-base/backend/modules/business/cmdb/host"
 	"github.com/duanxldragon/pantheon-base/backend/modules/business/cmdb/label"
@@ -34,12 +33,6 @@ func TestCMDBRegisteredActionsDoNotGrantOtherEndpoints(t *testing.T) {
 			key = seed.PagePerm
 		}
 		policies := permissionroutes.Lookup(key)
-		if key == "business:cmdb:host:detail" || key == "business:cmdb:group:detail" {
-			if len(policies) != 0 {
-				t.Fatalf("unsafe GET detail policy registered without released static guard: %s", key)
-			}
-			continue
-		}
 		if len(policies) == 0 {
 			t.Fatalf("safe existing CMDB key has no API bindings: %s", key)
 		}
@@ -68,15 +61,16 @@ m = r.sub == p.sub && keyMatch2(r.obj, p.obj) && r.act == p.act`)
 					t.Fatal(err)
 				}
 			}
+			// Base enforces against the route template; a :param policy segment
+			// covers only :param route segments, so detail never reaches export.
 			for route := range actual {
-				path := strings.ReplaceAll(route.Path, ":id", "7")
-				want := false
+				want, got := false, false
 				for _, policy := range policies {
 					want = want || route == policy
+					got = got || (policy.Method == route.Method && permissionroutes.Covers(route.Path, policy.Path))
 				}
-				allowed, err := enforcer.Enforce("scoped-role", path, route.Method)
-				if err != nil || allowed != want {
-					t.Fatalf("key grants another action for %s %s: allowed=%v want=%v error=%v", route.Method, path, allowed, want, err)
+				if got != want {
+					t.Fatalf("key grants another action for %s %s: allowed=%v want=%v", route.Method, route.Path, got, want)
 				}
 			}
 			if _, err := enforcer.RemoveFilteredPolicy(0, "scoped-role"); err != nil {
@@ -98,17 +92,24 @@ m = r.sub == p.sub && keyMatch2(r.obj, p.obj) && r.act == p.act`)
 			}
 		})
 	}
-	if registeredKeys != 20 {
+	if registeredKeys != 22 {
 		t.Fatalf("unexpected CMDB active key coverage: %d", registeredKeys)
 	}
 }
 
-func TestCMDBDetailBindingRemainsBlockedByReleasedMatcher(t *testing.T) {
+func TestCMDBDetailPoliciesStaySeparateFromStaticSiblings(t *testing.T) {
 	for _, prefix := range []string{"hosts", "groups"} {
+		base := "/api/v1/business/cmdb/" + prefix
 		for _, action := range []string{"export", "import-template"} {
-			if !util.KeyMatch2("/api/v1/business/cmdb/"+prefix+"/"+action, "/api/v1/business/cmdb/"+prefix+"/:id") {
-				t.Fatal("released matcher changed; reevaluate Base-first detail dependency")
+			if permissionroutes.Covers(base+"/"+action, base+"/:id") {
+				t.Fatalf("%s detail policy widened to %s; the Base static-route guard regressed", prefix, action)
 			}
+			if permissionroutes.Covers(base+"/:id", base+"/"+action) {
+				t.Fatalf("%s %s policy widened to the detail route", prefix, action)
+			}
+		}
+		if !permissionroutes.Covers(base+"/:id", base+"/:id") {
+			t.Fatalf("%s detail policy no longer covers its own route", prefix)
 		}
 	}
 }

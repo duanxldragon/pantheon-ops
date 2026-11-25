@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "taskId": "2026-11-25-ops-tenant-detail-route-binding",
+  "repo": "pantheon-ops",
+  "evidenceState": "exercised",
+  "agent": { "tool": "other", "adapter": "windows" },
+  "candidate": { "head": "ae444a71", "worktree": "uncommitted", "foundation": "pantheon-base-v0.19.0", "foundationCommit": "cc2fe7370a98c2862e2610d79880012971cf57f5" },
+  "commands": [
+    { "command": "go test -count=1 -run '.*PermissionRoutes.*|.*RegisteredActions.*|.*DetailPolicies.*' ./modules/business/cmdb/ ./modules/business/deploy/", "cwd": "backend", "status": "failed", "exitCode": 1, "notes": "Red first, as intended: with detail routes bound, the old keyMatch2-model tests reported view keys granting /hosts/export, /groups/export, /packages/export, /templates/export. They modelled the pre-v0.19.0 matcher." },
+    { "command": "go test -count=1 ./modules/business/cmdb/ ./modules/business/deploy/ ./modules/business/service/ ./modules/business/k8s/", "cwd": "backend", "status": "passed", "exitCode": 0, "notes": "After the tests were moved to Base's contract (route template + permissionroutes.Covers): cmdb 22 active keys, deploy keys incl. task:detail, plus TestCMDBDetailPoliciesStaySeparateFromStaticSiblings and TestDeployDetailPoliciesStaySeparateFromStaticSiblings (detail never reaches export, export never reaches detail, task:detail does not reach tasks/export or POST rollback)." },
+    { "command": "go build ./modules/business/... && go vet ./modules/business/... && gofmt -l modules/business", "cwd": "backend", "status": "passed", "exitCode": 0, "notes": "Clean." },
+    { "command": "go test -count=1 ./modules/business/... ./pkg/permissionroutes/...", "cwd": "backend", "status": "failed", "exitCode": 1, "notes": "Only business/observability failed: TestQueryPermitActualRedisActorAndTenantCaps needs Redis at 127.0.0.1:26316 (not running); it passed against a dedicated instance during the v0.19.0 consumption. Unrelated to this change." },
+    { "command": "node --test tests/scripts/task-manifest-status.test.mjs", "cwd": ".", "status": "passed", "exitCode": 0, "notes": "4 pass; manifests use the canonical vocabulary." },
+    { "command": "npm run check:harness-permission-contract", "cwd": ".", "status": "skipped", "exitCode": null, "notes": "The checker scans a repo root named pantheon-ops; this worktree directory has a different name, so it reported 'Repository root not found' and scanned nothing. Not evidence either way." },
+    { "command": "HTTP-level dual-tenant counterexample (guessed-ID detail/export/callback across tenants; same-tenant detail 200)", "cwd": ".", "status": "not-run", "exitCode": null, "notes": "Needs the full auth stack and a live multi-tenant database. WithDataScope applies no tenant_id filter itself, so row-level isolation for detail lookups was not proven here. Moved to T19." }
+  ]
+}

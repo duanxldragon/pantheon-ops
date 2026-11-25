@@ -182,7 +182,11 @@ business/*
 ## Completion Checklist
 
 - [x] Layer and boundary declared
-- [ ] Contract anchors read
-- [ ] Verification run or exception recorded
-- [ ] Evidence saved or summarized
-- [ ] Review completed
+- [x] Contract anchors read
+- [x] Verification run or exception recorded
+- [x] Evidence saved or summarized
+- [ ] Review completed (independent review not performed; recorded as a gap)
+
+## Status
+
+Authorization binding done under Base v0.19.0 and covered by route/policy contract tests. The HTTP-level dual-tenant counterexample and row-level tenant isolation are not proven here and move to T19. See `.harness/evidence/2026-11-25-ops-tenant-detail-route-binding/summary.md`.

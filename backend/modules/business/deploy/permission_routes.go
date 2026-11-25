@@ -1,24 +1,27 @@
 package deploy
 
-import "github.com/duanxldragon/pantheon-base/backend/pkg/permissionroutes"
+import (
+	"github.com/duanxldragon/pantheon-base/backend/modules/business/shared"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/permissionroutes"
+)
 
 // registerDeployPermissionRoutes binds the deploy package/template/task/credential
 // keys that must have API policies for a scoped (non-admin) role to see and drive
-// the deploy pages. Mirror of cmdb's registerHostPermissionRoutes: the released
-// keyMatch2 matcher lets a `GET /packages/:id` policy also match `GET /packages/export`,
-// so every detail route (`/packages/:id`, `/templates/:id`, `/tasks/:id`) is
-// deliberately NOT registered under its read key. That detail grant is a Base
-// static-route-guard item; until Base ships it, register static/list routes only to
-// avoid silently widening export to every viewer.
+// the deploy pages. Mirror of cmdb's registerHostPermissionRoutes: Base enforces
+// business routes against the Gin route template and permissionroutes.Covers lets
+// a :param policy segment cover only :param route segments, so a `GET /packages/:id`
+// grant never reaches `GET /packages/export`. Package and template detail reads ride
+// on their view/list key; task detail-family reads (detail/events/history/logs/
+// rollback info) use the seeded `business:deploy:task:detail` key.
 //
-// Detail-family reads (task detail/logs/events/rollback) also stay unbound for the
-// same matcher gap; scoped roles are denied by default there. `business:deploy:task:export`
-// is registered by log_download.go (export + log-download) and MUST NOT be repeated
-// here — a second Register with a different route list would fail the module seal.
+// `business:deploy:task:export` is registered by log_download.go (export +
+// log-download) and MUST NOT be repeated here — a second Register with a different
+// route list would fail the module seal.
 func registerDeployPermissionRoutes() error {
 	return permissionroutes.Register("business:deploy", []permissionroutes.Binding{
 		{Permission: "business:deploy:package:view", Routes: []permissionroutes.Route{
 			{Method: "GET", Path: "/api/v1/business/deploy/packages"},
+			{Method: "GET", Path: "/api/v1/business/deploy/packages/:id"},
 		}},
 		{Permission: "business:deploy:package:create", Routes: []permissionroutes.Route{
 			{Method: "POST", Path: "/api/v1/business/deploy/packages"},
@@ -37,6 +40,7 @@ func registerDeployPermissionRoutes() error {
 		}},
 		{Permission: "business:deploy:template:list", Routes: []permissionroutes.Route{
 			{Method: "GET", Path: "/api/v1/business/deploy/templates"},
+			{Method: "GET", Path: "/api/v1/business/deploy/templates/:id"},
 		}},
 		{Permission: "business:deploy:template:create", Routes: []permissionroutes.Route{
 			{Method: "POST", Path: "/api/v1/business/deploy/templates"},
@@ -58,6 +62,8 @@ func registerDeployPermissionRoutes() error {
 			// Resolving targets is an in-scope read used by the target picker.
 			{Method: "POST", Path: "/api/v1/business/deploy/targets/resolve"},
 		}},
+		shared.DetailBinding("business:deploy:task:detail", "/api/v1/business/deploy/tasks/:id", "/api/v1/business/deploy/tasks/:id/events",
+			"/api/v1/business/deploy/tasks/:id/events/history", "/api/v1/business/deploy/tasks/:id/logs", "/api/v1/business/deploy/tasks/:id/rollback"),
 		{Permission: "business:deploy:task:create", Routes: []permissionroutes.Route{
 			{Method: "POST", Path: "/api/v1/business/deploy/tasks"},
 		}},
