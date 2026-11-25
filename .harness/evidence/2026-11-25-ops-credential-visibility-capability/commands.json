@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "taskId": "2026-11-25-ops-credential-visibility-capability",
+  "repo": "pantheon-ops",
+  "evidenceState": "exercised",
+  "agent": { "tool": "other", "adapter": "windows" },
+  "candidate": { "head": "137c4fcc", "worktree": "uncommitted", "foundation": "pantheon-base-v0.19.0", "foundationCommit": "cc2fe7370a98c2862e2610d79880012971cf57f5" },
+  "commands": [
+    { "command": "npm run check:business-boundaries", "cwd": ".", "status": "failed", "exitCode": 1, "notes": "Before: backend/modules/business/deploy/deploy_credential.go:59 forbidden cross-module access bizscope.BizScope (introduced by T05, #222; the check is manual-only in CI)." },
+    { "command": "npm run check:business-boundaries", "cwd": ".", "status": "passed", "exitCode": 0, "notes": "After: business module boundary check passed." },
+    { "command": "go build ./... && go vet ./modules/business/...", "cwd": "backend", "status": "passed", "exitCode": 0, "notes": "Clean; the four test fakes were updated for the new interface method." },
+    { "command": "go test ./modules/business/{deploy,bizscope,cmdb/...,k8s/cluster,service}", "cwd": "backend", "status": "passed", "exitCode": 0, "notes": "All pass without a DSN (database tests skip)." },
+    { "command": "go test -run TestDeployCredential -v ./modules/business/deploy/ (PANTHEON_TEST_DSN, local MySQL 8, maintainer-authorized)", "cwd": "backend", "status": "passed", "exitCode": 0, "notes": "4/4 PASS on a real database: list respects business scope, start requires a matching scope, global scope is admin-only, scope migration idempotent." },
+    { "command": "negative control: VisibleIDs forced to return nothing, then TestDeployCredentialListRespectsBusinessScope", "cwd": "backend", "status": "failed", "exitCode": 1, "notes": "Expected failure: 'dept A must only see its own credential, got []'. The file was restored to its committed bytes." }
+  ]
+}

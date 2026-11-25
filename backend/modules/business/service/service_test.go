@@ -269,6 +269,10 @@ func (f fakeBizScopeReader) ResolveActiveByCodes(context.Context, []string, *com
 	return map[string]bizcap.BizScopeRef{f.ref.Code: f.ref}, nil
 }
 
+func (f fakeBizScopeReader) VisibleIDs(context.Context, *common.DataScopeReq) ([]uint64, error) {
+	return nil, nil
+}
+
 type fakeHostReader struct {
 	ref bizcap.HostRef
 }

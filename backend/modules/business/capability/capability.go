@@ -22,6 +22,10 @@ type BizScopeRef struct {
 type BizScopeReader interface {
 	GetActive(ctx context.Context, id uint64, scope *common.DataScopeReq) (BizScopeRef, error)
 	ResolveActiveByCodes(ctx context.Context, codes []string, scope *common.DataScopeReq) (map[string]BizScopeRef, error)
+	// VisibleIDs lists every business scope the caller's data scope can see,
+	// whatever its status. Callers that filter their own rows by business scope
+	// use it instead of reading the owner module's table.
+	VisibleIDs(ctx context.Context, scope *common.DataScopeReq) ([]uint64, error)
 }
 
 // HostRef is the minimal CMDB host projection shared across business modules.
