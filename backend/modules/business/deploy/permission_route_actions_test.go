@@ -6,18 +6,15 @@ import (
 
 	"github.com/casbin/casbin/v2"
 	"github.com/casbin/casbin/v2/model"
-	"github.com/casbin/casbin/v2/util"
 	"github.com/duanxldragon/pantheon-base/backend/pkg/permissionroutes"
 	"github.com/gin-gonic/gin"
 )
 
 // deployPermKeys is the deploy permission set bound by
 // registerDeployPermissionRoutes. It mirrors the seeded F menu perms in
-// deploy_seed.go (§seedDeployMenus), excluding two keys that are seeded but
-// intentionally unbound: business:deploy:task:export (log_download.go
-// registers it separately) and business:deploy:task:detail (the GET detail
-// route stays denied until Base ships the keyMatch2 static-route guard).
-// A drift here fails the test instead of leaving a page/API silent gap.
+// deploy_seed.go (§seedDeployMenus), excluding business:deploy:task:export,
+// which log_download.go registers separately. A drift here fails the test
+// instead of leaving a page/API silent gap.
 var deployPermKeys = []string{
 	"business:deploy:package:view",
 	"business:deploy:package:create",
@@ -32,6 +29,7 @@ var deployPermKeys = []string{
 	"business:deploy:template:export",
 	"business:deploy:template:import",
 	"business:deploy:task:view",
+	"business:deploy:task:detail",
 	"business:deploy:task:create",
 	"business:deploy:task:update",
 	"business:deploy:task:delete",
@@ -95,16 +93,16 @@ func TestDeployRegisteredActionsDoNotGrantOtherEndpoints(t *testing.T) {
 				}
 			}
 			// This key's policy set must grant exactly its own endpoints and no
-			// other registered route (the keyMatch2 anti-widening check).
+			// other registered route. Base enforces against the route template,
+			// where a :param policy segment covers only :param route segments.
 			for route := range actual {
-				path := strings.ReplaceAll(route.Path, ":id", "7")
-				want := false
+				want, got := false, false
 				for _, policy := range policies {
 					want = want || route == policy
+					got = got || (policy.Method == route.Method && permissionroutes.Covers(route.Path, policy.Path))
 				}
-				allowed, err := enforcer.Enforce("scoped-role", path, route.Method)
-				if err != nil || allowed != want {
-					t.Fatalf("key %s grants another action for %s %s: allowed=%v want=%v error=%v", key, route.Method, path, allowed, want, err)
+				if got != want {
+					t.Fatalf("key %s grants another action for %s %s: allowed=%v want=%v", key, route.Method, route.Path, got, want)
 				}
 			}
 			// Role revocation removes the grant; a pre-existing explicit wildcard
@@ -129,52 +127,44 @@ func TestDeployRegisteredActionsDoNotGrantOtherEndpoints(t *testing.T) {
 	}
 }
 
-// TestDeployPackageDetailRemainsUnregisteredForView locks in the preserved
-// gap: `GET /packages/:id` is intentionally not bound to the view key because
-// the released keyMatch2 matcher would widen it to `GET /packages/export`
-// (CSV export), granting export to every package viewer. Until Base ships a
-// static-route guard this detail route stays denied for scoped roles.
-func TestDeployPackageDetailRemainsUnregisteredForView(t *testing.T) {
+// TestDeployDetailPoliciesStaySeparateFromStaticSiblings pins the Base
+// static-route guard for deploy: a detail grant rides on its view key but never
+// reaches the CSV export sibling, and the export grant never reaches the detail.
+func TestDeployDetailPoliciesStaySeparateFromStaticSiblings(t *testing.T) {
 	if err := registerDeployPermissionRoutes(); err != nil {
 		t.Fatal(err)
 	}
-	view := permissionroutes.Lookup("business:deploy:package:view")
-	for _, policy := range view {
-		if strings.HasSuffix(policy.Path, "/:id") {
-			t.Fatalf("unsafe GET detail policy registered without released static guard: %s", policy.Path)
+	const base = "/api/v1/business/deploy/"
+	grants := func(key, method, route string) bool {
+		for _, policy := range permissionroutes.Lookup(key) {
+			if policy.Method == method && permissionroutes.Covers(route, policy.Path) {
+				return true
+			}
 		}
-		// Confirms the Base-first dependency actually holds on the released matcher.
-		if !util.KeyMatch2("/api/v1/business/deploy/packages/export", policy.Path) {
-			continue
-		}
-		t.Fatalf("view policy %s would widen to /packages/export; do NOT register", policy.Path)
+		return false
 	}
-	m, err := model.NewModelFromString(casbinModel)
-	if err != nil {
-		t.Fatal(err)
-	}
-	enforcer, err := casbin.NewEnforcer(m)
-	if err != nil {
-		t.Fatal(err)
-	}
-	for _, policy := range view {
-		if _, err := enforcer.AddPolicy("scoped-role", policy.Path, policy.Method); err != nil {
-			t.Fatal(err)
-		}
-	}
-	// Detail route must stay denied (preserved gap) and export must NOT be
-	// reachable via the view grant.
-	for _, tc := range []struct{ method, path string }{
-		{"GET", "/api/v1/business/deploy/packages/7"},
-		{"GET", "/api/v1/business/deploy/packages/export"},
-		{"GET", "/api/v1/business/deploy/packages/7/nonexistent"},
+	for _, tc := range []struct {
+		key, method, route string
+		want               bool
+	}{
+		{"business:deploy:package:view", "GET", base + "packages", true},
+		{"business:deploy:package:view", "GET", base + "packages/:id", true},
+		{"business:deploy:package:view", "GET", base + "packages/export", false},
+		{"business:deploy:package:export", "GET", base + "packages/:id", false},
+		{"business:deploy:template:list", "GET", base + "templates/:id", true},
+		{"business:deploy:template:list", "GET", base + "templates/export", false},
+		{"business:deploy:template:export", "GET", base + "templates/:id", false},
+		{"business:deploy:task:detail", "GET", base + "tasks/:id", true},
+		{"business:deploy:task:detail", "GET", base + "tasks/:id/logs", true},
+		{"business:deploy:task:detail", "GET", base + "tasks/:id/events", true},
+		{"business:deploy:task:detail", "GET", base + "tasks/:id/events/history", true},
+		{"business:deploy:task:detail", "GET", base + "tasks/:id/rollback", true},
+		{"business:deploy:task:detail", "GET", base + "tasks/export", false},
+		{"business:deploy:task:detail", "POST", base + "tasks/:id/rollback", false},
+		{"business:deploy:task:view", "GET", base + "tasks/:id", false},
 	} {
-		allowed, err := enforcer.Enforce("scoped-role", tc.path, tc.method)
-		if err != nil || allowed {
-			t.Fatalf("view grant must NOT authorize %s %s: allowed=%v err=%v", tc.method, tc.path, allowed, err)
+		if got := grants(tc.key, tc.method, tc.route); got != tc.want {
+			t.Fatalf("%s on %s %s: allowed=%v want=%v", tc.key, tc.method, tc.route, got, tc.want)
 		}
-	}
-	if allowed, err := enforcer.Enforce("scoped-role", "/api/v1/business/deploy/packages", "GET"); err != nil || !allowed {
-		t.Fatalf("view grant must authorize list GET /packages: allowed=%v err=%v", allowed, err)
 	}
 }

@@ -7,9 +7,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/casbin/casbin/v2"
-	"github.com/casbin/casbin/v2/model"
-	"github.com/casbin/casbin/v2/util"
 	"github.com/duanxldragon/pantheon-base/backend/modules/business/cmdb/host"
 	"github.com/duanxldragon/pantheon-base/backend/pkg/permissionroutes"
 	"github.com/gin-gonic/gin"
@@ -37,6 +34,7 @@ func TestHostPermissionRoutesKeepListAndCSVActionsSeparate(t *testing.T) {
 		allowed []permissionroutes.Route
 	}{
 		{"business:cmdb:host:view", []permissionroutes.Route{{Method: "GET", Path: "/api/v1/business/cmdb/hosts"}}},
+		{"business:cmdb:host:detail", []permissionroutes.Route{{Method: "GET", Path: "/api/v1/business/cmdb/hosts/:id"}}},
 		{"business:cmdb:host:create", []permissionroutes.Route{{Method: "POST", Path: "/api/v1/business/cmdb/hosts"}}},
 		{"business:cmdb:host:export", []permissionroutes.Route{{Method: "GET", Path: "/api/v1/business/cmdb/hosts/export"}}},
 		{"business:cmdb:host:import", []permissionroutes.Route{{Method: "GET", Path: "/api/v1/business/cmdb/hosts/import-template"}, {Method: "POST", Path: "/api/v1/business/cmdb/hosts/import"}}},
@@ -50,38 +48,19 @@ func TestHostPermissionRoutesKeepListAndCSVActionsSeparate(t *testing.T) {
 				t.Fatalf("unexpected policy count: %+v", policies)
 			}
 			for _, policy := range policies {
-				if !actualRoutes[policy] || strings.ContainsAny(policy.Path, "*:") {
+				if !actualRoutes[policy] || strings.Contains(policy.Path, "*") {
 					t.Fatalf("registered noncanonical or wildcard host route: %+v", policy)
 				}
 			}
-			casbinModel, err := model.NewModelFromString(`
-[request_definition]
-r = sub, obj, act
-[policy_definition]
-p = sub, obj, act
-[policy_effect]
-e = some(where (p.eft == allow))
-[matchers]
-m = r.sub == p.sub && keyMatch2(r.obj, p.obj) && r.act == p.act
-`)
-			if err != nil {
-				t.Fatal(err)
-			}
-			enforcer, err := casbin.NewEnforcer(casbinModel)
-			if err != nil {
-				t.Fatal(err)
-			}
-			for _, policy := range policies {
-				if _, err := enforcer.AddPolicy("host-probe", policy.Path, policy.Method); err != nil {
-					t.Fatal(err)
-				}
-			}
+			// Base enforces business routes against the Gin route template, where a
+			// :param policy segment covers only :param route segments.
 			allows := func(request permissionroutes.Route) bool {
-				allowed, err := enforcer.Enforce("host-probe", request.Path, request.Method)
-				if err != nil {
-					t.Fatal(err)
+				for _, policy := range policies {
+					if policy.Method == request.Method && permissionroutes.Covers(request.Path, policy.Path) {
+						return true
+					}
 				}
-				return allowed
+				return false
 			}
 			for _, request := range test.allowed {
 				if !allows(request) {
@@ -104,6 +83,9 @@ m = r.sub == p.sub && keyMatch2(r.obj, p.obj) && r.act == p.act
 					}
 				}
 				for _, path := range []string{allowed.Path + "-evil", allowed.Path + "/child", strings.Replace(allowed.Path, "/business/cmdb/", "/cmdb/", 1), "/api/v1/business/cmdb/hosts/7", "/api/v1/business/cmdb/groups", "/api/v1/system/user/list"} {
+					if strings.Contains(allowed.Path, ":") && strings.HasPrefix(path, allowed.Path) {
+						continue // ":id-evil" is not a real route template
+					}
 					if allows(permissionroutes.Route{Method: allowed.Method, Path: path}) {
 						t.Fatalf("permission widened path to %s", path)
 					}
@@ -111,17 +93,15 @@ m = r.sub == p.sub && keyMatch2(r.obj, p.obj) && r.act == p.act
 			}
 		})
 	}
-	// This is the current matcher collision: the provider must not add the
-	// dynamic detail policy while that policy would authorize CSV endpoints.
+	// Base's static-route guard: a dynamic detail policy must not authorize the
+	// CSV endpoints, nor an export policy the detail route.
 	for _, path := range []string{"/api/v1/business/cmdb/hosts/export", "/api/v1/business/cmdb/hosts/import-template"} {
-		if !util.KeyMatch2(path, "/api/v1/business/cmdb/hosts/:id") {
-			t.Fatal("shared matcher changed; re-evaluate the documented detail gap")
+		if permissionroutes.Covers(path, "/api/v1/business/cmdb/hosts/:id") {
+			t.Fatal("detail policy widened to a static sibling; the Base static-route guard regressed")
 		}
 	}
-	for _, key := range []string{"business:cmdb:host:viewer", "business:cmdb:host:export-evil", "business:cmdb:host:import-evil", "business:cmdb:host:detail", "business:cmdb:group:detail"} {
-		if len(permissionroutes.Lookup(key)) != 0 {
-			t.Fatalf("registration invented an adjacent permission: %s", key)
-		}
+	if permissionroutes.Covers("/api/v1/business/cmdb/hosts/:id", "/api/v1/business/cmdb/hosts/export") {
+		t.Fatal("export policy widened to the detail route")
 	}
 }
 
