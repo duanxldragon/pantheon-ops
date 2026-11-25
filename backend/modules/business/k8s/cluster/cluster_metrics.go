@@ -18,7 +18,7 @@ func UpdateClusterStatusMetrics(clusters []Cluster) {
 	status := make(map[string]int)
 	for i := range clusters {
 		status[metrics.NormalizeLabel(clusters[i].Status)]++
-		metrics.SetClusterCapacity(clusters[i].ID, clusters[i].TotalNodes, clusters[i].ReadyNodes, clusters[i].CPUCapacity, clusters[i].MemoryCapacity)
+		metrics.SetClusterCapacity(clusters[i].Code, clusters[i].TotalNodes, clusters[i].ReadyNodes, clusters[i].CPUCapacity, clusters[i].MemoryCapacity)
 	}
 	for state, count := range status {
 		metrics.SetClusterStatus(state, float64(count))
@@ -30,7 +30,7 @@ func RecordClusterMetrics(c *Cluster) {
 	if c == nil {
 		return
 	}
-	metrics.SetClusterCapacity(c.ID, c.TotalNodes, c.ReadyNodes, c.CPUCapacity, c.MemoryCapacity)
+	metrics.SetClusterCapacity(c.Code, c.TotalNodes, c.ReadyNodes, c.CPUCapacity, c.MemoryCapacity)
 	metrics.SetClusterStatus(metrics.NormalizeLabel(c.Status), 1)
 }
 

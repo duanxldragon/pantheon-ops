@@ -4,7 +4,9 @@ services:
     container_name: pantheon-mysql
     restart: unless-stopped
     environment:
-      MYSQL_ROOT_PASSWORD: DHCCroot@2025
+      # 凭据只从环境读取：复制 .env.example 为 .env 并设置强口令。
+      # 未设置时 compose 直接失败，不提供默认口令。
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?MYSQL_ROOT_PASSWORD is required - copy .env.example to .env and set a strong password}
       MYSQL_DATABASE: pantheon_ops
       TZ: Asia/Shanghai
     ports:
@@ -14,14 +16,20 @@ services:
       - --character-set-server=utf8mb4
       - --collation-server=utf8mb4_general_ci
     volumes:
+      # 建库只走应用启动时的 migrate + runtime seed；不再挂载 database/system_init.sql
+      # （旧 16 表 DDL 已废弃，挂载会建出落后于迁移的残缺 schema）。
       - pantheon_mysql_data:/var/lib/mysql
-      - ./database/system_init.sql:/docker-entrypoint-initdb.d/01-system_init.sql:ro
 
   redis:
     image: redis:7-alpine
     container_name: pantheon-redis
     restart: unless-stopped
-    command: ["redis-server", "--appendonly", "yes", "--requirepass", "DHCCdhcc2025"]
+    command:
+      - redis-server
+      - --appendonly
+      - "yes"
+      - --requirepass
+      - ${REDIS_PASSWORD:?REDIS_PASSWORD is required - copy .env.example to .env and set a strong password}
     ports:
       - "6379:6379"
     volumes:

@@ -1,0 +1,179 @@
+{
+  "schemaVersion": 1,
+  "taskId": "2026-11-24-ops-metrics-semantics",
+  "title": "业务指标语义与集群维度收敛",
+  "goal": "修正 Ops 业务 Prometheus 指标的三处语义缺陷：集群容量指标忽略集群身份导致多集群互相覆盖、主机状态 Gauge 不重置已消失的状态、主机属性标签基数说明与实际不符，并以回归测试锁定",
+  "primaryLayer": "business/*",
+  "status": "completed",
+  "priority": "P2",
+  "deliveryTier": "L1",
+  "parentTask": null,
+  "taskDoc": "docs/harness/tasks/2026-11-24-ops-metrics-semantics.task.md",
+  "statusDoc": ".harness/tasks/2026-11-24-ops-metrics-semantics/STATUS.md",
+  "owner": "业务指标维护者",
+  "activation": "core",
+  "dependencies": [],
+  "dependsOn": [],
+  "conditionalDependencies": [],
+  "coordinatesWith": [],
+  "scope": {
+    "in": [
+      "pantheon_k8s_cluster_capacity 增加 cluster 标签并在刷新与单集群路径传入集群 code，使多集群互不覆盖",
+      "pantheon_hosts_total / pantheon_host_connectivity 改为整快照刷新：本次集合中消失的状态归零",
+      "修正 pantheon_host_attributes 标签基数注释，避免把按 IP 展开的明细称作避免高基数",
+      "为上述语义补包内回归测试"
+    ],
+    "out": [
+      "platform/system/*、共享 UI/权限/租户/请求拦截器实现由 pantheon-base 拥有，按正式 foundation release 同步",
+      "Grafana dashboard / 告警规则资产对齐（报告 O-10，尚需逐项核对真实资产）",
+      "指标租户维度、主机资产标签改造与 CMDB 明细下移（需独立设计）",
+      "未授权生产操作、发布、凭证变更及门禁豁免"
+    ]
+  },
+  "dependencyLayers": [
+    "business/*"
+  ],
+  "baseline": {
+    "candidateCommit": "11f9b004",
+    "foundationVersion": "pantheon-base-v0.18.9",
+    "foundationCommit": "6316f9b7189c86542424145fa49344ad737e952b",
+    "worktree": "uncommitted",
+    "recheckBeforeImplementation": false,
+    "reverifiedNote": "在 11f9b004 上复核：697c0771..11f9b004 只改了 k8s/cluster 的请求取消逻辑（#214），未触及本包业务文件"
+  },
+  "sourceReview": "pantheon-gpt-综合审查最终报告-2026-11-24.md §4.4",
+  "findingRefs": [
+    "O-04"
+  ],
+  "sourceRefs": [
+    {
+      "path": "pantheon-gpt-综合审查最终报告-2026-11-24.md",
+      "section": "4.4 新发现：Ops 业务 Metrics 的语义问题"
+    }
+  ],
+  "expectedFiles": {
+    "create": [
+      "docs/harness/tasks/2026-11-24-ops-metrics-semantics.task.md",
+      ".harness/tasks/2026-11-24-ops-metrics-semantics/manifest.json",
+      ".harness/tasks/2026-11-24-ops-metrics-semantics/STATUS.md",
+      ".harness/evidence/2026-11-24-ops-metrics-semantics/commands.json",
+      ".harness/evidence/2026-11-24-ops-metrics-semantics/summary.md",
+      ".harness/evidence/2026-11-24-ops-metrics-semantics/review.md",
+      "backend/modules/business/metrics/metrics_test.go"
+    ],
+    "modify": [
+      "backend/modules/business/metrics/metrics.go",
+      "backend/modules/business/k8s/cluster/cluster_metrics.go"
+    ],
+    "doNotTouch": [
+      "backend/modules/system/**",
+      "backend/internal/**",
+      "frontend/**",
+      "foundation-release.lock.json",
+      "docker-compose.yml",
+      "既有归档原始证据与其他执行者未提交改动"
+    ]
+  },
+  "contractAnchors": [
+    "AGENTS.md",
+    "docs/PROJECT_INHERITANCE.md",
+    "docs/TASK_PACKET_OPS_TEMPLATE.md",
+    "business-overlay.json",
+    "docs/designs/BUSINESS_FUNCTIONAL_DESIGN.md"
+  ],
+  "harnessProfile": {
+    "template": "custom",
+    "overlay": "pantheon-ops",
+    "qualityProfile": "none",
+    "portableFailureClass": "business-review-gap",
+    "ownerLayer": "business/*",
+    "coverageDimensions": [
+      "behaviour",
+      "architecture-fitness"
+    ]
+  },
+  "structuralScope": {
+    "affectedSubgraph": [
+      "业务指标刷新 -> cluster/host 采集调用方"
+    ],
+    "boundaryCrossings": [
+      "business/* -> Prometheus 客户端库"
+    ],
+    "riskNodes": [
+      "O-04"
+    ],
+    "graphFocus": [
+      "call-depth"
+    ]
+  },
+  "implementationNotes": [
+    "Minimal Complexity Rung: 最小新增代码",
+    "复用既有 normalizeLabel 与 promauto 注册，不引入新库；测试使用已依赖的 prometheus/client_golang/prometheus/testutil",
+    "集群容量沿用既有 cluster=code 标签约定；不改 pantheon_k8s_cluster_status 的聚合语义以控制 diff",
+    "主机状态刷新用包级互斥保护快照记录，保证并发刷新下陈旧状态归零一致",
+    "指标实现与调用方均在 business-overlay.json 的 businessPaths，源文件权威归 Ops"
+  ],
+  "implementationPlan": [
+    "核实当前候选与指标调用方，确认缺陷可从源码直接成立",
+    "为陈旧状态归零补回归测试并记录修复前 RED",
+    "完成最小修改：cluster 标签、快照刷新、注释更正",
+    "运行受影响包 race 测试、整后端编译、增量 lint 与边界门禁，保存 evidence 并自审"
+  ],
+  "acceptanceCriteria": [
+    "两个集群同时刷新时各自容量序列独立，互不覆盖",
+    "主机集合中消失的生命周期/连通性状态在下一次刷新归零",
+    "集群 code 为空时回落到 unknown 标签",
+    "并发刷新在 -race 下无数据竞争",
+    "受影响包单测与整后端编译通过，增量 lint 0 issues"
+  ],
+  "verificationPlan": {
+    "commands": [
+      "go test -race -count=1 ./modules/business/metrics/ ./modules/business/k8s/cluster/ ./modules/business/cmdb/host/",
+      "go build ./...",
+      "golangci-lint run --new-from-rev=11f9b004 ./modules/business/metrics/... ./modules/business/k8s/cluster/...",
+      "node scripts/harness/check-boundaries.mjs --strict --repo pantheon-ops"
+    ],
+    "runtimeEvidence": [
+      "运行态 Grafana/告警渲染不在本包范围；仓库内无既有资产引用新标签前的实例选择器"
+    ],
+    "commandWorkingDirectories": {
+      "go test -race -count=1 ./modules/business/metrics/ ./modules/business/k8s/cluster/ ./modules/business/cmdb/host/": "backend",
+      "go build ./...": "backend",
+      "golangci-lint run --new-from-rev=11f9b004 ./modules/business/metrics/... ./modules/business/k8s/cluster/...": "backend",
+      "node scripts/harness/check-boundaries.mjs --strict --repo pantheon-ops": "."
+    },
+    "environmentRequirements": [
+      "Go 命令在 backend/ 执行；race 需 D:\\msys64\\mingw64\\bin 与 CGO_ENABLED=1",
+      "本包不依赖 MySQL/Redis/K8s provider；受影响包为纯单测",
+      "命名空间/租户边界未变，无需权限、菜单、i18n、schema、seed、fixture 同步"
+    ]
+  },
+  "runtimeSensitive": false,
+  "humanGates": [
+    "需求/范围偏好、门禁策略与豁免、最终视觉/功能验收按维护者三触点契约处理",
+    "正式发布与仓库基线替换需已有授权"
+  ],
+  "linkage": {
+    "taskManifest": ".harness/tasks/2026-11-24-ops-metrics-semantics/manifest.json",
+    "taskDoc": "docs/harness/tasks/2026-11-24-ops-metrics-semantics.task.md",
+    "evidenceDir": ".harness/evidence/2026-11-24-ops-metrics-semantics/",
+    "reviewFile": ".harness/evidence/2026-11-24-ops-metrics-semantics/review.md",
+    "summaryFile": ".harness/evidence/2026-11-24-ops-metrics-semantics/summary.md",
+    "changeRef": "none",
+    "planRefs": []
+  },
+  "plannedReviewFile": ".harness/evidence/2026-11-24-ops-metrics-semantics/review.md",
+  "evidenceRequired": [
+    "commands.json 含真实执行状态、cwd、退出码与候选身份",
+    "summary.md 记录 RED/GREEN、受影响包与显式 gap",
+    "review.md 为 findings-first 自审并含机器可读 linkage"
+  ],
+  "completionChecklist": [
+    "Layer and boundary declared",
+    "Contract anchors read",
+    "Verification run or exception recorded",
+    "Evidence saved or summarized",
+    "Review completed"
+  ],
+  "rollbackPlan": "回退本包三处业务文件改动即可恢复原指标标签与刷新语义；无数据库与配置变更"
+}
