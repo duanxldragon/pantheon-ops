@@ -87,8 +87,8 @@
     "coverageDimensions": ["behaviour", "architecture-fitness"]
   },
   "structuralScope": {
-    "affectedSubgraph": "请求路由匹配 -> 租户作用域仓储 -> 详情/导出响应",
-    "boundaryCrossings": "business/* -> pkg 公共路由契约；共享缺口 -> Base 正式 release -> Ops 重建",
+    "affectedSubgraph": ["请求路由匹配", "租户作用域仓储", "详情/导出响应"],
+    "boundaryCrossings": ["business/* -> pkg 公共路由契约", "共享缺口 -> Base 正式 release -> Ops 重建"],
     "riskNodes": ["ARC-001"],
     "graphFocus": ["sensitive-input-flow"]
   },

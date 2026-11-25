@@ -101,8 +101,8 @@
     "coverageDimensions": ["behaviour", "runtime-quality"]
   },
   "structuralScope": {
-    "affectedSubgraph": "运行环境 -> 业务 API/队列 -> k8s/ArgoCD provider",
-    "boundaryCrossings": "business/* -> 外部 provider；环境依赖 -> 维护者配置",
+    "affectedSubgraph": ["运行环境", "业务 API/队列", "k8s/ArgoCD provider"],
+    "boundaryCrossings": ["business/* -> 外部 provider", "环境依赖 -> 维护者配置"],
     "riskNodes": ["V4", "V7", "V8"],
     "graphFocus": ["runtime-quality"]
   },
