@@ -46,7 +46,7 @@ func setupDeployTestCredential(t *testing.T, svc *DeployService) uint64 {
 		Username: "root",
 		AuthMode: "password",
 		Secret:   "secret",
-	}, "1")
+	}, "1", nil)
 	if err != nil {
 		t.Fatalf("create test credential: %v", err)
 	}

@@ -490,6 +490,16 @@ Deploy 允许消费的最小能力面建议固定为：
   - `business.deploy.task.sshAuthFailed`
   - `business.deploy.task.sshConnectFailed`
 
+#### 7.3.6a 凭据归属与作用域（T05 / SEC-004）
+
+- `biz_deploy_credential_ref` 增加 `business_scope_id`，凭据由业务域拥有；普通角色只能看到、编辑、删除自己数据范围内的业务域凭据。
+- `business_scope_id = 0` 是管理员拥有的平台级凭据；受限角色不能创建平台级凭据，也不能用它在有业务域的任务上启动。
+- `POST /tasks/:id/start`（以及 preview）要求 `credentialRef` 与任务 `businessScopeId` 相同；跨域按 ID 引用返回 `business.deploy.credential.out_of_scope`。
+- 已被任务引用的凭据不能删除（`business.deploy.credential.in_use`），任务是引用快照，历史执行不因轮换或删除而改变。
+- 列表、详情、更新、删除都经过数据范围过滤；对越权 ID 统一返回 `business.deploy.credential.not_found`，不泄露存在性。
+- 迁移 `000042_deploy_credential_scope` 只增加列与索引，历史行保留 0（平台级），不会自动变成共享池。
+- 前端 `business/deploy/credential/DeployCredentialList` 提供 CRUD、业务域选择、轮换密钥与 390px 可用布局；菜单权限沿用 `business:deploy:credential:*`。
+
 #### 7.3.7 `POST /tasks/:id/cancel`
 
 - 允许 `pending / running / pause_requested / paused` 发起取消；运行中先进入 `cancel_requested`

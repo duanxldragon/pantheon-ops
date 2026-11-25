@@ -305,6 +305,7 @@ const generatedzhCNFallback = {
   "operations.deploy.template.menu": "任务模板",
   "operations.deploy.task.menu": "部署任务",
   "operations.deploy.task.detail": "任务详情",
+  "operations.deploy.credential.menu": "部署凭据",
   "business.deploy.package.hero.eyebrow": "运维平台 / 软件组件",
   "business.deploy.package.hero.title": "维护可复用的软件安装组件",
   "business.deploy.package.hero.summaryTitle": "组件治理视角",

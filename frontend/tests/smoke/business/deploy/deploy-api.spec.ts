@@ -513,6 +513,7 @@ test.describe.serial('Deploy business api smoke', () => {
       await apiContext.post(`${apiBaseUrl}/business/deploy/credentials`, {
         data: {
           name: `${token}-credential`,
+          businessScopeId: scope.id,
           username: 'root',
           authMode: 'password',
           secret: 'smoke-secret',

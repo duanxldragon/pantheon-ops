@@ -253,6 +253,7 @@ export interface DeployTaskPayload {
 
 export interface DeployCredentialRow {
   id: number;
+  businessScopeId: number;
   name: string;
   username: string;
   authMode: 'password' | 'private_key';
@@ -260,6 +261,15 @@ export interface DeployCredentialRow {
   status: string;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface DeployCredentialPayload {
+  name: string;
+  username: string;
+  authMode: 'password' | 'private_key';
+  businessScopeId: number;
+  secret?: string;
+  status?: string;
 }
 
 // StartDeployTaskPayload is the CredentialRef-only Start contract. The SSH
@@ -449,6 +459,29 @@ export function getDeployCredentialList() {
   return apiRequest<DeployCredentialRow[]>({
     url: '/business/deploy/credentials',
     method: 'get',
+  });
+}
+
+export function createDeployCredential(data: DeployCredentialPayload) {
+  return apiRequest<DeployCredentialRow>({
+    url: '/business/deploy/credentials',
+    method: 'post',
+    data,
+  });
+}
+
+export function updateDeployCredential(id: number, data: Partial<DeployCredentialPayload>) {
+  return apiRequest<DeployCredentialRow>({
+    url: `/business/deploy/credentials/${id}`,
+    method: 'put',
+    data,
+  });
+}
+
+export function deleteDeployCredential(id: number) {
+  return apiRequest<null>({
+    url: `/business/deploy/credentials/${id}`,
+    method: 'delete',
   });
 }
 

@@ -13,10 +13,14 @@ const (
 	deployPackageMenuTitleKey  = "operations.deploy.package.menu"
 	deployTemplateMenuTitleKey = "operations.deploy.template.menu"
 	deployTaskMenuTitleKey     = "operations.deploy.task.menu"
+	//nolint:gosec // i18n key, not a credential value.
+	deployCredentialMenuTitleKey = "operations.deploy.credential.menu"
 
 	deployPackageListRoute  = "deploy-package-list"
 	deployTemplateListRoute = "deploy-template-list"
 	deployTaskListRoute     = "deploy-task-list"
+	//nolint:gosec // route name, not a credential value.
+	deployCredentialListRoute = "deploy-credential-list"
 
 	deployTemplatePermCreateKey = "business.deploy.template.permission.create"
 	deployTemplatePermUpdateKey = "business.deploy.template.permission.update"
@@ -98,6 +102,7 @@ func seedDeployMenus(db *gorm.DB) error {
 		{Key: "operations-deploy-task-cancel", ParentKey: deployTaskListRoute, TitleKey: deployTaskPermCancelKey, Perms: "business:deploy:task:cancel", Type: "F", Module: deployModuleKey, Sort: 9},
 		{Key: "operations-deploy-task-mark-result", ParentKey: deployTaskListRoute, TitleKey: deployTaskPermMarkResultKey, Perms: "business:deploy:task:mark-result", Type: "F", Module: deployModuleKey, Sort: 10},
 		{Key: "operations-deploy-task-export", ParentKey: deployTaskListRoute, TitleKey: deployTaskPermExportKey, Perms: "business:deploy:task:export", Type: "F", Module: deployModuleKey, Sort: 11},
+		{Key: "business-deploy-credential", ParentKey: "deploy", TitleKey: deployCredentialMenuTitleKey, Path: "/business/deploy/credential", Component: "business/deploy/credential/DeployCredentialList", PagePerm: "business:deploy:credential:list", Type: "C", Icon: "lock", Module: deployModuleKey, RouteName: deployCredentialListRoute, Sort: 3},
 		{Key: "operations-deploy-credential-list", ParentKey: deployTaskListRoute, TitleKey: deployCredentialPermListKey, Perms: "business:deploy:credential:list", Type: "F", Module: deployModuleKey, Sort: 12},
 		{Key: "operations-deploy-credential-create", ParentKey: deployTaskListRoute, TitleKey: deployCredentialPermCreateKey, Perms: "business:deploy:credential:create", Type: "F", Module: deployModuleKey, Sort: 13},
 		{Key: "operations-deploy-credential-update", ParentKey: deployTaskListRoute, TitleKey: deployCredentialPermUpdateKey, Perms: "business:deploy:credential:update", Type: "F", Module: deployModuleKey, Sort: 14},
@@ -219,6 +224,8 @@ func seedDeployI18n(db *gorm.DB) error {
 	}
 	entries := []i18nSeed{
 		{Module: deployModuleKey, Locale: "zh-CN", Group: "error", Key: errDeployServiceLinkInvalid, Value: "服务与实例必须有效、属于同一业务域并匹配实际部署主机"},
+		{Module: deployModuleKey, Locale: "zh-CN", Group: "menu", Key: deployCredentialMenuTitleKey, Value: "部署凭据"},
+		{Module: deployModuleKey, Locale: "en-US", Group: "menu", Key: deployCredentialMenuTitleKey, Value: "Deploy Credentials"},
 		{Module: deployModuleKey, Locale: "en-US", Group: "error", Key: errDeployServiceLinkInvalid, Value: "Service and instance must be active, belong to the same business scope and match the deployment host"},
 		{Module: deployModuleKey, Locale: "en-US", Group: "page", Key: "business.deploy.task.commandConflict", Value: "The task changed. Refresh completed; review its current state before trying the action again."},
 		{Module: deployModuleKey, Locale: "en-US", Group: "page", Key: "business.deploy.task.commandVersionRequired", Value: "Refresh the task before performing this action."},
