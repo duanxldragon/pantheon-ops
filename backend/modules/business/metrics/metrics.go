@@ -5,6 +5,8 @@
 package metrics
 
 import (
+	"sync"
+
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
 )
@@ -37,7 +39,8 @@ var (
 		[]string{"connectivity"},
 	)
 
-	// HostAttributes 主机资源量（按 IP 区分，避免高基数标签）。
+	// HostAttributes 主机资源量，按主机 IP 维度。标签基数随 CMDB 主机数增长，
+	// 资产明细应以 CMDB 为准，Prometheus 侧只用于聚合趋势。
 	HostAttributes = promauto.NewGaugeVec(
 		prometheus.GaugeOpts{
 			Name: "pantheon_host_attributes",
@@ -82,13 +85,13 @@ var (
 		[]string{"status"},
 	)
 
-	// ClusterCapacity 集群容量指标。
+	// ClusterCapacity 集群容量指标，按集群区分，避免多集群互相覆盖。
 	ClusterCapacity = promauto.NewGaugeVec(
 		prometheus.GaugeOpts{
 			Name: "pantheon_k8s_cluster_capacity",
 			Help: "Kubernetes cluster node and capacity metrics",
 		},
-		[]string{"metric"},
+		[]string{"cluster", "metric"},
 	)
 
 	// ClusterSyncErrors 集群同步失败计数。
@@ -123,8 +126,20 @@ func SetHostAttributes(ip string, cpuCores int, memoryGB, diskGB float64) {
 	HostAttributes.WithLabelValues(ip, "disk_gb").Set(diskGB)
 }
 
+// hostStatusGaugeMu serializes full-snapshot refreshes and guards the tracked
+// label sets used to zero out states that disappeared from the current host set.
+var (
+	hostStatusGaugeMu    sync.Mutex
+	lastHostLifecycle    = map[string]struct{}{}
+	lastHostConnectivity = map[string]struct{}{}
+)
+
 // SetHostStatusMetrics refreshes the lifecycle and connectivity gauges from
 // the current host set. It is cheap to call after list operations.
+//
+// Every refresh is a full snapshot: states absent from the current host set are
+// reset to 0, otherwise a disappeared state would keep its last non-zero value
+// forever and make the distribution wrong.
 func SetHostStatusMetrics(hosts []HostStatusMetric) {
 	lifecycle := make(map[string]int)
 	connectivity := make(map[string]int)
@@ -132,12 +147,28 @@ func SetHostStatusMetrics(hosts []HostStatusMetric) {
 		lifecycle[normalizeLabel(h.LifecycleState)]++
 		connectivity[normalizeLabel(h.ConnectivityState)]++
 	}
-	for state, count := range lifecycle {
-		HostsTotal.WithLabelValues(state).Set(float64(count))
+
+	hostStatusGaugeMu.Lock()
+	defer hostStatusGaugeMu.Unlock()
+	lastHostLifecycle = applyGaugeSnapshot(HostsTotal, lifecycle, lastHostLifecycle)
+	lastHostConnectivity = applyGaugeSnapshot(HostConnectivity, connectivity, lastHostConnectivity)
+}
+
+// applyGaugeSnapshot writes counts for every label of the current snapshot and
+// resets labels that were present in the previous snapshot but are gone now.
+// It returns the label set of the current snapshot.
+func applyGaugeSnapshot(vec *prometheus.GaugeVec, counts map[string]int, previous map[string]struct{}) map[string]struct{} {
+	current := make(map[string]struct{}, len(counts))
+	for label, count := range counts {
+		vec.WithLabelValues(label).Set(float64(count))
+		current[label] = struct{}{}
 	}
-	for state, count := range connectivity {
-		HostConnectivity.WithLabelValues(state).Set(float64(count))
+	for label := range previous {
+		if _, ok := counts[label]; !ok {
+			vec.WithLabelValues(label).Set(0)
+		}
 	}
+	return current
 }
 
 // HostStatusMetric is the minimal host projection consumed by metrics.
@@ -182,11 +213,15 @@ func SetClusterStatus(status string, count float64) {
 }
 
 // SetClusterCapacity records the node and capacity gauges for one cluster.
-func SetClusterCapacity(clusterID uint64, totalNodes, readyNodes int, cpuCapacity, memoryCapacity float64) {
-	ClusterCapacity.WithLabelValues("total_nodes").Set(float64(totalNodes))
-	ClusterCapacity.WithLabelValues("ready_nodes").Set(float64(readyNodes))
-	ClusterCapacity.WithLabelValues("cpu_capacity").Set(cpuCapacity)
-	ClusterCapacity.WithLabelValues("memory_capacity_gb").Set(memoryCapacity)
+// cluster is the cluster code, matching the `cluster` label used by
+// ClusterSyncErrors and ClusterSyncDuration, so several clusters can report at
+// the same time instead of overwriting a single shared series.
+func SetClusterCapacity(cluster string, totalNodes, readyNodes int, cpuCapacity, memoryCapacity float64) {
+	cluster = normalizeLabel(cluster)
+	ClusterCapacity.WithLabelValues(cluster, "total_nodes").Set(float64(totalNodes))
+	ClusterCapacity.WithLabelValues(cluster, "ready_nodes").Set(float64(readyNodes))
+	ClusterCapacity.WithLabelValues(cluster, "cpu_capacity").Set(cpuCapacity)
+	ClusterCapacity.WithLabelValues(cluster, "memory_capacity_gb").Set(memoryCapacity)
 }
 
 // NormalizeLabel normalizes an empty label value.

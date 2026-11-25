@@ -48,6 +48,12 @@
       "notes": "Permission workbench, role policy sync and tenant suites consume the expanded K8s permission route registry; all ok."
     },
     {
+      "command": "powershell -File .local/acceptance-20261121/run-t09-browser.ps1 (backend localhost:8082 + Vite 5177 + Playwright 1440x900)",
+      "cwd": "pantheon-ops",
+      "status": "passed",
+      "notes": "Run id omx-t09-browser-20261124-153621 on a candidate built from origin/main 28cdcd00 (binary sha256 recorded in probe setup, redacted here). Real kubectl annotate through the pinned SSH session advanced resourceVersion 2543724 -> 2543736 behind the open editor. UI submit returned the real 409, the editor stayed open with the typed selector draft and the conflict toast, and after an explicit list refresh the retry saved 200 with the fresh revision. Independent kubectl read confirms selector uiRevision=1. Owned namespace/cluster/scope deleted and independently verified."
+    },
+    {
       "command": "python -I .local/acceptance-20261121/k8s-live.py --run-id omx-accept-20261121-k8s38 (k14; also k12/k13)",
       "cwd": "pantheon-ops",
       "status": "passed",
@@ -55,8 +61,8 @@
     }
   ],
   "knownGaps": [
-    "UI draft recovery after a real kubectl resourceVersion conflict was not exercised in a browser; server maps stale resourceVersion to code 409.",
-    "Base static/param route guard (pantheon-base #525) is not yet consumed through a foundation release; bound routes deliberately avoid the same-level conflict."
+    "Base static/param route guard (pantheon-base #525) is not yet consumed through a foundation release; bound routes deliberately avoid the same-level conflict.",
+    "Browser probe covers the Service editor conflict path; workload/pod read-authorization matrix is covered by the live k14 lane and the CI smoke test, not by this browser run."
   ],
   "linkage": {
     "taskPacket": "docs/harness/tasks/2026-11-20-ops-k8s-resource-authorization-and-mutations.task.md",

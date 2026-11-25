@@ -1,6 +1,6 @@
 # K8s 资源读写授权与变更准入
 
-- Status: in-progress
+- Status: completed（Base 路由守卫发布后的二次绑定为显式 gap；维护者最终视觉/功能验收 Human Gate 仍开放）
 - Updated: 2026-11-24
 - Baseline: a2d69d4a759b5df2b26aaa9d26bdc5175babe9dc
 - Owner: K8s 授权负责人
@@ -27,9 +27,9 @@
 
 ## Known Gaps
 
-1. 真实 kubectl 干扰下 UI 草稿保留/恢复未在浏览器验证。
-2. 只读详情路由在 Base 静态/参数路由守卫发布并消费后可进一步绑定；当前已绑定路由不含静态/参数同层冲突。
+1. 只读详情路由在 Base 静态/参数路由守卫发布并消费后可进一步绑定；当前已绑定路由不含静态/参数同层冲突。
+2. 浏览器探针覆盖 Service 编辑器冲突路径；workload/Pod 读授权矩阵由 live k14 与 CI smoke 覆盖。
 
-## Next Atomic Action
+## Browser Verification (2026-11-24)
 
-在 k8s smoke 可用时演练真实冲突的草稿恢复，并补浏览器读授权矩阵（未绑定 namespace 不可见）。
+- `omx-t09-browser-20261124-153621`（候选 `28cdcd00`，真 K3s `115.190.251.143:6443`）：kubectl annotate 使 Service rv `2543724→2543736`；UI 提交返回真实 409，编辑器保持打开且草稿选择器原样保留，冲突提示渲染；关闭并显式刷新列表后以新 rv 重试 200；独立 kubectl 读到 `uiRevision=1`。证据 `../../evidence/2026-11-20-ops-k8s-resource-authorization-and-mutations/browser-20261124-153621/`。

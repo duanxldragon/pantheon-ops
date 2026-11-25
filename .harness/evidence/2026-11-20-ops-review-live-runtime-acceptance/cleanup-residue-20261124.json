@@ -1,0 +1,63 @@
+{
+  "schemaVersion": 1,
+  "taskId": "2026-11-20-ops-review-live-runtime-acceptance",
+  "runId": "omx-t16-cleanup-20261124-1618",
+  "gap": "GAP-CLEANUP-VERIFY",
+  "status": "PASS",
+  "date": "2026-11-24T16:18:00+08:00",
+  "environment": {
+    "database": "ops_acceptance_formal_20261121 (isolated local acceptance DB)",
+    "backend": "candidate built from origin/main 28cdcd00 (pantheon-ops-t09-probe-28cdcd00.exe), local port 8083, hidden start, stopped after the run",
+    "note": "Concurrent Codex backend on 8080 and its database were not touched; only this run's own process was stopped."
+  },
+  "operationVerify": {
+    "endpoint": "POST /api/v1/auth/operation-verify",
+    "httpStatus": 200,
+    "bodyCode": 200,
+    "operationTokenIssued": true,
+    "note": "Tokens are short-lived and were never printed or persisted."
+  },
+  "deletions": [
+    {
+      "endpoint": "POST /api/v1/system/user/batch-delete",
+      "requires": "SecureActionMiddleware (X-Operation-Token)",
+      "requested": 16,
+      "result": "code 200, failedCount 0",
+      "residue": "verify_u1_*, verify_u2_*, verify_u3_*, verify_v3_*, dm2_u_80d846"
+    },
+    {
+      "endpoint": "POST /api/v1/system/role/batch-delete",
+      "requires": "SecureActionMiddleware (X-Operation-Token)",
+      "requested": 226,
+      "result": "first pass deletedCount 220 / failedCount 6 (role.delete.error.has_users for roles still holding the probe users); second pass after user deletion deletedCount 6 / failedCount 0",
+      "residue": "verify_v3_*, verify_v3_all_*, v3t_*, discover_v3_*, dm2_view_*"
+    }
+  ],
+  "postState": {
+    "roleResidue": 0,
+    "userResidue": 0,
+    "rolesTotal": 7,
+    "usersTotal": 1,
+    "note": "Remaining rows are seed/admin rows only."
+  },
+  "retained": {
+    "packages": [
+      "omx_accept_20261121_cmdb02-fixed",
+      "omx_accept_20261121_cmdb02-marker",
+      "omx_accept_20261121_cmdb02-marker-neg"
+    ],
+    "reason": "DELETE /api/v1/business/deploy/packages/:id returned code 500 deploypackage.in_use for all three; packages referenced by deploy tasks are correctly protected from deletion, so they stay as historical fixtures in the isolated acceptance DB."
+  },
+  "privacy": "No password, DSN, token, host credential or other secret recorded; the operation token is reported only as issued true/false.",
+  "repo": "pantheon-ops",
+  "linkage": {
+    "taskPacket": "docs/harness/tasks/2026-11-20-ops-review-live-runtime-acceptance.task.md",
+    "taskManifest": ".harness/tasks/2026-11-20-ops-review-live-runtime-acceptance/manifest.json",
+    "evidence": ".harness/evidence/2026-11-20-ops-review-live-runtime-acceptance/commands.json",
+    "reviewFile": ".harness/evidence/2026-11-20-ops-review-live-runtime-acceptance/review.md",
+    "changeRef": "none",
+    "planRefs": [
+      ".harness/tasks/2026-11-20-ops-review-remediation/plan.md"
+    ]
+  }
+}

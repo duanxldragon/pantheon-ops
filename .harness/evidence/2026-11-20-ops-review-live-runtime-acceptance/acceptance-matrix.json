@@ -1072,8 +1072,9 @@
     {
       "caseId": "GAP-CLEANUP-VERIFY",
       "item": "测试遗留用户/角色 (operation-verify 拦截 DELETE)",
-      "status": "OPEN",
-      "action": "敏感系统变更返回 auth.operation.verification_required (body code 403), 未走 operation token/secondary verify 流, 因此 vprobe 创建的 verify_u1/u2、vprobe_viewer/pkgview roles 及此前轮次遗留用户/角色未删除。凭据/包/任务 fixtures 已删。清理需在前端完成二次验证流或维护者授权; 上线前须清空全部 verify_* / vprobe_* 测试主体"
+      "status": "CLOSED",
+      "action": "2026-11-24 关闭：在隔离验收库 ops_acceptance_formal_20261121 上真实执行 POST /auth/operation-verify（code 200 签发 operation token），随后以 X-Operation-Token 调用 /system/user/batch-delete 删除全部 16 个探针用户、/system/role/batch-delete 删除 226 个探针角色（角色首次 220 个成功，剩余 6 个在用户删除后第二轮成功）。删除后 API 复读为 0 残余用户/角色（仅剩 7 个 seed 角色与 admin）。三个 cmdb02 包因 deploypackage.in_use 被正确保护而保留。证据 cleanup-residue-20261124.json。",
+      "closedAt": "2026-11-24"
     },
     {
       "caseId": "GAP-ARGOCD-ENVKEY",

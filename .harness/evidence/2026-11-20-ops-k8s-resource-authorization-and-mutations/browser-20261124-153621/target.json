@@ -1,0 +1,11 @@
+{
+  "runId": "omx-t09-browser-20261124-153621",
+  "namespace": "omx-t09-browser-20261124-153621",
+  "clusterId": 25,
+  "scopeId": 45,
+  "clusterName": "omx-t09-browser-20261124-153621",
+  "serviceName": "accept-conflict",
+  "initialResourceVersion": "2543724",
+  "webBase": "http://127.0.0.1:5177",
+  "apiBase": "http://127.0.0.1:8082/api/v1"
+}

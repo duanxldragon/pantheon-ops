@@ -1,0 +1,182 @@
+{
+  "schemaVersion": 1,
+  "taskId": "2026-11-24-ops-compose-credentials",
+  "title": "Compose 凭据外置与废弃 DDL 挂载移除",
+  "goal": "把 docker-compose.yml 中的 MySQL/Redis 明文口令改为仅从环境读取并在缺失时快速失败，同时移除已废弃的 database/system_init.sql 初始化挂载，使 Compose 与权威迁移建库路径一致",
+  "primaryLayer": "business/*",
+  "status": "completed",
+  "priority": "P1",
+  "deliveryTier": "L2",
+  "parentTask": null,
+  "taskDoc": "docs/harness/tasks/2026-11-24-ops-compose-credentials.task.md",
+  "statusDoc": ".harness/tasks/2026-11-24-ops-compose-credentials/STATUS.md",
+  "owner": "部署配置维护者",
+  "activation": "core",
+  "dependencies": [],
+  "dependsOn": [],
+  "conditionalDependencies": [],
+  "coordinatesWith": [],
+  "scope": {
+    "in": [
+      "MySQL MYSQL_ROOT_PASSWORD 与 Redis --requirepass 改为 ${VAR:?...} 必填插值，缺失时 compose 直接失败",
+      "移除 ./database/system_init.sql:/docker-entrypoint-initdb.d/... 挂载",
+      "在 YAML 注记建库单源（migrate + runtime seed）与凭据来源",
+      "本地 .env（已 gitignore）补齐两个密钥以避免本机 compose 失效"
+    ],
+    "out": [
+      "platform/system/*、共享 UI/权限/租户/请求拦截器实现由 pantheon-base 拥有，按正式 foundation release 同步",
+      "生产口令生成、托管与轮换流程（部署参数校验与密钥管理独立任务）",
+      ".env.example（Base 跟踪）与 database/README.md、docs/designs/REPOSITORY_LAYOUT.md 文案（内容已正确）",
+      "真实 docker compose up 运行态验证（本机 Docker daemon 未运行；本轮为配置解析级验证）"
+    ]
+  },
+  "dependencyLayers": [
+    "business/*"
+  ],
+  "baseline": {
+    "head": "11f9b004",
+    "worktree": "uncommitted",
+    "foundationVersion": "pantheon-base-v0.18.9",
+    "foundationCommit": "6316f9b7189c86542424145fa49344ad737e952b",
+    "recheckBeforeImplementation": false,
+    "reverifiedNote": "在 11f9b004 上复核：697c0771..11f9b004 未触及 docker-compose.yml"
+  },
+  "sourceReview": "pantheon-gpt-综合审查最终报告-2026-11-24.md §4.2",
+  "findingRefs": [
+    "O-01"
+  ],
+  "sourceRefs": [
+    {
+      "path": "pantheon-gpt-综合审查最终报告-2026-11-24.md",
+      "section": "4.2 必须优先解决的问题（O-01）"
+    }
+  ],
+  "expectedFiles": {
+    "create": [
+      "docs/harness/tasks/2026-11-24-ops-compose-credentials.task.md",
+      ".harness/tasks/2026-11-24-ops-compose-credentials/manifest.json",
+      ".harness/tasks/2026-11-24-ops-compose-credentials/STATUS.md",
+      ".harness/evidence/2026-11-24-ops-compose-credentials/commands.json",
+      ".harness/evidence/2026-11-24-ops-compose-credentials/summary.md",
+      ".harness/evidence/2026-11-24-ops-compose-credentials/review.md"
+    ],
+    "modify": [
+      "docker-compose.yml",
+      ".env (local, gitignored)"
+    ],
+    "doNotTouch": [
+      "backend/modules/system/**",
+      "backend/internal/**",
+      ".env.example",
+      "database/README.md",
+      "docs/designs/REPOSITORY_LAYOUT.md",
+      "foundation-release.lock.json",
+      "既有归档原始证据与其他执行者未提交改动"
+    ]
+  },
+  "contractAnchors": [
+    "AGENTS.md",
+    "docs/PROJECT_INHERITANCE.md",
+    "docs/TASK_PACKET_OPS_TEMPLATE.md",
+    "database/README.md",
+    "docs/designs/REPOSITORY_LAYOUT.md",
+    "business-overlay.json"
+  ],
+  "harnessProfile": {
+    "template": "custom",
+    "overlay": "pantheon-ops",
+    "qualityProfile": "auth-security",
+    "portableFailureClass": "business-review-gap",
+    "ownerLayer": "business/*",
+    "coverageDimensions": [
+      "behaviour",
+      "architecture-fitness"
+    ]
+  },
+  "structuralScope": {
+    "affectedSubgraph": [
+      "compose 安装入口 -> MySQL/Redis 凭据与初始化目录"
+    ],
+    "boundaryCrossings": [
+      "Ops overlay -> 部署配置",
+      "建库权威 -> Base 迁移"
+    ],
+    "riskNodes": [
+      "O-01"
+    ],
+    "graphFocus": [
+      "sensitive-input-flow"
+    ]
+  },
+  "implementationNotes": [
+    "Minimal Complexity Rung: 标准能力",
+    "使用 Compose 内建插值与 :? 必填语法，不引入 env_file、外部密钥工具或新脚本",
+    "保留端口、镜像、字符集、数据卷与数据库名，控制 diff 到凭据与挂载两处",
+    "Redis 沿用 --requirepass 命令行方式，避免为单个参数替换镜像 entrypoint",
+    "口令值不写入仓库；evidence 只记录长度与解析成功，不落明文"
+  ],
+  "implementationPlan": [
+    "核实 compose 明文位置、废弃挂载与相关文档结论",
+    "改为必填插值并移除 initdb 挂载，补齐本地 .env 以保持本机可用",
+    "验证缺失变量的失败语义与齐备时的解析结果",
+    "保存 evidence、自审并更新状态与索引"
+  ],
+  "acceptanceCriteria": [
+    "compose 文件中不再出现任何明文数据库/缓存口令",
+    "缺省变量时 docker compose config 以明确信息失败，不提供隐式默认口令",
+    "变量齐备时 docker compose config 解析成功，Redis 口令非空",
+    "解析结果不含 docker-entrypoint-initdb / system_init 挂载",
+    "仓库内无其他硬编码口令出现位置（检索为空）"
+  ],
+  "verificationPlan": {
+    "commands": [
+      "docker compose --env-file .tmp/empty.env config",
+      "MYSQL_ROOT_PASSWORD=*** REDIS_PASSWORD=*** docker compose --env-file .tmp/empty.env config",
+      "grep -c \"docker-entrypoint-initdb\\|system_init\"",
+      "grep -c \"DHCCroot\\|DHCCdhcc\" docker-compose.yml"
+    ],
+    "runtimeEvidence": [
+      "配置解析级验证；容器启动、首建库与既有数据卷兼容未执行（本机 Docker daemon 未运行）"
+    ],
+    "commandWorkingDirectories": {
+      "docker compose --env-file .tmp/empty.env config": ".",
+      "MYSQL_ROOT_PASSWORD=*** REDIS_PASSWORD=*** docker compose --env-file .tmp/empty.env config": ".",
+      "grep -c \"docker-entrypoint-initdb\\|system_init\"": ".",
+      "grep -c \"DHCCroot\\|DHCCdhcc\" docker-compose.yml": "."
+    },
+    "environmentRequirements": [
+      "Docker Compose CLI v5.5.1；config 为离线解析，不需要 daemon",
+      "本机 .env 需含 MYSQL_ROOT_PASSWORD / REDIS_PASSWORD（已 gitignore）",
+      "无接口/权限/菜单/i18n/schema/seed/fixture 影响"
+    ]
+  },
+  "runtimeSensitive": true,
+  "humanGates": [
+    "需求/范围偏好、门禁策略与豁免、最终视觉/功能验收按维护者三触点契约处理",
+    "生产凭据、外部环境操作与正式发布需已有授权",
+    "生产口令托管与轮换方案、Compose 是否作为客户安装入口需维护者确认"
+  ],
+  "linkage": {
+    "taskManifest": ".harness/tasks/2026-11-24-ops-compose-credentials/manifest.json",
+    "taskDoc": "docs/harness/tasks/2026-11-24-ops-compose-credentials.task.md",
+    "evidenceDir": ".harness/evidence/2026-11-24-ops-compose-credentials/",
+    "reviewFile": ".harness/evidence/2026-11-24-ops-compose-credentials/review.md",
+    "summaryFile": ".harness/evidence/2026-11-24-ops-compose-credentials/summary.md",
+    "changeRef": "none",
+    "planRefs": []
+  },
+  "plannedReviewFile": ".harness/evidence/2026-11-24-ops-compose-credentials/review.md",
+  "evidenceRequired": [
+    "commands.json 含真实执行状态、cwd、退出码，且不记录任何口令明文",
+    "summary.md 记录修复前后事实、失败语义与显式 gap",
+    "review.md 为 findings-first 自审并含机器可读 linkage"
+  ],
+  "completionChecklist": [
+    "Layer and boundary declared",
+    "Contract anchors read",
+    "Verification run or exception recorded",
+    "Evidence saved or summarized",
+    "Review completed"
+  ],
+  "rollbackPlan": "回退 docker-compose.yml 即可恢复原配置；本地 .env 增量键可保留（被 gitignore），无数据库变更"
+}

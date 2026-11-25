@@ -1,0 +1,73 @@
+{
+  "schemaVersion": 1,
+  "taskId": "2026-11-24-ops-compose-credentials",
+  "repo": "pantheon-ops",
+  "evidenceState": "exercised",
+  "agent": {
+    "tool": "other",
+    "adapter": "windows"
+  },
+  "candidate": {
+    "head": "11f9b004",
+    "worktree": "uncommitted",
+    "foundation": "pantheon-base-v0.18.9",
+    "foundationCommit": "6316f9b7189c86542424145fa49344ad737e952b"
+  },
+  "commands": [
+    {
+      "command": "docker compose config",
+      "cwd": ".",
+      "status": "failed",
+      "exitCode": 1,
+      "notes": "Expected failure while .env had no MYSQL_ROOT_PASSWORD/REDIS_PASSWORD: both interpolations abort with 'is required - copy .env.example to .env and set a strong password'. Proves there is no implicit default credential; no daemon needed."
+    },
+    {
+      "command": "docker compose config",
+      "cwd": ".",
+      "status": "passed",
+      "exitCode": 0,
+      "notes": "After adding the two keys to the gitignored local .env: config resolves successfully."
+    },
+    {
+      "command": "docker compose config | node -e \"assert --requirepass non-empty and no docker-entrypoint-initdb/system_init in resolved output\"",
+      "cwd": ".",
+      "status": "passed",
+      "exitCode": 0,
+      "notes": "Resolved config: MYSQL_ROOT_PASSWORD injected; redis --requirepass non-empty (length 12, value not recorded); no docker-entrypoint-initdb and no system_init mount."
+    },
+    {
+      "command": "grep -c \"DHCCroot\\|DHCCdhcc\" docker-compose.yml",
+      "cwd": ".",
+      "status": "passed",
+      "exitCode": 0,
+      "notes": "0 matches: no plaintext database or cache password left in the compose file (value intentionally not echoed in evidence)."
+    },
+    {
+      "command": "docker compose --env-file .tmp/empty.env config",
+      "cwd": ".",
+      "status": "failed",
+      "exitCode": 1,
+      "notes": "Re-run on candidate 11f9b004 with an empty env file and both variables unset: exits 1 with \"required variable MYSQL_ROOT_PASSWORD ... is missing a value\" and the same for REDIS_PASSWORD. Reproduced without touching the gitignored local .env; no daemon needed."
+    },
+    {
+      "command": "MYSQL_ROOT_PASSWORD=<redacted> REDIS_PASSWORD=<redacted> docker compose --env-file .tmp/empty.env config",
+      "cwd": ".",
+      "status": "passed",
+      "exitCode": 0,
+      "notes": "Re-run on candidate 11f9b004: resolves; 0 matches for docker-entrypoint-initdb/system_init; 0 plaintext occurrences of the old credentials in docker-compose.yml. Values not recorded."
+    }
+  ],
+  "knownGaps": [
+    "No container start, first-init database build or existing-volume compatibility check: the Docker daemon is not running on this machine, so verification is config-resolution level only.",
+    "Whether this compose file is the customer installation entry is unconfirmed; if it is, the item is P0 and needs production key generation/custody/rotation (same theme as report O-06).",
+    ".env.example is base-tracked: it defines both variables but does not mark them as required by compose; that wording change belongs to pantheon-base."
+  ],
+  "linkage": {
+    "taskPacket": "docs/harness/tasks/2026-11-24-ops-compose-credentials.task.md",
+    "evidenceDir": ".harness/evidence/2026-11-24-ops-compose-credentials/",
+    "reviewFile": ".harness/evidence/2026-11-24-ops-compose-credentials/review.md",
+    "changeRef": "none",
+    "planRefs": [],
+    "taskManifest": ".harness/tasks/2026-11-24-ops-compose-credentials/manifest.json"
+  }
+}

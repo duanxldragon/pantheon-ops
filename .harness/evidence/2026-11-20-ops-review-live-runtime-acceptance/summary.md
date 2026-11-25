@@ -63,6 +63,10 @@ CMDB lane 修正为 PASS：c01-c08 在 retry 序列（00:20Z）全部通过（�
 
 结论：当前机器未启动 127.0.0.1:26316 的测试 Redis 时，该 race 门禁不能作为代码健康信号；补齐测试依赖后应能显著收敛。此分类不改变 K8s lane PARTIAL 的整体结论。
 
+## 遗留测试主体清理（2026-11-24，GAP-CLEANUP-VERIFY 关闭）
+
+在隔离验收库 `ops_acceptance_formal_20261121` 上以候选 `28cdcd00` 后端走真实二次验证流程：`POST /auth/operation-verify` 返回 code 200 并签发 operation token；随后带 `X-Operation-Token` 调用 `/system/user/batch-delete` 删除全部 16 个探针用户，`/system/role/batch-delete` 删除 226 个探针角色（首轮 220 个成功，6 个因仍持有用户返回 `role.delete.error.has_users`，用户删除后第二轮全部成功）。删除后经 API 复读：探针用户/角色残余 0，仅剩 7 个 seed 角色与 1 个 admin 用户。三个 `omx_accept_20261121_cmdb02` 包被 `deploypackage.in_use` 正确保护，作为历史任务 fixture 保留。证据 [cleanup-residue-20261124.json](cleanup-residue-20261124.json)；运行只动本任务自己的 8083 后端，未触碰并发 Codex 的 8080 后端与其数据库。
+
 ## 证据与回执
 
 最新 K8s 原始结果：[k8s-acceptance-results.json](k8s-acceptance-results.json)；部署运行证：`runs/omx_accept_20261121_cmdb02/manifest.json`；原矩阵：[acceptance-matrix.json](acceptance-matrix.json)；构建身份：[k8s-final-receipt.json](k8s-final-receipt.json)、[deploy-final-receipt.json](deploy-final-receipt.json)。完整仓库 race 失败及 provider/UI gaps 明确保留。
