@@ -34,6 +34,7 @@ const msgParamInvalid = "common.param_invalid"
 // scope. It is the seed for file_sd generation in v1.1.
 type MonitoringTarget struct {
 	ID              uint64     `gorm:"primaryKey;autoIncrement" json:"id"`
+	TenantID        uint64     `gorm:"column:tenant_id;not null;default:0" json:"-"`
 	BusinessScopeID uint64     `gorm:"column:business_scope_id;index" json:"businessScopeId"`
 	DeptID          uint64     `gorm:"column:dept_id;index" json:"deptId"`
 	TargetType      string     `gorm:"size:32;not null" json:"targetType"`

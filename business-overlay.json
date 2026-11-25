@@ -343,6 +343,10 @@
     "backend/modules/business/filedist/migrations/000039_filedist_ownership_selection.down.sql",
     "backend/modules/business/filedist/migrations/000039_filedist_ownership_selection.up.sql",
     "backend/modules/business/observability/migrations/000037_o4_business_tenant_workspace.down.sql",
-    "backend/modules/business/observability/migrations/000037_o4_business_tenant_workspace.up.sql"
+    "backend/modules/business/observability/migrations/000037_o4_business_tenant_workspace.up.sql",
+    "backend/modules/business/deploy/migrations/000042_deploy_credential_scope.up.sql",
+    "backend/modules/business/deploy/migrations/000042_deploy_credential_scope.down.sql",
+    "backend/modules/business/deploy/migrations/000043_extension_business_tenant_ownership.up.sql",
+    "backend/modules/business/deploy/migrations/000043_extension_business_tenant_ownership.down.sql"
   ]
 }

@@ -37,6 +37,7 @@ const (
 // WebhookEvent represents a webhook event
 type WebhookEvent struct {
 	ID          uint64     `gorm:"primaryKey;autoIncrement" json:"id"`
+	TenantID    uint64     `gorm:"column:tenant_id;not null;default:0" json:"-"`
 	Source      string     `gorm:"size:32;not null" json:"source"` // github, gitlab, argocd
 	EventType   string     `gorm:"size:64;not null" json:"eventType"`
 	Repository  string     `gorm:"size:255" json:"repository"`

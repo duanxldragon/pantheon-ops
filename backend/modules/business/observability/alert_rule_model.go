@@ -10,8 +10,9 @@ import (
 // AlertRule represents an alert rule configuration.
 type AlertRule struct {
 	ID                   uint64         `gorm:"primaryKey;autoIncrement" json:"id"`
+	TenantID             uint64         `gorm:"column:tenant_id;not null;default:0;index:uk_obs_alert_rule_name,priority:1" json:"-"`
 	DeptID               uint64         `gorm:"column:dept_id;index" json:"deptId"`
-	Name                 string         `gorm:"size:128;not null;uniqueIndex" json:"name"`
+	Name                 string         `gorm:"size:128;not null;index:uk_obs_alert_rule_name,unique,priority:2" json:"name"`
 	DatasourceID         uint64         `gorm:"not null;index" json:"datasourceId"`
 	Enabled              bool           `gorm:"default:true" json:"enabled"`
 	Query                string         `gorm:"type:text;not null" json:"query"`         // PromQL query
@@ -95,6 +96,7 @@ type AlertRuleListResponse struct {
 // AlertEvent represents a fired alert event.
 type AlertEvent struct {
 	ID          uint64         `gorm:"primaryKey;autoIncrement" json:"id"`
+	TenantID    uint64         `gorm:"column:tenant_id;not null;default:0" json:"-"`
 	DeptID      uint64         `gorm:"column:dept_id;index" json:"deptId"`
 	RuleID      uint64         `gorm:"not null;index" json:"ruleId"`
 	RuleName    string         `gorm:"size:128;not null" json:"ruleName"`

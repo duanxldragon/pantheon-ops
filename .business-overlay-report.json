@@ -160,7 +160,7 @@
     },
     {
       "path": ".harness/TASK_INDEX.md",
-      "sha256": "7473577a9f971f382d2459935588c87ca3348a1c1fdcc7708cc3f13af6307581"
+      "sha256": "dc8c837e630d67d0378cc3e52d2f067ef2cf20a35719cca90a7ad867460dd479"
     },
     {
       "path": ".harness/archive/2026-08/evidence/2026-08-17-ops-foundation-hardening/commands.json",
@@ -8595,6 +8595,18 @@
       "sha256": "f9fc6ea98fe4ebde6dc50ff80a6e034a0d32398b67f614fc3b8db248cc88ec6d"
     },
     {
+      "path": ".harness/evidence/2026-11-20-ops-deploy-credential-ownership-and-ui/commands.json",
+      "sha256": "8d6d210b3e959f40bd3d85957235ab6b71ef08598a7095c2194e6f53988fec51"
+    },
+    {
+      "path": ".harness/evidence/2026-11-20-ops-deploy-credential-ownership-and-ui/review.md",
+      "sha256": "0921ff8764288e590567f539581937bd45a88c134800a7d67939cfa5f7ed2e6f"
+    },
+    {
+      "path": ".harness/evidence/2026-11-20-ops-deploy-credential-ownership-and-ui/summary.md",
+      "sha256": "6de1490c62f76197d8291617d546c0703acd8cf9843f4d861a7ff99ad6ff5867"
+    },
+    {
       "path": ".harness/evidence/2026-11-20-ops-deploy-fixed-template-security/codex-fix-green-20261122-162532.json",
       "sha256": "044e554a79dd4292cdc36e43465884140c502d86acd8195eafde2f2f51309693"
     },
@@ -11363,6 +11375,18 @@
       "sha256": "40ced178cbef5c157dedb40e5e17135f284a42d3d3c0ce1635e9a421895b52f8"
     },
     {
+      "path": ".harness/evidence/2026-11-25-base-v0190-consumption/commands.json",
+      "sha256": "edbe483ff0b425b11633a2f809e49354bea77d228298c6d6e538a2a7ef79e298"
+    },
+    {
+      "path": ".harness/evidence/2026-11-25-base-v0190-consumption/review.md",
+      "sha256": "18a41cf0a678a8e0e8be1f433a07c63b5fa0ab8191e41a1481c6d518e48a3c69"
+    },
+    {
+      "path": ".harness/evidence/2026-11-25-base-v0190-consumption/summary.md",
+      "sha256": "2bbdcbf260377523125fcbe3d40a3bf4fdf5e8ffeba9e5027815f782d24f7d47"
+    },
+    {
       "path": ".harness/evidence/foundation-upgrade-base-v0.9.0/runbook.md",
       "sha256": "22e136bc2ae442bc675f9fa631e4c5e6d74e0121fc1634017ddf40ce6dfddda6"
     },
@@ -11664,11 +11688,11 @@
     },
     {
       "path": ".harness/tasks/2026-11-20-ops-deploy-credential-ownership-and-ui/STATUS.md",
-      "sha256": "2e395e362a9949364c4404a425f1be71fd34f3c06b4d609aa9c5d7a75a67447f"
+      "sha256": "ac12b43896fb876ad44cde30d055154782f42cc21ee02acc4789a157af28d140"
     },
     {
       "path": ".harness/tasks/2026-11-20-ops-deploy-credential-ownership-and-ui/manifest.json",
-      "sha256": "f760cd43ef64c1005abb1eab474e25fc81cd0c5eb462b74eb1428a3cbf67faa7"
+      "sha256": "40c56d5598c6aa2f5c77efc4cb4b9e31041eafb94cdec4fdb15311a67cd9aa36"
     },
     {
       "path": ".harness/tasks/2026-11-20-ops-deploy-fixed-template-security/HANDOFF.md",
@@ -11985,6 +12009,10 @@
     {
       "path": ".harness/tasks/2026-11-24-workflow-context-improvement/manifest.json",
       "sha256": "79c556446b233dde25047d09b3359c15ff9b806f9d5408c5bc5b6ca881093e58"
+    },
+    {
+      "path": ".harness/tasks/2026-11-25-base-v0190-consumption/manifest.json",
+      "sha256": "3c278581fab75e966e1622f44e27bbb18a252ab5473f32b3e25c5d6720587ad5"
     },
     {
       "path": ".harness/tasks/2026-11-25-ops-residual-live-acceptance/HANDOFF.md",
@@ -12480,7 +12508,7 @@
     },
     {
       "path": "backend/modules/business/cicd/argocd/argocd_model.go",
-      "sha256": "cb6d986924dd6c2fab6434d140d7c3052c8d1d6ed8c2ecf82ebe37e0080bf1fe"
+      "sha256": "c64fc75a37b6e722db2b47db9a599092b855344023ded6245a8f170b93cdc15e"
     },
     {
       "path": "backend/modules/business/cicd/argocd/argocd_observation.go",
@@ -12504,7 +12532,7 @@
     },
     {
       "path": "backend/modules/business/cicd/argocd/argocd_webhook.go",
-      "sha256": "b25f4d14a26ea39b59466bcb177e797828300d8dfefaa5c1a3840dab5e16fbfa"
+      "sha256": "7b1138f8c65c702d01a551ca2cca49d9774c8678b2fdc2e8d330b4b590091fad"
     },
     {
       "path": "backend/modules/business/cicd/argocd/argocd_webhook_test.go",
@@ -12513,6 +12541,10 @@
     {
       "path": "backend/modules/business/cicd/argocd/sync_error_handler_test.go",
       "sha256": "f22f62378d8f86400fcd580ba887d4e7835d2cba1f041be4c17b5a5b34e0e33e"
+    },
+    {
+      "path": "backend/modules/business/cicd/argocd/tenant_schema_test.go",
+      "sha256": "5f433fddef66fcd66e15f846bdd78c8172843615f71b51f1bce00cd3410053c6"
     },
     {
       "path": "backend/modules/business/cicd/argocd/timeout.go",
@@ -12708,11 +12740,15 @@
     },
     {
       "path": "backend/modules/business/deploy/deploy_credential.go",
-      "sha256": "de2b491e4106bb0775599f878b6d837c1677c355984f5bec6afcdc5ffae5819b"
+      "sha256": "4c6fb87cfd2614db1c4638037cd0b0c1ae61bff644e8e167c93021799cb8d4af"
+    },
+    {
+      "path": "backend/modules/business/deploy/deploy_credential_scope_test.go",
+      "sha256": "01eedd1f138f4679c347eb476367148d97b550de2812541e17718d6a1669e608"
     },
     {
       "path": "backend/modules/business/deploy/deploy_dto.go",
-      "sha256": "38e30dd68320e131b9aeb01510d2afb1427732941abdc4354cde537f9e2f9ed8"
+      "sha256": "91394c13bf470db88c89517ff3d51ade8bf8c2b9e9e0fa3d0962b794f776d634"
     },
     {
       "path": "backend/modules/business/deploy/deploy_executor_test.go",
@@ -12728,7 +12764,7 @@
     },
     {
       "path": "backend/modules/business/deploy/deploy_handler.go",
-      "sha256": "5e77c4277d213417dd71c3a10dc6abd10277cfd4258642f317f4c79769b040f3"
+      "sha256": "f093b8d7d39b4bd30d21d20416f390b686c6206178366ccd13744b219785fbd0"
     },
     {
       "path": "backend/modules/business/deploy/deploy_helpers.go",
@@ -12744,7 +12780,7 @@
     },
     {
       "path": "backend/modules/business/deploy/deploy_live_acceptance_test.go",
-      "sha256": "1b3a12ec8f094d62b99125af6d5187103f0934ce4b5837b8852905a352254956"
+      "sha256": "e30e603af24b32a92f97fe6ddd00c2c24b138797cbec2dd0a9817c4a0975cbd0"
     },
     {
       "path": "backend/modules/business/deploy/deploy_metrics.go",
@@ -12752,7 +12788,7 @@
     },
     {
       "path": "backend/modules/business/deploy/deploy_model.go",
-      "sha256": "adf79ca513f5f91a65749a2aea9806b3b39bde42f092f8bd274d3bcf43b39c47"
+      "sha256": "28663cdd5cd80c58996823ee2f34e6012fe0fb80a209d95a606afcc9c14f4a50"
     },
     {
       "path": "backend/modules/business/deploy/deploy_reliability_test.go",
@@ -12764,7 +12800,7 @@
     },
     {
       "path": "backend/modules/business/deploy/deploy_seed.go",
-      "sha256": "0047c6f3bd637d94076a8bdcc9aadc7e611a685360263fcc9a03e1630cc21be7"
+      "sha256": "3cb97f992508043a56024ff386d385e6d2cf35947790a490ffa60c5847f07619"
     },
     {
       "path": "backend/modules/business/deploy/deploy_seed_test.go",
@@ -12772,15 +12808,15 @@
     },
     {
       "path": "backend/modules/business/deploy/deploy_service.go",
-      "sha256": "b2b9bb4ef20ffe89ac3bfc89072ffca19b514dffa2f2fe3f03c4dd23dfc944c3"
+      "sha256": "31a4a40f5079f910cad0ccc8ce4e462fb5398931b4987854d7ae0122e957d966"
     },
     {
       "path": "backend/modules/business/deploy/deploy_service_test.go",
-      "sha256": "2a1c4ea100c1fd9bb36424360e4cbf941520565385cefc5a16255e041803431c"
+      "sha256": "515c95e8ba7edcbda8e407bf2dddbf2d8c8532b3c6936ad62b55b4ef8a51e3fb"
     },
     {
       "path": "backend/modules/business/deploy/deploy_ssh_transport_test.go",
-      "sha256": "d8f9c5fb3b0d9a48ab99bc55dfc69cec7c0ee59f66502d9991a0c88409fa2a2f"
+      "sha256": "058b96001a79560e869fb2c0db96dc9e1f250771fd4be21e14a2b4d9717163a5"
     },
     {
       "path": "backend/modules/business/deploy/deploy_template_service.go",
@@ -12841,6 +12877,22 @@
     {
       "path": "backend/modules/business/deploy/migrations/000041_core_business_tenant_ownership.up.sql",
       "sha256": "40fb30380084f51936e7c0f02a30d14915e017050fa489d5a124cee137e86635"
+    },
+    {
+      "path": "backend/modules/business/deploy/migrations/000042_deploy_credential_scope.down.sql",
+      "sha256": "81c216e14e6802d0ab6b246e3e401d6ac331b52337bd34d58c86939cc912127c"
+    },
+    {
+      "path": "backend/modules/business/deploy/migrations/000042_deploy_credential_scope.up.sql",
+      "sha256": "703ca771827d6a36ce567fbc2b4d13939b83eb302142cb0fc40bd7f4b044bdc0"
+    },
+    {
+      "path": "backend/modules/business/deploy/migrations/000043_extension_business_tenant_ownership.down.sql",
+      "sha256": "3e3f65effba211d520ad1eff70f181481f73dd956844edc51007bc9390ff3b91"
+    },
+    {
+      "path": "backend/modules/business/deploy/migrations/000043_extension_business_tenant_ownership.up.sql",
+      "sha256": "896ad5189c16d047145877a7b743caf725d4d2efbf771fd56cbca85a358ceb81"
     },
     {
       "path": "backend/modules/business/deploy/orchestrator/orchestrator.go",
@@ -12920,7 +12972,7 @@
     },
     {
       "path": "backend/modules/business/deploy/task_preview.go",
-      "sha256": "d052c53b489c337f78b47c58c04a8ae6cd2a1490d37f58c955c822896cf5ba7f"
+      "sha256": "70bd8194534990d02b18f3f0c1c076848375085c26f00903593c4fd491b778db"
     },
     {
       "path": "backend/modules/business/deploy/task_preview_plan.go",
@@ -12945,6 +12997,10 @@
     {
       "path": "backend/modules/business/deploy/tenant_async_recovery_test.go",
       "sha256": "0a1ae8313dba5d1a8ff05864b541a6def5ff8e1472d40b7aab5be2008750e879"
+    },
+    {
+      "path": "backend/modules/business/deploy/tenant_extension_migration_test.go",
+      "sha256": "cb841f0906e22fcccd21a70ab1479532c9b348e8cf1f50d6f15199be1fe7194f"
     },
     {
       "path": "backend/modules/business/deploy/tenant_ownership_migration_test.go",
@@ -12984,7 +13040,7 @@
     },
     {
       "path": "backend/modules/business/filedist/distribution_model.go",
-      "sha256": "7bffb82d45d290e1ec6682f4b973f61ace7a73e72a35ece15f29cd95c1e45011"
+      "sha256": "57d8a129a315a855c1a2bcdb6ef1a1803f73c7daf4d214ceb1c59e9929412a13"
     },
     {
       "path": "backend/modules/business/filedist/distribution_service.go",
@@ -13032,7 +13088,7 @@
     },
     {
       "path": "backend/modules/business/filedist/storage_model.go",
-      "sha256": "f0a5786ac635ffc6b3d5f165ccdeedc17a497d8af9ea35e11e9790cb197affb3"
+      "sha256": "8f70e97ba6b5dc31a20ec9cbac1438cf6805a03337dd5f073440feaac81c5b29"
     },
     {
       "path": "backend/modules/business/filedist/storage_service.go",
@@ -13049,6 +13105,10 @@
     {
       "path": "backend/modules/business/filedist/target_selection_test.go",
       "sha256": "a15a323fe462d9dab7099468c041b8ac1674caca6f9ba5607701e7e0ba2b31d4"
+    },
+    {
+      "path": "backend/modules/business/filedist/tenant_schema_test.go",
+      "sha256": "ed9099a25db0e222a51bffe4b3b767f0a698e7a2ce7bfef0c14c72f9d4d5909b"
     },
     {
       "path": "backend/modules/business/filedist/transfer_claim_failure_test.go",
@@ -13136,11 +13196,15 @@
     },
     {
       "path": "backend/modules/business/k8s/helm/helm.go",
-      "sha256": "45efa777ca4a9daefb364c953dcc8e5a206a6a0ee0d58a6972bac8eaa11613d5"
+      "sha256": "92ee3750df93c1f418a0a3bb4b5ca81280223f6f585920e0953e6237a40436ed"
     },
     {
       "path": "backend/modules/business/k8s/helm/helm_test.go",
       "sha256": "3196170a8cb126342c1b9acb06a65c5228f58bdb0924e99d639f5366556ed2e1"
+    },
+    {
+      "path": "backend/modules/business/k8s/helm/tenant_schema_test.go",
+      "sha256": "8a6a59f0fc8f1289f25d6e20b23f8d43261ef9a123cfa25528808cca6e6ad1a2"
     },
     {
       "path": "backend/modules/business/k8s/ingress/ingress.go",
@@ -13148,7 +13212,11 @@
     },
     {
       "path": "backend/modules/business/k8s/install/install.go",
-      "sha256": "6d16fe0a12ae10bda62bcc474e80c4ff36d7f8e632bf3d141c3e4432babf2cd3"
+      "sha256": "31b06889fd7ba841e3ce9941a6cd097320a13a1379b4874f6ae6b85658097133"
+    },
+    {
+      "path": "backend/modules/business/k8s/install/tenant_schema_test.go",
+      "sha256": "58d292c9d01a4d216d4732830981978f2121eff56c348b55c04aed8b4ed4ed61"
     },
     {
       "path": "backend/modules/business/k8s/k8s.go",
@@ -13236,7 +13304,7 @@
     },
     {
       "path": "backend/modules/business/k8s/release/release_model.go",
-      "sha256": "775ac781be0fe474c5b3678aa6f204e33893fef3de4e3b63f8ff8191ddc637b8"
+      "sha256": "24b38385d71a4b06356df7e3cc250bbdf40a0bc70ef619bb1655d76039dc0c3e"
     },
     {
       "path": "backend/modules/business/k8s/release/release_service.go",
@@ -13245,6 +13313,10 @@
     {
       "path": "backend/modules/business/k8s/release/release_service_test.go",
       "sha256": "b26b67a8aacb8658cd293aa53fc61eb914de18bd9afafb4c86bb2ec8a1044177"
+    },
+    {
+      "path": "backend/modules/business/k8s/release/tenant_schema_test.go",
+      "sha256": "2e82117795bc404a0eb18c27066c3a1fd1fb3c31c0c1171bc43175486036e3b6"
     },
     {
       "path": "backend/modules/business/k8s/secret/secret.go",
@@ -13316,7 +13388,7 @@
     },
     {
       "path": "backend/modules/business/observability/alert_rule_model.go",
-      "sha256": "79bbde04d61b58abdcf3ce755853e0b3d1ad7102dda0d213458677dcab926017"
+      "sha256": "411a25c6d0983f5e8d32bab6a065302db6c90b1e49a3e12ae8f784b00e4cdad5"
     },
     {
       "path": "backend/modules/business/observability/alert_rule_service.go",
@@ -13376,7 +13448,7 @@
     },
     {
       "path": "backend/modules/business/observability/notification_model.go",
-      "sha256": "838831003b54aa2a21a5a2d5e4e9c9b8146290f1547617121e4af7d66ed2e6f0"
+      "sha256": "51f0750b1cbca249a0e47cc6e1104dbff0e0df35ac1e95967f09ef0adab0d541"
     },
     {
       "path": "backend/modules/business/observability/notification_network_test.go",
@@ -13396,7 +13468,7 @@
     },
     {
       "path": "backend/modules/business/observability/observability.go",
-      "sha256": "ec5888852e8da3a70a3358761bcf1954b12f48e82a2abe44f2895546a4750b9a"
+      "sha256": "1df35690ee31df25b8532e68c97de707acab9fbad900bb170f41144fa05a8d10"
     },
     {
       "path": "backend/modules/business/observability/observability_handler.go",
@@ -13487,6 +13559,10 @@
       "sha256": "ff0d461c4e388d28c996c430a01946e19674383c802c1840167d3bf1c18028cd"
     },
     {
+      "path": "backend/modules/business/observability/tenant_schema_test.go",
+      "sha256": "a53dab6424c272944c8dc197c8f028b514689fa9fdc16216a6ee4d1af229c445"
+    },
+    {
       "path": "backend/modules/business/opsinit/extension_lifecycle.go",
       "sha256": "150f000b987b4c959762c4a550f6c026b816b8a657e0414abe0fe88990988d4e"
     },
@@ -13548,7 +13624,7 @@
     },
     {
       "path": "backend/modules/business/service/model.go",
-      "sha256": "68873af3ec1faf3122534423bc4cdc6431219f04ab29c8e4ae00055e297b0c19"
+      "sha256": "4c12c0d242e722a66ca53aab9639c896805fd469b6096a7e2eb4186aed358a4b"
     },
     {
       "path": "backend/modules/business/service/module.go",
@@ -13591,12 +13667,20 @@
       "sha256": "a3e72a081ed5632ac9e0acadd34c12722a9770a407268eccd1fa0cca8a6a3b44"
     },
     {
+      "path": "backend/modules/business/service/tenant_schema_test.go",
+      "sha256": "963eaa908e6b220a6237c33e99c07b7bb68b180c46ca8af81692c144417b0ac6"
+    },
+    {
       "path": "backend/modules/business/shared/dashboard/snapshot.go",
       "sha256": "682b7d0752b05e9267b44985922c84edaeb9bd81bb63f30b1a5ac87b2a37ac3a"
     },
     {
       "path": "backend/modules/business/shared/dashboard/snapshot_test.go",
       "sha256": "df75f9f5f1fcbff7e9ead97db7982fb886daf79cee769cb9099935724b4dbefa"
+    },
+    {
+      "path": "backend/modules/business/shared/tenantschematest/tenantschematest.go",
+      "sha256": "b03f5c32bc13bfbd5d1312556166339dbbb742813e403e166558a476398b1245"
     },
     {
       "path": "backend/modules/business/shared/timeout.go",
@@ -13683,8 +13767,24 @@
       "sha256": "40fb30380084f51936e7c0f02a30d14915e017050fa489d5a124cee137e86635"
     },
     {
+      "path": "backend/pkg/database/migrations/000042_deploy_credential_scope.down.sql",
+      "sha256": "81c216e14e6802d0ab6b246e3e401d6ac331b52337bd34d58c86939cc912127c"
+    },
+    {
+      "path": "backend/pkg/database/migrations/000042_deploy_credential_scope.up.sql",
+      "sha256": "703ca771827d6a36ce567fbc2b4d13939b83eb302142cb0fc40bd7f4b044bdc0"
+    },
+    {
+      "path": "backend/pkg/database/migrations/000043_extension_business_tenant_ownership.down.sql",
+      "sha256": "3e3f65effba211d520ad1eff70f181481f73dd956844edc51007bc9390ff3b91"
+    },
+    {
+      "path": "backend/pkg/database/migrations/000043_extension_business_tenant_ownership.up.sql",
+      "sha256": "896ad5189c16d047145877a7b743caf725d4d2efbf771fd56cbca85a358ceb81"
+    },
+    {
       "path": "business-overlay.json",
-      "sha256": "c7cb90a8d20d24d669cad2c90417f6f1ea50312180d917810c6b3bb5020ad241"
+      "sha256": "c858307c209b9af8d67beed5a8fcfd60368114329d499043a9929d2fe0b7ce0b"
     },
     {
       "path": "config/review-loop-legacy-artifacts.json",
@@ -13696,7 +13796,7 @@
     },
     {
       "path": "docs/PROJECT_INHERITANCE.en.md",
-      "sha256": "6216ca088733e025655ff6d608b22cac7c4367f7e236ff1836ba767651a584c2"
+      "sha256": "df3beb09a98f654c61528e497eb7934280bdd516ba034f3fa391168818439886"
     },
     {
       "path": "docs/PROJECT_INHERITANCE.md",
@@ -13780,7 +13880,7 @@
     },
     {
       "path": "docs/designs/BUSINESS_DEPLOY_MODULE_DESIGN.md",
-      "sha256": "1166ea5cb1b15e66cc685514bb71cb86b7fd3daf59abf8af2919f2038c2f0673"
+      "sha256": "c86c12016fa5ef51e9cc396db9542acf0e939dd16809955ac21c7e485f2b7404"
     },
     {
       "path": "docs/designs/BUSINESS_DEVELOPMENT_PLAN.en.md",
@@ -14343,6 +14443,10 @@
       "sha256": "8e7e865be71499752e4f80db76595e2e90bf57cc41787c812a2ba5874dd41fe2"
     },
     {
+      "path": "docs/harness/tasks/2026-11-25-base-v0190-consumption.task.md",
+      "sha256": "fe44e76b8ec2025bc60aed65d405d99c7e0007eeebc4606959c6a81e345ff02d"
+    },
+    {
       "path": "docs/harness/tasks/2026-11-25-ops-residual-live-acceptance.task.md",
       "sha256": "5b00a59871bef90c54390982460279d3993b7c9b1a54bcbf4b1c8589e2fff607"
     },
@@ -14660,23 +14764,23 @@
     },
     {
       "path": "frontend/src/i18n/resources/business/en-US.ts",
-      "sha256": "15f87fafd191713c7e375c7149e2c4d4a7bd0f863e6f728d662cbd9e50b8627c"
+      "sha256": "45b0b27d50aced17806f617b2e431eaa6eb088da09c23038380d2d3319b5816c"
     },
     {
       "path": "frontend/src/i18n/resources/business/fr-FR.ts",
-      "sha256": "f33251e4dec6542c24636167d8dca2f7d28d3309a963536c6dc9c9c88738a389"
+      "sha256": "efb40f73afeddfcc48f3be801eb142b02f640b901585daac4375dddf00acb25e"
     },
     {
       "path": "frontend/src/i18n/resources/business/ja-JP.ts",
-      "sha256": "4eef71c09f36860fc998fe635261de5dc48e109ef5d539acfdc7c5193aec4485"
+      "sha256": "1254973d312909bce614ebc0c439d2c4cf8369e0de483f529928366aa7f6fd1b"
     },
     {
       "path": "frontend/src/i18n/resources/business/ko-KR.ts",
-      "sha256": "c624a84b1255efe15733b991b48b1737f9cd8b766b61de3f26175e8958eebbab"
+      "sha256": "4bbf689c7b2079ef8460f938092f3129c98b4b9438e54dfc4ea0e51b5e5068da"
     },
     {
       "path": "frontend/src/i18n/resources/business/zh-CN.ts",
-      "sha256": "ae0082c7eb550436292e0b8d8d08b321b395ec0231b086b36489eaef2ff415a7"
+      "sha256": "4a3e39887c9dac05681696021fa315b30b25f347374da42051a0bdf5226b2b62"
     },
     {
       "path": "frontend/src/i18n/resources/en-US.ts",
@@ -14820,11 +14924,15 @@
     },
     {
       "path": "frontend/src/modules/business/deploy/api.ts",
-      "sha256": "ef0e88677e801404e345dd2a0a6f71ef6944056eb4f03ab33a8f64e088720d49"
+      "sha256": "b6ad8cba14b759fc22db1b476b419ff94afb7b63f98780bb66823f4c41bd1361"
     },
     {
       "path": "frontend/src/modules/business/deploy/catalog.ts",
       "sha256": "7638d570dbb657681941c8c688139200f379d5ea4fbf68a4f76cd95f4df25f31"
+    },
+    {
+      "path": "frontend/src/modules/business/deploy/credential/DeployCredentialList.tsx",
+      "sha256": "dc8ee19b50e8c03191f3e8d87e5898ec28969412af11258a34de6a6fdf3f6aab"
     },
     {
       "path": "frontend/src/modules/business/deploy/deploy.css",
@@ -14832,27 +14940,27 @@
     },
     {
       "path": "frontend/src/modules/business/deploy/index.ts",
-      "sha256": "d714eb84a90c4b384c0184ee4561231bbceff66c27a442437d0d332c4120bbb0"
+      "sha256": "491546022ef9595044354d16a9dc11afb2cbc73a17ef868e9e51473b22c574b1"
     },
     {
       "path": "frontend/src/modules/business/deploy/locales/en-US.json",
-      "sha256": "555992f341c96e5969a5fe31b2765ff2e5af0d97d9f6d8f2f6d8a4daf1c32caf"
+      "sha256": "c117eb445ec03be473292861176a86d35e67e06184358e0add39153b80e9838b"
     },
     {
       "path": "frontend/src/modules/business/deploy/locales/fr-FR.json",
-      "sha256": "8489a01ca9353fd0a5cfd687349d31d00f49a01f3b5bf41dd9eec6416c9505bb"
+      "sha256": "b87e499358c6b29cd6003809827453a586f0f5392e17d7dc97ba7a8f02934891"
     },
     {
       "path": "frontend/src/modules/business/deploy/locales/ja-JP.json",
-      "sha256": "0a349bbea0498e757e13a78a3f7341b63a89fc725846917cbb67b7e4b19755e7"
+      "sha256": "39a95a25074f70ba9481abd488ac7eab5de40e0e46db7f5a317b2724d5acaf52"
     },
     {
       "path": "frontend/src/modules/business/deploy/locales/ko-KR.json",
-      "sha256": "5b5452a5728ef070bb2cf1cc4a727dc59b7a837565a656102df6a54bb9d1f613"
+      "sha256": "04591f3561f24f736a5dbb4f3e9c93d62d121165f2c39d2e5a3cc011713575bc"
     },
     {
       "path": "frontend/src/modules/business/deploy/locales/zh-CN.json",
-      "sha256": "577996fbda7af6ab04f525cefea1b42bd151191a55ddad47b559f9529ea8bc21"
+      "sha256": "bfe7201d31cb7f968325ed5169ed045167899771387bba4ea67f49b0fd21082f"
     },
     {
       "path": "frontend/src/modules/business/deploy/package/DeployPackageList.tsx",
@@ -15192,11 +15300,11 @@
     },
     {
       "path": "frontend/tests/smoke/business/deploy/deploy-api.spec.ts",
-      "sha256": "e59b7b1fae6e39723270ab89d0e3d997c91872fa07e981c0e34cfab818cd5839"
+      "sha256": "362447457b66cdfa51a87939a93ef8961226b59be5afa7f0f0b7b451675abcf3"
     },
     {
       "path": "frontend/tests/smoke/business/deploy/deploy-pages.spec.ts",
-      "sha256": "f1eaf43c3c019ab212c42b73692cc44b9f93085ff4fe54e2501fc96ea1e0e2e9"
+      "sha256": "2539e184a0dbf8ba83bde7b1ac824ccbfe4c442ed2a1ed2297bae7adc9db6ad2"
     },
     {
       "path": "frontend/tests/smoke/business/k8s/k8s-pages.spec.ts",
@@ -15481,6 +15589,10 @@
     "backend/pkg/database/migrations/000040_biz_business_environment.up.sql",
     "backend/pkg/database/migrations/000041_core_business_tenant_ownership.down.sql",
     "backend/pkg/database/migrations/000041_core_business_tenant_ownership.up.sql",
+    "backend/pkg/database/migrations/000042_deploy_credential_scope.down.sql",
+    "backend/pkg/database/migrations/000042_deploy_credential_scope.up.sql",
+    "backend/pkg/database/migrations/000043_extension_business_tenant_ownership.down.sql",
+    "backend/pkg/database/migrations/000043_extension_business_tenant_ownership.up.sql",
     "frontend/package.json",
     "frontend/scripts/cleanup-generated-modules.mjs",
     "frontend/src/core/router/businessOverlayComponentRegistry.ts",

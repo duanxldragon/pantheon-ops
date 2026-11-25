@@ -23,6 +23,7 @@ const (
 // DistributionTask represents a file distribution task.
 type DistributionTask struct {
 	ID           uint64         `gorm:"primaryKey;autoIncrement" json:"id"`
+	TenantID     uint64         `gorm:"column:tenant_id;not null;default:0" json:"-"`
 	Name         string         `gorm:"size:128;not null" json:"name"`
 	FileID       uint64         `gorm:"not null;index" json:"fileId"`
 	Targets      datatypes.JSON `json:"targets"`                              // Array of target configurations
@@ -53,6 +54,7 @@ func (DistributionTask) TableName() string {
 // DistributionTarget represents a single target server.
 type DistributionTarget struct {
 	ID              uint64         `gorm:"primaryKey;autoIncrement" json:"id"`
+	TenantID        uint64         `gorm:"column:tenant_id;not null;default:0" json:"-"`
 	TaskID          uint64         `gorm:"not null;index" json:"taskId"`
 	HostID          uint64         `gorm:"not null;default:0;index" json:"hostId"`
 	StateVersion    uint64         `gorm:"not null;default:0" json:"stateVersion"`

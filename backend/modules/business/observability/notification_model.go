@@ -10,8 +10,9 @@ import (
 // NotificationChannel represents a notification channel configuration.
 type NotificationChannel struct {
 	ID        uint64         `gorm:"primaryKey;autoIncrement" json:"id"`
+	TenantID  uint64         `gorm:"column:tenant_id;not null;default:0;index:uk_obs_notification_channel_name,priority:1" json:"-"`
 	DeptID    uint64         `gorm:"column:dept_id;index" json:"deptId"`
-	Name      string         `gorm:"size:128;not null;uniqueIndex" json:"name"`
+	Name      string         `gorm:"size:128;not null;index:uk_obs_notification_channel_name,unique,priority:2" json:"name"`
 	Type      string         `gorm:"size:32;not null" json:"type"` // email, webhook, slack, dingtalk, feishu
 	Enabled   bool           `gorm:"default:true" json:"enabled"`
 	Config    datatypes.JSON `json:"config"` // Channel-specific configuration
@@ -97,6 +98,7 @@ type NotificationChannelListResponse struct {
 // NotificationLog represents a sent notification record.
 type NotificationLog struct {
 	ID        uint64         `gorm:"primaryKey;autoIncrement" json:"id"`
+	TenantID  uint64         `gorm:"column:tenant_id;not null;default:0" json:"-"`
 	DeptID    uint64         `gorm:"column:dept_id;index" json:"deptId"`
 	ChannelID uint64         `gorm:"not null;index" json:"channelId"`
 	EventID   uint64         `gorm:"not null;index" json:"eventId"`

@@ -45,6 +45,7 @@ const (
 // Application is a deployable application registered in the service module.
 type Application struct {
 	ID                uint64         `gorm:"primaryKey;autoIncrement" json:"id"`
+	TenantID          uint64         `gorm:"column:tenant_id;not null;default:0" json:"-"`
 	Code              string         `gorm:"size:128;not null" json:"code"`
 	Name              string         `gorm:"size:255;not null" json:"name"`
 	BusinessScopeID   uint64         `gorm:"column:business_scope_id;not null;index" json:"businessScopeId"`
