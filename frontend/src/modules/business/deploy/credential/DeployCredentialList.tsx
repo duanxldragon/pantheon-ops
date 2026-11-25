@@ -26,6 +26,7 @@ import {
   TABLE_ACTION_COLUMN_WIDTH,
   buildStandardPagination,
 } from '../../../../components';
+import PasswordInput from '../../../../components/patterns/forms/PasswordInput';
 import { usePermission } from '../../../../hooks/usePermission';
 import { getBizScopeOptions, type BizScopeOptionItem } from '../../bizscope/api';
 import {
@@ -367,7 +368,7 @@ export default function DeployCredentialList() {
             rules={editing ? [] : [{ required: true, message: t('business.deploy.credential.secretRequired') }]}
             extra={t('business.deploy.credential.secretHint')}
           >
-            <Input.Password autoComplete="new-password" />
+            <PasswordInput autoComplete="new-password" />
           </Form.Item>
           {editing ? (
             <Form.Item label={t('business.deploy.credential.statusLabel')} field="status">
