@@ -1,12 +1,23 @@
 # 核心业务资源租户归属与兼容迁移
 
-- Status: in-progress
-- Updated: 2026-11-24T16:25:00+08:00
+- Status: completed — schema 迁移、兼容恢复与异步恢复路径已验证；残余路由绑定转入 `2026-11-25-ops-tenant-detail-route-binding`；维护者最终验收仍开放
+- Updated: 2026-11-25
 - Baseline: a2d69d4a759b5df2b26aaa9d26bdc5175babe9dc
 - Owner: 核心业务租户迁移负责人
 - Priority: P1
 - Activation: core
 - Dependencies: T01
+
+## 2026-11-25 收口
+
+按维护者指示关为本包 completed。已交付且验证：schema 迁移与装配副本一致、compat 旧行保留与部分应用恢复、双租户同名/单租户重名约束、异步重启后的租户保持（`TestAsyncRecoveryKeepsOriginatingTenant`，真实 MySQL `-race`）。
+
+残余不在本包内继续，已拆出：
+
+- `2026-11-25-ops-tenant-detail-route-binding`（P1，planned）：消费含静态路由守卫的正式 foundation release 后恢复详情路由租户绑定。
+- 写入路径（claim 时落 `tenant_id`）与 `tenant_mode=multi` 端到端归 T14 `2026-11-20-ops-extension-and-async-tenant-isolation` 与 `2026-11-25-ops-residual-live-acceptance`。
+
+本包 completed 只表示范围内交付完成，不代表生产或多租户验收。
 
 ## Implemented
 

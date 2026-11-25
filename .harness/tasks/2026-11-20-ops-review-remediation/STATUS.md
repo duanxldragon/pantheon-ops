@@ -1,10 +1,24 @@
 # 11月20日审查整改与真实交付任务树
 
+- Status: completed — 原 17 包已全部进入终态（completed）或拆出后继包；残余由 planned 子包与后继包承接；维护者最终验收仍开放
+- Updated: 2026-11-25
+- Owner: 业务交付协调负责人
+- Priority: P0
+- Delivery Tier: L2
+
+## 2026-11-25 收口
+
+按维护者指示关为本包 completed。
+
+- T04 与 T16 同日关为 completed，其残余拆为 `2026-11-25-ops-tenant-detail-route-binding`（P1）与 `2026-11-25-ops-residual-live-acceptance`（P0），均 planned。
+- 仍未执行的实现类子包（T05 部署凭据授权、T10 文件分发、T11 服务目录闭环、T12 ArgoCD、T13 模板体验）与交付收口 T17 仍为 planned，按各自 manifest 推进，不再阻塞本父任务的状态。
+- 本父任务 completed 只表示规划、拆包与已执行包的状态收口完成；不代表产品、多租户或生产验收已完成。
+
 ## 2026-11-24 树状态核对（T09 完成后）
 
 `/api/v1` 任务树当前为 **planned 7 / in-progress 3 / completed 21**（共 31 项）。2026-11-24 新增 completed 两项：T09（K8s 资源读写授权与变更准入，PR #217 squash `a79c289d`）与 docs-and-test-governance（能力文档、测试资产与治理对账，2026-11-24 完成）；in-progress 剩 T04（core-business-tenant-isolation）、T16（live-runtime-acceptance）与本父任务 T20。
 
-父任务不能收口的原因是该树的结构性依赖：8 个 planned 子包（ArgoCD 归属、部署凭据授权、模板体验、T05 扩展与异步租户隔离、文件分发生命周期、试点交付收口、文档测试治理、服务目录部署闭环）仍未执行；T04 依赖 Base 正式 release 与 T05，T16 依赖 T04/T05 且其 V4/V7/V8/Ingress/全新安装/Velero schedule 等验收依赖当前不可得的环境。父任务只有在子任务全部终态且 T16 的真实验收签核后才可置 completed。
+父任务不能收口的原因是该树的结构性依赖：8 个 planned 子包（ArgoCD 归属、部署凭据授权、模板体验、T05 扩展与异步租户隔离、文件分发生命周期、试点交付收口、文档测试治理、服务目录部署闭环）仍未执行；T04 依赖 Base 正式 release 与 T05，T16 依赖 T04/T05 且其 V4/V7/V8/Ingress/全新安装/Velero schedule 等验收依赖当前不可得的环境。原定父任务需子任务全部终态且 T16 真实验收签核后才可 completed；2026-11-25 维护者选择按“范围内完成、残余转后继包”收口，完整生产验收仍留待 T17/T19 与维护者签核。
 
 ## 2026-11-22 第二轮独立进度核对
 

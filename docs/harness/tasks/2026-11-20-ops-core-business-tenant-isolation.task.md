@@ -2,8 +2,8 @@
 title: 核心业务资源租户归属与兼容迁移
 doc_type: Remediation
 layer: business
-status: Active
-updated_at: 2026-11-20
+status: Archived
+updated_at: 2026-11-25
 linked_contracts:
   - docs/designs/BUSINESS_FUNCTIONAL_DESIGN.md
   - docs/contracts/TENANT_CONTRACT_V1.md

@@ -4,7 +4,7 @@
   "title": "11月20日审查整改与真实交付任务树",
   "goal": "在当前候选上逐项核实最新审查，完成核心安全/租户/部署/K8s整改及真实交付验收",
   "primaryLayer": "business/*",
-  "status": "in-progress",
+  "status": "completed",
   "priority": "P0",
   "deliveryTier": "L2",
   "parentTask": null,

@@ -1,6 +1,10 @@
 # 本地业务实机验收阶段结果
 
-Task: 2026-11-20-ops-review-live-runtime-acceptance；Status: in-progress；Review: [review.md](review.md)。
+Task: 2026-11-20-ops-review-live-runtime-acceptance；Status: completed（2026-11-25 收口，环境类残余转出）；Review: [review.md](review.md)。
+
+## 2026-11-25 收口
+
+同候选可闭合项均已闭合（deploy 7/7、K8s 17/17、CAP 31/32、V-probe 19/19、T03 矩阵 18/18、清理核验）。剩余环境类项已拆到 `2026-11-25-ops-residual-live-acceptance`（P0，planned）：V4 多租户、V7 低权限 SSH、V8 SA 轮换、Ingress、Velero schedule/restore、完整 race（测试 Redis）、`GAP-ARGOCD-ENVKEY`、WebSocket 资源释放；全新安装/回滚与交付收口仍归 T17。completed 不代表上述环境项或生产验收已通过。
 
 ## 部署实机（deploy lane，候选 k8s33）
 
@@ -25,10 +29,11 @@ failed to check if this is a checkpoint image: failed to get image from containe
 即 containerd 2.x 的 checkpoint 预检沿 image ID `sha256:1a2a8fe1…` 追到陈旧 `import-2026-11-10@sha256:af344e / 39ac…` 两行 image metadata（`io.cri-containerd.image=managed`，来自过往 `ctr images import`），而该 metadata 指向已不可解析的引用。content store 五块 blob 全部在场（content ls 236 项），病灶是**元数据悬空而非内容丢失**。
 
 **修复执行证据（维护者放行 2026-11-22，pinned SSH 115.190.251.143）**：
+
 1. 放行一：`k3s ctr -n k8s.io images rm` 删除三行陈旧 metadata 已执行成功（rc 0，`after_imgrows` 确认三行消失），但 pod 报错**逐字节不变** → 陈旧引用不在 image-store 行内；
 2. 放行二（扩需）：`kubectl delete pod velero-7865c6d85d-vqj6s` 已执行，Deployment 重建新 pod `velero-7865c6d85d-746qp`（13s，新 IP），报错仍**逐字节不变**，`ctr c ls`/`ctr s ls` 无 velero container 对象 → 陈旧引用不在 pod/sandbox 元数据（kubelet 缓存），而在 **image entity 自身 chain**（checkpoint 预检每次 CreateContainer 从实体 metadata 重建该引用）；
 3. 放行三（扩需）：改为**重建 image entity** —— rm 两行 docker.io velero 镜像行 + 经国内镜像 `docker.m.daocloud.io`（该节点全部业务镜像经此拉取）按 digest 重拉 `velero@sha256:367a1d2…` / `velero-plugin-for-aws@sha256:b6ecf1a…`，必要时回标 docker.io 名，再 delete pod 验证 <font color="gray">（执行中，2026-11-22）</font>。
-目标终态：`kubectl -n velero get pods` Running + `business/k8s/backup/velero/status` runningPods≥1。
+   目标终态：`kubectl -n velero get pods` Running + `business/k8s/backup/velero/status` runningPods≥1。
 
 ## 权限安全探测（V-probe 19/19 PASS）
 
@@ -57,7 +62,7 @@ CMDB lane 修正为 PASS：c01-c08 在 retry 序列（00:20Z）全部通过（�
 
 `go test -race -count=1 -v ./...`（pantheon-ops 即 base 模块 + business overlay 的消费树）：**0 处 DATA RACE**；11 个失败标记中 10 个为**环境性**、0 个产品缺陷：
 
-- **6 个 observability 测试 FAIL 根因 *未启动 Redis***：`query_permit_test.go:31` / `query_workspace_handler_test.go:110/163` 全部 `ping redis at 127.0.0.1:26316 (from PANTHEON_TEST_REDIS_ADDR): dial tcp … actively refused`（TestQueryPermitActualRedisActorAndTenantCaps、TestQueryResponseReleaseRevocationAndSourceRevision、TestQueryPrivacyDenialAndRestoreNeverExecutes、TestWorkspaceResponseRechecksDatasourceAction、TestExplicitProbeResponseRechecksRevokedActionAfterStatusWrite 及 TestDatasourceHTTPQueryCancellation 的 prometheus/victoriametrics/tempo 子用例）。非代码缺陷，测试依赖环境。
+- **6 个 observability 测试 FAIL 根因 _未启动 Redis_**：`query_permit_test.go:31` / `query_workspace_handler_test.go:110/163` 全部 `ping redis at 127.0.0.1:26316 (from PANTHEON_TEST_REDIS_ADDR): dial tcp … actively refused`（TestQueryPermitActualRedisActorAndTenantCaps、TestQueryResponseReleaseRevocationAndSourceRevision、TestQueryPrivacyDenialAndRestoreNeverExecutes、TestWorkspaceResponseRechecksDatasourceAction、TestExplicitProbeResponseRechecksRevokedActionAfterStatusWrite 及 TestDatasourceHTTPQueryCancellation 的 prometheus/victoriametrics/tempo 子用例）。非代码缺陷，测试依赖环境。
 - **4 个包 10m 超时**（`pkg/database`、`system/i18n`、`auth/login`、`business/deploy`）：`test timed out after 10m0s`，期间日志显示共享 MySQL 每条 CREATE/ALTER 达 0.8–3s（SLOW SQL ≥200ms 大量）、`sql: database is closed`——race 插桩 × 慢 MySQL 导致超时，非导出 race。
 - **39 skips / 未跑**：k8s 全子树模块 race 单独运行**全绿**（`k8s-race-mysql-20261121-163638.json`：0 fail / 0 skip / exit 0，`./modules/business/k8s/...`）。
 

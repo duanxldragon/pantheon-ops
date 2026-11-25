@@ -1,0 +1,169 @@
+{
+  "schemaVersion": 1,
+  "taskId": "2026-11-25-ops-residual-live-acceptance",
+  "title": "真实环境残余验收（多租户、受限角色、SA 轮换、Ingress、Velero、race Redis）",
+  "goal": "承接 T16 已完成同候选验证之后仍不可得的环境类项，在具备环境后逐项执行并留同候选证据，不以推断关闭。",
+  "primaryLayer": "business/*",
+  "status": "planned",
+  "priority": "P0",
+  "deliveryTier": "L2",
+  "parentTask": "2026-11-20-ops-review-remediation",
+  "taskDoc": "docs/harness/tasks/2026-11-25-ops-residual-live-acceptance.task.md",
+  "handoffDoc": ".harness/tasks/2026-11-25-ops-residual-live-acceptance/HANDOFF.md",
+  "statusDoc": ".harness/tasks/2026-11-25-ops-residual-live-acceptance/STATUS.md",
+  "owner": "真实验收负责人",
+  "activation": "core",
+  "dependencies": [
+    "2026-11-20-ops-deploy-credential-ownership-and-ui",
+    "2026-11-20-ops-service-deploy-business-closure",
+    "2026-11-20-ops-extension-and-async-tenant-isolation",
+    "2026-11-20-ops-argocd-ownership-and-webhook",
+    "2026-11-20-ops-deploy-template-and-task-experience"
+  ],
+  "dependsOn": [
+    "2026-11-20-ops-deploy-credential-ownership-and-ui",
+    "2026-11-20-ops-service-deploy-business-closure",
+    "2026-11-20-ops-extension-and-async-tenant-isolation",
+    "2026-11-20-ops-argocd-ownership-and-webhook",
+    "2026-11-20-ops-deploy-template-and-task-experience"
+  ],
+  "conditionalDependencies": [],
+  "coordinatesWith": [],
+  "scope": {
+    "in": [
+      "V4 双租户端到端：租户 B 看不到 A 资源，猜 ID/修改/导出/回调无跨租户副作用",
+      "V7 低权限 SSH restart/cancel 用户下的注入拒绝、指纹、租约跨重启与远程取消",
+      "V8 SA 凭证持续请求下轮换、旧 client 不复活、撤销后合法请求正常",
+      "Ingress provider 变更与快照、Velero schedule/restore、WebSocket server 侧资源释放观察",
+      "完整 go test -race ./...（含测试 Redis）与本轮候选 receipt",
+      "GAP-ARGOCD-ENVKEY 用探针专用密钥补跑并记录"
+    ],
+    "out": [
+      "全新安装/升级/回滚与最终交付收口（T17）",
+      "业务实现改动；发现缺陷回到对应实现包",
+      "生产环境变更、凭据变更与门禁豁免"
+    ]
+  },
+  "dependencyLayers": ["business/*", "inheritance-sync"],
+  "baseline": {
+    "reportCommit": "444ce8e",
+    "planningCommit": "a2d69d4a759b5df2b26aaa9d26bdc5175babe9dc",
+    "foundationVersion": "pantheon-base-v0.18.9",
+    "foundationCommit": "6316f9b7189c86542424145fa49344ad737e952b",
+    "recheckBeforeImplementation": true
+  },
+  "sourceReview": "docs/reviews/pantheon-ops独立评审与外部报告核实-2026-11-20.md",
+  "sourceChecklist": "docs/reviews/pantheon-ops真实环境验证清单-2026-11-20.md",
+  "findingRefs": ["ARC-001"],
+  "sourceRefs": [
+    {
+      "path": "docs/reviews/pantheon-ops真实环境验证清单-2026-11-20.md",
+      "line": 1
+    }
+  ],
+  "expectedFiles": {
+    "create": [
+      "docs/harness/tasks/2026-11-25-ops-residual-live-acceptance.task.md",
+      ".harness/tasks/2026-11-25-ops-residual-live-acceptance/manifest.json",
+      ".harness/tasks/2026-11-25-ops-residual-live-acceptance/HANDOFF.md",
+      ".harness/tasks/2026-11-25-ops-residual-live-acceptance/STATUS.md",
+      ".harness/evidence/2026-11-25-ops-residual-live-acceptance/commands.json",
+      ".harness/evidence/2026-11-25-ops-residual-live-acceptance/summary.md",
+      ".harness/evidence/2026-11-25-ops-residual-live-acceptance/review.md"
+    ],
+    "modify": [
+      ".harness/evidence/2026-11-25-ops-residual-live-acceptance/**"
+    ],
+    "doNotTouch": [
+      "backend/modules/system/**",
+      "backend/internal/**",
+      "frontend/src/core/**",
+      "frontend/src/api/request.ts",
+      "foundation-release.lock.json",
+      "既有归档原始证据与其他执行者未提交改动"
+    ]
+  },
+  "contractAnchors": [
+    "AGENTS.md",
+    "docs/PROJECT_INHERITANCE.md",
+    "docs/TASK_PACKET_OPS_TEMPLATE.md",
+    "docs/contracts/TENANT_CONTRACT_V1.md",
+    "docs/reviews/pantheon-ops真实环境验证清单-2026-11-20.md",
+    "docs/designs/BUSINESS_QA_ACCEPTANCE_PLAN.md",
+    "foundation-release.lock.json"
+  ],
+  "harnessProfile": {
+    "template": "custom",
+    "overlay": "pantheon-ops",
+    "qualityProfile": "ui-runtime",
+    "portableFailureClass": "business-review-gap",
+    "ownerLayer": "business/*",
+    "coverageDimensions": ["behaviour", "runtime-quality"]
+  },
+  "structuralScope": {
+    "affectedSubgraph": "运行环境 -> 业务 API/队列 -> k8s/ArgoCD provider",
+    "boundaryCrossings": "business/* -> 外部 provider；环境依赖 -> 维护者配置",
+    "riskNodes": ["V4", "V7", "V8"],
+    "graphFocus": ["runtime-quality"]
+  },
+  "implementationNotes": [
+    "Minimal Complexity Rung: reuse",
+    "复用 T16 既有探针、lane 脚本与证据格式，不重写 harness。",
+    "每项记录真实环境身份（候选 commit/二进制哈希、DB 名、provider 版本）。",
+    "本包由 T16 2026-11-20-ops-review-live-runtime-acceptance 的环境类残余拆出（2026-11-25）。"
+  ],
+  "implementationPlan": [
+    "核实当前候选和前置合同，逐条对照来源与旧验收，标记已经完成的实现",
+    "先复用现有合同/组件/测试，针对本包反例验证失败路径与状态副作用",
+    "在声明文件范围内完成最小修改，同步权限/i18n/迁移/overlay/fixture",
+    "运行本包验证，保存候选绑定 evidence，findings-first review 后更新状态"
+  ],
+  "acceptanceCriteria": [
+    "V4/V7/V8 与 K8s shelf 项各有同候选真实运行证据或显式环境 gap",
+    "完整 race 结果按包分类，DATA RACE 为 0 或缺陷回对应实现包",
+    "GAP-ARGOCD-ENVKEY 有补跑结果或明确环境策略结论"
+  ],
+  "verificationPlan": {
+    "commands": [
+      "go test -race -count=1 ./...",
+      "node scripts/check-runtime-evidence.mjs --root ."
+    ],
+    "runtimeEvidence": ["V4 双租户", "V7 受限 SSH 用户", "V8 SA 轮换", "Ingress/Velero/WebSocket 资源释放"],
+    "commandWorkingDirectories": {
+      "go test -race -count=1 ./...": "backend",
+      "node scripts/check-runtime-evidence.mjs --root .": "."
+    },
+    "environmentRequirements": [
+      "需测试 Redis 127.0.0.1:26316 与隔离 MySQL 才能执行完整 race",
+      "只在实际完成验收时关闭任务；缺环境保持 gap"
+    ]
+  },
+  "runtimeSensitive": true,
+  "humanGates": [
+    "需求/范围偏好、门禁策略与豁免、最终视觉/功能验收按维护者三触点契约处理",
+    "环境提供、生产窗口与外部凭据操作需已有授权"
+  ],
+  "linkage": {
+    "taskManifest": ".harness/tasks/2026-11-25-ops-residual-live-acceptance/manifest.json",
+    "taskDoc": "docs/harness/tasks/2026-11-25-ops-residual-live-acceptance.task.md",
+    "evidenceDir": ".harness/evidence/2026-11-25-ops-residual-live-acceptance/",
+    "reviewFile": "none",
+    "summaryFile": ".harness/evidence/2026-11-25-ops-residual-live-acceptance/summary.md",
+    "changeRef": "none",
+    "planRefs": [".harness/tasks/2026-11-20-ops-review-remediation/plan.md"]
+  },
+  "plannedReviewFile": ".harness/evidence/2026-11-25-ops-residual-live-acceptance/review.md",
+  "evidenceRequired": [
+    "commands.json 含真实执行状态/cwd/环境与候选身份",
+    "summary.md 记录各项结果、环境 gap 与来源判定",
+    "review.md 为 findings-first 审查并含机器可读 linkage"
+  ],
+  "completionChecklist": [
+    "Layer and boundary declared",
+    "Contract anchors read",
+    "Verification run or exception recorded",
+    "Evidence saved or summarized",
+    "Review completed"
+  ],
+  "rollbackPlan": "只产生证据与配置，无产品改动；环境配置按维护者策略恢复。"
+}

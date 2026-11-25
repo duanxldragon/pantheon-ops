@@ -4,7 +4,7 @@
   "title": "核心业务资源租户归属与兼容迁移",
   "goal": "按 T01 分类处理业务域、主机、服务目录/实例、部署任务/主机/日志/租约/快照、凭据、集群及命名空间绑定的所有权",
   "primaryLayer": "business/*",
-  "status": "in-progress",
+  "status": "completed",
   "priority": "P1",
   "deliveryTier": "L2",
   "parentTask": "2026-11-20-ops-review-remediation",

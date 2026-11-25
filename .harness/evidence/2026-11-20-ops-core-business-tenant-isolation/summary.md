@@ -29,3 +29,7 @@
 1. Base `keyMatch2` 静态路由守卫缺失，阻止核心业务模块转为租户作用域路由。
 2. 真实回滚只能走 pre-T04 备份恢复；down 脚本不逆迁移（已验证 no-op 保持数据）。
 3. 异步任务原租户保持：恢复/重载路径已由 `TestAsyncRecoveryKeepsOriginatingTenant` 覆盖；**写入路径**（claim 时把请求租户落到 `deploy_task.tenant_id`）与 `tenant_mode=multi` 真实验收归 T05 `2026-11-20-ops-extension-and-async-tenant-isolation`，当前验收库未启用 V4 多租户，未做端到端证明。
+
+## 2026-11-25 收口
+
+本包在本日关为 completed：迁移、兼容恢复、双租户约束与异步恢复路径均有真实 MySQL 证据。残余已转出：详情路由绑定 → `2026-11-25-ops-tenant-detail-route-binding`；写入路径与 multi 端到端 → T14 `2026-11-20-ops-extension-and-async-tenant-isolation` 与 `2026-11-25-ops-residual-live-acceptance`。completed 不代表生产或多租户验收。
