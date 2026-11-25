@@ -8771,6 +8771,18 @@
       "sha256": "ef367833b0862d6d3ff5887ed7d8a0bf375801c93f242f590ac81254c16c625e"
     },
     {
+      "path": ".harness/evidence/2026-11-20-ops-extension-and-async-tenant-isolation/commands.json",
+      "sha256": "c1cb79c6e961e94b36b712456668068cf09523ef0284849be40d06dee5c81ea8"
+    },
+    {
+      "path": ".harness/evidence/2026-11-20-ops-extension-and-async-tenant-isolation/review.md",
+      "sha256": "0e1a03a1e82a106e1a7cc6af348c3b27c5224ce8e00b5669041ea15b5e100647"
+    },
+    {
+      "path": ".harness/evidence/2026-11-20-ops-extension-and-async-tenant-isolation/summary.md",
+      "sha256": "a5068e607790369abcb00d85c077f4408046ba133adeb6791a75331d561d7f2b"
+    },
+    {
       "path": ".harness/evidence/2026-11-20-ops-k8s-client-lifecycle-and-config-safety/cmdb-host-ssh-key-masked.png",
       "sha256": "decf4d31d45357a2b261047553582b28fb8b223e1ef88e4d2d7254c1335701ba"
     },
@@ -11387,6 +11399,18 @@
       "sha256": "2bbdcbf260377523125fcbe3d40a3bf4fdf5e8ffeba9e5027815f782d24f7d47"
     },
     {
+      "path": ".harness/evidence/2026-11-25-ops-tenant-detail-route-binding/commands.json",
+      "sha256": "af460edec8036a7042ef458ccde03517512eaaa38c7fc212c9d2d82d3995a8f7"
+    },
+    {
+      "path": ".harness/evidence/2026-11-25-ops-tenant-detail-route-binding/review.md",
+      "sha256": "86f9c188928f1cad1ac6abec71c4a3da8731f74b79fe13e02d14ef5cc5d85ed3"
+    },
+    {
+      "path": ".harness/evidence/2026-11-25-ops-tenant-detail-route-binding/summary.md",
+      "sha256": "4a385995cb682833e85178816caf585aa18a3476c3a823e36b5172326ddbfba1"
+    },
+    {
       "path": ".harness/evidence/foundation-upgrade-base-v0.9.0/runbook.md",
       "sha256": "22e136bc2ae442bc675f9fa631e4c5e6d74e0121fc1634017ddf40ce6dfddda6"
     },
@@ -11736,11 +11760,11 @@
     },
     {
       "path": ".harness/tasks/2026-11-20-ops-extension-and-async-tenant-isolation/STATUS.md",
-      "sha256": "8a7cea6eddae2609dca31343e204aadd2169639479b1cfa51824d9f4f2644b35"
+      "sha256": "834f650991dcdeda3d6a37855f4fc277a7e35639e2b4417f1790e498daf9b4cc"
     },
     {
       "path": ".harness/tasks/2026-11-20-ops-extension-and-async-tenant-isolation/manifest.json",
-      "sha256": "5daea0fe8f36ee5cca6506624aa28d21fba0accf0bef919333cb3a98e0555995"
+      "sha256": "00d86db396da67de9e5cac3f7d1844ccfbad7961e74a0850cfd06a7cfdf2d160"
     },
     {
       "path": ".harness/tasks/2026-11-20-ops-filedist-durable-lifecycle/HANDOFF.md",
@@ -12012,7 +12036,7 @@
     },
     {
       "path": ".harness/tasks/2026-11-25-base-v0190-consumption/manifest.json",
-      "sha256": "3c278581fab75e966e1622f44e27bbb18a252ab5473f32b3e25c5d6720587ad5"
+      "sha256": "4b96dc06ac32944040976c27cf9390dc06f297bdb594431e0c20e2cdabfc6441"
     },
     {
       "path": ".harness/tasks/2026-11-25-ops-residual-live-acceptance/HANDOFF.md",
@@ -12032,11 +12056,11 @@
     },
     {
       "path": ".harness/tasks/2026-11-25-ops-tenant-detail-route-binding/STATUS.md",
-      "sha256": "79c3c5e068bb462cd394f192086ce52d4cdb09ecda22655d5637a8d988e1a15d"
+      "sha256": "bdae0906007b9ae24bdce556efc7595bce0dc78079c01ac67538802d8c925aca"
     },
     {
       "path": ".harness/tasks/2026-11-25-ops-tenant-detail-route-binding/manifest.json",
-      "sha256": "f4ba83608122e1858b1376db9714600b2558d2874d203f926abc9e806eee2c80"
+      "sha256": "7789d90ad2998eb6810379de08a70c92c091890c29fddc5f7bcb738bea427520"
     },
     {
       "path": ".harness/tasks/ops-architecture-quality-gates/HANDOFF.md",
@@ -12692,15 +12716,15 @@
     },
     {
       "path": "backend/modules/business/cmdb/permission_route_actions_test.go",
-      "sha256": "d0d47d143ab6a6a0267b1ca73351f4e7e8942d7696374a19798b8644040ca215"
+      "sha256": "eb0c2210fbd4cedfa5c690e34990ad7a190246591ad2e3ea7509710db3279037"
     },
     {
       "path": "backend/modules/business/cmdb/permission_routes.go",
-      "sha256": "e3665d0058166d79b7bf892e054c3ade349c9ecb795a60d27e2012906a4ecd08"
+      "sha256": "67e6710dbf6dc84320c500cb7c2ee18ff06c6bef99769dd51ce87139988e3ae7"
     },
     {
       "path": "backend/modules/business/cmdb/permission_routes_test.go",
-      "sha256": "5aafea7ee1aadfb48454730191b0c4eecaf0c77f807268d24ca9f10f55514bb3"
+      "sha256": "1da2caaaae88f289e948566d3a4370d1e3f44a8e2171864e5a1a0a5240890423"
     },
     {
       "path": "backend/modules/business/cmdb/seeds_test.go",
@@ -12900,11 +12924,11 @@
     },
     {
       "path": "backend/modules/business/deploy/permission_route_actions_test.go",
-      "sha256": "6ca2ba50abecfe3119fc514e5579a5f2d2cb3bb0b254cbae71ee9469fec529fc"
+      "sha256": "e42bdbe7b2f4592b60c0c1a8ee8a56ec124af60633c0d69e0a3b8cb2b1bf8159"
     },
     {
       "path": "backend/modules/business/deploy/permission_routes.go",
-      "sha256": "10bfbd691c9c1249bac11a752572bcb3e0e88027312c5b2270e6846387c7ee8f"
+      "sha256": "bfb34deb7768eba77037c00e088c667149f67ca93b5d8c169ec154753c215436"
     },
     {
       "path": "backend/modules/business/deploy/read_scope.go",
@@ -13679,8 +13703,12 @@
       "sha256": "df75f9f5f1fcbff7e9ead97db7982fb886daf79cee769cb9099935724b4dbefa"
     },
     {
+      "path": "backend/modules/business/shared/permission_routes.go",
+      "sha256": "7f7379ca992ed6f5a92fad52c85d1940c1285833a3d41deed6aae0aeb5aba9b2"
+    },
+    {
       "path": "backend/modules/business/shared/tenantschematest/tenantschematest.go",
-      "sha256": "b03f5c32bc13bfbd5d1312556166339dbbb742813e403e166558a476398b1245"
+      "sha256": "b8f5293a938552ea5b99f792a13ceef4557c7190cc78abb180cbf80fd27b8a91"
     },
     {
       "path": "backend/modules/business/shared/timeout.go",
@@ -13876,11 +13904,11 @@
     },
     {
       "path": "docs/designs/BUSINESS_DEPLOY_MODULE_DESIGN.en.md",
-      "sha256": "2c2dd7a738543c89b019bf2be6b462e8356965422f5eaae413259cc0563e13ac"
+      "sha256": "825cf9c3adfb19ed0b6605f070dfa5e20dab4b2557ac57fb3d3915919e7dce78"
     },
     {
       "path": "docs/designs/BUSINESS_DEPLOY_MODULE_DESIGN.md",
-      "sha256": "c86c12016fa5ef51e9cc396db9542acf0e939dd16809955ac21c7e485f2b7404"
+      "sha256": "d05a5909160321b517ff9808a5092524fb0a17ef2d2f87143c16f8dd5299926d"
     },
     {
       "path": "docs/designs/BUSINESS_DEVELOPMENT_PLAN.en.md",
@@ -14452,7 +14480,7 @@
     },
     {
       "path": "docs/harness/tasks/2026-11-25-ops-tenant-detail-route-binding.task.md",
-      "sha256": "fe1b77699ef600a43c7de5d094d539bc0417a57e580da14bccf1f4f18f401721"
+      "sha256": "5445c061d4ddd6e1babf45ed6e1f1262357bcbd193fcb0bbb9d2f1977f1ef97a"
     },
     {
       "path": "docs/harness/tasks/README.md",
