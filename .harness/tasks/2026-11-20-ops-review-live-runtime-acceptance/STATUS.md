@@ -1,9 +1,17 @@
 # 同候选真实环境与受限角色验收
 
-- Status: in-progress
-- Updated: 2026-11-24T16:20:00.000000+08:00
+- Status: completed — 同候选可闭合项均已有真实运行证据；环境类残余转入 `2026-11-25-ops-residual-live-acceptance`；维护者最终验收仍开放
+- Updated: 2026-11-25
 - Owner: Claude 业务修复 / Claude 独立验收（Codex 暂不可用）
 - Baseline: a2d69d4a759b5df2b26aaa9d26bdc5175babe9dc，dirty worktree 保留
+
+## 2026-11-25 收口
+
+按维护者指示关为本包 completed。可闭合项已在同候选闭合：deploy lane 7/7、K8s lane 17/17（k8s38）、CAP 31/32、V-probe 19/19、T03 角色矩阵 18/18、GAP-CLEANUP-VERIFY。
+
+环境类残余已拆出到 `2026-11-25-ops-residual-live-acceptance`（P0，planned）：V4 双租户、V7 低权限 SSH 用户、V8 SA 轮换、Ingress provider 变更/快照、Velero schedule/restore、完整 race（测试 Redis 26316）、`GAP-ARGOCD-ENVKEY`、WebSocket server 侧资源释放；全新安装/升级/回滚与最终交付收口仍归 T17。
+
+本包 completed 只表示范围内可执行验收完成，不代表环境类项或生产验收已通过。
 
 ## 2026-11-24 同候选 k8s lane 17/17 PASS（main `697c0771`）
 

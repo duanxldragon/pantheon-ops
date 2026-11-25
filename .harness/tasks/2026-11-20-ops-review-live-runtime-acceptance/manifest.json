@@ -4,7 +4,7 @@
   "title": "同候选真实环境与受限角色验收",
   "goal": "承接 C05 和已启用扩展 E04 的原验收，为 V1-V8 建立修复前/后事实矩阵，命令路径与配置名先查当前合同",
   "primaryLayer": "business/*",
-  "status": "in-progress",
+  "status": "completed",
   "priority": "P0",
   "deliveryTier": "L2",
   "parentTask": "2026-11-20-ops-review-remediation",

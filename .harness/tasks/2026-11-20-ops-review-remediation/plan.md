@@ -1,6 +1,6 @@
 # 11月20日审查整改与真实交付计划
 
-本计划产出1个父任务和17个子任务。最新维护者指令优先验收现有候选的V1–V8和旧十包未验收事项；Pantheon Ops本地启动，从CMDB开始验证全部在册业务功能，授权服务器115.190.251.143只作为SSH部署目标。父任务与T16已进入in-progress；Claude负责执行内容与失败修复，Codex负责审查和实际结果验收。任务实施覆盖业务域，平台层和系统域的共享缺口通过Base正式release与Ops重建消费闭合。
+本计划产出1个父任务和17个子任务；2026-11-25 T04/T16 收口时又拆出 T18/T19 两个后继包承接残余。最新维护者指令优先验收现有候选的V1–V8和旧十包未验收事项；Pantheon Ops本地启动，从CMDB开始验证全部在册业务功能，授权服务器115.190.251.143只作为SSH部署目标。父任务与T16已进入in-progress；Claude负责执行内容与失败修复，Codex负责审查和实际结果验收。任务实施覆盖业务域，平台层和系统域的共享缺口通过Base正式release与Ops重建消费闭合。
 
 最新入口见[本地候选准备](./CLAUDE_RUNTIME_WRITE_NOW.md)与[CMDB→SSH派发](./CLAUDE_CMDB_SSH_FIRST.md)。root密码SSH登录与主机指纹已经真实核实；候选构建通过，本地隔离运行脚本及业务验证仍在准备，未跑项不计通过。远端旧派发保留历史，不再要求把Ops部署到该服务器。
 
@@ -22,25 +22,27 @@ filedist和ArgoCD实施包按实际开放状态激活。T13模板体验增量在
 
 ## 子任务与依赖
 
-| 包                                                                           | 目标                                  | 优先级 | 前置包                                                | 激活条件         | 来源发现                                                     |
-| ---------------------------------------------------------------------------- | ------------------------------------- | ------ | ----------------------------------------------------- | ---------------- | ------------------------------------------------------------ |
-| [T01](../2026-11-20-ops-review-baseline-and-decisions/HANDOFF.md)            | 当前基线核实与业务边界决策            | P1     | 无                                                    | core             | ARC-001、NEW-02、NEW-03、SUP-08                              |
-| [T02](../2026-11-20-ops-deploy-fixed-template-security/HANDOFF.md)           | 固定部署模板参数与卸载路径安全        | P1     | 无                                                    | core             | SEC-001                                                      |
-| [T03](../2026-11-20-ops-business-permissions-and-task-visibility/HANDOFF.md) | 业务权限绑定与部署任务数据可见性      | P1     | T01                                                   | core             | SEC-002、NEW-01、SUP-08、路由与权限绑定逐条核对              |
-| [T04](../2026-11-20-ops-core-business-tenant-isolation/HANDOFF.md)           | 核心业务资源租户归属与兼容迁移        | P1     | T01                                                   | core             | ARC-001                                                      |
-| [T05](../2026-11-20-ops-deploy-credential-ownership-and-ui/HANDOFF.md)       | 部署凭据资源授权与管理页面            | P1     | T03、T04                                              | core             | SEC-004、DEP-003                                             |
-| [T06](../2026-11-20-ops-k8s-resource-authorization-and-mutations/HANDOFF.md) | K8s 资源读写授权与变更准入            | P1     | T03、T04                                              | core             | SEC-003、SEC-005、SEC-006、SEC-008、NEW-05、R-08、R-10、R-13 |
-| [T07](../2026-11-20-ops-k8s-client-lifecycle-and-config-safety/HANDOFF.md)   | K8s 凭据导入、连接轮换与请求边界      | P1     | T01、T04                                              | core             | R-03、R-04、R-06、R-07、R-14                                 |
-| [T08](../2026-11-20-ops-k8s-log-websocket-lifecycle/HANDOFF.md)              | Pod 日志 WebSocket 来源与连接生命周期 | P1     | T06、T07                                              | core             | SEC-007、R-05                                                |
-| [T09](../2026-11-20-ops-deploy-recovery-and-remote-execution/HANDOFF.md)     | 部署任务恢复、协程与远程执行一致性    | P1     | T02、T03、T04                                         | core             | R-01、R-02、R-11、R-12、DEP-004                              |
-| [T10](../2026-11-20-ops-filedist-durable-lifecycle/HANDOFF.md)               | 文件分发队列、恢复与取消              | P1     | T03、T14                                              | filedist-enabled | R-02、R-09                                                   |
-| [T11](../2026-11-20-ops-service-deploy-business-closure/HANDOFF.md)          | 服务目录与实例部署关联闭环            | P0     | T03、T04、T05、T06、T09                               | core             | DEP-001、DEP-002                                             |
-| [T12](../2026-11-20-ops-argocd-ownership-and-webhook/HANDOFF.md)             | ArgoCD 归属、Webhook 与状态收敛       | P1     | T03、T14                                              | argocd-enabled   | R-16                                                         |
-| [T13](../2026-11-20-ops-deploy-template-and-task-experience/HANDOFF.md)      | 模板编辑与回滚追溯体验                | P2     | T05、T08、T09、T11                                    | after-core-p1    | DEP-005、DEP-006、DEP-007、R-15、前端长耗时操作              |
-| [T14](../2026-11-20-ops-extension-and-async-tenant-isolation/HANDOFF.md)     | 扩展业务与异步链路租户隔离            | P1     | T03、T04                                              | core             | ARC-001                                                      |
-| [T15](../2026-11-20-ops-review-docs-and-test-governance/HANDOFF.md)          | 能力文档、测试资产与治理对账          | P2     | T01、T03                                              | core             | NEW-02、NEW-03、NEW-04、文档与版本、冗余与遗留代码           |
-| [T16](../2026-11-20-ops-review-live-runtime-acceptance/HANDOFF.md)           | 同候选真实环境与受限角色验收          | P0     | 无；实际失败驱动对应整改包                            | core             | V1、V2、V3、V4、V5、V6、V7、V8                               |
-| [T17](../2026-11-20-ops-review-delivery-and-closeout/HANDOFF.md)             | 试点交付包、安装回滚与审查收口        | P0     | T16                                                   | core             | 交付决策与后续工作                                           |
+| 包                                                                           | 目标                                  | 优先级 | 前置包                                | 激活条件         | 来源发现                                                     |
+| ---------------------------------------------------------------------------- | ------------------------------------- | ------ | ------------------------------------- | ---------------- | ------------------------------------------------------------ |
+| [T01](../2026-11-20-ops-review-baseline-and-decisions/HANDOFF.md)            | 当前基线核实与业务边界决策            | P1     | 无                                    | core             | ARC-001、NEW-02、NEW-03、SUP-08                              |
+| [T02](../2026-11-20-ops-deploy-fixed-template-security/HANDOFF.md)           | 固定部署模板参数与卸载路径安全        | P1     | 无                                    | core             | SEC-001                                                      |
+| [T03](../2026-11-20-ops-business-permissions-and-task-visibility/HANDOFF.md) | 业务权限绑定与部署任务数据可见性      | P1     | T01                                   | core             | SEC-002、NEW-01、SUP-08、路由与权限绑定逐条核对              |
+| [T04](../2026-11-20-ops-core-business-tenant-isolation/HANDOFF.md)           | 核心业务资源租户归属与兼容迁移        | P1     | T01                                   | core             | ARC-001                                                      |
+| [T05](../2026-11-20-ops-deploy-credential-ownership-and-ui/HANDOFF.md)       | 部署凭据资源授权与管理页面            | P1     | T03、T04                              | core             | SEC-004、DEP-003                                             |
+| [T06](../2026-11-20-ops-k8s-resource-authorization-and-mutations/HANDOFF.md) | K8s 资源读写授权与变更准入            | P1     | T03、T04                              | core             | SEC-003、SEC-005、SEC-006、SEC-008、NEW-05、R-08、R-10、R-13 |
+| [T07](../2026-11-20-ops-k8s-client-lifecycle-and-config-safety/HANDOFF.md)   | K8s 凭据导入、连接轮换与请求边界      | P1     | T01、T04                              | core             | R-03、R-04、R-06、R-07、R-14                                 |
+| [T08](../2026-11-20-ops-k8s-log-websocket-lifecycle/HANDOFF.md)              | Pod 日志 WebSocket 来源与连接生命周期 | P1     | T06、T07                              | core             | SEC-007、R-05                                                |
+| [T09](../2026-11-20-ops-deploy-recovery-and-remote-execution/HANDOFF.md)     | 部署任务恢复、协程与远程执行一致性    | P1     | T02、T03、T04                         | core             | R-01、R-02、R-11、R-12、DEP-004                              |
+| [T10](../2026-11-20-ops-filedist-durable-lifecycle/HANDOFF.md)               | 文件分发队列、恢复与取消              | P1     | T03、T14                              | filedist-enabled | R-02、R-09                                                   |
+| [T11](../2026-11-20-ops-service-deploy-business-closure/HANDOFF.md)          | 服务目录与实例部署关联闭环            | P0     | T03、T04、T05、T06、T09               | core             | DEP-001、DEP-002                                             |
+| [T12](../2026-11-20-ops-argocd-ownership-and-webhook/HANDOFF.md)             | ArgoCD 归属、Webhook 与状态收敛       | P1     | T03、T14                              | argocd-enabled   | R-16                                                         |
+| [T13](../2026-11-20-ops-deploy-template-and-task-experience/HANDOFF.md)      | 模板编辑与回滚追溯体验                | P2     | T05、T08、T09、T11                    | after-core-p1    | DEP-005、DEP-006、DEP-007、R-15、前端长耗时操作              |
+| [T14](../2026-11-20-ops-extension-and-async-tenant-isolation/HANDOFF.md)     | 扩展业务与异步链路租户隔离            | P1     | T03、T04                              | core             | ARC-001                                                      |
+| [T15](../2026-11-20-ops-review-docs-and-test-governance/HANDOFF.md)          | 能力文档、测试资产与治理对账          | P2     | T01、T03                              | core             | NEW-02、NEW-03、NEW-04、文档与版本、冗余与遗留代码           |
+| [T16](../2026-11-20-ops-review-live-runtime-acceptance/HANDOFF.md)           | 同候选真实环境与受限角色验收          | P0     | 无；实际失败驱动对应整改包            | core             | V1、V2、V3、V4、V5、V6、V7、V8                               |
+| [T17](../2026-11-20-ops-review-delivery-and-closeout/HANDOFF.md)             | 试点交付包、安装回滚与审查收口        | P0     | T16                                   | core             | 交付决策与后续工作                                           |
+| [T18](../2026-11-25-ops-tenant-detail-route-binding/HANDOFF.md)              | Base 发版后恢复业务详情路由租户绑定   | P1     | Base 正式 release（#525）；T04 已收口 | core             | ARC-001、V2                                                  |
+| [T19](../2026-11-25-ops-residual-live-acceptance/HANDOFF.md)                 | 真实环境残余验收                      | P0     | T05、T11、T12、T13、T14               | core             | V4、V7、V8、K8s shelf                                        |
 
 依赖字段使用任务ID，表中的T编号用于阅读。T16先验当前候选，原整改前置包保留为followupRemediationTasks，实际失败后按局部整改推进；扩展条件包按实际开放范围验收。T17只能使用T16认证的候选。
 

@@ -21,6 +21,8 @@
 | T15 | [能力文档、测试资产与治理对账](../2026-11-20-ops-review-docs-and-test-governance/HANDOFF.md)              | T01、T03                                              | core             |
 | T16 | [同候选真实环境与受限角色验收](../2026-11-20-ops-review-live-runtime-acceptance/HANDOFF.md)               | T02、T03、T04、T05、T06、T07、T08、T09、T11、T14、T15 | core             |
 | T17 | [试点交付包、安装回滚与审查收口](../2026-11-20-ops-review-delivery-and-closeout/HANDOFF.md)               | T16                                                   | core             |
+| T18 | [Base 发版后恢复业务详情路由租户绑定](../2026-11-25-ops-tenant-detail-route-binding/HANDOFF.md)           | Base 正式 release（#525）；T04 已收口                 | core             |
+| T19 | [真实环境残余验收](../2026-11-25-ops-residual-live-acceptance/HANDOFF.md)                                 | T05、T11、T12、T13、T14                               | core             |
 
 T01和T02无前置包。其余按依赖推进，共同文件按父计划交接。T16条件依赖根据已确认开放清单和本候选范围计算，T17等待真实验收完成。
 
