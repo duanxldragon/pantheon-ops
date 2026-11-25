@@ -1,6 +1,9 @@
 package deploy
 
-import "github.com/duanxldragon/pantheon-base/backend/pkg/permissionroutes"
+import (
+	"github.com/duanxldragon/pantheon-base/backend/modules/business/shared"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/permissionroutes"
+)
 
 // registerDeployPermissionRoutes binds the deploy package/template/task/credential
 // keys that must have API policies for a scoped (non-admin) role to see and drive
@@ -59,13 +62,8 @@ func registerDeployPermissionRoutes() error {
 			// Resolving targets is an in-scope read used by the target picker.
 			{Method: "POST", Path: "/api/v1/business/deploy/targets/resolve"},
 		}},
-		{Permission: "business:deploy:task:detail", Routes: []permissionroutes.Route{
-			{Method: "GET", Path: "/api/v1/business/deploy/tasks/:id"},
-			{Method: "GET", Path: "/api/v1/business/deploy/tasks/:id/events"},
-			{Method: "GET", Path: "/api/v1/business/deploy/tasks/:id/events/history"},
-			{Method: "GET", Path: "/api/v1/business/deploy/tasks/:id/logs"},
-			{Method: "GET", Path: "/api/v1/business/deploy/tasks/:id/rollback"},
-		}},
+		shared.DetailBinding("business:deploy:task:detail", "/api/v1/business/deploy/tasks/:id", "/api/v1/business/deploy/tasks/:id/events",
+			"/api/v1/business/deploy/tasks/:id/events/history", "/api/v1/business/deploy/tasks/:id/logs", "/api/v1/business/deploy/tasks/:id/rollback"),
 		{Permission: "business:deploy:task:create", Routes: []permissionroutes.Route{
 			{Method: "POST", Path: "/api/v1/business/deploy/tasks"},
 		}},

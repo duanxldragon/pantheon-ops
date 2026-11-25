@@ -1,6 +1,9 @@
 package cmdb
 
-import "github.com/duanxldragon/pantheon-base/backend/pkg/permissionroutes"
+import (
+	"github.com/duanxldragon/pantheon-base/backend/modules/business/shared"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/permissionroutes"
+)
 
 // Register the existing CMDB keys. Base enforces business routes against the
 // Gin route template and permissionroutes.Covers lets a :param policy segment
@@ -12,9 +15,7 @@ func registerHostPermissionRoutes() error {
 		{Permission: "business:cmdb:host:view", Routes: []permissionroutes.Route{
 			{Method: "GET", Path: "/api/v1/business/cmdb/hosts"},
 		}},
-		{Permission: "business:cmdb:host:detail", Routes: []permissionroutes.Route{
-			{Method: "GET", Path: "/api/v1/business/cmdb/hosts/:id"},
-		}},
+		shared.DetailBinding("business:cmdb:host:detail", "/api/v1/business/cmdb/hosts/:id"),
 		{Permission: "business:cmdb:host:create", Routes: []permissionroutes.Route{
 			{Method: "POST", Path: "/api/v1/business/cmdb/hosts"},
 		}},
@@ -41,10 +42,7 @@ func registerHostPermissionRoutes() error {
 		{Permission: "business:cmdb:group:view", Routes: []permissionroutes.Route{
 			{Method: "GET", Path: "/api/v1/business/cmdb/groups"},
 		}},
-		{Permission: "business:cmdb:group:detail", Routes: []permissionroutes.Route{
-			{Method: "GET", Path: "/api/v1/business/cmdb/groups/:id"},
-			{Method: "GET", Path: "/api/v1/business/cmdb/groups/:id/members"},
-		}},
+		shared.DetailBinding("business:cmdb:group:detail", "/api/v1/business/cmdb/groups/:id", "/api/v1/business/cmdb/groups/:id/members"),
 		{Permission: "business:cmdb:group:create", Routes: []permissionroutes.Route{
 			{Method: "POST", Path: "/api/v1/business/cmdb/groups"},
 		}},
