@@ -10,7 +10,7 @@
   "candidate": {
     "baselineReportCommit": "444ce8e",
     "planningCommit": "a2d69d4a759b5df2b26aaa9d26bdc5175babe9dc",
-    "worktree": "test/t04-migration-recovery-20261124 (based on main 8048696a)",
+    "worktree": "test/t04-migration-recovery-20261124 (based on main 8048696a) + tenancy-async-retention worktree (based on main 11f9b004)",
     "foundation": "pantheon-base-v0.18.9"
   },
   "commands": [
@@ -39,12 +39,26 @@
       "status": "passed",
       "durationMs": 1141,
       "notes": "Real MySQL. Both tests PASS: legacy-key upgrade 0.68s and new TestTenantOwnershipMigrationPreservesLegacyRowsAndRecoversPartialState 0.42s. The new test seeds legacy rows before migration, simulates a partially applied run (tenant_id already added on one table), verifies the idempotent guards resume the migration, keeps tenant-0 rows and names intact, and proves the retained down script is a no-op that preserves schema and rows (real rollback remains a pre-T04 backup restore by contract)."
+    },
+    {
+      "command": "PANTHEON_TEST_DSN=<local isolated test dsn> PANTHEON_TEST_DSN_REQUIRED=true go test -race -count=1 -run TestAsyncRecoveryKeepsOriginatingTenant -v ./modules/business/deploy/",
+      "cwd": "backend",
+      "status": "passed",
+      "durationMs": 2837,
+      "notes": "Real MySQL via testmysql under -race. Seeds the durable task with tenant_id=4242, then drives ReconcileDeployQueue from a fresh DeployService (process restart, no in-memory state): the executor receives Task.TenantID=4242, the row keeps its tenant, and no tenant_id=0 task copy appears. Covers the reload/recovery path only; the write path that stamps tenant_id at claim time belongs to T05."
+    },
+    {
+      "command": "PANTHEON_TEST_DSN=<local isolated test dsn> PANTHEON_TEST_DSN_REQUIRED=true go test -race -count=1 -timeout 10m -run 'TestAsyncRecoveryKeepsOriginatingTenant|TestWorkerQueueRecoveryAfterPendingWorkerError|TestCancellationUnclaimed|TestExecutorPanicIsolated' ./modules/business/deploy/",
+      "cwd": "backend",
+      "status": "passed",
+      "durationMs": 23410,
+      "notes": "Neighbouring recovery tests (queue recovery after worker error, unclaimed-cancel drain/replay/handoff, panic settlement) still pass next to the new tenant-retention test on the same candidate, so the added assertion does not rely on a changed recovery semantics."
     }
   ],
   "knownGaps": [
     "Real rollback is a pre-T04 backup restore by contract; the retained down script is intentionally a no-op and is verified to preserve schema/rows, not to reverse the migration.",
     "Runtime tenant isolation (two tenants with same-named resources, guessed-ID/export/callback cross-tenant denial) is blocked upstream: Base keyMatch2 makes GET /packages/:id also match /packages/export, so detail routes stay unbound (anti-widening).",
-    "Async task restart retaining original tenant not verified end-to-end."
+    "Async task tenant retention: recovery/reload path is now covered by TestAsyncRecoveryKeepsOriginatingTenant (real MySQL, -race). The write path (stamping deploy_task.tenant_id at claim time) and the tenant_mode=multi end-to-end run belong to T05 2026-11-20-ops-extension-and-async-tenant-isolation; the acceptance database does not enable V4 multi-tenancy."
   ],
   "linkage": {
     "taskPacket": "docs/harness/tasks/2026-11-20-ops-core-business-tenant-isolation.task.md",

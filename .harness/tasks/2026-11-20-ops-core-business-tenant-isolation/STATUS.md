@@ -22,17 +22,17 @@
 
 1. **Base 上游阻塞**：`keyMatch2` 使 `GET /packages/:id` 同时匹配 `/packages/export`，详情路由保持未绑定（anti-widening），运行时租户隔离需 Base 正式 release 的静态路由守卫。
 2. ~~compat/multi 真实库升级、失败恢复与回滚行数/归属核对未执行。~~ 2026-11-24 已补：`TestTenantOwnershipMigrationPreservesLegacyRowsAndRecoversPartialState`（真实 MySQL PASS 0.42s）验证旧行保留、部分应用恢复、down no-op 保持数据；真实回滚仍为 pre-T04 备份恢复。
-3. 异步任务重启后保持原租户未端到端验证。
+3. 异步任务重启后保持原租户：恢复/重载路径已补 `TestAsyncRecoveryKeepsOriginatingTenant`（真实 MySQL `-race` PASS）；写入路径（claim 时落 `deploy_task.tenant_id`）与 multi 运行环境归 T05，未做端到端证明。
 
 ## 2026-11-24 剩余项归因（为何仍 in-progress）
 
 迁移与兼容恢复已由真实 MySQL 测试覆盖（旧行保留、部分应用恢复、down no-op）。剩余两条不是本包单独可关闭的：
 
 1. **详情路由绑定**：`GET /packages/:id` 与 `/packages/export` 的静态/参数同层冲突需要 `pantheon-base` 正式 foundation release 携带静态路由守卫（Base PR #525 `63940437` 已合并但未发布），ops 不能手抄或绕过 release 流程。
-2. **异步任务重启保持原租户**：需要业务写路径显式 `TenantOwnerID()` 落库并在重启/重连时恢复身份。该实现属于 T05 `2026-11-20-ops-extension-and-async-tenant-isolation`（当前 planned）；且真实验证需要 `tenant_mode=multi` 运行环境（当前验收库未配置 V4 多租户），这两者未具备前无法端到端证明。
+2. **异步任务重启保持原租户**：恢复路径已由 `TestAsyncRecoveryKeepsOriginatingTenant` 固定——重启后的新 worker 重载任务行，执行器收到的 `Task.TenantID` 与库中原租户一致。剩余是**写入路径**（业务写路径显式 `TenantOwnerID()` 落库）与 `tenant_mode=multi` 真实验收，二者属于 T05 `2026-11-20-ops-extension-and-async-tenant-isolation`（当前 planned）；当前验收库未配置 V4 多租户，故不做端到端声明。
 
 因此 T04 保持 in-progress，不使用未验证声明收口。
 
 ## Next Atomic Action
 
-等 Base 发布静态路由守卫后恢复详情路由绑定；在此之前先在隔离库补 compat/multi 升级与回滚核对。
+等 Base 发布静态路由守卫后恢复详情路由绑定；迁移与异步恢复路径已覆盖，剩余仅在 T05 完成写入路径后做 multi 端到端验收。
