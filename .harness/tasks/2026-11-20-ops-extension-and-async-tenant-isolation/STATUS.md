@@ -21,10 +21,10 @@
 
 ## Next Atomic Action
 
-决定第二阶段范围：读过滤、写归属、路由组切换（需为 cicd/filedist 全部路由登记权限路由）、六个后台入口的租户透传；核心与扩展模块是否同批。
+第二阶段已由维护者于 2026-11-25 决定：不并入 T14，拆为按模块的独立任务，见 [2026-11-25-ops-tenant-runtime-enforcement](../2026-11-25-ops-tenant-runtime-enforcement/PLAN.md)。先决条件是 CI 的 backend-tests 补 MySQL 服务。迁移 `000043` 已在真实 MySQL 8 上证明（5/5，含负例对照）。
 
 ## Known Gaps
 
 - 第二阶段（运行时强制）未做，租户隔离尚未真正生效。
-- 迁移测试未在真实库上运行。
+- CI 不运行真实库测试（backend-tests 无 MySQL）；迁移已在本机真实库证明。
 - 无独立 review。

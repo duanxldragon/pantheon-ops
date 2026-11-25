@@ -1,0 +1,110 @@
+{
+  "schemaVersion": 1,
+  "taskId": "2026-11-25-ops-tenant-runtime-enforcement",
+  "title": "Tenant runtime enforcement for business modules (phase 2 of T14, split per module)",
+  "goal": "Make tenant_id effective at runtime: read scoping, write ownership, tenant-scoped route groups with registered permission routes, and tenant identity carried into background work, one module at a time, with compat-mode behaviour unchanged.",
+  "primaryLayer": "business/*",
+  "status": "planned",
+  "priority": "P1",
+  "deliveryTier": "L2",
+  "parentTask": "2026-11-20-ops-extension-and-async-tenant-isolation",
+  "taskDoc": "docs/harness/tasks/2026-11-25-ops-tenant-runtime-enforcement.task.md",
+  "dependencies": [
+    "2026-11-20-ops-extension-and-async-tenant-isolation"
+  ],
+  "scope": {
+    "in": [
+      "Per-module enforcement in the order of PLAN.md",
+      "A shared two-tenant test fixture",
+      "Rollout that keeps compat mode unchanged"
+    ],
+    "out": [
+      "Base changes (shared defects go Base-first)",
+      "Production operations",
+      "Gate waivers"
+    ]
+  },
+  "dependencyLayers": [
+    "business/*",
+    "inheritance-sync"
+  ],
+  "expectedFiles": {
+    "create": [
+      "docs/harness/tasks/2026-11-25-ops-tenant-runtime-enforcement.task.md",
+      ".harness/tasks/2026-11-25-ops-tenant-runtime-enforcement/manifest.json",
+      ".harness/tasks/2026-11-25-ops-tenant-runtime-enforcement/PLAN.md"
+    ],
+    "modify": [
+      "backend/modules/business/** (per module, in later tasks)"
+    ],
+    "doNotTouch": [
+      "backend/modules/system/**",
+      "foundation-release.lock.json"
+    ]
+  },
+  "contractAnchors": [
+    "AGENTS.md",
+    "docs/PROJECT_INHERITANCE.md",
+    "docs/TASK_PACKET_OPS_TEMPLATE.md",
+    "docs/reviews/pantheon-ops独立评审与外部报告核实-2026-11-20.md",
+    "docs/reviews/pantheon-ops真实环境验证清单-2026-11-20.md",
+    "docs/designs/BUSINESS_FUNCTIONAL_DESIGN.md",
+    "docs/designs/BUSINESS_QA_ACCEPTANCE_PLAN.md",
+    "business-overlay.json",
+    "foundation-release.lock.json"
+  ],
+  "harnessProfile": {
+    "template": "custom",
+    "overlay": "pantheon-ops",
+    "qualityProfile": "ui-runtime",
+    "portableFailureClass": "business-review-gap",
+    "ownerLayer": "business/*",
+    "coverageDimensions": [
+      "behaviour",
+      "architecture-fitness",
+      "runtime-quality"
+    ]
+  },
+  "implementationNotes": [
+    "Minimal Complexity Rung: reuse",
+    "审查主基线 444ce8e，当前规划基线 a2d69d4a759b5df2b26aaa9d26bdc5175babe9dc；每包开工核实当前候选，先复用 #195 实现与归档证据再补缺口",
+    "本包状态 planned；命令与运行场景是后续验证计划，执行者须记录真实 cwd/时间/exitCode/skip/源码哈希",
+    "接口/权限/菜单/i18n/schema/seed/fixture/业务overlay 同步关闭；业务 migration 源文件归业务模块，装配副本由重建器生成",
+    "2026-11-25 phase 1 (schema): migration 000043 adds tenant_id to the 18 verified extension tables and rebuilds five natural unique keys tenant-first. The T01 list was wrong: biz_preflight_control is a test-only table; biz_application, obs_alert_rule, obs_alert_event, obs_notification_channel and obs_notification_log were missed.",
+    "Finding: T04 delivered schema only. No business code uses tenant.Scoper/TenantOwnerID, and cicd/filedist/cmdb/deploy/k8s still mount DataScopedGroup, so tenant_id is not yet enforced on reads or writes anywhere outside observability. Phase 2 (read scope, write owner, route-group switch with registered permission routes, async tenant identity) is not done."
+  ],
+  "acceptanceCriteria": [
+    "Each module task proves, on a real MySQL, that tenant B cannot read or write tenant A's rows and that compat mode is unchanged",
+    "Background entry points keep the originating tenant across restart",
+    "Every route of a switched module has a registered permission route (fail-closed)"
+  ],
+  "verificationPlan": {
+    "commands": [
+      "go test with PANTHEON_TEST_DSN (needs the CI MySQL service)",
+      "check:business-boundaries",
+      "check:business-overlay"
+    ],
+    "runtimeEvidence": [
+      "Two-tenant real-database tests per module"
+    ]
+  },
+  "runtimeSensitive": true,
+  "humanGates": [
+    "Maintainer accepted the split on 2026-11-25; each module PR still needs acceptance."
+  ],
+  "linkage": {
+    "taskManifest": ".harness/tasks/2026-11-25-ops-tenant-runtime-enforcement/manifest.json",
+    "taskDoc": "docs/harness/tasks/2026-11-25-ops-tenant-runtime-enforcement.task.md",
+    "evidenceDir": ".harness/evidence/2026-11-25-ops-tenant-runtime-enforcement/",
+    "reviewFile": "none",
+    "summaryFile": "none",
+    "changeRef": "none",
+    "planRefs": [
+      ".harness/tasks/2026-11-25-ops-tenant-runtime-enforcement/PLAN.md"
+    ]
+  },
+  "migrationNumbering": {
+    "000042": "T05 deploy credential scope",
+    "000043": "T14 extension tenant ownership (this task)"
+  }
+}
