@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "taskId": "2026-11-25-base-v0190-consumption",
+  "repo": "pantheon-ops",
+  "evidenceState": "exercised",
+  "agent": { "tool": "other", "adapter": "windows" },
+  "candidate": {
+    "head": "cb880eea",
+    "worktree": "uncommitted",
+    "foundation": "pantheon-base-v0.19.0",
+    "foundationCommit": "cc2fe7370a98c2862e2610d79880012971cf57f5"
+  },
+  "commands": [
+    { "command": "sha256sum foundation-release-pantheon-base-v0.19.0.tgz repo.tar (independent of the repo scripts)", "cwd": ".foundation/releases/pantheon-base-v0.19.0", "status": "passed", "exitCode": 0, "notes": "tgz c52c3f40fd2310f610d2d078f1d0c00605fd59349db549154cd7a9c078713978 equals sidecar and GitHub asset digest; repo.tar ed57f42eb3e5ec5aa1faa3a73098ded332db67afd079cac8c9e0af13ec711afc equals sidecar. Earlier download attempts were truncated by the network and rejected by the checksum guard, not bypassed." },
+    { "command": "npm run fetch:base-release -- --release pantheon-base-v0.19.0", "cwd": ".", "status": "passed", "exitCode": 0, "notes": "OK locked GitHub duanxldragon/pantheon-base@pantheon-base-v0.19.0 (cc2fe7370a98c2862e2610d79880012971cf57f5)." },
+    { "command": "npm run rebuild:from-base -- --target .tmp/clean-base-overlay", "cwd": ".", "status": "passed", "exitCode": 0, "notes": "Clean tree rebuilt from the locked snapshot." },
+    { "command": "node scripts/business-overlay/check-business-overlay.mjs --root .tmp/clean-base-overlay", "cwd": ".", "status": "passed", "exitCode": 0, "notes": "OK business overlay contract (54 declared paths, rebuilt tree)." },
+    { "command": "npm run check:shared-drift -- --root .tmp/clean-base-overlay", "cwd": ".", "status": "passed", "exitCode": 0, "notes": "878 shared files compared, 868 identical to base, 10 allowlisted drift, 304 business-overlay files skipped, 16 derived business migrations verified." },
+    { "command": "go list -buildvcs=false -mod=readonly -deps -test ./... && go build ./... && go vet ./modules/business/...", "cwd": ".tmp/clean-base-overlay/backend", "status": "passed", "exitCode": 0, "notes": "Dependency graph loads under -mod=readonly; build and vet clean." },
+    { "command": "go test -buildvcs=false -mod=readonly -count=1 ./... (no -race)", "cwd": ".tmp/clean-base-overlay/backend", "status": "failed", "exitCode": 1, "notes": "Only business/observability failed: TestQueryPermitActualRedisActorAndTenantCaps needs Redis at 127.0.0.1:26316, which was not running. Every other package passed." },
+    { "command": "go test -count=1 ./modules/business/observability/ against a throwaway local Redis on 26316", "cwd": ".tmp/clean-base-overlay/backend", "status": "passed", "exitCode": 0, "notes": "Passes once its dedicated Redis exists. The throwaway instance was stopped afterwards; pre-existing Redis processes were not touched." },
+    { "command": "go test -race -count=1 ./... (CGO)", "cwd": ".tmp/clean-base-overlay/backend", "status": "failed", "exitCode": 1, "notes": "12 packages failed with 'ThreadSanitizer failed to allocate ... (error code: 87)' and zero assertion failures. The same error reproduces on unmodified ops main (cb880eea) for pkg/upload, pkg/testredis and pkg/metrics, so it is a local Windows limitation. The Linux hosted race job is the real gate." },
+    { "command": "npm ci && npm run lint && npm run type-check && npm run build", "cwd": ".tmp/clean-base-overlay/frontend", "status": "passed", "exitCode": 0, "notes": "Lint 0 errors / 1 pre-existing react-hooks warning; tsc -b clean; vite build ok." },
+    { "command": "npm run test:unit", "cwd": ".tmp/clean-base-overlay/frontend", "status": "passed", "exitCode": 0, "notes": "54 files, 430 tests passed." },
+    { "command": "node --test tests/scripts/*.test.mjs", "cwd": ".", "status": "passed", "exitCode": 0, "notes": "253 tests, 253 pass. Two ops-owned inputs needed repair first: task-manifest-status.test.mjs (restored the ops archive-aware version) and the check-inheritance-contract fixture (Base v0.19.0 checker now cross-checks lock and package.json)." },
+    { "command": "npm run test:business-overlay", "cwd": ".", "status": "passed", "exitCode": 0, "notes": "59 pass, 0 fail." },
+    { "command": "npm run check:business-overlay check:business-boundaries check:structure check:checker-wiring check:encoding check:inheritance-contract check:harness-sync check:harness-method check:harness-template check:harness-inventory check:failure-registry check:duplication check:docs-frontmatter check:task-packet-template", "cwd": ".", "status": "passed", "exitCode": 0, "notes": "All pass on the final tree. check:checker-wiring initially failed because Base v0.19.0 re-pointed check:structure and orphaned scripts/check-structure-contract.mjs; the orphan and its overlay declaration were removed." },
+    { "command": "npm run check:harness-docs", "cwd": ".", "status": "failed", "exitCode": 1, "notes": "2 findings, both in inherited Base docs: docs/contracts/SYSTEM_AUTH_CONTRACT.md and docs/VERSION_MANAGEMENT_GUIDE.md link to Base-only artifacts. Base release notes 0.18.8/0.18.9/0.19.0 were excluded via baseExcludedPaths, as ops main never carried them. Not wired into CI; fix is Base-first." },
+    { "command": "npm run check:generated / check:security-patterns / check:harness-encoding / check:task-packet", "cwd": ".", "status": "failed", "exitCode": 1, "notes": "Red on unmodified ops main with the same findings (check:generated 374 on main, 375 here because SecretTextArea moved under a scanned business path). None are wired into CI." }
+  ]
+}

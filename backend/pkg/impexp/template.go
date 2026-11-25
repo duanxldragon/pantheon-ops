@@ -6,7 +6,7 @@ package impexp
 // skipped by IsCSVRecordEmpty on re-import). Example rows are passed through
 // verbatim; their first cell conventionally carries the '#' marker too, but
 // that is the caller's choice.
-func BuildImportTemplate(filename string, note string, headers []string, exampleRows ...[]string) *CSVFile {
+func BuildImportTemplate(filename, note string, headers []string, exampleRows ...[]string) *CSVFile {
 	noteRow := make([]string, len(headers))
 	if len(noteRow) > 0 {
 		noteRow[0] = note

@@ -10,25 +10,25 @@ run:
 linters:
   enable:
     # Default + extras
-    - errcheck      # unchecked errors
-    - govet         # go vet
-    - ineffassign   # ineffectual assignments
-    - staticcheck   # static analysis (includes gosimple + stylecheck in v2)
-    - unused        # unused variables/imports
-    - copyloopvar   # loop variable aliasing (Go 1.22+ fix)
-    - gosec         # security checks
-    - goconst       # repeated string literals → constants
-    - revive        # drop-in golint replacement
-    - misspell      # spelling in comments
-    - unconvert     # unnecessary type conversions
-    - prealloc      # slice preallocation
-    - depguard      # import boundary enforcement
+    - errcheck # unchecked errors
+    - govet # go vet
+    - ineffassign # ineffectual assignments
+    - staticcheck # static analysis (includes gosimple + stylecheck in v2)
+    - unused # unused variables/imports
+    - copyloopvar # loop variable aliasing (Go 1.22+ fix)
+    - gosec # security checks
+    - goconst # repeated string literals → constants
+    - revive # drop-in golint replacement
+    - misspell # spelling in comments
+    - unconvert # unnecessary type conversions
+    - prealloc # slice preallocation
+    - depguard # import boundary enforcement
   disable:
     # Disable noisy/redundant linters
-    - dupl          # handled by project-level check-duplication.mjs
-    - nestif        # manageable
-    - cyclop        # covered by gocyclo analysis
-    - testpackage   # test files live next to source
+    - dupl # handled by project-level check-duplication.mjs
+    - nestif # manageable
+    - cyclop # covered by gocyclo analysis
+    - testpackage # test files live next to source
   settings:
     depguard:
       rules:
@@ -36,17 +36,21 @@ linters:
           files:
             - "**/modules/business/**"
           deny:
-            - pkg: pantheon-base/modules/system
+            # Full import paths: depguard matches on import prefixes, so a bare
+            # "pantheon-base/modules/..." entry never matched and the rule was a
+            # silent no-op. tests/scripts/golangci-depguard-paths.test.mjs keeps
+            # these in sync with backend/go.mod.
+            - pkg: github.com/duanxldragon/pantheon-base/backend/modules/system
               desc: use pantheon-base/pkg/contracts instead
-            - pkg: pantheon-base/modules/auth
+            - pkg: github.com/duanxldragon/pantheon-base/backend/modules/auth
               desc: use pantheon-base/pkg/contracts instead
-            - pkg: pantheon-base/modules/platform
+            - pkg: github.com/duanxldragon/pantheon-base/backend/modules/platform
               desc: use pantheon-base/pkg/contracts instead
     gosec:
       severity: medium
       excludes:
-        - G104  # errcheck already handles unchecked errors
-        - G404  # crypto/rand not needed for non-secure random
+        - G104 # errcheck already handles unchecked errors
+        - G404 # crypto/rand not needed for non-secure random
     goconst:
       min-len: 5
       min-occurrences: 3
@@ -105,7 +109,7 @@ linters:
 
 formatters:
   enable:
-    - gofmt         # format check
+    - gofmt # format check
   settings:
     gofmt:
       simplify: true

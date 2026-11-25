@@ -45,7 +45,7 @@ func detectOperationLogSourcePage(operURL string) string {
 	return middleware.DetectOperationLogSourcePage(operURL)
 }
 
-func detectOperationLogFailureCategory(status int, errorMsg string, jsonResult string) string {
+func detectOperationLogFailureCategory(status int, errorMsg, jsonResult string) string {
 	return middleware.DetectOperationLogFailureCategory(status, errorMsg, jsonResult)
 }
 

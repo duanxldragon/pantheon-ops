@@ -285,7 +285,7 @@ func (s *DeptService) loadPostUserCounts() (map[uint64]int, error) {
 }
 
 // buildDeptGovernanceTags builds governance tags for a department
-func buildDeptGovernanceTags(dept SystemDept, childDeptCount int, postCount int) []string {
+func buildDeptGovernanceTags(dept SystemDept, childDeptCount, postCount int) []string {
 	if dept.IsRoot == common.StatusFlagYes {
 		return []string{"root"}
 	}

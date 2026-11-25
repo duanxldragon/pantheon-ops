@@ -61,13 +61,13 @@
     "check:shared-drift": "node scripts/business-overlay/check-shared-drift.mjs",
     "test:business-overlay": "node --test tests/scripts/business-overlay/*.test.mjs",
     "check:encoding": "node scripts/check-encoding.mjs --strict",
+    "check:boundaries": "node scripts/harness/check-boundaries.mjs --strict --repo pantheon-ops --baseline config/boundary-baseline.json",
+    "check:coverage": "node scripts/harness/check-coverage.mjs",
     "check:business-boundaries": "node scripts/check-business-module-boundaries.mjs",
     "test:business-boundaries": "node --test tests/scripts/check-business-module-boundaries.test.mjs",
     "check:business-foundation": "npm run check:business-boundaries && npm run check:business-overlay && npm run test:business-boundaries && npm run test:business-overlay",
     "check:gorm-sql-literal": "node scripts/check-gorm-sql-literal.mjs",
-    "test:gorm-sql-literal": "node --test tests/scripts/check-gorm-sql-literal.test.mjs",
-    "check:boundaries": "node scripts/harness/check-boundaries.mjs --strict --repo pantheon-ops --baseline config/boundary-baseline.json",
-    "check:coverage": "node scripts/harness/check-coverage.mjs"
+    "test:gorm-sql-literal": "node --test tests/scripts/check-gorm-sql-literal.test.mjs"
   },
   "lint-staged": {
     "frontend/src/**/*.{ts,tsx}": [
@@ -86,8 +86,8 @@
   },
   "devDependencies": {
     "husky": "^9.1.7",
-    "lint-staged": "^17.6.0",
-    "playwright": "^1.64.1",
-    "prettier": "^3.9.10"
+    "lint-staged": "^17.6.1",
+    "playwright": "^1.65.1",
+    "prettier": "^3.10.1"
   }
 }

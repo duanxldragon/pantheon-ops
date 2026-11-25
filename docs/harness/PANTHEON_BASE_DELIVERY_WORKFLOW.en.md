@@ -6,56 +6,35 @@ status: Active
 linked_contracts:
   - docs/contracts/PLATFORM_CONTRACT.md
   - docs/contracts/DOCUMENT_GOVERNANCE_CONTRACT.md
-updated_at: 2026-11-04
+updated_at: 2026-11-23
 ---
 
 # Pantheon Base Multi-Agent Delivery Workflow
 
 Chinese version: [PANTHEON_BASE_DELIVERY_WORKFLOW.md](./PANTHEON_BASE_DELIVERY_WORKFLOW.md)
 
-This document defines how `pantheon-base` uses Claude, Codex, `acpx`, and `omc` to run the Harness Engineering workflow.
+This document consumes [Capability-Adaptive Delivery](../../../pantheon-harness/patterns/capability-adaptive-delivery.md). The primary agent plans, explores, implements, verifies, and fixes in one session; current runtime tools, authorization, and task risk determine delegation.
 
 The goal is that the human states goals and key decisions, while the active dispatcher routes tools and records repository artifacts.
 
 ## Roles
 
-| Role | Default Tool | Responsibility | Must Not Do |
-|---|---|---|---|
-| Human Owner | Human | goals, priority, risk acceptance, human gates | manually shuttle Claude/Codex context |
-| Dispatcher | active coordinating agent | call planner, executor, reviewer; preserve task/evidence/review linkage | treat chat as the source of truth |
-| Planner | Claude | scope, task packet, task manifest linkage, acceptance, stop points | edit business code |
-| Explorer | Codex | code structure, impact, CodeGraph, tests and docs | expand scope |
-| Executor | Codex | implementation, tests, evidence, finding fixes | skip task packets or evidence |
-| Reviewer | Claude | findings-first review | fix code directly |
-| Mechanical Gates | GitHub Actions / local scripts | repeatable validation | replace high-risk human decisions |
+The primary agent performs Planner/Explorer/Executor responsibilities sequentially within the authorized scope. Planning-only and review-only assignments stay read-only. Ordinary L1 may use findings-first self-review; L2 retains review artifacts and high-risk work uses an independent reviewer or an explicit review gap and acceptance gate. Dispatcher responsibilities apply only when delegating, with ownership, budget, evidence, stop condition, and integration owner. Mechanical gates do not replace authorization or risk acceptance.
 
 ## Default Flow
 
 ```text
-Human Goal
-  -> Dispatcher intake
-  -> Claude planner
-  -> Dispatcher scope check
-  -> Codex explorer
-  -> Task packet and task manifest finalized
-  -> Codex executor
-  -> Local sensors and evidence
-  -> Claude reviewer
-  -> Codex fixer when needed
-  -> GitHub / CI governance
-  -> PR merge and branch cleanup
-  -> Ratchet or closeout
+Goal -> tier/capability/scope/acceptance -> focused exploration/plan
+     -> implement/verify/fix in the primary context
+     -> tier-appropriate review and evidence -> final acceptance
+     -> PR/release and branch closure only when requested -> ratchet/closeout
 ```
 
 ## Tool Policy
 
-Use `acpx` as the deterministic dispatch surface for named agents, sessions, and permission posture.
+Preserve current model/effort/provider/settings. Record required actual tools, sandbox, delegation and recovery capabilities, with unknowns stated. Native subagents, acpx, omc, and CI matrix jobs are optional adapters for self-contained branches with a concrete benefit. They are not mandatory prerequisites or vendor-fixed role routing. Background helpers follow workspace Windows hidden-launch rules.
 
-Use `omc` for discovery, capability routing, and future orchestration. Do not rely on `omc -q` for non-trivial or high-risk tasks unless its routing is explicitly configured to keep Claude as planner/reviewer and Codex as executor.
-
-GitHub Actions are mechanical gates. `Quality Gates` and `Security Gates` are PR-required signals. CodeQL is the primary security signal in `Security Gates`, while Copilot review status plus PR residual-risk notes cover architecture, intent, and maintainability gaps that scanners do not prove. `Full Smoke Suite` remains advisory, scheduled, or manual deep signal.
-
-Worktrees are for local implementation and validation, not as long-lived delivery artifacts. The fuller worktree -> push -> PR -> merge -> cleanup loop lives in `docs/designs/WORKFLOW.md`.
+GitHub Actions are mechanical gates. Quality Gates and Security Gates remain PR-required. CodeQL is the primary security signal; review and residual-risk notes cover intent/architecture gaps. Full Smoke Suite remains a deep advisory/scheduled/manual signal and does not replace focused evidence. Worktree/PR rules remain in docs/designs/WORKFLOW.md.
 
 ## Human Gates
 
@@ -63,7 +42,21 @@ Authorized, reversible changes to schema descriptions, permissions, authenticati
 
 ## Minimum Closeout
 
-Every non-trivial task needs:
+### Preserve original archive bytes
+
+Historical task/evidence files and preservation snapshots under `.harness/archive/`
+retain their original bytes and recorded hashes. The root `.prettierignore` protects
+the entire directory from default Prettier and lint-staged writes; active documents
+remain formatted. Do not replace or disable the ignore file to bulk-format archives.
+Record new facts in current evidence or an added closeout note while retaining the
+original files and hashes.
+
+`node --test tests/scripts/harness-archive-formatting.test.mjs` demonstrates the
+unprotected defect and checks worktree/index bytes through normal lint-staged.
+Ops receives this shared configuration through a formal Base release and consumer
+verification; copying the local Base file is not an inheritance upgrade.
+
+L2 local work needs its task packet/existing manifest, evidence, review result, gaps, and ratchet decision. The following publication fields apply when PR/release closeout is requested; ordinary L1 may use a short plan and verification summary:
 
 - task packet or parent task packet linkage
 - task manifest path
@@ -75,7 +68,7 @@ Every non-trivial task needs:
 - known gaps
 - ratchet decision
 
-If any item is missing, the task is only partially closed.
+Missing required evidence or review stays an explicit gap. Unrequested PR/publication is not a local implementation stop condition.
 
 ## Planning Expectations
 
@@ -88,8 +81,8 @@ Planner output should include at least:
 - the minimum verification set
 - task manifest / evidence / review linkage
 
-Those artifacts should land in `docs/harness/tasks/*.task.md` and `.harness/tasks/<task-id>/manifest.json`, not remain only in chat.
+L2 artifacts land in the task packet and existing task manifest; ordinary L1 does not require a new full manifest.
 
 ## Execution Expectations
 
-Executor work must keep task packet, task manifest, evidence, and review linkage aligned while implementation, verification, and closeout proceed.
+The primary agent or an exclusively owned execution branch keeps scope and evidence aligned. Check `.harness/method-consumption.json` before work and at closeout with `node ../pantheon-harness/scripts/harness/check-method-consumption.mjs --root . --source ../pantheon-harness`. Review intentional changes before adding --update. Method consumption is independent of product VERSION; shared Base product/config/checker changes still reach Ops through a formal foundation release.

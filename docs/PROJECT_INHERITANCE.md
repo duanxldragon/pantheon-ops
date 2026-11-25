@@ -17,8 +17,8 @@ English version: [PROJECT_INHERITANCE.en.md](./PROJECT_INHERITANCE.en.md)
 仓库中并存多套版本字段，含义不同、不能相互替代：
 
 - `foundation-release.lock.json`：唯一权威继承基线。`releaseVersion`、`baseCommit` 与资产 SHA256 决定重建内容与 CI policy。
-- `VERSION`：继承自锁定 Base 快照的产品版本，必须与 lock 的 `releaseVersion` 数值一致（当前 `0.18.9`）。方法更新不改它；与 lock 不一致即视为继承漂移。
-- `SHELL_VERSION.json`：锁定快照内 consumer shell 的 pin（`1.4.0`，`compatibleMethodKit` 1.4.0）。它描述 Base 仓库外壳，不等于 Ops 直接消费的方法版本。
+- `VERSION`：继承自锁定 Base 快照的产品版本，必须与 lock 的 `releaseVersion` 数值一致（当前 `0.19.0`）。方法更新不改它；与 lock 不一致即视为继承漂移。
+- `SHELL_VERSION.json`：锁定快照内 consumer shell 的 pin（`1.5.0`，`compatibleMethodKit` 1.5.0）。它描述 Base 仓库外壳，不等于 Ops 直接消费的方法版本。
 - `.harness/method-consumption.json`：Ops 直接消费的方法 kit 版本（`methodVersion`，当前 `1.5.0`）与规范化文本哈希；方法更新只改这里与 receipt。
 - `frontend/package.json` 的 `name`/`version`：Base UI 包身份（`@duanxldragon/pantheon-base-ui` `0.11.2`），随 Base release 变化，与 `VERSION` 无关。
 - `CHANGELOG.md` 与 `docs/release-notes/`：历史交付记录；最新业务发布条目 `1.2.0` 不代表当前产品版本。
@@ -54,8 +54,8 @@ Base 的菜单契约门禁（`check-menu-contract.mjs`）按命名约定发现�
 ```powershell
 # 1. 从 GitHub 查询最新稳定的正式 Base release，下载四个资产，校验 SHA256、
 # manifest 和不可变 tag，全部成功后才更新 Ops 锁文件。
-# 不指定版本时获取 GitHub 最新稳定版；本次明确锁定 v0.18.9：
-npm run fetch:base-release -- --release pantheon-base-v0.18.9
+# 不指定版本时获取 GitHub 最新稳定版；本次明确锁定 v0.19.0：
+npm run fetch:base-release -- --release pantheon-base-v0.19.0
 
 # 2. 从该正式锁定版本重建暂存树，不覆盖当前 Ops。
 npm run rebuild:from-base -- --target .tmp/clean-base-overlay
@@ -98,7 +98,7 @@ npm run check:shared-drift -- --root .tmp/clean-base-overlay
 > 以下英文 marker 供 `../pantheon-base/scripts/harness/check-inheritance-contract.mjs` 机械校验，请勿翻译或删除；版本变化时必须与 `foundation-release.lock.json` 同步更新。
 
 - Base repository: `../pantheon-base`
-- Base version: `pantheon-base-v0.18.9` (`6316f9b7189c86542424145fa49344ad737e952b`)
+- Base version: `pantheon-base-v0.19.0` (`cc2fe7370a98c2862e2610d79880012971cf57f5`)
 - If a foundation rule must change, update `pantheon-base` first
 
 ## 8. 业务数据迁移

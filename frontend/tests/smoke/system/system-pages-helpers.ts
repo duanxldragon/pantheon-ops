@@ -772,7 +772,7 @@ export async function expectPageBodyReady(page: Page) {
     if (!(await emptyNode.isVisible())) {
       return;
     }
-    const emptyText = await emptyNode.evaluate((element) => element.textContent ?? '', {
+    const emptyText = await emptyNode.evaluate((element) => element.textContent ?? '', undefined, {
       timeout: 2000,
     });
     expect(pageEmptyTexts.some((text) => emptyText.includes(text))).toBeTruthy();

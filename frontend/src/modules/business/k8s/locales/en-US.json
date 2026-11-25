@@ -1,0 +1,14 @@
+{
+  "business.k8s.namespace.name": "Name",
+  "business.k8s.namespace.status": "Status",
+  "business.k8s.namespace.createdAt": "Created At",
+  "business.k8s.namespace.ownership": "Ownership",
+  "business.k8s.namespace.ownershipMissing": "This cluster has no business scope or environment, so a managed namespace cannot be created.",
+  "business.k8s.namespace.allowedActions": "Allowed Actions",
+  "business.k8s.namespace.allowedActionsHint": "Select only the resource categories you need; the namespace can only perform selected operations.",
+  "business.k8s.namespace.allowedActionsRequired": "Select at least one allowed operation",
+  "business.k8s.namespace.action.configmap": "ConfigMaps",
+  "business.k8s.namespace.action.secret": "Secrets",
+  "business.k8s.namespace.action.service": "Services",
+  "business.k8s.namespace.action.workload": "Workloads"
+}

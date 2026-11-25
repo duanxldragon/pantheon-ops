@@ -8,7 +8,7 @@ import {
 } from '../../core/format/dateTime';
 
 interface DateTimeMetaProps {
-  value?: DateValue;
+  value?: Exclude<DateValue, undefined>;
   fallback?: React.ReactNode;
   showRelative?: boolean;
   direction?: 'vertical' | 'horizontal';

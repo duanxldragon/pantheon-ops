@@ -21,7 +21,10 @@
     "tests/scripts/foundation-release",
     "docs/harness/tasks",
     "tests/scripts/release-gate-workflow.test.mjs",
-    "tests/scripts/ci-bench-perf-smoke-workflow.test.mjs"
+    "tests/scripts/ci-bench-perf-smoke-workflow.test.mjs",
+    "docs/release-notes/RELEASE_NOTES_v0.18.8.md",
+    "docs/release-notes/RELEASE_NOTES_v0.18.9.md",
+    "docs/release-notes/RELEASE_NOTES_v0.19.0.md"
   ],
   "businessPaths": [
     "backend/modules/business/bizscope",
@@ -42,8 +45,6 @@
     "frontend/src/modules/business/serviceinstance",
     "frontend/tests/smoke/business/cmdb",
     "frontend/tests/smoke/business/deploy",
-    "frontend/tests/unit/business/service/useCatalogOptions.test.ts",
-    "frontend/tests/unit/business/filedist/FiledistLifetime.test.ts",
     "docs/designs/BUSINESS_BIZSCOPE_MODULE_DESIGN.en.md",
     "docs/designs/BUSINESS_BIZSCOPE_MODULE_DESIGN.md",
     "docs/designs/BUSINESS_CMDB_MODULE_DESIGN.en.md",
@@ -78,7 +79,8 @@
     "docs/designs/BUSINESS_TARGET_ARCHITECTURE_DESIGN.en.md",
     "docs/designs/BUSINESS_TARGET_ARCHITECTURE_DESIGN.md",
     "docs/designs/BUSINESS_TEST_PLAN.en.md",
-    "docs/designs/BUSINESS_TEST_PLAN.md"
+    "docs/designs/BUSINESS_TEST_PLAN.md",
+    "frontend/tests/unit/business"
   ],
   "repositoryOverlayPaths": [
     ".agents",
@@ -119,7 +121,6 @@
     "scripts/check-duplication.mjs",
     "scripts/check-encoding.mjs",
     "scripts/check-pr-governance.mjs",
-    "scripts/check-structure-contract.mjs",
     "scripts/check-task-packet-template.mjs",
     "scripts/fetch-github-feedback.mjs",
     "scripts/frontmatter-check.mjs",
@@ -132,6 +133,7 @@
     "CHANGELOG.md",
     "RELEASE_NOTES_v1.2.0.md",
     "docs/audits",
+    "docs/reviews",
     "docs/USER_MANUAL.md",
     "docs/V1.2_DEVELOPMENT_SUMMARY.md",
     "scripts/check-business-module-boundaries.mjs",

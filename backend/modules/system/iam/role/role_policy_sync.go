@@ -3,9 +3,9 @@ package role
 import (
 	"strings"
 
-	"github.com/casbin/casbin/v2/util"
 	"github.com/duanxldragon/pantheon-base/backend/modules/system/iam/permission"
 	"github.com/duanxldragon/pantheon-base/backend/pkg/database"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/permissionroutes"
 
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -157,7 +157,7 @@ func rolePolicyCoversRoute(policies []database.CasbinRule, route roleAPIRoute) b
 		if normalizeRolePolicyMethod(policy.V2) != route.method {
 			continue
 		}
-		if util.KeyMatch2(route.path, strings.TrimSpace(policy.V1)) {
+		if permissionroutes.Covers(route.path, strings.TrimSpace(policy.V1)) {
 			return true
 		}
 	}

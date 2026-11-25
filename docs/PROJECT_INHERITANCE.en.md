@@ -7,7 +7,6 @@ Compatibility is governed by inherited contracts in the locked snapshot; sibling
 
 Ops `quality.yml` configures cross-layer boundaries and checker wiring. `check:coverage` is a manual inherited utility requiring a measured artifact and a separately reviewed threshold: `npm run check:coverage -- <artifact> --threshold <number>`. Report script availability, CI references, observed results and merge-required checks separately.
 
-
 ## Method Consumption and Product Inheritance
 
 Consume [capability-adaptive delivery](../../pantheon-harness/patterns/capability-adaptive-delivery.md) directly. `.harness/method-consumption.json` records method version and normalized-text SHA256. `AGENTS.md`, `CLAUDE.md`, and `.harness` are already declared repository overlay assets and survive rebuilding. Do not copy method prose or shared Base checkers.
@@ -19,8 +18,8 @@ From Ops run `node ../pantheon-harness/scripts/harness/check-method-consumption.
 Several version fields coexist in this repository; they mean different things and are not interchangeable:
 
 - `foundation-release.lock.json`: the single authoritative inheritance baseline. `releaseVersion`, `baseCommit`, and asset SHA256 decide rebuild content and CI policy.
-- `VERSION`: the product version inherited from the locked Base snapshot; it must match the lock's `releaseVersion` (currently `0.18.9`). Method updates do not change it; any mismatch is inheritance drift.
-- `SHELL_VERSION.json`: the consumer-shell pin inside the locked snapshot (`1.4.0`, `compatibleMethodKit` 1.4.0). It describes the Base repository shell, not the method kit Ops consumes directly.
+- `VERSION`: the product version inherited from the locked Base snapshot; it must match the lock's `releaseVersion` (currently `0.19.0`). Method updates do not change it; any mismatch is inheritance drift.
+- `SHELL_VERSION.json`: the consumer-shell pin inside the locked snapshot (`1.5.0`, `compatibleMethodKit` 1.5.0). It describes the Base repository shell, not the method kit Ops consumes directly.
 - `.harness/method-consumption.json`: the directly consumed method-kit version (`methodVersion`, currently `1.5.0`) and normalized-text hashes; method updates change only this file and the receipt.
 - `frontend/package.json` `name`/`version`: Base UI package identity (`@duanxldragon/pantheon-base-ui` `0.11.2`), moving with Base releases and unrelated to `VERSION`.
 - `CHANGELOG.md` and `docs/release-notes/`: historical delivery records; the latest business release entry `1.2.0` is not the current product version.
@@ -54,8 +53,8 @@ Run these commands from the Ops repository root:
 ```powershell
 # Query GitHub for the latest stable official Base release, download four assets,
 # verify SHA256, manifest and immutable tag, then update the Ops lock.
-# With no version argument this selects latest; this handoff pins v0.18.9.
-npm run fetch:base-release -- --release pantheon-base-v0.18.9
+# With no version argument this selects latest; this handoff pins v0.19.0.
+npm run fetch:base-release -- --release pantheon-base-v0.19.0
 
 # Rebuild and verify a temporary consumer from the pinned official release.
 npm run rebuild:from-base -- --target .tmp/clean-base-overlay

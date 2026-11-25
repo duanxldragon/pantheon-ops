@@ -165,7 +165,7 @@ func RegisterBackendModules(r *gin.RouterGroup, db *gorm.DB, modules ...BackendM
 	}
 }
 
-func runModuleSeed(moduleName string, seedType string, db *gorm.DB, seedFunc func(*gorm.DB) error) {
+func runModuleSeed(moduleName, seedType string, db *gorm.DB, seedFunc func(*gorm.DB) error) {
 	if seedFunc == nil {
 		return
 	}

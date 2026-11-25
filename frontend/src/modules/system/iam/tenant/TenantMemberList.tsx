@@ -42,7 +42,7 @@ const roleTone: Record<string, string> = {
 interface MemberQueryState {
   tenantId?: number;
   keyword: string;
-  status?: MemberUsageQuery['status'];
+  status?: Exclude<MemberUsageQuery['status'], undefined>;
   role?: string;
   page: number;
   pageSize: number;

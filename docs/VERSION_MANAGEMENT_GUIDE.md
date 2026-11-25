@@ -6,485 +6,115 @@ status: Active
 linked_contracts:
   - docs/designs/FOUNDATION_RELEASE_MODEL.md
   - docs/contracts/PLATFORM_CONTRACT.md
-updated_at: 2026-11-04
+updated_at: 2026-11-14
 ---
 
 # Pantheon Base - 版本管理指南
 
-## 1. 版本策略概述
+## 1. 当前版本与唯一命名
 
-Pantheon Base 采用**语义化版本 + Foundation Release 模型**：
+Pantheon Base 采用语义化版本和 Foundation Release 模型。版本身份由不可变 tag、release manifest、发布资产及校验和共同确定，不能从 `main` 的 HEAD、标题或历史版本数字推定。
 
-- **版本号格式**: `pantheon-base-v<major>.<minor>.<patch>`
-- **当前版本**: 以仓库根 [VERSION](../VERSION) 和对应不可变 release tag 为准；HEAD 不代表已发布版本。
-- **Release Line**: 以目标版本 manifest 的兼容性元数据为准，非 Git 分支。
-- **分支策略**: 仅保留 `main` 分支，release 通过不可变 tag 发布
+| 对象                               | 规范                                     | 示例                                           |
+| ---------------------------------- | ---------------------------------------- | ---------------------------------------------- |
+| 仓库 VERSION                       | `<major>.<minor>.<patch>`                | `0.18.8`                                       |
+| 正式 tag / manifest releaseVersion | `pantheon-base-v<major>.<minor>.<patch>` | `pantheon-base-v0.18.8`                        |
+| GitHub Release 标题                | `Pantheon Base v<major>.<minor>.<patch>` | `Pantheon Base v0.18.8`                        |
+| Release Line                       | `release/<major>.<minor>`                | `release/0.18`                                 |
+| Foundation bundle                  | `foundation-release-<tag>.tgz`           | `foundation-release-pantheon-base-v0.18.8.tgz` |
 
----
+当前正式版本以 [VERSION](../VERSION)、[GitHub Latest](https://github.com/duanxldragon/pantheon-base/releases/latest) 和匹配的不可变资产为准。Release Line 是兼容性元数据；仓库持续开发分支为 `main`。
 
-## 2. 语义化版本规则
+预发布 tag 可使用已有的 `-alpha.N`、`-beta.N`、`-rc.N` 格式，标题保留完整后缀，例如 `Pantheon Base v0.19.0-rc.1`。消费仓的稳定版入口只接受已发布、非 draft、非 prerelease 的正式版本。
 
-### 2.1 版本号含义
+publisher 对上述预发布显式传入 `--prerelease` 和 `--latest=false`。稳定版创建保留 GitHub 原有默认行为；发行或历史补录后仍须复核并固定正确的 Latest。本次标题规范化没有引入稳定版上传完成后的自动推广策略。
 
-```
-pantheon-base-v<major>.<minor>.<patch>
-                 |       |       |
-                 |       |       └─ 安全修复、Bug 修复、兼容性补丁
-                 |       └───────── 新功能、治理增强、向后兼容的优化
-                 └───────────────── 破坏性变更、基础契约变更
-```
+## 2. 历史命名的处理
 
-### 2.2 Major 版本（破坏性变更）
+历史 `base-v*`、`backend/v*`、裸 `v*` 等标签属于旧命名体系。它们保留原 tag、commit、资产和发布说明，展示时用 `Legacy` 标识原始身份，不转换为当前 Foundation 版本号。
 
-**何时升级 Major**:
-- 基础契约变更（权限模型、i18n key 语义、菜单/路由契约）
-- 共享层 API 不兼容变更
-- 消费方式发生破坏性变化
-- 需要消费仓大范围重构的改动
+- 当前 Foundation 发行只使用 `pantheon-base-vX.Y.Z`；发布脚本拒绝旧前缀、裸版本及不完整版本号。
+- 历史版本的数字大小不参与当前 Foundation 版本排序；旧 `v1.0` 如存在，不表示当前 Foundation 已发布 `pantheon-base-v1.0.0`。
+- 历史版本不会仅为整理名称而改为 prerelease，也不会重新打标签、删除标签或覆盖资产。
+- GitHub Latest 必须指向当前经过验证的稳定 Foundation 发行，不能由历史命名或后台补录自动决定。
+- GitHub 标题整理仅改变展示名；发布说明文件、release notes 正文和不可变发行身份继续保留。历史发布正文的补充说明必须明确为命名说明，不能改写当时验证结论。
 
-**示例**:
-- `v0.10.25 → v1.0.0`: 权限模型从 Casbin 迁移到其他方案
-- `v1.0.0 → v2.0.0`: 前端路由从 React Router v5 升级到 v6
+例如历史 `backend/v0.13.1` 可显示为 `Legacy backend/v0.13.1`；当前 `pantheon-base-v0.18.8` 显示为 `Pantheon Base v0.18.8`。两者不构成同一版本序列的重编号。
 
-### 2.3 Minor 版本（新功能/增强）
+## 3. 版本号决策
 
-**何时升级 Minor**:
-- 新增系统模块（如 MFA、SSO、审计增强）
-- 新增共享组件或工具
-- 架构优化（不影响消费仓）
-- 设计系统工程化（如本次 PR #285）
-- 质量门禁增强
-- 性能优化
+| 升级类型 | 触发条件                                                            |
+| -------- | ------------------------------------------------------------------- |
+| Major    | 基础契约、共享 API 或消费方式发生不兼容变更，需要明确迁移和回滚方案 |
+| Minor    | 向后兼容的新共享能力、治理增强、架构或性能优化                      |
+| Patch    | 安全修复、缺陷修复、兼容性补丁和文档修正                            |
 
-**示例**:
-- `v0.10.25 → v0.11.0`: 新增 MFA 模块
-- `v0.11.0 → v0.12.0`: 前端设计系统工程化（新增 2837 行文档 + Token 体系扩展）
+先明确消费仓影响，再决定版本号。`pantheon-base-v1.0.0` 是未来可用的规范身份示例，不是对历史裸 `v1.0` 的映射，也不是当前发布声明。
 
-**本次 PR #285 建议版本**: `v0.11.0`
-- **理由**: 设计系统工程化属于重大增强，新增 4 个完整文档（2837 行）+ 9 个容器 Token + 机械门禁优化
-- **影响范围**: 前端开发规范、设计协作流程、AI 生成质量
-- **向后兼容**: 是（不影响现有业务代码）
+## 4. 发布前置条件
 
-### 2.4 Patch 版本（修复）
+- 目标 commit 已固定；VERSION、manifest、release notes、upgrade notes 和 consumer impact 一致。
+- CI、Quality、Security、Actionlint、Full Smoke、SonarCloud 及 Release Gate 等适用门禁已通过。
+- 高风险共享改动完成独立 review；涉及 UI 时保留渲染和状态验证证据。
+- 发布工作树干净；已有 tag 如存在，必须解析到同一个目标 commit。
+- 发行资产通过 SHA256、manifest、归档身份和凭证检查。
+- task packet 和 evidence 链路完整，未通过的外部或人工门禁显式保留。
 
-**何时升级 Patch**:
-- 安全漏洞修复
-- Bug 修复（不改变功能行为）
-- 兼容性补丁
-- 文档修正（Typo、链接失效）
-- 依赖版本升级（安全修复）
+已发布版本不可重复发布。修复发行内容时创建新的 patch 版本，不覆盖旧 bundle、repo.tar 或校验和。
 
-**示例**:
-- `v0.10.25 → v0.10.26`: 修复登录日志时区问题
-- `v0.10.26 → v0.10.27`: 升级依赖修复安全漏洞
+## 5. 标准发布入口
 
----
+通过 [Foundation Release Cut workflow](../.github/workflows/foundation-release-cut.yml) 或仓库脚本执行。workflow 要求维护者预先创建绑定目标 commit 的 tag；本地 publisher 在权限满足时可创建并推送 tag。两条路径都核验版本、目标 commit、门禁和资产。
 
-## 3. Release 发布流程
+以下在 Base 根目录执行。变量必须先设置为已确认的未发布版本、兼容性 line、固定 commit 和实际说明目录；不能把已发布的 `pantheon-base-v0.18.8` 当作新发行重跑。
 
-### 3.1 Release 前置条件
+```powershell
+npm run release:foundation:cut -- `
+  --release-version $taskReleaseVersion `
+  --release-line $taskReleaseLine `
+  --base-commit $taskTargetCommit `
+  --release-notes (Get-Content -Raw -LiteralPath (Join-Path $taskNotesDir 'release-notes.md')) `
+  --upgrade-notes (Get-Content -Raw -LiteralPath (Join-Path $taskNotesDir 'upgrade-notes.md')) `
+  --consumer-impact (Get-Content -Raw -LiteralPath (Join-Path $taskNotesDir 'consumer-impact.md'))
 
-发布前必须满足以下条件：
+node scripts/foundation-release/check-release-assets.mjs `
+  --release-version $taskReleaseVersion --dist dist/foundation-releases --local-only
 
-#### 质量门禁 ✅
-- [ ] GitHub Required Checks 全部通过
-- [ ] CodeQL Security 无高危未解决问题
-- [ ] SonarCloud Quality Gate 通过
-- [ ] Dependabot 无高危依赖漏洞
-- [ ] Secret Scan 无泄漏
-
-#### 文档完整性 ✅
-- [ ] Release Notes 已编写
-- [ ] Consumer Impact Summary 已编写（如影响消费仓）
-- [ ] Upgrade Notes 已编写（如需要升级步骤）
-- [ ] CHANGELOG 已更新
-
-#### 验证完成 ✅
-- [ ] 冒烟测试通过
-- [ ] 关键业务流程验证通过
-- [ ] 跨主题/暗色模式验证通过（如涉及 UI 变更）
-
-### 3.2 Release 发布步骤
-
-#### Step 1: 准备 Release Notes
-
-创建 `.harness/evidence/<task-id>/release-notes.md`:
-
-```markdown
-# Release Notes: pantheon-base-v0.11.0
-
-## 发布信息
-- **版本**: v0.11.0
-- **Release Line**: release/0.11
-- **发布日期**: 2026-09-03
-- **上一版本**: v0.10.26
-
-## 核心变更
-
-### 🎨 前端设计系统工程化
-- 新增 4 个工程文档（2837 行）
-- Token 体系扩展（+9 个容器 token，+28% 覆盖率）
-- UI 模式库（12 类完整代码模板）
-- 机械门禁优化（白名单机制）
-
-### 📚 文档体系
-- `COMPONENT_STYLING_GUIDE.md`: BEM 命名、Token 使用
-- `UI_PATTERN_LIBRARY.md`: 12 类 UI 模式模板
-- `DESIGN_ENGINEERING_GUIDE.md`: 设计协作流程
-- `TOKEN_MIGRATION_GUIDE.md`: Token 迁移指南
-
-## 消费仓影响
-
-### Pantheon Ops
-- **影响等级**: 低
-- **需要升级**: 否（向后兼容）
-- **建议操作**: 可选升级以获得设计规范支持
-
-### 影响分析
-- ✅ 不涉及 API 契约变更
-- ✅ 不涉及权限模型变更
-- ✅ 不涉及 i18n key 变更
-- ✅ 不涉及菜单/路由变更
-
-## 升级说明
-
-### 从 v0.10.x 升级
-1. 无需代码变更
-2. 可选：参考新文档优化前端开发流程
-3. 可选：参考 Token 迁移指南优化现有组件
-
-### 破坏性变更
-无
-
-## 验证结论
-- ✅ GitHub Required Checks: 全部通过
-- ✅ CodeQL Security: 无高危问题
-- ✅ SonarCloud Quality Gate: 通过
-- ✅ Frontend Unit Tests: 通过
-- ✅ 机械门禁: 0 个违规
-
-## 相关 PR
-- #285: Frontend Design System Engineering Alignment
+npm run release:foundation:publish -- `
+  --release-version $taskReleaseVersion `
+  --release-line $taskReleaseLine `
+  --target-commit $taskTargetCommit `
+  --repo duanxldragon/pantheon-base --dry-run
 ```
 
-#### Step 2: 切换到 main 分支
+`--dry-run` 核验并生成本地发布计划，不创建远端 tag 或 GitHub Release。审阅计划和门禁后，在已获发行授权的环境用相同参数移除 `--dry-run` 发布；直接 `gh release create` 不替代这些检查。
 
-```bash
-cd D:\workspace\go\pantheon-platform\pantheon-base
-git checkout main
-git pull origin main
+每个正式发行包含四个资产：Foundation bundle、bundle 的 `.sha256`、`repo.tar` 和 `repo.tar.sha256`。发布后重新核验远端 tag commit、资产校验和、manifest、三个说明正文和 GitHub Latest 指向。
+
+## 6. CHANGELOG 与发布说明
+
+[CHANGELOG.md](../CHANGELOG.md) 使用 [Keep a Changelog](https://keepachangelog.com/) 格式。开发变更进入 `[Unreleased]`，发布时归入实际版本章节。
+
+发布准备材料和 `releases/<tag>/` 中的 manifest、release notes、upgrade notes、consumer impact 与目标 commit 绑定。已冻结的发布说明只追加新版本，详见 [发布说明索引](./release-notes/README.md)。GitHub 展示标题统一为 `Pantheon Base vX.Y.Z`，内容描述放在正文中。
+
+## 7. 消费仓升级与回滚
+
+升级在 Ops 根目录执行，以正式 GitHub 资产为来源，不读取本地 Base 目录或比较 Base/Ops Git 工作树。
+
+```powershell
+npm run fetch:base-release -- --release pantheon-base-v0.18.8
+npm run rebuild:from-base -- --target .tmp/clean-base-overlay
+node scripts/business-overlay/check-business-overlay.mjs --root .tmp/clean-base-overlay
+npm run check:shared-drift -- --root .tmp/clean-base-overlay
 ```
 
-#### Step 3: 合并 PR
+继续执行完整 CGO race、前端和业务验证，保留原工作树备份并审阅安装计划后再替换活动树。活动 lock、overlay report 和继承 marker 必须匹配实际安装版本；验证候选不能单独证明活动升级完成。
 
-```bash
-# 确保所有检查通过
-gh pr checks 285
+回滚同样从指定的旧正式版本资产重建并验证，不能只编辑继承文档或修改 lock 的版本字符串。生产数据迁移和回滚须遵守独立备份、演练及授权门禁。
 
-# Squash 合并 PR
-gh pr merge 285 --squash --delete-branch
+## 8. 参考
 
-# 拉取最新 main
-git pull origin main
-```
-
-#### Step 4: 打标签
-
-```bash
-# 打标签
-git tag -a pantheon-base-v0.11.0 -m "Release v0.11.0: Frontend Design System Engineering Alignment
-
-🎨 前端设计系统工程化
-- Complete design system documentation (2837 lines)
-- Container token system (+9 tokens, +28% coverage)
-- UI pattern library (12 patterns with full code templates)
-- Mechanical gate optimization (whitelist mechanism)
-- AI-friendly design constraints and templates
-
-📚 新增文档
-- COMPONENT_STYLING_GUIDE.md (682 lines)
-- UI_PATTERN_LIBRARY.md (845 lines)
-- DESIGN_ENGINEERING_GUIDE.md (890 lines)
-- TOKEN_MIGRATION_GUIDE.md (420 lines)
-
-✅ 质量验证
-- All GitHub checks passed
-- CodeQL security cleared
-- SonarCloud quality gate passed
-- Zero contract violations
-
-🔗 相关 PR: #285
-
-Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>"
-
-# 推送标签
-git push origin pantheon-base-v0.11.0
-```
-
-#### Step 5: 创建 GitHub Release
-
-```bash
-# 方式 1: 使用 gh CLI
-gh release create pantheon-base-v0.11.0 \
-  --title "Pantheon Base v0.11.0 - Frontend Design System Engineering" \
-  --notes-file .harness/evidence/2026-09-03-frontend-design-alignment/release-notes.md \
-  --latest
-
-# 方式 2: 手动在 GitHub 网页创建
-# 访问: https://github.com/duanxldragon/pantheon-base/releases/new
-# 选择标签: pantheon-base-v0.11.0
-# 填写 Release Notes
-```
-
-### 3.3 Release 资产
-
-每个 Release 应包含：
-- **Tag**: 不可变标签（`pantheon-base-v<x.y.z>`）
-- **Release Notes**: 变更说明
-- **Consumer Impact**: 消费仓影响分析
-- **Upgrade Guide**: 升级指南
-- **Verification Evidence**: 验证证据（`.harness/evidence/`）
-
----
-
-## 4. 版本号决策流程图
-
-```
-┌─────────────────────────────────────┐
-│  有破坏性变更？                       │
-│  (契约不兼容/需要消费仓大范围重构)     │
-└──────────┬──────────────────────────┘
-           │
-    ┌──────▼──────┐
-    │   是        │   否
-    │             │
-    ▼             ▼
-┌────────┐   ┌─────────────────────────────┐
-│ Major  │   │ 新增功能/增强/优化？          │
-│ v1.0.0 │   │ (新模块/新文档/架构优化)       │
-└────────┘   └──────────┬──────────────────┘
-                        │
-                 ┌──────▼──────┐
-                 │   是        │   否
-                 │             │
-                 ▼             ▼
-            ┌────────┐   ┌─────────┐
-            │ Minor  │   │ Patch   │
-            │ v0.11.0│   │ v0.10.27│
-            └────────┘   └─────────┘
-```
-
----
-
-## 5. CHANGELOG 维护
-
-### 5.1 CHANGELOG 格式
-
-`CHANGELOG.md` 采用 [Keep a Changelog](https://keepachangelog.com/) 格式：
-
-```markdown
-# Changelog
-
-All notable changes to Pantheon Base will be documented in this file.
-
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
-
-## [Unreleased]
-
-## [0.11.0] - 2026-09-03
-
-### Added
-- 完整的前端设计系统工程文档（2837 行）
-- 9 个容器 Token（交互/展示/操作三层语义）
-- 12 类 UI 模式完整代码模板
-- Token 迁移白名单机制
-
-### Changed
-- 机械门禁优化（语义色白名单 + 精细调整间距白名单）
-- DESIGN.md 文档顺序更新
-
-### Fixed
-- N/A
-
-## [0.10.26] - 2026-09-02
-
-### Added
-- Foundation release consumer pipeline
-
-### Fixed
-- Repository layout contract frontend library entrypoint
-
-## [0.10.25] - 2026-09-01
-...
-```
-
-### 5.2 CHANGELOG 更新时机
-
-- **每个 PR 合并后**: 更新 `[Unreleased]` 章节
-- **Release 发布时**: 将 `[Unreleased]` 内容移到新版本章节
-
----
-
-## 6. 版本发布检查清单
-
-### 发布前检查 ✅
-- [ ] 所有 PR 已合并到 `main`
-- [ ] GitHub Required Checks 全部通过
-- [ ] Release Notes 已编写
-- [ ] Consumer Impact Summary 已编写（如适用）
-- [ ] CHANGELOG 已更新
-- [ ] 版本号已确定（Major/Minor/Patch）
-
-### 发布操作 ✅
-- [ ] 切换到 `main` 分支
-- [ ] 拉取最新代码
-- [ ] 打标签（`git tag -a pantheon-base-v<x.y.z>`）
-- [ ] 推送标签（`git push origin pantheon-base-v<x.y.z>`）
-- [ ] 创建 GitHub Release
-
-### 发布后验证 ✅
-- [ ] GitHub Release 页面正确显示
-- [ ] Release Notes 完整
-- [ ] 标签不可变（不能删除/修改）
-- [ ] 通知相关团队
-
-### 消费仓同步（如适用）✅
-
-以下 `check:base-sync` 和 lock 更新在 `pantheon-ops` 仓库根执行，不是 Base 命令。
-- [ ] 更新 `pantheon-ops` 的 `foundation-release.lock.json`
-- [ ] 运行 `npm run check:base-sync`
-- [ ] 验证业务 overlay 兼容性
-- [ ] 提交消费仓 PR
-
----
-
-## 7. 常见场景
-
-### 场景 1: 安全漏洞修复
-
-```bash
-# 修复漏洞并合并 PR
-gh pr merge <pr-number> --squash
-
-# 打 Patch 版本
-git tag -a pantheon-base-v0.10.27 -m "Security: Fix XSS vulnerability in user input"
-git push origin pantheon-base-v0.10.27
-
-# 创建 Release
-gh release create pantheon-base-v0.10.27 \
-  --title "Pantheon Base v0.10.27 - Security Fix" \
-  --notes "🔒 修复用户输入 XSS 漏洞"
-```
-
-### 场景 2: 新增系统模块
-
-```bash
-# 合并 MFA 功能 PR
-gh pr merge <pr-number> --squash
-
-# 打 Minor 版本
-git tag -a pantheon-base-v0.11.0 -m "Feature: Add MFA/TOTP support"
-git push origin pantheon-base-v0.11.0
-
-# 创建 Release（包含升级说明）
-gh release create pantheon-base-v0.11.0 \
-  --title "Pantheon Base v0.11.0 - MFA Support" \
-  --notes-file release-notes.md
-```
-
-### 场景 3: 破坏性架构变更
-
-```bash
-# 合并权限模型重构 PR
-gh pr merge <pr-number> --squash
-
-# 打 Major 版本
-git tag -a pantheon-base-v1.0.0 -m "BREAKING: Refactor permission model"
-git push origin pantheon-base-v1.0.0
-
-# 创建 Release（必须包含详细的升级指南）
-gh release create pantheon-base-v1.0.0 \
-  --title "Pantheon Base v1.0.0 - Permission Model v2" \
-  --notes-file release-notes.md \
-  --discussion-category "Announcements"
-```
-
----
-
-## 8. 版本命名约定
-
-### 8.1 标签命名
-
-- **格式**: `pantheon-base-v<major>.<minor>.<patch>`
-- **示例**: 
-  - ✅ `pantheon-base-v0.11.0`
-  - ✅ `pantheon-base-v1.0.0`
-  - ❌ `v0.11.0` (缺少项目前缀)
-  - ❌ `pantheon-base-0.11.0` (缺少 v 前缀)
-
-### 8.2 Release Line
-
-- **格式**: `release/<major>.<minor>`
-- **用途**: 兼容性元数据，记录在 consumer 的 `foundation-release.lock.json`
-- **示例**: `release/0.10`, `release/0.11`, `release/1.0`
-- **注意**: Release Line 不是 Git 分支，仅用于语义标记
-
-### 8.3 Release Notes 标题
-
-- **格式**: `Pantheon Base v<x.y.z> - <简短描述>`
-- **示例**:
-  - `Pantheon Base v0.11.0 - Frontend Design System Engineering`
-  - `Pantheon Base v0.10.27 - Security Fix`
-  - `Pantheon Base v1.0.0 - Permission Model v2`
-
----
-
-## 9. 参考文档
-
-- [FOUNDATION_RELEASE_MODEL.md](./designs/FOUNDATION_RELEASE_MODEL.md): Foundation Release 模型详解
-- [PLATFORM_CONTRACT.md](./contracts/PLATFORM_CONTRACT.md): 平台契约
-- [Semantic Versioning 2.0.0](https://semver.org/): 语义化版本规范
-- [Keep a Changelog](https://keepachangelog.com/): CHANGELOG 格式规范
-
----
-
-## 10. FAQ
-
-### Q1: 何时应该升级 Major 版本？
-**A**: 只有在发生破坏性变更时才升级 Major 版本，例如：
-- 权限模型不兼容变更
-- i18n key 语义变更
-- 共享层 API 不兼容变更
-- 需要消费仓大范围重构
-
-大部分情况下，应该通过向后兼容的方式实现新功能（Minor 版本）。
-
-### Q2: 本次 PR #285 应该升级到什么版本？
-**A**: 建议 `v0.11.0`（Minor 版本），理由：
-- 新增重大功能（设计系统工程化）
-- 2837 行新文档 + Token 体系扩展
-- 向后兼容（不影响现有业务代码）
-
-### Q3: 如何回滚到旧版本？
-**A**: 
-```bash
-# 消费仓回滚到旧版本
-# 编辑 docs/PROJECT_INHERITANCE.md
-base_version: pantheon-base-v0.10.26  # 改为旧版本
-
-# 运行同步检查
-npm run check:base-sync
-```
-
-### Q4: 是否需要维护多个 release 分支？
-**A**: 不需要。Pantheon Base 只维护 `main` 分支，release 通过不可变 tag 发布。如需修复旧版本漏洞，可以：
-1. 从旧 tag 创建临时分支
-2. 修复并打新 patch tag
-3. 删除临时分支
-
-### Q5: 消费仓何时需要升级？
-**A**: 
-- **Patch 版本**: 尽快升级（安全修复）
-- **Minor 版本**: 按需升级（新功能/优化）
-- **Major 版本**: 计划升级（需要重构）
+- [Foundation Release Model](./designs/FOUNDATION_RELEASE_MODEL.md)
+- [Platform Contract](./contracts/PLATFORM_CONTRACT.md)
+- [Semantic Versioning](https://semver.org/)
+- [发布说明索引](./release-notes/README.md)

@@ -483,7 +483,7 @@ func (s *UserService) UpdateUser(userID uint64, req *UserUpdateReq) (*UserListRe
 	return s.loadUpdatedUserResponse(userID)
 }
 
-func updateUserInTransaction(tx *gorm.DB, user *SystemUser, userID uint64, updates map[string]interface{}, profileExt map[string]interface{}, profileExtJSON string, roleIDs []uint64) error {
+func updateUserInTransaction(tx *gorm.DB, user *SystemUser, userID uint64, updates, profileExt map[string]interface{}, profileExtJSON string, roleIDs []uint64) error {
 	if err := tx.Model(user).Updates(updates).Error; err != nil {
 		return err
 	}

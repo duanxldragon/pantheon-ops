@@ -482,7 +482,7 @@ func assertLatestMigrationVersion(t *testing.T, db *gorm.DB) {
 	assertMigrationVersion(t, db, latestVersion)
 }
 
-func dropMigrationColumnIfExists(t *testing.T, db *gorm.DB, table string, column string) {
+func dropMigrationColumnIfExists(t *testing.T, db *gorm.DB, table, column string) {
 	t.Helper()
 
 	var count int64
@@ -533,7 +533,7 @@ func migrationTestDSN(t *testing.T, db *gorm.DB) string {
 	return cfg.FormatDSN()
 }
 
-func assertMigrationColumnExists(t *testing.T, db *gorm.DB, table string, column string) {
+func assertMigrationColumnExists(t *testing.T, db *gorm.DB, table, column string) {
 	t.Helper()
 
 	var count int64
@@ -552,7 +552,7 @@ WHERE table_schema = DATABASE()
 	}
 }
 
-func assertMigrationIndexExists(t *testing.T, db *gorm.DB, table string, index string) {
+func assertMigrationIndexExists(t *testing.T, db *gorm.DB, table, index string) {
 	t.Helper()
 
 	var count int64
@@ -589,7 +589,7 @@ func assertTenantPlanSeedRows(t *testing.T, db *gorm.DB) {
 	}
 }
 
-func assertMigrationIndexDoesNotExist(t *testing.T, db *gorm.DB, table string, index string) {
+func assertMigrationIndexDoesNotExist(t *testing.T, db *gorm.DB, table, index string) {
 	t.Helper()
 
 	var count int64
@@ -608,7 +608,7 @@ WHERE table_schema = DATABASE()
 	}
 }
 
-func assertLegacyColumnDoesNotBlockRuntimeWrites(t *testing.T, db *gorm.DB, table string, column string) {
+func assertLegacyColumnDoesNotBlockRuntimeWrites(t *testing.T, db *gorm.DB, table, column string) {
 	t.Helper()
 
 	var count int64

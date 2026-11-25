@@ -55,3 +55,11 @@ node scripts/harness/check-generated.mjs --root . --strict
 - `check-ui-quality-gate.mjs`（校验 UI 政策、CI 接线与新 UI 任务的证据声明）
 - `check-permission-contract.mjs`
 - `triage-base-drift.mjs`
+
+## 调用角色与当前工作机制
+
+- `check:checker-wiring` 识别命令中的直接 Node 入口和已声明 npm 别名，排除注释与 echo 数据；动态 wrapper 须另给证据。仅 package 配置的工具属于手动入口，CI 引用不等于运行成功或合并必过检查。
+- 方法 policy CI：`quality.yml` 将消费仓库与 Harness 作为同级目录 checkout，由 receipt 的完整 `sourceCommit` 固定方法快照，调用已发布的消费检查器，不带更新参数。
+- Ops 的跨层边界 CI 使用继承 checker 与现有 baseline；业务模块边界检查单独保留。
+- Ops `check:coverage` 是手动继承工具，使用 `npm run check:coverage -- <artifact> --threshold <number>` 提供实际覆盖率文件与另行审查的阈值；不隐含默认阈值或覆盖率 CI 已验收。
+- 当前任务索引使用尚未发布的 Harness `render-task-index.mjs`；显式生成不改变 manifest 状态。新 helper/共享 sensor 的发布与下游同步仍须后续完成。

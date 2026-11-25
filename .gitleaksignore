@@ -55,3 +55,10 @@ b2e907916c1a4b29942e9d44f6ff5f29fceda4ac:k8s/README.md:curl-auth-header:208
 77471d73ee591c0b3deef9ec50b5c97ff8da201a:.harness/evidence/2026-11-05-base-freeze-release/sonar-issues-before.json:generic-api-key:54
 0c5b107378f110a1755aeb01c918e81394ce603b:.harness/evidence/2026-11-05-base-freeze-release/sonar-issues-before.json:generic-api-key:14
 0c5b107378f110a1755aeb01c918e81394ce603b:.harness/evidence/2026-11-05-base-freeze-release/sonar-issues-before.json:generic-api-key:54
+
+# Maintainer-approved adjudication on 2026-11-25: exact SHA256 source-file checksum
+# findings, independently recomputed from the immutable commit's source bytes.
+# No path or rule is exempted; the full-history scanner is unchanged.
+96f01d564b0d1b6672a8d9986787ca2276471c0f:.harness/evidence/2026-11-25-foundation-0190-release/source-bindings.json:generic-api-key:45
+96f01d564b0d1b6672a8d9986787ca2276471c0f:.harness/evidence/2026-11-25-foundation-0190-release/source-bindings.json:generic-api-key:46
+96f01d564b0d1b6672a8d9986787ca2276471c0f:.harness/evidence/2026-11-25-foundation-0190-release/source-bindings.json:generic-api-key:65

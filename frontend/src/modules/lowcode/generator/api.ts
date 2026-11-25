@@ -29,8 +29,8 @@ export interface GenerateAndRegisterResp {
       dataScopeMode: string;
       dependencyCount: number;
       relationCount: number;
-      dependencies?: ModuleSchema['dependencies'];
-      relations?: ModuleSchema['relations'];
+      dependencies?: Exclude<ModuleSchema['dependencies'], undefined>;
+      relations?: Exclude<ModuleSchema['relations'], undefined>;
     };
     parentMenuPath: string;
     parentMenuSource: 'explicit' | 'inferred' | 'top_level';

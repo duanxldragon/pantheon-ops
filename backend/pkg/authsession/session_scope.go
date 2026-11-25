@@ -50,7 +50,7 @@ func CleanupInactiveSessions(db *gorm.DB, now time.Time, idleMinutes int) error 
 }
 
 // CleanupUserOverflowSessions revokes overflow sessions for one user.
-func CleanupUserOverflowSessions(db *gorm.DB, userID uint64, now time.Time, idleMinutes int, maxActiveSessions int) error {
+func CleanupUserOverflowSessions(db *gorm.DB, userID uint64, now time.Time, idleMinutes, maxActiveSessions int) error {
 	if db == nil || userID == 0 || maxActiveSessions < 0 {
 		return nil
 	}

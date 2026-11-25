@@ -378,7 +378,7 @@ func filterGeneratedModuleRefs(refs []GeneratedModuleRef, scope string) []Genera
 	return filtered
 }
 
-func writeGeneratedBackendRegistry(workspaceRoot string, scope string, refs []GeneratedModuleRef) error {
+func writeGeneratedBackendRegistry(workspaceRoot, scope string, refs []GeneratedModuleRef) error {
 	target := filepath.Join(workspaceRoot, "backend", "modules", scope, "generated_registry.go")
 
 	type entry struct {
@@ -409,7 +409,7 @@ func writeGeneratedBackendRegistry(workspaceRoot string, scope string, refs []Ge
 	return writeTemplateFile(target, generatedBackendRegistryTemplate, data)
 }
 
-func writeGeneratedFrontendModuleRegistry(workspaceRoot string, scope string, refs []GeneratedModuleRef) error {
+func writeGeneratedFrontendModuleRegistry(workspaceRoot, scope string, refs []GeneratedModuleRef) error {
 	target := filepath.Join(workspaceRoot, "frontend", "src", "modules", "generated", scope+".ts")
 
 	type entry struct {
@@ -490,7 +490,7 @@ func writeGeneratedBackendComponentRegistry(workspaceRoot string, refs []Generat
 	return writeTemplateFile(target, generatedBackendComponentRegistryTemplate, data)
 }
 
-func writeTemplateFile(target string, templateSource string, data any) error {
+func writeTemplateFile(target, templateSource string, data any) error {
 	tpl, err := template.New(filepath.Base(target)).Parse(templateSource)
 	if err != nil {
 		return err

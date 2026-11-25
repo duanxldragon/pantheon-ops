@@ -115,7 +115,7 @@ func (h *I18nHandler) DeleteArchivedUnusedKeys(c *gin.Context) {
 	common.Success(c, resp)
 }
 
-func setI18nLifecycleAuditParam(c *gin.Context, action string, module string, fromStatus string, toStatus string, confirmArchived bool) {
+func setI18nLifecycleAuditParam(c *gin.Context, action, module, fromStatus, toStatus string, confirmArchived bool) {
 	payload := map[string]interface{}{
 		"action":                   action,
 		"module":                   module,
@@ -129,7 +129,7 @@ func setI18nLifecycleAuditParam(c *gin.Context, action string, module string, fr
 	writeI18nLifecycleAuditJSON(common.SetAuditParam, c, payload)
 }
 
-func setI18nLifecycleAuditResult(c *gin.Context, action string, fromStatus string, toStatus string, resp *I18nUnusedLifecycleResp) {
+func setI18nLifecycleAuditResult(c *gin.Context, action, fromStatus, toStatus string, resp *I18nUnusedLifecycleResp) {
 	if resp == nil {
 		return
 	}

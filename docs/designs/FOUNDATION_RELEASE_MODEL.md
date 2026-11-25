@@ -5,7 +5,7 @@ layer: platform
 status: Active
 linked_contracts:
   - docs/contracts/PLATFORM_CONTRACT.md
-updated_at: 2026-11-04
+updated_at: 2026-11-14
 ---
 
 # Foundation Release Model
@@ -74,6 +74,12 @@ consumer repo -> consume base foundation release
 - 当前 release line：以目标发布 manifest 为准，仅是兼容性元数据。
 - Git 分支策略：本地与远端仅保留 `main`；release 的稳定性由不可变 tag 和发布资产提供，而不是由 release 分支提供。
 
+### 2.5 当前命名与历史身份
+
+当前 Foundation tag 必须为 `pantheon-base-vX.Y.Z`，GitHub 标题统一为 `Pantheon Base vX.Y.Z`。已有的 alpha/beta/rc 后缀保留在 tag 和标题中，publisher 显式设置 GitHub prerelease 并禁止其成为 Latest；稳定消费入口拒绝 draft 和 prerelease。
+
+历史 `base-v*`、`backend/v*`、裸 `v*` 等标签保留原身份，展示时标为 `Legacy`。旧数字不参与当前 Foundation 版本序列，不能把旧 `v1.0` 推定为当前 `pantheon-base-v1.0.0` 或重编号为某个 v0.x。整理标题不会重打 tag、覆盖资产或改写已冻结发布结论。完整命名和发布流程见 [版本管理指南](../VERSION_MANAGEMENT_GUIDE.md)。
+
 ## 3. 资产分层
 
 ### 3.1 Foundation-Owned
@@ -114,7 +120,7 @@ consumer repo -> consume base foundation release
 一个可被消费仓采用的 foundation release，至少要包含：
 
 1. **版本标识**
-   - 推荐 tag：`pantheon-base-v<major>.<minor>.<patch>`
+   - 必须使用 tag：`pantheon-base-v<major>.<minor>.<patch>`
 2. **release notes**
    - 说明本次影响的共享层面
 3. **consumer impact summary**

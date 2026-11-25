@@ -361,7 +361,7 @@ func looksLikeRuntimeSchema(db *sql.DB, markers []schemaColumnMarker) (bool, err
 	return true, nil
 }
 
-func legacyColumnAllowsRuntimeOmission(db *sql.DB, table string, column string) (bool, error) {
+func legacyColumnAllowsRuntimeOmission(db *sql.DB, table, column string) (bool, error) {
 	var count int
 	var isNullable string
 	var columnDefault sql.NullString
@@ -401,7 +401,7 @@ WHERE table_schema = DATABASE()
 	return count == 1, nil
 }
 
-func columnExists(db *sql.DB, table string, column string) (bool, error) {
+func columnExists(db *sql.DB, table, column string) (bool, error) {
 	var count int
 	err := db.QueryRow(`
 SELECT COUNT(*)
@@ -416,7 +416,7 @@ WHERE table_schema = DATABASE()
 	return count == 1, nil
 }
 
-func indexExists(db *sql.DB, table string, index string) (bool, error) {
+func indexExists(db *sql.DB, table, index string) (bool, error) {
 	var count int
 	err := db.QueryRow(`
 SELECT COUNT(*)

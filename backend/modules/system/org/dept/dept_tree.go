@@ -114,8 +114,9 @@ func (s *DeptService) loadOverviewPosts() ([]overviewPostRow, error) {
 func accumulateDeptOverview(
 	dept SystemDept,
 	resp *DeptOverviewResp,
-	childCountByDept map[uint64]int,
+	childCountByDept,
 	postCountByDept map[uint64]int,
+
 ) {
 	resp.TotalDeptCount++
 	if dept.Status == common.StatusEnabled {
@@ -297,8 +298,9 @@ func matchesDeptQuery(
 	nameFilter string,
 	status *int,
 	governance string,
-	childCountByDept map[uint64]int,
+	childCountByDept,
 	postCountByDept map[uint64]int,
+
 ) bool {
 	if nameFilter != "" && !strings.Contains(strings.ToLower(dept.DeptName), strings.ToLower(nameFilter)) {
 		return false
@@ -342,7 +344,7 @@ func buildDeptTree(depts []SystemDept, parentID uint64, postCountByDept map[uint
 }
 
 // toDeptTreeResp converts SystemDept to DeptTreeResp
-func toDeptTreeResp(dept SystemDept, childDeptCount int, postCount int) *DeptTreeResp {
+func toDeptTreeResp(dept SystemDept, childDeptCount, postCount int) *DeptTreeResp {
 	isLeaderless := dept.IsRoot != common.StatusFlagYes && strings.TrimSpace(dept.Leader) == ""
 	isNoPost := dept.IsRoot != common.StatusFlagYes && postCount == 0
 	isEmpty := dept.IsRoot != common.StatusFlagYes && childDeptCount == 0 && postCount == 0

@@ -1,41 +1,42 @@
 #!/usr/bin/env node
 
-import fs from 'node:fs';
-import path from 'node:path';
-import process from 'node:process';
+import fs from "node:fs";
+import path from "node:path";
+import process from "node:process";
+import { fileURLToPath } from "node:url";
 
 const DEFAULT_ROOT = process.cwd();
 
 const REQUIRED_OPS_CLAUDE_MARKERS = [
-  'pantheon-ops inherits pantheon-base as its foundation',
-  'Business work reading order',
-  '../docs/WORKSPACE_INHERITANCE.md',
-  'docs/PROJECT_INHERITANCE.md',
-  '../pantheon-base/DESIGN.md',
-  '../pantheon-base/AGENTS.md',
-  'Do not fix platform or system-domain drift locally in pantheon-ops',
+  "pantheon-ops inherits pantheon-base as its foundation",
+  "Business work reading order",
+  "../docs/WORKSPACE_INHERITANCE.md",
+  "docs/PROJECT_INHERITANCE.md",
+  "../pantheon-base/DESIGN.md",
+  "../pantheon-base/AGENTS.md",
+  "Do not fix platform or system-domain drift locally in pantheon-ops",
 ];
 
 const REQUIRED_PROJECT_INHERITANCE_MARKERS = [
-  'Base repository: `../pantheon-base`',
-  'Base version:',
-  'business/cmdb',
-  'business/deploy',
-  'If a foundation rule must change, update `pantheon-base` first',
+  "Base repository: `../pantheon-base`",
+  "Base version:",
+  "business/cmdb",
+  "business/deploy",
+  "If a foundation rule must change, update `pantheon-base` first",
 ];
 
 const REQUIRED_WORKSPACE_MARKERS = [
-  '`pantheon-base`: the only authority',
-  '`pantheon-ops`: a derived business repository',
-  'Change base rules in `pantheon-base`, then let business repositories upgrade',
+  "`pantheon-base`: the only authority",
+  "`pantheon-ops`: a derived business repository",
+  "Change base rules in `pantheon-base`, then let business repositories upgrade",
 ];
 
 const REQUIRED_PR_MARKERS = [
-  'Base/ops inheritance',
-  'Base version checked',
-  'generic drift',
-  'pseudo-drift',
-  'business-only',
+  "Base/ops inheritance",
+  "Base version checked",
+  "generic drift",
+  "pseudo-drift",
+  "business-only",
 ];
 
 function printHelp() {
@@ -59,16 +60,16 @@ function parseArgs(argv) {
 
   for (let index = 0; index < argv.length; index += 1) {
     const arg = argv[index];
-    if (arg === '--json') {
+    if (arg === "--json") {
       options.json = true;
-    } else if (arg === '--strict') {
+    } else if (arg === "--strict") {
       options.strict = true;
-    } else if (arg === '--help' || arg === '-h') {
+    } else if (arg === "--help" || arg === "-h") {
       options.help = true;
-    } else if (arg === '--root') {
+    } else if (arg === "--root") {
       const value = argv[index + 1];
       if (!value) {
-        throw new Error('--root requires a path');
+        throw new Error("--root requires a path");
       }
       options.root = path.resolve(value);
       index += 1;
@@ -81,14 +82,14 @@ function parseArgs(argv) {
 }
 
 function readText(root, repoPath) {
-  return fs.readFileSync(path.join(root, repoPath), 'utf8');
+  return fs.readFileSync(path.join(root, repoPath), "utf8");
 }
 
 function requireFile(root, repoPath, findings) {
   if (!fs.existsSync(path.join(root, repoPath))) {
     findings.push({
       file: repoPath,
-      reason: 'required inheritance contract file is missing',
+      reason: "required inheritance contract file is missing",
     });
     return false;
   }
@@ -112,54 +113,128 @@ function checkMarkers(root, repoPath, markers, findings) {
 }
 
 function checkProjectInheritanceVersion(root, findings) {
-  const repoPath = 'pantheon-ops/docs/PROJECT_INHERITANCE.md';
+  const repoPath = "pantheon-ops/docs/PROJECT_INHERITANCE.md";
   if (!fs.existsSync(path.join(root, repoPath))) {
     return;
   }
 
   const content = readText(root, repoPath);
-  const versionMatch = content.match(/Base version:\s*`([^`]+)`(?:\s*\(`([0-9a-f]{40})`\))?/i);
+  const versionMatch = content.match(
+    /Base version:\s*`([^`]+)`(?:\s*\(`([0-9a-f]{40})`\))?/i,
+  );
   if (!versionMatch) {
     findings.push({
       file: repoPath,
-      reason: 'Base version must be pinned to a commit or tag',
+      reason: "Base version must be pinned to a commit or tag",
     });
     return;
   }
 
   const shortVersion = versionMatch[1];
   const fullVersion = versionMatch[2];
-  const shortLooksValid = /^[0-9a-f]{7,40}$/i.test(shortVersion) || /^v?\d+\.\d+\.\d+/.test(shortVersion);
+  const shortLooksValid =
+    /^[0-9a-f]{7,40}$/i.test(shortVersion) ||
+    /^v?\d+\.\d+\.\d+/.test(shortVersion);
   if (!shortLooksValid && !fullVersion) {
     findings.push({
       file: repoPath,
-      reason: 'Base version must be an explicit tag or commit hash',
+      reason: "Base version must be an explicit tag or commit hash",
+    });
+  }
+  const lockPath = "pantheon-ops/foundation-release.lock.json";
+  if (!requireFile(root, lockPath, findings)) return;
+  try {
+    const lock = JSON.parse(readText(root, lockPath));
+    if (
+      shortVersion !== lock.releaseVersion ||
+      fullVersion !== lock.baseCommit
+    ) {
+      findings.push({
+        file: repoPath,
+        reason: "Base version/commit must match foundation-release.lock.json",
+      });
+    }
+  } catch (error) {
+    findings.push({
+      file: lockPath,
+      reason: `invalid foundation lock: ${error.message}`,
     });
   }
 }
 
-function scanInheritance(root) {
+function checkWorkspaceCommands(root, findings) {
+  const packagePath = "pantheon-ops/package.json";
+  if (!requireFile(root, packagePath, findings)) return;
+  let scripts;
+  try {
+    scripts = JSON.parse(readText(root, packagePath)).scripts ?? {};
+  } catch (error) {
+    findings.push({
+      file: packagePath,
+      reason: `invalid package.json: ${error.message}`,
+    });
+    return;
+  }
+  for (const file of [
+    "docs/WORKSPACE_INHERITANCE.md",
+    "docs/WORKSPACE_INHERITANCE.zh.md",
+  ]) {
+    if (!fs.existsSync(path.join(root, file))) continue;
+    const commands = new Set(
+      [...readText(root, file).matchAll(/\bnpm run ([\w:-]+)/g)].map(
+        (match) => match[1],
+      ),
+    );
+    for (const command of commands) {
+      if (typeof scripts[command] !== "string" || !scripts[command].trim()) {
+        findings.push({
+          file,
+          reason: `documented Ops command does not exist: npm run ${command}`,
+        });
+      }
+    }
+  }
+}
+
+export function scanInheritance(root) {
   const findings = [];
   const warnings = [];
 
-  checkMarkers(root, 'docs/WORKSPACE_INHERITANCE.md', REQUIRED_WORKSPACE_MARKERS, findings);
-  checkMarkers(root, 'pantheon-ops/CLAUDE.md', REQUIRED_OPS_CLAUDE_MARKERS, findings);
   checkMarkers(
     root,
-    'pantheon-ops/docs/PROJECT_INHERITANCE.md',
+    "docs/WORKSPACE_INHERITANCE.md",
+    REQUIRED_WORKSPACE_MARKERS,
+    findings,
+  );
+  checkMarkers(
+    root,
+    "pantheon-ops/CLAUDE.md",
+    REQUIRED_OPS_CLAUDE_MARKERS,
+    findings,
+  );
+  checkMarkers(
+    root,
+    "pantheon-ops/docs/PROJECT_INHERITANCE.md",
     REQUIRED_PROJECT_INHERITANCE_MARKERS,
     findings,
   );
   checkProjectInheritanceVersion(root, findings);
-  checkMarkers(root, '.github/pull_request_template.md', REQUIRED_PR_MARKERS, findings);
+  checkWorkspaceCommands(root, findings);
+  checkMarkers(
+    root,
+    ".github/pull_request_template.md",
+    REQUIRED_PR_MARKERS,
+    findings,
+  );
 
-  const opsAgentsPath = path.join(root, 'pantheon-ops', 'AGENTS.md');
+  const opsAgentsPath = path.join(root, "pantheon-ops", "AGENTS.md");
   if (fs.existsSync(opsAgentsPath)) {
-    const content = fs.readFileSync(opsAgentsPath, 'utf8');
-    if (!content.includes('pantheon-base') || !content.includes('business/*')) {
+    const content = fs.readFileSync(opsAgentsPath, "utf8");
+    if (!content.includes("pantheon-base") || !content.includes("business/*")) {
       warnings.push({
-        file: 'pantheon-ops/AGENTS.md',
-        reason: 'ops agent entrypoint should keep base inheritance and business-only scope visible',
+        file: "pantheon-ops/AGENTS.md",
+        reason:
+          "ops agent entrypoint should keep base inheritance and business-only scope visible",
       });
     }
   }
@@ -168,12 +243,12 @@ function scanInheritance(root) {
 }
 
 function printTextReport(result, strict) {
-  const mode = strict ? 'strict' : 'report-only';
+  const mode = strict ? "strict" : "report-only";
   console.log(
     `Inheritance contract check (${mode}): ${result.findings.length} finding(s), ${result.warnings.length} warning(s)`,
   );
   if (result.findings.length === 0 && result.warnings.length === 0) {
-    console.log('\nno findings');
+    console.log("\nno findings");
   }
   for (const finding of result.findings) {
     console.log(`\nfinding: ${finding.file}`);
@@ -204,7 +279,7 @@ function main() {
     console.log(
       JSON.stringify(
         {
-          mode: options.strict ? 'strict' : 'report-only',
+          mode: options.strict ? "strict" : "report-only",
           findingCount: result.findings.length,
           warningCount: result.warnings.length,
           findings: result.findings,
@@ -221,4 +296,8 @@ function main() {
   return options.strict && result.findings.length > 0 ? 1 : 0;
 }
 
-process.exitCode = main();
+if (
+  process.argv[1] &&
+  path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)
+)
+  process.exitCode = main();
