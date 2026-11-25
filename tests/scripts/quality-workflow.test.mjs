@@ -198,6 +198,15 @@ test('backend tests always run and fail closed', () => {
   assert.match(block, /run:\s*go test -race \.\/\.\.\./, 'backend tests should run the full race suite');
 });
 
+test('backend tests provide MySQL and Redis and refuse to skip database tests', () => {
+  const block = workflowSource.split(/^  backend-tests:$/m)[1].split(/^  [a-z][a-z-]*:$/m)[0];
+  assert.match(block, /^ +mysql:\n +image: mysql:8\.0/m, 'backend tests need a MySQL service');
+  assert.match(block, /PANTHEON_TEST_DSN:\s*\S+/, 'backend tests need a test DSN');
+  assert.match(block, /PANTHEON_TEST_DSN_REQUIRED:\s*"true"/, 'a missing DSN must fail, not skip');
+  assert.match(block, /PANTHEON_TEST_REDIS_ADDR:\s*\S+/, 'backend tests need the generic Redis address');
+  assert.match(block, /PANTHEON_TEST_REDIS_REQUIRED:\s*"true"/, 'a missing Redis must fail, not skip');
+});
+
 test('go lint scopes pull requests and merge groups to new code and enforces in real bash', () => {
   const goLintSource = workflowSource.slice(
     workflowSource.indexOf('  go-lint:'),
