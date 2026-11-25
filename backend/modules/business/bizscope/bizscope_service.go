@@ -68,6 +68,18 @@ func (s *Service) GetActive(ctx context.Context, id uint64, dataScope *common.Da
 	return toBizScopeRef(row), nil
 }
 
+// VisibleIDs returns the ids of every business scope the data scope can see.
+func (s *Service) VisibleIDs(ctx context.Context, dataScope *common.DataScopeReq) ([]uint64, error) {
+	if s.db == nil {
+		return nil, errors.New("database.not_initialized")
+	}
+	var ids []uint64
+	if err := s.db.WithContext(ctx).Model(&BizScope{}).Scopes(database.WithDataScope(dataScope)).Pluck("id", &ids).Error; err != nil {
+		return nil, err
+	}
+	return ids, nil
+}
+
 // ResolveActiveByCodes resolves active business scopes by code.
 func (s *Service) ResolveActiveByCodes(ctx context.Context, codes []string, dataScope *common.DataScopeReq) (map[string]bizcap.BizScopeRef, error) {
 	if s.db == nil {

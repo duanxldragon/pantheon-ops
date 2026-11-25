@@ -28,6 +28,10 @@ func (testBizScopeReader) ResolveActiveByCodes(_ context.Context, codes []string
 	return result, nil
 }
 
+func (testBizScopeReader) VisibleIDs(context.Context, *common.DataScopeReq) ([]uint64, error) {
+	return nil, nil
+}
+
 func setupHostImportExportTestDB(t *testing.T) *gorm.DB {
 	t.Helper()
 	db := setupTestDB(t)

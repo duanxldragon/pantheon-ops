@@ -42,6 +42,10 @@ func (r *blockingBizScopeReader) ResolveActiveByCodes(context.Context, []string,
 	return nil, nil
 }
 
+func (r *blockingBizScopeReader) VisibleIDs(context.Context, *common.DataScopeReq) ([]uint64, error) {
+	return nil, nil
+}
+
 func TestQuantityToCores(t *testing.T) {
 	if got := quantityToCores(nil); got != 0 {
 		t.Fatalf("nil quantity: got %v want 0", got)

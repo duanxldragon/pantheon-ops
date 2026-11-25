@@ -25,6 +25,10 @@ func (activeBizScopeReader) ResolveActiveByCodes(context.Context, []string, *com
 	return map[string]bizcap.BizScopeRef{}, nil
 }
 
+func (activeBizScopeReader) VisibleIDs(context.Context, *common.DataScopeReq) ([]uint64, error) {
+	return nil, nil
+}
+
 func setupCapabilityTestDB(t *testing.T) *gorm.DB {
 	t.Helper()
 	db := testmysql.Open(t)
