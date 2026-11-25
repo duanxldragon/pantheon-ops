@@ -79,7 +79,7 @@ func (h *DeployHandler) RegisterRoutes(r gin.IRoutes) {
 
 // ListCredentials handles the credential reference metadata list endpoint.
 func (h *DeployHandler) ListCredentials(c *gin.Context) {
-	items, err := h.svc.ListCredentials()
+	items, err := h.svc.ListCredentials(common.GetDataScope(c))
 	if err != nil {
 		common.FailWithError(c, common.CodeError, err, "deploycredential.list_failed")
 		return
@@ -94,7 +94,7 @@ func (h *DeployHandler) CreateCredential(c *gin.Context) {
 		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
 		return
 	}
-	item, err := h.svc.CreateCredential(req, currentActor(c))
+	item, err := h.svc.CreateCredential(req, currentActor(c), common.GetDataScope(c))
 	if err != nil {
 		common.FailWithError(c, common.CodeError, err, "deploycredential.create_failed")
 		return
@@ -113,7 +113,7 @@ func (h *DeployHandler) UpdateCredential(c *gin.Context) {
 		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
 		return
 	}
-	item, err := h.svc.UpdateCredential(id, req, currentActor(c))
+	item, err := h.svc.UpdateCredential(id, req, currentActor(c), common.GetDataScope(c))
 	if err != nil {
 		common.FailWithError(c, common.CodeError, err, "deploycredential.update_failed")
 		return
@@ -127,7 +127,7 @@ func (h *DeployHandler) DeleteCredential(c *gin.Context) {
 	if !ok {
 		return
 	}
-	if err := h.svc.DeleteCredential(id); err != nil {
+	if err := h.svc.DeleteCredential(id, common.GetDataScope(c)); err != nil {
 		common.FailWithError(c, common.CodeError, err, "deploycredential.delete_failed")
 		return
 	}

@@ -9,14 +9,16 @@ import (
 const (
 	deployModuleKey = "business.deploy"
 
-	deployMenuTitleKey         = "operations.deploy.menu"
-	deployPackageMenuTitleKey  = "operations.deploy.package.menu"
-	deployTemplateMenuTitleKey = "operations.deploy.template.menu"
-	deployTaskMenuTitleKey     = "operations.deploy.task.menu"
+	deployMenuTitleKey           = "operations.deploy.menu"
+	deployPackageMenuTitleKey    = "operations.deploy.package.menu"
+	deployTemplateMenuTitleKey   = "operations.deploy.template.menu"
+	deployTaskMenuTitleKey       = "operations.deploy.task.menu"
+	deployCredentialMenuTitleKey = "operations.deploy.credential.menu"
 
-	deployPackageListRoute  = "deploy-package-list"
-	deployTemplateListRoute = "deploy-template-list"
-	deployTaskListRoute     = "deploy-task-list"
+	deployPackageListRoute    = "deploy-package-list"
+	deployTemplateListRoute   = "deploy-template-list"
+	deployTaskListRoute       = "deploy-task-list"
+	deployCredentialListRoute = "deploy-credential-list"
 
 	deployTemplatePermCreateKey = "business.deploy.template.permission.create"
 	deployTemplatePermUpdateKey = "business.deploy.template.permission.update"
@@ -98,6 +100,7 @@ func seedDeployMenus(db *gorm.DB) error {
 		{Key: "operations-deploy-task-cancel", ParentKey: deployTaskListRoute, TitleKey: deployTaskPermCancelKey, Perms: "business:deploy:task:cancel", Type: "F", Module: deployModuleKey, Sort: 9},
 		{Key: "operations-deploy-task-mark-result", ParentKey: deployTaskListRoute, TitleKey: deployTaskPermMarkResultKey, Perms: "business:deploy:task:mark-result", Type: "F", Module: deployModuleKey, Sort: 10},
 		{Key: "operations-deploy-task-export", ParentKey: deployTaskListRoute, TitleKey: deployTaskPermExportKey, Perms: "business:deploy:task:export", Type: "F", Module: deployModuleKey, Sort: 11},
+		{Key: "business-deploy-credential", ParentKey: "deploy", TitleKey: deployCredentialMenuTitleKey, Path: "/business/deploy/credential", Component: "business/deploy/credential/DeployCredentialList", PagePerm: "business:deploy:credential:list", Type: "C", Icon: "lock", Module: deployModuleKey, RouteName: deployCredentialListRoute, Sort: 3},
 		{Key: "operations-deploy-credential-list", ParentKey: deployTaskListRoute, TitleKey: deployCredentialPermListKey, Perms: "business:deploy:credential:list", Type: "F", Module: deployModuleKey, Sort: 12},
 		{Key: "operations-deploy-credential-create", ParentKey: deployTaskListRoute, TitleKey: deployCredentialPermCreateKey, Perms: "business:deploy:credential:create", Type: "F", Module: deployModuleKey, Sort: 13},
 		{Key: "operations-deploy-credential-update", ParentKey: deployTaskListRoute, TitleKey: deployCredentialPermUpdateKey, Perms: "business:deploy:credential:update", Type: "F", Module: deployModuleKey, Sort: 14},

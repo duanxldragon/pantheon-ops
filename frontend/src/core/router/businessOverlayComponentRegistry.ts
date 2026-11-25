@@ -24,6 +24,7 @@ export const businessOverlayComponentRegistry = {
   'business/deploy/template/DeployTemplateList': defineRegistryEntry(() => import('../../modules/business/deploy/template/DeployTemplateList')),
   'business/deploy/task/DeployTaskList': defineRegistryEntry(() => import('../../modules/business/deploy/task/DeployTaskList')),
   'business/deploy/task/DeployTaskDetail': defineRegistryEntry(() => import('../../modules/business/deploy/task/DeployTaskDetail')),
+  'business/deploy/credential/DeployCredentialList': defineRegistryEntry(() => import('../../modules/business/deploy/credential/DeployCredentialList')),
   'business/k8s/cluster/ClusterList': defineRegistryEntry(() => import('../../modules/business/k8s/cluster/ClusterList')),
   'business/k8s/cluster/ClusterDetail': defineRegistryEntry(() => import('../../modules/business/k8s/cluster/ClusterDetail')),
   'business/k8s/workload/WorkloadList': defineRegistryEntry(() => import('../../modules/business/k8s/workload/WorkloadList')),

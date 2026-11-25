@@ -4,7 +4,7 @@
   "title": "部署凭据资源授权与管理页面",
   "goal": "实现 T01/T04 冻结的租户/部门/业务域归属授权并覆盖列表、详情、更新、删除、预览、启动、重试",
   "primaryLayer": "business/*",
-  "status": "planned",
+  "status": "in-progress",
   "priority": "P1",
   "deliveryTier": "L2",
   "parentTask": "2026-11-20-ops-review-remediation",
@@ -35,7 +35,10 @@
       "资产关系/Pod→Node→VM、真实 Helm Chart、Nacos/RocketMQ、完整 Agent 协议作为独立后续范围"
     ]
   },
-  "dependencyLayers": ["business/*", "inheritance-sync"],
+  "dependencyLayers": [
+    "business/*",
+    "inheritance-sync"
+  ],
   "baseline": {
     "reportCommit": "444ce8e",
     "planningCommit": "a2d69d4a759b5df2b26aaa9d26bdc5175babe9dc",
@@ -45,7 +48,10 @@
   },
   "sourceReview": "docs/reviews/pantheon-ops独立评审与外部报告核实-2026-11-20.md",
   "sourceChecklist": "docs/reviews/pantheon-ops真实环境验证清单-2026-11-20.md",
-  "findingRefs": ["SEC-004", "DEP-003"],
+  "findingRefs": [
+    "SEC-004",
+    "DEP-003"
+  ],
   "sourceRefs": [
     {
       "path": "docs/reviews/pantheon-ops独立评审与外部报告核实-2026-11-20.md",
@@ -74,7 +80,22 @@
       "backend/modules/business/deploy/deploy_credential.go",
       "backend/modules/business/deploy/deploy_model.go",
       "frontend/src/modules/business/deploy/**",
-      "docs/designs/BUSINESS_DEPLOY_MODULE_DESIGN.md"
+      "docs/designs/BUSINESS_DEPLOY_MODULE_DESIGN.md",
+      "backend/modules/business/deploy/migrations/**",
+      "backend/modules/business/deploy/deploy_handler.go",
+      "backend/modules/business/deploy/deploy_dto.go",
+      "backend/modules/business/deploy/deploy_service.go",
+      "backend/modules/business/deploy/task_preview.go",
+      "backend/modules/business/deploy/deploy_seed.go",
+      "backend/modules/business/deploy/deploy_credential_scope_test.go",
+      "backend/modules/business/deploy/deploy_service_test.go",
+      "backend/modules/business/deploy/deploy_ssh_transport_test.go",
+      "backend/modules/business/deploy/deploy_live_acceptance_test.go",
+      "frontend/src/modules/business/deploy/api.ts",
+      "frontend/src/modules/business/deploy/index.ts",
+      "frontend/src/modules/business/deploy/locales/**",
+      "frontend/src/core/router/businessOverlayComponentRegistry.ts",
+      "frontend/src/modules/business/deploy/credential/**"
     ],
     "doNotTouch": [
       "backend/modules/system/**",
@@ -109,13 +130,21 @@
     ]
   },
   "structuralScope": {
-    "affectedSubgraph": ["凭据页面/ID -> 资源授权 -> 加密持久化/SSH"],
+    "affectedSubgraph": [
+      "凭据页面/ID -> 资源授权 -> 加密持久化/SSH"
+    ],
     "boundaryCrossings": [
       "business/* -> pkg公共契约",
       "共享缺口 -> Base正式release -> Ops重建"
     ],
-    "riskNodes": ["SEC-004", "DEP-003"],
-    "graphFocus": ["sensitive-input-flow", "call-depth"]
+    "riskNodes": [
+      "SEC-004",
+      "DEP-003"
+    ],
+    "graphFocus": [
+      "sensitive-input-flow",
+      "call-depth"
+    ]
   },
   "implementationNotes": [
     "Minimal Complexity Rung: reuse",
@@ -142,7 +171,9 @@
       "npm run build",
       "npm run test:smoke:business:deploy"
     ],
-    "runtimeEvidence": ["V5、真实 SSH 凭据使用/轮换及管理页面渲染"],
+    "runtimeEvidence": [
+      "V5、真实 SSH 凭据使用/轮换及管理页面渲染"
+    ],
     "commandWorkingDirectories": {
       "go test -count=1 ./modules/business/deploy/...": "backend",
       "npm run lint": "frontend",
@@ -167,10 +198,12 @@
     "taskManifest": ".harness/tasks/2026-11-20-ops-deploy-credential-ownership-and-ui/manifest.json",
     "taskDoc": "docs/harness/tasks/2026-11-20-ops-deploy-credential-ownership-and-ui.task.md",
     "evidenceDir": ".harness/evidence/2026-11-20-ops-deploy-credential-ownership-and-ui/",
-    "reviewFile": "none",
+    "reviewFile": ".harness/evidence/2026-11-20-ops-deploy-credential-ownership-and-ui/review.md",
     "summaryFile": ".harness/evidence/2026-11-20-ops-deploy-credential-ownership-and-ui/summary.md",
-    "changeRef": "none",
-    "planRefs": [".harness/tasks/2026-11-20-ops-review-remediation/plan.md"]
+    "changeRef": "none (uncommitted worktree)",
+    "planRefs": [
+      ".harness/tasks/2026-11-20-ops-review-remediation/plan.md"
+    ]
   },
   "plannedReviewFile": ".harness/evidence/2026-11-20-ops-deploy-credential-ownership-and-ui/review.md",
   "evidenceRequired": [

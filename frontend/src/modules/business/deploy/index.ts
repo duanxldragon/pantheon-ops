@@ -28,6 +28,13 @@ export const DeployModule = defineModule({
       pagePermission: 'business:deploy:task:view',
     },
     {
+      path: 'business/deploy/credential',
+      routeName: 'deploy-credential-list',
+      titleKey: 'operations.deploy.credential.menu',
+      componentKey: 'business/deploy/credential/DeployCredentialList',
+      pagePermission: 'business:deploy:credential:list',
+    },
+    {
       path: 'business/deploy/task/:id',
       routeName: 'deploy-task-detail',
       titleKey: 'operations.deploy.task.detail',
@@ -55,6 +62,13 @@ export const DeployModule = defineModule({
       titleKey: 'operations.deploy.task.menu',
       icon: 'tool',
       routeName: 'deploy-task-list',
+      module: 'business.deploy',
+    },
+    {
+      path: '/business/deploy/credential',
+      titleKey: 'operations.deploy.credential.menu',
+      icon: 'lock',
+      routeName: 'deploy-credential-list',
       module: 'business.deploy',
     },
   ],

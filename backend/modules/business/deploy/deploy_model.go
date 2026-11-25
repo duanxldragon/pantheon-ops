@@ -268,6 +268,7 @@ func (DeployTaskAttempt) TableName() string { return "biz_deploy_task_attempt" }
 type DeployCredentialRef struct {
 	ID              uint64         `gorm:"primaryKey;autoIncrement" json:"id"`
 	TenantID        uint64         `gorm:"column:tenant_id;not null;default:0;uniqueIndex:uk_deploy_credential_name_deleted,priority:1" json:"-"`
+	BusinessScopeID uint64         `gorm:"column:business_scope_id;index" json:"businessScopeId"`
 	Name            string         `gorm:"size:128;not null;uniqueIndex:uk_deploy_credential_name_deleted,priority:2" json:"name"`
 	Username        string         `gorm:"size:128;not null" json:"username"`
 	AuthMode        string         `gorm:"size:32;not null" json:"authMode"`

@@ -1,0 +1,80 @@
+{
+  "schemaVersion": 1,
+  "taskId": "2026-11-20-ops-deploy-credential-ownership-and-ui",
+  "repo": "pantheon-ops",
+  "evidenceState": "outcome-supported",
+  "agent": {
+    "tool": "other",
+    "adapter": "windows"
+  },
+  "candidate": {
+    "baselineReportCommit": "444ce8e",
+    "planningCommit": "a2d69d4a759b5df2b26aaa9d26bdc5175babe9dc",
+    "worktree": "test/ops-t05-credential-scope-20261125 (based on main cb880eea)",
+    "foundation": "pantheon-base-v0.18.9"
+  },
+  "commands": [
+    {
+      "command": "node node_modules/typescript/bin/tsc -b",
+      "cwd": "frontend",
+      "status": "passed",
+      "notes": "Type-check after adding the credential page, API client, route/menu registration and component-registry entry."
+    },
+    {
+      "command": "node node_modules/eslint/bin/eslint.js src/modules/business/deploy/credential/DeployCredentialList.tsx src/modules/business/deploy/api.ts src/modules/business/deploy/index.ts src/core/router/businessOverlayComponentRegistry.ts",
+      "cwd": "frontend",
+      "status": "passed",
+      "notes": "React hooks rule required queueMicrotask around the initial load, matching DeployPackageList."
+    },
+    {
+      "command": "node node_modules/vite/bin/vite.js build",
+      "cwd": "frontend",
+      "status": "passed",
+      "durationMs": 2320,
+      "notes": "Production build succeeds with the new lazily registered credential page chunk."
+    },
+    {
+      "command": "go test -race -count=1 -run 'TestDeployCredential' ./modules/business/deploy/",
+      "cwd": "backend",
+      "status": "passed",
+      "durationMs": 6576,
+      "notes": "Real MySQL via testmysql (PANTHEON_TEST_DSN redacted). Covers scoped list/update/delete denial, start scope mismatch, delete-in-use refusal, admin-only global credentials and idempotent migration 000042."
+    },
+    {
+      "command": "go test -race -count=1 -run 'TestDeployCredential|TestDeployTaskSSHExecutorRunsInstallAndWritesBackHostState|TestDeployTaskVisibilityRespectsHostDataScope|TestDeploySSHTransportBusinessExecution|TestPreview' ./modules/business/deploy/",
+      "cwd": "backend",
+      "status": "passed",
+      "durationMs": 48676,
+      "notes": "Neighbouring start/preview/SSH paths still pass after the credential-scope signature changes."
+    },
+    {
+      "command": "gofmt -l modules/business/deploy/ && go vet ./modules/business/deploy/",
+      "cwd": "backend",
+      "status": "passed",
+      "notes": "No unformatted files; vet clean."
+    },
+    {
+      "command": "node ../pantheon-harness/scripts/harness/render-task-index.mjs --root . --check",
+      "cwd": ".",
+      "status": "passed",
+      "notes": "Task index regenerated after the status change."
+    }
+  ],
+  "knownGaps": [
+    "V5 real SSH credential use/rotation against a live host was not executed: no authorized deployment target is available in this environment.",
+    "The credential page has no rendered screenshot evidence at 1440px/390px and no browser smoke run; only type-check, lint and production build prove it compiles and bundles.",
+    "TenantID stays 0 for credentials: business routes do not yet receive a tenant claim (ARC-001 / T14, T19), so tenant-level separation is recorded as a gap instead of being guessed.",
+    "The component-registry file lives under frontend/src/core and is the documented business overlay extension point; it was edited only to register the new page, not to change shared core behavior."
+  ],
+  "linkage": {
+    "taskPacket": "docs/harness/tasks/2026-11-20-ops-deploy-credential-ownership-and-ui.task.md",
+    "taskManifest": ".harness/tasks/2026-11-20-ops-deploy-credential-ownership-and-ui/manifest.json",
+    "evidenceDir": ".harness/evidence/2026-11-20-ops-deploy-credential-ownership-and-ui/",
+    "reviewFile": ".harness/evidence/2026-11-20-ops-deploy-credential-ownership-and-ui/review.md",
+    "summaryFile": ".harness/evidence/2026-11-20-ops-deploy-credential-ownership-and-ui/summary.md",
+    "changeRef": "none",
+    "planRefs": [
+      ".harness/tasks/2026-11-20-ops-review-remediation/plan.md"
+    ]
+  }
+}

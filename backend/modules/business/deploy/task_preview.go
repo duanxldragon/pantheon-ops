@@ -174,7 +174,7 @@ func (s *DeployService) previewTask(id uint64, req StartTaskRequest, actor strin
 	}
 	credentialVersion := uint64(0)
 	if task.ExecutorType == ExecutorTypeSSH {
-		resolved, version, err := s.prepareStartCredential(req)
+		resolved, version, err := s.prepareStartCredential(req, *task, scope == nil || scope.IsAdmin)
 		if err != nil {
 			return nil, err
 		}
