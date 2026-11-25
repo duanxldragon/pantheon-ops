@@ -3,16 +3,79 @@
   "taskId": "2026-11-20-ops-extension-and-async-tenant-isolation",
   "repo": "pantheon-ops",
   "evidenceState": "exercised",
-  "agent": { "tool": "other", "adapter": "windows" },
-  "candidate": { "head": "1d3444b4", "worktree": "uncommitted", "foundation": "pantheon-base-v0.19.0", "foundationCommit": "cc2fe7370a98c2862e2610d79880012971cf57f5" },
+  "agent": {
+    "tool": "other",
+    "adapter": "windows"
+  },
+  "candidate": {
+    "head": "1d3444b4",
+    "worktree": "uncommitted",
+    "foundation": "pantheon-base-v0.19.0",
+    "foundationCommit": "cc2fe7370a98c2862e2610d79880012971cf57f5"
+  },
   "commands": [
-    { "command": "node (table inventory): every TableName() under backend/modules/business vs migrations 000037/000041", "cwd": "backend/modules/business", "status": "passed", "exitCode": 0, "notes": "18 tables not covered by any tenant migration: biz_argocd_{server,repository,application,sync_history}, biz_cicd_webhook_event, biz_k8s_{helm_release,install,release}, biz_observability_target, obs_alert_{rule,event}, obs_notification_{channel,log}, filedist_{storage,file,target,task}, biz_application. The T01 list named biz_preflight_control (test-only synthetic table) and missed five real ones." },
-    { "command": "go build ./... && go vet ./modules/business/...", "cwd": "backend", "status": "passed", "exitCode": 0, "notes": "Clean." },
-    { "command": "go test -run 'TestTenantOwnership$' ./modules/business/{cicd/argocd,filedist,observability,k8s/release,k8s/helm,k8s/install,service}", "cwd": "backend", "status": "passed", "exitCode": 0, "notes": "7 packages pass. Database-free: gorm schema parsed from the model tags, asserting tenant_id NOT NULL DEFAULT 0 on all 18 models and UNIQUE tenant-first keys uk_argocd_server_name, uk_filedist_storage_name, uk_obs_alert_rule_name, uk_obs_notification_channel_name, uk_k8s_release_idempotency. Negative control run: a struct without tenant_id and a reversed key order both failed with clear messages; the throwaway test was removed." },
-    { "command": "go test -run 'TestExtensionTenantMigration' ./modules/business/deploy/", "cwd": "backend", "status": "skipped", "exitCode": 0, "notes": "NOT PROVEN LOCALLY. testmysql skips without PANTHEON_TEST_DSN and no DSN was available (the local root credential was not used, by decision). These tests compile and vet; the hosted Backend Tests job has a real MySQL and is the proof." },
-    { "command": "go test ./modules/business/...", "cwd": "backend", "status": "failed", "exitCode": 1, "notes": "Only business/observability TestQueryPermitActualRedisActorAndTenantCaps fails: it needs Redis at 127.0.0.1:26316. Unrelated; it passed against a dedicated instance during the v0.19.0 consumption." },
-    { "command": "npm run rebuild:from-base && check:business-overlay && check:shared-drift", "cwd": ".", "status": "passed", "exitCode": 0, "notes": "Overlay OK; drift OK with 20 derived migrations verified (was 16). 000042 was missing from businessMigrations, so the T05 migration had never been assembled into the product tree; now registered and byte-identical to its copy." },
-    { "command": "node --test tests/scripts/*.test.mjs", "cwd": ".", "status": "passed", "exitCode": 0, "notes": "253/253 after installing root dependencies in the worktree." },
-    { "command": "npm run check:business-boundaries", "cwd": ".", "status": "failed", "exitCode": 1, "notes": "backend/modules/business/deploy/deploy_credential.go:59 uses bizscope.BizScope directly. Not touched by this branch; introduced by T05 (#222). The check is manual-only in CI, so required checks did not catch it. Reported, not fixed here." }
+    {
+      "command": "node (table inventory): every TableName() under backend/modules/business vs migrations 000037/000041",
+      "cwd": "backend/modules/business",
+      "status": "passed",
+      "exitCode": 0,
+      "notes": "18 tables not covered by any tenant migration: biz_argocd_{server,repository,application,sync_history}, biz_cicd_webhook_event, biz_k8s_{helm_release,install,release}, biz_observability_target, obs_alert_{rule,event}, obs_notification_{channel,log}, filedist_{storage,file,target,task}, biz_application. The T01 list named biz_preflight_control (test-only synthetic table) and missed five real ones."
+    },
+    {
+      "command": "go build ./... && go vet ./modules/business/...",
+      "cwd": "backend",
+      "status": "passed",
+      "exitCode": 0,
+      "notes": "Clean."
+    },
+    {
+      "command": "go test -run 'TestTenantOwnership$' ./modules/business/{cicd/argocd,filedist,observability,k8s/release,k8s/helm,k8s/install,service}",
+      "cwd": "backend",
+      "status": "passed",
+      "exitCode": 0,
+      "notes": "7 packages pass. Database-free: gorm schema parsed from the model tags, asserting tenant_id NOT NULL DEFAULT 0 on all 18 models and UNIQUE tenant-first keys uk_argocd_server_name, uk_filedist_storage_name, uk_obs_alert_rule_name, uk_obs_notification_channel_name, uk_k8s_release_idempotency. Negative control run: a struct without tenant_id and a reversed key order both failed with clear messages; the throwaway test was removed."
+    },
+    {
+      "command": "go test -run 'TestExtensionTenantMigration' ./modules/business/deploy/",
+      "cwd": "backend",
+      "status": "skipped",
+      "exitCode": 0,
+      "notes": "NOT PROVEN ANYWHERE. testmysql skips without PANTHEON_TEST_DSN. No DSN was available locally (the local root credential was deliberately not used). CI does not run it either: the Backend Tests job runs 'go test -race ./...' with only a Redis service and no PANTHEON_TEST_DSN, so every testmysql test skips there, including T04's tenant-ownership migration tests. Smoke Sanity has a MySQL service but runs Playwright smoke, which applies 000043 to a fresh database where the tables do not exist yet: that exercises statement syntax and the missing-table branch only, not the ALTER / DROP INDEX branches. These tests compile and vet."
+    },
+    {
+      "command": "go test ./modules/business/...",
+      "cwd": "backend",
+      "status": "failed",
+      "exitCode": 1,
+      "notes": "Only business/observability TestQueryPermitActualRedisActorAndTenantCaps fails: it needs Redis at 127.0.0.1:26316. Unrelated; it passed against a dedicated instance during the v0.19.0 consumption."
+    },
+    {
+      "command": "npm run rebuild:from-base && check:business-overlay && check:shared-drift",
+      "cwd": ".",
+      "status": "passed",
+      "exitCode": 0,
+      "notes": "Overlay OK; drift OK with 20 derived migrations verified (was 16). 000042 was missing from businessMigrations, so the T05 migration had never been assembled into the product tree; now registered and byte-identical to its copy."
+    },
+    {
+      "command": "node --test tests/scripts/*.test.mjs",
+      "cwd": ".",
+      "status": "passed",
+      "exitCode": 0,
+      "notes": "253/253 after installing root dependencies in the worktree."
+    },
+    {
+      "command": "npm run check:business-boundaries",
+      "cwd": ".",
+      "status": "failed",
+      "exitCode": 1,
+      "notes": "backend/modules/business/deploy/deploy_credential.go:59 uses bizscope.BizScope directly. Not touched by this branch; introduced by T05 (#222). The check is manual-only in CI, so required checks did not catch it. Reported, not fixed here."
+    },
+    {
+      "command": "golangci-lint run ./modules/business/... (local, Go on PATH)",
+      "cwd": "backend",
+      "status": "passed",
+      "exitCode": 0,
+      "notes": "No findings in any file this branch touched. The CI Go Lint job found one (prealloc in tenantschematest.go), fixed. The local run also reports 86 pre-existing findings elsewhere under a different scope than CI; not attributable to this branch."
+    }
   ]
 }

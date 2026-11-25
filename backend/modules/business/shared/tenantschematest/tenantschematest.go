@@ -49,7 +49,7 @@ func RequireTenantFirstUnique(t *testing.T, model any, name string, columns ...s
 	if index == nil {
 		t.Fatalf("%T has no index %s", model, name)
 	}
-	var got []string
+	got := make([]string, 0, len(index.Fields))
 	for _, option := range index.Fields {
 		got = append(got, option.DBName)
 	}
