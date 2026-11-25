@@ -12,9 +12,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/duanxldragon/pantheon-base/backend/modules/business/bizscope"
 	"github.com/duanxldragon/pantheon-base/backend/pkg/common"
-	"github.com/duanxldragon/pantheon-base/backend/pkg/database"
 
 	"gorm.io/gorm"
 )
@@ -51,18 +49,31 @@ func credentialResponse(item *DeployCredentialRef) DeployCredentialResponse {
 // read. SEC-004: a scoped actor never sees another department/business scope's
 // credential, and legacy rows without an owner (business_scope_id = 0) stay
 // admin-only instead of silently becoming a global secret pool.
-func (s *DeployService) credentialVisibleQuery(dataScope *common.DataScopeReq) *gorm.DB {
+func (s *DeployService) credentialVisibleQuery(dataScope *common.DataScopeReq) (*gorm.DB, error) {
 	db := s.db.Model(&DeployCredentialRef{})
 	if dataScope == nil || dataScope.IsAdmin {
-		return db
+		return db, nil
 	}
-	visible := s.db.Model(&bizscope.BizScope{}).Select("id").Scopes(database.WithDataScope(dataScope))
-	return db.Where("business_scope_id IN (?)", visible)
+	if s.bizScopeReader == nil {
+		return nil, errors.New("business.deploy.credential.business_scope_required")
+	}
+	ids, err := s.bizScopeReader.VisibleIDs(s.requestContext(), dataScope)
+	if err != nil {
+		return nil, err
+	}
+	if len(ids) == 0 {
+		return db.Where("1 = 0"), nil
+	}
+	return db.Where("business_scope_id IN ?", ids), nil
 }
 
 func (s *DeployService) loadVisibleCredential(id uint64, dataScope *common.DataScopeReq) (*DeployCredentialRef, error) {
 	var item DeployCredentialRef
-	if err := s.credentialVisibleQuery(dataScope).First(&item, id).Error; err != nil {
+	query, err := s.credentialVisibleQuery(dataScope)
+	if err != nil {
+		return nil, err
+	}
+	if err := query.First(&item, id).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, errors.New("business.deploy.credential.not_found")
 		}
@@ -94,7 +105,11 @@ func (s *DeployService) validateCredentialBusinessScope(id uint64, dataScope *co
 // ListCredentials returns redacted credential metadata without secret material.
 func (s *DeployService) ListCredentials(dataScope *common.DataScopeReq) ([]DeployCredentialResponse, error) {
 	var items []DeployCredentialRef
-	if err := s.credentialVisibleQuery(dataScope).Order("id DESC").Find(&items).Error; err != nil {
+	query, err := s.credentialVisibleQuery(dataScope)
+	if err != nil {
+		return nil, err
+	}
+	if err := query.Order("id DESC").Find(&items).Error; err != nil {
 		return nil, err
 	}
 	result := make([]DeployCredentialResponse, 0, len(items))
