@@ -128,7 +128,7 @@
     },
     {
       "path": ".github/workflows/quality.yml",
-      "sha256": "2af35f57d4245b96f41af3002e1e9efe915e3f91787daa08959f19c74a09c5e2"
+      "sha256": "0809c9f64f341b4690f60bf34e813125a60532dc3669eb6573fed818b81e61e5"
     },
     {
       "path": ".github/workflows/security.yml",
@@ -8772,7 +8772,7 @@
     },
     {
       "path": ".harness/evidence/2026-11-20-ops-extension-and-async-tenant-isolation/commands.json",
-      "sha256": "c1cb79c6e961e94b36b712456668068cf09523ef0284849be40d06dee5c81ea8"
+      "sha256": "29199595b1317613fa5b5ac8ea5da33063e600f531e7d67337fdc4459ea8d24a"
     },
     {
       "path": ".harness/evidence/2026-11-20-ops-extension-and-async-tenant-isolation/review.md",
@@ -8780,7 +8780,7 @@
     },
     {
       "path": ".harness/evidence/2026-11-20-ops-extension-and-async-tenant-isolation/summary.md",
-      "sha256": "a5068e607790369abcb00d85c077f4408046ba133adeb6791a75331d561d7f2b"
+      "sha256": "dbfdc17e9b68e791d4812956505a8906565a35a0234ada05642b2599d7e52761"
     },
     {
       "path": ".harness/evidence/2026-11-20-ops-k8s-client-lifecycle-and-config-safety/cmdb-host-ssh-key-masked.png",
@@ -11399,6 +11399,18 @@
       "sha256": "2bbdcbf260377523125fcbe3d40a3bf4fdf5e8ffeba9e5027815f782d24f7d47"
     },
     {
+      "path": ".harness/evidence/2026-11-25-ops-credential-visibility-capability/commands.json",
+      "sha256": "543db73d4241dd354e86e5cc910c234f97274c89463f01e5a2d772d1158fe7fe"
+    },
+    {
+      "path": ".harness/evidence/2026-11-25-ops-credential-visibility-capability/review.md",
+      "sha256": "771e479cde0b3ff9844c514758167408661db2e9cc7411de9b1600c0df78059f"
+    },
+    {
+      "path": ".harness/evidence/2026-11-25-ops-credential-visibility-capability/summary.md",
+      "sha256": "0a8c43db9bea2522554ebbd1a9c26d631e287e55ea6ca3c6deceaf6b32facc7d"
+    },
+    {
       "path": ".harness/evidence/2026-11-25-ops-tenant-detail-route-binding/commands.json",
       "sha256": "af460edec8036a7042ef458ccde03517512eaaa38c7fc212c9d2d82d3995a8f7"
     },
@@ -11409,6 +11421,18 @@
     {
       "path": ".harness/evidence/2026-11-25-ops-tenant-detail-route-binding/summary.md",
       "sha256": "4a385995cb682833e85178816caf585aa18a3476c3a823e36b5172326ddbfba1"
+    },
+    {
+      "path": ".harness/evidence/2026-11-26-ops-backend-tests-database-services/commands.json",
+      "sha256": "43f42ca60a84c59a3fd8ab0aa7d3b49d53db74242250d09a2294f2c000cddea8"
+    },
+    {
+      "path": ".harness/evidence/2026-11-26-ops-backend-tests-database-services/review.md",
+      "sha256": "c5a3b3de350489f4fb28857a8208a895de1800026331f37ecc238f7cb2053681"
+    },
+    {
+      "path": ".harness/evidence/2026-11-26-ops-backend-tests-database-services/summary.md",
+      "sha256": "4c0598511173d080af357915fc7e67f9fa3bd245f6e9e0c75e0de98953400fe4"
     },
     {
       "path": ".harness/evidence/foundation-upgrade-base-v0.9.0/runbook.md",
@@ -11760,7 +11784,7 @@
     },
     {
       "path": ".harness/tasks/2026-11-20-ops-extension-and-async-tenant-isolation/STATUS.md",
-      "sha256": "834f650991dcdeda3d6a37855f4fc277a7e35639e2b4417f1790e498daf9b4cc"
+      "sha256": "432a0f69dc3c829b288a317bbaafaa9a0116e1e0c58cc08f965de8138cb2acde"
     },
     {
       "path": ".harness/tasks/2026-11-20-ops-extension-and-async-tenant-isolation/manifest.json",
@@ -12039,6 +12063,10 @@
       "sha256": "4b96dc06ac32944040976c27cf9390dc06f297bdb594431e0c20e2cdabfc6441"
     },
     {
+      "path": ".harness/tasks/2026-11-25-ops-credential-visibility-capability/manifest.json",
+      "sha256": "4b49759802e1426a60b8c90ef0749e5d2f015840aa32df829a14a77cfe984e9b"
+    },
+    {
       "path": ".harness/tasks/2026-11-25-ops-residual-live-acceptance/HANDOFF.md",
       "sha256": "a7f4198cc0115709eba3476f1fdf8d30fa2703d614ae1d82c6337e1d95c75318"
     },
@@ -12061,6 +12089,18 @@
     {
       "path": ".harness/tasks/2026-11-25-ops-tenant-detail-route-binding/manifest.json",
       "sha256": "7789d90ad2998eb6810379de08a70c92c091890c29fddc5f7bcb738bea427520"
+    },
+    {
+      "path": ".harness/tasks/2026-11-25-ops-tenant-runtime-enforcement/PLAN.md",
+      "sha256": "fd7200e2cd8a3b3fc2f32fbbf8d77895bdbcc4a0111ef755ca16d8665f3b3257"
+    },
+    {
+      "path": ".harness/tasks/2026-11-25-ops-tenant-runtime-enforcement/manifest.json",
+      "sha256": "ea150adb240833a356d4cfb2cab31f9193a81155739ce3d43e43b3ab439f491c"
+    },
+    {
+      "path": ".harness/tasks/2026-11-26-ops-backend-tests-database-services/manifest.json",
+      "sha256": "819f7e454379e34bd91bb6508ff836a89005fe2db8f58a4e8b507314736ff3d1"
     },
     {
       "path": ".harness/tasks/ops-architecture-quality-gates/HANDOFF.md",
@@ -12460,7 +12500,7 @@
     },
     {
       "path": "backend/modules/business/bizscope/bizscope_service.go",
-      "sha256": "bcad89797528e5154ead60667953c5e640092bb99f01dde8e674bc06fad79765"
+      "sha256": "0305680488d295c4c0a89ecb1fb65afb52a7f2aed0ec6558d4b9dc6c101acfe4"
     },
     {
       "path": "backend/modules/business/bizscope/bizscope_service_test.go",
@@ -12504,7 +12544,7 @@
     },
     {
       "path": "backend/modules/business/capability/capability.go",
-      "sha256": "68976f602e153ce71873d21985e4b1adab22c4d6404405e92098a461a802f74f"
+      "sha256": "a9401b0c28d5cd5076b056dc11e2f61bef62c741b0428be1f66fc0e554070689"
     },
     {
       "path": "backend/modules/business/cicd/argocd/argocd_client.go",
@@ -12588,7 +12628,7 @@
     },
     {
       "path": "backend/modules/business/cmdb/capability_test.go",
-      "sha256": "76f996c2784276c314484b801370c3ed871c70626af0377fd337ba9a9fb932a8"
+      "sha256": "f438b182f77c519c874c1daf83374eedb19b90b610723ce459de47c06318604c"
     },
     {
       "path": "backend/modules/business/cmdb/cmdb.go",
@@ -12644,7 +12684,7 @@
     },
     {
       "path": "backend/modules/business/cmdb/host/host_import_export_test.go",
-      "sha256": "2cc097a4cddf6daf0078ebe6151fdee8aad7f11336a6183959a2f8ec92a90527"
+      "sha256": "92e4aede5e948c8de5dfc857674fa217967136b07700d92d1ad48bfe32a0d3dc"
     },
     {
       "path": "backend/modules/business/cmdb/host/host_metrics.go",
@@ -12764,7 +12804,7 @@
     },
     {
       "path": "backend/modules/business/deploy/deploy_credential.go",
-      "sha256": "4c6fb87cfd2614db1c4638037cd0b0c1ae61bff644e8e167c93021799cb8d4af"
+      "sha256": "7d730cf04442074c88517b1db8be7914329566c35584db1f4dbae208721855e8"
     },
     {
       "path": "backend/modules/business/deploy/deploy_credential_scope_test.go",
@@ -13212,7 +13252,7 @@
     },
     {
       "path": "backend/modules/business/k8s/cluster/cluster_service_test.go",
-      "sha256": "393c75c5bc28558af194becfdc5b649c93703391c7ec39e9d220ff44900eca64"
+      "sha256": "91cfb39570b900c30074928a26533ee3aa0990601ad15201914222ddf0ecc59f"
     },
     {
       "path": "backend/modules/business/k8s/configmap/configmap.go",
@@ -13680,7 +13720,7 @@
     },
     {
       "path": "backend/modules/business/service/service_test.go",
-      "sha256": "9462f642fd40ac2bf0d3ee0f6689c7861e5eedd41993eef191e237f72205ac2f"
+      "sha256": "8b96e79424eab4873d9a4c0fc20fa2290972a2d4a85bde665114b3e15c710d59"
     },
     {
       "path": "backend/modules/business/service/state.go",
@@ -14475,12 +14515,24 @@
       "sha256": "fe44e76b8ec2025bc60aed65d405d99c7e0007eeebc4606959c6a81e345ff02d"
     },
     {
+      "path": "docs/harness/tasks/2026-11-25-ops-credential-visibility-capability.task.md",
+      "sha256": "9a88aa6f45907a55584eb95d8af14a09f0cbc9e86aeb7026a9406b9513fa4a37"
+    },
+    {
       "path": "docs/harness/tasks/2026-11-25-ops-residual-live-acceptance.task.md",
       "sha256": "5b00a59871bef90c54390982460279d3993b7c9b1a54bcbf4b1c8589e2fff607"
     },
     {
       "path": "docs/harness/tasks/2026-11-25-ops-tenant-detail-route-binding.task.md",
       "sha256": "5445c061d4ddd6e1babf45ed6e1f1262357bcbd193fcb0bbb9d2f1977f1ef97a"
+    },
+    {
+      "path": "docs/harness/tasks/2026-11-25-ops-tenant-runtime-enforcement.task.md",
+      "sha256": "84a767d2bdf8b31a5497bb1fceefab676831c00b9db0bec86faafdb7bdfa12ec"
+    },
+    {
+      "path": "docs/harness/tasks/2026-11-26-ops-backend-tests-database-services.task.md",
+      "sha256": "ac0b45789e4ac4ebcb960b6724989f1a77a99b0b2600698800e75c45967db4d0"
     },
     {
       "path": "docs/harness/tasks/README.md",
@@ -15576,7 +15628,7 @@
     },
     {
       "path": "tests/scripts/quality-workflow.test.mjs",
-      "sha256": "b507be99c12352b7695aacdc839a879d8a5395250865938c4e018b12d0dccc34"
+      "sha256": "cc2a19fa892b94cde790d8777260b3c483aa13ea74145aac479fb12ebcbb0690"
     },
     {
       "path": "tests/scripts/security-audit-exit.test.mjs",
