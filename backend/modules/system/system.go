@@ -15,6 +15,15 @@ func InitSystemModule(r *gin.RouterGroup, db *gorm.DB) {
 	}
 
 	deps := newSystemModuleDependencies(db)
+	// Compiled business declarations must precede this required stage. Neither
+	// startup mode may expose routes after business configuration failure.
+	definitions := contracts.SealBusinessSettingSeeds()
+	if err := prepareBusinessRuntimeSettings(r, db, deps.settingSvc, definitions); err != nil {
+		panic(err)
+	}
+	if err := contracts.RegisterBusinessRuntimeSettingsProvider(deps.settingSvc); err != nil {
+		panic(err)
+	}
 	modules := make([]contracts.BackendModule, 0, 12)
 	modules = append(modules, initRefreshSyncModules(deps)...)
 	modules = append(modules, initIAMModules(deps)...)

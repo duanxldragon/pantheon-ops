@@ -18,7 +18,7 @@ import (
 // 1. 删除菜单/权限
 // 2. 可选删除数据表
 // 3. 从注册表标记为卸载
-func (s *DynamicModuleService) UnregisterModule(moduleName string, dropTable bool, purgeSource bool) (*ModuleI18nLifecycleSummary, error) {
+func (s *DynamicModuleService) UnregisterModule(moduleName string, dropTable, purgeSource bool) (*ModuleI18nLifecycleSummary, error) {
 	if s.db == nil {
 		return buildModuleI18nLifecycleSummary(moduleName, purgeSource, nil), nil
 	}
@@ -101,7 +101,7 @@ func (s *DynamicModuleService) DeleteModuleRecord(moduleName string) error {
 	return err
 }
 
-func (s *DynamicModuleService) PurgeModule(moduleName string, dropTable bool, purgeSource bool) (*ModuleI18nLifecycleSummary, error) {
+func (s *DynamicModuleService) PurgeModule(moduleName string, dropTable, purgeSource bool) (*ModuleI18nLifecycleSummary, error) {
 	if s.db == nil {
 		return buildModuleI18nLifecycleSummary(moduleName, purgeSource, nil), nil
 	}

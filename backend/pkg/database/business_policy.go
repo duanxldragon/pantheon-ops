@@ -5,22 +5,57 @@ import (
 	"strings"
 
 	"github.com/casbin/casbin/v2"
+	"github.com/casbin/casbin/v2/model"
 	"github.com/duanxldragon/pantheon-base/backend/pkg/contracts/businessauth"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/permissionroutes"
 	"github.com/duanxldragon/pantheon-base/backend/pkg/tenant"
 	"gorm.io/gorm"
 )
 
-// ReadBusinessPolicy uses the existing Casbin model and persisted adapter without
-// consulting or modifying the process enforcer, its watcher, or its caches.
+// ReadBusinessPolicy uses a dedicated business Casbin model and persisted adapter
+// without consulting or modifying the process enforcer, its watcher, or caches.
+// The route matcher compares route templates structurally, so a detail grant
+// cannot authorise a static sibling route such as /hosts/export.
 func ReadBusinessPolicy(ctx context.Context, db *gorm.DB) (*casbin.Enforcer, error) {
 	if ctx == nil || ctx.Err() != nil || db == nil {
 		return nil, businessauth.ErrDenied
 	}
-	enforcer, err := casbin.NewEnforcer(loadCasbinModel(), &GormCasbinAdapter{db: db.WithContext(ctx)})
+	enforcer, err := casbin.NewEnforcer(loadBusinessCasbinModel(), &GormCasbinAdapter{db: db.WithContext(ctx)})
 	if err != nil || ctx.Err() != nil {
 		return nil, businessauth.ErrDenied
 	}
+	addBusinessRouteMatcher(enforcer)
 	return enforcer, nil
+}
+
+func addBusinessRouteMatcher(enforcer *casbin.Enforcer) {
+	enforcer.AddFunction("businessRouteCovers", func(args ...interface{}) (interface{}, error) {
+		if len(args) != 2 {
+			return false, nil
+		}
+		route, routeOK := args[0].(string)
+		policy, policyOK := args[1].(string)
+		return routeOK && policyOK && permissionroutes.Covers(route, policy), nil
+	})
+}
+
+func loadBusinessCasbinModel() model.Model {
+	m, err := model.NewModelFromString(`
+		[request_definition]
+		r = sub, obj, act
+		[policy_definition]
+		p = sub, obj, act
+		[role_definition]
+		g = _, _
+		[policy_effect]
+		e = some(where (p.eft == allow))
+		[matchers]
+		m = (r.sub == p.sub || g(r.sub, p.sub)) && businessRouteCovers(r.obj, p.obj) && r.act == p.act
+	`)
+	if err != nil {
+		exitCasbinInit("business casbin model error", err)
+	}
+	return m
 }
 
 // AuthorizeBusinessBindings returns only bindings which actually grant the action.
@@ -65,7 +100,7 @@ func businessBindingGrants(ctx context.Context, db *gorm.DB, enforcer *casbin.En
 	if (binding.TenantID == 0) != namespaceGlobal || strings.TrimSpace(binding.RoleKey) == "" {
 		return false, nil
 	}
-	allowed, err := enforcer.Enforce(businessBindingSubject(binding), action.Path, action.Method)
+	allowed, err := enforcer.Enforce(businessBindingSubject(binding), action.RouteTemplate, strings.ToUpper(action.Method))
 	if err != nil {
 		return false, businessauth.ErrDenied
 	}

@@ -157,7 +157,7 @@ func (s *DynamicModuleService) verifyGeneratedFilesWritten(writtenFiles []string
 	}
 }
 
-func (s *DynamicModuleService) verifyRegistryFile(code string, passStatus string, passKey string, relativePath string, fragments ...string) GeneratedModuleVerification {
+func (s *DynamicModuleService) verifyRegistryFile(code, passStatus, passKey, relativePath string, fragments ...string) GeneratedModuleVerification {
 	if generatedFileContainsAll(s.workspaceRoot, relativePath, fragments...) {
 		return GeneratedModuleVerification{
 			Code:       code,
@@ -174,7 +174,7 @@ func (s *DynamicModuleService) verifyRegistryFile(code string, passStatus string
 	}
 }
 
-func (s *DynamicModuleService) verifyParentMenu(parentMenuPath string, parentMenuSource string, parentMenuExists bool) GeneratedModuleVerification {
+func (s *DynamicModuleService) verifyParentMenu(parentMenuPath, parentMenuSource string, parentMenuExists bool) GeneratedModuleVerification {
 	if parentMenuSource == "top_level" {
 		return GeneratedModuleVerification{
 			Code:       "parent_menu",

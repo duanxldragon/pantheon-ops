@@ -3,7 +3,7 @@ title: system/auth Contract
 doc_type: Contract
 layer: system/auth
 status: Active
-updated_at: 2026-11-11
+updated_at: 2026-11-24
 ---
 
 # system/auth Contract
@@ -28,6 +28,15 @@ target-tenant membership. Positive tenants exist when present with `status != de
 archived tenants. Tenant 0 is the implicit platform owner, but the actor is always checked. Actor 0, nil/cancelled
 context, nil DB and schema/query failures return a fixed safe error and an empty projection. Only false with a
 nil error can support bounded orphan cleanup; this projection never grants request access.
+
+### Static/parameter route isolation for business authorization (2026-11-24)
+
+Business route authorization compares the registered route template with stored policy paths structurally
+instead of passing the raw request path to `keyMatch2`. A `:param` policy segment covers only a `:param` route
+segment: a detail grant for `GET /hosts/:id` never authorizes `GET /hosts/export`, and an export grant never
+authorizes the detail route. A trailing `*` policy segment keeps its explicit wildcard meaning. Permission
+workbench coverage and role API policy synchronization reuse the same predicate, so a detail grant cannot be
+reported as covering a static sibling route. Existing system-domain Casbin matching semantics are unchanged.
 
 It locks down the responsibility boundaries for authentication, sessions, security center, login logs, and authentication strategy so that `auth`, `iam`, `org`, and `config` do not collapse back into one oversized “system security misc room”.
 

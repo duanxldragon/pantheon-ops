@@ -27,7 +27,7 @@ func RequireRedis() bool {
 // InitRedis 初始化 Redis 连接。Redis 承载令牌会话存储与吊销黑名单——缺失时
 // 所有认证请求都会失败（事实上的硬依赖）。连接失败时：生产环境（或
 // PANTHEON_REDIS_REQUIRED=true）fail-fast 退出；否则保持兼容行为降级为 nil。
-func InitRedis(addr string, password string, db int) {
+func InitRedis(addr, password string, db int) {
 	RDB = redis.NewClient(&redis.Options{
 		Addr:     addr,
 		Password: password, // 如果没有密码则留空

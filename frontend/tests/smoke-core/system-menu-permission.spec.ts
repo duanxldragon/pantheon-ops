@@ -125,8 +125,9 @@ async function createMenuByApi(page: Page, login: BrowserLoginResult, parentMenu
 /** 通过搜索 + 展开折叠树定位菜单行 (新菜单可能是分组的子节点) */
 function searchMenuRow(page: Page, titleKey: string) {
   // 标题列是 Typography.Text ellipsis, DOM 文本会被截断为 "前缀...",
-  // 搜索请求本身按完整 titleKey 服务端过滤, 可见性断言用稳定前缀即可。
-  return revealTreeRow(page, titleKey, 'smoke_core');
+  // 搜索请求按完整 titleKey 服务端过滤; 根节点可能显示为
+  // "system.menu.smoke_cor...", 因此匹配标题开头, 不依赖被截断的后缀。
+  return revealTreeRow(page, titleKey, 'system.menu.smo');
 }
 
 test.describe('System Menu Permission @priority:high @smoke:core', () => {

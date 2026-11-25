@@ -434,7 +434,7 @@ func DeleteOperation(ctx context.Context, rdb *redis.Client, tok string) error {
 }
 
 // GenerateOperationTokenWithContext creates and stores a new operation token.
-func GenerateOperationTokenWithContext(ctx context.Context, userID uint64, sessionID string, operationScope string, ttl time.Duration, rdb *redis.Client) (string, error) {
+func GenerateOperationTokenWithContext(ctx context.Context, userID uint64, sessionID, operationScope string, ttl time.Duration, rdb *redis.Client) (string, error) {
 	if ctx == nil {
 		ctx = context.Background()
 	}
@@ -451,7 +451,7 @@ func GenerateOperationTokenWithContext(ctx context.Context, userID uint64, sessi
 }
 
 // GenerateOperationToken creates and stores a new operation token.
-func GenerateOperationToken(userID uint64, sessionID string, operationScope string, ttl time.Duration, rdb *redis.Client) (string, error) {
+func GenerateOperationToken(userID uint64, sessionID, operationScope string, ttl time.Duration, rdb *redis.Client) (string, error) {
 	return GenerateOperationTokenWithContext(context.Background(), userID, sessionID, operationScope, ttl, rdb)
 }
 

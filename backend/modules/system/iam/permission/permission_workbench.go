@@ -5,7 +5,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/casbin/casbin/v2/util"
 	"github.com/duanxldragon/pantheon-base/backend/pkg/common"
 	"github.com/duanxldragon/pantheon-base/backend/pkg/database"
 	"github.com/duanxldragon/pantheon-base/backend/pkg/permissionroutes"
@@ -587,7 +586,7 @@ func policyCoversRoute(policies []PermissionWorkbenchAPIPolicyResp, route permis
 		if strings.ToUpper(strings.TrimSpace(policy.Method)) != route.Method {
 			continue
 		}
-		if util.KeyMatch2(route.Path, strings.TrimSpace(policy.Path)) {
+		if permissionroutes.Covers(route.Path, strings.TrimSpace(policy.Path)) {
 			return true
 		}
 	}

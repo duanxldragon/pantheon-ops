@@ -172,7 +172,7 @@ func generatedDirExists(workspaceRoot, relativePath string) bool {
 	return err == nil && info.IsDir()
 }
 
-func generatedFileContainsAll(workspaceRoot string, relativePath string, fragments ...string) bool {
+func generatedFileContainsAll(workspaceRoot, relativePath string, fragments ...string) bool {
 	root, ok := openWorkspaceRoot(workspaceRoot)
 	if !ok {
 		return false

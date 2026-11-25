@@ -1,0 +1,110 @@
+{
+  "taskId": "2026-11-25-base-v0190-consumption",
+  "taskDoc": "docs/harness/tasks/2026-11-25-base-v0190-consumption.task.md",
+  "title": "Consume official Base v0.19.0",
+  "goal": "Consume only the official Base v0.19.0 assets through the existing assembler; validate the exact staged tree before the consumer PR.",
+  "primaryLayer": "business/*",
+  "status": "in-progress",
+  "priority": "P1",
+  "type": "inheritance-sync",
+  "dependencies": [],
+  "scope": {
+    "in": [
+      "Official four-asset verification of pantheon-base-v0.19.0, exact lock and standard clean rebuild",
+      "Keep ops-owned inputs the rebuild would otherwise lose: SecretTextArea under business/shared, k8s namespace locale source JSON, overlay manifest declarations, ops-owned test fixture",
+      "Backend build/vet/test, frontend lint/type-check/build/unit, overlay/drift and governance checks on the staged tree"
+    ],
+    "out": [
+      "Business runtime behaviour changes",
+      "New dependencies, gate weakening, assembler changes",
+      "Production operations, S3 waiver, maintenance freeze signature"
+    ]
+  },
+  "dependencyLayers": ["inheritance-sync", "business/*"],
+  "contractAnchors": [
+    "docs/PROJECT_INHERITANCE.md",
+    "docs/designs/FOUNDATION_RELEASE_MODEL.md"
+  ],
+  "expectedFiles": {
+    "create": [
+      "docs/harness/tasks/2026-11-25-base-v0190-consumption.task.md",
+      ".harness/tasks/2026-11-25-base-v0190-consumption/manifest.json",
+      ".harness/evidence/2026-11-25-base-v0190-consumption/commands.json",
+      ".harness/evidence/2026-11-25-base-v0190-consumption/summary.md",
+      ".harness/evidence/2026-11-25-base-v0190-consumption/review.md",
+      "frontend/src/modules/business/k8s/locales/en-US.json",
+      "frontend/src/modules/business/k8s/locales/zh-CN.json"
+    ],
+    "modify": [
+      "foundation-release.lock.json",
+      ".business-overlay-report.json",
+      "business-overlay.json",
+      "VERSION",
+      "SHELL_VERSION.json",
+      "docs/PROJECT_INHERITANCE.md",
+      "docs/PROJECT_INHERITANCE.en.md",
+      "tests/scripts/check-inheritance-contract.test.mjs",
+      "Base-owned shared paths updated by the v0.18.9 to v0.19.0 delta"
+    ],
+    "doNotTouch": [
+      "Assembler scripts",
+      "Business runtime source beyond the SecretTextArea import path",
+      "GitHub quality/security policies"
+    ]
+  },
+  "harnessProfile": {
+    "template": "admin-platform",
+    "overlay": "pantheon-ops",
+    "qualityProfile": "ci-workflow",
+    "portableFailureClass": "release-consumer-handoff",
+    "ownerLayer": "foundation-consumer",
+    "ratchetDecision": "registry-only",
+    "coverageDimensions": ["behaviour", "maintainability", "architecture-fitness"]
+  },
+  "executionRoles": {
+    "implementerPosture": "Operates official acquisition and assembly; adjusts only ops-owned inputs the rebuild cannot carry",
+    "reviewerPosture": ["Independent CODE reviewer", "Independent ARCH reviewer"]
+  },
+  "verificationPlan": {
+    "commands": [
+      "npm run fetch:base-release -- --release pantheon-base-v0.19.0",
+      "npm run rebuild:from-base -- --target .tmp/clean-base-overlay",
+      "npm run check:business-overlay",
+      "npm run check:shared-drift",
+      "go build / go vet / go test on the staged backend",
+      "frontend lint/type-check/build/unit on the staged tree",
+      "Required GitHub CI (Linux race, smoke)"
+    ],
+    "runtimeEvidence": ["Hosted CI Linux race and business smoke"]
+  },
+  "runtimeSensitive": true,
+  "runtimeGap": "Local Windows race is blocked by ThreadSanitizer allocation (error code 87), identical on the unmodified baseline; business smoke needs the full stack and is left to hosted CI. Independent CODE/ARCH review not performed.",
+  "acceptanceCriteria": [
+    "Four official v0.19.0 assets verified against the published digest and the consumer lock",
+    "Staged tree passes overlay/drift, backend, frontend and applicable governance checks before the PR",
+    "Hosted required checks pass before merge"
+  ],
+  "implementationNotes": [
+    "The v0.18.9 consumption was lock-only, so many shared files were stale; v0.19.0 is the first full materialization since, and it surfaced ops inputs living outside declared overlay paths.",
+    "business.k8s.namespace.* locale keys were hand-added to generated resources/business/*.ts and would be lost on regeneration; they now live in k8s/locales source JSON.",
+    "SecretTextArea sat under frontend/src/components, a generic path the overlay cannot own; it moved to modules/business/shared."
+  ],
+  "risks": [
+    "The lock must name the immutable tag commit cc2fe7370a98c2862e2610d79880012971cf57f5.",
+    "Two inherited Base docs link to Base-only artifacts; fix is Base-first."
+  ],
+  "humanGates": [
+    "Final functional acceptance and merge remain with the maintainer."
+  ],
+  "linkage": {
+    "taskManifest": ".harness/tasks/2026-11-25-base-v0190-consumption/manifest.json",
+    "taskDoc": "docs/harness/tasks/2026-11-25-base-v0190-consumption.task.md",
+    "evidenceDir": ".harness/evidence/2026-11-25-base-v0190-consumption/",
+    "reviewFile": ".harness/evidence/2026-11-25-base-v0190-consumption/review.md",
+    "summaryFile": ".harness/evidence/2026-11-25-base-v0190-consumption/summary.md",
+    "changeRef": "none",
+    "planRefs": []
+  },
+  "targetRelease": "pantheon-base-v0.19.0",
+  "baseCommit": "cc2fe7370a98c2862e2610d79880012971cf57f5"
+}

@@ -302,7 +302,7 @@ CREATE TABLE system_role_permission (
 )`).Error
 }
 
-func assertMenuParent(t *testing.T, db *gorm.DB, childPath string, parentPath string, expectedModule string) {
+func assertMenuParent(t *testing.T, db *gorm.DB, childPath, parentPath, expectedModule string) {
 	t.Helper()
 	var child struct {
 		ParentID uint64
@@ -334,7 +334,7 @@ func assertMenuParent(t *testing.T, db *gorm.DB, childPath string, parentPath st
 	}
 }
 
-func assertMenuRoot(t *testing.T, db *gorm.DB, path string, expectedModule string) {
+func assertMenuRoot(t *testing.T, db *gorm.DB, path, expectedModule string) {
 	t.Helper()
 	var row struct {
 		ID       uint64
@@ -359,7 +359,7 @@ func assertMenuRoot(t *testing.T, db *gorm.DB, path string, expectedModule strin
 	}
 }
 
-func assertPageMenuContract(t *testing.T, db *gorm.DB, path string, parentPath string, expectedModule string, expectedPagePerm string, expectedComponent string) {
+func assertPageMenuContract(t *testing.T, db *gorm.DB, path, parentPath, expectedModule, expectedPagePerm, expectedComponent string) {
 	t.Helper()
 	var row struct {
 		ParentID  uint64
@@ -404,7 +404,7 @@ func assertPageMenuContract(t *testing.T, db *gorm.DB, path string, parentPath s
 	assertAdminMenuBound(t, db, path)
 }
 
-func assertActionPermissionContract(t *testing.T, db *gorm.DB, perms string, parentPath string) {
+func assertActionPermissionContract(t *testing.T, db *gorm.DB, perms, parentPath string) {
 	t.Helper()
 	var row struct {
 		ID       uint64

@@ -1467,7 +1467,7 @@ func i18nKeyLooksLikeDomain(first, last string, segmentCount int) bool {
 // scanI18nKeyReferenceFiles finds every source file that references targetKey
 // and reports the matched lines. The previous inlined walk callback now lives in
 // scanI18nKeyReferenceInFile so this function stays flat.
-func scanI18nKeyReferenceFiles(targetKey string, newKey string, excludeCatalog bool) ([]I18nKeyReferenceFile, error) {
+func scanI18nKeyReferenceFiles(targetKey, newKey string, excludeCatalog bool) ([]I18nKeyReferenceFile, error) {
 	normalizedTarget := strings.TrimSpace(targetKey)
 	if normalizedTarget == "" {
 		return []I18nKeyReferenceFile{}, nil
@@ -1642,7 +1642,7 @@ func normalizeI18nLifecycleStatus(status string) string {
 	}
 }
 
-func (s *I18nService) resetI18nLifecycle(_ string, module, key string) error {
+func (s *I18nService) resetI18nLifecycle(_, module, key string) error {
 	return s.db.Model(&SystemI18n{}).
 		Where(condModuleKeyEquals, module, key).
 		Updates(map[string]interface{}{
@@ -1651,7 +1651,7 @@ func (s *I18nService) resetI18nLifecycle(_ string, module, key string) error {
 		}).Error
 }
 
-func (s *I18nService) transitionUnusedLifecycle(module string, fromStatus string, toStatus string, requireConfirm bool) (*I18nUnusedLifecycleResp, error) {
+func (s *I18nService) transitionUnusedLifecycle(module, fromStatus, toStatus string, requireConfirm bool) (*I18nUnusedLifecycleResp, error) {
 	if requireConfirm {
 		return nil, common.NewBadRequest("i18n.lifecycle.transition.invalid")
 	}
@@ -1666,7 +1666,7 @@ type i18nLifecycleTarget struct {
 
 // matchesLifecycleTransitionTarget reports whether an unused key qualifies for a
 // lifecycle transition from fromStatus, honoring the optional caller filter and module scope.
-func matchesLifecycleTransitionTarget(item I18nUnusedKeyItem, module string, fromStatus string, filter func(I18nUnusedKeyItem) bool) bool {
+func matchesLifecycleTransitionTarget(item I18nUnusedKeyItem, module, fromStatus string, filter func(I18nUnusedKeyItem) bool) bool {
 	if module != "" && item.Module != module {
 		return false
 	}
@@ -1678,7 +1678,7 @@ func matchesLifecycleTransitionTarget(item I18nUnusedKeyItem, module string, fro
 
 // collectUnusedLifecycleTargets walks the audit's unused keys and returns the
 // matching transition targets plus the corresponding affected key names.
-func collectUnusedLifecycleTargets(audit *I18nAuditResp, module string, fromStatus string, filter func(I18nUnusedKeyItem) bool) ([]i18nLifecycleTarget, []string) {
+func collectUnusedLifecycleTargets(audit *I18nAuditResp, module, fromStatus string, filter func(I18nUnusedKeyItem) bool) ([]i18nLifecycleTarget, []string) {
 	targets := make([]i18nLifecycleTarget, 0)
 	affectedKeys := make([]string, 0)
 	for _, item := range audit.UnusedKeys {
@@ -1713,7 +1713,7 @@ func (s *I18nService) applyUnusedLifecycleTransition(targets []i18nLifecycleTarg
 	return affected, err
 }
 
-func (s *I18nService) transitionUnusedLifecycleWithFilter(module string, fromStatus string, toStatus string, filter func(I18nUnusedKeyItem) bool) (*I18nUnusedLifecycleResp, error) {
+func (s *I18nService) transitionUnusedLifecycleWithFilter(module, fromStatus, toStatus string, filter func(I18nUnusedKeyItem) bool) (*I18nUnusedLifecycleResp, error) {
 	audit, err := s.GetAudit()
 	if err != nil {
 		return nil, err

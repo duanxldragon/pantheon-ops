@@ -265,13 +265,14 @@ var blockedPrefixes = []netip.Prefix{
 	netip.PrefixFrom(netip.AddrFrom4([4]byte{192, 168, 0, 0}), 16), // Private network (RFC 1918)
 	netip.PrefixFrom(netip.AddrFrom4([4]byte{224, 0, 0, 0}), 4),    // Multicast
 	netip.PrefixFrom(netip.AddrFrom4([4]byte{240, 0, 0, 0}), 4),    // Reserved (includes broadcast)
-	// IPv6
-	netip.MustParsePrefix("::/128"),        // Unspecified
-	netip.MustParsePrefix("::1/128"),       // Loopback
-	netip.MustParsePrefix("fc00::/7"),      // Unique local address
-	netip.MustParsePrefix("fe80::/10"),     // Link-local
-	netip.MustParsePrefix("ff00::/8"),      // Multicast
-	netip.MustParsePrefix("::ffff:0:0/96"), // IPv4-mapped IPv6
+	// IPv6 uses the same typed construction as IPv4. These are rejection
+	// ranges from RFC 4291/4193, never outbound connection destinations.
+	netip.PrefixFrom(netip.AddrFrom16([16]byte{}), 128),                  // Unspecified
+	netip.PrefixFrom(netip.AddrFrom16([16]byte{15: 1}), 128),             // Loopback
+	netip.PrefixFrom(netip.AddrFrom16([16]byte{0: 0xfc}), 7),             // Unique local address
+	netip.PrefixFrom(netip.AddrFrom16([16]byte{0: 0xfe, 1: 0x80}), 10),   // Link-local
+	netip.PrefixFrom(netip.AddrFrom16([16]byte{0: 0xff}), 8),             // Multicast
+	netip.PrefixFrom(netip.AddrFrom16([16]byte{10: 0xff, 11: 0xff}), 96), // IPv4-mapped IPv6
 }
 
 // isPrivateIP checks if an IP falls into any blocked (private/reserved) range.

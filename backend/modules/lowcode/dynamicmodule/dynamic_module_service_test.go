@@ -1386,7 +1386,7 @@ func mustInsertSystemMenuPath(t *testing.T, db *gorm.DB, path string) {
 	}
 }
 
-func mustInsertSystemMenuModule(t *testing.T, db *gorm.DB, path string, module string) {
+func mustInsertSystemMenuModule(t *testing.T, db *gorm.DB, path, module string) {
 	t.Helper()
 	if err := db.Exec(`INSERT INTO system_menu (path, type, module) VALUES (?, 'C', ?)`, path, module).Error; err != nil {
 		t.Fatalf("insert system_menu module %s: %v", module, err)
@@ -1508,7 +1508,7 @@ func mustMkdirAll(t *testing.T, dir string) {
 	}
 }
 
-func mustWriteFile(t *testing.T, target string, content string) {
+func mustWriteFile(t *testing.T, target, content string) {
 	t.Helper()
 	if err := os.MkdirAll(filepath.Dir(target), 0o755); err != nil {
 		t.Fatalf("mkdir for %s: %v", target, err)
@@ -1518,7 +1518,7 @@ func mustWriteFile(t *testing.T, target string, content string) {
 	}
 }
 
-func assertFileContains(t *testing.T, target string, fragment string) {
+func assertFileContains(t *testing.T, target, fragment string) {
 	t.Helper()
 	content, err := os.ReadFile(target)
 	if err != nil {
@@ -1529,7 +1529,7 @@ func assertFileContains(t *testing.T, target string, fragment string) {
 	}
 }
 
-func assertFileNotContains(t *testing.T, target string, fragment string) {
+func assertFileNotContains(t *testing.T, target, fragment string) {
 	t.Helper()
 	content, err := os.ReadFile(target)
 	if err != nil {
@@ -1540,7 +1540,7 @@ func assertFileNotContains(t *testing.T, target string, fragment string) {
 	}
 }
 
-func assertHasVerification(t *testing.T, items []GeneratedModuleVerification, code string, status string) {
+func assertHasVerification(t *testing.T, items []GeneratedModuleVerification, code, status string) {
 	t.Helper()
 	for _, item := range items {
 		if item.Code == code && item.Status == status {

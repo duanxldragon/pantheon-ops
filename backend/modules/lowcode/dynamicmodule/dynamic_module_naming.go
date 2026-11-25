@@ -126,7 +126,7 @@ func inferStaticModuleSource(moduleName string) string {
 	return "static"
 }
 
-func inferRegistrationSource(scope string, sourceMode string, name string, managed bool) string {
+func inferRegistrationSource(scope, sourceMode, name string, managed bool) string {
 	normalizedSourceMode := strings.TrimSpace(sourceMode)
 	if normalizedSourceMode == "database" || normalizedSourceMode == "manual" {
 		return normalizedSourceMode

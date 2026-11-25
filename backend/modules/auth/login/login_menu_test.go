@@ -157,7 +157,7 @@ CREATE TABLE system_role_permission (
 )`).Error
 }
 
-func assertAuthMenuParent(t *testing.T, db *gorm.DB, childPath string, parentPath string) {
+func assertAuthMenuParent(t *testing.T, db *gorm.DB, childPath, parentPath string) {
 	t.Helper()
 	var childParentID uint64
 	if err := db.Table("system_menu").Select("parent_id").Where("path = ?", childPath).Limit(1).Pluck("parent_id", &childParentID).Error; err != nil {

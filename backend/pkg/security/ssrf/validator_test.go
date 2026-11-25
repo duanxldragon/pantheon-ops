@@ -2,9 +2,28 @@ package ssrf
 
 import (
 	"net"
+	"net/netip"
 	"testing"
 	"time"
 )
+
+func TestBlockedIPv6Prefixes(t *testing.T) {
+	want := []string{"::/128", "::1/128", "fc00::/7", "fe80::/10", "ff00::/8", "::ffff:0:0/96"}
+	var actual []netip.Prefix
+	for _, prefix := range blockedPrefixes {
+		if prefix.Addr().Is6() {
+			actual = append(actual, prefix)
+		}
+	}
+	if len(actual) != len(want) {
+		t.Fatalf("IPv6 denylist has %d ranges; want %d", len(actual), len(want))
+	}
+	for i, value := range want {
+		if actual[i] != netip.MustParsePrefix(value) {
+			t.Errorf("IPv6 deny range %d is %s; want %s", i, actual[i], value)
+		}
+	}
+}
 
 func TestDefaultValidator(t *testing.T) {
 	v := DefaultValidator()

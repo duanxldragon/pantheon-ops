@@ -15,7 +15,7 @@ related_acceptances:
   - docs/acceptances/ACCEPTANCE_CHECKLIST.md
   - docs/acceptances/SYSTEM_CONFIG_GOVERNANCE_ACCEPTANCE.md
   - docs/acceptances/PLATFORM_ACCEPTANCE_MATRIX_20260430_UI_MIGRATION.md
-updated_at: 2026-05-12
+updated_at: 2026-11-17
 ---
 
 # system/config 合同文档
@@ -221,6 +221,16 @@ Pantheon 当前的 `system/config` 已经不再只是“字典 + 设置页”。
 
 - `system/config` 的设计、评估、整改、验收文档都必须回指本合同
 - 后续允许在本合同之下继续拆专题子合同，但不得绕过本总合同
+
+### 7.6 业务运行配置扩展（Base-first）
+
+业务默认配置通过公共 `pkg/contracts.RegisterBusinessSettings` 在系统初始化之前声明（编译期 package init 或显式 pre-system 装配阶段）。模块名为 `business.<name>`，key 必须属于 `<name>.*` 且精确登记；禁止占用系统配置命名空间。仅支持普通类型的非公开、非加密配置；敏感配置不能经该入口读取。
+
+系统初始化冻结声明，在独立 required stage 中按确定顺序事务插入缺失的 tenant0 默认值；两种迁移模式下失败均阻止启动。复用 `(tenant_id, setting_key)` 唯一键处理并发启动，重新读取校验已有行，保留维护者值，不覆盖或接管冲突。Module、ValueType、GroupKey、IsPublic=0、IsEncrypted=0 及声明类型的有效值均须匹配。事务成功后才装配唯一系统供应端，运行期间禁止追加声明或替换供应端。
+
+业务用 `RegisteredBusinessRuntimeSettingsReader(module, ginContext)` 获取单请求 reader，依赖受信任 token→tenant resolution→authorization 链；FromGin 本身不验证身份。供应端复制租户上下文，每次读取要求当前 authoritative mode 等于请求快照模式；compat 只读 tenant0，multi 缺失或非法上下文拒绝，合法请求只读 own override 和 global。全局和有效 override 元数据均重新检查，未登记、跨模块、公开、加密或存储/模式不确定返回错误，不解密、不通过 public API 暴露配置。
+
+请求 reader 不得写入共享服务的可变字段。消费方负责解析、范围和错误策略；供应端拒绝不等于消费者操作拒绝。现有 Ops CMDB Host 的缺值回退与 compat 业务语义保留，正式接线须在新的 foundation release 验证消费时单独闭环，不能用供应端隔离测试宣称 Host 多租户已完成。实际证据见 `.harness/evidence/2026-11-17-business-runtime-settings/summary.md`；发布、Ops 消费与整体门禁尚开放。
 
 ## 8. 完成定义
 

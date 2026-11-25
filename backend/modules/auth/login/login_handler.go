@@ -520,7 +520,7 @@ func buildPreferenceAuditPayload(previous, current *platformprefs.PlatformPrefer
 	})
 }
 
-func buildPreferenceAuditResult(resp *UserInfoResp, previous *platformprefs.PlatformPreference, current *platformprefs.PlatformPreference) string {
+func buildPreferenceAuditResult(resp *UserInfoResp, previous, current *platformprefs.PlatformPreference) string {
 	return marshalAuthAuditPayload(gin.H{
 		"userId":      resp.ID,
 		"username":    resp.Username,

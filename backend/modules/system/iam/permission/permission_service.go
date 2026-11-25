@@ -851,7 +851,7 @@ func boolToCSVValue(value bool) string {
 	return "false"
 }
 
-func (s *PermissionService) validatePolicyPayload(policyID uint64, operatorRoleKeys []string, roleKey string, subject string, path string, method string) (string, string, error) {
+func (s *PermissionService) validatePolicyPayload(policyID uint64, operatorRoleKeys []string, roleKey, subject, path, method string) (string, string, error) {
 	roleKey = strings.TrimSpace(roleKey)
 	path = strings.TrimSpace(path)
 	method = normalizePolicyMethod(method)
@@ -911,7 +911,7 @@ func (s *PermissionService) ensureRoleKeyExists(roleKey string) error {
 	return nil
 }
 
-func (s *PermissionService) ensurePolicyUnique(policyID uint64, subject string, path string, method string) error {
+func (s *PermissionService) ensurePolicyUnique(policyID uint64, subject, path, method string) error {
 	var count int64
 	db := s.db.Model(&database.CasbinRule{}).Where(permissionPtypeClause+" AND v0 = ? AND v1 = ? AND v2 = ?", "p", subject, path, method)
 	if policyID > 0 {

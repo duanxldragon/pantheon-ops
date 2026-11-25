@@ -3,7 +3,7 @@ title: system/config Contract
 doc_type: Contract
 layer: system/config
 status: Active
-updated_at: 2026-05-12
+updated_at: 2026-11-17
 ---
 
 # system/config Contract
@@ -189,6 +189,16 @@ This contract depends on:
 
 - all `system/config` design, assessment, remediation, and acceptance docs must link back to this contract
 - future topic-specific subcontracts may be split under this contract, but must not bypass it
+
+### 7.6 Business runtime settings extension (Base-first)
+
+Declare defaults through public `pkg/contracts.RegisterBusinessSettings` before system initialization, using compiled package init or an explicit pre-system composition phase. Module names are `business.<name>`, and only exact registered keys under `<name>.*` are readable. System configuration namespaces are reserved. This port supports ordinary value types and only nonpublic, unencrypted settings; it is not a secret reader.
+
+System initialization freezes declarations and performs a deterministic transaction in a dedicated required stage. Failures prevent startup in both migration modes. The `(tenant_id, setting_key)` unique key handles concurrent insert-if-missing initialization; existing rows are reread and validated without overwriting operator values or adopting conflicts. Module, ValueType, GroupKey, IsPublic=0, IsEncrypted=0, and validity against the declared type must match. Install the single system provider only after commit; declarations and provider replacement are forbidden at runtime.
+
+Consumers obtain a per-request reader with `RegisteredBusinessRuntimeSettingsReader(module, ginContext)`. Trust comes from token→tenant resolution→authorization middleware; FromGin itself does not authenticate. The supplier copies tenancy and checks on each read that authoritative deployment mode equals the request snapshot. Compat reads tenant0 only; multi rejects missing/invalid context and reads only own override plus global. Both global and effective override metadata are revalidated. Unregistered/foreign/public/encrypted keys and uncertain storage or mode return errors, with no decryption or public exposure.
+
+Never put a request reader into a shared mutable service field. Consumers own parsing, bounds and error policy; supplier denial does not prove that a consumer denies its operation. Existing Ops CMDB Host fallback and compat business semantics remain. Official wiring requires separately validated foundation release consumption; supplier isolation tests do not establish Host tenant isolation. See `.harness/evidence/2026-11-17-business-runtime-settings/summary.md` for actual evidence. Publication, Ops consumption and whole-product gates remain open.
 
 ## 8. Definition of Done
 

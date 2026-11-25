@@ -399,7 +399,7 @@ func atomicExpectedErr(mode string) error {
 	}
 }
 
-func assertAtomicOutcome(t *testing.T, mode string, current *SessionData, err error, replacement *SessionData, stale *SessionData) {
+func assertAtomicOutcome(t *testing.T, mode string, current *SessionData, err error, replacement, stale *SessionData) {
 	t.Helper()
 	switch mode {
 	case "deleted", "expired":
