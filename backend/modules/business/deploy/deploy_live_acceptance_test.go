@@ -50,7 +50,7 @@ func TestDeployLiveVMExecution(t *testing.T) {
 			if secret == "" {
 				secret = req.SSHPrivateKey
 			}
-			credential, err := svc.CreateCredential(CreateDeployCredentialRequest{Name: "p0-vm", Username: req.SSHUser, AuthMode: req.AuthMode, Secret: secret}, "1")
+			credential, err := svc.CreateCredential(CreateDeployCredentialRequest{Name: "p0-vm", Username: req.SSHUser, AuthMode: req.AuthMode, Secret: secret}, "1", nil)
 			if err != nil {
 				t.Fatal(err)
 			}

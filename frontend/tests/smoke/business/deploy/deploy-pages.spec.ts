@@ -813,6 +813,7 @@ test.describe('Deploy business module smoke', () => {
         headers,
         data: {
           name: `${token}-credential`,
+          businessScopeId: scope.id,
           username: 'root',
           authMode: 'password',
           secret: 'smoke-secret',

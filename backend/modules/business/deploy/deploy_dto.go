@@ -255,33 +255,36 @@ type StartTaskRequest struct {
 
 // CreateDeployCredentialRequest contains the secret material used to create a credential reference.
 type CreateDeployCredentialRequest struct {
-	Name     string `json:"name" binding:"required"`
-	Username string `json:"username" binding:"required"`
-	AuthMode string `json:"authMode" binding:"required"`
-	Secret   string `json:"secret" binding:"required"`
+	Name            string `json:"name" binding:"required"`
+	Username        string `json:"username" binding:"required"`
+	AuthMode        string `json:"authMode" binding:"required"`
+	Secret          string `json:"secret" binding:"required"`
+	BusinessScopeID uint64 `json:"businessScopeId" binding:"required"`
 }
 
 // UpdateDeployCredentialRequest contains optional credential metadata or secret rotation fields.
 type UpdateDeployCredentialRequest struct {
-	Name     *string `json:"name"`
-	Username *string `json:"username"`
-	AuthMode *string `json:"authMode"`
-	Secret   *string `json:"secret"`
-	Status   *string `json:"status"`
+	Name            *string `json:"name"`
+	Username        *string `json:"username"`
+	AuthMode        *string `json:"authMode"`
+	Secret          *string `json:"secret"`
+	Status          *string `json:"status"`
+	BusinessScopeID *uint64 `json:"businessScopeId"`
 }
 
 // DeployCredentialResponse exposes redacted credential reference metadata.
 //
 //nolint:revive // API name is retained for compatibility with the deploy module contract.
 type DeployCredentialResponse struct {
-	ID        uint64    `json:"id"`
-	Name      string    `json:"name"`
-	Username  string    `json:"username"`
-	AuthMode  string    `json:"authMode"`
-	Version   uint64    `json:"version"`
-	Status    string    `json:"status"`
-	CreatedAt time.Time `json:"createdAt"`
-	UpdatedAt time.Time `json:"updatedAt"`
+	ID              uint64    `json:"id"`
+	BusinessScopeID uint64    `json:"businessScopeId"`
+	Name            string    `json:"name"`
+	Username        string    `json:"username"`
+	AuthMode        string    `json:"authMode"`
+	Version         uint64    `json:"version"`
+	Status          string    `json:"status"`
+	CreatedAt       time.Time `json:"createdAt"`
+	UpdatedAt       time.Time `json:"updatedAt"`
 }
 
 type MarkHostResultRequest struct {

@@ -1256,7 +1256,7 @@ func (s *DeployService) StartTaskContext(ctx context.Context, id uint64, req Sta
 		return nil, err
 	}
 	if task.ExecutorType == ExecutorTypeSSH {
-		resolvedReq, version, err := reads.prepareStartCredential(req)
+		resolvedReq, version, err := reads.prepareStartCredential(req, *task, dataScope == nil || dataScope.IsAdmin)
 		if err != nil {
 			return nil, err
 		}
@@ -1310,11 +1310,11 @@ func (s *DeployService) StartTaskContext(ctx context.Context, id uint64, req Sta
 
 // prepareStartCredential resolves the SSH credential reference of a start
 // request into the values persisted on the task.
-func (s *DeployService) prepareStartCredential(req StartTaskRequest) (StartTaskRequest, uint64, error) {
+func (s *DeployService) prepareStartCredential(req StartTaskRequest, task DeployTask, allowGlobal bool) (StartTaskRequest, uint64, error) {
 	if err := validateCredentialReferenceRequest(req); err != nil {
 		return req, 0, err
 	}
-	resolvedReq, version, err := s.resolveStartCredential(req)
+	resolvedReq, version, err := s.resolveStartCredential(req, task, allowGlobal)
 	if err != nil {
 		return req, 0, err
 	}
@@ -1790,7 +1790,9 @@ func (s *DeployService) startRequestForTask(task DeployTask) (StartTaskRequest, 
 	if task.CredentialRefID == 0 || strings.TrimSpace(task.SSHHostFingerprint) == "" {
 		return StartTaskRequest{}, errors.New("business.deploy.task.execution_snapshot_missing")
 	}
-	req, version, err := s.resolveStartCredential(StartTaskRequest{CredentialRefID: task.CredentialRefID, HostFingerprint: task.SSHHostFingerprint, TimeoutSeconds: task.ExecutionTimeoutSeconds})
+	// A queue worker/restart path carries no caller scope: it replays the
+	// snapshot the original start already authorized.
+	req, version, err := s.resolveStartCredential(StartTaskRequest{CredentialRefID: task.CredentialRefID, HostFingerprint: task.SSHHostFingerprint, TimeoutSeconds: task.ExecutionTimeoutSeconds}, task, true)
 	if err != nil {
 		return StartTaskRequest{}, err
 	}

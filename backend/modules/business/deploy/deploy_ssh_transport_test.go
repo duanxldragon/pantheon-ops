@@ -353,7 +353,7 @@ func TestDeploySSHTransportBusinessExecution(t *testing.T) {
 			target, req := startDeploySSHTransport(t, serveDeploySSHScript(received, exitCode))
 			credential, err := svc.CreateCredential(CreateDeployCredentialRequest{
 				Name: "loopback-key", Username: req.SSHUser, AuthMode: "private_key", Secret: req.SSHPrivateKey,
-			}, "1")
+			}, "1", nil)
 			if err != nil {
 				t.Fatal(err)
 			}
