@@ -6,7 +6,7 @@
 
 - 当前执行主线：[审查整改父计划](./tasks/2026-11-20-ops-review-remediation/plan.md) / [执行队列](./tasks/2026-11-20-ops-review-remediation/EXECUTION_QUEUE.md)。原十包未验收 residual 由本主线承接。
 - Base 消费版本及 commit 以 [foundation lock](../foundation-release.lock.json) 为准；产品 VERSION、消费版本、实际运行候选分别记录。
-- 11/24 检查点记录 PR #205 合并到 `5e4dac4f`，随后第八轮记录 T06 读授权/路由的代码级收口及其残余 gap；这些结论只证明原候选。#209-#219 已并入 main（`11f9b004`，其中 #216 仍开放）；本轮 O-01/O-04 两包在 `11f9b004` 上复核后提交，其余历史结论仍按原候选阅读。
+- 11/24 检查点记录 PR #205 合并到 `5e4dac4f`，随后第八轮记录 T06 读授权/路由的代码级收口及其残余 gap；这些结论只证明原候选。#209-#219 已并入 main（`11f9b004`；#216 已合并为 `98536489`）；本轮 O-01/O-04 两包在 `11f9b004` 上复核后提交，其余历史结论仍按原候选阅读。
 - 11/24 关闭[业务指标语义与集群维度收敛](./tasks/2026-11-24-ops-metrics-semantics/manifest.json)：多集群容量按 `cluster` 标签拆分、主机状态改整快照归零、属性标签注释更正；含 RED/GREEN、`-race`、build、增量 lint 与边界门禁证据（L1/P2，代码级闭合，Grafana 资产对齐仍开放）。
 - 11/24 关闭[Compose 凭据外置与废弃 DDL 挂载移除](./tasks/2026-11-24-ops-compose-credentials/manifest.json)：口令改为 `${VAR:?}` 必填插值、移除 `system_init.sql` initdb 挂载，配置解析级双证据（缺变量失败/齐备成功），运行态未测（L2/P1）。
 - 11/25 收口：T04（核心租户隔离）、T16（真实环境验收）与父计划三包按维护者指示关为 completed；残余拆为 [T18 业务详情路由租户绑定](./tasks/2026-11-25-ops-tenant-detail-route-binding/manifest.json)（P1，等 Base 正式 release）与 [T19 真实环境残余验收](./tasks/2026-11-25-ops-residual-live-acceptance/manifest.json)（P0，等多租户/受限用户/测试 Redis/Ingress/Velero 环境）。completed 不代表生产验收。
