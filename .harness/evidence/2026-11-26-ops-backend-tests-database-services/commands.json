@@ -11,6 +11,36 @@
     { "command": "go test ./modules/business/... with a UTC session clock (DSN time_zone='+00:00'), -timeout 70m -p 3", "cwd": "backend", "status": "passed", "exitCode": 0, "notes": "Simulation of the CI service. 26 packages ok, including deploy (1500s locally, about 25 minutes, so the CI duration is the thing to watch) and observability (needs its own Redis; a temporary instance on 26316 was started and stopped). One failure, cmdb/host TestHostStateVersionBackfillEnablesCAS, was an artifact of the simulation: the time_zone parameter breaks golang-migrate's own connection string (Error 1298). The same test passes with a plain DSN (7.7s)." },
     { "command": "node --test tests/scripts/quality-workflow.test.mjs tests/scripts/ci-workflow-dispatch.test.mjs", "cwd": ".", "status": "passed", "exitCode": 0, "notes": "18 pass. The new test 'backend tests provide MySQL and Redis and refuse to skip database tests' pins the MySQL service, DSN, DSN_REQUIRED, Redis address and REDIS_REQUIRED." },
     { "command": "negative control: rename PANTHEON_TEST_DSN_REQUIRED in the workflow, rerun the workflow test", "cwd": ".", "status": "failed", "exitCode": 1, "notes": "Expected failure ('a missing DSN must fail, not skip'); the workflow file was restored." },
-    { "command": "hosted Backend Tests on this PR", "cwd": ".", "status": "not-run", "exitCode": null, "notes": "Pending. This is the authoritative result; the local simulation is a forecast only." }
-  ]
+    { "command": "hosted Backend Tests on PR #227", "cwd": ".", "status": "passed", "exitCode": 0, "notes": "GitHub Actions run 45661674309, head 7e073b2e7414582badd191e08404228129ef31f9; Backend Tests succeeded in 7m24s: https://github.com/duanxldragon/pantheon-ops/actions/runs/45661674309" },
+    { "command": "hosted Backend Tests on main after merge", "cwd": ".", "status": "passed", "exitCode": 0, "notes": "GitHub Actions run 45727657847, head 81b8089efb943f7c3d20532eb766eb2c9e8764ef; Backend Tests succeeded in 9m28s: https://github.com/duanxldragon/pantheon-ops/actions/runs/45727657847" },
+    { "command": "node --test tests/scripts/quality-workflow.test.mjs", "cwd": ".", "status": "passed", "exitCode": 0, "notes": "Initial closeout assertions require the Redis service, MySQL TZ=UTC, and loc=UTC; 13 tests passed on 2026-11-26." },
+    { "command": "node --test tests/scripts/quality-workflow.test.mjs", "cwd": ".", "status": "passed", "exitCode": 0, "notes": "Final follow-up asserts MySQL TZ under mysql.env and generic Redis address under backend job env; negative controls reject misplaced and wrong-endpoint values; 14 tests passed. Independent review found no significant issues." },
+    { "command": "node --test tests/scripts/quality-workflow.test.mjs tests/scripts/ci-workflow-dispatch.test.mjs", "cwd": ".", "status": "passed", "exitCode": 0, "notes": "Fresh closeout run on the local worktree: 19 passed, 0 failed, 0 skipped, 11.7 seconds." },
+    { "command": "node scripts/harness/check-task-packet.mjs --root . docs/harness/tasks/2026-11-26-ops-backend-tests-database-services.task.md", "cwd": ".", "status": "passed", "exitCode": 0, "notes": "The completed task packet passed with zero errors and zero warnings." },
+    { "command": "node scripts/harness/check-review.mjs --strict --root . .harness/evidence/2026-11-26-ops-backend-tests-database-services/review.md", "cwd": ".", "status": "passed", "exitCode": 0, "notes": "The independent review artifact passed strict format and linkage validation." },
+    {"command":"go test -race ./...","cwd":"backend","status":"passed","exitCode":0,"notes":"Windows MinGW CGO on 81b8089e, UTC MySQL and Redis required. 77 tested packages passed, 14 packages had no tests. Deploy 1434.715s. Log SHA-256 08a2f49c3f543ef6619894b957c8a87d567463cd8598eeeaf11f2df1449809b8."}
+  ],
+  "closeoutVerification": {
+    "recordedAt": "2026-11-26T07:34:15Z",
+    "head": "81b8089efb943f7c3d20532eb766eb2c9e8764ef",
+    "worktree": "chore/backend-tests-closeout-20261126 (uncommitted)",
+    "sha256": {
+      ".github/workflows/quality.yml": "0809c9f64f341b4690f60bf34e813125a60532dc3669eb6573fed818b81e61e5",
+      "tests/scripts/quality-workflow.test.mjs": "d2d0454f07af94a51b05fb9dc7280876d8c7ba50af56eab1681acc2c7cf6697f",
+      "tests/scripts/ci-workflow-dispatch.test.mjs": "d34063631c506e8032374870edae4e86bfc7085103cff2687bb5a911db4490e8"
+    }
+  },
+  "knownGaps": [
+    "The earlier Windows ThreadSanitizer allocation error 87 did not recur in the full passing run.",
+    "The assertion hardening is uncommitted in local worktree chore/backend-tests-closeout-20261126 and is not yet on main.",
+    "The separate Automate Solo PR check failed because RELEASE_GATE_TOKEN was unavailable; required quality and Backend Tests checks passed.",
+    "Monitor hosted Backend Tests duration; the PR run took 7m24s and the later main run took 9m28s."
+  ],
+  "linkage": {
+    "taskManifest": ".harness/tasks/2026-11-26-ops-backend-tests-database-services/manifest.json",
+    "evidenceDir": ".harness/evidence/2026-11-26-ops-backend-tests-database-services/",
+    "reviewFile": ".harness/evidence/2026-11-26-ops-backend-tests-database-services/review.md",
+    "changeRef": "none",
+    "planRefs": []
+  }
 }
