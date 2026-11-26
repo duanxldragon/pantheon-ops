@@ -4,7 +4,7 @@ doc_type: Remediation
 layer: platform
 linked_contracts:
   - docs/contracts/PLATFORM_CONTRACT.md
-status: Active
+status: Archived
 updated_at: 2026-11-26
 ---
 
@@ -123,10 +123,10 @@ platform
 
 - [x] Layer and boundary declared
 - [x] Contract anchors read
-- [ ] Verification run or exception recorded
-- [ ] Evidence saved or summarized
-- [ ] Review completed
+- [x] Verification run or exception recorded
+- [x] Evidence saved or summarized
+- [x] Review completed
 
 ## Status
 
-in-progress：工作流已改，等待托管 Backend Tests 在带 MySQL 的环境下的真实结果。
+completed：PR #227 的托管 Backend Tests 与合并后 main 验证均通过。Redis/UTC 回归断言已在独立 worktree 补强，14 项工作流测试和独立复审均通过。补强与收口记录待合入，Windows 完整 CGO race 通过（77 个测试包）。

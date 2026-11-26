@@ -3,8 +3,8 @@
   "taskDoc": "docs/harness/tasks/2026-11-26-ops-backend-tests-database-services.task.md",
   "title": "Give the Backend Tests gate a real MySQL and Redis",
   "goal": "Make the required Backend Tests job run the testmysql and testredis tests instead of silently skipping them, and fail if the DSN or Redis address goes missing.",
-  "primaryLayer": "business/*",
-  "status": "in-progress",
+  "primaryLayer": "platform",
+  "status": "completed",
   "priority": "P1",
   "type": "ci-workflow",
   "dependencies": [],
@@ -75,7 +75,7 @@
     ]
   },
   "runtimeSensitive": true,
-  "runtimeGap": "Local Windows race is blocked by ThreadSanitizer allocation (error code 87), identical on the unmodified baseline; business smoke needs the full stack and is left to hosted CI. Independent CODE/ARCH review not performed.",
+  "runtimeGap": "Windows CGO go test -race ./... passed against isolated UTC MySQL and Redis on 81b8089e. 77 packages passed and 14 reported no test files. Deploy took 1434.715s.",
   "acceptanceCriteria": [
     "Backend Tests on this PR runs the MySQL-backed tests and passes",
     "Removing the DSN or the REQUIRED flag fails the workflow test",
@@ -97,14 +97,13 @@
     "planRefs": []
   },
   "closeout": {
-    "recordedAt": "2026-11-25",
-    "pr": "https://github.com/duanxldragon/pantheon-ops/pull/223",
-    "mergeCommit": "ae444a71",
-    "scope": "Official pantheon-base-v0.19.0 consumption; hosted required checks passed, only the non-required Automate Solo PR stayed red (missing RELEASE_GATE_TOKEN).",
+    "recordedAt": "2026-11-26",
+    "pr": "https://github.com/duanxldragon/pantheon-ops/pull/227",
+    "mergeCommit": "08bdcf6fca828553a4c33085874ef03729f88c59",
+    "scope": "Added MySQL (UTC), generic Redis, and required connection guards to backend-tests. PR #227 Backend Tests passed on hosted Linux in 7m24s; a follow-up main run also passed. Workflow regression assertions now pin both services and UTC settings.",
     "residuals": [
-      "Local Windows race blocked by ThreadSanitizer error 87 (also red on main); Linux CI is the gate",
-      "Business smoke left to hosted CI",
-      "Independent CODE/ARCH review not performed"
+      "The earlier Windows ThreadSanitizer allocation error 87 did not recur in the full passing run.",
+      "The reviewed assertion hardening and this closeout are ready in the isolated local worktree; main contains the verified workflow from PR #227."
     ]
   }
 }

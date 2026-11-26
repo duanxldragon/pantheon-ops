@@ -10,6 +10,7 @@
 - 11/24 关闭[业务指标语义与集群维度收敛](./tasks/2026-11-24-ops-metrics-semantics/manifest.json)：多集群容量按 `cluster` 标签拆分、主机状态改整快照归零、属性标签注释更正；含 RED/GREEN、`-race`、build、增量 lint 与边界门禁证据（L1/P2，代码级闭合，Grafana 资产对齐仍开放）。
 - 11/24 关闭[Compose 凭据外置与废弃 DDL 挂载移除](./tasks/2026-11-24-ops-compose-credentials/manifest.json)：口令改为 `${VAR:?}` 必填插值、移除 `system_init.sql` initdb 挂载，配置解析级双证据（缺变量失败/齐备成功），运行态未测（L2/P1）。
 - 11/25 收口：T04（核心租户隔离）、T16（真实环境验收）与父计划三包按维护者指示关为 completed；残余拆为 [T18 业务详情路由租户绑定](./tasks/2026-11-25-ops-tenant-detail-route-binding/manifest.json)（P1，等 Base 正式 release）与 [T19 真实环境残余验收](./tasks/2026-11-25-ops-residual-live-acceptance/manifest.json)（P0，等多租户/受限用户/测试 Redis/Ingress/Velero 环境）。completed 不代表生产验收。
+- 11/26 收口 [Backend Tests MySQL/Redis CI 门禁](./tasks/2026-11-26-ops-backend-tests-database-services/manifest.json)：PR #227 已合并，PR 和后续 main 的托管 Backend Tests 均通过。Redis/UTC 回归断言在隔离本地 worktree 通过 14 项工作流测试，补强与收口记录待合入。Windows 完整 CGO race 通过（77 个测试包），详见 [验收记录](./evidence/2026-11-26-ops-backend-tests-database-services/summary.md)。
 - 11/24 为 T04 补异步任务重启租户保持的回归测试（`deploy/tenant_async_recovery_test.go`）：隔离库写入 `tenant_id=4242`，新 `DeployService` 重载队列后执行器收到原租户，行租户不回退、无 tenant_id=0 副本（真实 MySQL `-race` PASS）。
 - 方法消费 policy pin 已提供 CI 来源；新增 Harness helper/checker 尚未发行。本次机制改进见 [Harness 任务包](../../pantheon-harness/docs/harness/tasks/2026-11-24-workflow-context-improvement.task.md)。
 

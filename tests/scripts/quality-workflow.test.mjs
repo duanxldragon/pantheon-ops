@@ -198,13 +198,42 @@ test('backend tests always run and fail closed', () => {
   assert.match(block, /run:\s*go test -race \.\/\.\.\./, 'backend tests should run the full race suite');
 });
 
+function assertBackendDatabaseServices(block) {
+  const mysqlMatch = block.match(/^ {6}mysql:\s*\n([\s\S]*?)(?=^ {6}[a-z][a-z-]*:\s*$|^ {4}[a-z][a-z-]*:\s*$)/m);
+  assert.ok(mysqlMatch, 'backend tests need a MySQL service');
+  assert.match(mysqlMatch[1], /^ {8}image: mysql:8\.0$/m, 'backend tests need MySQL 8');
+  const mysqlEnvMatch = mysqlMatch[1].match(/^ {8}env:\n((?: {10}[^\n]*\n)*)/m);
+  assert.ok(mysqlEnvMatch, 'MySQL service needs an environment block');
+  assert.match(mysqlEnvMatch[1], /^ {10}TZ: UTC$/m, 'the MySQL service clock must be UTC');
+  assert.match(block, /PANTHEON_TEST_DSN:\s*[^\n]*loc=UTC/, 'the test DSN must use UTC');
+  assert.match(block, /PANTHEON_TEST_DSN_REQUIRED:\s*"true"/, 'a missing DSN must fail, not skip');
+  const jobEnvMatch = block.match(/^ {4}env:\n((?: {6}[^\n]*\n| {6}#[^\n]*\n)*)/m);
+  assert.ok(jobEnvMatch, 'backend tests need a job environment block');
+  assert.match(jobEnvMatch[1], /^ {6}PANTHEON_TEST_REDIS_ADDR:\s*127\.0\.0\.1:6379$/m, 'backend tests need the generic Redis address');
+  const redisMatch = block.match(/^ {6}redis:\s*\n([\s\S]*?)(?=^ {6}[a-z][a-z-]*:\s*$|^ {4}[a-z][a-z-]*:\s*$)/m);
+  assert.ok(redisMatch, 'backend tests need a generic Redis service');
+  assert.match(redisMatch[1], /^ {8}image: redis:7-alpine$/m, 'backend tests need Redis 7');
+  assert.match(block, /PANTHEON_TEST_REDIS_REQUIRED:\s*"true"/, 'a missing Redis must fail, not skip');
+}
+
 test('backend tests provide MySQL and Redis and refuse to skip database tests', () => {
   const block = workflowSource.split(/^  backend-tests:$/m)[1].split(/^  [a-z][a-z-]*:$/m)[0];
-  assert.match(block, /^ +mysql:\n +image: mysql:8\.0/m, 'backend tests need a MySQL service');
-  assert.match(block, /PANTHEON_TEST_DSN:\s*\S+/, 'backend tests need a test DSN');
-  assert.match(block, /PANTHEON_TEST_DSN_REQUIRED:\s*"true"/, 'a missing DSN must fail, not skip');
-  assert.match(block, /PANTHEON_TEST_REDIS_ADDR:\s*\S+/, 'backend tests need the generic Redis address');
-  assert.match(block, /PANTHEON_TEST_REDIS_REQUIRED:\s*"true"/, 'a missing Redis must fail, not skip');
+  assertBackendDatabaseServices(block);
+});
+
+test('backend database service assertions reject misplaced or incorrect Redis configuration', () => {
+  const block = workflowSource.split(/^  backend-tests:$/m)[1].split(/^  [a-z][a-z-]*:$/m)[0];
+  const redisAddress = /^      PANTHEON_TEST_REDIS_ADDR: 127\.0\.0\.1:6379\n/m;
+  assert.match(block, redisAddress, 'test fixture must include the expected job-level Redis address');
+
+  const misplaced = block.replace(redisAddress, '').replace(
+    /^    env:$/m,
+    '      PANTHEON_TEST_REDIS_ADDR: 127.0.0.1:6379\n    env:',
+  );
+  assert.throws(() => assertBackendDatabaseServices(misplaced), /generic Redis address/);
+
+  const incorrectEndpoint = block.replace(redisAddress, '      PANTHEON_TEST_REDIS_ADDR: 127.0.0.1:26316\n');
+  assert.throws(() => assertBackendDatabaseServices(incorrectEndpoint), /generic Redis address/);
 });
 
 test('go lint scopes pull requests and merge groups to new code and enforces in real bash', () => {
