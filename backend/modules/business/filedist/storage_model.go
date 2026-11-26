@@ -13,7 +13,8 @@ const storageTypeLocal = "local"
 // FileStorage represents a file storage location.
 type FileStorage struct {
 	ID        uint64         `gorm:"primaryKey;autoIncrement" json:"id"`
-	Name      string         `gorm:"size:128;not null;uniqueIndex" json:"name"`
+	TenantID  uint64         `gorm:"column:tenant_id;not null;default:0;index:uk_filedist_storage_name,priority:1" json:"-"`
+	Name      string         `gorm:"size:128;not null;index:uk_filedist_storage_name,unique,priority:2" json:"name"`
 	Type      string         `gorm:"size:32;not null" json:"type"` // local, s3, oss, minio
 	BasePath  string         `gorm:"size:512;not null" json:"basePath"`
 	Config    datatypes.JSON `json:"config"`                             // Storage-specific configuration
@@ -36,6 +37,7 @@ func (FileStorage) TableName() string {
 // FileRecord represents an uploaded file.
 type FileRecord struct {
 	ID          uint64         `gorm:"primaryKey;autoIncrement" json:"id"`
+	TenantID    uint64         `gorm:"column:tenant_id;not null;default:0" json:"-"`
 	StorageID   uint64         `gorm:"not null;index" json:"storageId"`
 	Name        string         `gorm:"size:255;not null" json:"name"`
 	Path        string         `gorm:"size:512;not null" json:"path"` // Relative path in storage

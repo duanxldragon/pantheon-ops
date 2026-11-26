@@ -21,6 +21,7 @@ const msgListFailed = "k8s.install.list_failed"
 // Install is a Kubernetes installation wizard record.
 type Install struct {
 	ID          uint64    `gorm:"primaryKey;autoIncrement" json:"id"`
+	TenantID    uint64    `gorm:"column:tenant_id;not null;default:0" json:"-"`
 	ClusterCode string    `gorm:"column:cluster_code;size:128;not null;index" json:"clusterCode"`
 	HostIP      string    `gorm:"column:host_ip;size:64;not null;index" json:"hostIP"`
 	InstallType string    `gorm:"column:install_type;size:16;not null;index" json:"installType"`

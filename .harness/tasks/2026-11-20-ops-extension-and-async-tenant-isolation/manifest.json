@@ -4,7 +4,7 @@
   "title": "扩展业务与异步链路租户隔离",
   "goal": "按 T01 清单完成 T04 之外 tenant-owned/derived/overridable 表、唯一键、路由与关联隔离，核实已有 observability 局部租户实现",
   "primaryLayer": "business/*",
-  "status": "planned",
+  "status": "in-progress",
   "priority": "P1",
   "deliveryTier": "L2",
   "parentTask": "2026-11-20-ops-review-remediation",
@@ -35,7 +35,10 @@
       "资产关系/Pod→Node→VM、真实 Helm Chart、Nacos/RocketMQ、完整 Agent 协议作为独立后续范围"
     ]
   },
-  "dependencyLayers": ["business/*", "inheritance-sync"],
+  "dependencyLayers": [
+    "business/*",
+    "inheritance-sync"
+  ],
   "baseline": {
     "reportCommit": "444ce8e",
     "planningCommit": "a2d69d4a759b5df2b26aaa9d26bdc5175babe9dc",
@@ -45,7 +48,9 @@
   },
   "sourceReview": "docs/reviews/pantheon-ops独立评审与外部报告核实-2026-11-20.md",
   "sourceChecklist": "docs/reviews/pantheon-ops真实环境验证清单-2026-11-20.md",
-  "findingRefs": ["ARC-001"],
+  "findingRefs": [
+    "ARC-001"
+  ],
   "sourceRefs": [
     {
       "path": "docs/reviews/pantheon-ops独立评审与外部报告核实-2026-11-20.md",
@@ -114,14 +119,21 @@
       "business/* -> pkg公共契约",
       "共享缺口 -> Base正式release -> Ops重建"
     ],
-    "riskNodes": ["ARC-001"],
-    "graphFocus": ["sensitive-input-flow", "call-depth"]
+    "riskNodes": [
+      "ARC-001"
+    ],
+    "graphFocus": [
+      "sensitive-input-flow",
+      "call-depth"
+    ]
   },
   "implementationNotes": [
     "Minimal Complexity Rung: reuse",
     "审查主基线 444ce8e，当前规划基线 a2d69d4a759b5df2b26aaa9d26bdc5175babe9dc；每包开工核实当前候选，先复用 #195 实现与归档证据再补缺口",
     "本包状态 planned；命令与运行场景是后续验证计划，执行者须记录真实 cwd/时间/exitCode/skip/源码哈希",
-    "接口/权限/菜单/i18n/schema/seed/fixture/业务overlay 同步关闭；业务 migration 源文件归业务模块，装配副本由重建器生成"
+    "接口/权限/菜单/i18n/schema/seed/fixture/业务overlay 同步关闭；业务 migration 源文件归业务模块，装配副本由重建器生成",
+    "2026-11-25 phase 1 (schema): migration 000043 adds tenant_id to the 18 verified extension tables and rebuilds five natural unique keys tenant-first. The T01 list was wrong: biz_preflight_control is a test-only table; biz_application, obs_alert_rule, obs_alert_event, obs_notification_channel and obs_notification_log were missed.",
+    "Finding: T04 delivered schema only. No business code uses tenant.Scoper/TenantOwnerID, and cicd/filedist/cmdb/deploy/k8s still mount DataScopedGroup, so tenant_id is not yet enforced on reads or writes anywhere outside observability. Phase 2 (read scope, write owner, route-group switch with registered permission routes, async tenant identity) is not done."
   ],
   "implementationPlan": [
     "核实当前候选和前置合同，逐条对照来源与旧验收，标记已经完成的实现",
@@ -140,7 +152,9 @@
       "npm run test:business-overlay",
       "npm run check:business-overlay"
     ],
-    "runtimeEvidence": ["V4 扩展数据/异步隔离，两域legacy与当前对象并存"],
+    "runtimeEvidence": [
+      "V4 扩展数据/异步隔离，两域legacy与当前对象并存"
+    ],
     "commandWorkingDirectories": {
       "go test -count=1 ./modules/business/...": "backend",
       "npm run test:business-overlay": ".",
@@ -166,7 +180,9 @@
     "reviewFile": "none",
     "summaryFile": ".harness/evidence/2026-11-20-ops-extension-and-async-tenant-isolation/summary.md",
     "changeRef": "none",
-    "planRefs": [".harness/tasks/2026-11-20-ops-review-remediation/plan.md"]
+    "planRefs": [
+      ".harness/tasks/2026-11-20-ops-review-remediation/plan.md"
+    ]
   },
   "plannedReviewFile": ".harness/evidence/2026-11-20-ops-extension-and-async-tenant-isolation/review.md",
   "evidenceRequired": [
@@ -180,5 +196,9 @@
     "双租户查询/写入/回调/同步/告警/文件job各有反例，重启与异步执行身份保持正确",
     "compat 历史数据、已有 observability tenant数据均可升级且无重复/丢失；未启用扩展的数据归属也已定义"
   ],
-  "rollbackPlan": "优先回退本包可逆代码；数据库按隔离演练过的数据回滚/备份方案处理，multi数据回滚遵循Base合同，生产动作另经授权"
+  "rollbackPlan": "优先回退本包可逆代码；数据库按隔离演练过的数据回滚/备份方案处理，multi数据回滚遵循Base合同，生产动作另经授权",
+  "migrationNumbering": {
+    "000042": "T05 deploy credential scope",
+    "000043": "T14 extension tenant ownership (this task)"
+  }
 }

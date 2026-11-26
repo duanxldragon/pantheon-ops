@@ -12,6 +12,7 @@ import (
 // record captures the immutable requested target and its observed rollout.
 type Release struct {
 	ID                  uint64         `gorm:"primaryKey;autoIncrement" json:"id"`
+	TenantID            uint64         `gorm:"column:tenant_id;not null;default:0;index:uk_k8s_release_idempotency,priority:1" json:"-"`
 	Name                string         `gorm:"size:255;not null" json:"name"`
 	ClusterID           uint64         `gorm:"column:cluster_id;index" json:"clusterId"`
 	Namespace           string         `gorm:"size:255;not null" json:"namespace"`
@@ -28,7 +29,7 @@ type Release struct {
 	ImageAfter          string         `gorm:"column:image_after;size:512;not null" json:"imageAfter"`
 	Strategy            string         `gorm:"size:50;not null;default:RollingUpdate" json:"strategy"`
 	Status              string         `gorm:"size:50;not null;default:pending;index" json:"status"`
-	IdempotencyKey      string         `gorm:"column:idempotency_key;size:128;not null;uniqueIndex:uk_k8s_release_idempotency" json:"idempotencyKey"`
+	IdempotencyKey      string         `gorm:"column:idempotency_key;size:128;not null;index:uk_k8s_release_idempotency,unique,priority:2" json:"idempotencyKey"`
 	RequestFingerprint  string         `gorm:"column:request_fingerprint;size:64;not null" json:"-"`
 	RequestSnapshot     datatypes.JSON `gorm:"column:request_snapshot;type:json" json:"-"`
 	PreviousReleaseID   uint64         `gorm:"column:previous_release_id;index" json:"previousReleaseId"`

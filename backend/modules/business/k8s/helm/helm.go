@@ -37,6 +37,7 @@ const registeredStatus = "registered"
 //nolint:revive // the exported type name keeps the Helm domain prefix for API clarity.
 type HelmRelease struct {
 	ID              uint64    `gorm:"primaryKey;autoIncrement" json:"id"`
+	TenantID        uint64    `gorm:"column:tenant_id;not null;default:0" json:"-"`
 	Name            string    `gorm:"size:255;not null;index" json:"name"`
 	ClusterID       uint64    `gorm:"column:cluster_id;index" json:"clusterId"`
 	Namespace       string    `gorm:"size:255;not null;index" json:"namespace"`

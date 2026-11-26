@@ -12,7 +12,8 @@ import (
 //nolint:revive // the exported model name keeps the Argo CD domain prefix for API clarity.
 type ArgoCDServer struct {
 	ID          uint64         `gorm:"primaryKey;autoIncrement" json:"id"`
-	Name        string         `gorm:"size:128;not null;uniqueIndex" json:"name"`
+	TenantID    uint64         `gorm:"column:tenant_id;not null;default:0;index:uk_argocd_server_name,priority:1" json:"-"`
+	Name        string         `gorm:"size:128;not null;index:uk_argocd_server_name,unique,priority:2" json:"name"`
 	ClusterID   uint64         `gorm:"index" json:"clusterId"`
 	Endpoint    string         `gorm:"size:256;not null" json:"endpoint"`
 	AuthToken   string         `gorm:"size:512" json:"-"`                                // encrypted, never returned
@@ -37,6 +38,7 @@ func (ArgoCDServer) TableName() string {
 //nolint:revive // the exported model name keeps the Argo CD domain prefix for API clarity.
 type ArgoCDRepository struct {
 	ID        uint64         `gorm:"primaryKey;autoIncrement" json:"id"`
+	TenantID  uint64         `gorm:"column:tenant_id;not null;default:0" json:"-"`
 	ServerID  uint64         `gorm:"not null;index:idx_server_repo" json:"serverId"`
 	RepoURL   string         `gorm:"size:512;not null;index:idx_server_repo" json:"repoUrl"`
 	Name      string         `gorm:"size:128" json:"name"`
@@ -62,6 +64,7 @@ func (ArgoCDRepository) TableName() string {
 //nolint:revive // the exported model name keeps the Argo CD domain prefix for API clarity.
 type ArgoCDApplication struct {
 	ID                uint64         `gorm:"primaryKey;autoIncrement" json:"id"`
+	TenantID          uint64         `gorm:"column:tenant_id;not null;default:0" json:"-"`
 	ServerID          uint64         `gorm:"not null;index:idx_server_name" json:"serverId"`
 	Name              string         `gorm:"size:128;not null;index:idx_server_name" json:"name"`
 	Project           string         `gorm:"size:128;not null;default:'default'" json:"project"`
@@ -92,6 +95,7 @@ func (ArgoCDApplication) TableName() string {
 //nolint:revive // the exported model name keeps the Argo CD domain prefix for API clarity.
 type ArgoCDSyncHistory struct {
 	ID            uint64     `gorm:"primaryKey;autoIncrement" json:"id"`
+	TenantID      uint64     `gorm:"column:tenant_id;not null;default:0" json:"-"`
 	ApplicationID uint64     `gorm:"not null;index" json:"applicationId"`
 	Revision      string     `gorm:"size:128" json:"revision"`
 	Status        string     `gorm:"size:32;not null" json:"status"` // Succeeded, Failed, Error
