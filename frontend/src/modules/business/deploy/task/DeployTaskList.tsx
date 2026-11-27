@@ -66,6 +66,7 @@ import {
   type StartDeployTaskPayload,
 } from '../api';
 import { buildDeployTemplateDefaultParameters, getDeployFixedTemplateCatalogEntry } from '../catalog';
+import { credentialsForTask } from './taskCredentials';
 import { formatDateTime } from '../../../../core/format/dateTime';
 import '../../../../assets/list-page.css';
 import '../deploy.css';
@@ -95,7 +96,7 @@ const statusColorMap: Record<string, string> = {
 
 export default function DeployTaskList() {
   const { t } = useTranslation();
-  const { hasPerm } = usePermission();
+  const { hasPerm, isAdmin } = usePermission();
   const governanceRail = useGovernanceRail();
   const [searchParams, setSearchParams] = useSearchParams();
   const [form] = Form.useForm<TaskFormValues>();
@@ -255,9 +256,9 @@ export default function DeployTaskList() {
 
   useEffect(() => {
     queueMicrotask(() => {
-      void Promise.all([loadData(), loadOptions()]);
+      void loadData();
     });
-  }, [loadData, loadOptions]);
+  }, [loadData]);
 
   useEffect(() => {
     if (!data.some((item) => item.status === 'pending' || item.status === 'running')) {
@@ -835,7 +836,7 @@ export default function DeployTaskList() {
         visible={startVisible}
         form={startForm}
         task={startingTask}
-        credentials={credentials}
+        credentials={credentialsForTask(credentials, startingTask?.businessScopeId, isAdmin)}
         submitting={startSubmitting}
         onClose={() => {
           setStartVisible(false);
@@ -1465,13 +1466,11 @@ function DeployTaskStartModal({ t, visible, form, task, credentials, submitting,
         ) : null}
         <Form.Item field="credentialRefId" label={t('business.deploy.task.credentialRefId')} rules={[{ required: true, message: t('business.deploy.task.credentialRefIdRequired') }]}>
           <Select placeholder={t('business.deploy.task.credentialRefIdPlaceholder')}>
-            {credentials
-              .filter((item) => item.status === 'active')
-              .map((item) => (
-                <Select.Option key={item.id} value={item.id}>
-                  {item.name}（{item.username} · {item.authMode === 'private_key' ? t('business.deploy.task.authMode.privateKey') : t('business.deploy.task.authMode.password')}）
-                </Select.Option>
-              ))}
+            {credentials.map((item) => (
+              <Select.Option key={item.id} value={item.id}>
+                {item.name}（{item.username} · {item.authMode === 'private_key' ? t('business.deploy.task.authMode.privateKey') : t('business.deploy.task.authMode.password')}）
+              </Select.Option>
+            ))}
           </Select>
         </Form.Item>
         <Form.Item field="hostFingerprint" label={t('business.deploy.task.hostFingerprint')} rules={[{ required: true }]}>

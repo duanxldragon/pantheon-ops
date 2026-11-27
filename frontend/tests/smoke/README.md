@@ -137,7 +137,7 @@ Delete a smoke test only when its ownership is retired or another active smoke t
 ## Ops Business Overlay
 
 - `test:smoke:business:cmdb` -> `business/cmdb/cmdb-pages.spec.ts`
-- `test:smoke:business:deploy` -> `business/deploy/deploy-pages.spec.ts`
+- `test:smoke:business:deploy` -> `business/deploy/deploy-pages.spec.ts`, `business/deploy/deploy-credential-pages.spec.ts`
 - `test:smoke:business:deploy:api` -> `business/deploy/deploy-api.spec.ts`
 - `test:smoke:business:observability` -> `business/observability-filedist-pages.spec.ts`, `business/observability-menu.spec.ts`
 - `test:smoke:business:service` -> `business/service/service-pages.spec.ts`, `business/service/ServiceCatalog.nav.spec.ts`

@@ -28,6 +28,11 @@ type BizScopeReader interface {
 	VisibleIDs(ctx context.Context, scope *common.DataScopeReq) ([]uint64, error)
 }
 
+// ActiveBizScopeLister reads the scopes eligible to own new resources.
+type ActiveBizScopeLister interface {
+	ListActive(ctx context.Context, scope *common.DataScopeReq) ([]BizScopeRef, error)
+}
+
 // HostRef is the minimal CMDB host projection shared across business modules.
 type HostRef struct {
 	ID                uint64

@@ -57,7 +57,7 @@ func TestDeployLiveVMExecution(t *testing.T) {
 			scopeID, hostID := seedDeployReliabilityFixture(t, db, "p0-test-vm", target.IP)
 			markerRunner, err := newDeploySSHRunner(context.Background(), target, req)
 			if err != nil {
-				t.Fatal("allocate owned marker connection failed")
+				t.Fatalf("allocate owned marker connection failed: %v", err)
 			}
 			markerCtx, markerCancel := context.WithTimeout(context.Background(), 10*time.Second)
 			markerRoot, _, markerErr := markerRunner.RunScript(markerCtx, "mktemp -d /tmp/omx-ops-live-XXXXXXXXXXXX")
