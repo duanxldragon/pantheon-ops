@@ -1,10 +1,10 @@
 {
   "schemaVersion": 1,
   "taskId": "2026-11-20-ops-extension-and-async-tenant-isolation",
-  "title": "扩展业务与异步链路租户隔离",
-  "goal": "按 T01 清单完成 T04 之外 tenant-owned/derived/overridable 表、唯一键、路由与关联隔离，核实已有 observability 局部租户实现",
+  "title": "扩展业务租户归属 Schema（T14 第一阶段）",
+  "goal": "完成 T04 之外 18 张扩展业务表的 tenant_id schema 与租户优先唯一键，验证 legacy 升级与现有数据兼容；运行时隔离明确转由 T14 第二阶段任务验收。",
   "primaryLayer": "business/*",
-  "status": "in-progress",
+  "status": "completed",
   "priority": "P1",
   "deliveryTier": "L2",
   "parentTask": "2026-11-20-ops-review-remediation",
@@ -25,11 +25,13 @@
   "coordinatesWith": [],
   "scope": {
     "in": [
-      "按 T01 清单完成 T04 之外 tenant-owned/derived/overridable 表、唯一键、路由与关联隔离，核实已有 observability 局部租户实现",
-      "后台同步/告警评估/通知/文件分发任务存储租户身份并显式传给授权与provider，缓存和队列身份不跨租户复用",
-      "按启用能力验证公开callback、系统启动任务和 legacy数据授权；业务迁移编号与 T04 协调，共享扩展接口缺口 Base-first"
+      "为 T01 审核确认的 18 张扩展表添加 tenant_id NOT NULL DEFAULT 0，并为五个租户拥有的自然唯一键使用 tenant_id 优先顺序",
+      "保证模型 AutoMigrate 与 SQL upgrade migration schema 一致",
+      "使用真实 MySQL 验证 legacy 升级、任意旧索引名发现、旧数据保留与 AutoMigrate-first 恢复路径"
     ],
     "out": [
+      "业务读写授权、租户路由强制、双租户运行时隔离及后台任务 tenant identity；由 2026-11-25-ops-tenant-runtime-enforcement 按模块承接",
+      "公开 callback、启动任务、通知/provider 与 filedist 的租户行为验收；由对应模块任务承接",
       "platform/system/*、共享 UI/权限/租户/请求拦截器实现由 pantheon-base 拥有，按正式 foundation release 同步",
       "未授权生产操作、发布、凭证变更及门禁豁免",
       "资产关系/Pod→Node→VM、真实 Helm Chart、Nacos/RocketMQ、完整 Agent 协议作为独立后续范围"
@@ -142,9 +144,9 @@
     "运行本包验证，保存候选绑定 evidence，findings-first review 后更新状态"
   ],
   "acceptanceCriteria": [
-    "T01 全部业务表逐表已处理或有合同支持的分类依据，现有无 tenant_id 模型不会隐式成为共享资源",
-    "双租户查询/写入/回调/同步/告警/文件job各有反例，重启与异步执行身份保持正确",
-    "compat 历史数据、已有 observability tenant数据均可升级且无重复/丢失；未启用扩展的数据归属也已定义"
+    "确认并记录 18 张扩展表清单及五个租户优先唯一键；18 个模型声明与 upgrade schema 一致",
+    "真实 MySQL 测试覆盖 legacy upgrade、旧唯一键任意命名、AutoMigrate-first 恢复、旧数据保持兼容",
+    "明确不宣称运行时租户隔离；所有读写/路由/异步强制项链接到 T14 第二阶段任务"
   ],
   "verificationPlan": {
     "commands": [
@@ -153,7 +155,7 @@
       "npm run check:business-overlay"
     ],
     "runtimeEvidence": [
-      "V4 扩展数据/异步隔离，两域legacy与当前对象并存"
+      "GitHub Actions PR #225 Backend Tests（MySQL service + REQUIRED guards）通过；本地真实 MySQL migration 回归 5/5"
     ],
     "commandWorkingDirectories": {
       "go test -count=1 ./modules/business/...": "backend",
@@ -169,6 +171,17 @@
     ]
   },
   "runtimeSensitive": true,
+  "closeout": {
+    "recordedAt": "2026-11-26",
+    "pr": "https://github.com/duanxldragon/pantheon-ops/pull/225",
+    "mergeCommit": "81b8089efb943f7c3d20532eb766eb2c9e8764ef",
+    "scope": "Closed T14 phase 1 only: tenant ownership schema for the 18 verified extension tables, five tenant-first unique keys, real-MySQL upgrade coverage, overlay assembly, and independent CODE/ARCH review. Runtime isolation was explicitly split by the maintainer into the per-module T14 phase-2 task.",
+    "residuals": [
+      "tenant_id runtime read/write enforcement is not delivered; no dual-tenant runtime isolation is claimed",
+      "Route-group enforcement, background tenant identity, callbacks, alert evaluation and file-distribution isolation remain assigned to 2026-11-25-ops-tenant-runtime-enforcement and its per-module tasks",
+      "Existing deployment credential boundary finding in deploy_credential.go is tracked separately and is not part of this phase-1 schema closeout"
+    ]
+  },
   "humanGates": [
     "需求/范围偏好、门禁策略与豁免、最终视觉/功能验收按维护者三触点契约处理",
     "生产窗口/外部凭据操作/正式发布/最终仓库基线替换需已有授权"
@@ -185,6 +198,18 @@
     ]
   },
   "plannedReviewFile": ".harness/evidence/2026-11-20-ops-extension-and-async-tenant-isolation/review.md",
+  "linkage": {
+    "taskManifest": ".harness/tasks/2026-11-20-ops-extension-and-async-tenant-isolation/manifest.json",
+    "taskDoc": "docs/harness/tasks/2026-11-20-ops-extension-and-async-tenant-isolation.task.md",
+    "evidenceDir": ".harness/evidence/2026-11-20-ops-extension-and-async-tenant-isolation/",
+    "reviewFile": ".harness/evidence/2026-11-20-ops-extension-and-async-tenant-isolation/review.md",
+    "summaryFile": ".harness/evidence/2026-11-20-ops-extension-and-async-tenant-isolation/summary.md",
+    "changeRef": "none",
+    "planRefs": [
+      ".harness/tasks/2026-11-20-ops-review-remediation/plan.md",
+      ".harness/tasks/2026-11-25-ops-tenant-runtime-enforcement/PLAN.md"
+    ]
+  },
   "evidenceRequired": [
     "commands.json 含真实执行状态/cwd/源码及构建身份",
     "summary.md 记录验收结果、runtime/visual gap 和来源判定",
@@ -192,9 +217,9 @@
     "V4 扩展数据/异步隔离，两域legacy与当前对象并存"
   ],
   "completionChecklist": [
-    "T01 全部业务表逐表已处理或有合同支持的分类依据，现有无 tenant_id 模型不会隐式成为共享资源",
-    "双租户查询/写入/回调/同步/告警/文件job各有反例，重启与异步执行身份保持正确",
-    "compat 历史数据、已有 observability tenant数据均可升级且无重复/丢失；未启用扩展的数据归属也已定义"
+    "18 张扩展业务表的 tenant_id schema 与五个租户优先唯一键已完成并通过模型契约测试",
+    "legacy MySQL upgrade / AutoMigrate-first / 旧数据兼容迁移测试通过",
+    "运行时隔离未在本阶段实现，且有明确链接的第二阶段任务承接"
   ],
   "rollbackPlan": "优先回退本包可逆代码；数据库按隔离演练过的数据回滚/备份方案处理，multi数据回滚遵循Base合同，生产动作另经授权",
   "migrationNumbering": {

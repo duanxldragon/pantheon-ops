@@ -28,9 +28,11 @@ The old keys were created by AutoMigrate without a stable name, so the migration
 
 Read scoping and write ownership in the extension services, switching their route groups to `TenantScopedBusinessGroup` (which is fail-closed and needs permission routes registered for every cicd/filedist route), and threading tenant identity into the six background entry points (ArgoCD reconciler, filedist lifecycle and transfer, alert evaluator, k8s backup and release). The same gap exists for the core modules T04 covered, so doing it only for the extensions would leave multi-tenant mode half-enforced.
 
-## Gaps (explicit)
+## Phase-1 closeout
 
-- **CI does not run the real-database migration tests.** Backend Tests has only a Redis service and no `PANTHEON_TEST_DSN`, so every `testmysql` test skips there (T04's included). They were run locally against MySQL 8 with maintainer authorization: 5/5 pass (`TestExtensionTenantMigration*`, T04's two migration tests, `TestAsyncRecoveryKeepsOriginatingTenant`), and a negative control made the T14 tests fail. Adding a MySQL service to the job is tracked separately.
-- The database-free schema tests passed, and a negative control showed they fail on a bad schema.
-- `business/observability` needs its own Redis locally; unrelated.
-- No independent CODE/ARCH review.
+- T14 phase 1 is closed at merge commit `81b8089efb943f7c3d20532eb766eb2c9e8764ef` via PR #225. The PR's hosted Backend Tests job passed with the MySQL-enabled gate in 6m36s; Smoke Sanity, Go Lint, Quality Gates, Docs Governance and security checks passed. The non-required Automate Solo PR job remained red due to the absent `RELEASE_GATE_TOKEN`; it did not block the merge.
+- The real-MySQL migration suite passed 5/5 on the pre-merge candidate, covering legacy-key upgrades, arbitrary legacy index names, AutoMigrate-first recovery, and T04 compatibility. PR #225 then passed the MySQL-backed required Backend Tests job.
+- An independent CODE/ARCH review of migration `000043`, model tags, and migration tests found no significant issues.
+- **Scope boundary:** this closeout covers schema ownership only. It does not claim tenant isolation is enforced at runtime: read/write scoping, tenant-scoped routes, async tenant identity, callbacks, alert evaluation and file distribution remain assigned to `2026-11-25-ops-tenant-runtime-enforcement` and its module tasks.
+- Local full business-package tests had one unrelated Redis-dependent observability test fail because the local Redis service was unavailable; the hosted PR Smoke Sanity and Backend Tests jobs passed.
+- The credential capability boundary finding in `deploy_credential.go` belongs to T05 and remains tracked separately.
