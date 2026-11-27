@@ -8,6 +8,7 @@ import (
 	"gorm.io/gorm"
 )
 
+// Fixture holds an isolated test database and its tenant contexts.
 type Fixture struct {
 	DB      *gorm.DB
 	TenantA *tenant.Context
@@ -15,6 +16,7 @@ type Fixture struct {
 	Compat  *tenant.Context
 }
 
+// Open prepares a disposable MySQL database for tenant isolation tests.
 func Open(t *testing.T) Fixture {
 	t.Helper()
 	return Fixture{

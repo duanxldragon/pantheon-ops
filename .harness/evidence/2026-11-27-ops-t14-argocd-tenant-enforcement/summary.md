@@ -16,3 +16,8 @@
 - Windows MinGW CGO、隔离 UTC MySQL 与两套独立 Redis 完成 `go test -race ./...`。78 个测试包通过，15 个无测试包，exit 0，耗时 450 秒。
 - 本次使用临时 MySQL 实例，关闭 redo 和 doublewrite 加速反复建库。外部 ArgoCD provider 与生产耐久性仍独立验收。
 - 验证树 `32bf1732be751abdeda5e532546a7ab633468f0f`，日志 SHA-256 `2742e1a06e23211440e23e4f1a95284c4bbd8a78e15374fb1dc35aeda71600c0`。高风险独立评审和 GitHub 必过检查仍开放。
+
+### Go Lint 修订后的全量验证
+
+- 补充租户 context 及隔离数据库 fixture 导出符号的 Go 文档注释。
+- 与 GitHub 同版本 golangci-lint v2.6.2 对新增差异报告 0 issues。Windows MinGW CGO 使用同样的临时 UTC MySQL 与两套独立 Redis，完整 `go test -race ./...` 通过 78 个测试包，耗时 389 秒。验证树 `b7c933eb84889aacdc095a8d0dc61c31b5e319d1`，日志 SHA-256 `7c104d85bbbc416ac4de3306932f916076badaa1e6197f3fed5a99674b158c42`。

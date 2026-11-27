@@ -33,6 +33,20 @@
       "status": "passed",
       "exitCode": 0,
       "notes": "Windows CGO; isolated UTC MySQL and Redis. 78 package passes, 450 seconds. Test tree 32bf1732be751abdeda5e532546a7ab633468f0f. SHA-256 2742e1a06e23211440e23e4f1a95284c4bbd8a78e15374fb1dc35aeda71600c0."
+    },
+    {
+      "command": "golangci-lint run --new-from-rev=02088145 ./...",
+      "cwd": "backend",
+      "status": "passed",
+      "exitCode": 0,
+      "notes": "v2.6.2, GOFLAGS=-buildvcs=false in the Windows worktree. 0 issues."
+    },
+    {
+      "command": "go test -race ./...",
+      "cwd": "backend",
+      "status": "passed",
+      "exitCode": 0,
+      "notes": "Windows CGO with isolated UTC MySQL and Redis, after scoped lint fixes. 78 packages; 389 seconds. Test tree b7c933eb84889aacdc095a8d0dc61c31b5e319d1. SHA-256 7c104d85bbbc416ac4de3306932f916076badaa1e6197f3fed5a99674b158c42."
     }
   ],
   "knownGaps": [
