@@ -40,3 +40,23 @@
 4. `frontend/src/core/router/businessOverlayComponentRegistry.ts` 属于业务 overlay 扩展点，仅为注册新页面而修改。
 
 因此本包不以 completed 收口；待上述真实环境/视觉证据补齐后关闭。
+
+## 2026-11-27 Base v0.19.1 隔离候选
+
+- 基线为 Ops `02088145`、Base `pantheon-base-v0.19.1`。只提取凭据管理、范围选择、任务预览/执行契约与相应测试。保留原工作树用于对账。
+- 用真实隔离 UTC MySQL 和两套 Redis 执行 Windows MinGW CGO 定向 race，40 条通过事件。覆盖部署凭据管理、业务域归属及相关回归。
+- 前端 smoke 入口补登记凭据页面用例。真实角色 smoke 6/6，其中只读角色有 1440px/390px 渲染。任务表单出现 React 重复 key 警告，未观察到用例断言失败。
+- 本次不触碰生产凭据或主机。真实 SSH 证据来自旧候选，当前独立复核、完整 race 以及最终验收仍按本轮结果记录。
+- 与 T14 开发树重叠 21 个产品路径，其中 14 个内容不同，须在各模块交接时合并语义。
+
+### 候选验证结论
+
+- 前端 lint、type-check、build、smoke 覆盖合同、干净重建、共享漂移检查通过。按 Impeccable 核对了真实浏览器 1440px 浅色、390px 深色只读列表。
+- Windows 完整 `go test -race ./...` 未通过。76 个包输出通过，`business/deploy` 在 40 分钟时触发包超时。
+- 完整 race 日志 SHA-256 为 `4f15fd1c6f80b6f71b7b1ec336b41ebf43620b6b78b7d3d77345ab9d633efdb9`。候选保留在本地，独立评审和 GitHub 交付仍开放。
+
+### 2026-11-27 串行全量复验
+
+- Windows MinGW CGO，隔离 UTC MySQL 与两套独立 Redis，单候选运行 `go test -race ./...`。77 个测试包通过，14 个无测试包，exit 0，耗时 352 秒。
+- MySQL 为临时实例，禁用 redo 与 doublewrite 以缩短测试库初始化与清理开销。复验限定运行态与事务行为，生产耐久性不在本次验证范围内。
+- 验证树 `48fd04eb38c69ec48ff0adcf2e79db2ce42dd8c1`，日志 SHA-256 `7c754398dc1f2e9954023f71e38e13a10b379909c8fb53b11913331f4f92a0c9`。当前候选仍待独立高风险评审与 GitHub 必过检查。

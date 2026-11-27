@@ -52,6 +52,7 @@ func (h *DeployHandler) RegisterRoutes(r gin.IRoutes) {
 	r.GET("/templates/export", h.ExportTemplates)
 	r.POST("/templates/import", h.ImportTemplates)
 	r.GET("/credentials", h.ListCredentials)
+	r.GET("/credentials/scope-options", h.ListCredentialScopeOptions)
 	r.POST("/credentials", h.CreateCredential)
 	r.PUT("/credentials/:id", h.UpdateCredential)
 	r.DELETE("/credentials/:id", h.DeleteCredential)
@@ -80,6 +81,16 @@ func (h *DeployHandler) RegisterRoutes(r gin.IRoutes) {
 // ListCredentials handles the credential reference metadata list endpoint.
 func (h *DeployHandler) ListCredentials(c *gin.Context) {
 	items, err := h.svc.ListCredentials(common.GetDataScope(c))
+	if err != nil {
+		common.FailWithError(c, common.CodeError, err, "deploycredential.list_failed")
+		return
+	}
+	common.Success(c, items)
+}
+
+// ListCredentialScopeOptions returns the caller's eligible business scope owners.
+func (h *DeployHandler) ListCredentialScopeOptions(c *gin.Context) {
+	items, err := h.svc.listCredentialScopeOptions(c.Request.Context(), common.GetDataScope(c))
 	if err != nil {
 		common.FailWithError(c, common.CodeError, err, "deploycredential.list_failed")
 		return

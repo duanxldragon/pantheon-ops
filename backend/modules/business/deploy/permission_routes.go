@@ -95,6 +95,7 @@ func registerDeployPermissionRoutes() error {
 		}},
 		{Permission: "business:deploy:credential:list", Routes: []permissionroutes.Route{
 			{Method: "GET", Path: "/api/v1/business/deploy/credentials"},
+			{Method: "GET", Path: "/api/v1/business/deploy/credentials/scope-options"},
 		}},
 		{Permission: "business:deploy:credential:create", Routes: []permissionroutes.Route{
 			{Method: "POST", Path: "/api/v1/business/deploy/credentials"},

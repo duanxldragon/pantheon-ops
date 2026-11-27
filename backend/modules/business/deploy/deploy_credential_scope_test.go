@@ -3,14 +3,17 @@ package deploy
 import (
 	"context"
 	_ "embed"
+	"errors"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/duanxldragon/pantheon-base/backend/modules/business/cmdb"
 	"github.com/duanxldragon/pantheon-base/backend/pkg/common"
 	"github.com/duanxldragon/pantheon-base/backend/pkg/testmysql"
 
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 //go:embed migrations/000042_deploy_credential_scope.up.sql
@@ -136,6 +139,344 @@ func TestDeployCredentialStartRequiresMatchingBusinessScope(t *testing.T) {
 	}
 }
 
+func TestDeployCredentialScopeTransferBumpsVersion(t *testing.T) {
+	db := setupDeployTestDB(t)
+	svc := NewDeployService(db, cmdb.NewDeployCMDBCapability(db))
+	t.Setenv(deployCredentialKeyEnv, deployCredentialScopeTestKey)
+	scopeA, scopeB, _ := seedCredentialScopes(t, svc, db)
+	credential, err := svc.CreateCredential(CreateDeployCredentialRequest{
+		Name: "scope-version", Username: "root", AuthMode: deployCredentialAuthModePassword,
+		Secret: "secret", BusinessScopeID: scopeA,
+	}, "1", nil)
+	if err != nil {
+		t.Fatalf("create credential: %v", err)
+	}
+	updated, err := svc.UpdateCredential(credential.ID, UpdateDeployCredentialRequest{
+		BusinessScopeID: &scopeB,
+	}, "1", nil)
+	if err != nil {
+		t.Fatalf("move credential: %v", err)
+	}
+	if updated.Version != credential.Version+1 {
+		t.Fatalf("scope transfer version = %d, want %d", updated.Version, credential.Version+1)
+	}
+}
+
+func TestCredentialExecutionMetadataChangesBumpVersion(t *testing.T) {
+	db := setupDeployTestDB(t)
+	svc := NewDeployService(db, cmdb.NewDeployCMDBCapability(db))
+	t.Setenv(deployCredentialKeyEnv, deployCredentialScopeTestKey)
+	scopeA, _, _ := seedCredentialScopes(t, svc, db)
+	credential, err := svc.CreateCredential(CreateDeployCredentialRequest{
+		Name: "metadata-version", Username: "root", AuthMode: deployCredentialAuthModePassword,
+		Secret: "secret", BusinessScopeID: scopeA,
+	}, "1", nil)
+	if err != nil {
+		t.Fatalf("create credential: %v", err)
+	}
+
+	updates := []struct {
+		name string
+		req  UpdateDeployCredentialRequest
+	}{
+		{name: "username", req: UpdateDeployCredentialRequest{Username: ptrString("deploy")}},
+		{name: "auth mode", req: UpdateDeployCredentialRequest{AuthMode: ptrString(deployCredentialAuthModePrivateKey)}},
+		{name: "status", req: UpdateDeployCredentialRequest{Status: ptrString("disabled")}},
+	}
+	for _, update := range updates {
+		t.Run(update.name, func(t *testing.T) {
+			updated, err := svc.UpdateCredential(credential.ID, update.req, "1", nil)
+			if err != nil {
+				t.Fatalf("update credential: %v", err)
+			}
+			if updated.Version != credential.Version+1 {
+				t.Fatalf("credential version = %d, want %d", updated.Version, credential.Version+1)
+			}
+			credential = updated
+		})
+	}
+
+	unchanged, err := svc.UpdateCredential(credential.ID, UpdateDeployCredentialRequest{
+		Username: ptrString(credential.Username),
+		AuthMode: ptrString(credential.AuthMode),
+		Status:   ptrString(credential.Status),
+	}, "1", nil)
+	if err != nil {
+		t.Fatalf("update unchanged metadata: %v", err)
+	}
+	if unchanged.Version != credential.Version {
+		t.Fatalf("no-op metadata update changed version from %d to %d", credential.Version, unchanged.Version)
+	}
+}
+
+func TestUpdateCredentialRechecksDataScopeUnderLock(t *testing.T) {
+	db := setupDeployTestDB(t)
+	if db.Dialector.Name() != "mysql" {
+		t.Skip("credential update locking requires MySQL")
+	}
+	svc := NewDeployService(db, cmdb.NewDeployCMDBCapability(db))
+	t.Setenv(deployCredentialKeyEnv, deployCredentialScopeTestKey)
+	scopeA, scopeB, _ := seedCredentialScopes(t, svc, db)
+	deptA := &common.DataScopeReq{Mode: common.DataScopeModeDept, DeptID: 20}
+	credential, err := svc.CreateCredential(CreateDeployCredentialRequest{
+		Name: "update-scope-race", Username: "root", AuthMode: deployCredentialAuthModePassword,
+		Secret: "original-secret", BusinessScopeID: scopeA,
+	}, "1", deptA)
+	if err != nil {
+		t.Fatalf("create credential: %v", err)
+	}
+	var before DeployCredentialRef
+	if err := db.First(&before, credential.ID).Error; err != nil {
+		t.Fatalf("load credential before ownership change: %v", err)
+	}
+
+	transferTx := db.Begin()
+	if transferTx.Error != nil {
+		t.Fatalf("begin ownership transfer: %v", transferTx.Error)
+	}
+	var locked DeployCredentialRef
+	if err := transferTx.Clauses(clause.Locking{Strength: "UPDATE"}).First(&locked, credential.ID).Error; err != nil {
+		transferTx.Rollback()
+		t.Fatalf("lock credential for ownership transfer: %v", err)
+	}
+
+	const callbackName = "test:update-credential-query-started"
+	queryStarted := make(chan struct{}, 1)
+	if err := db.Callback().Query().Before("gorm:query").Register(callbackName, func(tx *gorm.DB) {
+		if tx.Statement.Schema != nil && tx.Statement.Schema.Table == "biz_deploy_credential_ref" {
+			select {
+			case queryStarted <- struct{}{}:
+			default:
+			}
+		}
+	}); err != nil {
+		transferTx.Rollback()
+		t.Fatalf("register query-start synchronization: %v", err)
+	}
+	updated := make(chan error, 1)
+	go func() {
+		_, err := svc.UpdateCredential(credential.ID, UpdateDeployCredentialRequest{
+			Secret: ptrString("unauthorized-rotation"),
+		}, "1", deptA)
+		updated <- err
+	}()
+	select {
+	case <-queryStarted:
+	case <-time.After(5 * time.Second):
+		transferTx.Rollback()
+		t.Fatal("restricted update did not reach its credential query")
+	}
+	select {
+	case err := <-updated:
+		transferTx.Rollback()
+		t.Fatalf("update must wait for the in-flight ownership transfer, returned early: %v", err)
+	case <-time.After(500 * time.Millisecond):
+	}
+
+	if err := transferTx.Model(&DeployCredentialRef{}).Where("id = ?", credential.ID).
+		Updates(map[string]any{"business_scope_id": scopeB, "version": gorm.Expr("version + 1")}).Error; err != nil {
+		transferTx.Rollback()
+		t.Fatalf("move credential during restricted update: %v", err)
+	}
+	if err := transferTx.Commit().Error; err != nil {
+		t.Fatalf("commit ownership transfer: %v", err)
+	}
+	select {
+	case err := <-updated:
+		if err == nil || !strings.Contains(err.Error(), "credential.not_found") {
+			t.Fatalf("restricted update after ownership transfer must be denied, got %v", err)
+		}
+	case <-time.After(5 * time.Second):
+		t.Fatal("restricted update did not finish after ownership transfer")
+	}
+
+	var after DeployCredentialRef
+	if err := db.First(&after, credential.ID).Error; err != nil {
+		t.Fatalf("reload credential after ownership transfer: %v", err)
+	}
+	if after.BusinessScopeID != scopeB || after.Version != before.Version+1 || after.SecretEncrypted != before.SecretEncrypted {
+		t.Fatalf("restricted update changed transferred credential: before=%+v after=%+v", before, after)
+	}
+}
+
+func TestDeployCredentialStartClaimRechecksScopeUnderLock(t *testing.T) {
+	db := setupDeployTestDB(t)
+	if db.Dialector.Name() != "mysql" {
+		t.Skip("credential claim locking requires MySQL")
+	}
+	svc := NewDeployService(db, cmdb.NewDeployCMDBCapability(db))
+	t.Setenv(deployCredentialKeyEnv, deployCredentialScopeTestKey)
+	scopeA, scopeB, hostID := seedCredentialScopes(t, svc, db)
+	deptA := &common.DataScopeReq{Mode: common.DataScopeModeDept, DeptID: 20}
+	credential, err := svc.CreateCredential(CreateDeployCredentialRequest{
+		Name: "claim-scope-race", Username: "root", AuthMode: deployCredentialAuthModePassword,
+		Secret: "secret", BusinessScopeID: scopeA,
+	}, "1", deptA)
+	if err != nil {
+		t.Fatalf("create credential: %v", err)
+	}
+	pkg, err := svc.CreatePackage(CreatePackageRequest{
+		Name: "claim-scope-package", Version: "1.0.0", InstallCommand: "echo ok", Status: PackageStatusEnabled,
+	}, "1")
+	if err != nil {
+		t.Fatalf("create package: %v", err)
+	}
+	task, err := svc.CreateTask(CreateTaskRequest{
+		Name: "claim-scope-task", PackageID: pkg.ID, BusinessScopeID: scopeA,
+		TargetType: TargetTypeHost, TargetIDs: []uint64{hostID}, ExecutorType: ExecutorTypeSSH,
+	}, "1", deptA)
+	if err != nil {
+		t.Fatalf("create task: %v", err)
+	}
+	persistedTask, err := svc.loadVisibleTask(task.ID, deptA)
+	if err != nil {
+		t.Fatalf("load task: %v", err)
+	}
+	req, version, err := svc.prepareStartCredential(
+		StartTaskRequest{CredentialRefID: credential.ID, HostFingerprint: "SHA256:claim-race"},
+		*persistedTask, false,
+	)
+	if err != nil {
+		t.Fatalf("resolve credential before ownership change: %v", err)
+	}
+	hosts, err := svc.prepareStartTargets(persistedTask, req, deptA)
+	if err != nil {
+		t.Fatalf("prepare targets: %v", err)
+	}
+	claim := &startTaskClaim{
+		service: svc, dataScope: deptA, task: persistedTask, req: req, hosts: hosts, actor: "1",
+		now: time.Now(), timeout: time.Minute, leaseOwner: deployHostLeaseOwner(persistedTask.ID),
+		credentialVersion: version,
+	}
+
+	if err := db.Model(&DeployCredentialRef{}).Where("id = ?", credential.ID).
+		Update("business_scope_id", scopeB).Error; err != nil {
+		t.Fatalf("move credential after preflight resolution: %v", err)
+	}
+	if err := svc.deploymentTransaction(claim.claim); !errors.Is(err, ErrTaskPreviewConflict) {
+		t.Fatalf("claim should reject credential ownership drift under row lock, got %v", err)
+	}
+	var current DeployTask
+	if err := db.First(&current, task.ID).Error; err != nil {
+		t.Fatalf("reload task: %v", err)
+	}
+	if current.Status != TaskStatusDraft {
+		t.Fatalf("rejected claim mutated task status to %q", current.Status)
+	}
+	var hostRows int64
+	if err := db.Model(&DeployTaskHost{}).Where("task_id = ?", task.ID).Count(&hostRows).Error; err != nil {
+		t.Fatalf("count task hosts: %v", err)
+	}
+	if hostRows != 0 {
+		t.Fatalf("rejected claim persisted %d task host rows", hostRows)
+	}
+
+	if err := db.Model(&DeployCredentialRef{}).Where("id = ?", credential.ID).
+		Update("business_scope_id", scopeA).Error; err != nil {
+		t.Fatalf("restore credential scope: %v", err)
+	}
+	deleteReq, deleteVersion, err := svc.prepareStartCredential(
+		StartTaskRequest{CredentialRefID: credential.ID, HostFingerprint: "SHA256:deleted-race"},
+		*persistedTask, false,
+	)
+	if err != nil {
+		t.Fatalf("resolve credential before deletion: %v", err)
+	}
+	deleteClaim := &startTaskClaim{
+		service: svc, dataScope: deptA, task: persistedTask, req: deleteReq, hosts: hosts, actor: "1",
+		now: time.Now(), timeout: time.Minute, leaseOwner: deployHostLeaseOwner(persistedTask.ID),
+		credentialVersion: deleteVersion,
+	}
+	if err := svc.DeleteCredential(credential.ID, nil); err != nil {
+		t.Fatalf("delete unreferenced credential: %v", err)
+	}
+	if err := svc.deploymentTransaction(deleteClaim.claim); !errors.Is(err, ErrTaskPreviewConflict) {
+		t.Fatalf("claim should return a preview conflict after credential deletion, got %v", err)
+	}
+}
+
+func TestDeleteCredentialSerializesWithCredentialClaim(t *testing.T) {
+	db := setupDeployTestDB(t)
+	if db.Dialector.Name() != "mysql" {
+		t.Skip("credential claim locking requires MySQL")
+	}
+	svc := NewDeployService(db, cmdb.NewDeployCMDBCapability(db))
+	t.Setenv(deployCredentialKeyEnv, deployCredentialScopeTestKey)
+	scopeA, _, hostID := seedCredentialScopes(t, svc, db)
+	credential, err := svc.CreateCredential(CreateDeployCredentialRequest{
+		Name: "delete-claim-race", Username: "root", AuthMode: deployCredentialAuthModePassword,
+		Secret: "secret", BusinessScopeID: scopeA,
+	}, "1", &common.DataScopeReq{IsAdmin: true})
+	if err != nil {
+		t.Fatalf("create credential: %v", err)
+	}
+	pkg, err := svc.CreatePackage(CreatePackageRequest{
+		Name: "delete-claim-package", Version: "1.0.0", InstallCommand: "echo ok", Status: PackageStatusEnabled,
+	}, "1")
+	if err != nil {
+		t.Fatalf("create package: %v", err)
+	}
+	task, err := svc.CreateTask(CreateTaskRequest{
+		Name: "delete-claim-task", PackageID: pkg.ID, BusinessScopeID: scopeA,
+		TargetType: TargetTypeHost, TargetIDs: []uint64{hostID}, ExecutorType: ExecutorTypeSSH,
+	}, "1", nil)
+	if err != nil {
+		t.Fatalf("create task: %v", err)
+	}
+
+	claimTx := db.Begin()
+	if claimTx.Error != nil {
+		t.Fatalf("begin claim transaction: %v", claimTx.Error)
+	}
+	var locked DeployCredentialRef
+	if err := claimTx.Clauses(clause.Locking{Strength: "UPDATE"}).First(&locked, credential.ID).Error; err != nil {
+		claimTx.Rollback()
+		t.Fatalf("lock credential for claim: %v", err)
+	}
+
+	started := make(chan struct{})
+	queryStarted := make(chan struct{}, 1)
+	if err := db.Callback().Query().Before("gorm:query").Register("test:credential-delete-query-started", func(*gorm.DB) {
+		select {
+		case queryStarted <- struct{}{}:
+		default:
+		}
+	}); err != nil {
+		claimTx.Rollback()
+		t.Fatalf("register query-start synchronization: %v", err)
+	}
+	deleted := make(chan error, 1)
+	go func() {
+		close(started)
+		deleted <- svc.DeleteCredential(credential.ID, nil)
+	}()
+	<-started
+	select {
+	case <-queryStarted:
+	case <-time.After(5 * time.Second):
+		claimTx.Rollback()
+		t.Fatal("delete did not reach its credential query")
+	}
+	select {
+	case err := <-deleted:
+		claimTx.Rollback()
+		t.Fatalf("delete must wait for the in-flight credential claim, returned early: %v", err)
+	case <-time.After(500 * time.Millisecond):
+	}
+
+	if err := claimTx.Model(&DeployTask{}).Where("id = ?", task.ID).
+		Update("credential_ref_id", credential.ID).Error; err != nil {
+		claimTx.Rollback()
+		t.Fatalf("persist task credential reference: %v", err)
+	}
+	if err := claimTx.Commit().Error; err != nil {
+		t.Fatalf("commit task credential reference: %v", err)
+	}
+	if err := <-deleted; err == nil || !strings.Contains(err.Error(), "credential.in_use") {
+		t.Fatalf("delete must observe the committed task reference, got %v", err)
+	}
+}
+
 // A global (scope 0) credential stays admin-owned: a restricted role cannot
 // create one, and a restricted-role start cannot use it on a scoped task.
 func TestDeployCredentialGlobalScopeIsAdminOnly(t *testing.T) {
@@ -160,6 +501,13 @@ func TestDeployCredentialGlobalScopeIsAdminOnly(t *testing.T) {
 	// Admin/system callers and the queue-recovery path carry allowGlobal=true.
 	if _, _, err := svc.resolveStartCredential(StartTaskRequest{CredentialRefID: global.ID}, task, true); err != nil {
 		t.Fatalf("admin start should use a global credential: %v", err)
+	}
+	legacyTask := DeployTask{ID: 8, BusinessScopeID: 0, CredentialRefID: global.ID}
+	if _, _, err := svc.resolveStartCredential(StartTaskRequest{CredentialRefID: global.ID}, legacyTask, false); err == nil || !strings.Contains(err.Error(), "credential.out_of_scope") {
+		t.Fatalf("scoped role must not use a global credential on a legacy task, got %v", err)
+	}
+	if _, _, err := svc.resolveStartCredential(StartTaskRequest{CredentialRefID: global.ID}, legacyTask, true); err != nil {
+		t.Fatalf("admin start should use a global credential on a legacy task: %v", err)
 	}
 
 	// Cross-scope create is refused even when the requested scope exists.

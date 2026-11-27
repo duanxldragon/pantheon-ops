@@ -80,6 +80,22 @@ func (s *Service) VisibleIDs(ctx context.Context, dataScope *common.DataScopeReq
 	return ids, nil
 }
 
+// ListActive returns the visible active scopes eligible to own new resources.
+func (s *Service) ListActive(ctx context.Context, dataScope *common.DataScopeReq) ([]bizcap.BizScopeRef, error) {
+	if s.db == nil {
+		return nil, errors.New("database.not_initialized")
+	}
+	var rows []BizScope
+	if err := s.db.WithContext(ctx).Scopes(database.WithDataScope(dataScope)).Where("status = ?", "active").Order("id DESC").Find(&rows).Error; err != nil {
+		return nil, err
+	}
+	items := make([]bizcap.BizScopeRef, 0, len(rows))
+	for _, row := range rows {
+		items = append(items, toBizScopeRef(row))
+	}
+	return items, nil
+}
+
 // ResolveActiveByCodes resolves active business scopes by code.
 func (s *Service) ResolveActiveByCodes(ctx context.Context, codes []string, dataScope *common.DataScopeReq) (map[string]bizcap.BizScopeRef, error) {
 	if s.db == nil {

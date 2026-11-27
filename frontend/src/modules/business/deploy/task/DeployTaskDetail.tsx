@@ -65,6 +65,7 @@ import '../deploy.css';
 import { apiRequest } from '@duanxldragon/pantheon-base-ui';
 import { useDeployTaskSnapshot } from './useDeployTaskSnapshot';
 import { useDeployTaskStream } from './useDeployTaskStream';
+import { credentialsForTask } from './taskCredentials';
 import DeployExecutionWorkbench from './DeployExecutionWorkbench';
 
 const statusColorMap: Record<string, string> = {
@@ -857,17 +858,15 @@ function StartSshModal({
             rules={[{ required: true, message: t('business.deploy.task.credentialRefIdRequired') }]}
           >
             <Select placeholder={t('business.deploy.task.credentialRefIdPlaceholder')}>
-              {credentials
-                .filter((item) => item.status === 'active')
-                .map((item) => (
-                  <Select.Option key={item.id} value={item.id}>
-                    {item.name}（{item.username} ·{' '}
-                    {item.authMode === 'private_key'
-                      ? t('business.deploy.task.authMode.privateKey')
-                      : t('business.deploy.task.authMode.password')}
-                    ）
-                  </Select.Option>
-                ))}
+              {credentials.map((item) => (
+                <Select.Option key={item.id} value={item.id}>
+                  {item.name}（{item.username} ·{' '}
+                  {item.authMode === 'private_key'
+                    ? t('business.deploy.task.authMode.privateKey')
+                    : t('business.deploy.task.authMode.password')}
+                  ）
+                </Select.Option>
+              ))}
             </Select>
           </Form.Item>
           <Form.Item
@@ -888,7 +887,7 @@ export default function DeployTaskDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { t } = useTranslation();
-  const { hasPerm } = usePermission();
+  const { hasPerm, isAdmin } = usePermission();
   const [form] = Form.useForm<MarkResultFormValues>();
   const [startForm] = Form.useForm<StartDeployTaskPayload>();
   const { task, error, loading, stale: detailStale, loadData, deny } = useDeployTaskSnapshot(id ? Number(id) : undefined);
@@ -1347,7 +1346,7 @@ export default function DeployTaskDetail() {
         visible={startVisible}
         t={t}
         form={startForm}
-        credentials={credentials}
+        credentials={credentialsForTask(credentials, task.businessScopeId, isAdmin)}
         startSubmitting={startSubmitting}
         onClose={closeStartModal}
         onSubmit={submitStart}

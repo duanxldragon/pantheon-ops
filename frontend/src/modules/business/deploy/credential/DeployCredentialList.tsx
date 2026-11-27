@@ -27,15 +27,17 @@ import {
   buildStandardPagination,
 } from '../../../../components';
 import PasswordInput from '../../../../components/patterns/forms/PasswordInput';
+import { formatDateTime } from '../../../../core/format/dateTime';
 import { usePermission } from '../../../../hooks/usePermission';
-import { getBizScopeOptions, type BizScopeOptionItem } from '../../bizscope/api';
 import {
   createDeployCredential,
   deleteDeployCredential,
   getDeployCredentialList,
+  getDeployCredentialScopeOptions,
   updateDeployCredential,
   type DeployCredentialPayload,
   type DeployCredentialRow,
+  type DeployCredentialScopeOption,
 } from '../api';
 import '../../../../assets/list-page.css';
 import '../deploy.css';
@@ -57,7 +59,7 @@ export default function DeployCredentialList() {
   const canDelete = hasPerm('business:deploy:credential:delete');
 
   const [data, setData] = useState<DeployCredentialRow[]>([]);
-  const [scopes, setScopes] = useState<BizScopeOptionItem[]>([]);
+  const [scopes, setScopes] = useState<DeployCredentialScopeOption[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const [keyword, setKeyword] = useState('');
@@ -73,8 +75,9 @@ export default function DeployCredentialList() {
     setLoading(true);
     setError(false);
     try {
-      const items = await getDeployCredentialList();
+      const [items, scopeOptions] = await Promise.all([getDeployCredentialList(), getDeployCredentialScopeOptions()]);
       setData(items || []);
+      setScopes(scopeOptions || []);
     } catch {
       setError(true);
     } finally {
@@ -86,18 +89,9 @@ export default function DeployCredentialList() {
     queueMicrotask(() => {
       void loadData();
     });
-    getBizScopeOptions()
-      .then((items) => setScopes(items || []))
-      .catch(() => setScopes([]));
   }, [loadData]);
 
-  const scopeNames = useMemo(() => {
-    const map = new Map<number, string>();
-    for (const scope of scopes) {
-      map.set(scope.value ?? scope.id, scope.label || scope.name);
-    }
-    return map;
-  }, [scopes]);
+  const scopeNames = useMemo(() => new Map(scopes.map(({ id, name }) => [id, name])), [scopes]);
 
   const filtered = useMemo(() => {
     const query = keyword.trim().toLowerCase();
@@ -187,7 +181,7 @@ export default function DeployCredentialList() {
       title: t('business.deploy.credential.businessScope'),
       dataIndex: 'businessScopeId',
       width: 180,
-      render: (value: number) => scopeNames.get(value) || t('business.deploy.credential.platformScope'),
+      render: (value: number) => value === 0 ? t('business.deploy.credential.platformScope') : scopeNames.get(value) ?? `#${value}`,
     },
     { title: t('business.deploy.credential.username'), dataIndex: 'username', width: 140 },
     {
@@ -211,11 +205,13 @@ export default function DeployCredentialList() {
       title: t('business.deploy.credential.updatedAt'),
       dataIndex: 'updatedAt',
       width: 180,
-      render: (value: string) => (value ? new Date(value).toLocaleString() : '-'),
+      render: (value: string) => formatDateTime(value),
     },
-    {
+  ];
+  if (canUpdate || canDelete) {
+    columns.push({
       title: t('common.actions'),
-      width: TABLE_ACTION_COLUMN_WIDTH.medium,
+      width: canUpdate && canDelete ? TABLE_ACTION_COLUMN_WIDTH.compact : TABLE_ACTION_COLUMN_WIDTH.single,
       fixed: 'right',
       render: (_: unknown, row: DeployCredentialRow) => (
         <Space>
@@ -233,8 +229,8 @@ export default function DeployCredentialList() {
           ) : null}
         </Space>
       ),
-    },
-  ];
+    });
+  }
 
   if (loading && data.length === 0) {
     return (
@@ -292,7 +288,7 @@ export default function DeployCredentialList() {
             columns={columns}
             data={paged}
             loading={loading}
-            scroll={{ x: 1180 }}
+            scroll={{ x: 'max-content' }}
             pagination={buildStandardPagination(t, {
               current: page,
               pageSize,
@@ -338,8 +334,8 @@ export default function DeployCredentialList() {
             <Select
               placeholder={t('business.deploy.credential.businessScopePlaceholder')}
               options={scopes.map((scope) => ({
-                label: scope.label || scope.name,
-                value: scope.value ?? scope.id,
+                label: scope.name,
+                value: scope.id,
               }))}
             />
           </Form.Item>

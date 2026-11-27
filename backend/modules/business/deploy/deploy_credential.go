@@ -15,6 +15,7 @@ import (
 	"github.com/duanxldragon/pantheon-base/backend/pkg/common"
 
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 const deployCredentialKeyEnv = "PANTHEON_DEPLOY_CREDENTIAL_KEY"
@@ -50,7 +51,11 @@ func credentialResponse(item *DeployCredentialRef) DeployCredentialResponse {
 // credential, and legacy rows without an owner (business_scope_id = 0) stay
 // admin-only instead of silently becoming a global secret pool.
 func (s *DeployService) credentialVisibleQuery(dataScope *common.DataScopeReq) (*gorm.DB, error) {
-	db := s.db.Model(&DeployCredentialRef{})
+	return s.credentialVisibleQueryFrom(s.db, dataScope)
+}
+
+func (s *DeployService) credentialVisibleQueryFrom(db *gorm.DB, dataScope *common.DataScopeReq) (*gorm.DB, error) {
+	db = db.Model(&DeployCredentialRef{})
 	if dataScope == nil || dataScope.IsAdmin {
 		return db, nil
 	}
@@ -141,77 +146,104 @@ func (s *DeployService) CreateCredential(req CreateDeployCredentialRequest, acto
 
 // UpdateCredential changes deploy credential metadata or rotates its encrypted secret.
 func (s *DeployService) UpdateCredential(id uint64, req UpdateDeployCredentialRequest, actor string, dataScope *common.DataScopeReq) (*DeployCredentialResponse, error) {
-	item, err := s.loadVisibleCredential(id, dataScope)
+	var response *DeployCredentialResponse
+	err := s.db.Transaction(func(tx *gorm.DB) error {
+		query, err := s.credentialVisibleQueryFrom(tx, dataScope)
+		if err != nil {
+			return err
+		}
+		var item DeployCredentialRef
+		if err := query.Clauses(clause.Locking{Strength: "UPDATE"}).First(&item, id).Error; err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				return errors.New("business.deploy.credential.not_found")
+			}
+			return err
+		}
+		scopeChanged := req.BusinessScopeID != nil && *req.BusinessScopeID != item.BusinessScopeID
+		if scopeChanged {
+			if err := s.validateCredentialBusinessScope(*req.BusinessScopeID, dataScope); err != nil {
+				return err
+			}
+		}
+		updates := map[string]any{"updated_at": time.Now()}
+		if req.BusinessScopeID != nil {
+			updates["business_scope_id"] = *req.BusinessScopeID
+		}
+		versionChanged := scopeChanged
+		if req.Name != nil {
+			updates["name"] = strings.TrimSpace(*req.Name)
+		}
+		if req.Username != nil {
+			username := strings.TrimSpace(*req.Username)
+			updates["username"] = username
+			versionChanged = versionChanged || username != item.Username
+		}
+		if req.AuthMode != nil {
+			if *req.AuthMode != deployCredentialAuthModePassword && *req.AuthMode != deployCredentialAuthModePrivateKey {
+				return errors.New("business.deploy.credential.auth_mode_invalid")
+			}
+			updates["auth_mode"] = *req.AuthMode
+			versionChanged = versionChanged || *req.AuthMode != item.AuthMode
+		}
+		if req.Status != nil {
+			if *req.Status != bizScopeStatusActive && *req.Status != "disabled" {
+				return errors.New("business.deploy.credential.status_invalid")
+			}
+			updates["status"] = *req.Status
+			versionChanged = versionChanged || *req.Status != item.Status
+		}
+		if req.Secret != nil && strings.TrimSpace(*req.Secret) != "" {
+			encrypted, err := encryptDeployCredential(*req.Secret)
+			if err != nil {
+				return err
+			}
+			updates["secret_encrypted"] = encrypted
+			versionChanged = true
+		}
+		if versionChanged {
+			updates["version"] = gorm.Expr("version + 1")
+		}
+		if err := tx.Model(&item).Updates(updates).Error; err != nil {
+			return err
+		}
+		if err := tx.First(&item, id).Error; err != nil {
+			return err
+		}
+		result := credentialResponse(&item)
+		response = &result
+		return nil
+	})
 	if err != nil {
 		return nil, err
 	}
-	if req.BusinessScopeID != nil && *req.BusinessScopeID != item.BusinessScopeID {
-		if err := s.validateCredentialBusinessScope(*req.BusinessScopeID, dataScope); err != nil {
-			return nil, err
-		}
-	}
-	updates := map[string]any{"updated_at": time.Now()}
-	if req.BusinessScopeID != nil {
-		updates["business_scope_id"] = *req.BusinessScopeID
-	}
-	if req.Name != nil {
-		updates["name"] = strings.TrimSpace(*req.Name)
-	}
-	if req.Username != nil {
-		updates["username"] = strings.TrimSpace(*req.Username)
-	}
-	if req.AuthMode != nil {
-		if *req.AuthMode != deployCredentialAuthModePassword && *req.AuthMode != deployCredentialAuthModePrivateKey {
-			return nil, errors.New("business.deploy.credential.auth_mode_invalid")
-		}
-		updates["auth_mode"] = *req.AuthMode
-	}
-	if req.Status != nil {
-		if *req.Status != bizScopeStatusActive && *req.Status != "disabled" {
-			return nil, errors.New("business.deploy.credential.status_invalid")
-		}
-		updates["status"] = *req.Status
-	}
-	if req.Secret != nil && strings.TrimSpace(*req.Secret) != "" {
-		encrypted, err := encryptDeployCredential(*req.Secret)
-		if err != nil {
-			return nil, err
-		}
-		updates["secret_encrypted"] = encrypted
-		updates["version"] = item.Version + 1
-	}
-	if err := s.db.Model(&item).Updates(updates).Error; err != nil {
-		return nil, err
-	}
-	if err := s.db.First(item, id).Error; err != nil {
-		return nil, err
-	}
-	resp := credentialResponse(item)
-	return &resp, nil
+	return response, nil
 }
 
 // DeleteCredential removes a deploy credential reference by ID. A credential
 // still referenced by any task is refused: tasks keep the immutable id/version
 // that produced their execution snapshot, including after they finish.
 func (s *DeployService) DeleteCredential(id uint64, dataScope *common.DataScopeReq) error {
-	if _, err := s.loadVisibleCredential(id, dataScope); err != nil {
-		return err
-	}
-	var used int64
-	if err := s.db.Model(&DeployTask{}).Where("credential_ref_id = ?", id).Count(&used).Error; err != nil {
-		return err
-	}
-	if used > 0 {
-		return errors.New("business.deploy.credential.in_use")
-	}
-	result := s.db.Delete(&DeployCredentialRef{}, id)
-	if result.Error != nil {
-		return result.Error
-	}
-	if result.RowsAffected == 0 {
-		return errors.New("business.deploy.credential.not_found")
-	}
-	return nil
+	return s.db.Transaction(func(tx *gorm.DB) error {
+		query, err := s.credentialVisibleQueryFrom(tx, dataScope)
+		if err != nil {
+			return err
+		}
+		var item DeployCredentialRef
+		if err := query.Clauses(clause.Locking{Strength: "UPDATE"}).First(&item, id).Error; err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				return errors.New("business.deploy.credential.not_found")
+			}
+			return err
+		}
+		var used int64
+		if err := tx.Model(&DeployTask{}).Where("credential_ref_id = ?", id).Count(&used).Error; err != nil {
+			return err
+		}
+		if used > 0 {
+			return errors.New("business.deploy.credential.in_use")
+		}
+		return tx.Delete(&item).Error
+	})
 }
 
 func decryptDeployCredential(value string) (string, error) {
@@ -270,7 +302,7 @@ func (s *DeployService) resolveStartCredential(req StartTaskRequest, task Deploy
 	if err := s.db.First(&ref, req.CredentialRefID).Error; err != nil {
 		return req, 0, errors.New("business.deploy.credential.not_found")
 	}
-	if ref.BusinessScopeID != task.BusinessScopeID && (ref.BusinessScopeID != 0 || !allowGlobal) {
+	if !credentialMatchesTaskScope(ref, task, allowGlobal) {
 		return req, 0, errors.New("business.deploy.credential.out_of_scope")
 	}
 	if ref.Status != bizScopeStatusActive {
@@ -287,6 +319,13 @@ func (s *DeployService) resolveStartCredential(req StartTaskRequest, task Deploy
 		req.SSHPassword = secret
 	}
 	return req, ref.Version, nil
+}
+
+func credentialMatchesTaskScope(ref DeployCredentialRef, task DeployTask, allowGlobal bool) bool {
+	if ref.BusinessScopeID == 0 {
+		return allowGlobal
+	}
+	return ref.BusinessScopeID == task.BusinessScopeID
 }
 
 func validateCredentialReferenceRequest(req StartTaskRequest) error {

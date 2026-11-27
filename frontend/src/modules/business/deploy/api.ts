@@ -272,6 +272,11 @@ export interface DeployCredentialPayload {
   status?: string;
 }
 
+export interface DeployCredentialScopeOption {
+  id: number;
+  name: string;
+}
+
 // StartDeployTaskPayload is the CredentialRef-only Start contract. The SSH
 // material is resolved server-side from the credential reference and must never
 // be sent from the client. The idempotency key is generated per user submission
@@ -458,6 +463,13 @@ export function startDeployTask(id: number, data?: StartDeployTaskPayload, reque
 export function getDeployCredentialList() {
   return apiRequest<DeployCredentialRow[]>({
     url: '/business/deploy/credentials',
+    method: 'get',
+  });
+}
+
+export function getDeployCredentialScopeOptions() {
+  return apiRequest<DeployCredentialScopeOption[]>({
+    url: '/business/deploy/credentials/scope-options',
     method: 'get',
   });
 }
