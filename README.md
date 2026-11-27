@@ -6,7 +6,9 @@ Pantheon Ops 消费 Pantheon Base 的正式 foundation release，扩展运维业
 
 当前处于试点交付准备阶段，尚未完成试点验收。五个核心模块（CMDB、BizScope、Service、Deploy、K8s）已有实现；部署与实例关联、目录维护、K8s Service 编辑和当前版本真机验收仍有缺口。观测、文件分发、GitOps、备份已存在实现或装配，按实际开放范围独立验收；Helm 专用模块目前主要登记记录，不能据此宣称真实 Chart 安装。
 
-当前提交锁定 Base v0.18.9；业务审查基于升级前提交，候选版本验收须重新采证。前端采用 React、TypeScript、Arco Design、Vite；后端采用 Go、Gin、GORM，依赖 MySQL 和 Redis。
+当前产品版本见 [`VERSION`](./VERSION)，已消费的 Base 发行标签和提交见 [`foundation-release.lock.json`](./foundation-release.lock.json)。各版本的变更见 [Base 发布说明索引](https://github.com/duanxldragon/pantheon-base/blob/main/docs/release-notes/README.md)。
+
+已有业务审查证据对应原审查提交，交付验收按实际候选提交采证。前端采用 React、TypeScript、Arco Design、Vite，后端采用 Go、Gin、GORM，依赖 MySQL 和 Redis。
 
 Helm 专用接口只提供发布记录登记、查询和删除登记，不执行 Chart 安装、升级、回滚或卸载；这些执行能力当前延期且未开放。新建记录固定为 `registered`，请求中的运行状态不作为执行结果保存。所有响应的 `status` 和兼容字段 `effectiveStatus` 均为 `registered`，历史原始状态在 `storedStatus` 中保留，数据库历史行不改写；历史 `deployed` 值和 K8s 镜像 Release 均不能证明 Chart 已安装。删除登记也不会卸载集群资源。
 

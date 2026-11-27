@@ -6,7 +6,9 @@ Pantheon Ops consumes official Pantheon Base foundation releases and adds operat
 
 The product is preparing for a pilot and has not passed pilot acceptance. CMDB, BizScope, Service, Deploy and K8s have implementations. Deployment-instance integrity, catalog maintenance, K8s Service editing and acceptance on the current candidate remain open. Observability, file distribution, GitOps and backup have implementations or runtime assembly and require acceptance for every capability exposed in the delivery. The dedicated Helm module currently records releases; that does not prove Chart installation.
 
-The current commit locks Base v0.18.9. The business audit predates that upgrade, so acceptance evidence must be collected again for the delivery candidate. The frontend uses React, TypeScript, Arco Design and Vite; the backend uses Go, Gin and GORM with MySQL and Redis.
+The current product version is recorded in [`VERSION`](./VERSION). The consumed Base release tag and commit are recorded in [`foundation-release.lock.json`](./foundation-release.lock.json). Changes by version are listed in the [Base release notes index](https://github.com/duanxldragon/pantheon-base/blob/main/docs/release-notes/README.en.md).
+
+Existing business audit evidence applies to the reviewed commit. Collect acceptance evidence for the delivery candidate. The frontend uses React, TypeScript, Arco Design and Vite. The backend uses Go, Gin and GORM with MySQL and Redis.
 
 The dedicated Helm API registers, lists and deletes release records only. Chart install, upgrade, rollback and uninstall are deferred and unavailable. New records always store `registered`; a requested runtime status is not saved as an execution result. Every response reports `status=registered` and compatible `effectiveStatus=registered`; `storedStatus` preserves the original source value without rewriting historical database rows. Neither a historical `deployed` value nor a K8s image Release proves Chart installation. Deleting a registration does not uninstall cluster resources.
 
