@@ -2,7 +2,7 @@
 
 由 `.harness/tasks/*/manifest.json` 生成；仅展示当前任务树。状态以 manifest 为准，completed 不代表产品或生产验收。
 
-planned: 7 · in-progress: 2 · completed: 30 · abandoned: 0（当前树共 39 项；不统计月度归档）
+planned: 7 · in-progress: 2 · completed: 31 · abandoned: 0（当前树共 40 项；不统计月度归档）
 
 | 当前任务 | 状态 | 优先级 | 最新证据 |
 | --- | --- | --- | --- |

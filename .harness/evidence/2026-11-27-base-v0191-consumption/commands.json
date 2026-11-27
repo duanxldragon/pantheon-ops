@@ -1,0 +1,176 @@
+{
+  "schemaVersion": 1,
+  "taskId": "2026-11-27-base-v0191-consumption",
+  "repo": "pantheon-ops",
+  "agent": {
+    "tool": "codex",
+    "adapter": "windows"
+  },
+  "evidenceState": "exercised",
+  "runtimeSensitive": true,
+  "runtimeLogs": [
+    ".harness/evidence/2026-11-27-base-v0191-consumption/race.json"
+  ],
+  "candidate": {
+    "opsBaseline": "558fa75f745b034978608c5e1ce2d3f9c88bf69e",
+    "baseRelease": "pantheon-base-v0.19.1",
+    "baseCommit": "7f5cc804b86394724d42a60dbbb559b610fa2279",
+    "inspectedAssetHashes": {
+      "foundation-release-pantheon-base-v0.19.1.tgz": "967acd659167a763326663ec28b68b8bf19cf32060ac51f8676a61aa12e69ff7",
+      "repo.tar": "cdc4c9398031f2be2990588844e56a89754bd809b80182f4e3c9d3b8351038d3"
+    },
+    "backendBinarySha256": "b25240285ddefb8ac4e51e24c9f45f76135d759d0128269283a11b1d717ef63f"
+  },
+  "commands": [
+    {
+      "command": "npm run fetch:base-release -- --release pantheon-base-v0.19.1",
+      "cwd": ".",
+      "status": "passed",
+      "exitCode": 0,
+      "notes": "Four official assets checked against GitHub digests. The tag, manifest and repo.tar identify the same commit."
+    },
+    {
+      "command": "npm run rebuild:from-base -- --target ../.local/ops-foundation-0191/candidate-rebuild",
+      "cwd": ".",
+      "status": "passed",
+      "exitCode": 0
+    },
+    {
+      "command": "npm run check:business-overlay -- --root ../.local/ops-foundation-0191/candidate-rebuild",
+      "cwd": ".",
+      "status": "passed",
+      "exitCode": 0
+    },
+    {
+      "command": "npm run check:shared-drift -- --root ../.local/ops-foundation-0191/candidate-rebuild",
+      "cwd": ".",
+      "status": "passed",
+      "exitCode": 0,
+      "notes": "878 shared files compared, 868 identical, 10 existing allowlist entries and 20 derived migration files verified."
+    },
+    {
+      "command": "npm run check:business-overlay",
+      "cwd": ".",
+      "status": "passed",
+      "exitCode": 0
+    },
+    {
+      "command": "npm run check:shared-drift",
+      "cwd": ".",
+      "status": "passed",
+      "exitCode": 0
+    },
+    {
+      "command": "npm run test:business-overlay",
+      "cwd": ".",
+      "status": "passed",
+      "exitCode": 0,
+      "notes": "59 passed."
+    },
+    {
+      "command": "go build -buildvcs=false -mod=readonly -p=2 -o ../../.local/ops-foundation-0191/consumer-server.exe ./cmd/server",
+      "cwd": "backend",
+      "status": "passed",
+      "exitCode": 0
+    },
+    {
+      "command": "go test -race -mod=readonly -count=1 -p 2 -timeout 60m -json ./...",
+      "cwd": "backend",
+      "status": "passed",
+      "exitCode": 0,
+      "notes": "Windows MinGW CGO with local MySQL and two task-owned Redis listeners.",
+      "artifact": ".harness/evidence/2026-11-27-base-v0191-consumption/race.json"
+    },
+    {
+      "command": "npm run lint",
+      "cwd": "frontend",
+      "status": "passed",
+      "exitCode": 0,
+      "notes": "No errors. The existing AlertCenter hooks warning remains."
+    },
+    {
+      "command": "npm run type-check",
+      "cwd": "frontend",
+      "status": "passed",
+      "exitCode": 0
+    },
+    {
+      "command": "npm run build",
+      "cwd": "frontend",
+      "status": "passed",
+      "exitCode": 0
+    },
+    {
+      "command": "npm run test:unit",
+      "cwd": "frontend",
+      "status": "passed",
+      "exitCode": 0,
+      "notes": "430 tests passed. The frontend source and build inputs match the preflight."
+    },
+    {
+      "command": "npm run check:docs-frontmatter",
+      "cwd": ".",
+      "status": "passed",
+      "exitCode": 0
+    },
+    {
+      "command": "npm run check:encoding",
+      "cwd": ".",
+      "status": "passed",
+      "exitCode": 0
+    },
+    {
+      "command": "npm run check:task-packet-template",
+      "cwd": ".",
+      "status": "passed",
+      "exitCode": 0
+    },
+    {
+      "command": "npm run check:gorm-sql-literal",
+      "cwd": ".",
+      "status": "passed",
+      "exitCode": 0
+    },
+    {
+      "command": "npm run check:boundaries",
+      "cwd": ".",
+      "status": "passed",
+      "exitCode": 0
+    },
+    {
+      "command": "npm run check:duplication",
+      "cwd": ".",
+      "status": "passed",
+      "exitCode": 0,
+      "notes": "1.08% on the Ops preflight, within the 3% limit."
+    },
+    {
+      "command": "npm run test:scripts",
+      "cwd": ".",
+      "status": "passed",
+      "exitCode": 0,
+      "notes": "255 tests passed with the locked root dependencies."
+    },
+    {
+      "command": "node ../pantheon-harness/scripts/harness/check-method-consumption.mjs --root . --source ../pantheon-harness",
+      "cwd": ".",
+      "status": "passed",
+      "exitCode": 0,
+      "notes": "Method kit 1.5.0, seven checked policies."
+    }
+  ],
+  "knownGaps": [
+    "Provider and business feature acceptance are separate from Foundation consumption.",
+    "Ops main's baseline SonarCloud analysis was already ERROR on new_security_rating.",
+    "The supplemental check:security-patterns command returned exit code 1 with 28 identical matches on the v0.19.0 rebuild and this candidate. The GORM SQL literal check passed.",
+    "Hosted checks and the final main revision are visible on the consumer PR."
+  ],
+  "linkage": {
+    "taskManifest": ".harness/tasks/2026-11-27-base-v0191-consumption/manifest.json",
+    "evidenceDir": ".harness/evidence/2026-11-27-base-v0191-consumption/",
+    "summaryFile": ".harness/evidence/2026-11-27-base-v0191-consumption/summary.md",
+    "reviewFile": ".harness/evidence/2026-11-27-base-v0191-consumption/review.md",
+    "changeRef": "none",
+    "planRefs": []
+  }
+}

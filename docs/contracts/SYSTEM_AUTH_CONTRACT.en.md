@@ -283,3 +283,9 @@ The HTTP refresh handler atomically consumes the old Redis mapping with `authtok
 Once consumed, the old token is not restored on a later database/issuance failure or an uncertain response. The client may need to log in again. Concurrent tabs/retries can receive an unauthorized response; this is the security tradeoff of single use. The reverse index is replaced by normal issuance or cleared during revocation; consumption must not erase a newer index. Revocation, password changes, tenant membership gates and cookie response policy remain required regressions.
 
 Refresh and tenant switching update the session row only while it is unrevoked and unexpired and the observed refresh JTI/tenant remain unchanged. A stale read cannot overwrite a completed revocation, rotation, or tenant switch; conflicts fail as unauthorized. DB and Redis operations remain separate; a later failure does not restore the old refresh token.
+
+## Live authorization for durable business jobs
+
+The optional `businessauth.JobAuthorizationReader` refreshes the persisted job owner's current grant at dispatch and execution. Business services derive the owner and tenant from the trusted job record and select the action from a registered server-side route. Authorization survives logout and restart by reading current state each time.
+
+Compat requires a platform owner and resource tenant 0. Starting with v0.19.1, multi requires an enabled owner belonging to the active resource tenant, active membership, and that tenant's current permission and policy grant. Business services recheck source and target ownership, scope and version before provider I/O. See the [Base task packet](https://github.com/duanxldragon/pantheon-base/blob/main/docs/harness/tasks/2026-11-27-tenant-business-job-authorization.task.md).

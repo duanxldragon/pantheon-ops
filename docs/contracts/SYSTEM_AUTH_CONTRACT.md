@@ -321,10 +321,14 @@ HTTP refresh 在变更数据库会话或签发新 pair 前，通过 `authtoken.C
 
 刷新与租户切换对会话行采用条件更新：会话仍未撤销、未到期，且读取时的 refresh JTI/tenant 未改变才允许写入。过期读不能覆盖期间完成的撤销、轮换或租户切换；冲突按未授权失败处理。DB 与 Redis 跨存储仍非事务，后续失败不恢复旧刷新令牌。
 
-## 持久业务任务实时授权候选（2026-11-14）
+## 持久业务任务实时授权
 
 可选 `businessauth.JobAuthorizationReader` 由 auth owner 实现，通过 `contracts.RegisteredBusinessJobAuthorizationReader` 在业务模块 Init 装配。既有会话 `Reader` 与登录/注销合同不变。该接口只接受业务服务从可信任务记录读取的 numeric owner 与已登记业务 action，不能将 HTTP body 中的 actor ID 当作身份；不能持久化 access token、session、角色列表或创建时的数据范围。
 
-持久计划保留跨注销和冷重启语义，每次 dispatch/worker 执行前重新读取所有者状态、角色、权限键、Casbin 策略与 DataScope。所有者已禁用/删除、权限撤销、存储错误、取消或模式变化均返回不透明 `permission.denied`。首版仅支持当前 `compat`、资源 tenant0 与平台所有者 tenant0；不因此声明业务任务多租户隔离。返回的 DataScope 只是当前授权结果，业务仍必须在外部 I/O 前重新验证源文件及稳定目标的当前归属/版本；这是不同的检查，不能互相替代。
+持久计划保留跨注销和冷重启语义，每次 dispatch/worker 执行前重新读取所有者状态、角色、权限键、Casbin 策略与 DataScope。所有者已禁用或删除、权限撤销、存储错误、取消或模式变化均返回不透明 `permission.denied`。
 
-此节是已授权实现候选；正式发行、Ops 消费、独立整体评审和最终业务验收仍由[任务](../harness/tasks/2026-11-14-ops-completion-contracts.task.md)跟踪，不把本地新增接口当作已发布底座能力。
+- `compat` 授权资源 tenant0 的平台所有者，沿用全局角色和数据范围。
+- v0.19.1 的 `multi` 授权要求资源租户非零且处于 active 状态，所有者的归属租户一致、成员关系有效，且该租户的当前角色、权限键和 Casbin 策略授予登记的操作。平台角色、其他租户的角色和请求 header 都无法提供该任务的授权。
+- 业务从可信持久记录读取所有者和资源租户，并在外部 I/O 前重新按任务的资源租户和本次 DataScope 验证源文件及稳定目标的归属、范围和版本。
+
+正式发行和 Ops 消费证据见 Base 的[多租户作业授权任务](https://github.com/duanxldragon/pantheon-base/blob/main/docs/harness/tasks/2026-11-27-tenant-business-job-authorization.task.md)。

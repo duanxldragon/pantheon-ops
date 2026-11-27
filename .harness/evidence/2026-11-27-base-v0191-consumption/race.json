@@ -1,0 +1,75 @@
+{
+  "status": "passed",
+  "command": "go test -race -mod=readonly -count=1 -p 2 -timeout 60m -json ./...",
+  "commit": "558fa75f745b034978608c5e1ce2d3f9c88bf69e",
+  "foundation": "7f5cc804b86394724d42a60dbbb559b610fa2279",
+  "foundationRelease": "pantheon-base-v0.19.1",
+  "cgo": 1,
+  "compiler": "D:\\msys64\\mingw64\\bin\\gcc.exe",
+  "goVersion": "go version go1.26.11 windows/amd64",
+  "backendSha256": "b25240285ddefb8ac4e51e24c9f45f76135d759d0128269283a11b1d717ef63f",
+  "reproducedBackendSha256": "b25240285ddefb8ac4e51e24c9f45f76135d759d0128269283a11b1d717ef63f",
+  "backendSourceManifestSha256": "4cb1390415c06aaa8be9a54714fa28edcefc2f8796f5296c9340ecf4aa3b1349",
+  "backendSourceFileCount": 898,
+  "backendSourceChanged": [],
+  "raceStartedAt": "2026-11-27T03:14:09.386270Z",
+  "raceFinishedAt": "2026-11-27T04:08:43.744250Z",
+  "exitCode": 0,
+  "raceLogSha256": "3ba36edeb509ee3923511dc0f112fe8db3b8881a61edc4314b0e679f1930cba0",
+  "packagesPassed": 77,
+  "packagesWithoutTests": 14,
+  "packagesFailed": 0,
+  "testSkips": [
+    {
+      "package": "github.com/duanxldragon/pantheon-base/backend/modules/business/deploy",
+      "test": "TestDeployLiveVMExecution",
+      "reason": "deploy_live_acceptance_test.go:39: live VM acceptance not requested"
+    },
+    {
+      "package": "github.com/duanxldragon/pantheon-base/backend/modules/business/deploy",
+      "test": "TestDeployLiveVMCancellation",
+      "reason": "deploy_live_acceptance_test.go:194: live VM acceptance not requested"
+    },
+    {
+      "package": "github.com/duanxldragon/pantheon-base/backend/modules/business/observability",
+      "test": "TestDatasourceLiveAcceptance",
+      "reason": "datasource_live_acceptance_test.go:45: real composed-product/provider acceptance not requested"
+    },
+    {
+      "package": "github.com/duanxldragon/pantheon-base/backend/pkg/upload",
+      "test": "TestServiceStoreUsesRealS3WhenConfigured",
+      "reason": "service_test.go:229: PANTHEON_TEST_S3_ENDPOINT is not configured"
+    }
+  ],
+  "testFailures": [],
+  "dataRaceReports": 0,
+  "devSchemaBefore": [
+    41,
+    false
+  ],
+  "devSchemaAfter": [
+    41,
+    false
+  ],
+  "mysql": {
+    "address": "127.0.0.1:3306",
+    "version": "8.0.36",
+    "schema": "ops_race_94e9100c6fbd"
+  },
+  "redis": {
+    "general": {
+      "address": "127.0.0.1:54573",
+      "windowsPid": 5104,
+      "redisPid": 1568,
+      "version": "7.4.2"
+    },
+    "observability": {
+      "address": "127.0.0.1:54577",
+      "windowsPid": 26316,
+      "redisPid": 1569,
+      "version": "7.4.2"
+    }
+  },
+  "ownedSchemasRemaining": [],
+  "redisProcessesStopped": true
+}
