@@ -1,0 +1,52 @@
+{
+  "schemaVersion": 1,
+  "taskId": "2026-11-27-ops-t14-argocd-tenant-enforcement",
+  "title": "T14 Phase 2 ArgoCD 运行态租户隔离",
+  "goal": "验证并交付既有 ArgoCD 子模块租户归属与后台执行隔离实现。",
+  "primaryLayer": "business/*",
+  "deliveryTier": "L2",
+  "status": "in-progress",
+  "priority": "P1",
+  "parentTask": "2026-11-25-ops-tenant-runtime-enforcement",
+  "parentTaskPacket": "docs/harness/tasks/2026-11-25-ops-tenant-runtime-enforcement.task.md",
+  "dependencies": [
+    "2026-11-20-ops-extension-and-async-tenant-isolation"
+  ],
+  "baseline": {
+    "mainCommit": "02088145",
+    "foundation": "pantheon-base-v0.19.1"
+  },
+  "scope": {
+    "in": [
+      "ArgoCD 业务路由、服务、现有异步同步与回调租户绑定。",
+      "复用 T14 第一阶段已发布表结构和 Base 授权能力，使用隔离测试租户验收。"
+    ],
+    "out": [
+      "其他 T14 子模块、共享平台/系统域及历史 SQL 改写。",
+      "未经授权的外部 provider 或生产操作。"
+    ]
+  },
+  "contractAnchors": [
+    "AGENTS.md",
+    "docs/PROJECT_INHERITANCE.md",
+    "docs/contracts/TENANT_CONTRACT_V1.md",
+    "business-overlay.json"
+  ],
+  "acceptanceCriteria": [
+    "租户与兼容模式回归通过，既有同步/记录/后台操作正确持有所属租户。",
+    "真实 UTC MySQL、路由、业务 overlay/clean rebuild 和 Windows 完整 CGO race 留证。",
+    "独立高风险复核以及托管必过项通过，provider 未验证项单独记录。"
+  ],
+  "statusDoc": ".harness/tasks/2026-11-27-ops-t14-argocd-tenant-enforcement/STATUS.md",
+  "linkage": {
+    "taskManifest": ".harness/tasks/2026-11-27-ops-t14-argocd-tenant-enforcement/manifest.json",
+    "taskDoc": "docs/harness/tasks/2026-11-25-ops-tenant-runtime-enforcement.task.md",
+    "evidenceDir": ".harness/evidence/2026-11-27-ops-t14-argocd-tenant-enforcement/",
+    "reviewFile": ".harness/evidence/2026-11-27-ops-t14-argocd-tenant-enforcement/review.md",
+    "summaryFile": ".harness/evidence/2026-11-27-ops-t14-argocd-tenant-enforcement/summary.md",
+    "changeRef": "none",
+    "planRefs": [
+      ".harness/tasks/2026-11-25-ops-tenant-runtime-enforcement/PLAN.md"
+    ]
+  }
+}

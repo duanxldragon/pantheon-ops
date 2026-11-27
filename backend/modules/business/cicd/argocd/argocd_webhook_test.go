@@ -9,6 +9,7 @@ import (
 )
 
 type syncCall struct {
+	ownerID  uint64
 	appID    uint64
 	revision string
 }
@@ -18,8 +19,8 @@ type recordingSyncer struct {
 	err   error
 }
 
-func (r *recordingSyncer) SyncApplication(id uint64, revision string) (*SyncHistoryResponse, error) {
-	r.calls = append(r.calls, syncCall{appID: id, revision: revision})
+func (r *recordingSyncer) syncApplicationForOwner(ownerID, id uint64, revision string) (*SyncHistoryResponse, error) {
+	r.calls = append(r.calls, syncCall{ownerID: ownerID, appID: id, revision: revision})
 	if r.err != nil {
 		return nil, r.err
 	}
@@ -76,7 +77,7 @@ func TestProcessGitEventSyncsOnlyAutomatedApplications(t *testing.T) {
 	}
 
 	syncer := &recordingSyncer{}
-	handler := &WebhookHandler{db: db, syncer: syncer}
+	handler := &WebhookHandler{db: db, sync: syncer.syncApplicationForOwner}
 	handler.processGitEvent(&event)
 
 	if len(syncer.calls) != 1 {
@@ -113,7 +114,7 @@ func TestProcessGitEventKeepsProcessingWhenSyncFails(t *testing.T) {
 	}
 
 	syncer := &recordingSyncer{err: errors.New("argocd unavailable")}
-	handler := &WebhookHandler{db: db, syncer: syncer}
+	handler := &WebhookHandler{db: db, sync: syncer.syncApplicationForOwner}
 	handler.processGitEvent(&event)
 
 	if len(syncer.calls) != 1 {

@@ -67,7 +67,7 @@ func historyMatchesObservation(history *ArgoCDSyncHistory, status *ArgoCDApplica
 }
 
 func sameApplicationSource(current, observed *ArgoCDApplication) bool {
-	return current.ID == observed.ID && current.ServerID == observed.ServerID && current.Name == observed.Name && current.Project == observed.Project &&
+	return current.ID == observed.ID && current.TenantID == observed.TenantID && current.ServerID == observed.ServerID && current.Name == observed.Name && current.Project == observed.Project &&
 		current.SourceRepoURL == observed.SourceRepoURL && current.SourcePath == observed.SourcePath && current.SourceTargetRev == observed.SourceTargetRev &&
 		current.DestinationServer == observed.DestinationServer && current.DestinationNS == observed.DestinationNS && bytes.Equal(current.SyncPolicy, observed.SyncPolicy)
 }
