@@ -21,6 +21,7 @@ import (
 const deployCredentialKeyEnv = "PANTHEON_DEPLOY_CREDENTIAL_KEY"
 const deployCredentialAuthModePassword = "password"
 const deployCredentialAuthModePrivateKey = "private_key"
+const deployCredentialStatusDisabled = "disabled"
 
 func encryptDeployCredential(value string) (string, error) {
 	key, err := deployCredentialKey()
@@ -186,7 +187,7 @@ func (s *DeployService) UpdateCredential(id uint64, req UpdateDeployCredentialRe
 			versionChanged = versionChanged || *req.AuthMode != item.AuthMode
 		}
 		if req.Status != nil {
-			if *req.Status != bizScopeStatusActive && *req.Status != "disabled" {
+			if *req.Status != bizScopeStatusActive && *req.Status != deployCredentialStatusDisabled {
 				return errors.New("business.deploy.credential.status_invalid")
 			}
 			updates["status"] = *req.Status

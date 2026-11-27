@@ -181,7 +181,7 @@ func TestCredentialExecutionMetadataChangesBumpVersion(t *testing.T) {
 	}{
 		{name: "username", req: UpdateDeployCredentialRequest{Username: ptrString("deploy")}},
 		{name: "auth mode", req: UpdateDeployCredentialRequest{AuthMode: ptrString(deployCredentialAuthModePrivateKey)}},
-		{name: "status", req: UpdateDeployCredentialRequest{Status: ptrString("disabled")}},
+		{name: "status", req: UpdateDeployCredentialRequest{Status: ptrString(deployCredentialStatusDisabled)}},
 	}
 	for _, update := range updates {
 		t.Run(update.name, func(t *testing.T) {
@@ -211,7 +211,7 @@ func TestCredentialExecutionMetadataChangesBumpVersion(t *testing.T) {
 
 func TestUpdateCredentialRechecksDataScopeUnderLock(t *testing.T) {
 	db := setupDeployTestDB(t)
-	if db.Dialector.Name() != "mysql" {
+	if db.Name() != "mysql" {
 		t.Skip("credential update locking requires MySQL")
 	}
 	svc := NewDeployService(db, cmdb.NewDeployCMDBCapability(db))
@@ -301,7 +301,7 @@ func TestUpdateCredentialRechecksDataScopeUnderLock(t *testing.T) {
 
 func TestDeployCredentialStartClaimRechecksScopeUnderLock(t *testing.T) {
 	db := setupDeployTestDB(t)
-	if db.Dialector.Name() != "mysql" {
+	if db.Name() != "mysql" {
 		t.Skip("credential claim locking requires MySQL")
 	}
 	svc := NewDeployService(db, cmdb.NewDeployCMDBCapability(db))
@@ -397,7 +397,7 @@ func TestDeployCredentialStartClaimRechecksScopeUnderLock(t *testing.T) {
 
 func TestDeleteCredentialSerializesWithCredentialClaim(t *testing.T) {
 	db := setupDeployTestDB(t)
-	if db.Dialector.Name() != "mysql" {
+	if db.Name() != "mysql" {
 		t.Skip("credential claim locking requires MySQL")
 	}
 	svc := NewDeployService(db, cmdb.NewDeployCMDBCapability(db))

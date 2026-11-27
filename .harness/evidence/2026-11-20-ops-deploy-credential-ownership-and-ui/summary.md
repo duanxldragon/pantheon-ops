@@ -60,3 +60,8 @@
 - Windows MinGW CGO，隔离 UTC MySQL 与两套独立 Redis，单候选运行 `go test -race ./...`。77 个测试包通过，14 个无测试包，exit 0，耗时 352 秒。
 - MySQL 为临时实例，禁用 redo 与 doublewrite 以缩短测试库初始化与清理开销。复验限定运行态与事务行为，生产耐久性不在本次验证范围内。
 - 验证树 `48fd04eb38c69ec48ff0adcf2e79db2ce42dd8c1`，日志 SHA-256 `7c754398dc1f2e9954023f71e38e13a10b379909c8fb53b11913331f4f92a0c9`。当前候选仍待独立高风险评审与 GitHub 必过检查。
+
+### Go Lint 修订后的全量验证
+
+- 统一凭据停用状态常量，保持持久化字面量不变，测试直接调用 GORM 已提升的 Name 方法。
+- 与 GitHub 同版本 golangci-lint v2.6.2 对新增差异报告 0 issues。Windows MinGW CGO 使用同样的临时 UTC MySQL 与两套独立 Redis，完整 `go test -race ./...` 通过 77 个测试包，耗时 501 秒。验证树 `b41d85fc2903740c7c9a042a9fe9e14b669fe0a2`，日志 SHA-256 `4aff896b2f8a6a66bb081f2c480739891c87d2eedbd796ec4c9610a58c12593d`。
