@@ -17,31 +17,37 @@ import (
 func (r *businessAuthorizationReader) AuthorizeJob(ctx context.Context, input businessauth.JobInput) (businessauth.Authorization, error) {
 	deny := businessauth.Authorization{}
 	if r == nil || r.runtime == nil || r.runtime.db == nil || r.runtime.userRepo == nil || r.mode == nil ||
-		ctx == nil || ctx.Err() != nil || input.ActorID == 0 || input.ResourceTenantID != 0 || !registeredJobAction(input.Action) {
+		ctx == nil || ctx.Err() != nil || input.ActorID == 0 || !registeredJobAction(input.Action) {
 		return deny, businessauth.ErrDenied
 	}
 	mode, err := r.mode.ReadMode(ctx)
-	if err != nil || mode != tenant.ModeCompat {
+	tenantID := input.ResourceTenantID
+	compatJob := mode == tenant.ModeCompat && tenantID == tenant.PlatformGlobalTenantID
+	tenantJob := mode == tenant.ModeMulti && tenantID != tenant.PlatformGlobalTenantID
+	if err != nil || (!compatJob && !tenantJob) {
 		return deny, businessauth.ErrDenied
 	}
 	owner, err := r.runtime.userRepo.FindByID(ctx, input.ActorID)
-	if err != nil || owner == nil || owner.ID != input.ActorID || owner.Status != common.StatusEnabled || owner.TenantID != 0 {
+	if err != nil || owner == nil || owner.ID != input.ActorID || owner.Status != common.StatusEnabled || owner.TenantID != tenantID {
 		return deny, businessauth.ErrDenied
 	}
-	bindings, err := r.readBindings(ctx, input.ActorID, 0)
+	db := r.runtime.db.WithContext(ctx)
+	if tenantJob && !validBusinessMembership(db, tenantID, input.ActorID) {
+		return deny, businessauth.ErrDenied
+	}
+	bindings, err := r.readBindings(ctx, input.ActorID, tenantID)
 	if err != nil {
 		return deny, businessauth.ErrDenied
 	}
-	auth, err := r.grantBusinessAuthorization(ctx, r.runtime.db.WithContext(ctx), businessauth.Input{
-		Identity: businessauth.Identity{ActorID: input.ActorID}, Action: input.Action, DataScope: true,
+	auth, err := r.grantBusinessAuthorization(ctx, db, businessauth.Input{
+		Identity: businessauth.Identity{ActorID: input.ActorID}, ResourceTenantID: tenantID, Action: input.Action, DataScope: true,
 	}, bindings)
 	if err != nil || auth.DataScope == nil || ctx.Err() != nil {
 		return deny, businessauth.ErrDenied
 	}
-	// A mode transition during the reads cannot turn a legacy platform job into
-	// an implicitly tenant-authorized job.
-	mode, err = r.mode.ReadMode(ctx)
-	if err != nil || mode != tenant.ModeCompat || ctx.Err() != nil {
+	// The execution mode must still match the mode that supplied the grant.
+	latestMode, err := r.mode.ReadMode(ctx)
+	if err != nil || latestMode != mode || ctx.Err() != nil {
 		return deny, businessauth.ErrDenied
 	}
 	return auth, nil

@@ -18,7 +18,7 @@ From Ops run `node ../pantheon-harness/scripts/harness/check-method-consumption.
 Several version fields coexist in this repository; they mean different things and are not interchangeable:
 
 - `foundation-release.lock.json`: the single authoritative inheritance baseline. `releaseVersion`, `baseCommit`, and asset SHA256 decide rebuild content and CI policy.
-- `VERSION`: the product version inherited from the locked Base snapshot; it must match the lock's `releaseVersion` (currently `0.19.0`). Method updates do not change it; any mismatch is inheritance drift.
+- `VERSION`: the product version inherited from the locked Base snapshot; it must match the lock's `releaseVersion` (currently `0.19.1`). Method updates do not change it; any mismatch is inheritance drift.
 - `SHELL_VERSION.json`: the consumer-shell pin inside the locked snapshot (`1.5.0`, `compatibleMethodKit` 1.5.0). It describes the Base repository shell, not the method kit Ops consumes directly.
 - `.harness/method-consumption.json`: the directly consumed method-kit version (`methodVersion`, currently `1.5.0`) and normalized-text hashes; method updates change only this file and the receipt.
 - `frontend/package.json` `name`/`version`: Base UI package identity (`@duanxldragon/pantheon-base-ui` `0.11.2`), moving with Base releases and unrelated to `VERSION`.
@@ -53,8 +53,8 @@ Run these commands from the Ops repository root:
 ```powershell
 # Query GitHub for the latest stable official Base release, download four assets,
 # verify SHA256, manifest and immutable tag, then update the Ops lock.
-# With no version argument this selects latest; this handoff pins v0.19.0.
-npm run fetch:base-release -- --release pantheon-base-v0.19.0
+# This handoff pins the official v0.19.1 release.
+npm run fetch:base-release -- --release pantheon-base-v0.19.1
 
 # Rebuild and verify a temporary consumer from the pinned official release.
 npm run rebuild:from-base -- --target .tmp/clean-base-overlay

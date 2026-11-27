@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "baseCommit": "cc2fe7370a98c2862e2610d79880012971cf57f5",
+  "baseCommit": "7f5cc804b86394724d42a60dbbb559b610fa2279",
   "ownedFiles": [
     {
       "path": ".agents/README.md",
@@ -156,11 +156,11 @@
     },
     {
       "path": ".harness/STATUS.md",
-      "sha256": "5054251a6e21e5544907da460c94309410617387df3c9718d8b7dde6b46799d9"
+      "sha256": "5f2b8aaba44cac4ed6aea236790f8a8edb8df630381399e68618db1fa1cd2198"
     },
     {
       "path": ".harness/TASK_INDEX.md",
-      "sha256": "dc8c837e630d67d0378cc3e52d2f067ef2cf20a35719cca90a7ad867460dd479"
+      "sha256": "2c5732dc685672a7ea505569bb5def0c2c2ae695d6071bfd3633472ac9400464"
     },
     {
       "path": ".harness/archive/2026-08/evidence/2026-08-17-ops-foundation-hardening/commands.json",
@@ -11424,15 +11424,31 @@
     },
     {
       "path": ".harness/evidence/2026-11-26-ops-backend-tests-database-services/commands.json",
-      "sha256": "43f42ca60a84c59a3fd8ab0aa7d3b49d53db74242250d09a2294f2c000cddea8"
+      "sha256": "9bcc080b2061b2bf6f3516270f08d06c30dfe601c0a121979ad8267520d336ec"
     },
     {
       "path": ".harness/evidence/2026-11-26-ops-backend-tests-database-services/review.md",
-      "sha256": "c5a3b3de350489f4fb28857a8208a895de1800026331f37ecc238f7cb2053681"
+      "sha256": "81fbc7e77f9d992baa264ef498d009ae3a0a7e14d4038f5a631f67913be2453c"
     },
     {
       "path": ".harness/evidence/2026-11-26-ops-backend-tests-database-services/summary.md",
-      "sha256": "4c0598511173d080af357915fc7e67f9fa3bd245f6e9e0c75e0de98953400fe4"
+      "sha256": "4885caffe120b72d79c1a975e2132120ef22bed939c219c4736f91933b657429"
+    },
+    {
+      "path": ".harness/evidence/2026-11-27-base-v0191-consumption/commands.json",
+      "sha256": "149149939d905383d8e5afe774bc42b6978cab3e5b0b4b5f5bdaf58b9900049f"
+    },
+    {
+      "path": ".harness/evidence/2026-11-27-base-v0191-consumption/race.json",
+      "sha256": "f69f27f50dff5c3f64304ff5e0faf9ec994774305e83b096e9609a6b1ef1bef8"
+    },
+    {
+      "path": ".harness/evidence/2026-11-27-base-v0191-consumption/review.md",
+      "sha256": "1635812ce698c7870d1aa411b61929ce57949357e4018aeedb84208726d1fba6"
+    },
+    {
+      "path": ".harness/evidence/2026-11-27-base-v0191-consumption/summary.md",
+      "sha256": "a763409a0280e6e8cf9640cc0df6027f5d8de72e8248e1c1c2aa52a53bd900de"
     },
     {
       "path": ".harness/evidence/foundation-upgrade-base-v0.9.0/runbook.md",
@@ -12100,7 +12116,11 @@
     },
     {
       "path": ".harness/tasks/2026-11-26-ops-backend-tests-database-services/manifest.json",
-      "sha256": "819f7e454379e34bd91bb6508ff836a89005fe2db8f58a4e8b507314736ff3d1"
+      "sha256": "7cb1edd1fde2d064f4f5cac2ad9006e893fdff22bd86a2bd31cadc122ef1ca2b"
+    },
+    {
+      "path": ".harness/tasks/2026-11-27-base-v0191-consumption/manifest.json",
+      "sha256": "c05004c74ce96a278a32ebf2446f8236cf323b1ab1841c7c1ae97fcd284e19c1"
     },
     {
       "path": ".harness/tasks/ops-architecture-quality-gates/HANDOFF.md",
@@ -13864,11 +13884,11 @@
     },
     {
       "path": "docs/PROJECT_INHERITANCE.en.md",
-      "sha256": "df3beb09a98f654c61528e497eb7934280bdd516ba034f3fa391168818439886"
+      "sha256": "1e4dbe351a2da515c995482ac9843b0addb7e9aa4be6d860ca7b3316259924fc"
     },
     {
       "path": "docs/PROJECT_INHERITANCE.md",
-      "sha256": "3a025621c425e15b89d2abe3e22bc4f3eb6822f1ca844638baf976c638564a5f"
+      "sha256": "6acdf48882f82f27e1c7344ed914f7aab26c42829ff5be70470ff65168e52ca7"
     },
     {
       "path": "docs/README.en.md",
@@ -14532,7 +14552,11 @@
     },
     {
       "path": "docs/harness/tasks/2026-11-26-ops-backend-tests-database-services.task.md",
-      "sha256": "ac0b45789e4ac4ebcb960b6724989f1a77a99b0b2600698800e75c45967db4d0"
+      "sha256": "ea86f0555577538b50e503a3a1ec084386fa44d01edcdb18977c1b31a647eb4d"
+    },
+    {
+      "path": "docs/harness/tasks/2026-11-27-base-v0191-consumption.task.md",
+      "sha256": "9711ed9b8f6c415702d56a9dded408daf54ac778d4608b11abb6826828df54b7"
     },
     {
       "path": "docs/harness/tasks/README.md",
@@ -14816,7 +14840,7 @@
     },
     {
       "path": "foundation-release.lock.json",
-      "sha256": "17a5a5dc09093fcb93c2d3712a0888849c38ae65c2bc3b6fe3b0be452660b35b"
+      "sha256": "9159fa6ab4522df9568f704bb9169d72cc186cd6cf41f33f42a0ebae2c39228f"
     },
     {
       "path": "frontend/README.en.md",
@@ -15628,7 +15652,7 @@
     },
     {
       "path": "tests/scripts/quality-workflow.test.mjs",
-      "sha256": "cc2a19fa892b94cde790d8777260b3c483aa13ea74145aac479fb12ebcbb0690"
+      "sha256": "d2d0454f07af94a51b05fb9dc7280876d8c7ba50af56eab1681acc2c7cf6697f"
     },
     {
       "path": "tests/scripts/security-audit-exit.test.mjs",

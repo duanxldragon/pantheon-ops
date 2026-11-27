@@ -1,0 +1,77 @@
+{
+  "schemaVersion": 1,
+  "taskId": "2026-11-27-base-v0191-consumption",
+  "title": "Consume official Pantheon Base v0.19.1",
+  "goal": "Verify and consume the official v0.19.1 Foundation release with the Ops business overlay.",
+  "status": "completed",
+  "deliveryTier": "L2",
+  "primaryLayer": "business/*",
+  "runtimeSensitive": true,
+  "taskDoc": "docs/harness/tasks/2026-11-27-base-v0191-consumption.task.md",
+  "qualityProfiles": [
+    "auth-security",
+    "runtime-quality"
+  ],
+  "scope": {
+    "in": [
+      "Official release asset and immutable tag verification",
+      "Staged Ops assembly, local verification and merge"
+    ],
+    "out": [
+      "Ops business features and provider acceptance",
+      "Production deployment"
+    ]
+  },
+  "linkage": {
+    "taskManifest": ".harness/tasks/2026-11-27-base-v0191-consumption/manifest.json",
+    "taskDoc": "docs/harness/tasks/2026-11-27-base-v0191-consumption.task.md",
+    "evidenceDir": ".harness/evidence/2026-11-27-base-v0191-consumption/",
+    "summaryFile": ".harness/evidence/2026-11-27-base-v0191-consumption/summary.md",
+    "reviewFile": ".harness/evidence/2026-11-27-base-v0191-consumption/review.md",
+    "changeRef": "none",
+    "planRefs": []
+  },
+  "acceptanceCriteria": [
+    "The official v0.19.1 release bundle, snapshot and both SHA-256 sidecars match the immutable tag",
+    "Overlay and shared drift checks pass for the staged assembly and shared authorization files come from that assembly",
+    "Full Windows CGO race and hosted merge checks pass",
+    "Ops main records the published Base commit in the lock and rebuild report and the product VERSION matches"
+  ],
+  "verificationPlan": {
+    "commands": [
+      "Fetch and rebuild from official pantheon-base-v0.19.1",
+      "Overlay, shared drift, docs, frontend and staged secret checks",
+      "Go build and full Windows CGO race",
+      "GitHub required checks and Smoke Sanity"
+    ],
+    "runtimeEvidence": [
+      "Isolated local MySQL and task-owned local Redis",
+      "Hosted system and business smoke"
+    ]
+  },
+  "executionRoles": {
+    "implementerPosture": "Fetch, assemble and verify the authorized release without changing application behavior downstream.",
+    "reviewerPosture": [
+      "Independent code reviewer",
+      "Independent inheritance and architecture reviewer"
+    ]
+  },
+  "humanGates": [
+    "Maintainer authorized publication and Ops consumption.",
+    "Merge after required checks and independent review."
+  ],
+  "workspaceContext": {
+    "targetRepository": "pantheon-ops",
+    "repositoryRole": "business-consumer",
+    "contextSyncExpectation": "required",
+    "releaseRequirement": "foundation-release"
+  },
+  "targetRelease": "pantheon-base-v0.19.1",
+  "baseCommit": "7f5cc804b86394724d42a60dbbb559b610fa2279",
+  "closeout": {
+    "scope": "Official Base release consumption on merge of this candidate.",
+    "localVerification": "passed",
+    "independentReview": "approved",
+    "checks": "The consumer PR records the hosted gates and exact merge commit."
+  }
+}
