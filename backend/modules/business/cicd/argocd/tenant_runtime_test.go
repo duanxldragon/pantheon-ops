@@ -18,6 +18,8 @@ import (
 	"github.com/duanxldragon/pantheon-base/backend/pkg/permissionroutes"
 	"github.com/duanxldragon/pantheon-base/backend/pkg/tenant"
 	"github.com/gin-gonic/gin"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"gorm.io/datatypes"
 	"gorm.io/gorm"
 )
@@ -58,9 +60,8 @@ func TestArgoCDTenantRegistryAndSync(t *testing.T) {
 	requireArgoCDSuccess(t, err)
 	legacy, err := compat.AddServer(AddServerRequest{Name: "legacy", ClusterID: 9}, "fixture")
 	requireArgoCDSuccess(t, err)
-	if _, err := a.AddServer(AddServerRequest{Name: "foreign-cluster", ClusterID: 9}, "fixture"); !errors.Is(err, common.ErrBadRequest) {
-		t.Fatalf("unverified cluster reference accepted: %v", err)
-	}
+	_, err = a.AddServer(AddServerRequest{Name: "foreign-cluster", ClusterID: 9}, "fixture")
+	require.ErrorIs(t, err, common.ErrBadRequest, "unverified cluster reference")
 	for _, tc := range []struct {
 		service *ArgoCDService
 		name    string
@@ -69,9 +70,8 @@ func TestArgoCDTenantRegistryAndSync(t *testing.T) {
 	} {
 		servers, err := tc.service.ListServers()
 		requireArgoCDSuccess(t, err)
-		if len(servers.Items) != 1 || servers.Items[0].Name != tc.name {
-			t.Fatalf("server scope for %s: %+v", tc.name, servers.Items)
-		}
+		require.Len(t, servers.Items, 1, "server scope for %s", tc.name)
+		assert.Equal(t, tc.name, servers.Items[0].Name)
 	}
 	repoReq := AddRepositoryRequest{ServerID: server.ID, RepoURL: "https://git.example.test/app", Type: "git"}
 	appReq := CreateApplicationRequest{ServerID: server.ID, Name: "app-a", SourceRepoURL: repoReq.RepoURL}
@@ -88,9 +88,8 @@ func TestArgoCDTenantRegistryAndSync(t *testing.T) {
 	requireArgoCDSuccess(t, err)
 	history, err := a.GetSyncHistory(app.ID)
 	requireArgoCDSuccess(t, err)
-	if len(history) != 1 || history[0].ID != pending.ID {
-		t.Fatalf("foreign history disclosed or selected during sync: %+v", history)
-	}
+	require.Len(t, history, 1)
+	assert.Equal(t, pending.ID, history[0].ID)
 	for _, service := range []*ArgoCDService{b, compat} {
 		t.Run(fmt.Sprintf("foreign-%d", service.TenantOwnerID()), func(t *testing.T) {
 			repos, err := service.ListRepositories(server.ID)
@@ -99,9 +98,9 @@ func TestArgoCDTenantRegistryAndSync(t *testing.T) {
 			requireArgoCDSuccess(t, err)
 			history, err := service.GetSyncHistory(app.ID)
 			requireArgoCDSuccess(t, err)
-			if len(repos.Items) != 0 || len(apps.Items) != 0 || len(history) != 0 {
-				t.Fatalf("foreign list returned rows: %+v %+v %+v", repos, apps, history)
-			}
+			assert.Empty(t, repos.Items, "foreign repositories")
+			assert.Empty(t, apps.Items, "foreign applications")
+			assert.Empty(t, history, "foreign history")
 			_, getServerErr := service.GetServer(server.ID)
 			_, probeErr := service.TestServerConnection(server.ID)
 			_, getRepoErr := service.GetRepository(repo.ID)
@@ -119,15 +118,12 @@ func TestArgoCDTenantRegistryAndSync(t *testing.T) {
 				"delete application": service.DeleteApplication(app.ID),
 				"sync":               syncErr, "refresh": service.RefreshApplication(app.ID),
 			} {
-				if !errors.Is(err, gorm.ErrRecordNotFound) {
-					t.Errorf("%s did not reject foreign record: %v", action, err)
-				}
+				assert.ErrorIs(t, err, gorm.ErrRecordNotFound, "%s must reject a foreign record", action)
 			}
 		})
 	}
-	if creates.Load() != 1 || syncs.Load() != 1 {
-		t.Fatalf("provider calls: creates=%d syncs=%d", creates.Load(), syncs.Load())
-	}
+	assert.EqualValues(t, 1, creates.Load(), "provider creates")
+	assert.EqualValues(t, 1, syncs.Load(), "provider syncs")
 	for _, row := range []struct {
 		model any
 		id    uint64
@@ -139,18 +135,22 @@ func TestArgoCDTenantRegistryAndSync(t *testing.T) {
 	} {
 		var owner uint64
 		requireArgoCDSuccess(t, f.DB.Model(row.model).Select("tenant_id").Where(idWhereClause, row.id).First(&owner).Error)
-		if owner != row.owner {
-			t.Errorf("%T %d owner = %d, want %d", row.model, row.id, owner, row.owner)
-		}
+		assert.Equal(t, row.owner, owner, "%T %d owner", row.model, row.id)
 	}
-	requireArgoCDSuccess(t, a.UpdateRepository(repo.ID, repoReq))
+	// A fixed update timestamp makes the second write an unchanged row in MySQL.
+	updatedAt := time.Now().UTC().Add(time.Minute).Truncate(time.Second)
+	fixedClockDB := f.DB.Session(&gorm.Session{NowFunc: func() time.Time { return updatedAt }})
+	fixedClock := NewArgoCDService(fixedClockDB).WithTenantContext(context.Background(), f.TenantA)
+	requireArgoCDSuccess(t, fixedClock.UpdateRepository(repo.ID, repoReq))
+	requireArgoCDSuccess(t, fixedClock.UpdateRepository(repo.ID, repoReq))
+	var storedRepo ArgoCDRepository
+	requireArgoCDSuccess(t, f.DB.First(&storedRepo, repo.ID).Error)
+	assert.True(t, updatedAt.Equal(storedRepo.UpdatedAt), "stored update timestamp: %v", storedRepo.UpdatedAt)
 	requireArgoCDSuccess(t, a.DeleteRepository(repo.ID))
 	requireArgoCDSuccess(t, a.UpdateApplication(app.ID, UpdateApplicationRequest{DestinationNS: "ops"}))
 	updated, err := a.GetApplication(app.ID)
 	requireArgoCDSuccess(t, err)
-	if updated.DestinationNS != "ops" {
-		t.Fatalf("tenant-owned namespace update was lost: %+v", updated)
-	}
+	assert.Equal(t, "ops", updated.DestinationNS, "tenant-owned namespace")
 }
 
 func TestArgoCDTenantMissingResourceHTTPContract(t *testing.T) {
@@ -183,9 +183,8 @@ func TestArgoCDTenantMissingResourceHTTPContract(t *testing.T) {
 		req.Header.Set("Content-Type", "application/json")
 		r.ServeHTTP(rec, req)
 		var response common.Response
-		if err := json.Unmarshal(rec.Body.Bytes(), &response); err != nil || rec.Code != http.StatusOK {
-			t.Fatalf("%s %s: HTTP %d body %s, decode %v", method, path, rec.Code, rec.Body.String(), err)
-		}
+		require.Equal(t, http.StatusOK, rec.Code, "%s %s: %s", method, path, rec.Body.String())
+		require.NoError(t, json.Unmarshal(rec.Body.Bytes(), &response), "%s %s", method, path)
 		return response
 	}
 	notFound := common.Response{Code: common.CodeNotFound, Message: "common.notFound"}
@@ -212,9 +211,7 @@ func TestArgoCDTenantMissingResourceHTTPContract(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			for _, id := range []uint64{tc.id, tc.id + 1000} {
 				got := call(t, b, tc.method, fmt.Sprintf(tc.path, id), tc.body)
-				if got.Code != notFound.Code || got.Message != notFound.Message || got.Data != nil {
-					t.Errorf("ID %d: response %+v, want %+v", id, got, notFound)
-				}
+				assert.Equal(t, notFound, got, "ID %d", id)
 			}
 		})
 	}
@@ -222,18 +219,15 @@ func TestArgoCDTenantMissingResourceHTTPContract(t *testing.T) {
 		for _, id := range []uint64{server.ID, server.ID + 1000} {
 			body := fmt.Sprintf(`{"serverId":%d,"repoUrl":"https://git.example.test/repo","type":"git","name":"new","sourceRepoUrl":"https://git.example.test/repo"}`, id)
 			got := call(t, b, http.MethodPost, path, body)
-			if got.Code != notFound.Code || got.Message != notFound.Message || got.Data != nil {
-				t.Errorf("%s parent %d: response %+v, want %+v", path, id, got, notFound)
-			}
+			assert.Equal(t, notFound, got, "%s parent %d", path, id)
 		}
 	}
 	compat := router(f.Compat)
-	if got := call(t, compat, http.MethodGet, fmt.Sprintf("/servers/%d", legacy.ID), ""); got.Code != common.CodeSuccess || got.Data == nil {
-		t.Fatalf("compat's own record is missing: %+v", got)
-	}
-	if got := call(t, compat, http.MethodGet, fmt.Sprintf("/servers/%d", server.ID), ""); got.Code != notFound.Code || got.Message != notFound.Message || got.Data != nil {
-		t.Fatalf("compat lookup did not mask a tenant record: %+v", got)
-	}
+	legacyResponse := call(t, compat, http.MethodGet, fmt.Sprintf("/servers/%d", legacy.ID), "")
+	assert.Equal(t, common.CodeSuccess, legacyResponse.Code, "compat can read its own record")
+	assert.NotNil(t, legacyResponse.Data)
+	foreignResponse := call(t, compat, http.MethodGet, fmt.Sprintf("/servers/%d", server.ID), "")
+	assert.Equal(t, notFound, foreignResponse, "compat must mask tenant records")
 }
 
 func TestArgoCDTenantReconciliation(t *testing.T) {

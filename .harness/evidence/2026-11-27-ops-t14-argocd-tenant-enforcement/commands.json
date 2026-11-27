@@ -47,6 +47,48 @@
       "status": "passed",
       "exitCode": 0,
       "notes": "Windows CGO with isolated UTC MySQL and Redis, after scoped lint fixes. 78 packages; 389 seconds. Test tree b7c933eb84889aacdc095a8d0dc61c31b5e319d1. SHA-256 7c104d85bbbc416ac4de3306932f916076badaa1e6197f3fed5a99674b158c42."
+    },
+    {
+      "command": "go test -race ./...",
+      "cwd": "backend",
+      "status": "passed",
+      "exitCode": 0,
+      "notes": "Windows MinGW CGO, isolated UTC MySQL and two Redis instances. 78 tested packages; 809s. Staged tree 21463d9fdf79107fb0d49751ce7fb5cb87a78d0d; SHA-256 8f0cb409a234bbcddce7c0ac44f1704cdf0ac0fc9b808db6fed4917bcea7ae71."
+    },
+    {
+      "command": "golangci-lint run --new-from-rev=02088145 ./...",
+      "cwd": "backend",
+      "status": "passed",
+      "exitCode": 0,
+      "notes": "Go Lint v2.6.2 with GOFLAGS=-buildvcs=false, 0 issues."
+    },
+    {
+      "command": "npm run check:gorm-sql-literal && npm run test:gorm-sql-literal && npm run check:business-overlay && npm run test:business-overlay",
+      "cwd": ".",
+      "status": "passed",
+      "exitCode": 0,
+      "notes": "13 GORM checker tests and 59 overlay tests passed."
+    },
+    {
+      "command": "npm run rebuild:from-base -- --target ../t14-argocd-sonar-rebuild && npm run check:shared-drift -- --root ../t14-argocd-sonar-rebuild",
+      "cwd": ".",
+      "status": "passed",
+      "exitCode": 0,
+      "notes": "Locked Base v0.19.1. Drift checked 878 shared files and 20 derived migrations."
+    },
+    {
+      "command": "go run github.com/zricethezav/gitleaks/v8@v8.30.1 git --staged --redact --no-banner .",
+      "cwd": ".",
+      "status": "passed",
+      "exitCode": 0,
+      "notes": "No leaks in the staged code changes."
+    },
+    {
+      "command": "npm run check:security-patterns",
+      "cwd": ".",
+      "status": "failed",
+      "exitCode": 1,
+      "notes": "Whole-repo scan has the same 28 findings and identical output at main 02088145 and this candidate."
     }
   ],
   "knownGaps": [

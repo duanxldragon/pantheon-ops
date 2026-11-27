@@ -61,12 +61,15 @@ func changedArgoCDRow(result *gorm.DB) error {
 }
 
 func (s *ArgoCDService) updateOwned(model any, id uint64, updates map[string]interface{}) error {
-	result := s.Scoped(s.db).Model(model).Where(idWhereClause, id).Updates(updates)
+	// An explicit SET clause binds values and supplies the timestamp GORM otherwise adds.
+	updates["updated_at"] = s.db.NowFunc()
+	result := s.Scoped(s.db).Model(model).Where(idWhereClause, id).
+		Clauses(clause.Assignments(updates)).Updates(struct{}{})
 	if result.Error != nil || result.RowsAffected != 0 {
 		return result.Error
 	}
 	// MySQL can report zero changed rows for a valid idempotent update.
-	return s.Scoped(s.db).Take(model, id).Error
+	return s.Scoped(s.db).Where(idWhereClause, id).Take(model).Error
 }
 
 // Migrate creates or updates database schema.
@@ -232,7 +235,7 @@ func (s *ArgoCDService) toServerResponse(r *ArgoCDServer) *ServerResponse {
 func (s *ArgoCDService) AddRepository(req AddRepositoryRequest, createdBy string) (*RepositoryResponse, error) {
 	// Verify server exists
 	var server ArgoCDServer
-	if err := s.Scoped(s.db).First(&server, req.ServerID).Error; err != nil {
+	if err := s.Scoped(s.db).Where(idWhereClause, req.ServerID).First(&server).Error; err != nil {
 		return nil, fmt.Errorf("server.not_found: %w", err)
 	}
 
@@ -344,7 +347,7 @@ func (s *ArgoCDService) toRepositoryResponse(r *ArgoCDRepository) *RepositoryRes
 // CreateApplication deploys the application described by req and records the result.
 func (s *ArgoCDService) CreateApplication(req CreateApplicationRequest, createdBy string) (*ApplicationResponse, error) {
 	var server ArgoCDServer
-	if err := s.Scoped(s.db).First(&server, req.ServerID).Error; err != nil {
+	if err := s.Scoped(s.db).Where(idWhereClause, req.ServerID).First(&server).Error; err != nil {
 		return nil, fmt.Errorf("server.not_found: %w", err)
 	}
 
