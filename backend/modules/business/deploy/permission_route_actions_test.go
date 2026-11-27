@@ -162,6 +162,8 @@ func TestDeployDetailPoliciesStaySeparateFromStaticSiblings(t *testing.T) {
 		{"business:deploy:task:detail", "GET", base + "tasks/export", false},
 		{"business:deploy:task:detail", "POST", base + "tasks/:id/rollback", false},
 		{"business:deploy:task:view", "GET", base + "tasks/:id", false},
+		{"business:deploy:credential:list", "GET", base + "credentials/scope-options", true},
+		{"business:deploy:credential:update", "GET", base + "credentials/scope-options", false},
 	} {
 		if got := grants(tc.key, tc.method, tc.route); got != tc.want {
 			t.Fatalf("%s on %s %s: allowed=%v want=%v", tc.key, tc.method, tc.route, got, tc.want)

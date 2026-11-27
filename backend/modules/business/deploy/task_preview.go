@@ -331,9 +331,14 @@ func (c *startTaskClaim) validatePreview(tx *gorm.DB) error {
 	if c.task.ExecutorType == ExecutorTypeSSH {
 		var credential DeployCredentialRef
 		if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).First(&credential, c.req.CredentialRefID).Error; err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				return ErrTaskPreviewConflict
+			}
 			return err
 		}
-		if credential.Version != c.credentialVersion || credential.Status != bizScopeStatusActive {
+		if credential.Version != c.credentialVersion ||
+			credential.Status != bizScopeStatusActive ||
+			!credentialMatchesTaskScope(credential, *c.task, c.dataScope == nil || c.dataScope.IsAdmin) {
 			return ErrTaskPreviewConflict
 		}
 	}
