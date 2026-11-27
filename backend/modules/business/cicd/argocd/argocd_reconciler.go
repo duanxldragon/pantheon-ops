@@ -7,7 +7,9 @@ import (
 	"sync"
 	"time"
 
+	"github.com/duanxldragon/pantheon-base/backend/pkg/contracts"
 	"github.com/duanxldragon/pantheon-base/backend/pkg/logging"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/tenant"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -34,6 +36,7 @@ type Reconciler struct {
 	serverCursor uint64
 	appCursors   map[uint64]uint64
 	newClient    func(string, string, string) (*ArgoCDClient, error)
+	modeReader   tenant.ModeReader
 }
 
 // NewReconciler creates a reconciler with a safe default interval.
@@ -41,7 +44,7 @@ func NewReconciler(db *gorm.DB, interval time.Duration) *Reconciler {
 	if interval <= 0 {
 		interval = 30 * time.Second
 	}
-	return &Reconciler{db: db, interval: interval, stopCh: make(chan struct{}), appCursors: make(map[uint64]uint64), newClient: NewArgoCDClient}
+	return &Reconciler{db: db, interval: interval, stopCh: make(chan struct{}), appCursors: make(map[uint64]uint64), newClient: NewArgoCDClient, modeReader: contracts.RegisteredBusinessTenantModeReader()}
 }
 
 // Start reconciles immediately and then periodically; repeated calls do not start another loop.
@@ -96,9 +99,20 @@ func (r *Reconciler) reconcile(ctx context.Context) error {
 	}
 	passCtx, cancel := withCustomTimeout(ctx, 30*time.Second)
 	defer cancel()
+	if r.modeReader == nil {
+		return tenant.ErrModeUnavailable
+	}
+	mode, err := r.modeReader.ReadMode(passCtx)
+	if err != nil || (mode != tenant.ModeCompat && mode != tenant.ModeMulti) {
+		return tenant.ErrModeUnavailable
+	}
+	scan := r.db.WithContext(passCtx).Where("id > ?", r.serverCursor)
+	if mode == tenant.ModeCompat {
+		scan = argoCDOwnerScope(tenant.PlatformGlobalTenantID).Scoped(scan)
+	}
 	var servers []ArgoCDServer
 	// Disconnected servers are retried rather than permanently removed from the loop.
-	if err := r.db.WithContext(passCtx).Where("id > ?", r.serverCursor).Order("id ASC").Limit(reconcileBatchSize).Find(&servers).Error; err != nil {
+	if err := scan.Order("id ASC").Limit(reconcileBatchSize).Find(&servers).Error; err != nil {
 		return err
 	}
 	if len(servers) == 0 {
@@ -110,13 +124,16 @@ func (r *Reconciler) reconcile(ctx context.Context) error {
 			return err
 		}
 		r.serverCursor = server.ID
+		if server.TenantID != tenant.PlatformGlobalTenantID && tenant.EnsureTenantLoginable(r.db.WithContext(passCtx), server.TenantID) != nil {
+			continue
+		}
 		serverErr := r.reconcileServer(passCtx, &server)
 		serverStatus := ArgoCDStatusConnected
 		if serverErr != nil {
 			serverStatus = ArgoCDStatusDisconnected
 			logging.Error("ArgoCD server reconciliation failed", zap.Uint64("server_id", server.ID), zap.String("subsystem", "server_reconcile"), zap.String("error_class", reconciliationErrorClass(serverErr)))
 		}
-		if err := r.db.WithContext(passCtx).Model(&server).Updates(map[string]interface{}{"status": serverStatus, "last_checked": time.Now().UTC()}).Error; err != nil {
+		if err := argoCDOwnerScope(server.TenantID).Scoped(r.db.WithContext(passCtx)).Model(&server).Updates(map[string]interface{}{"status": serverStatus, "last_checked": time.Now().UTC()}).Error; err != nil {
 			return err
 		}
 	}
@@ -144,7 +161,7 @@ func (r *Reconciler) reconcileServer(ctx context.Context, server *ArgoCDServer) 
 		client = nil
 	}
 	var apps []ArgoCDApplication
-	if err := r.db.WithContext(ctx).Where("server_id = ? AND id > ?", server.ID, r.appCursors[server.ID]).Order("id ASC").Limit(reconcileBatchSize).Find(&apps).Error; err != nil {
+	if err := argoCDOwnerScope(server.TenantID).Scoped(r.db.WithContext(ctx)).Where("server_id = ? AND id > ?", server.ID, r.appCursors[server.ID]).Order("id ASC").Limit(reconcileBatchSize).Find(&apps).Error; err != nil {
 		return err
 	}
 	if len(apps) == 0 {
@@ -194,11 +211,12 @@ func (r *Reconciler) latestHistory(db *gorm.DB, appID uint64) (ArgoCDSyncHistory
 }
 
 func (r *Reconciler) reconcileApplication(ctx context.Context, client *ArgoCDClient, app *ArgoCDApplication) error {
+	owner := argoCDOwnerScope(app.TenantID)
 	var observed ArgoCDApplication
-	if err := r.db.WithContext(ctx).First(&observed, app.ID).Error; err != nil {
+	if err := owner.Scoped(r.db.WithContext(ctx)).First(&observed, app.ID).Error; err != nil {
 		return err
 	}
-	history, err := r.latestHistory(r.db.WithContext(ctx), app.ID)
+	history, err := r.latestHistory(owner.Scoped(r.db.WithContext(ctx)), app.ID)
 	if err != nil {
 		return err
 	}
@@ -223,10 +241,10 @@ func (r *Reconciler) reconcileApplication(ctx context.Context, client *ArgoCDCli
 	}
 	return r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		var current ArgoCDApplication
-		if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).First(&current, app.ID).Error; err != nil {
+		if err := owner.Scoped(tx).Clauses(clause.Locking{Strength: "UPDATE"}).First(&current, app.ID).Error; err != nil {
 			return err
 		}
-		latest, err := r.latestHistory(tx, app.ID)
+		latest, err := r.latestHistory(owner.Scoped(tx), app.ID)
 		if err != nil {
 			return err
 		}
@@ -265,11 +283,11 @@ func (r *Reconciler) reconcileApplication(ctx context.Context, client *ArgoCDCli
 			updates["last_synced_at"] = now
 		}
 		if pending && outcome.finished {
-			if err := tx.Model(&latest).Where("status = ?", syncHistoryRunning).Updates(map[string]interface{}{"status": outcome.historyStatus, "message": message, "finished_at": now}).Error; err != nil {
+			if err := owner.Scoped(tx).Model(&latest).Where("status = ?", syncHistoryRunning).Updates(map[string]interface{}{"status": outcome.historyStatus, "message": message, "finished_at": now}).Error; err != nil {
 				return err
 			}
 		}
-		return tx.Model(&current).Updates(updates).Error
+		return owner.Scoped(tx).Model(&current).Updates(updates).Error
 	})
 }
 

@@ -10,6 +10,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/duanxldragon/pantheon-base/backend/pkg/tenant"
 	"github.com/duanxldragon/pantheon-base/backend/pkg/testmysql"
 	"gorm.io/gorm"
 )
@@ -225,6 +226,7 @@ func TestReconcileRetriesDisconnectedServer(t *testing.T) {
 	}))
 	defer remote.Close()
 	r := NewReconciler(db, time.Second)
+	r.modeReader = argoCDTestMode{mode: tenant.ModeCompat}
 	r.newClient = func(string, string, string) (*ArgoCDClient, error) {
 		return &ArgoCDClient{endpoint: remote.URL, httpClient: remote.Client()}, nil
 	}
@@ -263,6 +265,7 @@ func TestReconcileExpiresPendingHistoryDuringServerOutage(t *testing.T) {
 	}))
 	defer remote.Close()
 	r := NewReconciler(db, time.Second)
+	r.modeReader = argoCDTestMode{mode: tenant.ModeCompat}
 	r.newClient = func(string, string, string) (*ArgoCDClient, error) {
 		return &ArgoCDClient{endpoint: remote.URL, httpClient: remote.Client()}, nil
 	}
@@ -349,6 +352,7 @@ func TestReconcilerStopCancelsInFlightServerProbe(t *testing.T) {
 	defer remote.Close()
 	r := NewReconciler(db, time.Hour)
 	defer r.Stop()
+	r.modeReader = argoCDTestMode{mode: tenant.ModeCompat}
 	r.newClient = func(string, string, string) (*ArgoCDClient, error) {
 		return &ArgoCDClient{endpoint: remote.URL, httpClient: remote.Client()}, nil
 	}

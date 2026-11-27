@@ -8,13 +8,23 @@ import (
 	"strconv"
 
 	"github.com/duanxldragon/pantheon-base/backend/pkg/common"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/tenant"
 
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
 // msgParamInvalid is the i18n key returned for a malformed request. The key is part of the
 // frontend message catalogue contract, so it stays a single package constant.
 const msgParamInvalid = "common.param_invalid"
+
+func failArgoCDResourceRequest(c *gin.Context, err error, fallback string) {
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		common.Fail(c, common.CodeNotFound, "common.notFound")
+		return
+	}
+	common.FailWithError(c, common.CodeForError(err), err, fallback)
+}
 
 // ArgoCDHandler handles ArgoCD HTTP requests.
 //
@@ -26,6 +36,10 @@ type ArgoCDHandler struct {
 // NewArgoCDHandler creates a new handler.
 func NewArgoCDHandler(service *ArgoCDService) *ArgoCDHandler {
 	return &ArgoCDHandler{service: service}
+}
+
+func (h *ArgoCDHandler) requestService(c *gin.Context) *ArgoCDService {
+	return h.service.WithTenantContext(c.Request.Context(), tenant.FromGin(c))
 }
 
 // RegisterRoutes registers all ArgoCD routes.
@@ -69,9 +83,9 @@ func (h *ArgoCDHandler) AddServer(c *gin.Context) {
 	createdBy := strconv.FormatUint(common.GetUserID(c), 10)
 	common.SetAuditMetadata(c, "添加 ArgoCD 服务端", common.BusinessInsert)
 
-	resp, err := h.service.AddServer(req, createdBy)
+	resp, err := h.requestService(c).AddServer(req, createdBy)
 	if err != nil {
-		common.FailWithError(c, common.CodeError, err, "cicd.argocd.server_add_failed")
+		common.FailWithError(c, common.CodeForError(err), err, "cicd.argocd.server_add_failed")
 		return
 	}
 	common.Success(c, resp)
@@ -79,7 +93,7 @@ func (h *ArgoCDHandler) AddServer(c *gin.Context) {
 
 // ListServers returns the registered Argo CD servers.
 func (h *ArgoCDHandler) ListServers(c *gin.Context) {
-	resp, err := h.service.ListServers()
+	resp, err := h.requestService(c).ListServers()
 	if err != nil {
 		common.FailWithError(c, common.CodeError, err, "cicd.argocd.server_list_failed")
 		return
@@ -94,9 +108,9 @@ func (h *ArgoCDHandler) GetServer(c *gin.Context) {
 		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
 		return
 	}
-	resp, err := h.service.GetServer(id)
+	resp, err := h.requestService(c).GetServer(id)
 	if err != nil {
-		common.FailWithError(c, common.CodeError, err, "cicd.argocd.server_get_failed")
+		failArgoCDResourceRequest(c, err, "cicd.argocd.server_get_failed")
 		return
 	}
 	common.Success(c, resp)
@@ -116,8 +130,8 @@ func (h *ArgoCDHandler) UpdateServer(c *gin.Context) {
 	}
 	common.SetAuditMetadata(c, "更新 ArgoCD 服务端", common.BusinessUpdate)
 
-	if err := h.service.UpdateServer(id, req); err != nil {
-		common.FailWithError(c, common.CodeError, err, "cicd.argocd.server_update_failed")
+	if err := h.requestService(c).UpdateServer(id, req); err != nil {
+		failArgoCDResourceRequest(c, err, "cicd.argocd.server_update_failed")
 		return
 	}
 	common.Success(c, gin.H{"updated": true})
@@ -132,8 +146,8 @@ func (h *ArgoCDHandler) DeleteServer(c *gin.Context) {
 	}
 	common.SetAuditMetadata(c, "删除 ArgoCD 服务端", common.BusinessDelete)
 
-	if err := h.service.DeleteServer(id); err != nil {
-		common.FailWithError(c, common.CodeError, err, "cicd.argocd.server_delete_failed")
+	if err := h.requestService(c).DeleteServer(id); err != nil {
+		failArgoCDResourceRequest(c, err, "cicd.argocd.server_delete_failed")
 		return
 	}
 	common.Success(c, gin.H{"deleted": true})
@@ -146,9 +160,9 @@ func (h *ArgoCDHandler) TestServerConnection(c *gin.Context) {
 		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
 		return
 	}
-	ok, err := h.service.TestServerConnection(id)
+	ok, err := h.requestService(c).TestServerConnection(id)
 	if err != nil {
-		common.FailWithError(c, common.CodeError, err, "cicd.argocd.server_test_failed")
+		failArgoCDResourceRequest(c, err, "cicd.argocd.server_test_failed")
 		return
 	}
 	common.Success(c, gin.H{"connected": ok})
@@ -166,9 +180,9 @@ func (h *ArgoCDHandler) AddRepository(c *gin.Context) {
 	createdBy := strconv.FormatUint(common.GetUserID(c), 10)
 	common.SetAuditMetadata(c, "添加 Git 仓库", common.BusinessInsert)
 
-	resp, err := h.service.AddRepository(req, createdBy)
+	resp, err := h.requestService(c).AddRepository(req, createdBy)
 	if err != nil {
-		common.FailWithError(c, common.CodeError, err, "cicd.argocd.repo_add_failed")
+		failArgoCDResourceRequest(c, err, "cicd.argocd.repo_add_failed")
 		return
 	}
 	common.Success(c, resp)
@@ -177,7 +191,7 @@ func (h *ArgoCDHandler) AddRepository(c *gin.Context) {
 // ListRepositories returns the repositories of the Argo CD server named by serverId.
 func (h *ArgoCDHandler) ListRepositories(c *gin.Context) {
 	serverID, _ := strconv.ParseUint(c.Query("serverId"), 10, 64)
-	resp, err := h.service.ListRepositories(serverID)
+	resp, err := h.requestService(c).ListRepositories(serverID)
 	if err != nil {
 		common.FailWithError(c, common.CodeError, err, "cicd.argocd.repo_list_failed")
 		return
@@ -192,9 +206,9 @@ func (h *ArgoCDHandler) GetRepository(c *gin.Context) {
 		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
 		return
 	}
-	resp, err := h.service.GetRepository(id)
+	resp, err := h.requestService(c).GetRepository(id)
 	if err != nil {
-		common.FailWithError(c, common.CodeError, err, "cicd.argocd.repo_get_failed")
+		failArgoCDResourceRequest(c, err, "cicd.argocd.repo_get_failed")
 		return
 	}
 	common.Success(c, resp)
@@ -214,8 +228,8 @@ func (h *ArgoCDHandler) UpdateRepository(c *gin.Context) {
 	}
 	common.SetAuditMetadata(c, "更新 Git 仓库", common.BusinessUpdate)
 
-	if err := h.service.UpdateRepository(id, req); err != nil {
-		common.FailWithError(c, common.CodeError, err, "cicd.argocd.repo_update_failed")
+	if err := h.requestService(c).UpdateRepository(id, req); err != nil {
+		failArgoCDResourceRequest(c, err, "cicd.argocd.repo_update_failed")
 		return
 	}
 	common.Success(c, gin.H{"updated": true})
@@ -230,8 +244,8 @@ func (h *ArgoCDHandler) DeleteRepository(c *gin.Context) {
 	}
 	common.SetAuditMetadata(c, "删除 Git 仓库", common.BusinessDelete)
 
-	if err := h.service.DeleteRepository(id); err != nil {
-		common.FailWithError(c, common.CodeError, err, "cicd.argocd.repo_delete_failed")
+	if err := h.requestService(c).DeleteRepository(id); err != nil {
+		failArgoCDResourceRequest(c, err, "cicd.argocd.repo_delete_failed")
 		return
 	}
 	common.Success(c, gin.H{"deleted": true})
@@ -249,9 +263,9 @@ func (h *ArgoCDHandler) CreateApplication(c *gin.Context) {
 	createdBy := strconv.FormatUint(common.GetUserID(c), 10)
 	common.SetAuditMetadata(c, "创建 ArgoCD 应用", common.BusinessInsert)
 
-	resp, err := h.service.CreateApplication(req, createdBy)
+	resp, err := h.requestService(c).CreateApplication(req, createdBy)
 	if err != nil {
-		common.FailWithError(c, common.CodeError, err, "cicd.argocd.app_create_failed")
+		failArgoCDResourceRequest(c, err, "cicd.argocd.app_create_failed")
 		return
 	}
 	common.Success(c, resp)
@@ -260,7 +274,7 @@ func (h *ArgoCDHandler) CreateApplication(c *gin.Context) {
 // ListApplications returns the applications of the Argo CD server named by serverId.
 func (h *ArgoCDHandler) ListApplications(c *gin.Context) {
 	serverID, _ := strconv.ParseUint(c.Query("serverId"), 10, 64)
-	resp, err := h.service.ListApplications(serverID)
+	resp, err := h.requestService(c).ListApplications(serverID)
 	if err != nil {
 		common.FailWithError(c, common.CodeError, err, "cicd.argocd.app_list_failed")
 		return
@@ -275,9 +289,9 @@ func (h *ArgoCDHandler) GetApplication(c *gin.Context) {
 		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
 		return
 	}
-	resp, err := h.service.GetApplication(id)
+	resp, err := h.requestService(c).GetApplication(id)
 	if err != nil {
-		common.FailWithError(c, common.CodeError, err, "cicd.argocd.app_get_failed")
+		failArgoCDResourceRequest(c, err, "cicd.argocd.app_get_failed")
 		return
 	}
 	common.Success(c, resp)
@@ -297,8 +311,8 @@ func (h *ArgoCDHandler) UpdateApplication(c *gin.Context) {
 	}
 	common.SetAuditMetadata(c, "更新 ArgoCD 应用", common.BusinessUpdate)
 
-	if err := h.service.UpdateApplication(id, req); err != nil {
-		common.FailWithError(c, common.CodeError, err, "cicd.argocd.app_update_failed")
+	if err := h.requestService(c).UpdateApplication(id, req); err != nil {
+		failArgoCDResourceRequest(c, err, "cicd.argocd.app_update_failed")
 		return
 	}
 	common.Success(c, gin.H{"updated": true})
@@ -313,8 +327,8 @@ func (h *ArgoCDHandler) DeleteApplication(c *gin.Context) {
 	}
 	common.SetAuditMetadata(c, "删除 ArgoCD 应用", common.BusinessDelete)
 
-	if err := h.service.DeleteApplication(id); err != nil {
-		common.FailWithError(c, common.CodeError, err, "cicd.argocd.app_delete_failed")
+	if err := h.requestService(c).DeleteApplication(id); err != nil {
+		failArgoCDResourceRequest(c, err, "cicd.argocd.app_delete_failed")
 		return
 	}
 	common.Success(c, gin.H{"deleted": true})
@@ -332,7 +346,7 @@ func (h *ArgoCDHandler) SyncApplication(c *gin.Context) {
 
 	common.SetAuditMetadata(c, "同步 ArgoCD 应用", common.BusinessUpdate)
 
-	resp, err := h.service.SyncApplication(id, req.Revision)
+	resp, err := h.requestService(c).SyncApplication(id, req.Revision)
 	if err != nil {
 		failSyncAction(c, err, appSyncFailedKey)
 		return
@@ -349,8 +363,8 @@ func (h *ArgoCDHandler) RefreshApplication(c *gin.Context) {
 	}
 	common.SetAuditMetadata(c, "刷新 ArgoCD 应用", common.BusinessUpdate)
 
-	if err := h.service.RefreshApplication(id); err != nil {
-		common.FailWithError(c, common.CodeError, err, "cicd.argocd.app_refresh_failed")
+	if err := h.requestService(c).RefreshApplication(id); err != nil {
+		failArgoCDResourceRequest(c, err, "cicd.argocd.app_refresh_failed")
 		return
 	}
 	common.Success(c, gin.H{"refreshed": true})
@@ -370,7 +384,7 @@ func (h *ArgoCDHandler) RollbackApplication(c *gin.Context) {
 	}
 	common.SetAuditMetadata(c, "回滚 ArgoCD 应用", common.BusinessUpdate)
 
-	resp, err := h.service.RollbackApplication(id, req.Revision)
+	resp, err := h.requestService(c).RollbackApplication(id, req.Revision)
 	if err != nil {
 		failSyncAction(c, err, "cicd.argocd.app_rollback_failed")
 		return
@@ -379,6 +393,10 @@ func (h *ArgoCDHandler) RollbackApplication(c *gin.Context) {
 }
 
 func failSyncAction(c *gin.Context, err error, fallback string) {
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		failArgoCDResourceRequest(c, err, fallback)
+		return
+	}
 	message := common.ResolveErrorMessageKey(err, fallback)
 	if errors.Is(err, common.ErrForbidden) || errors.Is(err, common.ErrUnauthorized) || errors.Is(err, common.ErrBadRequest) || errors.Is(err, common.ErrNotFound) {
 		common.Fail(c, common.CodeForError(err), message)
@@ -402,7 +420,7 @@ func (h *ArgoCDHandler) GetSyncHistory(c *gin.Context) {
 		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
 		return
 	}
-	resp, err := h.service.GetSyncHistory(id)
+	resp, err := h.requestService(c).GetSyncHistory(id)
 	if err != nil {
 		common.FailWithError(c, common.CodeError, err, "cicd.argocd.history_get_failed")
 		return

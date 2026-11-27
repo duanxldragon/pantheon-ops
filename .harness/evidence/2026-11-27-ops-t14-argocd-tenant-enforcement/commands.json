@@ -1,0 +1,53 @@
+{
+  "schemaVersion": 1,
+  "taskId": "2026-11-27-ops-t14-argocd-tenant-enforcement",
+  "repo": "pantheon-ops",
+  "evidenceState": "exercised",
+  "agent": {
+    "tool": "codex",
+    "adapter": "windows"
+  },
+  "candidate": {
+    "head": "02088145",
+    "stagedTree": "c14a380e772c33a26f8ffa471f7c513343e1e295",
+    "foundation": "pantheon-base-v0.19.1"
+  },
+  "commands": [
+    {
+      "command": "go test -race -count=1 -json -run 'ArgoCD|Tenant' ./modules/business/cicd/... ./modules/business/shared/tenantcontext",
+      "cwd": "backend",
+      "status": "passed",
+      "exitCode": 0,
+      "notes": "Windows MinGW CGO, isolated UTC MySQL and two Redis instances. 40 pass events."
+    },
+    {
+      "command": "go test -race ./...",
+      "cwd": "backend",
+      "status": "failed",
+      "exitCode": 124,
+      "notes": "44m10s run timeout with 16 emitted package passes; full gate incomplete. Full log SHA-256: 17cf36a48ad4eef7cbcd6c14fa04efa507cf158593d4bcbbc1545994f8e9436f"
+    },
+    {
+      "command": "go test -race ./...",
+      "cwd": "backend",
+      "status": "passed",
+      "exitCode": 0,
+      "notes": "Windows CGO; isolated UTC MySQL and Redis. 78 package passes, 450 seconds. Test tree 32bf1732be751abdeda5e532546a7ab633468f0f. SHA-256 2742e1a06e23211440e23e4f1a95284c4bbd8a78e15374fb1dc35aeda71600c0."
+    }
+  ],
+  "knownGaps": [
+    "外部 ArgoCD provider 与整体 Phase 2 仍独立验收。",
+    "新基线需独立高风险复核。"
+  ],
+  "linkage": {
+    "taskManifest": ".harness/tasks/2026-11-27-ops-t14-argocd-tenant-enforcement/manifest.json",
+    "taskDoc": "docs/harness/tasks/2026-11-25-ops-tenant-runtime-enforcement.task.md",
+    "evidenceDir": ".harness/evidence/2026-11-27-ops-t14-argocd-tenant-enforcement/",
+    "reviewFile": ".harness/evidence/2026-11-27-ops-t14-argocd-tenant-enforcement/review.md",
+    "summaryFile": ".harness/evidence/2026-11-27-ops-t14-argocd-tenant-enforcement/summary.md",
+    "changeRef": "none",
+    "planRefs": [
+      ".harness/tasks/2026-11-25-ops-tenant-runtime-enforcement/PLAN.md"
+    ]
+  }
+}

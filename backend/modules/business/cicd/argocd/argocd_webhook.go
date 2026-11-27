@@ -1,6 +1,7 @@
 package argocd
 
 import (
+	"context"
 	"crypto/hmac"
 	"crypto/sha256"
 	"encoding/hex"
@@ -12,7 +13,9 @@ import (
 	"strings"
 	"time"
 
+	"github.com/duanxldragon/pantheon-base/backend/pkg/contracts"
 	"github.com/duanxldragon/pantheon-base/backend/pkg/logging"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/tenant"
 	"go.uber.org/zap"
 
 	"gorm.io/gorm"
@@ -58,26 +61,34 @@ func (WebhookEvent) TableName() string {
 
 // WebhookHandler handles webhook events
 type WebhookHandler struct {
-	db     *gorm.DB
-	syncer applicationSyncer
-}
-
-// applicationSyncer starts a sync for a stored application. *ArgoCDService satisfies it;
-// the webhook depends on the behaviour instead of the concrete service so the trigger
-// decision can be tested without an Argo CD server.
-type applicationSyncer interface {
-	SyncApplication(id uint64, revision string) (*SyncHistoryResponse, error)
+	db         *gorm.DB
+	sync       func(ownerID, appID uint64, revision string) (*SyncHistoryResponse, error)
+	modeReader tenant.ModeReader
 }
 
 // NewWebhookHandler creates a webhook handler
 func NewWebhookHandler(db *gorm.DB) *WebhookHandler {
-	return &WebhookHandler{db: db, syncer: NewArgoCDService(db)}
+	return &WebhookHandler{db: db, sync: NewArgoCDService(db).syncApplicationForOwner, modeReader: contracts.RegisteredBusinessTenantModeReader()}
+}
+
+// Legacy webhook receipts have no authenticated tenant provenance. These
+// handlers remain unmounted and only admit compat events if explicitly used.
+func (h *WebhookHandler) allowLegacyReceipt(ctx context.Context) bool {
+	if h.modeReader == nil {
+		return false
+	}
+	mode, err := h.modeReader.ReadMode(ctx)
+	return err == nil && mode == tenant.ModeCompat
 }
 
 // HandleGitWebhook handles Git webhook events (GitHub/GitLab/Gitea)
 func (h *WebhookHandler) HandleGitWebhook(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+	if !h.allowLegacyReceipt(r.Context()) {
+		http.Error(w, "Forbidden", http.StatusForbidden)
 		return
 	}
 
@@ -131,6 +142,10 @@ func (h *WebhookHandler) HandleGitWebhook(w http.ResponseWriter, r *http.Request
 func (h *WebhookHandler) HandleArgoCDWebhook(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+	if !h.allowLegacyReceipt(r.Context()) {
+		http.Error(w, "Forbidden", http.StatusForbidden)
 		return
 	}
 
@@ -352,6 +367,7 @@ func hasAutomatedSyncPolicy(policy []byte) bool {
 
 // processGitEvent processes a Git webhook event
 func (h *WebhookHandler) processGitEvent(event *WebhookEvent) {
+	owner := argoCDOwnerScope(event.TenantID)
 	logging.Info("processing git webhook event",
 		zap.String("source", event.Source),
 		zap.String("type", event.EventType),
@@ -359,7 +375,7 @@ func (h *WebhookHandler) processGitEvent(event *WebhookEvent) {
 
 	// Find applications that should be synced
 	var apps []ArgoCDApplication
-	if err := h.db.Where("source_repo_url = ? AND status != ?",
+	if err := owner.Scoped(h.db).Where("source_repo_url = ? AND status != ?",
 		event.Repository, "Error").Find(&apps).Error; err != nil {
 		logging.Error("failed to find applications for webhook", zap.Error(err))
 		return
@@ -370,7 +386,7 @@ func (h *WebhookHandler) processGitEvent(event *WebhookEvent) {
 			continue
 		}
 		logging.Info("triggering auto-sync for application", zap.String("app", app.Name))
-		if _, err := h.syncer.SyncApplication(app.ID, app.SourceTargetRev); err != nil {
+		if _, err := h.sync(event.TenantID, app.ID, app.SourceTargetRev); err != nil {
 			logging.Error("auto-sync trigger failed",
 				zap.String("app", app.Name), zap.Error(err))
 		}
@@ -378,7 +394,7 @@ func (h *WebhookHandler) processGitEvent(event *WebhookEvent) {
 
 	// Mark as processed
 	now := time.Now()
-	h.db.Model(event).Updates(map[string]interface{}{
+	owner.Scoped(h.db).Model(event).Updates(map[string]interface{}{
 		"processed":    true,
 		"processed_at": now,
 	})
@@ -386,6 +402,7 @@ func (h *WebhookHandler) processGitEvent(event *WebhookEvent) {
 
 // processArgoCDEvent processes an ArgoCD webhook event
 func (h *WebhookHandler) processArgoCDEvent(event *WebhookEvent) {
+	owner := argoCDOwnerScope(event.TenantID)
 	logging.Info("processing argocd webhook event",
 		zap.String("type", event.EventType),
 		zap.String("repo", event.Repository))
@@ -407,7 +424,7 @@ func (h *WebhookHandler) processArgoCDEvent(event *WebhookEvent) {
 
 	// Find and update application
 	var app ArgoCDApplication
-	if err := h.db.Where("name = ?", appName).First(&app).Error; err != nil {
+	if err := owner.Scoped(h.db).Where("name = ?", appName).First(&app).Error; err != nil {
 		logging.Warn("application not found for webhook", zap.String("app", appName))
 		return
 	}
@@ -416,15 +433,15 @@ func (h *WebhookHandler) processArgoCDEvent(event *WebhookEvent) {
 	// exactly as the previous inline extraction did.
 	syncStatus, healthStatus := argoCDStatusFields(payload)
 	if syncStatus != nil {
-		h.db.Model(&app).Update("sync_status", *syncStatus)
+		owner.Scoped(h.db).Model(&app).Update("sync_status", *syncStatus)
 	}
 	if healthStatus != nil {
-		h.db.Model(&app).Update("health_status", *healthStatus)
+		owner.Scoped(h.db).Model(&app).Update("health_status", *healthStatus)
 	}
 
 	// Mark as processed
 	now := time.Now()
-	h.db.Model(event).Updates(map[string]interface{}{
+	owner.Scoped(h.db).Model(event).Updates(map[string]interface{}{
 		"processed":    true,
 		"processed_at": now,
 	})
@@ -450,7 +467,7 @@ func argoCDStatusFields(payload map[string]interface{}) (syncStatus *string, hea
 // ListEvents lists webhook events
 func (h *WebhookHandler) ListEvents(source string, limit int) ([]WebhookEvent, error) {
 	var events []WebhookEvent
-	query := h.db.Order(orderByCreatedAtDesc)
+	query := argoCDOwnerScope(tenant.PlatformGlobalTenantID).Scoped(h.db).Order(orderByCreatedAtDesc)
 	if source != "" {
 		query = query.Where("source = ?", source)
 	}
