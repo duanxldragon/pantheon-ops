@@ -8,8 +8,8 @@
     "adapter": "windows"
   },
   "candidate": {
-    "head": "1d3444b4",
-    "worktree": "uncommitted",
+    "head": "81b8089efb943f7c3d20532eb766eb2c9e8764ef",
+    "worktree": "merged PR #225; local migration test was executed on its pre-merge candidate",
     "foundation": "pantheon-base-v0.19.0",
     "foundationCommit": "cc2fe7370a98c2862e2610d79880012971cf57f5"
   },
@@ -40,14 +40,14 @@
       "cwd": "backend",
       "status": "passed",
       "exitCode": 0,
-      "notes": "5/5 PASS on a real MySQL: the two new T14 tests (legacy upgrade incl. a key with an arbitrary name found by column set, AutoMigrate-first state) and T04's three. Negative control: changing the discovery predicate made both T14 tests fail ('kept 1 global ... key'); the migration was restored to its committed bytes. Note CI does not run these: Backend Tests has no MySQL service, so testmysql tests skip there. The credential was read at run time from the maintainer's local note, masked in output and never written to a file."
+      "notes": "5/5 PASS on a real MySQL on the pre-merge candidate: the two T14 tests cover legacy upgrade (including a key with an arbitrary name found by column set) and AutoMigrate-first state; T04 compatibility tests also pass. Negative control: changing the discovery predicate made both T14 tests fail ('kept 1 global ... key'); the migration was restored. The local DB credential was read at run time and never written to a file. PR #225 later ran this gate with the MySQL service enabled; see the hosted run below."
     },
     {
       "command": "go test ./modules/business/...",
       "cwd": "backend",
       "status": "failed",
       "exitCode": 1,
-      "notes": "Only business/observability TestQueryPermitActualRedisActorAndTenantCaps fails: it needs Redis at 127.0.0.1:26316. Unrelated; it passed against a dedicated instance during the v0.19.0 consumption."
+      "notes": "Only business/observability TestQueryPermitActualRedisActorAndTenantCaps fails: it needs Redis at 127.0.0.1:26316. Local service was unavailable; this package is outside phase-1 schema scope."
     },
     {
       "command": "npm run rebuild:from-base && check:business-overlay && check:shared-drift",
@@ -68,7 +68,7 @@
       "cwd": ".",
       "status": "failed",
       "exitCode": 1,
-      "notes": "backend/modules/business/deploy/deploy_credential.go:59 uses bizscope.BizScope directly. Not touched by this branch; introduced by T05 (#222). The check is manual-only in CI, so required checks did not catch it. Reported, not fixed here."
+      "notes": "backend/modules/business/deploy/deploy_credential.go:59 uses bizscope.BizScope directly. Not touched by the T14 schema change; introduced by T05 (#222). Tracked separately and not claimed fixed by this task."
     },
     {
       "command": "golangci-lint run ./modules/business/... (local, Go on PATH)",
@@ -76,6 +76,35 @@
       "status": "passed",
       "exitCode": 0,
       "notes": "No findings in any file this branch touched. The CI Go Lint job found one (prealloc in tenantschematest.go), fixed. The local run also reports 86 pre-existing findings elsewhere under a different scope than CI; not attributable to this branch."
+    },
+    {
+      "command": "GitHub Actions PR #225 required and runtime checks",
+      "cwd": ".",
+      "status": "passed",
+      "exitCode": 0,
+      "notes": "Backend Tests passed in 6m36s, Smoke Sanity passed in 14m24s, Go Lint, Docs Governance, Quality Gates, Secret Scan, CodeQL, SonarCloud and other required checks passed. Run: https://github.com/duanxldragon/pantheon-ops/actions/runs/45718791884. The non-required Automate Solo PR job was red because RELEASE_GATE_TOKEN is not configured."
+    },
+    {
+      "command": "Independent CODE/ARCH review of migration 000043, model tags and migration tests",
+      "cwd": ".",
+      "status": "passed",
+      "exitCode": 0,
+      "notes": "No significant findings. Reviewer verified old-key discovery by column set, tenant-first key/tag consistency, and legacy/AutoMigrate-first migration coverage. Runtime isolation remains explicitly out of phase-1 scope."
     }
-  ]
+  ],
+  "knownGaps": [
+    "T14 phase 1 only delivers tenant schema; runtime read/write enforcement, tenant-scoped routing, async identity and dual-tenant business behavior remain open in the T14 phase-2 plan and per-module tasks.",
+    "A T05 deploy credential boundary finding remains separately tracked.",
+    "The local full business suite has an unrelated observability test requiring Redis at 127.0.0.1:26316."
+  ],
+  "linkage": {
+    "taskManifest": ".harness/tasks/2026-11-20-ops-extension-and-async-tenant-isolation/manifest.json",
+    "evidenceDir": ".harness/evidence/2026-11-20-ops-extension-and-async-tenant-isolation/",
+    "reviewFile": ".harness/evidence/2026-11-20-ops-extension-and-async-tenant-isolation/review.md",
+    "summaryFile": ".harness/evidence/2026-11-20-ops-extension-and-async-tenant-isolation/summary.md",
+    "changeRef": "none",
+    "planRefs": [
+      ".harness/tasks/2026-11-25-ops-tenant-runtime-enforcement/PLAN.md"
+    ]
+  }
 }

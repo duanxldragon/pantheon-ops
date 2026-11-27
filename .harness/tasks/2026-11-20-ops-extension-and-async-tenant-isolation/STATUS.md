@@ -1,16 +1,16 @@
-# 扩展业务与异步链路租户隔离
+# 扩展业务租户归属 Schema（T14 第一阶段）
 
-- Status: in-progress
-- Updated: 2026-11-25
+- Status: completed
+- Updated: 2026-11-26
 - Baseline: a2d69d4a759b5df2b26aaa9d26bdc5175babe9dc
 - Owner: 扩展业务租户迁移负责人
 - Priority: P1
 - Activation: core
 - Dependencies: T03, T04
 
-## Phase 1 delivered 2026-11-25
+## Phase 1 completed 2026-11-26
 
-迁移 `000043` 给 18 张扩展表加 `tenant_id`，并把 5 个自然唯一键重建为租户优先；18 个模型同步。compat 数据不变。迁移测试在本机未对真实库运行，交 CI 证明。详见 `../../evidence/2026-11-20-ops-extension-and-async-tenant-isolation/summary.md`。
+迁移 `000043` 给 18 张扩展表加 `tenant_id`，并把 5 个自然唯一键重建为租户优先；18 个模型同步。compat 数据不变。真实 MySQL migration 测试 5/5 PASS，PR #225 的 MySQL-backed Backend Tests 通过。独立 CODE/ARCH review 无发现。详见 `../../evidence/2026-11-20-ops-extension-and-async-tenant-isolation/summary.md`。
 
 ## Findings
 
@@ -26,5 +26,5 @@
 ## Known Gaps
 
 - 第二阶段（运行时强制）未做，租户隔离尚未真正生效。
-- CI 不运行真实库测试（backend-tests 无 MySQL）；迁移已在本机真实库证明。
-- 无独立 review。
+- 没有运行时租户读写隔离、异步 tenant identity 或双租户业务执行证据；这些均明确不在第一阶段交付范围。
+- 这些 gap 已转至 `2026-11-25-ops-tenant-runtime-enforcement` 父计划与逐模块任务；本任务 completed 仅代表 schema 第一阶段，不代表租户隔离已在运行时生效。

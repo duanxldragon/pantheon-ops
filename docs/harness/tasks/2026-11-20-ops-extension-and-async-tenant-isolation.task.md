@@ -1,9 +1,9 @@
 ---
-title: 扩展业务与异步链路租户隔离
+title: 扩展业务租户归属 Schema（T14 第一阶段）
 doc_type: Remediation
 layer: business
-status: Active
-updated_at: 2026-11-20
+status: Archived
+updated_at: 2026-11-26
 linked_contracts:
   - docs/designs/BUSINESS_FUNCTIONAL_DESIGN.md
   - docs/contracts/TENANT_CONTRACT_V1.md
@@ -11,11 +11,11 @@ linked_contracts:
 
 # Task Packet: 2026-11-20-ops-extension-and-async-tenant-isolation
 
-扩展业务与异步链路租户隔离
+扩展业务租户归属 Schema（T14 第一阶段）
 
 ## Goal
 
-按 T01 清单完成 T04 之外 tenant-owned/derived/overridable 表、唯一键、路由与关联隔离，核实已有 observability 局部租户实现
+完成 T04 之外 18 张扩展业务表的 `tenant_id` schema 与租户优先唯一键，验证 legacy 升级与现有数据兼容。本包仅关闭第一阶段 schema；运行时租户隔离由维护者决定拆分的 T14 第二阶段任务逐模块验收。
 
 ## Primary Layer
 
@@ -76,12 +76,14 @@ business/*
 
 ### In
 
-- 按 T01 清单完成 T04 之外 tenant-owned/derived/overridable 表、唯一键、路由与关联隔离，核实已有 observability 局部租户实现
-- 后台同步/告警评估/通知/文件分发任务存储租户身份并显式传给授权与provider，缓存和队列身份不跨租户复用
-- 按启用能力验证公开callback、系统启动任务和 legacy数据授权；业务迁移编号与 T04 协调，共享扩展接口缺口 Base-first
+- 18 张已核实扩展表的 `tenant_id NOT NULL DEFAULT 0`、18 个 GORM 模型字段与模型 schema 回归
+- 五个自然唯一键调整为 tenant-first，并验证 AutoMigrate 与 upgrade migration 收敛
+- 真实 MySQL legacy upgrade、任意旧索引名识别、旧行保留及 AutoMigrate-first 恢复
 
 ### Out
 
+- 读写运行时隔离、tenant-scoped route group、双租户业务反例及后台任务身份传播；这些由 [T14 第二阶段计划](../../../.harness/tasks/2026-11-25-ops-tenant-runtime-enforcement/PLAN.md) 和后续逐模块任务承担
+- 真实 callback/provider/filedist/告警租户验收
 - platform/system/*、共享 UI/权限/租户/请求拦截器实现由 pantheon-base 拥有，按正式 foundation release 同步
 - 未授权生产操作、发布、凭证变更及门禁豁免
 - 资产关系/Pod→Node→VM、真实 Helm Chart、Nacos/RocketMQ、完整 Agent 协议作为独立后续范围
@@ -140,17 +142,21 @@ business/*
 
 ## Acceptance Criteria
 
-- [ ] T01 全部业务表逐表已处理或有合同支持的分类依据，现有无 tenant_id 模型不会隐式成为共享资源
-- [ ] 双租户查询/写入/回调/同步/告警/文件job各有反例，重启与异步执行身份保持正确
-- [ ] compat 历史数据、已有 observability tenant数据均可升级且无重复/丢失；未启用扩展的数据归属也已定义
+- [x] 确认并记录 18 张扩展业务表及五个租户优先唯一键；18 个模型声明与 upgrade schema 一致
+- [x] 真实 MySQL 测试覆盖 legacy upgrade、任意旧索引名、AutoMigrate-first 恢复及旧行兼容
+- [x] 不宣称运行时租户隔离；读写、路由及异步身份强制项链接到 T14 第二阶段
 
 ## Verification Plan
 
-- `go test -count=1 ./modules/business/...`，工作目录 `backend`
-- `npm run test:business-overlay`，工作目录 `.`
-- `npm run check:business-overlay`，工作目录 `.`
+- `go test -run 'TestExtensionTenantMigration|TestTenantOwnershipMigration|TestAsyncRecoveryKeepsOriginatingTenant' ./modules/business/deploy/`：真实 MySQL 5/5 PASS
+- `go test -run TestTenantOwnership ./modules/business/{cicd/argocd,filedist,observability,k8s/release,k8s/helm,k8s/install,service}`：7 packages PASS
+- `npm run rebuild:from-base && npm run check:business-overlay && npm run check:shared-drift`：PASS（20 business migrations）
+- PR #225 hosted Backend Tests：PASS（MySQL-backed，6m36s）；Smoke Sanity、Go Lint、Quality Gates 与安全/文档检查 PASS
+- `node --test tests/scripts/*.test.mjs`：253/253 PASS
+- Independent CODE/ARCH review：PASS，无需代码修改
 
-- V4 扩展数据/异步隔离，两域legacy与当前对象并存
+- 真实 MySQL 验证 legacy schema upgrade、旧行兼容与 AutoMigrate-first 恢复
+- Runtime isolation gap 必须链接到独立的 T14 第二阶段计划，不得宣称已完成
 
 - 在 backend/ 执行 Go 命令；race 使用 D:\msys64\mingw64\bin，CGO_ENABLED=1 和隔离 MySQL DSN；最终提交门禁执行 go test -race ./...
 - 在 frontend/ 执行 lint/type-check/build/test:smoke:*；业务 overlay/重建/治理命令在仓库根执行
@@ -168,7 +174,7 @@ business/*
 - Task ID: 2026-11-20-ops-extension-and-async-tenant-isolation
 - Task Manifest: .harness/tasks/2026-11-20-ops-extension-and-async-tenant-isolation/manifest.json
 - Evidence Directory: .harness/evidence/2026-11-20-ops-extension-and-async-tenant-isolation/
-- Review File: none
+- Review File: .harness/evidence/2026-11-20-ops-extension-and-async-tenant-isolation/review.md
 - OpenSpec Change: none
 - Change Ref: none
 - Superpowers Plan: none
@@ -193,7 +199,11 @@ business/*
 ## Completion Checklist
 
 - [x] Layer and boundary declared
-- [ ] Contract anchors read
-- [ ] Verification run or exception recorded
-- [ ] Evidence saved or summarized
-- [ ] Review completed
+- [x] Contract anchors read
+- [x] Verification run or exception recorded
+- [x] Evidence saved or summarized
+- [x] Review completed
+
+## Status
+
+Archived：T14 第一阶段 schema 已合并并通过真实 MySQL 与托管 CI 验证。运行时隔离尚未交付，也不属于本阶段的完成声明；由 T14 第二阶段及各模块任务承接。
