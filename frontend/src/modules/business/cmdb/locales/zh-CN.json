@@ -210,5 +210,15 @@
   "business.cmdb.component.name": "组件名称",
   "business.cmdb.component.version": "版本",
   "business.cmdb.selection.invalid": "目标选择无效或超出预算",
-  "business.cmdb.selection.conflict": "目标或业务范围已变化，请重新解析"
+  "business.cmdb.selection.conflict": "目标或业务范围已变化，请重新解析",
+  "business.cmdb.host.relatedInstances": "承载服务实例",
+  "business.cmdb.host.relatedInstancesEmpty": "暂无服务实例使用该主机",
+  "business.cmdb.host.relatedInstancesFailed": "关联服务实例加载失败",
+  "business.cmdb.host.relatedInstanceService": "服务",
+  "business.cmdb.host.relatedInstanceEnvironment": "环境",
+  "business.cmdb.host.relatedInstanceVersion": "当前版本",
+  "business.cmdb.host.relatedInstanceState": "运行状态",
+  "business.cmdb.host.recentDeploys": "最近部署",
+  "business.cmdb.host.recentDeploysEmpty": "暂无部署任务",
+  "business.cmdb.host.recentDeploysFailed": "最近部署加载失败"
 }

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
+import { Link, useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
   Card,
@@ -14,13 +14,18 @@ import {
   Typography,
 } from '@arco-design/web-react';
 import { IconLeft, IconCode } from '@arco-design/web-react/icon';
-import { AppModal, PageEmpty, PageError, PageLoading } from '../../../../components';
+import { AppModal, AppTable, PageEmpty, PageError, PageLoading } from '../../../../components';
+import type { ColumnProps } from '@arco-design/web-react/es/Table/interface';
 import PageContainer from '../../../../components/patterns/layout/PageContainer';
 import BusinessPageHeader from '../../shared/BusinessPageHeader';
 import FormSection from '../../../../components/patterns/feedback/FormSection';
 import SubmitBar from '../../../../components/patterns/actions/SubmitBar';
 import { getHostDetail, collectHostConfig } from './api';
 import type { HostRow } from './api';
+import { getServiceInstanceList } from '../../service/api';
+import type { ServiceInstanceRow } from '../../service/api';
+import { getDeployTaskList } from '../../deploy/api';
+import type { DeployTaskRow } from '../../deploy/api';
 import { usePermission } from '../../../../hooks/usePermission';
 import { formatDateTime } from '../../../../core/format/dateTime';
 import PasswordInput from '../../../../components/patterns/forms/PasswordInput';
@@ -42,7 +47,16 @@ export default function CmdbHostDetail() {
   const [collecting, setCollecting] = useState(false);
   const [collectForm] = Form.useForm();
 
+  const [instances, setInstances] = useState<ServiceInstanceRow[]>([]);
+  const [instancesLoading, setInstancesLoading] = useState(false);
+  const [instancesError, setInstancesError] = useState<unknown>(null);
+  const [recentTasks, setRecentTasks] = useState<DeployTaskRow[]>([]);
+  const [tasksLoading, setTasksLoading] = useState(false);
+  const [tasksError, setTasksError] = useState<unknown>(null);
+
   const canCollect = hasPerm('business:cmdb:host:collect');
+  const canViewInstances = hasPerm('business:service:list') || hasPerm('business:service:view');
+  const canViewTasks = hasPerm('business:deploy:task:view');
 
   const hostStats = useMemo(
     () =>
@@ -103,6 +117,75 @@ export default function CmdbHostDetail() {
       void loadDetail();
     });
   }, [loadDetail]);
+
+  const loadRelations = useCallback(async () => {
+    if (!id) return;
+    const hostId = Number(id);
+    if (canViewInstances) {
+      setInstancesLoading(true);
+      setInstancesError(null);
+      try {
+        const result = await getServiceInstanceList({ hostId, page: 1, pageSize: 50 });
+        setInstances(result.items);
+      } catch (err) {
+        setInstancesError(err);
+        setInstances([]);
+      } finally {
+        setInstancesLoading(false);
+      }
+    }
+    if (canViewTasks) {
+      setTasksLoading(true);
+      setTasksError(null);
+      try {
+        const result = await getDeployTaskList({ hostId, page: 1, pageSize: 5 });
+        setRecentTasks(result.items);
+      } catch (err) {
+        setTasksError(err);
+        setRecentTasks([]);
+      } finally {
+        setTasksLoading(false);
+      }
+    }
+  }, [canViewInstances, canViewTasks, id]);
+
+  useEffect(() => {
+    queueMicrotask(() => {
+      void loadRelations();
+    });
+  }, [loadRelations]);
+
+  const instanceColumns = useMemo<ColumnProps<ServiceInstanceRow>[]>(
+    () => [
+      {
+        title: t('business.cmdb.host.relatedInstanceService'),
+        dataIndex: 'serviceName',
+        width: 220,
+        render: (_: unknown, row) => (
+          <Link to={`/business/service-catalog/instances?serviceId=${row.serviceId}`}>
+            {row.serviceName || row.serviceCode}
+          </Link>
+        ),
+      },
+      {
+        title: t('business.cmdb.host.relatedInstanceEnvironment'),
+        dataIndex: 'environment',
+        width: 120,
+      },
+      {
+        title: t('business.cmdb.host.relatedInstanceVersion'),
+        dataIndex: 'currentVersion',
+        width: 140,
+        render: (value: string) => value || '-',
+      },
+      {
+        title: t('business.cmdb.host.relatedInstanceState'),
+        dataIndex: 'observedState',
+        width: 140,
+      },
+    ],
+    [t],
+  );
 
   const handleCollect = async () => {
     if (!id) return;
@@ -202,6 +285,61 @@ export default function CmdbHostDetail() {
             />
           </FormSection>
         </Card>
+        {canViewInstances ? (
+          <Card className="page-panel">
+            <FormSection title={t('business.cmdb.host.relatedInstances')}>
+              {instancesLoading ? (
+                <PageLoading />
+              ) : instancesError ? (
+                <PageError
+                  description={t('business.cmdb.host.relatedInstancesFailed')}
+                  onRetry={() => void loadRelations()}
+                />
+              ) : instances.length === 0 ? (
+                <PageEmpty description={t('business.cmdb.host.relatedInstancesEmpty')} />
+              ) : (
+                <AppTable
+                  rowKey="id"
+                  className="system-list__table"
+                  columns={instanceColumns}
+                  data={instances}
+                  pagination={false}
+                  scroll={{ x: 'max-content' }}
+                />
+              )}
+            </FormSection>
+          </Card>
+        ) : null}
+        {canViewTasks ? (
+          <Card className="page-panel">
+            <FormSection title={t('business.cmdb.host.recentDeploys')}>
+              {tasksLoading ? (
+                <PageLoading />
+              ) : tasksError ? (
+                <PageError
+                  description={t('business.cmdb.host.recentDeploysFailed')}
+                  onRetry={() => void loadRelations()}
+                />
+              ) : recentTasks.length === 0 ? (
+                <PageEmpty description={t('business.cmdb.host.recentDeploysEmpty')} />
+              ) : (
+                <Space direction="vertical" size={8} style={{ width: '100%' }}>
+                  {recentTasks.map((task) => (
+                    <Card key={task.id} className="page-panel" style={{ padding: 12 }}>
+                      <Space wrap>
+                        <Link to={`/business/deploy/task/${task.id}`}>{task.name}</Link>
+                        <Tag>{t(`business.deploy.task.status.${task.status}`)}</Tag>
+                        <span style={{ color: 'var(--text-secondary)', fontSize: 12 }}>
+                          {task.finishedAt ? formatDateTime(task.finishedAt) : '-'}
+                        </span>
+                      </Space>
+                    </Card>
+                  ))}
+                </Space>
+              )}
+            </FormSection>
+          </Card>
+        ) : null}
         <Card className="page-panel">
           <FormSection title={t('business.cmdb.host.systemConfig')}>
             <Descriptions

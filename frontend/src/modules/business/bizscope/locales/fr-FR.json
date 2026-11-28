@@ -33,5 +33,10 @@
   "business.bizscope.environment.scopeRequired": "Le périmètre est obligatoire",
   "business.bizscope.environment.envTypeInvalid": "Type d’environnement invalide",
   "business.bizscope.environment.statusInvalid": "Statut d’environnement invalide",
-  "business.bizscope.environment.field.remark": "Remarque"
+  "business.bizscope.environment.field.remark": "Remarque",
+  "business.bizscope.catalogSummaryTitle": "Résumé du catalogue",
+  "business.bizscope.catalogSummaryFailed": "Échec du chargement du résumé du catalogue",
+  "business.bizscope.catalogApplications": "Applications",
+  "business.bizscope.catalogServices": "Services",
+  "business.bizscope.catalogInstances": "Instances"
 }

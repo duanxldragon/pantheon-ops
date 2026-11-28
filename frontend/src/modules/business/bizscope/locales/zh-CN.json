@@ -87,5 +87,10 @@
   "business.bizscope.environment.scopeRequired": "请选择业务域",
   "business.bizscope.environment.envTypeInvalid": "环境类型无效",
   "business.bizscope.environment.statusInvalid": "环境状态无效",
-  "business.bizscope.permission.hostView": "查看主机绑定"
+  "business.bizscope.permission.hostView": "查看主机绑定",
+  "business.bizscope.catalogSummaryTitle": "服务目录统计",
+  "business.bizscope.catalogSummaryFailed": "服务目录统计加载失败",
+  "business.bizscope.catalogApplications": "应用",
+  "business.bizscope.catalogServices": "服务",
+  "business.bizscope.catalogInstances": "实例"
 }

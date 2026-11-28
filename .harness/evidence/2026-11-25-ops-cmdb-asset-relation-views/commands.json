@@ -1,0 +1,140 @@
+{
+  "schemaVersion": 1,
+  "taskId": "2026-11-25-ops-cmdb-asset-relation-views",
+  "repo": "pantheon-ops",
+  "evidenceState": "exercised",
+  "agent": {
+    "tool": "other",
+    "adapter": "windows"
+  },
+  "candidate": {
+    "head": "04c230dc",
+    "worktree": "uncommitted T21 changes on branch feature/ops-t20-service-instance-deploy-entry",
+    "foundation": "pantheon-base-v0.19.0",
+    "foundationCommit": "cc2fe7370a98c2862e2610d79880012971cf57f5"
+  },
+  "environment": {
+    "backend": "go run ./cmd/server on http://127.0.0.1:8080 (health 200)",
+    "database": "local MySQL (pantheon_ops) + Redis; Go tests use PANTHEON_TEST_DSN with throwaway databases",
+    "frontend": "Vite smoke server via scripts/run-smoke-suite.mjs on http://127.0.0.1:5173"
+  },
+  "commands": [
+    {
+      "command": "go build ./...",
+      "cwd": "backend",
+      "status": "passed",
+      "exitCode": 0,
+      "notes": "After adding InstanceQuery.HostID, TaskQuery.HostID, ScopeSummary and the /business/service/summary route."
+    },
+    {
+      "command": "go vet ./modules/business/service/ ./modules/business/deploy/ ./modules/business/bizscope/",
+      "cwd": "backend",
+      "status": "passed",
+      "exitCode": 0,
+      "notes": "No findings in the touched packages."
+    },
+    {
+      "command": "go test -count=1 -timeout 900s ./modules/business/bizscope/ ./modules/business/service/ ./modules/business/cmdb/...",
+      "cwd": "backend",
+      "status": "passed",
+      "exitCode": 0,
+      "notes": "All ok: bizscope 7.7s, service 30.0s, cmdb 8.4s, cmdb/group 3.8s, cmdb/host 16.5s, cmdb/label 5.0s. Includes the new host filter, scope summary, application-reference delete guard and concurrent delete tests."
+    },
+    {
+      "command": "go test -count=1 -timeout 300s -run 'TestListInstancesFiltersByHostAndScopeSummary' ./modules/business/service/",
+      "cwd": "backend",
+      "status": "passed",
+      "exitCode": 0,
+      "notes": "hostId filter returns exactly the instances of that host (55/56/unknown) and the scope summary returns 1/1/2 for scope 10 and 0/0/0 for scope 11."
+    },
+    {
+      "command": "go test -count=1 -timeout 600s -run 'TestListTasksFiltersByHostWithinDataScope' ./modules/business/deploy/",
+      "cwd": "backend",
+      "status": "passed",
+      "exitCode": 0,
+      "notes": "JSON_CONTAINS host filter returns only tasks targeting that host; an out-of-scope host leaks nothing to a dept-scoped caller while an admin sees the foreign task."
+    },
+    {
+      "command": "go test -count=1 -timeout 300s -run 'TestBizScopeDelete' ./modules/business/bizscope/",
+      "cwd": "backend",
+      "status": "passed",
+      "exitCode": 0,
+      "notes": "Application reference blocks deletion with business.bizscope.inUse and unblocks after soft delete; two concurrent deletes produce exactly one winner and no row remains."
+    },
+    {
+      "command": "./node_modules/.bin/tsc -b",
+      "cwd": "frontend",
+      "status": "passed",
+      "exitCode": 0,
+      "notes": "Type-check after the host relation cards, scope summary card and new API types."
+    },
+    {
+      "command": "./node_modules/.bin/eslint src/modules/business/cmdb/host/CmdbHostDetail.tsx src/modules/business/bizscope/BizScopeDetail.tsx src/modules/business/service/api.ts",
+      "cwd": "frontend",
+      "status": "passed",
+      "exitCode": 0,
+      "notes": "0 errors, 0 warnings."
+    },
+    {
+      "command": "cmd //c \"npm run build\"",
+      "cwd": "frontend",
+      "status": "passed",
+      "exitCode": 0,
+      "notes": "prebuild contract gates (menu/i18n hardcode/generated scope/UI/SearchToolbar/important budget/page admission/smoke coverage/import case) and vite build succeeded. New keys exist in all five locales."
+    },
+    {
+      "command": "node scripts/run-smoke-suite.mjs --host 127.0.0.1 --port 5173 --config playwright.config.ts -- tests/smoke/business/cmdb/cmdb-pages.spec.ts --workers=1",
+      "cwd": "frontend",
+      "status": "passed",
+      "exitCode": 0,
+      "notes": "10 passed (37.8s), including the new case: host detail shows 承载服务实例 with the linked service name and 最近部署 with the linked task, the business scope detail shows the 服务目录统计 card with 应用/服务/实例, and the host detail stays within a 390px viewport."
+    },
+    {
+      "command": "Local Windows closeout smoke and package checks",
+      "cwd": ".",
+      "exitCode": 0,
+      "status": "passed",
+      "notes": "5 API and 25 browser smoke cases; host relationships and scope summary evidence."
+    },
+    {
+      "command": "go test -race ./...",
+      "cwd": "backend",
+      "exitCode": 0,
+      "status": "passed",
+      "notes": "Windows MinGW CGO, isolated UTC MySQL and Redis, serial run."
+    }
+  ],
+  "screenshots": [
+    ".harness/evidence/2026-11-25-ops-cmdb-asset-relation-views/screenshots/cmdb-host-relations-1440.png",
+    ".harness/evidence/2026-11-25-ops-cmdb-asset-relation-views/screenshots/cmdb-host-relations-390.png",
+    ".harness/evidence/2026-11-25-ops-cmdb-asset-relation-views/screenshots/bizscope-catalog-summary-1440.png",
+    ".harness/evidence/2026-11-25-ops-cmdb-asset-relation-views/screenshots/cmdb-host-detail.png",
+    ".harness/evidence/2026-11-25-ops-cmdb-asset-relation-views/screenshots/bizscope-list.png"
+  ],
+  "notRun": [
+    {
+      "command": "go test -count=1 ./modules/business/deploy/...",
+      "reason": "Whole deploy package exceeds the 10 minute default timeout (recorded in T20 STATUS); only the host-filter test was run here."
+    }
+  ],
+  "knownGaps": [
+    "Host relation cards call the catalog APIs by hostId/scope; they inherit service/deploy data scope but the host detail itself still does not aggregate counts server-side in one request (two extra reads per page).",
+    "Instance names are not snapshotted on instances; the host card links by service name and shows version/state rather than an instance display name.",
+    "The business scope tiles link to the unfiltered catalog tabs; the catalog does not accept a businessScopeId filter yet.",
+    "Cross-tenant reference tests rely on department data scope because the test database has no tenant column in bizscope tables."
+  ],
+  "linkage": {
+    "taskManifest": ".harness/tasks/2026-11-25-ops-cmdb-asset-relation-views/manifest.json",
+    "taskPacket": "docs/harness/tasks/2026-11-25-ops-cmdb-asset-relation-views.task.md",
+    "evidenceDir": ".harness/evidence/2026-11-25-ops-cmdb-asset-relation-views/",
+    "reviewFile": ".harness/evidence/2026-11-25-ops-cmdb-asset-relation-views/review.md",
+    "changeRef": "none",
+    "planRefs": [
+      ".harness/tasks/2026-11-20-ops-review-remediation/plan.md"
+    ]
+  },
+  "verifiedWindowsRace": {
+    "candidateProductTree": "730c46af902502d9abe1e05654ae63ccde7459f4",
+    "receipt": ".harness/evidence/2026-11-25-ops-cmdb-asset-relation-views/windows-cgo-race-20261128.json"
+  }
+}

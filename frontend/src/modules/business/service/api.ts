@@ -59,6 +59,9 @@ export interface ServiceInstanceRow {
   serviceId: number;
   serviceCode: string;
   serviceName: string;
+  applicationId: number;
+  applicationCode: string;
+  businessScopeId: number;
   environment: string;
   targetType: string;
   hostId: number;
@@ -85,7 +88,22 @@ export interface ServiceInstanceListResponse {
   pageSize: number;
 }
 
-export function getServiceInstanceList(params?: { serviceId?: number; page?: number; pageSize?: number }, signal?: AbortSignal) {
+export interface CatalogScopeSummary {
+  applications: number;
+  services: number;
+  instances: number;
+}
+
+export function getCatalogScopeSummary(businessScopeId: number, signal?: AbortSignal) {
+  return apiRequest<CatalogScopeSummary>({
+    url: '/business/service/summary',
+    method: 'get',
+    params: { businessScopeId },
+    signal,
+  });
+}
+
+export function getServiceInstanceList(params?: { serviceId?: number; hostId?: number; environment?: string; targetType?: string; status?: string; page?: number; pageSize?: number }, signal?: AbortSignal) {
   return apiRequest<ServiceInstanceListResponse>({
     url: '/business/service/instances',
     method: 'get',

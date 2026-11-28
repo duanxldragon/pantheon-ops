@@ -117,11 +117,20 @@ type ServiceListResponse struct {
 
 // InstanceQuery filters and paginates service instances.
 type InstanceQuery struct {
-	Page       int    `form:"page"`
-	PageSize   int    `form:"pageSize"`
-	ServiceID  uint64 `form:"serviceId"`
-	TargetType string `form:"targetType"`
-	Status     string `form:"status"`
+	Page        int    `form:"page"`
+	PageSize    int    `form:"pageSize"`
+	ServiceID   uint64 `form:"serviceId"`
+	HostID      uint64 `form:"hostId"`
+	Environment string `form:"environment"`
+	TargetType  string `form:"targetType"`
+	Status      string `form:"status"`
+}
+
+// ScopeSummaryResponse counts the catalog rows under one business scope.
+type ScopeSummaryResponse struct {
+	Applications int64 `json:"applications"`
+	Services     int64 `json:"services"`
+	Instances    int64 `json:"instances"`
 }
 
 // CreateInstanceRequest contains service-instance creation fields.

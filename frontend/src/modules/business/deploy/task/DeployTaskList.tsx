@@ -141,6 +141,15 @@ export default function DeployTaskList() {
   const [detailLoading, setDetailLoading] = useState(false);
   const [detailTask, setDetailTask] = useState<DeployTaskRow | null>(null);
   const [routeEditHandledId, setRouteEditHandledId] = useState<number | null>(null);
+  const [serviceLink, setServiceLink] = useState<{ serviceId: number; serviceInstanceId: number } | null>(null);
+  const [prefillHostIds, setPrefillHostIds] = useState<number[]>([]);
+  const routeCreateFor = searchParams.get('createFor') ?? '';
+  const routeCreateServiceId = Number(searchParams.get('serviceId') || 0);
+  const routeCreateServiceInstanceId = Number(searchParams.get('serviceInstanceId') || 0);
+  const routeCreateScopeId = Number(searchParams.get('businessScopeId') || 0);
+  const routeCreateHostId = Number(searchParams.get('hostId') || 0);
+  const routeCreateServiceName = searchParams.get('serviceName') || '';
+  const createIntentHandled = useRef('');
 
   useEffect(() => {
     let current = true;
@@ -356,6 +365,18 @@ export default function DeployTaskList() {
     setSearchParams(nextParams, { replace: true });
   }, [searchParams, setSearchParams]);
 
+  const clearCreateIntent = useCallback(() => {
+    const keys = ['createFor', 'serviceId', 'serviceInstanceId', 'hostId', 'serviceName'];
+    if (!keys.some((key) => searchParams.has(key))) {
+      return;
+    }
+    const nextParams = new URLSearchParams(searchParams);
+    for (const key of keys) {
+      nextParams.delete(key);
+    }
+    setSearchParams(nextParams, { replace: true });
+  }, [searchParams, setSearchParams]);
+
   const closeTaskModal = useCallback(() => {
     setTargetResolution(null);
     setVisible(false);
@@ -364,12 +385,16 @@ export default function DeployTaskList() {
     setSelectedPackage(null);
     setSelectedTemplate(null);
     setHosts([]);
+    setServiceLink(null);
+    setPrefillHostIds([]);
     form.resetFields();
     clearTaskEditIntent();
   }, [clearTaskEditIntent, form]);
 
   const openCreate = async () => {
     setTargetResolution(null);
+    setServiceLink(null);
+    setPrefillHostIds([]);
     setEditingTask(null);
     setTargetType('host');
     setTaskAction('install');
@@ -471,6 +496,47 @@ export default function DeployTaskList() {
     return () => { cancelled = true; globalThis.clearTimeout(timer); };
   }, [canUpdate, routeEditHandledId, routeEditId]);
 
+  // A service instance can hand off a create intent through the route. Consume it
+  // once: open the existing create modal, bind the service/instance linkage and
+  // scope the target selector to the instance host, then strip the intent params.
+  const routeCreateKey = routeCreateFor === 'service-instance' && routeCreateServiceInstanceId > 0
+    ? `${routeCreateServiceInstanceId}:${routeCreateScopeId}:${routeCreateHostId}`
+    : '';
+  const createIntentCallbacks = useRef({ openCreate, clearCreateIntent, loadScopedHosts, form, t });
+  useEffect(() => {
+    createIntentCallbacks.current = { openCreate, clearCreateIntent, loadScopedHosts, form, t };
+  });
+  useEffect(() => {
+    if (!routeCreateKey || !canCreate || createIntentHandled.current === routeCreateKey) return;
+    let cancelled = false;
+    const timer = globalThis.setTimeout(() => {
+      // Mark the intent as consumed only when it actually starts running; React
+      // StrictMode re-invokes this effect and would otherwise cancel the timer
+      // after the marker was already set, leaving the modal closed.
+      createIntentHandled.current = routeCreateKey;
+      void (async () => {
+        const current = createIntentCallbacks.current;
+        await current.openCreate();
+        if (cancelled) return;
+        setServiceLink({ serviceId: routeCreateServiceId, serviceInstanceId: routeCreateServiceInstanceId });
+        if (routeCreateHostId > 0) {
+          setPrefillHostIds([routeCreateHostId]);
+        }
+        if (routeCreateScopeId > 0) {
+          setSelectedBusinessScopeId(routeCreateScopeId);
+          await current.loadScopedHosts(routeCreateScopeId);
+          if (cancelled) return;
+          current.form.setFieldsValue({
+            businessScopeId: routeCreateScopeId,
+            ...(routeCreateServiceName ? { name: current.t('business.deploy.task.createForInstanceName', { name: routeCreateServiceName }) } : {}),
+          });
+        }
+        current.clearCreateIntent();
+      })();
+    }, 0);
+    return () => { cancelled = true; globalThis.clearTimeout(timer); };
+  }, [canCreate, routeCreateHostId, routeCreateKey, routeCreateScopeId, routeCreateServiceId, routeCreateServiceInstanceId, routeCreateServiceName]);
+
   const handleSubmit = async () => {
     const values = await form.validate();
     if (values.targetType === 'host' && (!targetResolution || targetResolution.selection.businessScopeId !== values.businessScopeId || targetResolution.unavailableCount > 0 || targetResolution.ineligibleCount > 0 || targetResolution.hosts.length === 0)) {
@@ -511,7 +577,10 @@ export default function DeployTaskList() {
         await updateDeployTask(editingTask.id, payload);
         Message.success(t('common.updateSuccess'));
       } else {
-        await createDeployTask(payload);
+        await createDeployTask({
+          ...payload,
+          ...(serviceLink ? { serviceId: serviceLink.serviceId, serviceInstanceId: serviceLink.serviceInstanceId } : {}),
+        });
         Message.success(t('common.createSuccess'));
       }
       closeTaskModal();
@@ -828,7 +897,7 @@ export default function DeployTaskList() {
         selectedBusinessScopeId={selectedBusinessScopeId}
         targetOptions={targetOptions}
         executorTypeDisabled={Boolean(selectedRuntimeTemplateEntry)}
-        targetSelector={visible && targetType === 'host' && selectedBusinessScopeId ? <DeployTargetSelector key={`${selectedBusinessScopeId}:${editingTask?.id || 'new'}`} scopeId={selectedBusinessScopeId} initial={editingTask?.targetSelection} initialHostIds={editingTask?.businessScopeId === selectedBusinessScopeId ? editingTask.targetIds : undefined} groups={flattenGroups(groups).map((group) => ({ id: group.id, label: group.name }))} onChange={(result) => { setTargetResolution(result); form.setFieldValue('targetIds', result?.hosts.map((host) => host.id) || []); }} /> : undefined}
+        targetSelector={visible && targetType === 'host' && selectedBusinessScopeId ? <DeployTargetSelector key={`${selectedBusinessScopeId}:${editingTask?.id || 'new'}:${prefillHostIds.join('-')}`} scopeId={selectedBusinessScopeId} initial={editingTask?.targetSelection} initialHostIds={editingTask?.businessScopeId === selectedBusinessScopeId ? editingTask.targetIds : (prefillHostIds.length > 0 ? prefillHostIds : undefined)} groups={flattenGroups(groups).map((group) => ({ id: group.id, label: group.name }))} onChange={(result) => { setTargetResolution(result); form.setFieldValue('targetIds', result?.hosts.map((host) => host.id) || []); }} /> : undefined}
       />
       {previewRequest && <DeployTaskPreview key={`${previewRequest.taskId}:${JSON.stringify(previewRequest.payload)}`} taskId={previewRequest.taskId} payload={previewRequest.payload} onClose={() => setPreviewRequest(null)} onStarted={async () => { setPreviewRequest(null); Message.success(t('business.deploy.task.startSuccess')); await loadData(); }} />}
       <DeployTaskStartModal

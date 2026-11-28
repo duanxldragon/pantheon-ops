@@ -1,0 +1,124 @@
+{
+  "schemaVersion": 1,
+  "taskId": "2026-11-25-ops-service-instance-deploy-entry",
+  "repo": "pantheon-ops",
+  "evidenceState": "exercised",
+  "agent": {
+    "tool": "other",
+    "adapter": "windows"
+  },
+  "candidate": {
+    "head": "831892d8",
+    "worktree": "uncommitted T20 follow-up on branch feature/ops-t20-service-instance-deploy-entry (smoke coverage, route fix, service-name snapshot)",
+    "foundation": "pantheon-base-v0.19.0",
+    "foundationCommit": "cc2fe7370a98c2862e2610d79880012971cf57f5"
+  },
+  "environment": {
+    "backend": "go run ./cmd/server on http://127.0.0.1:8080 (health 200: database/migrations/redis ok)",
+    "database": "local MySQL (pantheon_ops) + Redis 6379",
+    "frontend": "Vite smoke server started by scripts/run-smoke-suite.mjs on http://127.0.0.1:5173",
+    "login": "admin seed account"
+  },
+  "commands": [
+    {
+      "command": "go build ./...",
+      "cwd": "backend",
+      "status": "passed",
+      "exitCode": 0,
+      "notes": "Compiles after the service-name snapshot added to CreateTaskRequest/serviceLinkTask."
+    },
+    {
+      "command": "go vet ./modules/business/deploy/",
+      "cwd": "backend",
+      "status": "passed",
+      "exitCode": 0,
+      "notes": "No findings in the touched package."
+    },
+    {
+      "command": "./node_modules/.bin/tsc -b",
+      "cwd": "frontend",
+      "status": "passed",
+      "exitCode": 0,
+      "notes": "Type-check after the new smoke cases and the currentVersion column."
+    },
+    {
+      "command": "./node_modules/.bin/eslint src/modules/business/service/ServiceCatalog.tsx src/modules/business/deploy/task/DeployTaskList.tsx tests/smoke/business/deploy/deploy-api.spec.ts tests/smoke/business/service/service-pages.spec.ts",
+      "cwd": "frontend",
+      "status": "passed",
+      "exitCode": 0,
+      "notes": "0 errors, 0 warnings."
+    },
+    {
+      "command": "node scripts/run-smoke-suite.mjs --host 127.0.0.1 --port 5173 --config playwright.config.ts -- tests/smoke/business/service/service-pages.spec.ts --workers=1",
+      "cwd": "frontend",
+      "status": "passed",
+      "exitCode": 0,
+      "notes": "15 passed (1.9m). Includes the fixture's 125 instances with page-6 edit, desktop and 390px rendered states, read-only role, and the three new T20 cases: server-side environment/targetType/status filters, deploy entry hidden without business:deploy:task:create, instance deploy entry opening the prefilled create modal at 1440x900 and 390x844 with the one-shot intent consumed."
+    },
+    {
+      "command": "node scripts/run-smoke-suite.mjs --host 127.0.0.1 --port 5173 --config playwright.config.ts -- tests/smoke/business/deploy/deploy-api.spec.ts --workers=1",
+      "cwd": "frontend",
+      "status": "passed",
+      "exitCode": 0,
+      "notes": "5 passed (3.9s). The new case creates scope/host/application/service/instance/package, creates a task carrying serviceId+serviceInstanceId, lists it through ?serviceInstanceId=, reads the snapshotted serviceName from task detail, previews one resolved target, and lists the instance through ?serviceId=."
+    },
+    {
+      "command": "node scripts/run-smoke-suite.mjs --host 127.0.0.1 --port 5173 --config playwright.config.ts -- tests/smoke/business/deploy/deploy-pages.spec.ts --workers=1",
+      "cwd": "frontend",
+      "status": "failed",
+      "exitCode": 1,
+      "notes": "9 passed / 1 failed on the full run, then the failing test ('targeted smoke closes cmdb, bizscope, deploy...') passed in isolation. Failure is a pre-existing route-fallback race ('locator(.page-container) resolved to 2 elements' while a previous route-content-fallback is still mounted), not related to the T20 diff; the other test in the pair failed on the same assertion earlier."
+    },
+    {
+      "command": "Local Windows closeout smoke and package checks",
+      "cwd": ".",
+      "exitCode": 0,
+      "status": "passed",
+      "notes": "5 API and 25 browser smoke cases; 1440px and 390px captures."
+    },
+    {
+      "command": "go test -race ./...",
+      "cwd": "backend",
+      "exitCode": 0,
+      "status": "passed",
+      "notes": "Windows MinGW CGO, isolated UTC MySQL and Redis, serial run."
+    }
+  ],
+  "screenshots": [
+    ".harness/evidence/2026-11-25-ops-service-instance-deploy-entry/screenshots/t20-deploy-entry-1440.png",
+    ".harness/evidence/2026-11-25-ops-service-instance-deploy-entry/screenshots/t20-deploy-entry-390.png",
+    ".harness/evidence/2026-11-25-ops-service-instance-deploy-entry/screenshots/t20-deploy-list-after-intent.png",
+    ".harness/evidence/2026-11-25-ops-service-instance-deploy-entry/screenshots/service-catalog-pagination-edit.png",
+    ".harness/evidence/2026-11-25-ops-service-instance-deploy-entry/screenshots/service-catalog-desktop.png",
+    ".harness/evidence/2026-11-25-ops-service-instance-deploy-entry/screenshots/service-list-mobile.png",
+    ".harness/evidence/2026-11-25-ops-service-instance-deploy-entry/screenshots/390x844-read-only.png"
+  ],
+  "notRun": [
+    {
+      "command": "go test -count=1 ./modules/business/service/... ./modules/business/deploy/...",
+      "reason": "No backend behaviour changed except the service-name snapshot; S1 tests were already verified on real MySQL 8.0.36 (see STATUS.md). The deploy package still exceeds the default 10 minute timeout (pre-existing, recorded in STATUS)."
+    }
+  ],
+  "knownGaps": [
+    "服务关联任务的手工结果上报被 attempt ownership 拒绝（business.deploy.taskHost.staleReport）：既有 durable attempt 存在时，无 worker claim 的上报一律视为过期。deploy-api 新用例因此在 preview 处停止，未断言 start→终态；未关联任务的手工 start→终态仍由既有用例覆盖。",
+    "agent 执行器下的服务关联任务终态与日志需要真实执行目标，属真实环境项，按用户安排排在 T19/T17 之后。",
+    "部署任务契约没有 environment 列，实例环境无法预填进任务；只预填业务域与主机意图。",
+    "服务实例没有 :id 详情路由，实例侧“最近任务/终态”未做；当前是列表行发起部署 + 任务详情回链 + 实例列表新增 currentVersion 列。",
+    "目标主机以选择器意图种入，仍需操作员点“解析目标”确认，未伪造 targetSelection/scopeVersion。",
+    "deploy-pages 整包存在与本次改动无关的 route-content-fallback 竞态（单测通过、整包偶发）。"
+  ],
+  "linkage": {
+    "taskManifest": ".harness/tasks/2026-11-25-ops-service-instance-deploy-entry/manifest.json",
+    "taskPacket": "docs/harness/tasks/2026-11-25-ops-service-instance-deploy-entry.task.md",
+    "evidenceDir": ".harness/evidence/2026-11-25-ops-service-instance-deploy-entry/",
+    "reviewFile": ".harness/evidence/2026-11-25-ops-service-instance-deploy-entry/review.md",
+    "changeRef": "none",
+    "planRefs": [
+      ".harness/tasks/2026-11-20-ops-review-remediation/plan.md"
+    ]
+  },
+  "verifiedWindowsRace": {
+    "candidateProductTree": "730c46af902502d9abe1e05654ae63ccde7459f4",
+    "receipt": ".harness/evidence/2026-11-25-ops-service-instance-deploy-entry/windows-cgo-race-20261128.json"
+  }
+}

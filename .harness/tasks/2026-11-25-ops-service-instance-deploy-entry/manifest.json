@@ -1,0 +1,191 @@
+{
+  "schemaVersion": 1,
+  "taskId": "2026-11-25-ops-service-instance-deploy-entry",
+  "title": "T20 服务实例部署入口与完整分页交付",
+  "goal": "补齐用户主路径“服务实例 → 发起部署 → 任务终态/日志回看”的前端入口：实例列表完整分页、实例上直接发起部署并预填服务/实例/主机/环境、任务详情与实例详情互相回链。承接 T11 的前端部分，后端准入与回写复用既有实现。",
+  "primaryLayer": "business/*",
+  "status": "in-progress",
+  "priority": "P0",
+  "deliveryTier": "L2",
+  "parentTask": "2026-11-20-ops-review-remediation",
+  "taskDoc": "docs/harness/tasks/2026-11-25-ops-service-instance-deploy-entry.task.md",
+  "handoffDoc": ".harness/tasks/2026-11-25-ops-service-instance-deploy-entry/HANDOFF.md",
+  "statusDoc": ".harness/tasks/2026-11-25-ops-service-instance-deploy-entry/STATUS.md",
+  "owner": "服务部署闭环负责人",
+  "activation": "core",
+  "dependencies": [],
+  "dependsOn": [],
+  "conditionalDependencies": [],
+  "coordinatesWith": [
+    "2026-11-20-ops-service-deploy-business-closure",
+    "2026-11-20-ops-deploy-credential-ownership-and-ui"
+  ],
+  "scope": {
+    "in": [
+      "ServiceInstanceList 去掉 pageSize=100 且关闭分页的硬上限，改服务端分页、筛选，101+ 实例可达",
+      "实例行增加“部署”操作，预填 serviceId/serviceInstanceId/目标主机/环境，调用既有预览与启动接口",
+      "任务详情回显所属服务与实例，实例详情回显最近任务与终态，二者可互相跳转",
+      "按 impeccable 与 DESIGN.md 补桌面/390px、loading/empty/error/forbidden/submitting 渲染证据与 Playwright smoke"
+    ],
+    "out": [
+      "后端准入、回写、引用保护的重写（已在 deploy/service 包内，只补缺口）",
+      "凭据管理页（归 T05）",
+      "Agent 执行器与 Helm 真实安装",
+      "Base 共享 UI/请求拦截器实现"
+    ]
+  },
+  "dependencyLayers": [
+    "business/*",
+    "inheritance-sync"
+  ],
+  "baseline": {
+    "reportCommit": "444ce8e",
+    "planningCommit": "be762441",
+    "foundationVersion": "pantheon-base-v0.18.9",
+    "foundationCommit": "6316f9b7189c86542424145fa49344ad737e952b",
+    "recheckBeforeImplementation": true
+  },
+  "sourceReview": "docs/reviews/pantheon-ops独立评审与外部报告核实-2026-11-20.md",
+  "sourceChecklist": "docs/reviews/pantheon-ops真实环境验证清单-2026-11-20.md",
+  "findingRefs": [
+    "DEP-002"
+  ],
+  "sourceRefs": [
+    {
+      "path": "docs/reviews/pantheon-ops独立评审与外部报告核实-2026-11-20.md",
+      "line": 84
+    }
+  ],
+  "expectedFiles": {
+    "create": [
+      "docs/harness/tasks/2026-11-25-ops-service-instance-deploy-entry.task.md",
+      ".harness/tasks/2026-11-25-ops-service-instance-deploy-entry/manifest.json",
+      ".harness/tasks/2026-11-25-ops-service-instance-deploy-entry/HANDOFF.md",
+      ".harness/tasks/2026-11-25-ops-service-instance-deploy-entry/STATUS.md"
+    ],
+    "modify": [
+      "frontend/src/modules/business/{serviceinstance,service,deploy}/**",
+      "frontend/tests/smoke/business/{service,deploy}/**",
+      "frontend/src/modules/business/**/locales/**"
+    ],
+    "doNotTouch": [
+      "backend/modules/system/**",
+      "backend/internal/**",
+      "frontend/src/core/**",
+      "frontend/src/api/request.ts",
+      "既有归档原始证据与其他执行者未提交改动"
+    ]
+  },
+  "contractAnchors": [
+    "AGENTS.md",
+    "docs/PROJECT_INHERITANCE.md",
+    "docs/TASK_PACKET_OPS_TEMPLATE.md",
+    "docs/contracts/TENANT_CONTRACT_V1.md",
+    "docs/reviews/pantheon-ops独立评审与外部报告核实-2026-11-20.md",
+    "docs/reviews/pantheon-ops真实环境验证清单-2026-11-20.md",
+    "business-overlay.json",
+    "foundation-release.lock.json",
+    "../pantheon-base/docs/designs/BUSINESS_RESOURCE_LIST_PATTERN.md",
+    "../pantheon-base/docs/designs/BUSINESS_LIFECYCLE_DETAIL_PATTERN.md"
+  ],
+  "harnessProfile": {
+    "template": "custom",
+    "overlay": "pantheon-ops",
+    "qualityProfile": "ui-runtime",
+    "portableFailureClass": "business-review-gap",
+    "ownerLayer": "business/*",
+    "coverageDimensions": [
+      "behaviour",
+      "architecture-fitness",
+      "runtime-quality"
+    ]
+  },
+  "structuralScope": {
+    "affectedSubgraph": [
+      "服务实例到部署的前端入口与完整分页"
+    ],
+    "boundaryCrossings": [
+      "business/* -> pkg公共契约"
+    ],
+    "riskNodes": [
+      "DEP-002"
+    ],
+    "graphFocus": [
+      "call-depth"
+    ]
+  },
+  "implementationNotes": [
+    "Minimal Complexity Rung: reuse",
+    "2026-11-25 站在用户主路径复核后新增；复用既有后端实现，只补缺口与证据。",
+    "接口/权限/i18n/overlay 同步关闭；未达验收保持 gap。",
+    "页面结构以 pantheon-base 的两份业务页面模板为准，不自创骨架；模板文档位于相邻仓库 ../pantheon-base/docs/designs/。",
+    "2026-11-26 收尾：service-pages 15 passed、deploy-api 5 passed、1440/390 截图落证据目录；修复入口路由单复数与 StrictMode 一次性意图；服务关联任务快照 serviceName。运行态终态链路（agent 执行器）作为真实环境项延后。"
+  ],
+  "implementationPlan": [
+    "S1 后端：TaskQuery 增加 serviceId/serviceInstanceId 过滤并下推到 SQL（deploy_dto.go、deploy_service.go ListTasks，导出复用同一过滤），service 包 InstanceQuery 增加 environment 过滤；补带数据范围的反例测试（越范围调用方得到空结果，不泄露存在性）。状态：已在真实 MySQL 上验证新增测试与邻近回归通过；deploy 整包超时缺口见 STATUS",
+    "S2 前端 API：service/api.ts getServiceInstanceList 的参数类型补 environment/targetType/status；deploy/api.ts 的 getDeployTaskList 参数本就是宽松 Record，传 serviceInstanceId 无需改动，只在调用处封装带类型的辅助函数",
+    "S3 实例列表：按 Base BUSINESS_RESOURCE_LIST_PATTERN 重构 ServiceInstanceList（PageHeader/FilterPanel/ListHeaderActions、服务端分页），去掉 pageSize=100 与 pagination={false}；分页上限决策（须在开工时二选一并记录）：(a) 前端 pageSize 永不超过 100，保持 service 包 normalizePage 现状（size>100 静默回落 20）；(b) service 包改用 Base 共享 common.NormalizePagination（超限夹到上限，deploy 包同理会改行为），属行为变更须补测试。加环境/目标类型/状态筛选，保留 reconcile",
+    "S4 部署入口：实例行增加“部署”操作（权限 business:deploy:task:create 才显示），复用 DeployTaskList 的创建弹窗并预填 serviceId/serviceInstanceId/environment/目标主机；先把弹窗装配从 1556 行的 DeployTaskList 抽成可复用组件再接入，禁止复制粘贴整段表单",
+    "S5 回链：DeployTaskDetail 展示所属服务/实例并跳转实例；实例详情展示最近任务与终态（依赖 S1）",
+    "S6 异常路径：stale 目标、实例被并发删除/下线、无权限直调接口，页面给出可恢复提示；补 i18n（zh-CN/en-US 必填，其余语言按仓库门禁）",
+    "S7 测试与证据：tests/smoke/business/service 增加 101+ 实例分页、筛选、受限角色；tests/smoke/business/deploy 增加“实例→预览→启动→终态/日志”主流程；1440px/390px 与 loading/empty/error/forbidden/submitting 渲染证据落 .harness/evidence；跑 test:smoke:business:service/deploy 与 go test deploy/service"
+  ],
+  "acceptanceCriteria": [
+    "实例列表服务端分页，造 101+ 实例后第 101 条可见、可筛选",
+    "从实例发起部署：预览→启动→终态/日志，回显实例当前版本与状态",
+    "无部署权限角色不显示部署入口，直调接口被拒；stale 目标恢复提示正确",
+    "桌面与 390px 渲染证据齐备，smoke 覆盖主路径",
+    "实例列表与部署入口符合 Base BUSINESS_RESOURCE_LIST_PATTERN：PageHeader/FilterPanel/ListHeaderActions、AppTable 服务端分页、状态色用 token、权限点四段式；偏离处在 review 中逐条说明",
+    "任务与实例详情回链符合 Base BUSINESS_LIFECYCLE_DETAIL_PATTERN（hero stats、子资源表、动作 in-flight 状态）；渲染证据覆盖该模板 §11 页面状态变体清单"
+  ],
+  "verificationPlan": {
+    "commands": [
+      "npm run test:smoke:business:service",
+      "npm run test:smoke:business:deploy",
+      "go test -count=1 ./modules/business/service/... ./modules/business/deploy/..."
+    ],
+    "runtimeEvidence": [
+      "渲染证据（1440px/390px）与同候选测试输出"
+    ],
+    "commandWorkingDirectories": {
+      "npm run test:smoke:business:service": "frontend",
+      "npm run test:smoke:business:deploy": "frontend",
+      "go test -count=1 ./modules/business/service/... ./modules/business/deploy/...": "backend"
+    },
+    "environmentRequirements": [
+      "在 backend/ 执行 Go 命令；race 使用 D:\\msys64\\mingw64\\bin、CGO_ENABLED=1 与隔离 MySQL DSN",
+      "只在实际完成验收时关闭任务；缺 release/环境保持 gap"
+    ]
+  },
+  "runtimeSensitive": true,
+  "humanGates": [
+    "需求/范围偏好、门禁策略与豁免、最终视觉/功能验收按维护者三触点契约处理",
+    "生产窗口/外部凭据操作/正式发布/最终仓库基线替换需已有授权"
+  ],
+  "linkage": {
+    "taskManifest": ".harness/tasks/2026-11-25-ops-service-instance-deploy-entry/manifest.json",
+    "taskDoc": "docs/harness/tasks/2026-11-25-ops-service-instance-deploy-entry.task.md",
+    "evidenceDir": ".harness/evidence/2026-11-25-ops-service-instance-deploy-entry/",
+    "reviewFile": ".harness/evidence/2026-11-25-ops-service-instance-deploy-entry/review.md",
+    "summaryFile": ".harness/evidence/2026-11-25-ops-service-instance-deploy-entry/summary.md",
+    "changeRef": "none",
+    "planRefs": [
+      ".harness/tasks/2026-11-20-ops-review-remediation/plan.md"
+    ]
+  },
+  "plannedReviewFile": ".harness/evidence/2026-11-25-ops-service-instance-deploy-entry/review.md",
+  "evidenceRequired": [
+    "commands.json 含真实执行状态/cwd/源码及构建身份",
+    "summary.md 记录验收结果与 gap",
+    "review.md 为 findings-first 审查并含机器可读 linkage"
+  ],
+  "completionChecklist": [
+    "Layer and boundary declared",
+    "Contract anchors read",
+    "Verification run or exception recorded",
+    "Evidence saved or summarized",
+    "Review completed"
+  ],
+  "rollbackPlan": "回退本包可逆代码；不涉及数据迁移时无需数据回滚。",
+  "queueRef": "T20"
+}

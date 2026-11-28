@@ -199,6 +199,143 @@ test.describe('CMDB Host Management', () => {
     await page.screenshot({ path: testInfo.outputPath('cmdb-host-detail.png'), fullPage: true });
   });
 
+  test('host detail lists its service instance and the business scope counts it', async ({ page, request }, testInfo) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    const login = await loginByApi(request, adminCredentials);
+    await installClientSession(page, login);
+    const headers = apiRequestHeaders(login);
+    const token = `cmdb-rel-${Date.now()}`;
+    let scopeId = 0;
+    let hostId = 0;
+    let applicationId = 0;
+    let serviceId = 0;
+    let instanceId = 0;
+    let packageId = 0;
+    let taskId = 0;
+
+    try {
+      const scope = await expectBusinessSuccess<{ id: number }>(
+        await request.post(`${apiBaseUrl}/business/bizscope`, {
+          headers,
+          data: { code: token, name: token, environment: 'prod', status: 'active' },
+        }),
+      );
+      scopeId = scope.id;
+      const host = await expectBusinessSuccess<{ id: number }>(
+        await request.post(`${apiBaseUrl}/business/cmdb/hosts`, {
+          headers,
+          data: {
+            hostname: `${token}-host`,
+            ip: `10.253.${Math.floor(Math.random() * 200) + 1}.${Math.floor(Math.random() * 200) + 1}`,
+            sshPort: 22,
+            os: 'linux',
+            labels: [{ key: 'rel', val: token }],
+            owner: 'cmdb-relation-smoke',
+            remark: token,
+          },
+        }),
+      );
+      hostId = host.id;
+      await expectBusinessSuccess(
+        await request.post(`${apiBaseUrl}/business/bizscope/${scopeId}/hosts/bind`, {
+          headers,
+          data: { hostIds: [hostId] },
+        }),
+      );
+      const application = await expectBusinessSuccess<{ id: number }>(
+        await request.post(`${apiBaseUrl}/business/service/applications`, {
+          headers,
+          data: { code: `${token}-app`, name: `${token}-application`, businessScopeId: scopeId },
+        }),
+      );
+      applicationId = application.id;
+      const service = await expectBusinessSuccess<{ id: number }>(
+        await request.post(`${apiBaseUrl}/business/service/services`, {
+          headers,
+          data: { applicationId, code: `${token}-svc`, name: `${token}-service`, runtimeType: 'vm' },
+        }),
+      );
+      serviceId = service.id;
+      const instance = await expectBusinessSuccess<{ id: number }>(
+        await request.post(`${apiBaseUrl}/business/service/instances`, {
+          headers,
+          data: { serviceId, environment: 'prod', targetType: 'vm', hostId, desiredVersion: '2.0.0' },
+        }),
+      );
+      instanceId = instance.id;
+      const pkg = await expectBusinessSuccess<{ id: number }>(
+        await request.post(`${apiBaseUrl}/business/deploy/packages`, {
+          headers,
+          data: { name: `${token}-pkg`, version: '1.0.0', installCommand: 'echo install', status: 'enabled' },
+        }),
+      );
+      packageId = pkg.id;
+      const task = await expectBusinessSuccess<{ id: number }>(
+        await request.post(`${apiBaseUrl}/business/deploy/tasks`, {
+          headers,
+          data: {
+            name: `${token}-task`,
+            packageId,
+            businessScopeId: scopeId,
+            serviceId,
+            serviceInstanceId: instanceId,
+            targetType: 'host',
+            targetIds: [hostId],
+            executorType: 'manual',
+          },
+        }),
+      );
+      taskId = task.id;
+
+      await page.goto(`/business/cmdb/host/${hostId}`, { waitUntil: 'domcontentloaded' });
+      await expect(page.getByText('承载服务实例', { exact: true })).toBeVisible();
+      const instanceCard = page.locator('.page-panel').filter({ hasText: '承载服务实例' }).first();
+      await expect(instanceCard).toContainText(`${token}-service`);
+      await expect(page.getByText('最近部署', { exact: true })).toBeVisible();
+      await expect(page.getByText(`${token}-task`)).toBeVisible();
+      await expectNoVisibleCmdbI18nKeys(page);
+      await page.screenshot({ path: testInfo.outputPath('cmdb-host-relations-1440.png') });
+
+      await page.goto(`/business/business-scope/${scopeId}`, { waitUntil: 'domcontentloaded' });
+      const summaryCard = page.locator('.page-panel').filter({ hasText: '服务目录统计' }).first();
+      await expect(summaryCard).toBeVisible();
+      await expect(summaryCard).toContainText('应用');
+      await expect(summaryCard).toContainText('服务');
+      await expect(summaryCard).toContainText('实例');
+      await page.screenshot({ path: testInfo.outputPath('bizscope-catalog-summary-1440.png') });
+
+      await page.setViewportSize({ width: 390, height: 844 });
+      await page.goto(`/business/cmdb/host/${hostId}`, { waitUntil: 'domcontentloaded' });
+      await expect(page.getByText('承载服务实例', { exact: true })).toBeVisible();
+      await expect
+        .poll(async () => page.evaluate(() => document.body.scrollWidth <= globalThis.innerWidth + 1))
+        .toBe(true);
+      await page.screenshot({ path: testInfo.outputPath('cmdb-host-relations-390.png') });
+    } finally {
+      const cleanupFailures: string[] = [];
+      const cleanup = async (label: string, responsePromise: Promise<APIResponse>) => {
+        try {
+          const response = await responsePromise;
+          const payload = (await response.json().catch(() => null)) as ApiEnvelope<unknown> | null;
+          if (!response.ok() || payload?.code !== 200) {
+            cleanupFailures.push(`${label}: HTTP ${response.status()} / code ${payload?.code ?? 'unknown'}`);
+          }
+        } catch (error) {
+          cleanupFailures.push(`${label}: ${error instanceof Error ? error.message : String(error)}`);
+        }
+      };
+      if (taskId) await cleanup('task', request.delete(`${apiBaseUrl}/business/deploy/tasks/${taskId}`, { headers }));
+      if (packageId) await cleanup('package', request.delete(`${apiBaseUrl}/business/deploy/packages/${packageId}`, { headers }));
+      if (instanceId) await cleanup('instance', request.delete(`${apiBaseUrl}/business/service/instances/${instanceId}`, { headers }));
+      if (serviceId) await cleanup('service', request.delete(`${apiBaseUrl}/business/service/services/${serviceId}`, { headers }));
+      if (applicationId) await cleanup('application', request.delete(`${apiBaseUrl}/business/service/applications/${applicationId}`, { headers }));
+      if (scopeId && hostId) await cleanup('unbind host', request.delete(`${apiBaseUrl}/business/bizscope/${scopeId}/hosts/${hostId}`, { headers }));
+      if (hostId) await cleanup('host', request.delete(`${apiBaseUrl}/business/cmdb/hosts/${hostId}`, { headers }));
+      if (scopeId) await cleanup('scope', request.delete(`${apiBaseUrl}/business/bizscope/${scopeId}`, { headers }));
+      expect(cleanupFailures).toEqual([]);
+    }
+  });
+
   test('group list page loads', async ({ page }, testInfo) => {
     const consoleErrors: string[] = [];
     page.on('console', (msg) => {

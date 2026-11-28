@@ -3,7 +3,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { TFunction } from 'i18next';
-import { useNavigate, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import {
   Alert,
   Button,
@@ -347,6 +347,16 @@ function buildTaskProfileItems(task: DeployTaskRow, t: TFunction) {
       value: t(`business.deploy.task.targetType.${task.targetType}`),
     },
     { label: t('business.deploy.task.businessScope'), value: task.businessScopeName || '-' },
+    {
+      label: t('business.deploy.task.service'),
+      value: task.serviceId > 0
+        ? <Link to={`/business/service-catalog/instances?serviceId=${task.serviceId}`}>{task.serviceName || `#${task.serviceId}`}</Link>
+        : '-',
+    },
+    {
+      label: t('business.deploy.task.serviceInstance'),
+      value: task.serviceInstanceId > 0 ? task.serviceInstanceName || `#${task.serviceInstanceId}` : '-',
+    },
     {
       label: t('business.deploy.task.executorType'),
       value: t(`business.deploy.task.executorType.${task.executorType}`),

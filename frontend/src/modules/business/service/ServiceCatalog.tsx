@@ -1,8 +1,8 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Alert, Button, Card, Form, Input, Message, Popconfirm, Select, Space, Switch, Tabs, Tag } from '@arco-design/web-react';
-import { IconDelete, IconEdit, IconPlus, IconRefresh } from '@arco-design/web-react/icon';
+import { IconDelete, IconEdit, IconPlayArrow, IconPlus, IconRefresh } from '@arco-design/web-react/icon';
 import type { ColumnProps } from '@arco-design/web-react/es/Table/interface';
 import type { FormInstance } from '@arco-design/web-react/es/Form';
 import {
@@ -78,7 +78,15 @@ const resolveAllowedTargetTypes = (runtimeType?: string): Array<'vm' | 'k8s'> =>
   return ['vm', 'k8s'];
 };
 
-interface CatalogQuery { page: number; pageSize: number; keyword?: string }
+interface CatalogQuery {
+  page: number;
+  pageSize: number;
+  keyword?: string;
+  serviceId?: number;
+  environment?: string;
+  targetType?: string;
+  status?: string;
+}
 const initialQuery: CatalogQuery = { page: 1, pageSize: 20 };
 
 function CatalogLookupNotice({ error }: Readonly<{ error: unknown }>) {
@@ -152,6 +160,8 @@ interface CatalogTabPanelProps<T> {
   readonly total: number;
   readonly onQueryChange: (query: CatalogQuery) => void;
   readonly keywordPlaceholder?: string;
+  readonly filters?: ReactNode;
+  readonly filtersActive?: boolean;
 }
 
 function CatalogTabPanel<T>({
@@ -168,6 +178,8 @@ function CatalogTabPanel<T>({
   total,
   onQueryChange,
   keywordPlaceholder,
+  filters,
+  filtersActive,
 }: Readonly<CatalogTabPanelProps<T>>) {
   const { t } = useTranslation();
   return (
@@ -176,10 +188,11 @@ function CatalogTabPanel<T>({
         keyword={query.keyword ?? ''}
         keywordPlaceholder={keywordPlaceholder}
         onKeywordChange={keywordPlaceholder ? (keyword) => onQueryChange({ ...query, page: 1, keyword }) : undefined}
-        hasActiveFilters={Boolean(query.keyword)}
-        onClearAll={() => onQueryChange({ ...query, page: 1, keyword: '' })}
+        hasActiveFilters={Boolean(query.keyword) || Boolean(filtersActive)}
+        onClearAll={() => onQueryChange({ ...query, page: 1, keyword: '', serviceId: undefined, environment: undefined, targetType: undefined, status: undefined })}
         extra={canCreate ? <Button type="primary" icon={<IconPlus />} disabled={addDisabled} onClick={onAdd}>{addLabel}</Button> : undefined}
       />
+      {filters ? <Space wrap>{filters}</Space> : null}
       <Card className="page-panel system-list__table-card">
         {!loading && rows.length === 0 && total === 0 ? <PageEmpty description={emptyText} /> : <AppTable rowKey={rowKey} columns={columns} data={rows} loading={loading} pagination={buildStandardPagination(t, { current: query.page, pageSize: query.pageSize, total, pageSizeChangeResetCurrent: true, onChange: (page, pageSize) => onQueryChange({ ...query, page, pageSize }) })} scroll={{ x: 'max-content' }} />}
       </Card>
@@ -371,7 +384,10 @@ export default function ServiceCatalog() {
   const [instances, setInstances] = useState<ServiceInstanceRow[]>([]);
   const [applicationQuery, setApplicationQuery] = useState<CatalogQuery>(initialQuery);
   const [serviceQuery, setServiceQuery] = useState<CatalogQuery>(initialQuery);
-  const [instanceQuery, setInstanceQuery] = useState<CatalogQuery>(initialQuery);
+  const [instanceQuery, setInstanceQuery] = useState<CatalogQuery>(() => {
+    const serviceId = Number(new URLSearchParams(location.search).get('serviceId') || 0);
+    return Number.isSafeInteger(serviceId) && serviceId > 0 ? { ...initialQuery, serviceId } : initialQuery;
+  });
   const [totals, setTotals] = useState({ applications: 0, services: 0, instances: 0 });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<unknown>(null);
@@ -399,6 +415,7 @@ export default function ServiceCatalog() {
   const canCreate = hasPerm('business:service:create');
   const canUpdate = hasPerm('business:service:update');
   const canDelete = hasPerm('business:service:delete');
+  const canDeploy = hasPerm('business:deploy:task:create');
 
   const scopeLookup = useCallback(() => getBizScopeOptions(), []);
   const scopes = useCatalogOptions(applicationVisible && !editingApplication, scopeLookup);
@@ -589,17 +606,51 @@ export default function ServiceCatalog() {
     { title: t('business.service.instance.environment'), dataIndex: 'environment', width: 110 },
     { title: t('business.service.instance.target'), dataIndex: 'targetType', width: 100, render: (value: string) => <Tag color={instanceTargetTypeColor(value)}>{value}</Tag> },
     { title: t('business.service.catalog.field.binding'), width: 260, render: (_: unknown, row) => row.targetType === 'vm' ? t('business.service.catalog.hostBinding', { id: row.hostId }) : `${row.namespace}/${row.workloadKind}/${row.workloadName}` },
+    { title: t('business.service.instance.currentVersion'), dataIndex: 'currentVersion', width: 120, render: (value: string) => value || '-' },
     { title: t('business.service.instance.observed'), dataIndex: 'observedState', width: 120, render: (value: string) => <Tag color={instanceObservedStateColor(value)}>{value}</Tag> },
     { title: t('business.service.instance.health'), dataIndex: 'healthState', width: 110, render: (value: string) => <Tag color={instanceHealthStateColor(value)}>{value}</Tag> },
     {
       title: t('common.action'),
-      width: 230,
+      width: 330,
       fixed: 'right',
-      render: (_: unknown, row) => <Space>{canUpdate ? <><Button type="text" icon={<IconEdit />} onClick={() => openInstance(row)}>{t('common.edit')}</Button><Button type="text" icon={<IconRefresh />} onClick={async () => { await reconcileServiceInstance(row.id); await load(); }}>{t('business.service.instance.reconcile')}</Button></> : null}{canDelete ? <Popconfirm title={t('business.service.catalog.instanceDeleteConfirm')} onOk={async () => { await deleteServiceInstance(row.id); await load(); }}><Button type="text" status="danger" icon={<IconDelete />} aria-label={t('common.delete')} /></Popconfirm> : null}</Space>,
+      render: (_: unknown, row) => <Space>{canDeploy ? <Button type="text" icon={<IconPlayArrow />} onClick={() => void navigate(`/business/deploy/task?createFor=service-instance&serviceId=${row.serviceId}&serviceInstanceId=${row.id}&businessScopeId=${row.businessScopeId}&hostId=${row.hostId || 0}&serviceName=${encodeURIComponent(row.serviceName)}`)}>{t('business.service.catalog.deployAction')}</Button> : null}{canUpdate ? <><Button type="text" icon={<IconEdit />} onClick={() => openInstance(row)}>{t('common.edit')}</Button><Button type="text" icon={<IconRefresh />} onClick={async () => { await reconcileServiceInstance(row.id); await load(); }}>{t('business.service.instance.reconcile')}</Button></> : null}{canDelete ? <Popconfirm title={t('business.service.catalog.instanceDeleteConfirm')} onOk={async () => { await deleteServiceInstance(row.id); await load(); }}><Button type="text" status="danger" icon={<IconDelete />} aria-label={t('common.delete')} /></Popconfirm> : null}</Space>,
     },
-  ], [canDelete, canUpdate, load, openInstance, t]);
+  ], [canDelete, canDeploy, canUpdate, load, navigate, openInstance, t]);
 
   const allowedTargetTypes = resolveAllowedTargetTypes(targetService?.runtimeType);
+
+  const instanceFilters = (
+    <>
+      <Select
+        allowClear
+        value={instanceQuery.environment}
+        placeholder={t('business.service.catalog.filter.environment')}
+        style={{ width: 150 }}
+        onChange={(value?: string) => setInstanceQuery({ ...instanceQuery, page: 1, environment: value })}
+      >
+        {['dev', 'test', 'prod'].map((value) => <Select.Option key={value} value={value}>{value}</Select.Option>)}
+      </Select>
+      <Select
+        allowClear
+        value={instanceQuery.targetType}
+        placeholder={t('business.service.catalog.filter.targetType')}
+        style={{ width: 150 }}
+        onChange={(value?: string) => setInstanceQuery({ ...instanceQuery, page: 1, targetType: value })}
+      >
+        {['vm', 'k8s'].map((value) => <Select.Option key={value} value={value}>{value}</Select.Option>)}
+      </Select>
+      <Select
+        allowClear
+        value={instanceQuery.status}
+        placeholder={t('business.service.catalog.filter.status')}
+        style={{ width: 150 }}
+        onChange={(value?: string) => setInstanceQuery({ ...instanceQuery, page: 1, status: value })}
+      >
+        <Select.Option value="active">{t('business.service.catalog.status.active')}</Select.Option>
+        <Select.Option value="inactive">{t('business.service.catalog.status.inactive')}</Select.Option>
+      </Select>
+    </>
+  );
 
   const clearTarget = () => {
     setSelectedClusterId(undefined);
@@ -683,6 +734,8 @@ export default function ServiceCatalog() {
               query={instanceQuery}
               total={totals.instances}
               onQueryChange={setInstanceQuery}
+              filters={instanceFilters}
+              filtersActive={Boolean(instanceQuery.serviceId || instanceQuery.environment || instanceQuery.targetType || instanceQuery.status)}
             />
           </TabPane>
         </Tabs> : null}

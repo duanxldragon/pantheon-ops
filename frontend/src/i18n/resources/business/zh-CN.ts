@@ -1802,6 +1802,33 @@ const generatedzhCNFallback = {
   "k8s.service.update_failed": "Kubernetes Service 更新失败",
   "k8s.service.audit.update": "更新 Kubernetes Service",
   "k8s.namespace.binding_invalid": "命名空间绑定与集群的业务域或环境不匹配。"
+,
+  "business.service.catalog.deployAction": "部署",
+  "business.service.catalog.filter.environment": "环境",
+  "business.service.catalog.filter.targetType": "目标类型",
+  "business.service.catalog.filter.status": "状态",
+  "business.service.catalog.status.active": "启用",
+  "business.service.catalog.status.inactive": "停用",
+  "business.deploy.task.createForInstanceName": "{{name}} 部署",
+  "business.deploy.task.service": "所属服务",
+  "business.deploy.task.serviceInstance": "服务实例"
+,
+  "business.service.instance.currentVersion": "当前版本",
+  "business.cmdb.host.relatedInstances": "承载服务实例",
+  "business.cmdb.host.relatedInstancesEmpty": "暂无服务实例使用该主机",
+  "business.cmdb.host.relatedInstancesFailed": "关联服务实例加载失败",
+  "business.cmdb.host.relatedInstanceService": "服务",
+  "business.cmdb.host.relatedInstanceEnvironment": "环境",
+  "business.cmdb.host.relatedInstanceVersion": "当前版本",
+  "business.cmdb.host.relatedInstanceState": "运行状态",
+  "business.cmdb.host.recentDeploys": "最近部署",
+  "business.cmdb.host.recentDeploysEmpty": "暂无部署任务",
+  "business.cmdb.host.recentDeploysFailed": "最近部署加载失败",
+  "business.bizscope.catalogSummaryTitle": "服务目录统计",
+  "business.bizscope.catalogSummaryFailed": "服务目录统计加载失败",
+  "business.bizscope.catalogApplications": "应用",
+  "business.bizscope.catalogServices": "服务",
+  "business.bizscope.catalogInstances": "实例"
 };
 
 export default generatedzhCNFallback;

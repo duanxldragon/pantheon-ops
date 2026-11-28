@@ -33,5 +33,10 @@
   "business.bizscope.environment.scopeRequired": "업무 범위가 필요합니다",
   "business.bizscope.environment.envTypeInvalid": "유효하지 않은 환경 유형입니다",
   "business.bizscope.environment.statusInvalid": "유효하지 않은 환경 상태입니다",
-  "business.bizscope.environment.field.remark": "비고"
+  "business.bizscope.environment.field.remark": "비고",
+  "business.bizscope.catalogSummaryTitle": "카탈로그 요약",
+  "business.bizscope.catalogSummaryFailed": "카탈로그 요약을 불러오지 못했습니다",
+  "business.bizscope.catalogApplications": "애플리케이션",
+  "business.bizscope.catalogServices": "서비스",
+  "business.bizscope.catalogInstances": "인스턴스"
 }

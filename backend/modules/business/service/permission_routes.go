@@ -11,6 +11,7 @@ func registerServiceReadPermissionRoutes() error {
 		{Method: "GET", Path: "/api/v1/business/service/services"},
 		{Method: "GET", Path: "/api/v1/business/service/services/options"},
 		{Method: "GET", Path: "/api/v1/business/service/services/:id"},
+		{Method: "GET", Path: "/api/v1/business/service/summary"},
 		{Method: "GET", Path: "/api/v1/business/service/instances"},
 		{Method: "GET", Path: "/api/v1/business/service/instances/:id"},
 	}
