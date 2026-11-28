@@ -1802,6 +1802,33 @@ const generatedenUSFallback = {
   "k8s.service.update_failed": "Failed to update the Kubernetes Service",
   "k8s.service.audit.update": "Update Kubernetes Service",
   "k8s.namespace.binding_invalid": "The namespace binding does not match the cluster business scope or environment."
+,
+  "business.service.catalog.deployAction": "Deploy",
+  "business.service.catalog.filter.environment": "Environment",
+  "business.service.catalog.filter.targetType": "Target type",
+  "business.service.catalog.filter.status": "Status",
+  "business.service.catalog.status.active": "Enabled",
+  "business.service.catalog.status.inactive": "Disabled",
+  "business.deploy.task.createForInstanceName": "Deploy {{name}}",
+  "business.deploy.task.service": "Service",
+  "business.deploy.task.serviceInstance": "Service instance"
+,
+  "business.service.instance.currentVersion": "Current version",
+  "business.cmdb.host.relatedInstances": "Hosted service instances",
+  "business.cmdb.host.relatedInstancesEmpty": "No service instance targets this host",
+  "business.cmdb.host.relatedInstancesFailed": "Failed to load related service instances",
+  "business.cmdb.host.relatedInstanceService": "Service",
+  "business.cmdb.host.relatedInstanceEnvironment": "Environment",
+  "business.cmdb.host.relatedInstanceVersion": "Current version",
+  "business.cmdb.host.relatedInstanceState": "Observed state",
+  "business.cmdb.host.recentDeploys": "Recent deployments",
+  "business.cmdb.host.recentDeploysEmpty": "No deployment task yet",
+  "business.cmdb.host.recentDeploysFailed": "Failed to load recent deployments",
+  "business.bizscope.catalogSummaryTitle": "Catalog summary",
+  "business.bizscope.catalogSummaryFailed": "Failed to load the catalog summary",
+  "business.bizscope.catalogApplications": "Applications",
+  "business.bizscope.catalogServices": "Services",
+  "business.bizscope.catalogInstances": "Instances"
 };
 
 export default generatedenUSFallback;

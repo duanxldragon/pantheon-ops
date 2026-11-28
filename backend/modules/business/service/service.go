@@ -414,6 +414,12 @@ func (m *Manager) ListInstances(q InstanceQuery, scope *common.DataScopeReq) (*I
 	if q.ServiceID > 0 {
 		db = db.Where(whereServiceIDEq, q.ServiceID)
 	}
+	if q.HostID > 0 {
+		db = db.Where("host_id = ?", q.HostID)
+	}
+	if env := strings.TrimSpace(q.Environment); env != "" {
+		db = db.Where("environment = ?", env)
+	}
 	if q.TargetType != "" {
 		db = db.Where("target_type = ?", q.TargetType)
 	}
@@ -437,6 +443,36 @@ func (m *Manager) ListInstances(q InstanceQuery, scope *common.DataScopeReq) (*I
 		items = append(items, item)
 	}
 	return &InstanceListResponse{Items: items, Total: total, Page: q.Page, PageSize: q.PageSize}, nil
+}
+
+// ScopeSummary counts the catalog rows under one business scope. The caller's
+// data scope is applied to every count, so the totals never include rows the
+// caller cannot read.
+func (m *Manager) ScopeSummary(ctx context.Context, scopeID uint64, scope *common.DataScopeReq) (ScopeSummaryResponse, error) {
+	if m.db == nil {
+		return ScopeSummaryResponse{}, errors.New(errNotInitialized)
+	}
+	if scopeID == 0 {
+		return ScopeSummaryResponse{}, errors.New("business.service.businessScopeRequired")
+	}
+	db := m.db.WithContext(ctx)
+	var summary ScopeSummaryResponse
+	if err := db.Model(&Application{}).Scopes(database.WithDataScope(scope)).
+		Where("business_scope_id = ?", scopeID).Count(&summary.Applications).Error; err != nil {
+		return summary, err
+	}
+	scopeApplications := m.db.Model(&Application{}).Scopes(database.WithDataScope(scope)).
+		Where("business_scope_id = ?", scopeID).Select("id")
+	if err := db.Model(&Service{}).
+		Where("application_id IN (?)", scopeApplications).Count(&summary.Services).Error; err != nil {
+		return summary, err
+	}
+	if err := m.instanceQuery(scope).WithContext(ctx).
+		Where("service_id IN (?)", m.db.Model(&Service{}).Where("application_id IN (?)", scopeApplications).Select("id")).
+		Count(&summary.Instances).Error; err != nil {
+		return summary, err
+	}
+	return summary, nil
 }
 
 // CreateInstance creates a VM or Kubernetes-targeted service instance.

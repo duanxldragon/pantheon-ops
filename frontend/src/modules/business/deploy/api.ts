@@ -207,6 +207,10 @@ export interface DeployTaskRow {
   packageVersion: string;
   businessScopeId: number;
   businessScopeName: string;
+  serviceId: number;
+  serviceInstanceId: number;
+  serviceName: string;
+  serviceInstanceName: string;
   action: DeployAction;
   targetType: 'host' | 'group';
   targetIds: number[];
@@ -243,6 +247,8 @@ export interface DeployTaskPayload {
   templateId?: number;
   packageId?: number;
   businessScopeId?: number;
+  serviceId?: number;
+  serviceInstanceId?: number;
   action?: DeployAction;
   targetType: 'host' | 'group';
   targetIds: number[];

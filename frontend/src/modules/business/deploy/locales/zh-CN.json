@@ -484,5 +484,8 @@
   "business.deploy.credential.secret": "密钥",
   "business.deploy.credential.secretRotate": "轮换密钥（留空保持不变）",
   "business.deploy.credential.secretRequired": "请输入密钥",
-  "business.deploy.credential.secretHint": "密钥加密存储，保存后不可再查看。"
+  "business.deploy.credential.secretHint": "密钥加密存储，保存后不可再查看。",
+  "business.deploy.task.createForInstanceName": "{{name}} 部署",
+  "business.deploy.task.service": "所属服务",
+  "business.deploy.task.serviceInstance": "服务实例"
 }

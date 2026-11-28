@@ -210,5 +210,15 @@
   "business.cmdb.host.matchedGroupsHint": "Number of groups this host matches via its label conditions.",
   "business.cmdb.host.matchedGroupsEmpty": "No matched groups",
   "business.cmdb.selection.invalid": "Target selection is invalid or exceeds its budget",
-  "business.cmdb.selection.conflict": "Targets or scope changed; resolve again"
+  "business.cmdb.selection.conflict": "Targets or scope changed; resolve again",
+  "business.cmdb.host.relatedInstances": "Hosted service instances",
+  "business.cmdb.host.relatedInstancesEmpty": "No service instance targets this host",
+  "business.cmdb.host.relatedInstancesFailed": "Failed to load related service instances",
+  "business.cmdb.host.relatedInstanceService": "Service",
+  "business.cmdb.host.relatedInstanceEnvironment": "Environment",
+  "business.cmdb.host.relatedInstanceVersion": "Current version",
+  "business.cmdb.host.relatedInstanceState": "Observed state",
+  "business.cmdb.host.recentDeploys": "Recent deployments",
+  "business.cmdb.host.recentDeploysEmpty": "No deployment task yet",
+  "business.cmdb.host.recentDeploysFailed": "Failed to load recent deployments"
 }

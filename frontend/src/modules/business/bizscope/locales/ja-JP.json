@@ -33,5 +33,10 @@
   "business.bizscope.environment.scopeRequired": "業務スコープは必須です",
   "business.bizscope.environment.envTypeInvalid": "環境種別が無効です",
   "business.bizscope.environment.statusInvalid": "環境状態が無効です",
-  "business.bizscope.environment.field.remark": "備考"
+  "business.bizscope.environment.field.remark": "備考",
+  "business.bizscope.catalogSummaryTitle": "カタログ集計",
+  "business.bizscope.catalogSummaryFailed": "カタログ集計の読み込みに失敗しました",
+  "business.bizscope.catalogApplications": "アプリケーション",
+  "business.bizscope.catalogServices": "サービス",
+  "business.bizscope.catalogInstances": "インスタンス"
 }

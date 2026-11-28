@@ -484,5 +484,8 @@
   "business.deploy.credential.secret": "Secret",
   "business.deploy.credential.secretRotate": "Rotate secret (leave blank to keep)",
   "business.deploy.credential.secretRequired": "Enter the secret",
-  "business.deploy.credential.secretHint": "Stored encrypted and never shown again."
+  "business.deploy.credential.secretHint": "Stored encrypted and never shown again.",
+  "business.deploy.task.createForInstanceName": "Deploy {{name}}",
+  "business.deploy.task.service": "Service",
+  "business.deploy.task.serviceInstance": "Service instance"
 }

@@ -127,6 +127,9 @@ func (s *DeployService) validateServiceLink(task *DeployTask, scope *common.Data
 	if len(resolved) != 1 || resolved[0].ID != instance.HostID || resolved[0].BusinessScopeID != task.BusinessScopeID {
 		return invalid
 	}
+	// Snapshot the owner name here so task detail and CSV exports keep showing
+	// it after the service row is renamed.
+	task.ServiceName = svc.Name
 	return nil
 }
 

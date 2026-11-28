@@ -444,3 +444,110 @@ func TestBizScopeDeleteIgnoresSoftDeletedReferences(t *testing.T) {
 		t.Fatalf("delete scope with only soft-deleted references: %v", err)
 	}
 }
+
+// T21 S3: a business scope referenced by an application cannot be deleted, and
+// the guard survives the application being soft-deleted.
+type bizScopeTestApplication struct {
+	ID              uint64         `gorm:"primaryKey;autoIncrement"`
+	Code            string         `gorm:"size:128"`
+	BusinessScopeID uint64         `gorm:"column:business_scope_id"`
+	DeletedAt       gorm.DeletedAt `gorm:"index"`
+}
+
+func (bizScopeTestApplication) TableName() string { return "biz_application" }
+
+type bizScopeTestK8sCluster struct {
+	ID              uint64         `gorm:"primaryKey;autoIncrement"`
+	BusinessScopeID uint64         `gorm:"column:business_scope_id"`
+	DeletedAt       gorm.DeletedAt `gorm:"index"`
+}
+
+func (bizScopeTestK8sCluster) TableName() string { return "biz_k8s_cluster" }
+
+type bizScopeTestDeployTask struct {
+	ID              uint64         `gorm:"primaryKey;autoIncrement"`
+	BusinessScopeID uint64         `gorm:"column:business_scope_id"`
+	DeletedAt       gorm.DeletedAt `gorm:"index"`
+}
+
+func (bizScopeTestDeployTask) TableName() string { return "biz_deploy_task" }
+
+// migrateBizScopeReferenceTables creates the cross-module tables the delete
+// guard counts. Only referenced columns exist; these are fixtures, not schemas.
+func migrateBizScopeReferenceTables(t *testing.T, db *gorm.DB) {
+	t.Helper()
+	if err := db.AutoMigrate(&bizScopeTestApplication{}, &bizScopeTestK8sCluster{}, &bizScopeTestDeployTask{}); err != nil {
+		t.Fatalf("migrate reference fixtures: %v", err)
+	}
+}
+
+func TestBizScopeDeleteRejectsApplicationReference(t *testing.T) {
+	db := setupBizScopeTestDB(t)
+	migrateBizScopeReferenceTables(t, db)
+	svc := newBizScopeServiceWithCMDB(t, db)
+
+	scope := BizScope{Code: "ref-app", Name: "Referenced", Environment: "dev", Status: "active", DeptID: 10}
+	if err := db.Create(&scope).Error; err != nil {
+		t.Fatalf("seed scope: %v", err)
+	}
+	app := bizScopeTestApplication{Code: "ref-app-app", BusinessScopeID: scope.ID}
+	if err := db.Create(&app).Error; err != nil {
+		t.Fatalf("seed application: %v", err)
+	}
+
+	err := svc.Delete(scope.ID, &common.DataScopeReq{Mode: common.DataScopeModeAll})
+	if err == nil || err.Error() != bizScopeInUseKey {
+		t.Fatalf("expected %s while an application references the scope, got %v", bizScopeInUseKey, err)
+	}
+
+	if err := db.Delete(&app).Error; err != nil {
+		t.Fatalf("soft delete application: %v", err)
+	}
+	if err := svc.Delete(scope.ID, &common.DataScopeReq{Mode: common.DataScopeModeAll}); err != nil {
+		t.Fatalf("delete after the reference is gone: %v", err)
+	}
+	var remaining int64
+	if err := db.Model(&BizScope{}).Where("id = ?", scope.ID).Count(&remaining).Error; err != nil {
+		t.Fatalf("count scopes: %v", err)
+	}
+	if remaining != 0 {
+		t.Fatalf("scope row still present after delete: %d", remaining)
+	}
+}
+
+// T21 S3: two concurrent deletes must produce exactly one winner instead of a
+// double-delete or a panic.
+func TestBizScopeDeleteIsSingleWinnerUnderConcurrency(t *testing.T) {
+	db := setupBizScopeTestDB(t)
+	migrateBizScopeReferenceTables(t, db)
+	svc := newBizScopeServiceWithCMDB(t, db)
+
+	scope := BizScope{Code: "race-delete", Name: "Race", Environment: "dev", Status: "active", DeptID: 10}
+	if err := db.Create(&scope).Error; err != nil {
+		t.Fatalf("seed scope: %v", err)
+	}
+
+	results := make(chan error, 2)
+	for i := 0; i < 2; i++ {
+		go func() {
+			results <- svc.Delete(scope.ID, &common.DataScopeReq{Mode: common.DataScopeModeAll})
+		}()
+	}
+	first, second := <-results, <-results
+	succeeded := 0
+	for _, err := range []error{first, second} {
+		if err == nil {
+			succeeded++
+		}
+	}
+	if succeeded != 1 {
+		t.Fatalf("expected exactly one successful delete, got %d (first=%v second=%v)", succeeded, first, second)
+	}
+	var remaining int64
+	if err := db.Model(&BizScope{}).Where("id = ?", scope.ID).Count(&remaining).Error; err != nil {
+		t.Fatalf("count scopes: %v", err)
+	}
+	if remaining != 0 {
+		t.Fatalf("scope row still present after concurrent delete: %d", remaining)
+	}
+}

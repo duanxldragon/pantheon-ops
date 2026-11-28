@@ -297,7 +297,32 @@ const generatedfrFRFallback = {
   "business.deploy.credential.secret": "Secret",
   "business.deploy.credential.secretRotate": "Renouveler le secret (vide = inchangé)",
   "business.deploy.credential.secretRequired": "Saisissez le secret",
-  "business.deploy.credential.secretHint": "Stocké chiffré et jamais réaffiché."
+  "business.deploy.credential.secretHint": "Stocké chiffré et jamais réaffiché.",
+  "business.service.catalog.deployAction": "Déployer",
+  "business.service.catalog.filter.environment": "Environnement",
+  "business.service.catalog.filter.targetType": "Type de cible",
+  "business.service.catalog.filter.status": "Statut",
+  "business.service.catalog.status.active": "Actif",
+  "business.service.catalog.status.inactive": "Inactif",
+  "business.deploy.task.createForInstanceName": "Déployer {{name}}",
+  "business.deploy.task.service": "Service",
+  "business.deploy.task.serviceInstance": "Instance de service",
+  "business.service.instance.currentVersion": "Version actuelle",
+  "business.cmdb.host.relatedInstances": "Instances de service hébergées",
+  "business.cmdb.host.relatedInstancesEmpty": "Aucune instance de service ne cible cet hôte",
+  "business.cmdb.host.relatedInstancesFailed": "Échec du chargement des instances liées",
+  "business.cmdb.host.relatedInstanceService": "Service",
+  "business.cmdb.host.relatedInstanceEnvironment": "Environnement",
+  "business.cmdb.host.relatedInstanceVersion": "Version actuelle",
+  "business.cmdb.host.relatedInstanceState": "État observé",
+  "business.cmdb.host.recentDeploys": "Déploiements récents",
+  "business.cmdb.host.recentDeploysEmpty": "Aucune tâche de déploiement",
+  "business.cmdb.host.recentDeploysFailed": "Échec du chargement des déploiements récents",
+  "business.bizscope.catalogSummaryTitle": "Résumé du catalogue",
+  "business.bizscope.catalogSummaryFailed": "Échec du chargement du résumé du catalogue",
+  "business.bizscope.catalogApplications": "Applications",
+  "business.bizscope.catalogServices": "Services",
+  "business.bizscope.catalogInstances": "Instances"
 };
 
 export default generatedfrFRFallback;

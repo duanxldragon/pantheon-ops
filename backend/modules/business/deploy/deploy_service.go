@@ -11,6 +11,7 @@ import (
 	"regexp"
 	"runtime/debug"
 	"sort"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -526,9 +527,11 @@ func (s *DeployService) createTask(req CreateTaskRequest, actor string, dataScop
 	if err != nil {
 		return nil, err
 	}
-	if err := s.validateServiceLink(serviceLinkTask(req.BusinessScopeID, req.ServiceID, req.ServiceInstanceID, req.TargetType, targetIDs), dataScope, nil); err != nil {
+	linkTask := serviceLinkTask(req.BusinessScopeID, req.ServiceID, req.ServiceInstanceID, req.TargetType, targetIDs)
+	if err := s.validateServiceLink(linkTask, dataScope, nil); err != nil {
 		return nil, err
 	}
+	req.serviceName = linkTask.ServiceName
 	task, err := s.buildCreateTask(&req, pkg, template, targetIDs, action, scopeName, actor)
 	if err != nil {
 		return nil, err
@@ -663,6 +666,7 @@ func (s *DeployService) buildCreateTask(req *CreateTaskRequest, pkg DeployPackag
 		BusinessScopeName: scopeName,
 		ServiceID:         req.ServiceID,
 		ServiceInstanceID: req.ServiceInstanceID,
+		ServiceName:       req.serviceName,
 		Action:            action,
 		TargetType:        req.TargetType,
 		TargetIDs:         datatypes.JSON(targetJSON),
@@ -700,6 +704,15 @@ func (s *DeployService) ListTasks(query TaskQuery, dataScope *common.DataScopeRe
 	}
 	if query.BusinessScopeID > 0 {
 		db = db.Where("business_scope_id = ?", query.BusinessScopeID)
+	}
+	if query.ServiceID > 0 {
+		db = db.Where("service_id = ?", query.ServiceID)
+	}
+	if query.ServiceInstanceID > 0 {
+		db = db.Where("service_instance_id = ?", query.ServiceInstanceID)
+	}
+	if query.HostID > 0 {
+		db = db.Where("JSON_CONTAINS(target_ids, ?)", strconv.FormatUint(query.HostID, 10))
 	}
 	if strings.TrimSpace(query.Keyword) != "" {
 		like := "%" + strings.TrimSpace(query.Keyword) + "%"

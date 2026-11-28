@@ -297,7 +297,32 @@ const generatedjaJPFallback = {
   "business.deploy.credential.secret": "シークレット",
   "business.deploy.credential.secretRotate": "シークレット更新（空欄なら維持）",
   "business.deploy.credential.secretRequired": "シークレットを入力してください",
-  "business.deploy.credential.secretHint": "暗号化して保存され、再表示されません。"
+  "business.deploy.credential.secretHint": "暗号化して保存され、再表示されません。",
+  "business.service.catalog.deployAction": "デプロイ",
+  "business.service.catalog.filter.environment": "環境",
+  "business.service.catalog.filter.targetType": "ターゲット種別",
+  "business.service.catalog.filter.status": "ステータス",
+  "business.service.catalog.status.active": "有効",
+  "business.service.catalog.status.inactive": "無効",
+  "business.deploy.task.createForInstanceName": "{{name}} のデプロイ",
+  "business.deploy.task.service": "所属サービス",
+  "business.deploy.task.serviceInstance": "サービスインスタンス",
+  "business.service.instance.currentVersion": "現在のバージョン",
+  "business.cmdb.host.relatedInstances": "稼働するサービスインスタンス",
+  "business.cmdb.host.relatedInstancesEmpty": "このホストを使用するサービスインスタンスはありません",
+  "business.cmdb.host.relatedInstancesFailed": "関連サービスインスタンスの読み込みに失敗しました",
+  "business.cmdb.host.relatedInstanceService": "サービス",
+  "business.cmdb.host.relatedInstanceEnvironment": "環境",
+  "business.cmdb.host.relatedInstanceVersion": "現在のバージョン",
+  "business.cmdb.host.relatedInstanceState": "観測状態",
+  "business.cmdb.host.recentDeploys": "最近のデプロイ",
+  "business.cmdb.host.recentDeploysEmpty": "デプロイタスクはありません",
+  "business.cmdb.host.recentDeploysFailed": "最近のデプロイの読み込みに失敗しました",
+  "business.bizscope.catalogSummaryTitle": "カタログ集計",
+  "business.bizscope.catalogSummaryFailed": "カタログ集計の読み込みに失敗しました",
+  "business.bizscope.catalogApplications": "アプリケーション",
+  "business.bizscope.catalogServices": "サービス",
+  "business.bizscope.catalogInstances": "インスタンス"
 };
 
 export default generatedjaJPFallback;

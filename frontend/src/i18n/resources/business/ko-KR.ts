@@ -297,7 +297,32 @@ const generatedkoKRFallback = {
   "business.deploy.credential.secret": "시크릿",
   "business.deploy.credential.secretRotate": "시크릿 교체(비우면 유지)",
   "business.deploy.credential.secretRequired": "시크릿을 입력하세요",
-  "business.deploy.credential.secretHint": "암호화되어 저장되며 다시 표시되지 않습니다."
+  "business.deploy.credential.secretHint": "암호화되어 저장되며 다시 표시되지 않습니다.",
+  "business.service.catalog.deployAction": "배포",
+  "business.service.catalog.filter.environment": "환경",
+  "business.service.catalog.filter.targetType": "대상 유형",
+  "business.service.catalog.filter.status": "상태",
+  "business.service.catalog.status.active": "활성",
+  "business.service.catalog.status.inactive": "비활성",
+  "business.deploy.task.createForInstanceName": "{{name}} 배포",
+  "business.deploy.task.service": "소속 서비스",
+  "business.deploy.task.serviceInstance": "서비스 인스턴스",
+  "business.service.instance.currentVersion": "현재 버전",
+  "business.cmdb.host.relatedInstances": "호스팅된 서비스 인스턴스",
+  "business.cmdb.host.relatedInstancesEmpty": "이 호스트를 사용하는 서비스 인스턴스가 없습니다",
+  "business.cmdb.host.relatedInstancesFailed": "관련 서비스 인스턴스를 불러오지 못했습니다",
+  "business.cmdb.host.relatedInstanceService": "서비스",
+  "business.cmdb.host.relatedInstanceEnvironment": "환경",
+  "business.cmdb.host.relatedInstanceVersion": "현재 버전",
+  "business.cmdb.host.relatedInstanceState": "관측 상태",
+  "business.cmdb.host.recentDeploys": "최근 배포",
+  "business.cmdb.host.recentDeploysEmpty": "배포 작업이 없습니다",
+  "business.cmdb.host.recentDeploysFailed": "최근 배포를 불러오지 못했습니다",
+  "business.bizscope.catalogSummaryTitle": "카탈로그 요약",
+  "business.bizscope.catalogSummaryFailed": "카탈로그 요약을 불러오지 못했습니다",
+  "business.bizscope.catalogApplications": "애플리케이션",
+  "business.bizscope.catalogServices": "서비스",
+  "business.bizscope.catalogInstances": "인스턴스"
 };
 
 export default generatedkoKRFallback;

@@ -44,6 +44,10 @@ type TaskRow = {
   executorType?: string;
   action?: string;
   remark?: string;
+  serviceId?: number;
+  serviceInstanceId?: number;
+  serviceName?: string;
+  serviceInstanceName?: string;
   hosts: Array<{
     id: number;
     status: string;
@@ -86,7 +90,15 @@ async function previewAndStartTask(
   );
 }
 
-type FixtureResource = 'deploy/tasks' | 'cmdb/hosts' | 'deploy/packages' | 'deploy/credentials' | 'bizscope';
+type FixtureResource =
+  | 'deploy/tasks'
+  | 'service/instances'
+  | 'service/services'
+  | 'service/applications'
+  | 'cmdb/hosts'
+  | 'deploy/packages'
+  | 'deploy/credentials'
+  | 'bizscope';
 
 test.describe.serial('Deploy business api smoke', () => {
   let login: BrowserLoginResult;
@@ -117,7 +129,16 @@ test.describe.serial('Deploy business api smoke', () => {
   });
 
   test.afterEach(async () => {
-    const priority: FixtureResource[] = ['deploy/tasks', 'cmdb/hosts', 'deploy/packages', 'deploy/credentials', 'bizscope'];
+    const priority: FixtureResource[] = [
+      'deploy/tasks',
+      'service/instances',
+      'service/services',
+      'service/applications',
+      'cmdb/hosts',
+      'deploy/packages',
+      'deploy/credentials',
+      'bizscope',
+    ];
     const fixtures = createdFixtures.splice(0).sort((a, b) => priority.indexOf(a.resource) - priority.indexOf(b.resource));
     const gaps: string[] = [];
     for (const { resource, id } of fixtures) {
@@ -205,6 +226,88 @@ test.describe.serial('Deploy business api smoke', () => {
     );
     expect(hostDetail.status).toBe('online');
 
+  });
+
+  test('deploy api links a task to a service instance and filters by the instance', async () => {
+    const token = `deploy-link-${Date.now()}`;
+    const scope = await createFixture<BizScopeRow>('bizscope',
+      await apiContext.post(`${apiBaseUrl}/business/bizscope`, {
+        data: { code: token, name: token, environment: 'prod', status: 'active' },
+      }),
+    );
+    const host = await createFixture<HostRow>('cmdb/hosts',
+      await apiContext.post(`${apiBaseUrl}/business/cmdb/hosts`, {
+        data: {
+          hostname: token,
+          ip: `10.247.${Math.floor(Math.random() * 200) + 1}.${Math.floor(Math.random() * 200) + 1}`,
+          os: 'linux',
+          businessScopeId: scope.id,
+          labels: [{ key: 'biz', val: token }],
+        },
+      }),
+    );
+    const application = await createFixture<{ id: number }>('service/applications',
+      await apiContext.post(`${apiBaseUrl}/business/service/applications`, {
+        data: { code: `${token}-app`, name: `${token}-application`, businessScopeId: scope.id },
+      }),
+    );
+    const service = await createFixture<{ id: number }>('service/services',
+      await apiContext.post(`${apiBaseUrl}/business/service/services`, {
+        data: { applicationId: application.id, code: `${token}-svc`, name: `${token}-service`, runtimeType: 'vm' },
+      }),
+    );
+    const instance = await createFixture<{ id: number }>('service/instances',
+      await apiContext.post(`${apiBaseUrl}/business/service/instances`, {
+        data: { serviceId: service.id, environment: 'prod', targetType: 'vm', hostId: host.id, desiredVersion: '1.2.0' },
+      }),
+    );
+    const pkg = await createFixture<PackageRow>('deploy/packages',
+      await apiContext.post(`${apiBaseUrl}/business/deploy/packages`, {
+        data: { name: token, version: '1.0.0', installCommand: 'echo install', status: 'enabled' },
+      }),
+    );
+
+    const task = await createFixture<TaskRow>('deploy/tasks',
+      await apiContext.post(`${apiBaseUrl}/business/deploy/tasks`, {
+        data: {
+          name: token,
+          packageId: pkg.id,
+          businessScopeId: scope.id,
+          serviceId: service.id,
+          serviceInstanceId: instance.id,
+          targetType: 'host',
+          targetIds: [host.id],
+          executorType: 'manual',
+        },
+      }),
+    );
+    expect(task.serviceId).toBe(service.id);
+    expect(task.serviceInstanceId).toBe(instance.id);
+
+    const filtered = await expectSuccess<{ items: Array<{ id: number }>; total: number }>(
+      await apiContext.get(`${apiBaseUrl}/business/deploy/tasks?serviceInstanceId=${instance.id}&page=1&pageSize=20`),
+    );
+    expect(filtered.items.map((item) => item.id)).toContain(task.id);
+
+    const detail = await expectSuccess<TaskRow>(
+      await apiContext.get(`${apiBaseUrl}/business/deploy/tasks/${task.id}`),
+    );
+    expect(detail.serviceName).toBe(`${token}-service`);
+    expect(detail.serviceInstanceId).toBe(instance.id);
+
+    // A service-linked task resolves its single target from the instance's host.
+    // Starting it is covered by the unlinked manual-task case above; a manual
+    // report for a linked task is rejected as a stale attempt, which this test
+    // records as an explicit gap instead of forcing a terminal state.
+    const preview = await expectSuccess<DeployTaskPreviewResponse>(
+      await apiContext.post(`${apiBaseUrl}/business/deploy/tasks/${task.id}/preview`, { data: {} }),
+    );
+    expect(preview.targetCount).toBe(1);
+
+    const instances = await expectSuccess<{ items: Array<{ id: number; currentVersion?: string }> }>(
+      await apiContext.get(`${apiBaseUrl}/business/service/instances?serviceId=${service.id}&page=1&pageSize=20`),
+    );
+    expect(instances.items.map((item) => item.id)).toContain(instance.id);
   });
 
   test('deploy api updates a draft task before execution', async () => {

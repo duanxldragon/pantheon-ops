@@ -87,5 +87,10 @@
   "business.bizscope.environment.scopeRequired": "Business scope is required",
   "business.bizscope.environment.envTypeInvalid": "Invalid environment type",
   "business.bizscope.environment.statusInvalid": "Invalid environment status",
-  "business.bizscope.permission.hostView": "View host bindings"
+  "business.bizscope.permission.hostView": "View host bindings",
+  "business.bizscope.catalogSummaryTitle": "Catalog summary",
+  "business.bizscope.catalogSummaryFailed": "Failed to load the catalog summary",
+  "business.bizscope.catalogApplications": "Applications",
+  "business.bizscope.catalogServices": "Services",
+  "business.bizscope.catalogInstances": "Instances"
 }

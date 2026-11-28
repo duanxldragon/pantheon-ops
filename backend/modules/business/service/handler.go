@@ -3,6 +3,7 @@ package service
 import (
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/duanxldragon/pantheon-base/backend/pkg/common"
 
@@ -52,6 +53,7 @@ func (h *Handler) RegisterRoutes(r gin.IRoutes) {
 	r.POST("/services", h.createService)
 	r.PUT("/services/:id", h.updateService)
 	r.DELETE("/services/:id", h.deleteService)
+	r.GET("/summary", h.scopeSummary)
 	r.GET("/instances", h.listInstances)
 	r.GET("/instances/:id", h.getInstance)
 	r.POST("/instances", h.createInstance)
@@ -236,6 +238,20 @@ func (h *Handler) deleteService(c *gin.Context) {
 		return
 	}
 	common.Success(c, gin.H{"deleted": true})
+}
+
+func (h *Handler) scopeSummary(c *gin.Context) {
+	scopeID, err := strconv.ParseUint(strings.TrimSpace(c.Query("businessScopeId")), 10, 64)
+	if err != nil || scopeID == 0 {
+		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
+		return
+	}
+	summary, err := h.manager.ScopeSummary(c.Request.Context(), scopeID, common.GetDataScope(c))
+	if err != nil {
+		fail(c, err, "business.service.summary_failed")
+		return
+	}
+	common.Success(c, summary)
 }
 
 func (h *Handler) listInstances(c *gin.Context) {

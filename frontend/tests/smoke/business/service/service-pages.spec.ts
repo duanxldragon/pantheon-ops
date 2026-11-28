@@ -40,6 +40,7 @@ async function installCatalogFixture(page: Page, count = 125) {
   }));
   const instances: ServiceInstanceRow[] = services.map((service) => ({
     id: service.id, serviceId: service.id, serviceCode: service.code, serviceName: service.name,
+    applicationId: service.applicationId, applicationCode: service.applicationCode, businessScopeId: 41,
     environment: 'prod', targetType: 'vm', hostId: service.id, k8sClusterId: 0,
     namespace: '', workloadKind: '', workloadName: '', desiredVersion: '1.2.0', currentVersion: '1.1.0',
     rollbackVersion: '', desiredState: 'running', observedState: 'running', healthState: 'healthy',
@@ -549,5 +550,120 @@ test.describe('Service business module smoke', () => {
       .poll(async () => page.evaluate(() => document.body.scrollWidth <= globalThis.innerWidth + 1))
       .toBe(true);
     await page.screenshot({ path: testInfo.outputPath('service-list-mobile.png') });
+  });
+});
+
+test.describe('Service instance deploy entry (T20)', () => {
+  test.beforeEach(async ({ page }) => {
+    const login = await loginByApi(page.request, adminCredentials);
+    await installClientSession(page, login);
+    await primeChineseLocale(page);
+  });
+
+  test('instance filters query the server with environment, target and status', async ({ page }) => {
+    const fixture = await installCatalogFixture(page, 3);
+    await page.goto('/business/service-catalog/instances', { waitUntil: 'domcontentloaded' });
+    const panel = page.getByRole('tabpanel', { name: '服务实例', exact: true });
+    await expect(panel.locator('tbody tr')).toHaveCount(3);
+    const instanceReads = () => fixture.reads.filter((url) => url.pathname.endsWith('/instances'));
+
+    await panel.locator('.arco-select-view').filter({ hasText: '环境' }).click();
+    await page.locator('.arco-select-option:visible').filter({ hasText: /^prod$/ }).click();
+    await expect.poll(() => instanceReads().some((url) => url.searchParams.get('environment') === 'prod')).toBe(true);
+    expect(instanceReads().at(-1)?.searchParams.get('page')).toBe('1');
+
+    await panel.locator('.arco-select-view').filter({ hasText: '目标类型' }).click();
+    await page.locator('.arco-select-option:visible').filter({ hasText: /^k8s$/ }).click();
+    await expect.poll(() => instanceReads().some((url) => url.searchParams.get('targetType') === 'k8s')).toBe(true);
+
+    await panel.locator('.arco-select-view').filter({ hasText: '状态' }).click();
+    await page.locator('.arco-select-option:visible').filter({ hasText: /^启用$/ }).click();
+    await expect.poll(() => instanceReads().some((url) => url.searchParams.get('status') === 'active')).toBe(true);
+    const last = instanceReads().at(-1)!;
+    expect(last.searchParams.get('environment')).toBe('prod');
+    expect(last.searchParams.get('targetType')).toBe('k8s');
+    expect(last.searchParams.get('status')).toBe('active');
+    expect(last.searchParams.get('page')).toBe('1');
+  });
+
+  test('a role without deploy permission does not see the instance deploy entry', async ({ page }) => {
+    await installCatalogFixture(page, 2);
+    await page.route('**/api/v1/auth/me', async (route) => {
+      const response = await route.fetch();
+      const payload = await response.json();
+      payload.data.roles = [];
+      payload.data.perms = ['business:service:list'];
+      await route.fulfill({ response, json: payload });
+    });
+    await page.goto('/business/service-catalog/instances', { waitUntil: 'domcontentloaded' });
+    const panel = page.getByRole('tabpanel', { name: '服务实例', exact: true });
+    await expect(panel.locator('tbody tr')).toHaveCount(2);
+    await expect(panel.getByRole('button', { name: '部署', exact: true })).toHaveCount(0);
+    await expect(panel.getByRole('button', { name: /新增|编辑|删除|协调/ })).toHaveCount(0);
+  });
+
+  test('deploying from an instance opens the prefilled create task modal once', async ({ page }, testInfo) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await installCatalogFixture(page, 1);
+    await page.route(/\/api\/v1\/business\/bizscope\/options(?:\?.*)?$/, async (route) => {
+      await route.fulfill({ json: { code: 200, data: [{ id: 41, name: 'catalog-scope', label: 'catalog-scope', value: 41 }] } });
+    });
+    await page.route(/\/api\/v1\/business\/cmdb\/hosts(?:\?.*)?$/, async (route) => {
+      await route.fulfill({ json: { code: 200, data: { items: [{ id: 1, businessScopeId: 41, hostname: 'catalog-host', ip: '10.0.0.1' }], total: 1, page: 1, pageSize: 25 } } });
+    });
+    await page.route(/\/api\/v1\/business\/cmdb\/groups(?:\?.*)?$/, async (route) => {
+      await route.fulfill({ json: { code: 200, data: [] } });
+    });
+    await page.route(/\/api\/v1\/business\/deploy\/(templates|packages|credentials|tasks)(?:\?.*)?$/, async (route) => {
+      const path = new URL(route.request().url()).pathname;
+      if (path.endsWith('/templates')) {
+        await route.fulfill({ json: { code: 200, data: { items: [{ id: 1, name: 'catalog-template', version: '1.0.0', description: '', category: 'base', executionMode: 'fixed', defaultAction: 'install', packageId: 2, packageName: 'catalog-package', packageVersion: '1.0.0', status: 'enabled', stepCount: 1, steps: [], createdAt: '', updatedAt: '', createdBy: '', updatedBy: '' }], total: 1, page: 1, pageSize: 100 } } });
+        return;
+      }
+      if (path.endsWith('/packages')) {
+        await route.fulfill({ json: { code: 200, data: { items: [{ id: 2, name: 'catalog-package', version: '1.0.0', description: '', executionMode: 'fixed', status: 'enabled', createdAt: '', updatedAt: '' }], total: 1, page: 1, pageSize: 100 } } });
+        return;
+      }
+      if (path.endsWith('/credentials')) {
+        await route.fulfill({ json: { code: 200, data: [] } });
+        return;
+      }
+      await route.fulfill({ json: { code: 200, data: { items: [], total: 0, page: 1, pageSize: 10 } } });
+    });
+
+    await page.goto('/business/service-catalog/instances', { waitUntil: 'domcontentloaded' });
+    const panel = page.getByRole('tabpanel', { name: '服务实例', exact: true });
+    await panel.locator('tbody tr').filter({ hasText: 'catalog-service-1' }).getByRole('button', { name: '部署', exact: true }).click();
+    await expect(page).toHaveURL(/\/business\/deploy\/task\?/);
+    const intentUrl = new URL(page.url());
+    expect(intentUrl.searchParams.get('createFor')).toBe('service-instance');
+    expect(intentUrl.searchParams.get('serviceInstanceId')).toBe('1');
+    expect(intentUrl.searchParams.get('serviceId')).toBe('1');
+    expect(intentUrl.searchParams.get('businessScopeId')).toBe('41');
+
+    const dialog = page.getByRole('dialog');
+    await expect(dialog).toBeVisible();
+    await expect(dialog).toContainText('catalog-scope');
+    await expect
+      .poll(async () => dialog.locator('input').evaluateAll((els) => els.map((el) => (el as HTMLInputElement).value)))
+      .toContain('catalog-service-1 部署');
+
+    await page.screenshot({ path: testInfo.outputPath('t20-deploy-entry-1440.png') });
+    // The intent is consumed once: reloading the deploy page must not reopen the editor.
+    expect(new URL(page.url()).searchParams.has('createFor')).toBe(false);
+    await page.reload({ waitUntil: 'domcontentloaded' });
+    await expect(page.getByRole('dialog')).toHaveCount(0);
+    await page.screenshot({ path: testInfo.outputPath('t20-deploy-list-after-intent.png') });
+
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto(
+      '/business/deploy/task?createFor=service-instance&serviceId=1&serviceInstanceId=1&businessScopeId=41&hostId=1&serviceName=catalog-service-1',
+      { waitUntil: 'domcontentloaded' },
+    );
+    await expect(page.getByRole('dialog')).toBeVisible();
+    await expect
+      .poll(async () => page.evaluate(() => document.body.scrollWidth <= globalThis.innerWidth + 1))
+      .toBe(true);
+    await page.screenshot({ path: testInfo.outputPath('t20-deploy-entry-390.png') });
   });
 });

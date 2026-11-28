@@ -190,11 +190,19 @@ type TaskQuery struct {
 	CreatedFrom     string `form:"createdFrom"`
 	CreatedTo       string `form:"createdTo"`
 	BusinessScopeID uint64 `form:"businessScopeId"`
-	Page            int    `form:"page"`
-	PageSize        int    `form:"pageSize"`
-	Keyword         string `form:"keyword"`
-	Status          string `form:"status"`
-	ExecutorType    string `form:"executorType"`
+	// ServiceID and ServiceInstanceID narrow the list to tasks linked to that
+	// service or instance. They only filter: host data-scope visibility is still
+	// applied afterwards, so a filter can never widen what the caller may see.
+	ServiceID         uint64 `form:"serviceId"`
+	ServiceInstanceID uint64 `form:"serviceInstanceId"`
+	// HostID matches tasks whose target list contains that CMDB host. It only
+	// narrows the visible set; host data scope is still applied afterwards.
+	HostID       uint64 `form:"hostId"`
+	Page         int    `form:"page"`
+	PageSize     int    `form:"pageSize"`
+	Keyword      string `form:"keyword"`
+	Status       string `form:"status"`
+	ExecutorType string `form:"executorType"`
 }
 
 type CreateTaskRequest struct {
@@ -206,13 +214,15 @@ type CreateTaskRequest struct {
 	BusinessScopeID   uint64                `json:"businessScopeId"`
 	ServiceID         uint64                `json:"serviceId"`
 	ServiceInstanceID uint64                `json:"serviceInstanceId"`
-	Action            string                `json:"action"`
-	TargetType        string                `json:"targetType"`
-	TargetIDs         []uint64              `json:"targetIds"`
-	ExecutorType      string                `json:"executorType"`
-	TemplateParams    map[string]any        `json:"templateParams"`
-	SecretParams      map[string]string     `json:"secretParams"`
-	Remark            string                `json:"remark"`
+	// serviceName is resolved from the linked instance, never bound from input.
+	serviceName    string            `json:"-"`
+	Action         string            `json:"action"`
+	TargetType     string            `json:"targetType"`
+	TargetIDs      []uint64          `json:"targetIds"`
+	ExecutorType   string            `json:"executorType"`
+	TemplateParams map[string]any    `json:"templateParams"`
+	SecretParams   map[string]string `json:"secretParams"`
+	Remark         string            `json:"remark"`
 }
 
 type UpdateTaskRequest struct {

@@ -1,0 +1,187 @@
+{
+  "schemaVersion": 1,
+  "taskId": "2026-11-25-ops-cmdb-asset-relation-views",
+  "title": "T21 CMDB 主机、实例与业务域关联交付",
+  "goal": "让 CMDB 主机、业务域、服务实例三者在界面上互相可查：主机详情展示承载的服务实例与最近部署，业务域详情展示其下应用/服务/实例统计；补 bizscope 的跨租户、跨业务域与并发删除测试。通用资产模型与 Pod→Node→VM 追溯不在本包。",
+  "primaryLayer": "business/*",
+  "status": "in-progress",
+  "priority": "P1",
+  "deliveryTier": "L2",
+  "parentTask": "2026-11-20-ops-review-remediation",
+  "taskDoc": "docs/harness/tasks/2026-11-25-ops-cmdb-asset-relation-views.task.md",
+  "handoffDoc": ".harness/tasks/2026-11-25-ops-cmdb-asset-relation-views/HANDOFF.md",
+  "statusDoc": ".harness/tasks/2026-11-25-ops-cmdb-asset-relation-views/STATUS.md",
+  "owner": "CMDB 与业务域负责人",
+  "activation": "core",
+  "dependencies": [],
+  "dependsOn": [],
+  "conditionalDependencies": [],
+  "coordinatesWith": [
+    "2026-11-20-ops-service-deploy-business-closure"
+  ],
+  "scope": {
+    "in": [
+      "主机详情增加“关联服务实例/最近部署任务”只读视图，复用 HasActiveHostReferences 与现有读取接口",
+      "业务域详情增加应用/服务/实例计数与跳转，环境字符串与实例 environment 的一致性校验复用 service 侧准入",
+      "bizscope 补跨租户、跨业务域引用、并发删除/改名、环境绑定回归测试",
+      "受限角色与数据范围下关联视图不泄露不可见对象"
+    ],
+    "out": [
+      "通用资产类型、自定义属性、变更历史",
+      "Pod→Node→VM 追溯（新立项）",
+      "K8s 模块改动",
+      "Base 共享组件实现"
+    ]
+  },
+  "dependencyLayers": [
+    "business/*",
+    "inheritance-sync"
+  ],
+  "baseline": {
+    "reportCommit": "444ce8e",
+    "planningCommit": "be762441",
+    "foundationVersion": "pantheon-base-v0.18.9",
+    "foundationCommit": "6316f9b7189c86542424145fa49344ad737e952b",
+    "recheckBeforeImplementation": true
+  },
+  "sourceReview": "docs/reviews/pantheon-ops独立评审与外部报告核实-2026-11-20.md",
+  "sourceChecklist": "docs/reviews/pantheon-ops真实环境验证清单-2026-11-20.md",
+  "findingRefs": [
+    "NEW-02"
+  ],
+  "sourceRefs": [
+    {
+      "path": "docs/reviews/pantheon-ops独立评审与外部报告核实-2026-11-20.md",
+      "line": 84
+    }
+  ],
+  "expectedFiles": {
+    "create": [
+      "docs/harness/tasks/2026-11-25-ops-cmdb-asset-relation-views.task.md",
+      ".harness/tasks/2026-11-25-ops-cmdb-asset-relation-views/manifest.json",
+      ".harness/tasks/2026-11-25-ops-cmdb-asset-relation-views/HANDOFF.md",
+      ".harness/tasks/2026-11-25-ops-cmdb-asset-relation-views/STATUS.md"
+    ],
+    "modify": [
+      "backend/modules/business/{bizscope,cmdb,service}/**",
+      "frontend/src/modules/business/{cmdb,bizscope}/**",
+      "frontend/tests/smoke/business/cmdb/**"
+    ],
+    "doNotTouch": [
+      "backend/modules/system/**",
+      "backend/internal/**",
+      "frontend/src/core/**",
+      "frontend/src/api/request.ts",
+      "既有归档原始证据与其他执行者未提交改动"
+    ]
+  },
+  "contractAnchors": [
+    "AGENTS.md",
+    "docs/PROJECT_INHERITANCE.md",
+    "docs/TASK_PACKET_OPS_TEMPLATE.md",
+    "docs/contracts/TENANT_CONTRACT_V1.md",
+    "docs/reviews/pantheon-ops独立评审与外部报告核实-2026-11-20.md",
+    "docs/reviews/pantheon-ops真实环境验证清单-2026-11-20.md",
+    "business-overlay.json",
+    "foundation-release.lock.json",
+    "../pantheon-base/docs/designs/BUSINESS_RESOURCE_LIST_PATTERN.md",
+    "../pantheon-base/docs/designs/BUSINESS_LIFECYCLE_DETAIL_PATTERN.md"
+  ],
+  "harnessProfile": {
+    "template": "custom",
+    "overlay": "pantheon-ops",
+    "qualityProfile": "ui-runtime",
+    "portableFailureClass": "business-review-gap",
+    "ownerLayer": "business/*",
+    "coverageDimensions": [
+      "behaviour",
+      "architecture-fitness",
+      "runtime-quality"
+    ]
+  },
+  "structuralScope": {
+    "affectedSubgraph": [
+      "CMDB 主机与服务实例、业务域关联视图"
+    ],
+    "boundaryCrossings": [
+      "business/* -> pkg公共契约"
+    ],
+    "riskNodes": [
+      "NEW-02"
+    ],
+    "graphFocus": [
+      "call-depth"
+    ]
+  },
+  "implementationNotes": [
+    "Minimal Complexity Rung: reuse",
+    "2026-11-25 站在用户主路径复核后新增；复用既有后端实现，只补缺口与证据。",
+    "接口/权限/i18n/overlay 同步关闭；未达验收保持 gap。",
+    "页面结构以 pantheon-base 的两份业务页面模板为准，不自创骨架；模板文档位于相邻仓库 ../pantheon-base/docs/designs/。",
+    "2026-11-26 完成：hostId 过滤（实例/任务）、业务域目录统计端点、主机关系卡片、业务域统计卡片、bizscope 引用与并发删除用例、五语言 key、cmdb smoke 10 passed 与 1440/390 截图。"
+  ],
+  "implementationPlan": [
+    "S1 后端读取接口：按 hostId 列出承载的服务实例（带数据范围，复用 service 包 instanceQuery 与 HasActiveHostReferences），按 businessScopeId 汇总应用/服务/实例计数；新路由登记权限路由矩阵与 seed",
+    "S2 一致性：实例的 environment 与所属业务域环境的对应关系，复用 service 侧准入，不在 cmdb 再写一份规则；不一致时返回明确错误键",
+    "S3 bizscope 测试：跨租户、跨业务域引用、环境绑定改名/删除时的引用保护、并发删除；当前只有 2 个测试文件，先补这些反例再动功能",
+    "S4 主机详情：CmdbHostDetail 增加“关联服务实例/最近部署”只读区块，无权限时整块隐藏而不是空白",
+    "S5 业务域详情：BizScopeDetail 增加应用/服务/实例统计与跳转",
+    "S6 受限角色：数据范围之外的实例/主机不出现在关联视图，也不出现在计数里；补接口级与 smoke 级用例",
+    "S7 证据：go test bizscope/cmdb/service；test:smoke:business:cmdb；1440px/390px 渲染证据"
+  ],
+  "acceptanceCriteria": [
+    "主机详情可见其承载实例，且仅含数据范围内对象",
+    "业务域详情统计与服务目录一致",
+    "bizscope 新增反例测试覆盖跨租户/跨业务域/并发删除并全绿",
+    "桌面与 390px 渲染证据齐备",
+    "主机与业务域详情新增区块符合 Base BUSINESS_LIFECYCLE_DETAIL_PATTERN（元信息块、子资源表、无权限整块隐藏）；渲染证据覆盖模板的页面状态变体与可达性要求"
+  ],
+  "verificationPlan": {
+    "commands": [
+      "go test -count=1 ./modules/business/bizscope/... ./modules/business/cmdb/... ./modules/business/service/...",
+      "npm run test:smoke:business:cmdb"
+    ],
+    "runtimeEvidence": [
+      "渲染证据（1440px/390px）与同候选测试输出"
+    ],
+    "commandWorkingDirectories": {
+      "go test -count=1 ./modules/business/bizscope/... ./modules/business/cmdb/... ./modules/business/service/...": "backend",
+      "npm run test:smoke:business:cmdb": "frontend"
+    },
+    "environmentRequirements": [
+      "在 backend/ 执行 Go 命令；race 使用 D:\\msys64\\mingw64\\bin、CGO_ENABLED=1 与隔离 MySQL DSN",
+      "只在实际完成验收时关闭任务；缺 release/环境保持 gap"
+    ]
+  },
+  "runtimeSensitive": true,
+  "humanGates": [
+    "需求/范围偏好、门禁策略与豁免、最终视觉/功能验收按维护者三触点契约处理",
+    "生产窗口/外部凭据操作/正式发布/最终仓库基线替换需已有授权"
+  ],
+  "linkage": {
+    "taskManifest": ".harness/tasks/2026-11-25-ops-cmdb-asset-relation-views/manifest.json",
+    "taskDoc": "docs/harness/tasks/2026-11-25-ops-cmdb-asset-relation-views.task.md",
+    "evidenceDir": ".harness/evidence/2026-11-25-ops-cmdb-asset-relation-views/",
+    "reviewFile": ".harness/evidence/2026-11-25-ops-cmdb-asset-relation-views/review.md",
+    "summaryFile": ".harness/evidence/2026-11-25-ops-cmdb-asset-relation-views/summary.md",
+    "changeRef": "none",
+    "planRefs": [
+      ".harness/tasks/2026-11-20-ops-review-remediation/plan.md"
+    ]
+  },
+  "plannedReviewFile": ".harness/evidence/2026-11-25-ops-cmdb-asset-relation-views/review.md",
+  "evidenceRequired": [
+    "commands.json 含真实执行状态/cwd/源码及构建身份",
+    "summary.md 记录验收结果与 gap",
+    "review.md 为 findings-first 审查并含机器可读 linkage"
+  ],
+  "completionChecklist": [
+    "Layer and boundary declared",
+    "Contract anchors read",
+    "Verification run or exception recorded",
+    "Evidence saved or summarized",
+    "Review completed"
+  ],
+  "rollbackPlan": "回退本包可逆代码；不涉及数据迁移时无需数据回滚。",
+  "queueRef": "T21"
+}

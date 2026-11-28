@@ -34,6 +34,7 @@ import {
   type BizScopeDetail as BizScopeDetailType,
   type BizScopeHostRow,
 } from './api';
+import { getCatalogScopeSummary, type CatalogScopeSummary } from '../service/api';
 import '../../../assets/list-page.css';
 import '../cmdb/cmdb.css';
 
@@ -113,9 +114,13 @@ export default function BizScopeDetail() {
   );
   const [binding, setBinding] = useState(false);
   const [unbindingHostId, setUnbindingHostId] = useState<number | null>(null);
+  const [summary, setSummary] = useState<CatalogScopeSummary | null>(null);
+  const [summaryLoading, setSummaryLoading] = useState(false);
+  const [summaryError, setSummaryError] = useState<unknown>(null);
 
   const scopeId = id ? Number(id) : 0;
   const canUpdate = hasPerm('business:bizscope:update');
+  const canViewCatalog = hasPerm('business:service:list') || hasPerm('business:service:view');
 
   const loadHosts = useCallback(async () => {
     if (!scopeId) {
@@ -168,12 +173,56 @@ export default function BizScopeDetail() {
     }
   }, [scopeId]);
 
+  const loadSummary = useCallback(async () => {
+    if (!scopeId || !canViewCatalog) {
+      return;
+    }
+    setSummaryLoading(true);
+    setSummaryError(null);
+    try {
+      setSummary(await getCatalogScopeSummary(scopeId));
+    } catch (requestError) {
+      setSummaryError(requestError);
+      setSummary(null);
+    } finally {
+      setSummaryLoading(false);
+    }
+  }, [canViewCatalog, scopeId]);
+
   useEffect(() => {
     queueMicrotask(() => {
       void loadDetail();
       void loadHosts();
+      void loadSummary();
     });
-  }, [loadDetail, loadHosts]);
+  }, [loadDetail, loadHosts, loadSummary]);
+
+  const catalogTiles = useMemo(
+    () =>
+      summary
+        ? [
+            {
+              key: 'applications',
+              label: t('business.bizscope.catalogApplications'),
+              value: summary.applications,
+              to: '/business/service-catalog/applications',
+            },
+            {
+              key: 'services',
+              label: t('business.bizscope.catalogServices'),
+              value: summary.services,
+              to: '/business/service-catalog/services',
+            },
+            {
+              key: 'instances',
+              label: t('business.bizscope.catalogInstances'),
+              value: summary.instances,
+              to: '/business/service-catalog/instances',
+            },
+          ]
+        : [],
+    [summary, t],
+  );
 
   const openBindDrawer = useCallback(async () => {
     setBindDrawerVisible(true);
@@ -393,6 +442,38 @@ export default function BizScopeDetail() {
             ))}
           </div>
         </Card>
+        {canViewCatalog ? (
+          <Card className="page-panel">
+            <FormSection title={t('business.bizscope.catalogSummaryTitle')}>
+              {summaryLoading ? (
+                <PageLoading />
+              ) : summaryError ? (
+                <PageError
+                  description={t('business.bizscope.catalogSummaryFailed')}
+                  onRetry={() => void loadSummary()}
+                />
+              ) : (
+                <Space size={16} wrap>
+                  {catalogTiles.map((tile) => (
+                    <Button
+                      key={tile.key}
+                      className="page-panel"
+                      style={{ height: 'auto', padding: '12px 20px' }}
+                      onClick={() => navigate(tile.to)}
+                    >
+                      <Space direction="vertical" size={2}>
+                        <span style={{ color: 'var(--text-secondary)', fontSize: 12 }}>
+                          {tile.label}
+                        </span>
+                        <span style={{ fontSize: 22, fontWeight: 600 }}>{tile.value}</span>
+                      </Space>
+                    </Button>
+                  ))}
+                </Space>
+              )}
+            </FormSection>
+          </Card>
+        ) : null}
         <Card className="page-panel">
           <FormSection title={t('business.bizscope.summaryTitle')}>
             <Descriptions
