@@ -297,7 +297,9 @@ const generatedkoKRFallback = {
   "business.deploy.credential.secret": "시크릿",
   "business.deploy.credential.secretRotate": "시크릿 교체(비우면 유지)",
   "business.deploy.credential.secretRequired": "시크릿을 입력하세요",
-  "business.deploy.credential.secretHint": "암호화되어 저장되며 다시 표시되지 않습니다."
+  "business.deploy.credential.secretHint": "암호화되어 저장되며 다시 표시되지 않습니다.",
+  "business.deploy.task.executorType.unsupported": "실행 불가",
+  "business.deploy.task.executorTypeUnsupported": "이 실행 방식은 배포 작업에서 사용할 수 없습니다"
 };
 
 export default generatedkoKRFallback;

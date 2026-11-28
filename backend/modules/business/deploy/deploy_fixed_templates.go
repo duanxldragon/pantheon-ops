@@ -14,13 +14,32 @@ import (
 
 const pkgDirVar = "$PKG_DIR"
 
-func validateFixedTemplateDefinition(templateCode string) error {
-	switch strings.TrimSpace(templateCode) {
-	case "", TemplateCodeNginxSystemd, TemplateCodeMySQLSystemd, TemplateCodeRedisSystemd, TemplateCodeMinIOSystemd, TemplateCodeHarborOffline, TemplateCodeJDKSystemd, TemplateCodePrometheusSystemd:
-		return nil
-	default:
-		return errors.New("deploypackage.template_invalid")
+// fixedTemplateCodes lists every template code the deploy package accepts.
+// TestFixedTemplateAssetCoverage requires FixedTemplateAssets to describe all
+// of them, so a new template cannot ship without an install-asset decision.
+func fixedTemplateCodes() []string {
+	return []string{
+		TemplateCodeNginxSystemd,
+		TemplateCodeMySQLSystemd,
+		TemplateCodeRedisSystemd,
+		TemplateCodeMinIOSystemd,
+		TemplateCodeHarborOffline,
+		TemplateCodeJDKSystemd,
+		TemplateCodePrometheusSystemd,
 	}
+}
+
+func validateFixedTemplateDefinition(templateCode string) error {
+	code := strings.TrimSpace(templateCode)
+	if code == "" {
+		return nil
+	}
+	for _, known := range fixedTemplateCodes() {
+		if code == known {
+			return nil
+		}
+	}
+	return errors.New("deploypackage.template_invalid")
 }
 
 func validateFixedTemplateParams(templateCode string, templateParams map[string]any) error {

@@ -550,4 +550,39 @@ test.describe('Service business module smoke', () => {
       .toBe(true);
     await page.screenshot({ path: testInfo.outputPath('service-list-mobile.png') });
   });
+
+  test('the task create form does not offer the agent executor', async ({ page }, testInfo) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.route(/\/api\/v1\/business\/bizscope\/options(?:\?.*)?$/, async (route) => {
+      await route.fulfill({ json: { code: 200, data: [{ id: 41, name: 'catalog-scope', label: 'catalog-scope', value: 41 }] } });
+    });
+    await page.route(/\/api\/v1\/business\/cmdb\/(hosts|groups)(?:\?.*)?$/, async (route) => {
+      if (new URL(route.request().url()).pathname.endsWith('/groups')) {
+        await route.fulfill({ json: { code: 200, data: [] } });
+        return;
+      }
+      await route.fulfill({ json: { code: 200, data: { items: [], total: 0, page: 1, pageSize: 25 } } });
+    });
+    await page.route(/\/api\/v1\/business\/deploy\/(templates|packages|credentials|tasks)(?:\?.*)?$/, async (route) => {
+      const path = new URL(route.request().url()).pathname;
+      if (path.endsWith('/credentials')) {
+        await route.fulfill({ json: { code: 200, data: [] } });
+        return;
+      }
+      await route.fulfill({ json: { code: 200, data: { items: [], total: 0, page: 1, pageSize: 100 } } });
+    });
+
+    await page.goto('/business/deploy/task', { waitUntil: 'domcontentloaded' });
+    await page.getByRole('button', { name: '新增', exact: true }).click();
+    const dialog = page.getByRole('dialog');
+    await expect(dialog).toBeVisible();
+    const executorItem = dialog.locator('.arco-form-item').filter({ hasText: '执行方式' });
+    await executorItem.locator('.arco-select').click();
+    const options = page.locator('.arco-select-option:visible');
+    await expect(options.filter({ hasText: '手动执行' })).toBeVisible();
+    await expect(options.filter({ hasText: '模拟执行' })).toBeVisible();
+    await expect(options.filter({ hasText: 'SSH 执行' })).toBeVisible();
+    await expect(options.filter({ hasText: 'Agent 执行' })).toHaveCount(0);
+    await page.screenshot({ path: testInfo.outputPath('t22-executor-options-1440.png') });
+  });
 });

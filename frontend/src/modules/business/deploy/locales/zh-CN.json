@@ -484,5 +484,7 @@
   "business.deploy.credential.secret": "密钥",
   "business.deploy.credential.secretRotate": "轮换密钥（留空保持不变）",
   "business.deploy.credential.secretRequired": "请输入密钥",
-  "business.deploy.credential.secretHint": "密钥加密存储，保存后不可再查看。"
+  "business.deploy.credential.secretHint": "密钥加密存储，保存后不可再查看。",
+  "business.deploy.task.executorType.unsupported": "不可执行",
+  "business.deploy.task.executorTypeUnsupported": "部署任务暂不支持此执行方式"
 }

@@ -33,7 +33,7 @@ English version: [BUSINESS_DEPLOY_MODULE_DESIGN.en.md](./BUSINESS_DEPLOY_MODULE_
 
 - 维护可安装的软件组件。
 - 维护软件组件、任务模板和部署任务三层对象。
-- 维护固定模板任务和可编排任务两类模板定义。
+- 维护固定模板任务和可编排任务两类模板定义。`FixedTemplateAssets` 登记预置归档和需操作员自备包的模板。普通 Go 测试在干净源码树校验目录规则，包含缺包反例。打包阶段从交付资产目录准备 Linux amd64 归档，设置 `PANTHEON_DEPLOY_ASSET_DIR` 指向该目录并执行 `npm run check:deploy-assets`。未显式配置时读取 `files/amd64`。该检查缺少目录或预置归档时失败。预置归档随部署制品交付，自备包由操作员准备。
 - 基于业务域下的 CMDB 主机或分组创建部署任务。
 - 记录任务和每台目标主机的执行状态。
 - 记录任务和每台目标主机的执行过程步骤。
@@ -155,7 +155,7 @@ Deploy 允许消费的最小能力面建议固定为：
 
 ### 5.3 Provider 与编排
 
-- V1 注册 `manual`、`simulated`、`ssh` provider；Agent、Kubernetes、API 保持未注册扩展点。
+- V1 注册 `manual`、`simulated`、`ssh` provider；Agent、Kubernetes、API 保持未注册扩展点。2026-11-26 起 `agent` 在创建、更新与启动三条路径显式拒绝（`business.deploy.task.executorTypeUnsupported`）；存量 `executor_type=agent` 行只读展示并标注“不可执行”，不会被迁移改写。
 - SSH provider 独占拨号、host-key 校验、文件传输、命令执行和取消；业务 Service 不直接调用 SSH。
 - Start 前持久化并校验 DAG，拒绝环和缺失依赖。
 - condition：`always`、`on_success`、`on_failure`、`param_equals`。

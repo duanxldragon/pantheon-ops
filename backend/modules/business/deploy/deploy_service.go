@@ -111,6 +111,7 @@ var (
 const (
 	errDeployTaskTemplateParamsInvalid    = "business.deploy.task.templateParamsInvalid"
 	errDeployTaskTemplateInvalid          = "business.deploy.task.templateInvalid"
+	errDeployExecutorTypeUnsupported      = "business.deploy.task.executorTypeUnsupported"
 	errDeployTaskTemplateNotFound         = "business.deploy.task.templateNotFound"
 	errDeployTaskTemplateDisabled         = "business.deploy.task.templateDisabled"
 	errDeployTaskInstallCommandRequired   = "business.deploy.task.installCommandRequired"
@@ -553,6 +554,9 @@ func validateCreateTaskRequest(req *CreateTaskRequest) ([]uint64, error) {
 	}
 	if req.ExecutorType == "" {
 		req.ExecutorType = ExecutorTypeManual
+	}
+	if req.ExecutorType == ExecutorTypeAgent {
+		return nil, errors.New(errDeployExecutorTypeUnsupported)
 	}
 	if !validExecutorType(req.ExecutorType) {
 		return nil, errors.New("business.deploy.task.invalidExecutorType")
@@ -1002,6 +1006,9 @@ func applyTaskTargetOverride(values *taskUpdateValues, req UpdateTaskRequest) er
 		}
 	}
 	if req.ExecutorType != nil {
+		if *req.ExecutorType == ExecutorTypeAgent {
+			return errors.New(errDeployExecutorTypeUnsupported)
+		}
 		if !validExecutorType(*req.ExecutorType) {
 			return errors.New("business.deploy.task.invalidExecutorType")
 		}
@@ -1254,6 +1261,12 @@ func (s *DeployService) StartTaskContext(ctx context.Context, id uint64, req Sta
 	}
 	if err := validateRetireTaskIntent(*task); err != nil {
 		return nil, err
+	}
+	// Legacy rows may still carry the agent type; reading and updating them is
+	// allowed, but nothing dispatches that executor, so starting one would only
+	// leave a task stuck in running.
+	if task.ExecutorType == ExecutorTypeAgent {
+		return nil, errors.New(errDeployExecutorTypeUnsupported)
 	}
 	if task.ExecutorType == ExecutorTypeSSH {
 		resolvedReq, version, err := reads.prepareStartCredential(req, *task, dataScope == nil || dataScope.IsAdmin)
@@ -3353,8 +3366,11 @@ func validTargetType(targetType string) bool {
 	return targetType == TargetTypeHost || targetType == TargetTypeGroup
 }
 
+// validExecutorType accepts only executors with a real dispatch path. Agent
+// stays as a legacy constant for stored rows; it is rejected on create, update
+// and start because no agent protocol is implemented.
 func validExecutorType(executorType string) bool {
-	return executorType == ExecutorTypeManual || executorType == ExecutorTypeSimulated || executorType == ExecutorTypeAgent || executorType == ExecutorTypeSSH
+	return executorType == ExecutorTypeManual || executorType == ExecutorTypeSimulated || executorType == ExecutorTypeSSH
 }
 
 func deployHostLeaseOwner(taskID uint64) string {

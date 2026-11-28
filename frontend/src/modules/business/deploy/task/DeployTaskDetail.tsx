@@ -349,7 +349,15 @@ function buildTaskProfileItems(task: DeployTaskRow, t: TFunction) {
     { label: t('business.deploy.task.businessScope'), value: task.businessScopeName || '-' },
     {
       label: t('business.deploy.task.executorType'),
-      value: t(`business.deploy.task.executorType.${task.executorType}`),
+      value:
+        task.executorType === 'agent' ? (
+          <Space size={4}>
+            <span>{t('business.deploy.task.executorType.agent')}</span>
+            <Tag color="orangered">{t('business.deploy.task.executorType.unsupported')}</Tag>
+          </Space>
+        ) : (
+          t(`business.deploy.task.executorType.${task.executorType}`)
+        ),
     },
     { label: t('business.deploy.task.externalTaskId'), value: task.externalTaskId || '-' },
   ];

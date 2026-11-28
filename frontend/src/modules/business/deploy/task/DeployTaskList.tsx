@@ -921,7 +921,15 @@ function buildTaskColumns({
       title: t('business.deploy.task.executorType'),
       dataIndex: 'executorType',
       width: 120,
-      render: (_: unknown, row) => t(`business.deploy.task.executorType.${row.executorType}`),
+      render: (_: unknown, row) =>
+        row.executorType === 'agent' ? (
+          <Space size={4}>
+            <span>{t('business.deploy.task.executorType.agent')}</span>
+            <Tag color="orangered">{t('business.deploy.task.executorType.unsupported')}</Tag>
+          </Space>
+        ) : (
+          t(`business.deploy.task.executorType.${row.executorType}`)
+        ),
     },
     {
       title: t('business.deploy.task.status'),
@@ -1422,7 +1430,6 @@ function DeployTaskFormModal({
           <Select disabled={executorTypeDisabled}>
             <Select.Option value="manual">{t('business.deploy.task.executorType.manual')}</Select.Option>
             <Select.Option value="simulated">{t('business.deploy.task.executorType.simulated')}</Select.Option>
-            <Select.Option value="agent">{t('business.deploy.task.executorType.agent')}</Select.Option>
             <Select.Option value="ssh">{t('business.deploy.task.executorType.ssh')}</Select.Option>
           </Select>
         </Form.Item>

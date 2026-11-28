@@ -8,6 +8,7 @@
     "check:docs-frontmatter:legacy": "node scripts/frontmatter-check.mjs --report-legacy",
     "check:duplication": "node scripts/check-duplication.mjs",
     "check:release-assets": "node scripts/foundation-release/check-release-assets.mjs",
+    "check:deploy-assets": "cd backend && go test -count=1 -v -run TestFixedTemplateAsset ./modules/business/deploy/ -args -require-deploy-assets",
     "check:github-feedback": "node scripts/fetch-github-feedback.mjs --check",
     "check:pr-governance": "node scripts/check-pr-governance.mjs",
     "check:checker-wiring": "node scripts/harness/check-checker-wiring.mjs --root .",

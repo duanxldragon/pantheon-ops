@@ -297,7 +297,9 @@ const generatedfrFRFallback = {
   "business.deploy.credential.secret": "Secret",
   "business.deploy.credential.secretRotate": "Renouveler le secret (vide = inchangé)",
   "business.deploy.credential.secretRequired": "Saisissez le secret",
-  "business.deploy.credential.secretHint": "Stocké chiffré et jamais réaffiché."
+  "business.deploy.credential.secretHint": "Stocké chiffré et jamais réaffiché.",
+  "business.deploy.task.executorType.unsupported": "Non exécutable",
+  "business.deploy.task.executorTypeUnsupported": "Cet exécuteur est indisponible pour les tâches de déploiement"
 };
 
 export default generatedfrFRFallback;
