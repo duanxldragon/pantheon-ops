@@ -484,5 +484,7 @@
   "business.deploy.credential.secret": "Secret",
   "business.deploy.credential.secretRotate": "Rotate secret (leave blank to keep)",
   "business.deploy.credential.secretRequired": "Enter the secret",
-  "business.deploy.credential.secretHint": "Stored encrypted and never shown again."
+  "business.deploy.credential.secretHint": "Stored encrypted and never shown again.",
+  "business.deploy.task.executorType.unsupported": "Not executable",
+  "business.deploy.task.executorTypeUnsupported": "This executor is unavailable for deployment tasks"
 }

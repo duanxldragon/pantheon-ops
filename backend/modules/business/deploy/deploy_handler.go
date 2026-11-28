@@ -669,6 +669,7 @@ func deployTaskValidationError(err error) bool {
 		"business.deploy.task.invalidTargetType",
 		"business.deploy.task.targetOutOfScope",
 		"business.deploy.task.invalidExecutorType",
+		errDeployExecutorTypeUnsupported,
 		"business.deploy.task.invalidAction",
 		"business.deploy.task.targetStatusMismatch",
 		errDeployTaskTemplateNotFound,

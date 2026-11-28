@@ -1801,7 +1801,9 @@ const generatedenUSFallback = {
   "k8s.service.resource_version_required": "The Service identity or resource version is incomplete. Refresh the list and try again.",
   "k8s.service.update_failed": "Failed to update the Kubernetes Service",
   "k8s.service.audit.update": "Update Kubernetes Service",
-  "k8s.namespace.binding_invalid": "The namespace binding does not match the cluster business scope or environment."
+  "k8s.namespace.binding_invalid": "The namespace binding does not match the cluster business scope or environment.",
+  "business.deploy.task.executorType.unsupported": "Not executable",
+  "business.deploy.task.executorTypeUnsupported": "This executor is unavailable for deployment tasks"
 };
 
 export default generatedenUSFallback;

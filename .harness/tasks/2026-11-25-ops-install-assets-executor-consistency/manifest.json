@@ -1,0 +1,188 @@
+{
+  "schemaVersion": 1,
+  "taskId": "2026-11-25-ops-install-assets-executor-consistency",
+  "title": "T22 安装资产、固定模板与执行器一致性交付",
+  "goal": "消除“声明了但不可用”的安装能力：固定模板与 files/amd64 预置包建立机械一致性检查；Agent 执行器在无协议时前后端同时禁用；Helm 仅快照的口径在 UI 与文档中明示。",
+  "primaryLayer": "business/*",
+  "status": "in-progress",
+  "priority": "P1",
+  "deliveryTier": "L2",
+  "parentTask": "2026-11-20-ops-review-remediation",
+  "taskDoc": "docs/harness/tasks/2026-11-25-ops-install-assets-executor-consistency.task.md",
+  "handoffDoc": ".harness/tasks/2026-11-25-ops-install-assets-executor-consistency/HANDOFF.md",
+  "statusDoc": ".harness/tasks/2026-11-25-ops-install-assets-executor-consistency/STATUS.md",
+  "owner": "安装部署负责人",
+  "activation": "core",
+  "dependencies": [],
+  "dependsOn": [],
+  "conditionalDependencies": [],
+  "coordinatesWith": [
+    "2026-11-20-ops-review-delivery-and-closeout",
+    "2026-11-20-ops-deploy-template-and-task-experience"
+  ],
+  "scope": {
+    "in": [
+      "新增检查：每个固定模板声明的安装包必须有预置包或显式标注“需自备包”，缺失则门禁失败或警示",
+      "Agent 执行器：validExecutorType 与前端选项一并收敛，无调度分支时不可创建",
+      "Helm 页面与文档明示“登记快照，不执行安装”",
+      "jdk_systemd 已实机；nginx_systemd 等延后项在本包登记 fresh-install 前置而不重复验收"
+    ],
+    "out": [
+      "补齐 MySQL/MinIO/Harbor 安装包本身",
+      "Agent 协议实现",
+      "Helm 真实 Chart 安装",
+      "全新安装/升级/回滚收口（归 T17）"
+    ]
+  },
+  "dependencyLayers": [
+    "business/*",
+    "inheritance-sync"
+  ],
+  "baseline": {
+    "reportCommit": "444ce8e",
+    "planningCommit": "be762441",
+    "foundationVersion": "pantheon-base-v0.18.9",
+    "foundationCommit": "6316f9b7189c86542424145fa49344ad737e952b",
+    "recheckBeforeImplementation": true
+  },
+  "sourceReview": "docs/reviews/pantheon-ops独立评审与外部报告核实-2026-11-20.md",
+  "sourceChecklist": "docs/reviews/pantheon-ops真实环境验证清单-2026-11-20.md",
+  "findingRefs": [
+    "DEP-004",
+    "NEW-03"
+  ],
+  "sourceRefs": [
+    {
+      "path": "docs/reviews/pantheon-ops独立评审与外部报告核实-2026-11-20.md",
+      "line": 84
+    }
+  ],
+  "expectedFiles": {
+    "create": [
+      "docs/harness/tasks/2026-11-25-ops-install-assets-executor-consistency.task.md",
+      ".harness/tasks/2026-11-25-ops-install-assets-executor-consistency/manifest.json",
+      ".harness/tasks/2026-11-25-ops-install-assets-executor-consistency/HANDOFF.md",
+      ".harness/tasks/2026-11-25-ops-install-assets-executor-consistency/STATUS.md"
+    ],
+    "modify": [
+      "backend/modules/business/deploy/**",
+      "backend/modules/business/k8s/helm/**",
+      "frontend/src/modules/business/deploy/**",
+      "scripts/**",
+      "docs/designs/BUSINESS_DEPLOY_MODULE_DESIGN.md"
+    ],
+    "doNotTouch": [
+      "backend/modules/system/**",
+      "backend/internal/**",
+      "frontend/src/core/**",
+      "frontend/src/api/request.ts",
+      "既有归档原始证据与其他执行者未提交改动"
+    ]
+  },
+  "contractAnchors": [
+    "AGENTS.md",
+    "docs/PROJECT_INHERITANCE.md",
+    "docs/TASK_PACKET_OPS_TEMPLATE.md",
+    "docs/contracts/TENANT_CONTRACT_V1.md",
+    "docs/reviews/pantheon-ops独立评审与外部报告核实-2026-11-20.md",
+    "docs/reviews/pantheon-ops真实环境验证清单-2026-11-20.md",
+    "business-overlay.json",
+    "foundation-release.lock.json"
+  ],
+  "harnessProfile": {
+    "template": "custom",
+    "overlay": "pantheon-ops",
+    "qualityProfile": "runtime-quality",
+    "portableFailureClass": "business-review-gap",
+    "ownerLayer": "business/*",
+    "coverageDimensions": [
+      "behaviour",
+      "architecture-fitness",
+      "runtime-quality"
+    ]
+  },
+  "structuralScope": {
+    "affectedSubgraph": [
+      "安装包、模板与执行器能力一致性"
+    ],
+    "boundaryCrossings": [
+      "business/* -> pkg公共契约"
+    ],
+    "riskNodes": [
+      "DEP-004",
+      "NEW-03"
+    ],
+    "graphFocus": [
+      "call-depth"
+    ]
+  },
+  "implementationNotes": [
+    "Minimal Complexity Rung: reuse",
+    "2026-11-25 站在用户主路径复核后新增；复用既有后端实现，只补缺口与证据。",
+    "接口/权限/i18n/overlay 同步关闭；未达验收保持 gap。",
+    "2026-11-26 完成：FixedTemplateAssets 资产目录 + npm run check:deploy-assets 门禁与缺包反例；agent 在创建/更新/启动三路拒绝且存量行只读；前端移除 Agent 选项并标注存量行不可执行；设计文档同步。Helm 无 UI 页面，口径保留在包注释与 K8s 设计文档。"
+  ],
+  "implementationPlan": [
+    "S1 一致性检查脚本：读取 deploy_fixed_templates.go 的模板与包名约定，对照 files/amd64，缺包且无“需自备包”标记则失败；新增 npm 脚本并给缺包反例的单元测试",
+    "S2 模板元数据：为 MySQL/MinIO/Harbor 等无预置包的模板增加“需自备包”显式标记，UI 选择包时提示，不让用户走到执行阶段才失败",
+    "S3 Agent 执行器：validExecutorType 去掉 agent（或保留但创建期拒绝并返回明确错误键），前端 executorType 联合类型与选项同步收敛；补创建/更新/导入三条入口的回归测试，注意 deploy_service.go 的更新与导入路径也要覆盖",
+    "S4 存量数据：已存在 executor_type=agent 的任务行不得被误改，只读展示并标注不可执行；补迁移或读取兼容测试",
+    "S5 Helm 口径：k8s Helm 页面与 BUSINESS_DEPLOY/K8S 设计文档明示“登记快照，不执行安装”，与 helm.go 包注释一致",
+    "S6 登记延后项：nginx_systemd 等需 fresh-install 环境的验证明确挂到 T17，不在本包重复",
+    "S7 证据：go test deploy/helm；check-boundaries --strict；脚本反例输出"
+  ],
+  "acceptanceCriteria": [
+    "一致性检查接入 npm 脚本或门禁，并有缺包反例测试",
+    "agent 类型在 API 与 UI 均被拒绝或隐藏，含回归测试",
+    "Helm 口径在 UI/文档可见",
+    "无新增对 base 或 system 域的改动"
+  ],
+  "verificationPlan": {
+    "commands": [
+      "go test -count=1 ./modules/business/deploy/... ./modules/business/k8s/helm/...",
+      "node scripts/harness/check-boundaries.mjs --strict"
+    ],
+    "runtimeEvidence": [
+      "渲染证据（1440px/390px）与同候选测试输出"
+    ],
+    "commandWorkingDirectories": {
+      "go test -count=1 ./modules/business/deploy/... ./modules/business/k8s/helm/...": "backend",
+      "node scripts/harness/check-boundaries.mjs --strict": "."
+    },
+    "environmentRequirements": [
+      "在 backend/ 执行 Go 命令；race 使用 D:\\msys64\\mingw64\\bin、CGO_ENABLED=1 与隔离 MySQL DSN",
+      "只在实际完成验收时关闭任务；缺 release/环境保持 gap"
+    ]
+  },
+  "runtimeSensitive": true,
+  "humanGates": [
+    "需求/范围偏好、门禁策略与豁免、最终视觉/功能验收按维护者三触点契约处理",
+    "生产窗口/外部凭据操作/正式发布/最终仓库基线替换需已有授权"
+  ],
+  "linkage": {
+    "taskManifest": ".harness/tasks/2026-11-25-ops-install-assets-executor-consistency/manifest.json",
+    "taskDoc": "docs/harness/tasks/2026-11-25-ops-install-assets-executor-consistency.task.md",
+    "evidenceDir": ".harness/evidence/2026-11-25-ops-install-assets-executor-consistency/",
+    "reviewFile": ".harness/evidence/2026-11-25-ops-install-assets-executor-consistency/review.md",
+    "summaryFile": ".harness/evidence/2026-11-25-ops-install-assets-executor-consistency/summary.md",
+    "changeRef": "none",
+    "planRefs": [
+      ".harness/tasks/2026-11-20-ops-review-remediation/plan.md"
+    ]
+  },
+  "plannedReviewFile": ".harness/evidence/2026-11-25-ops-install-assets-executor-consistency/review.md",
+  "evidenceRequired": [
+    "commands.json 含真实执行状态/cwd/源码及构建身份",
+    "summary.md 记录验收结果与 gap",
+    "review.md 为 findings-first 审查并含机器可读 linkage"
+  ],
+  "completionChecklist": [
+    "Layer and boundary declared",
+    "Contract anchors read",
+    "Verification run or exception recorded",
+    "Evidence saved or summarized",
+    "Review completed"
+  ],
+  "rollbackPlan": "回退本包可逆代码；不涉及数据迁移时无需数据回滚。",
+  "queueRef": "T22"
+}

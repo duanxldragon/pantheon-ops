@@ -297,7 +297,9 @@ const generatedjaJPFallback = {
   "business.deploy.credential.secret": "シークレット",
   "business.deploy.credential.secretRotate": "シークレット更新（空欄なら維持）",
   "business.deploy.credential.secretRequired": "シークレットを入力してください",
-  "business.deploy.credential.secretHint": "暗号化して保存され、再表示されません。"
+  "business.deploy.credential.secretHint": "暗号化して保存され、再表示されません。",
+  "business.deploy.task.executorType.unsupported": "実行不可",
+  "business.deploy.task.executorTypeUnsupported": "この実行方式はデプロイタスクでは利用できません"
 };
 
 export default generatedjaJPFallback;

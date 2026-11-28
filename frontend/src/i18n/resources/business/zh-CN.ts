@@ -1801,7 +1801,9 @@ const generatedzhCNFallback = {
   "k8s.service.resource_version_required": "服务标识或资源版本不完整，请刷新列表后重试。",
   "k8s.service.update_failed": "Kubernetes Service 更新失败",
   "k8s.service.audit.update": "更新 Kubernetes Service",
-  "k8s.namespace.binding_invalid": "命名空间绑定与集群的业务域或环境不匹配。"
+  "k8s.namespace.binding_invalid": "命名空间绑定与集群的业务域或环境不匹配。",
+  "business.deploy.task.executorType.unsupported": "不可执行",
+  "business.deploy.task.executorTypeUnsupported": "部署任务暂不支持此执行方式"
 };
 
 export default generatedzhCNFallback;

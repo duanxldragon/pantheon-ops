@@ -1,0 +1,143 @@
+{
+  "schemaVersion": 1,
+  "taskId": "2026-11-25-ops-install-assets-executor-consistency",
+  "repo": "pantheon-ops",
+  "evidenceState": "exercised",
+  "agent": {
+    "tool": "other",
+    "adapter": "windows"
+  },
+  "candidate": {
+    "head": "18d7f08a",
+    "worktree": "uncommitted T22 changes on branch feature/ops-t20-service-instance-deploy-entry",
+    "foundation": "pantheon-base-v0.19.0",
+    "foundationCommit": "cc2fe7370a98c2862e2610d79880012971cf57f5"
+  },
+  "environment": {
+    "backend": "go run ./cmd/server on http://127.0.0.1:8080 (health 200)",
+    "database": "local MySQL (pantheon_ops) + Redis; Go tests use PANTHEON_TEST_DSN with throwaway databases",
+    "frontend": "Vite smoke server via scripts/run-smoke-suite.mjs on http://127.0.0.1:5173"
+  },
+  "commands": [
+    {
+      "command": "go build ./...",
+      "cwd": "backend",
+      "status": "passed",
+      "exitCode": 0,
+      "notes": "After the fixed-template asset catalog, the agent rejection and the start guard."
+    },
+    {
+      "command": "npm run check:deploy-assets",
+      "cwd": ".",
+      "status": "passed",
+      "exitCode": 0,
+      "notes": "Runs TestFixedTemplateAssetCoverage and TestFixedTemplateAssetCoverageReportsMissingPackage. The real catalog is checked against files/amd64 (nginx/redis/jdk/bisheng-jdk/prometheus backed; mysql/minio/harbor explicitly marked NeedsOwnPackage) and the counterexample proves a declared preset with no archive is reported."
+    },
+    {
+      "command": "go test -count=1 -timeout 300s -run 'TestFixedTemplateAsset|TestCreateTaskRejectsAgent|TestUpdateTaskRejectsAgent|TestLegacyAgentTask' ./modules/business/deploy/",
+      "cwd": "backend",
+      "status": "passed",
+      "exitCode": 0,
+      "notes": "5 tests: asset coverage, missing-package counterexample, create rejects agent, update rejects agent, legacy agent row stays readable/renamable but StartTask returns business.deploy.task.executorTypeUnsupported."
+    },
+    {
+      "command": "go test -count=1 -timeout 600s ./modules/business/k8s/helm/",
+      "cwd": "backend",
+      "status": "passed",
+      "exitCode": 0,
+      "notes": "Helm package unchanged and still green (snapshot-only registration contract)."
+    },
+    {
+      "command": "go test -count=1 -timeout 600s -run 'TestDeployTaskExecutor|TestCreateTask|TestDeployTaskImport' ./modules/business/deploy/",
+      "cwd": "backend",
+      "status": "passed",
+      "exitCode": 0,
+      "notes": "Existing create/import/executor tests still pass with agent removed from validExecutorType."
+    },
+    {
+      "command": "./node_modules/.bin/tsc -b",
+      "cwd": "frontend",
+      "status": "passed",
+      "exitCode": 0,
+      "notes": "Type-check after removing the agent option and adding the legacy 'not executable' tag render."
+    },
+    {
+      "command": "./node_modules/.bin/eslint src/modules/business/deploy/task/DeployTaskList.tsx src/modules/business/deploy/task/DeployTaskDetail.tsx",
+      "cwd": "frontend",
+      "status": "passed",
+      "exitCode": 0,
+      "notes": "0 errors, 0 warnings."
+    },
+    {
+      "command": "cmd //c \"npm run build\"",
+      "cwd": "frontend",
+      "status": "passed",
+      "exitCode": 0,
+      "notes": "All prebuild contract gates passed with the new executorType.unsupported key in five locales."
+    },
+    {
+      "command": "node scripts/run-smoke-suite.mjs --host 127.0.0.1 --port 5173 --config playwright.config.ts -- tests/smoke/business/service/service-pages.spec.ts -g \"does not offer the agent executor\" --workers=1",
+      "cwd": "frontend",
+      "status": "passed",
+      "exitCode": 0,
+      "notes": "Opens the real create dialog: 执行方式 offers 手动执行/模拟执行/SSH 执行 and no Agent 执行 option. Screenshot t22-executor-options-1440.png."
+    },
+    {
+      "command": "node scripts/run-smoke-suite.mjs --host 127.0.0.1 --port 5173 --config playwright.config.ts -- tests/smoke/business/deploy/deploy-api.spec.ts --workers=1",
+      "cwd": "frontend",
+      "status": "passed",
+      "exitCode": 0,
+      "notes": "5 passed (3.5s); the API smoke still creates/starts manual tasks after the executor change."
+    },
+    {
+      "command": "node scripts/run-smoke-suite.mjs --host 127.0.0.1 --port 5173 --config playwright.config.ts -- tests/smoke/business/deploy/deploy-pages.spec.ts --workers=1",
+      "cwd": "frontend",
+      "status": "failed",
+      "exitCode": 1,
+      "notes": "9 passed / 1 failed. The failing case is the pre-existing route-content-fallback race ('.page-container resolved to 2 elements'), which also flakes in T20 and passes in isolation; unrelated to this diff."
+    },
+    {
+      "command": "Local Windows closeout smoke and package checks",
+      "cwd": ".",
+      "exitCode": 0,
+      "status": "passed",
+      "notes": "4 deploy API cases, 1 executor browser smoke, local archive gate and missing-directory negative."
+    },
+    {
+      "command": "go test -race ./...",
+      "cwd": "backend",
+      "exitCode": 0,
+      "status": "passed",
+      "notes": "Windows MinGW CGO, isolated UTC MySQL and Redis, serial run."
+    }
+  ],
+  "screenshots": [
+    ".harness/evidence/2026-11-25-ops-install-assets-executor-consistency/screenshots/t22-executor-options-1440.png"
+  ],
+  "notRun": [
+    {
+      "command": "go test -count=1 ./modules/business/deploy/...",
+      "reason": "The whole deploy package exceeds the default 10 minute timeout (recorded in T20 STATUS); targeted deploy tests were run instead."
+    }
+  ],
+  "knownGaps": [
+    "There is no Helm UI page in this repository; the snapshot-only wording lives in the helm package comment and the K8s design doc (which already stated it), so the UI half of S5 has no surface to change.",
+    "nginx_systemd/redis_systemd/prometheus_systemd fresh-install verification stays with T17; this package only registers them as prerequisites.",
+    "The asset check matches archive name prefixes, not hashes; a wrong but similarly named archive still satisfies it.",
+    "MySQL/MinIO/Harbor templates stay selectable with the needs-own-package flag; the operator still has to upload an archive, and the UI does not pre-flight the archive name."
+  ],
+  "linkage": {
+    "taskManifest": ".harness/tasks/2026-11-25-ops-install-assets-executor-consistency/manifest.json",
+    "taskPacket": "docs/harness/tasks/2026-11-25-ops-install-assets-executor-consistency.task.md",
+    "evidenceDir": ".harness/evidence/2026-11-25-ops-install-assets-executor-consistency/",
+    "reviewFile": ".harness/evidence/2026-11-25-ops-install-assets-executor-consistency/review.md",
+    "changeRef": "none",
+    "planRefs": [
+      ".harness/tasks/2026-11-20-ops-review-remediation/plan.md"
+    ]
+  },
+  "verifiedWindowsRace": {
+    "candidateProductTree": "2a7ec524939b4cc7e393e1fbcb27b412d5d1dcb7",
+    "receipt": ".harness/evidence/2026-11-25-ops-install-assets-executor-consistency/windows-cgo-race-20261128.json"
+  }
+}

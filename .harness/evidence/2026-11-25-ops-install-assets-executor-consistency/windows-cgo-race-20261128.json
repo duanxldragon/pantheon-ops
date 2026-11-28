@@ -1,0 +1,19 @@
+{
+  "tree": "2a7ec524939b4cc7e393e1fbcb27b412d5d1dcb7",
+  "exitCode": 0,
+  "elapsedSeconds": 1259,
+  "packages": {
+    "pass": 78,
+    "skip": 15
+  },
+  "failedTests": [],
+  "logSha256": "1f376db578c5b2279779001438638e996d6e0f0ed17d23bed4706438c32f4abc",
+  "mysqlTimezone": "+00:00",
+  "isolatedFixtures": true,
+  "mysqlDurability": "disposable instance, redo and doublewrite disabled, no production workload",
+  "command": "go test -race ./...",
+  "cwd": "backend",
+  "cgoEnabled": true,
+  "goFlags": "-p=2 -timeout=60m -json",
+  "compilerPath": "D:/msys64/mingw64/bin"
+}

@@ -147,6 +147,7 @@ business.<module>.<resource>.<reason>
 | `business.deploy.task.targetOutOfScope`         | 目标不在当前数据范围内                                                                                             |
 | `business.deploy.task.serviceLinkInvalid`       | 关联部署必须指定同一业务域中有效的服务与实例，且与唯一实际主机匹配；缺失 owner、单字段关联或 Kubernetes 错配均拒绝 |
 | `business.deploy.task.invalidExecutorType`      | 执行方式无效                                                                                                       |
+| `business.deploy.task.executorTypeUnsupported` | 部署任务暂不支持此执行方式 |
 | `business.deploy.task.invalidAction`            | 任务动作无效                                                                                                       |
 | `business.deploy.task.targetStatusMismatch`     | 目标当前状态不支持所选动作                                                                                         |
 | `business.deploy.task.templateNotFound`         | 任务引用的模板不存在                                                                                               |
